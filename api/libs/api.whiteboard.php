@@ -478,7 +478,9 @@ class WhiteBoard {
             $rows = wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Priority'), '', 'row2');
-            $cells.= wf_TableCell($this->priorities[$recordData['priority']]);
+            $fc = wf_tag('font', false, '', 'color="#' . $this->prioColors[$recordData['priority']] . '"');
+            $fe = wf_tag('font', true);
+            $cells.= wf_TableCell($fc . $this->priorities[$recordData['priority']] . $fe);
             $rows.= wf_TableRow($cells, 'row3');
 
 
