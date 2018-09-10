@@ -2507,6 +2507,70 @@ function wf_nbsp($count = 1) {
 }
 
 /**
+ * Sorting array of arrays by some field in ascending or descending order
+ * Returns sorted array
+ *
+ * @param $data      - array to sort
+ * @param $field     - field to sort by
+ * @param bool $desc - sorting order
+ *
+ * Source code: https://www.the-art-of-web.com/php/sortarray/#section_8
+ *
+ * @return mixed
+ */
+function wf_sortArray($data, $field, $desc = false) {
+    if(!is_array($field)) { $field = array($field); }
+
+    usort($data, function($a, $b) use($field, $desc) {
+        $retval = 0;
+
+        foreach($field as $fieldname) {
+            if ($desc) {
+                if ($retval == 0) $retval = strnatcmp($b[$fieldname], $a[$fieldname]);
+            } else {
+                if ($retval == 0) $retval = strnatcmp($a[$fieldname], $b[$fieldname]);
+            }
+        }
+
+        return $retval;
+    });
+
+    return $data;
+}
+
+/**
+ * Returns JS onElementInserted() func which allow to make any actions for
+ * dynamically created objects right after the moment of it's creation
+ *
+ * Source code: https://stackoverflow.com/a/38517525
+ *
+ * @return string
+ */
+function wf_JSElemInsertedCatcherFunc() {
+    $Result = '
+                function onElementInserted(containerSelector, elementSelector, callback) {
+                    var onMutationsObserved = function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.addedNodes.length) {
+                                var elements = $(mutation.addedNodes).find(elementSelector);
+                                for (var i = 0, len = elements.length; i < len; i++) {
+                                    callback(elements[i]);
+                                }
+                            }
+                        });
+                    };
+                
+                    var target = $(containerSelector)[0];
+                    var config = { childList: true, subtree: true };
+                    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+                    var observer = new MutationObserver(onMutationsObserved);    
+                    observer.observe(target, config);                    
+                }
+             ';
+
+    return $Result;
+}
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {

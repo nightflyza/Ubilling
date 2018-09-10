@@ -665,18 +665,30 @@ class WifiCPE {
                         $APPollDTContainerID = 'APSignalPollDT_' . $CtrlID;
                         $APSignalControls = $this->getAPCPESignalControls($cpeData['mac'], '#' . $APSignalContainerID, '#' . $APPollDTContainerID, $cpeData['uplinkapid']);
 
-                        $LastPollDateAP = $APSignalControls['LastPollDate'];
-                        $SignalLevelLabelAP = $APSignalControls['SignalLevelLabel'];
-                        $RefreshButtonAP = $APSignalControls['RefreshButton'];
+                        if ( empty($APSignalControls) ) {
+                            $LastPollDateAP = '';
+                            $SignalLevelLabelAP = '';
+                            $RefreshButtonAP = '';
+                        } else {
+                            $LastPollDateAP = $APSignalControls['LastPollDate'];
+                            $SignalLevelLabelAP = $APSignalControls['SignalLevelLabel'];
+                            $RefreshButtonAP = $APSignalControls['RefreshButton'];
+                        }
 
 
                         $CPESignalContainerID = 'CPESignal_' . $CtrlID;
                         $CPEPollDTContainerID = 'CPESignalPollDT_' . $CtrlID;
                         $CPESignalControls = $this->getAPCPESignalControls($cpeData['mac'], '#' . $CPESignalContainerID, '#' . $CPEPollDTContainerID, 0, $cpeData['ip'], $cpeData['snmp']);
 
-                        $LastPollDateCPE = $CPESignalControls['LastPollDate'];
-                        $SignalLevelLabelCPE = $CPESignalControls['SignalLevelLabel'];
-                        $RefreshButtonCPE = $CPESignalControls['RefreshButton'];
+                        if ( empty($CPESignalControls) ) {
+                            $LastPollDateCPE = '';
+                            $SignalLevelLabelCPE = '';
+                            $RefreshButtonCPE = '';
+                        } else {
+                            $LastPollDateCPE = $CPESignalControls['LastPollDate'];
+                            $SignalLevelLabelCPE = $CPESignalControls['SignalLevelLabel'];
+                            $RefreshButtonCPE = $CPESignalControls['RefreshButton'];
+                        }
 
                         $cells = wf_TableCell(__('Signal level on AP'), '20%', 'row2');
                         $cells .= wf_TableCell($SignalLevelLabelAP, '55%', '', 'id="' . $APSignalContainerID . '"');
@@ -1144,7 +1156,10 @@ class WifiCPE {
                     if ($this->SigmonEnabled) {
                         $SigMon = new MTsigmon();
                         $CtrlID = wf_InputId();
-                        $APID = ( empty($this->allAP) OR empty($assignedCpeData['uplinkapid']) ) ? 0 : $this->allAP[$assignedCpeData['uplinkapid']]['id'];
+
+                        if ( !empty($this->allAP) and !empty($assignedCpeData['uplinkapid']) and !empty($this->allAP[$assignedCpeData['uplinkapid']]) ) {
+                            $APID = $this->allAP[$assignedCpeData['uplinkapid']]['id'];
+                        } else { $APID = 0; }
 
                         $APSignalContainerID = 'APSignal_' . $CtrlID;
                         $APPollDTContainerID = 'APSignalPollDT_' . $CtrlID;
