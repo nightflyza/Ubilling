@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * Connection (signup) details base class
  */
 

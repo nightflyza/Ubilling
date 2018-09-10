@@ -1,9 +1,8 @@
-<?
+<?php
 
-/*
+/**
  * Gravatar API
  */
-
 
 /**
  * Get gravatar url by some email
@@ -11,7 +10,6 @@
  * @param string $email  user email
  * @return string
  */
-
 function gravatar_GetUrl($email) {
     $hash = strtolower($email);
     $hash = md5($hash);
@@ -27,7 +25,6 @@ function gravatar_GetUrl($email) {
  * @param int $size   user avatar size
  * @return string
  */
-
 function gravatar_GetAvatar($email, $size = '') {
     $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $getsize = ($size != '') ? '?s=' . $size : '';
@@ -48,7 +45,6 @@ function gravatar_GetAvatar($email, $size = '') {
  * @param string $username rcms user login
  * @return string
  */
-
 function gravatar_GetUserEmail($username) {
     $storePath = DATA_PATH . "users/";
     if (file_exists($storePath . $username)) {
@@ -68,7 +64,6 @@ function gravatar_GetUserEmail($username) {
  * @param int    $size - size of returning avatar
  * @return string
  */
-
 function gravatar_ShowAdminAvatar($username, $size = '') {
     $adminEmail = gravatar_GetUserEmail($username);
     if ($adminEmail) {

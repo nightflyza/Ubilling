@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * Corporate users API
  */
 

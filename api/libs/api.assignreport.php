@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * Agent assigns report class
  */
 
