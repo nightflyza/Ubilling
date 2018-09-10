@@ -1,18 +1,74 @@
 <?php
 
+/**
+ * Basic OpenPayz class
+ */
 class OpenPayz {
 
+    /**
+     * Contains available virtualid=>realid mappings
+     *
+     * @var array
+     */
     protected $allCustomers = array();
+
+    /**
+     * Contains existing transactions data
+     *
+     * @var array
+     */
     protected $allTransactions = array();
+
+    /**
+     * Existing payment systems names
+     *
+     * @var array
+     */
     protected $allPaySys = array();
+
+    /**
+     * Contains system alter.ini config as key=>value
+     *
+     * @var array
+     */
     protected $altCfg = array();
+
+    /**
+     * Contains available users address data as login=>address
+     *
+     * @var array
+     */
     protected $allAddress = array();
+
+    /**
+     * Contains available users realnames as login=>realname
+     *
+     * @var array
+     */
     protected $allRealnames = array();
+
+    /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
     protected $messages = '';
 
+    /**
+     * Transactions list ajax callback URL
+     */
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
+
+    /**
+     * Payment systems charts URL
+     */
     const URL_CHARTS = '?module=openpayz&graphs=true';
 
+    /**
+     * Creates new OpenPayz instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();

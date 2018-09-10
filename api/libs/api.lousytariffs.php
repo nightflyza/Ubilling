@@ -1,8 +1,7 @@
 <?php
 
-/*
+/**
  * management API for lousy tariffs
- * 
  */
 
 /**
@@ -35,7 +34,6 @@ function zb_LousyTariffDelete($tariff) {
  *  Returns full list of tariffs marked as lousy
  *  @return  array
  */
-
 function zb_LousyTariffGetAll() {
     $query = "SELECT `id`,`tariff` from `lousytariffs`";
     $result = array();
@@ -75,7 +73,6 @@ function zb_LousyCheckTariff($tariff, $lousyarr) {
  *  Returns list of lousy tariffs
  *  @return  string
  */
-
 function web_LousyShowAll() {
     $allousy = zb_LousyTariffGetAll();
     $allTariffs = zb_TariffGetPricesAll();

@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * DOCx profile documents base class
  */
 
