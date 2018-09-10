@@ -1,27 +1,13 @@
 <?php
 
 /**
- * DOCXTemplate class 0.1.10 by sergey.shuchkin@gmail.com
+ * DOCXTemplate class 0.1.10 
+ * 
+ * @author sergey.shuchkin@gmail.com
+ */
+
+/**
  * Replace {var} in MS Word 2007+ documents (*.docx)
-
-  [test.tpl.docx]
-
-  INVOICE {NUM}               Invoice date                    {COMPANY}
-  {DATE}
-
-  <?php // test.php
-
-  include('docxtemplate.class.php');
-
-  $docx = new DOCXTemplate('test.tpl.docx');
-  $docx->set('NUM', 123456 );
-  $docx->set('DATE', date('m.d.Y'));
-  $docx->set('COMPANY', 'SIBVISION.RU
-  Russian Federation, Omsk
-  phone: +73812590554');
-
-  $docx->saveAs('test.docx'); // or $docx->downloadAs('test.docx');
-
  */
 class DOCXTemplate {
 
@@ -404,9 +390,11 @@ class DOCXTemplate {
     }
 
     function saveAs($filename) {
-        if ( !$this->_parse() ) return false;
+        if (!$this->_parse())
+            return false;
         $fh = fopen($filename, 'wb');
-        if ( !$fh ) return false;
+        if (!$fh)
+            return false;
         if (!$this->_zip($fh)) {
             fclose($fh);
             return false;
@@ -415,12 +403,14 @@ class DOCXTemplate {
         return true;
     }
 
-    function downloadAs( $filename, $exit = true ) {
-        if ( !$this->_parse() ) return false;
+    function downloadAs($filename, $exit = true) {
+        if (!$this->_parse())
+            return false;
         //php://stdin
         $fh = tmpfile();
-        if ( !$fh ) return false;
-        if ( !$this->_zip($fh) ) {
+        if (!$fh)
+            return false;
+        if (!$this->_zip($fh)) {
             fclose($fh);
             return false;
         }
@@ -433,7 +423,8 @@ class DOCXTemplate {
         fseek($fh, 0);
         echo fread($fh, $size);
         fclose($fh);
-        if ( $exit ) exit();
+        if ($exit)
+            exit();
         return true;
     }
 
