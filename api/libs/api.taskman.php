@@ -1029,12 +1029,12 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 
     //new task creation data/time generation
     if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 1) {
-        $TaskDate =  new DateTime();
+        $TaskDate = new DateTime();
         $TaskDate->add(new DateInterval('PT1H'));
         $newTaskDate = $TaskDate->format('Y-m-d');
         $newTaskTime = $TaskDate->format('H:i');
     } elseif ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 2) {
-        $TaskDate =  new DateTime();
+        $TaskDate = new DateTime();
         $TaskDate->add(new DateInterval('P1D'));
         $TaskDate->setTime(8, 00);
         // В воскресенье работать работать не хочу
@@ -1443,12 +1443,13 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
             $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
             if (!empty($login)) {
-                $UserIpMAC = zb_UserGetAllData($login);
+                $userData = zb_UserGetAllData($login);
 
                 $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
-                $newTelegramText.= __('Contract') . ': ' . @$UserIpMAC[$login]['contract'] . '\r\n';
-                $newTelegramText.= __('IP') . ': ' . @$UserIpMAC[$login]['ip'] . '\r\n';
-                $newTelegramText.= __('MAC') . ': ' . @$UserIpMAC[$login]['mac'] . '\r\n';
+                $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
+                $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
+                $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
+                $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
             }
             ts_SendTelegram($employeeid, $newTelegramText);
         }
@@ -1601,12 +1602,13 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
         $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
         if (!empty($login)) {
-            $UserIpMAC = zb_UserGetAllData($login);
+            $userData = zb_UserGetAllData($login);
 
             $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
-            $newTelegramText.= __('Contract') . ': ' . @$UserIpMAC[$login]['contract'] . '\r\n';
-            $newTelegramText.= __('IP') . ': ' . @$UserIpMAC[$login]['ip'] . '\r\n';
-            $newTelegramText.= __('MAC') . ': ' . @$UserIpMAC[$login]['mac'] . '\r\n';
+            $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
+            $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
+            $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
+            $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
         }
         ts_SendTelegram($employeeid, $newTelegramText);
     }
