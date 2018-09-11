@@ -905,7 +905,7 @@ class Warehouse {
         if (cfr('WAREHOUSEIN')) {
             $result.= wf_Link(self::URL_ME . '&' . self::URL_IN, wf_img_sized('skins/whincoming_icon.png') . ' ' . __('Incoming operations'), false, 'ubButton');
         }
-        if (cfr('WAREHOUSEOUT')) {
+        if ((cfr('WAREHOUSEOUT')) OR (cfr('WAREHOUSEOUTRESERVE'))) {
             $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
         }
 
