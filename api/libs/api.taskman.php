@@ -149,7 +149,9 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`)
               VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . "); ";
     nr_query($query);
-    log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
+    $employee_id = simple_query("SELECT LAST_INSERT_ID() as id");
+    $employee_id = $employee_id['id'];
+    log_register('EMPLOYEE ADD [' . $employee_id . ']`' . $name . '` JOB `' . $job . '`');
 }
 
 /**
@@ -362,7 +364,7 @@ function stg_delete_job($jobid) {
     $jobid = vf($jobid, 3);
     $query = "DELETE from `jobs` WHERE `id`='" . $jobid . "'";
     nr_query($query);
-    log_register("DELETE JOB [" . $jobid . "]");
+    log_register('JOB DELETE [' . $jobid . ']');
 }
 
 /**
@@ -382,7 +384,7 @@ function stg_add_new_job($login, $date, $worker_id, $jobtype_id, $job_notes) {
     $query = "INSERT INTO `jobs` (`id` , `date` , `jobid` , `workerid` , `login` ,`note`) VALUES (
               NULL , '" . $datetime . "', '" . $jobtype_id . "', '" . $worker_id . "', '" . $login . "', '" . $job_notes . "'); ";
     nr_query($query);
-    log_register("ADD JOB W:[" . $worker_id . "] J:[" . $jobtype_id . "] (" . $login . ")");
+    log_register('JOB ADD W:[' . $worker_id . '] J:[' . $jobtype_id . '] (' . $login . ')');
 }
 
 //
@@ -1265,9 +1267,14 @@ function ts_ShowPanel() {
     if (cfr('TASKMANTIMING')) {
         $tools.= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
     }
+
+    if (cfr('TASKMANNWATCHLOG')) {
+        $tools.= wf_Link('?module=taskman&show=alllog', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
+    }
+
     $tools.= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
 
-    $result.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
+    $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
 
     //show type selector
     $whoami = whoami();
@@ -1459,7 +1466,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $darkVoid = new DarkVoid();
     $darkVoid->flushCache();
 
-    log_register("TASKMAN CREATE `" . $address . "`");
+    log_register('TASKMAN CREATE [' . $taskman_id . '] `' . $address . '`');
 }
 
 /**
@@ -1631,7 +1638,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     foreach ($cahged_taskdata as $par => $value) {
         $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
     }
-    log_register("TASKMAN MODIFY [" . $taskid . "] `" . $address . "`" . " CHANGED [" . $log_data . "]");
+    log_register('TASKMAN MODIFY [' . $taskid . '] `' . $address . '`' . ' CHANGED [' . $log_data . ']');
 }
 
 /**
@@ -1861,7 +1868,7 @@ function ts_TaskChangeForm($taskid) {
             $inputs.= wf_HiddenInput('change_admin', whoami());
             if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
                 //manual done date selection forbidden
-                $inputs.=wf_HiddenInput('editenddate', curdate());
+                $inputs.= wf_HiddenInput('editenddate', curdate());
             } else {
                 $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
             }
@@ -1930,7 +1937,7 @@ function ts_DeleteTask($taskid) {
     $taskid = vf($taskid, 3);
     $query = "DELETE from `taskman` WHERE `id`='" . $taskid . "'";
     nr_query($query);
-    log_register("TASKMAN DELETE " . $taskid);
+    log_register('TASKMAN DELETE [' . $taskid . ']');
 }
 
 /**
