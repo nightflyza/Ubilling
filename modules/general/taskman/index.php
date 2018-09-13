@@ -3,6 +3,11 @@
 if (cfr('TASKMAN')) {
     $altCfg = $ubillingConfig->getAlter();
 
+    //json reply for tasks log
+    if (wf_CheckGet(array('ajaxlog'))) {
+        ts_renderLogsDataAjax(@$_GET['edittask']);
+    }
+
     //fullcalendar default display options
     $fullCalendarOpts = '';
     if (isset($altCfg['TASKMAN_DEFAULT_VIEW'])) {
@@ -10,7 +15,6 @@ if (cfr('TASKMAN')) {
             $fullCalendarOpts = "defaultView: '" . $altCfg['TASKMAN_DEFAULT_VIEW'] . "',";
         }
     }
-
 
     //if someone creates new task
     if (isset($_POST['createtask'])) {
@@ -84,6 +88,12 @@ if (cfr('TASKMAN')) {
         simple_update_field('taskman', 'enddate', 'NULL', "WHERE `id`='" . $undid . "'");
         log_register("TASKMAN UNDONE [" . $undid . ']');
 
+        $queryLogTask = ("
+            INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
+            VALUES (NULL, '" . $undid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'setundone', '')
+        ");
+        nr_query($queryLogTask);
+
         //flushing darkvoid after setting task as undone
         $darkVoid = new DarkVoid();
         $darkVoid->flushCache();
@@ -91,7 +101,6 @@ if (cfr('TASKMAN')) {
 
         rcms_redirect("?module=taskman");
     }
-
 
     //deleting task 
     if (isset($_GET['deletetask'])) {
@@ -102,7 +111,6 @@ if (cfr('TASKMAN')) {
         $darkVoid->flushCache();
         rcms_redirect("?module=taskman");
     }
-
 
     if (!wf_CheckGet(array('probsettings'))) {
         show_window(__('Manage tasks'), ts_ShowPanel());
@@ -119,6 +127,7 @@ if (cfr('TASKMAN')) {
             if ($_GET['show'] == 'all') {
                 $showtasks = ts_JGetAllTasks();
             }
+
         } else {
             $showtasks = ts_JGetUndoneTasks();
         }
@@ -126,10 +135,15 @@ if (cfr('TASKMAN')) {
         if (!isset($_GET['edittask'])) {
             if (!wf_CheckGet(array('print'))) {
                 if (!wf_CheckGet(array('lateshow'))) {
-                    //custom jobtypes color styling
-                    $customJobColorStyle = ts_GetAllJobtypesColorStyles();
-                    //show full calendar view
-                    show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts));
+                    if (wf_CheckGet(array('show')) and ($_GET['show'] == 'logs' and cfr('TASKMANNWATCHLOG')) ) {
+                        // Task logs
+                        show_window(__('View log'), ts_renderLogsListAjax());
+                    } else {
+                        //custom jobtypes color styling
+                        $customJobColorStyle = ts_GetAllJobtypesColorStyles();
+                        //show full calendar view
+                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts));
+                    }
                 } else {
                     show_window(__('Show late'), ts_ShowLate());
                 }
@@ -192,8 +206,6 @@ if (cfr('TASKMAN')) {
                 }
             }
 
-
-
             //display task change form
             ts_TaskChangeForm($_GET['edittask']);
 
@@ -201,7 +213,7 @@ if (cfr('TASKMAN')) {
             if ($altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage = new PhotoStorage('TASKMAN', $_GET['edittask']);
                 $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . $_GET['edittask'], wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                $photostorageControl.=wf_delimiter();
+                $photostorageControl.= wf_delimiter();
                 $photosList = $photoStorage->renderImagesRaw();
                 show_window(__('Photostorage'), $photostorageControl . $photosList);
             }
