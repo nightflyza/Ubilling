@@ -286,57 +286,28 @@ function zbs_AddressGetFullCityNames() {
 function zbs_AddressGetFulladdresslist() {
     $alterconf = zbs_LoadConfig();
     $result = array();
-    $apts = array();
-    $builds = array();
-    $city_q = "SELECT * from `city`";
-    $adrz_q = "SELECT * from `address`";
-    $apt_q = "SELECT * from `apt`";
-    $build_q = "SELECT * from build";
-    $streets_q = "SELECT * from `street`";
-    $alladdrz = simple_queryall($adrz_q);
-    $allapt = simple_queryall($apt_q);
-    $allbuilds = simple_queryall($build_q);
-    $allstreets = simple_queryall($streets_q);
-    if (!empty($alladdrz)) {
-        $cities = zbs_AddressGetFullCityNames();
-
-        foreach ($alladdrz as $io1 => $eachaddress) {
-            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-        }
-        foreach ($allapt as $io2 => $eachapt) {
-            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-        }
-        foreach ($allbuilds as $io3 => $eachbuild) {
-            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-        }
-        foreach ($allstreets as $io4 => $eachstreet) {
-            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-        }
-
-        foreach ($address as $io5 => $eachaddress) {
-            $apartment = $apts[$eachaddress['aptid']]['apt'];
-            $building = $builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
-            $streetname = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
-            $cityid = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
+    $query_full = "
+        SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address`
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id`
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id`
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id`
+        INNER JOIN `city` ON `street`.`cityid`=`city`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
             // zero apt handle
             if ($alterconf['ZERO_TOLERANCE']) {
-                if ($apartment == 0) {
-                    $apartment_filtered = '';
-                } else {
-                    $apartment_filtered = '/' . $apartment;
-                }
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' . $ArrayData['apt'];
             } else {
-                $apartment_filtered = '/' . $apartment;
+                $apartment_filtered = '/' . $ArrayData['apt'];
             }
-
-            if (!$alterconf['CITY_DISPLAY']) {
-                $result[$eachaddress['login']] = $streetname . ' ' . $building . $apartment_filtered;
+            if ($alterconf['CITY_DISPLAY']) {
+                $result[$ArrayData['login']] = $ArrayData['cityname'] . ' ' . $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
             } else {
-                $result[$eachaddress['login']] = $cities[$cityid] . ', ' . $streetname . ' ' . $building . $apartment_filtered;
+                $result[$ArrayData['login']] = $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
             }
         }
     }
-
     return($result);
 }
 
@@ -443,15 +414,15 @@ function zbs_UserShowAgentData($login) {
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
                 $cn++;
-                $payments.='<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['date'] . '" column="1"/>' . "\n";
+                $payments.= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['date'] . '" column="1"/>' . "\n";
                 $cn++;
-                $payments.='<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['summ'] . '" column="2"/>' . "\n";
+                $payments.= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['summ'] . '" column="2"/>' . "\n";
                 $cn++;
-                $payments.='<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['balance'] . '" column="3"/>' . "\n";
+                $payments.= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['balance'] . '" column="3"/>' . "\n";
                 $i++;
             }
         }
-        $payments.='</cells>
+        $payments.= '</cells>
                 </content>
                 </grid>
                 </CONFIG>';
@@ -464,7 +435,7 @@ function zbs_UserShowAgentData($login) {
         $payments = '';
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
-                $payments.=$eachpayment['date'] . ' ' . $eachpayment['summ'] . ' ' . $eachpayment['balance'] . "\n";
+                $payments.= $eachpayment['date'] . ' ' . $eachpayment['summ'] . ' ' . $eachpayment['balance'] . "\n";
             }
         }
 
@@ -478,11 +449,11 @@ function zbs_UserShowAgentData($login) {
         $allmessages = simple_queryall($msg_query);
         if (!empty($allmessages)) {
             foreach ($allmessages as $io => $eachmessage) {
-                $msg_result.=$eachmessage['date'] . "\r\n";
-                $msg_result.=$eachmessage['text'] . "\r\n";
-                $msg_result.="\n";
-                $msg_result.="\n";
-                $msg_result.="\n";
+                $msg_result.= $eachmessage['date'] . "\r\n";
+                $msg_result.= $eachmessage['text'] . "\r\n";
+                $msg_result.= "\n";
+                $msg_result.= "\n";
+                $msg_result.= "\n";
             }
         }
         print($msg_result);
@@ -527,34 +498,34 @@ function zbs_UserShowAgentData($login) {
     }
 
     $result = '[USERINFO]' . "\n";
-    $result.='fulladdress=' . @$alladdress[$login] . "\n";
-    $result.='realname=' . @$allrealnames[$login] . "\n";
-    $result.='login=' . $login . "\n";
-    $result.='password=' . @$userdata['Password'] . "\n";
-    $result.='cash=' . @round($userdata['Cash'], 2) . "\n";
-    $result.='login=' . $login . "\n";
-    $result.='password=' . @$userdata['Password'] . "\n";
-    $result.='ip=' . @$userdata['IP'] . "\n";
-    $result.='phone=' . $phone . "\n";
-    $result.='mobile=' . $mobile . "\n";
-    $result.='email=' . $email . "\n";
-    $result.='credit=' . @$userdata['Credit'] . "\n";
-    $result.='creditexpire=' . $credexpire . "\n";
-    $result.='payid=' . ip2int($userdata['IP']) . "\n";
-    $result.='contract=' . $contract . "\n";
-    $result.='tariff=' . $userdata['Tariff'] . "\n";
-    $result.='tariffnm=' . $userdata['TariffChange'] . "\n";
-    $result.='traffd=' . $traffdgb . "\n";
-    $result.='traffu=' . $traffugb . "\n";
-    $result.='traffd_conv=' . zbs_convert_size($traffdown) . "\n";
-    $result.='traffu_conv=' . zbs_convert_size($traffup) . "\n";
-    $result.='trafftotal_conv=' . zbs_convert_size($traffdown + $traffup) . "\n";
+    $result.= 'fulladdress=' . @$alladdress[$login] . "\n";
+    $result.= 'realname=' . @$allrealnames[$login] . "\n";
+    $result.= 'login=' . $login . "\n";
+    $result.= 'password=' . @$userdata['Password'] . "\n";
+    $result.= 'cash=' . @round($userdata['Cash'], 2) . "\n";
+    $result.= 'login=' . $login . "\n";
+    $result.= 'password=' . @$userdata['Password'] . "\n";
+    $result.= 'ip=' . @$userdata['IP'] . "\n";
+    $result.= 'phone=' . $phone . "\n";
+    $result.= 'mobile=' . $mobile . "\n";
+    $result.= 'email=' . $email . "\n";
+    $result.= 'credit=' . @$userdata['Credit'] . "\n";
+    $result.= 'creditexpire=' . $credexpire . "\n";
+    $result.= 'payid=' . ip2int($userdata['IP']) . "\n";
+    $result.= 'contract=' . $contract . "\n";
+    $result.= 'tariff=' . $userdata['Tariff'] . "\n";
+    $result.= 'tariffnm=' . $userdata['TariffChange'] . "\n";
+    $result.= 'traffd=' . $traffdgb . "\n";
+    $result.= 'traffu=' . $traffugb . "\n";
+    $result.= 'traffd_conv=' . zbs_convert_size($traffdown) . "\n";
+    $result.= 'traffu_conv=' . zbs_convert_size($traffup) . "\n";
+    $result.= 'trafftotal_conv=' . zbs_convert_size($traffdown + $traffup) . "\n";
 
 
 
-    $result.="\n";
-    $result.='[CONF]' . "\n";
-    $result.='currency=' . $us_currency;
+    $result.= "\n";
+    $result.= '[CONF]' . "\n";
+    $result.=' currency=' . $us_currency;
     print($result);
     die();
 }
@@ -574,14 +545,14 @@ function zbs_UserShowXmlAgentData($login) {
 <data>' . "\n";
             if (!empty($allpayments)) {
                 foreach ($allpayments as $io => $eachpayment) {
-                    $payments.='<payment>' . "\n";
-                    $payments.="\t" . '<date>' . $eachpayment['date'] . '</date>' . "\n";
-                    $payments.="\t" . '<summ>' . $eachpayment['summ'] . '</summ>' . "\n";
-                    $payments.="\t" . '<balance>' . $eachpayment['balance'] . '</balance>' . "\n";
-                    $payments.='</payment>' . "\n";
+                    $payments.= '<payment>' . "\n";
+                    $payments.= "\t" . '<date>' . $eachpayment['date'] . '</date>' . "\n";
+                    $payments.= "\t" . '<summ>' . $eachpayment['summ'] . '</summ>' . "\n";
+                    $payments.= "\t" . '<balance>' . $eachpayment['balance'] . '</balance>' . "\n";
+                    $payments.= '</payment>' . "\n";
                 }
             }
-            $payments.='</data>' . "\n";
+            $payments.= '</data>' . "\n";
         } else {
             $payments = '<?xml version="1.0" encoding="utf-8"?>' . "\n" . '<data>' . "\n" . '</data>' . "\n";
         }
@@ -703,30 +674,29 @@ function zbs_UserShowXmlAgentData($login) {
 
     $result = '<?xml version="1.0" encoding="utf-8"?>
 <userdata>' . "\n";
-    $result.="\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
-    $result.="\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
-    $result.="\t" . '<login>' . $login . '</login>' . "\n";
-    $result.="\t" . '<cash>' . @round($userdata['Cash'], 2) . '</cash>' . "\n";
-    $result.="\t" . '<ip>' . @$userdata['IP'] . '</ip>' . "\n";
-    $result.="\t" . '<phone>' . $phone . '</phone>' . "\n";
-    $result.="\t" . '<mobile>' . $mobile . '</mobile>' . "\n";
-    $result.="\t" . '<email>' . $email . '</email>' . "\n";
-    $result.="\t" . '<credit>' . @$userdata['Credit'] . '</credit>' . "\n";
-    $result.="\t" . '<creditexpire>' . $credexpire . '</creditexpire>' . "\n";
-    $result.="\t" . '<payid>' . $paymentid . '</payid>' . "\n";
-    $result.="\t" . '<contract>' . $contract . '</contract>' . "\n";
-    $result.="\t" . '<tariff>' . $userdata['Tariff'] . '</tariff>' . "\n";
-    $result.="\t" . '<tariffnm>' . $tariffNm . '</tariffnm>' . "\n";
-    $result.="\t" . '<traffdownload>' . zbs_convert_size($traffdown) . '</traffdownload>' . "\n";
-    $result.="\t" . '<traffupload>' . zbs_convert_size($traffup) . '</traffupload>' . "\n";
-    $result.="\t" . '<trafftotal>' . zbs_convert_size($traffdown + $traffup) . '</trafftotal>' . "\n";
-    $result.="\t" . '<accountstate>' . $passive_state . $down_state . '</accountstate>' . "\n";
-    $result.="\t" . '<accountexpire>' . $balanceExpire . '</accountexpire>' . "\n";
-    $result.="\t" . '<currency>' . $us_currency . '</currency>' . "\n";
-    $result.="\t" . '<version>' . $apiVer . '</version>' . "\n";
+    $result.= "\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
+    $result.= "\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
+    $result.= "\t" . '<login>' . $login . '</login>' . "\n";
+    $result.= "\t" . '<cash>' . @round($userdata['Cash'], 2) . '</cash>' . "\n";
+    $result.= "\t" . '<ip>' . @$userdata['IP'] . '</ip>' . "\n";
+    $result.= "\t" . '<phone>' . $phone . '</phone>' . "\n";
+    $result.= "\t" . '<mobile>' . $mobile . '</mobile>' . "\n";
+    $result.= "\t" . '<email>' . $email . '</email>' . "\n";
+    $result.= "\t" . '<credit>' . @$userdata['Credit'] . '</credit>' . "\n";
+    $result.= "\t" . '<creditexpire>' . $credexpire . '</creditexpire>' . "\n";
+    $result.= "\t" . '<payid>' . $paymentid . '</payid>' . "\n";
+    $result.= "\t" . '<contract>' . $contract . '</contract>' . "\n";
+    $result.= "\t" . '<tariff>' . $userdata['Tariff'] . '</tariff>' . "\n";
+    $result.= "\t" . '<tariffnm>' . $tariffNm . '</tariffnm>' . "\n";
+    $result.= "\t" . '<traffdownload>' . zbs_convert_size($traffdown) . '</traffdownload>' . "\n";
+    $result.= "\t" . '<traffupload>' . zbs_convert_size($traffup) . '</traffupload>' . "\n";
+    $result.= "\t" . '<trafftotal>' . zbs_convert_size($traffdown + $traffup) . '</trafftotal>' . "\n";
+    $result.= "\t" . '<accountstate>' . $passive_state . $down_state . '</accountstate>' . "\n";
+    $result.= "\t" . '<accountexpire>' . $balanceExpire . '</accountexpire>' . "\n";
+    $result.= "\t" . '<currency>' . $us_currency . '</currency>' . "\n";
+    $result.= "\t" . '<version>' . $apiVer . '</version>' . "\n";
 
-
-    $result.='</userdata>' . "\n";
+    $result.= '</userdata>' . "\n";
 
     header('Last-Modified: ' . gmdate('r'));
     header('Content-Type: text/html; charset=utf-8');
@@ -998,7 +968,6 @@ function zbs_UserShowProfile($login) {
     }
     // >> END OF ONLINELEFT COUNTING
 
-
     if ($userdata['CreditExpire'] != 0) {
         $credexpire = date("d-m-Y", $userdata['CreditExpire']);
     } else {
@@ -1060,11 +1029,11 @@ function zbs_UserShowProfile($login) {
         $tariffSpeeds = '';
     }
 
-
     if ($us_config['ROUND_PROFILE_CASH']) {
         $Cash = web_roundValue($userdata['Cash'], 2);
-    } else
+    } else {
         $Cash = $userdata['Cash'];
+    }
 
     $profile = la_tag('table', false, '', 'width="100%" border="0" cellpadding="2" cellspacing="3"');
     $profile.= la_tag('tr');
@@ -1120,8 +1089,8 @@ function zbs_UserShowProfile($login) {
 
     $profile.= la_tag('tr');
     $payIdAbbr = la_tag('abbr', false, '', 'title="' . __('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals') . '"');
-    $payIdAbbr.=__('Payment ID');
-    $payIdAbbr.=la_tag('abbr', true);
+    $payIdAbbr.= __('Payment ID');
+    $payIdAbbr.= la_tag('abbr', true);
 
     $profile.= la_TableCell($payIdAbbr, '', 'row1');
     $profile.= la_TableCell($paymentid . ' ' . $paymentidqr);
@@ -1169,9 +1138,9 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell($passive_state . $down_state);
     $profile.= la_tag('tr', true);
 
-    $profile.=zbs_CUDShow($login, $us_config);
+    $profile.= zbs_CUDShow($login, $us_config);
 
-    $profile.=la_tag('table', true);
+    $profile.= la_tag('table', true);
 
     //show assigned virtual services if available
     if (isset($us_config['VSERVICES_SHOW'])) {
@@ -1234,7 +1203,6 @@ function zbs_UserTraffStats($login) {
     $result.= la_TableBody($rows, '100%', 0, '');
     $result.= la_delimiter();
 
-
     /*
      * traffic stats by previous months
      */
@@ -1250,7 +1218,6 @@ function zbs_UserTraffStats($login) {
     $cells.= la_TableCell(__('Total'));
     $cells.= la_TableCell(__('Cash'));
     $rows = la_TableRow($cells, 'row1');
-
 
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
@@ -1420,7 +1387,7 @@ function zbs_PaymentLog($login, $summ, $cashtypeid, $note) {
     $balance = $userdata['Cash'];
     $note = mysql_real_escape_string($note);
     $query = "INSERT INTO `payments` (`id` , `login` , `date` , `admin` , `balance` , `summ` , `cashtypeid` , `note` )
-        VALUES (NULL , '" . $login . "', '" . $ctime . "', 'external', '" . $balance . "', '" . $summ . "', '" . $cashtypeid . "', '" . $note . "'); ";
+              VALUES (NULL , '" . $login . "', '" . $ctime . "', 'external', '" . $balance . "', '" . $summ . "', '" . $cashtypeid . "', '" . $note . "'); ";
     nr_query($query);
 }
 
@@ -1653,8 +1620,7 @@ function zbs_CashAdd($login, $cash, $note) {
     $balance = zb_CashGetUserBalance($login);
     billing_addcash($login, $cash);
     $query = "INSERT INTO `payments` ( `id` , `login` , `date` , `balance` , `summ` , `cashtypeid` , `note` )
-                VALUES (NULL , '" . $login . "', '" . $date . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . $note . ");";
-
+              VALUES (NULL , '" . $login . "', '" . $date . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . $note . ");";
     nr_query($query);
     log_register("BALANCECHANGE (" . $login . ') ON ' . $cash);
 }
@@ -1875,7 +1841,7 @@ function zbs_AnnouncementsNotice() {
         $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, ''));
         $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, ''));
         $rows = la_TableRow($cells);
-        $result.=la_TableBody($rows, '70%', 0, '');
+        $result.= la_TableBody($rows, '70%', 0, '');
         show_window('', $result);
     }
 }
