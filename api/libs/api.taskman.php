@@ -149,7 +149,9 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`)
               VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . "); ";
     nr_query($query);
-    log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
+    $employee_id = simple_query("SELECT LAST_INSERT_ID() as id");
+    $employee_id = $employee_id['id'];
+    log_register('EMPLOYEE ADD [' . $employee_id . ']`' . $name . '` JOB `' . $job . '`');
 }
 
 /**
@@ -362,7 +364,7 @@ function stg_delete_job($jobid) {
     $jobid = vf($jobid, 3);
     $query = "DELETE from `jobs` WHERE `id`='" . $jobid . "'";
     nr_query($query);
-    log_register("DELETE JOB [" . $jobid . "]");
+    log_register('JOB DELETE [' . $jobid . ']');
 }
 
 /**
@@ -382,7 +384,7 @@ function stg_add_new_job($login, $date, $worker_id, $jobtype_id, $job_notes) {
     $query = "INSERT INTO `jobs` (`id` , `date` , `jobid` , `workerid` , `login` ,`note`) VALUES (
               NULL , '" . $datetime . "', '" . $jobtype_id . "', '" . $worker_id . "', '" . $login . "', '" . $job_notes . "'); ";
     nr_query($query);
-    log_register("ADD JOB W:[" . $worker_id . "] J:[" . $jobtype_id . "] (" . $login . ")");
+    log_register('JOB ADD W:[' . $worker_id . '] J:[' . $jobtype_id . '] (' . $login . ')');
 }
 
 //
@@ -1265,21 +1267,26 @@ function ts_ShowPanel() {
     if (cfr('TASKMANTIMING')) {
         $tools.= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
     }
+
+    if (cfr('TASKMANNWATCHLOG')) {
+        $tools.= wf_Link('?module=taskman&show=logs', wf_img('skins/icon_note.gif') . ' ' . __('Logs'), false, 'ubButton');
+    }
+
     $tools.= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
 
-    $result.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
+    $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
 
     //show type selector
     $whoami = whoami();
     $employeeid = ts_GetEmployeeByLogin($whoami);
     if ($employeeid) {
-        $result .= wf_delimiter();
+        $result.= wf_delimiter();
         $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
         $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
         $inputs = wf_Selector('displaytype', $displayTypes, '', $curselected, false);
 
         if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
-            $inputs .= ts_AdvFiltersControls();
+            $inputs.= ts_AdvFiltersControls();
         }
 
         $inputs.= wf_Submit('Show');
@@ -1329,8 +1336,14 @@ function ts_TaskIsDone() {
     simple_update_field('taskman', 'change_admin', $_POST['change_admin'], "WHERE `id`='" . $editid . "'");
     simple_update_field('taskman', 'status', '1', "WHERE `id`='" . $editid . "'");
     $logQuery = "INSERT INTO `taskmandone` (`id`,`taskid`,`date`) VALUES ";
-    $logQuery.="(NULL,'" . $editid . "','" . curdatetime() . "');";
+    $logQuery.= "(NULL,'" . $editid . "','" . curdatetime() . "');";
     nr_query($logQuery);
+    $LogTaskArr = array('editenddate' => $_POST['editenddate'], 'editemployeedone' => $_POST['editemployeedone'], 'editdonenote' => $_POST['editdonenote']);
+    $queryLogTask = ("
+        INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`)
+        VALUES (NULL, '" . $editid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'done', '" . serialize($LogTaskArr) . "')
+    ");
+    nr_query($queryLogTask);
     log_register('TASKMAN DONE [' . $editid . ']');
 }
 
@@ -1368,6 +1381,11 @@ function ts_FlushSMSData($taskid) {
     $taskid = vf($taskid, 3);
     $query = "UPDATE `taskman` SET `smsdata`=NULL WHERE `id`='" . $taskid . "';";
     nr_query($query);
+    $queryLogTask = ("
+        INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`)
+        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'flushsms', '')
+    ");
+    nr_query($queryLogTask);
     log_register('TASKMAN FLUSH SMS [' . $taskid . ']');
 }
 
@@ -1428,14 +1446,14 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
               VALUES (NULL , '" . $curdate . "', '" . $address . "', '" . $login . "', '" . $jobtypeid . "', '" . $jobnote . "', '" . $phone . "', '" . $employeeid . "',NULL, NULL , '" . $startdate . "'," . $starttime . ",NULL , '" . $admin . "', '0'," . $smsData . ");";
     nr_query($query);
 
-    $taskman_id = simple_query("SELECT LAST_INSERT_ID() as id");
-    $taskman_id = $taskman_id['id'];
+    $taskid = simple_query("SELECT LAST_INSERT_ID() as id");
+    $taskid = $taskid['id'];
 
     //store messages for backround processing via senddog for Telegramm
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
-            $newTelegramText = __('ID') . ': ' . $taskman_id . '\r\n';
+            $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
             $newTelegramText.= __('Address') . ': ' . $address . '\r\n';
             $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
@@ -1459,7 +1477,13 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $darkVoid = new DarkVoid();
     $darkVoid->flushCache();
 
-    log_register("TASKMAN CREATE `" . $address . "`");
+    $queryLogTask = ("
+        INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
+        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'create', '" . serialize($address) . "')
+    ");
+    nr_query($queryLogTask);
+
+    log_register('TASKMAN CREATE [' . $taskid . '] `' . $address . '`');
 }
 
 /**
@@ -1628,10 +1652,18 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     );
     $cahged_taskdata = (array_diff_assoc($org_taskdata, $new_taskdata));
     $log_data = '';
+    $log_data_arr = array();
     foreach ($cahged_taskdata as $par => $value) {
-        $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
+       $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
+       $log_data_arr[$par]['old'] = $value;
+       $log_data_arr[$par]['new'] = $new_taskdata[$par];
     }
-    log_register("TASKMAN MODIFY [" . $taskid . "] `" . $address . "`" . " CHANGED [" . $log_data . "]");
+    $queryLogTask = ("
+        INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`)
+        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'modify', '" . serialize($log_data_arr) . "')
+    ");
+    nr_query($queryLogTask);
+    log_register('TASKMAN MODIFY [' . $taskid . '] `' . $address . '`' . ' CHANGED [' . $log_data . ']');
 }
 
 /**
@@ -1838,6 +1870,11 @@ function ts_TaskChangeForm($taskid) {
         // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
 
+        // Task logs
+        if (cfr('TASKMANNWATCHLOG')) {
+            show_window(__('View log'), ts_renderLogsListAjax($taskid));
+        }
+
         //Salary accounting
         if ($altercfg['SALARY_ENABLED']) {
             if (cfr('SALARYTASKSVIEW')) {
@@ -1861,7 +1898,7 @@ function ts_TaskChangeForm($taskid) {
             $inputs.= wf_HiddenInput('change_admin', whoami());
             if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
                 //manual done date selection forbidden
-                $inputs.=wf_HiddenInput('editenddate', curdate());
+                $inputs.= wf_HiddenInput('editenddate', curdate());
             } else {
                 $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
             }
@@ -1930,7 +1967,202 @@ function ts_DeleteTask($taskid) {
     $taskid = vf($taskid, 3);
     $query = "DELETE from `taskman` WHERE `id`='" . $taskid . "'";
     nr_query($query);
-    log_register("TASKMAN DELETE " . $taskid);
+    $queryLogTask = ("
+        INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
+        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'delete', '')
+    ");
+    nr_query($queryLogTask);
+    log_register('TASKMAN DELETE [' . $taskid . ']');
+}
+
+/**
+ * Find all log for task
+ *
+ * @param int $taskid
+ *
+ * @return void
+ */
+function ts_GetLogTask($taskid) {
+    $result = '';
+    if (!empty($taskid)) {
+        $query = "SELECT * FROM `taskmanlogs` WHERE taskid = '" . $taskid . "' ORDER BY `id` ASC";
+    } else {
+        $query = "SELECT * FROM `taskmanlogs` ORDER BY `id` DESC";
+    }
+    $resultLog = simple_queryall($query);
+    if (!empty($resultLog)) {
+        $result = $resultLog;
+    }
+    return($result);
+}
+
+/**
+ * Render panel for tas logs
+ * 
+ * @param int $taskid
+ * 
+ * @return void
+ */
+function ts_renderLogsListAjax($taskid = '') {
+    $result = '';
+    // Task logs
+    if (cfr('TASKMANNWATCHLOG')) {
+        $resultLogAjax = '';
+
+        $columns = array('ID');
+        if (empty($taskid)) {
+            $opts = '"order": [[ 0, "desc" ]]';
+            $columns[] = 'Task ID';
+        } else {
+            $opts = '"order": [[ 0, "asc" ]]';
+        }
+        $columns[] = 'Date';
+        $columns[] = 'Login';
+        $columns[] = 'IP';
+        $columns[] = 'Events';
+        $columns[] = 'Logs';
+
+        $module_link = (empty($taskid)) ? '?module=taskman&ajaxlog=true' : '?module=taskman&ajaxlog=true&edittask=' . $taskid;
+        $result = wf_JqDtLoader($columns, $module_link, false, 'Logs', 100, $opts);
+    }
+    return ($result);
+}
+
+
+/**
+ * Find all log for task
+ *
+ * @param int $taskid
+ *
+ * @return void
+ */
+function ts_renderLogsDataAjax($taskid = '') {
+    $taskid = vf($taskid, 3);
+
+    $result_log = ts_GetLogTask($taskid);
+    @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+    $json = new wf_JqDtHelper();
+
+    if (!empty($result_log)) {
+        $allemployee = ts_GetAllEmployee();
+        foreach ($result_log as $each) {
+            $administratorChange = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
+
+            $data[] = $each['id'];
+            if (empty($taskid)) {
+                $data[] = wf_link('?module=taskman&edittask=' . $each['taskid'], $each['taskid']);
+            }
+            $data[] = $each['date'];
+            $data[] = $administratorChange;
+            $data[] = $each['ip'];
+
+            if ($each['event'] == 'create') {
+                $data[] =__('Create task');
+                $data_event = unserialize($each['logs']);
+            } elseif ($each['event'] == 'modify') {
+                $data[] =__('Edit task');
+                $data_event = '';
+                $logDataArr = unserialize($each['logs']);
+                if (isset($logDataArr['address'])) {
+                    $data_event.= wf_tag('b') . __('Task address'). ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['address']['old'] . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['address']['new'] . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                }
+                if (isset($logDataArr['login'])) {
+                    $data_event.= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['login']['old'] . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['login']['new'] . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                    }
+                if (isset($logDataArr['jobtype'])) {
+                    $alljobtypes = ts_GetAllJobtypes();
+
+                    $jobTypeIdOld = $logDataArr['jobtype']['old'];
+                    $jobTypeIdNew = $logDataArr['jobtype']['new'];
+                    $jobtypeOld = @$alljobtypes[$jobTypeIdOld];
+                    $jobtypeNew = @$alljobtypes[$jobTypeIdNew];
+
+                    $data_event.= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $jobtypeOld . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $jobtypeNew . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                    }
+                if (isset($logDataArr['jobnote'])) {
+                    $data_event.= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['jobnote']['old'] . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote']['new'] . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                    }
+                if (isset($logDataArr['phone'])) {
+                    $data_event.= wf_tag('b') . __('phone') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['phone']['old'] . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone']['new'] . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                }
+                if (isset($logDataArr['employee'])) {
+                    $employeeIdOld = $logDataArr['employee']['old'];
+                    $employeeIdNew = $logDataArr['employee']['new'];
+                    $employeeOld = @$allemployee[$employeeIdOld];
+                    $employeeNew = @$allemployee[$employeeIdNew];
+
+                    $data_event.= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $employeeOld . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $employeeNew . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                }
+                if (isset($logDataArr['startdate'])) {
+                    $data_event.= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['startdate']['old'] . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate']['new'] . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                }
+                if (isset($logDataArr['starttime'])) {
+                    $data_event.= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['starttime']['old'] . wf_tag('font', true);
+                    $data_event.= " => ";
+                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['starttime']['new'] . wf_tag('font', true);
+                    $data_event.= wf_tag('br');
+                }
+            } elseif ($each['event'] == 'done') {
+                $data[] =__('Task is done');
+                $data_event = '';
+                $logDataArr = unserialize($each['logs']);
+
+                $data_event.= wf_tag('b') . __('Finish date') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['editenddate'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="green"') . @$allemployee[$logDataArr['editemployeedone']] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Finish note') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['editdonenote'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+            } elseif ($each['event'] == 'setundone') {
+                $data[] =__('No work was done');
+                $data_event = wf_tag('font', false, '', 'color="red"') . wf_tag('b') . __('No work was done') . wf_tag('b', true) . wf_tag('font', true);
+            } else {
+                $cells.= wf_TableCell($each['event']);
+                $data_event = $each['logs'];
+            }
+
+            $data[] =$data_event;
+            $json->addRow($data);
+            unset($data);
+        }
+    }
+
+    $json->getJson();
 }
 
 /**
@@ -1976,7 +2208,6 @@ function ts_TaskProblemsEditForm() {
         log_register('TASKMAN DELETE TYPICALPROBLEM');
         rcms_redirect("?module=taskman&probsettings=true");
     }
-
 
     $rows = '';
     $result = wf_BackLink("?module=taskman", '', true);
