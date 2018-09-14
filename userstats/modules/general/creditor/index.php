@@ -66,6 +66,26 @@ function zbs_CreditLogPush($login) {
 }
 
 /**
+ * Checks if user use SC module without previous payment and returns false if used or true if feature available
+ * 
+ * @param  string $login existing users login
+ * 
+ * @return bool
+ */
+function zbs_CreditLogCheckHack($login) {
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT `note` FROM `payments` WHERE `login` = '" . $login . "' AND (`summ` > 0 OR `note` = 'SCFEE') ORDER BY `payments`.`date` DESC LIMIT 1";
+    $data = simple_query($query);
+    if (empty($data)) {
+        return (true);
+    } elseif (!empty($data) AND $data['note'] != 'SCFEE') {
+        return (true);
+    } else {
+        return (false);
+    }
+}
+
+/**
  * checks is user current month use SC module and returns false if used or true if feature available
  * 
  * @param  string $login existing users login
@@ -140,6 +160,7 @@ if ($us_config['SC_ENABLED']) {
     $sc_price = $us_config['SC_PRICE'];
     $sc_cashtypeid = $us_config['SC_CASHTYPEID'];
     $sc_monthcontrol = $us_config['SC_MONTHCONTROL'];
+    $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND !empty($us_config['SC_HACKCONTROL'])) ? true : false;
     $sc_allowed = array();
     $vs_price = zbs_VServicesGetPrice($user_login);
 //allowed tariffs option
@@ -183,21 +204,24 @@ if ($us_config['SC_ENABLED']) {
 
                     if (abs($current_cash) <= $tariffprice) {
                         if ($current_cash < 0) {
-
-
                             if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {
-                                //additional month contol enabled
-                                if ($sc_monthcontrol) {
-                                    if (zbs_CreditLogCheckMonth($user_login)) {
-                                        //check for allow option
-                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
-                                    } else {
-                                        show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
-                                    }
+                                //additional hack contol enabled
+                                if ($sc_hackhcontrol AND ! zbs_CreditLogCheckHack($user_login)) {
+                                    show_window(__('Sorry'), __('You can not take out a credit because you have not paid since the previous time'));
                                 } else {
-                                    zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                    //additional month contol enabled
+                                    if ($sc_monthcontrol) {
+                                        if (zbs_CreditLogCheckMonth($user_login)) {
+                                            //check for allow option
+                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                        } else {
+                                            show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                        }
+                                    } else {
+                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                    }
+                                    //end of self credit main code
                                 }
-                                //end of self credit main code
                             } else {
                                 show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
                             }
@@ -221,8 +245,6 @@ if ($us_config['SC_ENABLED']) {
     } else {
         show_window(__('Sorry'), __('You can take a credit only between') . ' ' . $sc_minday . __(' and ') . $sc_maxday . ' ' . __('days of the month'));
     }
-
-
 
 //and if disabled :(
 } else {

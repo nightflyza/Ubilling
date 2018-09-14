@@ -369,4 +369,6 @@ $lang['def']['Changing freeze status is unavailable: total amount of freeze days
 $lang['def']['Terms'] = 'Условия';
 $lang['def']['Bonus'] = 'Бонус';
 
+$lang['def']['You can not take out a credit because you have not paid since the previous time'] = 'Вы не можете взять кредит, потому что вы не платили с предыдущего раза';
+
 ?>
