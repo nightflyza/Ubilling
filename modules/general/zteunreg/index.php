@@ -27,6 +27,7 @@ if (@$altcfg['ONUREG_ZTE']) {
                     $save = false;
                     $router = false;
                     $login = '';
+                    $PONizerAdd = false;
                     if (!empty($_POST['login'])) {
                         $login = $_POST['login'];
                     }
@@ -42,10 +43,16 @@ if (@$altcfg['ONUREG_ZTE']) {
                     if (isset($_POST['mac_onu'])) {
                         $mac_onu = $_POST['mac_onu'];
                     }
+                    if (isset($_POST['random_mac'])) {
+                        $mac_onu = $register->generateRandomOnuMac();
+                    }
                     if (isset($_POST['save'])) {
                         $save = $_POST['save'];
                     }
-                    show_window(__('Result'), $register->$avidity_w($_POST['oltip'], $_POST['type'], $_POST['interface'], $onuIdentifier, $_POST['modelid'], $_POST['vlan'], $login, $save, $router, $mac_onu));
+                    if (isset($_POST['ponizer_add'])) {
+                        $PONizerAdd = true;
+                    }
+                    show_window(__('Result'), $register->$avidity_w($_POST['oltip'], $_POST['type'], $_POST['interface'], $onuIdentifier, $_POST['modelid'], $_POST['vlan'], $login, $save, $router, $mac_onu, $PONizerAdd));
                 }
             }
         } else {
