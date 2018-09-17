@@ -2955,6 +2955,8 @@ $lang['def']['Not paid fuel'] = 'Не выплачено топлива';
 $lang['def']['Paid fuel'] = 'Выплачено топлива';
 $lang['def']['Bad signal'] = 'Плохой сигнал';
 $lang['def']['from numbers assigned to users'] = 'от номеров присвоенных абонентам';
+$lang['def']['Generate random mac'] = 'Сгенерировать случайный MAC';
+$lang['def']['Add ONU to PONizer'] = 'Добавить ONU в ПОНизатор';
 $lang['def'][''] = '';
 
 

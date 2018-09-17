@@ -890,7 +890,7 @@ class UserProfile {
         $searched = __('No');
         $sigColor = '#000000';
         if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
-            $query = "SELECT `mac`,`oltid` FROM `pononu` WHERE `login`='" . $this->login . "'";
+            $query = "SELECT `mac`,`oltid`,`serial` FROM `pononu` WHERE `login`='" . $this->login . "'";
             $onu_data = simple_query($query);
             if (!empty($onu_data)) {
                 $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
@@ -899,7 +899,7 @@ class UserProfile {
                         $raw = file_get_contents(PONizer::SIGCACHE_PATH . $each);
                         $raw = unserialize($raw);
                         foreach ($raw as $mac => $signal) {
-                            if ($mac == $onu_data['mac']) {
+                            if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
                                 if (($signal > 0) OR ( $signal < -25)) {
                                     $sigColor = '#ab0000';
                                 } else {

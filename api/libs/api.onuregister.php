@@ -95,7 +95,7 @@ class OnuRegister {
      * 
      * @var array
      */
-    protected $EponCards = array('EPFC' => 4, 'EPFCB' => 4, 'ETGO' => 8, 'ETGOD' => 8, 'ETGH' => 16, 'ETGHG' => 16);
+    protected $EponCards = array('EPFC' => 4, 'EPFCB' => 4, 'ETGO' => 8, 'ETGOD' => 8, 'ETGH' => 16, 'ETGHG' => 16, 'ETGHK' => 16);
 
     /**
      * Array for checking ports count for GPON cards
@@ -146,7 +146,23 @@ class OnuRegister {
         $this->loadOnuModels();
         $this->loadConfig();
         $this->initSNMP();
+        $this->loadOnu();
         snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+    }
+
+    /**
+     * Loads avaliable ONUs from database into private data property
+     *
+     * @return void
+     */
+    protected function loadOnu() {
+        $query = "SELECT * from `pononu`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allOnu[$each['id']] = $each;
+            }
+        }
     }
 
     /**
@@ -372,6 +388,25 @@ class OnuRegister {
      */
     protected function hexToString($hex) {
         return pack('H*', $hex);
+    }
+
+    public function generateRandomOnuMac() {
+        $check = false;
+        if (!empty($this->allOnu)) {
+            while (!$check) {
+                $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+                $check = true;
+                foreach ($this->allOnu as $io => $each) {
+                    if ($each['mac'] == $mac) {
+                        $check = false;
+                        break;
+                    }
+                }
+            }
+        } else {
+            $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+        }
+        return ($mac);
     }
 
     /**
@@ -1000,7 +1035,9 @@ class OnuRegister {
         $cell .= wf_TextInput('login', __('Login'), '', true);
         if ($type == 'GPON') {
             $cell .= wf_TextInput('mac_onu', __('MAC ONU for PONizer'), '', true);
+            $cell .= wf_CheckInput("random_mac", __("Generate random mac"), true, true);
         }
+        $cell .= wf_CheckInput("ponizer_add", __("Add ONU to PONizer"), true, true);
         $cell .= wf_Tag('br');
         $cell .= wf_CheckInput('save', __("Save config"), true);
         if ($type == 'GPON') {
@@ -1013,7 +1050,7 @@ class OnuRegister {
         return $form;
     }
 
-    public function RegisterOnu($oltip, $type, $ponInterface, $onuIdentifier, $onuModel, $vlan, $login = '', $save = false, $router = false, $add_mac) {
+    public function RegisterOnu($oltip, $type, $ponInterface, $onuIdentifier, $onuModel, $vlan, $login = '', $save = false, $router = false, $add_mac, $PONizerAdd = false) {
         $swid = $this->getOltId($oltip);
         $this->loadCalculatedData($swid, $type);
         $LastID = 1;
@@ -1083,7 +1120,7 @@ class OnuRegister {
                         $result .= shell_exec($command);
                     }
                     $result = str_replace("\n", '<br />', $result);
-                    if (!empty($login) and ! empty($add_mac)) {
+                    if ($PONizerAdd) {
                         $pon = new PONizer();
                         $pon->onuCreate($onuModel, $swid, '', $add_mac, $serial, $login);
                     }
