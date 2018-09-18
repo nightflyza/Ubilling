@@ -153,6 +153,7 @@ class OmegaTV {
     public function renderUserInfo($customerId) {
         $result = '';
         $userInfo = $this->hls->getUserInfo($customerId);
+
         if (isset($userInfo['result'])) {
             $userInfo = $userInfo['result'];
             $cells = wf_TableCell(__('ID'), '', 'row2');
@@ -172,8 +173,16 @@ class OmegaTV {
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Preview'), '', 'row2');
-            $cells .= wf_TableCell(wf_Link($userInfo['web_url'], __('Play'), false, '', 'TARGET="_BLANK"'));
+            $cells .= wf_TableCell(wf_Link($userInfo['web_url'], __('View online'), false, '', 'TARGET="_BLANK"'));
             $rows .= wf_TableRow($cells, 'row3');
+
+            if (!empty($userInfo['devices'])) {
+                foreach ($userInfo['devices'] as $io => $each) {
+                    $cells = wf_TableCell(__('Device') . ' ' . $io, '', 'row2');
+                    $cells .= wf_TableCell(implode(', ', $each));
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+            }
 
             $result .= wf_TableBody($rows, '100%', 0);
         }
@@ -202,6 +211,7 @@ class OmegaTV {
         $result = array();
         $baseTariffs = $this->hls->getTariffsBase();
         $bundleTariffs = $this->hls->getTariffsBundle();
+        $promoTariffs = $this->hls->getTariffsPromo();
 
         if (isset($baseTariffs['result'])) {
             foreach ($baseTariffs['result'] as $io => $each) {
@@ -210,9 +220,22 @@ class OmegaTV {
         }
 
         if (isset($bundleTariffs['result'])) {
-
             foreach ($bundleTariffs['result'] as $io => $each) {
                 $result[$each['tariff_id']] = $each['tariff_name'] . ' (' . __('bundle') . ')';
+            }
+        }
+
+        if (isset($promoTariffs['result'])) {
+            if (isset($promoTariffs['result']['promo_limited'])) {
+                foreach ($promoTariffs['result']['promo_limited'] as $io => $each) {
+                    $result[$each['tariff_id']] = $each['tariff_name'] . ' (' . __('promo limited') . ')';
+                }
+            }
+
+            if (isset($promoTariffs['result']['promo'])) {
+                foreach ($promoTariffs['result']['promo'] as $io => $each) {
+                    $result[$each['tariff_id']] = $each['tariff_name'] . ' (' . __('promo') . ')';
+                }
             }
         }
 
@@ -230,9 +253,7 @@ class OmegaTV {
         $tmpArr = array();
         if (!empty($remoteTariffs)) {
             foreach ($remoteTariffs as $io => $each) {
-                // if (!isset($this->allTariffs[$io])) {
                 $tmpArr[$io] = $io . ' - ' . $each;
-                //  }
             }
         }
 
@@ -321,6 +342,21 @@ class OmegaTV {
             nr_query($query);
             log_register('OMEGATV TARIFF DELETE [' . $id . ']');
         }
+    }
+
+    /**
+     * Returns user login transformed to some numeric hash
+     * 
+     * @param string $login
+     * 
+     * @return int
+     */
+    public function generateCustormerId($login) {
+        $result = '';
+        if (!empty($login)) {
+            $result = crc32($login);
+        }
+        return($result);
     }
 
 }

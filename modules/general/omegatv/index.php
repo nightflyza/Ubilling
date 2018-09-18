@@ -26,6 +26,10 @@ if (cfr('OMEGATV')) {
             //tariffs creation form
             show_window(__('Create new tariff'), $omega->renderTariffCreateForm());
         }
+        
+        if (wf_CheckGet(array('subscriptions'))) {
+            deb($omega->renderUserInfo(1));
+        }
     } else {
         show_error(__('This module is disabled'));
     }
