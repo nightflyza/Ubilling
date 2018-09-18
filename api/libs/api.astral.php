@@ -11,7 +11,7 @@ function wf_InputId() {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $result = "";
     for ($p = 0; $p < 8; $p++) {
-        $result.= $characters[mt_rand(0, (strlen($characters) - 1))];
+        $result .= $characters[mt_rand(0, (strlen($characters) - 1))];
     }
     return ($result);
 }
@@ -96,10 +96,10 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -129,10 +129,10 @@ function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
     }
     $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -161,7 +161,7 @@ function wf_Link($url, $title, $br = false, $class = '', $options = '') {
     $opts = ( empty($options) ) ? '' : ' ' . $options;
 
     $result = '<a href="' . $url . '" ' . $link_class . $opts . '>' . __($title) . '</a>' . "\n";
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -187,7 +187,7 @@ function wf_AjaxLink($url, $title, $container, $br = false, $class = '') {
         $newline = '';
     }
     $result = '<a href="#" onclick="goajax(\'' . $url . '\',\'' . $container . '\');" ' . $link_class . '>' . $title . '</a>' . "\n";
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -216,10 +216,10 @@ function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
     }
     $result = '<input type="radio" name="' . $name . '" value="' . $value . '"  id="' . $inputid . '" ' . $check . '>' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -252,10 +252,10 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlI
     }
     $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' />';
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -286,10 +286,10 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
     }
     $result = '<textarea name="' . $name . '" ' . $input_size . ' id="' . $inputid . '">' . $value . '</textarea>' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -347,8 +347,8 @@ function wf_Submit($value, $CtrlID = '') {
 function wf_SubmitClassed($value, $class = '', $name = '', $caption = '', $CtrlID = '') {
     $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
     $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '" id="' . $SubmitID . '">';
-    $result.= $caption;
-    $result.= '</button>';
+    $result .= $caption;
+    $result .= '</button>';
     return ($result);
 }
 
@@ -381,10 +381,10 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
            </select>
         ' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -415,15 +415,15 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort 
         ($sort) ? asort($params) : $params;
         foreach ($params as $value => $eachparam) {
             $flag_selected = (($selected == $value) AND ( $selected != '')) ? 'SELECTED' : ''; // !='' because 0 values possible
-            $result.='<option value="' . $value . '" ' . $flag_selected . '>' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $flag_selected . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -454,15 +454,15 @@ function wf_SelectorClassed($name, $params, $label, $selected = '', $br = false,
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -493,15 +493,15 @@ function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -532,15 +532,15 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . ' onclick="goajax(\'' . $value . '\',\'' . $container . '\');">' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $sel_flag . ' onclick="goajax(\'' . $value . '\',\'' . $container . '\');">' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -578,15 +578,15 @@ function wf_MonthSelector($name, $label, $selected = '', $br = false) {
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -610,13 +610,13 @@ function wf_YearSelector($name, $label = '', $br = false) {
     }
     $selector = '<select name="' . $name . '" id="' . $inputid . '">';
     for ($i = 0; $i < $count; $i++) {
-        $selector.='<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
+        $selector .= '<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
     }
-    $selector.='</select>';
+    $selector .= '</select>';
     if ($label != '') {
-        $selector.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $selector .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $selector.=$newline;
+    $selector .= $newline;
     return($selector);
 }
 
@@ -646,17 +646,17 @@ function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '', $all
     $selector = '<select name="' . $name . '" id="' . $inputid . '">';
     for ($i = 0; $i < $count; $i++) {
         $selected = (($curyear - $i) == $year) ? 'SELECTED' : '';
-        $selector.='<option value="' . ($curyear - $i) . '" ' . $selected . '>' . ($curyear - $i) . '</option>';
+        $selector .= '<option value="' . ($curyear - $i) . '" ' . $selected . '>' . ($curyear - $i) . '</option>';
     }
     if ($allTime) {
         $selected = ($year == '1488') ? 'SELECTED' : ''; // yep, this required to passing vf() checks and empty() checks.
-        $selector.='<option value="1488"  ' . $selected . '>' . __('All time') . '</option>';
+        $selector .= '<option value="1488"  ' . $selected . '>' . __('All time') . '</option>';
     }
-    $selector.='</select>';
+    $selector .= '</select>';
     if ($label != '') {
-        $selector.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $selector .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $selector.=$newline;
+    $selector .= $newline;
     return($selector);
 }
 
@@ -1485,7 +1485,7 @@ function wf_Plate($content, $width = '', $height = '', $class = '') {
 function wf_delimiter($count = 1) {
     $result = '';
     for ($i = 0; $i <= $count; $i++) {
-        $result.='<br />';
+        $result .= '<br />';
     }
     return ($result);
 }
@@ -1609,7 +1609,7 @@ function wf_AjaxLoader() {
 }
 
 /**
- * Returns default ajax container
+ * Returns default ajax container div element
  * 
  * @param string $containerName container name aka ID
  * @param string $options misc options like size/display if required
@@ -1619,6 +1619,20 @@ function wf_AjaxLoader() {
  */
 function wf_AjaxContainer($containerName, $options = '', $content = '') {
     $result = wf_tag('div', false, '', 'id="' . $containerName . '" ' . $options . ' ') . $content . wf_tag('div', true);
+    return ($result);
+}
+
+/**
+ * Returns default ajax container span element
+ * 
+ * @param string $containerName container name aka ID
+ * @param string $options misc options like size/display if required
+ * @param srring $content default container content
+ * 
+ * @return string
+ */
+function wf_AjaxContainerSpan($containerName, $options = '', $content = '') {
+    $result = wf_tag('span', false, '', 'id="' . $containerName . '" ' . $options . ' ') . $content . wf_tag('span', true);
     return ($result);
 }
 
@@ -1698,26 +1712,26 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
     }
     if (!empty($data)) {
         foreach ($data as $eachrow) {
-            $cleandata.='"' . trim($eachrow) . '\n" +' . "\n";
+            $cleandata .= '"' . trim($eachrow) . '\n" +' . "\n";
         }
         $cleandata = mb_substr($cleandata, 0, -2, 'utf-8');
     }
     //style="width: 98%; "
     $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
-    $result.= wf_tag('script', false, '', 'type="text/javascript"');
-    $result.= $objectId . ' = new Dygraph(';
-    $result.= 'document.getElementById("' . $randomId . '"),' . "\n";
-    $result.= $cleandata;
+    $result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $result .= $objectId . ' = new Dygraph(';
+    $result .= 'document.getElementById("' . $randomId . '"),' . "\n";
+    $result .= $cleandata;
 
-    $result.= ', {  errorBars: ' . $errorbars;
-    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
-    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
-    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
-    $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
-    $result.= ' }' . "\n";
+    $result .= ', {  errorBars: ' . $errorbars;
+    $result .= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
+    $result .= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
+    $result .= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
+    $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
+    $result .= ' }' . "\n";
 
-    $result.=');';
-    $result.= wf_tag('script', true);
+    $result .= ');';
+    $result .= wf_tag('script', true);
 
     return ($result);
 }
@@ -1743,20 +1757,20 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     }
 
     $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
-    $result.= wf_tag('script', false, '', 'type="text/javascript"');
-    $result.= $objectId . ' = new Dygraph(';
-    $result.= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
+    $result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $result .= $objectId . ' = new Dygraph(';
+    $result .= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
 
 
-    $result.= ', {  errorBars: ' . $errorbars;
-    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
-    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
-    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
-    $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
-    $result.= ' }' . "\n";
+    $result .= ', {  errorBars: ' . $errorbars;
+    $result .= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
+    $result .= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
+    $result .= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
+    $result .= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
+    $result .= ' }' . "\n";
 
-    $result.=');';
-    $result.= wf_tag('script', true);
+    $result .= ');';
+    $result .= wf_tag('script', true);
 
     return ($result);
 }
@@ -1820,7 +1834,7 @@ function wf_JuiComboBox($name, $params, $label, $selected = '', $br = false) {
     if (!empty($params)) {
         foreach ($params as $io => $each) {
             $flag_selected = (!empty($selected) and $selected == $io) ? 'SELECTED' : '';
-            $select.='<option value="' . $io . '" ' . $flag_selected . '>' . $each . '</option>' . "\n";
+            $select .= '<option value="' . $io . '" ' . $flag_selected . '>' . $each . '</option>' . "\n";
         }
     }
 
@@ -1971,7 +1985,7 @@ $( "#combobox_' . $id . '" ).combobox_' . $id . '();
 </div>
 ';
     if ($br) {
-        $result.=wf_tag('br');
+        $result .= wf_tag('br');
     }
 
     return ($result);
@@ -2010,16 +2024,16 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     if (!empty($data)) {
         foreach ($data as $io => $each) {
             $each = str_replace('"', '`', $each);
-            $acData.='"' . $each . '",';
+            $acData .= '"' . $each . '",';
         }
     }
     //removing ending coma
     $acData = mb_substr($acData, 0, -1, 'UTF-8');
 
 
-    $autocomplete.=$acData;
+    $autocomplete .= $acData;
 
-    $autocomplete.='
+    $autocomplete .= '
                                       ];
                     $( "#' . $name . '_autocomplete" ).autocomplete({
                     source: availableOpts_' . $inputid . '
@@ -2027,13 +2041,13 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
                     });
                     </script>';
     $result = $autocomplete;
-    $result.='<input type="text" id="' . $name . '_autocomplete" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    $result .= '<input type="text" id="' . $name . '_autocomplete" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
 
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -2054,17 +2068,17 @@ function wf_TimePickerPreset($field, $time = '', $label = '', $br = false, $Disa
         $DisabledTimeRanges = ',\'disableTimeRanges\': [ ' . $DisabledTimeRanges . ']';
     }
     $result = wf_tag('input', false, '', 'type="text" value="' . $time . '" name="' . $field . '" size="5" id="' . $inputId . '"');
-    $result.= wf_tag('script');
-    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i\'' . $DisabledTimeRanges . ' });';
-    $result.= wf_tag('script', true);
+    $result .= wf_tag('script');
+    $result .= '$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i\'' . $DisabledTimeRanges . ' });';
+    $result .= wf_tag('script', true);
     //clickable icon and label
     if (!empty($label)) {
         $label = ' ' . __($label);
     }
-    $result.=wf_tag('label', false, '', 'for="' . $inputId . '"') . wf_img('skins/icon_time_small.png', __('Time')) . $label . wf_tag('label', true);
+    $result .= wf_tag('label', false, '', 'for="' . $inputId . '"') . wf_img('skins/icon_time_small.png', __('Time')) . $label . wf_tag('label', true);
     //break at end
     if ($br) {
-        $result.= wf_tag('br');
+        $result .= wf_tag('br');
     }
     return ($result);
 }
@@ -2086,17 +2100,17 @@ function wf_TimePickerPresetSeconds($field, $time = '', $label = '', $br = false
         $DisabledTimeRanges = ',\'disableTimeRanges\': [ ' . $DisabledTimeRanges . ']';
     }
     $result = wf_tag('input', false, '', 'type="text" value="' . $time . '" name="' . $field . '" size="8" id="' . $inputId . '"');
-    $result.= wf_tag('script');
-    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i:s\'' . $DisabledTimeRanges . ' });';
-    $result.= wf_tag('script', true);
+    $result .= wf_tag('script');
+    $result .= '$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i:s\'' . $DisabledTimeRanges . ' });';
+    $result .= wf_tag('script', true);
     //clickable icon and label
     if (!empty($label)) {
         $label = ' ' . __($label);
     }
-    $result.=wf_tag('label', false, '', 'for="' . $inputId . '"') . wf_img('skins/icon_time_small.png', __('Time')) . $label . wf_tag('label', true);
+    $result .= wf_tag('label', false, '', 'for="' . $inputId . '"') . wf_img('skins/icon_time_small.png', __('Time')) . $label . wf_tag('label', true);
     //break at end
     if ($br) {
-        $result.= wf_tag('br');
+        $result .= wf_tag('br');
     }
     return ($result);
 }
@@ -2137,7 +2151,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
         ';
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
-    $jq_dt.= '
+    $jq_dt .= '
  		$(document).ready(function() {                 
             
             $(\'#' . $tableId . '\').dataTable( {
@@ -2176,22 +2190,22 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
 		} );
                 
           ';
-    $jq_dt.=wf_tag('script', true);
+    $jq_dt .= wf_tag('script', true);
 
     $result = $jq_dt;
-    $result.= wf_tag('table', false, 'display compact', 'id="' . $tableId . '"');
-    $result.= wf_tag('thead', false);
+    $result .= wf_tag('table', false, 'display compact', 'id="' . $tableId . '"');
+    $result .= wf_tag('thead', false);
 
     $tablecells = '';
     foreach ($columns as $io => $eachColumn) {
-        $tablecells.= wf_TableCell(__($eachColumn));
+        $tablecells .= wf_TableCell(__($eachColumn));
     }
 
 
-    $result.= wf_TableRow($tablecells);
+    $result .= wf_TableRow($tablecells);
 
-    $result.= wf_tag('thead', true);
-    $result.= wf_tag('table', true);
+    $result .= wf_tag('thead', true);
+    $result .= wf_tag('table', true);
 
 
     return ($result);
@@ -2208,7 +2222,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
  * @return string
  */
 function wf_JQDTColumnHideShow($CallerObjID, $CallerObjEvent, $JQDTID, $ColIndex) {
-    $JSCode =   '$(\'#' . $CallerObjID . '\').on("' . $CallerObjEvent . '", function() {
+    $JSCode = '$(\'#' . $CallerObjID . '\').on("' . $CallerObjEvent . '", function() {
                     // Get the column API object
                     var column = $(\'#' . $JQDTID . '\').DataTable().column(' . $ColIndex . '); 
                     // Toggle the visibility
@@ -2258,15 +2272,15 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
     if ($enableFlag) {
         if (!empty($params)) {
             foreach ($params as $io => $each) {
-                $chartData.= '[\'' . $io . '\',' . $each . '],';
+                $chartData .= '[\'' . $io . '\',' . $each . '],';
             }
             $chartData = substr($chartData, 0, -1);
         }
 
 //legend.scrollArrows.activeColor
         $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.google.com/jsapi"') . wf_tag('script', true);
-        $result.= wf_tag('script', false, '', 'type="text/javascript"');
-        $result.='
+        $result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $result .= '
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
       
@@ -2291,8 +2305,8 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
       }
 ';
 
-        $result.=wf_tag('script', true);
-        $result.= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
+        $result .= wf_tag('script', true);
+        $result .= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
     }
     return ($result);
 }
@@ -2339,8 +2353,8 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
         }
 
         $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
-        $result.= wf_tag('script', false, '', 'type="text/javascript"');
-        $result.='google.charts.load(\'current\', {\'packages\':[\'corechart\']});
+        $result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $result .= 'google.charts.load(\'current\', {\'packages\':[\'corechart\']});
       google.charts.setOnLoadCallback(drawChart);
 
       function drawChart() {
@@ -2360,8 +2374,8 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
         chart.draw(data, options);
       }
         ';
-        $result.=wf_tag('script', true);
-        $result.= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
+        $result .= wf_tag('script', true);
+        $result .= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
     }
 
     return ($result);
@@ -2501,7 +2515,7 @@ function wf_JSEmptyFunc() {
 function wf_nbsp($count = 1) {
     $result = '';
     for ($i = 0; $i < $count; $i++) {
-        $result.='&nbsp;';
+        $result .= '&nbsp;';
     }
     return ($result);
 }
@@ -2519,16 +2533,20 @@ function wf_nbsp($count = 1) {
  * @return mixed
  */
 function wf_sortArray($data, $field, $desc = false) {
-    if(!is_array($field)) { $field = array($field); }
+    if (!is_array($field)) {
+        $field = array($field);
+    }
 
     usort($data, function($a, $b) use($field, $desc) {
         $retval = 0;
 
-        foreach($field as $fieldname) {
+        foreach ($field as $fieldname) {
             if ($desc) {
-                if ($retval == 0) $retval = strnatcmp($b[$fieldname], $a[$fieldname]);
+                if ($retval == 0)
+                    $retval = strnatcmp($b[$fieldname], $a[$fieldname]);
             } else {
-                if ($retval == 0) $retval = strnatcmp($a[$fieldname], $b[$fieldname]);
+                if ($retval == 0)
+                    $retval = strnatcmp($a[$fieldname], $b[$fieldname]);
             }
         }
 
@@ -2570,6 +2588,7 @@ function wf_JSElemInsertedCatcherFunc() {
 
     return $Result;
 }
+
 /**
  * Jqeury Data tables JSON formatting class
  */

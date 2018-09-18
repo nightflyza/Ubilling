@@ -266,7 +266,7 @@ class UserProfile {
         $result = '';
         if ($this->alterCfg['MACVEN_ENABLED']) {
             $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $this->mac . '&username=' . $this->login . '" width="360" height="160" frameborder="0"');
-            $vendorframe.= wf_tag('iframe', true);
+            $vendorframe .= wf_tag('iframe', true);
             $result = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
         }
         return ($result);
@@ -359,30 +359,30 @@ class UserProfile {
         $plugins = $this->loadPluginsRaw($filename);
 
         $result = wf_tag('table', false, '', 'width="100%" border="0"');
-        $result.= wf_tag('tr', false);
-        $result.= wf_tag('td', false, '', 'valign="middle" align="center"');
+        $result .= wf_tag('tr', false);
+        $result .= wf_tag('td', false, '', 'valign="middle" align="center"');
 
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
                 if (isset($eachplugin['need_option'])) {
                     if (@$this->alterCfg[$eachplugin['need_option']]) {
-                        $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                        $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
-                        $result.= wf_tag('br') . __($eachplugin['name']);
-                        $result.= wf_tag('div', true);
+                        $result .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
+                        $result .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                        $result .= wf_tag('br') . __($eachplugin['name']);
+                        $result .= wf_tag('div', true);
                     }
                 } else {
-                    $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                    $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
-                    $result.= wf_tag('br') . __($eachplugin['name']);
-                    $result.= wf_tag('div', true);
+                    $result .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
+                    $result .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                    $result .= wf_tag('br') . __($eachplugin['name']);
+                    $result .= wf_tag('div', true);
                 }
             }
         }
 
-        $result.=wf_tag('td', true);
-        $result.= wf_tag('tr', true);
-        $result.= wf_tag('table', true);
+        $result .= wf_tag('td', true);
+        $result .= wf_tag('tr', true);
+        $result .= wf_tag('table', true);
 
         return($result);
     }
@@ -399,9 +399,9 @@ class UserProfile {
                 foreach ($rawPlugins as $modulename => $eachplugin) {
                     if (isset($eachplugin['overlay'])) {
                         $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']) . wf_delimiter();
-                        $this->plugins.=wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
+                        $this->plugins .= wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
                     } else {
-                        $this->plugins.=wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
+                        $this->plugins .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
                     }
                 }
             }
@@ -476,10 +476,10 @@ class UserProfile {
     protected function addRow($header, $data, $highlight = false, $cellwidth = self::MAIN_ROW_HEADER_WIDTH) {
         if ($highlight) {
             $cells = wf_TableCell($this->highlightStart . $header . $this->highlightEnd, $cellwidth, 'row2');
-            $cells.= wf_TableCell($this->highlightStart . $data . $this->highlightEnd, '', 'row3');
+            $cells .= wf_TableCell($this->highlightStart . $data . $this->highlightEnd, '', 'row3');
         } else {
             $cells = wf_TableCell($header, $cellwidth, 'row2');
-            $cells.= wf_TableCell($data, '', 'row3');
+            $cells .= wf_TableCell($data, '', 'row3');
         }
         $result = wf_TableRow($cells);
         return ($result);
@@ -495,17 +495,17 @@ class UserProfile {
         if (($right != '')) {
             if (cfr($right)) {
                 $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
-                $result.= wf_Link($link, wf_img_sized($icon, __($title), '', '64'), false, '');
-                $result.= wf_tag('br');
-                $result.= __($shorttitle);
-                $result.= wf_tag('div', true);
+                $result .= wf_Link($link, wf_img_sized($icon, __($title), '', '64'), false, '');
+                $result .= wf_tag('br');
+                $result .= __($shorttitle);
+                $result .= wf_tag('div', true);
             }
         } else {
             $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
-            $result.= wf_Link($link, wf_img_sized($icon, __($title), '', '64'), false, '');
-            $result.= wf_tag('br');
-            $result.= __($shorttitle);
-            $result.= wf_tag('div', true);
+            $result .= wf_Link($link, wf_img_sized($icon, __($title), '', '64'), false, '');
+            $result .= wf_tag('br');
+            $result .= __($shorttitle);
+            $result .= wf_tag('div', true);
         }
         return ($result);
     }
@@ -519,32 +519,32 @@ class UserProfile {
      */
     protected function getMainControls() {
         $result = wf_tag('table', false, '', 'width="100%"  border="0"');
-        $result.= wf_tag('tbody');
-        $result.= wf_tag('tr');
-        $result.= wf_tag('td');
+        $result .= wf_tag('tbody');
+        $result .= wf_tag('tr');
+        $result .= wf_tag('td');
 
-        $result.= $this->getControl('?module=lifestory&username=' . $this->login, 'skins/icon_orb_big.png', 'User lifestory', 'Details', 'LIFESTORY');
-        $result.= $this->getControl('?module=traffstats&username=' . $this->login, 'skins/icon_stats_big.png', 'Traffic stats', 'Traffic stats', 'TRAFFSTATS');
-        $result.= $this->getControl('?module=addcash&username=' . $this->login . '#profileending', 'skins/icon_cash_big.png', 'Finance operations', 'Cash', 'CASH');
-        $result.= $this->getControl('?module=macedit&username=' . $this->login, 'skins/icon_ether_big.png', 'Change MAC', 'Change MAC', 'MAC');
-        $result.= $this->getControl('?module=binder&username=' . $this->login, 'skins/icon_build_big.png', 'Address', 'Address', 'BINDER');
-        $result.= $this->getControl('?module=tariffedit&username=' . $this->login, 'skins/icon_money_time.png', 'Tariff', 'Tariff', 'TARIFFEDIT');
-        $result.= $this->getControl('?module=useredit&username=' . $this->login, 'skins/icon_user_edit_big.png', 'Edit user', 'Edit', 'USEREDIT');
-        $result.= $this->getControl('?module=jobs&username=' . $this->login, 'skins/worker.png', 'Jobs', 'Jobs', 'EMPLOYEE');
-        $result.= $this->getControl('?module=reset&username=' . $this->login, 'skins/icon_reset_big.png', 'Reset user', 'Reset user', 'RESET');
+        $result .= $this->getControl('?module=lifestory&username=' . $this->login, 'skins/icon_orb_big.png', 'User lifestory', 'Details', 'LIFESTORY');
+        $result .= $this->getControl('?module=traffstats&username=' . $this->login, 'skins/icon_stats_big.png', 'Traffic stats', 'Traffic stats', 'TRAFFSTATS');
+        $result .= $this->getControl('?module=addcash&username=' . $this->login . '#profileending', 'skins/icon_cash_big.png', 'Finance operations', 'Cash', 'CASH');
+        $result .= $this->getControl('?module=macedit&username=' . $this->login, 'skins/icon_ether_big.png', 'Change MAC', 'Change MAC', 'MAC');
+        $result .= $this->getControl('?module=binder&username=' . $this->login, 'skins/icon_build_big.png', 'Address', 'Address', 'BINDER');
+        $result .= $this->getControl('?module=tariffedit&username=' . $this->login, 'skins/icon_money_time.png', 'Tariff', 'Tariff', 'TARIFFEDIT');
+        $result .= $this->getControl('?module=useredit&username=' . $this->login, 'skins/icon_user_edit_big.png', 'Edit user', 'Edit', 'USEREDIT');
+        $result .= $this->getControl('?module=jobs&username=' . $this->login, 'skins/worker.png', 'Jobs', 'Jobs', 'EMPLOYEE');
+        $result .= $this->getControl('?module=reset&username=' . $this->login, 'skins/icon_reset_big.png', 'Reset user', 'Reset user', 'RESET');
         //optional asterisk controls
         if (isset($this->alterCfg['ASTERISK_ENABLED'])) {
             if ($this->alterCfg['ASTERISK_ENABLED']) {
-                $result.= $this->getControl('?module=asterisk&username=' . $this->login . '#profileending', 'skins/asterisk_small.png', 'Asterisk logging', 'Asterisk', 'ASTERISK');
+                $result .= $this->getControl('?module=asterisk&username=' . $this->login . '#profileending', 'skins/asterisk_small.png', 'Asterisk logging', 'Asterisk', 'ASTERISK');
             }
         }
 
         //sms history button
-        $result.= $this->getSMSHistoryControls();
+        $result .= $this->getSMSHistoryControls();
 
-        $result.= wf_tag('td', true);
-        $result.= wf_tag('tbody', true);
-        $result.= wf_tag('table', true);
+        $result .= wf_tag('td', true);
+        $result .= wf_tag('tbody', true);
+        $result .= wf_tag('table', true);
 
         return($result);
     }
@@ -622,7 +622,7 @@ class UserProfile {
                     $locatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10);
                     $buildLocator = ' ' . wf_Link("?module=usersmap&findbuild=" . $thisUserBuildGeo, $locatorIcon, false);
                 } else {
-                    $buildLocator.= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $this->aptdata['buildid'], wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
+                    $buildLocator .= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $this->aptdata['buildid'], wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
                 }
 //and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
@@ -631,10 +631,10 @@ class UserProfile {
                         $inbuildNeigbors_raw = unserialize($inbuildNeigbors_raw);
                         if (!empty($inbuildNeigbors_raw)) {
                             $inbuildNeigborsStat = '';
-                            $inbuildNeigborsStat.= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');
-                            $inbuildNeigborsStat.= wf_tag('br') . __('Active') . ' ' . $inbuildNeigbors_raw['aliveusers'] . '/' . $inbuildNeigbors_raw['userscount'];
+                            $inbuildNeigborsStat .= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');
+                            $inbuildNeigborsStat .= wf_tag('br') . __('Active') . ' ' . $inbuildNeigbors_raw['aliveusers'] . '/' . $inbuildNeigbors_raw['userscount'];
                             $buildNeighborsIcon = wf_img_sized('skins/icon_build.gif', __('Neighbours'), 12);
-                            $buildLocator.=' ' . wf_modal($buildNeighborsIcon, __('Neighbours'), $inbuildNeigborsStat, '', 400, 400);
+                            $buildLocator .= ' ' . wf_modal($buildNeighborsIcon, __('Neighbours'), $inbuildNeigborsStat, '', 400, 400);
                         }
                     }
                 }
@@ -717,7 +717,7 @@ class UserProfile {
                 $conDet = new ConnectionDetails();
                 $data = $conDet->renderData($this->login);
                 if (cfr('CONDET')) {
-                    $data.=' ' . wf_Link('?module=condetedit&username=' . $this->login, wf_img_sized('skins/cableseal_small.png', __('Change') . ' ' . __('Connection details'), '12'), false);
+                    $data .= ' ' . wf_Link('?module=condetedit&username=' . $this->login, wf_img_sized('skins/cableseal_small.png', __('Change') . ' ' . __('Connection details'), '12'), false);
                 }
                 $result = $this->addRow(__('Connection details'), $data);
             }
@@ -778,9 +778,9 @@ class UserProfile {
                 foreach ($all as $io => $each) {
                     if ((isset($actionNames[$each['action']])) AND ( isset($actionIcons[$each['action']]))) {
                         $icon = wf_img_sized($actionIcons[$each['action']], $actionNames[$each['action']], '10', '10');
-                        $notification.=wf_Link('?module=pl_dealwithit&username=' . $this->login, $icon, false) . ' ';
+                        $notification .= wf_Link('?module=pl_dealwithit&username=' . $this->login, $icon, false) . ' ';
                     } else {
-                        $notification.=$each['action'] . ' ';
+                        $notification .= $each['action'] . ' ';
                     }
                 }
             }
@@ -821,9 +821,9 @@ class UserProfile {
                 if (!empty($this->contract)) {
                     $allContractDates = zb_UserContractDatesGetAll();
                     $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
-                    $result.=$this->addRow(__('Contract date'), $contractDate);
+                    $result .= $this->addRow(__('Contract date'), $contractDate);
                 } else {
-                    $result.=$this->addRow(__('Contract date'), __('No'));
+                    $result .= $this->addRow(__('Contract date'), __('No'));
                 }
             }
         }
@@ -872,7 +872,7 @@ class UserProfile {
             if (!empty($vlan)) {
                 $history = new VlanMacHistory;
                 $cells = wf_TableCell(__('Detect online'), '30%', 'row2');
-                $cells.= wf_TableCell($history->GetUserVlanOnline($this->login, $vlanGen->GetVlan($this->login)));
+                $cells .= wf_TableCell($history->GetUserVlanOnline($this->login, $vlanGen->GetVlan($this->login)));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }
@@ -911,7 +911,7 @@ class UserProfile {
                     }
                 }
                 $cells = wf_TableCell(__("ONU Signal"), '30%', 'row2');
-                $cells.= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true));
+                $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }
@@ -995,11 +995,11 @@ class UserProfile {
                                 $userMobile = $prefix . $userMobile;
                             }
                             $sendInputs = '';
-                            $sendInputs.= wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
-                            $sendInputs.= wf_TextArea('neweasysmstext', '', '', true, '40x5');
-                            $sendInputs.= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
-                            $sendInputs.= wf_tag('br');
-                            $sendInputs.= wf_Submit(__('Send SMS'));
+                            $sendInputs .= wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
+                            $sendInputs .= wf_TextArea('neweasysmstext', '', '', true, '40x5');
+                            $sendInputs .= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
+                            $sendInputs .= wf_tag('br');
+                            $sendInputs .= wf_Submit(__('Send SMS'));
                             $sendingForm = wf_Form('', 'POST', $sendInputs, 'glamour');
 
                             $result = ' ' . wf_modalAuto(wf_img_sized('skins/icon_sms_micro.gif', __('Send SMS'), '10', '10'), __('Send SMS'), $sendingForm, '');
@@ -1070,7 +1070,7 @@ class UserProfile {
                 rcms_redirect('?module=userprofile&username=' . $_POST['extnetspoollinklogin']);
             }
             $result = $extNets->poolsExtractByLogin($this->login);
-            $result.=' ' . wf_modal(wf_img('skins/icon_ip.gif'), __('IP associated with pool'), $extNets->poolLinkingForm($this->login), '', '500', '120');
+            $result .= ' ' . wf_modal(wf_img('skins/icon_ip.gif'), __('IP associated with pool'), $extNets->poolLinkingForm($this->login), '', '500', '120');
         }
         return ($result);
     }
@@ -1084,7 +1084,7 @@ class UserProfile {
         $result = '';
         if ($this->alterCfg['PHOTOSTORAGE_ENABLED']) {
             $photostorageUrl = '?module=photostorage&scope=USERPROFILE&itemid=' . $this->login . '&mode=list';
-            $result.=' ' . wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'), '10', '10'), false);
+            $result .= ' ' . wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'), '10', '10'), false);
         }
         return ($result);
     }
@@ -1163,8 +1163,8 @@ class UserProfile {
         if (@$this->alterCfg['TARIFFINFO_IN_PROFILE']) {
             $containerId = 'TARIFFINFO_CONTAINER';
             if (!empty($tariffName)) {
-                $result.=wf_AjaxLoader();
-                $result.=wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
+                $result .= wf_AjaxLoader();
+                $result .= wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
             }
         }
         return ($result);
@@ -1190,7 +1190,7 @@ class UserProfile {
 
             if ($wcpeFlag) {
                 $wcpe = new WifiCPE();
-                $result.=$wcpe->renderCpeUserControls($this->login, $this->AllUserData);
+                $result .= $wcpe->renderCpeUserControls($this->login, $this->AllUserData);
             }
         }
 
@@ -1221,7 +1221,7 @@ class UserProfile {
                     $additionalNumbers = '';
                 }
                 $fastLinkControl = (cfr('MOBILE')) ? wf_Link('?module=mobileedit&username=' . $this->login, wf_img_sized('skins/add_icon.png', __('Add new'), '10', '10'), false) : '';
-                $result.=$this->addRow(__('Additional mobile') . ' ' . $fastLinkControl, $additionalNumbers);
+                $result .= $this->addRow(__('Additional mobile') . ' ' . $fastLinkControl, $additionalNumbers);
             }
         }
         return ($result);
@@ -1237,7 +1237,7 @@ class UserProfile {
         if ((isset($this->alterCfg['DISTRICTS_ENABLED'])) AND ( $this->alterCfg['DISTRICTS_ENABLED'])) {
             if ((isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) AND ( $this->alterCfg['DISRTICTS_IN_PROFILE'])) {
                 $districts = new Districts(false);
-                $result.=$this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
+                $result .= $this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
             }
         }
         return ($result);
@@ -1280,27 +1280,10 @@ class UserProfile {
             $JQDT = $SMSHist->renderJQDT($this->login);
 
             $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
-            $result.= wf_modal(wf_img_sized('skins/taskbar/sms_hist_big.png', __('SMS messages history'), '', self::MAIN_PLUGINS_SIZE), __('SMS messages history for current user') . '  ' . $this->login, $JQDT, '', '1000', '400');
-            $result.= wf_tag('br');
-            $result.= __('SMS messages history');
-            $result.= wf_tag('div', true);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get user passive from weblogs 
-     * 
-     * @return string
-     */
-    protected function getPassiveTime() {
-        $result = '';
-
-        $query = "SELECT `date` FROM `weblogs` WHERE `event` = 'CHANGE Passive (" . $this->login . ") ON 1' ORDER BY `id` DESC LIMIT 1";
-        $passiveTime_data = simple_query($query);
-        if (!empty($passiveTime_data)) {
-            return $passiveTime_data['date'];
+            $result .= wf_modal(wf_img_sized('skins/taskbar/sms_hist_big.png', __('SMS messages history'), '', self::MAIN_PLUGINS_SIZE), __('SMS messages history for current user') . '  ' . $this->login, $JQDT, '', '1000', '400');
+            $result .= wf_tag('br');
+            $result .= __('SMS messages history');
+            $result .= wf_tag('div', true);
         }
 
         return $result;
@@ -1325,16 +1308,16 @@ class UserProfile {
         $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif', '', '', '12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif', '', '', '12') . ' ' . __('Yes');
 
 // user linking controller
-        $profile.=$this->getUserLinking();
+        $profile .= $this->getUserLinking();
 
-        $profile.= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //external profile container
-        $profile.= wf_tag('tbody', false);
+        $profile .= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //external profile container
+        $profile .= wf_tag('tbody', false);
 
-        $profile.= wf_tag('tr', false);
+        $profile .= wf_tag('tr', false);
 
-        $profile.= wf_tag('td', false, '', 'valign="top"');
-        $profile.= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //main profile data
-        $profile.= wf_tag('tbody', false);
+        $profile .= wf_tag('td', false, '', 'valign="top"');
+        $profile .= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //main profile data
+        $profile .= wf_tag('tbody', false);
 
 //address row and controls
         if (!$this->alterCfg['CITY_DISPLAY']) {
@@ -1342,76 +1325,81 @@ class UserProfile {
         } else {
             $renderAddress = $this->useraddress;
         }
-        $profile.= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
+        $profile .= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
 //apt data like floor and entrance row
-        $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
+        $profile .= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
 //user districts row
-        $profile.=$this->getDistrictControls();
+        $profile .= $this->getDistrictControls();
 //realname row
-        $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
+        $profile .= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
 //contract row
-        $profile.= $this->getContractControls();
+        $profile .= $this->getContractControls();
 //contract date row
-        $profile.= $this->getContractDate();
+        $profile .= $this->getContractDate();
 //assigned agents row
-        $profile.= $this->getAgentsControls();
+        $profile .= $this->getAgentsControls();
 //current user branch
-        $profile.= $this->getUserBranchName();
+        $profile .= $this->getUserBranchName();
 //old corporate users aka userlinking
-        $profile.= $this->getCorporateControls();
+        $profile .= $this->getCorporateControls();
 //phone     
-        $profile.= $this->addRow(__('Phone'), $this->phone);
+        $profile .= $this->addRow(__('Phone'), $this->phone);
 //and mobile data rows
-        $profile.= $this->addRow(__('Mobile') . $this->getMobileControls(), $this->mobile);
+        $profile .= $this->addRow(__('Mobile') . $this->getMobileControls(), $this->mobile);
 //additional mobile data
-        $profile.= $this->getMobilesExtControl();
+        $profile .= $this->getMobilesExtControl();
 //Email data row
-        $profile.= $this->addRow(__('Email'), $this->mail);
+        $profile .= $this->addRow(__('Email'), $this->mail);
 //payment ID data
-        $profile.= $this->addRow(__('Payment ID'), $this->paymentid, true);
+        $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
 //LAT data row
-        $profile.= $this->getUserLat();
+        $profile .= $this->getUserLat();
 //login row
-        $profile.= $this->addRow(__('Login'), $this->userdata['login'], true);
+        $profile .= $this->addRow(__('Login'), $this->userdata['login'], true);
 //password row
-        $profile.= $this->getUserPassword();
+        $profile .= $this->getUserPassword();
 //User IP data and extended networks controls if available
-        $profile.= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
+        $profile .= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
 //MAC address row
-        $profile.= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl() . ' ' . $this->getProfileFdbSearchControl(), $this->mac);
+        $profile .= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl() . ' ' . $this->getProfileFdbSearchControl(), $this->mac);
 //User tariff row
-        $profile.= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
+        $profile .= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
 //Tariff change row
-        $profile.=$this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange']), $this->userdata['TariffChange']);
+        $profile .= $this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange']), $this->userdata['TariffChange']);
 //old CaTv backlink if needed
-        $profile.= $this->getCatvBacklinks();
+        $profile .= $this->getCatvBacklinks();
 //Speed override row
-        $profile.= $this->addRow(__('Speed override'), $this->speedoverride);
+        $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
 // signup pricing row
-        $profile.= $this->getSignupPricing();
+        $profile .= $this->getSignupPricing();
 //User current cash row
-        $profile.= $this->addRow(__('Balance'), $this->getUserCash(), true);
+        $profile .= $this->addRow(__('Balance'), $this->getUserCash(), true);
 //User credit row & easycredit control if needed
-        $profile.= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
+        $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
 //credit expire row
-        $profile.= $this->addRow(__('Credit expire'), $this->getUserCreditExpire());
+        $profile .= $this->addRow(__('Credit expire'), $this->getUserCreditExpire());
 //Prepayed traffic
-        $profile.= $this->getFreeMbControls();
+        $profile .= $this->getFreeMbControls();
 //finance activity row
-        $profile.=$this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
+        $profile .= $this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
 //DN online detection row
-        $profile.= $this->getUserOnlineDN();
+        $profile .= $this->getUserOnlineDN();
 //Always online flag row
-        $profile.= $this->addRow(__('Always Online'), web_trigger($this->userdata['AlwaysOnline']));
+        $profile .= $this->addRow(__('Always Online'), web_trigger($this->userdata['AlwaysOnline']));
 //Detail stats flag row
-        $profile.=$this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
+        $profile .= $this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
 //Frozen aka passive flag row
         //passive time detection
         $passiveTimeLabel = '';
         if ($this->userdata['Passive']) {
-            $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ') (' .  $this->getPassiveTime() . ')' : '';
+            if ($this->userdata['PassiveTime']) {
+                $passiveTimeLabel = wf_AjaxLoader();
+                $passiveTimeLink = wf_AjaxLink('?module=passiveinfo&username='.$this->login, ' (' . zb_formatTime($this->userdata['PassiveTime']) . ')', 'passivedatecontainer');
+                $passiveTimeLabel .= wf_AjaxContainerSpan('passivedatecontainer','',$passiveTimeLink);
+                
+            }
         }
-        $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
+        $profile .= $this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
 
         if (isset($this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) && $this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) {
             $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $this->userdata['login'] . "';";
@@ -1430,51 +1418,51 @@ class UserProfile {
         }
 
 //Disable aka Down flag row
-        $profile.=$this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
+        $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
 //Deal with it available tasks notification
-        $profile.= $this->getUserDealWithItNotification();
+        $profile .= $this->getUserDealWithItNotification();
 //Connection details  row
-        $profile.= $this->getUserConnectionDetails();
+        $profile .= $this->getUserConnectionDetails();
 //User notes row
-        $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
+        $profile .= $this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
 
-        $profile.= wf_tag('tbody', true);
-        $profile.= wf_tag('table', true);
-        $profile.= wf_tag('td', true); //end of main profile container 
+        $profile .= wf_tag('tbody', true);
+        $profile .= wf_tag('table', true);
+        $profile .= wf_tag('td', true); //end of main profile container 
 
 
-        $profile.= wf_tag('td', false, '', 'valign="top" width="10%"'); //profile plugins container
-        $profile.= $this->plugins;
-        $profile.= wf_tag('td', true); // end of plugins container
+        $profile .= wf_tag('td', false, '', 'valign="top" width="10%"'); //profile plugins container
+        $profile .= $this->plugins;
+        $profile .= wf_tag('td', true); // end of plugins container
 
-        $profile.= wf_tag('tr', true); // close profile+plugins row
+        $profile .= wf_tag('tr', true); // close profile+plugins row
 
-        $profile.= wf_tag('tbody', true);
-        $profile.= wf_tag('table', true); //end of all profile container
+        $profile .= wf_tag('tbody', true);
+        $profile .= wf_tag('table', true); //end of all profile container
 //profile switch port controls
-        $profile.=$this->getSwitchAssignControls();
+        $profile .= $this->getSwitchAssignControls();
 //profile onu signal controls
-        $profile.=$this->getPonSignalControl();
+        $profile .= $this->getPonSignalControl();
 //profile vlan controls
-        $profile.=$this->getVlanAssignControls();
+        $profile .= $this->getVlanAssignControls();
 //profile vlan online
-        $profile.=$this->getVlanOnline();
+        $profile .= $this->getVlanOnline();
 //profile CPE controls
-        $profile.=$this->getUserCpeControls();
+        $profile .= $this->getUserCpeControls();
 
 //Custom filelds display
-        $profile.=cf_FieldShower($this->login);
+        $profile .= cf_FieldShower($this->login);
 //Tags add control and exiting tags listing
         if (cfr('TAGS')) {
-            $profile.= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Tags')), false);
+            $profile .= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Tags')), false);
         }
-        $profile.=stg_show_user_tags($this->login);
+        $profile .= stg_show_user_tags($this->login);
 
 //main profile controls here
-        $profile.=$this->getMainControls();
+        $profile .= $this->getMainControls();
 
 //Profile ending anchor for addcash links scroll
-        $profile.= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
+        $profile .= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
 
         return($profile);
     }
