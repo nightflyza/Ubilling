@@ -61,7 +61,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
- * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email
+ * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac
  * @param  string $class class of the element
  *
  * @return string

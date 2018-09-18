@@ -23,3 +23,13 @@ CREATE TABLE IF NOT EXISTS `taskmanlogs` (
   KEY `taskid` (`taskid`) USING BTREE,
   KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `om_tariffs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tariffid` int(11) NOT NULL,
+  `tariffname` varchar(255) NOT NULL,
+  `type` varchar(64) NOT NULL,
+  `fee` DOUBLE DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
