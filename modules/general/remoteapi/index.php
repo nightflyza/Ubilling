@@ -453,7 +453,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 }
                             }
 
-                            $FrozenAllQuery = "SELECT `frozen_charge_days`.`*`, `users`.`Passive`, `users`.`Down`, `users`.`Credit`, `users`.`Cash` 
+                            $FrozenAllQuery = "SELECT `frozen_charge_days`.*, `users`.`Passive`, `users`.`Down`, `users`.`Credit`, `users`.`Cash`
                                                   FROM `frozen_charge_days`
                                                     LEFT JOIN `users` ON `frozen_charge_days`.`login` = `users`.`login`;";
                             $FrozenAll = simple_queryall($FrozenAllQuery);

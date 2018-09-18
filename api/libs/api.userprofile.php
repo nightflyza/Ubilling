@@ -1392,7 +1392,7 @@ class UserProfile {
         //passive time detection
         $passiveTimeLabel = '';
         if ($this->userdata['Passive']) {
-            $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ')' : '';
+            $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ') (' .  date("Y-m-d H:i:s", time() - $this->userdata['PassiveTime']) . ')' : '';
         }
         $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
 
