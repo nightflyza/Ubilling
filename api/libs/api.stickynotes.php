@@ -262,7 +262,9 @@ class StickyNotes {
 
             $result.= wf_tag('div', false, 'stickynote', 'style="margin:' . $offsetTop . ' ' . $offsetLeft . ' 20px 20px;"');
             $result.= wf_Link(self::URL_ME, wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
+            $result.=wf_tag('div', false, 'stickynotetext');
             $result.= $text;
+            $result.=wf_tag('div', true);
             $result.= wf_tag('div', true);
         }
         return ($result);
@@ -522,7 +524,7 @@ class StickyNotes {
             }
 
             $result.=wf_tag('script');
-            $result.='$( function() { $( ".stickynote" ).draggable({ scroll: false }); } );';
+            $result.='$( function() { $( ".stickynote" ).draggable({ scroll: false, cancel: ".stickynotetext" }); } );';
             $result.=wf_tag('script', true);
         }
         return ($result);
