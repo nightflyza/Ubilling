@@ -1290,6 +1290,23 @@ class UserProfile {
     }
 
     /**
+     * Get user passive from weblogs 
+     * 
+     * @return string
+     */
+    protected function getPassiveTime() {
+        $result = '';
+
+        $query = "SELECT `date` FROM `weblogs` WHERE `event` = 'CHANGE Passive (" . $this->login . ") ON 1' ORDER BY `id` DESC LIMIT 1";
+        $passiveTime_data = simple_query($query);
+        if (!empty($passiveTime_data)) {
+            return $passiveTime_data['date'];
+        }
+
+        return $result;
+    }
+
+    /**
       Брат, братан, братишка Когда меня отпустит?
      */
 
@@ -1392,7 +1409,7 @@ class UserProfile {
         //passive time detection
         $passiveTimeLabel = '';
         if ($this->userdata['Passive']) {
-            $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ') (' .  date("Y-m-d H:i:s", time() - $this->userdata['PassiveTime']) . ')' : '';
+            $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ') (' .  $this->getPassiveTime() . ')' : '';
         }
         $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
 
