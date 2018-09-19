@@ -502,8 +502,6 @@ class PONizer {
         }
         $result = serialize($result);
         file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
-        $macTmp = serialize($macTmp);
-        file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macTmp);
     }
 
     /**
@@ -517,13 +515,11 @@ class PONizer {
     protected function onuidParseZTE($oltid, $macIndex) {
         $macTmp = array();
 
-        foreach ($macIndex as $ioIndex => $eachMac) {
-            if (isset($intIndex[$ioIndex])) {
+        foreach ($macIndex as $ioIndex => $eachMac) {            
                 $eachMac = strtolower($eachMac);
                 $eachMac = explode(" ", $eachMac);
                 $eachMac = implode(":", $eachMac);
-                $macTmp[$ioIndex] = $eachMac;
-            }
+                $macTmp[$ioIndex] = $eachMac;            
         }
         $macTmp = serialize($macTmp);
         file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macTmp);
