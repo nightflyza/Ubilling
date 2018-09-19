@@ -507,6 +507,29 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache ZTE OLT ONU ID
+     *
+     * @param int $oltid
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function onuidParseZTE($oltid, $macIndex) {
+        $macTmp = array();
+
+        foreach ($macIndex as $ioIndex => $eachMac) {
+            if (isset($intIndex[$ioIndex])) {
+                $eachMac = strtolower($eachMac);
+                $eachMac = explode(" ", $eachMac);
+                $eachMac = implode(":", $eachMac);
+                $macTmp[$ioIndex] = $eachMac;
+            }
+        }
+        $macTmp = serialize($macTmp);
+        file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macTmp);
+    }
+
+    /**
      * Parses & stores in cache OLT ONU interfaces
      *
      * @param int $oltid
@@ -1556,6 +1579,7 @@ class PONizer {
                                         }
                                     }
                                     $this->interfaceParseZTE($oltid, $intIndex, $macIndexTmp);
+                                    $this->onuidParseZTE($oltid, $macIndexTmp);
                                 }
                             }
                         }
