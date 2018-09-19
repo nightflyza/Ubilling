@@ -154,6 +154,8 @@ class OmegaTV {
         $result = '';
         $userInfo = $this->hls->getUserInfo($customerId);
 
+//debarr($this->hls->getDeviceCode(1));
+
         if (isset($userInfo['result'])) {
             $userInfo = $userInfo['result'];
             $cells = wf_TableCell(__('ID'), '', 'row2');
