@@ -1032,6 +1032,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             if (!empty($DNData)) {
                                 $UsersCnt = count($DNData);
                                 $RouterOSAPI = new RouterOS();
+                                $Action = '';
 
                                 foreach ($DNData as $eachrow => $eachlogin) {
                                     $MTikNasOpts = base64_decode($eachlogin['options']);
@@ -1042,19 +1043,37 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                     if ($RouterOSAPI->connected) {
                                         if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
-                                            $Template = array('.id' => '',
-                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
-                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
-                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
-                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
-                                            );
+                                            $Action = 'DOWNSHIFT';
+
+                                            if ( empty($eachlogin['burstimetupload']) or empty($eachlogin['bursttimedownload'])
+                                                or empty($eachlogin['burstupload']) or empty($eachlogin['burstdownload']) ) {
+
+                                                $Template = array('.id' => '',
+                                                    'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k'
+                                                );
+                                            } else {
+                                                $Template = array('.id' => '',
+                                                    'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
+                                                    'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
+                                                    'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
+                                                    'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                                );
+                                            }
                                         } else {
-                                            $Template = array('.id' => '',
-                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
-                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
-                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
-                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
-                                            );
+                                            if ( empty($eachlogin['burstimetupload']) or empty($eachlogin['bursttimedownload'])
+                                                or empty($eachlogin['burstupload']) or empty($eachlogin['burstdownload']) ) {
+
+                                                $Template = array('.id' => '',
+                                                    'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k'
+                                                );
+                                            } else {
+                                                $Template = array('.id' => '',
+                                                    'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                    'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                    'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
+                                                    'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                                );
+                                            }
                                         }
 
                                         $Entries = $RouterOSAPI->command('/queue/simple/print', array('.proplist' => '.id', '?name' => '' . trim($eachlogin['login']) . ''));
@@ -1065,11 +1084,11 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                                 $MTikReply = $RouterOSAPI->command('/queue/simple/set', $Template);
                                             }
                                         }
-
-                                        log_register('MT_DN_SHAPER done to `' . $UsersCnt . '` users');
-                                        die('OK:MT_DN_SHAPER');
                                     }
                                 }
+
+                                log_register('MT_DN_SHAPER ' . $Action . ' done to `' . $UsersCnt . '` users');
+                                die('OK:MT_DN_SHAPER');
                             } else {
                                 die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');
                             }
