@@ -2553,6 +2553,7 @@ class PONizer {
         $oltInterfacesFilled = array();
         $signals = array();
         $badSignals = array();
+        $avgSignals = array();
         $result = '';
         $result .= wf_BackLink(self::URL_ME);
         $result .= wf_tag('br');
@@ -2586,7 +2587,14 @@ class PONizer {
 
                                 if (isset($signals[$eachMac])) {
                                     $macSignal = $signals[$eachMac];
-                                    if ((($macSignal > 0) OR ( $macSignal < -25))) {
+                                    if ((($macSignal > -27) AND ( $macSignal < -25))) {
+                                        if (isset($avgSignals[$oltId][$cleanInterface])) {
+                                            $avgSignals[$oltId][$cleanInterface] ++;
+                                        } else {
+                                            $avgSignals[$oltId][$cleanInterface] = 1;
+                                        }
+                                    }
+                                    if ((($macSignal > 0) OR ( $macSignal < -27))) {
                                         if (isset($badSignals[$oltId][$cleanInterface])) {
                                             $badSignals[$oltId][$cleanInterface] ++;
                                         } else {
@@ -2610,6 +2618,8 @@ class PONizer {
                 if (isset($oltInterfacesFilled[$oltId])) {
                     $cells = wf_TableCell(__('Interface'));
                     $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Avg. signal'));
+                    $cells .= wf_TableCell(__('Avg. signal') . ' %');
                     $cells .= wf_TableCell(__('Bad signal'));
                     $cells .= wf_TableCell(__('Bad signal') . ' %');
                     $cells .= wf_TableCell(__('Visual'));
@@ -2618,23 +2628,45 @@ class PONizer {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
                         $cells = wf_TableCell($eachInterface);
                         $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
-                        $badSignalCount = @$badSignals[$oltId][$eachInterface];
-                        $signalColor = '';
-                        $signalColorEnd = '';
-                        $badSignalPercent = '';
+
+                        $avgSignalCount     = @$avgSignals[$oltId][$eachInterface];
+                        $badSignalCount     = @$badSignals[$oltId][$eachInterface];
+                        $avgSignalColor     = '';
+                        $avgSignalColorEnd  = '';
+                        $avgSignalPercent   = '';
+                        $badSignalColor     = '';
+                        $badSignalColorEnd  = '';
+                        $badSignalPercent   = '';
+
+                        if (!empty($avgSignalCount)) {
+                            if ($avgSignalCount >= 3) {
+                                $avgSignalColor = wf_tag('font', false, '', 'color="#FF5500"') . wf_tag('b', false);
+                                $avgSignalColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                            } else {
+                                $avgSignalColor = '';
+                                $avgSignalColorEnd = '';
+                            }
+                            $avgSignalPercent = zb_PercentValue($eachInterfaceCount, $avgSignalCount) . '%';
+                        } else {
+                            $avgSignalCount = '';
+                        }
+
                         if (!empty($badSignalCount)) {
                             if ($badSignalCount >= 3) {
-                                $signalColor = wf_tag('font', false, '', 'color="#FF0000"') . wf_tag('b', false);
-                                $signalColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                                $badSignalColor = wf_tag('font', false, '', 'color="#FF0000"') . wf_tag('b', false);
+                                $badSignalColorEnd = wf_tag('b', true) . wf_tag('font', true);
                             } else {
-                                $signalColor = '';
-                                $signalColorEnd = '';
+                                $badSignalColor = '';
+                                $badSignalColorEnd = '';
                             }
                             $badSignalPercent = zb_PercentValue($eachInterfaceCount, $badSignalCount) . '%';
                         } else {
                             $badSignalCount = '';
                         }
-                        $cells .= wf_TableCell($signalColor . $badSignalCount . $signalColorEnd);
+
+                        $cells .= wf_TableCell($avgSignalColor . $avgSignalCount . $avgSignalColorEnd);
+                        $cells .= wf_TableCell($avgSignalPercent);
+                        $cells .= wf_TableCell($badSignalColor . $badSignalCount . $badSignalColorEnd);
                         $cells .= wf_TableCell($badSignalPercent);
                         $cells .= wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
                         $rows .= wf_TableRow($cells, 'row5');
@@ -2993,15 +3025,19 @@ class PONizer {
                 //coloring signal
                 if (isset($this->signalCache[$each['mac']])) {
                     $signal = $this->signalCache[$each['mac']];
-                    if (($signal > 0) OR ( $signal < -25)) {
+                    if (($signal > 0) OR ( $signal < -27)) {
                         $sigColor = '#ab0000';
+                    } elseif ($signal > -27 AND $signal < -25) {
+                        $sigColor = '#FF5500';
                     } else {
                         $sigColor = '#005502';
                     }
                 } elseif (isset($this->signalCache[$each['serial']])) {
                     $signal = $this->signalCache[$each['serial']];
-                    if (($signal > 0) OR ( $signal < -25)) {
+                    if (($signal > 0) OR ( $signal < -27)) {
                         $sigColor = '#ab0000';
+                    } elseif ($signal > -27 AND $signal < -25) {
+                        $sigColor = '#FF5500';
                     } else {
                         $sigColor = '#005502';
                     }
