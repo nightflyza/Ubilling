@@ -977,7 +977,7 @@ class Salary {
             foreach ($all as $io => $each) {
                 $jobName = @$this->allJobtypes[$each['jobtypeid']];
                 $jobPrice = $this->getJobPrice($each['id']);
-                $unitType = $this->allJobUnits[$each['jobtypeid']];
+                $unitType = @$this->allJobUnits[$each['jobtypeid']];
 
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
@@ -1122,7 +1122,7 @@ class Salary {
                 }
             }
 
-            $result.=wf_tag('div',false,'','style="page-break-after: always;"').wf_tag('div',true);
+            $result.=wf_tag('div', false, '', 'style="page-break-after: always;"') . wf_tag('div', true);
             $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
             $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time') . ' (' . __('hours') . ')', '600px', '400px', $chartOpts));
             $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
