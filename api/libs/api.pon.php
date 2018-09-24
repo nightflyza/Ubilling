@@ -2618,8 +2618,8 @@ class PONizer {
                 if (isset($oltInterfacesFilled[$oltId])) {
                     $cells = wf_TableCell(__('Interface'));
                     $cells .= wf_TableCell(__('Count'));
-                    $cells .= wf_TableCell(__('Avg. signal'));
-                    $cells .= wf_TableCell(__('Avg. signal') . ' %');
+                    $cells .= wf_TableCell(__('Mediocre signal'));
+                    $cells .= wf_TableCell(__('Mediocre signal') . ' %');
                     $cells .= wf_TableCell(__('Bad signal'));
                     $cells .= wf_TableCell(__('Bad signal') . ' %');
                     $cells .= wf_TableCell(__('Visual'));
