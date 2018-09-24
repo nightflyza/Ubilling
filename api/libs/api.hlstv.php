@@ -39,6 +39,12 @@ class HlsTV {
     const URL_API = 'https://apiua2.hls.tv/';
 
     /**
+     * Configs options naming
+     */
+    const OPTION_PUBLIC = 'OMEGATV_PUBLIC_KEY';
+    const OPTION_PRIVATE = 'OMEGATV_PRIVATE_KEY';
+
+    /**
      * Creates new low-level API object instance
      * 
      * @return void
@@ -66,9 +72,9 @@ class HlsTV {
      * @return void
      */
     protected function setOptions() {
-        if ((isset($this->altCfg['HLS_PUBLIC_KEY'])) AND ( (isset($this->altCfg['HLS_PRIVATE_KEY'])))) {
-            $this->publicKey = $this->altCfg['HLS_PUBLIC_KEY'];
-            $this->privateKey = $this->altCfg['HLS_PRIVATE_KEY'];
+        if ((isset($this->altCfg[self::OPTION_PUBLIC])) AND ( (isset($this->altCfg[self::OPTION_PRIVATE])))) {
+            $this->publicKey = $this->altCfg[self::OPTION_PUBLIC];
+            $this->privateKey = $this->altCfg[self::OPTION_PRIVATE];
         }
         $this->currentTimeStamp = time();
     }

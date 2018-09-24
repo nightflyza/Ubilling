@@ -28,6 +28,10 @@ if (cfr('OMEGATV')) {
         }
         
         if (wf_CheckGet(array('subscriptions'))) {
+            if (wf_CheckGet(array('getdevicecode'))) {
+                die($omega->generateDeviceCode($_GET['getdevicecode']));
+            }
+            
             deb($omega->renderUserInfo(1));
         }
     } else {

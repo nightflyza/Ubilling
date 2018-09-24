@@ -153,10 +153,8 @@ class OmegaTV {
     public function renderUserInfo($customerId) {
         $result = '';
         $userInfo = $this->hls->getUserInfo($customerId);
-
-//debarr($this->hls->getDeviceCode(1));
-
         if (isset($userInfo['result'])) {
+            $result.=wf_AjaxLoader();
             $userInfo = $userInfo['result'];
             $cells = wf_TableCell(__('ID'), '', 'row2');
             $cells .= wf_TableCell($userInfo['id']);
@@ -171,7 +169,7 @@ class OmegaTV {
             }
 
             $cells = wf_TableCell(__('Status'), '', 'row2');
-            $cells .= wf_TableCell($userInfo['status']);
+            $cells .= wf_TableCell(web_bool_led($userInfo['status']));
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Preview'), '', 'row2');
@@ -181,13 +179,32 @@ class OmegaTV {
             if (!empty($userInfo['devices'])) {
                 foreach ($userInfo['devices'] as $io => $each) {
                     $cells = wf_TableCell(__('Device') . ' ' . $io, '', 'row2');
-                    $cells .= wf_TableCell(implode(', ', $each));
+                    $deviceControls = '';
+                    $cells .= wf_TableCell(__('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . date("Y-m-d H:i:s", $each['activation_data']) . ' ' . __('Model') . ': ' . $each['model']);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
             }
 
+            $cells = wf_TableCell(__('Device activation'), '', 'row2');
+            $getCodeLink = $this->ajDevCodeLink($customerId, __('Get code'));
+            $cells .= wf_TableCell(wf_AjaxContainer('deviceactivationcodecontainer', '', $getCodeLink));
+            $rows .= wf_TableRow($cells, 'row3');
+
             $result .= wf_TableBody($rows, '100%', 0);
         }
+        return ($result);
+    }
+
+    /**
+     * Returns device activation code ajax link
+     * 
+     * @param int $customerId
+     * @param string $label
+     * 
+     * @return string
+     */
+    protected function ajDevCodeLink($customerId, $label) {
+        $result = wf_AjaxLink(self::URL_ME . '&subscriptions=true&getdevicecode=' . $customerId, $label, 'deviceactivationcodecontainer');
         return ($result);
     }
 
@@ -359,6 +376,44 @@ class OmegaTV {
             $result = crc32($login);
         }
         return($result);
+    }
+
+    /**
+     * Returns web-player URL
+     * 
+     * @param int $customerId
+     * 
+     * @return string
+     */
+    public function generateWebURL($customerId) {
+        $result = '';
+        $userInfo = $this->hls->getUserInfo($customerId);
+
+        if (isset($userInfo['result'])) {
+            $userInfo = $userInfo['result'];
+            if (!empty($userInfo)) {
+                $result .=$userInfo['web_url'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns new device activation code
+     * 
+     * @param int $customerId
+     * 
+     * @return string
+     */
+    public function generateDeviceCode($customerId) {
+        $result = '';
+        $codeData = $this->hls->getDeviceCode($customerId);
+        if (isset($codeData['result'])) {
+            if (isset($codeData['result']['code'])) {
+                $result.=$codeData['result']['code'] . ' ' . $this->ajDevCodeLink($customerId, __('Renew'));
+            }
+        }
+        return ($result);
     }
 
 }
