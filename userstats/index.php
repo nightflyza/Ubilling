@@ -10,6 +10,7 @@ include('modules/engine/api.agents.php');
 include('modules/engine/api.megogo.php');
 include('modules/engine/api.polls.php');
 include('modules/engine/api.extmobiles.php');
+include('modules/engine/api.omegatv.php');
 
 // ACTIONS HANDLING:
 $user_ip = zbs_UserDetectIp('debug');

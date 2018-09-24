@@ -33,3 +33,13 @@ CREATE TABLE IF NOT EXISTS `om_tariffs` (
   `fee` DOUBLE DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `om_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `customerid` int(11) NOT NULL,
+  `basetariffid` int(11) DEFAULT NULL,
+  `bundletariffs` varchar(255) DEFAULT NULL,
+  `active` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

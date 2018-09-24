@@ -144,6 +144,23 @@ class OmegaTV {
     }
 
     /**
+     * Trys to render human-readable tariff name
+     * 
+     * @param int $tariffId
+     * 
+     * @return string
+     */
+    protected function getTariffName($tariffId) {
+        $result = '';
+        if (isset($this->tariffNames[$tariffId])) {
+            $result.=$this->tariffNames[$tariffId];
+        } else {
+            $result.=$tariffId;
+        }
+        return ($result);
+    }
+
+    /**
      * Renders some user profile info
      * 
      * @param int $customerId
@@ -163,7 +180,13 @@ class OmegaTV {
             if (!empty($userInfo['tariff'])) {
                 foreach ($userInfo['tariff'] as $io => $each) {
                     $cells = wf_TableCell(__('Tariffs') . ' ' . $io, '', 'row2');
-                    $cells .= wf_TableCell(implode(', ', $each));
+                    $tariffsList='';
+                    if (!empty($each)) {
+                        foreach ($each as $ia=>$tariffId) {
+                            $tariffsList.=$this->getTariffName($tariffId).' ';
+                        }
+                    }
+                    $cells .= wf_TableCell($tariffsList);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
             }
@@ -179,8 +202,9 @@ class OmegaTV {
             if (!empty($userInfo['devices'])) {
                 foreach ($userInfo['devices'] as $io => $each) {
                     $cells = wf_TableCell(__('Device') . ' ' . $io, '', 'row2');
-                    $deviceControls = '';
-                    $cells .= wf_TableCell(__('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . date("Y-m-d H:i:s", $each['activation_data']) . ' ' . __('Model') . ': ' . $each['model']);
+                    $deviceLabel = __('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . date("Y-m-d H:i:s", $each['activation_data']) . ' ' . __('Model') . ': ' . $each['model'];
+                    $deviceControls = wf_JSAlert(self::URL_ME . '&subscriptions=true&customerid=' . $customerId . '&deletedevice=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells .= wf_TableCell($deviceLabel . ' ' . $deviceControls);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
             }
@@ -413,6 +437,44 @@ class OmegaTV {
                 $result.=$codeData['result']['code'] . ' ' . $this->ajDevCodeLink($customerId, __('Renew'));
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Deletes device assigned to some customerid
+     * 
+     * @param int $customerId
+     * @param string $deviceId
+     * 
+     * @return void
+     */
+    public function deleteDevice($customerId, $deviceId) {
+        $this->hls->deleteDevice($customerId, $deviceId);
+    }
+    
+    /**
+     * Creates new user profile
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    protected function createUserProfile($userLogin) {
+        $customerId=  $this->generateCustormerId($userLogin);
+        $login_f=  mysql_real_escape_string($userLogin);
+        $query="INSERT INTO `om_users` (`id`,`login`,`customerid`,`basetariffid`,`basetariffid`,`bundletariffs`,`active`) VALUES ";
+        $query.="(NULL,'".$login_f."');";
+    }
+
+
+    /**
+     * Renders user profile data if available and creates new profile if required
+     * 
+     * @return string
+     */
+    public function getUserProfileData() {
+        $result='';
+        
         return ($result);
     }
 
