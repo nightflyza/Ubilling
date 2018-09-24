@@ -990,9 +990,9 @@ class Salary {
 
                         $chartDataCash[$jobName]['cash'] = $chartDataCash[$jobName]['cash'] + $jobPrice;
                         if ($each['state'] == 0) {
-                            $chartDataCash[$jobName]['unpaid'] +=$each['factor'];
+                            $chartDataCash[$jobName]['unpaid'] += $jobPrice;
                         } else {
-                            $chartDataCash[$jobName]['paid'] +=$each['factor'];
+                            $chartDataCash[$jobName]['paid'] += $jobPrice;
                         }
                     } else {
                         $chartData[$jobName]['count'] = $each['factor'];
@@ -1274,8 +1274,7 @@ class Salary {
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_delimiter();
         //charts
-        $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'},";
-        ;
+        $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
         $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
         $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px', $chartOpts));
