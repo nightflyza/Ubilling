@@ -149,7 +149,7 @@ if (mono_CheckGet($required)) {
             $good_reply = '
                     <?xml version="1.0" encoding="UTF-16"?>
                     <response>
-                       <mono_txn_id>' . $hashClean . '</mono_txn_id>
+                       <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                            <result>0</result>
                            <fields>
                            <field1 name="balance">' . @$userData['Cash'] . '</field1>
@@ -165,7 +165,7 @@ if (mono_CheckGet($required)) {
             $bad_reply = '
                   <?xml version="1.0" encoding="UTF-8"?>
                     <response>
-                       <mono_txn_id>' . $hashClean . '</mono_txn_id>
+                       <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                        <result>5</result>
                   </response>
                 ';
@@ -182,7 +182,7 @@ if (mono_CheckGet($required)) {
         $summ = $_GET['sum'];
         $customerid = trim($_GET['account']);
         $paysys = 'MONOBANK';
-        $note = 'some debug info';
+        $note = 'no debug info here';
 
         $allcustomers = op_CustomersGetAll();
         //опять ожидаем подляны и все-таки проверим хотя бы валидность кастомера
@@ -201,7 +201,7 @@ if (mono_CheckGet($required)) {
                 $good_reply = '
             <?xml version="1.0" encoding="UTF-8"?>
             <response>
-            <mono_txn_id>' . $hashClean . '</mono_txn_id>
+            <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
             <prv_txn>' . $newTransactionId . '</prv_txn>
             <prv_txn_date>' . $newTransactionDate . '</prv_txn_date>
             <sum>' . $summ . '</sum>
@@ -218,7 +218,7 @@ if (mono_CheckGet($required)) {
                 $transactionDoneReply = '
                     <?xml version="1.0" encoding="UTF-8"?>
                     <response>
-                    <mono_txn_id>' . $hashClean . '</mono_txn_id>
+                    <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                     <prv_txn>' . $newTransactionId . '</prv_txn>
                     <prv_txn_date>' . $newTransactionDate . '</prv_txn_date>
                     <sum>' . $summ . '</sum>
@@ -234,7 +234,7 @@ if (mono_CheckGet($required)) {
             $bad_reply = '
                   <?xml version="1.0"?>
                     <response>
-                       <mono_txn_id>' . $hashClean . '</mono_txn_id>
+                       <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                        <result>5</result>
                   </response>
                 ';
