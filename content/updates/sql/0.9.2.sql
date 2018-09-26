@@ -41,5 +41,6 @@ CREATE TABLE IF NOT EXISTS `om_users` (
   `basetariffid` int(11) DEFAULT NULL,
   `bundletariffs` varchar(255) DEFAULT NULL,
   `active` int(11) DEFAULT NULL,
+  `actdate` datetime NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

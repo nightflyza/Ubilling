@@ -24,6 +24,20 @@ class OmegaTV {
     protected $tariffNames = array();
 
     /**
+     * Contains available user profiles as customerid=>data
+     *
+     * @var array
+     */
+    protected $allUsers = array();
+
+    /**
+     * Contains available users data as login=>data
+     *
+     * @var array
+     */
+    protected $allUserData = array();
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -49,6 +63,8 @@ class OmegaTV {
         $this->initHls();
         $this->initMessages();
         $this->loadTariffs();
+        $this->loadUserData();
+        $this->loadUserProfiles();
     }
 
     /**
@@ -83,6 +99,30 @@ class OmegaTV {
                 $this->tariffNames[$each['tariffid']] = $each['tariffname'];
             }
         }
+    }
+
+    /**
+     * Loads existing users profiles
+     * 
+     * @return void
+     */
+    protected function loadUserProfiles() {
+        $query = "SELECT * from `om_users`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUsers[$each['customerid']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads internet users data into protected property for further usage
+     * 
+     * @return void
+     */
+    protected function loadUserData() {
+        $this->allUserData = zb_UserGetAllDataCache();
     }
 
     /**
@@ -170,6 +210,7 @@ class OmegaTV {
     public function renderUserInfo($customerId) {
         $result = '';
         $userInfo = $this->hls->getUserInfo($customerId);
+
         if (isset($userInfo['result'])) {
             $result.=wf_AjaxLoader();
             $userInfo = $userInfo['result'];
@@ -180,10 +221,10 @@ class OmegaTV {
             if (!empty($userInfo['tariff'])) {
                 foreach ($userInfo['tariff'] as $io => $each) {
                     $cells = wf_TableCell(__('Tariffs') . ' ' . $io, '', 'row2');
-                    $tariffsList='';
+                    $tariffsList = '';
                     if (!empty($each)) {
-                        foreach ($each as $ia=>$tariffId) {
-                            $tariffsList.=$this->getTariffName($tariffId).' ';
+                        foreach ($each as $ia => $tariffId) {
+                            $tariffsList.=$this->getTariffName($tariffId) . ' ';
                         }
                     }
                     $cells .= wf_TableCell($tariffsList);
@@ -451,7 +492,7 @@ class OmegaTV {
     public function deleteDevice($customerId, $deviceId) {
         $this->hls->deleteDevice($customerId, $deviceId);
     }
-    
+
     /**
      * Creates new user profile
      * 
@@ -460,22 +501,39 @@ class OmegaTV {
      * @return void
      */
     protected function createUserProfile($userLogin) {
-        $customerId=  $this->generateCustormerId($userLogin);
-        $login_f=  mysql_real_escape_string($userLogin);
-        $query="INSERT INTO `om_users` (`id`,`login`,`customerid`,`basetariffid`,`basetariffid`,`bundletariffs`,`active`) VALUES ";
-        $query.="(NULL,'".$login_f."');";
+        $customerId = $this->generateCustormerId($userLogin);
+        $login_f = mysql_real_escape_string($userLogin);
+        $curdate = curdatetime();
+        $query = "INSERT INTO `om_users` (`id`,`login`,`customerid`,`basetariffid`,`bundletariffs`,`active`,`actdate`) VALUES ";
+        $query.="(NULL,'" . $login_f . "','" . $customerId . "',NULL,NULL,'1','" . $curdate . "');";
+        nr_query($query);
+        log_register('OMEGATV CUSTOMER REGISTER (' . $userLogin . ') AS [' . $customerId . ']');
     }
 
-
     /**
-     * Renders user profile data if available and creates new profile if required
+     * Renders available subscriptions container list with some controls
      * 
      * @return string
      */
-    public function getUserProfileData() {
-        $result='';
-        
+    public function renderUserListContainer() {
+        $result = '';
+        $columns = array('full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Actions');
+        $result.=wf_JqDtLoader($columns, self::URL_ME . '&subscriptions=true&ajuserlist=true', false, __('Users'));
         return ($result);
+    }
+
+    /**
+     * Renders JSON data for ajax user list container content
+     * 
+     * @return void
+     */
+    public function ajUserList() {
+        $result = '';
+        $json = new wf_JqDtHelper();
+        if (!empty($this->allUsers)) {
+            
+        }
+        $json->getJson();
     }
 
 }

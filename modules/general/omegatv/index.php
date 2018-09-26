@@ -36,8 +36,14 @@ if (cfr('OMEGATV')) {
             if (wf_CheckGet(array('deletedevice', 'customerid'))) {
                 $omega->deleteDevice($_GET['customerid'], $_GET['deletedevice']);
             }
+            
+            //json ajax data for subscribers list
+            if (wf_CheckGet(array('ajuserlist'))) {
+                $omega->ajUserList();
+            }
 
-            deb($omega->renderUserInfo(1));
+            //rendering user list container
+            show_window(__('Subscriptions'), $omega->renderUserListContainer());
             
             
         }
