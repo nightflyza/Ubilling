@@ -635,7 +635,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
-                 
+
                     /*
                      * Switches coverage map
                      */
@@ -1045,8 +1045,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                         if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
                                             $Action = 'DOWNSHIFT';
 
-                                            if ( empty($eachlogin['burstimetupload']) or empty($eachlogin['bursttimedownload'])
-                                                or empty($eachlogin['burstupload']) or empty($eachlogin['burstdownload']) ) {
+                                            if (empty($eachlogin['burstimetupload']) or empty($eachlogin['bursttimedownload'])
+                                                    or empty($eachlogin['burstupload']) or empty($eachlogin['burstdownload'])) {
 
                                                 $Template = array('.id' => '',
                                                     'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k'
@@ -1060,8 +1060,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                                 );
                                             }
                                         } else {
-                                            if ( empty($eachlogin['burstimetupload']) or empty($eachlogin['bursttimedownload'])
-                                                or empty($eachlogin['burstupload']) or empty($eachlogin['burstdownload']) ) {
+                                            if (empty($eachlogin['burstimetupload']) or empty($eachlogin['bursttimedownload'])
+                                                    or empty($eachlogin['burstupload']) or empty($eachlogin['burstdownload'])) {
 
                                                 $Template = array('.id' => '',
                                                     'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k'
@@ -1127,7 +1127,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     if ($_GET['action'] == 'onepunch') {
                         if ($alterconf['ONEPUNCH_ENABLED']) {
                             if (wf_CheckGet(array('param'))) {
-                                $onePunchScriptAlias=$_GET['param'];
+                                $onePunchScriptAlias = $_GET['param'];
                                 $onePunchScripts = new OnePunch($onePunchScriptAlias);
                                 $onePunchScriptCode = $onePunchScripts->getScriptContent($onePunchScriptAlias);
                                 eval($onePunchScriptCode);
@@ -1135,6 +1135,22 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             }
                         } else {
                             die('ERROR:ONEPUNCH_DISABLED');
+                        }
+                    }
+
+
+                    //Megogo userstats control options
+                    if ($_GET['action'] == 'omcontrol') {
+                        if ($alterconf['OMEGATV_ENABLED']) {
+                            if (wf_CheckGet(array('param', 'tariffid', 'userlogin'))) {
+                                if ($_GET['param'] == 'subscribe') {
+//                                    $omega=new OmegaTV();
+//                                    $omSubResult = $omega->createSubscribtion($_GET['userlogin'], $_GET['tariffid']);
+//                                    die($mgSubResult);
+                                }
+                            } else {
+                                die('ERROR: OMEGATV_DISABLED');
+                            }
                         }
                     }
 

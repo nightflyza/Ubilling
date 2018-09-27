@@ -57,6 +57,11 @@ class OmegaTV {
     const URL_ME = '?module=omegatv';
 
     /**
+     * Default user profile viewing URL
+     */
+    const URL_PROFILE = '?module=userprofile&username=';
+
+    /**
      * Creates new OmegaTV instance
      */
     public function __construct() {
@@ -208,19 +213,31 @@ class OmegaTV {
      * @return string
      */
     public function renderUserInfo($customerId) {
+        $customerId = vf($customerId, 3);
         $result = '';
+
         $userInfo = $this->hls->getUserInfo($customerId);
+        $localUserInfo = $this->allUsers[$customerId];
 
         if (isset($userInfo['result'])) {
             $result.=wf_AjaxLoader();
             $userInfo = $userInfo['result'];
+
+            $cells = wf_TableCell(__('Full address'), '', 'row2');
+            $cells .= wf_TableCell(@$this->allUserData[$localUserInfo['login']]['fulladress']);
+            $rows = wf_TableRow($cells, 'row3');
+
             $cells = wf_TableCell(__('ID'), '', 'row2');
             $cells .= wf_TableCell($userInfo['id']);
-            $rows = wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Date'), '', 'row2');
+            $cells .= wf_TableCell($localUserInfo['actdate']);
+            $rows.= wf_TableRow($cells, 'row3');
 
             if (!empty($userInfo['tariff'])) {
                 foreach ($userInfo['tariff'] as $io => $each) {
-                    $cells = wf_TableCell(__('Tariffs') . ' ' . $io, '', 'row2');
+                    $cells = wf_TableCell(__('Tariffs') . ' ' . __($io), '', 'row2');
                     $tariffsList = '';
                     if (!empty($each)) {
                         foreach ($each as $ia => $tariffId) {
@@ -398,7 +415,7 @@ class OmegaTV {
                 $cells = wf_TableCell($each['id']);
                 $cells .= wf_TableCell($each['tariffid']);
                 $cells .= wf_TableCell($each['tariffname']);
-                $cells .= wf_TableCell($each['type']);
+                $cells .= wf_TableCell(__($each['type']));
                 $cells .= wf_TableCell($each['fee']);
                 $actLinks = wf_JSAlert(self::URL_ME . '&tariffs=true&deleteid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $cells .= wf_TableCell($actLinks);
@@ -517,7 +534,7 @@ class OmegaTV {
      */
     public function renderUserListContainer() {
         $result = '';
-        $columns = array('full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Actions');
+        $columns = array('ID', 'Full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Actions');
         $result.=wf_JqDtLoader($columns, self::URL_ME . '&subscriptions=true&ajuserlist=true', false, __('Users'));
         return ($result);
     }
@@ -531,7 +548,23 @@ class OmegaTV {
         $result = '';
         $json = new wf_JqDtHelper();
         if (!empty($this->allUsers)) {
-            
+            foreach ($this->allUsers as $io => $each) {
+                $userAddress = @$this->allUserData[$each['login']]['fulladress'];
+                $userLink = wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . $userAddress);
+
+                $data[] = $each['id'];
+                $data[] = $userLink;
+                $data[] = @$this->allUserData[$each['login']]['realname'];
+                $data[] = @$this->allUserData[$each['login']]['Cash'];
+                $data[] = $this->getTariffName($each['basetariffid']);
+                $data[] = $each['bundletariffs'];
+                $data[] = $each['actdate'];
+                $data[] = web_bool_led($each['active'], true);
+                $actLinks = wf_Link(self::URL_ME . '&customerprofile=' . $each['customerid'], web_edit_icon());
+                $data[] = $actLinks;
+                $json->addRow($data);
+                unset($data);
+            }
         }
         $json->getJson();
     }

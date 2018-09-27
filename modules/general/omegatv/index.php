@@ -36,7 +36,7 @@ if (cfr('OMEGATV')) {
             if (wf_CheckGet(array('deletedevice', 'customerid'))) {
                 $omega->deleteDevice($_GET['customerid'], $_GET['deletedevice']);
             }
-            
+
             //json ajax data for subscribers list
             if (wf_CheckGet(array('ajuserlist'))) {
                 $omega->ajUserList();
@@ -44,8 +44,11 @@ if (cfr('OMEGATV')) {
 
             //rendering user list container
             show_window(__('Subscriptions'), $omega->renderUserListContainer());
-            
-            
+        }
+
+        if (wf_CheckGet(array('customerprofile'))) {
+            show_window(__('Profile'), $omega->renderUserInfo($_GET['customerprofile']));
+            show_window('', wf_BackLink($omega::URL_ME . '&subscriptions=true'));
         }
     } else {
         show_error(__('This module is disabled'));
