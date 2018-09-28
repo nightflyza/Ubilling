@@ -1965,13 +1965,16 @@ function ts_TaskChangeForm($taskid) {
  */
 function ts_DeleteTask($taskid) {
     $taskid = vf($taskid, 3);
-    $query = "DELETE from `taskman` WHERE `id`='" . $taskid . "'";
-    nr_query($query);
+    // Before delete task - write task data to log
+    $task_data = ts_GetTaskData($taskid);
     $queryLogTask = ("
         INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
-        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'delete', '')
+        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'delete',
+        '" . serialize($task_data) . "')
     ");
     nr_query($queryLogTask);
+    $query = "DELETE from `taskman` WHERE `id`='" . $taskid . "'";
+    nr_query($query);
     log_register('TASKMAN DELETE [' . $taskid . ']');
 }
 
