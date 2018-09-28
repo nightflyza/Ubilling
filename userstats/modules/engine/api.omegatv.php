@@ -58,6 +58,11 @@ class OmegaTvFrontend {
      */
     protected $apiKey = '';
 
+    /**
+     * Default maximum devices per user count
+     */
+    const MAX_DEVICES = 3;
+
     public function __construct() {
         $this->loadUsConfig();
         $this->setOptions();
@@ -151,7 +156,7 @@ class OmegaTvFrontend {
     protected function isUserSubscribed($login, $tariffid) {
         $result = false;
         if (!empty($this->allSubscribers)) {
-            $tariffExternalId=  $this->allTariffs[$tariffid]['tariffid'];
+            $tariffExternalId = $this->allTariffs[$tariffid]['tariffid'];
             foreach ($this->allSubscribers as $io => $each) {
                 if (($each['login'] == $login)) {
                     if ($each['basetariffid'] == $tariffExternalId) {
@@ -177,6 +182,51 @@ class OmegaTvFrontend {
             $result = crc32($login);
         }
         return($result);
+    }
+
+    /**
+     * Renders available user devices list and some controls
+     * 
+     * @return string
+     */
+    public function renderUserDevicesForm() {
+        $result = '';
+        if (!empty($this->userLogin)) {
+            //available devices
+            $currentDevices = $this->getDevicesData();
+            $devCount = 0;
+            if (!empty($currentDevices)) {
+                $currentDevices = json_decode($currentDevices, true);
+                if (!empty($currentDevices)) {
+                    $rows = '';
+                    foreach ($currentDevices as $io => $each) {
+                        $cells = la_TableCell($each['uniq']);
+                        $cells.= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
+                        $cells.= la_TableCell($each['model']);
+                        $deviceControls = la_JSAlert('?module=omegatv&deletedevice=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
+                        $cells.= la_TableCell($deviceControls);
+                        $rows.=la_TableRow($cells, 'row3');
+                        $devCount++;
+                    }
+                    $result.=la_TableBody($rows, '100%', 0, 'sortable');
+                }
+            }
+
+            //maximum devices limit
+            if ($devCount < self::MAX_DEVICES) {
+                //new device activation
+                if (la_CheckGet(array('getcode'))) {
+                    $actCode = $this->getDeviceActivationCode();
+                    $result.=la_tag('br');
+                    $result.=la_tag('h3', false) . __('Activation code') . ': ' . $actCode . la_tag('h3', true);
+                } else {
+                    $actCodeControl = la_Link('?module=omegatv&getcode=true', __('Get activation code'));
+                    $result.=la_tag('br');
+                    $result.=$actCodeControl;
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -244,7 +294,7 @@ class OmegaTvFrontend {
                 $freeAppend = la_delimiter();
                 $tariffFee = $each['fee'];
                 $primaryLabel = ($each['type'] == 'base') ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
-                
+
                 $tariffInfo = la_tag('div', false, $headerType) . $each['tariffname'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
@@ -294,6 +344,56 @@ class OmegaTvFrontend {
                 }
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Gets view URL via remote API
+     * 
+     * @return string
+     */
+    public function getViewButtonURL() {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=viewurl&userlogin=' . $this->userLogin;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Gets view URL via remote API
+     * 
+     * @return string
+     */
+    public function getDeviceActivationCode() {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getcode&userlogin=' . $this->userLogin;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Gets view URL via remote API
+     * 
+     * @return string
+     */
+    public function getDevicesData() {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getdevices&userlogin=' . $this->userLogin;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Pushes device deletion request via remote API
+     * 
+     * @param string $uniq
+     * 
+     * @return string
+     */
+    public function pushDeviceDelete($uniq) {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=deletedev&userlogin=' . $this->userLogin . '&uniq=' . $uniq;
+        @$result = file_get_contents($action);
         return ($result);
     }
 

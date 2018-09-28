@@ -206,6 +206,58 @@ class OmegaTV {
     }
 
     /**
+     * Returns current user devices info as JSON
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function getUserDevicesData($userLogin) {
+        $result = '';
+        $customerId = $this->getLocalCustomerId($userLogin);
+        if (!empty($customerId)) {
+            $userInfo = $this->hls->getUserInfo($customerId);
+            if (isset($userInfo['result'])) {
+                $userInfo = $userInfo['result'];
+                if (isset($userInfo['devices'])) {
+                    $result.=json_encode($userInfo['devices']);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes some device from user
+     * 
+     * @param string $userLogin
+     * @param string $uniq
+     * 
+     * @return void
+     */
+    public function deleteUserDevice($userLogin, $uniq) {
+        $customerId = $this->getLocalCustomerId($userLogin);
+        $uniq = trim($uniq);
+        if (!empty($customerId)) {
+            $userInfo = $this->hls->getUserInfo($customerId);
+            if (isset($userInfo['result'])) {
+                //checking for user device ownership
+                $userInfo = $userInfo['result'];
+                if (isset($userInfo['devices'])) {
+                    if (!empty($userInfo['devices'])) {
+                        foreach ($userInfo['devices'] as $io => $each) {
+                            if ($each['uniq'] == $uniq) {
+                                $this->deleteDevice($customerId, $uniq);
+                                log_register('OMEGATV DEVICE DELETE `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Renders some user profile info
      * 
      * @param int $customerId
@@ -481,6 +533,48 @@ class OmegaTV {
     }
 
     /**
+     * Returns web URL by some user login
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function getWebUrlByLogin($userLogin) {
+        $result = '';
+        $customerId = $this->getLocalCustomerId($userLogin);
+        if (!empty($customerId)) {
+            //already existing user
+            $result.=$this->generateWebURL($customerId);
+        } else {
+            //first usage
+            $this->createUserProfile($userLogin);
+            $customerId = $this->getLocalCustomerId($userLogin);
+            $result.=$this->generateWebURL($customerId);
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns local customer ID from database
+     * 
+     * @param string $userLogin
+     * 
+     * @return int
+     */
+    public function getLocalCustomerId($userLogin) {
+        $result = '';
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['login'] == $userLogin) {
+                    $result = $each['customerid'];
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns new device activation code
      * 
      * @param int $customerId
@@ -493,6 +587,27 @@ class OmegaTV {
         if (isset($codeData['result'])) {
             if (isset($codeData['result']['code'])) {
                 $result.=$codeData['result']['code'] . ' ' . $this->ajDevCodeLink($customerId, __('Renew'));
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns new device activation code by user login
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function getDeviceCodeByLogin($userLogin) {
+        $result = '';
+        $customerId = $this->getLocalCustomerId($userLogin);
+        if (!empty($customerId)) {
+            $codeData = $this->hls->getDeviceCode($customerId);
+            if (isset($codeData['result'])) {
+                if (isset($codeData['result']['code'])) {
+                    $result.=$codeData['result']['code'];
+                }
             }
         }
         return ($result);

@@ -371,4 +371,11 @@ $lang['def']['Terms'] = 'Умови';
 $lang['def']['Bonus'] = 'Бонус';
 
 $lang['def']['You can not take out a credit because you have not paid since the previous time'] = 'Ви не можете взяти кредит, тому що ви не платили з попереднього разу';
+
+$lang['def']['View online'] = 'Дивитись онлайн';
+$lang['def']['Devices'] = 'Пристрої';
+$lang['def']['Get activation code'] = 'Отримати код активації';
+$lang['def']['Activation code'] = 'Код активації';
+$lang['def']['Delete'] = 'Видалити';
+
 ?>
