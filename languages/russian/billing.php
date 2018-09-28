@@ -2959,7 +2959,7 @@ $lang['def']['Generate random mac'] = 'Сгенерировать случайн
 $lang['def']['Add ONU to PONizer'] = 'Добавить ONU в ПОНизатор';
 $lang['def']['Mediocre signal'] = 'Посредственный сигнал';
 $lang['def']['View online'] = 'Смотреть онлайн';
-
+$lang['def']['Devices'] = 'Устройства';
 
 
 ?>

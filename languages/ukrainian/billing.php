@@ -2975,5 +2975,6 @@ $lang['def']['Generate random mac'] = 'Сгенерувати випадкови
 $lang['def']['Add ONU to PONizer'] = 'Додати ONU в ПОНізатор';
 $lang['def']['Mediocre signal'] = 'Посередній сигнал';
 $lang['def']['View online'] = 'Дивитись онлайн';
+$lang['def']['Devices'] = 'Пристрої';
 
 ?>

@@ -32,9 +32,14 @@ if (cfr('OMEGATV')) {
             if (wf_CheckGet(array('getdevicecode'))) {
                 die($omega->generateDeviceCode($_GET['getdevicecode']));
             }
-            //deleting existing device
+
+            //deleting existing device for some user
             if (wf_CheckGet(array('deletedevice', 'customerid'))) {
-                $omega->deleteDevice($_GET['customerid'], $_GET['deletedevice']);
+                $deleteUniq = $_GET['deletedevice'];
+                $deviceDeleteLogin = $omega->getLocalCustomerLogin($_GET['customerid']);
+                $omega->deleteDevice($_GET['customerid'], $deleteUniq);
+                log_register('OMEGATV DEVICE DELETE `' . $deleteUniq . '` FOR (' . $deviceDeleteLogin . ') AS [' . $_GET['customerid'] . ']');
+                rcms_redirect($omega::URL_ME . '&customerprofile=' . $_GET['customerid']);
             }
 
             //json ajax data for subscribers list
@@ -49,6 +54,21 @@ if (cfr('OMEGATV')) {
         if (wf_CheckGet(array('customerprofile'))) {
             show_window(__('Profile'), $omega->renderUserInfo($_GET['customerprofile']));
             show_window('', wf_BackLink($omega::URL_ME . '&subscriptions=true'));
+        }
+
+        if (wf_CheckGet(array('devices'))) {
+
+            //deleting existing device
+            if (wf_CheckGet(array('deletedevice', 'customerid'))) {
+                $deleteUniq = $_GET['deletedevice'];
+                $deviceDeleteLogin = $omega->getLocalCustomerLogin($_GET['customerid']);
+                $omega->deleteDevice($_GET['customerid'], $deleteUniq);
+                log_register('OMEGATV DEVICE DELETE `' . $deleteUniq . '` FOR (' . $deviceDeleteLogin . ') AS [' . $_GET['customerid'] . ']');
+                rcms_redirect($omega::URL_ME . '&devices=true');
+            }
+
+            //rendering devices list
+            show_window(__('Devices'), $omega->renderDevicesList());
         }
     } else {
         show_error(__('This module is disabled'));

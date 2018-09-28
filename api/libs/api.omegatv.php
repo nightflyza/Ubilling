@@ -330,6 +330,45 @@ class OmegaTV {
     }
 
     /**
+     * Renders list of all devices with some controls
+     * 
+     * @return string
+     */
+    public function renderDevicesList() {
+        $result = '';
+        $allDevices = $this->hls->getDeviceList();
+        if (isset($allDevices['result'])) {
+            if (!empty($allDevices['result'])) {
+                $allDevices = $allDevices['result'];
+                $cells = wf_TableCell(__('Uniq'));
+                $cells.= wf_TableCell(__('Model'));
+                $cells.= wf_TableCell(__('Registration'));
+                $cells.= wf_TableCell(__('Activation'));
+                $cells.= wf_TableCell(__('User'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($allDevices as $io => $each) {
+                    $cells = wf_TableCell($each['uniq']);
+                    $cells.= wf_TableCell($each['model']);
+                    $cells.= wf_TableCell(date("Y-m-d H:i:s", $each['registration_date']));
+                    $cells.= wf_TableCell(date("Y-m-d H:i:s", $each['activation_date']));
+                    $cells.= wf_TableCell($each['customer_id']);
+                    $actLinks = wf_JSAlert(self::URL_ME . '&devices=true&customerid=' . $each['customer_id'] . '&deletedevice=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.= wf_TableCell($actLinks);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': EX_NOREPLY', 'warning');
+        }
+        return ($result);
+    }
+
+    /**
      * Returns device activation code ajax link
      * 
      * @param int $customerId
@@ -351,6 +390,7 @@ class OmegaTV {
         $result = '';
         $result .= wf_Link(self::URL_ME . '&subscriptions=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&tariffs=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&devices=true', wf_img('skins/switch_models.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&reports=true', wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
         return($result);
     }
@@ -569,6 +609,23 @@ class OmegaTV {
                     $result = $each['customerid'];
                     break;
                 }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns local customer login by ID from database
+     * 
+     * @param int $customerId
+     * 
+     * @return string
+     */
+    public function getLocalCustomerLogin($customerId) {
+        $result = '';
+        if (!empty($this->allUsers)) {
+            if (isset($this->allUsers[$customerId])) {
+                $result = $this->allUsers[$customerId]['login'];
             }
         }
         return ($result);

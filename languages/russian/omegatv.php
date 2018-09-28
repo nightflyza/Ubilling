@@ -14,5 +14,5 @@ $lang['def']['promo limited'] = 'лимитированный промо';
 $lang['def']['Get code'] = 'Получить код';
 $lang['def']['Device'] = 'Устройство';
 $lang['def']['Device activation'] = 'Активация устройства';
+$lang['def']['Activation'] = 'Активация';
 $lang['def'][''] = '';
-
