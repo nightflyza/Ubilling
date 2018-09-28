@@ -2152,7 +2152,7 @@ function ts_renderLogsDataAjax($taskid = '') {
                 $data[] =__('No work was done');
                 $data_event = wf_tag('font', false, '', 'color="red"') . wf_tag('b') . __('No work was done') . wf_tag('b', true) . wf_tag('font', true);
             } else {
-                $cells.= wf_TableCell($each['event']);
+                $data[] = $each['event'];
                 $data_event = $each['logs'];
             }
 
