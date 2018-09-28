@@ -221,9 +221,9 @@ class OmegaTV {
     protected function getTariffName($tariffId) {
         $result = '';
         if (isset($this->tariffNames[$tariffId])) {
-            $result.=$this->tariffNames[$tariffId];
+            $result .= $this->tariffNames[$tariffId];
         } else {
-            $result.=$tariffId;
+            $result .= $tariffId;
         }
         return ($result);
     }
@@ -243,7 +243,7 @@ class OmegaTV {
             if (isset($userInfo['result'])) {
                 $userInfo = $userInfo['result'];
                 if (isset($userInfo['devices'])) {
-                    $result.=json_encode($userInfo['devices']);
+                    $result .= json_encode($userInfo['devices']);
                 }
             }
         }
@@ -295,7 +295,7 @@ class OmegaTV {
         $localUserInfo = $this->allUsers[$customerId];
 
         if (isset($userInfo['result'])) {
-            $result.=wf_AjaxLoader();
+            $result .= wf_AjaxLoader();
             $userInfo = $userInfo['result'];
 
             $cells = wf_TableCell(__('Full address'), '', 'row2');
@@ -304,11 +304,11 @@ class OmegaTV {
 
             $cells = wf_TableCell(__('ID'), '', 'row2');
             $cells .= wf_TableCell($userInfo['id']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Date'), '', 'row2');
             $cells .= wf_TableCell($localUserInfo['actdate']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
 
             if (!empty($userInfo['tariff'])) {
                 foreach ($userInfo['tariff'] as $io => $each) {
@@ -316,7 +316,7 @@ class OmegaTV {
                     $tariffsList = '';
                     if (!empty($each)) {
                         foreach ($each as $ia => $tariffId) {
-                            $tariffsList.=$this->getTariffName($tariffId) . ' ';
+                            $tariffsList .= $this->getTariffName($tariffId) . ' ';
                         }
                     }
                     $cells .= wf_TableCell($tariffsList);
@@ -364,29 +364,29 @@ class OmegaTV {
             if (!empty($allDevices['result'])) {
                 $allDevices = $allDevices['result'];
                 $cells = wf_TableCell(__('Uniq'));
-                $cells.= wf_TableCell(__('Model'));
-                $cells.= wf_TableCell(__('Registration'));
-                $cells.= wf_TableCell(__('Activation'));
-                $cells.= wf_TableCell(__('User'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Model'));
+                $cells .= wf_TableCell(__('Registration'));
+                $cells .= wf_TableCell(__('Activation'));
+                $cells .= wf_TableCell(__('User'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($allDevices as $io => $each) {
                     $cells = wf_TableCell($each['uniq']);
-                    $cells.= wf_TableCell($each['model']);
-                    $cells.= wf_TableCell(date("Y-m-d H:i:s", $each['registration_date']));
-                    $cells.= wf_TableCell(date("Y-m-d H:i:s", $each['activation_date']));
-                    $cells.= wf_TableCell($each['customer_id']);
+                    $cells .= wf_TableCell($each['model']);
+                    $cells .= wf_TableCell(date("Y-m-d H:i:s", $each['registration_date']));
+                    $cells .= wf_TableCell(date("Y-m-d H:i:s", $each['activation_date']));
+                    $cells .= wf_TableCell($each['customer_id']);
                     $actLinks = wf_JSAlert(self::URL_ME . '&devices=true&customerid=' . $each['customer_id'] . '&deletedevice=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
-                    $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row5');
+                    $cells .= wf_TableCell($actLinks);
+                    $rows .= wf_TableRow($cells, 'row5');
                 }
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
             }
         } else {
-            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': EX_NOREPLY', 'warning');
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NOREPLY', 'warning');
         }
         return ($result);
     }
@@ -502,10 +502,41 @@ class OmegaTV {
             $inputs = wf_Selector('newtariffid', $tmpArr, __('ID'), '', true);
             $inputs .= wf_TextInput('newtariffname', __('Tariff name'), '', true, 25);
             $inputs .= wf_Selector('newtarifftype', $tariffsTypes, __('Type'), '', true);
-            $inputs .= wf_TextInput('newtarifffee', __('Fee'), '0', true, 3);
+            $inputs .= wf_TextInput('newtarifffee', __('Fee'), '0', true, 3, 'finance');
             $inputs .= wf_Submit(__('Create'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders tariff editing form
+     * 
+     * @param int $tariffId
+     * 
+     * @return string
+     */
+    protected function renderTariffEditForm($tariffId) {
+        $tariffId = vf($tariffId, 3);
+        $result = '';
+        if (isset($this->allTariffs[$tariffId])) {
+            $tariffData = $this->allTariffs[$tariffId];
+            if (!empty($tariffData)) {
+                $tariffsTypes = array(
+                    'base' => __('Base'),
+                    'bundle' => __('Bundle'),
+                    'promo' => __('Promo')
+                );
+
+                $inputs = wf_HiddenInput('edittariffid', $tariffId);
+                $inputs .= wf_TextInput('edittariffname', __('Tariff name'), $tariffData['tariffname'], true, 25);
+                $inputs .= wf_Selector('edittarifftype', $tariffsTypes, __('Type'), $tariffData['type'], true);
+                $inputs .= wf_TextInput('edittarifffee', __('Fee'), $tariffData['fee'], true, 3, 'finance');
+                $inputs .= wf_Submit(__('Save'));
+
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            }
         }
         return($result);
     }
@@ -551,7 +582,8 @@ class OmegaTV {
                 $cells .= wf_TableCell($each['tariffname']);
                 $cells .= wf_TableCell(__($each['type']));
                 $cells .= wf_TableCell($each['fee']);
-                $actLinks = wf_JSAlert(self::URL_ME . '&tariffs=true&deleteid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks = wf_JSAlert(self::URL_ME . '&tariffs=true&deleteid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderTariffEditForm($each['id']));
                 $cells .= wf_TableCell($actLinks);
                 $rows .= wf_TableRow($cells, 'row5');
             }
@@ -608,7 +640,7 @@ class OmegaTV {
         if (isset($userInfo['result'])) {
             $userInfo = $userInfo['result'];
             if (!empty($userInfo)) {
-                $result .=$userInfo['web_url'];
+                $result .= $userInfo['web_url'];
             }
         }
         return ($result);
@@ -626,12 +658,12 @@ class OmegaTV {
         $customerId = $this->getLocalCustomerId($userLogin);
         if (!empty($customerId)) {
             //already existing user
-            $result.=$this->generateWebURL($customerId);
+            $result .= $this->generateWebURL($customerId);
         } else {
             //first usage
             $this->createUserProfile($userLogin);
             $customerId = $this->getLocalCustomerId($userLogin);
-            $result.=$this->generateWebURL($customerId);
+            $result .= $this->generateWebURL($customerId);
         }
         return ($result);
     }
@@ -685,7 +717,7 @@ class OmegaTV {
         $codeData = $this->hls->getDeviceCode($customerId);
         if (isset($codeData['result'])) {
             if (isset($codeData['result']['code'])) {
-                $result.=$codeData['result']['code'] . ' ' . $this->ajDevCodeLink($customerId, __('Renew'));
+                $result .= $codeData['result']['code'] . ' ' . $this->ajDevCodeLink($customerId, __('Renew'));
             }
         }
         return ($result);
@@ -705,7 +737,7 @@ class OmegaTV {
             $codeData = $this->hls->getDeviceCode($customerId);
             if (isset($codeData['result'])) {
                 if (isset($codeData['result']['code'])) {
-                    $result.=$codeData['result']['code'];
+                    $result .= $codeData['result']['code'];
                 }
             }
         }
@@ -736,7 +768,7 @@ class OmegaTV {
         $login_f = mysql_real_escape_string($userLogin);
         $curdate = curdatetime();
         $query = "INSERT INTO `om_users` (`id`,`login`,`customerid`,`basetariffid`,`bundletariffs`,`active`,`actdate`) VALUES ";
-        $query.="(NULL,'" . $login_f . "','" . $customerId . "',NULL,NULL,'1','" . $curdate . "');";
+        $query .= "(NULL,'" . $login_f . "','" . $customerId . "',NULL,NULL,'1','" . $curdate . "');";
         nr_query($query);
         log_register('OMEGATV CUSTOMER REGISTER (' . $userLogin . ') AS [' . $customerId . ']');
     }
@@ -785,7 +817,7 @@ class OmegaTV {
                                 simple_update_field('om_users', 'basetariffid', $tariffId, "WHERE `customerid`='" . $customerId . "'");
                                 log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
                             } else {
-                                $result.='Only one base tariff allowed';
+                                $result .= 'Only one base tariff allowed';
                             }
                         }
                         //bundle tariffs subscription
@@ -800,20 +832,20 @@ class OmegaTV {
                                 simple_update_field('om_users', 'bundletariffs', $storeBundleTariffs, "WHERE `customerid`='" . $customerId . "'");
                                 log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
                             } else {
-                                $result.='Tariff already subscribed';
+                                $result .= 'Tariff already subscribed';
                             }
                         }
                     } else {
-                        $result.='Local tariff not exists';
+                        $result .= 'Local tariff not exists';
                     }
                 } else {
-                    $result.='Subscriber profile not found';
+                    $result .= 'Subscriber profile not found';
                 }
             } else {
-                $result.='User login not found';
+                $result .= 'User login not found';
             }
         } else {
-            $result.='Wrong tariff';
+            $result .= 'Wrong tariff';
         }
         return ($result);
     }
@@ -826,7 +858,7 @@ class OmegaTV {
     public function renderUserListContainer() {
         $result = '';
         $columns = array('ID', 'Full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Actions');
-        $result.=wf_JqDtLoader($columns, self::URL_ME . '&subscriptions = true&ajuserlist = true', false, __('Users'));
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&subscriptions=true&ajuserlist=true', false, __('Users'));
         return ($result);
     }
 
@@ -842,7 +874,6 @@ class OmegaTV {
             foreach ($this->allUsers as $io => $each) {
                 $userAddress = @$this->allUserData[$each['login']]['fulladress'];
                 $userLink = wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . $userAddress);
-
                 $data[] = $each['id'];
                 $data[] = $userLink;
                 $data[] = @$this->allUserData[$each['login']]['realname'];
@@ -853,14 +884,14 @@ class OmegaTV {
                     $allBundle = unserialize($each['bundletariffs']);
                     if (!empty($allBundle)) {
                         foreach ($allBundle as $bundleTariffId => $eachbundleData) {
-                            $bundleList.=$this->getTariffName($bundleTariffId) . ' ';
+                            $bundleList .= $this->getTariffName($bundleTariffId) . ' ';
                         }
                     }
                 }
                 $data[] = $bundleList;
                 $data[] = $each['actdate'];
                 $data[] = web_bool_led($each['active'], true);
-                $actLinks = wf_Link(self::URL_ME . '&customerprofile = ' . $each['customerid'], web_edit_icon());
+                $actLinks = wf_Link(self::URL_ME . '&customerprofile=' . $each['customerid'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
