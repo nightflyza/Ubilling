@@ -163,6 +163,14 @@ class OmegaTvFrontend {
                         $result = true;
                         break;
                     }
+
+                    if (!empty($each['bundletariffs'])) {
+                        $bundleTariffs = unserialize($each['bundletariffs']);
+                        if (isset($bundleTariffs[$tariffExternalId])) {
+                            $result = true;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -230,17 +238,6 @@ class OmegaTvFrontend {
     }
 
     /**
-     * Runs default subscribtion routine
-     * 
-     * @return void/string on error
-     */
-    public function pushSubscribeRequest($tariffid) {
-        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=mgcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
-        @$result = file_get_contents($action);
-        return ($result);
-    }
-
-    /**
      * Checks is user protected from his own stupidity?
      * 
      * @param int $tariffId
@@ -288,7 +285,6 @@ class OmegaTvFrontend {
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
 
         if (!empty($this->allTariffs)) {
-
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['type'] == 'base') ? 'mgheaderprimary' : 'mgheader';
                 $freeAppend = la_delimiter();
@@ -307,10 +303,10 @@ class OmegaTvFrontend {
 
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
-                        $subscribeControl = la_Link('?module=omegatv&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
+                        $subscribeControl = la_Link('?module=omegatv&unsubscribe=' . $each['tariffid'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
                         if ($this->checkUserProtection($each['id'])) {
-                            $subscribeControl = la_Link('?module=omegatv&subscribe=' . $each['id'], __('Subscribe'), false, 'mgsubcontrol');
+                            $subscribeControl = la_Link('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), false, 'mgsubcontrol');
                         } else {
                             $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
                         }
@@ -344,6 +340,55 @@ class OmegaTvFrontend {
                 }
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Returns local customer ID from database
+     * 
+     * @param string $userLogin
+     * 
+     * @return int
+     */
+    public function getLocalCustomerId() {
+        $result = '';
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['login'] == $this->userLogin) {
+                    $result = $each['customerid'];
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns array of subscribed tariff Ids=>type
+     * 
+     * @return array
+     */
+    public function getSubscribedTariffs() {
+        $result = array();
+        $customerId = $this->getLocalCustomerId();
+        if (!empty($customerId)) {
+            if (isset($this->allSubscribers[$customerId])) {
+                $localCustomerData = $this->allSubscribers[$customerId];
+                if (!empty($localCustomerData['basetariffid'])) {
+                    $result[$localCustomerData['basetariffid']] = 'base';
+                }
+
+                if (!empty($localCustomerData['bundletariffs'])) {
+                    $bundleTariffs = unserialize($localCustomerData['bundletariffs']);
+                    if (!empty($bundleTariffs)) {
+                        foreach ($bundleTariffs as $io => $each) {
+                            $result[$io] = 'bundle';
+                        }
+                    }
+                }
+            }
+        }
+
         return ($result);
     }
 
@@ -393,6 +438,20 @@ class OmegaTvFrontend {
     public function pushDeviceDelete($uniq) {
         $result = '';
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=deletedev&userlogin=' . $this->userLogin . '&uniq=' . $uniq;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Pushes tariff subscription request via remote API
+     * 
+     * @param  int $tariffId
+     * 
+     * @return string
+     */
+    public function pushSubscribeRequest($tariffId) {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffId;
         @$result = file_get_contents($action);
         return ($result);
     }

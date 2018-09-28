@@ -377,5 +377,6 @@ $lang['def']['Devices'] = 'Пристрої';
 $lang['def']['Get activation code'] = 'Отримати код активації';
 $lang['def']['Activation code'] = 'Код активації';
 $lang['def']['Delete'] = 'Видалити';
+$lang['def']['Only one base tariff allowed'] = 'Доступний тільки один базовий тариф';
 
 ?>

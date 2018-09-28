@@ -111,6 +111,7 @@ class HlsTV {
             'API_HASH:' . $this->generateApiHash($data)
         ));
         curl_setopt($curl, CURLOPT_POST, true);
+        //die(print_r($data,true));
         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         $jsonResponse = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);

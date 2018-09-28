@@ -1145,9 +1145,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             $omega = new OmegaTV();
                             if (wf_CheckGet(array('param', 'tariffid', 'userlogin'))) {
                                 if ($_GET['param'] == 'subscribe') {
-
-//                                    $omSubResult = $omega->createSubscribtion($_GET['userlogin'], $_GET['tariffid']);
-//                                    die($mgSubResult);
+                                    $omSubResult = $omega->createSubscription($_GET['userlogin'], $_GET['tariffid']);
+                                    die($omSubResult);
                                 }
                             }
 

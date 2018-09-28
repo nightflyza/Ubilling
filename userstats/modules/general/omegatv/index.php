@@ -17,11 +17,24 @@ if (@$us_config['OM_ENABLED']) {
             rcms_redirect('?module=omegatv');
         }
 
+        //subscription for some tariff
+        if (la_CheckGet(array('subscribe'))) {
+            $subscribeResult = $omegaFront->pushSubscribeRequest($_GET['subscribe']);
+            if (empty($subscribeResult)) {
+                rcms_redirect('?module=omegatv');
+            } else {
+                show_window(__('Sorry'),__($subscribeResult));
+            }
+        }
+
         //default sub/unsub form
         show_window(__('Available subscribtions'), $omegaFront->renderSubscribeForm());
 
-        //show list of available devices
-        show_window(__('Devices'), $omegaFront->renderUserDevicesForm());
+        $subscribedTrariffs = $omegaFront->getSubscribedTariffs();
+        if (!empty($subscribedTrariffs)) {
+            //show list of available devices
+            show_window(__('Devices'), $omegaFront->renderUserDevicesForm());
+        }
 
         //link to web-player
         $viewUrl = $omegaFront->getViewButtonURL();

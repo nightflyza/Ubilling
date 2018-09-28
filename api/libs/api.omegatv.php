@@ -38,6 +38,13 @@ class OmegaTV {
     protected $allUserData = array();
 
     /**
+     * Contains local queue for deffered actions
+     *
+     * @var array
+     */
+    protected $queue = array();
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -70,6 +77,7 @@ class OmegaTV {
         $this->loadTariffs();
         $this->loadUserData();
         $this->loadUserProfiles();
+        $this->loadQueue();
     }
 
     /**
@@ -102,6 +110,21 @@ class OmegaTV {
             foreach ($all as $io => $each) {
                 $this->allTariffs[$each['id']] = $each;
                 $this->tariffNames[$each['tariffid']] = $each['tariffname'];
+            }
+        }
+    }
+
+    /**
+     * Loads existing queue records for some actions
+     * 
+     * @return void
+     */
+    protected function loadQueue() {
+        $query = "SELECT * from `om_queue`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->queue[$each['id']] = $each;
             }
         }
     }
@@ -356,7 +379,7 @@ class OmegaTV {
                     $cells.= wf_TableCell($each['customer_id']);
                     $actLinks = wf_JSAlert(self::URL_ME . '&devices=true&customerid=' . $each['customer_id'] . '&deletedevice=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
                     $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows.= wf_TableRow($cells, 'row5');
                 }
                 $result.=wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
@@ -364,6 +387,25 @@ class OmegaTV {
             }
         } else {
             $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': EX_NOREPLY', 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Extract existing customer available tariffs
+     * 
+     * @param int $customerId
+     * 
+     * @return array
+     */
+    protected function extractBundle($customerId) {
+        $result = array();
+        if (isset($this->allUsers[$customerId])) {
+            $localUserInfo = $this->allUsers[$customerId];
+            $bundleTariffs = $localUserInfo['bundletariffs'];
+            if (!empty($bundleTariffs)) {
+                $result = unserialize($bundleTariffs);
+            }
         }
         return ($result);
     }
@@ -700,6 +742,83 @@ class OmegaTV {
     }
 
     /**
+     * Returns tariff local data 
+     * 
+     * @param int $tariffId
+     * 
+     * @return array
+     */
+    protected function getTariffData($tariffId) {
+        $result = array();
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                if ($each['tariffid'] == $tariffId) {
+                    $result = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates some subscription if it possible
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function createSubscription($userLogin, $tariffId) {
+        $result = '';
+        if (isset($this->tariffNames[$tariffId])) {
+            if (isset($this->allUserData[$userLogin])) {
+                $customerId = $this->getLocalCustomerId($userLogin);
+                if (!empty($customerId)) {
+                    $subscriberData = $this->allUsers[$customerId];
+                    $tariffData = $this->getTariffData($tariffId);
+                    if (!empty($tariffData)) {
+                        //base tariff subscription
+                        if ($tariffData['type'] == 'base') {
+                            if (empty($subscriberData['basetariffid'])) {
+                                $setTariffList = array('base' => $tariffId);
+                                $this->hls->setUserTariff($customerId, $setTariffList);
+                                simple_update_field('om_users', 'basetariffid', $tariffId, "WHERE `customerid`='" . $customerId . "'");
+                                log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                            } else {
+                                $result.='Only one base tariff allowed';
+                            }
+                        }
+                        //bundle tariffs subscription
+                        if ($tariffData['type'] == 'bundle') {
+                            $bundleTariffsCurrent = $this->extractBundle($customerId);
+                            if (!isset($bundleTariffsCurrent[$tariffId])) {
+                                $bundleTariffsCurrent[$tariffId] = $tariffId;
+                                $setTariffList = array('base' => $subscriberData['basetariffid'], 'bundle' => $bundleTariffsCurrent);
+                                //die(print_r($setTariffList,true)); TODO
+                                $this->hls->setUserTariff($customerId, $setTariffList);
+                                $storeBundleTariffs = serialize($bundleTariffsCurrent);
+                                simple_update_field('om_users', 'bundletariffs', $storeBundleTariffs, "WHERE `customerid`='" . $customerId . "'");
+                                log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                            } else {
+                                $result.='Tariff already subscribed';
+                            }
+                        }
+                    } else {
+                        $result.='Local tariff not exists';
+                    }
+                } else {
+                    $result.='Subscriber profile not found';
+                }
+            } else {
+                $result.='User login not found';
+            }
+        } else {
+            $result.='Wrong tariff';
+        }
+        return ($result);
+    }
+
+    /**
      * Renders available subscriptions container list with some controls
      * 
      * @return string
@@ -707,7 +826,7 @@ class OmegaTV {
     public function renderUserListContainer() {
         $result = '';
         $columns = array('ID', 'Full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Actions');
-        $result.=wf_JqDtLoader($columns, self::URL_ME . '&subscriptions=true&ajuserlist=true', false, __('Users'));
+        $result.=wf_JqDtLoader($columns, self::URL_ME . '&subscriptions = true&ajuserlist = true', false, __('Users'));
         return ($result);
     }
 
@@ -729,10 +848,19 @@ class OmegaTV {
                 $data[] = @$this->allUserData[$each['login']]['realname'];
                 $data[] = @$this->allUserData[$each['login']]['Cash'];
                 $data[] = $this->getTariffName($each['basetariffid']);
-                $data[] = $each['bundletariffs'];
+                $bundleList = '';
+                if (!empty($each['bundletariffs'])) {
+                    $allBundle = unserialize($each['bundletariffs']);
+                    if (!empty($allBundle)) {
+                        foreach ($allBundle as $bundleTariffId => $eachbundleData) {
+                            $bundleList.=$this->getTariffName($bundleTariffId) . ' ';
+                        }
+                    }
+                }
+                $data[] = $bundleList;
                 $data[] = $each['actdate'];
                 $data[] = web_bool_led($each['active'], true);
-                $actLinks = wf_Link(self::URL_ME . '&customerprofile=' . $each['customerid'], web_edit_icon());
+                $actLinks = wf_Link(self::URL_ME . '&customerprofile = ' . $each['customerid'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
