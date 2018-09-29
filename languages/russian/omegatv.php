@@ -15,4 +15,6 @@ $lang['def']['Get code'] = 'Получить код';
 $lang['def']['Device'] = 'Устройство';
 $lang['def']['Device activation'] = 'Активация устройства';
 $lang['def']['Activation'] = 'Активация';
-$lang['def'][''] = '';
+$lang['def']['Local profile'] = 'Локальный профиль';
+$lang['def']['Delete all bundle tariffs'] = 'Удалить все дполнительные тарифы';
+$lang['def']['Add bundle tariff'] = 'Добавить дополнительный тариф';

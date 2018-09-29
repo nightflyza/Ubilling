@@ -293,6 +293,130 @@ class OmegaTV {
     }
 
     /**
+     * Renders form to manual tariff changing
+     * 
+     * @param int $customerId
+     * 
+     * @return string
+     */
+    protected function renderManualTariffForm($customerId) {
+        $customerId = vf($customerId, 3);
+        $result = '';
+        $userData = $this->allUsers[$customerId];
+        $currentBundleTariffs = $this->extractBundle($customerId);
+        if (!empty($this->allTariffs)) {
+            $inputs = '';
+            $baseTariffs = array();
+            $bundleTariffs = array('' => '-');
+            foreach ($this->allTariffs as $io => $each) {
+                if ($each['type'] == 'base') {
+                    $baseTariffs[$each['tariffid']] = $each['tariffname'] . ' (' . __($each['type']) . ')';
+                }
+
+                if ($each['type'] == 'bundle') {
+                    if (!isset($currentBundleTariffs[$each['tariffid']])) {
+                        $bundleTariffs[$each['tariffid']] = $each['tariffname'] . ' (' . __($each['type']) . ')';
+                    }
+                }
+            }
+
+            $inputs.=wf_Selector('changebasetariff', $baseTariffs, __('Base tariff'), $userData['basetariffid'], true);
+            $inputs.=wf_Selector('addbundletariff', $bundleTariffs, __('Add bundle tariff'), '', true);
+            $inputs.= wf_CheckInput('deleteallbundle', __('Delete all bundle tariffs'), true, false);
+            $inputs.=wf_tag('br');
+            $inputs.= wf_Submit(__('Save'));
+
+            $result.=wf_Form(self::URL_SUBSCRIBER . $customerId, 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs editing of user tariffs
+     * 
+     * @param int $customerId
+     * 
+     * @return void
+     */
+    public function changeUserTariffs($customerId) {
+        $customerId = vf($customerId, 3);
+        if (wf_CheckPost(array('changebasetariff'))) {
+            $newBase = vf($_POST['changebasetariff'], 3);
+            if (isset($this->allUsers[$customerId])) {
+                $userLogin = $this->allUsers[$customerId]['login'];
+                $userCurrentBase = $this->allUsers[$customerId]['basetariffid'];
+                $userCurrentBundle = $this->extractBundle($customerId);
+                if ($userCurrentBase != $newBase) {
+                    $newTariffs = array('base' => $newBase, 'bundle' => $userCurrentBundle);
+                    $this->hls->setUserTariff($customerId, $newTariffs);
+                    simple_update_field('om_users', 'basetariffid', $newBase, "WHERE `customerid`='" . $customerId . "'");
+                    log_register('OMEGATV SET TARIFF [' . $newBase . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                }
+
+                if (wf_CheckPost(array('addbundletariff'))) {
+                    $newBundle = vf($_POST['addbundletariff'], 3);
+                    if (!isset($userCurrentBundle[$newBundle])) {
+                        $userCurrentBundle[$newBundle] = $newBundle;
+                        $newTariffs = array('base' => $newBase, 'bundle' => $userCurrentBundle);
+                        $this->hls->setUserTariff($customerId, $newTariffs);
+                        $saveBundle = trim(serialize($userCurrentBundle));
+                        simple_update_field('om_users', 'bundletariffs', $saveBundle, "WHERE `customerid`='" . $customerId . "'");
+                        log_register('OMEGATV SET TARIFF [' . $newBundle . '] BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                    }
+                }
+
+                if (wf_CheckPost(array('deleteallbundle'))) {
+                    $userCurrentBundle = array();
+                    $newTariffs = array('base' => $newBase, 'bundle' => $userCurrentBundle);
+                    $this->hls->setUserTariff($customerId, $newTariffs);
+                    $saveBundle = trim(serialize($userCurrentBundle));
+                    simple_update_field('om_users', 'bundletariffs', $saveBundle, "WHERE `customerid`='" . $customerId . "'");
+                    log_register('OMEGATV FLUSH BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                }
+            }
+        }
+    }
+
+    /**
+     * Renders profile controls
+     * 
+     * @return string
+     */
+    protected function renderProfileControls($customerId) {
+        $customerId = vf($customerId, 3);
+        $result = wf_tag('br');
+        $result.= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&blockuser=true', web_bool_led(0) . ' ' . __('Block user'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&unblockuser=true', web_bool_led(1) . ' ' . __('Unblock user'), false, 'ubButton');
+        $result.=wf_modalAuto(web_edit_icon() . ' ' . __('Edit tariff'), __('Edit tariff'), $this->renderManualTariffForm($customerId), 'ubButton');
+        return ($result);
+    }
+
+    /**
+     * Sets user local and remote profile as active or not
+     * 
+     * @param int $customerId
+     * @param bool $state
+     * 
+     * @return void
+     */
+    public function setCustomerActive($customerId, $state) {
+        $customerId = vf($customerId, 3);
+        if (isset($this->allUsers[$customerId])) {
+            $userLogin = $this->allUsers[$customerId]['login'];
+            $where = "WHERE `customerid`='" . $customerId . "'";
+            if ($state) {
+                $this->hls->setUserActivate($customerId);
+                simple_update_field('om_users', 'active', '1', $where);
+                log_register('OMEGATV UNBLOCK USER (' . $userLogin . ') AS [' . $customerId . ']');
+            } else {
+                $this->hls->setUserBlock($customerId);
+                simple_update_field('om_users', 'active', '0', $where);
+                log_register('OMEGATV BLOCK USER (' . $userLogin . ') AS [' . $customerId . ']');
+            }
+        }
+    }
+
+    /**
      * Renders some user profile info
      * 
      * @param int $customerId
@@ -302,12 +426,12 @@ class OmegaTV {
     public function renderUserInfo($customerId) {
         $customerId = vf($customerId, 3);
         $result = '';
+        $result .= wf_AjaxLoader();
 
         $userInfo = $this->hls->getUserInfo($customerId);
         $localUserInfo = $this->allUsers[$customerId];
 
         if (isset($userInfo['result'])) {
-            $result .= wf_AjaxLoader();
             $userInfo = $userInfo['result'];
 
             $cells = wf_TableCell(__('Full address'), '', 'row2');
@@ -361,7 +485,40 @@ class OmegaTV {
 
             $result .= wf_TableBody($rows, '100%', 0);
         }
-        return ($result);
+
+        if (!empty($localUserInfo)) {
+            $result.=wf_tag('b') . __('Local profile') . wf_tag('b', true) . wf_tag('br');
+            $rows = '';
+
+            $cells = wf_TableCell(__('Tariff') . ' ' . __('base'), '', 'row2');
+            $cells .= wf_TableCell($this->getTariffName($localUserInfo['basetariffid']));
+            $rows.= wf_TableRow($cells, 'row3');
+
+            $bundleTariffs = $this->extractBundle($customerId);
+            $bundleTariffsList = '';
+            if (!empty($bundleTariffs)) {
+                foreach ($bundleTariffs as $io => $each) {
+                    $bundleTariffsList.=$this->getTariffName($io) . ' ';
+                }
+            }
+
+            $cells = wf_TableCell(__('Tariffs') . ' ' . __('bundle'), '', 'row2');
+            $cells .= wf_TableCell($bundleTariffsList);
+            $rows.= wf_TableRow($cells, 'row3');
+
+
+            $cells = wf_TableCell(__('Status'), '', 'row2');
+            $cells .= wf_TableCell(web_bool_led($localUserInfo['active']));
+            $rows.= wf_TableRow($cells, 'row3');
+
+
+
+            $result .= wf_TableBody($rows, '100%', 0);
+        }
+
+        $result.=$this->renderProfileControls($customerId);
+
+        return($result);
     }
 
     /**
@@ -448,7 +605,7 @@ class OmegaTV {
         $result .= wf_Link(self::URL_ME . '&subscriptions=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&tariffs=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&devices=true', wf_img('skins/switch_models.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
-       // $result .= wf_Link(self::URL_ME . '&reports=true', wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
+        // $result .= wf_Link(self::URL_ME . '&reports=true', wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
         return($result);
     }
 

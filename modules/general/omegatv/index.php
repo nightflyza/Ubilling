@@ -52,7 +52,7 @@ if (cfr('OMEGATV')) {
                 $deviceDeleteLogin = $omega->getLocalCustomerLogin($_GET['customerid']);
                 $omega->deleteDevice($_GET['customerid'], $deleteUniq);
                 log_register('OMEGATV DEVICE DELETE `' . $deleteUniq . '` FOR (' . $deviceDeleteLogin . ') AS [' . $_GET['customerid'] . ']');
-                rcms_redirect($omega::URL_ME . '&customerprofile=' . $_GET['customerid']);
+                rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerid']);
             }
 
             //json ajax data for subscribers list
@@ -65,6 +65,24 @@ if (cfr('OMEGATV')) {
         }
 
         if (wf_CheckGet(array('customerprofile'))) {
+            //user blocking
+            if (wf_CheckGet(array('blockuser'))) {
+                $omega->setCustomerActive($_GET['customerprofile'], false);
+                rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
+            }
+
+            //user unblocking
+            if (wf_CheckGet(array('unblockuser'))) {
+                $omega->setCustomerActive($_GET['customerprofile'], true);
+                rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
+            }
+
+            //user tariff editing
+            if (wf_CheckPost(array('changebasetariff'))) {
+                $omega->changeUserTariffs($_GET['customerprofile']);
+                rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
+            }
+
             show_window(__('Profile'), $omega->renderUserInfo($_GET['customerprofile']));
             show_window('', wf_BackLink($omega::URL_ME . '&subscriptions=true'));
         }
