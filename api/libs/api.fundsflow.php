@@ -332,6 +332,12 @@ class FundsFlow {
                     $operation = __('Service') . ' ' . __('Megogo');
                 }
 
+                //OmegaTV fees
+                if (ispos($each['note'], 'OMEGATV:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('OmegaTV');
+                }
+
                 //Self crediting fees
                 if (ispos($each['note'], 'SCFEE')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');

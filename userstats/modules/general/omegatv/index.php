@@ -7,7 +7,7 @@ $us_config = zbs_LoadConfig();
 if (@$us_config['OM_ENABLED']) {
     $userData = zbs_UserGetStargazerData($user_login);
     //Check for user active state
-    if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 )) {
+    if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 ) AND($userData['Cash']>=$userData['Credit'])) {
         $omegaFront = new OmegaTvFrontend();
         $omegaFront->setLogin($user_login);
 
@@ -23,12 +23,24 @@ if (@$us_config['OM_ENABLED']) {
             if (empty($subscribeResult)) {
                 rcms_redirect('?module=omegatv');
             } else {
-                show_window(__('Sorry'),__($subscribeResult));
+                show_window(__('Sorry'), __($subscribeResult));
+            }
+        }
+
+        //unsubscription of some tariff
+        if (la_CheckGet(array('unsubscribe'))) {
+            $unsubscribeResult = $omegaFront->pushUnsubscribeRequest($_GET['unsubscribe']);
+            if (empty($unsubscribeResult)) {
+                rcms_redirect('?module=omegatv');
+            } else {
+                show_window(__('Sorry'), __($unsubscribeResult));
             }
         }
 
         //default sub/unsub form
+        show_window(__('Attention'),__('On unsubscription will be charged fee the equivalent value of the subscription.'));
         show_window(__('Available subscribtions'), $omegaFront->renderSubscribeForm());
+        
 
         $subscribedTrariffs = $omegaFront->getSubscribedTariffs();
         if (!empty($subscribedTrariffs)) {

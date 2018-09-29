@@ -59,6 +59,13 @@ class OmegaTV {
     protected $chanIconSize = 32;
 
     /**
+     * Is tariffs unsub delayed in queue or not flag
+     *
+     * @var bool
+     */
+    protected $unsubDelay = false;
+
+    /**
      * Basic module path
      */
     const URL_ME = '?module=omegatv';
@@ -67,6 +74,11 @@ class OmegaTV {
      * Default user profile viewing URL
      */
     const URL_PROFILE = '?module=userprofile&username=';
+
+    /**
+     * Default subscriber profile viewing URL
+     */
+    const URL_SUBSCRIBER = '?module=omegatv&customerprofile=';
 
     /**
      * Creates new OmegaTV instance
@@ -150,7 +162,7 @@ class OmegaTV {
      * @return void
      */
     protected function loadUserData() {
-        $this->allUserData = zb_UserGetAllDataCache();
+        $this->allUserData = zb_UserGetAllData();
     }
 
     /**
@@ -376,7 +388,10 @@ class OmegaTV {
                     $cells .= wf_TableCell($each['model']);
                     $cells .= wf_TableCell(date("Y-m-d H:i:s", $each['registration_date']));
                     $cells .= wf_TableCell(date("Y-m-d H:i:s", $each['activation_date']));
-                    $cells .= wf_TableCell($each['customer_id']);
+                    $userLogin = $this->getLocalCustomerLogin($each['customer_id']);
+                    $userAddress = @$this->allUserData[$userLogin]['fulladress'];
+                    $userLink = wf_Link(self::URL_SUBSCRIBER . $each['customer_id'], web_profile_icon() . ' ' . $userAddress);
+                    $cells .= wf_TableCell($userLink);
                     $actLinks = wf_JSAlert(self::URL_ME . '&devices=true&customerid=' . $each['customer_id'] . '&deletedevice=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
                     $cells .= wf_TableCell($actLinks);
                     $rows .= wf_TableRow($cells, 'row5');
@@ -438,6 +453,18 @@ class OmegaTV {
     }
 
     /**
+     * Renders channels preview controls panel
+     * 
+     * @return string
+     */
+    public function renderChanControls() {
+        $result = wf_Link(self::URL_ME . '&tariffs=true&chanlist=base', web_icon_search() . ' ' . __('Base'), false, 'ubButton');
+        $result.=wf_Link(self::URL_ME . '&tariffs=true&chanlist=bundle', web_icon_search() . ' ' . __('Bundle'), false, 'ubButton');
+        $result.=wf_Link(self::URL_ME . '&tariffs=true&chanlist=promo', web_icon_search() . ' ' . __('Promo'), false, 'ubButton');
+        return ($result);
+    }
+
+    /**
      * Returns array of available remote tariffs as tariffid=>name
      * 
      * @return array
@@ -488,9 +515,13 @@ class OmegaTV {
         $tmpArr = array();
         if (!empty($remoteTariffs)) {
             foreach ($remoteTariffs as $io => $each) {
-                $tmpArr[$io] = $io . ' - ' . $each;
+                //excluding already registered tariffs
+                if (!isset($this->tariffNames[$io])) {
+                    $tmpArr[$io] = $io . ' - ' . $each;
+                }
             }
         }
+
 
         if (!empty($tmpArr)) {
             $tariffsTypes = array(
@@ -506,6 +537,8 @@ class OmegaTV {
             $inputs .= wf_Submit(__('Create'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return($result);
     }
@@ -539,6 +572,35 @@ class OmegaTV {
             }
         }
         return($result);
+    }
+
+    /**
+     * Catches tariff editing request and edits it in database if something changed
+     * 
+     * @return void
+     */
+    public function catchTariffSave() {
+        if (wf_CheckPost(array('edittariffid', 'edittariffname', 'edittarifftype'))) {
+            $tariffId = vf($_POST['edittariffid'], 3);
+            $where = "WHERE `id`='" . $tariffId . "';";
+            if (isset($this->allTariffs[$tariffId])) {
+                $tariffCurrentData = $this->allTariffs[$tariffId];
+                if ($_POST['edittariffname'] != $tariffCurrentData['tariffname']) {
+                    simple_update_field('om_tariffs', 'tariffname', $_POST['edittariffname'], $where);
+                    log_register('OMEGATV TARIFF EDIT [' . $tariffCurrentData['tariffid'] . '] AS [' . $tariffId . '] NAME `' . $_POST['edittariffname'] . '`');
+                }
+
+                if ($_POST['edittarifftype'] != $tariffCurrentData['type']) {
+                    simple_update_field('om_tariffs', 'type', $_POST['edittarifftype'], $where);
+                    log_register('OMEGATV TARIFF EDIT [' . $tariffCurrentData['tariffid'] . '] AS [' . $tariffId . '] TYPE `' . $_POST['edittarifftype'] . '`');
+                }
+
+                if ($_POST['edittarifffee'] != $tariffCurrentData['fee']) {
+                    simple_update_field('om_tariffs', 'fee', $_POST['edittarifffee'], $where);
+                    log_register('OMEGATV TARIFF EDIT [' . $tariffCurrentData['tariffid'] . '] AS [' . $tariffId . '] FEE `' . $_POST['edittarifffee'] . '`');
+                }
+            }
+        }
     }
 
     /**
@@ -583,7 +645,7 @@ class OmegaTV {
                 $cells .= wf_TableCell(__($each['type']));
                 $cells .= wf_TableCell($each['fee']);
                 $actLinks = wf_JSAlert(self::URL_ME . '&tariffs=true&deleteid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderTariffEditForm($each['id']));
+                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderTariffEditForm($each['id'])) . ' ';
                 $cells .= wf_TableCell($actLinks);
                 $rows .= wf_TableRow($cells, 'row5');
             }
@@ -768,7 +830,7 @@ class OmegaTV {
         $login_f = mysql_real_escape_string($userLogin);
         $curdate = curdatetime();
         $query = "INSERT INTO `om_users` (`id`,`login`,`customerid`,`basetariffid`,`bundletariffs`,`active`,`actdate`) VALUES ";
-        $query .= "(NULL,'" . $login_f . "','" . $customerId . "',NULL,NULL,'1','" . $curdate . "');";
+        $query .= "(NULL,'" . $login_f . "','" . $customerId . "',NULL,NULL,'0','" . $curdate . "');";
         nr_query($query);
         log_register('OMEGATV CUSTOMER REGISTER (' . $userLogin . ') AS [' . $customerId . ']');
     }
@@ -802,6 +864,7 @@ class OmegaTV {
      */
     public function createSubscription($userLogin, $tariffId) {
         $result = '';
+        $tariffId = vf($tariffId, 3);
         if (isset($this->tariffNames[$tariffId])) {
             if (isset($this->allUserData[$userLogin])) {
                 $customerId = $this->getLocalCustomerId($userLogin);
@@ -815,6 +878,8 @@ class OmegaTV {
                                 $setTariffList = array('base' => $tariffId);
                                 $this->hls->setUserTariff($customerId, $setTariffList);
                                 simple_update_field('om_users', 'basetariffid', $tariffId, "WHERE `customerid`='" . $customerId . "'");
+                                $this->hls->setUserActivate($customerId);
+                                simple_update_field('om_users', 'active', '1', "WHERE `customerid`='" . $customerId . "'");
                                 log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
                             } else {
                                 $result .= 'Only one base tariff allowed';
@@ -822,17 +887,121 @@ class OmegaTV {
                         }
                         //bundle tariffs subscription
                         if ($tariffData['type'] == 'bundle') {
-                            $bundleTariffsCurrent = $this->extractBundle($customerId);
-                            if (!isset($bundleTariffsCurrent[$tariffId])) {
-                                $bundleTariffsCurrent[$tariffId] = $tariffId;
-                                $setTariffList = array('base' => $subscriberData['basetariffid'], 'bundle' => $bundleTariffsCurrent);
-                                //die(print_r($setTariffList,true)); TODO
-                                $this->hls->setUserTariff($customerId, $setTariffList);
-                                $storeBundleTariffs = serialize($bundleTariffsCurrent);
-                                simple_update_field('om_users', 'bundletariffs', $storeBundleTariffs, "WHERE `customerid`='" . $customerId . "'");
-                                log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                            if (!empty($subscriberData['basetariffid'])) {
+                                $bundleTariffsCurrent = $this->extractBundle($customerId);
+                                if (!isset($bundleTariffsCurrent[$tariffId])) {
+                                    $bundleTariffsCurrent[$tariffId] = $tariffId;
+                                    $setTariffList = array('base' => $subscriberData['basetariffid'], 'bundle' => $bundleTariffsCurrent);
+                                    $this->hls->setUserTariff($customerId, $setTariffList);
+                                    $storeBundleTariffs = serialize($bundleTariffsCurrent);
+                                    simple_update_field('om_users', 'bundletariffs', $storeBundleTariffs, "WHERE `customerid`='" . $customerId . "'");
+                                    log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                                } else {
+                                    $result .= 'Tariff already subscribed';
+                                }
                             } else {
-                                $result .= 'Tariff already subscribed';
+                                $result .= 'Available only in addition to base tariff';
+                            }
+                        }
+                    } else {
+                        $result .= 'Local tariff not exists';
+                    }
+                } else {
+                    $result .= 'Subscriber profile not found';
+                }
+            } else {
+                $result .= 'User login not found';
+            }
+        } else {
+            $result .= 'Wrong tariff';
+        }
+        return ($result);
+    }
+
+    /**
+     * Charges fee for some tariff
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    protected function chargeFee($userLogin, $tariffId) {
+        $tariffData = $this->getTariffData($tariffId);
+        $customerId = $this->getLocalCustomerId($userLogin);
+        $tariffFee = $tariffData['fee'];
+        zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'OMEGATV:' . $tariffId);
+        log_register('OMEGATV CHARGE TARIFF [' . $tariffId . '] FEE `' . $tariffFee . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
+    }
+
+    /**
+     * Deletes or pushes queue for some subscription if it possible
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function deleteSubscription($userLogin, $tariffId) {
+        $result = '';
+        $tariffId = vf($tariffId, 3);
+        if (isset($this->tariffNames[$tariffId])) {
+            if (isset($this->allUserData[$userLogin])) {
+                $customerId = $this->getLocalCustomerId($userLogin);
+                if (!empty($customerId)) {
+                    $subscriberData = $this->allUsers[$customerId];
+                    $tariffData = $this->getTariffData($tariffId);
+                    if (!empty($tariffData)) {
+                        //base tariff unsubscription
+                        if ($tariffData['type'] == 'base') {
+                            if (!empty($subscriberData['basetariffid'])) {
+                                if ($subscriberData['basetariffid'] == $tariffId) {
+                                    //unsubscription right now. Base tariff kills additional tariffs too.
+                                    if (!$this->unsubDelay) {
+                                        //charging fee for all tariffs
+                                        $baseTariffFee = $tariffData['fee'];
+                                        $this->chargeFee($userLogin, $tariffId);
+
+                                        $bundleTariffs = $this->extractBundle($customerId);
+                                        if (!empty($bundleTariffs)) {
+                                            foreach ($bundleTariffs as $io => $each) {
+                                                $this->chargeFee($userLogin, $io);
+                                            }
+                                        }
+                                        //setting user down
+                                        $this->hls->setUserBlock($customerId);
+                                        simple_update_field('om_users', 'active', '0', "WHERE `customerid`='" . $customerId . "'");
+                                        //dropping local tariffs
+                                        simple_update_field('om_users', 'basetariffid', '', "WHERE `customerid`='" . $customerId . "'");
+                                        simple_update_field('om_users', 'bundletariffs', '', "WHERE `customerid`='" . $customerId . "'");
+                                        log_register('OMEGATV UNSUBSCRIBE TARIFF [' . $tariffId . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                                    } else {
+                                        //TODO: push unsub to queue
+                                    }
+                                } else {
+                                    $result .= 'This tariff is not assigned for you';
+                                }
+                            } else {
+                                $result .= 'You have not assigned base tariff';
+                            }
+                        }
+                        //bundle tariffs unsubscription
+                        if ($tariffData['type'] == 'bundle') {
+                            $bundleTariffsCurrent = $this->extractBundle($customerId);
+                            //unsubscription right now.
+                            if (!$this->unsubDelay) {
+                                if (isset($bundleTariffsCurrent[$tariffId])) {
+                                    unset($bundleTariffsCurrent[$tariffId]);
+                                    $setTariffList = array('base' => $subscriberData['basetariffid'], 'bundle' => $bundleTariffsCurrent);
+                                    //charging fee for this bundle tariff
+                                    $this->chargeFee($userLogin, $tariffId);
+                                    $this->hls->setUserTariff($customerId, $setTariffList);
+                                    $storeBundleTariffs = serialize($bundleTariffsCurrent);
+                                    simple_update_field('om_users', 'bundletariffs', $storeBundleTariffs, "WHERE `customerid`='" . $customerId . "'");
+                                    log_register('OMEGATV UNSUBSCRIBE TARIFF [' . $tariffId . '] BUNDLE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                                } else {
+                                    $result .= 'This tariff is not assigned for you';
+                                }
                             }
                         }
                     } else {
@@ -898,6 +1067,81 @@ class OmegaTV {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Charges all users tariffs fee, disables it when users go down
+     * 
+     * @return void
+     */
+    public function chargeAllUsersFee() {
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['active']) {
+                    if (isset($this->allUserData[$each['login']])) {
+                        if (!$this->allUserData[$each['login']]['Passive']) {
+                            if (!empty($each['basetariffid'])) {
+                                $this->chargeFee($each['login'], $each['basetariffid']);
+                                $userBundleTariffs = $this->extractBundle($each['customerid']);
+                                if (!empty($userBundleTariffs)) {
+                                    foreach ($userBundleTariffs as $eachBundleId => $eachBundleTariff) {
+                                        $this->chargeFee($each['login'], $eachBundleId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //checking for debtors/freezed users and disabling it
+            $this->loadUserData();
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['active']) {
+                    if (isset($this->allUserData[$each['login']])) {
+                        $userData = $this->allUserData[$each['login']];
+                        if ($userData['Passive']) {
+                            //user is frozen by some reason - need to disable him
+                            $this->hls->setUserBlock($each['customerid']);
+                            simple_update_field('om_users', 'active', '0', "WHERE `customerid`='" . $each['customerid'] . "'");
+                            log_register('OMEGATV BLOCK FROZEN USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
+                        }
+
+                        //if user have debt after charging fee - we need to block him too
+                        if ($userData['Cash'] < '-' . $userData['Credit']) {
+                            $this->hls->setUserBlock($each['customerid']);
+                            simple_update_field('om_users', 'active', '0', "WHERE `customerid`='" . $each['customerid'] . "'");
+                            log_register('OMEGATV BLOCK DEBTOR USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Resurrects some users if their was disabled by inactivity
+     * 
+     * @return void
+     */
+    public function resurrectAllUsers() {
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if (!$each['active']) {
+                    if (isset($this->allUserData[$each['login']])) {
+                        $userData = $this->allUserData[$each['login']];
+                        if (($userData['Passive'] == 0) AND ( $userData['Cash'] >= '-' . $userData['Credit'])) {
+                            if (!empty($each['basetariffid'])) {
+                                //unblock this user
+                                $this->hls->setUserActivate($each['customerid']);
+                                simple_update_field('om_users', 'active', '1', "WHERE `customerid`='" . $each['customerid'] . "'");
+                                log_register('OMEGATV UNBLOCK USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

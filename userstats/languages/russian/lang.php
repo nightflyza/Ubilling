@@ -377,5 +377,8 @@ $lang['def']['Get activation code'] = 'Получить код активаци�
 $lang['def']['Activation code'] = 'Код активации';
 $lang['def']['Delete'] = 'Удалить';
 $lang['def']['Only one base tariff allowed'] = 'Доступен только один базовый тариф';
+$lang['def']['Available only in addition to base tariff'] = 'Доступен только в дополнение к базовому тарифу';
+$lang['def']['You subscribed'] = 'Вы подписаны'; 
+$lang['def']['On unsubscription will be charged fee the equivalent value of the subscription.'] = 'При отписке со счета сразу будет взыскана сумма эквивалентная стоимости этой подписки.';
 
 ?>

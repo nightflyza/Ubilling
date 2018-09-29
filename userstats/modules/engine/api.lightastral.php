@@ -558,8 +558,8 @@ function la_delimiter($count = 1) {
  * @param string $closed tag is closing?
  * @param string $class tag styling class
  * @param string $options tag extra options
+ * 
  * @return string
- *  
  */
 function la_tag($tag, $closed = false, $class = '', $options = '') {
     if (!empty($class)) {

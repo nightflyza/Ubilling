@@ -135,7 +135,7 @@ class OmegaTvFrontend {
      * @return void
      */
     protected function loadTariffs() {
-        $query = "SELECT * from `om_tariffs` ORDER BY `type` ASC";
+        $query = "SELECT * from `om_tariffs` WHERE `type`='base' OR `type`='bundle' ORDER BY `type` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -290,7 +290,8 @@ class OmegaTvFrontend {
                 $freeAppend = la_delimiter();
                 $tariffFee = $each['fee'];
                 $primaryLabel = ($each['type'] == 'base') ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
-
+                $subscribedLabel= ($this->isUserSubscribed($this->userLogin, $each['id'])) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
+                
                 $tariffInfo = la_tag('div', false, $headerType) . $each['tariffname'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
@@ -298,8 +299,12 @@ class OmegaTvFrontend {
                 $cells = la_TableCell(la_tag('b') . __('Primary') . la_tag('b', true));
                 $cells.= la_TableCell($primaryLabel);
                 $rows.= la_TableRow($cells);
+                $cells = la_TableCell(la_tag('b') . __('You subscribed') . la_tag('b', true));
+                $cells.= la_TableCell($subscribedLabel);
+                $rows.= la_TableRow($cells);
                 $tariffInfo.=la_TableBody($rows, '100%', 0);
                 $tariffInfo.=$freeAppend;
+                
 
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
@@ -320,6 +325,9 @@ class OmegaTvFrontend {
 
                 $result.=la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
             }
+            
+            
+            
         }
         return ($result);
     }
@@ -452,6 +460,20 @@ class OmegaTvFrontend {
     public function pushSubscribeRequest($tariffId) {
         $result = '';
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffId;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Pushes tariff unsubscription request via remote API
+     * 
+     * @param  int $tariffId
+     * 
+     * @return string
+     */
+    public function pushUnsubscribeRequest($tariffId) {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=unsubscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffId;
         @$result = file_get_contents($action);
         return ($result);
     }

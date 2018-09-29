@@ -20,11 +20,24 @@ if (cfr('OMEGATV')) {
                 rcms_redirect($omega::URL_ME . '&tariffs=true');
             }
 
-            //listing available tariffs
-            show_window(__('Tariffs'), $omega->renderTariffsList());
+            //editing tariff
+            if (wf_CheckPost(array('edittariffid'))) {
+                $omega->catchTariffSave();
+                rcms_redirect($omega::URL_ME . '&tariffs=true');
+            }
 
-            //tariffs creation form
-            show_window(__('Create new tariff'), $omega->renderTariffCreateForm());
+            if (!wf_CheckGet(array('chanlist'))) {
+                //listing available tariffs
+                show_window(__('Tariffs'), $omega->renderTariffsList());
+                //channels list preview
+                show_window(__('Channels'), $omega->renderChanControls());
+                //tariffs creation form
+                show_window(__('Create new tariff'), $omega->renderTariffCreateForm());
+            } else {
+                //view tariff channels list
+                show_window('', wf_BackLink($omega::URL_ME . '&tariffs=true'));
+                show_window(__('Channels'), $omega->renderTariffsRemote($_GET['chanlist'], true, true));
+            }
         }
 
         if (wf_CheckGet(array('subscriptions'))) {

@@ -1150,6 +1150,26 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 }
                             }
 
+                            if (wf_CheckGet(array('param', 'tariffid', 'userlogin'))) {
+                                if ($_GET['param'] == 'unsubscribe') {
+                                    $omUnsubResult = $omega->deleteSubscription($_GET['userlogin'], $_GET['tariffid']);
+                                    die($omUnsubResult);
+                                }
+                            }
+
+                            if (wf_CheckGet(array('param'))) {
+                                if ($_GET['param'] == 'chargefee') {
+                                    $omega->chargeAllUsersFee();
+                                    die('OMEGATV_CHARGE_DONE');
+                                }
+
+                                if ($_GET['param'] == 'resurrect') {
+                                    $omega->resurrectAllUsers();
+                                    die('OMEGATV_RESURRECT_DONE');
+                                }
+                            }
+
+
                             if (wf_CheckGet(array('param', 'userlogin'))) {
                                 if ($_GET['param'] == 'viewurl') {
                                     die($omega->getWebUrlByLogin($_GET['userlogin']));
