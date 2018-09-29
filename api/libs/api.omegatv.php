@@ -66,6 +66,13 @@ class OmegaTV {
     protected $unsubDelay = false;
 
     /**
+     * Contains array of currently suspended users without base tariff
+     *
+     * @var array
+     */
+    protected $suspended = array();
+
+    /**
      * Basic module path
      */
     const URL_ME = '?module=omegatv';
@@ -90,6 +97,7 @@ class OmegaTV {
         $this->loadUserData();
         $this->loadUserProfiles();
         $this->loadQueue();
+        $this->loadSuspended();
     }
 
     /**
@@ -137,6 +145,21 @@ class OmegaTV {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->queue[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing suspended users
+     * 
+     * @return void
+     */
+    protected function loadSuspended() {
+        $query = "SELECT * from `om_suspend`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->suspended[$each['login']] = $each['id'];
             }
         }
     }
@@ -408,10 +431,12 @@ class OmegaTV {
                 $this->hls->setUserActivate($customerId);
                 simple_update_field('om_users', 'active', '1', $where);
                 log_register('OMEGATV UNBLOCK USER (' . $userLogin . ') AS [' . $customerId . ']');
+                $this->suspendUser($userLogin, false);
             } else {
                 $this->hls->setUserBlock($customerId);
                 simple_update_field('om_users', 'active', '0', $where);
                 log_register('OMEGATV BLOCK USER (' . $userLogin . ') AS [' . $customerId . ']');
+                $this->suspendUser($userLogin, true);
             }
         }
     }
@@ -435,7 +460,9 @@ class OmegaTV {
             $userInfo = $userInfo['result'];
 
             $cells = wf_TableCell(__('Full address'), '', 'row2');
-            $cells .= wf_TableCell(@$this->allUserData[$localUserInfo['login']]['fulladress']);
+            $userAddress = @$this->allUserData[$localUserInfo['login']]['fulladress'];
+            $userLink = wf_Link(self::URL_PROFILE . $localUserInfo['login'], web_profile_icon() . ' ' . $userAddress);
+            $cells .= wf_TableCell($userLink);
             $rows = wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('ID'), '', 'row2');
@@ -511,7 +538,10 @@ class OmegaTV {
             $cells .= wf_TableCell(web_bool_led($localUserInfo['active']));
             $rows.= wf_TableRow($cells, 'row3');
 
-
+            $cells = wf_TableCell(__('Suspended'), '', 'row2');
+            $suspFlag = (isset($this->suspended[$localUserInfo['login']])) ? true : false;
+            $cells .= wf_TableCell(web_bool_led($suspFlag));
+            $rows.= wf_TableRow($cells, 'row3');
 
             $result .= wf_TableBody($rows, '100%', 0);
         }
@@ -1038,6 +1068,8 @@ class OmegaTV {
                                 $this->hls->setUserActivate($customerId);
                                 simple_update_field('om_users', 'active', '1', "WHERE `customerid`='" . $customerId . "'");
                                 log_register('OMEGATV SUBSCRIBE TARIFF [' . $tariffId . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                                //delete user from suspend queue
+                                $this->suspendUser($userLogin, false);
                             } else {
                                 $result .= 'Only one base tariff allowed';
                             }
@@ -1092,6 +1124,28 @@ class OmegaTV {
     }
 
     /**
+     * Sets user as suspended or not to preventing his automatic ressurection
+     * 
+     * @param string $userLogin
+     * @param bool $state
+     * 
+     * @return void
+     */
+    protected function suspendUser($userLogin, $state) {
+        $login_f = mysql_real_escape_string($userLogin);
+        $customerId = $this->getLocalCustomerId($userLogin);
+        if ($state) {
+            $query = "INSERT INTO `om_suspend` (`id`,`login`) VALUES (NULL,'" . $login_f . "');";
+            nr_query($query);
+            log_register('OMEGATV SUSPEND USER (' . $userLogin . ') AS [' . $customerId . ']');
+        } else {
+            $query = "DELETE FROM `om_suspend` WHERE `login`='" . $login_f . "'";
+            nr_query($query);
+            log_register('OMEGATV UNSUSPEND USER (' . $userLogin . ') AS [' . $customerId . ']');
+        }
+    }
+
+    /**
      * Deletes or pushes queue for some subscription if it possible
      * 
      * @param string $userLogin
@@ -1132,6 +1186,8 @@ class OmegaTV {
                                         simple_update_field('om_users', 'basetariffid', '', "WHERE `customerid`='" . $customerId . "'");
                                         simple_update_field('om_users', 'bundletariffs', '', "WHERE `customerid`='" . $customerId . "'");
                                         log_register('OMEGATV UNSUBSCRIBE TARIFF [' . $tariffId . '] BASE FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                                        //suspending user to prevent his automatic ressurection
+                                        $this->suspendUser($userLogin, true);
                                     } else {
                                         //TODO: push unsub to queue
                                     }
@@ -1159,6 +1215,8 @@ class OmegaTV {
                                 } else {
                                     $result .= 'This tariff is not assigned for you';
                                 }
+                            } else {
+                                //TODO: push bundle  unsub to queue
                             }
                         }
                     } else {
@@ -1289,10 +1347,13 @@ class OmegaTV {
                         $userData = $this->allUserData[$each['login']];
                         if (($userData['Passive'] == 0) AND ( $userData['Cash'] >= '-' . $userData['Credit'])) {
                             if (!empty($each['basetariffid'])) {
-                                //unblock this user
-                                $this->hls->setUserActivate($each['customerid']);
-                                simple_update_field('om_users', 'active', '1', "WHERE `customerid`='" . $each['customerid'] . "'");
-                                log_register('OMEGATV UNBLOCK USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
+                                //check is user resurrection suspended?
+                                if (!isset($this->suspended)) {
+                                    //unblock this user
+                                    $this->hls->setUserActivate($each['customerid']);
+                                    simple_update_field('om_users', 'active', '1', "WHERE `customerid`='" . $each['customerid'] . "'");
+                                    log_register('OMEGATV UNBLOCK USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
+                                }
                             }
                         }
                     }

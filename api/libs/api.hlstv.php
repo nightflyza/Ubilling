@@ -34,9 +34,21 @@ class HlsTV {
     protected $currentTimeStamp = 0;
 
     /**
+     * Debug flag
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
      * Default HLS API URL
      */
     const URL_API = 'https://apiua2.hls.tv/';
+
+    /**
+     * Default debug log path
+     */
+    const LOG_PATH = 'exports/omegatv.log';
 
     /**
      * Configs options naming
@@ -76,6 +88,12 @@ class HlsTV {
             $this->publicKey = $this->altCfg[self::OPTION_PUBLIC];
             $this->privateKey = $this->altCfg[self::OPTION_PRIVATE];
         }
+
+        if (isset($this->altCfg['OMEGATV_DEBUG'])) {
+            if ($this->altCfg['OMEGATV_DEBUG']) {
+                $this->debug = true;
+            }
+        }
         $this->currentTimeStamp = time();
     }
 
@@ -102,6 +120,13 @@ class HlsTV {
      * @return array/json
      */
     public function pushApiRequest($request, $data = array(), $raw = false) {
+        if ($this->debug) {
+            file_put_contents(self::LOG_PATH, curdatetime() . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, '>>>>>QUERY>>>>>' . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, print_r($request, true) . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, print_r($data, true) . "\n", FILE_APPEND);
+        }
+
         $curl = curl_init(self::URL_API . $request);
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -122,6 +147,12 @@ class HlsTV {
             $result = json_decode($jsonResponse, true);
         } else {
             $result = $jsonResponse;
+        }
+
+        if ($this->debug) {
+            file_put_contents(self::LOG_PATH, '<<<<<RESPONSE<<<<<' . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, print_r($result, true) . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, '==================' . "\n", FILE_APPEND);
         }
         return ($result);
     }

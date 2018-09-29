@@ -16,5 +16,6 @@ $lang['def']['Device'] = 'Устройство';
 $lang['def']['Device activation'] = 'Активация устройства';
 $lang['def']['Activation'] = 'Активация';
 $lang['def']['Local profile'] = 'Локальный профиль';
-$lang['def']['Delete all bundle tariffs'] = 'Удалить все дполнительные тарифы';
+$lang['def']['Delete all bundle tariffs'] = 'Удалить все дополнительные тарифы';
 $lang['def']['Add bundle tariff'] = 'Добавить дополнительный тариф';
+$lang['def']['Suspended'] = 'Приостановлен';

@@ -18,3 +18,4 @@ $lang['def']['Activation'] = 'Активація';
 $lang['def']['Local profile'] = 'Локальний профіль';
 $lang['def']['Delete all bundle tariffs'] = 'Видалити усі додаткові тарифи';
 $lang['def']['Add bundle tariff'] = 'Додати додатковий тариф';
+$lang['def']['Suspended'] = 'Зупинений';
