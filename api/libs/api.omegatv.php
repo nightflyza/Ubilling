@@ -1020,6 +1020,7 @@ class OmegaTV {
         $query .= "(NULL,'" . $login_f . "','" . $customerId . "',NULL,NULL,'0','" . $curdate . "');";
         nr_query($query);
         log_register('OMEGATV CUSTOMER REGISTER (' . $userLogin . ') AS [' . $customerId . ']');
+        $this->loadUserProfiles();
     }
 
     /**
