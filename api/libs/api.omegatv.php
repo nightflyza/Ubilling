@@ -1179,6 +1179,7 @@ class OmegaTV {
                                                 $this->chargeFee($userLogin, $io);
                                             }
                                         }
+
                                         //setting user down
                                         $this->hls->setUserBlock($customerId);
                                         simple_update_field('om_users', 'active', '0', "WHERE `customerid`='" . $customerId . "'");
@@ -1348,11 +1349,11 @@ class OmegaTV {
                         if (($userData['Passive'] == 0) AND ( $userData['Cash'] >= '-' . $userData['Credit'])) {
                             if (!empty($each['basetariffid'])) {
                                 //check is user resurrection suspended?
-                                if (!isset($this->suspended)) {
+                                if (!isset($this->suspended[$each['login']])) {
                                     //unblock this user
                                     $this->hls->setUserActivate($each['customerid']);
                                     simple_update_field('om_users', 'active', '1', "WHERE `customerid`='" . $each['customerid'] . "'");
-                                    log_register('OMEGATV UNBLOCK USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
+                                    log_register('OMEGATV RESURRECT USER (' . $each['login'] . ') AS [' . $each['customerid'] . ']');
                                 }
                             }
                         }
