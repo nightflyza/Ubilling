@@ -1965,13 +1965,16 @@ function ts_TaskChangeForm($taskid) {
  */
 function ts_DeleteTask($taskid) {
     $taskid = vf($taskid, 3);
-    $query = "DELETE from `taskman` WHERE `id`='" . $taskid . "'";
-    nr_query($query);
+    // Before delete task - write task data to log
+    $task_data = ts_GetTaskData($taskid);
     $queryLogTask = ("
         INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`) 
-        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'delete', '')
+        VALUES (NULL, '" . $taskid . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'delete',
+        '" . serialize($task_data) . "')
     ");
     nr_query($queryLogTask);
+    $query = "DELETE from `taskman` WHERE `id`='" . $taskid . "'";
+    nr_query($query);
     log_register('TASKMAN DELETE [' . $taskid . ']');
 }
 
@@ -2045,6 +2048,7 @@ function ts_renderLogsDataAjax($taskid = '') {
 
     if (!empty($result_log)) {
         $allemployee = ts_GetAllEmployee();
+        $alljobtypes = ts_GetAllJobtypes();
         foreach ($result_log as $each) {
             $administratorChange = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
 
@@ -2078,7 +2082,6 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $data_event.= wf_tag('br');
                     }
                 if (isset($logDataArr['jobtype'])) {
-                    $alljobtypes = ts_GetAllJobtypes();
 
                     $jobTypeIdOld = $logDataArr['jobtype']['old'];
                     $jobTypeIdNew = $logDataArr['jobtype']['new'];
@@ -2151,8 +2154,57 @@ function ts_renderLogsDataAjax($taskid = '') {
             } elseif ($each['event'] == 'setundone') {
                 $data[] =__('No work was done');
                 $data_event = wf_tag('font', false, '', 'color="red"') . wf_tag('b') . __('No work was done') . wf_tag('b', true) . wf_tag('font', true);
+            } elseif ($each['event'] == 'delete') {
+                $data[] =__('Task delete');
+                $data_event = '';
+                $logDataArr = unserialize($each['logs']);
+
+                $data_event.= wf_tag('b') . __('Create date') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['date'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['address'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['login'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . @$alljobtypes[$logDataArr['jobtype']] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Phone') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employee']] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employeedone']] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate'] . " " . $logDataArr['starttime'] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Admin') . ": " . wf_tag('b', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') .  @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
+                $data_event.= wf_tag('br');
+
+                $data_event.= wf_tag('b') . __('Status') . ": " . wf_tag('b', true);
+                $data_event.= web_bool_led($logDataArr['status']);
+                $data_event.= wf_tag('br');
+
             } else {
-                $cells.= wf_TableCell($each['event']);
+                $data[] = __($each['event']);
                 $data_event = $each['logs'];
             }
 
