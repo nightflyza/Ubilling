@@ -6,8 +6,8 @@ function zbs_ShowUserPayments($login) {
         $allpayments = zbs_CashGetUserPayments($login);
 
         $cells = la_TableCell(__('Date'));
-        $cells.= la_TableCell(__('Payment'));
-        $cells.= la_TableCell(__('Balance'));
+        $cells.= la_TableCell(__('Sum'));
+        $cells.= la_TableCell(__('Balance before'));
         $rows = la_TableRow($cells, 'row1');
 
         if (!empty($allpayments)) {

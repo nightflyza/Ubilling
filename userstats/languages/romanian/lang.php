@@ -291,5 +291,6 @@ $lang['def']['Support'] = 'Suport';
 
 $lang['def']['Terms'] = 'Condiţii';
 $lang['def']['Bonus'] = 'bonus';
+$lang['def']['Balance before'] = 'Soldul înainte';
 
 ?>

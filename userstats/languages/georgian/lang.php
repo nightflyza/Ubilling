@@ -337,6 +337,7 @@ $lang['def']['Additional mobile'] = 'სურვილისამებრ მ
 
 $lang['def']['Terms'] = 'ვადები';
 $lang['def']['Bonus'] = 'ბონუსი';
+$lang['def']['Balance before'] = 'ბალანსი ადრე';
 
 
 ?>

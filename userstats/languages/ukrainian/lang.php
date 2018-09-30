@@ -381,5 +381,6 @@ $lang['def']['Only one base tariff allowed'] = 'Доступний тільки 
 $lang['def']['Available only in addition to base tariff'] = 'Доступний тільки в доповнення до основного тарифу';
 $lang['def']['You subscribed'] = 'Ви підписані'; 
 $lang['def']['On unsubscription will be charged fee the equivalent value of the subscription.'] = 'При відписці від передплати з рахунку буде одразу стягнуто суму еквіваленту вартості цієї передплати.';
+$lang['def']['Balance before'] = 'Баланс до';
 
 ?>
