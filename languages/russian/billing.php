@@ -2958,8 +2958,7 @@ $lang['def']['from numbers assigned to users'] = 'от номеров присв
 $lang['def']['Generate random mac'] = 'Сгенерировать случайный MAC';
 $lang['def']['Add ONU to PONizer'] = 'Добавить ONU в ПОНизатор';
 $lang['def']['Mediocre signal'] = 'Посредственный сигнал';
-$lang['def']['View online'] = 'Смотреть онлайн';
-$lang['def']['Devices'] = 'Устройства';
+$lang['def']['Task delete'] = 'Удаление задачи';
 
 
 ?>

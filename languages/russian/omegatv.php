@@ -19,3 +19,5 @@ $lang['def']['Local profile'] = 'Локальный профиль';
 $lang['def']['Delete all bundle tariffs'] = 'Удалить все дополнительные тарифы';
 $lang['def']['Add bundle tariff'] = 'Добавить дополнительный тариф';
 $lang['def']['Suspended'] = 'Приостановлен';
+$lang['def']['View online'] = 'Смотреть онлайн';
+$lang['def']['Devices'] = 'Устройства';
