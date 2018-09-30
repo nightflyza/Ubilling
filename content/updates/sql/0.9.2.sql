@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `om_users` (
 
 CREATE TABLE IF NOT EXISTS `om_queue` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `customerid` int(11) NOT NULL,
+  `customerid` bigint(20) NOT NULL,
   `tariffid` int(11) DEFAULT NULL,
   `action` varchar(64) NOT NULL,
   PRIMARY KEY (`id`)
