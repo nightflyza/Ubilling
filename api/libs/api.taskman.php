@@ -1464,6 +1464,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $userData = zb_UserGetAllData($login);
 
                 $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
+                $newTelegramText.= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
                 $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
                 $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
                 $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
@@ -1629,6 +1630,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
             $userData = zb_UserGetAllData($login);
 
             $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
+            $newTelegramText.= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
             $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
             $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
             $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
@@ -1654,9 +1656,9 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $log_data = '';
     $log_data_arr = array();
     foreach ($cahged_taskdata as $par => $value) {
-       $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
-       $log_data_arr[$par]['old'] = $value;
-       $log_data_arr[$par]['new'] = $new_taskdata[$par];
+        $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
+        $log_data_arr[$par]['old'] = $value;
+        $log_data_arr[$par]['new'] = $new_taskdata[$par];
     }
     $queryLogTask = ("
         INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`)
@@ -2031,7 +2033,6 @@ function ts_renderLogsListAjax($taskid = '') {
     return ($result);
 }
 
-
 /**
  * Find all log for task
  *
@@ -2061,14 +2062,14 @@ function ts_renderLogsDataAjax($taskid = '') {
             $data[] = $each['ip'];
 
             if ($each['event'] == 'create') {
-                $data[] =__('Create task');
+                $data[] = __('Create task');
                 $data_event = unserialize($each['logs']);
             } elseif ($each['event'] == 'modify') {
-                $data[] =__('Edit task');
+                $data[] = __('Edit task');
                 $data_event = '';
                 $logDataArr = unserialize($each['logs']);
                 if (isset($logDataArr['address'])) {
-                    $data_event.= wf_tag('b') . __('Task address'). ": " . wf_tag('b', true);
+                    $data_event.= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
                     $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['address']['old'] . wf_tag('font', true);
                     $data_event.= " => ";
                     $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['address']['new'] . wf_tag('font', true);
@@ -2080,7 +2081,7 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $data_event.= " => ";
                     $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['login']['new'] . wf_tag('font', true);
                     $data_event.= wf_tag('br');
-                    }
+                }
                 if (isset($logDataArr['jobtype'])) {
 
                     $jobTypeIdOld = $logDataArr['jobtype']['old'];
@@ -2093,14 +2094,14 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $data_event.= " => ";
                     $data_event.= wf_tag('font', false, '', 'color="red"') . $jobtypeNew . wf_tag('font', true);
                     $data_event.= wf_tag('br');
-                    }
+                }
                 if (isset($logDataArr['jobnote'])) {
                     $data_event.= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
                     $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['jobnote']['old'] . wf_tag('font', true);
                     $data_event.= " => ";
                     $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote']['new'] . wf_tag('font', true);
                     $data_event.= wf_tag('br');
-                    }
+                }
                 if (isset($logDataArr['phone'])) {
                     $data_event.= wf_tag('b') . __('phone') . ": " . wf_tag('b', true);
                     $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['phone']['old'] . wf_tag('font', true);
@@ -2135,7 +2136,7 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $data_event.= wf_tag('br');
                 }
             } elseif ($each['event'] == 'done') {
-                $data[] =__('Task is done');
+                $data[] = __('Task is done');
                 $data_event = '';
                 $logDataArr = unserialize($each['logs']);
 
@@ -2150,12 +2151,11 @@ function ts_renderLogsDataAjax($taskid = '') {
                 $data_event.= wf_tag('b') . __('Finish note') . ": " . wf_tag('b', true);
                 $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['editdonenote'] . wf_tag('font', true);
                 $data_event.= wf_tag('br');
-
             } elseif ($each['event'] == 'setundone') {
-                $data[] =__('No work was done');
+                $data[] = __('No work was done');
                 $data_event = wf_tag('font', false, '', 'color="red"') . wf_tag('b') . __('No work was done') . wf_tag('b', true) . wf_tag('font', true);
             } elseif ($each['event'] == 'delete') {
-                $data[] =__('Task delete');
+                $data[] = __('Task delete');
                 $data_event = '';
                 $logDataArr = unserialize($each['logs']);
 
@@ -2196,19 +2196,18 @@ function ts_renderLogsDataAjax($taskid = '') {
                 $data_event.= wf_tag('br');
 
                 $data_event.= wf_tag('b') . __('Admin') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') .  @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
+                $data_event.= wf_tag('font', false, '', 'color="red"') . @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
                 $data_event.= wf_tag('br');
 
                 $data_event.= wf_tag('b') . __('Status') . ": " . wf_tag('b', true);
                 $data_event.= web_bool_led($logDataArr['status']);
                 $data_event.= wf_tag('br');
-
             } else {
                 $data[] = __($each['event']);
                 $data_event = $each['logs'];
             }
 
-            $data[] =$data_event;
+            $data[] = $data_event;
             $json->addRow($data);
             unset($data);
         }
