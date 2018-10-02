@@ -21,3 +21,7 @@ $lang['def']['Add bundle tariff'] = 'Додати додатковий тари�
 $lang['def']['Suspended'] = 'Зупинений';
 $lang['def']['View online'] = 'Дивитись онлайн';
 $lang['def']['Devices'] = 'Пристрої';
+$lang['def']['right to control OmegaTV'] = 'Право кекрувати сервісом OmegaTV';
+$lang['def']['OmegaTV service enabled'] = 'Сервіс OmegaTV увімкнено';
+$lang['def']['OmegaTV public key'] = 'Публічний ключ OmegaTV';
+$lang['def']['OmegaTV private key'] = 'Приватний ключ OmegaTV';
