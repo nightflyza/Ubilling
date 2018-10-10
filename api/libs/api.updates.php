@@ -120,6 +120,7 @@ class UbillingUpdateManager {
     protected function loadDumps() {
         $dumpsTmp = rcms_scandir(self::DUMPS_PATH, '*.sql');
         if (!empty($dumpsTmp)) {
+            rsort($dumpsTmp);
             foreach ($dumpsTmp as $io => $each) {
                 $release = str_replace('.sql', '', $each);
                 $this->allDumps[$release] = $each;
@@ -135,6 +136,7 @@ class UbillingUpdateManager {
     protected function loadConfigs() {
         $configsTmp = rcms_scandir(self::CONFIGS_PATH, '*.ini');
         if (!empty($configsTmp)) {
+            rsort($configsTmp);
             foreach ($configsTmp as $io => $each) {
                 $release = str_replace('.ini', '', $each);
                 $fileContent = rcms_parse_ini_file(self::CONFIGS_PATH . $each, true);
