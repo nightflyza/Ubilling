@@ -959,7 +959,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     }
 
 
-                    /*
+                    /**
                      * Ubilling remote API for Asterisk and other CRM
                      * -----------------------------
                      * 
@@ -1138,8 +1138,14 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    //paymentards queue processing
+                    if ($_GET['action'] == 'paycardsqueue') {
+                        $paycardsProcessed = zb_CardsQueueProcessing();
+                        die('PAYCARDS_QUEUE:' . $paycardsProcessed);
+                    }
 
-                    //Megogo userstats control options
+
+                    //OmegaTV userstats control options
                     if ($_GET['action'] == 'omcontrol') {
                         if ($alterconf['OMEGATV_ENABLED']) {
                             $omega = new OmegaTV();

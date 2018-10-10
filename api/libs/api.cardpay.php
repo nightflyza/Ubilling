@@ -11,10 +11,10 @@
  * @return void
  */
 function zb_CardCreate($serial, $cash, $part, $selling_id) {
-    $admin=whoami();
-    $date=curdatetime();
-    $query="INSERT INTO `cardbank` (`id` , `serial` , `part` , `cash` , `admin` , `date` , `receipt_date` , `selling_id` , `active` , `used` , `usedate` , `usedlogin` , `usedip`) "
-         . "VALUES (NULL , '".$serial."', '".$part."', '".$cash."', '".$admin."', '".$date."', '".$date."', '".$selling_id."', '1', '0', NULL , '', NULL);";
+    $admin = whoami();
+    $date = curdatetime();
+    $query = "INSERT INTO `cardbank` (`id` , `serial` , `part` , `cash` , `admin` , `date` , `receipt_date` , `selling_id` , `active` , `used` , `usedate` , `usedlogin` , `usedip`) "
+            . "VALUES (NULL , '" . $serial . "', '" . $part . "', '" . $cash . "', '" . $admin . "', '" . $date . "', '" . $date . "', '" . $selling_id . "', '1', '0', NULL , '', NULL);";
     nr_query($query);
 }
 
@@ -40,7 +40,7 @@ function zb_CardGenerate(array $cardCreate) {
     $message_warn.= (empty($price)) ? $messages->getStyledMessage(__('Price of cards cannot be empty'), 'warning') : '';
 
     // Check that we dont have warning
-    if ( empty($message_warn)) {
+    if (empty($message_warn)) {
         $reported_arr = array();
         for ($cardcount = 0; $cardcount < $count; $cardcount++) {
             if ($cardCreate['length'] == 16) {
@@ -60,8 +60,7 @@ function zb_CardGenerate(array $cardCreate) {
         }
 
         $result.= wf_tag('pre', false) . $reported . wf_tag('pre', true);
-        log_register("CARDS CREATED `".$count."` PART `".$part."` SERIAL `".$serial."` PRICE `".$price."` SELLING_ID [".$selling."]");
-
+        log_register("CARDS CREATED `" . $count . "` PART `" . $part . "` SERIAL `" . $serial . "` PRICE `" . $price . "` SELLING_ID [" . $selling . "]");
     } else {
         $result = $message_warn;
     }
@@ -90,18 +89,18 @@ function web_CardsShow() {
     $totalcount = zb_CardsGetCount();
     $perpage = 100;
 
-     //pagination 
-     if (!isset($_GET['page'])) {
-         $current_page = 1;
-     } else {
-         $current_page = vf($_GET['page'], 3);
-     }
+    //pagination 
+    if (!isset($_GET['page'])) {
+        $current_page = 1;
+    } else {
+        $current_page = vf($_GET['page'], 3);
+    }
 
     if ($totalcount > $perpage) {
         $paginator = wf_pagination($totalcount, $perpage, $current_page, "?module=cards", 'ubButton');
         $from = $perpage * ($current_page - 1);
         $to = $perpage;
-        $query = "SELECT * from `cardbank` ORDER by `id` DESC LIMIT ".$from.",".$to.";";
+        $query = "SELECT * from `cardbank` ORDER by `id` DESC LIMIT " . $from . "," . $to . ";";
         $alluhw = simple_queryall($query);
     } else {
         $paginator = '';
@@ -140,11 +139,16 @@ function web_CardsShow() {
             $cells.= wf_TableCell(web_bool_led($eachcard['active']));
             $cells.= wf_TableCell(web_bool_led($eachcard['used']));
             $cells.= wf_TableCell($eachcard['usedate']);
-            $cells.= wf_TableCell($eachcard['usedlogin']);
+            if (!empty($eachcard['usedlogin'])) {
+                $userLink = wf_Link('?module=userprofile&username=' . $eachcard['usedlogin'], web_profile_icon() . ' ' . $eachcard['usedlogin']);
+            } else {
+                $userLink = '';
+            }
+            $cells.= wf_TableCell($userLink);
             $cells.= wf_TableCell($eachcard['usedip']);
             $cells.= wf_TableCell($eachcard['receipt_date']);
             $cells.= wf_TableCell($nameSelling);
-            $cells.= wf_TableCell(wf_CheckInput('_cards['.$eachcard['id'].']', '', false, false));
+            $cells.= wf_TableCell(wf_CheckInput('_cards[' . $eachcard['id'] . ']', '', false, false));
             $rows.= wf_TableRow($cells, 'row3');
         }
     }
@@ -257,7 +261,6 @@ function web_CardsSearch(array $search) {
     if ($search['selling']) {
         $sellingId = mysql_real_escape_string($search['selling']);
         $querySelling = sprintf("AND `selling_id` = %s", $sellingId);
-
     }
     $queryUsed = '';
     if (key_exists('used', $search)) {
@@ -330,10 +333,10 @@ function web_CardsSearch(array $search) {
             $cells.= wf_TableCell($eachcard['usedip']);
             $cells.= wf_TableCell($eachcard['receipt_date']);
             $cells.= wf_TableCell($nameSelling);
-            $cells.= wf_TableCell(wf_CheckInput('_cards['.$eachcard['id'].']', '', false, false));
-            $rows.=  wf_TableRow($cells, 'row3');
+            $cells.= wf_TableCell(wf_CheckInput('_cards[' . $eachcard['id'] . ']', '', false, false));
+            $rows.= wf_TableRow($cells, 'row3');
         }
-        
+
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
     }
 
@@ -359,7 +362,7 @@ function web_CardActions($result) {
 
     $actionSelect = wf_Selector('cardactions', $cardActions, '', '', false);
     $actionSelect.= wf_Submit(__('With selected'));
-    $result.= $actionSelect.wf_delimiter();
+    $result.= $actionSelect . wf_delimiter();
     $result = wf_Form('', 'POST', $result, '');
 
     return ($result);
@@ -373,7 +376,7 @@ function web_CardActions($result) {
  */
 function zb_CardsGetData($id) {
     $id = vf($id, 3);
-    $query = "SELECT * from `cardbank` WHERE `id`='".$id."'";
+    $query = "SELECT * from `cardbank` WHERE `id`='" . $id . "'";
     $result = simple_query($query);
 
     return ($result);
@@ -386,9 +389,9 @@ function zb_CardsGetData($id) {
  */
 function zb_CardsMarkInactive($id) {
     $id = vf($id, 3);
-    $query = "UPDATE `cardbank` SET `active` = '0' WHERE `id` = '".$id."'";
+    $query = "UPDATE `cardbank` SET `active` = '0' WHERE `id` = '" . $id . "'";
     nr_query($query);
-    log_register("CARDS INACTIVE [".$id."]");
+    log_register("CARDS INACTIVE [" . $id . "]");
 }
 
 /**
@@ -398,9 +401,9 @@ function zb_CardsMarkInactive($id) {
  */
 function zb_CardsMarkActive($id) {
     $id = vf($id, 3);
-    $query = "UPDATE `cardbank` SET `active` = '1' WHERE `id` = '".$id."'";
+    $query = "UPDATE `cardbank` SET `active` = '1' WHERE `id` = '" . $id . "'";
     nr_query($query);
-    log_register("CARDS ACTIVE [".$id."]");
+    log_register("CARDS ACTIVE [" . $id . "]");
 }
 
 /**
@@ -410,9 +413,9 @@ function zb_CardsMarkActive($id) {
  */
 function zb_CardsDelete($id) {
     $id = vf($id, 3);
-    $query = "DELETE FROM `cardbank` WHERE `id`='".$id."'";
+    $query = "DELETE FROM `cardbank` WHERE `id`='" . $id . "'";
     nr_query($query);
-    log_register("CARDS DELETE [".$id."]");
+    log_register("CARDS DELETE [" . $id . "]");
 }
 
 /**
@@ -443,7 +446,7 @@ function zb_CardsMassactions() {
             if ($_POST['cardactions'] == 'caexport') {
                 $exportdata = '';
                 foreach ($cardsArr as $cardid => $on) {
-                    $exportdata.= zb_CardsExport($cardid)."\n";
+                    $exportdata.= zb_CardsExport($cardid) . "\n";
                 }
 
                 $exportresult = wf_TextArea($exportdata, '', $exportdata, true, '80x20');
@@ -498,23 +501,23 @@ function web_CardShowBrutes() {
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslistCached();
         foreach ($allbrutes as $io => $eachbrute) {
-            $cleaniplink = wf_JSAlert('?module=cards&cleanip='.$eachbrute['ip'], web_delete_icon(__('Clean this IP')), __('Removing this may lead to irreparable results'));
+            $cleaniplink = wf_JSAlert('?module=cards&cleanip=' . $eachbrute['ip'], web_delete_icon(__('Clean this IP')), __('Removing this may lead to irreparable results'));
 
             $cells = wf_TableCell($eachbrute['id']);
-            $cells.= wf_TableCell(array_key_exists('part', $eachbrute) ? $eachbrute['part'] :'');
+            $cells.= wf_TableCell(array_key_exists('part', $eachbrute) ? $eachbrute['part'] : '');
             $cells.= wf_TableCell($eachbrute['serial']);
             $cells.= wf_TableCell($eachbrute['date']);
-            $cells.= wf_TableCell(wf_Link('?module=userprofile&username='.$eachbrute['login'], web_profile_icon().' '.$eachbrute['login']));
-            $cells.= wf_TableCell($eachbrute['ip'].' '.$cleaniplink);
+            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachbrute['login'], web_profile_icon() . ' ' . $eachbrute['login']));
+            $cells.= wf_TableCell($eachbrute['ip'] . ' ' . $cleaniplink);
             $cells.= wf_TableCell(@$alladdress[$eachbrute['login']]);
             $cells.= wf_TableCell(@$allrealnames[$eachbrute['login']]);
-            $rows.=  wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row3');
         }
     }
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
     $cleanAllLink = wf_JSAlert('?module=cards&cleanallbrutes=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), 'Are you serious');
-    show_window(__('Bruteforce attempts').' '.$cleanAllLink, $result);
+    show_window(__('Bruteforce attempts') . ' ' . $cleanAllLink, $result);
 
     return ($result);
 }
@@ -526,9 +529,9 @@ function web_CardShowBrutes() {
  * @return void
  */
 function zb_CardBruteCleanIP($ip) {
-    $query = "DELETE from `cardbrute` where `ip`='".$ip."'";
+    $query = "DELETE from `cardbrute` where `ip`='" . $ip . "'";
     nr_query($query);
-    log_register("CARDBRUTE DELETE `".$ip."`");
+    log_register("CARDBRUTE DELETE `" . $ip . "`");
 }
 
 /**
@@ -623,10 +626,34 @@ function zb_GetCardDublicate() {
     if ($selectCards) {
         $messages = new UbillingMessageHelper();
         foreach ($selectCards as $card) {
-            $result.= $messages->getStyledMessage(__('Serial number of the card with duplicates').__(': <b>' . $card['serial'] . '</b>'), 'error');
+            $result.= $messages->getStyledMessage(__('Serial number of the card with duplicates') . __(': <b>' . $card['serial'] . '</b>'), 'error');
         }
     }
     return ($result);
+}
+
+/**
+ * Runs cards processing in sinqle queue
+ * 
+ * @return int
+ */
+function zb_CardsQueueProcessing() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $count = 0;
+    $query = "SELECT * from `cardbank` WHERE `usedlogin`!='' AND `used`='0'";
+    $all = simple_queryall($query);
+    $cashtypeId = (isset($altCfg['PC_CASHTYPEID'])) ? $altCfg['PC_CASHTYPEID'] : 1;
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $cardnumber = $each['serial'];
+            $where = "WHERE `serial`='" . $cardnumber . "'";
+            simple_update_field('cardbank', 'used', '1', $where);
+            zb_CashAdd($each['usedlogin'], $each['cash'], 'add', $cashtypeId, 'CARD:' . $cardnumber);
+            $count++;
+        }
+    }
+    return ($count);
 }
 
 ?>
