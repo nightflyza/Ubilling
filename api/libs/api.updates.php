@@ -240,7 +240,7 @@ class UbillingUpdateManager {
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allDumps as $release => $filename) {
                 $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
-                $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '');
+                $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '', 'target="_BLANK"');
                 $alertText = __('Are you serious') . ' ' . __('Apply') . ' Ubilling ' . $release . '?';
                 $actLink = wf_JSAlert(self::URL_ME . '&applysql=' . $release, wf_img('skins/icon_restoredb.png', __('Apply')), $alertText);
                 $cells = wf_TableCell($release);
@@ -271,7 +271,7 @@ class UbillingUpdateManager {
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allConfigs as $release => $filename) {
                 $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
-                $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '');
+                $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '', 'target="_BLANK"');
                 $alertText = __('Are you serious') . ' ' . __('Apply') . ' Ubilling ' . $release . '?';
                 $actLink = wf_JSAlert(self::URL_ME . '&showconfigs=' . $release, wf_img('skins/icon_addrow.png', __('Apply')), $alertText);
 
