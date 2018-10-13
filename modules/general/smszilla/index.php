@@ -7,7 +7,6 @@ if (cfr('SMSZILLA')) {
             //may be to slow :(
             set_time_limit(0);
 
-
             $smszilla = new SMSZilla();
 
 //rendering module control panel
@@ -79,6 +78,7 @@ if (cfr('SMSZILLA')) {
 //sending forms, etc
             if (wf_CheckGet(array('sending'))) {
                 show_window(__('SMS sending'), $smszilla->renderSendingForm());
+                zb_BillingStats(true);
 
                 //preview ajax reply
                 if (wf_CheckGet(array('ajpreview', 'filterid', 'templateid'))) {

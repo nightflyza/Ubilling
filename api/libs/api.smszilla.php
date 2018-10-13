@@ -481,7 +481,7 @@ class SMSZilla {
      * @return void
      */
     protected function loadTemplates() {
-        $query = "SELECT * from smz_templates";
+        $query = "SELECT * from `smz_templates` ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -630,6 +630,7 @@ class SMSZilla {
             'filternotpassive' => 'User is not frozen',
             'filtertags' => 'User have tag assigned',
             'filtertariff' => 'User have tariff',
+            'filtertariffcontain' => 'User tariff contains',
             'filterukvactive' => 'User is active',
             'filterukvdebtor' => 'Debtors',
             'filterukvtariff' => 'User have tariff',
@@ -1132,9 +1133,9 @@ class SMSZilla {
 
             if ((!empty($cleanupUserMobiles)) AND ( !empty($this->allNumListsNumbers))) {
                 foreach ($this->allNumListsNumbers as $io => $each) {
-                    if ($each['numid']==$numlistId) {
-                        $numlistNumber=$each['mobile'];
-                        $numlistNumber=  $this->normalizePhoneFormat($numlistNumber);
+                    if ($each['numid'] == $numlistId) {
+                        $numlistNumber = $each['mobile'];
+                        $numlistNumber = $this->normalizePhoneFormat($numlistNumber);
                         if (isset($cleanupUserMobiles[$numlistNumber])) {
                             $this->deleteNumlistNumber($each['id']);
                         }
@@ -1475,6 +1476,7 @@ class SMSZilla {
                 $inputs.= wf_CheckInput('newfilterdown', __('User is down'), true, false);
                 $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, true);
                 $inputs.=wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
+                $inputs.=wf_TextInput('newfiltertariffcontain', __('User tariff contains'), '', true, '15');
                 $inputs.= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
                 $inputs.= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
                 $inputs.=wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
@@ -1545,7 +1547,7 @@ class SMSZilla {
      * @return void
      */
     protected function loadFilters() {
-        $query = "SELECT * from `smz_filters`";
+        $query = "SELECT * from `smz_filters` ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -2693,6 +2695,30 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['Tariff'] != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Tariff filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtertariffcontain($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['Tariff'], $param)) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }

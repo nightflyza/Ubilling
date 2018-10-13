@@ -2976,4 +2976,7 @@ $lang['def']['Add ONU to PONizer'] = 'Додати ONU в ПОНізатор';
 $lang['def']['Mediocre signal'] = 'Посередній сигнал';
 $lang['def']['Task delete'] = 'Видалення задачі';
 
+//rev 6459
+$lang['def']['User tariff contains'] = 'Тариф користувача містить';
+
 ?>
