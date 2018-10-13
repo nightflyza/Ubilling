@@ -162,6 +162,9 @@ class UkvSystem {
     const EX_USER_NOT_ACTIVE = 'USER_NOT_ACTIVE';
     const EX_BANKSTA_PREPROCESS_EMPTY = 'BANK_STATEMENT_INPUT_INVALID';
 
+    /**
+     * Creates new UKV instance
+     */
     public function __construct() {
         $this->loadConfigs();
         $this->loadTariffs();
@@ -622,6 +625,32 @@ class UkvSystem {
     }
 
     /**
+     * Changes all users tariffs and reloads users data if required
+     * 
+     * @return void
+     */
+    protected function tariffsMoveAll() {
+        if (!empty($this->users)) {
+            foreach ($this->users as $io => $each) {
+                if (!empty($each['tariffnmid'])) {
+                    $newTariffId = $each['tariffnmid'];
+                    if (isset($this->tariffs[$newTariffId])) {
+                        $userId = $each['id'];
+                        $where = "WHERE `id`='" . $userId . "'";
+                        //change tariff in database
+                        simple_update_field('ukv_users', 'tariffid', $newTariffId, $where);
+                        //update tariffs state in current instance
+                        $this->users[$userId]['tariffid'] = $newTariffId;
+                        $this->users[$userId]['tariffnmid'] = '';
+                        //drop tariffnm
+                        simple_update_field('ukv_users', 'tariffnmid', '', $where);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * charges fee for all users and controls per month validity
      * 
      * @return int
@@ -633,6 +662,8 @@ class UkvSystem {
         $chargeCounter = 0;
         if (!$feesProcessed) {
             if (!empty($this->users)) {
+                //previously moving tariffs if required
+                $this->tariffsMoveAll();
                 foreach ($this->users as $io => $each) {
                     $this->feeCharge($each['id']);
                     $chargeCounter++;
@@ -856,6 +887,7 @@ class UkvSystem {
                             `id` ,
                             `contract` ,
                             `tariffid` ,
+                            `tariffnmid` ,
                             `cash` ,
                             `active` ,
                             `realname` ,
@@ -875,6 +907,7 @@ class UkvSystem {
                             `notes`
                             )
                             VALUES (
+                            NULL ,
                             NULL ,
                             NULL ,
                             NULL ,
@@ -937,15 +970,27 @@ class UkvSystem {
     protected function userEditForm($userid) {
         $userid = vf($userid, 3);
         if (isset($this->users[$userid])) {
+            $userData = $this->users[$userid];
             $switchArr = array('1' => __('Yes'), '0' => __('No'));
             $tariffArr = array();
+            $tariffnmArr = array('' => '-');
+
             if (!empty($this->tariffs)) {
                 foreach ($this->tariffs as $io => $each) {
                     $tariffArr[$each['id']] = $each['tariffname'];
                 }
             }
 
-            $userData = $this->users[$userid];
+            if (!empty($this->tariffs)) {
+                foreach ($this->tariffs as $io => $each) {
+                    //excluding current tariff
+                    if ($userData['tariffid'] != $each['id']) {
+                        $tariffnmArr[$each['id']] = $each['tariffname'];
+                    }
+                }
+            }
+
+
 
             $inputs = '';
 
@@ -979,6 +1024,7 @@ class UkvSystem {
             $inputs.= wf_tag('h3') . __('Services') . wf_tag('h3', true);
             $inputs.= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
             $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
+            $inputs.= wf_Selector('uedittariffnm', $tariffnmArr, __('Next month'), $userData['tariffnmid'], true);
             $inputs.= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
             $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
             $inputs.= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
@@ -1166,6 +1212,12 @@ class UkvSystem {
             if ($this->users[$userId]['tariffid'] != $_POST['uedittariff']) {
                 simple_update_field($tablename, 'tariffid', $_POST['uedittariff'], $where);
                 log_register('UKV USER ((' . $userId . ')) CHANGE TARIFF [' . $_POST['uedittariff'] . ']');
+            }
+
+//saving next month tariff
+            if ($this->users[$userId]['tariffnmid'] != $_POST['uedittariffnm']) {
+                simple_update_field($tablename, 'tariffnmid', $_POST['uedittariffnm'], $where);
+                log_register('UKV USER ((' . $userId . ')) CHANGE TARIFFNM [' . $_POST['uedittariffnm'] . ']');
             }
 
 //saving user activity
@@ -1472,11 +1524,11 @@ class UkvSystem {
             $cells.= wf_TableCell($userData['realname']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Phone'), '20%', 'row2');
+            $cells = wf_TableCell(__('Phone'), '30%', 'row2');
             $cells.= wf_TableCell($userData['phone']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Mobile'), '20%', 'row2');
+            $cells = wf_TableCell(__('Mobile'), '30%', 'row2');
             $cells.= wf_TableCell($userData['mobile']);
             $rows.= wf_TableRow($cells, 'row3');
 
@@ -1484,32 +1536,36 @@ class UkvSystem {
             $cells.= wf_TableCell(wf_tag('b') . $userData['contract'] . wf_tag('b', true));
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Tariff'), '20%', 'row2');
+            $cells = wf_TableCell(__('Tariff'), '30%', 'row2');
             $cells.= wf_TableCell(@$this->tariffs[$userData['tariffid']]['tariffname']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(wf_tag('b') . __('Cash') . wf_tag('b', true), '20%', 'row2');
+            $cells = wf_TableCell(__('Planned tariff change'), '30%', 'row2');
+            $cells.= wf_TableCell(@$this->tariffs[$userData['tariffnmid']]['tariffname']);
+            $rows.= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(wf_tag('b') . __('Cash') . wf_tag('b', true), '30%', 'row2');
             $cells.= wf_TableCell(wf_tag('b') . $userData['cash'] . wf_tag('b', true));
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Connected'), '20%', 'row2');
+            $cells = wf_TableCell(__('Connected'), '30%', 'row2');
             $cells.= wf_TableCell(web_bool_led($userData['active']));
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('User contract date'), '20%', 'row2');
+            $cells = wf_TableCell(__('User contract date'), '30%', 'row2');
             $cells.= wf_TableCell($userData['regdate']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Internet account'), '20%', 'row2');
+            $cells = wf_TableCell(__('Internet account'), '30%', 'row2');
             $inetLink = (!empty($userData['inetlogin'])) ? wf_Link(self::URL_INET_USER_PROFILE . $userData['inetlogin'], web_profile_icon() . ' ' . $userData['inetlogin'], false, '') : '';
             $cells.= wf_TableCell($inetLink);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Cable seal'), '20%', 'row2');
+            $cells = wf_TableCell(__('Cable seal'), '30%', 'row2');
             $cells.= wf_TableCell($userData['cableseal']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Notes'), '20%', 'row2');
+            $cells = wf_TableCell(__('Notes'), '30%', 'row2');
             $cells.= wf_TableCell($userData['notes']);
             $rows.= wf_TableRow($cells, 'row3');
 

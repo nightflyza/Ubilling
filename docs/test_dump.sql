@@ -2204,3 +2204,6 @@ CREATE TABLE IF NOT EXISTS `om_suspend` (
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 0.9.3 update
+ALTER TABLE `ukv_users` ADD `tariffnmid` INT NULL AFTER `tariffid`; 
