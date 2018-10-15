@@ -407,7 +407,9 @@ function web_SwitchEditForm($switchid) {
     $editinputs.= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
     $editinputs.= wf_tag('br');
 
-    $editinputs.= wf_Submit('Save');
+    if (cfr('SWITCHESEDIT')) {
+        $editinputs.= wf_Submit('Save');
+    }
     $mainForm.= wf_Form('', 'POST', $editinputs, 'glamour');
 
 
@@ -1119,7 +1121,7 @@ function zb_SwitchesRenderAjaxList() {
             $jsonItem[] = $eachswitch['geo'];
             $jsonItem[] = $eachswitch['desc'];
             $switchcontrols = '';
-            if (cfr('SWITCHESEDIT')) {
+            if (cfr('SWITCHES')) {
                 $switchcontrols.= wf_Link('?module=switches&edit=' . $eachswitch['id'], web_edit_icon());
             }
 
@@ -1132,17 +1134,23 @@ function zb_SwitchesRenderAjaxList() {
 
             if ($alterconf['SWYMAP_ENABLED']) {
                 if (!empty($eachswitch['geo'])) {
-                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
+                    if (cfr('SWITCHMAP')) {
+                        $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
+                    }
                     $countOnMap++;
                 }
 
                 if (!empty($eachswitch['parentid'])) {
-                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'] . '&showuplinks=true&traceid=' . $eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
+                    if (cfr('SWITCHMAP')) {
+                        $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'] . '&showuplinks=true&traceid=' . $eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
+                    }
                     $countLinked++;
                 }
 
                 if ((empty($eachswitch['geo'])) AND ( !ispos($eachswitch['desc'], 'NP'))) {
-                    $switchcontrols.=wf_Link('?module=switchmap&locfinder=true&placesw=' . $eachswitch['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '');
+                    if ((cfr('SWITCHESEDIT')) AND ( cfr('SWITCHMAP'))) {
+                        $switchcontrols.=wf_Link('?module=switchmap&locfinder=true&placesw=' . $eachswitch['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '');
+                    }
                 }
             }
 
@@ -1173,6 +1181,7 @@ function zb_SwitchesRenderAjaxList() {
             $jsonAAData[] = $jsonItem;
         }
     }
+
     $countersSummary = wf_tag('br');
     $countersSummary.= wf_img('skins/icon_active.gif') . ' ' . __('Alive switches') . ' - ' . ($countAlive + $countNp) . ' (' . $countAlive . '+' . $countNp . ')' . wf_tag('br');
     $countersSummary.= wf_img('skins/icon_inactive.gif') . ' ' . __('Dead switches') . ' - ' . $countDead . wf_tag('br');

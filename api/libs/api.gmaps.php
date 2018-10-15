@@ -45,7 +45,7 @@ function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
             $autoLocator = '';
         } else {
 
-      $autoLocator = '
+            $autoLocator = '
        if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(success, error);
         } else {
@@ -305,10 +305,14 @@ function sm_ShowMapContainer() {
     $container = gm_MapContainer('', '', 'ubmap');
     $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
-    $controls.= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
+    if (cfr('SWITCHESEDIT')) {
+        $controls.= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
+    }
     $controls.= wf_Link("?module=switchmap&showuplinks=true", wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png') . ' ' . __('Coverage area'), false, 'ubButton');
-    $controls.= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+    if (cfr('SWITCHES')) {
+        $controls.= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+    }
     $controls.=wf_delimiter(1);
     show_window(__('Active equipment map'), $controls . $container);
 }
