@@ -462,7 +462,7 @@ class Warehouse {
                         log_register('WAREHOUSE RESERVE CREATE [' . $newId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
                         $this->reservePushLog('create', $storageId, $itemtypeId, $count, $employeeId);
                     } else {
-                        $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
+                        $result = $this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
                     }
                 } else {
                     $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No available workers for reserve creation'), 'error');
@@ -472,6 +472,108 @@ class Warehouse {
             }
         } else {
             $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No existing warehouse storages'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates mass reservation if required and returns its results as formatted notifications
+     * 
+     * @return string
+     */
+    public function reserveMassCreate() {
+        $result = '';
+        $successCount = 0;
+        if (wf_CheckPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
+            $employeeId = vf($_POST['newmassemployeeid'], 3);
+            $storageId = vf($_POST['newmassstorageid']);
+            $postTmp = $_POST;
+            foreach ($postTmp as $io => $each) {
+                if (ispos($io, 'newmassitemtype_')) {
+                    $rawData = explode('_', $io);
+                    $itemtypeId = $rawData[1];
+                    $itemCount = $each;
+                    if ($itemCount > 0) {
+                        $reserveResult = $this->reserveCreate($storageId, $itemtypeId, $itemCount, $employeeId);
+                        if (!empty($reserveResult)) {
+                            //some shit happened
+                            $result.=$reserveResult;
+                        } else {
+                            //success!
+                            $result.=$this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('Reserved') . ' (' . $itemCount . ')', 'success');
+                            $successCount++;
+                        }
+                    }
+                }
+            }
+            //live data update
+            if ($successCount > 0) {
+                $this->loadReserve();
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders mass reservation form
+     * 
+     * @return string
+     */
+    public function reserveMassForm() {
+        $result = '';
+        $emptyWarehouse = false;
+        $realRemains = array();
+        $employeeTmp = array('' => '-');
+        $employeeTmp+= $this->activeEmployee;
+        $storageTmp = array('' => '-');
+        $storageTmp+=$this->allStorages;
+
+        if (!empty($this->allStorages)) {
+            $inputs = wf_SelectorAC('newmassemployeeid', $employeeTmp, __('Employee'), @$_POST['newmassemployeeid'], true);
+            if (wf_CheckPost(array('newmassemployeeid'))) {
+                $inputs.=wf_SelectorAC('newmassstorageid', $storageTmp, __('Warehouse storage'), @$_POST['newmassstorageid'], true);
+                if (wf_CheckPost(array('newmassstorageid'))) {
+                    $storageRemains = $this->remainsOnStorage($_POST['newmassstorageid']);
+                    if (!empty($storageRemains)) {
+                        foreach ($storageRemains as $io => $each) {
+                            $alreadyReserved = $this->reserveGet($_POST['newmassstorageid'], $io);
+                            $realCount = $each - $alreadyReserved;
+                            if ($realCount > 0) {
+                                $realRemains[$io] = $each - $alreadyReserved;
+                            }
+                        }
+
+                        if (empty($realRemains)) {
+                            $emptyWarehouse = true;
+                        } else {
+                            $cells = wf_TableCell(__('Category'));
+                            $cells.= wf_TableCell(__('Warehouse item types'));
+                            $cells.= wf_TableCell(__('Count'));
+                            $cells.= wf_TableCell(__('Reserve'));
+                            $rows = wf_TableRow($cells, 'row1');
+                            foreach ($realRemains as $itemtypeId => $itemCount) {
+                                $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeId, @$this->allItemTypeNames[$itemtypeId]);
+                                $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']]);
+                                $cells.= wf_TableCell($itemTypeLink);
+                                $cells.= wf_TableCell($itemCount . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']]);
+                                $cells.= wf_TableCell(wf_TextInput('newmassitemtype_' . $itemtypeId, '', '0', false, 4));
+                                $rows.= wf_TableRow($cells, 'row5');
+                            }
+                            $inputs.=wf_TableBody($rows, '100%', 0, '');
+                            $inputs.=wf_CheckInput('newmasscreation', __('I`m ready'), true, false);
+                            $inputs.=wf_tag('br');
+                            $inputs.=wf_Submit(__('Reservation'));
+                        }
+                    } else {
+                        $emptyWarehouse = true;
+                    }
+                }
+            }
+
+            $result.=wf_Form('', 'POST', $inputs, '');
+            if ($emptyWarehouse) {
+                $result.=$this->messages->getStyledMessage(__('Warehouse storage is empty'), 'warning');
+            }
         }
         return ($result);
     }
@@ -3071,8 +3173,8 @@ class Warehouse {
                     }
                 }
             }
-            
-            
+
+
 
             if (!empty($tmpArr)) {
                 krsort($tmpArr);

@@ -216,9 +216,21 @@ if (cfr('WAREHOUSE')) {
                         $warehouse->reserveHistoryAjaxReply();
                     }
 
-                    $reservePrintControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"');
-                    show_window(__('Reserved') . ' ' . $reservePrintControls, $warehouse->reserveRenderList());
-                    show_window(__('History'), $warehouse->reserveRenderHistory());
+                    if (wf_CheckPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
+                        $massReserveResult = $warehouse->reserveMassCreate();
+                        //rendering mass reserve results
+                        show_window('', $massReserveResult);
+                    }
+
+                    $reserveControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
+                    $reserveControls.= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false);
+
+                    if (!wf_CheckGet(array('mass'))) {
+                        show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
+                        show_window(__('History'), $warehouse->reserveRenderHistory());
+                    } else {
+                        show_window(__('Mass reservation'), $warehouse->reserveMassForm());
+                    }
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME);
                 }

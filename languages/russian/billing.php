@@ -2962,5 +2962,10 @@ $lang['def']['Task delete'] = 'Удаление задачи';
 
 //rev 6459
 $lang['def']['User tariff contains'] = 'Тариф пользователя содержит';
+$lang['def']['Mass reservation'] = 'Массовое бронирование';
+$lang['def']['Warehouse storage is empty'] = 'Милорд, склад пуст, все ТМЦ пожрал долгоносик';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 ?>
