@@ -148,7 +148,7 @@ function zb_AddressGetCityAllData($FilterByCityId = 0) {
         $sqlOrder = "ORDER by `id` ASC";
     }
 
-    if ( empty($FilterByCityId) ) {
+    if (empty($FilterByCityId)) {
         $WREREString = '';
     } else {
         $WREREString = "WHERE `id` = '" . $FilterByCityId . "' ";
@@ -442,6 +442,24 @@ function zb_AddressGetBuildAllData() {
 }
 
 /**
+ * Returns all streets + builds array
+ * 
+ * @return array
+ */
+function zb_AddressGetStreetsWithBuilds() {
+    $result = array();
+    $rawAddress = zb_AddressGetFulladdresslistCached();
+    if (!empty($rawAddress)) {
+        foreach ($rawAddress as $io => $each) {
+            $cleanBuild = explode('/', $each);
+            $cleanBuild = $cleanBuild[0];
+            $result[$cleanBuild] = $cleanBuild;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns all builds data by some street, naturally ordered by build number
  * 
  * @param int $streetid
@@ -693,7 +711,7 @@ function zb_AddressGetAptDataById($aptid) {
 function web_CitySelector($FilterByCityId = 0) {
     $allcity = array();
 
-    if ( empty($FilterByCityId) ) {
+    if (empty($FilterByCityId)) {
         $tmpCity = zb_AddressGetCityAllData();
     } else {
         $tmpCity = zb_AddressGetCityAllData($FilterByCityId);
@@ -857,7 +875,7 @@ function web_AptSelectorAc($buildid) {
  * @return string
  */
 function web_StreetCreateForm($FilterByCityId = 0) {
-    if ( empty($FilterByCityId) ) {
+    if (empty($FilterByCityId)) {
         $AjaxURLStr = '?module=streets&ajax=true';
     } else {
         $AjaxURLStr = '?module=streets&ajax=true&filterbycityid=' . $FilterByCityId;
@@ -978,7 +996,7 @@ function web_StreetLister($FilterByCityId = 0) {
     $columns[] = (__('Street alias'));
     $columns[] = (__('Actions'));
 
-    if ( empty($FilterByCityId) ) {
+    if (empty($FilterByCityId)) {
         $AjaxURLStr = '?module=streets&ajax=true';
     } else {
         $AjaxURLStr = '?module=streets&ajax=true&filterbycityid=' . $FilterByCityId;
@@ -987,9 +1005,9 @@ function web_StreetLister($FilterByCityId = 0) {
     $JQDTId = 'jqdt_' . md5($AjaxURLStr);
     $ErrorModalWID = wf_InputId();
 
-    $result  = wf_modalAuto(web_add_icon() . ' ' . __('Create new street'), __('Create new street'), web_StreetCreateForm($FilterByCityId), 'ubButton') . ' ';
+    $result = wf_modalAuto(web_add_icon() . ' ' . __('Create new street'), __('Create new street'), web_StreetCreateForm($FilterByCityId), 'ubButton') . ' ';
 
-    if ( !empty($FilterByCityId) ) {
+    if (!empty($FilterByCityId)) {
         $result .= wf_Link('?module=streets', web_street_icon() . '&nbsp&nbsp' . __('Show all streets'), false, 'ubButton');
     }
 
@@ -1061,7 +1079,7 @@ function web_StreetLister($FilterByCityId = 0) {
  * @param int $FilterByCityId
  */
 function renderStreetJSON($FilterByCityId = 0) {
-    if ( empty($FilterByCityId) ) {
+    if (empty($FilterByCityId)) {
         $allstreets = zb_AddressGetStreetAllData();
     } else {
         $allstreets = zb_AddressGetStreetAllDataByCity($FilterByCityId);
@@ -1084,8 +1102,7 @@ function renderStreetJSON($FilterByCityId = 0) {
             $cityName = (isset($allcities[$eachstreet['cityid']])) ? $allcities[$eachstreet['cityid']] : __('Error');
 
             $LnkID = wf_InputId();
-            $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results',
-                    'deleteStreet(' . $eachstreet['id'] . ', \'?module=streets\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
+            $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results', 'deleteStreet(' . $eachstreet['id'] . ', \'?module=streets\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
             $Actions .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#"');
             $Actions .= web_edit_icon();
             $Actions .= wf_tag('a', true);
@@ -1203,7 +1220,7 @@ function web_BuildLister($streetid, $AutoEditBuildID = 0) {
         $buildPassport = new BuildPassport();
     }
 
-    if ( empty($AutoEditBuildID) ) {
+    if (empty($AutoEditBuildID)) {
         $AjaxURLStr = '?module=builds&action=edit&streetid=' . $streetid . '&ajax=true';
     } else {
         $opts = '"order": [[ 0, "desc" ]], "initComplete": function(settings, json) { $(\'#Link_' . $AutoEditBuildID . '\').click(); }';
@@ -1303,7 +1320,7 @@ function renderBuildsLiserJSON($streetid, $AutoEditBuildID = 0) {
             $LnkID = 'Link_' . $eachbuild['id'];
             $RedirToURL = '';
 
-            if ( !empty($AutoEditBuildID) ) {
+            if (!empty($AutoEditBuildID)) {
                 $RedirToURL = '
                     $(\'#dialog-modal_' . $ModalWID . '\').on( "dialogclose", function( event, ui ) {
                         //window.location = location.protocol + \'//\' + location.host + location.pathname + \'?module=builds&action=edit&streetid=' . $streetid . '\'
@@ -1314,8 +1331,7 @@ function renderBuildsLiserJSON($streetid, $AutoEditBuildID = 0) {
                     ';
             }
 
-            $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results',
-                    'deleteBuild(' . $eachbuild['id'] . ', \'?module=builds&streetid=' . $streetid . '\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
+            $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results', 'deleteBuild(' . $eachbuild['id'] . ', \'?module=builds&streetid=' . $streetid . '\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
             $Actions .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#"');
             $Actions .= web_edit_icon();
             $Actions .= wf_tag('a', true);
@@ -1450,9 +1466,9 @@ function web_BuildAddForm($streetid) {
  */
 function web_BuildEditForm($buildid, $streetid, $ModalWID) {
     $FormID = 'Form_' . wf_InputId();
-    $builddata=zb_AddressGetBuildData($buildid);
-    $streetname=zb_AddressGetStreetData($streetid);
-    $streetname=$streetname['streetname'];
+    $builddata = zb_AddressGetBuildData($buildid);
+    $streetname = zb_AddressGetStreetData($streetid);
+    $streetname = $streetname['streetname'];
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = $streetname . " " . $builddata['buildnum'] . wf_tag('hr');
@@ -1593,7 +1609,7 @@ function web_CityLister() {
     $AjaxURLStr = '?module=city&ajax=true';
     $JQDTId = 'jqdt_' . md5($AjaxURLStr);
 
-    $result  = wf_modalAuto(web_add_icon() . ' ' . __('Create new city'), __('Create new city'), web_CityCreateForm(), 'ubButton') . ' ';
+    $result = wf_modalAuto(web_add_icon() . ' ' . __('Create new city'), __('Create new city'), web_CityCreateForm(), 'ubButton') . ' ';
     $result .= wf_delimiter();
     $result .= wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts);
     $result .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -1669,8 +1685,7 @@ function renderCityJSON() {
     if (!empty($allcity)) {
         foreach ($allcity as $io => $eachcity) {
             $LnkID = wf_InputId();
-            $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results',
-                    'deleteCity(' . $eachcity['id'] . ', \'?module=city\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
+            $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results', 'deleteCity(' . $eachcity['id'] . ', \'?module=city\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
             $Actions .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#"');
             $Actions .= web_edit_icon();
             $Actions .= wf_tag('a', true);
@@ -1711,7 +1726,6 @@ function renderCityJSON() {
 
     $JSONHelper->getJson();
 }
-
 
 /**
  *
@@ -2046,7 +2060,7 @@ class BuildPassport {
 function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
     $CityName = trim($CityName);
 
-    if ( empty($ExcludeEditedCityID) ) {
+    if (empty($ExcludeEditedCityID)) {
         $query = "SELECT `id` FROM `city` WHERE `cityname` = '" . $CityName . "';";
     } else {
         $query = "SELECT `id` FROM `city` WHERE `cityname` = '" . $CityName . "' AND `id` != '" . $ExcludeEditedCityID . "';";
@@ -2069,7 +2083,7 @@ function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
 function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = 0) {
     $StreetName = trim($StreetName);
 
-    if ( empty($ExcludeEditedStreetID) ) {
+    if (empty($ExcludeEditedStreetID)) {
         $query = "SELECT `id` FROM `street` WHERE `streetname` = '" . $StreetName . "' AND `cityid` = '" . $CityID . "';";
     } else {
         $query = "SELECT `id` FROM `street` WHERE `streetname` = '" . $StreetName . "' AND `cityid` = '" . $CityID . "' AND `id` != '" . $ExcludeEditedStreetID . "';";
@@ -2092,7 +2106,7 @@ function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = 
 function checkBuildOnStreetExists($BuildNumber, $StreetID, $ExcludeEditedBuildID = 0) {
     $BuildNumber = trim($BuildNumber);
 
-    if ( empty($ExcludeEditedBuildID) ) {
+    if (empty($ExcludeEditedBuildID)) {
         $query = "SELECT `id` FROM `build` WHERE `buildnum` = '" . $BuildNumber . "' AND `streetid` = '" . $StreetID . "';";
     } else {
         $query = "SELECT `id` FROM `build` WHERE `buildnum` = '" . $BuildNumber . "' AND `streetid` = '" . $StreetID . "' AND `id` != '" . $ExcludeEditedBuildID . "';";

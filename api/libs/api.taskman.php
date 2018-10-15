@@ -973,9 +973,11 @@ function ts_TaskCreateForm() {
     if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $inputs.= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
     } else {
-        $allAddress = zb_AddressGetFulladdresslistCached();
-        //Commented because significantly reduces performance. Waiting for feedback.
-        //natsort($allAddress);
+        if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
+            $allAddress = zb_AddressGetFulladdresslistCached();
+        } else {
+            $allAddress= zb_AddressGetStreetsWithBuilds();
+        }
         $inputs.= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
     }
     $inputs.= wf_tag('br');
