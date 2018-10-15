@@ -652,6 +652,7 @@ class Warehouse {
      */
     public function reserveRenderList() {
         $result = '';
+        $printFlag = (wf_CheckGet(array('printable'))) ? true : false;
         if (!empty($this->allReserve)) {
             $cells = wf_TableCell(__('ID'));
             $cells.=wf_TableCell(__('Warehouse storage'));
@@ -659,7 +660,10 @@ class Warehouse {
             $cells.= wf_TableCell(__('Warehouse item type'));
             $cells.= wf_TableCell(__('Count'));
             $cells.= wf_TableCell(__('Worker'));
-            $cells.= wf_TableCell(__('Actions'));
+            if (!$printFlag) {
+                $cells.= wf_TableCell(__('Actions'));
+            }
+
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allReserve as $io => $each) {
@@ -670,22 +674,28 @@ class Warehouse {
                 $cells.= wf_TableCell($itemTypeLink);
                 $cells.= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
                 $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
-                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
-                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
-                if ($each['count'] > 0) {
-                    if (cfr('WAREHOUSEOUTRESERVE')) {
-                        $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
-                        $actLinks.=wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
+                if (!$printFlag) {
+                    $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
+                    $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
+                    if ($each['count'] > 0) {
+                        if (cfr('WAREHOUSEOUTRESERVE')) {
+                            $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
+                            $actLinks.=wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
+                        }
                     }
+                    $cells.= wf_TableCell($actLinks);
                 }
-                $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
-        return ($result);
+        if ($printFlag) {
+            $this->reportPrintable(__('Reserved'), $result);
+        } else {
+            return ($result);
+        }
     }
 
     /**
@@ -905,7 +915,7 @@ class Warehouse {
         if (cfr('WAREHOUSEIN')) {
             $result.= wf_Link(self::URL_ME . '&' . self::URL_IN, wf_img_sized('skins/whincoming_icon.png') . ' ' . __('Incoming operations'), false, 'ubButton');
         }
-        if ((cfr('WAREHOUSEOUT')) OR (cfr('WAREHOUSEOUTRESERVE'))) {
+        if ((cfr('WAREHOUSEOUT')) OR ( cfr('WAREHOUSEOUTRESERVE'))) {
             $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
         }
 
@@ -3061,9 +3071,11 @@ class Warehouse {
                     }
                 }
             }
+            
+            
 
             if (!empty($tmpArr)) {
-                ksort($tmpArr);
+                krsort($tmpArr);
                 $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
                 $cells = wf_TableCell(__('Date'));
                 $cells.= wf_TableCell(__('Type'));

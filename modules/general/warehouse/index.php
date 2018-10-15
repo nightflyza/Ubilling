@@ -215,7 +215,9 @@ if (cfr('WAREHOUSE')) {
                     if (wf_CheckGet(array('reshistajlist'))) {
                         $warehouse->reserveHistoryAjaxReply();
                     }
-                    show_window(__('Reserved'), $warehouse->reserveRenderList());
+
+                    $reservePrintControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"');
+                    show_window(__('Reserved') . ' ' . $reservePrintControls, $warehouse->reserveRenderList());
                     show_window(__('History'), $warehouse->reserveRenderHistory());
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME);

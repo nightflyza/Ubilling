@@ -55,3 +55,8 @@ table.printable td {
     border-color: gray;
     -moz-border-radius: 1px;
 }
+
+a {
+    text-decoration: none;
+    color: #000000;
+}
