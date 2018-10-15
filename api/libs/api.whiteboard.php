@@ -499,7 +499,7 @@ class WhiteBoard {
 
 
             $cells = wf_TableCell(__('Text'), '', 'row2');
-            $cells.= wf_TableCell($recordData['text']);
+            $cells.= wf_TableCell(nl2br($recordData['text']));
             $rows.= wf_TableRow($cells, 'row3');
 
             $result.=wf_TableBody($rows, '100%', 0, '');
