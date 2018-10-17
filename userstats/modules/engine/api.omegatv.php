@@ -296,7 +296,7 @@ class OmegaTvFrontend {
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
                 $rows = la_TableRow($cells);
-                $cells = la_TableCell(la_tag('b') . __('Primary') . la_tag('b', true));
+                $cells = la_TableCell(la_tag('b') . __('Base') . la_tag('b', true));
                 $cells.= la_TableCell($primaryLabel);
                 $rows.= la_TableRow($cells);
                 $cells = la_TableCell(la_tag('b') . __('You subscribed') . la_tag('b', true));

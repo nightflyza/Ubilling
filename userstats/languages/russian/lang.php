@@ -381,5 +381,6 @@ $lang['def']['Available only in addition to base tariff'] = 'Доступен т
 $lang['def']['You subscribed'] = 'Вы подписаны'; 
 $lang['def']['On unsubscription will be charged fee the equivalent value of the subscription.'] = 'При отписке со счета сразу будет взыскана сумма эквивалентная стоимости этой подписки.';
 $lang['def']['Balance before'] = 'Баланс до';
+$lang['def']['Base'] = 'Базовый';
 
 ?>
