@@ -26,4 +26,3 @@ $lang['def']['OmegaTV service enabled'] = 'Включен ли сервис Omeg
 $lang['def']['OmegaTV public key'] = 'Публичный ключ OmegaTV';
 $lang['def']['OmegaTV private key'] = 'Приватный ключ OmegaTV';
 
-

@@ -325,7 +325,7 @@ class OmegaTV {
     protected function renderManualTariffForm($customerId) {
         $customerId = vf($customerId, 3);
         $result = '';
-        $userData = $this->allUsers[$customerId];
+        $userData = @$this->allUsers[$customerId];
         $currentBundleTariffs = $this->extractBundle($customerId);
         if (!empty($this->allTariffs)) {
             $inputs = '';
@@ -454,7 +454,7 @@ class OmegaTV {
         $result .= wf_AjaxLoader();
 
         $userInfo = $this->hls->getUserInfo($customerId);
-        $localUserInfo = $this->allUsers[$customerId];
+        $localUserInfo = @$this->allUsers[$customerId];
 
         if (isset($userInfo['result'])) {
             $userInfo = $userInfo['result'];
@@ -633,10 +633,50 @@ class OmegaTV {
     public function renderPanel() {
         $result = '';
         $result .= wf_Link(self::URL_ME . '&subscriptions=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
+        $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), __('Registration'), $this->renderUserRegisterForm(), 'ubButton');
         $result .= wf_Link(self::URL_ME . '&tariffs=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&devices=true', wf_img('skins/switch_models.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
         // $result .= wf_Link(self::URL_ME . '&reports=true', wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
         return($result);
+    }
+
+    /**
+     * Renders new customer registration form
+     * 
+     * @return string
+     */
+    protected function renderUserRegisterForm() {
+        $result = '';
+        $loginPreset = (wf_CheckGet(array('username'))) ? $_GET['username'] : '';
+        $inputs = wf_HiddenInput('manualregister', 'true');
+        $inputs.= wf_TextInput('manualregisterlogin', __('Login'), $loginPreset, true, '15');
+        $inputs.= wf_Submit(__('Create'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Creates new user profile for existing internet user
+     * 
+     * @param string $userLogin
+     * 
+     * @return void/strin on error
+     */
+    public function registerUserManual($userLogin) {
+        $result = '';
+        if (!empty($userLogin)) {
+            if (isset($this->allUserData[$userLogin])) {
+                $userLocalProfile = $this->getLocalCustomerId($userLogin);
+                if (empty($userLocalProfile)) {
+                    $this->createUserProfile($userLogin);
+                } else {
+                    $result.=__('Something went wrong') . ': ' . __('Duplicate login') . ' - ' . $userLogin;
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('User not exist') . ' - ' . $userLogin;
+            }
+        }
+        return ($result);
     }
 
     /**

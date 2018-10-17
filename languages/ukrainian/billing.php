@@ -2980,5 +2980,6 @@ $lang['def']['Task delete'] = 'Видалення задачі';
 $lang['def']['User tariff contains'] = 'Тариф користувача містить';
 $lang['def']['Mass reservation'] = 'Масове бронювання';
 $lang['def']['Warehouse storage is empty'] = 'Мілорде, сховище порожнє, усі ТМЦ зжер довгоносик';
+$lang['def']['User not exists'] = 'Пользователя не существует';
 
 ?>

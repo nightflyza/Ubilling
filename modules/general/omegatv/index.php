@@ -59,6 +59,16 @@ if (cfr('OMEGATV')) {
                 rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerid']);
             }
 
+            //new user manual registration
+            if (wf_CheckPost(array('manualregister', 'manualregisterlogin'))) {
+                $manualRegResult = $omega->registerUserManual($_POST['manualregisterlogin']);
+                if (empty($manualRegResult)) {
+                    rcms_redirect($omega::URL_ME . '&subscriptions=true');
+                } else {
+                    show_error($manualRegResult);
+                }
+            }
+
             //json ajax data for subscribers list
             if (wf_CheckGet(array('ajuserlist'))) {
                 $omega->ajUserList();
