@@ -59,16 +59,6 @@ if (cfr('OMEGATV')) {
                 rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerid']);
             }
 
-            //new user manual registration
-            if (wf_CheckPost(array('manualregister', 'manualregisterlogin'))) {
-                $manualRegResult = $omega->registerUserManual($_POST['manualregisterlogin']);
-                if (empty($manualRegResult)) {
-                    rcms_redirect($omega::URL_ME . '&subscriptions=true');
-                } else {
-                    show_error($manualRegResult);
-                }
-            }
-
             //json ajax data for subscribers list
             if (wf_CheckGet(array('ajuserlist'))) {
                 $omega->ajUserList();
@@ -97,10 +87,9 @@ if (cfr('OMEGATV')) {
                 rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
             }
 
-            
+
             //user device assign
             if (wf_CheckPost(array('manualassigndevice', 'manualassigndevicecustomerid', 'manualassigndeviceuniq'))) {
-                
                 $assignResult = $omega->assignDeviceManual();
                 if (empty($assignResult)) {
                     rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
@@ -113,6 +102,7 @@ if (cfr('OMEGATV')) {
             show_window('', wf_BackLink($omega::URL_ME . '&subscriptions=true'));
         }
 
+        //devices management
         if (wf_CheckGet(array('devices'))) {
 
             //deleting existing device
@@ -126,6 +116,32 @@ if (cfr('OMEGATV')) {
 
             //rendering devices list
             show_window(__('Devices'), $omega->renderDevicesList());
+        }
+
+        //new user manual registration
+        if (wf_CheckPost(array('manualregister', 'manualregisterlogin'))) {
+            $manualRegResult = $omega->registerUserManual($_POST['manualregisterlogin']);
+            if (empty($manualRegResult)) {
+                if (wf_CheckGet(array('username'))) {
+                    $localCustomerId = $omega->getLocalCustomerId($_GET['username']);
+                    rcms_redirect($omega::URL_SUBSCRIBER . $localCustomerId);
+                } else {
+                    rcms_redirect($omega::URL_ME . '&subscriptions=true');
+                }
+            } else {
+                show_error($manualRegResult);
+            }
+        }
+
+        //black magic profile redirect or new subscriber registration
+        if (wf_CheckGet(array('username'))) {
+            $localCustomerId = $omega->getLocalCustomerId($_GET['username']);
+            if (!empty($localCustomerId)) {
+                rcms_redirect($omega::URL_SUBSCRIBER . $localCustomerId);
+            } else {
+                show_warning(__('This user have not existing OmegaTV subscription profile. You can register it using appropriate button on upper panel.'));
+                show_window('', web_UserControls($_GET['username']));
+            }
         }
     } else {
         show_error(__('This module is disabled'));
