@@ -16,8 +16,12 @@ if (cfr('OMEGATV')) {
 
             //deleting existing tariff
             if (wf_CheckGet(array('deleteid'))) {
-                $omega->deleteTariff($_GET['deleteid']);
-                rcms_redirect($omega::URL_ME . '&tariffs=true');
+                if (!$omega->isTariffProtected($_GET['deleteid'])) {
+                    $omega->deleteTariff($_GET['deleteid']);
+                    rcms_redirect($omega::URL_ME . '&tariffs=true');
+                } else {
+                    show_error(__('You know, we really would like to let you perform this action, but our conscience does not allow us to do') . ' ' . __('Tariff is used by some users'));
+                }
             }
 
             //editing tariff

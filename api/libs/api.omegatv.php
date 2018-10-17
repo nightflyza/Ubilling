@@ -845,6 +845,33 @@ class OmegaTV {
     }
 
     /**
+     * Checks is tariff used by some customers
+     * 
+     * @param int $id
+     * 
+     * @return bool
+     */
+    public function isTariffProtected($id) {
+        $id = vf($id, 3);
+        $result = false;
+        if (isset($this->allTariffs[$id])) {
+            $tariffCode = $this->allTariffs[$id]['tariffid'];
+            if (!empty($this->allUsers)) {
+                foreach ($this->allUsers as $io => $each) {
+                    if ($each['basetariffid'] == $tariffCode) {
+                        $result = true;
+                    }
+                    $userBundleTariffs = $this->extractBundle($io);
+                    if (isset($userBundleTariffs[$tariffCode])) {
+                        $result = true;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Deletes some tariff from database
      * 
      * @param int $id
