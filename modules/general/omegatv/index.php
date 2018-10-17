@@ -97,6 +97,18 @@ if (cfr('OMEGATV')) {
                 rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
             }
 
+            
+            //user device assign
+            if (wf_CheckPost(array('manualassigndevice', 'manualassigndevicecustomerid', 'manualassigndeviceuniq'))) {
+                
+                $assignResult = $omega->assignDeviceManual();
+                if (empty($assignResult)) {
+                    rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
+                } else {
+                    show_error($assignResult);
+                }
+            }
+
             show_window(__('Profile'), $omega->renderUserInfo($_GET['customerprofile']));
             show_window('', wf_BackLink($omega::URL_ME . '&subscriptions=true'));
         }

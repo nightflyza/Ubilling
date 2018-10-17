@@ -401,6 +401,46 @@ class OmegaTV {
     }
 
     /**
+     * Renders manual device assign form
+     * 
+     * @return string
+     */
+    protected function renderDeviceAddForm($customerId) {
+        $result = '';
+        $inputs = wf_HiddenInput('manualassigndevice', 'true');
+        $inputs.= wf_HiddenInput('manualassigndevicecustomerid', $customerId);
+        $inputs.= wf_TextInput('manualassigndeviceuniq', __('Uniq'), '', true, 20, 'alphanumeric');
+        $inputs.=wf_Submit(__('Assign'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Assigns some device uniq to some customer
+     * 
+     * @return void/string on error
+     */
+    public function assignDeviceManual() {
+        $result = '';
+        if (wf_CheckPost(array('manualassigndevice', 'manualassigndevicecustomerid', 'manualassigndeviceuniq'))) {
+            $customerId = vf($_POST['manualassigndevicecustomerid'], 3); //int
+            $uniq = vf($_POST['manualassigndeviceuniq']); //alphanumeric
+            if (isset($this->allUsers[$customerId])) {
+                $assignResult = $this->hls->addDevice($customerId, $uniq);
+                if (isset($assignResult['error'])) {
+                    $result.=__('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
+                } else {
+                    $userLogin = $this->getLocalCustomerLogin($customerId);
+                    log_register('OMEGATV DEVICE ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('User not exists');
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders profile controls
      * 
      * @return string
@@ -411,6 +451,7 @@ class OmegaTV {
         $result.= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&blockuser=true', web_bool_led(0) . ' ' . __('Block user'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&unblockuser=true', web_bool_led(1) . ' ' . __('Unblock user'), false, 'ubButton');
         $result.=wf_modalAuto(web_edit_icon() . ' ' . __('Edit tariff'), __('Edit tariff'), $this->renderManualTariffForm($customerId), 'ubButton');
+        $result.=wf_modalAuto(wf_img('skins/switch_models.png') . ' ' . __('Assign device'), __('Assign device'), $this->renderDeviceAddForm($customerId), 'ubButton');
         return ($result);
     }
 
@@ -671,9 +712,11 @@ class OmegaTV {
                     $this->createUserProfile($userLogin);
                 } else {
                     $result.=__('Something went wrong') . ': ' . __('Duplicate login') . ' - ' . $userLogin;
+                    log_register('OMEGATV FAIL CUSTOMER REGISTER (' . $userLogin . ') DUPLICATE');
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('User not exist') . ' - ' . $userLogin;
+                log_register('OMEGATV FAIL CUSTOMER REGISTER (' . $userLogin . ') NOLOGIN');
             }
         }
         return ($result);

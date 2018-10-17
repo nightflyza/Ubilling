@@ -25,3 +25,4 @@ $lang['def']['right to control OmegaTV'] = 'Право кекрувати сер
 $lang['def']['OmegaTV service enabled'] = 'Сервіс OmegaTV увімкнено';
 $lang['def']['OmegaTV public key'] = 'Публічний ключ OmegaTV';
 $lang['def']['OmegaTV private key'] = 'Приватний ключ OmegaTV';
+$lang['def']['Assign device'] = 'Присвоїти пристрій';
