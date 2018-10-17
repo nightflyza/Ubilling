@@ -90,11 +90,14 @@ if (cfr('USERREG')) {
                 $newuser_data['onuserial'] = $_POST['onuserial'];
             }
 
-            if ( isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED'] ) {
-                if ( isset($_POST['userMAC']) and !empty($_POST['userMAC']) ) {
+            if (isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED']) {
+                if (isset($_POST['userMAC']) and ! empty($_POST['userMAC'])) {
+                    $newMac = $_POST['userMAC'];
+                    $newMac = trim($newMac);
+                    $newMac = strtolower($newMac);
                     //check mac for free
                     $allUsedMacs = zb_getAllUsedMac();
-                    if ( !zb_checkMacFree($_POST['userMAC'], $allUsedMacs) ) {
+                    if (!zb_checkMacFree($newMac, $allUsedMacs)) {
                         $alert = wf_tag('script', false, '', 'type="text/javascript"');
                         $alert.='alert("' . __('Error') . ': ' . __('This MAC is currently used') . '");';
                         $alert.=wf_tag('script', true);
@@ -104,7 +107,7 @@ if (cfr('USERREG')) {
                     }
 
                     //validate mac format
-                    if ( !check_mac_format($_POST['userMAC']) ) {
+                    if (!check_mac_format($newMac)) {
                         $alert = wf_tag('script', false, '', 'type="text/javascript"');
                         $alert.='alert("' . __('Error') . ': ' . __('This MAC have wrong format') . '");';
                         $alert.=wf_tag('script', true);
@@ -114,7 +117,7 @@ if (cfr('USERREG')) {
                     }
                 }
 
-                $newuser_data['userMAC'] = $_POST['userMAC'];
+                $newuser_data['userMAC'] = strtolower($newMac);
             }
 
             zb_UserRegister($newuser_data);
