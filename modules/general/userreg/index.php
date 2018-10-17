@@ -117,7 +117,7 @@ if (cfr('USERREG')) {
                     }
                 }
 
-                $newuser_data['userMAC'] = strtolower($newMac);
+                $newuser_data['userMAC'] = $newMac;
             }
 
             zb_UserRegister($newuser_data);
