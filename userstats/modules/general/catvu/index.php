@@ -140,6 +140,10 @@ class UserstatsUkv {
             $cells.=la_TableCell(@$this->tariffs[$this->users[$userid]['tariffid']]['tariffname']);
             $rows.= la_TableRow($cells, 'row3');
 
+            $cells = la_TableCell(__('Tariff change'), '', 'row1');
+            $cells.=la_TableCell(@$this->tariffs[$this->users[$userid]['tariffnmid']]['tariffname']);
+            $rows.= la_TableRow($cells, 'row3');
+
             $cells = la_TableCell(__('Tariff price'), '', 'row1');
             $cells.=la_TableCell($this->tariffs[$this->users[$userid]['tariffid']]['price'] . ' ' . $this->usCfg['currency']);
             $rows.= la_TableRow($cells, 'row3');
@@ -200,7 +204,9 @@ if ($us_config['UKV_ENABLED']) {
     $ukvUserId = $usUkv->detectUserByLogin($user_login);
     if ($ukvUserId) {
         show_window(__('CaTV user profile'), $usUkv->renderUserProfile($ukvUserId));
-        show_window(__('CaTV payments'), $usUkv->renderUserPayments($ukvUserId));
+        if (@$us_config['PAYMENTS_ENABLED']) {
+            show_window(__('CaTV payments'), $usUkv->renderUserPayments($ukvUserId));
+        }
     } else {
         show_window(__('Sorry'), __('No CaTV account associated with your Internet service'));
     }

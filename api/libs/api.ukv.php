@@ -3011,6 +3011,7 @@ class UkvSystem {
         $tariffArr = array();
         $tariffUsers = array();
         $tariffCounter = array();
+        $tariffMoves = array();
         $userTotalCount = sizeof($this->users);
 
         $result = '';
@@ -3030,6 +3031,11 @@ class UkvSystem {
                     if ($eachUser['active']) {
                         $tariffCounter[$eachUser['tariffid']]['alive'] = $tariffCounter[$eachUser['tariffid']]['alive'] + 1;
                     }
+                    //next month movements
+                    if ($eachUser['tariffnmid']) {
+                        $tariffMoves[$eachUser['id']]['from'] = $eachUser['tariffid'];
+                        $tariffMoves[$eachUser['id']]['to'] = $eachUser['tariffnmid'];
+                    }
                 }
             }
         }
@@ -3047,10 +3053,33 @@ class UkvSystem {
             $cells.= wf_TableCell($tariffCounter[$tariffId]['all']);
             $cells.= wf_TableCell(web_bar($tariffCounter[$tariffId]['all'], $userTotalCount));
             $cells.= wf_TableCell(web_barTariffs($tariffCounter[$tariffId]['alive'], ($tariffCounter[$tariffId]['all'] - $tariffCounter[$tariffId]['alive'])));
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row5');
         }
 
         $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+        $result.=wf_tag('b') . __('Total') . ': ' . $userTotalCount . wf_tag('b', true);
+//tariff move summary
+        if (!empty($tariffMoves)) {
+            if (!wf_CheckGet(array('showtariffusers'))) {
+                $result.=wf_tag('br');
+                $result.=wf_tag('h3') . __('Planned tariff changes') . wf_tag('h3', true);
+
+                $cells = wf_TableCell(__('User'));
+                $cells.= wf_TableCell(__('Real Name'));
+                $cells.= wf_TableCell(__('Tariff'));
+                $cells.= wf_TableCell(__('Next month'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($tariffMoves as $moveUserId => $moveData) {
+                    $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $moveUserId, web_profile_icon() . ' ' . $this->userGetFullAddress($moveUserId)));
+                    $cells.= wf_TableCell($this->userGetRealName($moveUserId));
+                    $cells.= wf_TableCell($this->tariffGetName($moveData['from']));
+                    $cells.= wf_TableCell($this->tariffGetName($moveData['to']));
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result.=wf_tag('b') . __('Total') . ': ' . sizeof($tariffMoves) . wf_tag('b', true);
+            }
+        }
 
 //show per tariff users
         if (wf_CheckGet(array('showtariffusers'))) {
