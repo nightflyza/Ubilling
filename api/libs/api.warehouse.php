@@ -17,6 +17,20 @@ class Warehouse {
     protected $activeEmployee = array();
 
     /**
+     * Contains available employee telegram chatid data as id=>chatid
+     *
+     * @var array
+     */
+    protected $allEmployeeTelegram = array();
+
+    /**
+     * Contains all available employee realnames as login=>name
+     *
+     * @var array
+     */
+    protected $allEmployeeLogins = array();
+
+    /**
      * System alter.ini config stored as array key=>value
      *
      * @var array
@@ -101,11 +115,18 @@ class Warehouse {
     protected $outDests = array();
 
     /**
-     * System messages object
+     * System messages helper object placeholder
      *
      * @var object
      */
     protected $messages = '';
+
+    /**
+     * System telegram object placeholder
+     *
+     * @var object
+     */
+    protected $telegram = '';
 
     /**
      * Default asterisk required fields notifier
@@ -149,12 +170,12 @@ class Warehouse {
         $this->setOutDests();
         $this->setSup();
         $this->loadMessages();
-        $this->loadAllEmployee();
-        $this->loadActiveEmployee();
+        $this->loadAllEmployeeData();
         $this->loadCategories();
         $this->loadItemTypes();
         $this->loadStorages();
         $this->loadContractors();
+        $this->initTelegram();
         if (empty($taskid)) {
             $this->loadReserve();
             $this->loadReserveHistory();
@@ -184,12 +205,14 @@ class Warehouse {
     }
 
     /**
-     * Loads all existing employees from database
+     * Inits telegram object as protected instance for further usage
      * 
      * @return void
      */
-    protected function loadAllEmployee() {
-        $this->allEmployee = ts_GetAllEmployee();
+    protected function initTelegram() {
+        if ($this->altCfg['SENDDOG_ENABLED']) {
+            $this->telegram = new UbillingTelegram();
+        }
     }
 
     /**
@@ -197,8 +220,21 @@ class Warehouse {
      * 
      * @return void
      */
-    protected function loadActiveEmployee() {
-        $this->activeEmployee = ts_GetActiveEmployee();
+    protected function loadAllEmployeeData() {
+        $query = "SELECT * from `employee`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allEmployee[$each['id']] = $each['name'];
+                if ($each['active']) {
+                    $this->activeEmployee[$each['id']] = $each['name'];
+                }
+                if (!empty($each['admlogin'])) {
+                    $this->allEmployeeLogins[$each['admlogin']] = $each['name'];
+                }
+                $this->allEmployeeTelegram[$each['id']] = $each['telegram'];
+            }
+        }
     }
 
     /**
@@ -427,6 +463,43 @@ class Warehouse {
     }
 
     /**
+     * Stores Telegram message for some employee
+     * 
+     * @param int $employeeid
+     * @param string $message
+     * 
+     * @return void
+     */
+    protected function sendTelegram($employeeId, $message) {
+        if ($this->altCfg['SENDDOG_ENABLED']) {
+            $chatId = @$this->allEmployeeTelegram[$employeeId];
+            if (!empty($chatId)) {
+                $this->telegram->sendMessage($chatId, $message, false, 'WAREHOUSE');
+            }
+        }
+    }
+
+    /**
+     * Sends some notificaton about reserve creation to employee
+     * 
+     * @param int $storageId
+     * @param int $itemtypeId
+     * @param float $count
+     * @param int $employeeId
+     * 
+     * @return void
+     */
+    protected function reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId) {
+        $message = '';
+        $adminLogin = whoami();
+        $adminName = (isset($this->allEmployeeLogins[$adminLogin])) ? $this->allEmployeeLogins[$adminLogin] : $adminLogin;
+        $message.=__('From warehouse storage') . ' ' . $this->allStorages[$storageId] . '\r\n ';
+        $message.= $adminName . ' ' . __('reserved for you') . ': ';
+        $message.=$this->allItemTypeNames[$itemtypeId] . ' ' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+        $this->sendTelegram($employeeId, $message);
+    }
+
+    /**
      * Creates new reserve record in database
      * 
      * @param int $storageId
@@ -461,6 +534,7 @@ class Warehouse {
                         $newId = simple_get_lastid('wh_reserve');
                         log_register('WAREHOUSE RESERVE CREATE [' . $newId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
                         $this->reservePushLog('create', $storageId, $itemtypeId, $count, $employeeId);
+                        $this->reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId);
                     } else {
                         $result = $this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
                     }

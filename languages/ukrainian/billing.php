@@ -2981,5 +2981,7 @@ $lang['def']['User tariff contains'] = 'Тариф користувача міс
 $lang['def']['Mass reservation'] = 'Масове бронювання';
 $lang['def']['Warehouse storage is empty'] = 'Мілорде, сховище порожнє, усі ТМЦ зжер довгоносик';
 $lang['def']['User not exists'] = 'Користувача не існує';
+$lang['def']['From warehouse storage'] = 'Зі складу';
+$lang['def']['reserved for you'] = 'забронював для тебе';
 
 ?>

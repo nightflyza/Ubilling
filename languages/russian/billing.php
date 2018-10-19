@@ -2965,6 +2965,10 @@ $lang['def']['User tariff contains'] = 'Тариф пользователя со
 $lang['def']['Mass reservation'] = 'Массовое бронирование';
 $lang['def']['Warehouse storage is empty'] = 'Милорд, склад пуст, все ТМЦ пожрал долгоносик';
 $lang['def']['User not exists'] = 'Пользователя не существует';
+$lang['def']['From warehouse storage'] = 'Со склада';
+$lang['def']['reserved for you'] = 'забронировал для тебя';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
