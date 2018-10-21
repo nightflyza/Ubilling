@@ -2959,6 +2959,15 @@ $lang['def']['Generate random mac'] = 'Сгенерировать случайн
 $lang['def']['Add ONU to PONizer'] = 'Добавить ONU в ПОНизатор';
 $lang['def']['Mediocre signal'] = 'Посредственный сигнал';
 $lang['def']['Task delete'] = 'Удаление задачи';
+
+
+//rev 6459
+$lang['def']['User tariff contains'] = 'Тариф пользователя содержит';
+$lang['def']['Mass reservation'] = 'Массовое бронирование';
+$lang['def']['Warehouse storage is empty'] = 'Милорд, склад пуст, все ТМЦ пожрал долгоносик';
+$lang['def']['User not exists'] = 'Пользователя не существует';
+$lang['def']['From warehouse storage'] = 'Со склада';
+$lang['def']['reserved for you'] = 'забронировал для тебя';
 $lang['def']['View online'] = 'Смотреть онлайн';
 $lang['def']['SMS service'] = 'СМС сервис';
 $lang['def']['SMS services'] = 'СМС сервисы';
@@ -2977,14 +2986,6 @@ $lang['def']['ID not found'] = 'ID не найден';
 $lang['def']['Will be used as a default SMS service'] = 'Будет использован как СМС сервис по умолчанию';
 $lang['def']['Can not remove SMS which has existing relations on users or other DB entities'] = 'Нельзя удалить СМС сервис имеющий связи с пользователями или другими объектами в БД';
 $lang['def']['Use login as alpha name'] = 'Использовать логин как альфа-имя';
-
-//rev 6459
-$lang['def']['User tariff contains'] = 'Тариф пользователя содержит';
-$lang['def']['Mass reservation'] = 'Массовое бронирование';
-$lang['def']['Warehouse storage is empty'] = 'Милорд, склад пуст, все ТМЦ пожрал долгоносик';
-$lang['def']['User not exists'] = 'Пользователя не существует';
-$lang['def']['From warehouse storage'] = 'Со склада';
-$lang['def']['reserved for you'] = 'забронировал для тебя';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
