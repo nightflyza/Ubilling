@@ -10,6 +10,13 @@ The future is coming on
 class SMSHistory {
     const URL_ME = '?module=smshistory';
 
+    protected $SMSAdvancedEnabled = false;
+
+    public function __construct() {
+        global $ubillingConfig;
+        $this->SMSAdvancedEnabled = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
+    }
+
     /**
      * Gets sms history data from DB
      *
@@ -42,6 +49,18 @@ class SMSHistory {
             foreach ($QueryData as $EachRec) {
                 foreach ($EachRec as $FieldName => $FieldVal) {
                     switch ($FieldName) {
+                        case 'smssrvid':
+                            if ($this->SMSAdvancedEnabled) {
+                                $SMSSrvName = wf_getSMSServiceNameByID($FieldVal);
+
+                                if ( !empty($SMSSrvName) ) {
+                                    $data[] = (empty($FieldVal)) ? $SMSSrvName . ' (' . __('by default') . ')' : $SMSSrvName;
+                                } else {
+                                    $data[] = __('ID not found');
+                                }
+                            }
+                            break;
+
                         case 'login':
                             $data[] = ( empty($FieldVal) ) ? '' : wf_Link('?module=userprofile&username=' . $FieldVal, web_profile_icon() . ' ' . $FieldVal, false, '', 'style="color:#000fd4"');
                             break;
@@ -72,26 +91,43 @@ class SMSHistory {
     public function renderJQDT($UserLogin = '') {
         $AjaxURLStr = ( empty($UserLogin) ) ? '' . self::URL_ME . '&ajax=true' . '' : '' . self::URL_ME . '&ajax=true&usrlogin=' . $UserLogin . '';
         $columns = array();
-        $columnTargets = ( empty($UserLogin) ) ? '[0, 3, 4, 8]' : '[0, 1, 3, 4, 8]';
-        $opts = '"order": [[ 0, "desc" ]], "columnDefs": [{"targets": ' . $columnTargets . ', "visible": false}],
+        if ($this->SMSAdvancedEnabled) {
+            $columnTargets = (empty($UserLogin)) ? '[0, 4, 5, 9]' : '[0, 2, 4, 5, 9]';
+            $CheckCol1 = '8';
+            $CheckCol2 = '9';
+        } else {
+            $columnTargets = (empty($UserLogin)) ? '[0, 3, 4, 8]' : '[0, 1, 3, 4, 8]';
+            $CheckCol1 = '7';
+            $CheckCol2 = '8';
+        }
+        $opts = '"order": [[ 0, "desc" ]], 
+                 "columnDefs": [ {"targets": ' . $columnTargets . ', "visible": false},
+                                 {"targets": [1], "width": "90px"},
+                                 {"targets": [3], "width": "85px"},
+                                 {"targets": [6, 7], "width": "100px"},
+                                 {"targets": [' . $CheckCol1 . ', ' . $CheckCol2 . '], "className": "dt-center"}
+                                ],
                  "rowCallback": function(row, data, index) {
-                    /*if ( data[7] == "' . __('Yes') . '" ) {
+                    /*if ( data[8] == "' . __('Yes') . '" ) {
                         $(\'td\', row).css(\'background-color\', \'green\');
                         $(\'td\', row).css(\'color\', \'white\');
                     }*/
                     
-                    if ( data[8] == "' . __('Yes') . '" ) {
+                    if ( data['. $CheckCol2 . '] == "' . __('Yes') . '" ) {
                         $(\'td\', row).css(\'background-color\', \'red\');
                         $(\'td\', row).css(\'color\', \'#FFFF44\');
                     }
                     
-                    if ( data[7] == "' . __('No') . '" && data[8] == "' . __('No') . '") {
+                    if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('No') . '") {
                         $(\'td\', row).css(\'background-color\', \'#FFFF00\');
                         $(\'td\', row).css(\'color\', \'#4800FF\');
                     }
                   }
                 ';
         $columns[] = ('ID');
+        if ($this->SMSAdvancedEnabled) {
+            $columns[] = __('SMS service');
+        }
         $columns[] = ('Login');
         $columns[] = __('Phone');
         $columns[] = __('Service message ID');
@@ -223,9 +259,9 @@ class SMSHistory {
         $inputs .= wf_CleanDiv() . wf_delimiter();
         $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
         $inputs .= wf_JQDTColumnHideShow('__showdbidclmn', 'change', $JQDTID, 0);
-        $inputs .= wf_JQDTColumnHideShow('__showselfidclmn', 'change', $JQDTID, 3);
-        $inputs .= wf_JQDTColumnHideShow('__showpackidclmn', 'change', $JQDTID, 4);
-        $inputs .= wf_JQDTColumnHideShow('__shownostatuschkclmn', 'change', $JQDTID, 8);
+        $inputs .= wf_JQDTColumnHideShow('__showselfidclmn', 'change', $JQDTID, ($this->SMSAdvancedEnabled) ? 4 : 3);
+        $inputs .= wf_JQDTColumnHideShow('__showpackidclmn', 'change', $JQDTID, ($this->SMSAdvancedEnabled) ? 5 : 4);
+        $inputs .= wf_JQDTColumnHideShow('__shownostatuschkclmn', 'change', $JQDTID, ($this->SMSAdvancedEnabled) ? 9 : 8);
         $inputs .= '$(\'#' . $QickSelID .'\').on("change", function() {
                         $(\'#' . $DateFromID .'\').datepicker("setDate", $(\'#' . $QickSelID .'\').val());
                         

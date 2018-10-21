@@ -2984,5 +2984,22 @@ $lang['def']['User not exists'] = 'Користувача не існує';
 $lang['def']['From warehouse storage'] = 'Зі складу';
 $lang['def']['reserved for you'] = 'забронював для тебе';
 $lang['def']['right to close signup requests'] = 'Право закривати заявки на підключення';
-
+$lang['def']['View online'] = 'Дивитись онлайн';
+$lang['def']['SMS service'] = 'СМС сервіс';
+$lang['def']['SMS services'] = 'СМС сервіси';
+$lang['def']['Add SMS service'] = 'Додати СМС сервіс';
+$lang['def']['Edit SMS service'] = 'Редагувати СМС сервіс';
+$lang['def']['API key'] = 'API ключ';
+$lang['def']['Alpha name'] = 'Альфа им\'я';
+$lang['def']['Default service'] = 'Сервіс за замовчуванням';
+$lang['def']['API implementation file'] = 'Файл реалізації API';
+$lang['def']['Gateway URL/IP'] = 'URL/IP шлюза';
+$lang['def']['Use as default SMS service'] = 'Використовувати як СМС сервіс за замовчуванням';
+$lang['def']['This SMS service does not support this function'] = 'Цей СМС сервіс не підтримує цю функцію';
+$lang['def']['Preferred SMS service'] = 'Бажаний СМС сервіс';
+$lang['def']['by default'] = 'за замовчуванням';
+$lang['def']['ID not found'] = 'ID не знайдено';
+$lang['def']['Will be used as a default SMS service'] = 'Буде викристано як СМС сервіс за замовчуванням';
+$lang['def']['Can not remove SMS which has existing relations on users or other DB entities'] = 'Не можна вилучити СМС сервіс, що має зв\'язки з користувачами або іншими об\'єктами в БД';
+$lang['def']['Use login as alpha name'] = 'Використовувати логін як альфа-ім\'я';
 ?>

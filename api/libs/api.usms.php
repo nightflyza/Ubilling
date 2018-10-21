@@ -28,9 +28,9 @@ class UbillingSMS {
 
     /**
      * Loads required configs into protected props for further usage
-     * 
+     *
      * @global object $ubillingConfig
-     * 
+     *
      * @return void
      */
     protected function loadConfig() {
@@ -65,7 +65,8 @@ class UbillingSMS {
                 $queueId = 'us_' . zb_rand_string(8);
                 $filename = self::QUEUE_PATH . $queueId;
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
-                $storedata.='MESSAGE="' . $message . '"' . "\n";
+                $storedata.= 'MESSAGE="' . $message . '"' . "\n";
+                //$storedata.= 'SMSSRVID="' . $SMSServID . '"' . "\n";
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS `' . $number . '`' . $module);
                 $result = $queueId;
@@ -101,6 +102,7 @@ class UbillingSMS {
                 $result[$io]['date'] = $smsDate;
                 $result[$io]['number'] = $smsData['NUMBER'];
                 $result[$io]['message'] = $smsData['MESSAGE'];
+                $result[$io]['smssrvid'] = $smsData['SMSSRVID'];
             }
         }
         return ($result);
@@ -128,12 +130,12 @@ class UbillingSMS {
 
     /**
      * Sets routing direction to SMS queue file
-     * 
+     *
      * @param string $queueFile
      * @param string $type
      * @param string $entity
      * @param string $forceDirection
-     * 
+     *
      * @return void
      */
     public function setDirection($queueFile, $type, $entity, $forceDirection = '') {
