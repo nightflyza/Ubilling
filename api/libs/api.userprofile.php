@@ -890,7 +890,7 @@ class UserProfile {
         $searched = __('No');
         $sigColor = '#000000';
         if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
-            $query = "SELECT `mac`,`oltid`,`serial` FROM `pononu` WHERE `login`='" . $this->login . "'";
+            $query = "SELECT `id`,`mac`,`oltid`,`serial` FROM `pononu` WHERE `login`='" . $this->login . "'";
             $onu_data = simple_query($query);
             if (!empty($onu_data)) {
                 $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
@@ -911,7 +911,8 @@ class UserProfile {
                     }
                 }
                 $cells = wf_TableCell(__("ONU Signal"), '30%', 'row2');
-                $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true));
+                $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true) .
+                                        wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()) );
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }
@@ -967,7 +968,9 @@ class UserProfile {
      * @return string
      */
     protected function getMobileControls() {
+        global $ubillingConfig;
         $result = '';
+
         if (isset($this->alterCfg['EASY_SMS'])) {
             if ($this->alterCfg['EASY_SMS']) {
                 if ($this->alterCfg['SENDDOG_ENABLED']) {
@@ -977,7 +980,8 @@ class UserProfile {
                         $targetNumber = $_POST['neweasysmsnumber'];
                         $targetText = $_POST['neweasysmstext'];
                         $translitFlag = (wf_CheckPost(array('neweasysmstranslit'))) ? true : false;
-                        $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS');
+                        $SMSSrvID = ( wf_CheckPost(array('preferredsmssrvid')) ) ? $_POST['preferredsmssrvid'] : '';
+                        $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS', $SMSSrvID);
                         rcms_redirect('?module=userprofile&username=' . $this->login);
                     }
 
@@ -1000,6 +1004,12 @@ class UserProfile {
                             $sendInputs .= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
                             $sendInputs .= wf_tag('br');
                             $sendInputs .= wf_Submit(__('Send SMS'));
+
+                            if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+                                $SMSSrvData = wf_getUsersPreferredSMSService($this->login);
+                                $sendInputs .= wf_HiddenInput('preferredsmssrvid', $SMSSrvData[0]);
+                            }
+
                             $sendingForm = wf_Form('', 'POST', $sendInputs, 'glamour');
 
                             $result = ' ' . wf_modalAuto(wf_img_sized('skins/icon_sms_micro.gif', __('Send SMS'), '10', '10'), __('Send SMS'), $sendingForm, '');
@@ -1299,6 +1309,7 @@ class UserProfile {
      * @return string
      */
     public function render() {
+        global $ubillingConfig;
 //all configurable features must be received via getters
         $profile = '';
 
@@ -1419,6 +1430,45 @@ class UserProfile {
 
 //Disable aka Down flag row
         $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
+
+        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+            $PreferredSMSSrvID = '';
+
+            $tQuery = "SELECT * FROM `sms_services_relations` WHERE `user_login` = '" . $this->userdata['login'] . "';";
+            $tResult = simple_queryall($tQuery);
+
+            if ( !empty($tResult) ) {
+                $PreferredSMSSrvID = $tResult[0]['sms_srv_id'];
+            }
+
+            $profile .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', wf_getSMSServicesList(), '', $PreferredSMSSrvID, false, false, 'related_sms_srv') .
+                                        wf_HiddenInput('sms_srv_create', empty($PreferredSMSSrvID), 'related_sms_srv_create') .
+                                        wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
+                                        wf_tag('span', true)
+                                     );
+            $profile .= wf_tag('script', false, '', 'type="text/javascript"');
+            $profile .= '$(\'#related_sms_srv\').change(function() {
+                            var SMSSrvID = $(this).val(); 
+                            var CreateRec = $(\'#related_sms_srv_create\').val();
+                            
+                            $.ajax({
+                                    type: "POST",
+                                    url: "?module=userprofile&ajax=true",
+                                    data: { action: "BindSMSSrv",
+                                            username: "' . $this->userdata['login'] . '",
+                                            smssrvid: SMSSrvID,                                                                                                                
+                                            createrec: CreateRec,
+                                            oldsmssrvid: "' . $PreferredSMSSrvID . '",
+                                           },
+                                    success: function() {
+                                                $(\'#sms_srv_change_flag\').text(" ' . __('Changed') . '");
+                                             }
+                                });
+                        });
+                        ';
+            $profile .= wf_tag('script', true);
+        }
+
 //Deal with it available tasks notification
         $profile .= $this->getUserDealWithItNotification();
 //Connection details  row

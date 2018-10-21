@@ -17,7 +17,7 @@ class UbillingSMS {
      * 
      * @return bool
      */
-    public function sendSMS($number, $message, $translit = true, $module = '') {
+    public function sendSMS($number, $message, $translit = true, $module = '', $SMSServID = '') {
         $result = false;
         $number = trim($number);
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
@@ -30,7 +30,8 @@ class UbillingSMS {
                 $message = trim($message);
                 $filename = self::QUEUE_PATH . 'us_' . zb_rand_string(8);
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
-                $storedata.='MESSAGE="' . $message . '"' . "\n";
+                $storedata.= 'MESSAGE="' . $message . '"' . "\n";
+                $storedata.= 'SMSSRVID="' . $SMSServID . '"' . "\n";
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS `' . $number . '`' . $module);
                 $result = true;
@@ -41,7 +42,7 @@ class UbillingSMS {
 
     /**
      * Returns count of SMS available in queue
-     * 
+     *
      * @return int
      */
     public function getQueueCount() {
@@ -52,7 +53,7 @@ class UbillingSMS {
 
     /**
      * Returns array containing all SMS queue data as index=>data
-     * 
+     *
      * @return array
      */
     public function getQueueData() {
@@ -66,6 +67,7 @@ class UbillingSMS {
                 $result[$io]['date'] = $smsDate;
                 $result[$io]['number'] = $smsData['NUMBER'];
                 $result[$io]['message'] = $smsData['MESSAGE'];
+                $result[$io]['smssrvid'] = $smsData['SMSSRVID'];
             }
         }
         return ($result);
