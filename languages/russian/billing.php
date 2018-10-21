@@ -2959,6 +2959,24 @@ $lang['def']['Generate random mac'] = 'Сгенерировать случайн
 $lang['def']['Add ONU to PONizer'] = 'Добавить ONU в ПОНизатор';
 $lang['def']['Mediocre signal'] = 'Посредственный сигнал';
 $lang['def']['Task delete'] = 'Удаление задачи';
+$lang['def']['View online'] = 'Смотреть онлайн';
+$lang['def']['SMS service'] = 'СМС сервис';
+$lang['def']['SMS services'] = 'СМС сервисы';
+$lang['def']['Add SMS service'] = 'Добавить СМС сервис';
+$lang['def']['Edit SMS service'] = 'Редактировать СМС сервис';
+$lang['def']['API key'] = 'API ключ';
+$lang['def']['Alpha name'] = 'Альфа имя';
+$lang['def']['Default service'] = 'Сервис по умолчанию';
+$lang['def']['API implementation file'] = 'Файл реализации API';
+$lang['def']['Gateway URL/IP'] = 'URL/IP шлюза';
+$lang['def']['Use as default SMS service'] = 'Использовать как СМС сервис по умолчанию';
+$lang['def']['This SMS service does not support this function'] = 'Этот СМС сервис не поддерживает эту функцию';
+$lang['def']['Preferred SMS service'] = 'Предпочитаемый СМС сервис';
+$lang['def']['by default'] = 'по умолчанию';
+$lang['def']['ID not found'] = 'ID не найден';
+$lang['def']['Will be used as a default SMS service'] = 'Будет использован как СМС сервис по умолчанию';
+$lang['def']['Can not remove SMS which has existing relations on users or other DB entities'] = 'Нельзя удалить СМС сервис имеющий связи с пользователями или другими объектами в БД';
+$lang['def']['Use login as alpha name'] = 'Использовать логин как альфа-имя';
 
 //rev 6459
 $lang['def']['User tariff contains'] = 'Тариф пользователя содержит';

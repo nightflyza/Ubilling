@@ -1049,7 +1049,7 @@ $(function() {
 		$( "#dialog-modal_' . $wid . '" ).dialog({
 			autoOpen: false,
 			width: \'auto\',
-                        height: \'auto\',
+            height: \'auto\',
 			modal: true,
 			show: "drop",
 			hide: "fold"
@@ -1057,15 +1057,15 @@ $(function() {
 
 		$( "#opener_' . $wid . '" ).click(function() {
 			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
-                      	return false;
+            return false;
 		});
 	});
 </script>
 
 <div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
 	<p>
-        ' . $content . '
-        </p>
+    ' . $content . '
+    </p>
 </div>
 
 <a href="#" id="opener_' . $wid . '" ' . $link_class . '>' . $link . '</a>
@@ -2589,6 +2589,84 @@ function wf_JSElemInsertedCatcherFunc() {
     return $Result;
 }
 
+/**
+ * Returns an array of SMS services represented like: id => name
+ * with the default service on top of it
+ *
+ * @return array
+ */
+function wf_getSMSServicesList() {
+    $Result = array();
+    $SMSSrvsList = array();
+    $DefaultSMSServiceID = 0;
+    $DefaultSMSServiceName = '';
+
+    $tQuery = "SELECT * FROM `sms_services`;";
+    $Result = simple_queryall($tQuery);
+
+    if ( !empty($Result) ) {
+        foreach ($Result as $Index => $Record) {
+            if ($Record['default_service']) {
+                $DefaultSMSServiceID = $Record['id'];
+                $DefaultSMSServiceName = $Record['name'] . ' (' . __('by default') . ')';
+                continue;
+            }
+
+            $SMSSrvsList[$Record['id']] = $Record['name'];
+        }
+
+        if (!empty($DefaultSMSServiceID) and !empty($DefaultSMSServiceName)) {
+            $SMSSrvsList = array($DefaultSMSServiceID => $DefaultSMSServiceName) + $SMSSrvsList;
+        }
+    }
+
+    return $SMSSrvsList;
+}
+
+/**
+ * Returns SMS service name by it's ID. If empty ID parameter returns the name of the default SMS service.
+ *
+ * @param int $SMSSrvID
+ *
+ * @return string
+ */
+function wf_getSMSServiceNameByID($SMSSrvID = 0) {
+    $SMSSrvName = '';
+    $Result = array();
+
+    if ( empty($SMSSrvID) ) {
+        $tQuery = "SELECT * FROM `sms_services` WHERE `default_service` > 0;";
+    } else {
+        $tQuery = "SELECT * FROM `sms_services` WHERE `id` = " . $SMSSrvID . ";";
+    }
+    $Result = simple_queryall($tQuery);
+
+    if ( !empty($Result) ) { $SMSSrvName = $Result[0]['name']; }
+
+    return $SMSSrvName;
+}
+
+/**
+ * Returns array containing user's preferred SMS service in form of [id] => [name]
+ *
+ * @param $UserLogin
+ *
+ * @return array
+ */
+function wf_getUsersPreferredSMSService($UserLogin) {
+    $SMSSrvIDName = array('', '');
+
+    $tQuery = "SELECT * FROM `sms_services_relations` WHERE `user_login` = '" . $UserLogin . "';";
+    $Result = simple_queryall($tQuery);
+
+    if ( !empty($Result) ) {
+        $SMSSrvIDName[0] = $Result[0]['sms_srv_id'];
+    }
+
+    $SMSSrvIDName[1] = wf_getSMSServiceNameByID($SMSSrvIDName[0]);
+
+    return $SMSSrvIDName;
+}
 /**
  * Jqeury Data tables JSON formatting class
  */

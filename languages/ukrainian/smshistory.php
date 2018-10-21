@@ -1,5 +1,5 @@
 <?php
-$lang['def']['SMS messages history'] = 'Исторія СМС повідомлень';
+$lang['def']['SMS messages history'] = 'Історія СМС повідомлень';
 $lang['def']['Service message ID'] = 'Сервісний ID повідомлення';
 $lang['def']['Service packet ID'] = 'Сервісний ID пакету';
 $lang['def']['Send date'] = 'Дата відправки';
