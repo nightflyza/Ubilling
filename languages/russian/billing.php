@@ -2989,5 +2989,6 @@ $lang['def']['right to close signup requests'] = 'Право закрывать 
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
 
 ?>
