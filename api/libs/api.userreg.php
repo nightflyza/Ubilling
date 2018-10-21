@@ -609,7 +609,7 @@ function web_UserRegFormNetData($newuser_data) {
         $form.= wf_tag('input', false, '', 'type="text" name="onuip" value="" ');
         $form.= wf_CheckInput('onuipproposal', __('Make ONU IP same as subscriber IP'), false, false);
         $form.= wf_tag('script', false, '', 'type="text/javascript"');
-        $form.= '$(\'[name = onuipproposal]\').change(function(){                            
+        $form.= '$(\'[name = onuipproposal]\').change(function() {                            
                     if ( $(this).is(\':checked\') ) {
                         $(\'[name = onuip]\').attr("readonly", "readonly");
                         $(\'[name = onuip]\').css(\'background-color\', \'#CECECE\')
@@ -781,7 +781,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
     if ( isset($user_data['userMAC']) and !empty($user_data['userMAC']) ) {
-        $mac = $user_data['userMAC'];
+        $mac = strtolower($user_data['userMAC']);
     } elseif ($billingconf['REGRANDOM_MAC']) {
         // if random mac needed
         // funny random mac, yeah? :)
