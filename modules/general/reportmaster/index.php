@@ -381,7 +381,7 @@ if (cfr('REPORTMASTER')) {
         //options
         $delimiter = ";";
         $in_charset = 'utf-8';
-        $out_charset = 'windows-1251';
+        $out_charset = 'utf-8';
         /////////////////////
         if (!empty($allusers)) {
             $result.=__('Login') . $delimiter . __('Password') . $delimiter . __('IP') . $delimiter . __('MAC') . $delimiter . __('Tariff') . $delimiter . __('Cash') . $delimiter . __('Credit') . $delimiter . __('Credit expire') . $delimiter . __('Address') . $delimiter . __('Real Name') . $delimiter . __('Contract') . $delimiter . __('AlwaysOnline') . $delimiter . __('Disabled') . $delimiter . __('User passive') . "\n";
@@ -402,7 +402,7 @@ if (cfr('REPORTMASTER')) {
                 $result.=$eachuser['login'] . $delimiter . $eachuser['Password'] . $delimiter . $eachuser['IP'] . $delimiter . $usermac . $delimiter . $eachuser['Tariff'] . $delimiter . $eachuser['Cash'] . $delimiter . $eachuser['Credit'] . $delimiter . $creditexpire . $delimiter . @$alladdress[$eachuser['login']] . $delimiter . @$allrealnames[$eachuser['login']] . $delimiter . @$allcontracts[$eachuser['login']] . $delimiter . $eachuser['AlwaysOnline'] . $delimiter . $eachuser['Down'] . $delimiter . $eachuser['Passive'] . "\n";
             }
             if ($in_charset != $out_charset) {
-                $result = iconv($in_charset, $out_charset, $result);
+                @$result = iconv($in_charset, $out_charset, $result);
             }
             log_register('DOWNLOAD FILE `userbase.csv`');
             // push data for csv handler
