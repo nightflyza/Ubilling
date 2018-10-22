@@ -265,7 +265,8 @@ class OpenPayz {
 
         if (!empty($csvdata)) {
             $exportFilename = 'exports/opsearch_' . $paysys . '_' . $year . '-' . $month . '.csv';
-            $csvdata = iconv('utf-8', 'windows-1251', $csvdata);
+            //fuck this legacy
+            //$csvdata = iconv('utf-8', 'windows-1251', $csvdata);
             file_put_contents($exportFilename, $csvdata);
             $exportLink = wf_Link('?module=openpayz&dload=' . base64_encode($exportFilename), wf_img('skins/excel.gif', __('Export')), false, '');
         } else {
