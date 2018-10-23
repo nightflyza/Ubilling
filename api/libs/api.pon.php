@@ -505,6 +505,48 @@ class PONizer {
     }
 
     /**
+     * 
+     * Function for fixing fucking zte interfaces snmp id.
+     * 
+     * @param type $uuid
+     * @param type $ponType
+     * @param type $interfaceType
+     * @return string
+     */
+    protected function interfaceDecodeZTE($uuid) {
+        $binary = decbin($uuid);
+        $typeName = array(1 => 'epon_olt_virtualIfBER', 3 => 'epon-onu');
+        $match = array();
+        $result = '';
+
+        preg_match("/(\d{4})(\d{4})(\d{5})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+
+        foreach ($match as &$each) {
+            $each = bindec($each);
+        }
+
+        $type = $match[1];
+        $shelf = $match[2];
+        $slot = $match[3];
+        $olt = $match[4] + 1;
+        $onu = $match[5];
+
+        if ($type == 3) {
+            $result = $typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu;
+        }
+
+        if ($type == 1) {
+            $result = $typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt;
+        }
+
+        if ($type == 6) {
+            $result = $shelf . '/' . $slot . '/';
+        }
+
+        return $result;
+    }
+
+    /**
      * Parses & stores in cache ZTE OLT ONU ID
      *
      * @param int $oltid
