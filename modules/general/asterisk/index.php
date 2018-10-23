@@ -45,7 +45,7 @@ if ($ubillingConfig->getAlterParam('ASTERISK_ENABLED')) {
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
                 $asterisk->AsteriskGetCDR($_POST['datefrom'], $_POST['dateto'], $user_login);
             } elseif (isset($user_login) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskGetCDR('2000', curdate(), $user_login);
+                $asterisk->AsteriskGetCDR('2000-01-01', curdate(), $user_login);
             }
         }
     } else {
