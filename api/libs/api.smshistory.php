@@ -51,7 +51,7 @@ class SMSHistory {
                     switch ($FieldName) {
                         case 'smssrvid':
                             if ($this->SMSAdvancedEnabled) {
-                                $SMSSrvName = wf_getSMSServiceNameByID($FieldVal);
+                                $SMSSrvName = zb_getSMSServiceNameByID($FieldVal);
 
                                 if ( !empty($SMSSrvName) ) {
                                     $data[] = (empty($FieldVal)) ? $SMSSrvName . ' (' . __('by default') . ')' : $SMSSrvName;
