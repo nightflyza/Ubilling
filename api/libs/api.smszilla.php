@@ -2137,7 +2137,7 @@ class SMSZilla {
                                 // look if user has preferred sms service set
                                 global $ubillingConfig;
                                 $SMSAdvancedEnabled = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
-                                $SMSSrvData = ($SMSAdvancedEnabled) ? wf_getUsersPreferredSMSService($userLogin) : array('', '');
+                                $SMSSrvData = ($SMSAdvancedEnabled) ? zb_getUsersPreferredSMSService($userLogin) : array('', '');
 
                                 $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
                                 $data[] = $eachNumber;
