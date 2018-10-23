@@ -1884,10 +1884,10 @@ class SendDogAdvanced extends SendDog {
             $tQuery = "SELECT * FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
             $Messages = simple_queryall($tQuery);
             $SmsCount = count($Messages);
-            if ($SmsCount > 0) { $AllMessages = wf_sortArray($Messages, 'smssrvid'); }
+            if ($SmsCount > 0) { $AllMessages = zb_sortArray($Messages, 'smssrvid'); }
         } else {
             $SmsCount = $this->smsQueue->getQueueCount();
-            if ($SmsCount > 0) { $AllMessages = wf_sortArray($this->smsQueue->getQueueData(), 'smssrvid'); }
+            if ($SmsCount > 0) { $AllMessages = zb_sortArray($this->smsQueue->getQueueData(), 'smssrvid'); }
         }
 
         /*
