@@ -5,7 +5,41 @@
  */
 class UbillingSMS {
 
+    /**
+     * Contains system alter.ini config as key=>value
+     */
+    protected $altCfg = array();
+
+    /**
+     * SMS_SERVICES_ADVANCED_ENABLED option state
+     *
+     * @var bool
+     */
+    protected $smsRoutingFlag = false;
+
     const QUEUE_PATH = 'content/tsms/';
+
+    /**
+     * Creates new UbillingSMS object instance
+     */
+    public function __construct() {
+        $this->loadConfig();
+    }
+
+    /**
+     * Loads required configs into protected props for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+        if (@$this->altCfg['SMS_SERVICES_ADVANCED_ENABLED']) {
+            $this->smsRoutingFlag = true;
+        }
+    }
 
     /**
      * Stores SMS in sending queue 
@@ -15,25 +49,26 @@ class UbillingSMS {
      * @param bool $translit force message transliteration
      * @param string $module module that inits SMS sending
      * 
-     * @return bool
+     * @return void/string - filename in queue
      */
     public function sendSMS($number, $message, $translit = true, $module = '') {
-        $result = false;
+        $result = '';
         $number = trim($number);
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
         if (!empty($number)) {
             if (ispos($number, '+')) {
-                $message = str_replace(array("\n\r","\n","\r"), ' ', $message);
+                $message = str_replace(array("\n\r", "\n", "\r"), ' ', $message);
                 if ($translit) {
                     $message = zb_TranslitString($message);
                 }
                 $message = trim($message);
-                $filename = self::QUEUE_PATH . 'us_' . zb_rand_string(8);
+                $queueId = 'us_' . zb_rand_string(8);
+                $filename = self::QUEUE_PATH . $queueId;
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
                 $storedata.='MESSAGE="' . $message . '"' . "\n";
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS `' . $number . '`' . $module);
-                $result = true;
+                $result = $queueId;
             }
         }
         return ($result);
@@ -89,6 +124,33 @@ class UbillingSMS {
             $result = 2;
         }
         return ($result);
+    }
+
+    /**
+     * Sets routing direction to SMS queue file
+     * 
+     * @param string $queueFile
+     * @param string $type
+     * @param string $entity
+     * @param string $forceDirection
+     * 
+     * @return void
+     */
+    public function setDirection($queueFile, $type, $entity, $forceDirection = '') {
+        if ($this->smsRoutingFlag) {
+            if (file_exists(self::QUEUE_PATH . $queueFile)) {
+                if (empty($forceDirection)) {
+                    //here we detects direction of SMS
+                } else {
+                    $newDirection = $forceDirection;
+                }
+
+                //saving data to queue
+                $newDirection = trim($newDirection);
+                $storedata = 'SMSSRVID="' . $newDirection . '"' . "\n";
+                file_put_contents(self::QUEUE_PATH . $queueFile, $storedata, FILE_APPEND);
+            }
+        }
     }
 
 }
