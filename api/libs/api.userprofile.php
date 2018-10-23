@@ -1006,7 +1006,7 @@ class UserProfile {
                             $sendInputs .= wf_Submit(__('Send SMS'));
 
                             if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
-                                $SMSSrvData = wf_getUsersPreferredSMSService($this->login);
+                                $SMSSrvData = zb_getUsersPreferredSMSService($this->login);
                                 $sendInputs .= wf_HiddenInput('preferredsmssrvid', $SMSSrvData[0]);
                             }
 
@@ -1441,7 +1441,7 @@ class UserProfile {
                 $PreferredSMSSrvID = $tResult[0]['sms_srv_id'];
             }
 
-            $profile .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', wf_getSMSServicesList(), '', $PreferredSMSSrvID, false, false, 'related_sms_srv') .
+            $profile .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $PreferredSMSSrvID, false, false, 'related_sms_srv') .
                                         wf_HiddenInput('sms_srv_create', empty($PreferredSMSSrvID), 'related_sms_srv_create') .
                                         wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
                                         wf_tag('span', true)
