@@ -981,7 +981,8 @@ class UserProfile {
                         $targetText = $_POST['neweasysmstext'];
                         $translitFlag = (wf_CheckPost(array('neweasysmstranslit'))) ? true : false;
                         $SMSSrvID = ( wf_CheckPost(array('preferredsmssrvid')) ) ? $_POST['preferredsmssrvid'] : '';
-                        $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS', $SMSSrvID);
+                        $QueueFile = $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS');
+                        $sms->setDirection($QueueFile, '', '', $SMSSrvID);
                         rcms_redirect('?module=userprofile&username=' . $this->login);
                     }
 
@@ -1006,8 +1007,10 @@ class UserProfile {
                             $sendInputs .= wf_Submit(__('Send SMS'));
 
                             if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
-                                $SMSSrvData = zb_getUsersPreferredSMSService($this->login);
-                                $sendInputs .= wf_HiddenInput('preferredsmssrvid', $SMSSrvData[0]);
+                                //$SMSSrvData = zb_getUsersPreferredSMSService($this->login);
+                                $SMSDirections = new SMSDirections();
+                                $SMSSrvID = $SMSDirections->getDirection('user_login', $this->login);
+                                $sendInputs .= wf_HiddenInput('preferredsmssrvid', $SMSSrvID);
                             }
 
                             $sendingForm = wf_Form('', 'POST', $sendInputs, 'glamour');
