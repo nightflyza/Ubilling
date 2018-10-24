@@ -4,18 +4,19 @@
  * SMS queue handling class
  */
 class UbillingSMS {
-
-    /**
-     * Contains system alter.ini config as key=>value
-     */
-    protected $altCfg = array();
-
     /**
      * SMS_SERVICES_ADVANCED_ENABLED option state
      *
      * @var bool
      */
-    protected $smsRoutingFlag = false;
+    protected $SMSRoutingFlag = false;
+
+    /**
+     * Placeholder for $SMSDirections object
+     *
+     * @var null
+     */
+    protected $SMSDirections = null;
 
     const QUEUE_PATH = 'content/tsms/';
 
@@ -23,22 +24,9 @@ class UbillingSMS {
      * Creates new UbillingSMS object instance
      */
     public function __construct() {
-        $this->loadConfig();
-    }
-
-    /**
-     * Loads required configs into protected props for further usage
-     *
-     * @global object $ubillingConfig
-     *
-     * @return void
-     */
-    protected function loadConfig() {
         global $ubillingConfig;
-        $this->altCfg = $ubillingConfig->getAlter();
-        if (@$this->altCfg['SMS_SERVICES_ADVANCED_ENABLED']) {
-            $this->smsRoutingFlag = true;
-        }
+        $this->SMSRoutingFlag = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
+        $this->SMSDirections = new SMSDirections();
     }
 
     /**
@@ -49,7 +37,7 @@ class UbillingSMS {
      * @param bool $translit force message transliteration
      * @param string $module module that inits SMS sending
      * 
-     * @return void/string - filename in queue
+     * @return string - filename in queue
      */
     public function sendSMS($number, $message, $translit = true, $module = '') {
         $result = '';
@@ -66,13 +54,39 @@ class UbillingSMS {
                 $filename = self::QUEUE_PATH . $queueId;
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
                 $storedata.= 'MESSAGE="' . $message . '"' . "\n";
-                //$storedata.= 'SMSSRVID="' . $SMSServID . '"' . "\n";
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS `' . $number . '`' . $module);
                 $result = $queueId;
             }
         }
         return ($result);
+    }
+
+    /**
+     * Sets routing direction to SMS queue file
+     *
+     * @param string $QueueFile
+     * @param string $KeyType - array key type in Ubilling cache(login, emploeeid, ukvid and so on)
+     * @param string $Entity - key of array associated with $KeyType
+     * @param string $ForceDirection
+     *
+     * @return void
+     */
+    public function setDirection($QueueFile, $KeyType, $Entity, $ForceDirection = '') {
+        if ($this->SMSRoutingFlag) {
+            if (file_exists(self::QUEUE_PATH . $QueueFile)) {
+                if (empty($ForceDirection)) {
+                    $NewDirection = $this->SMSDirections->getDirection($KeyType, $Entity);
+                } else {
+                    $NewDirection = $ForceDirection;
+                }
+
+                //saving data to queue
+                $NewDirection = trim($NewDirection);
+                $StoreData = 'SMSSRVID="' . $NewDirection . '"' . "\n";
+                file_put_contents(self::QUEUE_PATH . $QueueFile, $StoreData, FILE_APPEND);
+            }
+        }
     }
 
     /**
@@ -127,34 +141,6 @@ class UbillingSMS {
         }
         return ($result);
     }
-
-    /**
-     * Sets routing direction to SMS queue file
-     *
-     * @param string $queueFile
-     * @param string $type
-     * @param string $entity
-     * @param string $forceDirection
-     *
-     * @return void
-     */
-    public function setDirection($queueFile, $type, $entity, $forceDirection = '') {
-        if ($this->smsRoutingFlag) {
-            if (file_exists(self::QUEUE_PATH . $queueFile)) {
-                if (empty($forceDirection)) {
-                    //here we detects direction of SMS
-                } else {
-                    $newDirection = $forceDirection;
-                }
-
-                //saving data to queue
-                $newDirection = trim($newDirection);
-                $storedata = 'SMSSRVID="' . $newDirection . '"' . "\n";
-                file_put_contents(self::QUEUE_PATH . $queueFile, $storedata, FILE_APPEND);
-            }
-        }
-    }
-
 }
 
 ?>
