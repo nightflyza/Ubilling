@@ -7,9 +7,40 @@ class ConverTador {
 
     protected $ignoreLines = 1;
     protected $allUserData = array();
+
+    /**
+     * cityname=>id
+     *
+     * @var array
+     */
     protected $allCities = array();
+
+    /**
+     * cityid=>streetname=>id
+     *
+     * @var array
+     */
+    protected $allStreets = array();
+
+    /**
+     * streetid=>buildnum=>id
+     *
+     * @var array
+     */
     protected $allBuilds = array();
+
+    /**
+     * buildid=>apt=>id
+     *
+     * @var array
+     */
     protected $allApt = array();
+
+    /**
+     * login=>aptid=>id
+     *
+     * @var array
+     */
     protected $allAddress = array();
     protected $allTariffs = array();
     protected $delimiter = ";";
@@ -25,6 +56,11 @@ class ConverTador {
     protected $mobileLen = 6;
     protected $networks = array();
     protected $usedMacs = array();
+    protected $currentCityId = 1;
+    protected $currentStreetId = 1;
+    protected $currentBuildId = 1;
+    protected $currentAptId = 1;
+    protected $currentAddressId = 1;
 
     public function __construct() {
         $this->setOffsets();
@@ -47,6 +83,11 @@ class ConverTador {
         $this->offsets['notes'] = 14;
         $this->offsets['regdate'] = 4;
         $this->offsets['phone'] = 8;
+        $this->offsets['city'] = 9;
+        $this->offsets['street'] = 11;
+        $this->offsets['build'] = 12;
+        $this->offsets['apt'] = 13;
+
 
         //first net will be realip
         $this->networks[1] = array('id' => 1, 'start' => $this->whiteIpNet . '.0', 'end' => $this->whiteIpNet . '.255', 'cidr' => $this->whiteIpNet . '.0/24');
@@ -93,13 +134,156 @@ class ConverTador {
 
     protected function generateCash($cash) {
         $result = '';
-//        if (zb_checkMoney($cash)) {
-//            $result = $cash;
-//        } else {
-//            $result = 502;
-//        }
-//        
         $result = trim($cash);
+        return ($result);
+    }
+
+    protected function fixCase($data) {
+        $result = mb_convert_case($data, MB_CASE_TITLE, "UTF-8");
+        return ($result);
+    }
+
+    protected function generateAddress($userLogin, $city, $street, $build, $apt) {
+        $city = mysql_real_escape_string($city);
+        $street = mysql_real_escape_string($street);
+        $build = mysql_real_escape_string($build);
+        $apt = mysql_real_escape_string($apt);
+        $result = '';
+
+        $city = trim($city);
+        $street = trim($street);
+        $build = trim($build);
+        $apt = trim($apt);
+
+        $city = $this->fixCase($city);
+        $street = $this->fixCase($street);
+        $build = vf($build);
+        if (mb_strlen($build, 'utf-8') > 10) {
+            $build = mb_substr($build, 0, 10, 'utf-8');
+            }
+
+        if (!empty($city)) {
+            if (!isset($this->allCities[$city])) {
+                $this->allCities[$city] = $this->currentCityId;
+                $this->currentCityId++;
+            }
+
+
+            $cityId = $this->allCities[$city];
+
+            if (!empty($street)) {
+                if (!isset($this->allStreets[$cityId][$street])) {
+                    $this->allStreets[$cityId][$street] = $this->currentStreetId;
+                    $this->currentStreetId++;
+                }
+
+                $streetId = $this->allStreets[$cityId][$street];
+
+                if (!empty($build)) {
+                    if (!isset($this->allBuilds[$streetId][$build])) {
+                        $this->allBuilds[$streetId][$build] = $this->currentBuildId;
+                        $this->currentBuildId++;
+                    }
+
+                    $buildId = $this->allBuilds[$streetId][$build];
+
+                    if (!empty($apt)) {
+                        if (!isset($this->allApt[$buildId][$apt])) {
+                            $this->allApt[$buildId][$apt] = $this->currentAptId;
+                            $this->currentAptId++;
+                        }
+
+                        $aptId = $this->allApt[$buildId][$apt];
+                    } else {
+                        //seems private house - zero apt
+                        $apt = 0;
+                        if (!isset($this->allApt[$buildId][$apt])) {
+                            $this->allApt[$buildId][$apt] = $this->currentAptId;
+                            $this->currentAptId++;
+                        }
+
+                        $aptId = $this->allApt[$buildId][$apt];
+                    }
+
+                    //we need a build and apt at least
+                    if (!empty($aptId)) {
+                        $this->allAddress[$userLogin] = $aptId;
+                        $this->currentAddressId++;
+
+                        if ($apt != 0) {
+                            $result = mysql_real_escape_string($street . ' ' . $build . '/' . $apt);
+                        } else {
+                            $result = mysql_real_escape_string($street . ' ' . $build);
+                        }
+                    } else {
+                        $result = 'Пропили';
+                    }
+                }
+            }
+        }
+
+
+        return ($result);
+    }
+
+    protected function saveAddressData() {
+        $result = '';
+        if (!empty($this->allCities)) {
+            foreach ($this->allCities as $io => $each) {
+                $result.= "INSERT INTO `city` (`id`,`cityname`,`cityalias`) "
+                        . "VALUES ('".$each."', '" . $io . "',''); " . "\n";
+            }
+        }
+
+        if (!empty($this->allStreets)) {
+            foreach ($this->allStreets as $io => $each) {
+                if (!empty($each)) {
+                    foreach ($each as $streetname => $id) {
+                        $aliasProposal = zb_TranslitString($streetname);
+                        $aliasProposal = str_replace(' ', '', $aliasProposal);
+                        $aliasProposal = str_replace('-', '', $aliasProposal);
+                        if (strlen($aliasProposal) > 5) {
+                            $newstreetalias = substr($aliasProposal, 0, 5);
+                        } else {
+                            $newstreetalias = $aliasProposal;
+                        }
+
+                        $newstreetalias = vf($newstreetalias, 2);
+                        $result.= "INSERT INTO `street` (`id`,`cityid`,`streetname`,`streetalias`) "
+                                . "VALUES  ('".$id."', '" . $io . "','" . $streetname . "','" . $newstreetalias . "');" . "\n";
+                    }
+                }
+            }
+        }
+
+        if (!empty($this->allBuilds)) {
+            foreach ($this->allBuilds as $io => $each) {
+                if (!empty($each)) {
+                    foreach ($each as $ia => $id) {
+                        $result.= "INSERT INTO `build` (`id`,`streetid`,`buildnum`) VALUES ('" . $id . "', '" . $io . "','" . $ia . "');" . "\n";
+                    }
+                }
+            }
+        }
+
+        if (!empty($this->allApt)) {
+            foreach ($this->allApt as $io => $each) {
+                if (!empty($each)) {
+                    foreach ($each as $ia => $id) {
+                        $result.= "INSERT INTO `apt` (`id`,`buildid`,`entrance`,`floor`,`apt`) "
+                                . "VALUES ('".$id."','" . $io . "','','','" . $ia . "');" . "\n";
+                    }
+                }
+            }
+        }
+
+        if (!empty($this->allAddress)) {
+            foreach ($this->allAddress as $io => $each) {
+                $result.= "INSERT INTO `address` (`id`,`login`,`aptid`) "
+                        . "VALUES (NULL, '" . $io . "','" . $each . "');" . "\n";
+            }
+        }
+
 
         return ($result);
     }
@@ -109,6 +293,7 @@ class ConverTador {
         $failCount = 0;
         $okCount = 0;
         $failCashCount = 0;
+        $failedUsers=array();
 
         $result = '';
         if (!empty($this->rawCsv)) {
@@ -135,6 +320,7 @@ class ConverTador {
                             $userRealName = trim($userRealName);
                             $userRealName = str_replace('"', '``', $userRealName);
                             $userRealName = str_replace("'", '`', $userRealName);
+                            $userRealName = $this->fixCase($userRealName);
 
                             $userPassword = $eachLine[$this->offsets['password']];
                             $userPassword = vf($userPassword);
@@ -156,11 +342,13 @@ class ConverTador {
                             $result.="INSERT INTO `userspeeds` (`id` ,`login` ,`speed`) VALUES (NULL , '" . $userLogin . "', '0');" . "\n";
                             //realnames 
                             $result.= "INSERT INTO `realname`  (`id`,`login`,`realname`) VALUES   (NULL, '" . $userLogin . "','" . $userRealName . "'); " . "\n";
+                            //address creation
+                            $userAddress = $this->generateAddress($userLogin, $eachLine[$this->offsets['city']], $eachLine[$this->offsets['street']], $eachLine[$this->offsets['build']], $eachLine[$this->offsets['apt']]);
                             //reglog
                             $regTimeStamp = strtotime($eachLine[$this->offsets['regdate']]);
                             $regDateTime = date("Y-m-d", $regTimeStamp) . ' 10:42:42';
                             $result.= "INSERT INTO `userreg` (`id` ,`date` ,`admin` ,`login` ,`address`) "
-                                    . "VALUES (NULL , '" . $regDateTime . "', 'converter', '" . $userLogin . "', 'Пропили');" . "\n";
+                                    . "VALUES (NULL , '" . $regDateTime . "', 'converter', '" . $userLogin . "', '" . $userAddress . "');" . "\n";
                             //some phones
                             $mobile = '';
                             $phone = '';
@@ -185,6 +373,7 @@ class ConverTador {
                             $okCount++;
                         }
                     } else {
+                        $failedUsers[]=$eachLine;
                         $failCount++;
                     }
                 }
@@ -214,6 +403,9 @@ class ConverTador {
                             . "VALUES (NULL , '" . $io . "', '" . $each['mac'] . "', '" . $each['netid'] . "', '');" . "\n";
                 }
             }
+
+            //generating address data
+            $result.=$this->saveAddressData();
         }
 
 
@@ -221,11 +413,15 @@ class ConverTador {
         show_success('Нормально зібрано юзерів: ' . $okCount);
         show_success('Нафігачено тарифів зі швидкостями: ' . sizeof($this->allTariffs));
         show_success('Зібрано нетхостів: ' . sizeof($this->nethosts) . ' у ось скількох підмережах: ' . sizeof($this->networks));
-        //show_warning('Криві вхідні бабки (502): ' . $failCashCount);
+        show_success('Населених пунктів створено: ' . sizeof($this->allCities));
+        show_success('В них ось скільки вулиць: ' . $this->currentStreetId);
+        show_success('В них ось скільки будинків: ' . $this->currentBuildId);
+        show_warning('При цьому кількість безхатченків: ' . ($count - $this->currentAddressId));
         show_error('Пройобано юзерів через криві вхідні дані: ' . $failCount);
 
-
-        debarr($result);
+        //debarr($this->allAddress);
+        //debarr($result);
+        debarr($failedUsers);
         file_put_contents('content/backups/sql/convertador.sql', $result);
     }
 
