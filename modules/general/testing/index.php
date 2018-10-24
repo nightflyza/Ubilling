@@ -421,7 +421,7 @@ class ConverTador {
 
         //debarr($this->allAddress);
         //debarr($result);
-        debarr($failedUsers);
+        //debarr($failedUsers);
         file_put_contents('content/backups/sql/convertador.sql', $result);
     }
 
