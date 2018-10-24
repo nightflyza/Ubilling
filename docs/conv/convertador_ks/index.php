@@ -62,6 +62,7 @@ if (cfr('ROOT')) {
         protected $currentBuildId = 1;
         protected $currentAptId = 1;
         protected $currentAddressId = 1;
+        protected $orphans=0;
 
         public function __construct() {
             $this->setOffsets();
@@ -216,11 +217,14 @@ if (cfr('ROOT')) {
                             } else {
                                 $result = mysql_real_escape_string($street . ' ' . $build);
                             }
-                        } else {
-                            $result = 'Пропили';
-                        }
+                        } 
                     }
                 }
+            }
+            
+            if (empty($result)) {
+                $this->orphans++;
+                $result = 'Пропили';
             }
 
 
@@ -417,7 +421,7 @@ if (cfr('ROOT')) {
             show_success('Населених пунктів створено: ' . sizeof($this->allCities));
             show_success('В них ось скільки вулиць: ' . $this->currentStreetId);
             show_success('В них ось скільки будинків: ' . $this->currentBuildId);
-            show_warning('При цьому кількість безхатченків: ' . ($count - $this->currentAddressId));
+            show_warning('При цьому кількість безхатченків: ' . $this->orphans);
             show_error('Пройобано юзерів через криві вхідні дані: ' . $failCount);
 
             //debarr($this->allAddress);
