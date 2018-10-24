@@ -1994,11 +1994,13 @@ class SMSZilla {
     protected function renderSmsPoolPreviewContainer($filterId, $templateId) {
         global $ubillingConfig;
         $result = '';
-        if ( $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED') ) {
+        /*if ( $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED') ) {
             $columns = array('SMS direction', 'Mobile', 'Text', 'Size', __('Count') . ' ' . 'SMS', __('SMS service'));
         } else {
             $columns = array('SMS direction', 'Mobile', 'Text', 'Size', __('Count') . ' ' . 'SMS');
-        }
+        }*/
+
+        $columns = array('SMS direction', 'Mobile', 'Text', 'Size', __('Count') . ' ' . 'SMS');
         $result = wf_JqDtLoader($columns, self::URL_ME . '&sending=true&ajpreview=true&filterid=' . $filterId . '&templateid=' . $templateId, false, __('SMS'), 100);
         return ($result);
     }
@@ -2135,23 +2137,24 @@ class SMSZilla {
                                 $smsCount = $this->getSmsCount($textLen);
 
                                 // look if user has preferred sms service set
-                                global $ubillingConfig;
+                              /*  global $ubillingConfig;
                                 $SMSAdvancedEnabled = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
-                                $SMSSrvData = ($SMSAdvancedEnabled) ? zb_getUsersPreferredSMSService($userLogin) : array('', '');
+                                $SMSSrvData = ($SMSAdvancedEnabled) ? zb_getUsersPreferredSMSService($userLogin) : array('', '');*/
 
                                 $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
                                 $data[] = $eachNumber;
                                 $data[] = $messageText;
                                 $data[] = $textLen;
                                 $data[] = $smsCount;
-                                if ($SMSAdvancedEnabled) { $data[] = $SMSSrvData[1]; }
+                                //if ($SMSAdvancedEnabled) { $data[] = $SMSSrvData[1]; }
 
                                 $json->addRow($data);
                                 unset($data);
 
 //pushing some messages into queue
                                 if ($realSending) {
-                                    $this->sms->sendSMS($eachNumber, $messageText, false, 'SMSZILLA', $SMSSrvData[0]);
+                                    $QueueFile = $this->sms->sendSMS($eachNumber, $messageText, false, 'SMSZILLA');
+                                    $this->sms->setDirection($QueueFile, 'user_login', $userLogin);
                                     $sendCounter++;
                                 }
                             }
