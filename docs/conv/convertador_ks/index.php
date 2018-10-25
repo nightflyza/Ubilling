@@ -52,7 +52,7 @@ if (cfr('ROOT')) {
         protected $grayIpNet = '172.16';
         protected $whiteIpNet = '195.162.80';
         protected $nethosts = array();
-        protected $currentIp = 1;
+        protected $currentIp = 2;
         protected $currentNet = 1;
         protected $mobileLen = 6;
         protected $networks = array();
@@ -114,7 +114,7 @@ if (cfr('ROOT')) {
                 $newIp = $this->currentIp + 1;
                 if ($newIp == 255) {
                     $this->currentNet++;
-                    $this->currentIp = 1;
+                    $this->currentIp = 2; //reserving .1 for NAS etc
                     $newIp = $this->currentIp;
                 } else {
                     $this->currentIp = $newIp;
