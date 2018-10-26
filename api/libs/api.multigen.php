@@ -267,6 +267,11 @@ class MultiGen {
     const URL_ME = '?module=multigen';
 
     /**
+     * Contains default user profile link
+     */
+    const URL_PROFILE = '?module=userprofile&username=';
+
+    /**
      * Default radius clients table/view name
      */
     const CLIENTS = 'mlg_clients';
@@ -741,17 +746,17 @@ class MultiGen {
         if (isset($this->allNas[$nasId])) {
             $onlyActiveParams = array('1' => __('Yes'), '0' => __('No'));
             $inputs = wf_Selector('editnasusername', $this->usernameTypes, __('Username override'), @$this->nasOptions[$nasId]['usernametype'], false) . ' ';
-            $inputs.= wf_Selector('editnasservice', $this->serviceTypes, __('Service'), @$this->nasOptions[$nasId]['service'], false) . ' ';
-            $inputs.=wf_Selector('editnasonlyactive', $onlyActiveParams, __('Only active users'), @$this->nasOptions[$nasId]['onlyactive'], false) . ' ';
+            $inputs .= wf_Selector('editnasservice', $this->serviceTypes, __('Service'), @$this->nasOptions[$nasId]['service'], false) . ' ';
+            $inputs .= wf_Selector('editnasonlyactive', $onlyActiveParams, __('Only active users'), @$this->nasOptions[$nasId]['onlyactive'], false) . ' ';
             $nasPort = @$this->nasOptions[$nasId]['port'];
             $nasPort = (!empty($nasPort)) ? $nasPort : $this->remotePort;
-            $inputs.= wf_TextInput('editnasport', __('Port'), $nasPort, false, 6, 'digits') . ' ';
-            $inputs.= wf_HiddenInput('editnasid', $nasId);
-            $inputs.=wf_Submit(__('Save'));
+            $inputs .= wf_TextInput('editnasport', __('Port'), $nasPort, false, 6, 'digits') . ' ';
+            $inputs .= wf_HiddenInput('editnasid', $nasId);
+            $inputs .= wf_Submit(__('Save'));
 
-            $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+            $result .= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
         }
         return ($result);
     }
@@ -824,7 +829,7 @@ class MultiGen {
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '` PORT `' . $newPort . '`');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+                $result .= __('Something went wrong') . ': ' . __('NAS not exists');
             }
         }
         return ($result);
@@ -875,7 +880,7 @@ class MultiGen {
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE  SERVICES');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+                $result .= __('Something went wrong') . ': ' . __('NAS not exists');
             }
         }
         return ($result);
@@ -935,7 +940,7 @@ class MultiGen {
             nr_query($query);
             log_register('MULTIGEN ATTRIBUTE `' . $attributeData['attribute'] . '` DELETE [' . $attributeId . ']');
         } else {
-            $result.=__('Something went wrong') . ': ' . __('not existing attribute');
+            $result .= __('Something went wrong') . ': ' . __('not existing attribute');
         }
         return ($result);
     }
@@ -964,7 +969,7 @@ class MultiGen {
         $result = '';
         if (!empty($this->scenarios)) {
             foreach ($this->scenarios as $scenarioId => $scenarioName) {
-                $result.=$this->messages->getStyledMessage(__('All attributes in scenario was deleted') . ': ' . $scenarioId, 'error');
+                $result .= $this->messages->getStyledMessage(__('All attributes in scenario was deleted') . ': ' . $scenarioId, 'error');
             }
         }
         return ($result);
@@ -984,31 +989,31 @@ class MultiGen {
             $currentAtrributes = $this->getNasAttributes($nasId);
             if (!empty($currentAtrributes)) {
                 $cells = wf_TableCell(__('Users'));
-                $cells.= wf_TableCell(__('Scenario'));
-                $cells.= wf_TableCell(__('Attribute'));
-                $cells.=wf_TableCell(__('Operator'));
-                $cells.= wf_TableCell(__('Value'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Scenario'));
+                $cells .= wf_TableCell(__('Attribute'));
+                $cells .= wf_TableCell(__('Operator'));
+                $cells .= wf_TableCell(__('Value'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($currentAtrributes as $io => $each) {
                     $cells = wf_TableCell($this->attrModifiers[$each['modifier']]);
-                    $cells.= wf_TableCell($each['scenario']);
-                    $cells.= wf_TableCell($each['attribute']);
-                    $cells.=wf_TableCell($each['operator']);
-                    $cells.= wf_TableCell($each['content']);
+                    $cells .= wf_TableCell($each['scenario']);
+                    $cells .= wf_TableCell($each['attribute']);
+                    $cells .= wf_TableCell($each['operator']);
+                    $cells .= wf_TableCell($each['content']);
                     $attributeControls = wf_JSAlert(self::URL_ME . '&editnasoptions=' . $nasId . '&deleteattributeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                    $attributeControls.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderAttributeTemplateEditForm($each['id']));
-                    $cells.= wf_TableCell($attributeControls);
-                    $rows.= wf_TableRow($cells, 'row5');
+                    $attributeControls .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderAttributeTemplateEditForm($each['id']));
+                    $cells .= wf_TableCell($attributeControls);
+                    $rows .= wf_TableRow($cells, 'row5');
                 }
 
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
             }
         } else {
-            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
         }
         return ($result);
     }
@@ -1025,17 +1030,17 @@ class MultiGen {
         $nasId = vf($nasId, 3);
         if (isset($this->allNas[$nasId])) {
             $inputs = '';
-            $inputs.= wf_Selector('newmodifier', $this->attrModifiers, __('Users'), '', false) . ' ';
-            $inputs.= wf_Selector('newscenario', $this->scenarios, __('Scenario'), '', false) . ' ';
-            $inputs.= wf_TextInput('newattribute', __('Attribute'), '', false, 20) . ' ';
-            $inputs.= wf_Selector('newoperator', $this->operators, __('Operator'), '', false) . ' ';
-            $inputs.= wf_TextInput('newcontent', __('Value'), '', false, 20) . ' ';
-            $inputs.= wf_HiddenInput('newattributenasid', $nasId);
-            $inputs.= wf_Submit(__('Create'));
+            $inputs .= wf_Selector('newmodifier', $this->attrModifiers, __('Users'), '', false) . ' ';
+            $inputs .= wf_Selector('newscenario', $this->scenarios, __('Scenario'), '', false) . ' ';
+            $inputs .= wf_TextInput('newattribute', __('Attribute'), '', false, 20) . ' ';
+            $inputs .= wf_Selector('newoperator', $this->operators, __('Operator'), '', false) . ' ';
+            $inputs .= wf_TextInput('newcontent', __('Value'), '', false, 20) . ' ';
+            $inputs .= wf_HiddenInput('newattributenasid', $nasId);
+            $inputs .= wf_Submit(__('Create'));
             //form assembly
-            $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+            $result .= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
         }
         return ($result);
     }
@@ -1054,19 +1059,19 @@ class MultiGen {
             $attributeData = $this->nasAttributes[$attributeId];
             $nasId = $attributeData['nasid'];
             $inputs = '';
-            $inputs.= wf_Selector('chmodifier', $this->attrModifiers, __('Users'), $attributeData['modifier'], false) . ' ';
-            $inputs.= wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
-            $inputs.= wf_TextInput('chattribute', __('Attribute'), $attributeData['attribute'], false, 20) . ' ';
-            $inputs.= wf_Selector('choperator', $this->operators, __('Operator'), $attributeData['operator'], false) . ' ';
+            $inputs .= wf_Selector('chmodifier', $this->attrModifiers, __('Users'), $attributeData['modifier'], false) . ' ';
+            $inputs .= wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
+            $inputs .= wf_TextInput('chattribute', __('Attribute'), $attributeData['attribute'], false, 20) . ' ';
+            $inputs .= wf_Selector('choperator', $this->operators, __('Operator'), $attributeData['operator'], false) . ' ';
             $currentContent = htmlspecialchars($attributeData['content']);
-            $inputs.= wf_TextInput('chcontent', __('Value'), $currentContent, false, 20) . ' ';
-            $inputs.= wf_HiddenInput('chattributenasid', $nasId);
-            $inputs.= wf_HiddenInput('chattributeid', $attributeId);
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_TextInput('chcontent', __('Value'), $currentContent, false, 20) . ' ';
+            $inputs .= wf_HiddenInput('chattributenasid', $nasId);
+            $inputs .= wf_HiddenInput('chattributeid', $attributeId);
+            $inputs .= wf_Submit(__('Save'));
             //form assembly
-            $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+            $result .= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': EX_ATTRIBUTEID_NOT_EXIST', 'error');
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_ATTRIBUTEID_NOT_EXIST', 'error');
         }
         return ($result);
     }
@@ -1102,7 +1107,7 @@ class MultiGen {
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE ATTRIBUTE `' . $newAttribute . '` ID [' . $newId . ']');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+                $result .= __('Something went wrong') . ': ' . __('NAS not exists');
             }
         }
         return ($result);
@@ -1130,11 +1135,11 @@ class MultiGen {
                         simple_update_field(self::NAS_ATTRIBUTES, 'content', $_POST['chcontent'], $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ATTRIBUTE [' . $attributeId . ']');
                     } else {
-                        $result.=__('Something went wrong') . ': EX_ATTRIBUTE_NOT_EXIST';
+                        $result .= __('Something went wrong') . ': EX_ATTRIBUTE_NOT_EXIST';
                     }
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+                $result .= __('Something went wrong') . ': ' . __('NAS not exists');
             }
         }
         return ($result);
@@ -1152,7 +1157,7 @@ class MultiGen {
         $login = mysql_real_escape_string($login);
         $state = mysql_real_escape_string($state);
         $query = "INSERT INTO `" . self::USER_STATES . "` (`id`,`login`,`state`) VALUES ";
-        $query.="(NULL,'" . $login . "'," . $state . ");";
+        $query .= "(NULL,'" . $login . "'," . $state . ");";
         nr_query($query);
     }
 
@@ -1686,6 +1691,63 @@ class MultiGen {
     }
 
     /**
+     * Returns array of all possible radius-preprocessed usernames
+     * 
+     * 
+     * @return array
+     */
+    protected function getAllUserNames() {
+        $result = array();
+        if (empty($this->allUserData)) {
+            $this->loadUserData();
+        }
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
+                foreach ($this->usernameTypes as $eachUsernameType => $usernameTypeName) {
+                    switch ($eachUsernameType) {
+                        case 'login':
+                            $userName = $eachUserLogin;
+                            break;
+                        case 'ip':
+                            $userName = $eachUserData['ip'];
+                            break;
+                        case 'mac':
+                            $userName = $eachUserData['mac'];
+                            break;
+                        case 'macju':
+                            $userName = $this->transformMacDotted($eachUserData['mac']);
+                            break;
+                    }
+                    $result[$eachUserLogin][] = $userName;
+                }
+            }
+        }
+
+        return($result);
+    }
+
+    /**
+     * Returns user login if some username for him found
+     * 
+     * @param string $userName
+     * @param array $allUserNames
+     * 
+     * @return string
+     */
+    protected function getUserLogin($userName, $allUserNames) {
+        $result = '';
+        if (!empty($allUserNames)) {
+            foreach ($allUserNames as $login => $each) {
+                if (array_search($userName, $each) !== false) {
+                    $result = $login;
+                    break;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Performs generation of user attributes if their NAS requires it.
      * 
      * @return void
@@ -2008,7 +2070,7 @@ class MultiGen {
     public function getNaslabel($nasId) {
         $result = '';
         if (isset($this->allNas[$nasId])) {
-            $result.=$this->allNas[$nasId]['nasip'] . ' - ' . $this->allNas[$nasId]['nasname'];
+            $result .= $this->allNas[$nasId]['nasip'] . ' - ' . $this->allNas[$nasId]['nasname'];
         }
         return ($result);
     }
@@ -2024,7 +2086,7 @@ class MultiGen {
         if (!empty($this->scenarioStats)) {
             foreach ($this->scenarioStats as $nasId => $scenario) {
                 $nasLabel = $this->getNaslabel($nasId);
-                $result.=$this->messages->getStyledMessage($nasLabel, 'success');
+                $result .= $this->messages->getStyledMessage($nasLabel, 'success');
                 if (!empty($scenario)) {
                     foreach ($scenario as $scenarioName => $counters) {
                         if (!empty($counters)) {
@@ -2047,8 +2109,8 @@ class MultiGen {
                                         $stateStyle = 'info';
                                         break;
                                 }
-                                $totalAttributeCount+=$eachCount;
-                                $result.=$this->messages->getStyledMessage($stateName . ' ' . __('for scenario') . ' ' . $scenarioName . ': ' . $eachCount, $stateStyle);
+                                $totalAttributeCount += $eachCount;
+                                $result .= $this->messages->getStyledMessage($stateName . ' ' . __('for scenario') . ' ' . $scenarioName . ': ' . $eachCount, $stateStyle);
                             }
                         }
                     }
@@ -2062,22 +2124,22 @@ class MultiGen {
 
             $dataLoadingTime = $this->perfStats['dataloaded'] - $this->perfStats['genstart'];
             $totalTime = $this->perfStats['genend'] - $this->perfStats['genstart'];
-            $timeStats.= __('Total time spent') . ': ' . round($totalTime, 2) . ' ' . __('sec.') . ' ';
-            $timeStats.= __('Data loading time') . ': ' . round($dataLoadingTime, 2) . ' ' . __('sec.') . ' ';
-            $timeStats.= __('Attributes processing time') . ': ' . round(($totalTime - $dataLoadingTime), 2) . ' ' . __('sec.') . ' ';
-            $timeStats.=__('Memory used') . ': ~' . stg_convert_size(memory_get_usage(true));
+            $timeStats .= __('Total time spent') . ': ' . round($totalTime, 2) . ' ' . __('sec.') . ' ';
+            $timeStats .= __('Data loading time') . ': ' . round($dataLoadingTime, 2) . ' ' . __('sec.') . ' ';
+            $timeStats .= __('Attributes processing time') . ': ' . round(($totalTime - $dataLoadingTime), 2) . ' ' . __('sec.') . ' ';
+            $timeStats .= __('Memory used') . ': ~' . stg_convert_size(memory_get_usage(true));
 
-            $perfStats.= __('Total attributes processed') . ': ' . $totalAttributeCount . ' ';
+            $perfStats .= __('Total attributes processed') . ': ' . $totalAttributeCount . ' ';
             if ($totalTime > 0) {
                 //preventing zero divisions
-                $perfStats.=__('Performance') . ': ' . round($totalAttributeCount / ($totalTime - $dataLoadingTime), 2) . ' ' . __('attributes/sec');
-                $perfStats.=' ( ' . round($totalAttributeCount / ($totalTime), 2) . ' ' . ' ' . __('brutto') . ')';
+                $perfStats .= __('Performance') . ': ' . round($totalAttributeCount / ($totalTime - $dataLoadingTime), 2) . ' ' . __('attributes/sec');
+                $perfStats .= ' ( ' . round($totalAttributeCount / ($totalTime), 2) . ' ' . ' ' . __('brutto') . ')';
             } else {
-                $perfStats.=__('Performance') . ': ' . wf_tag('b') . __('Black magic') . wf_tag('b', true);
+                $perfStats .= __('Performance') . ': ' . wf_tag('b') . __('Black magic') . wf_tag('b', true);
             }
 
-            $result.=$this->messages->getStyledMessage($timeStats, 'success');
-            $result.=$this->messages->getStyledMessage($perfStats, 'success');
+            $result .= $this->messages->getStyledMessage($timeStats, 'success');
+            $result .= $this->messages->getStyledMessage($perfStats, 'success');
         }
         return ($result);
     }
@@ -2091,16 +2153,16 @@ class MultiGen {
      */
     public function nasControlPanel($nasId) {
         $result = '';
-        $result.=wf_BackLink('?module=nas') . ' ';
-        $result.= wf_modal(wf_img('skins/icon_clone.png') . ' ' . __('Clone NAS configuration'), __('Clone NAS configuration'), $this->renderNasCloneForm($nasId), 'ubButton', '750', '390');
+        $result .= wf_BackLink('?module=nas') . ' ';
+        $result .= wf_modal(wf_img('skins/icon_clone.png') . ' ' . __('Clone NAS configuration'), __('Clone NAS configuration'), $this->renderNasCloneForm($nasId), 'ubButton', '750', '390');
         if ($this->nasHaveOptions($nasId)) {
-            $result.=wf_AjaxLoader();
-            $result.= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
-            $result.= wf_AjaxLink(self::URL_ME . '&ajscenarioflush=true&editnasoptions=' . $nasId, wf_img('skins/skull.png') . ' ' . __('Flush all attributes in all scenarios'), 'nascontrolajaxcontainer', false, 'ubButton');
+            $result .= wf_AjaxLoader();
+            $result .= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
+            $result .= wf_AjaxLink(self::URL_ME . '&ajscenarioflush=true&editnasoptions=' . $nasId, wf_img('skins/skull.png') . ' ' . __('Flush all attributes in all scenarios'), 'nascontrolajaxcontainer', false, 'ubButton');
             if ($this->nasOptions[$nasId]['service'] != 'none') {
-                $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Service'), __('Service'), $this->renderNasServicesEditForm($nasId), 'ubButton');
+                $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Service'), __('Service'), $this->renderNasServicesEditForm($nasId), 'ubButton');
             }
-            $result.=wf_AjaxContainer('nascontrolajaxcontainer');
+            $result .= wf_AjaxContainer('nascontrolajaxcontainer');
         }
         return ($result);
     }
@@ -2120,14 +2182,14 @@ class MultiGen {
             if ($nasOptions['service'] != 'none') {
                 $nasServices = @$this->services[$nasId];
                 $inputs = wf_HiddenInput('newnasservicesid', $nasId);
-                $inputs.=__('PoD') . wf_tag('br');
-                $inputs.= wf_TextArea('newnasservicepod', '', @$nasServices['pod'], true, '90x2');
-                $inputs.=__('CoA Connect') . wf_tag('br');
-                $inputs.= wf_TextArea('newnasservicecoaconnect', '', @$nasServices['coaconnect'], true, '90x2');
-                $inputs.=__('CoA Disconnect') . wf_tag('br');
-                $inputs.= wf_TextArea('newnasservicecoadisconnect', '', @$nasServices['coadisconnect'], true, '90x2');
-                $inputs.= wf_Submit(__('Save'));
-                $result.= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+                $inputs .= __('PoD') . wf_tag('br');
+                $inputs .= wf_TextArea('newnasservicepod', '', @$nasServices['pod'], true, '90x2');
+                $inputs .= __('CoA Connect') . wf_tag('br');
+                $inputs .= wf_TextArea('newnasservicecoaconnect', '', @$nasServices['coaconnect'], true, '90x2');
+                $inputs .= __('CoA Disconnect') . wf_tag('br');
+                $inputs .= wf_TextArea('newnasservicecoadisconnect', '', @$nasServices['coadisconnect'], true, '90x2');
+                $inputs .= wf_Submit(__('Save'));
+                $result .= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
             }
         }
         return ($result);
@@ -2162,13 +2224,13 @@ class MultiGen {
     protected function renderNasCopyPasteForm($nasId) {
         $result = '';
         $inputs = __('You can copy&paste current NAS configuration as text');
-        $inputs.=wf_tag('br');
-        $inputs.= wf_TextInput('nascopypastetext', __('Settings'), $this->getNasCopyString($nasId), true, 55);
-        $inputs.= wf_CheckInput('nascopypasteagree', __('I understand that changing that completely destroys all current NAS settings if they exist and will replace them with the another configuration'), true, false);
-        $inputs.=wf_delimiter();
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TextInput('nascopypastetext', __('Settings'), $this->getNasCopyString($nasId), true, 55);
+        $inputs .= wf_CheckInput('nascopypasteagree', __('I understand that changing that completely destroys all current NAS settings if they exist and will replace them with the another configuration'), true, false);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_Submit(__('Save'));
 
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -2214,23 +2276,23 @@ class MultiGen {
 
                 if (!empty($nasParamsTmp)) {
                     $inputs = wf_Selector('clonenasfromid', $nasParamsTmp, __('Clone') . ' ' . __('NAS'), '', true);
-                    $inputs.= wf_HiddenInput('clonenastoid', $nasId);
-                    $inputs.= wf_CheckInput('clonenasagree', __('I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'), true, false);
-                    $inputs.=wf_delimiter();
-                    $inputs.=wf_Submit(__('Clone'));
-                    $result.=wf_Form('', 'POST', $inputs, 'glamour');
+                    $inputs .= wf_HiddenInput('clonenastoid', $nasId);
+                    $inputs .= wf_CheckInput('clonenasagree', __('I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'), true, false);
+                    $inputs .= wf_delimiter();
+                    $inputs .= wf_Submit(__('Clone'));
+                    $result .= wf_Form('', 'POST', $inputs, 'glamour');
                 }
             }
         } else {
-            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
         }
 
         if ($otherNasCount < 1) {
-            $result.=$this->messages->getStyledMessage(__('No other configured NAS to cloning'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('No other configured NAS to cloning'), 'warning');
         }
         //copy&paste form
-        $result.=wf_tag('br');
-        $result.=$this->renderNasCopyPasteForm($nasId);
+        $result .= wf_tag('br');
+        $result .= $this->renderNasCopyPasteForm($nasId);
 
         return ($result);
     }
@@ -2329,10 +2391,10 @@ class MultiGen {
                     log_register('MULTIGEN NAS [' . $toId . '] CLONE SERVICES FROM NAS [' . $fromId . ']');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('Configuration') . ' ' . __('NAS not exists');
+                $result .= __('Something went wrong') . ': ' . __('Configuration') . ' ' . __('NAS not exists');
             }
         } else {
-            $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+            $result .= __('Something went wrong') . ': ' . __('NAS not exists');
         }
         return ($result);
     }
@@ -2416,22 +2478,22 @@ class MultiGen {
                                     log_register('MULTIGEN NAS [' . $nasId . '] PASTE SERVICES');
                                 }
                             } else {
-                                $result.=__('Something went wrong') . ': EX_CONFSTRING_INCOMPLETE';
+                                $result .= __('Something went wrong') . ': EX_CONFSTRING_INCOMPLETE';
                             }
                         } else {
-                            $result.=__('Something went wrong') . ': EX_CONFSTRING_CORRUPTED';
+                            $result .= __('Something went wrong') . ': EX_CONFSTRING_CORRUPTED';
                         }
                     } else {
-                        $result.=__('Something went wrong') . ': EX_CONFSTRING_CORRUPTED';
+                        $result .= __('Something went wrong') . ': EX_CONFSTRING_CORRUPTED';
                     }
                 } else {
-                    $result.=__('Something went wrong') . ': EX_EMPTY_CONFSTRING';
+                    $result .= __('Something went wrong') . ': EX_EMPTY_CONFSTRING';
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+                $result .= __('Something went wrong') . ': ' . __('NAS not exists');
             }
         } else {
-            $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+            $result .= __('Something went wrong') . ': ' . __('NAS not exists');
         }
         return ($result);
     }
@@ -2453,9 +2515,9 @@ class MultiGen {
         $unfinishedFlag = (wf_CheckPost(array('showunfinished'))) ? true : false;
 
         $inputs = wf_DatePickerPreset('datefrom', $preDateFrom, false);
-        $inputs.= wf_DatePickerPreset('dateto', $preDateTo, false);
-        $inputs.= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_DatePickerPreset('dateto', $preDateTo, false);
+        $inputs .= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -2471,10 +2533,20 @@ class MultiGen {
         $json = new wf_JqDtHelper();
 
         $this->loadAcctData();
+        //login filtering
+        $allUserNames = $this->getAllUserNames();
+        if (wf_CheckGet(array('login'))) {
+            $filterLogin = $_GET['login'];
+        } else {
+            $filterLogin = '';
+        }
+
         if (!empty($this->userAcctData)) {
             foreach ($this->userAcctData as $io => $each) {
                 $fc = '';
                 $efc = wf_tag('font', true);
+
+                //time filtering
                 if (!empty($each['acctstoptime'])) {
                     $startTime = strtotime($each['acctstarttime']);
                     $endTime = strtotime($each['acctstoptime']);
@@ -2493,6 +2565,12 @@ class MultiGen {
                 }
 
 
+                $eachUserLogin = $this->getUserLogin($each['username'], $allUserNames);
+                if (!empty($eachUserLogin)) {
+                    $userLink = wf_Link(self::URL_PROFILE . $eachUserLogin, web_profile_icon() . ' ' . @$this->allUserData[$eachUserLogin]['fulladress']);
+                } else {
+                    $userLink = '';
+                }
                 $data[] = $fc . $each['acctsessionid'] . $efc;
                 $data[] = $each['username'];
                 $data[] = $each['nasipaddress'];
@@ -2504,9 +2582,15 @@ class MultiGen {
                 $data[] = $each['framedipaddress'];
                 $data[] = $each['acctterminatecause'];
                 $data[] = $timeOffset;
+                $data[] = $userLink;
 
-
-                $json->addRow($data);
+                if (!empty($filterLogin)) {
+                    if ($filterLogin == $eachUserLogin) {
+                        $json->addRow($data);
+                    }
+                } else {
+                    $json->addRow($data);
+                }
                 unset($data);
             }
         }
@@ -2521,7 +2605,7 @@ class MultiGen {
      */
     public function renderAcctStatsContainer() {
         $result = '';
-        $columns = array('acctsessionid', 'username', 'nasipaddress', 'nasportid', 'acctstarttime', 'acctstoptime', 'acctinputoctets', 'acctoutputoctets', 'framedipaddress', 'acctterminatecause', 'Time');
+        $columns = array('acctsessionid', 'username', 'nasipaddress', 'nasportid', 'acctstarttime', 'acctstoptime', 'acctinputoctets', 'acctoutputoctets', 'framedipaddress', 'acctterminatecause', 'Time', 'User');
 
         if (wf_CheckPost(array('datefrom', 'dateto'))) {
             $searchDateFrom = mysql_real_escape_string($_POST['datefrom']);
@@ -2542,9 +2626,19 @@ class MultiGen {
             $unfinishedFlag = '';
         }
 
-        $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag;
+        if (wf_CheckGet(array('username'))) {
+            $userNameFilter = '&login=' . $_GET['username'];
+        } else {
+            $userNameFilter = '';
+        }
+
+        $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag . $userNameFilter;
         $options = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, $ajUrl, false, __('sessions'), 50, $options);
+        if (!empty($userNameFilter)) {
+            $result.= wf_tag('br');
+            $result.= wf_BackLink(self::URL_PROFILE.$_GET['username']);
+        }
         return ($result);
     }
 
@@ -2571,8 +2665,8 @@ class MultiGen {
             $tailCmd = $billCfg['TAIL'];
             $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . self::LOG_PATH;
             $rawResult = shell_exec($runCmd);
-            $renderData.= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
-            $renderData.= wf_Link(self::URL_ME . '&dlmultigenlog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
+            $renderData .= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
+            $renderData .= wf_Link(self::URL_ME . '&dlmultigenlog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
 
             if (!empty($rawResult)) {
                 $logData = explodeRows($rawResult);
@@ -2581,22 +2675,22 @@ class MultiGen {
 
 
                     $cells = wf_TableCell(__('Date'));
-                    $cells.= wf_TableCell(__('Event'));
-                    $rows.=wf_TableRow($cells, 'row1');
+                    $cells .= wf_TableCell(__('Event'));
+                    $rows .= wf_TableRow($cells, 'row1');
 
                     foreach ($logData as $io => $each) {
                         if (!empty($each)) {
 
                             $eachEntry = explode(' ', $each);
                             $cells = wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
-                            $cells.= wf_TableCell(str_replace(($eachEntry[0] . ' ' . $eachEntry[1]), '', $each));
-                            $rows.=wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell(str_replace(($eachEntry[0] . ' ' . $eachEntry[1]), '', $each));
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
                     }
-                    $renderData.= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $renderData .= wf_TableBody($rows, '100%', 0, 'sortable');
                 }
             } else {
-                $renderData.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+                $renderData .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
             }
 
             $result = wf_modal(wf_img('skins/log_icon_small.png', __('Attributes regeneration log')), __('Attributes regeneration log'), $renderData, '', '1280', '600');
@@ -2630,14 +2724,14 @@ function web_MultigenListClients() {
     $all = simple_queryall($query);
     if (!empty($all)) {
         $cells = wf_TableCell(__('IP'));
-        $cells.= wf_TableCell(__('NAS name'));
-        $cells.= wf_TableCell(__('Radius secret'));
+        $cells .= wf_TableCell(__('NAS name'));
+        $cells .= wf_TableCell(__('Radius secret'));
         $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['nasname']);
-            $cells.= wf_TableCell($each['shortname']);
-            $cells.= wf_TableCell($each['secret']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($each['shortname']);
+            $cells .= wf_TableCell($each['secret']);
+            $rows .= wf_TableRow($cells, 'row3');
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
     }
