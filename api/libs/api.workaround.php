@@ -2259,23 +2259,19 @@ function web_UserTraffStats($login) {
         // Modal window sizes:
         if (!empty($bwd['days'])) {
             //bandwidthd
-            $width = 920;
-            $heidht = 640;
             $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
         } else {
             //mikrotik
-            $width = 530;
-            $heidht = 230;
             $graphLegend = '';
         }
 
         $result .= wf_delimiter();
         $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
-        $bwcells = wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton', $width, $heidht));
+        $bwcells = wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton'));
+        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton'));
+        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton'));
+        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton'));
         $bwrows = wf_TableRow($bwcells);
 
         // Adding graphs buttons to result:

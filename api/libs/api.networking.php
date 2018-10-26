@@ -1467,19 +1467,29 @@ function zb_BandwidthdGenLinks($ip) {
 
 // RouterOS graph model:
     if ($nastype == 'mikrotik') {
-// Get user's IP array:
+        // Get user's IP array:
         $alluserips = zb_UserGetAllIPs();
         $alluserips = array_flip($alluserips);
-
+        if (!ispos($bandwidthd_url, 'pppoe')) {
 // Generate graphs paths:
-        $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
-        $urls['days'] = null;
-        $urls['weekr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/weekly.gif';
-        $urls['weeks'] = null;
-        $urls['monthr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/monthly.gif';
-        $urls['months'] = null;
-        $urls['yearr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/yearly.gif';
-        $urls['years'] = null;
+            $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
+            $urls['days'] = null;
+            $urls['weekr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/weekly.gif';
+            $urls['weeks'] = null;
+            $urls['monthr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/monthly.gif';
+            $urls['months'] = null;
+            $urls['yearr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/yearly.gif';
+            $urls['years'] = null;
+        } else {
+            $urls['dayr'] = $bandwidthd_url . $alluserips[$ip] . '>/daily.gif';
+            $urls['days'] = null;
+            $urls['weekr'] = $bandwidthd_url  . $alluserips[$ip] . '>/weekly.gif';
+            $urls['weeks'] = null;
+            $urls['monthr'] = $bandwidthd_url . $alluserips[$ip] . '>/monthly.gif';
+            $urls['months'] = null;
+            $urls['yearr'] = $bandwidthd_url  . $alluserips[$ip] . '>/yearly.gif';
+            $urls['years'] = null;
+        }
     } else {
 // Banwidthd graphs model:
         $urls['dayr'] = $bandwidthd_url . '/' . $ip . '-1-R.png';
