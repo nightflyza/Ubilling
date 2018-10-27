@@ -1704,26 +1704,41 @@ class MultiGen {
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
                 foreach ($this->usernameTypes as $eachUsernameType => $usernameTypeName) {
-                    switch ($eachUsernameType) {
-                        case 'login':
-                            $userName = $eachUserLogin;
-                            break;
-                        case 'ip':
-                            $userName = $eachUserData['ip'];
-                            break;
-                        case 'mac':
-                            $userName = $eachUserData['mac'];
-                            break;
-                        case 'macju':
-                            $userName = $this->transformMacDotted($eachUserData['mac']);
-                            break;
-                    }
+                    $userName = $this->getLoginUsername($eachUserLogin, $eachUserData, $eachUsernameType);
                     $result[$eachUserLogin][] = $userName;
                 }
             }
         }
 
         return($result);
+    }
+
+    /**
+     * Returns transformed username by some type
+     * 
+     * @param string $userLogin
+     * @param array  $userdata
+     * @param string $usernameType
+     * 
+     * @return string
+     */
+    protected function getLoginUsername($userLogin, $userData, $userNameType) {
+        $result = '';
+        switch ($userNameType) {
+            case 'login':
+                $result = $userLogin;
+                break;
+            case 'ip':
+                $result = $userData['ip'];
+                break;
+            case 'mac':
+                $result = $userData['mac'];
+                break;
+            case 'macju':
+                $result = $this->transformMacDotted($userData['mac']);
+                break;
+        }
+        return ($result);
     }
 
     /**
@@ -1785,20 +1800,7 @@ class MultiGen {
                             $userNameType = $nasOptions['usernametype'];
 
                             //overriding username type if required
-                            switch ($userNameType) {
-                                case 'login':
-                                    $userName = $userLogin;
-                                    break;
-                                case 'ip':
-                                    $userName = $eachUser['ip'];
-                                    break;
-                                case 'mac':
-                                    $userName = $eachUser['mac'];
-                                    break;
-                                case 'macju':
-                                    $userName = $this->transformMacDotted($eachUser['mac']);
-                                    break;
-                            }
+                            $userName = $this->getLoginUsername($userLogin, $eachUser, $userNameType);
 
                             if (!empty($nasOptions)) {
                                 $nasAttributes = $this->getNasAttributes($eachNasId);
@@ -2627,17 +2629,115 @@ class MultiGen {
         }
 
         if (wf_CheckGet(array('username'))) {
-            $userNameFilter = '&login=' . $_GET['username'];
+            $userLogin = mysql_real_escape_string($_GET['username']);
+            $userNameFilter = '&login=' . $userLogin;
         } else {
             $userNameFilter = '';
+            $userLogin = '';
         }
 
         $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag . $userNameFilter;
         $options = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, $ajUrl, false, __('sessions'), 50, $options);
-        if (!empty($userNameFilter)) {
+        if (!empty($userLogin)) {
             $result.= wf_tag('br');
-            $result.= wf_BackLink(self::URL_PROFILE.$_GET['username']);
+            $result.= wf_BackLink(self::URL_PROFILE . $userLogin);
+            $result.= wf_Link(self::URL_ME . '&manualpod=true&username=' . $userLogin, wf_img('skins/skull.png') . ' ' . __('Terminate user session'), true, 'ubButton');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders user manual user POD form
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderManualPodForm($userLogin) {
+        $result = '';
+        if (!empty($userLogin)) {
+            //preloading some required data
+            if (empty($this->userNases)) {
+                $this->loadUserData();
+                $this->loadNethosts();
+                $this->loadNetworks();
+                $this->preprocessUserData();
+            }
+
+            if (isset($this->allUserData[$userLogin])) {
+                if (isset($this->userNases[$userLogin])) {
+                    if (!empty($this->userNases[$userLogin])) {
+                        $nasTmp = array();
+                        foreach ($this->userNases[$userLogin] as $io => $each) {
+                            $nasTmp[$each] = $this->allNas[$each]['nasip'] . ' - ' . $this->allNas[$each]['nasname'];
+                        }
+
+                        $inputs = wf_HiddenInput('manualpod', 'true');
+                        $inputs.= wf_HiddenInput('manualpodlogin', $userLogin);
+                        $inputs.=wf_Selector('manualpodnasid', $nasTmp, __('NAS'), '', false) . ' ';
+                        $inputs.= wf_Submit(__('Send') . ' ' . __('PoD'));
+
+                        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+                    } else {
+                        $result.=$this->messages->getStyledMessage(__('NAS not exists') . ' ' . __('for') . ' ' . $userLogin, 'error');
+                    }
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('NAS not exists') . ' ' . __('for') . ' ' . $userLogin, 'error');
+                }
+            } else {
+                $result.=$this->messages->getStyledMessage(__('User not exists') . ': ' . $userLogin, 'error');
+            }
+        }
+
+        $result.=wf_tag('br');
+        $result.=wf_BackLink(self::URL_ME . '&username=' . $userLogin);
+        return ($result);
+    }
+
+    /**
+     * Executes manual PoD sending if its possilble
+     * 
+     * @return void/string on error
+     */
+    public function runManualPod() {
+        $result = '';
+        if (wf_CheckPost(array('manualpod', 'manualpodlogin', 'manualpodnasid'))) {
+            $nasId = vf($_POST['manualpodnasid'], 3);
+            $userLogin = $_POST['manualpodlogin'];
+            if (empty($this->allUserData)) {
+                //preloading userdata
+                $this->loadUserData();
+            }
+
+            if (isset($this->allUserData[$userLogin])) {
+                $userData = $this->allUserData[$userLogin];
+                if (isset($this->allNas[$nasId])) {
+                    $nasData = $this->allNas[$nasId];
+                    if (isset($this->nasOptions[$nasId])) {
+                        $nasOptions = $this->nasOptions[$nasId];
+                        $userName = $this->getLoginUsername($userLogin, $userData, $nasOptions['usernametype']);
+                        //try to use custom PoD service or default with username
+                        if (!empty($this->services[$nasId]['pod'])) {
+                            $podCommand = $this->services[$nasId]['pod'];
+                        } else {
+                            $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                        }
+                        $podCommand = $this->getAttributeValue($userLogin, $userName, $nasId, $podCommand);
+                        shell_exec($podCommand);
+                        $this->logEvent('POD MANUAL ' . $userLogin . ' AS ' . $userName, 3);
+                        log_register('MULTIGEN POD MANUAL (' . $userLogin . ') AS `' . $userName . '` NASID [' . $nasId . ']');
+                    } else {
+                        $result.=__('No') . ' ' . __('NAS options') . ': ' . $nasId;
+                    }
+                } else {
+                    $result.=__('NAS not exists') . ': ' . $nasId;
+                }
+            } else {
+                $result.=__('User not exists') . ': ' . $userLogin;
+            }
+        } else {
+            
         }
         return ($result);
     }
@@ -2649,7 +2749,7 @@ class MultiGen {
      * 
      * @return string
      */
-    function renderLogControl() {
+    public function renderLogControl() {
         global $ubillingConfig;
         $result = '';
         $logData = array();

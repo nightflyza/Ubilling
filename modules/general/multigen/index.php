@@ -117,8 +117,23 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
             if (wf_CheckGet(array('ajacct'))) {
                 $multigen->renderAcctStatsAjList();
             }
-            $dateFormControls = $multigen->renderDateSerachControls();
-            show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
+
+            if (!wf_CheckGet(array('manualpod'))) {
+                $dateFormControls = $multigen->renderDateSerachControls();
+                show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
+            } else {
+                //manual POD
+                if (wf_CheckPost(array('manualpod'))) {
+                    $manualPodResult = $multigen->runManualPod();
+                    if (empty($manualPodResult)) {
+                        rcms_redirect($multigen::URL_ME . '&manualpod=true&username=' . $_GET['username']);
+                    } else {
+                        show_error($manualPodResult);
+                    }
+                }
+
+                show_window(__('Terminate user session'), $multigen->renderManualPodForm($_GET['username']));
+            }
         }
     } else {
         show_error(__('Access denied'));
