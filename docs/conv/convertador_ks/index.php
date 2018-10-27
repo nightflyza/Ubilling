@@ -62,7 +62,7 @@ if (cfr('ROOT')) {
         protected $currentBuildId = 1;
         protected $currentAptId = 1;
         protected $currentAddressId = 1;
-        protected $orphans=0;
+        protected $orphans = 0;
 
         public function __construct() {
             $this->setOffsets();
@@ -217,11 +217,11 @@ if (cfr('ROOT')) {
                             } else {
                                 $result = mysql_real_escape_string($street . ' ' . $build);
                             }
-                        } 
+                        }
                     }
                 }
             }
-            
+
             if (empty($result)) {
                 $this->orphans++;
                 $result = 'Пропили';
@@ -347,6 +347,10 @@ if (cfr('ROOT')) {
                                 $result.="INSERT INTO `userspeeds` (`id` ,`login` ,`speed`) VALUES (NULL , '" . $userLogin . "', '0');" . "\n";
                                 //realnames 
                                 $result.= "INSERT INTO `realname`  (`id`,`login`,`realname`) VALUES   (NULL, '" . $userLogin . "','" . $userRealName . "'); " . "\n";
+                                //emails 
+                                $result.= "INSERT INTO `emails`  (`id`,`login`,`email`) VALUES  (NULL, '" . $userLogin . "','');" . "\n";
+                                //contracts
+                                $result.= "INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES  (NULL, '" . $userLogin . "','');" . "\n";
                                 //address creation
                                 $userAddress = $this->generateAddress($userLogin, $eachLine[$this->offsets['city']], $eachLine[$this->offsets['street']], $eachLine[$this->offsets['build']], $eachLine[$this->offsets['apt']]);
                                 //reglog
