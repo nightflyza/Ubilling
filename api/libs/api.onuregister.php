@@ -14,6 +14,7 @@ class OnuRegister {
     CONST BIND_TABLE = 'zte_vlan_bind';
     CONST PORT_ID_START = 268501248;
     CONST ONU_ID_START = 805830912;
+    CONST ALT_ONU_ID_START = 2416967936;
 
     /**
      * Contains all data from billing.ini
@@ -75,6 +76,13 @@ class OnuRegister {
      * @var array
      */
     protected $onuArray = array();
+
+    /**
+     * Alternative array for ONU snmp counter.
+     * 
+     * @var array
+     */
+    protected $onuArrayAlt = array();
 
     /**
      * Contains all onu models
@@ -1071,6 +1079,14 @@ class OnuRegister {
                     $onuIdentifierRaw = explode(":", $onuIdentifier);
                     $onuIdentifier = $onuIdentifierRaw[0] . $onuIdentifierRaw[1] . '.' . $onuIdentifierRaw[2] . $onuIdentifierRaw[3] . '.' . $onuIdentifierRaw[4] . $onuIdentifierRaw[5];
                     foreach ($this->onuArray[$ponInterface] as $eachOnuNumber => $eachOnuID) {
+                        $check = @snmp2_real_walk($oltip, $snmp, $snmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
+                        if (!empty($check)) {
+                            foreach ($check as $oid => $tmp) {
+                                $ExistID[] = $eachOnuID;
+                            }
+                        }
+                    }
+                    foreach ($this->onuArrayAlt[$ponInterface] as $eachOnuNumber => $eachOnuID) {
                         $check = @snmp2_real_walk($oltip, $snmp, $snmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
                         if (!empty($check)) {
                             foreach ($check as $oid => $tmp) {
