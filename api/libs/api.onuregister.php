@@ -14,7 +14,7 @@ class OnuRegister {
     CONST BIND_TABLE = 'zte_vlan_bind';
     CONST PORT_ID_START = 268501248;
     CONST ONU_ID_START = 805830912;
-    CONST ALT_ONU_ID_START = 2416967936;
+    CONST ALT_ONU_ID_START = 2417492224;
 
     /**
      * Contains all data from billing.ini
@@ -1064,6 +1064,7 @@ class OnuRegister {
         $LastID = 1;
         $result = '';
         $ExistID = array();
+        $alternative = false;
         if (!empty($this->allSwLogin) and isset($this->allSwLogin[$swid])) {
             $oltData = $this->allSwLogin[$swid];
             $swlogin = $oltData['swlogin'];
@@ -1081,21 +1082,22 @@ class OnuRegister {
                     foreach ($this->onuArray[$ponInterface] as $eachOnuNumber => $eachOnuID) {
                         $check = @snmp2_real_walk($oltip, $snmp, $snmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
                         if (!empty($check)) {
-                            foreach ($check as $oid => $tmp) {
-                                $ExistID[] = $eachOnuID;
-                            }
+                            $ExistID[] = $eachOnuID;
                         }
                     }
                     foreach ($this->onuArrayAlt[$ponInterface] as $eachOnuNumber => $eachOnuID) {
                         $check = @snmp2_real_walk($oltip, $snmp, $snmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
                         if (!empty($check)) {
-                            foreach ($check as $oid => $tmp) {
-                                $ExistID[] = $eachOnuID;
-                            }
+                            $ExistID[] = $eachOnuID;
+                            $alternative = true;
                         }
                     }
                     if (!empty($ExistID)) {
-                        $free = array_flip(array_diff($this->onuArray[$ponInterface], $ExistID));
+                        if (!$alternative) {
+                            $free = array_flip(array_diff($this->onuArray[$ponInterface], $ExistID));
+                        } else {
+                            $free = array_flip(array_diff($this->onuArrayAlt[$ponInterface], $ExistID));
+                        }
                         $LastID = current($free);
                     }
                     $serial = '';
