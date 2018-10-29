@@ -1,7 +1,7 @@
 <?php
 
 if (cfr('USERPROFILE')) {
-    global $ubillingConfig;
+    /*global $ubillingConfig;
 
     if ( $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED') and wf_CheckGet(array('ajax')) ) {
         if ( wf_CheckPost(array('action')) == 'BindSMSSrv' ) {
@@ -15,7 +15,7 @@ if (cfr('USERPROFILE')) {
 
             log_register("Prefered SMS service changed from [" . $_POST['oldsmssrvid'] . "] to [" . $_POST['smssrvid'] . "] for user (" . $_POST['username'] . ")");
         }
-    }
+    }*/
 
     if (isset($_GET['username'])) {
         $login = vf($_GET['username']);

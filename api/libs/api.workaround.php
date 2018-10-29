@@ -5176,7 +5176,9 @@ function zb_getSMSServiceNameByID($SMSSrvID = 0) {
 }
 
 /**
- * Returns array containing user's preferred SMS service in form of [id] => [name]
+ * Returns array containing user's preferred SMS service in form of
+ * [0] => [id]
+ * [1] => [name]
  *
  * @param $UserLogin
  *
