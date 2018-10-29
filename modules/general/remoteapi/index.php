@@ -588,7 +588,6 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                      */
                     if ($_GET['action'] == 'senddog') {
                         if ($alterconf['SENDDOG_ENABLED']) {
-                            global $ubillingConfig;
                             if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
                                 $runSendDog = new SendDogAdvanced();
                             } else {
