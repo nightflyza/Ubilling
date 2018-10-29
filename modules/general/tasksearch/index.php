@@ -19,6 +19,13 @@ if (cfr('TASKMANSEARCH')) {
         protected $activeEmployee = array();
 
         /**
+         * Contains available administrators as login=>employee name
+         *
+         * @var array
+         */
+        protected $allAdmins = array();
+
+        /**
          * System alter.ini config stored as array key=>value
          *
          * @var array
@@ -37,6 +44,7 @@ if (cfr('TASKMANSEARCH')) {
         public function __construct() {
             $this->loadAllEmployee();
             $this->loadActiveEmployee();
+            $this->loadAdmins();
             $this->loadAltcfg();
             $this->loadJobtypes();
         }
@@ -48,6 +56,22 @@ if (cfr('TASKMANSEARCH')) {
          */
         protected function loadAllEmployee() {
             $this->allEmployee = ts_GetAllEmployee();
+        }
+
+        /**
+         * Loads available administrators
+         * 
+         * @return void
+         */
+        protected function loadAdmins() {
+            $all = rcms_scandir(USERS_PATH);
+            @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $adminName = (isset($employeeLogins[$each])) ? $employeeLogins[$each] : $each;
+                    $this->allAdmins[$each] = $adminName;
+                }
+            }
         }
 
         /**
@@ -92,6 +116,8 @@ if (cfr('TASKMANSEARCH')) {
 
             $inputs = __('Date') . ' ' . wf_DatePickerPreset('datefrom', $datefromDefault, true) . ' ' . __('From') . ' ' . wf_DatePickerPreset('dateto', $datetoDefault, true) . ' ' . __('To');
             $inputs.= wf_tag('br');
+            $inputs.= wf_CheckInput('cb_admin', '', false, false);
+            $inputs.= wf_Selector('admin', $this->allAdmins, __('Administrator'), '', true);
             $inputs.= wf_CheckInput('cb_id', '', false, false);
             $inputs.= wf_TextInput('taskid', __('ID'), '', true, 4);
             $inputs.= wf_CheckInput('cb_taskdays', '', false, false);
@@ -138,6 +164,13 @@ if (cfr('TASKMANSEARCH')) {
                     $taskid = vf($_POST['taskid'], 3);
                     $appendQuery.=" AND `id`='" . $taskid . "' ";
                 }
+
+                //original task admin
+                if (wf_CheckPost(array('cb_admin', 'admin'))) {
+                    $admin = mysql_real_escape_string($_POST['admin']);
+                    $appendQuery.=" AND `admin`='" . $admin . "' ";
+                }
+
                 //more than some days count
                 if (wf_CheckPost(array('cb_taskdays', 'taskdays'))) {
                     $taskdays = vf($_POST['taskdays'], 3);
