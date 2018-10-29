@@ -1007,7 +1007,6 @@ class UserProfile {
                             $sendInputs .= wf_Submit(__('Send SMS'));
 
                             if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
-                                //$SMSSrvData = zb_getUsersPreferredSMSService($this->login);
                                 $SMSDirections = new SMSDirections();
                                 $SMSSrvID = $SMSDirections->getDirection('user_login', $this->login);
                                 $sendInputs .= wf_HiddenInput('preferredsmssrvid', $SMSSrvID);
@@ -1285,6 +1284,11 @@ class UserProfile {
         return ($result);
     }
 
+    /**
+     * Returns SMS history button if appropriate alter.ini options are set
+     *
+     * @return string
+     */
     protected function getSMSHistoryControls() {
         $result = '';
 
@@ -1303,6 +1307,61 @@ class UserProfile {
     }
 
     /**
+     * Returns SMS services selector if appropriate alter.ini option is set
+     *
+     * @return string
+     */
+    protected function getSMSserviceSelectorControls() {
+        global $ubillingConfig;
+        $row = '';
+
+        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+            if ( wf_CheckPost(array('ajax')) and wf_CheckPost(array('action')) == 'BindSMSSrv' ) {
+                if ( wf_CheckPost(array('createrec')) ) {
+                    $tQuery = "INSERT INTO `sms_services_relations` (`sms_srv_id`, `user_login`)
+                                  VALUES ('" . $_POST['smssrvid'] . "', '" . $_GET['username'] . "')";
+                    nr_query($tQuery);
+                } else {
+                    simple_update_field('sms_services_relations', 'sms_srv_id', $_POST['smssrvid'], "WHERE `user_login`='" . $_GET['username'] . "' ");
+                }
+
+                log_register("Prefered SMS service changed from [" . $_POST['oldsmssrvid'] . "] to [" . $_POST['smssrvid'] . "] for user (" . $_GET['username'] . ")");
+            }
+
+            $PreferredSMSSrvID = zb_getUsersPreferredSMSService($this->userdata['login'])[0];
+
+            $row.= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $PreferredSMSSrvID, false, false, 'related_sms_srv') .
+                wf_HiddenInput('sms_srv_create', empty($PreferredSMSSrvID), 'related_sms_srv_create') .
+                wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
+                wf_tag('span', true)
+            );
+            $row.= wf_tag('script', false, '', 'type="text/javascript"');
+            $row.= '$(\'#related_sms_srv\').change(function() {
+                            var SMSSrvID = $(this).val(); 
+                            var CreateRec = $(\'#related_sms_srv_create\').val();
+                            
+                            $.ajax({
+                                    type: "POST",
+                                    url: "?module=userprofile&username=' . $this->userdata['login'] . '",
+                                    data: { action: "BindSMSSrv",
+                                            ajax:true,                                            
+                                            smssrvid: SMSSrvID,                                                                                                                 
+                                            ' . (( empty($PreferredSMSSrvID) ) ? 'createrec: CreateRec, ' : '') . '
+                                            oldsmssrvid: "' . $PreferredSMSSrvID . '"
+                                           },
+                                    success: function() {
+                                                $(\'#sms_srv_change_flag\').text(" ' . __('Changed') . '");
+                                             }
+                                });
+                        });
+                        ';
+            $row .= wf_tag('script', true);
+        }
+
+        return $row;
+    }
+
+    /**
       Брат, братан, братишка Когда меня отпустит?
      */
 
@@ -1312,7 +1371,6 @@ class UserProfile {
      * @return string
      */
     public function render() {
-        global $ubillingConfig;
 //all configurable features must be received via getters
         $profile = '';
 
@@ -1434,43 +1492,7 @@ class UserProfile {
 //Disable aka Down flag row
         $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
 
-        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
-            $PreferredSMSSrvID = '';
-
-            $tQuery = "SELECT * FROM `sms_services_relations` WHERE `user_login` = '" . $this->userdata['login'] . "';";
-            $tResult = simple_queryall($tQuery);
-
-            if ( !empty($tResult) ) {
-                $PreferredSMSSrvID = $tResult[0]['sms_srv_id'];
-            }
-
-            $profile .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $PreferredSMSSrvID, false, false, 'related_sms_srv') .
-                                        wf_HiddenInput('sms_srv_create', empty($PreferredSMSSrvID), 'related_sms_srv_create') .
-                                        wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
-                                        wf_tag('span', true)
-                                     );
-            $profile .= wf_tag('script', false, '', 'type="text/javascript"');
-            $profile .= '$(\'#related_sms_srv\').change(function() {
-                            var SMSSrvID = $(this).val(); 
-                            var CreateRec = $(\'#related_sms_srv_create\').val();
-                            
-                            $.ajax({
-                                    type: "POST",
-                                    url: "?module=userprofile&ajax=true",
-                                    data: { action: "BindSMSSrv",
-                                            username: "' . $this->userdata['login'] . '",
-                                            smssrvid: SMSSrvID,                                                                                                                
-                                            createrec: CreateRec,
-                                            oldsmssrvid: "' . $PreferredSMSSrvID . '",
-                                           },
-                                    success: function() {
-                                                $(\'#sms_srv_change_flag\').text(" ' . __('Changed') . '");
-                                             }
-                                });
-                        });
-                        ';
-            $profile .= wf_tag('script', true);
-        }
+        $profile .= $this->getSMSserviceSelectorControls();
 
 //Deal with it available tasks notification
         $profile .= $this->getUserDealWithItNotification();
