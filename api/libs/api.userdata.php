@@ -154,7 +154,7 @@ function zb_UserGetAllData($login = '') {
     $result = array();
     $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
     $query = "
-            SELECT `users`.`login`, `realname`.`realname`, `Passive`, `Down`, `Password`,`AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
+            SELECT `users`.`login`, `realname`.`realname`, `Passive`, `Down`, `Password`,`AlwaysOnline`, `Tariff`, `TariffChange`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,";
     if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
         $query.= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";

@@ -2039,7 +2039,12 @@ class SMSZilla {
                 $result = str_ireplace('{PAYMENTID}', @$this->opCustomers[$this->filteredEntities[$entity]['login']], $result);
                 $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['Cash'], $result);
-                $result = str_ireplace('{LACK}', @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']] - $this->filteredEntities[$entity]['Cash'], $result);
+                if (@empty($this->filteredEntities[$entity]['TariffChange'])) {
+                    $lackCash = @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']] - $this->filteredEntities[$entity]['Cash'];
+                } else {
+                    $lackCash = @$this->allTariffPrices[$this->filteredEntities[$entity]['TariffChange']] - $this->filteredEntities[$entity]['Cash'];
+                }
+                $result = str_ireplace('{LACK}', $lackCash, $result);
                 $result = str_ireplace('{ROUNDCASH}', round($this->filteredEntities[$entity]['Cash'], 2), $result);
                 $result = str_ireplace('{IP}', $this->filteredEntities[$entity]['ip'], $result);
                 $result = str_ireplace('{MAC}', $this->filteredEntities[$entity]['mac'], $result);
@@ -2051,6 +2056,7 @@ class SMSZilla {
                 $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
                 break;
             case 'ukv':
+                
                 $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
                 $result = str_ireplace('{TARIFF}', $this->ukv->tariffGetName($this->filteredEntities[$entity]['tariffid']), $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['cash'], $result);
