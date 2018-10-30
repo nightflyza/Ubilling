@@ -1522,7 +1522,7 @@ function ub_SwitchesTimeMachineSearch($request) {
 function zb_SwitchReplaceForm($fromSwitchId) {
     $fromSwitchId = vf($fromSwitchId, 3);
     $result = '';
-    $query = "SELECT * from `switches` WHERE `desc` LIKE '%NP%' ORDER BY `id` DESC";
+    $query = "SELECT * from `switches` WHERE `desc` LIKE '%NP%' ORDER BY `ip` DESC";
     $raw = simple_queryall($query);
     $paramsNp = array();
     $employee = array();
@@ -1530,7 +1530,7 @@ function zb_SwitchReplaceForm($fromSwitchId) {
 
     if (!empty($raw)) {
         foreach ($raw as $io => $eachNp) {
-            $paramsNp[$eachNp['id']] = $eachNp['location'] . ' - ' . $eachNp['ip'];
+            $paramsNp[$eachNp['id']] = $eachNp['ip'] . ' - ' . $eachNp['location'];
         }
     }
 
