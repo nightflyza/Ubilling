@@ -705,7 +705,7 @@ class MultiGen {
         }
 
         if (wf_CheckGet(array('showunfinished'))) {
-            $unfQueryfilter = "OR `acctstoptime` IS NULL ";
+            $unfQueryfilter = "AND `acctstoptime` IS NULL ";
         } else {
             $unfQueryfilter = '';
         }
