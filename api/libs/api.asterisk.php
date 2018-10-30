@@ -743,7 +743,7 @@ class Asterisk {
                 if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
                     $cells.= wf_TableCell(__($each['countnum']));
                 } else {
-                        $itemId = $each['uniqueid'] . $each['disposition']{0};
+                        $itemId = $each['uniqueid'] . $each['disposition'][0];
 
                         if ($adcomments->haveComments($itemId)) {
                             $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . $this->AsteriskGetCommentsForUser($itemId) . wf_tag('span', true) . wf_tag('center', true);
