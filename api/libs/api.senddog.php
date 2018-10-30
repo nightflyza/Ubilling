@@ -539,9 +539,9 @@ class SendDog {
     protected function renderSmsPilotConfigInputs() {
         $inputs = wf_tag('h2') . __('SMSPILOT') . ' ' . wf_Link(self::URL_ME . '&showmisc=smspilotbalance', wf_img_sized('skins/icon_dollar.gif', __('Balance'), '10', '10'), true) . wf_tag('h2', true);
         $inputs.= wf_TextInput('editsmspilotapikey', __('User API key for access SMSPILOT API'), $this->settings['SMSPILOT_APIKEY'], true, 20);
-        $inputs.= wf_TextInput('editsmspilotsign', __('PilotSMS') . ' ' . __('Sign') . ' (' . __('Alphaname') . ')', $this->settings['SMSPILOT_SIGN'], true, 20);
-        $smsServiceFlag = $this->settings['SMS_SERVICE'] === 'PilotSMS';
-        $inputs.= wf_RadioInput('defaultsmsservice', __('Use SMSPILOT as default SMS service'), 'PilotSMS', true, $smsServiceFlag);
+        $inputs.= wf_TextInput('editsmspilotsign', __('SMSPILOT') . ' ' . __('Sign') . ' (' . __('Alphaname') . ')', $this->settings['SMSPILOT_SIGN'], true, 20);
+        $smsServiceFlag = $this->settings['SMS_SERVICE'] === 'SMSPILOT';
+        $inputs.= wf_RadioInput('defaultsmsservice', __('Use SMSPILOT as default SMS service'), 'SMSPILOT', true, $smsServiceFlag);
         return $inputs;
     }
 
@@ -1216,7 +1216,7 @@ class SendDog {
                 case 'redsms':
                     $this->redsmsPushMessages();
                     break;
-                case 'PilotSMS':
+                case 'SMSPILOT':
                     $this->smspilotPushMessages();
                     break;
                 case 'skysms':
@@ -1240,7 +1240,7 @@ class SendDog {
                 break;
             case 'redsms':
                 break;
-            case 'PilotSMS':
+            case 'SMSPILOT':
                 break;
             case 'skysms':
                 $this->skysmsChkMsgStatus();
