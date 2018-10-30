@@ -670,9 +670,14 @@ class SMSZilla {
         );
 
         if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) AND ( $this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
-//custom countries number settings
+            //custom countries number settings
             $this->countryCode = vf($this->altCfg['SMSZILLA_COUNTRY_CODE'], 3);
             $this->mobileLen = $this->altCfg['SMSZILLA_MOBILE_LEN'];
+        }
+
+        //cahing disabling
+        if ((isset($this->altCfg['SMSZILLA_NOCACHE'])) AND ( $this->altCfg['SMSZILLA_NOCACHE'])) {
+            $this->useCache = false;
         }
     }
 
