@@ -1,3 +1,3 @@
 <?
-$lang['def']['can watch log change for tasks'] = 'Може дивитися лог змін завдань';
+$lang['def']['can watch log change for tasks'] = 'Право дивитися лог змін завдань';
 ?>
