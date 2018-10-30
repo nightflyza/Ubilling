@@ -1096,8 +1096,6 @@ function web_ProfileSwitchControlForm($login) {
     }
 
 
-
-
     $switcharr = array();
     $switcharrFull = array();
     $switchswpoll = array();
@@ -1158,7 +1156,7 @@ function web_ProfileSwitchControlForm($login) {
         $inputs.= wf_JuiComboBox('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
         $formStyle = 'floatpanelswide';
     }
-    $inputs.= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, '2');
+    $inputs.= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, 2, 'digits');
     $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
     $inputs.= wf_Submit('Save');
     $controlForm = wf_Form('', "POST", $inputs, $formStyle);
@@ -2278,7 +2276,7 @@ function web_UserTraffStats($login) {
         $result .= wf_TableBody($bwrows, '', '0', '');
         $result .= wf_delimiter();
     } else {
-        $messages=new UbillingMessageHelper();
+        $messages = new UbillingMessageHelper();
         $result .= $messages->getStyledMessage(__('No user graphs because no NAS with bandwidthd for his network'), 'info');
     }
     // End of per-user graphs buttons
