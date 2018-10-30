@@ -102,7 +102,6 @@ if (cfr('SENDDOG')) {
             $form = wf_Form('', 'POST', $inputs, 'glamour') . wf_delimiter();
 
             show_window(__('Telegram'), $form);
-            //show_window(__('SMS services'), $SendDog->renderAddForm() . $SendDog->renderJQDT());
 
             $LnkID = wf_InputId();
             $AddSrvJS = wf_tag('script', false, '', 'type="text/javascript"');
@@ -156,7 +155,7 @@ if (cfr('SENDDOG')) {
                         show_window(__('RED-SMS') . ' ' . __('Balance'), $sendDog->renderRedsmsBalance());
                         break;
                     case 'smspilotbalance':
-                        show_window(__('PilotSMS') . ' ' . __('Balance'), $sendDog->renderSMSPILOTBalance());
+                        show_window(__('SMSPILOT') . ' ' . __('Balance'), $sendDog->renderSMSPILOTBalance());
                         break;
                     case 'telegramcontacts':
                         show_window(__('Telegram bot contacts'), $sendDog->renderTelegramContacts());
