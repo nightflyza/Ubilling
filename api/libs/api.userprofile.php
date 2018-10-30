@@ -1318,9 +1318,9 @@ class UserProfile {
         if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
             if ( wf_CheckPost(array('ajax')) and wf_CheckPost(array('action')) == 'BindSMSSrv' ) {
                 if ( wf_CheckPost(array('createrec')) ) {
-                    $tQuery = "INSERT INTO `sms_services_relations` (`sms_srv_id`, `user_login`)
+                    $query = "INSERT INTO `sms_services_relations` (`sms_srv_id`, `user_login`)
                                   VALUES ('" . $_POST['smssrvid'] . "', '" . $_GET['username'] . "')";
-                    nr_query($tQuery);
+                    nr_query($query);
                 } else {
                     simple_update_field('sms_services_relations', 'sms_srv_id', $_POST['smssrvid'], "WHERE `user_login`='" . $_GET['username'] . "' ");
                 }
@@ -1328,10 +1328,11 @@ class UserProfile {
                 log_register("Prefered SMS service changed from [" . $_POST['oldsmssrvid'] . "] to [" . $_POST['smssrvid'] . "] for user (" . $_GET['username'] . ")");
             }
 
-            $PreferredSMSSrvID = zb_getUsersPreferredSMSService($this->userdata['login'])[0];
+            $preferredSMSSrv = zb_getUsersPreferredSMSService($this->userdata['login']);
+            $preferredSMSSrvID = $preferredSMSSrv[0];
 
-            $row.= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $PreferredSMSSrvID, false, false, 'related_sms_srv') .
-                wf_HiddenInput('sms_srv_create', empty($PreferredSMSSrvID), 'related_sms_srv_create') .
+            $row.= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvID, false, false, 'related_sms_srv') .
+                wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvID), 'related_sms_srv_create') .
                 wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
                 wf_tag('span', true)
             );
@@ -1346,8 +1347,8 @@ class UserProfile {
                                     data: { action: "BindSMSSrv",
                                             ajax:true,                                            
                                             smssrvid: SMSSrvID,                                                                                                                 
-                                            ' . (( empty($PreferredSMSSrvID) ) ? 'createrec: CreateRec, ' : '') . '
-                                            oldsmssrvid: "' . $PreferredSMSSrvID . '"
+                                            ' . (( empty($preferredSMSSrvID) ) ? 'createrec: CreateRec, ' : '') . '
+                                            oldsmssrvid: "' . $preferredSMSSrvID . '"
                                            },
                                     success: function() {
                                                 $(\'#sms_srv_change_flag\').text(" ' . __('Changed') . '");
