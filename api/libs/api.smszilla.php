@@ -666,7 +666,8 @@ class SMSZilla {
             '{MOBILE}' => __('Mobile') . ' ' . __('number'),
             '{CONTRACT}' => __('User contract'),
             '{EMAIL}' => __('Email'),
-            '{CURDATE}' => __('Current date')
+            '{CURDATE}' => __('Current date'),
+            '{PASSWORD}' => __('Password')
         );
 
         if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) AND ( $this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
@@ -2054,9 +2055,10 @@ class SMSZilla {
                 $result = str_ireplace('{CONTRACT}', $this->filteredEntities[$entity]['contract'], $result);
                 $result = str_ireplace('{EMAIL}', $this->filteredEntities[$entity]['email'], $result);
                 $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
+                $result = str_ireplace('{PASSWORD}', $this->filteredEntities[$entity]['Password'], $result);
                 break;
             case 'ukv':
-                
+
                 $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
                 $result = str_ireplace('{TARIFF}', $this->ukv->tariffGetName($this->filteredEntities[$entity]['tariffid']), $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['cash'], $result);
