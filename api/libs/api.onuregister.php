@@ -817,7 +817,7 @@ class OnuRegister {
      * 
      * @return boolean
      */
-    public function createZTECard($swid, $chasis, $slot, $card) {
+    public function createZteCard($swid, $chasis, $slot, $card) {
         if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if ($eachCard['slot_number'] == $slot) {
@@ -846,7 +846,7 @@ class OnuRegister {
      * 
      * @return void
      */
-    public function editZTECard($swid, $slot, $card) {
+    public function editZteCard($swid, $slot, $card) {
         $swid = vf($swid, 3);
         $slot = vf($slot, 3);
         $card = mysql_real_escape_string($card);
@@ -864,7 +864,7 @@ class OnuRegister {
      * 
      * @return void
      */
-    public function deleteZTECard($swid, $slot) {
+    public function deleteZteCard($swid, $slot) {
         $swid = vf($swid, 3);
         $slot = vf($slot, 3);
         $query = 'DELETE FROM `' . self::CARDS_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '"';
@@ -883,7 +883,7 @@ class OnuRegister {
      * 
      * @return boolean
      */
-    public function createZTEBind($swid, $slot, $port, $vlan) {
+    public function createZteBind($swid, $slot, $port, $vlan) {
         $this->loadZteBind($swid);
         if (!empty($this->allBinds)) {
             foreach ($this->allBinds as $each => $eachBind) {
@@ -912,7 +912,7 @@ class OnuRegister {
      * 
      * @return void
      */
-    public function deleteZTEBind($swid, $slot, $port) {
+    public function deleteZteBind($swid, $slot, $port) {
         $swid = vf($swid, 3);
         $slot = vf($slot, 3);
         $port = vf($port, 3);
@@ -932,7 +932,7 @@ class OnuRegister {
      * 
      * @return void
      */
-    public function editZTEBind($swid, $slot, $port, $vlan) {
+    public function editZteBind($swid, $slot, $port, $vlan) {
         $swid = vf($swid, 3);
         $slot = vf($slot, 3);
         $port = vf($port, 3);
@@ -950,7 +950,7 @@ class OnuRegister {
      * 
      * @return string
      */
-    public function listAllZTEDevices() {
+    public function listAllZteDevices() {
         $tablecells = wf_TableCell(__('ID'));
         $tablecells .= wf_TableCell(__('OLT IP'));
         $tablecells .= wf_TableCell(__('Description'));
@@ -979,7 +979,7 @@ class OnuRegister {
      * 
      * @return string
      */
-    public function listZTECard($swid) {
+    public function listZteCard($swid) {
         $tablecells = wf_TableCell(__('ID'));
         $tablecells .= wf_TableCell(__('Chasis number'));
         $tablecells .= wf_TableCell(__('Slot number'));
@@ -1010,8 +1010,8 @@ class OnuRegister {
      * 
      * @return string
      */
-    public function createZTECardForm($swid) {
-        $cell = wf_HiddenInput('createZTECard', 'true');
+    public function createZteCardForm($swid) {
+        $cell = wf_HiddenInput('createZteCard', 'true');
         $cell .= wf_HiddenInput('swid', $swid);
         $cell .= wf_TextInput('chasis_number', __('Chasis number'));
         $cell .= wf_TextInput('slot_number', __('Slot number'));
@@ -1032,8 +1032,8 @@ class OnuRegister {
      * 
      * @return string
      */
-    public function editZTECardForm($swid, $slot, $card) {
-        $cell = wf_HiddenInput('editZTECard', 'true');
+    public function editZteCardForm($swid, $slot, $card) {
+        $cell = wf_HiddenInput('editZteCard', 'true');
         $cell .= wf_HiddenInput('swid', $swid);
         $cell .= wf_HiddenInput('slot_number', $slot);
         $cell .= __('Slot number') . ': ' . $slot;
@@ -1148,9 +1148,9 @@ class OnuRegister {
      * 
      * @return string
      */
-    public function createZTEBindForm($swid) {
+    public function createZteBindForm($swid) {
         $this->loadCardSelector($swid);
-        $cell = wf_HiddenInput('createZTEBind', 'true');
+        $cell = wf_HiddenInput('createZteBind', 'true');
         $cell .= wf_HiddenInput('swid', $swid);
         $cell .= wf_SelectorClassed('slot_number', $this->cardSelector, __('IP | Slot number | Card name'), '', true, 'changeType');
         $cell .= wf_tag('div', false, 'changePorts', 'style="width: 100%;"') . wf_tag('div', true);
@@ -1182,7 +1182,7 @@ $(".changeType").change(function () {
      * 
      * @return string
      */
-    public function listZTEBind($swid) {
+    public function listZteBind($swid) {
         $this->loadZteBind($swid);
         $tablecells = wf_TableCell(__('ID'));
         $tablecells .= wf_TableCell(__('IP'));
@@ -1221,8 +1221,8 @@ $(".changeType").change(function () {
      * 
      * @return string
      */
-    public function editZTEBindForm($swid, $slot, $port, $vlan) {
-        $cell = wf_HiddenInput('editZTEBind', 'true');
+    public function editZteBindForm($swid, $slot, $port, $vlan) {
+        $cell = wf_HiddenInput('editZteBind', 'true');
         $cell .= wf_HiddenInput('swid', $swid);
         $cell .= wf_HiddenInput('slot_number', $slot);
         $cell .= wf_HiddenInput('port_number', $port);
