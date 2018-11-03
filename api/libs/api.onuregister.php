@@ -414,8 +414,7 @@ class OnuRegister {
     /**
      * Calculating snmp indexes for each OLT.
      * 
-     * @param int $swid
-     * @param string $type
+     * @param int $swid     
      * 
      * @return void
      */
@@ -457,6 +456,7 @@ class OnuRegister {
      * Needed for adding ONU to PONizer.    
      * 
      * @param string $ip
+     * 
      * @return int $id
      */
     protected function getOltId($ip) {
@@ -552,6 +552,8 @@ class OnuRegister {
      * Parse and transform raw snmp data into suitable array.
      * 
      * @param string $uncfgSn
+     * @param string $interfaceId
+     * 
      * @return array
      */
     protected function parseUncfgGpon($uncfgSn, $interfaceId) {
@@ -723,8 +725,7 @@ class OnuRegister {
 
     /**
      * Used to change mac format from xx:xx:xx:xx:xx:xx to xxxx.xxxx.xxxx
-     * 
-     * @param string $mac
+     *      
      * @return void
      */
     protected function transformMac() {
@@ -746,6 +747,7 @@ class OnuRegister {
      * @param bool $router
      * @param type $addMac
      * @param bool $PONizerAdd
+     * 
      * @return string Result of shell_exec + expect
      */
     public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac, $PONizerAdd = false) {
