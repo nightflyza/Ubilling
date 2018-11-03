@@ -26,7 +26,7 @@ if (@$altcfg['ONUREG_ZTE']) {
                     $register->currentOltInterface = $_GET['interface'];
                     $register->currentPonType = $_GET['type'];
                     $register->onuIdentifier = $onuIdentifier;
-                    show_window(__('Register'), $register->RegisterOnuForm());
+                    show_window(__('Register'), $register->registerOnuForm());
                 }
             }
             if (wf_CheckPost(array('type', 'interface', 'oltip', 'modelid', 'vlan'))) {
