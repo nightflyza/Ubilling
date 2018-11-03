@@ -469,6 +469,11 @@ class OnuRegister {
         }
     }
 
+    /**
+     * Find vlan binds for curtain pon interface.
+     * 
+     * @return string
+     */
     protected function getBindVlan() {
         $interface = explode("/", $this->currentOltInterface);
         $slot = $interface[1];
@@ -614,11 +619,11 @@ class OnuRegister {
             foreach ($allUnreg as $eachUncfgPort => $value) {
                 $value = trim(str_replace("Hex-STRING:", '', $value));
                 $mac = str_replace(" ", ':', $value);
-                $interfaceIDnum = str_replace($this->currentSnmpTemplate['onu_reg']['UNCFGLIST'] . '.', '', $eachUncfgPort);
-                $interfaceID = substr($interfaceIDnum, 0, 9);
+                $interfaceIdNum = str_replace($this->currentSnmpTemplate['onu_reg']['UNCFGLIST'] . '.', '', $eachUncfgPort);
+                $interfaceId = substr($interfaceIdNum, 0, 9);
 
                 foreach ($this->ponArray as $slot => $each_id) {
-                    if ($each_id == $interfaceID) {
+                    if ($each_id == $interfaceId) {
                         $result[] = $ip . '|' . $slot . '|' . $mac;
                     }
                 }
@@ -834,6 +839,7 @@ class OnuRegister {
         nr_query($query);
         log_register("ZTE Registered new card. OLT ID: " . $swid . "Slot: `" . $slot . "`. Card name: `" . $card . "`.");
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
+
         return true;
     }
 
@@ -853,6 +859,7 @@ class OnuRegister {
         $query = 'UPDATE ' . self::CARDS_TABLE . ' SET `card_name` = "' . $card . '" WHERE `swid` = "' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
         log_register("ZTE Edited card. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Card name: `" . $card . "`.");
+
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
     }
 
@@ -870,6 +877,7 @@ class OnuRegister {
         $query = 'DELETE FROM `' . self::CARDS_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
         log_register("ZTE Deleted card. OLT ID: " . $swid . ". Slot: `" . $slot . "`");
+
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
     }
 
@@ -900,6 +908,7 @@ class OnuRegister {
         $query = 'INSERT INTO `' . self::BIND_TABLE . '` (`id`, `swid`, `slot_number`, `port_number`, `vlan`) VALUE (NULL, "' . $swid . '", "' . $slot . '", "' . $port . '", "' . $vlan . '")';
         nr_query($query);
         log_register("ZTE Created new vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
+
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
 
@@ -919,6 +928,7 @@ class OnuRegister {
         $query = 'DELETE FROM `' . self::BIND_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` = "' . $port . '"';
         nr_query($query);
         log_register("ZTE Deleted vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`.");
+
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
 
@@ -940,6 +950,7 @@ class OnuRegister {
         $query = 'UPDATE `' . self::BIND_TABLE . '` SET `vlan` = "' . $vlan . '" WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` ="' . $port . '"';
         nr_query($query);
         log_register("ZTE Edited vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
+
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
 
@@ -956,6 +967,7 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Description'));
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
+
         if (!empty($this->allZteOlt)) {
             foreach ($this->allZteOlt as $eachNumber => $eachOlt) {
                 $tablecells = wf_TableCell($eachOlt['id']);
@@ -969,6 +981,7 @@ class OnuRegister {
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
+
         return $result;
     }
 
@@ -986,6 +999,7 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Card name'));
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
+
         if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $each => $eachCard) {
                 $tablecells = wf_TableCell($eachCard['id']);
@@ -1000,6 +1014,7 @@ class OnuRegister {
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
+
         return $result;
     }
 
@@ -1020,6 +1035,7 @@ class OnuRegister {
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
+
         return $form;
     }
 
@@ -1043,6 +1059,7 @@ class OnuRegister {
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
+
         return $form;
     }
 
@@ -1060,6 +1077,7 @@ class OnuRegister {
         $cell .= wf_Submit(__('Request'));
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'GET', $Row, 'glamour');
+
         return $form;
     }
 
@@ -1075,6 +1093,7 @@ class OnuRegister {
         $search = array();
         $exclude = array();
         $result = '';
+
         if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $each) {
                 $search[$each['slot_number']] = $each['card_name'];
@@ -1093,6 +1112,7 @@ class OnuRegister {
             $this->loadPortSelector($cardName, $exclude);
             $result = wf_Selector('port_number', $this->portSelector, __('Choose port'), '', true);
         }
+
         return $result;
     }
 
@@ -1109,6 +1129,7 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Card name'));
         $tablecells .= wf_TableCell(__('Card type'));
         $tablerows = wf_TableRow($tablecells, 'row1');
+
         if (!empty($this->allZteOlt)) {
             $oltData = $this->allZteOlt[$swid];
             if (file_exists(CONFIG_PATH . "/snmptemplates/" . $oltData['snmptemplate'])) {
@@ -1138,6 +1159,7 @@ class OnuRegister {
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
+
         return $result;
     }
 
@@ -1172,6 +1194,7 @@ $(".changeType").change(function () {
     });
 });
 </script>';
+
         return $form;
     }
 
@@ -1191,6 +1214,7 @@ $(".changeType").change(function () {
         $tablecells .= wf_TableCell('VLAN');
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
+
         if (!empty($this->allBinds) AND ! empty($this->allZteOlt)) {
             foreach ($this->allBinds as $each => $eachBind) {
                 if (isset($this->allZteOlt[$eachBind['swid']])) {
@@ -1208,6 +1232,7 @@ $(".changeType").change(function () {
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
+
         return $result;
     }
 
@@ -1235,9 +1260,15 @@ $(".changeType").change(function () {
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
+
         return $form;
     }
 
+    /**
+     * Collect and show all unregistered onu.
+     * 
+     * @return string
+     */
     public function listAllUncfg() {
         $tablecells = wf_TableCell(__('OLT IP'));
         $tablecells .= wf_TableCell(__('Type'));
@@ -1246,10 +1277,11 @@ $(".changeType").change(function () {
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
         $allOnu = $this->getAllUnauth();
+
         if (!empty($allOnu)) {
             foreach ($allOnu as $eachType => $io) {
-                foreach ($io as $eachNumber => $Onus) {
-                    foreach ($Onus as $eachData) {
+                foreach ($io as $eachNumber => $eachOnu) {
+                    foreach ($eachOnu as $eachData) {
                         $eachData = explode("|", $eachData);
                         $ip = $eachData[0];
                         $interface = $eachData[1];
@@ -1275,12 +1307,19 @@ $(".changeType").change(function () {
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
+
         return $result;
     }
 
-    public function RegisterOnuForm() {
+    /**
+     * Web form for register onu.
+     * 
+     * @return string
+     */
+    public function registerOnuForm() {
         $this->loadOnuModelSelector();
         $vlan = $this->getBindVlan();
+
         switch ($this->currentPonType) {
             case 'EPON':
                 $cell = wf_HiddenInput('type', $this->currentPonType);
@@ -1316,6 +1355,7 @@ $(".changeType").change(function () {
         $cell .= wf_Submit(__('Register'));
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
+
         return $form;
     }
 
