@@ -6,6 +6,7 @@ if (@$altcfg['ONUREG_ZTE']) {
     if (cfr('ONUREGZTE')) {
         $register = new OnuRegister();
         $avidity = $register->getAvidity();
+        $onuIdentifier = '';
         if (!empty($avidity)) {
             $avidity_z = $avidity['M']['LUCIO'];
             $avidity_w = $avidity['M']['REAPER'];
@@ -14,11 +15,18 @@ if (@$altcfg['ONUREG_ZTE']) {
             show_window('', wf_BackLink(PONizer::URL_ME));
 
             if (wf_CheckGet(array('oltip', 'interface', 'type'))) {
-                if (isset($_GET['maconu'])) {
-                    show_window(__('Register'), $register->RegisterOnuForm($_GET['type'], $_GET['interface'], $_GET['oltip'], $_GET['maconu']));
+                if (wf_CheckGet(array('maconu'))) {
+                    $onuIdentifier = $_GET['maconu'];
                 }
-                if (isset($_GET['serial'])) {
-                    show_window(__('Register'), $register->RegisterOnuForm($_GET['type'], $_GET['interface'], $_GET['oltip'], $_GET['serial']));
+                if (wf_CheckGet(array('serial'))) {
+                    $onuIdentifier = $_GET['serial'];
+                }
+                if (!empty($onuIdentifier)) {
+                    $register->currentOltIp = $_GET['oltip'];
+                    $register->currentOltInterface = $_GET['interface'];
+                    $register->currentPonType = $_GET['type'];
+                    $register->onuIdentifier = $onuIdentifier;
+                    show_window(__('Register'), $register->RegisterOnuForm());
                 }
             }
             if (wf_CheckPost(array('type', 'interface', 'oltip', 'modelid', 'vlan'))) {
@@ -28,17 +36,17 @@ if (@$altcfg['ONUREG_ZTE']) {
                     $router = false;
                     $login = '';
                     $PONizerAdd = false;
-                    if (!empty($_POST['login'])) {
+                    if (wf_CheckGet(array('login'))) {
                         $login = $_POST['login'];
+                    }
+                    if (wf_CheckGet(array('mac'))) {
+                        $onuIdentifier = $_POST['mac'];
+                    }
+                    if (wf_CheckGet(array('sn'))) {
+                        $onuIdentifier = $_POST['sn'];
                     }
                     if (isset($_POST['router'])) {
                         $router = $_POST['router'];
-                    }
-                    if (isset($_POST['mac'])) {
-                        $onuIdentifier = $_POST['mac'];
-                    }
-                    if (isset($_POST['sn'])) {
-                        $onuIdentifier = $_POST['sn'];
                     }
                     if (isset($_POST['mac_onu'])) {
                         $mac_onu = $_POST['mac_onu'];
@@ -52,7 +60,11 @@ if (@$altcfg['ONUREG_ZTE']) {
                     if (isset($_POST['ponizer_add'])) {
                         $PONizerAdd = true;
                     }
-                    show_window(__('Result'), $register->$avidity_w($_POST['oltip'], $_POST['type'], $_POST['interface'], $onuIdentifier, $_POST['modelid'], $_POST['vlan'], $login, $save, $router, $mac_onu, $PONizerAdd));
+                    $register->currentOltIp = $_POST['oltip'];
+                    $register->currentOltInterface = $_POST['interface'];
+                    $register->currentPonType = $_POST['type'];
+                    $register->onuIdentifier = $onuIdentifier;
+                    show_window(__('Result'), $register->$avidity_w($_POST['modelid'], $_POST['vlan'], $login, $save, $router, $mac_onu, $PONizerAdd));
                 }
             }
         } else {
