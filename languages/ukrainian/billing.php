@@ -983,7 +983,7 @@ $lang['def']['This module disabled'] = 'Цей модуль зараз відк�
 $lang['def']['Available signup requests'] = 'Заявки на підключення в наявності';
 $lang['def']['Signup request'] = 'Заявка на підключення';
 $lang['def']['signup requests expected processing'] = 'Заявок на підключення очікують обробки';
-$lang['def']['right to manage signup requests'] = 'Право переглядати заявки на підключення';
+$lang['def']['right to view signup requests'] = 'Право переглядати заявки на підключення';
 $lang['def']['right to use Wireless APs signal monitor'] = 'Право користуватись моніторингом сигналу бездротових БС';
 $lang['def']['Wireless APs signal monitor enabled'] = 'Моніторинг сигналу бездротових БС';
 $lang['def']['Signup requests service enabled'] = 'Сервіс прийому заявок на підключення';
@@ -2983,5 +2983,6 @@ $lang['def']['Warehouse storage is empty'] = 'Мілорде, сховище п�
 $lang['def']['User not exists'] = 'Користувача не існує';
 $lang['def']['From warehouse storage'] = 'Зі складу';
 $lang['def']['reserved for you'] = 'забронював для тебе';
+$lang['def']['right to close signup requests'] = 'Право закривати заявки на підключення';
 
 ?>

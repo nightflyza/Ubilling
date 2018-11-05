@@ -8,20 +8,34 @@ if (cfr('SIGREQ')) {
 
             $signups = new SignupRequests();
             //requests management
-            //set request done
+            //set request as done
             if (isset($_GET['reqdone'])) {
-                $signups->setDone($_GET['reqdone']);
-                //update notification area
-                $darkVoid = new DarkVoid();
-                $darkVoid->flushCache();
-                rcms_redirect("?module=sigreq");
+                if (cfr('SIGREQEDIT')) {
+                    $signups->setDone($_GET['reqdone']);
+                    //update notification area
+                    $darkVoid = new DarkVoid();
+                    $darkVoid->flushCache();
+                    rcms_redirect("?module=sigreq");
+                } else {
+                    show_error(__('Access denied'));
+                    log_register('SIGREQ CLOSE RIGHTS FAIL [' . $_GET['reqdone'] . ']');
+                }
             }
 
-            //set request undone
+            //set request as undone
             if (isset($_GET['requndone'])) {
-                $signups->setUnDone($_GET['requndone']);
-                rcms_redirect("?module=sigreq");
+                if (cfr('SIGREQEDIT')) {
+                    $signups->setUnDone($_GET['requndone']);
+                    //update notification area
+                    $darkVoid = new DarkVoid();
+                    $darkVoid->flushCache();
+                    rcms_redirect("?module=sigreq");
+                } else {
+                    show_error(__('Access denied'));
+                    log_register('SIGREQ OPEN RIGHTS FAIL [' . $_GET['requndone'] . ']');
+                }
             }
+
 
             //delete request
             if (isset($_GET['deletereq'])) {

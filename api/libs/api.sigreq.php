@@ -5,14 +5,42 @@
  */
 class SignupRequests {
 
+    /**
+     * Contains available signup requests
+     *
+     * @var array
+     */
     protected $requests = array();
-    protected $perpage = 50;
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $altcfg = array();
+
+    /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
     protected $messages = '';
 
+    /**
+     * Default whois service URL
+     */
     const URL_WHOIS = '?module=whois&ip=';
+
+    /**
+     * Default module URL
+     */
     const URL_ME = '?module=sigreq';
 
+    /**
+     * Creates new sigreq instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
@@ -43,7 +71,6 @@ class SignupRequests {
      * @return void
      */
     protected function loadRequests() {
-
         $query = "SELECT * from `sigreq` ORDER BY `id` DESC;";
         $allreqs = simple_queryall($query);
         if (!empty($allreqs)) {
@@ -260,10 +287,13 @@ class SignupRequests {
 
 
         $actlinks = wf_BackLink('?module=sigreq');
-        if ($reqdata['state'] == 0) {
-            $actlinks.=wf_Link('?module=sigreq&reqdone=' . $reqid, wf_img_sized('skins/icon_active.gif', '', '10') . ' ' . __('Close'), false, 'ubButton');
-        } else {
-            $actlinks.=wf_Link('?module=sigreq&requndone=' . $reqid, wf_img_sized('skins/icon_inactive.gif', '', '10') . ' ' . __('Open'), false, 'ubButton');
+
+        if (cfr('SIGREQEDIT')) {
+            if ($reqdata['state'] == 0) {
+                $actlinks.=wf_Link('?module=sigreq&reqdone=' . $reqid, wf_img_sized('skins/icon_active.gif', '', '10') . ' ' . __('Close'), false, 'ubButton');
+            } else {
+                $actlinks.=wf_Link('?module=sigreq&requndone=' . $reqid, wf_img_sized('skins/icon_inactive.gif', '', '10') . ' ' . __('Open'), false, 'ubButton');
+            }
         }
 
         if (cfr('SIGREQDELETE')) {
