@@ -568,7 +568,7 @@ class OnuRegister {
             $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
             foreach ($this->ponArray as $slot => $each_id) {
                 if ($each_id == $interfaceId) {
-                    $result[] = $ip . '|' . $slot . '|' . $sn;
+                    $result[] = $this->currentOltIp . '|' . $slot . '|' . $sn;
                 }
             }
         }
@@ -626,7 +626,7 @@ class OnuRegister {
 
                 foreach ($this->ponArray as $slot => $each_id) {
                     if ($each_id == $interfaceId) {
-                        $result[] = $ip . '|' . $slot . '|' . $mac;
+                        $result[] = $this->currentOltIp . '|' . $slot . '|' . $mac;
                     }
                 }
             }
@@ -652,12 +652,12 @@ class OnuRegister {
                 $value = trim($value);
                 if ($value > 0) {
                     $interfaceId = str_replace($allUncfgOid . '.', '', $eachUncfgPort);
-                    $uncfgSn = $this->snmp->walk($$this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
+                    $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
                     for ($i = 0; $i <= self::GPON_RETRIES; $i++) {
                         if (!empty($uncfgSn)) {
                             break;
                         }
-                        $uncfgSn = $this->snmp->walk($$this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
+                        $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
                     }
                     $result = $this->parseUncfgGpon($uncfgSn, $interfaceId);
                 }
@@ -764,7 +764,7 @@ class OnuRegister {
             $swpassword = $oltData['swpass'];
             $method = $oltData['method'];
             if (file_exists(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$swid]['snmptemplate'])) {
-                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $$this->allZteOlt[$swid]['snmptemplate'], true);
+                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$swid]['snmptemplate'], true);
                 if ($this->currentPonType == 'EPON') {
                     $addMac = $this->onuIdentifier;
                     $this->onuIdentifier = $this->transformMac();
