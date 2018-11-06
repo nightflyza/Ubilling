@@ -809,7 +809,7 @@ class OnuRegister {
             }
         }
 
-        return $result;
+        return ($result);
     }
 
     //handling persistent changes
@@ -829,7 +829,7 @@ class OnuRegister {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if ($eachCard['slot_number'] == $slot) {
                     rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
-                    return false;
+                    return (false);
                 }
             }
         }
@@ -842,7 +842,7 @@ class OnuRegister {
         log_register("ZTE Registered new card. OLT ID: " . $swid . "Slot: `" . $slot . "`. Card name: `" . $card . "`.");
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
 
-        return true;
+        return (true);
     }
 
     /**
@@ -899,7 +899,7 @@ class OnuRegister {
             foreach ($this->allBinds as $each => $eachBind) {
                 if ($eachBind['slot_number'] == $slot AND $eachBind['port_number'] == $port) {
                     rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
-                    return false;
+                    return (false);
                 }
             }
         }
@@ -984,7 +984,7 @@ class OnuRegister {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -1017,7 +1017,7 @@ class OnuRegister {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -1038,7 +1038,7 @@ class OnuRegister {
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
 
-        return $form;
+        return ($form);
     }
 
     /**
@@ -1062,7 +1062,7 @@ class OnuRegister {
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
 
-        return $form;
+        return ($form);
     }
 
     /**
@@ -1080,7 +1080,7 @@ class OnuRegister {
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'GET', $Row, 'glamour');
 
-        return $form;
+        return ($form);
     }
 
     /**
@@ -1115,7 +1115,7 @@ class OnuRegister {
             $result = wf_Selector('port_number', $this->portSelector, __('Choose port'), '', true);
         }
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -1162,7 +1162,7 @@ class OnuRegister {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -1197,7 +1197,7 @@ $(".changeType").change(function () {
 });
 </script>';
 
-        return $form;
+        return ($form);
     }
 
     /**
@@ -1235,7 +1235,7 @@ $(".changeType").change(function () {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -1263,7 +1263,7 @@ $(".changeType").change(function () {
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
 
-        return $form;
+        return ($form);
     }
 
     /**
@@ -1310,7 +1310,7 @@ $(".changeType").change(function () {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -1358,7 +1358,7 @@ $(".changeType").change(function () {
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
 
-        return $form;
+        return ($form);
     }
 
 }
