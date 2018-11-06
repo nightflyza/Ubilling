@@ -707,7 +707,7 @@ class OnuRegister {
      * @return void
      */
     protected function checkRegisteredGponOnu() {
-        $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['LLIDLIST'] . $this->ponArray[$ponInterface]);
+        $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['LLIDLIST'] . $this->ponArray[$this->currentOltInterface]);
         for ($i = 1; $i <= 128; $i++) {
             $allID[$i] = $i;
         }
