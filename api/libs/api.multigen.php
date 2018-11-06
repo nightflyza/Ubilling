@@ -2814,7 +2814,7 @@ class MultiGen {
 }
 
 /**
- * Returns list of available free Juniper NASes
+ * Returns list of available MultiGen NASes
  * 
  * @return string
  */
