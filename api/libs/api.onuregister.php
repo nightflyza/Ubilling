@@ -675,14 +675,14 @@ class OnuRegister {
     protected function checkRegisterdEponOnu() {
         $alternative = false;
 
-        foreach ($this->onuArray[$this->currentPonInterface] as $eachOnuNumber => $eachOnuID) {
+        foreach ($this->onuArray[$this->currentOltInterface] as $eachOnuNumber => $eachOnuID) {
             $check = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
             if (!empty($check)) {
                 $this->existId[] = $eachOnuID;
             }
         }
         if (empty($this->existId)) {
-            foreach ($this->onuArrayAlt[$this->currentPonInterface] as $eachOnuNumber => $eachOnuID) {
+            foreach ($this->onuArrayAlt[$this->currentOltInterface] as $eachOnuNumber => $eachOnuID) {
                 $check = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
                 if (!empty($check)) {
                     $this->existId[] = $eachOnuID;
@@ -692,9 +692,9 @@ class OnuRegister {
         }
         if (!empty($this->existId)) {
             if (!$alternative) {
-                $free = array_flip(array_diff($this->onuArray[$this->currentPonInterface], $this->existId));
+                $free = array_flip(array_diff($this->onuArray[$this->currentOltInterface], $this->existId));
             } else {
-                $free = array_flip(array_diff($this->onuArrayAlt[$this->currentPonInterface], $this->existId));
+                $free = array_flip(array_diff($this->onuArrayAlt[$this->currentOltInterface], $this->existId));
             }
             reset($free);
             $this->lastOnuId = current($free);
