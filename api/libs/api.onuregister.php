@@ -463,7 +463,7 @@ class OnuRegister {
         if (!empty($this->allZteOlt)) {
             foreach ($this->allZteOlt as $id => $eachOlt) {
                 if ($eachOlt['ip'] == $ip) {
-                    return $id;
+                    return ($id);
                 }
             }
         }
@@ -483,7 +483,7 @@ class OnuRegister {
         if (!empty($this->allBinds)) {
             foreach ($this->allBinds as $id => $eachBind) {
                 if ($eachBind['slot_number'] == $slot AND $eachBind['port_number'] == $port) {
-                    return $eachBind['vlan'];
+                    return ($eachBind['vlan']);
                 }
             }
         }
@@ -573,7 +573,7 @@ class OnuRegister {
             }
         }
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -605,7 +605,7 @@ class OnuRegister {
             }
         }
 
-        return $allUnreg;
+        return ($allUnreg);
     }
 
     /**
@@ -632,7 +632,7 @@ class OnuRegister {
             }
         }
 
-        return $result;
+        return ($result);
     }
 
     /**
@@ -664,7 +664,7 @@ class OnuRegister {
             }
         }
 
-        return $result;
+        return ($result);
     }
 
     /**
