@@ -16,6 +16,7 @@ class OnuRegister {
     CONST ONU_ID_START = 805830912;
     CONST ALT_ONU_ID_START = 2417492224;
     CONST GPON_RETRIES = 5;
+    CONST SNMP_TEMPLATE_SECTION = 'onu_reg';
 
     /**
      * Contains all data from billing.ini
@@ -168,6 +169,13 @@ class OnuRegister {
      * @var string
      */
     protected $currentSnmpCommunity = '';
+    
+    /**
+     * Placeholder for switch id for current OLT.
+     * 
+     * @var integer
+     */
+    protected $currentOltSwId = '';
 
     /**
      * Placeholder for current OLT's ip.
@@ -418,11 +426,11 @@ class OnuRegister {
      * 
      * @return void
      */
-    protected function loadCalculatedData($swid) {
+    protected function loadCalculatedData() {
         $cards = array();
 
-        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
-            foreach ($this->allCards[$swid] as $eachId => $eachCard) {
+        if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
+            foreach ($this->allCards[$this->currentOltSwId] as $eachId => $eachCard) {
                 if ($this->currentPonType == 'EPON') {
                     if (isset($this->eponCards[$eachCard['card_name']])) {
                         $cards[$eachCard['slot_number']]['ports'] = $this->eponCards[$eachCard['card_name']];
@@ -585,19 +593,19 @@ class OnuRegister {
         $allUnreg = array();
 
         if (!empty($this->allZteOlt)) {
-            foreach ($this->allZteOlt as $eachOltId => $eachOlt) {
+            foreach ($this->allZteOlt as  $this->currentOltSwId => $eachOlt) {
                 if (file_exists(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'])) {
                     $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'], true);
-                    $this->currentPonType = $this->currentSnmpTemplate ['onu_reg']['TYPE'];
+                    $this->currentPonType = $this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'];
                     $this->currentOltIp = $eachOlt['ip'];
-                    $this->currentSnmpCommunity = $eachOlt['snmp'];
-                    $this->loadCalculatedData($eachOlt['id']);
+                    $this->currentSnmpCommunity = $eachOlt['snmp'];                    
+                    $this->loadCalculatedData();
 
-                    if (isset($this->allCards[$eachOlt['id']]) AND ! empty($this->allCards[$eachOlt['id']])) {
-                        if ($this->currentSnmpTemplate ['onu_reg']['TYPE'] == 'EPON') {
+                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[ $this->currentOltSwId])) {
+                        if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'EPON') {
                             $allUnreg['EPON'][] = $this->getAllUnauthEpon();
                         }
-                        if ($this->currentSnmpTemplate ['onu_reg']['TYPE'] == 'GPON') {
+                        if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'GPON') {
                             $allUnreg['GPON'][] = $this->getAllUnauthGpon();
                         }
                     }
@@ -616,12 +624,12 @@ class OnuRegister {
     protected function getAllUnauthEpon() {
         $result = array();
 
-        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['UNCFGLIST']);
+        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST']);
         if (!empty($allUnreg)) {
             foreach ($allUnreg as $eachUncfgPort => $value) {
                 $value = trim(str_replace("Hex-STRING:", '', $value));
                 $mac = str_replace(" ", ':', $value);
-                $interfaceIdNum = str_replace($this->currentSnmpTemplate['onu_reg']['UNCFGLIST'] . '.', '', $eachUncfgPort);
+                $interfaceIdNum = str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'] . '.', '', $eachUncfgPort);
                 $interfaceId = substr($interfaceIdNum, 0, 9);
 
                 foreach ($this->ponArray as $slot => $each_id) {
@@ -641,8 +649,8 @@ class OnuRegister {
      * @return array
      */
     protected function getAllUnauthGpon() {
-        $allUncfgOid = $this->currentSnmpTemplate['onu_reg']['UNCFGLIST'];
-        $getUncfgSn = $this->currentSnmpTemplate['onu_reg']['UNCFGSN'];
+        $allUncfgOid = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'];
+        $getUncfgSn = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'];
         $result = array();
 
         $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $allUncfgOid);
@@ -676,14 +684,14 @@ class OnuRegister {
         $alternative = false;
 
         foreach ($this->onuArray[$this->currentOltInterface] as $eachOnuNumber => $eachOnuID) {
-            $check = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
+            $check = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['EACHLLID'] . $eachOnuID);
             if (!empty($check)) {
                 $this->existId[] = $eachOnuID;
             }
         }
         if (empty($this->existId)) {
             foreach ($this->onuArrayAlt[$this->currentOltInterface] as $eachOnuNumber => $eachOnuID) {
-                $check = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
+                $check = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['EACHLLID'] . $eachOnuID);
                 if (!empty($check)) {
                     $this->existId[] = $eachOnuID;
                     $alternative = true;
@@ -707,7 +715,7 @@ class OnuRegister {
      * @return void
      */
     protected function checkRegisteredGponOnu() {
-        $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate['onu_reg']['LLIDLIST'] . $this->ponArray[$this->currentOltInterface]);
+        $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['LLIDLIST'] . $this->ponArray[$this->currentOltInterface]);
         for ($i = 1; $i <= 128; $i++) {
             $allID[$i] = $i;
         }
@@ -751,20 +759,20 @@ class OnuRegister {
      * @return string Result of shell_exec + expect
      */
     public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac, $PONizerAdd = false) {
-        $swid = $this->getOltId($this->currentOltIp);
-        $this->currentSnmpCommunity = $this->allZteOlt[$swid]['snmp'];
-        $this->loadCalculatedData($swid);
+        $this->currentOltSwId = $this->getOltId($this->currentOltIp);        
+        $this->currentSnmpCommunity = $this->allZteOlt[$this->currentOltSwId]['snmp'];
+        $this->loadCalculatedData();
         //set serial number empty as default value because epon    
         $serial = '';
         $result = '';
 
-        if (!empty($this->allSwLogin) and isset($this->allSwLogin[$swid])) {
-            $oltData = $this->allSwLogin[$swid];
+        if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
+            $oltData = $this->allSwLogin[$this->currentOltSwId];
             $swlogin = $oltData['swlogin'];
             $swpassword = $oltData['swpass'];
             $method = $oltData['method'];
-            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$swid]['snmptemplate'])) {
-                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$swid]['snmptemplate'], true);
+            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$this->currentOltSwId]['snmptemplate'])) {
+                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$this->currentOltSwId]['snmptemplate'], true);
                 if ($this->currentPonType == 'EPON') {
                     $addMac = $this->onuIdentifier;
                     $this->onuIdentifier = $this->transformMac();
@@ -801,9 +809,11 @@ class OnuRegister {
                         $result .= shell_exec($command);
                     }
                     $result = str_replace("\n", '<br />', $result);
+                    log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
+                    
                     if ($PONizerAdd) {
                         $pon = new PONizer();
-                        $pon->onuCreate($onuModel, $swid, '', $addMac, $serial, $login);
+                        $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
                     }
                 }
             }
@@ -1136,13 +1146,13 @@ class OnuRegister {
             $oltData = $this->allZteOlt[$swid];
             if (file_exists(CONFIG_PATH . "/snmptemplates/" . $oltData['snmptemplate'])) {
                 $snmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $oltData['snmptemplate'], true);
-                if (isset($snmpTemplate['onu_reg']['ALLCARDS'])) {
-                    $allCards = @snmp2_real_walk($oltData['ip'], $oltData['snmp'], $snmpTemplate['onu_reg']['ALLCARDS']);
+                if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'])) {
+                    $allCards = @snmp2_real_walk($oltData['ip'], $oltData['snmp'], $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS']);
                 }
                 if (!empty($allCards)) {
                     foreach ($allCards as $eachOid => $eachCard) {
                         $cardType = 'other';
-                        $eachOid = trim(str_replace($snmpTemplate['onu_reg']['ALLCARDS'] . '.', '', $eachOid));
+                        $eachOid = trim(str_replace($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'] . '.', '', $eachOid));
                         $eachOid = explode('.', $eachOid);
                         $eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
                         $tablecells = wf_TableCell($eachOid[2]);
