@@ -46,10 +46,8 @@ CREATE TABLE  IF NOT EXISTS `mlg_postauth` (
 ) ENGINE = INNODB;
 
 
-CREATE OR REPLACE VIEW `mlg_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
-SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATON(`nas`.`nasip`)), 12), NULL, `switches`.`snmp`, `switches`.`desc` FROM `nas`
-     JOIN `networks` ON `networks`.`id` = `nas`.`netid`
-LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`;
+CREATE OR REPLACE VIEW `mlg_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`) AS 
+SELECT DISTINCT `nasip` AS `nasname`,`nasname` AS `shortname`,'other' AS `type`,NULL AS `ports`,left(md5(inet_aton(`nasip`)),12) AS `secret`,NULL AS `server` from `nas`;
 
 CREATE TABLE IF NOT EXISTS `mlg_check` (
   id int(11) unsigned NOT NULL auto_increment,
