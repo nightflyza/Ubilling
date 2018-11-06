@@ -6,67 +6,67 @@ if (cfr('SENDDOG')) {
         if ( $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')
              and !wf_CheckGet(array('showmisc')) and !wf_CheckPost(array('editconfig')) ) {
 
-            $SendDog = new SendDogAdvanced();
+            $sendDog = new SendDogAdvanced();
 
             if ( wf_CheckGet(array('ajax')) ) {
-                $SMSServicesData = $SendDog->getSMSServicesConfigData();
-                $SendDog->renderJSON($SMSServicesData);
+                $smsServicesData = $sendDog->getSmsServicesConfigData();
+                $sendDog->renderJSON($smsServicesData);
             }
 
             if ( wf_CheckPost(array('smssrvcreate')) ) {
                 if ( wf_CheckPost(array('smssrvname')) ) {
-                    $NewSrvName = $_POST['smssrvname'];
-                    $FoundSrvID = $SendDog->checkServiceNameExists($NewSrvName);
+                    $newServiceName = $_POST['smssrvname'];
+                    $foundSrvId = $sendDog->checkServiceNameExists($newServiceName);
 
-                    if ( empty($FoundSrvID) ) {
-                        $AlphaName = (wf_CheckPost(array('smssrvalphaaslogin'))) ? $_POST['smssrvlogin'] : $_POST['smssrvalphaname'];
+                    if ( empty($foundSrvId) ) {
+                        $alphaName = (wf_CheckPost(array('smssrvalphaaslogin'))) ? $_POST['smssrvlogin'] : $_POST['smssrvalphaname'];
 
-                        $SendDog->addSMSService($NewSrvName, $_POST['smssrvlogin'], $_POST['smssrvpassw'],
-                                                $_POST['smssrvurlip'], $_POST['smssrvapikey'], $AlphaName,
+                        $sendDog->addSmsService($newServiceName, $_POST['smssrvlogin'], $_POST['smssrvpassw'],
+                                                $_POST['smssrvurlip'], $_POST['smssrvapikey'], $alphaName,
                                                 $_POST['smssrvapiimplementation'], $_POST['smssrvdefault']);
                         die();
                     } else {
-                        $errormes = $SendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $FoundSrvID,
+                        $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
                                                                                                 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                         die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                     }
                 }
 
-                die(wf_modalAutoForm(__('Add SMS service'), $SendDog->renderAddForm($_POST['ModalWID']), $_POST['ModalWID'], $_POST['ModalWBID'], true));
+                die(wf_modalAutoForm(__('Add SMS service'), $sendDog->renderAddForm($_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['ModalWBID'], true));
             }
 
             if ( wf_CheckPost(array('action')) ) {
                 if ( wf_CheckPost(array('smssrvid')) ) {
-                    $SMSSrvID = $_POST['smssrvid'];
+                    $smsServiceId = $_POST['smssrvid'];
 
                     if ($_POST['action'] == 'editSMSSrv') {
                         if ( wf_CheckPost(array('smssrvname')) ) {
-                            $FoundSrvID = $SendDog->checkServiceNameExists($_POST['smssrvname'], $SMSSrvID);
+                            $foundSrvId = $sendDog->checkServiceNameExists($_POST['smssrvname'], $smsServiceId);
 
-                            if ( empty($FoundSrvID) ) {
-                                $AlphaName = (wf_CheckPost(array('smssrvalphaaslogin'))) ? $_POST['smssrvlogin'] : $_POST['smssrvalphaname'];
+                            if ( empty($foundSrvId) ) {
+                                $alphaName = (wf_CheckPost(array('smssrvalphaaslogin'))) ? $_POST['smssrvlogin'] : $_POST['smssrvalphaname'];
 
-                                $SendDog->editSMSService($SMSSrvID, $_POST['smssrvname'], $_POST['smssrvlogin'], $_POST['smssrvpassw'],
-                                                         $_POST['smssrvurlip'], $_POST['smssrvapikey'], $AlphaName,
+                                $sendDog->editSmsService($smsServiceId, $_POST['smssrvname'], $_POST['smssrvlogin'], $_POST['smssrvpassw'],
+                                                         $_POST['smssrvurlip'], $_POST['smssrvapikey'], $alphaName,
                                                          $_POST['smssrvapiimplementation'], $_POST['smssrvdefault']);
                                 die();
                             } else {
-                                $errormes = $SendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $FoundSrvID,
+                                $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
                                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"' );
                                 die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                             }
                         }
 
-                        die(wf_modalAutoForm(__('Edit SMS service'), $SendDog->renderEditForm($SMSSrvID, $_POST['ModalWID']), $_POST['ModalWID'], $_POST['ModalWBID'], true));
+                        die(wf_modalAutoForm(__('Edit SMS service'), $sendDog->renderEditForm($smsServiceId, $_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['ModalWBID'], true));
                     }
 
                     if ($_POST['action'] == 'deleteSMSSrv') {
                         if ( wf_CheckPost(array('smssrvid')) ) {
-                            if ( !$SendDog->checkSMSSrvProtected($_POST['smssrvid']) ) {
-                                $SendDog->deleteSMSService($_POST['smssrvid']);
+                            if ( !$sendDog->checkSmsServiceProtected($_POST['smssrvid']) ) {
+                                $sendDog->deleteSmsService($_POST['smssrvid']);
                                 die();
                             } else {
-                                $errormes = $SendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('Can not remove SMS which has existing relations on users or other entities'),
+                                $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('Can not remove SMS which has existing relations on users or other entities'),
                                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"' );
                                 die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                             }
@@ -74,10 +74,10 @@ if (cfr('SENDDOG')) {
                     }
 
                     if ( wf_CheckPost(array('SMSAPIName')) ) {
-                        $SMSSrvAPIName = $_POST['SMSAPIName'];
-                        $SMSSrvID = $_POST['smssrvid'];
-                        include ($SendDog::API_IMPL_PATH . $SMSSrvAPIName . '.php');
-                        $tmpApiObj = new $SMSSrvAPIName($SMSSrvID);
+                        $smsServiceApiName = $_POST['SMSAPIName'];
+                        $smsServiceId = $_POST['smssrvid'];
+                        include ($sendDog::API_IMPL_PATH . $smsServiceApiName . '.php');
+                        $tmpApiObj = new $smsServiceApiName($smsServiceId);
 
                         switch ($_POST['action']) {
                             case 'getBalance':
@@ -96,28 +96,28 @@ if (cfr('SENDDOG')) {
                 }
             }
 
-            $inputs  = $SendDog->renderTelegramConfigInputs();
+            $inputs  = $sendDog->renderTelegramConfigInputs();
             $inputs .= wf_Submit(__('Save'));
             $inputs .= wf_delimiter();
             $form = wf_Form('', 'POST', $inputs, 'glamour') . wf_delimiter();
 
             show_window(__('Telegram'), $form);
 
-            $LnkID = wf_InputId();
-            $AddSrvJS = wf_tag('script', false, '', 'type="text/javascript"');
-            $AddSrvJS .= '
-                            $(\'#' . $LnkID . '\').click(function(evt) {
+            $lnkId = wf_InputId();
+            $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
+            $addServiceJS .= '
+                            $(\'#' . $lnkId . '\').click(function(evt) {
                                 $.ajax({
                                     type: "POST",
-                                    url: "' . $SendDog::URL_ME .'",
+                                    url: "' . $sendDog::URL_ME .'",
                                     data: { 
                                             smssrvcreate:true,                                                                                                                                                                
-                                            ModalWID:"dialog-modal_' . $LnkID . '", 
-                                            ModalWBID:"body_dialog-modal_' . $LnkID . '"                                                        
+                                            modalWindowId:"dialog-modal_' . $lnkId . '", 
+                                            ModalWBID:"body_dialog-modal_' . $lnkId . '"                                                        
                                            },
                                     success: function(result) {
                                                 $(document.body).append(result);
-                                                $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                                $(\'#dialog-modal_' . $lnkId . '\').dialog("open");
                                              }
                                 });
         
@@ -125,10 +125,10 @@ if (cfr('SENDDOG')) {
                                 return false;
                             });
                         ';
-            $AddSrvJS .= wf_tag('script', true);
+            $addServiceJS .= wf_tag('script', true);
 
-            show_window(__('SMS services'), wf_Link('#', web_add_icon() . __('Add SMS service'), false, 'ubButton', 'id="' . $LnkID . '"')
-                                            . wf_delimiter() . $AddSrvJS . $SendDog->renderJQDT());
+            show_window(__('SMS services'), wf_Link('#', web_add_icon() . __('Add SMS service'), false, 'ubButton', 'id="' . $lnkId . '"')
+                                            . wf_delimiter() . $addServiceJS . $sendDog->renderJQDT());
         } else {
             $sendDog = new SendDog();
 

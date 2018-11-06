@@ -5123,54 +5123,55 @@ function zb_sortArray($data, $field, $desc = false) {
  * @return array
  */
 function zb_getSMSServicesList() {
-    $Result = array();
-    $SMSSrvsList = array();
-    $DefaultSMSServiceID = 0;
-    $DefaultSMSServiceName = '';
+    $result = array();
+    $smsServicesList = array();
+    $defaultSmsServiceId = 0;
+    $defaultSmsServiceName = '';
 
-    $Query = "SELECT * FROM `sms_services`;";
-    $Result = simple_queryall($Query);
+    $query = "SELECT * FROM `sms_services`;";
+    $result = simple_queryall($query);
 
-    if ( !empty($Result) ) {
-        foreach ($Result as $Index => $Record) {
-            if ($Record['default_service']) {
-                $DefaultSMSServiceID = $Record['id'];
-                $DefaultSMSServiceName = $Record['name'] . ' (' . __('by default') . ')';
+    if ( !empty($result) ) {
+        foreach ($result as $index => $record) {
+            if ($record['default_service']) {
+                $defaultSmsServiceId = $record['id'];
+                $defaultSmsServiceName = $record['name'] . ' (' . __('by default') . ')';
                 continue;
             }
 
-            $SMSSrvsList[$Record['id']] = $Record['name'];
+            $smsServicesList[$record['id']] = $record['name'];
         }
 
-        if (!empty($DefaultSMSServiceID) and !empty($DefaultSMSServiceName)) {
-            $SMSSrvsList = array($DefaultSMSServiceID => $DefaultSMSServiceName) + $SMSSrvsList;
+        if (!empty($defaultSmsServiceId) and !empty($defaultSmsServiceName)) {
+            $smsServicesList = array($defaultSmsServiceId => $defaultSmsServiceName) + $smsServicesList;
         }
     }
 
-    return $SMSSrvsList;
+    return $smsServicesList;
 }
 
 /**
  * Returns SMS service name by it's ID. If empty ID parameter returns the name of the default SMS service.
+ * For big message sets it's strongly recommended to use SMSDirections class instead
  *
- * @param int $SMSSrvID
+ * @param int $smsServiceId
  *
  * @return string
  */
-function zb_getSMSServiceNameByID($SMSSrvID = 0) {
-    $SMSSrvName = '';
-    $Result = array();
+function zb_getSMSServiceNameByID($smsServiceId = 0) {
+    $smsServiceName = '';
+    $result = array();
 
-    if ( empty($SMSSrvID) ) {
+    if ( empty($smsServiceId) ) {
         $Query = "SELECT * FROM `sms_services` WHERE `default_service` > 0;";
     } else {
-        $Query = "SELECT * FROM `sms_services` WHERE `id` = " . $SMSSrvID . ";";
+        $Query = "SELECT * FROM `sms_services` WHERE `id` = " . $smsServiceId . ";";
     }
-    $Result = simple_queryall($Query);
+    $result = simple_queryall($Query);
 
-    if ( !empty($Result) ) { $SMSSrvName = $Result[0]['name']; }
+    if ( !empty($result) ) { $smsServiceName = $result[0]['name']; }
 
-    return $SMSSrvName;
+    return $smsServiceName;
 }
 
 /**
@@ -5178,21 +5179,21 @@ function zb_getSMSServiceNameByID($SMSSrvID = 0) {
  * [0] => [id]
  * [1] => [name]
  *
- * @param $UserLogin
+ * @param $userLogin
  *
  * @return array
  */
-function zb_getUsersPreferredSMSService($UserLogin) {
-    $SMSSrvIDName = array('', '');
+function zb_getUsersPreferredSMSService($userLogin) {
+    $smsServiceIdName = array('', '');
 
-    $Query = "SELECT * FROM `sms_services_relations` WHERE `user_login` = '" . $UserLogin . "';";
-    $Result = simple_queryall($Query);
+    $query = "SELECT * FROM `sms_services_relations` WHERE `user_login` = '" . $userLogin . "';";
+    $result = simple_queryall($query);
 
-    if ( !empty($Result) ) {
-        $SMSSrvIDName[0] = $Result[0]['sms_srv_id'];
+    if ( !empty($result) ) {
+        $smsServiceIdName[0] = $result[0]['sms_srv_id'];
     }
 
-    $SMSSrvIDName[1] = zb_getSMSServiceNameByID($SMSSrvIDName[0]);
+    $smsServiceIdName[1] = zb_getSMSServiceNameByID($smsServiceIdName[0]);
 
-    return $SMSSrvIDName;
+    return $smsServiceIdName;
 }

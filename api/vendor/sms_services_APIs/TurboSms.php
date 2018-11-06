@@ -1,9 +1,9 @@
 <?php
 
-class TurboSMS extends SMSSrvAPI {
+class TurboSms extends SMSServiceApi {
 
-    public function __construct($SMSSrvID, $SMSPack = array()) {
-        parent::__construct($SMSSrvID, $SMSPack);
+    public function __construct($smsServiceId, $smsPack = array()) {
+        parent::__construct($smsServiceId, $smsPack);
     }
 
     public function getBalance() {
@@ -16,7 +16,7 @@ class TurboSMS extends SMSSrvAPI {
         $total = 0;
         $tsms_db = 'users';
 
-        $TsmsDB = new DbConnect($this->SrvGatewayAddr, $this->SrvLogin, $this->SrvPassword, $tsms_db, $error_reporting = true, $persistent = false);
+        $TsmsDB = new DbConnect($this->serviceGatewayAddr, $this->serviceLogin, $this->servicePassword, $tsms_db, $error_reporting = true, $persistent = false);
         $TsmsDB->open() or die($TsmsDB->error());
         $TsmsDB->query('SET NAMES utf8;');
 
@@ -32,7 +32,7 @@ class TurboSMS extends SMSSrvAPI {
             $where = '  ORDER BY `id` DESC LIMIT 50;';
         }
 
-        $query = "SELECT * from `" . $this->SrvLogin . "`" . $where;
+        $query = "SELECT * from `" . $this->serviceLogin . "`" . $where;
         $TsmsDB->query($query);
 
         while ($row = $TsmsDB->fetchassoc()) {
@@ -87,28 +87,28 @@ class TurboSMS extends SMSSrvAPI {
     }
 
     public function pushMessages() {
-        $sign = $this->SendDog->safeEscapeString($this->SrvAlphaName);
+        $sign = $this->instanceSendDog->safeEscapeString($this->serviceAlphaName);
         $date = date("Y-m-d H:i:s");
 
         //$allSmsQueue = $this->smsQueue->getQueueData();
-        $allSmsQueue = $this->SMSMsgPack;
+        $allSmsQueue = $this->smsMessagePack;
 
         if (!empty($allSmsQueue)) {
             //open new database connection
-            $TsmsDB = new DbConnect($this->SrvGatewayAddr, $this->SrvLogin, $this->SrvPassword, 'users', $error_reporting = true, $persistent = false);
+            $TsmsDB = new DbConnect($this->serviceGatewayAddr, $this->serviceLogin, $this->servicePassword, 'users', $error_reporting = true, $persistent = false);
             $TsmsDB->open() or die($TsmsDB->error());
             $TsmsDB->query('SET NAMES utf8;');
 
             foreach ($allSmsQueue as $eachsms) {
                 if ((isset($eachsms['number'])) AND ( isset($eachsms['message']))) {
-                    $query = "INSERT INTO `" . $this->SrvLogin . "` ( `number`, `sign`, `message`, `wappush`,  `send_time`) 
+                    $query = "INSERT INTO `" . $this->serviceLogin . "` ( `number`, `sign`, `message`, `wappush`,  `send_time`) 
                                     VALUES ('" . $eachsms['number'] . "', '" . $sign . "', '" . $eachsms['message'] . "', '', '" . $date . "');
                              ";
                     //push new sms to database
                     $TsmsDB->query($query);
                 }
                 //remove old sent message
-                $this->SendDog->getSMSQueueInstance()->deleteSms($eachsms['filename']);
+                $this->instanceSendDog->getSmsQueueInstance()->deleteSms($eachsms['filename']);
             }
             //close old datalink
             $TsmsDB->close();

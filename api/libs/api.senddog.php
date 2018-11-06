@@ -869,28 +869,28 @@ class SendDog {
      * @return void
      */
     protected function skysmsPushMessages() {
-        $Result         = '';
-        $SkySMSAPIURL   = $this->settings['SKYSMS_GATEWAY'];
-        $SkySMSAPILogin = $this->settings['SKYSMS_LOGIN'];
-        $SkySMSAPIPassw = $this->settings['SKYSMS_PASSWORD'];
+        $result         = '';
+        $skySmsApiUrl   = $this->settings['SKYSMS_GATEWAY'];
+        $skySmsApiLogin = $this->settings['SKYSMS_LOGIN'];
+        $skySsmApiPassw = $this->settings['SKYSMS_PASSWORD'];
 
         $allSmsQueue = $this->smsQueue->getQueueData();
         if (!empty($allSmsQueue)) {
             global $ubillingConfig;
             $i = 0;
-            $SMSHistoryEnabled = $ubillingConfig->getAlterParam('SMS_HISTORY_ON');
-            $SMSHistoryTabFreshIDs = array();
-            $PreSendStatus = __('Perparing for delivery');
-            $Telepatia = new Telepathy(false);
+            $smsHistoryEnabled = $ubillingConfig->getAlterParam('SMS_HISTORY_ON');
+            $smsHistoryTabFreshIds = array();
+            $preSendStatus = __('Perparing for delivery');
+            $telepatia = new Telepathy(false);
 
-            if ($SMSHistoryEnabled) {
-                $Telepatia->flushPhoneTelepathyCache();
-                $Telepatia->usePhones();
+            if ($smsHistoryEnabled) {
+                $telepatia->flushPhoneTelepathyCache();
+                $telepatia->usePhones();
             }
 
-            $XMLPacket = '<?xml version="1.0" encoding="utf-8"?>
+            $xmlPacket = '<?xml version="1.0" encoding="utf-8"?>
                           <packet version="1.0">
-                          <auth login="' . $SkySMSAPILogin . '" password="' . $SkySMSAPIPassw . '"/>
+                          <auth login="' . $skySmsApiLogin . '" password="' . $skySsmApiPassw . '"/>
                           <command name="sendmessage">
                           <message id="0" type="sms">
                           <data charset="lat"></data>
@@ -898,28 +898,28 @@ class SendDog {
                          ';
 
             foreach ($allSmsQueue as $io => $eachsms) {
-                if ($SMSHistoryEnabled) {
-                    $PhoneToSearch = $this->cutInternationalsFromPhoneNum($eachsms['number']);
-                    $Login = $Telepatia->getByPhoneFast($PhoneToSearch);
+                if ($smsHistoryEnabled) {
+                    $phoneToSearch = $this->cutInternationalsFromPhoneNum($eachsms['number']);
+                    $login = $telepatia->getByPhoneFast($phoneToSearch);
 
-                    $tQuery = "INSERT INTO `sms_history` (`login`, `phone`, `send_status`, `msg_text`) 
-                                                  VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $PreSendStatus . "', '" . $eachsms['message'] . "');";
-                    nr_query($tQuery);
+                    $query = "INSERT INTO `sms_history` (`login`, `phone`, `send_status`, `msg_text`) 
+                                                  VALUES ('" . $login . "', '" . $eachsms['number'] . "', '" . $preSendStatus . "', '" . $eachsms['message'] . "');";
+                    nr_query($query);
 
-                    $RecID = simple_get_lastid('sms_history');
-                    $SMSHistoryTabFreshIDs[] = $RecID;
+                    $recId = simple_get_lastid('sms_history');
+                    $smsHistoryTabFreshIds[] = $recId;
 
-                    $XMLPacket .= '<recipient id="' . $RecID . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
+                    $xmlPacket .= '<recipient id="' . $recId . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
                 } else {
-                    $XMLPacket .= '<recipient id="' . ++$i . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
+                    $xmlPacket .= '<recipient id="' . ++$i . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
                 }
 
                 $this->smsQueue->deleteSms($eachsms['filename']);
             }
 
-            $Telepatia->savePhoneTelepathyCache();
+            $telepatia->savePhoneTelepathyCache();
 
-            $XMLPacket .= '</recipients>
+            $xmlPacket .= '</recipients>
                             </message>
                             </command>
                             </packet>
@@ -927,50 +927,50 @@ class SendDog {
 
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_URL, $SkySMSAPIURL);
+            curl_setopt($curl, CURLOPT_URL, $skySmsApiUrl);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: text/xml; charset=utf-8", "Accept: text/xml", "Cache-Control: no-cache"));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $XMLPacket);
-            $Result = curl_exec($curl);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $xmlPacket);
+            $result = curl_exec($curl);
             curl_close($curl);
 
-            $ParsedResult = zb_xml2array($Result);
+            $parsedResult = zb_xml2array($result);
 
-            if ( !empty($ParsedResult) ) {
-                $ServerAnswerCode = (isset($ParsedResult['packet']['result_attr']['type'])) ? $ParsedResult['packet']['result_attr']['type'] : '42';
+            if ( !empty($parsedResult) ) {
+                $serverAnswerCode = (isset($parsedResult['packet']['result_attr']['type'])) ? $parsedResult['packet']['result_attr']['type'] : '42';
 
-                if ($ServerAnswerCode == '00') {
-                    $SMSPacketID = $ParsedResult['packet']['result']['message_attr']['smsmsgid'];
-                    log_register('SENDDOG SKYSMS packet ' . $SMSPacketID . ' sent successfully');
+                if ($serverAnswerCode == '00') {
+                    $smsPacketID = $parsedResult['packet']['result']['message_attr']['smsmsgid'];
+                    log_register('SENDDOG SKYSMS packet ' . $smsPacketID . ' sent successfully');
 
-                    if ($SMSHistoryEnabled) {
-                        $Recipients = $ParsedResult['packet']['result']['message']['recipients']['recipient'];
+                    if ($smsHistoryEnabled) {
+                        $recipients = $parsedResult['packet']['result']['message']['recipients']['recipient'];
 
-                        if ( empty($Recipients) ) { $Recipients = $ParsedResult['packet']['result']['message']['recipients']; }
+                        if ( empty($recipients) ) { $recipients = $parsedResult['packet']['result']['message']['recipients']; }
 
-                        foreach ($Recipients as $each => $Recipient) {
+                        foreach ($recipients as $each => $Recipient) {
                             if ( isset($Recipient['id']) ) {
-                                $tQuery = "UPDATE `sms_history` SET `srvmsgself_id` = '" . $Recipient['smsid'] . "', 
-                                                                    `srvmsgpack_id` = '" . $SMSPacketID . "',                                                            
+                                $query = "UPDATE `sms_history` SET `srvmsgself_id` = '" . $Recipient['smsid'] . "', 
+                                                                    `srvmsgpack_id` = '" . $smsPacketID . "',                                                            
                                                                     `date_send` = '" . curdatetime() . "', 
                                                                     `send_status` = '" . __('Message queued') . "' 
                                                 WHERE `id` = '" . $Recipient['id'] . "';";
-                                nr_query($tQuery);
+                                nr_query($query);
                             }
                         }
                     }
                 } else {
-                    $ServerErrorMsg = $this->decodeSkySMSErrorMsg($ServerAnswerCode);
-                    log_register('SENDDOG SKYSMS failed to sent SMS packet. Server answer: ' . $ServerErrorMsg . ( ($ServerAnswerCode == '42') ? $Result : '') );
+                    $serverErrorMsg = $this->decodeSkySmsErrorMessage($serverAnswerCode);
+                    log_register('SENDDOG SKYSMS failed to sent SMS packet. Server answer: ' . $serverErrorMsg . ( ($serverAnswerCode == '42') ? $result : '') );
 
-                    if ($SMSHistoryEnabled) {
-                        $IDsAsStr = implode(',', $SMSHistoryTabFreshIDs);
-                        $tQuery = "UPDATE `sms_history` SET `date_send` = '" . curdatetime() . "',
+                    if ($smsHistoryEnabled) {
+                        $idsAsStr = implode(',', $smsHistoryTabFreshIds);
+                        $query = "UPDATE `sms_history` SET `date_send` = '" . curdatetime() . "',
                                                             `date_statuschk` = '" . curdatetime() . "',
                                                             `no_statuschk` = '1', 
-                                                            `send_status` = '" . __('Failed to send message') . ': ' . $ServerErrorMsg ."' 
-                                        WHERE `id` IN (" . $IDsAsStr . ");";
-                        nr_query($tQuery);
+                                                            `send_status` = '" . __('Failed to send message') . ': ' . $serverErrorMsg ."' 
+                                        WHERE `id` IN (" . $idsAsStr . ");";
+                        nr_query($query);
                     }
                 }
             }
@@ -987,73 +987,73 @@ class SendDog {
      *
      * @return void
      */
-    protected function skysmsChkMsgStatus() {
-        $SMSCheckStatusExpireDays = $this->altCfg['SMS_CHECKSTATUS_EXPIRE_DAYS'];
-        $tQuery = "UPDATE `sms_history` SET `no_statuschk` = 1,
+    protected function skysmsCheckMessagesStatus() {
+        $smsCheckStatusExpireDays = $this->altCfg['SMS_CHECKSTATUS_EXPIRE_DAYS'];
+        $query = "UPDATE `sms_history` SET `no_statuschk` = 1,
                                             `send_status` = '" . __('SMS status check period expired') . "'
-                        WHERE ABS( DATEDIFF(NOW(), `date_send`) ) > " . $SMSCheckStatusExpireDays . " AND no_statuschk < 1;";
-        nr_query($tQuery);
+                        WHERE ABS( DATEDIFF(NOW(), `date_send`) ) > " . $smsCheckStatusExpireDays . " AND no_statuschk < 1;";
+        nr_query($query);
 
-        $tQuery = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
-        $ChkMessages = simple_queryall($tQuery);
+        $query = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
+        $chkMessages = simple_queryall($query);
 
-        if ( !empty($ChkMessages) ) {
-            $SkySMSAPIURL   = $this->settings['SKYSMS_GATEWAY'];
-            $SkySMSAPILogin = $this->settings['SKYSMS_LOGIN'];
-            $SkySMSAPIPassw = $this->settings['SKYSMS_PASSWORD'];
+        if ( !empty($chkMessages) ) {
+            $skySmsApiUrl   = $this->settings['SKYSMS_GATEWAY'];
+            $skySmsApiLogin = $this->settings['SKYSMS_LOGIN'];
+            $skySmsApiPassw = $this->settings['SKYSMS_PASSWORD'];
 
-            foreach ($ChkMessages as $io => $EachMsg) {
-                $SMSPAcketID = $EachMsg['srvmsgpack_id'];
+            foreach ($chkMessages as $io => $eachmessage) {
+                $smsPacketID = $eachmessage['srvmsgpack_id'];
 
-                if ( empty($SMSPAcketID) ) { continue; }
+                if ( empty($smsPacketID) ) { continue; }
 
-                $XMLPacket = '<?xml version="1.0" encoding="utf-8"?>
+                $xmlPacket = '<?xml version="1.0" encoding="utf-8"?>
                               <packet version="1.0">
-                              <auth login="' . $SkySMSAPILogin . '" password="' . $SkySMSAPIPassw . '"/>
+                              <auth login="' . $skySmsApiLogin . '" password="' . $skySmsApiPassw . '"/>
                               <command name="querymessage">
-                              <message smsmsgid="' . $SMSPAcketID . '"/>
+                              <message smsmsgid="' . $smsPacketID . '"/>
                               </command>
                               </packet>
                              ';
 
                 $curl = curl_init();
                 curl_setopt($curl, CURLOPT_POST, true);
-                curl_setopt($curl, CURLOPT_URL, $SkySMSAPIURL);
+                curl_setopt($curl, CURLOPT_URL, $skySmsApiUrl);
                 curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: text/xml; charset=utf-8", "Accept: text/xml", "Cache-Control: no-cache"));
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $XMLPacket);
-                $Result = curl_exec($curl);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $xmlPacket);
+                $result = curl_exec($curl);
                 curl_close($curl);
 
-                $ParsedResult = zb_xml2array($Result);
+                $parsedResult = zb_xml2array($result);
 
-                if ( !empty($ParsedResult) ) {
-                    $ServerAnswerCode = (isset($ParsedResult['packet']['result_attr']['type'])) ? $ParsedResult['packet']['result_attr']['type'] : '42';
+                if ( !empty($parsedResult) ) {
+                    $serverAnswerCode = (isset($parsedResult['packet']['result_attr']['type'])) ? $parsedResult['packet']['result_attr']['type'] : '42';
 
-                    if ($ServerAnswerCode == '00') {
-                        $Recipients = $ParsedResult['packet']['result']['message']['recipients']['recipient'];
+                    if ($serverAnswerCode == '00') {
+                        $recipients = $parsedResult['packet']['result']['message']['recipients']['recipient'];
 
-                        if ( empty($Recipients) ) { $Recipients = $ParsedResult['packet']['result']['message']['recipients']; }
+                        if ( empty($recipients) ) { $recipients = $parsedResult['packet']['result']['message']['recipients']; }
 
-                        foreach ($Recipients as $each => $Recipient) {
-                            if (isset($Recipient['smsid'])) {
-                                $MsgSelfID         = $Recipient['smsid'];
-                                $MsgStatus         = $Recipient['status'];
-                                $DecodedMsgStatus  = $this->decodeSkySMSStatusMsg($MsgStatus);
+                        foreach ($recipients as $each => $recipient) {
+                            if (isset($recipient['smsid'])) {
+                                $messageId             = $recipient['smsid'];
+                                $messageStatus         = $recipient['status'];
+                                $decodedMessageStatus  = $this->decodeSkySmsStatusMessage($messageStatus);
 
-                                $tQuery = "UPDATE `sms_history` SET `date_statuschk` = '". curdatetime() . "', 
-                                                                    `delivered` = '" . $DecodedMsgStatus['DeliveredStatus'] . "', 
-                                                                    `no_statuschk` = '" . $DecodedMsgStatus['NoStatusCheck'] . "', 
-                                                                    `send_status` = '" . $DecodedMsgStatus['StatusMsg'] . "' 
-                                                WHERE `srvmsgself_id` = '" . $MsgSelfID . "';";
-                                nr_query($tQuery);
+                                $query = "UPDATE `sms_history` SET `date_statuschk` = '". curdatetime() . "', 
+                                                                    `delivered` = '" . $decodedMessageStatus['DeliveredStatus'] . "', 
+                                                                    `no_statuschk` = '" . $decodedMessageStatus['NoStatusCheck'] . "', 
+                                                                    `send_status` = '" . $decodedMessageStatus['StatusMsg'] . "' 
+                                                WHERE `srvmsgself_id` = '" . $messageId . "';";
+                                nr_query($query);
                             }
                         }
 
-                        log_register('SENDDOG SKYSMS checked SMS packet ' . $SMSPAcketID . ' send status');
+                        log_register('SENDDOG SKYSMS checked SMS packet ' . $smsPacketID . ' send status');
                     } else {
-                        $ServerErrorMsg = $this->decodeSkySMSErrorMsg($ServerAnswerCode);
-                        log_register('SENDDOG SKYSMS failed to get SMS packet ' . $SMSPAcketID . ' send status. Server answer: ' . $ServerErrorMsg . ( ($ServerAnswerCode == '42') ? $Result : '') );
+                        $serverErrorMsg = $this->decodeSkySmsErrorMessage($serverAnswerCode);
+                        log_register('SENDDOG SKYSMS failed to get SMS packet ' . $smsPacketID . ' send status. Server answer: ' . $serverErrorMsg . ( ($serverAnswerCode == '42') ? $result : '') );
                     }
                 }
             }
@@ -1063,119 +1063,119 @@ class SendDog {
     /**
      * Gets the error message code as a parameter and returns appropriate message string
      *
-     * @param string $ErrorMsgCode
+     * @param string $errorMsgCode
      * @return string
      */
-    protected function decodeSkySMSErrorMsg($ErrorMsgCode) {
-        switch ($ErrorMsgCode) {
+    protected function decodeSkySmsErrorMessage($errorMsgCode) {
+        switch ($errorMsgCode) {
             case '01':
-                $Message = __('Incorrect parameters value or insufficient parameters count');
+                $message = __('Incorrect parameters value or insufficient parameters count');
                 break;
             case '02':
-                $Message = __('Database server connection error');
+                $message = __('Database server connection error');
                 break;
             case '03':
-                $Message = __('Database was not found');
+                $message = __('Database was not found');
                 break;
             case '04':
-                $Message = __('Authorization procedure error');
+                $message = __('Authorization procedure error');
                 break;
             case '05':
-                $Message = __('Login or password is incorrect');
+                $message = __('Login or password is incorrect');
                 break;
             case '06':
-                $Message = __('Malfunction in user\'s configuration');
+                $message = __('Malfunction in user\'s configuration');
                 break;
             default:
-                $Message = __('Error code is unknown. Servers answer:') . '  ' . $ErrorMsgCode;
+                $message = __('Error code is unknown. Servers answer:') . '  ' . $errorMsgCode;
         }
 
-        return $Message;
+        return $message;
     }
 
     /**
      * Gets the status message code as a parameter and returns appropriate message string
      *
-     * @param  string $StatusMsgCode
+     * @param  string $statusMsgCode
      * @return array
      */
-    protected function decodeSkySMSStatusMsg($StatusMsgCode) {
-        $StatusArray = array('StatusMsg' => '', 'DeliveredStatus' => 0, 'NoStatusCheck' => 0);
+    protected function decodeSkySmsStatusMessage($statusMsgCode) {
+        $statusArray = array('StatusMsg' => '', 'DeliveredStatus' => 0, 'NoStatusCheck' => 0);
 
-        switch ($StatusMsgCode) {
+        switch ($statusMsgCode) {
             case 'DELIVERED':
-                $StatusArray['StatusMsg'] = __('Message is delivered to recipient');
-                $StatusArray['DeliveredStatus'] = 1;
-                $StatusArray['NoStatusCheck'] = 0;
+                $statusArray['StatusMsg'] = __('Message is delivered to recipient');
+                $statusArray['DeliveredStatus'] = 1;
+                $statusArray['NoStatusCheck'] = 0;
                 break;
 
             case 'TOSEND':
-                $StatusArray['StatusMsg'] = __('Message is queued for delivering');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 0;
+                $statusArray['StatusMsg'] = __('Message is queued for delivering');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 0;
                 break;
 
             case 'ENROUTE':
-                $StatusArray['StatusMsg'] = __('Message is sent but not yet delivered to recipient');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 0;
+                $statusArray['StatusMsg'] = __('Message is sent but not yet delivered to recipient');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 0;
                 break;
 
             case 'PAUSED':
-                $StatusArray['StatusMsg'] = __('Message delivering is paused');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 0;
+                $statusArray['StatusMsg'] = __('Message delivering is paused');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 0;
                 break;
 
             case 'CANCELED':
-                $StatusArray['StatusMsg'] = __('Message delivering is canceled');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Message delivering is canceled');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
                 break;
 
             case 'FAILED':
-                $StatusArray['StatusMsg'] = __('Failed to send message');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Failed to send message');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
                 break;
 
             case 'EXPIRED':
-                $StatusArray['StatusMsg'] = __('Failed to deliver message - delivery term is expired');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Failed to deliver message - delivery term is expired');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
                 break;
 
             case 'UNDELIVERABLE':
-                $StatusArray['StatusMsg'] = __('Message can not be delivered to recipient');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Message can not be delivered to recipient');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
                 break;
 
             case 'REJECTED':
-                $StatusArray['StatusMsg'] = __('Message is rejected by server');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Message is rejected by server');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
                 break;
 
             case 'BADCOST':
-                $StatusArray['StatusMsg'] = __('Message is not delivered to recipient - can not determine message cost');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Message is not delivered to recipient - can not determine message cost');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
                 break;
 
             case 'UNKNOWN':
-                $StatusArray['StatusMsg'] = __('Message status is unknown');
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 0;
+                $statusArray['StatusMsg'] = __('Message status is unknown');
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 0;
                 break;
 
             default:
-                $StatusArray['StatusMsg'] = __('Sending status code is unknown:') . '  ' . $StatusMsgCode;
-                $StatusArray['DeliveredStatus'] = 0;
-                $StatusArray['NoStatusCheck'] = 1;
+                $statusArray['StatusMsg'] = __('Sending status code is unknown:') . '  ' . $statusMsgCode;
+                $statusArray['DeliveredStatus'] = 0;
+                $statusArray['NoStatusCheck'] = 1;
         }
 
-        return $StatusArray;
+        return $statusArray;
     }
 
     /**
@@ -1243,7 +1243,7 @@ class SendDog {
             case 'smspilot':
                 break;
             case 'skysms':
-                $this->skysmsChkMsgStatus();
+                $this->skysmsCheckMessagesStatus();
                 break;
         }
     }
@@ -1305,33 +1305,33 @@ class SendDogAdvanced extends SendDog {
      *
      * @var array
      */
-    protected $SrvsAPIsIDs = array();
+    protected $servicesApiId = array();
 
     /**
      * Placeholder for default SMS service ID
      *
      * @var string
      */
-    protected $DefaultSMSServiceID = '';
+    protected $defaultSmsServiceId = '';
 
     /**
      * Placeholder for default SMS service API name
      *
      * @var string
      */
-    protected $DefaultSMSServiceAPI = '';
+    protected $defaultSmsServiceApi = '';
 
     /**
      * Contains path to files with services APIs implementations
      */
-    const API_IMPL_PATH = 'content/sms_services_APIs/';
+    const API_IMPL_PATH = 'api/vendor/sms_services_APIs/';
 
     public function __construct() {
         $this->loadAltCfg();
         $this->initSmsQueue();
         $this->initMessages();
         $this->loadTelegramConfig();
-        $this->getSrvsAPIsIDs();
+        $this->getServicesAPIsIDs();
     }
 
     /**
@@ -1339,17 +1339,17 @@ class SendDogAdvanced extends SendDog {
      *
      * @return void
      */
-    protected function getSrvsAPIsIDs() {
-        $AllSMSSrvs = $this->getSMSServicesConfigData();
+    protected function getServicesAPIsIDs() {
+        $allSmsServices = $this->getSmsServicesConfigData();
 
-        if ( !empty($AllSMSSrvs) ) {
-            foreach ($AllSMSSrvs as $Index => $Record) {
-                if ($Record['default_service']) {
-                    $this->DefaultSMSServiceID = $Record['id'];
-                    $this->DefaultSMSServiceAPI = $Record['api_file_name'];
+        if ( !empty($allSmsServices) ) {
+            foreach ($allSmsServices as $index => $record) {
+                if ($record['default_service']) {
+                    $this->defaultSmsServiceId = $record['id'];
+                    $this->defaultSmsServiceApi = $record['api_file_name'];
                 }
 
-                $this->SrvsAPIsIDs[$Record['id']] = $Record['api_file_name'];
+                $this->servicesApiId[$record['id']] = $record['api_file_name'];
             }
         }
     }
@@ -1357,59 +1357,59 @@ class SendDogAdvanced extends SendDog {
     /**
      * Returns array with contents of API_IMPL_PATH dir with names of implemented services APIs
      *
-     * @param bool $UseValueAsIndex - if true API name used as array index(key) also
+     * @param bool $useValueAsIndex - if true API name used as array index(key) also
      *
      * @return array
      */
-    protected function getImplementedSMSSrvsAPIsNames($UseValueAsIndex = false) {
-        $APIImplementations = rcms_scandir(self::API_IMPL_PATH, '*.php');
+    protected function getImplementedSmsServicesApiNames($useValueAsIndex = false) {
+        $apiImplementations = rcms_scandir(self::API_IMPL_PATH, '*.php');
 
-        foreach($APIImplementations as $index => $item) {
-            $APIName = str_replace('.php', '', $item);
-            $APIImplementations[$index] = $APIName;
+        foreach($apiImplementations as $index => $item) {
+            $apiName = str_replace('.php', '', $item);
+            $apiImplementations[$index] = $apiName;
 
-            if ($UseValueAsIndex) {
-                $APIImplementations[$APIName] = $APIImplementations[$index];
-                unset($APIImplementations[$index]);
+            if ($useValueAsIndex) {
+                $apiImplementations[$apiName] = $apiImplementations[$index];
+                unset($apiImplementations[$index]);
             }
         }
 
-        return $APIImplementations;
+        return $apiImplementations;
     }
 
     /**
      * Gets SMS services config data from DB
      *
-     * @param string $WHEREString
+     * @param string $whereString of the query, including ' WHERE ' keyword
      *
      * @return array
      */
-    public function getSMSServicesConfigData($WHEREString = '') {
-        if ( empty($WHEREString) ) {
-            $WHEREString = " ";
+    public function getSmsServicesConfigData($whereString = '') {
+        if ( empty($whereString) ) {
+            $whereString = " ";
         }
 
-        $tQuery = "SELECT * FROM `sms_services` " . $WHEREString . " ;";
-        $Result = simple_queryall($tQuery);
+        $query = "SELECT * FROM `sms_services` " . $whereString . " ;";
+        $result = simple_queryall($query);
 
-        return $Result;
+        return $result;
     }
 
     /**
      * Returns true if SMS service with such name already exists
      *
-     * @param $SrvName
-     * @param int $ExcludeEditedSrvID
+     * @param $serviceName
+     * @param int $excludeEditedServiceId
      *
      * @return string
      */
-    public function checkServiceNameExists($SrvName, $ExcludeEditedSrvID = 0) {
-        $SrvName = trim($SrvName);
+    public function checkServiceNameExists($serviceName, $excludeEditedServiceId = 0) {
+        $serviceName = trim($serviceName);
 
-        if ( empty($ExcludeEditedSrvID) ) {
-            $query = "SELECT `id` FROM `sms_services` WHERE `name` = '" . $SrvName . "';";
+        if ( empty($excludeEditedServiceId) ) {
+            $query = "SELECT `id` FROM `sms_services` WHERE `name` = '" . $serviceName . "';";
         } else {
-            $query = "SELECT `id` FROM `sms_services` WHERE `name` = '" . $SrvName . "' AND `id` != '" . $ExcludeEditedSrvID . "';";
+            $query = "SELECT `id` FROM `sms_services` WHERE `name` = '" . $serviceName . "' AND `id` != '" . $excludeEditedServiceId . "';";
         }
 
         $result = simple_queryall($query);
@@ -1422,7 +1422,7 @@ class SendDogAdvanced extends SendDog {
      *
      * @return object
      */
-    public function getSMSQueueInstance() {
+    public function getSmsQueueInstance() {
         return $this->smsQueue;
     }
 
@@ -1452,64 +1452,64 @@ class SendDogAdvanced extends SendDog {
     /**
      * Renders JSON for JQDT
      *
-     * @param $QueryData
+     * @param $queryData
      */
-    public function renderJSON($QueryData) {
+    public function renderJSON($queryData) {
         global $ubillingConfig;
         $json = new wf_JqDtHelper();
 
-        if ( !empty($QueryData) ) {
+        if ( !empty($queryData) ) {
             $data = array();
 
-            foreach ($QueryData as $EachRec) {
-                foreach ($EachRec as $FieldName => $FieldVal) {
-                    switch ($FieldName) {
+            foreach ($queryData as $eachRec) {
+                foreach ($eachRec as $fieldName => $fieldVal) {
+                    switch ($fieldName) {
                         case 'default_service':
-                            $data[] = ($FieldVal == 1) ? web_green_led() : web_red_led();
+                            $data[] = ($fieldVal == 1) ? web_green_led() : web_red_led();
                             break;
 
                         case 'passwd':
                             if ( !$ubillingConfig->getAlterParam('PASSWORDSHIDE') ) {
-                                $data[] = $FieldVal;
+                                $data[] = $fieldVal;
                             }
                             break;
 
                         default:
-                            $data[] = $FieldVal;
+                            $data[] = $fieldVal;
                     }
                 }
 
-                $LnkID   = wf_InputId();
-                $LnkID2  = wf_InputId();
-                $LnkID3  = wf_InputId();
-                $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results',
-                         'deleteSMSSrv(' . $EachRec['id'] . ', \'' . self::URL_ME . '\', \'deleteSMSSrv\', \'' . wf_InputId() . '\')') . ' ';
-                $Actions .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#"');
-                $Actions .= web_edit_icon();
-                $Actions .= wf_tag('a', true);
-                $Actions .= wf_nbsp();
-                $Actions .= wf_tag('a', false, '', 'id="' . $LnkID2 . '" href="#"');
-                $Actions .= wf_img_sized('skins/icon_dollar.gif', __('Balance'), '16', '16');
-                $Actions .= wf_tag('a', true);
-                $Actions .= wf_nbsp();
-                $Actions .= wf_tag('a', false, '', 'id="' . $LnkID3 . '" href="#"');
-                $Actions .= wf_img_sized('skins/icon_sms_micro.gif', __('View SMS sending queue'), '16', '16');
-                $Actions .= wf_tag('a', true);
-                $Actions .= wf_tag('script', false, '', 'type="text/javascript"');
-                $Actions .= '
-                                $(\'#' . $LnkID . '\').click(function(evt) {
+                $linkId  = wf_InputId();
+                $linkId2 = wf_InputId();
+                $linkId3 = wf_InputId();
+                $actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results',
+                         'deleteSMSSrv(' . $eachRec['id'] . ', \'' . self::URL_ME . '\', \'deleteSMSSrv\', \'' . wf_InputId() . '\')') . ' ';
+                $actions .= wf_tag('a', false, '', 'id="' . $linkId . '" href="#"');
+                $actions .= web_edit_icon();
+                $actions .= wf_tag('a', true);
+                $actions .= wf_nbsp();
+                $actions .= wf_tag('a', false, '', 'id="' . $linkId2 . '" href="#"');
+                $actions .= wf_img_sized('skins/icon_dollar.gif', __('Balance'), '16', '16');
+                $actions .= wf_tag('a', true);
+                $actions .= wf_nbsp();
+                $actions .= wf_tag('a', false, '', 'id="' . $linkId3 . '" href="#"');
+                $actions .= wf_img_sized('skins/icon_sms_micro.gif', __('View SMS sending queue'), '16', '16');
+                $actions .= wf_tag('a', true);
+                $actions .= wf_tag('script', false, '', 'type="text/javascript"');
+                $actions .= '
+                                $(\'#' . $linkId . '\').click(function(evt) {
                                     $.ajax({
                                         type: "POST",
                                         url: "' . self::URL_ME .'",
                                         data: { 
                                                 action:"editSMSSrv",
-                                                smssrvid:"' . $EachRec['id'] . '",                                                                                                                
-                                                ModalWID:"dialog-modal_' . $LnkID . '", 
-                                                ModalWBID:"body_dialog-modal_' . $LnkID . '"                                                        
+                                                smssrvid:"' . $eachRec['id'] . '",                                                                                                                
+                                                modalWindowId:"dialog-modal_' . $linkId . '", 
+                                                ModalWBID:"body_dialog-modal_' . $linkId . '"                                                        
                                                },
                                         success: function(result) {
                                                     $(document.body).append(result);
-                                                    $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                                    $(\'#dialog-modal_' . $linkId . '\').dialog("open");
                                                  }
                                     });
             
@@ -1517,20 +1517,20 @@ class SendDogAdvanced extends SendDog {
                                     return false;
                                 });
                                 
-                                $(\'#' . $LnkID2 . '\').click(function(evt) {
+                                $(\'#' . $linkId2 . '\').click(function(evt) {
                                     $.ajax({
                                         type: "POST",
                                         url: "' . self::URL_ME .'",
                                         data: { 
                                                 action:"getBalance",
-                                                smssrvid:"' . $EachRec['id'] . '",                                                                                                                
-                                                SMSAPIName:"' . $EachRec['api_file_name'] . '",
-                                                ModalWID:"dialog-modal_' . $LnkID2 . '", 
-                                                ModalWBID:"body_dialog-modal_' . $LnkID2 . '"                                                        
+                                                smssrvid:"' . $eachRec['id'] . '",                                                                                                                
+                                                SMSAPIName:"' . $eachRec['api_file_name'] . '",
+                                                modalWindowId:"dialog-modal_' . $linkId2 . '", 
+                                                ModalWBID:"body_dialog-modal_' . $linkId2 . '"                                                        
                                                },
                                         success: function(result) {
                                                     $(document.body).append(result);
-                                                    $(\'#dialog-modal_' . $LnkID2 . '\').dialog("open");
+                                                    $(\'#dialog-modal_' . $linkId2 . '\').dialog("open");
                                                  }
                                     });
             
@@ -1538,20 +1538,20 @@ class SendDogAdvanced extends SendDog {
                                     return false;
                                 });
                                 
-                                $(\'#' . $LnkID3 . '\').click(function(evt) {
+                                $(\'#' . $linkId3 . '\').click(function(evt) {
                                     $.ajax({
                                         type: "POST",
                                         url: "' . self::URL_ME .'",
                                         data: { 
                                                 action:"getSMSQueue",
-                                                smssrvid:"' . $EachRec['id'] . '",                                                                                                                
-                                                SMSAPIName:"' . $EachRec['api_file_name'] . '",
-                                                ModalWID:"dialog-modal_' . $LnkID3 . '", 
-                                                ModalWBID:"body_dialog-modal_' . $LnkID3 . '"                                                        
+                                                smssrvid:"' . $eachRec['id'] . '",                                                                                                                
+                                                SMSAPIName:"' . $eachRec['api_file_name'] . '",
+                                                modalWindowId:"dialog-modal_' . $linkId3 . '", 
+                                                ModalWBID:"body_dialog-modal_' . $linkId3 . '"                                                        
                                                },
                                         success: function(result) {
                                                     $(document.body).append(result);
-                                                    $(\'#dialog-modal_' . $LnkID3 . '\').dialog("open");
+                                                    $(\'#dialog-modal_' . $linkId3 . '\').dialog("open");
                                                  }
                                     });
             
@@ -1559,9 +1559,9 @@ class SendDogAdvanced extends SendDog {
                                     return false;
                                 });
                             ';
-                $Actions .= wf_tag('script', true);
+                $actions .= wf_tag('script', true);
 
-                $data[] = $Actions;
+                $data[] = $actions;
 
                 $json->addRow($data);
                 unset($data);
@@ -1578,25 +1578,25 @@ class SendDogAdvanced extends SendDog {
      */
     public function renderJQDT() {
         global $ubillingConfig;
-        $AjaxURLStr     = '' . self::URL_ME . '&ajax=true' . '';
-        $JQDTID         = 'jqdt_' . md5($AjaxURLStr);
-        $ErrorModalWID  = wf_InputId();
-        $HidePasswords  = $ubillingConfig->getAlterParam('PASSWORDSHIDE');
-        $СolumnTarget1  = ($HidePasswords) ? '4' : '5';
-        $СolumnTarget2  = ($HidePasswords) ? '6' : '7';
-        $СolumnTarget3  = ($HidePasswords) ? '7' : '8';
-        $СolumnTarget4  = ($HidePasswords) ? '[5, 6, 7, 8]' : '[6, 7, 8, 9]';
-        $columns        = array();
-        $opts           = ' "order": [[ 0, "desc" ]], 
-                            "columnDefs": [ {"className": "dt-head-center", "targets": [0, 1, 2, 3, 4]},
-                                            {"width": "20%", "className": "dt-head-center jqdt_word_wrap", "targets": ' . $СolumnTarget1 . '}, 
-                                            {"width": "8%", "targets": ' . $СolumnTarget2 . '},
-                                            {"width": "10%", "targets": ' . $СolumnTarget3 . '},
-                                            {"className": "dt-center", "targets": ' . $СolumnTarget4 . '} ]';
+        $ajaxUrlStr         = '' . self::URL_ME . '&ajax=true' . '';
+        $jqdtId             = 'jqdt_' . md5($ajaxUrlStr);
+        $errorModalWindowId = wf_InputId();
+        $hidePasswords      = $ubillingConfig->getAlterParam('PASSWORDSHIDE');
+        $columnTarget1      = ($hidePasswords) ? '4' : '5';
+        $columnTarget2      = ($hidePasswords) ? '6' : '7';
+        $columnTarget3      = ($hidePasswords) ? '7' : '8';
+        $columnTarget4      = ($hidePasswords) ? '[5, 6, 7, 8]' : '[6, 7, 8, 9]';
+        $columns            = array();
+        $opts               = ' "order": [[ 0, "desc" ]], 
+                                "columnDefs": [ {"className": "dt-head-center", "targets": [0, 1, 2, 3, 4]},
+                                                {"width": "20%", "className": "dt-head-center jqdt_word_wrap", "targets": ' . $columnTarget1 . '}, 
+                                                {"width": "8%", "targets": ' . $columnTarget2 . '},
+                                                {"width": "10%", "targets": ' . $columnTarget3 . '},
+                                                {"className": "dt-center", "targets": ' . $columnTarget4 . '} ]';
         $columns[] = ('ID');
         $columns[] = __('Name');
         $columns[] = __('Login');
-        if ( !$HidePasswords ) {
+        if ( !$hidePasswords ) {
             $columns[] = __('Password');
         }
         $columns[] = __('Gateway URL/IP');
@@ -1606,7 +1606,7 @@ class SendDogAdvanced extends SendDog {
         $columns[] = __('API implementation file');
         $columns[] = __('Actions');
 
-        $result = wf_JqDtLoader($columns, $AjaxURLStr, false,  __('results'), 100, $opts);
+        $result = wf_JqDtLoader($columns, $ajaxUrlStr, false,  __('results'), 100, $opts);
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
         $result .= wf_JSEmptyFunc();
@@ -1616,6 +1616,7 @@ class SendDogAdvanced extends SendDog {
                     // to be able to create "SMS service add/edit form" dynamically                    
                     function toggleAlphaNameFieldReadonly() {
                         if ( $(".__SMSSrvAlphaAsLoginChk").is(\':checked\') ) {
+                            $(".__SMSSrvAlphaName").val("");
                             $(".__SMSSrvAlphaName").attr("readonly", "readonly");
                             $(".__SMSSrvAlphaName").css(\'background-color\', \'#CECECE\');
                         } else {
@@ -1637,8 +1638,8 @@ class SendDogAdvanced extends SendDog {
                         //var DefaultService   = ( $(".__SMSSrvDefaultSrvChk").is(\':checked\') ) ? 1 : 0;
                         var DefaultService   = ( $(".__SMSSrvDefaultSrvChk").is(\':checked\') ) ? 1 : ( $(".__DefaultServHidID").val() ) ? 1 : 0;
                         var FrmAction        = $(".__SMSSrvForm").attr("action");
-                        var FrmData          = $(".__SMSSrvForm").serialize() + \'&smssrvalphaaslogin=\' + AlphaNameAsLogin + \'&smssrvdefault=\' + DefaultService + \'&errfrmid=' . $ErrorModalWID . '\'; 
-                        var ModalWID         = $(".__SMSSrvForm").closest(\'div\').attr(\'id\');
+                        var FrmData          = $(".__SMSSrvForm").serialize() + \'&smssrvalphaaslogin=\' + AlphaNameAsLogin + \'&smssrvdefault=\' + DefaultService + \'&errfrmid=' . $errorModalWindowId . '\'; 
+                        var modalWindowId         = $(".__SMSSrvForm").closest(\'div\').attr(\'id\');
                         evt.preventDefault();
                     
                         $.ajax({
@@ -1648,9 +1649,9 @@ class SendDogAdvanced extends SendDog {
                             success: function(result) {
                                         if ( !empty(result) ) {                                            
                                             $(document.body).append(result);                                                
-                                            $( \'#' . $ErrorModalWID . '\' ).dialog("open");                                                
+                                            $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
                                         } else {
-                                            $(\'#' . $JQDTID . '\').DataTable().ajax.reload();
+                                            $(\'#' . $jqdtId . '\').DataTable().ajax.reload();
                                             $( \'#\'+$(".__SMSSrvFormModalWindowID").val() ).dialog("close");
                                         }
                                     }
@@ -1668,7 +1669,7 @@ class SendDogAdvanced extends SendDog {
                                                 $(\'#\'+ErrFrmID).dialog("open");
                                             }
                                             
-                                            $(\'#' . $JQDTID . '\').DataTable().ajax.reload();
+                                            $(\'#' . $jqdtId . '\').DataTable().ajax.reload();
                                          }
                         });
                     }
@@ -1683,46 +1684,46 @@ class SendDogAdvanced extends SendDog {
      *
      * @return string
      */
-    public function renderAddForm($ModalWID) {
+    public function renderAddForm($modalWindowId) {
         global $ubillingConfig;
-        $FormID             = 'Form_' . wf_InputId();
-        $AlphaAsLoginChkID  = 'AlphaAsLoginChkID_' . wf_InputId();
-        $DefaultServChkID   = 'DefaultServChkID_' . wf_InputId();
-        $DefaultServHidID   = 'DefaultServHidID_' . wf_InputId();
-        $CloseFrmChkID      = 'CloseFrmChkID_' . wf_InputId();
+        $formId              = 'Form_' . wf_InputId();
+        $alphaAsLoginChkId   = 'AlphaAsLoginChkID_' . wf_InputId();
+        $defaultServiceChkId = 'DefaultServChkID_' . wf_InputId();
+        $defaultServiceHidId = 'DefaultServHidID_' . wf_InputId();
+        $closeFormChkId      = 'CloseFrmChkID_' . wf_InputId();
 
-        $APIImplementations = $this->getImplementedSMSSrvsAPIsNames(true);
+        $apiImplementations = $this->getImplementedSmsServicesApiNames(true);
 
         // check if there is any services already added
-        $tQuery = "SELECT `id` FROM `sms_services`;";
-        $Result = simple_queryall($tQuery);
-        $UseAsDefaultSrv = (empty($Result));    // if no services yet - use the first added as default
+        $query = "SELECT `id` FROM `sms_services`;";
+        $result = simple_queryall($query);
+        $useAsDefaultService = ( empty($result) );    // if no services yet - use the first added as default
 
         $inputs = wf_TextInput('smssrvname', __('Name'), '', true);
         $inputs .= wf_TextInput('smssrvlogin', __('Login'), '', true);
-        $inputs .= wf_CheckInput('smssrvalphaaslogin', __('Use login as alpha name'), true, false, $AlphaAsLoginChkID, '__SMSSrvAlphaAsLoginChk');
+        $inputs .= wf_CheckInput('smssrvalphaaslogin', __('Use login as alpha name'), true, false, $alphaAsLoginChkId, '__SMSSrvAlphaAsLoginChk');
         $inputs .= ($ubillingConfig->getAlterParam('PASSWORDSHIDE')) ? wf_PasswordInput('smssrvpassw', __('Password'), '', true) :
                                                                               wf_TextInput('smssrvpassw', __('Password'), '', true);
         $inputs .= wf_TextInput('smssrvurlip', __('Gateway URL/IP'), '', true);
         $inputs .= wf_TextInput('smssrvapikey', __('API key'), '', true);
         $inputs .= wf_TextInput('smssrvalphaname', __('Alpha name'), '', true, '', '', '__SMSSrvAlphaName');
-        $inputs .= wf_Selector('smssrvapiimplementation', $APIImplementations, __('API implementation file'), '', true);
+        $inputs .= wf_Selector('smssrvapiimplementation', $apiImplementations, __('API implementation file'), '', true);
 
-        if ($UseAsDefaultSrv) {
+        if ($useAsDefaultService) {
             $inputs .= wf_tag('span', false, '', 'style="display: block; margin: 5px 2px"');
             $inputs .= __('Will be used as a default SMS service');
             $inputs .= wf_tag('span', true);
-            $inputs .= wf_HiddenInput('smssrvdefault', 'true', $DefaultServHidID, '__DefaultServHidID');
+            $inputs .= wf_HiddenInput('smssrvdefault', 'true', $defaultServiceHidId, '__DefaultServHidID');
         } else {
-            $inputs .= wf_CheckInput('smssrvdefault', __('Use as default SMS service'), true, false, $DefaultServChkID, '__SMSSrvDefaultSrvChk');
+            $inputs .= wf_CheckInput('smssrvdefault', __('Use as default SMS service'), true, false, $defaultServiceChkId, '__SMSSrvDefaultSrvChk');
         }
 
-        $inputs.= wf_HiddenInput('', $ModalWID, '', '__SMSSrvFormModalWindowID');
-        $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), false, true, $CloseFrmChkID);
+        $inputs .= wf_HiddenInput('', $modalWindowId, '', '__SMSSrvFormModalWindowID');
+        $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), false, true, $closeFormChkId);
         $inputs .= wf_HiddenInput('smssrvcreate', 'true');
         $inputs .= wf_delimiter();
         $inputs .= wf_Submit(__('Create'));
-        $form = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __SMSSrvForm', '', $FormID);
+        $form = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __SMSSrvForm', '', $formId);
 
         return ($form);
     }
@@ -1732,43 +1733,43 @@ class SendDogAdvanced extends SendDog {
      *
      * @return string
      */
-    public function renderEditForm($SMSSrvID, $ModalWID) {
+    public function renderEditForm($smsServiceId, $modalWindowId) {
         global $ubillingConfig;
-        $FormID             = 'Form_' . wf_InputId();
-        $AlphaAsLoginChkID  = 'AlphaAsLoginChkID_' . wf_InputId();
-        $DefaultServChkID   = 'DefaultServChkID_' . wf_InputId();
-        $CloseFrmChkID      = 'CloseFrmChkID_' . wf_InputId();
+        $formId              = 'Form_' . wf_InputId();
+        $alphaAsLoginChkId   = 'AlphaAsLoginChkID_' . wf_InputId();
+        $defaultServiceChkId = 'DefaultServChkID_' . wf_InputId();
+        $closeFormChkId      = 'CloseFrmChkID_' . wf_InputId();
 
-        $APIImplementations = $this->getImplementedSMSSrvsAPIsNames(true);
-        $SMSSrvData = $this->getSMSServicesConfigData(" WHERE `id` = " . $SMSSrvID);
+        $apiImplementations = $this->getImplementedSmsServicesApiNames(true);
+        $smsServiceData = $this->getSmsServicesConfigData(" WHERE `id` = " . $smsServiceId);
 
-        $SrvName        = $SMSSrvData[0]['name'];
-        $SrvLogin       = $SMSSrvData[0]['login'];
-        $SrvPassword    = $SMSSrvData[0]['passwd'];
-        $SrvGatewayAddr = $SMSSrvData[0]['url_addr'];
-        $SrvAlphaName   = $SMSSrvData[0]['alpha_name'];
-        $SrvAPIKey      = $SMSSrvData[0]['api_key'];
-        $SrvIsDefault   = $SMSSrvData[0]['default_service'];
-        $SrvAPIFile     = $SMSSrvData[0]['api_file_name'];
+        $serviceName        = $smsServiceData[0]['name'];
+        $serviceLogin       = $smsServiceData[0]['login'];
+        $servicePassword    = $smsServiceData[0]['passwd'];
+        $serviceGatewayAddr = $smsServiceData[0]['url_addr'];
+        $serviceAlphaName   = $smsServiceData[0]['alpha_name'];
+        $serviceApiKey      = $smsServiceData[0]['api_key'];
+        $serviceIsDefault   = $smsServiceData[0]['default_service'];
+        $serviceApiFile     = $smsServiceData[0]['api_file_name'];
 
-        $inputs = wf_TextInput('smssrvname', __('Name'), $SrvName, true);
-        $inputs .= wf_TextInput('smssrvlogin', __('Login'), $SrvLogin, true);
-        $inputs .= wf_CheckInput('smssrvalphaaslogin', __('Use login as alpha name'), true, (!empty($SrvLogin) and $SrvLogin == $SrvAlphaName), $AlphaAsLoginChkID, '__SMSSrvAlphaAsLoginChk');
-        $inputs .= ($ubillingConfig->getAlterParam('PASSWORDSHIDE')) ? wf_PasswordInput('smssrvpassw', __('Password'), $SrvPassword, true) :
-                                                                              wf_TextInput('smssrvpassw', __('Password'), $SrvPassword, true);
-        $inputs .= wf_TextInput('smssrvurlip', __('Gateway URL/IP'), $SrvGatewayAddr, true);
-        $inputs .= wf_TextInput('smssrvapikey', __('API key'), $SrvAPIKey, true);
-        $inputs .= wf_TextInput('smssrvalphaname', __('Alpha name'), $SrvAlphaName, true, '', '', '__SMSSrvAlphaName');
-        $inputs .= wf_Selector('smssrvapiimplementation', $APIImplementations, __('API implementation file'), $SrvAPIFile, true);
-        $inputs .= wf_CheckInput('smssrvdefault', __('Use as default SMS service'), true, $SrvIsDefault, $DefaultServChkID, '__SMSSrvDefaultSrvChk');
-        $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), false, true, $CloseFrmChkID);
-        $inputs.= wf_HiddenInput('', $ModalWID, '', '__SMSSrvFormModalWindowID');
+        $inputs = wf_TextInput('smssrvname', __('Name'), $serviceName, true);
+        $inputs .= wf_TextInput('smssrvlogin', __('Login'), $serviceLogin, true);
+        $inputs .= wf_CheckInput('smssrvalphaaslogin', __('Use login as alpha name'), true, (!empty($serviceLogin) and $serviceLogin == $serviceAlphaName), $alphaAsLoginChkId, '__SMSSrvAlphaAsLoginChk');
+        $inputs .= ($ubillingConfig->getAlterParam('PASSWORDSHIDE')) ? wf_PasswordInput('smssrvpassw', __('Password'), $servicePassword, true) :
+                                                                              wf_TextInput('smssrvpassw', __('Password'), $servicePassword, true);
+        $inputs .= wf_TextInput('smssrvurlip', __('Gateway URL/IP'), $serviceGatewayAddr, true);
+        $inputs .= wf_TextInput('smssrvapikey', __('API key'), $serviceApiKey, true);
+        $inputs .= wf_TextInput('smssrvalphaname', __('Alpha name'), $serviceAlphaName, true, '', '', '__SMSSrvAlphaName');
+        $inputs .= wf_Selector('smssrvapiimplementation', $apiImplementations, __('API implementation file'), $serviceApiFile, true);
+        $inputs .= wf_CheckInput('smssrvdefault', __('Use as default SMS service'), true, $serviceIsDefault, $defaultServiceChkId, '__SMSSrvDefaultSrvChk');
+        $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), false, true, $closeFormChkId);
+        $inputs.= wf_HiddenInput('', $modalWindowId, '', '__SMSSrvFormModalWindowID');
         $inputs.= wf_HiddenInput('action', 'editSMSSrv');
-        $inputs.= wf_HiddenInput('smssrvid', $SMSSrvID);
+        $inputs.= wf_HiddenInput('smssrvid', $smsServiceId);
         $inputs .= wf_delimiter();
         $inputs .= wf_Submit(__('Edit'));
 
-        $form = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __SMSSrvForm', '', $FormID);
+        $form = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __SMSSrvForm', '', $formId);
 
         return $form;
     }
@@ -1776,92 +1777,92 @@ class SendDogAdvanced extends SendDog {
     /**
      * Adds SMS service to DB
      *
-     * @param $SMSSrvName
-     * @param $SMSSrvLogin
-     * @param $SMSSrvPass
-     * @param $SMSSrvBaseURL
-     * @param $SMSSrvAPIKey
-     * @param $SMSSrvAlphaName
-     * @param $SMSSrvAPIImplName
-     * @param int $UseAsDefaultSrv
+     * @param $smsServiceName
+     * @param $smsServiceLogin
+     * @param $smsServicePassword
+     * @param $smsServiceBaseUrl
+     * @param $smsServiceApiKey
+     * @param $smsServiceAlphaName
+     * @param $smsServiceApiImplName
+     * @param int $useAsDefaultService
      */
-    public function addSMSService(  $SMSSrvName, $SMSSrvLogin, $SMSSrvPass,
-                                    $SMSSrvBaseURL, $SMSSrvAPIKey, $SMSSrvAlphaName,
-                                    $SMSSrvAPIImplName, $UseAsDefaultSrv = 0 ) {
+    public function addSmsService($smsServiceName, $smsServiceLogin, $smsServicePassword,
+                                  $smsServiceBaseUrl, $smsServiceApiKey, $smsServiceAlphaName,
+                                  $smsServiceApiImplName, $useAsDefaultService = 0 ) {
 
-        if ($UseAsDefaultSrv) {
+        if ($useAsDefaultService) {
             $tQuery = "UPDATE `sms_services` SET `default_service` = 0;";
             nr_query($tQuery);
         }
 
         $tQuery = "INSERT INTO `sms_services` ( `id`,`name`,`login`,`passwd`, `url_addr`, `api_key`, `alpha_name`, `default_service`, `api_file_name`) 
-                                      VALUES  ( NULL, '" . $SMSSrvName . "','" . $SMSSrvLogin . "','" . $SMSSrvPass . "','" . $SMSSrvBaseURL . "','" .
-                                                $SMSSrvAPIKey . "','" . $SMSSrvAlphaName . "','" . $UseAsDefaultSrv . "','" . $SMSSrvAPIImplName  . "');";
+                                      VALUES  ( NULL, '" . $smsServiceName . "','" . $smsServiceLogin . "','" . $smsServicePassword . "','" . $smsServiceBaseUrl . "','" .
+                                                $smsServiceApiKey . "','" . $smsServiceAlphaName . "','" . $useAsDefaultService . "','" . $smsServiceApiImplName  . "');";
         nr_query($tQuery);
-        log_register('CREATE SMS service [' . $SMSSrvName . '] alpha name: `' . $SMSSrvAlphaName . '`');
+        log_register('CREATE SMS service [' . $smsServiceName . '] alpha name: `' . $smsServiceAlphaName . '`');
     }
 
     /**
      * Edits SMS service
      *
-     * @param $SMSSrvID
-     * @param $SMSSrvName
-     * @param $SMSSrvLogin
-     * @param $SMSSrvPass
-     * @param $SMSSrvBaseURL
-     * @param $SMSSrvAPIKey
-     * @param $SMSSrvAlphaName
-     * @param $SMSSrvAPIImplName
-     * @param int $UseAsDefaultSrv
+     * @param $smsServiceId
+     * @param $smsServiceName
+     * @param $smsServiceLogin
+     * @param $smsServicePassword
+     * @param $smsServiceBaseUrl
+     * @param $smsServiceApiKey
+     * @param $smsServiceAlphaName
+     * @param $smsServiceApiImplName
+     * @param int $useAsDefaultService
      */
-    public function editSMSService( $SMSSrvID, $SMSSrvName, $SMSSrvLogin, $SMSSrvPass,
-                                    $SMSSrvBaseURL, $SMSSrvAPIKey, $SMSSrvAlphaName,
-                                    $SMSSrvAPIImplName, $UseAsDefaultSrv = 0 ) {
+    public function editSmsService($smsServiceId, $smsServiceName, $smsServiceLogin, $smsServicePassword,
+                                   $smsServiceBaseUrl, $smsServiceApiKey, $smsServiceAlphaName,
+                                   $smsServiceApiImplName, $useAsDefaultService = 0 ) {
 
-        if ($UseAsDefaultSrv) {
+        if ($useAsDefaultService) {
             $tQuery = "UPDATE `sms_services` SET `default_service` = 0;";
             nr_query($tQuery);
         }
 
         $tQuery = "UPDATE `sms_services` 
-                        SET `name` = '" . $SMSSrvName . "', 
-                            `login` = '" . $SMSSrvLogin . "', 
-                            `passwd` = '" . $SMSSrvPass . "', 
-                            `url_addr` = '" . $SMSSrvBaseURL . "', 
-                            `api_key` = '" . $SMSSrvAPIKey . "', 
-                            `alpha_name` = '" . $SMSSrvAlphaName . "', 
-                            `default_service` = '" . $UseAsDefaultSrv . "', 
-                            `api_file_name` = '" . $SMSSrvAPIImplName . "' 
-                    WHERE `id`= '" . $SMSSrvID . "' ;";
+                        SET `name` = '" . $smsServiceName . "', 
+                            `login` = '" . $smsServiceLogin . "', 
+                            `passwd` = '" . $smsServicePassword . "', 
+                            `url_addr` = '" . $smsServiceBaseUrl . "', 
+                            `api_key` = '" . $smsServiceApiKey . "', 
+                            `alpha_name` = '" . $smsServiceAlphaName . "', 
+                            `default_service` = '" . $useAsDefaultService . "', 
+                            `api_file_name` = '" . $smsServiceApiImplName . "' 
+                    WHERE `id`= '" . $smsServiceId . "' ;";
         nr_query($tQuery);
-        log_register('CHANGE SMS service [' . $SMSSrvID . '] `' . $SMSSrvName . '` alpha name: `' . $SMSSrvAlphaName . '`' );
+        log_register('CHANGE SMS service [' . $smsServiceId . '] `' . $smsServiceName . '` alpha name: `' . $smsServiceAlphaName . '`' );
     }
 
     /**
      * Deletes SMS service
      *
-     * @param $SMSSrvID
-     * @param string $SMSSrvName
-     * @param string $SMSSrvAlphaName
+     * @param $smsServiceId
+     * @param string $smsServiceName
+     * @param string $smsServiceAlphaName
      */
-    public function deleteSMSService($SMSSrvID, $SMSSrvName = '', $SMSSrvAlphaName = '') {
-        $tQuery = "DELETE FROM `sms_services` WHERE `id` = '" . $SMSSrvID . "';";
-        nr_query($tQuery);
-        log_register('DELETE SMS service [' . $SMSSrvID . '] `' . $SMSSrvName . '` alpha name: `' . $SMSSrvAlphaName . '`' );
+    public function deleteSmsService($smsServiceId, $smsServiceName = '', $smsServiceAlphaName = '') {
+        $query = "DELETE FROM `sms_services` WHERE `id` = '" . $smsServiceId . "';";
+        nr_query($query);
+        log_register('DELETE SMS service [' . $smsServiceId . '] `' . $smsServiceName . '` alpha name: `' . $smsServiceAlphaName . '`' );
     }
 
     /**
      * Check if SMS service is protected from deletion
      *
-     * @param $SrvID
+     * @param $smsServiceId
      *
      * @return bool
      */
-    public function checkSMSSrvProtected($SrvID) {
-        $tQuery = "SELECT `id` FROM `sms_services_relations` WHERE `sms_srv_id` = " . $SrvID . ";";
-        $Result = simple_queryall($tQuery);
+    public function checkSmsServiceProtected($smsServiceId) {
+        $query = "SELECT `id` FROM `sms_services_relations` WHERE `sms_srv_id` = " . $smsServiceId . ";";
+        $result = simple_queryall($query);
 
-        return (!empty($Result));
+        return (!empty($result));
     }
 
     /**
@@ -1870,24 +1871,25 @@ class SendDogAdvanced extends SendDog {
      *
      * @return mixed
      */
-    public function smsProcessing($CheckStatuses = false) {
-        $AllMessages = array();
-        $SmsCount = 0;
+    public function smsProcessing($checkStatuses = false) {
+        $allMessages = array();
+        $smsCount = 0;
 
-        if ($CheckStatuses) {
-            $SMSCheckStatusExpireDays = $this->altCfg['SMS_CHECKSTATUS_EXPIRE_DAYS'];
-            $tQuery = "UPDATE `sms_history` SET `no_statuschk` = 1,
-                                            `send_status` = '" . __('SMS status check period expired') . "'
-                        WHERE ABS( DATEDIFF(NOW(), `date_send`) ) > " . $SMSCheckStatusExpireDays . " AND no_statuschk < 1;";
-            nr_query($tQuery);
+        if ($checkStatuses) {
+            $smsCheckStatusExpireDays = $this->altCfg['SMS_CHECKSTATUS_EXPIRE_DAYS'];
+            $query = "UPDATE `sms_history` SET `no_statuschk` = 1,
+                                               `send_status` = '" . __('SMS status check period expired') . "'
+                        WHERE ABS( DATEDIFF(NOW(), `date_send`) ) > " . $smsCheckStatusExpireDays . " 
+                              AND no_statuschk < 1 AND `delivered` < 1;";
+            nr_query($query);
 
-            $tQuery = "SELECT * FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
-            $Messages = simple_queryall($tQuery);
-            $SmsCount = count($Messages);
-            if ($SmsCount > 0) { $AllMessages = zb_sortArray($Messages, 'smssrvid'); }
+            $query = "SELECT * FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
+            $messages = simple_queryall($query);
+            $smsCount = count($messages);
+            if ($smsCount > 0) { $allMessages = zb_sortArray($messages, 'smssrvid'); }
         } else {
-            $SmsCount = $this->smsQueue->getQueueCount();
-            if ($SmsCount > 0) { $AllMessages = zb_sortArray($this->smsQueue->getQueueData(), 'smssrvid'); }
+            $smsCount = $this->smsQueue->getQueueCount();
+            if ($smsCount > 0) { $allMessages = zb_sortArray($this->smsQueue->getQueueData(), 'smssrvid'); }
         }
 
         /*
@@ -1896,78 +1898,77 @@ class SendDogAdvanced extends SendDog {
         Annie, are you okay, you okay, you okay, Annie?
         Annie, are you okay, you okay, you okay, Annie?
         */
-        if ( !empty($SmsCount) ) {
-            $NextSrvID = null;
-            $CurSrvID = null;
-            $TmpSrvAPI = '';
-            $TmpMessPack = array();
-            $ArrayEnd = false;
+        if ( !empty($smsCount) ) {
+            $nextServiceId = null;
+            $currentServiceId = null;
+            $tmpMessagePack = array();
+            $arrayEnd = false;
 
-            end($AllMessages);
-            $LastArrayKey = key($AllMessages);
+            end($allMessages);
+            $lastArrayKey = key($allMessages);
 
-            foreach ($AllMessages as $io => $EachMsg) {
+            foreach ($allMessages as $io => $eachmessage) {
                 // checking, if we're at the end of array and current element is the last one
-                if ($io === $LastArrayKey) {
-                    $ArrayEnd = true;
+                if ($io === $lastArrayKey) {
+                    $arrayEnd = true;
                     // if we're at the end of array and $TmpMessPack is empty - that means that probably array consists only of one element
-                    if ( empty($TmpMessPack) ) { $TmpMessPack[] = $EachMsg; }
+                    if ( empty($tmpMessagePack) ) { $tmpMessagePack[] = $eachmessage; }
                 }
 
-                if ( is_null($NextSrvID) and is_null($CurSrvID) ) {
+                if ( is_null($nextServiceId) and is_null($currentServiceId) ) {
                     // init the values on the very begining of the array
-                    $NextSrvID = $EachMsg['smssrvid'];
-                    $CurSrvID = $EachMsg['smssrvid'];
+                    $nextServiceId = $eachmessage['smssrvid'];
+                    $currentServiceId = $eachmessage['smssrvid'];
                 } else {
                     // just getting next SMS service ID
-                    $NextSrvID = $EachMsg['smssrvid'];
+                    $nextServiceId = $eachmessage['smssrvid'];
                 }
                 // checking if SMS service ID is changed comparing to previous one or we reached the end of an array
                 // if so - we need to process accumulated messages in $TmpMessPack
                 // if not - keep going to the next array element and accumulate messages to $TmpMessPack
-                if ( ($NextSrvID !== $CurSrvID or $ArrayEnd) and !empty($TmpMessPack) ) {
-                    $this->actualSMSProcessing($TmpMessPack, $CurSrvID, $CheckStatuses);
+                if ( ($nextServiceId !== $currentServiceId or $arrayEnd) and !empty($tmpMessagePack) ) {
+                    $this->actualSmsProcessing($tmpMessagePack, $currentServiceId, $checkStatuses);
 
-                    $TmpMessPack = array();
+                    $tmpMessagePack = array();
                 }
 
-                $TmpMessPack[] = $EachMsg;
+                $tmpMessagePack[] = $eachmessage;
 
                 // checking and processing the very last element of the $AllMessages array if it has different SMS service ID
-                if ( ($NextSrvID !== $CurSrvID and $ArrayEnd) and !empty($TmpMessPack) ) {
-                    $this->actualSMSProcessing($TmpMessPack, $NextSrvID, $CheckStatuses);
+                if ( ($nextServiceId !== $currentServiceId and $arrayEnd) and !empty($tmpMessagePack) ) {
+                    $this->actualSmsProcessing($tmpMessagePack, $nextServiceId, $checkStatuses);
                 }
 
-                $CurSrvID = $EachMsg['smssrvid'];
+                $currentServiceId = $eachmessage['smssrvid'];
             }
         }
 
-        return ($SmsCount);
+        return ($smsCount);
     }
 
     /**
      * Creates SMS service object from given API file name and processes the
      *
-     * @param $MessagePack
-     * @param int $SrvID
-     * @param bool $ChkStatuses
+     * @param $messagePack
+     * @param int $serviceId
+     * @param bool $checkStatuses
      *
      * @return void
      */
-    protected function actualSMSProcessing($MessagePack, $SrvID = 0, $ChkStatuses = false) {
-        // if for some reason $SrvID is empty - use SMS service chosen as default
-        if ( empty($SrvID) or $SrvID == $this->DefaultSMSServiceID ) {
-            $SrvID = $this->DefaultSMSServiceID;
-            $SrvAPI = $this->DefaultSMSServiceAPI;
+    protected function actualSmsProcessing($messagePack, $serviceId = 0, $checkStatuses = false) {
+        // if for some reason $serviceId is empty - use SMS service chosen as default
+        if ( empty($serviceId) or $serviceId == $this->defaultSmsServiceId ) {
+            $serviceId  = $this->defaultSmsServiceId;
+            $serviceApi = $this->defaultSmsServiceApi;
         } else {
-            $SrvAPI = $this->SrvsAPIsIDs[$SrvID];
+            $serviceApi = $this->servicesApiId[$serviceId];
         }
 
-        if ( !empty($SrvAPI) ) {
-            include (self::API_IMPL_PATH . $SrvAPI . '.php');
-            $tmpApiObj = new $SrvAPI($SrvID, $MessagePack);
+        if ( !empty($serviceApi) ) {
+            include (self::API_IMPL_PATH . $serviceApi . '.php');
+            $tmpApiObj = new $serviceApi($serviceId, $messagePack);
 
-            if ($ChkStatuses) {
+            if ($checkStatuses) {
                 $tmpApiObj->checkMessagesStatuses();
             } else {
                 $tmpApiObj->pushMessages();
@@ -1992,100 +1993,100 @@ class SendDogAdvanced extends SendDog {
 
 
 /**
- * Class SMSSrvAPI to be inherited by real SMS services APIs implementations
- * located in 'content\sms_service_APIs' to provide re-usability and common interaction interface for SendDogAdvanced class
+ * Class SMSServiceApi to be inherited by real SMS services APIs implementations
+ * located in 'api/vendor/sms_service_APIs' to provide re-usability and common interaction interface for SendDogAdvanced class
  */
-abstract class SMSSrvAPI {
+abstract class SMSServiceApi {
     /**
      * SendDogAdvanced instance plceholder
      *
      * @var null
      */
-    protected $SendDog = null;
+    protected $instanceSendDog = null;
 
     /**
      * Placeholder for settings record data from sms_services table
      *
      * @var array
      */
-    protected $APISettingsRaw = array();
+    protected $apiSettingsRaw = array();
 
     /**
      * SMS service ID in sms_services table
      *
      * @var int
      */
-    protected $SrvID = 0;
+    protected $serviceId = 0;
 
     /**
      * SMS service login
      *
      * @var string
      */
-    protected $SrvLogin = '';
+    protected $serviceLogin = '';
 
     /**
      * SMS service password
      *
      * @var string
      */
-    protected $SrvPassword = '';
+    protected $servicePassword = '';
 
     /**
      * SMS service base URL/IP
      *
      * @var string
      */
-    protected $SrvGatewayAddr = '';
+    protected $serviceGatewayAddr = '';
 
     /**
      * SMS service alpha name
      *
      * @var string
      */
-    protected $SrvAlphaName = '';
+    protected $serviceAlphaName = '';
 
     /**
      * SMS service API key
      *
      * @var string
      */
-    protected $SrvAPIKey = '';
+    protected $serviceApiKey = '';
 
     /**
      * Assigned as a default SMS service
      *
      * @var bool
      */
-    protected $IsDefaultService = false;
+    protected $isDefaultService = false;
 
     /**
      * Messages to be processed by push method
      *
      * @var array
      */
-    protected $SMSMsgPack = array();
+    protected $smsMessagePack = array();
 
 
-    public function __construct($SMSSrvID, $SMSPack = array()) {
-        $this->SrvID = $SMSSrvID;
-        $this->SendDog = new SendDogAdvanced();
-        $this->APISettingsRaw = $this->SendDog->getSMSServicesConfigData(" WHERE `id` = " . $SMSSrvID);
+    public function __construct($smsServiceId, $smsPack = array()) {
+        $this->serviceId = $smsServiceId;
+        $this->instanceSendDog = new SendDogAdvanced();
+        $this->apiSettingsRaw = $this->instanceSendDog->getSmsServicesConfigData(" WHERE `id` = " . $smsServiceId);
         $this->getSettings();
-        $this->SMSMsgPack = $SMSPack;
+        $this->smsMessagePack = $smsPack;
     }
 
     /**
      * Fills up the config placeholders for a particular SMS service
      */
     protected function getSettings() {
-        if ( !empty($this->APISettingsRaw) ) {
-            $this->SrvLogin         = $this->APISettingsRaw[0]['login'];
-            $this->SrvPassword      = $this->APISettingsRaw[0]['passwd'];
-            $this->SrvGatewayAddr   = $this->APISettingsRaw[0]['url_addr'];
-            $this->SrvAlphaName     = $this->APISettingsRaw[0]['alpha_name'];
-            $this->SrvAPIKey        = $this->APISettingsRaw[0]['api_key'];
-            $this->IsDefaultService = $this->APISettingsRaw[0]['default_service'];
+        if ( !empty($this->apiSettingsRaw) ) {
+            $this->serviceLogin         = $this->apiSettingsRaw[0]['login'];
+            $this->servicePassword      = $this->apiSettingsRaw[0]['passwd'];
+            $this->serviceGatewayAddr   = $this->apiSettingsRaw[0]['url_addr'];
+            $this->serviceAlphaName     = $this->apiSettingsRaw[0]['alpha_name'];
+            $this->serviceApiKey        = $this->apiSettingsRaw[0]['api_key'];
+            $this->isDefaultService     = $this->apiSettingsRaw[0]['default_service'];
         }
     }
 
@@ -2093,9 +2094,9 @@ abstract class SMSSrvAPI {
      * Returns styled error message about not supported features
      */
     protected function showErrorFeatureIsNotSupported() {
-        $errormes = $this->SendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('This SMS service does not support this function'),
+        $errormes = $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('This SMS service does not support this function'),
                                                                                       'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-        die(wf_modalAutoForm(__('Error'), $errormes, $_POST['ModalWID'], '', true));
+        die(wf_modalAutoForm(__('Error'), $errormes, $_POST['modalWindowId'], '', true));
     }
 
     public abstract function getBalance();

@@ -42,6 +42,7 @@ class SMSHistory {
      */
     public function renderJSON($QueryData) {
         $json = new wf_JqDtHelper();
+        $smsDirections = new SMSDirections();
 
         if ( !empty($QueryData) ) {
             $data = array();
@@ -51,7 +52,7 @@ class SMSHistory {
                     switch ($FieldName) {
                         case 'smssrvid':
                             if ($this->SMSAdvancedEnabled) {
-                                $SMSSrvName = zb_getSMSServiceNameByID($FieldVal);
+                                $SMSSrvName = $smsDirections->getDirectionNameById($FieldVal);
 
                                 if ( !empty($SMSSrvName) ) {
                                     $data[] = (empty($FieldVal)) ? $SMSSrvName . ' (' . __('by default') . ')' : $SMSSrvName;

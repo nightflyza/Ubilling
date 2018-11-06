@@ -9,14 +9,14 @@ class UbillingSMS {
      *
      * @var bool
      */
-    protected $SMSRoutingFlag = false;
+    public $smsRoutingFlag = false;
 
     /**
      * Placeholder for $SMSDirections object
      *
      * @var null
      */
-    protected $SMSDirections = null;
+    public $smsDirections = null;
 
     const QUEUE_PATH = 'content/tsms/';
 
@@ -25,8 +25,8 @@ class UbillingSMS {
      */
     public function __construct() {
         global $ubillingConfig;
-        $this->SMSRoutingFlag = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
-        $this->SMSDirections = new SMSDirections();
+        $this->smsRoutingFlag = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
+        $this->smsDirections = new SMSDirections();
     }
 
     /**
@@ -65,26 +65,26 @@ class UbillingSMS {
     /**
      * Sets routing direction to SMS queue file
      *
-     * @param string $QueueFile
-     * @param string $KeyType - array key type in Ubilling cache(login, emploeeid, ukvid and so on)
-     * @param string $Entity - key of array associated with $KeyType
-     * @param string $ForceDirection
+     * @param string $queueFile
+     * @param string $keyType - array key type in Ubilling cache(login, emploeeid, ukvid and so on)
+     * @param string $entity - key of array associated with $KeyType
+     * @param string $forceDirection
      *
      * @return void
      */
-    public function setDirection($QueueFile, $KeyType, $Entity, $ForceDirection = '') {
-        if ($this->SMSRoutingFlag) {
-            if (file_exists(self::QUEUE_PATH . $QueueFile)) {
-                if (empty($ForceDirection)) {
-                    $NewDirection = $this->SMSDirections->getDirection($KeyType, $Entity);
+    public function setDirection($queueFile, $keyType, $entity, $forceDirection = '') {
+        if ($this->smsRoutingFlag) {
+            if (file_exists(self::QUEUE_PATH . $queueFile)) {
+                if (empty($forceDirection)) {
+                    $newDirection = $this->smsDirections->getDirection($keyType, $entity);
                 } else {
-                    $NewDirection = $ForceDirection;
+                    $newDirection = $forceDirection;
                 }
 
                 //saving data to queue
-                $NewDirection = trim($NewDirection);
-                $StoreData = 'SMSSRVID="' . $NewDirection . '"' . "\n";
-                file_put_contents(self::QUEUE_PATH . $QueueFile, $StoreData, FILE_APPEND);
+                $newDirection = trim($newDirection);
+                $storeData = 'SMSSRVID="' . $newDirection . '"' . "\n";
+                file_put_contents(self::QUEUE_PATH . $queueFile, $storeData, FILE_APPEND);
             }
         }
     }
@@ -112,11 +112,12 @@ class UbillingSMS {
             foreach ($smsQueue as $io => $eachsmsfile) {
                 $smsDate = date("Y-m-d H:i:s", filectime(self::QUEUE_PATH . $eachsmsfile));
                 $smsData = rcms_parse_ini_file(self::QUEUE_PATH . $eachsmsfile);
+
                 $result[$io]['filename'] = $eachsmsfile;
                 $result[$io]['date'] = $smsDate;
                 $result[$io]['number'] = $smsData['NUMBER'];
                 $result[$io]['message'] = $smsData['MESSAGE'];
-                $result[$io]['smssrvid'] = $smsData['SMSSRVID'];
+                $result[$io]['smssrvid'] = (isset($smsData['SMSSRVID'])) ? $smsData['SMSSRVID'] : 0;
             }
         }
         return ($result);

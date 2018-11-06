@@ -1,29 +1,47 @@
 <?php
 
 class SMSDirections {
-    public function getDirection($KeyType, $Entity) {
-        // later we'll make it fine and smooth with cache
-        //$UBCache = new UbillingCache();
-        $DirectionsCache = array();
+    /**
+     * UbillingCache instance placeholder
+     *
+     * @var null
+     */
+    protected $ubCache = null;
 
-        $Query = 'select * from sms_services_relations;';
-        $Queried = nr_query($Query);
+    /**
+     * $directionsCache array from UbillingCache
+     *
+     * @var array
+     */
+    protected $directionsCache = array();
 
-        if ( !empty($Queried) ) {
-            $fetch_assoc = ($Queried instanceof mysqli_result) ? 'mysqli_fetch_assoc' : 'mysql_fetch_assoc';
+    public function __construct() {
+        $this->ubCache = new UbillingCache();
+        $this->directionsCache = $this->ubCache->get('SMS_SERVICES_DIRECTIONS');
+    }
 
-            while ($Row = $fetch_assoc($Queried)) {
-                if ( !empty($Row['user_login']) ) {
-                    $DirectionsCache['user_login'][$Row['user_login']] = $Row['sms_srv_id'];
-                }
+    /**
+     * Returns SMS service ID as a direction from cache
+     *
+     * @param $keyType
+     * @param $entity
+     *
+     * @return int
+     */
+    public function getDirection($keyType, $entity) {
+        return ( isset($this->directionsCache[$keyType][$entity]) ) ? $this->directionsCache[$keyType][$entity] : 0;
+    }
 
-                if ( !empty($Row['employee_id']) ) {
-                    $DirectionsCache['employee_id'][$Row['employee_id']] = $Row['sms_srv_id'];
-                }
-            }
-        }
-
-        return ( isset($DirectionsCache[$KeyType][$Entity]) ) ? $DirectionsCache[$KeyType][$Entity] : 0;
+    /**
+     * Returns SMS service name by it's ID from cache
+     * Recommended to use in a big message sets instead of zb_getSMSServiceNameByID()
+     *
+     * @param int $smsServiceId
+     *
+     * @return string
+     */
+    public function getDirectionNameById($smsServiceId = 0) {
+        return ( isset($this->directionsCache['service_id_name'][$smsServiceId]) ) ? $this->directionsCache['service_id_name'][$smsServiceId] : '';
     }
 }
 
