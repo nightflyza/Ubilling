@@ -83,7 +83,7 @@ class TurboSms extends SMSServiceApi {
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
         $result.= __('Total') . ': ' . $total;
         //return ($result);
-        die(wf_modalAutoForm(__('Balance'), $result, $_POST['ModalWID'], '', true, 'false', '888'));
+        die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '888'));
     }
 
     public function pushMessages() {
