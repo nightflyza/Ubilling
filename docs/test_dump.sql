@@ -2227,8 +2227,11 @@ CREATE TABLE IF NOT EXISTS `sms_services` (
 CREATE TABLE IF NOT EXISTS `sms_services_relations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sms_srv_id` int(11) NOT NULL,
-  `user_login` varchar(255) NOT NULL,
+  `user_login` varchar(255) DEFAULT NULL,
+  `employee_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`user_login`)
+  UNIQUE KEY (`user_login`),
+  UNIQUE KEY (`employee_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
 

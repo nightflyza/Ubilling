@@ -1208,6 +1208,51 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    if ($_GET['action'] == 'rebuildsmsservicesdirections' ) {
+                        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+                            $directionsCache = array();
+
+                            $queryBindings = 'SELECT * FROM sms_services_relations;';
+                            $queriedBindings = nr_query($queryBindings);
+
+                            if (!empty($queriedBindings)) {
+                                $fetch_assoc = ($queriedBindings instanceof mysqli_result) ? 'mysqli_fetch_assoc' : 'mysql_fetch_assoc';
+
+                                while ($row = $fetch_assoc($queriedBindings)) {
+                                    if (!empty($row['user_login'])) {
+                                        $directionsCache['user_login'][$row['user_login']] = $row['sms_srv_id'];
+                                    }
+
+                                    if (!empty($row['employee_id'])) {
+                                        $directionsCache['employee_id'][$row['employee_id']] = $row['sms_srv_id'];
+                                    }
+                                }
+                            }
+
+                            $queryServices = 'SELECT * FROM sms_services;';
+                            $queriedServices = nr_query($queryServices);
+
+                            if (!empty($queriedServices)) {
+                                $fetch_assoc = ($queriedServices instanceof mysqli_result) ? 'mysqli_fetch_assoc' : 'mysql_fetch_assoc';
+
+                                while ($row = $fetch_assoc($queriedServices)) {
+                                    $directionsCache['service_id_name'][$row['id']] = $row['name'];
+
+                                    if ($row['default_service']) {
+                                        $directionsCache['service_id_name'][0] = $row['name'];
+                                    }
+                                }
+                            }
+
+                            if (!empty($directionsCache)) {
+                                $ubCache = new UbillingCache();
+                                $ubCache->set('SMS_SERVICES_DIRECTIONS', $directionsCache);
+                            }
+
+                            die('OK: REBUILD SMS SERVICES DIRECTIONS');
+                        } else { die('ERROR: SMS SERVICES ADVANCED DISABLED'); }
+                    }
+
                     ////
                     //// End of actions
                     ////

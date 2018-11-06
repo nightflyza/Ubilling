@@ -1,20 +1,20 @@
 <?php
 
-class PilotSMS extends SMSSrvAPI {
-    public function __construct($SMSSrvID, $SMSPack = array()) {
-        parent::__construct($SMSSrvID, $SMSPack);
+class SmsPilot extends SMSServiceApi {
+    public function __construct($smsServiceId, $smsPack = array()) {
+        parent::__construct($smsServiceId, $smsPack);
     }
 
     public function getBalance() {
-        $balance = file_get_contents($this->SrvGatewayAddr
+        $balance = file_get_contents($this->serviceGatewayAddr
             . '?balance=rur'
-            . '&apikey=' . $this->SrvAPIKey
+            . '&apikey=' . $this->serviceApiKey
         );
 
         //$result = wf_BackLink(self::URL_ME, '', true);
-        $result = $this->SendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance . ' RUR', 'info');
+        $result = $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance . ' RUR', 'info');
         //return $result;
-        die(wf_modalAutoForm(__('Balance'), $result, $_POST['ModalWID'], '', true, 'false', '700'));
+        die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
 
     public function getSMSQueue() {
@@ -22,14 +22,14 @@ class PilotSMS extends SMSSrvAPI {
     }
 
     public function pushMessages() {
-        $apikey = $this->SrvAPIKey;
-        $sender = $this->SrvAlphaName;
+        $apikey = $this->serviceApiKey;
+        $sender = $this->serviceAlphaName;
 
-        $allSmsQueue = $this->SMSMsgPack;
+        $allSmsQueue = $this->smsMessagePack;
         if (!empty($allSmsQueue)) {
             foreach ($allSmsQueue as $sms) {
 
-                $url = $this->SrvGatewayAddr
+                $url = $this->serviceGatewayAddr
                     . '?send=' . urlencode($sms['message'])
                     . '&to=' . urlencode($sms['number'])
                     . '&from=' . urlencode($sender)
@@ -48,7 +48,7 @@ class PilotSMS extends SMSSrvAPI {
                     trigger_error($j->description_ru, E_USER_WARNING);
                 }
                 //remove old sent message
-                $this->SendDog->getSMSQueueInstance()->deleteSms($sms['filename']);
+                $this->instanceSendDog->getSmsQueueInstance()->deleteSms($sms['filename']);
             }
         }
     }

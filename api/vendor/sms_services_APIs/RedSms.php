@@ -1,15 +1,15 @@
 <?php
 
-class RedSMS extends SMSSrvAPI {
-    public function __construct($SMSSrvID, $SMSPack = array()) {
-        parent::__construct($SMSSrvID, $SMSPack);
+class RedSms extends SMSServiceApi {
+    public function __construct($smsServiceId, $smsPack = array()) {
+        parent::__construct($smsServiceId, $smsPack);
     }
 
     public function getBalance() {
         $result = '';
         $timestamp = file_get_contents('https://lk.redsms.ru/get/timestamp.php');
-        $api_key = $this->SrvAPIKey;
-        $login = $this->SrvLogin;
+        $api_key = $this->serviceApiKey;
+        $login = $this->serviceLogin;
         $return = 'xml';
         $params = array(
             'timestamp' => $timestamp,
@@ -27,9 +27,9 @@ class RedSMS extends SMSSrvAPI {
         curl_close($curl);
 
         //$result.= wf_BackLink(self::URL_ME, '', true);
-        $result.= $this->SendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response . ' RUR', 'info');
+        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response . ' RUR', 'info');
         //return ($result);
-        die(wf_modalAutoForm(__('Balance'), $result, $_POST['ModalWID'], '', true, 'false', '700'));
+        die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
 
     public function getSMSQueue() {
@@ -39,12 +39,12 @@ class RedSMS extends SMSSrvAPI {
     public function pushMessages() {
         $result = '';
         $timestamp = file_get_contents('https://lk.redsms.ru/get/timestamp.php');
-        $api_key = $this->SrvAPIKey;
-        $login = $this->SrvLogin;
+        $api_key = $this->serviceApiKey;
+        $login = $this->serviceLogin;
         $return = 'xml';
-        $sender = $this->SrvAlphaName;
+        $sender = $this->serviceAlphaName;
 
-        $allSmsQueue = $this->SMSMsgPack;
+        $allSmsQueue = $this->smsMessagePack;
         if (!empty($allSmsQueue)) {
             foreach ($allSmsQueue as $io => $eachsms) {
 
@@ -63,7 +63,7 @@ class RedSMS extends SMSSrvAPI {
                 ksort($params);
                 reset($params);
                 $signature = md5(implode($params) . $api_key);
-                $query = $this->SrvGatewayAddr . "?login=" . $login . "&signature=" . $signature . "&phone=" . $phone . "&sender=" . $sender . "&return=" . $return . "&timestamp=" . $timestamp . "&text=" . urlencode($text);
+                $query = $this->serviceGatewayAddr . "?login=" . $login . "&signature=" . $signature . "&phone=" . $phone . "&sender=" . $sender . "&return=" . $return . "&timestamp=" . $timestamp . "&text=" . urlencode($text);
                 $curl = curl_init();
                 curl_setopt($curl, CURLOPT_URL, $query);
                 curl_setopt($curl, CURLOPT_ENCODING, "utf-8");
@@ -75,7 +75,7 @@ class RedSMS extends SMSSrvAPI {
                 curl_close($curl);
 
                 //remove old sent message
-                $this->SendDog->getSMSQueueInstance()->deleteSms($eachsms['filename']);
+                $this->instanceSendDog->getSmsQueueInstance()->deleteSms($eachsms['filename']);
             }
         }
     }
