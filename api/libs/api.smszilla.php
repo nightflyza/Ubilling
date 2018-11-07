@@ -2000,7 +2000,6 @@ class SMSZilla {
             $columns = array('SMS direction', 'Mobile', 'Text', 'Size', __('Count') . ' ' . 'SMS');
         }
 
-        //$columns = array('SMS direction', 'Mobile', 'Text', 'Size', __('Count') . ' ' . 'SMS');
         $result = wf_JqDtLoader($columns, self::URL_ME . '&sending=true&ajpreview=true&filterid=' . $filterId . '&templateid=' . $templateId, false, __('SMS'), 100);
         return ($result);
     }
