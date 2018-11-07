@@ -47,7 +47,7 @@ CREATE TABLE  IF NOT EXISTS `mlg_postauth` (
 
 
 CREATE OR REPLACE VIEW `mlg_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`) AS 
-SELECT DISTINCT `nasip` AS `nasname`,`nasname` AS `shortname`,'other' AS `type`,NULL AS `ports`,left(md5(inet_aton(`nasip`)),12) AS `secret`,NULL AS `server` from `nas`;
+SELECT DISTINCT `nasip` AS `nasname`,`nasname` AS `shortname`,'other' AS `type`,NULL AS `ports`,left(md5(inet_aton(`nasip`)),12) AS `secret`,NULL AS `server` from `nas` GROUP BY `nasip`;
 
 CREATE TABLE IF NOT EXISTS `mlg_check` (
   id int(11) unsigned NOT NULL auto_increment,
