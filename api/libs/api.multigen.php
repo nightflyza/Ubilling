@@ -2820,7 +2820,7 @@ class MultiGen {
  */
 function web_MultigenListClients() {
     $result = __('Nothing found');
-    $query = "SELECT * from `" . MultiGen::CLIENTS . "` GROUP BY `nasname`";
+    $query = "SELECT * from `" . MultiGen::CLIENTS . "`";
     $all = simple_queryall($query);
     if (!empty($all)) {
         $cells = wf_TableCell(__('IP'));
