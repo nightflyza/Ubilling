@@ -334,6 +334,16 @@ class MultiGen {
     const OPTION_INNO = 'MULTIGEN_MAKE_INNODB_GREAT_AGAIN';
 
     /**
+     * Default switches QinQ management option name
+     */
+    const OPTION_QINQ = 'QINQ_ENABLED';
+
+    /**
+     * Default user switchport assign option name
+     */
+    const OPTION_SWASSIGN = 'SWITCHPORT_IN_PROFILE';
+
+    /**
      * log path
      */
     const LOG_PATH = 'exports/multigen.log';
@@ -416,16 +426,25 @@ class MultiGen {
         }
 
         if (isset($this->altCfg[self::OPTION_INNO])) {
-            $this->inno = $this->altCfg[self::OPTION_INNO];
+            if ($this->altCfg[self::OPTION_INNO]) {
+                $this->inno = $this->altCfg[self::OPTION_INNO];
+            }
         }
 
         $this->usernameTypes = array(
             'login' => __('Login'),
             'ip' => __('IP'),
             'mac' => __('MAC') . ' ' . __('default'),
-            'macju' => __('MAC') . ' ' . __('JunOS like'),
-            'qinq' => __('QinQ')
+            'macju' => __('MAC') . ' ' . __('JunOS like')
         );
+
+        //some additional username types
+        if ((isset($this->altCfg[self::OPTION_SWASSIGN])) AND ( isset($this->altCfg[self::OPTION_QINQ]))) {
+            if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
+                $this->usernameTypes['qinq'] = __('QinQ');
+            }
+        }
+
 
         $this->serviceTypes = array(
             'none' => __('No'),
@@ -523,7 +542,7 @@ class MultiGen {
      * @return void
      */
     protected function loadSwithchAssigns() {
-        if (@$this->altCfg['SWITCHPORT_IN_PROFILE']) {
+        if (@$this->altCfg[self::OPTION_SWASSIGN]) {
             $query = "SELECT * from `switchportassign`";
             $all = simple_queryall($query);
             if (!empty($all)) {
@@ -540,7 +559,7 @@ class MultiGen {
      * @return void
      */
     protected function loadSwitchesQinQ() {
-        if ((@$this->altCfg['QINQ_ENABLED']) AND ( @$this->altCfg['SWITCHPORT_IN_PROFILE'])) {
+        if ((@$this->altCfg[self::OPTION_QINQ]) AND ( @$this->altCfg[self::OPTION_SWASSIGN])) {
             $qinq = new SwitchesQinQ();
             $this->switchesQinQ = $qinq->getAllQinQ();
         }
