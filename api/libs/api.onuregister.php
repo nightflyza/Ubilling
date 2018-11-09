@@ -169,7 +169,7 @@ class OnuRegister {
      * @var string
      */
     protected $currentSnmpCommunity = '';
-    
+
     /**
      * Placeholder for switch id for current OLT.
      * 
@@ -593,15 +593,15 @@ class OnuRegister {
         $allUnreg = array();
 
         if (!empty($this->allZteOlt)) {
-            foreach ($this->allZteOlt as  $this->currentOltSwId => $eachOlt) {
+            foreach ($this->allZteOlt as $this->currentOltSwId => $eachOlt) {
                 if (file_exists(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'])) {
                     $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'], true);
                     $this->currentPonType = $this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'];
                     $this->currentOltIp = $eachOlt['ip'];
-                    $this->currentSnmpCommunity = $eachOlt['snmp'];                    
+                    $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
 
-                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[ $this->currentOltSwId])) {
+                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'EPON') {
                             $allUnreg['EPON'][] = $this->getAllUnauthEpon();
                         }
@@ -759,7 +759,7 @@ class OnuRegister {
      * @return string Result of shell_exec + expect
      */
     public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac = '', $PONizerAdd = false) {
-        $this->currentOltSwId = $this->getOltId($this->currentOltIp);        
+        $this->currentOltSwId = $this->getOltId($this->currentOltIp);
         $this->currentSnmpCommunity = $this->allZteOlt[$this->currentOltSwId]['snmp'];
         $this->loadCalculatedData();
         //set serial number empty as default value because epon    
@@ -810,10 +810,14 @@ class OnuRegister {
                     }
                     $result = str_replace("\n", '<br />', $result);
                     log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
-                    
+
                     if ($PONizerAdd) {
-                        $pon = new PONizer();
-                        $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
+                        if (!empty($login) and ! empty($addMac)) {
+                            $pon = new PONizer();
+                            $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
+                        } else {
+                            log_register('ONUREG PONIZER WRONG DATA. Login: ' . $login . '. MAC: ' . $addMac);
+                        }
                     }
                 }
             }
