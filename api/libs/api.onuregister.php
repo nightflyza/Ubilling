@@ -758,7 +758,7 @@ class OnuRegister {
      * 
      * @return string Result of shell_exec + expect
      */
-    public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac, $PONizerAdd = false) {
+    public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac = '', $PONizerAdd = false) {
         $this->currentOltSwId = $this->getOltId($this->currentOltIp);        
         $this->currentSnmpCommunity = $this->allZteOlt[$this->currentOltSwId]['snmp'];
         $this->loadCalculatedData();
