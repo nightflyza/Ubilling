@@ -11,10 +11,10 @@ function web_UserControls($login) {
     $urlUserEdit = '?module=useredit&username=';
 
     $controls = wf_tag('div', false);
-    $controls.= wf_Link($urlProfile . $login, wf_img_sized('skins/icon_user_big.gif', __('Back to user profile'), '48') . __('Back to user profile'), true, '');
-    $controls.= wf_tag('br');
-    $controls.= wf_Link($urlUserEdit . $login, wf_img_sized('skins/icon_user_edit_big.gif', __('Back to user edit'), '48') . __('Back to user edit'), false, '');
-    $controls.= wf_tag('div', true);
+    $controls .= wf_Link($urlProfile . $login, wf_img_sized('skins/icon_user_big.gif', __('Back to user profile'), '48') . __('Back to user profile'), true, '');
+    $controls .= wf_tag('br');
+    $controls .= wf_Link($urlUserEdit . $login, wf_img_sized('skins/icon_user_edit_big.gif', __('Back to user edit'), '48') . __('Back to user edit'), false, '');
+    $controls .= wf_tag('div', true);
     return($controls);
 }
 
@@ -113,20 +113,20 @@ function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata
     $field2 = $fieldnames['fieldname2'];
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', '', false, '', $pattern), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey, '', '', false, '', $pattern), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $form = wf_TableBody($rows, '100%', 0);
-    $form.= wf_Submit(__('Change'));
+    $form .= wf_Submit(__('Change'));
     $form = wf_Form("", 'POST', $form, '');
-    $form.= wf_delimiter();
+    $form .= wf_delimiter();
 
     return($form);
 }
@@ -183,20 +183,20 @@ function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, 
 
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $password_proposal, false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey, '', $password_proposal, false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $form = wf_TableBody($rows, '100%', 0);
-    $form.= wf_Submit(__('Change'));
+    $form .= wf_Submit(__('Change'));
     $form = wf_Form("", 'POST', $form, '');
-    $form.= wf_delimiter();
+    $form .= wf_delimiter();
 
 
     return($form);
@@ -237,19 +237,19 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     }
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $contract_proposal, false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey, '', $contract_proposal, false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
 
@@ -273,7 +273,7 @@ function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $oldd
     //mac vendor search
     if ($altconf['MACVEN_ENABLED']) {
         $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
-        $vendorframe.= wf_tag('iframe', true);
+        $vendorframe .= wf_tag('iframe', true);
         $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
     } else {
         $lookuplink = '';
@@ -295,19 +295,19 @@ function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $oldd
 
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
     $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $newvalue, false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey, '', $newvalue, false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -376,28 +376,28 @@ function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress,
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['MACVEN_ENABLED']) {
         $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
-        $vendorframe.= wf_tag('iframe', true);
+        $vendorframe .= wf_tag('iframe', true);
         $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
     } else {
         $lookuplink = '';
     }
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(zb_NewMacSelect(), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(zb_NewMacSelect(), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -417,19 +417,19 @@ function web_EditorDateDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $field2 = $fieldnames['fieldname2'];
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_DatePicker($fieldkey, false), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_DatePicker($fieldkey, false), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
 
@@ -514,52 +514,52 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
 
 
     $radio = wf_RadioInput('operation', __('Add cash'), 'add', false, true);
-    $radio.= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
-    $radio.= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
-    $radio.=$setCashControl;
+    $radio .= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
+    $radio .= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
+    $radio .= $setCashControl;
 
     //cash input widget
     $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '"autofocus size="5" id="cashfield" ' . $cashfieldanchor . '');
-    $cashInputControl.= ' ' . __('The expected payment') . ': ' . $tariff_price;
+    $cashInputControl .= ' ' . __('The expected payment') . ': ' . $tariff_price;
 
 
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
     if (!empty($userrealname)) {
         $cells = wf_TableCell('', '', 'row2');
-        $cells.= wf_TableCell($userrealname, '', 'row3');
-        $rows.= wf_TableRow($cells);
+        $cells .= wf_TableCell($userrealname, '', 'row3');
+        $rows .= wf_TableRow($cells);
     }
 
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell($cashInputControl, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($cashInputControl, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell(__('Actions'), '', 'row2');
-    $cells.= wf_TableCell($radio, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($radio, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell(__('Payment type'), '', 'row2');
-    $cells.= wf_TableCell(web_CashTypeSelector(), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(web_CashTypeSelector(), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell(__('Payment notes'), '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput('newpaymentnote', '', '', false, 40), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput('newpaymentnote', '', '', false, 40), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0, '');
-    $table.= wf_Submit(__('Payment'));
+    $table .= wf_Submit(__('Payment'));
 
     $form = $suspnotifyscript;
-    $form.= wf_Form('', 'POST', $table, '');
-    $form.= wf_delimiter();
+    $form .= wf_Form('', 'POST', $table, '');
+    $form .= wf_delimiter();
 
     return($form);
 }
@@ -575,9 +575,9 @@ function web_TriggerSelector($name, $state = '') {
     $noflag = (!$state) ? 'SELECTED' : '';
 
     $selector = wf_tag('select', false, '', 'name="' . $name . '"');
-    $selector.= wf_tag('option', false, '', 'value="1"') . __('Yes') . wf_tag('option', true);
-    $selector.= wf_tag('option', false, '', 'value="0" ' . $noflag) . __('No') . wf_tag('option', true);
-    $selector.= wf_tag('select', true);
+    $selector .= wf_tag('option', false, '', 'value="1"') . __('Yes') . wf_tag('option', true);
+    $selector .= wf_tag('option', false, '', 'value="0" ' . $noflag) . __('No') . wf_tag('option', true);
+    $selector .= wf_tag('select', true);
 
 
     return ($selector);
@@ -596,19 +596,19 @@ function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata 
     $curstate = web_trigger($olddata);
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
     $cells = wf_TableCell($fieldname, '', 'row2');
-    $cells.= wf_TableCell($curstate, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($curstate, '', 'row3');
+    $rows .= wf_TableRow($cells);
     $cells = wf_TableCell('', '', 'row2');
-    $cells.= wf_TableCell(web_TriggerSelector($fieldkey, $olddata), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(web_TriggerSelector($fieldkey, $olddata), '', 'row3');
+    $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -729,28 +729,28 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
     }
 
     $nmControl = wf_tag('label', false, '', 'for="nm"');
-    $nmControl.= __('Next month');
-    $nmControl.= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
-    $nmControl.= wf_tag('label', true);
+    $nmControl .= __('Next month');
+    $nmControl .= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
+    $nmControl .= wf_tag('label', true);
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($fieldname, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($nmControl, '', 'row2', 'align="right"');
-    $cells.= wf_TableCell(web_tariffselector($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(web_tariffselector($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -788,28 +788,28 @@ function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $
     }
 
     $nmControl = wf_tag('label', false, '', 'for="nm"');
-    $nmControl.= __('Next month');
-    $nmControl.= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
-    $nmControl.= wf_tag('label', true);
+    $nmControl .= __('Next month');
+    $nmControl .= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
+    $nmControl .= wf_tag('label', true);
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($fieldname, '', 'row2');
-    $cells.= wf_TableCell($olddata, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell($olddata, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($nmControl, '', 'row2', 'align="right"');
-    $cells.= wf_TableCell(web_tariffselectorNoLousy($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(web_tariffselectorNoLousy($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -830,18 +830,18 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $fieldkey2 = $fieldkeys['fieldkey2'];
 
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
+    $cells .= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -870,34 +870,34 @@ function web_EditorSixStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $fieldkey6 = $fieldkeys['fieldkey6'];
 
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
+    $cells .= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field3, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey3, '', $olddata[3], false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey3, '', $olddata[3], false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field4, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey4, '', $olddata[4], false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey4, '', $olddata[4], false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field5, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey5, '', $olddata[5], false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey5, '', $olddata[5], false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell($field6, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey6, '', $olddata[6], false, ''), '', 'row3');
-    $rows.= wf_TableRow($cells);
+    $cells .= wf_TableCell(wf_TextInput($fieldkey6, '', $olddata[6], false, ''), '', 'row3');
+    $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
-    $inputs.= wf_Submit(__('Change'));
-    $inputs.= wf_delimiter();
+    $inputs .= wf_Submit(__('Change'));
+    $inputs .= wf_delimiter();
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -993,32 +993,32 @@ function web_TariffSpeedLister() {
     $cleanSpeedCount = 0;
 
     $cells = wf_TableCell(__('Tariff'));
-    $cells.= wf_TableCell(__('Download speed'));
-    $cells.= wf_TableCell(__('Upload speed'));
+    $cells .= wf_TableCell(__('Download speed'));
+    $cells .= wf_TableCell(__('Upload speed'));
     if ($altCfg['BURST_ENABLED']) {
-        $cells.= wf_TableCell(__('Burst Download speed'));
-        $cells.= wf_TableCell(__('Burst Upload speed'));
-        $cells.= wf_TableCell(__('Burst Download Time speed'));
-        $cells.= wf_TableCell(__('Burst Upload Time speed'));
+        $cells .= wf_TableCell(__('Burst Download speed'));
+        $cells .= wf_TableCell(__('Burst Upload speed'));
+        $cells .= wf_TableCell(__('Burst Download Time speed'));
+        $cells .= wf_TableCell(__('Burst Upload Time speed'));
     }
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
             $availTariffs[$eachtariff['name']] = $eachtariff['name'];
             $cells = wf_TableCell($eachtariff['name']);
-            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
-            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
+            $cells .= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
+            $cells .= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
             if ($altCfg['BURST_ENABLED']) {
-                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstdownload']);
-                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstupload']);
-                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['bursttimedownload']);
-                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstimetupload']);
+                $cells .= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstdownload']);
+                $cells .= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstupload']);
+                $cells .= wf_TableCell(@$allspeeds[$eachtariff['name']]['bursttimedownload']);
+                $cells .= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstimetupload']);
             }
             $actLinks = wf_JSAlert('?module=tariffspeeds&tariff=' . $eachtariff['name'], web_edit_icon(), __('Are you serious'));
-            $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -1028,25 +1028,25 @@ function web_TariffSpeedLister() {
 
     if (!empty($allspeeds)) {
         $cells = wf_TableCell(__('Tariff') . ' (' . __('Deleted') . ')');
-        $cells.= wf_TableCell(__('Download speed'));
-        $cells.= wf_TableCell(__('Upload speed'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Download speed'));
+        $cells .= wf_TableCell(__('Upload speed'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($allspeeds as $eachtariff => $eachspeed) {
             if (!isset($availTariffs[$eachtariff])) {
                 $cells = wf_TableCell($eachtariff);
-                $cells.= wf_TableCell($eachspeed['speeddown']);
-                $cells.= wf_TableCell($eachspeed['speedup']);
-                $cells.= wf_TableCell(wf_JSAlert('?module=tariffspeeds&deletespeed=' . $eachtariff, web_delete_icon(), __('Are you serious')));
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($eachspeed['speeddown']);
+                $cells .= wf_TableCell($eachspeed['speedup']);
+                $cells .= wf_TableCell(wf_JSAlert('?module=tariffspeeds&deletespeed=' . $eachtariff, web_delete_icon(), __('Are you serious')));
+                $rows .= wf_TableRow($cells, 'row3');
                 $cleanSpeedCount++;
             }
         }
         if ($cleanSpeedCount != 0) {
-            $result.= wf_delimiter();
-            $result.= wf_tag('h3') . __('Database cleanup') . wf_tag('h3', true);
-            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_delimiter();
+            $result .= wf_tag('h3') . __('Database cleanup') . wf_tag('h3', true);
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         }
     }
 
@@ -1140,7 +1140,7 @@ function web_ProfileSwitchControlForm($login) {
         if (!empty($checkSame)) {
             foreach ($checkSame as $ix => $eachsame) {
                 if ($eachsame['login'] != $login) {
-                    $sameUsers.=' ' . wf_Link("?module=userprofile&username=" . $eachsame['login'], web_profile_icon() . ' ' . $eachsame['login'], false, '');
+                    $sameUsers .= ' ' . wf_Link("?module=userprofile&username=" . $eachsame['login'], web_profile_icon() . ' ' . $eachsame['login'], false, '');
                 }
             }
         }
@@ -1150,15 +1150,14 @@ function web_ProfileSwitchControlForm($login) {
     $formStyle = 'glamour';
     $inputs = wf_HiddenInput('swassignlogin', $login);
     if ($alterconf['SWITCHPORT_IN_PROFILE'] != 4) {
-        $inputs.= wf_Selector('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+        $inputs .= wf_Selector('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
     } else {
-
-        $inputs.= wf_JuiComboBox('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+        $inputs .= wf_JuiComboBox('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
         $formStyle = 'floatpanelswide';
     }
-    $inputs.= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, 2, 'digits');
-    $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
-    $inputs.= wf_Submit('Save');
+    $inputs .= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, 2, 'digits');
+    $inputs .= wf_CheckInput('swassigndelete', __('Delete'), true, false);
+    $inputs .= wf_Submit('Save');
     $controlForm = wf_Form('', "POST", $inputs, $formStyle);
     //form end
 
@@ -1166,25 +1165,31 @@ function web_ProfileSwitchControlForm($login) {
 
     //switch location and polling controls
     $switchLocators = '';
+
+    if (!empty($currentSwitchId)) {
+        $switchProfileIcon = wf_img_sized('skins/menuicons/switches.png', __('Switch'), 10, 10);
+        $switchLocators .= wf_Link('?module=switches&edit=' . $currentSwitchId, $switchProfileIcon, false, '');
+    }
+
     if (isset($switchswpoll[$currentSwitchId])) {
-        $snmpSwitchLocatorIcon = wf_tag('img', false, '', 'src=skins/snmp.png height="10" title="' . __('SNMP query') . '"');
-        $switchLocators.=wf_Link('?module=switchpoller&switchid=' . $currentSwitchId, $snmpSwitchLocatorIcon, false, '');
+        $snmpSwitchLocatorIcon = wf_img_sized('skins/snmp.png', __('SNMP query'), 10, 10);
+        $switchLocators .= wf_Link('?module=switchpoller&switchid=' . $currentSwitchId, $snmpSwitchLocatorIcon, false, '');
     }
 
     if (isset($switchgeo[$currentSwitchId])) {
-        $geoSwitchLocatorIcon = wf_tag('img', false, '', 'src=skins/icon_search_small.gif height="10" title="' . __('Find on map') . '"');
-        $switchLocators.=wf_Link('?module=switchmap&finddevice=' . $switchgeo[$currentSwitchId], $geoSwitchLocatorIcon, false, '');
+        $geoSwitchLocatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10, 10);
+        $switchLocators .= wf_Link('?module=switchmap&finddevice=' . $switchgeo[$currentSwitchId], $geoSwitchLocatorIcon, false, '');
     }
 
     $cells = wf_TableCell(__('Switch'), '30%', 'row2');
-    $cells.= wf_TableCell(@$switcharrFull[$currentSwitchId] . ' ' . $switchLocators);
+    $cells .= wf_TableCell(@$switcharrFull[$currentSwitchId] . ' ' . $switchLocators);
     $rows = wf_TableRow($cells, 'row3');
     $cells = wf_TableCell(__('Port'), '30%', 'row2');
-    $cells.= wf_TableCell($currentSwitchPort);
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell($currentSwitchPort);
+    $rows .= wf_TableRow($cells, 'row3');
     $cells = wf_TableCell(__('Change'), '30%', 'row2');
-    $cells.= wf_TableCell($switchAssignController . ' ' . $sameUsers);
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell($switchAssignController . ' ' . $sameUsers);
+    $rows .= wf_TableRow($cells, 'row3');
 
     $result = wf_TableBody($rows, '100%', '0');
 
@@ -1192,18 +1197,43 @@ function web_ProfileSwitchControlForm($login) {
     if (wf_CheckPost(array('swassignlogin', 'swassignswid', 'swassignswport'))) {
         $newswid = vf($_POST['swassignswid'], 3);
         $newport = vf($_POST['swassignswport'], 3);
-        nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
-        nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '" . $_POST['swassignlogin'] . "', '" . $newswid . "', '" . $newport . "');");
-        log_register("CHANGE SWITCHPORT (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
-        rcms_redirect("?module=userprofile&username=" . $login);
+        if (zb_SwitchPortAssignCheck($newswid, $newport)) {
+            nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
+            nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '" . $_POST['swassignlogin'] . "', '" . $newswid . "', '" . $newport . "');");
+            log_register("SWITCHPORT CHANGE (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
+            rcms_redirect("?module=userprofile&username=" . $login);
+        } else {
+            log_register("SWITCHPORT FAIL (" . $login . ") ON SWITCHID [" . $newswid . "] PORT [" . $newport . "]");
+            show_error(__('Port already assigned for another user'));
+        }
     }
     //delete subroutine
     if (isset($_POST['swassigndelete'])) {
         nr_query("DELETE from `switchportassign` WHERE `login`='" . $_POST['swassignlogin'] . "'");
-        log_register("DELETE SWITCHPORT (" . $login . ")");
+        log_register("SWITCHPORT DELETE (" . $login . ")");
         rcms_redirect("?module=userprofile&username=" . $login);
     }
     return ($result);
+}
+
+/**
+ * Checks is switch-port pair unique or not
+ * 
+ * @param int $switchId
+ * @param int $port
+ * 
+ * @return bool
+ */
+function zb_SwitchPortAssignCheck($switchId, $port) {
+    $result = true;
+    if ((!empty($switchId)) AND ( !empty($port))) {
+        $query = "SELECT `login` from `switchportassign` WHERE `switchid`='" . $switchId . "' AND `port`='" . $port . "';";
+        $tmp = simple_query($query);
+        if (!empty($tmp)) {
+            $result = false;
+        }
+    }
+    return($result);
 }
 
 /**
@@ -1239,32 +1269,32 @@ function web_PaymentEditForm($paymentData) {
         $paymentDataBase = base64_encode($paymentDataBase);
 
         $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
-        $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
-        $inputs.= wf_HiddenInput('editpaymentid', $paymentData['id']);
-        $inputs.= wf_HiddenInput('paymentdata', $paymentDataBase);
+        $inputs .= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+        $inputs .= wf_HiddenInput('editpaymentid', $paymentData['id']);
+        $inputs .= wf_HiddenInput('paymentdata', $paymentDataBase);
 
         $cells = wf_TableCell(__('New date'), '', 'row2');
-        $cells.= wf_TableCell(wf_DatePickerPreset('newpaymentdate', $paymentDate), '', 'row3');
+        $cells .= wf_TableCell(wf_DatePickerPreset('newpaymentdate', $paymentDate), '', 'row3');
         $rows = wf_TableRow($cells);
 
         if ($paymentData['admin'] != 'external' AND $paymentData['admin'] != 'openpayz' AND $paymentData['admin'] != 'guest') {
             $cells = wf_TableCell(__('Payment type'), '', 'row2');
-            $cells.= wf_TableCell(web_CashTypeSelector($paymentData['cashtypeid']), '', 'row3');
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell(web_CashTypeSelector($paymentData['cashtypeid']), '', 'row3');
+            $rows .= wf_TableRow($cells);
             $cells = wf_TableCell(__('Payment notes'), '', 'row2');
-            $cells.= wf_TableCell(wf_TextInput('paymentnote', '', $paymentData['note'], false, 40), '', 'row3');
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell(wf_TextInput('paymentnote', '', $paymentData['note'], false, 40), '', 'row3');
+            $rows .= wf_TableRow($cells);
         } else {
-            $inputs.= wf_HiddenInput('cashtype', $paymentData['cashtypeid']);
-            $inputs.= wf_HiddenInput('paymentnote', $paymentData['note']);
+            $inputs .= wf_HiddenInput('cashtype', $paymentData['cashtypeid']);
+            $inputs .= wf_HiddenInput('paymentnote', $paymentData['note']);
         }
 
         $table = wf_TableBody($rows, '100%', 0, '');
-        $table.= wf_Submit(__('Save'));
+        $table .= wf_Submit(__('Save'));
 
         $form = $inputs;
-        $form.= wf_Form('', 'POST', $table, '');
-        $form.= wf_delimiter();
+        $form .= wf_Form('', 'POST', $table, '');
+        $form .= wf_delimiter();
 
         $result = wf_Form('', 'POST', $form, 'glamour');
     }
@@ -1309,14 +1339,14 @@ function web_PaymentsByUser($login) {
 
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('IDENC'));
-    $cells.= wf_TableCell(__('Date'));
-    $cells.= wf_TableCell(__('Payment'));
-    $cells.= wf_TableCell(__('Balance before'));
-    $cells.= wf_TableCell(__('Cash type'));
-    $cells.= wf_TableCell(__('Payment note'));
-    $cells.= wf_TableCell(__('Admin'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('IDENC'));
+    $cells .= wf_TableCell(__('Date'));
+    $cells .= wf_TableCell(__('Payment'));
+    $cells .= wf_TableCell(__('Balance before'));
+    $cells .= wf_TableCell(__('Cash type'));
+    $cells .= wf_TableCell(__('Payment note'));
+    $cells .= wf_TableCell(__('Admin'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allpayments)) {
@@ -1336,8 +1366,8 @@ function web_PaymentsByUser($login) {
                 $printcheck = wf_Link('?module=printcheck&paymentid=' . $eachpayment['id'], wf_img('skins/printer_small.gif', __('Print')), false);
             } else {
                 $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcheck&paymentid=' . $eachpayment['id'] . '\',\'checkwindow\',\'width=800,height=600\')"');
-                $printcheck.= wf_img('skins/printer_small.gif', __('Print'));
-                $printcheck.= wf_tag('a', true);
+                $printcheck .= wf_img('skins/printer_small.gif', __('Print'));
+                $printcheck .= wf_tag('a', true);
             }
 
             //payments deleting controls
@@ -1359,22 +1389,22 @@ function web_PaymentsByUser($login) {
             }
 
             $cells = wf_TableCell($eachpayment['id']);
-            $cells.= wf_TableCell(zb_NumEncode($eachpayment['id']));
-            $cells.= wf_TableCell($eachpayment['date']);
-            $cells.= wf_TableCell($eachpayment['summ']);
-            $cells.= wf_TableCell($eachpayment['balance']);
-            $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
-            $cells.= wf_TableCell($eachpayment['note']);
-            $cells.= wf_TableCell($eachpayment['admin']);
-            $cells.= wf_TableCell($deleteControls . $editControls . $printcheck);
-            $rows.= wf_TableRow($cells, $hlight);
+            $cells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+            $cells .= wf_TableCell($eachpayment['date']);
+            $cells .= wf_TableCell($eachpayment['summ']);
+            $cells .= wf_TableCell($eachpayment['balance']);
+            $cells .= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
+            $cells .= wf_TableCell($eachpayment['note']);
+            $cells .= wf_TableCell($eachpayment['admin']);
+            $cells .= wf_TableCell($deleteControls . $editControls . $printcheck);
+            $rows .= wf_TableRow($cells, $hlight);
 
             $total_payments = $total_payments + $eachpayment['summ'];
         }
     }
 
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    $result.=__('Total payments') . ': ' . wf_tag('b') . abs($total_payments) . wf_tag('b') . wf_tag('br');
+    $result .= __('Total payments') . ': ' . wf_tag('b') . abs($total_payments) . wf_tag('b') . wf_tag('br');
 
     return($result);
 }
@@ -1392,19 +1422,19 @@ function web_GrepLogByUser($login, $strict = false) {
     $query = 'SELECT * from `weblogs` WHERE `event` LIKE "%' . $login . '%" ORDER BY `date` DESC';
     $allevents = simple_queryall($query);
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Who?'));
-    $cells.= wf_TableCell(__('When?'));
-    $cells.= wf_TableCell(__('What happen?'));
+    $cells .= wf_TableCell(__('Who?'));
+    $cells .= wf_TableCell(__('When?'));
+    $cells .= wf_TableCell(__('What happen?'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allevents)) {
         foreach ($allevents as $io => $eachevent) {
             $adminName = (isset($employeeNames[$eachevent['admin']])) ? $employeeNames[$eachevent['admin']] : $eachevent['admin'];
             $cells = wf_TableCell($eachevent['id']);
-            $cells.= wf_TableCell($adminName);
-            $cells.= wf_TableCell($eachevent['date']);
-            $cells.= wf_TableCell($eachevent['event']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($adminName);
+            $cells .= wf_TableCell($eachevent['date']);
+            $cells .= wf_TableCell($eachevent['event']);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -1422,25 +1452,25 @@ function web_GrepLogByUser($login, $strict = false) {
  */
 function web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $olddata) {
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__($fieldname));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__($fieldname));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($olddata)) {
         foreach ($olddata as $io => $value) {
             $cells = wf_TableCell($value['id']);
-            $cells.= wf_TableCell($value[$fieldkey]);
+            $cells .= wf_TableCell($value[$fieldkey]);
             $actLinks = wf_JSAlert($formurl . '&action=delete&id=' . $value['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-            $actLinks.= wf_Link($formurl . '&action=edit&id=' . $value['id'], web_edit_icon(), false);
-            $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $actLinks .= wf_Link($formurl . '&action=edit&id=' . $value['id'], web_edit_icon(), false);
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
     $table = wf_TableBody($rows, '100%', 0, 'sortable');
 
     $inputs = wf_TextInput('new' . $fieldkey, __($fieldname), '', false);
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
     return($table . $form);
@@ -1466,18 +1496,18 @@ function web_DirectionsShow() {
     $allrules = zb_DirectionsGetAll();
 
     $cells = wf_TableCell(__('Rule number'));
-    $cells.= wf_TableCell(__('Rule name'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Rule name'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allrules)) {
         foreach ($allrules as $io => $eachrule) {
             $cells = wf_TableCell($eachrule['rulenumber']);
-            $cells.= wf_TableCell($eachrule['rulename']);
+            $cells .= wf_TableCell($eachrule['rulename']);
             $actLinks = wf_JSAlert('?module=rules&delete=' . $eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-            $actLinks.= wf_JSAlert("?module=rules&edit=" . $eachrule['id'], web_edit_icon(), 'Are you serious');
-            $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $actLinks .= wf_JSAlert("?module=rules&edit=" . $eachrule['id'], web_edit_icon(), 'Are you serious');
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -1509,8 +1539,8 @@ function web_DirectionAddForm() {
 
 
     $inputs = wf_Selector('newrulenumber', $selectArr, __('Direction number'), '', true);
-    $inputs.= wf_TextInput('newrulename', __('Direction name'), '', true);
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_TextInput('newrulename', __('Direction name'), '', true);
+    $inputs .= wf_Submit(__('Create'));
 
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
@@ -1531,9 +1561,9 @@ function web_DirectionsEditForm($ruleid) {
     $ruledata = simple_query($query);
 
     $editinputs = wf_TextInput('editrulename', 'Rule name', $ruledata['rulename'], true, '20');
-    $editinputs.=wf_Submit('Save');
+    $editinputs .= wf_Submit('Save');
     $editform = wf_Form("", 'POST', $editinputs, 'glamour');
-    $editform.=wf_BackLink('?module=rules');
+    $editform .= wf_BackLink('?module=rules');
     show_window(__('Edit') . ' ' . __('Rule name'), $editform);
 }
 
@@ -1565,23 +1595,23 @@ function web_PaymentsShow($query) {
     $totalPaycount = 0;
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('IDENC'));
-    $cells.= wf_TableCell(__('Date'));
-    $cells.= wf_TableCell(__('Cash'));
+    $cells .= wf_TableCell(__('IDENC'));
+    $cells .= wf_TableCell(__('Date'));
+    $cells .= wf_TableCell(__('Cash'));
     //optional contract display
     if ($alter_conf['FINREP_CONTRACT']) {
-        $cells.= wf_TableCell(__('Contract'));
+        $cells .= wf_TableCell(__('Contract'));
     }
-    $cells.= wf_TableCell(__('Login'));
-    $cells.= wf_TableCell(__('Full address'));
-    $cells.= wf_TableCell(__('Real Name'));
+    $cells .= wf_TableCell(__('Login'));
+    $cells .= wf_TableCell(__('Full address'));
+    $cells .= wf_TableCell(__('Real Name'));
     //optional tariff display
     if ($alter_conf['FINREP_TARIFF']) {
-        $cells.=wf_TableCell(__('Tariff'));
+        $cells .= wf_TableCell(__('Tariff'));
     }
-    $cells.= wf_TableCell(__('Cash type'));
-    $cells.= wf_TableCell(__('Notes'));
-    $cells.= wf_TableCell(__('Admin'));
+    $cells .= wf_TableCell(__('Cash type'));
+    $cells .= wf_TableCell(__('Notes'));
+    $cells .= wf_TableCell(__('Admin'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allapayments)) {
@@ -1592,24 +1622,24 @@ function web_PaymentsShow($query) {
             }
 
             $cells = wf_TableCell($eachpayment['id']);
-            $cells.= wf_TableCell(zb_NumEncode($eachpayment['id']));
-            $cells.= wf_TableCell($eachpayment['date']);
-            $cells.= wf_TableCell($eachpayment['summ']);
+            $cells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+            $cells .= wf_TableCell($eachpayment['date']);
+            $cells .= wf_TableCell($eachpayment['summ']);
             //optional contract display
             if ($alter_conf['FINREP_CONTRACT']) {
-                $cells.= wf_TableCell(@$allcontracts[$eachpayment['login']]);
+                $cells .= wf_TableCell(@$allcontracts[$eachpayment['login']]);
             }
-            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachpayment['login'], (web_profile_icon() . ' ' . $eachpayment['login']), false, ''));
-            $cells.= wf_TableCell(@$alladrs[$eachpayment['login']]);
-            $cells.= wf_TableCell(@$allrealnames[$eachpayment['login']]);
+            $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachpayment['login'], (web_profile_icon() . ' ' . $eachpayment['login']), false, ''));
+            $cells .= wf_TableCell(@$alladrs[$eachpayment['login']]);
+            $cells .= wf_TableCell(@$allrealnames[$eachpayment['login']]);
             //optional tariff display
             if ($alter_conf['FINREP_TARIFF']) {
-                $cells.= wf_TableCell(@$alltariffs[$eachpayment['login']]);
+                $cells .= wf_TableCell(@$alltariffs[$eachpayment['login']]);
             }
-            $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
-            $cells.= wf_TableCell($eachpayment['note']);
-            $cells.= wf_TableCell($eachpayment['admin']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
+            $cells .= wf_TableCell($eachpayment['note']);
+            $cells .= wf_TableCell($eachpayment['admin']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             if ($eachpayment['summ'] > 0) {
                 $total = $total + $eachpayment['summ'];
@@ -1619,8 +1649,8 @@ function web_PaymentsShow($query) {
     }
 
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
-    $result.=wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
+    $result .= wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
+    $result .= wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
     return($result);
 }
 
@@ -1724,11 +1754,11 @@ function web_PaymentsShowGraph($year) {
     $cacheTime = 3600; //sec intervall to cache
 
     $cells = wf_TableCell('');
-    $cells.= wf_TableCell(__('Month'));
-    $cells.= wf_TableCell(__('Payments count'));
-    $cells.= wf_TableCell(__('ARPU'));
-    $cells.= wf_TableCell(__('Cash'));
-    $cells.= wf_TableCell(__('Visual'), '50%');
+    $cells .= wf_TableCell(__('Month'));
+    $cells .= wf_TableCell(__('Payments count'));
+    $cells .= wf_TableCell(__('ARPU'));
+    $cells .= wf_TableCell(__('Cash'));
+    $cells .= wf_TableCell(__('Visual'), '50%');
     $rows = wf_TableRow($cells, 'row1');
 
     //caching subroutine
@@ -1801,12 +1831,12 @@ function web_PaymentsShowGraph($year) {
                 $monthArpu = 0;
             }
             $cells = wf_TableCell($eachmonth);
-            $cells.= wf_TableCell(wf_Link('?module=report_finance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
-            $cells.= wf_TableCell($paycount);
-            $cells.= wf_TableCell($monthArpu);
-            $cells.= wf_TableCell(web_roundValue($month_summ, 2));
-            $cells.= wf_TableCell(web_bar($month_summ, $year_summ));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(wf_Link('?module=report_finance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
+            $cells .= wf_TableCell($paycount);
+            $cells .= wf_TableCell($monthArpu);
+            $cells .= wf_TableCell(web_roundValue($month_summ, 2));
+            $cells .= wf_TableCell(web_bar($month_summ, $year_summ));
+            $rows .= wf_TableRow($cells, 'row3');
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $yearPayData[$year]['graphs'] = $result;
@@ -1819,8 +1849,8 @@ function web_PaymentsShowGraph($year) {
         //take data from cache
         if (isset($yearPayData[$year]['graphs'])) {
             $result = $yearPayData[$year]['graphs'];
-            $result.=__('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
-            $result.=wf_Link("?module=report_finance&forcecache=true", wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
+            $result .= __('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
+            $result .= wf_Link("?module=report_finance&forcecache=true", wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
         } else {
             $result = __('Strange exeption');
         }
@@ -1847,9 +1877,9 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
     //headers
     $cells = '';
     foreach ($titles as $eachtitle) {
-        $cells.= wf_TableCell(__($eachtitle));
+        $cells .= wf_TableCell(__($eachtitle));
     }
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
     //headers end
 
@@ -1859,7 +1889,7 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
             $cells = '';
             foreach ($keys as $eachkey) {
                 if (array_key_exists($eachkey, $eachdata)) {
-                    $cells.= wf_TableCell($eachdata[$eachkey]);
+                    $cells .= wf_TableCell($eachdata[$eachkey]);
                 }
             }
             if ($delete) {
@@ -1874,8 +1904,8 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
                 $editcontrol = '';
             }
 
-            $cells.= wf_TableCell($deletecontrol . ' ' . $editcontrol);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -1976,10 +2006,10 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
     $cells = '';
     foreach ($titles as $eachtitle) {
 
-        $cells.= wf_TableCell(__($eachtitle));
+        $cells .= wf_TableCell(__($eachtitle));
     }
 
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alldata)) {
@@ -1990,12 +2020,12 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
                 if (array_key_exists($eachkey, $eachdata)) {
                     if ($eachkey == 'tagid') {
                         @$tagname = $alltagnames[$eachdata['tagid']];
-                        $cells.= wf_TableCell($tagname);
+                        $cells .= wf_TableCell($tagname);
                     } else {
                         if ($eachkey == 'fee_charge_always') {
-                            $cells.= wf_TableCell(web_bool_led($eachdata[$eachkey]));
+                            $cells .= wf_TableCell(web_bool_led($eachdata[$eachkey]));
                         } else {
-                            $cells.= wf_TableCell($eachdata[$eachkey]);
+                            $cells .= wf_TableCell($eachdata[$eachkey]);
                         }
                     }
                 }
@@ -2012,8 +2042,8 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
                 $editcontrol = '';
             }
 
-            $cells.=wf_TableCell($deletecontrol . ' ' . $editcontrol);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -2038,11 +2068,11 @@ function web_NasAddForm() {
 
 
     $inputs = multinet_network_selector() . wf_tag('label', false, '', 'for="networkselect"') . __('Network') . wf_tag('label', true) . wf_tag('br');
-    $inputs.= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
-    $inputs.= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
-    $inputs.= wf_TextInput('newnasname', __('NAS name'), '', true);
-    $inputs.= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
+    $inputs .= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
+    $inputs .= wf_TextInput('newnasname', __('NAS name'), '', true);
+    $inputs .= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
+    $inputs .= wf_Submit(__('Create'));
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -2079,9 +2109,9 @@ function zb_backup_database($silent = false) {
  */
 function web_BackupForm() {
     $backupinputs = __('This will create a backup copy of all tables in the database') . wf_tag('br');
-    $backupinputs.=wf_HiddenInput('createbackup', 'true');
-    $backupinputs.=wf_CheckInput('imready', 'I`m ready', true, false);
-    $backupinputs.=wf_Submit('Create');
+    $backupinputs .= wf_HiddenInput('createbackup', 'true');
+    $backupinputs .= wf_CheckInput('imready', 'I`m ready', true, false);
+    $backupinputs .= wf_Submit('Create');
     $form = wf_Form('', 'POST', $backupinputs, 'glamour');
 
     return($form);
@@ -2100,37 +2130,37 @@ function web_AddressAptForm($login) {
     @$useraddress = $useraddress[$login];
 
     $cells = wf_TableCell(__('Value'));
-    $cells.= wf_TableCell(__('Current state'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Current state'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     $cells = wf_TableCell(__('Login'));
-    $cells.= wf_TableCell($login);
-    $cells.= wf_TableCell('');
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell($login);
+    $cells .= wf_TableCell('');
+    $rows .= wf_TableRow($cells, 'row3');
 
     $cells = wf_TableCell(__('Full address'));
-    $cells.= wf_TableCell(@$useraddress);
-    $cells.= wf_TableCell(wf_JSAlert('?module=binder&username=' . $login . '&orphan=true', web_delete_icon(), __('Are you sure you want to make the homeless this user') . "?"));
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell(@$useraddress);
+    $cells .= wf_TableCell(wf_JSAlert('?module=binder&username=' . $login . '&orphan=true', web_delete_icon(), __('Are you sure you want to make the homeless this user') . "?"));
+    $rows .= wf_TableRow($cells, 'row3');
 
     $cells = wf_TableCell(__('Entrance'));
-    $cells.= wf_TableCell(@$aptdata['entrance']);
-    $cells.= wf_TableCell(wf_TextInput('changeentrance', '', @$aptdata['entrance'], false));
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell(@$aptdata['entrance']);
+    $cells .= wf_TableCell(wf_TextInput('changeentrance', '', @$aptdata['entrance'], false));
+    $rows .= wf_TableRow($cells, 'row3');
 
     $cells = wf_TableCell(__('Floor'));
-    $cells.= wf_TableCell(@$aptdata['floor']);
-    $cells.= wf_TableCell(wf_TextInput('changefloor', '', @$aptdata['floor'], false));
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell(@$aptdata['floor']);
+    $cells .= wf_TableCell(wf_TextInput('changefloor', '', @$aptdata['floor'], false));
+    $rows .= wf_TableRow($cells, 'row3');
 
     $cells = wf_TableCell(__('Apartment') . wf_tag('sup') . '*' . wf_tag('sup', true));
-    $cells.= wf_TableCell(@$aptdata['apt']);
-    $cells.= wf_TableCell(wf_TextInput('changeapt', '', @$aptdata['apt'], false));
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell(@$aptdata['apt']);
+    $cells .= wf_TableCell(wf_TextInput('changeapt', '', @$aptdata['apt'], false));
+    $rows .= wf_TableRow($cells, 'row3');
 
     $table = wf_TableBody($rows, '100%', 0, '');
-    $table.= wf_Submit(__('Save'));
+    $table .= wf_Submit(__('Save'));
 
     $form = wf_Form("", 'POST', $table, '');
 
@@ -2152,35 +2182,35 @@ function web_AddressOccupancyForm() {
         $cityname = zb_AddressGetCityData($_POST['citysel']);
         $cityname = $cityname['cityname'];
 
-        $inputs.= web_ok_icon() . ' ';
-        $inputs.= wf_HiddenInput('citysel', $_POST['citysel']);
-        $inputs.= $cityname . wf_tag('br');
+        $inputs .= web_ok_icon() . ' ';
+        $inputs .= wf_HiddenInput('citysel', $_POST['citysel']);
+        $inputs .= $cityname . wf_tag('br');
 
         if (!isset($_POST['streetsel'])) {
 
-            $inputs.=__('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
+            $inputs .= __('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
         } else {
             $streetname = zb_AddressGetStreetData($_POST['streetsel']);
             $streetname = $streetname['streetname'];
 
-            $inputs.= web_ok_icon() . ' ';
-            $inputs.= wf_HiddenInput('streetsel', $_POST['streetsel']);
-            $inputs.= $streetname . wf_tag('br');
+            $inputs .= web_ok_icon() . ' ';
+            $inputs .= wf_HiddenInput('streetsel', $_POST['streetsel']);
+            $inputs .= $streetname . wf_tag('br');
 
 
             if (!isset($_POST['buildsel'])) {
 
-                $inputs.=__('Build') . ' ' . web_BuildSelectorAc($_POST['streetsel']);
+                $inputs .= __('Build') . ' ' . web_BuildSelectorAc($_POST['streetsel']);
             } else {
                 $buildnum = zb_AddressGetBuildData($_POST['buildsel']);
                 $buildnum = $buildnum['buildnum'];
 
 
-                $inputs.= web_ok_icon() . ' ';
-                $inputs.= wf_HiddenInput('buildsel', $_POST['buildsel']);
-                $inputs.= $buildnum . wf_tag('br');
-                $inputs.= web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm();
-                $inputs.= wf_Submit(__('Create'));
+                $inputs .= web_ok_icon() . ' ';
+                $inputs .= wf_HiddenInput('buildsel', $_POST['buildsel']);
+                $inputs .= $buildnum . wf_tag('br');
+                $inputs .= web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm();
+                $inputs .= wf_Submit(__('Create'));
             }
         }
     }
@@ -2213,9 +2243,9 @@ function web_UserTraffStats($login) {
             $query_downup = "SELECT `D" . $dir['rulenumber'] . "`,`U" . $dir['rulenumber'] . "` FROM `users` WHERE `login` = '" . $login . "'";
             $downup = simple_query($query_downup);
             $cells = wf_TableCell($dir['rulename']);
-            $cells .=wf_TableCell(stg_convert_size($downup['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['D' . $dir['rulenumber']] . '"');
-            $cells .=wf_TableCell(stg_convert_size($downup['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['U' . $dir['rulenumber']] . '"');
-            $cells .=wf_TableCell(stg_convert_size(($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']]) . '"');
+            $cells .= wf_TableCell(stg_convert_size($downup['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['D' . $dir['rulenumber']] . '"');
+            $cells .= wf_TableCell(stg_convert_size($downup['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['U' . $dir['rulenumber']] . '"');
+            $cells .= wf_TableCell(stg_convert_size(($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']]) . '"');
             $rows .= wf_TableRow($cells, 'row3');
         }
     }
@@ -2397,7 +2427,7 @@ function web_barTariffs($alive, $dead) {
     }
 
     $code = wf_img_sized($barurl, __('Active users') . ': ' . $alive, $widthAlive . '%', '14');
-    $code.= wf_img_sized($barblackurl, __('Inactive users') . ': ' . $dead, $widthDead . '%', '14');
+    $code .= wf_img_sized($barblackurl, __('Inactive users') . ': ' . $dead, $widthDead . '%', '14');
 
     return($code);
 }
@@ -2432,16 +2462,16 @@ function web_TariffShowReport() {
 
     $cells = wf_TableCell(__('Tariff'));
     if ($fullFlag) {
-        $cells.= wf_TableCell(__('Fee'));
+        $cells .= wf_TableCell(__('Fee'));
 
         if ($dbSchema > 0) {
-            $cells.= wf_TableCell(__('Period'));
+            $cells .= wf_TableCell(__('Period'));
         }
-        $cells.= wf_TableCell(__('Speed'));
+        $cells .= wf_TableCell(__('Speed'));
     }
-    $cells.= wf_TableCell(__('Total'));
-    $cells.= wf_TableCell(__('Visual'));
-    $cells.= wf_TableCell(__('Active'));
+    $cells .= wf_TableCell(__('Total'));
+    $cells .= wf_TableCell(__('Visual'));
+    $cells .= wf_TableCell(__('Active'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($tariffcount)) {
@@ -2459,29 +2489,29 @@ function web_TariffShowReport() {
 
             $cells = wf_TableCell($eachtariffname);
             if ($fullFlag) {
-                $cells.= wf_TableCell($tarif_data['Fee']);
+                $cells .= wf_TableCell($tarif_data['Fee']);
                 if ($dbSchema > 0) {
-                    $cells.= wf_TableCell(__($tarif_data['period']));
+                    $cells .= wf_TableCell(__($tarif_data['period']));
                 }
                 if (isset($tariffSpeeds[$eachtariffname])) {
                     $speedData = $tariffSpeeds[$eachtariffname]['speeddown'] . ' / ' . $tariffSpeeds[$eachtariffname]['speedup'];
                 } else {
                     $speedData = wf_tag('font', false, '', 'color="#bc0000"') . __('Speed is not set') . wf_tag('font', true);
                 }
-                $cells.= wf_TableCell($speedData);
+                $cells .= wf_TableCell($speedData);
             }
-            $cells.= wf_TableCell($eachtariffcount['alive'] + $eachtariffcount['dead']);
-            $cells.= wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
-            $cells.= wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
-            $rows.= wf_TableRow($cells, 'row5');
+            $cells .= wf_TableCell($eachtariffcount['alive'] + $eachtariffcount['dead']);
+            $cells .= wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
+            $cells .= wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    $result.=wf_tag('h2') . __('Total') . ': ' . $totalusers . wf_tag('h2', true);
-    $result.=__('Active users') . ': ' . $liveusersCounter;
-    $result.= wf_tag('br');
-    $result.=__('Inactive users') . ': ' . $deadusersCounter;
+    $result .= wf_tag('h2') . __('Total') . ': ' . $totalusers . wf_tag('h2', true);
+    $result .= __('Active users') . ': ' . $liveusersCounter;
+    $result .= wf_tag('br');
+    $result .= __('Inactive users') . ': ' . $deadusersCounter;
     return($result);
 }
 
@@ -2516,11 +2546,11 @@ function web_TariffShowMoveReport() {
 
 
     $tablecells = wf_TableCell(__('Login'));
-    $tablecells.= wf_TableCell(__('Full address'));
-    $tablecells.= wf_TableCell(__('Real name'));
-    $tablecells.= wf_TableCell(__('Tariff'));
-    $tablecells.= wf_TableCell(__('Next month'));
-    $tablecells.= wf_TableCell(__('Difference'));
+    $tablecells .= wf_TableCell(__('Full address'));
+    $tablecells .= wf_TableCell(__('Real name'));
+    $tablecells .= wf_TableCell(__('Tariff'));
+    $tablecells .= wf_TableCell(__('Next month'));
+    $tablecells .= wf_TableCell(__('Difference'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
     if (!empty($allmoves)) {
@@ -2528,8 +2558,8 @@ function web_TariffShowMoveReport() {
 
             //generate NMCHANGE option
             if ($alter_conf['NMCHANGE']) {
-                $nmchange.=$sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 0' . "\n";
-                $nmchange.=$sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 1' . "\n";
+                $nmchange .= $sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 0' . "\n";
+                $nmchange .= $sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 1' . "\n";
             }
 
             @$current_price = $alltariffprices[$eachmove['Tariff']];
@@ -2545,12 +2575,12 @@ function web_TariffShowMoveReport() {
             $movecount++;
 
             $tablecells = wf_TableCell(wf_Link('?module=userprofile&username=' . $eachmove['login'], web_profile_icon() . ' ' . $eachmove['login'], false));
-            $tablecells.= wf_TableCell(@$alladdrz[$eachmove['login']]);
-            $tablecells.= wf_TableCell(@$allrealnames[$eachmove['login']]);
-            $tablecells.= wf_TableCell($eachmove['Tariff']);
-            $tablecells.= wf_TableCell($eachmove['TariffChange']);
-            $tablecells.= wf_TableCell('<font color="' . $cashcolor . '">' . $difference . '</font>');
-            $tablerows.= wf_TableRow($tablecells, 'row3');
+            $tablecells .= wf_TableCell(@$alladdrz[$eachmove['login']]);
+            $tablecells .= wf_TableCell(@$allrealnames[$eachmove['login']]);
+            $tablecells .= wf_TableCell($eachmove['Tariff']);
+            $tablecells .= wf_TableCell($eachmove['TariffChange']);
+            $tablecells .= wf_TableCell('<font color="' . $cashcolor . '">' . $difference . '</font>');
+            $tablerows .= wf_TableRow($tablecells, 'row3');
         }
     }
 
@@ -2563,10 +2593,10 @@ function web_TariffShowMoveReport() {
         $profitcolor = '#005304';
     }
 
-    $result.= wf_tag('b') . __('Total') . ': ' . $movecount . wf_tag('b', true) . wf_tag('br');
-    $result.= wf_tag('font', false, '', 'color="' . $profitcolor . '"');
-    $result.= __('PROFIT') . ': ' . $totaldiff;
-    $result.= wf_tag('font', true);
+    $result .= wf_tag('b') . __('Total') . ': ' . $movecount . wf_tag('b', true) . wf_tag('br');
+    $result .= wf_tag('font', false, '', 'color="' . $profitcolor . '"');
+    $result .= __('PROFIT') . ': ' . $totaldiff;
+    $result .= wf_tag('font', true);
 
     //yep, lets write nmchange
     if ($alter_conf['NMCHANGE']) {
@@ -2614,14 +2644,14 @@ function web_TariffShowMoveCharts() {
     $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px', $chartOpts));
+        $cells .= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px', $chartOpts));
     }
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px', $chartOpts));
+        $cells .= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px', $chartOpts));
     }
-    $rows.= wf_TableRow($cells);
-    $result.=wf_TableBody($rows, '100%', 0);
+    $rows .= wf_TableRow($cells);
+    $result .= wf_TableBody($rows, '100%', 0);
 
 
     return ($result);
@@ -2651,7 +2681,7 @@ function web_TariffShowTariffCharts() {
 
     if (!empty($chartData)) {
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-        $result.= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px', $chartOpts);
+        $result .= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px', $chartOpts);
     }
 
     return ($result);
@@ -2759,21 +2789,21 @@ function web_UserArrayShower($usersarr) {
         }
 
         $tablecells = wf_TableCell(__('Login'));
-        $tablecells.=wf_TableCell(__('Address'));
-        $tablecells.=wf_TableCell(__('Real Name'));
-        $tablecells.=wf_TableCell(__('IP'));
-        $tablecells.=wf_TableCell(__('Tariff'));
+        $tablecells .= wf_TableCell(__('Address'));
+        $tablecells .= wf_TableCell(__('Real Name'));
+        $tablecells .= wf_TableCell(__('IP'));
+        $tablecells .= wf_TableCell(__('Tariff'));
         // last activity time
         if ($alterconf['ONLINE_LAT']) {
-            $tablecells.=wf_TableCell(__('LAT'));
+            $tablecells .= wf_TableCell(__('LAT'));
         }
-        $tablecells.=wf_TableCell(__('Active'));
+        $tablecells .= wf_TableCell(__('Active'));
         //online detect
         if ($alterconf['DN_ONLINE_DETECT']) {
-            $tablecells.=wf_TableCell(__('Users online'));
+            $tablecells .= wf_TableCell(__('Users online'));
         }
-        $tablecells.=wf_TableCell(__('Balance'));
-        $tablecells.=wf_TableCell(__('Credit'));
+        $tablecells .= wf_TableCell(__('Balance'));
+        $tablecells .= wf_TableCell(__('Credit'));
 
 
 
@@ -2799,36 +2829,36 @@ function web_UserArrayShower($usersarr) {
 
             $profilelink = $financelink . wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
             $tablecells = wf_TableCell($profilelink);
-            $tablecells.=wf_TableCell(@$alladdress[$eachlogin]);
-            $tablecells.=wf_TableCell(@$allrealnames[$eachlogin]);
-            $tablecells.=wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2int(@$alluserips[$eachlogin]) . '"');
-            $tablecells.=wf_TableCell(@$alltariffs[$eachlogin]);
+            $tablecells .= wf_TableCell(@$alladdress[$eachlogin]);
+            $tablecells .= wf_TableCell(@$allrealnames[$eachlogin]);
+            $tablecells .= wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2int(@$alluserips[$eachlogin]) . '"');
+            $tablecells .= wf_TableCell(@$alltariffs[$eachlogin]);
             if ($alterconf['ONLINE_LAT']) {
                 if (isset($alluserlat[$eachlogin])) {
                     $cUserLat = date("Y-m-d H:i:s", $alluserlat[$eachlogin]);
                 } else {
                     $cUserLat = __('No');
                 }
-                $tablecells.=wf_TableCell($cUserLat);
+                $tablecells .= wf_TableCell($cUserLat);
             }
-            $tablecells.=wf_TableCell($activity, '', '', 'sorttable_customkey="' . $activity_flag . '"');
+            $tablecells .= wf_TableCell($activity, '', '', 'sorttable_customkey="' . $activity_flag . '"');
             if ($alterconf['DN_ONLINE_DETECT']) {
                 if (file_exists(DATA_PATH . 'dn/' . $eachlogin)) {
                     $online_flag = 1;
                 } else {
                     $online_flag = 0;
                 }
-                $tablecells.=wf_TableCell(web_bool_star($online_flag), '', '', 'sorttable_customkey="' . $online_flag . '"');
+                $tablecells .= wf_TableCell(web_bool_star($online_flag), '', '', 'sorttable_customkey="' . $online_flag . '"');
             }
-            $tablecells.=wf_TableCell($usercash);
-            $tablecells.=wf_TableCell($usercredit);
+            $tablecells .= wf_TableCell($usercash);
+            $tablecells .= wf_TableCell($usercredit);
 
 
-            $tablerows.=wf_TableRow($tablecells, 'row3');
+            $tablerows .= wf_TableRow($tablecells, 'row3');
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . sizeof($usersarr);
+        $result .= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . sizeof($usersarr);
     } else {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('Any users found'), 'info');
@@ -2960,18 +2990,18 @@ function zb_BillingStats($quiet = false) {
 
 
     $releasebox = wf_tag('span', false, '', 'id="lastrelease"');
-    $releasebox.=wf_tag('span', true) . wf_tag('br');
+    $releasebox .= wf_tag('span', true) . wf_tag('br');
     $updatechecker = wf_AjaxLink('?module=report_sysload&checkupdates=true', $releaseinfo . ' (' . __('Check updates') . '?)', 'lastrelease', false, '');
     $ubstatsinputs = zb_AjaxLoader();
-    $ubstatsinputs.=wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . wf_tag('br');
-    $ubstatsinputs.=wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . wf_tag('br');
-    $ubstatsinputs.=wf_tag('b') . __('Ubilling version') . ': ' . wf_tag('b', true) . $updatechecker . wf_tag('br');
-    $ubstatsinputs.=$releasebox;
-    $ubstatsinputs.=wf_HiddenInput('editcollect', 'true');
-    $ubstatsinputs.=wf_CheckInput('collectflag', 'I want to help make Ubilling better', false, $thiscollect);
-    $ubstatsinputs.=' ' . wf_Submit('Save');
+    $ubstatsinputs .= wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . wf_tag('br');
+    $ubstatsinputs .= wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . wf_tag('br');
+    $ubstatsinputs .= wf_tag('b') . __('Ubilling version') . ': ' . wf_tag('b', true) . $updatechecker . wf_tag('br');
+    $ubstatsinputs .= $releasebox;
+    $ubstatsinputs .= wf_HiddenInput('editcollect', 'true');
+    $ubstatsinputs .= wf_CheckInput('collectflag', 'I want to help make Ubilling better', false, $thiscollect);
+    $ubstatsinputs .= ' ' . wf_Submit('Save');
     $ubstatsform = wf_Form("", 'POST', $ubstatsinputs, 'glamour');
-    $ubstatsform.= wf_CleanDiv();
+    $ubstatsform .= wf_CleanDiv();
     $statsurl = $ubstatsurl . $ubillingInstanceStats;
     $tracking_code = wf_tag('div', false, '', 'style="display:none;"') . wf_tag('iframe', false, '', 'src="' . $statsurl . '" width="1" height="1" frameborder="0"') . wf_tag('iframe', true) . wf_tag('div', true);
     if ($quiet == false) {
@@ -3220,27 +3250,27 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                     }
 
 
-                    $result.=$control . ' ' . $description . wf_tag('br');
+                    $result .= $control . ' ' . $description . wf_tag('br');
                 } else {
                     if (ispos($option, 'CHAPTER_')) {
-                        $result.=wf_tag('div', false, '', 'id="tabs-' . $option . '"');
-                        $result.=wf_tag('h2', false);
-                        $result.=__($handlers);
-                        $result.=wf_tag('h2', true);
+                        $result .= wf_tag('div', false, '', 'id="tabs-' . $option . '"');
+                        $result .= wf_tag('h2', false);
+                        $result .= __($handlers);
+                        $result .= wf_tag('h2', true);
                     }
 
                     if (ispos($option, 'CHAPTEREND_')) {
-                        $result.=wf_tag('div', true) . "\n";
+                        $result .= wf_tag('div', true) . "\n";
                     }
                 }
             } else {
-                $result.=wf_tag('div', false, '', 'style="vertical-align: top; margin:5px; padding:5px; "');
-                $result.=wf_tag('font', false, '', 'style="color: #FF0000;  font-size:100%"');
-                $result.=__('You missed an important option') . ': ' . $option . '';
-                $configOptionsMissed.=$messages->getStyledMessage(__('You missed an important option') . ': ' . $option, 'error');
-                $result.=wf_tag('font', true);
-                $result.=wf_tag('div', true);
-                $result.=wf_tag('br');
+                $result .= wf_tag('div', false, '', 'style="vertical-align: top; margin:5px; padding:5px; "');
+                $result .= wf_tag('font', false, '', 'style="color: #FF0000;  font-size:100%"');
+                $result .= __('You missed an important option') . ': ' . $option . '';
+                $configOptionsMissed .= $messages->getStyledMessage(__('You missed an important option') . ': ' . $option, 'error');
+                $result .= wf_tag('font', true);
+                $result .= wf_tag('div', true);
+                $result .= wf_tag('br');
             }
         }
     }
@@ -3259,12 +3289,12 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
 function web_FileEditorForm($path, $content) {
     $result = '';
     $inputs = wf_HiddenInput('editfilepath', $path);
-    $inputs.=wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30"');
-    $inputs.=$content;
-    $inputs.=wf_tag('textarea', true);
-    $inputs.=wf_tag('br');
-    $inputs.=wf_Submit(__('Save'));
-    $result.=wf_Form('', 'POST', $inputs, 'glamour');
+    $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30"');
+    $inputs .= $content;
+    $inputs .= wf_tag('textarea', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Submit(__('Save'));
+    $result .= wf_Form('', 'POST', $inputs, 'glamour');
     return ($result);
 }
 
@@ -3295,7 +3325,7 @@ function web_ConfigGetTabsControls($optsdata) {
         foreach ($optsdata as $io => $each) {
             if (!empty($io)) {
                 if (ispos($io, 'CHAPTER_')) {
-                    $result.=wf_tag('li') . wf_tag('a', false, '', 'href="#tabs-' . $io . '"') . __($each) . wf_tag('a', true) . wf_tag('li', true);
+                    $result .= wf_tag('li') . wf_tag('a', false, '', 'href="#tabs-' . $io . '"') . __($each) . wf_tag('a', true) . wf_tag('li', true);
                 }
             }
         }
@@ -3499,8 +3529,8 @@ function zb_DBStatsRender() {
     $totalCount = 0;
     if (!empty($all)) {
         $cells = wf_TableCell(__('Table name'));
-        $cells.= wf_TableCell(__('Rows'));
-        $cells.= wf_TableCell(__('Size'));
+        $cells .= wf_TableCell(__('Rows'));
+        $cells .= wf_TableCell(__('Size'));
         $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['name']);
@@ -3512,7 +3542,7 @@ function zb_DBStatsRender() {
                 $dbrows = 0;
             }
 
-            $cells.= wf_TableCell($dbrows);
+            $cells .= wf_TableCell($dbrows);
             if (!empty($each['size'])) {
                 @$size = stg_convert_size($each['size']);
                 $totalSize = $totalSize + $each['size'];
@@ -3520,12 +3550,12 @@ function zb_DBStatsRender() {
                 $size = '0 b';
             }
 
-            $cells.= wf_TableCell($size, '', '', 'sorttable_customkey="' . $each['size'] . '"');
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($size, '', '', 'sorttable_customkey="' . $each['size'] . '"');
+            $rows .= wf_TableRow($cells, 'row3');
             $totalCount++;
         }
-        $result.= $rows;
-        $result.= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . ' ' . __('Tables') . ' ' . $totalCount . ' ' . __('Rows') . ' ' . $totalRows . ' / ' . __('Size') . ' ' . stg_convert_size($totalSize);
+        $result .= $rows;
+        $result .= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . ' ' . __('Tables') . ' ' . $totalCount . ' ' . __('Rows') . ' ' . $totalRows . ' / ' . __('Size') . ' ' . stg_convert_size($totalSize);
     }
     return ($result);
 }
@@ -3539,13 +3569,13 @@ function zb_DBStatsRenderContainer() {
     global $ubillingDatabaseDriver;
     $messages = new UbillingMessageHelper();
     $result = '';
-    $result.= wf_AjaxLoader();
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Database stats'), 'dbscontainer', false, 'ubButton');
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', true, 'ubButton');
-    $result.= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
-    $result.=wf_tag('br');
-    $result.=wf_AjaxContainer('dbrepaircontainer');
-    $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
+    $result .= wf_AjaxLoader();
+    $result .= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Database stats'), 'dbscontainer', false, 'ubButton');
+    $result .= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', true, 'ubButton');
+    $result .= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
+    $result .= wf_tag('br');
+    $result .= wf_AjaxContainer('dbrepaircontainer');
+    $result .= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
     return ($result);
 }
 
@@ -3595,7 +3625,7 @@ function zb_DBCheckRender() {
     $all = zb_DBGetStats();
     if (!empty($all)) {
         $cells = wf_TableCell(__('Table name'));
-        $cells.= wf_TableCell(__('Status'));
+        $cells .= wf_TableCell(__('Status'));
         $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['name']);
@@ -3604,8 +3634,8 @@ function zb_DBCheckRender() {
             if ($tableStatus != 'OK') {
                 $fixControl = ' ' . wf_AjaxLink('?module=report_sysload&dbrepairtable=' . $each['name'], wf_img('skins/icon_repair.gif', __('Fix')), 'dbrepaircontainer');
             }
-            $cells.= wf_TableCell($tableStatus . $fixControl);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($tableStatus . $fixControl);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
     return($rows);
@@ -3642,19 +3672,19 @@ function web_DBCleanupForm() {
     $totalCount = 0;
 
     $cells = wf_TableCell(__('Table name'));
-    $cells.= wf_TableCell(__('Rows'));
-    $cells.= wf_TableCell(__('Size'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Rows'));
+    $cells .= wf_TableCell(__('Size'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($cleanupData)) {
         foreach ($cleanupData as $io => $each) {
             $cells = wf_TableCell($each['name']);
-            $cells.= wf_TableCell($each['rows']);
-            $cells.= wf_TableCell(stg_convert_size($each['size']), '', '', 'sorttable_customkey="' . $each['size'] . '"');
+            $cells .= wf_TableCell($each['rows']);
+            $cells .= wf_TableCell(stg_convert_size($each['size']), '', '', 'sorttable_customkey="' . $each['size'] . '"');
             $actlink = wf_JSAlert("?module=backups&tableclean=" . $each['name'], web_delete_icon(), 'Are you serious');
-            $cells.= wf_TableCell($actlink);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($actlink);
+            $rows .= wf_TableRow($cells, 'row3');
             $totalRows = $totalRows + $each['rows'];
             $totalSize = $totalSize + $each['size'];
             $totalCount = $totalCount + 1;
@@ -3662,7 +3692,7 @@ function web_DBCleanupForm() {
     }
 
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    $result.=wf_tag('b') . __('Total') . ': ' . $totalCount . ' / ' . $totalRows . ' / ' . stg_convert_size($totalSize) . wf_tag('b', true);
+    $result .= wf_tag('b') . __('Total') . ': ' . $totalCount . ' / ' . $totalRows . ' / ' . stg_convert_size($totalSize) . wf_tag('b', true);
 
     return ($result);
 }
@@ -4200,11 +4230,11 @@ function web_AnalyticsTaskmanMonthGraph($year) {
  */
 function web_AnalyticsAllGraphs($year) {
     $graphs = web_AnalyticsArpuMonthGraph($year);
-    $graphs.= web_AnalyticsPaymentsMonthGraph($year);
-    $graphs.= web_AnalyticsSignupsMonthGraph($year);
-    $graphs.= web_AnalyticsSigReqMonthGraph($year);
-    $graphs.= web_AnalyticsTicketingMonthGraph($year);
-    $graphs.= web_AnalyticsTaskmanMonthGraph($year);
+    $graphs .= web_AnalyticsPaymentsMonthGraph($year);
+    $graphs .= web_AnalyticsSignupsMonthGraph($year);
+    $graphs .= web_AnalyticsSigReqMonthGraph($year);
+    $graphs .= web_AnalyticsTicketingMonthGraph($year);
+    $graphs .= web_AnalyticsTaskmanMonthGraph($year);
     return ($graphs);
 }
 
@@ -4318,10 +4348,10 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
 
     //control form construct
     $inputs = wf_HiddenInput('swassignlogin', $login);
-    $inputs.= wf_Selector('swassignswid', $switcharr, __('Switch'), $suggestswitchid, true);
-    $inputs.= wf_TextInput('swassignswport', __('Port'), $suggestswitchport, false, '2');
-    $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
-    $inputs.= wf_Submit('Save');
+    $inputs .= wf_Selector('swassignswid', $switcharr, __('Switch'), $suggestswitchid, true);
+    $inputs .= wf_TextInput('swassignswport', __('Port'), $suggestswitchport, false, '2');
+    $inputs .= wf_CheckInput('swassigndelete', __('Delete'), true, false);
+    $inputs .= wf_Submit('Save');
     $controlForm = wf_Form('', "POST", $inputs, 'glamour');
     //form end
 
@@ -4329,14 +4359,14 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
 
 
     $cells = wf_TableCell(__('Switch'), '30%', 'row2');
-    $cells.= wf_TableCell(@$switcharr[$currentSwitchId]);
+    $cells .= wf_TableCell(@$switcharr[$currentSwitchId]);
     $rows = wf_TableRow($cells, 'row3');
     $cells = wf_TableCell(__('Port'), '30%', 'row2');
-    $cells.= wf_TableCell($currentSwitchPort);
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell($currentSwitchPort);
+    $rows .= wf_TableRow($cells, 'row3');
     $cells = wf_TableCell(__('Change'), '30%', 'row2');
-    $cells.= wf_TableCell($switchAssignController);
-    $rows.= wf_TableRow($cells, 'row3');
+    $cells .= wf_TableCell($switchAssignController);
+    $rows .= wf_TableRow($cells, 'row3');
 
     $result = wf_TableBody($rows, '100%', '0');
 
@@ -4438,14 +4468,14 @@ function web_FreeRadiusListClients() {
     $all = simple_queryall($query);
     if (!empty($all)) {
         $cells = wf_TableCell(__('IP'));
-        $cells.= wf_TableCell(__('NAS name'));
-        $cells.= wf_TableCell(__('Radius secret'));
+        $cells .= wf_TableCell(__('NAS name'));
+        $cells .= wf_TableCell(__('Radius secret'));
         $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['nasname']);
-            $cells.= wf_TableCell($each['shortname']);
-            $cells.= wf_TableCell($each['secret']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($each['shortname']);
+            $cells .= wf_TableCell($each['secret']);
+            $rows .= wf_TableRow($cells, 'row3');
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
     }
@@ -4503,14 +4533,14 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     //construct form
     $controlIcon = wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
     $inputs = '';
-    $inputs.= wf_HiddenInput('easycreditlogin', $login);
-    $inputs.= wf_TextInput('easycreditlimit', '', $creditProposal, false, '5') . __('credit limit') . ' ';
-    $inputs.= __('until');
-    $inputs.= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_HiddenInput('easycreditlogin', $login);
+    $inputs .= wf_TextInput('easycreditlimit', '', $creditProposal, false, '5') . __('credit limit') . ' ';
+    $inputs .= __('until');
+    $inputs .= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
+    $inputs .= wf_Submit(__('Save'));
 
     $form = wf_Form('?module=userprofile&username=' . $login, 'POST', $inputs, 'glamour');
-    $form.=$creditNote;
+    $form .= $creditNote;
 
     $result = wf_modal($controlIcon, __('Change') . ' ' . __('credit limit'), $form, '', '500', '180');
 
@@ -4536,17 +4566,17 @@ function web_ReportSysloadCustomScripts($scriptoption) {
     }
     $scriptdata = explode(',', $scriptoption);
     if (!empty($scriptdata)) {
-        $result.= wf_AjaxLoader();
+        $result .= wf_AjaxLoader();
         foreach ($scriptdata as $io => $eachscript) {
             $curScript = explode(':', $eachscript);
             if (!empty($curScript)) {
                 $name = $curScript[0];
                 $path = $curScript[1];
-                $result.=wf_AjaxLink('?module=report_sysload&ajxcscrun=' . base64_encode($path), $name, 'custommoncontainder', false, 'ubButton');
+                $result .= wf_AjaxLink('?module=report_sysload&ajxcscrun=' . base64_encode($path), $name, 'custommoncontainder', false, 'ubButton');
             }
         }
-        $result.=wf_delimiter();
-        $result.=wf_tag('span', false, '', 'id="custommoncontainder"') . wf_tag('span', true);
+        $result .= wf_delimiter();
+        $result .= wf_tag('span', false, '', 'id="custommoncontainder"') . wf_tag('span', true);
     }
     return ($result);
 }
@@ -4724,16 +4754,16 @@ function zb_CheckPHPExtensions() {
                                     $notice = ' ' . __('May require manual installation');
                                     break;
                             }
-                            $result.=wf_tag('span', false, 'alert_error') . __('PHP extension not found') . ': ' . $each . $notice . wf_tag('span', true);
+                            $result .= wf_tag('span', false, 'alert_error') . __('PHP extension not found') . ': ' . $each . $notice . wf_tag('span', true);
                         } else {
-                            $result.=wf_tag('span', false, 'alert_success') . __('PHP extension loaded') . ': ' . $each . wf_tag('span', true);
+                            $result .= wf_tag('span', false, 'alert_success') . __('PHP extension loaded') . ': ' . $each . wf_tag('span', true);
                         }
                     }
                 }
             }
         }
     } else {
-        $result.=wf_tag('span', false, 'alert_error') . __('Strange exeption') . ': OPTSEXTCFG_NOT_FOUND' . wf_tag('span', true);
+        $result .= wf_tag('span', false, 'alert_error') . __('Strange exeption') . ': OPTSEXTCFG_NOT_FOUND' . wf_tag('span', true);
     }
     return ($result);
 }
@@ -4789,15 +4819,15 @@ function web_MemCachedRenderStats() {
     $rawStats = $memcached->getStats();
 
     $cells = wf_TableCell(__('Parameter'));
-    $cells.= wf_TableCell(__('Value'));
+    $cells .= wf_TableCell(__('Value'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($rawStats)) {
         if (isset($rawStats[$memcachedHost . ':' . $memcachedPort])) {
             foreach ($rawStats[$memcachedHost . ':' . $memcachedPort] as $io => $each) {
                 $cells = wf_TableCell($io);
-                $cells.= wf_TableCell($each);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($each);
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
 
@@ -4812,8 +4842,8 @@ function web_MemCachedRenderStats() {
         }
     }
 
-    $result.= wf_TableBody($rows, '100%', 0, '');
-    $result.=$cacheEfficiency;
+    $result .= wf_TableBody($rows, '100%', 0, '');
+    $result .= $cacheEfficiency;
     return ($result);
 }
 
@@ -4840,13 +4870,13 @@ function web_RedisRenderStats() {
     $redis->connect($redisHost, $redisdPort);
     $rawStats = $redis->info();
     $cells = wf_TableCell(__('Parameter'));
-    $cells.= wf_TableCell(__('Value'));
+    $cells .= wf_TableCell(__('Value'));
     $rows = wf_TableRow($cells, 'row1');
     if (!empty($rawStats)) {
         foreach ($rawStats as $param => $value) {
             $cells = wf_TableCell($param);
-            $cells.= wf_TableCell($value);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($value);
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
         //cache efficiency calc
@@ -4858,8 +4888,8 @@ function web_RedisRenderStats() {
             $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
         }
     }
-    $result.= wf_TableBody($rows, '100%', 0, '');
-    $result.= $cacheEfficiency;
+    $result .= wf_TableBody($rows, '100%', 0, '');
+    $result .= $cacheEfficiency;
     return ($result);
 }
 
@@ -4968,8 +4998,8 @@ function zb_ListLoadedModules() {
     $rightsCount = 0;
     global $system;
     $cells = wf_TableCell(__('Module'));
-    $cells.= wf_TableCell(__('Author'));
-    $cells.= wf_TableCell(__('Rights generated'));
+    $cells .= wf_TableCell(__('Author'));
+    $cells .= wf_TableCell(__('Rights generated'));
     $rows = wf_TableRow($cells, 'row1');
 
     foreach ($system->modules as $type => $modules) {
@@ -4978,23 +5008,23 @@ function zb_ListLoadedModules() {
                 $moduleRights = '';
                 if (!empty($moduledata['rights'])) {
                     foreach ($moduledata['rights'] as $right => $rightdesc) {
-                        $moduleRights.=' ' . wf_tag('abbr', false, '', 'title="' . $rightdesc . '"') . $right . wf_tag('abbr', true) . ',';
+                        $moduleRights .= ' ' . wf_tag('abbr', false, '', 'title="' . $rightdesc . '"') . $right . wf_tag('abbr', true) . ',';
                         $rightsCount++;
                     }
                     $moduleRights = zb_CutEnd($moduleRights);
                 }
                 $cells = wf_TableCell($moduledata['title']);
-                $cells.= wf_TableCell($moduledata['copyright']);
-                $cells.= wf_TableCell($moduleRights);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($moduledata['copyright']);
+                $cells .= wf_TableCell($moduleRights);
+                $rows .= wf_TableRow($cells, 'row3');
                 $moduleCount++;
             }
         }
     }
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    $result.=__('Total') . ': ' . $moduleCount . wf_tag('br');
-    $result.=__('Rights generated') . ': ' . $rightsCount;
+    $result .= __('Total') . ': ' . $moduleCount . wf_tag('br');
+    $result .= __('Rights generated') . ': ' . $rightsCount;
     return ($result);
 }
 
@@ -5008,19 +5038,19 @@ function zb_ListCacheInformRenderContainer() {
     $alterconf = $ubillingConfig->getAlter();
     $messages = new UbillingMessageHelper();
     $result = '';
-    $result.= wf_AjaxLoader();
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', wf_img('skins/icon_cache.png') . ' ' . __('Cache information'), 'cachconteiner', false, 'ubButton');
+    $result .= wf_AjaxLoader();
+    $result .= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', wf_img('skins/icon_cache.png') . ' ' . __('Cache information'), 'cachconteiner', false, 'ubButton');
     if ($alterconf['UBCACHE_STORAGE'] == 'memcached') {
-        $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
+        $result .= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
     }
     if ($alterconf['UBCACHE_STORAGE'] == 'redis') {
-        $result.= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
+        $result .= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
     }
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', wf_img('skins/shovel.png') . ' ' . __('Cache data'), 'cachconteiner', false, 'ubButton');
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', wf_img('skins/icon_cleanup.png') . ' ' . __('Clear all cache'), 'cachconteiner', true, 'ubButton');
-    $result.= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b', true), 'info');
-    $result.=wf_tag('br');
-    $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);
+    $result .= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', wf_img('skins/shovel.png') . ' ' . __('Cache data'), 'cachconteiner', false, 'ubButton');
+    $result .= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', wf_img('skins/icon_cleanup.png') . ' ' . __('Clear all cache'), 'cachconteiner', true, 'ubButton');
+    $result .= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b', true), 'info');
+    $result .= wf_tag('br');
+    $result .= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);
     return ($result);
 }
 
@@ -5039,32 +5069,32 @@ function zb_ListCacheInform($param = '') {
     $result = '';
     if (!empty($data) and $param != 'clear') {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Key'));
+        $cells .= wf_TableCell(__('Key'));
 
         if ($param == 'data') {
-            $cells.= wf_TableCell(__('Entries'));
-            $cells.= wf_TableCell(__('Data'));
+            $cells .= wf_TableCell(__('Entries'));
+            $cells .= wf_TableCell(__('Data'));
         }
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($data as $id => $key) {
             $cells = wf_TableCell($id);
             if ($param == 'data') {
-                $cells.= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
+                $cells .= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
                 $dataCount = sizeof($key['value']);
                 $readableData = print_r($key['value'], true);
                 $dataSize = stg_convert_size(strlen($readableData));
                 $value = wf_tag('pre') . $readableData . wf_tag('pre', true);
-                $cells.= wf_TableCell($dataCount . ' ~ ' . $dataSize);
-                $cells.= wf_TableCell(wf_modal(__('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600'));
+                $cells .= wf_TableCell($dataCount . ' ~ ' . $dataSize);
+                $cells .= wf_TableCell(wf_modal(__('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600'));
             } else {
-                $cells.= wf_TableCell($key, '', '', 'sorttable_customkey="' . $id . '"');
+                $cells .= wf_TableCell($key, '', '', 'sorttable_customkey="' . $id . '"');
             }
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
         }
         $result .= $rows;
     } elseif (empty($data) and $param == 'clear') {
-        $result.= $messages->getStyledMessage(__('Cache cleared'), 'success');
+        $result .= $messages->getStyledMessage(__('Cache cleared'), 'success');
     }
     return ($result);
 }
@@ -5131,7 +5161,7 @@ function zb_getSMSServicesList() {
     $query = "SELECT * FROM `sms_services`;";
     $result = simple_queryall($query);
 
-    if ( !empty($result) ) {
+    if (!empty($result)) {
         foreach ($result as $index => $record) {
             if ($record['default_service']) {
                 $defaultSmsServiceId = $record['id'];
@@ -5142,7 +5172,7 @@ function zb_getSMSServicesList() {
             $smsServicesList[$record['id']] = $record['name'];
         }
 
-        if (!empty($defaultSmsServiceId) and !empty($defaultSmsServiceName)) {
+        if (!empty($defaultSmsServiceId) and ! empty($defaultSmsServiceName)) {
             $smsServicesList = array($defaultSmsServiceId => $defaultSmsServiceName) + $smsServicesList;
         }
     }
@@ -5162,14 +5192,16 @@ function zb_getSMSServiceNameByID($smsServiceId = 0) {
     $smsServiceName = '';
     $result = array();
 
-    if ( empty($smsServiceId) ) {
+    if (empty($smsServiceId)) {
         $Query = "SELECT * FROM `sms_services` WHERE `default_service` > 0;";
     } else {
         $Query = "SELECT * FROM `sms_services` WHERE `id` = " . $smsServiceId . ";";
     }
     $result = simple_queryall($Query);
 
-    if ( !empty($result) ) { $smsServiceName = $result[0]['name']; }
+    if (!empty($result)) {
+        $smsServiceName = $result[0]['name'];
+    }
 
     return $smsServiceName;
 }
@@ -5189,7 +5221,7 @@ function zb_getUsersPreferredSMSService($userLogin) {
     $query = "SELECT * FROM `sms_services_relations` WHERE `user_login` = '" . $userLogin . "';";
     $result = simple_queryall($query);
 
-    if ( !empty($result) ) {
+    if (!empty($result)) {
         $smsServiceIdName[0] = $result[0]['sms_srv_id'];
     }
 

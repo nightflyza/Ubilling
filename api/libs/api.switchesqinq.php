@@ -3,13 +3,6 @@
 class SwitchesQinQ {
 
     /**
-     * Contains system alter.ini config as key=>value
-     *
-     * @var array
-     */
-    protected $altCfg = array();
-
-    /**
      * Contains all available QinQ data as switchid=>data
      *
      * @var array
@@ -31,18 +24,6 @@ class SwitchesQinQ {
     }
 
     /**
-     * Loads reqired configss
-     * 
-     * @global object $ubillingConfig
-     * 
-     * @return void
-     */
-    protected function loadConfigs() {
-        global $ubillingConfig;
-        $this->altCfg = $ubillingConfig->getAlter();
-    }
-
-    /**
      * Loads existing QinQ data into protected prop
      * 
      * @return void
@@ -56,7 +37,7 @@ class SwitchesQinQ {
             }
         }
     }
-    
+
     /**
      * Public getter for 
      * 
@@ -78,10 +59,10 @@ class SwitchesQinQ {
         if (!empty($switchId)) {
             @$currentData = $this->allQinQ[$switchId];
             $qinqinputs = wf_HiddenInput('qinqswitchid', $switchId);
-            $qinqinputs.= wf_TextInput('qinqsvlan', __('SVLAN'), @$currentData['svlan'], false, 4, 'digits') . ' ';
-            $qinqinputs.= wf_TextInput('qinqcvlan', __('CVLAN'), @$currentData['cvlan'], false, 4, 'digits') . ' ';
-            $qinqinputs.=wf_Submit(__('Apply'));
-            $result.=wf_Form('', 'POST', $qinqinputs, 'glamour');
+            $qinqinputs .= wf_TextInput('qinqsvlan', __('SVLAN'), @$currentData['svlan'], false, 4, 'digits') . ' ';
+            $qinqinputs .= wf_TextInput('qinqcvlan', __('CVLAN'), @$currentData['cvlan'], false, 4, 'digits') . ' ';
+            $qinqinputs .= wf_Submit(__('Apply'));
+            $result .= wf_Form('', 'POST', $qinqinputs, 'glamour');
         }
         return ($result);
     }
@@ -147,7 +128,7 @@ class SwitchesQinQ {
                     }
                 }
             } else {
-                $result.=__('SVLAN + CVLAN pair is not valid');
+                $result .= __('SVLAN + CVLAN pair is not valid');
             }
         }
         return ($result);

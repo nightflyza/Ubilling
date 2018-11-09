@@ -2987,7 +2987,7 @@ $lang['def']['Will be used as a default SMS service'] = 'Будет исполь
 $lang['def']['Can not remove SMS which has existing relations on users or other DB entities'] = 'Нельзя удалить СМС сервис имеющий связи с пользователями или другими объектами в БД';
 $lang['def']['Use login as alpha name'] = 'Использовать логин как альфа-имя';
 $lang['def']['SVLAN + CVLAN pair is not valid'] = 'Пара SVLAN + CVLAN неправильная';
-$lang['def'][''] = '';
+$lang['def']['Port already assigned for another user'] = 'Порт уже занят другим пользователем';
 $lang['def'][''] = '';
 
 ?>
