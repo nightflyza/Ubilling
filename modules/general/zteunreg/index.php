@@ -36,13 +36,13 @@ if (@$altcfg['ONUREG_ZTE']) {
                     $router = false;
                     $login = '';
                     $PONizerAdd = false;
-                    if (wf_CheckGet(array('login'))) {
+                    if (wf_CheckPost(array('login'))) {
                         $login = $_POST['login'];
                     }
-                    if (wf_CheckGet(array('mac'))) {
+                    if (wf_CheckPost(array('mac'))) {
                         $onuIdentifier = $_POST['mac'];
                     }
-                    if (wf_CheckGet(array('sn'))) {
+                    if (wf_CheckPost(array('sn'))) {
                         $onuIdentifier = $_POST['sn'];
                     }
                     if (isset($_POST['router'])) {
