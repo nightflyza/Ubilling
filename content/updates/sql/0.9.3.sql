@@ -25,3 +25,10 @@ CREATE TABLE IF NOT EXISTS `sms_services_relations` (
   UNIQUE KEY (`user_login`),
   UNIQUE KEY (`employee_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `switches_qinq` (
+  `switchid` int(11) NOT NULL,
+  `svlan` int(11) NOT NULL,
+  `cvlan` int(11) NOT NULL,
+  PRIMARY KEY (`switchid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
