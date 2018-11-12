@@ -134,6 +134,19 @@ class mikbill {
     protected $stringFixed = '';
 
     /**
+     *
+     * @var array
+     */
+    protected $loginToFix = '';
+
+    /**
+     * Stores fixed login string.
+     * 
+     * @var string
+     */
+    protected $fixedLogin = '';
+
+    /**
      * Placeholder for avarice.
      * 
      * @var object
@@ -160,7 +173,6 @@ class mikbill {
     protected $phonePoint = '';
     protected $mobilePoint = '';
     protected $addressPoint = '';
-    protected $fixedLogin = '';
 
     public function __construct() {
         $this->greed = new Avarice();
@@ -179,7 +191,6 @@ class mikbill {
         $this->mobilePoint = $this->beggar['INF']['mobile'];
         $this->addressPoint = $this->beggar['INF']['address'];
 
-
         $this->dbLoader = new simpleOverlay();
         ini_set('max_execution_time', 1800);
     }
@@ -188,34 +199,39 @@ class mikbill {
      * 
      * @param type $string         
      */
-    public function translit() {
-        $this->stringFixed = str_replace(array(' ', '*'), '_', zb_TranslitString($this->stringToFix));
+    public function translit($string) {
+        $result = zb_TranslitString($string);
+        return (str_replace(array(' ', '*'), '_', $result));
     }
 
     /**
      * Fix string encoding when broken while convertion to utf8.     
      */
-    private function fixEncode() {
+    private function fixEncode($string) {
         $replace_array[9557] = 'і';
         $replace_array[9570] = 'Е';
         $replace_array[9572] = 'І';
         $replace_array[9555] = 'є';
         $replace_array[9558] = 'ї';
 
-        $array = preg_split('//u', $this->stringToFix, null, PREG_SPLIT_NO_EMPTY);
+        $array = preg_split('//u', $string, null, PREG_SPLIT_NO_EMPTY);
         foreach ($array as &$each) {
             $converted = $this->_uniord($each);
             if (isset($replace_array[$converted])) {
                 $each = $replace_array[$converted];
             }
         }
-        $this->stringFixed = implode("", $array);
+
+        $string = implode("", $array);
+        $result = strtr($string, $replace_names);
+
+        return ($result);
     }
 
     protected function fixLogin() {
-        $this->stringToFix = strtolower($this->stringToFix);
-        $this->stringToFix = str_replace('-', '', $this->stringToFix);
-        $this->fixedLogin = trim($this->stringToFix);
+        $this->loginToFix = strtolower($this->loginToFix);
+        $this->loginToFix = str_replace('-', '', $this->loginToFix);
+        $this->fixedLogin = trim($this->loginToFix);
     }
 
     /**
@@ -400,18 +416,16 @@ class mikbill {
 
         $j = $this->initIncrement('nethosts');
         foreach ($this->usersData as $eachuser => $io) {
-            $this->stringToFix = $io[$this->beggar['DAT']['login']];
-            $this->fixLogin();           
+            $this->loginToFix = $io[$this->beggar['DAT']['login']];
+            $this->fixLogin();
             $user_arr[$this->fixedLogin][$this->loginPoint] = $this->fixedLogin; //0
             $user_arr[$this->fixedLogin][$this->passwordPoint] = $io[$this->beggar['DAT']['password']]; //1
             $user_arr[$this->fixedLogin][$this->gridPoint] = $io[$this->beggar['DAT']['grid']];  //2
             $user_arr[$this->fixedLogin][$this->ipPoint] = $io['local_ip']; //3
             $user_arr[$this->fixedLogin][$this->macPoint] = $io[$this->beggar['DAT']['mac']]; //4
             $user_arr[$this->fixedLogin][$this->cashPoint] = $io[$this->beggar['DAT']['cash']]; //5
-            $user_arr[$this->fixedLogin][$this->downPoint] = $io[$this->beggar['DAT']['down']]; //6
-            $this->stringToFix = $io[$this->beggar['DAT']['realname']];
-            $this->fixEncode();
-            $user_arr[$this->fixedLogin][$this->realnamePoint] = $this->stringFixed;  //7
+            $user_arr[$this->fixedLogin][$this->downPoint] = $io[$this->beggar['DAT']['down']]; //6                        
+            $user_arr[$this->fixedLogin][$this->realnamePoint] = $this->fixEncode($io[$this->beggar['DAT']['realname']]);  //7
             foreach ($this->tariffsData as $eachtariff => $ia) {
                 if ($io[$this->gridPoint] == $ia[$this->beggar['DAT']['grid']]) {
                     $user_arr[$this->fixedLogin][$this->tariffPoint] = $ia[$this->beggar['DAT']['tariff']]; //8
@@ -420,15 +434,11 @@ class mikbill {
             }
             $user_arr[$this->fixedLogin][$this->beggar['INF']['id']] = $this->beggar['UDATA'] + $j++;  //10
             $user_arr[$this->fixedLogin][$this->phonePoint] = $io[$this->beggar['DAT']['phone']]; //11
-            $user_arr[$this->fixedLogin][$this->mobilePoint] = $io[$this->beggar['DAT']['mobile']]; //12
-            $this->stringToFix = $io[$this->beggar['DAT']['address']];
-            $this->fixEncode();
-            $user_arr[$this->fixedLogin][$this->addressPoint] = $this->stringFixed; //13
+            $user_arr[$this->fixedLogin][$this->mobilePoint] = $io[$this->beggar['DAT']['mobile']]; //12                        
+            $user_arr[$this->fixedLogin][$this->addressPoint] = $this->fixEncode($io[$this->beggar['DAT']['address']]); //13
             $user_arr[$this->fixedLogin]['buildid'] = $io['houseid'];
             $user_arr[$this->fixedLogin]['aptnum'] = $io['app'];
-            $this->stringToFix = $io['prim'];
-            $this->fixEncode();
-            $user_arr[$this->fixedLogin]['note'] = $this->stringFixed;
+            $user_arr[$this->fixedLogin]['note'] = $this->fixEncode($io['prim']);
             $user_arr[$this->fixedLogin]['credit'] = $io['credit'];
             $user_arr[$this->fixedLogin]['entrance'] = $io['porch'];
             $user_arr[$this->fixedLogin]['floor'] = $io['floor'];
@@ -439,7 +449,7 @@ class mikbill {
 
         foreach ($this->blockedData as $eachuser => $io) {
             $this->stringToFix = $io[$this->beggar['DAT']['login']];
-            $this->fixLogin();           
+            $this->fixLogin();
             if (!isset($allIP[$io['local_ip']])) {
                 $user_arr[$this->fixedLogin][$this->loginPoint] = $this->fixedLogin; //0
                 $user_arr[$this->fixedLogin][$this->passwordPoint] = $io[$this->beggar['DAT']['password']]; //1
@@ -448,7 +458,7 @@ class mikbill {
                 $user_arr[$this->fixedLogin][$this->macPoint] = $io[$this->beggar['DAT']['mac']]; //4
                 $user_arr[$this->fixedLogin][$this->cashPoint] = $io[$this->beggar['DAT']['cash']]; //5
                 $user_arr[$this->fixedLogin][$this->downPoint] = 1; //6
-                $user_arr[$this->fixedLogin][$this->realnamePoint] = $io[$this->beggar['DAT']['realname']];  //7
+                $user_arr[$this->fixedLogin][$this->realnamePoint] = $this->fixEncode($io[$this->beggar['DAT']['realname']]);  //7
                 foreach ($this->tariffsData as $eachtariff => $ia) {
                     if ($io[$this->gridPoint] == $ia[$this->beggar['DAT']['grid']]) {
                         $user_arr[$this->fixedLogin][$this->tariffPoint] = $ia[$this->beggar['DAT']['tariff']]; //8
@@ -458,10 +468,10 @@ class mikbill {
                 $user_arr[$this->fixedLogin][$this->beggar['INF']['id']] = $this->beggar['UDATA'] + $j++;  //10
                 $user_arr[$this->fixedLogin][$this->phonePoint] = $io[$this->beggar['DAT']['phone']]; //11
                 $user_arr[$this->fixedLogin][$this->mobilePoint] = $io[$this->beggar['DAT']['mobile']]; //12
-                $user_arr[$this->fixedLogin][$this->addressPoint] = $io[$this->beggar['DAT']['address']]; //13
+                $user_arr[$this->fixedLogin][$this->addressPoint] = $this->fixEncode($io[$this->beggar['DAT']['address']]); //13
                 $user_arr[$this->fixedLogin]['buildid'] = $io['houseid'];
                 $user_arr[$this->fixedLogin]['aptnum'] = $io['app'];
-                $user_arr[$this->fixedLogin]['note'] = $io['prim'];
+                $user_arr[$this->fixedLogin]['note'] = $this->fixEncode($io['prim']);
                 $user_arr[$this->fixedLogin]['credit'] = $io['credit'];
                 $user_arr[$this->fixedLogin]['entrance'] = $io['porch'];
                 $user_arr[$this->fixedLogin]['floor'] = $io['floor'];
@@ -475,7 +485,7 @@ class mikbill {
 
         foreach ($this->freezedData as $eachuser => $io) {
             $this->stringToFix = $io[$this->beggar['DAT']['login']];
-            $this->fixLogin();           
+            $this->fixLogin();
             if (!isset($allIP[$io['local_ip']])) {
                 $user_arr[$this->fixedLogin][$this->loginPoint] = $this->fixedLogin; //0
                 $user_arr[$this->fixedLogin][$this->passwordPoint] = $io[$this->beggar['DAT']['password']]; //1
@@ -484,7 +494,7 @@ class mikbill {
                 $user_arr[$this->fixedLogin][$this->macPoint] = $io[$this->beggar['DAT']['mac']]; //4
                 $user_arr[$this->fixedLogin][$this->cashPoint] = $io[$this->beggar['DAT']['cash']]; //5
                 $user_arr[$this->fixedLogin][$this->downPoint] = $io[$this->beggar['DAT']['down']]; //6
-                $user_arr[$this->fixedLogin][$this->realnamePoint] = $io[$this->beggar['DAT']['realname']];  //7
+                $user_arr[$this->fixedLogin][$this->realnamePoint] = $this->fixEncode($io[$this->beggar['DAT']['realname']]);  //7
                 foreach ($this->tariffsData as $eachtariff => $ia) {
                     if ($io[$this->gridPoint] == $ia[$this->beggar['DAT']['grid']]) {
                         $user_arr[$this->fixedLogin][$this->tariffPoint] = $ia[$this->beggar['DAT']['tariff']]; //8
@@ -494,10 +504,10 @@ class mikbill {
                 $user_arr[$this->fixedLogin][$this->beggar['INF']['id']] = $this->beggar['UDATA'] + $j++;  //10
                 $user_arr[$this->fixedLogin][$this->phonePoint] = $io[$this->beggar['DAT']['phone']]; //11
                 $user_arr[$this->fixedLogin][$this->mobilePoint] = $io[$this->beggar['DAT']['mobile']]; //12
-                $user_arr[$this->fixedLogin][$this->addressPoint] = $io[$this->beggar['DAT']['address']]; //13
+                $user_arr[$this->fixedLogin][$this->addressPoint] = $this->fixEncode($io[$this->beggar['DAT']['address']]); //13
                 $user_arr[$this->fixedLogin]['buildid'] = $io['houseid'];
                 $user_arr[$this->fixedLogin]['aptnum'] = $io['app'];
-                $user_arr[$this->fixedLogin]['note'] = $io['prim'];
+                $user_arr[$this->fixedLogin]['note'] = $this->fixEncode($io['prim']);
                 $user_arr[$this->fixedLogin]['credit'] = $io['credit'];
                 $user_arr[$this->fixedLogin]['entrance'] = $io['porch'];
                 $user_arr[$this->fixedLogin]['floor'] = $io['floor'];
@@ -525,9 +535,7 @@ class mikbill {
             $ip = $io[$this->ipPoint];
             $cash = $io[$this->cashPoint];
             $down = $io[$this->downPoint];
-            $this->stringToFix = $io[$this->tariffPoint];
-            $this->translit();
-            $tariff = $this->stringFixed;
+            $tariff = $this->translit($io[$this->tariffPoint]);
             $credit = $io['credit'];
             $freeze = $io['freeze'];
             if ($i < ($user_count - 1)) {
@@ -544,9 +552,7 @@ class mikbill {
         $i = $this->initIncrement();
         fpc_start($this->beggar['DUMP'], "tariffs");
         foreach ($this->tariffsData as $eachtariff => $io) {
-            $this->stringToFix = $io['packet'];
-            $this->translit();
-            $tariff_name = $this->stringFixed;
+            $tariff_name = $this->translit($io['packet']);
             $fee = $io['fixed_cost'];
             if ($i < ($tariffs_count - 1)) {
                 file_put_contents($this->beggar['DUMP'], "('" . $tariff_name . "', 0, 0, 0, 0, 0, '0:0-0:0', 1, 1, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, 0, 0, 0, 0, '0:0-0:0', 0, 0, 0, $fee, 0, 'up+down', '" . $tariff_period . "'),\n", FILE_APPEND);
@@ -678,9 +684,7 @@ class mikbill {
         $i = $this->initIncrement();
         fpc_start($this->beggar['DUMP'], "speeds");
         foreach ($this->tariffsData as $eachtariff => $io) {
-            $this->stringToFix = $io['packet'];
-            $this->translit();
-            $tariff_name = $this->stringFixed;
+            $tariff_name = $this->translit($io['packet']);
             $tariff_speed = $io['speed_rate'];
             if ($i < ($tariffs_count - 1)) {
                 file_put_contents($this->beggar['DUMP'], "(NULL, '" . $tariff_name . "', '" . $tariff_speed . "', '" . $tariff_speed . "', NULL, NULL, NULL, NULL), \n", FILE_APPEND);
@@ -732,7 +736,7 @@ class mikbill {
         $city_count = count($this->cityData);
         fpc_start($this->beggar['DUMP'], "city");
         foreach ($this->cityData as $index => $eachCity) {
-            $city_name = $eachCity['settlementname'];
+            $city_name = $this->fixEncode($eachCity['settlementname']);
             $j += $this->beggar['UDATA'];
             $new_city_data[$eachCity['settlementid']] = $j;
             if ($i < ($city_count - 1)) {
@@ -749,7 +753,7 @@ class mikbill {
         $street_count = count($this->streetData);
         fpc_start($this->beggar['DUMP'], "street");
         foreach ($this->streetData as $index => $eachStreet) {
-            $street_name = str_replace($search, '', $eachStreet['lane']);
+            $street_name = $this->fixEncode(str_replace($search, '', $eachStreet['lane']));
             $settlementid = $eachStreet['settlementid'];
             $city_id = $new_city_data[$settlementid];
             $j += $this->beggar['UDATA'];
