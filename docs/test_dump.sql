@@ -2241,3 +2241,21 @@ CREATE TABLE IF NOT EXISTS `switches_qinq` (
   `cvlan` int(11) NOT NULL,
   PRIMARY KEY (`switchid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `bankstamd` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `hash` varchar(255) NOT NULL,
+  `filename` varchar(255) DEFAULT NULL,
+  `admin` varchar(255) NOT NULL,
+  `contract` varchar(255) DEFAULT NULL,
+  `summ` varchar(42) NOT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `realname` varchar(255) DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  `pdate` varchar(42) DEFAULT NULL,
+  `ptime` varchar(42) DEFAULT NULL,
+  `processed` tinyint(4) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
