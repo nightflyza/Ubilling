@@ -17,6 +17,13 @@ class BankstaMd {
     protected $allUsersData = array();
 
     /**
+     * Temp array for previous bank statements
+     *
+     * @var array
+     */
+    protected $bankstarecords = array();
+
+    /**
      * Contains available contracts mappings as contract=>login
      *
      * @var array
@@ -42,7 +49,7 @@ class BankstaMd {
      *
      * @var bool
      */
-    protected $debug = true;
+    protected $debug = false;
 
     /**
      * Default storage table name
@@ -76,19 +83,20 @@ class BankstaMd {
      * @var int
      */
     protected $bsPaymentId = 1;
-    
+
     /**
      * Contains detected users as contract=>login
      *
      * @var array
      */
-    protected $bankstafoundusers=array();
+    protected $bankstafoundusers = array();
 
     /**
      * Creates new BankstaMd instance
      */
     public function __construct() {
         $this->loadAlter();
+        $this->setOptions();
         $this->loadUserData();
     }
 
@@ -102,6 +110,20 @@ class BankstaMd {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some config based options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (@$this->altCfg['BANKSTAMD_PAYID']) {
+            $this->bsPaymentId = $this->altCfg['BANKSTAMD_PAYID'];
+        }
+        if (@$this->altCfg['BANKSTAMD_DEBUG']) {
+            $this->debug = true;
+        }
     }
 
     /**
@@ -420,7 +442,6 @@ class BankstaMd {
                     $detectedAddress = $detectedUser['fulladress'];
                     $detectedRealName = $detectedUser['realname'];
                     $detectedTariff = $detectedUser['Tariff'];
-                    
 
                     if (!$processed) {
                         $cashPairs[$each['id']]['bankstaid'] = $each['id'];
@@ -469,6 +490,143 @@ class BankstaMd {
 
 
         return ($result);
+    }
+
+    /**
+     * returns detailed banksta row info
+     * 
+     * @param int $id   existing banksta ID
+     * 
+     * @return string
+     */
+    public function bankstaGetDetailedRowInfo($id) {
+        $id = vf($id, 3);
+        $query = "SELECT * from `" . self::BANKSTA_TABLE . "` WHERE `id`='" . $id . "'";
+        $dataRaw = simple_query($query);
+        $result = '';
+        $result.= wf_BackLink(self::URL_BANKSTA_PROCESSING . $dataRaw['hash']);
+        $result.= wf_delimiter();
+
+        if (!empty($dataRaw)) {
+            $result.= wf_tag('pre', false, 'floatpanelswide', '') . print_r($dataRaw, true) . wf_tag('pre', true);
+            $result.= wf_CleanDiv();
+        }
+        return ($result);
+    }
+
+    /**
+     * loads all of banksta rows to further checks to private prop
+     * 
+     * @return void
+     */
+    protected function loadBankstaAll() {
+        $query = "SELECT * from `" . self::BANKSTA_TABLE . "`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->bankstarecords[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * cnahges banksta contract number for some existing row
+     * 
+     * @param int $bankstaid    existing bank statement transaction ID
+     * @param string $contract     new contract number for this row
+     * 
+     * @return void
+     */
+    public function bankstaSetContract($bankstaid, $contract) {
+        $bankstaid = vf($bankstaid, 3);
+        $contract = mysql_real_escape_string($contract);
+        $contract = trim($contract);
+        if (empty($this->bankstarecords)) {
+            $this->loadBankstaAll();
+        }
+
+        if (isset($this->bankstarecords[$bankstaid])) {
+            $oldContract = $this->bankstarecords[$bankstaid]['contract'];
+            simple_update_field(self::BANKSTA_TABLE, 'contract', $contract, "WHERE `id`='" . $bankstaid . "';");
+            log_register('BANKSTAMD [' . $bankstaid . '] CONTRACT `' . $oldContract . '` CHANGED ON `' . $contract . '`');
+        } else {
+            log_register('BANKSTAMD NONEXIST [' . $bankstaid . '] CONTRACT CHANGE TRY');
+        }
+    }
+
+    /**
+     * checks is banksta row ID unprocessed?
+     * 
+     * @param int $bankstaid   existing banksta row ID
+     * 
+     * @return bool
+     */
+    protected function bankstaIsUnprocessed($bankstaid) {
+        $result = false;
+        if (isset($this->bankstarecords[$bankstaid])) {
+            if ($this->bankstarecords[$bankstaid]['processed'] == 0) {
+                $result = true;
+            } else {
+                $result = false;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * sets banksta row as processed
+     * 
+     * @param int $bankstaid  existing bank statement ID
+     * 
+     * @return void
+     */
+    public function bankstaSetProcessed($bankstaid) {
+        $bankstaid = vf($bankstaid, 3);
+        simple_update_field(self::BANKSTA_TABLE, 'processed', 1, "WHERE `id`='" . $bankstaid . "'");
+        log_register('BANKSTAMD [' . $bankstaid . '] LOCKED');
+    }
+
+    /**
+     * push payments to some user accounts via bank statements
+     * 
+     * @return void
+     */
+    public function bankstaPushPayments() {
+        if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
+            $rawData = base64_decode($_POST['bankstaneedpaymentspush']);
+            $rawData = unserialize($rawData);
+            if (!empty($rawData)) {
+                if (empty($this->bankstarecords)) {
+                    $this->loadBankstaAll();
+                }
+
+                foreach ($rawData as $io => $eachstatement) {
+                    if ($this->bankstaIsUnprocessed($eachstatement['bankstaid'])) {
+                        //all good is with this row
+                        // push payment and mark banksta as processed
+                        $paymentNote = 'BANKSTA: [' . $eachstatement['bankstaid'] . '] ASCONTRACT ' . $eachstatement['usercontract'];
+                        $userLogin = $eachstatement['userlogin'];
+                        $summ = $eachstatement['summ'];
+                        $summ = abs($summ);
+                        if (!empty($userLogin)) {
+                            if (isset($this->allUsersData[$userLogin])) {
+                                if (zb_checkMoney($summ)) {
+                                    zb_CashAdd($eachstatement['userlogin'], $summ, 'add', $this->bsPaymentId, $paymentNote);
+                                    $this->bankstaSetProcessed($eachstatement['bankstaid']);
+                                }
+                            } else {
+                                log_register('BANKSTAMD [' . $eachstatement['bankstaid'] . '] FAIL LOGIN (' . $userLogin . ')');
+                            }
+                        } else {
+                            log_register('BANKSTAMD [' . $eachstatement['bankstaid'] . '] FAIL EMPTY LOGIN');
+                        }
+                    } else {
+                        //duplicate payment try
+                        log_register('BANKSTAMD TRY DUPLICATE [' . $eachstatement['bankstaid'] . '] PAYMENT PUSH');
+                    }
+                }
+            }
+        }
     }
 
 }
