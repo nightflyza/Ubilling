@@ -1216,14 +1216,12 @@ class UserProfile {
      */
     protected function getMobilesExtControl() {
         $result = '';
-        if (isset($this->alterCfg['MOBILES_EXT'])) {
-            if ($this->alterCfg['MOBILES_EXT']) {
-                $extMob = new MobilesExt();
-                $allExt = array_column($extMob->getUserMobiles($this->login), 'mobile');
-                $additionalNumbers = implode(', ', $allExt);
-                $fastLinkControl = (cfr('MOBILE')) ? wf_Link('?module=mobileedit&username=' . $this->login, wf_img_sized('skins/add_icon.png', __('Add new'), '10', '10'), false) : '';
-                $result .= $this->addRow(__('Additional mobile') . ' ' . $fastLinkControl, $additionalNumbers);
-            }
+        if (isset($this->alterCfg['MOBILES_EXT']) AND $this->alterCfg['MOBILES_EXT']) {
+            $extMob = new MobilesExt();
+            $allExt = array_column($extMob->getUserMobiles($this->login), 'mobile');
+            $additionalNumbers = implode(', ', $allExt);
+            $fastLinkControl = (cfr('MOBILE')) ? wf_Link('?module=mobileedit&username=' . $this->login, wf_img_sized('skins/add_icon.png', __('Add new'), '10', '10'), false) : '';
+            $result .= $this->addRow(__('Additional mobile') . ' ' . $fastLinkControl, $additionalNumbers);
         }
         return ($result);
     }
@@ -1235,7 +1233,7 @@ class UserProfile {
      */
     protected function getDistrictControls() {
         $result = '';
-        if ((isset($this->alterCfg['DISTRICTS_ENABLED'])) AND ( $this->alterCfg['DISTRICTS_ENABLED'])) {
+        if (isset($this->alterCfg['DISTRICTS_ENABLED']) AND $this->alterCfg['DISTRICTS_ENABLED']) {
             if ((isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) AND ( $this->alterCfg['DISRTICTS_IN_PROFILE'])) {
                 $districts = new Districts(false);
                 $result .= $this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
