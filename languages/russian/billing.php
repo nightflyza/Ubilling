@@ -2988,6 +2988,10 @@ $lang['def']['Can not remove SMS which has existing relations on users or other 
 $lang['def']['Use login as alpha name'] = 'Использовать логин как альфа-имя';
 $lang['def']['SVLAN + CVLAN pair is not valid'] = 'Пара SVLAN + CVLAN неправильная';
 $lang['def']['Port already assigned for another user'] = 'Порт уже занят другим пользователем';
+$lang['def']['Lifecell API address'] = 'Адрес API Lifecell';
+$lang['def']['User login to access API'] = 'Логин пользователя для доступа к API';
+$lang['def']['User password for access API'] = 'Пароль пользователя для доступа к API';
+$lang['def']['Use Lifecell as default SMS service'] = 'Использовать Lifecell как службу SMS по-умолчанию';
 $lang['def'][''] = '';
 
 ?>
