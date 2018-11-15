@@ -1,6 +1,10 @@
 <?php
 
 class LifeCell extends SMSServiceApi {
+    public function __construct($smsServiceId, $smsPack = array()) {
+        parent::__construct($smsServiceId, $smsPack);
+    }
+    
     public function getBalance() {
         $this->showErrorFeatureIsNotSupported();
     }
