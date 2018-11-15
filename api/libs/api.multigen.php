@@ -1742,6 +1742,13 @@ class MultiGen {
         $result = array();
         if (empty($this->allUserData)) {
             $this->loadUserData();
+            if ((isset($this->altCfg[self::OPTION_SWASSIGN])) AND ( isset($this->altCfg[self::OPTION_QINQ]))) {
+                if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
+                    $this->loadSwitches();
+                    $this->loadSwithchAssigns();
+                    $this->loadSwitchesQinQ();
+                }
+            }
         }
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
@@ -1751,7 +1758,6 @@ class MultiGen {
                 }
             }
         }
-
         return($result);
     }
 
