@@ -38,6 +38,7 @@ $lang['def']['sessions'] = 'сессий';
 $lang['def']['for'] = 'для';
 $lang['def']['Last sessions'] = 'Последние сессии';
 $lang['def']['cant detect username for'] = 'не получилось определить юзернейм для';
+$lang['def']['Multigen sessions'] = 'Сессии КучаГен-а';
 
 
 
