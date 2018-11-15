@@ -1,0 +1,1 @@
+ALTER TABLE `mlg_acct` ADD COLUMN `acctupdatetime` datetime NULL default NULL AFTER `acctstarttime`;
