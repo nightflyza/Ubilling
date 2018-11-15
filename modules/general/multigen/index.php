@@ -119,7 +119,12 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
             }
 
             if (!wf_CheckGet(array('manualpod'))) {
-                $dateFormControls = $multigen->renderDateSerachControls();
+                if (!wf_CheckGet(array('lastsessions'))) {
+                    //ignored in lastsessions
+                    $dateFormControls = $multigen->renderDateSerachControls();
+                } else {
+                    $dateFormControls = '';
+                }
                 show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
             } else {
                 //manual POD

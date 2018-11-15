@@ -234,6 +234,20 @@ class MultiGen {
     protected $inno = 0;
 
     /**
+     * Contains unfinished acct flag from OPTION_UNFFLAG
+     *
+     * @var int
+     */
+    protected $unfinished = 0;
+
+    /**
+     * Contains default accounting display days from OPTION_DAYS
+     *
+     * @var int
+     */
+    protected $days = 1;
+
+    /**
      * Contains default echo path
      *
      * @var string
@@ -344,6 +358,16 @@ class MultiGen {
     const OPTION_SWASSIGN = 'SWITCHPORT_IN_PROFILE';
 
     /**
+     * Default unfinished sessions flag option name
+     */
+    const OPTION_UNFFLAG = 'MULTIGEN_UNFACCT';
+
+    /**
+     * Default accounting days option name
+     */
+    const OPTION_DAYS = 'MULTIGEN_DAYSACCT';
+
+    /**
      * log path
      */
     const LOG_PATH = 'exports/multigen.log';
@@ -428,6 +452,18 @@ class MultiGen {
         if (isset($this->altCfg[self::OPTION_INNO])) {
             if ($this->altCfg[self::OPTION_INNO]) {
                 $this->inno = $this->altCfg[self::OPTION_INNO];
+            }
+        }
+
+        if (isset($this->altCfg[self::OPTION_UNFFLAG])) {
+            if ($this->altCfg[self::OPTION_UNFFLAG]) {
+                $this->unfinished = $this->altCfg[self::OPTION_UNFFLAG];
+            }
+        }
+
+        if (isset($this->altCfg[self::OPTION_DAYS])) {
+            if ($this->altCfg[self::OPTION_DAYS]) {
+                $this->days = $this->altCfg[self::OPTION_DAYS];
             }
         }
 
@@ -738,7 +774,7 @@ class MultiGen {
             $searchDateTo = mysql_real_escape_string($_GET['dateto']);
         } else {
             $curTime = time();
-            $dayAgo = $curTime - 86400;
+            $dayAgo = $curTime - (86400 * $this->days);
             $dayAgo = date("Y-m-d", $dayAgo);
             $dayTomorrow = $curTime + 86400;
             $dayTomorrow = date("Y-m-d", $dayTomorrow);
@@ -752,8 +788,13 @@ class MultiGen {
             $unfQueryfilter = '';
         }
 
-        $query = "SELECT " . $fieldsList . " FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` BETWEEN '" . $searchDateFrom . "' AND '" . $searchDateTo . "'"
-                . " " . $unfQueryfilter . "  ORDER BY `radacctid` DESC ;";
+        if (wf_CheckGet(array('lastsessions'))) {
+            $query = "SELECT * FROM `" . self::NAS_ACCT . "` GROUP BY `username` DESC ORDER BY `acctstarttime`;";
+        } else {
+            $query = "SELECT " . $fieldsList . " FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` BETWEEN '" . $searchDateFrom . "' AND '" . $searchDateTo . "'"
+                    . " " . $unfQueryfilter . "  ORDER BY `radacctid` DESC ;";
+        }
+        
         $this->userAcctData = simple_queryall($query);
     }
 
@@ -2584,14 +2625,16 @@ class MultiGen {
     public function renderDateSerachControls() {
         $result = '';
         $curTime = time();
-        $dayAgo = $curTime - 86400;
+        $dayAgo = $curTime - (86400 * $this->days);
         $dayAgo = date("Y-m-d", $dayAgo);
         $dayTomorrow = $curTime + 86400;
         $dayTomorrow = date("Y-m-d", $dayTomorrow);
         $preDateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : $dayAgo;
         $preDateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : $dayTomorrow;
         $unfinishedFlag = (wf_CheckPost(array('showunfinished'))) ? true : false;
-
+        if (!wf_CheckPost(array('showunfinished'))) {
+            $unfinishedFlag = $this->unfinished;
+        }
         $inputs = wf_DatePickerPreset('datefrom', $preDateFrom, false);
         $inputs .= wf_DatePickerPreset('dateto', $preDateTo, false);
         $inputs .= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
@@ -2690,7 +2733,7 @@ class MultiGen {
             $searchDateTo = mysql_real_escape_string($_POST['dateto']);
         } else {
             $curTime = time();
-            $dayAgo = $curTime - 86400;
+            $dayAgo = $curTime - (86400*$this->days);
             $dayAgo = date("Y-m-d", $dayAgo);
             $dayTomorrow = $curTime + 86400;
             $dayTomorrow = date("Y-m-d", $dayTomorrow);
@@ -2704,6 +2747,12 @@ class MultiGen {
             $unfinishedFlag = '';
         }
 
+        if (wf_CheckGet(array('lastsessions'))) {
+            $lastFlag = '&lastsessions=true';
+        } else {
+            $lastFlag = '';
+        }
+
         if (wf_CheckGet(array('username'))) {
             $userLogin = mysql_real_escape_string($_GET['username']);
             $userNameFilter = '&login=' . $userLogin;
@@ -2712,13 +2761,20 @@ class MultiGen {
             $userLogin = '';
         }
 
-        $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag . $userNameFilter;
+        $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag . $userNameFilter . $lastFlag;
+        
         $options = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, $ajUrl, false, __('sessions'), 50, $options);
+        $result .= wf_tag('br');
         if (!empty($userLogin)) {
-            $result .= wf_tag('br');
             $result .= wf_BackLink(self::URL_PROFILE . $userLogin);
             $result .= wf_Link(self::URL_ME . '&manualpod=true&username=' . $userLogin, wf_img('skins/skull.png') . ' ' . __('Terminate user session'), true, 'ubButton');
+        } else {
+            if (!wf_CheckGet(array('lastsessions'))) {
+                $result .= wf_Link(self::URL_ME . '&lastsessions=true', wf_img('skins/clock.png') . ' ' . __('Last sessions'), false, 'ubButton');
+            } else {
+                $result .= wf_BackLink(self::URL_ME);
+            }
         }
         return ($result);
     }

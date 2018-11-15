@@ -36,6 +36,7 @@ $lang['def']['I understand that changing that completely destroys all current NA
 $lang['def']['You can copy&paste current NAS configuration as text'] = 'Вы можете копипастить конфигурацию вашего NAS в виде текста';
 $lang['def']['sessions'] = 'сессий';
 $lang['def']['for'] = 'для';
+$lang['def']['Last sessions'] = 'Последние сессии';
 
 
 
