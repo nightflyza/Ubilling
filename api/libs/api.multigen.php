@@ -794,7 +794,7 @@ class MultiGen {
             $query = "SELECT " . $fieldsList . " FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` BETWEEN '" . $searchDateFrom . "' AND '" . $searchDateTo . "'"
                     . " " . $unfQueryfilter . "  ORDER BY `radacctid` DESC ;";
         }
-        
+
         $this->userAcctData = simple_queryall($query);
     }
 
@@ -2733,7 +2733,7 @@ class MultiGen {
             $searchDateTo = mysql_real_escape_string($_POST['dateto']);
         } else {
             $curTime = time();
-            $dayAgo = $curTime - (86400*$this->days);
+            $dayAgo = $curTime - (86400 * $this->days);
             $dayAgo = date("Y-m-d", $dayAgo);
             $dayTomorrow = $curTime + 86400;
             $dayTomorrow = date("Y-m-d", $dayTomorrow);
@@ -2762,7 +2762,7 @@ class MultiGen {
         }
 
         $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag . $userNameFilter . $lastFlag;
-        
+
         $options = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, $ajUrl, false, __('sessions'), 50, $options);
         $result .= wf_tag('br');
@@ -2840,6 +2840,14 @@ class MultiGen {
             if (empty($this->allUserData)) {
                 //preloading userdata
                 $this->loadUserData();
+                //loading data required for QinQ users
+                if ((isset($this->altCfg[self::OPTION_SWASSIGN])) AND ( isset($this->altCfg[self::OPTION_QINQ]))) {
+                    if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
+                        $this->loadSwitches();
+                        $this->loadSwithchAssigns();
+                        $this->loadSwitchesQinQ();
+                    }
+                }
             }
 
             if (isset($this->allUserData[$userLogin])) {
@@ -2849,16 +2857,20 @@ class MultiGen {
                     if (isset($this->nasOptions[$nasId])) {
                         $nasOptions = $this->nasOptions[$nasId];
                         $userName = $this->getLoginUsername($userLogin, $userData, $nasOptions['usernametype']);
-                        //try to use custom PoD service or default with username
-                        if (!empty($this->services[$nasId]['pod'])) {
-                            $podCommand = $this->services[$nasId]['pod'];
+                        if (!empty($userName)) {
+                            //try to use custom PoD service or default with username
+                            if (!empty($this->services[$nasId]['pod'])) {
+                                $podCommand = $this->services[$nasId]['pod'];
+                            } else {
+                                $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                            }
+                            $podCommand = $this->getAttributeValue($userLogin, $userName, $nasId, $podCommand);
+                            shell_exec($podCommand);
+                            $this->logEvent('POD MANUAL ' . $userLogin . ' AS ' . $userName, 3);
+                            log_register('MULTIGEN POD MANUAL (' . $userLogin . ') AS `' . $userName . '` NASID [' . $nasId . ']');
                         } else {
-                            $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                            $result.=__('Something went wrong').': '.__('cant detect username for').' '.$userLogin;
                         }
-                        $podCommand = $this->getAttributeValue($userLogin, $userName, $nasId, $podCommand);
-                        shell_exec($podCommand);
-                        $this->logEvent('POD MANUAL ' . $userLogin . ' AS ' . $userName, 3);
-                        log_register('MULTIGEN POD MANUAL (' . $userLogin . ') AS `' . $userName . '` NASID [' . $nasId . ']');
                     } else {
                         $result .= __('No') . ' ' . __('NAS options') . ': ' . $nasId;
                     }
