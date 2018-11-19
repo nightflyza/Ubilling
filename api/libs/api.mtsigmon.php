@@ -1026,9 +1026,11 @@ class MTsigmon {
                 // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
                 $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
 
-                $apWebIfaceLink  = wf_tag('a', false, '', 'href="http://' . $this->allMTSnmp[$MTId]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
-                $apWebIfaceLink .= wf_img('skins/ymaps/network.png');
-                $apWebIfaceLink .= wf_tag('a', true);
+                if ( isset($this->allMTSnmp[$MTId]['ip']) ) {
+                    $apWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $this->allMTSnmp[$MTId]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                    $apWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                    $apWebIfaceLink .= wf_tag('a', true);
+                } else { $apWebIfaceLink = ''; }
 
                 $APInfoBlock = wf_tag('div', false, '', 'id="' . $InfoBlockID . '"');
                 $APInfoBlock .= wf_tag('div', true);
