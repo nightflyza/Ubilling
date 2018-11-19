@@ -192,6 +192,13 @@ class MultiGen {
     protected $acctFieldsRequired = array();
 
     /**
+     * Contains additional fields from database acct table
+     *
+     * @var array
+     */
+    protected $acctFieldsAdditional = array();
+
+    /**
      * Contains preloaded user accounting data
      *
      * @var array
@@ -356,6 +363,11 @@ class MultiGen {
      * Default user switchport assign option name
      */
     const OPTION_SWASSIGN = 'SWITCHPORT_IN_PROFILE';
+
+    /**
+     * Default additional fields option
+     */
+    const OPTION_FIELDS = 'MULTIGEN_FIELDSACCT';
 
     /**
      * Default unfinished sessions flag option name
@@ -528,6 +540,12 @@ class MultiGen {
             'framedipaddress',
             'acctterminatecause'
         );
+
+        if (isset($this->altCfg[self::OPTION_FIELDS])) {
+            if ($this->altCfg[self::OPTION_FIELDS]) {
+                $this->acctFieldsAdditional = explode(',', $this->altCfg[self::OPTION_FIELDS]);
+            }
+        }
     }
 
     /**
@@ -769,6 +787,9 @@ class MultiGen {
      */
     protected function loadAcctData() {
         $fieldsList = implode(', ', $this->acctFieldsRequired);
+        if (!empty($this->acctFieldsAdditional)) {
+            $fieldsList.=', ' . implode(', ', $this->acctFieldsAdditional);
+        }
         if (wf_CheckGet(array('datefrom', 'dateto'))) {
             $searchDateFrom = mysql_real_escape_string($_GET['datefrom']);
             $searchDateTo = mysql_real_escape_string($_GET['dateto']);
@@ -2702,6 +2723,11 @@ class MultiGen {
                 $data[] = stg_convert_size($each['acctoutputoctets']);
                 $data[] = $each['framedipaddress'];
                 $data[] = $each['acctterminatecause'];
+                if (!empty($this->acctFieldsAdditional)) {
+                    foreach ($this->acctFieldsAdditional as $ia => $eachField) {
+                        $data[] = $each[$eachField];
+                    }
+                }
                 $data[] = $timeOffset;
                 $data[] = $userLink;
 
@@ -2726,7 +2752,14 @@ class MultiGen {
      */
     public function renderAcctStatsContainer() {
         $result = '';
-        $columns = array('acctsessionid', 'username', 'nasipaddress', 'nasportid', 'acctstarttime', 'acctstoptime', 'acctinputoctets', 'acctoutputoctets', 'framedipaddress', 'acctterminatecause', 'Time', 'User');
+        $columns = array('acctsessionid', 'username', 'nasipaddress', 'nasportid', 'acctstarttime', 'acctstoptime', 'acctinputoctets', 'acctoutputoctets', 'framedipaddress', 'acctterminatecause');
+        if (!empty($this->acctFieldsAdditional)) {
+            foreach ($this->acctFieldsAdditional as $io => $each) {
+                $columns[] = $each;
+            }
+        }
+        $columns[] = 'Time';
+        $columns[] = 'User';
 
         if (wf_CheckPost(array('datefrom', 'dateto'))) {
             $searchDateFrom = mysql_real_escape_string($_POST['datefrom']);
@@ -2869,7 +2902,7 @@ class MultiGen {
                             $this->logEvent('POD MANUAL ' . $userLogin . ' AS ' . $userName, 3);
                             log_register('MULTIGEN POD MANUAL (' . $userLogin . ') AS `' . $userName . '` NASID [' . $nasId . ']');
                         } else {
-                            $result.=__('Something went wrong').': '.__('cant detect username for').' '.$userLogin;
+                            $result.=__('Something went wrong') . ': ' . __('cant detect username for') . ' ' . $userLogin;
                         }
                     } else {
                         $result .= __('No') . ' ' . __('NAS options') . ': ' . $nasId;
