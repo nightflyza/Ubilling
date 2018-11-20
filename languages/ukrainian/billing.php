@@ -3008,5 +3008,5 @@ $lang['def']['Lifecell API address'] = 'Адреса API Lifecell';
 $lang['def']['User login to access API'] = 'Логін користувача для доступу до API';
 $lang['def']['User password for access API'] = 'Пароль користувача для доступу до API';
 $lang['def']['Use Lifecell as default SMS service'] = 'Використовувати Lifecell як службу SMS за замовчуванням';
-
+$lang['def']['No OLT devices found - can not associate ONU'] = 'Не знайдено ОЛТ пристроїв - неможливо ассоціювати ОНУ';
 ?>

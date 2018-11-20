@@ -534,12 +534,13 @@ function web_UserRegFormNetData($newuser_data) {
     }
 
     if (@$alterconf['ONUAUTO_USERREG']) {
-        $PONAPIObject = new PONizer();
+        $ponAPIObject = new PONizer();
 
+        $allOLTs = $ponAPIObject->getAllOltDevices();
         $models = array();
-        $ModelsData = $PONAPIObject->getAllModelsData();
-        if (!empty($ModelsData)) {
-            foreach ($ModelsData as $io => $each) {
+        $modelsData = $ponAPIObject->getAllModelsData();
+        if (!empty($modelsData)) {
+            foreach ($modelsData as $io => $each) {
                 $models[$each['id']] = $each['modelname'];
             }
         }
@@ -559,11 +560,20 @@ function web_UserRegFormNetData($newuser_data) {
         $form.= wf_tag('td', true);
         $form.= wf_tag('tr', true);
 
-        $form.= wf_tag('tr', false, 'row3');
-        $form.= wf_tag('td', false);
-        $form.= wf_Selector('oltid', $PONAPIObject->getAllOltDevices(), '', '', true, false, 'OLTSelector');
-        $form.= wf_tag('script', false, '', 'type="text/javascript"');
-        $form.= '
+        if (empty($allOLTs)) {
+            $form.= wf_tag('tr', false, 'row3');
+            $form.= wf_tag('td', false, '', 'style="text-align: center;" colspan="2"');
+            $form.= wf_tag('h3', false, '', 'style="color: #000"');
+            $form .= __('No OLT devices found - can not associate ONU');
+            $form.= wf_tag('h3', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
+        } else {
+            $form.= wf_tag('tr', false, 'row3');
+            $form.= wf_tag('td', false);
+            $form .= wf_Selector('oltid', $allOLTs, '', '', true, false, 'OLTSelector');
+            $form .= wf_tag('script', false, '', 'type="text/javascript"');
+            $form .= '
                 $(document).ready(function() {
                     getUnknownONUList($(\'#OLTSelector\').val());
                 });
@@ -572,7 +582,7 @@ function web_UserRegFormNetData($newuser_data) {
                     getUnknownONUList($(this).val());
                 });
                 
-                function getUnknownONUList(OLTID) {
+                function getUnknownONUList(OLTID) {                
                     $.ajax({
                         type: "GET",
                         url: "?module=userreg",
@@ -588,28 +598,28 @@ function web_UserRegFormNetData($newuser_data) {
                     });     
                 }
                 ';
-        $form.= wf_tag('script', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('td', false);
-        $form.= __('OLT device') . wf_tag('sup') . '*' . wf_tag('sup', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('tr', true);
+            $form .= wf_tag('script', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('td', false);
+            $form .= __('OLT device') . wf_tag('sup') . '*' . wf_tag('sup', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
 
-        $form.= wf_tag('tr', false, 'row3');
-        $form.= wf_tag('td', false);
-        $form.= wf_Selector('onumodelid', $models, '', '', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('td', false);
-        $form.= __('ONU model') . wf_tag('sup') . '*' . wf_tag('sup', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('tr', true);
+            $form .= wf_tag('tr', false, 'row3');
+            $form .= wf_tag('td', false);
+            $form .= wf_Selector('onumodelid', $models, '', '', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('td', false);
+            $form .= __('ONU model') . wf_tag('sup') . '*' . wf_tag('sup', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
 
-        $form.= wf_tag('tr', false, 'row3');
-        $form.= wf_tag('td', false);
-        $form.= wf_tag('input', false, '', 'type="text" name="onuip" value="" ');
-        $form.= wf_CheckInput('onuipproposal', __('Make ONU IP same as subscriber IP'), false, false);
-        $form.= wf_tag('script', false, '', 'type="text/javascript"');
-        $form.= '$(\'[name = onuipproposal]\').change(function() {                            
+            $form .= wf_tag('tr', false, 'row3');
+            $form .= wf_tag('td', false);
+            $form .= wf_tag('input', false, '', 'type="text" name="onuip" value="" ');
+            $form .= wf_CheckInput('onuipproposal', __('Make ONU IP same as subscriber IP'), false, false);
+            $form .= wf_tag('script', false, '', 'type="text/javascript"');
+            $form .= '$(\'[name = onuipproposal]\').change(function() {                            
                     if ( $(this).is(\':checked\') ) {
                         $(\'[name = onuip]\').attr("readonly", "readonly");
                         $(\'[name = onuip]\').css(\'background-color\', \'#CECECE\')
@@ -618,47 +628,47 @@ function web_UserRegFormNetData($newuser_data) {
                         $(\'[name = onuip]\').css(\'background-color\', \'#FFFFFF\') 
                     }                            
                 });';
-        $form.= wf_tag('script', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('td', false);
-        $form.=__('ONU IP');
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('tr', true);
+            $form .= wf_tag('script', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('td', false);
+            $form .= __('ONU IP');
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
 
-        $form.= wf_tag('tr', false, 'row3');
-        $form.= wf_tag('td', false);
-        $form.= wf_tag('input', false, '', 'type="text" name="onumac" id="onumacid" value="" ');
-        //$form.= wf_delimiter();
-        $form.= '&nbsp&nbsp' . __('or choose MAC from unknown ONU\'s list on chosen OLT') . '&nbsp&nbsp';
-        $form.= wf_tag('div', false, '', 'id="UnknonwnsSelBlock" style="display:inline-block"');
-        $form.= wf_tag('div', true);
-        $form.= wf_tag('script', false, '', 'type="text/javascript"');
-        $form.= '$(document).on("change", "#UnknonwnsSelectorID", function(){
+            $form .= wf_tag('tr', false, 'row3');
+            $form .= wf_tag('td', false);
+            $form .= wf_tag('input', false, '', 'type="text" name="onumac" id="onumacid" value="" ');
+            //$form.= wf_delimiter();
+            $form .= '&nbsp&nbsp' . __('or choose MAC from unknown ONU\'s list on chosen OLT') . '&nbsp&nbsp';
+            $form .= wf_tag('div', false, '', 'id="UnknonwnsSelBlock" style="display:inline-block"');
+            $form .= wf_tag('div', true);
+            $form .= wf_tag('script', false, '', 'type="text/javascript"');
+            $form .= '$(document).on("change", "#UnknonwnsSelectorID", function(){
                     $(\'#onumacid\').val($(this).val());                    
                 });';
-        $form.= wf_tag('script', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('td', false);
-        $form.=__('ONU MAC') . wf_tag('sup') . '*' . wf_tag('sup', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('tr', true);
+            $form .= wf_tag('script', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('td', false);
+            $form .= __('ONU MAC') . wf_tag('sup') . '*' . wf_tag('sup', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
 
-        $form.= wf_tag('tr', false, 'row3');
-        $form.= wf_tag('td', false);
-        $form.= wf_tag('input', false, '', 'type="text" name="onuserial" value="" ');
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('td', false);
-        $form.=__('ONU serial');
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('tr', true);
+            $form .= wf_tag('tr', false, 'row3');
+            $form .= wf_tag('td', false);
+            $form .= wf_tag('input', false, '', 'type="text" name="onuserial" value="" ');
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('td', false);
+            $form .= __('ONU serial');
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
 
-        $form.= wf_tag('tr', false, 'row3');
-        $form.= wf_tag('td', false);
-        $form.= wf_tag('a', false, 'ubButton', 'href="" class="ubButton" id="onuassignment1"');
-        $form.= __('Check if ONU is assigned to any login already');
-        $form.= wf_tag('a', true);
-        $form.= wf_tag('script', false, '', 'type="text/javascript"');
-        $form.= '$(\'#onuassignment1\').click(function(evt){
+            $form .= wf_tag('tr', false, 'row3');
+            $form .= wf_tag('td', false);
+            $form .= wf_tag('a', false, 'ubButton', 'href="" class="ubButton" id="onuassignment1"');
+            $form .= __('Check if ONU is assigned to any login already');
+            $form .= wf_tag('a', true);
+            $form .= wf_tag('script', false, '', 'type="text/javascript"');
+            $form .= '$(\'#onuassignment1\').click(function(evt){
                 if ( typeof( $(\'input[name=onumac]\').val() ) === "string" && $(\'input[name=onumac]\').val().length > 0 ) {
                     $.ajax({
                         type: "GET",
@@ -673,13 +683,14 @@ function web_UserRegFormNetData($newuser_data) {
                 evt.preventDefault();
                 return false;                
             });';
-        $form.= wf_tag('script', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('td', false);
-        $form.= wf_tag('p', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
-        $form.= wf_tag('p', true);
-        $form.= wf_tag('td', true);
-        $form.= wf_tag('tr', true);
+            $form .= wf_tag('script', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('td', false);
+            $form .= wf_tag('p', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
+            $form .= wf_tag('p', true);
+            $form .= wf_tag('td', true);
+            $form .= wf_tag('tr', true);
+        }
     }
 
     $form.=wf_tag('table', true);
