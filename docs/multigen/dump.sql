@@ -156,3 +156,11 @@ CREATE TABLE IF NOT EXISTS `mlg_groupreply` (
   PRIMARY KEY  (id),
   KEY username (username(32))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `mlg_traffic` (
+  `login` varchar(100) NOT NULL,
+  `down` bigint(30) DEFAULT NULL,
+  `up` bigint(30) DEFAULT NULL,
+  `act` int(11) DEFAULT NULL,
+  PRIMARY KEY (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;

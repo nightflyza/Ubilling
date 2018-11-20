@@ -64,7 +64,7 @@ function setVal($login, $type, $value = false, $subtype = false) {
 
     $string = ($type == 'addtariff' || $type == 'deltariff') ? "<$type $val=\"$value\" />" : $string;
     //file_write_contents("debug.log",$string);
-    executor($string,false);
+    executor($string, false);
 }
 
 function billing_createuser($login) {
@@ -79,8 +79,8 @@ function billing_setcredit($login, $credit) {
     setVal($login, "credit", $credit);
 }
 
-function billing_setcreditexpire($login,$creditexpire) {
-    $creditexpire=strtotime($creditexpire);
+function billing_setcreditexpire($login, $creditexpire) {
+    $creditexpire = strtotime($creditexpire);
     setVal($login, "CreditExpire", $creditexpire);
 }
 
@@ -120,6 +120,7 @@ function billing_setdown($login, $state) {
     setVal($login, "down", $state);
 }
 
+
 function billing_resetuser($login) {
     global $billing_config;
     //rscriptd reset hotfix
@@ -130,7 +131,6 @@ function billing_resetuser($login) {
         billing_setdown($login, 1);
         billing_setdown($login, 0);
     }
-    
 }
 
 function billing_setpassive($login, $state) {
@@ -166,9 +166,9 @@ function billing_edittariff($tariff, $options) {
     $PassiveCost = $options ['PassiveCost'];
     $TraffType = $options ['TraffType'];
     if (isset($options['Period'])) {
-        $period=$options['Period'];
+        $period = $options['Period'];
     } else {
-        $period='';
+        $period = '';
     }
 
     $dirs = getAllDirs();
@@ -179,7 +179,7 @@ function billing_edittariff($tariff, $options) {
     $string .= "<PassiveCost value=\"$PassiveCost\"/>";
     $string .= "<TraffType value=\"$TraffType\"/>";
     if (!empty($period)) {
-    $string.=  "<period value=\"".$period."\"/>";    
+        $string.= "<period value=\"" . $period . "\"/>";
     }
 
     foreach ($dirs as $dir) {

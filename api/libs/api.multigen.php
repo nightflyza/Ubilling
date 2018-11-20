@@ -255,6 +255,34 @@ class MultiGen {
     protected $days = 1;
 
     /**
+     * System caching object instance
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Contains previous accounting traffic stats as login=>data
+     *
+     * @var array
+     */
+    protected $previousTraffic = array();
+
+    /**
+     * Contains current accounting traffic stats as login=>data
+     *
+     * @var array
+     */
+    protected $currentTraffic = array();
+
+    /**
+     * Contains current stargazer users traffic stats as login=>data D0/U0
+     *
+     * @var array
+     */
+    protected $usersTraffic = array();
+
+    /**
      * Contains default echo path
      *
      * @var string
@@ -323,6 +351,11 @@ class MultiGen {
      * Default accounting table name
      */
     const NAS_ACCT = 'mlg_acct';
+
+    /**
+     * Default traffic aggregation table name
+     */
+    const NAS_TRAFFIC = 'mlg_traffic';
 
     /**
      * Default user states database table name
@@ -403,6 +436,7 @@ class MultiGen {
         $this->loadConfigs();
         $this->setOptions();
         $this->initMessages();
+        $this->initCache();
         $this->loadNases();
         $this->loadNasAttributes();
         $this->loadNasOptions();
@@ -555,6 +589,15 @@ class MultiGen {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits system caching object for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -2985,6 +3028,147 @@ class MultiGen {
             zb_DownloadFile(self::LOG_PATH);
         } else {
             show_error(__('Something went wrong') . ': EX_FILE_NOT_FOUND ' . self::LOG_PATH);
+        }
+    }
+
+    /**
+     * Loads existing aggregated traffic data from database
+     * 
+     * @return void
+     */
+    protected function loadAcctTraffData() {
+        $query = "select * from `" . self::NAS_TRAFFIC . "`;";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->previousTraffic[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing aggregated traffic data from database
+     * 
+     * @return void
+     */
+    protected function loadUserTraffData() {
+        $query = "select `login`,`D0`,`U0` from `users`;";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->usersTraffic[$each['login']]['D0'] = $each['D0'];
+                $this->usersTraffic[$each['login']]['U0'] = $each['U0'];
+            }
+        }
+    }
+
+    /**
+     * Performs preprocessing of current accounting traffic and stores it into database
+     * 
+     * @return void
+     */
+    public function aggregateTraffic() {
+        $this->loadAcctTraffData();
+        $this->loadUserTraffData();
+        $currentTimestamp = time();
+        $dateTo = date("Y-m-d H:i:s", $currentTimestamp);
+        $lastRunTimestamp = $this->cache->get('MLG_TRAFFLASTRUN', 2592000);
+        $dateFrom = date("Y-m-d H:i:s", $lastRunTimestamp);
+        $allUserNames = $this->getAllUserNames();
+
+        if (empty($lastRunTimestamp)) {
+            $lastRunTimestamp = $currentTimestamp - 3600;
+        }
+        $this->cache->set('MLG_TRAFFLASTRUN', $currentTimestamp, 2592000);
+        $query = "SELECT `username`,`acctoutputoctets`,`acctinputoctets`,`acctupdatetime`,`acctstoptime` from `" . self::NAS_ACCT . "`"
+                . " WHERE `acctupdatetime` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ORDER BY `radacctid` DESC;";
+
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $loginDetect = $this->getUserLogin($each['username'], $allUserNames);
+                if (!empty($loginDetect)) {
+                    $activity = (empty($each['acctstoptime'])) ? 1 : 0;
+                    if (isset($this->currentTraffic[$loginDetect])) {
+                        $this->currentTraffic[$loginDetect]['down'] += $each['acctoutputoctets'];
+                        $this->currentTraffic[$loginDetect]['up'] += $each['acctinputoctets'];
+                    } else {
+                        $this->currentTraffic[$loginDetect]['down'] = $each['acctoutputoctets'];
+                        $this->currentTraffic[$loginDetect]['up'] = $each['acctinputoctets'];
+                        $this->currentTraffic[$loginDetect]['activity'] = $activity;
+                    }
+                }
+            }
+
+
+            if (!empty($this->currentTraffic)) {
+                foreach ($this->currentTraffic as $changedLogin => $currentTrafficData) {
+                    if (isset($this->usersTraffic[$changedLogin])) {
+                        $stgDownTraffic = $this->usersTraffic[$changedLogin]['D0'];
+                        $stgUpTraffic = $this->usersTraffic[$changedLogin]['U0'];
+                        if (isset($this->previousTraffic[$changedLogin])) {
+                            $previousDownTraffic = $this->previousTraffic[$changedLogin]['down'];
+                            $previousUpTraffic = $this->previousTraffic[$changedLogin]['up'];
+                        } else {
+                            $previousDownTraffic = 0;
+                            $previousUpTraffic = 0;
+                        }
+
+                        $lastActivity = $currentTrafficData['activity'];
+
+                        $diffDownTraffic = $currentTrafficData['down'] - $previousDownTraffic;
+                        $diffUpTraffic = $currentTrafficData['up'] - $previousUpTraffic;
+
+                        $newDownTraffic = $stgDownTraffic + $diffDownTraffic;
+                        $newUpTraffic = $stgUpTraffic + $diffUpTraffic;
+
+                        if (($diffDownTraffic != 0) OR ( $diffUpTraffic != 0)) {
+                            $this->saveStgTraffic($changedLogin, $newDownTraffic, $newUpTraffic);
+                            $newPreviousDown = $previousDownTraffic + $diffDownTraffic;
+                            $newPreviousUp = $previousUpTraffic + $diffUpTraffic;
+                            $this->savePreviousTraffic($changedLogin, $newPreviousDown, $newPreviousUp, $lastActivity);
+                            $this->logEvent('MULTIGEN TRAFFIC SAVE (' . $changedLogin . ') ' . $newDownTraffic . '/' . $newUpTraffic, 4);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets traffic value via stargazer configurator
+     * 
+     * @param string $login
+     * @param int $trafficDown
+     * @param int $trafficUp
+     * 
+     * @return void
+     */
+    protected function saveStgTraffic($login, $trafficDown, $trafficUp) {
+        $command = $this->billCfg['SGCONF'] . ' set -s ' . $this->billCfg['STG_HOST'] . ' -p ' . $this->billCfg['STG_PORT'] . ' -a ' . $this->billCfg['STG_LOGIN'] . ' -w ' . $this->billCfg['STG_PASSWD'] . ' -u ' . $login . ' --d0 ' . $trafficDown . ' --u0 ' . $trafficUp;
+        shell_exec($command);
+    }
+
+    /**
+     * Saves current run traffic data into database
+     * 
+     * @param string $login
+     * @param int $trafficDown
+     * @param int $trafficUp
+     * @param int $activity
+     * 
+     * @return void
+     */
+    protected function savePreviousTraffic($login, $trafficDown, $trafficUp, $activity) {
+        $login = mysql_real_escape_string($login);
+        if (isset($this->previousTraffic[$login])) {
+            $query = "UPDATE `" . self::NAS_TRAFFIC . "` SET `down`='" . $trafficDown . "', `up`='" . $trafficUp . "', `act`='" . $activity . "' WHERE `login`='" . $login . "';";
+            nr_query($query);
+        } else {
+            //new user appeared
+            $query = "INSERT INTO `" . self::NAS_TRAFFIC . "` (`login`,`down`,`up`,`act`) VALUES "
+                    . "('" . $login . "','" . $trafficDown . "','" . $trafficUp . "'," . $activity . ");";
+            nr_query($query);
         }
     }
 
