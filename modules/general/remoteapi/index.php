@@ -884,7 +884,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     }
 
                     // multigen attributes regeneration
-                    if (($_GET['action'] == 'multigen') OR ( $_GET['action'] == 'multigentotal')) {
+                    if (($_GET['action'] == 'multigen') OR ( $_GET['action'] == 'multigentotal') OR ( $_GET['action'] == 'multigentraff')) {
                         if ($alterconf['MULTIGEN_ENABLED']) {
                             $multigen = new MultiGen();
                             if ($_GET['action'] == 'multigen') {
@@ -896,6 +896,11 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 $multigen->flushAllScenarios();
                                 $multigen->generateNasAttributes();
                                 die('OK: MULTIGEN_TOTAL');
+                            }
+
+                            if ($_GET['action'] == 'multigentraff') {
+                                $multigen->aggregateTraffic();
+                                die('OK: MULTIGEN_TRAFF');
                             }
                         } else {
                             die('ERROR: MULTIGEN DISABLED');
