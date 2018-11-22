@@ -8,6 +8,8 @@ class OnuRegister {
     CONST MODULE_URL = '?module=ztevlanbinds';
     CONST MODULE_URL_EDIT_CARD = '?module=ztevlanbinds&edit_card=';
     CONST MODULE_URL_EDIT_BIND = '?module=ztevlanbinds&edit_bind=';
+    CONST MODULE_CONFIG = 'ONUREG_ZTE';
+    CONST MODULE_RIGHTS = 'ZTEVLANBINDS';
     CONST UNREG_URL = '?module=zteunreg';
     CONST UNREG_ACT_URL = '?module=zteunreg&register=true&oltip=';
     CONST CARDS_TABLE = 'zte_cards';
@@ -17,6 +19,34 @@ class OnuRegister {
     CONST ALT_ONU_ID_START = 2417492224;
     CONST GPON_RETRIES = 5;
     CONST SNMP_TEMPLATE_SECTION = 'onu_reg';
+    CONST EMPTY_FIELD = '';
+    CONST TYPE_FIELD = 'type';
+    CONST INTERFACE_FIELD = 'interface';
+    CONST OLTIP_FIELD = 'oltip';
+    CONST MODELID_FIELD = 'modelid';
+    CONST MODELID_PLACEHOLDER = '======';
+    CONST VLAN_FIELD = 'vlan';
+    CONST MACONU_FIELD = 'maconu';
+    CONST MAC_ONU_FIELD = 'mac_onu';
+    CONST SERIAL_FIELD = 'serial';
+    CONST SN_FIELD = 'sn';
+    CONST LOGIN_FIELD = 'login';
+    CONST MAC_FIELD = 'mac';
+    CONST RANDOM_MAC_FIELD = 'random_mac';
+    CONST ROUTER_FIELD = 'router';
+    CONST SAVE_FIELD = 'save';
+    CONST PONIZER_ADD_FIELD = 'ponizer_add';
+    CONST NO_ERROR_CONNECTION = 'OK';
+    CONST ERROR_NO_LOGIN_AVAILABLE = 'No connection data found. Switchlogin is empty or not set.';
+    CONST ERROR_SNMP_CONNECTION_SET = 'SNMP connection type has set for this OLT. Use telnet/ssh instead.';
+    CONST ERROR_NO_LICENSE = 'No license key available';
+    CONST ERROR_NO_RIGHTS = 'Access denied';
+    CONST ERROR_NOT_ENABLED = 'This module is disabled';
+    CONST ERROR_WRONG_MODELID = 'Wrong modelid found. Do not use placeholder.';
+    CONST ERROR_NOT_ALL_FIELDS = 'Some fields were not set.';
+    CONST ERROR_NO_INTERFACE_SET = 'No interface value found.';
+    CONST ERROR_NO_OLTIP_SET = 'No OLT IP address value found.';
+    CONST ERROR_NO_VLAN_SET = 'No VLAN value found.';
 
     /**
      * Contains all data from billing.ini
@@ -745,6 +775,22 @@ class OnuRegister {
     }
 
     /**
+     * Used to check if connection values exact as we need.
+     * 
+     * @return string
+     */
+    public function checkOltParams() {
+        if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
+            if ($this->allSwLogin[$this->currentOltSwId]['method'] == 'SNMP') {
+                return self::ERROR_SNMP_CONNECTION_SET;
+            }
+            return self::NO_ERROR_CONNECTION;
+        } else {
+            return self::ERROR_NO_LOGIN_AVAILABLE;
+        }
+    }
+
+    /**
      * Make final checks with some data preparing.
      * And finally register ONU.
      *      
@@ -994,6 +1040,32 @@ class OnuRegister {
                 $tablecells .= wf_TableCell($actionLinks);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
             }
+        }
+        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        $result .= wf_delimiter();
+
+        return ($result);
+    }
+
+    /**
+     * Show selected ZTE device.
+     * 
+     * @param $oltid int
+     * 
+     * @return string
+     */
+    public function listZteDevice($oltid) {
+        $tablecells = wf_TableCell(__('ID'));
+        $tablecells .= wf_TableCell(__('OLT IP'));
+        $tablecells .= wf_TableCell(__('Description'));
+        $tablerows = wf_TableRow($tablecells, 'row1');
+
+        if (!empty($this->allZteOlt)) {
+            $eachOlt = $this->allZteOlt[$oltid];
+            $tablecells = wf_TableCell($eachOlt['id']);
+            $tablecells .= wf_TableCell($eachOlt['ip']);
+            $tablecells .= wf_TableCell($eachOlt['desc'] . ' | ' . $eachOlt['location']);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result .= wf_delimiter();
@@ -1308,10 +1380,10 @@ $(".changeType").change(function () {
                         $tablecells .= wf_TableCell($macOnu);
                         switch ($eachType) {
                             case 'GPON':
-                                $identifier = '&serial=';
+                                $identifier = '&' . self::SERIAL_FIELD . '=';
                                 break;
                             case 'EPON':
-                                $identifier = '&maconu=';
+                                $identifier = '&' . self::MACONU_FIELD . '=';
                                 break;
                         }
                         $actionLinks = wf_Link(self::UNREG_ACT_URL . $ip . '&interface=' . $interface . $identifier . $macOnu . '&type=' . $eachType, wf_img('skins/add_icon.png', __('Register')), false);
@@ -1338,32 +1410,32 @@ $(".changeType").change(function () {
 
         switch ($this->currentPonType) {
             case 'EPON':
-                $cell = wf_HiddenInput('type', $this->currentPonType);
-                $cell .= wf_HiddenInput('interface', $this->currentOltInterface);
-                $cell .= wf_HiddenInput('oltip', $this->currentOltIp);
-                $cell .= wf_HiddenInput('mac', $this->onuIdentifier);
-                $cell .= wf_Selector('modelid', $this->onuModelsSelector, __('Choose ONU model'), '', true);
-                $cell .= wf_TextInput('vlan', 'VLAN', $vlan, true);
-                $cell .= wf_TextInput('login', __('Login'), '', true);
-                $cell .= wf_CheckInput("ponizer_add", __("Add ONU to PONizer"), true, true);
+                $cell = wf_HiddenInput(self::TYPE_FIELD, $this->currentPonType);
+                $cell .= wf_HiddenInput(self::INTERFACE_FIELD, $this->currentOltInterface);
+                $cell .= wf_HiddenInput(self::OLTIP_FIELD, $this->currentOltIp);
+                $cell .= wf_HiddenInput(self::MAC_FIELD, $this->onuIdentifier);
+                $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
+                $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
+                $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
+                $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __("Add ONU to PONizer"), true, true);
                 $cell .= wf_Tag('br');
-                $cell .= wf_CheckInput('save', __("Save config"), true);
+                $cell .= wf_CheckInput(self::SAVE_FIELD, __("Save config"), true);
 
                 break;
             case 'GPON':
-                $cell = wf_HiddenInput('type', $this->currentPonType);
-                $cell .= wf_HiddenInput('interface', $this->currentOltInterface);
-                $cell .= wf_HiddenInput('oltip', $this->currentOltIp);
-                $cell .= wf_HiddenInput('sn', $this->onuIdentifier);
-                $cell .= wf_Selector('modelid', $this->onuModelsSelector, __('Choose ONU model'), '', true);
-                $cell .= wf_TextInput('vlan', 'VLAN', $vlan, true);
-                $cell .= wf_TextInput('login', __('Login'), '', true);
-                $cell .= wf_TextInput('mac_onu', __('MAC ONU for PONizer'), '', true);
-                $cell .= wf_CheckInput("random_mac", __("Generate random mac"), true, true);
-                $cell .= wf_CheckInput("ponizer_add", __("Add ONU to PONizer"), true, true);
+                $cell = wf_HiddenInput(self::TYPE_FIELD, $this->currentPonType);
+                $cell .= wf_HiddenInput(self::INTERFACE_FIELD, $this->currentOltInterface);
+                $cell .= wf_HiddenInput(self::OLTIP_FIELD, $this->currentOltIp);
+                $cell .= wf_HiddenInput(self::SN_FIELD, $this->onuIdentifier);
+                $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
+                $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
+                $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
+                $cell .= wf_TextInput(self::MAC_ONU_FIELD, __('MAC ONU for PONizer'), '', true);
+                $cell .= wf_CheckInput(self::RANDOM_MAC_FIELD, __("Generate random mac"), true, true);
+                $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __("Add ONU to PONizer"), true, true);
                 $cell .= wf_Tag('br');
-                $cell .= wf_CheckInput('save', __("Save config"), true);
-                $cell .= wf_CheckInput('router', __("Router ONU mode"), true);
+                $cell .= wf_CheckInput(self::SAVE_FIELD, __("Save config"), true);
+                $cell .= wf_CheckInput(self::ROUTER_FIELD, __("Router ONU mode"), true);
 
                 break;
         }
