@@ -1,7 +1,7 @@
 <?php
 
 $lang['def']['Edit OLT Cards'] = 'Редагувати карту';
-$lang['def']['Check for unauthenticated ONU/ONT'] = 'Перевірити на нявність незареєстрованих ONU/ONT';
+$lang['def']['Check for unauthenticated ONU/ONT'] = 'Перевірити на наявність незареєстрованих ONU/ONT';
 $lang['def']['Register ONU/ONT'] = 'Зареєструвати ONU/ONT';
 $lang['def']['right to register ONU/ONT'] = 'Право реєструвати ONU/ONT';
 $lang['def']['ZTE VLAN Binds'] = 'Закріплені VLAN-и';
@@ -27,3 +27,10 @@ $lang['def']['Choose ONU model'] = 'Оберыть модель ONU';
 $lang['def']['MAC ONU for PONizer'] = 'MAC ONU для ПОНізатора';
 $lang['def']['Save config'] = 'Зберегти налаштування';
 $lang['def']['Router ONU mode'] = 'ONU в режимі роутера';
+$lang['def']['No connection data found. Switchlogin is empty or not set.'] = '';
+$lang['def']['SNMP connection type has set for this OLT. Use telnet/ssh instead.'] = '';
+$lang['def']['Wrong modelid found. Do not use placeholder.'] = '';
+$lang['def']['Some fields were not set. Please fix it.'] = '';
+$lang['def']['No interface value found.'] = '';
+$lang['def']['No OLT IP address value found.'] = '';
+$lang['def']['No VLAN value found.'] = '';

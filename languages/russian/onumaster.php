@@ -27,3 +27,12 @@ $lang['def']['Choose ONU model'] = 'Выберите модель ONU';
 $lang['def']['MAC ONU for PONizer'] = 'MAC ONU для ПОНизатора';
 $lang['def']['Save config'] = 'Сохранить настройки';
 $lang['def']['Router ONU mode'] = 'ONU в режиме роутера';
+$lang['def']['No connection data found. Switchlogin is empty or not set.'] = 'Нет данных для соединения с OLT в switchlogin.';
+$lang['def']['SNMP connection type has set for this OLT. Use telnet/ssh instead.'] = 'Установлен метод соединения SNMP. Используйте telnet/ssh.';
+$lang['def']['Wrong modelid found. Do not use placeholder.'] = 'Неправильный тип ONU. Не используйте заполнитель.';
+$lang['def']['Some fields were not set.'] = 'Нехватает некоторых данных.';
+$lang['def']['No interface value found.'] = 'Значение interface не найдено.';
+$lang['def']['No OLT IP address value found.'] = 'IP адрес OLT не найден.';
+$lang['def']['No VLAN value found.'] = 'VLAN не найден.';
+$lang['def'][] = '';
+

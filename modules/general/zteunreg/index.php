@@ -2,77 +2,95 @@
 
 $altcfg = $ubillingConfig->getAlter();
 
-if (@$altcfg['ONUREG_ZTE']) {
-    if (cfr('ONUREGZTE')) {
+if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
+    if (cfr(OnuRegister::MODULE_RIGHTS)) {
         $register = new OnuRegister();
         $avidity = $register->getAvidity();
-        $onuIdentifier = '';
+        $onuIdentifier = OnuRegister::EMPTY_FIELD;
         if (!empty($avidity)) {
             $avidity_z = $avidity['M']['LUCIO'];
             $avidity_w = $avidity['M']['REAPER'];
             show_window(__('Check for unauthenticated ONU/ONT'), $register->$avidity_z());
 
-            show_window('', wf_BackLink(PONizer::URL_ME));
+            show_window(OnuRegister::EMPTY_FIELD, wf_BackLink(PONizer::URL_ME));
 
-            if (wf_CheckGet(array('oltip', 'interface', 'type'))) {
-                if (wf_CheckGet(array('maconu'))) {
-                    $onuIdentifier = $_GET['maconu'];
+            if (wf_CheckGet(array(OnuRegister::OLTIP_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::TYPE_FIELD))) {
+                if (wf_CheckGet(array(OnuRegister::MACONU_FIELD))) {
+                    $onuIdentifier = $_GET[OnuRegister::MACONU_FIELD];
                 }
-                if (wf_CheckGet(array('serial'))) {
-                    $onuIdentifier = $_GET['serial'];
+                if (wf_CheckGet(array(OnuRegister::SERIAL_FIELD))) {
+                    $onuIdentifier = $_GET[OnuRegister::SERIAL_FIELD];
                 }
                 if (!empty($onuIdentifier)) {
-                    $register->currentOltIp = $_GET['oltip'];
-                    $register->currentOltInterface = $_GET['interface'];
-                    $register->currentPonType = $_GET['type'];
+                    $register->currentOltIp = $_GET[OnuRegister::OLTIP_FIELD];
+                    $register->currentOltInterface = $_GET[OnuRegister::INTERFACE_FIELD];
+                    $register->currentPonType = $_GET[OnuRegister::TYPE_FIELD];
                     $register->onuIdentifier = $onuIdentifier;
                     show_window(__('Register'), $register->registerOnuForm());
                 }
             }
-            if (wf_CheckPost(array('type', 'interface', 'oltip', 'modelid', 'vlan'))) {
-                if ($_POST['modelid'] != '======') {
-                    $mac_onu = '';
+            if (wf_CheckPost(array(OnuRegister::TYPE_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::OLTIP_FIELD, OnuRegister::MODELID_FIELD, OnuRegister::VLAN_FIELD))) {
+                if ($_POST[OnuRegister::MODELID_FIELD] != OnuRegister::MODELID_PLACEHOLDER) {
+                    $mac_onu = OnuRegister::EMPTY_FIELD;
                     $save = false;
                     $router = false;
-                    $login = '';
+                    $login = OnuRegister::EMPTY_FIELD;
                     $PONizerAdd = false;
-                    if (wf_CheckPost(array('login'))) {
-                        $login = $_POST['login'];
+                    if (wf_CheckPost(array(OnuRegister::LOGIN_FIELD))) {
+                        $login = $_POST[OnuRegister::LOGIN_FIELD];
                     }
-                    if (wf_CheckPost(array('mac'))) {
-                        $onuIdentifier = $_POST['mac'];
+                    if (wf_CheckPost(array(OnuRegister::MAC_FIELD))) {
+                        $onuIdentifier = $_POST[OnuRegister::MAC_FIELD];
                     }
-                    if (wf_CheckPost(array('sn'))) {
-                        $onuIdentifier = $_POST['sn'];
+                    if (wf_CheckPost(array(OnuRegister::SN_FIELD))) {
+                        $onuIdentifier = $_POST[OnuRegister::SN_FIELD];
                     }
-                    if (isset($_POST['router'])) {
-                        $router = $_POST['router'];
+                    if (isset($_POST[OnuRegister::ROUTER_FIELD])) {
+                        $router = $_POST[OnuRegister::ROUTER_FIELD];
                     }
-                    if (isset($_POST['mac_onu'])) {
-                        $mac_onu = $_POST['mac_onu'];
+                    if (isset($_POST[OnuRegister::MAC_ONU_FIELD])) {
+                        $mac_onu = $_POST[OnuRegister::MAC_ONU_FIELD];
                     }
-                    if (isset($_POST['random_mac'])) {
+                    if (isset($_POST[OnuRegister::RANDOM_MAC_FIELD])) {
                         $mac_onu = $register->generateRandomOnuMac();
                     }
-                    if (isset($_POST['save'])) {
-                        $save = $_POST['save'];
+                    if (isset($_POST[OnuRegister::SAVE_FIELD])) {
+                        $save = $_POST[OnuRegister::SAVE_FIELD];
                     }
-                    if (isset($_POST['ponizer_add'])) {
+                    if (isset($_POST[OnuRegister::PONIZER_ADD_FIELD])) {
                         $PONizerAdd = true;
                     }
-                    $register->currentOltIp = $_POST['oltip'];
-                    $register->currentOltInterface = $_POST['interface'];
-                    $register->currentPonType = $_POST['type'];
+                    $register->currentOltIp = $_POST[OnuRegister::OLTIP_FIELD];
+                    $register->currentOltInterface = $_POST[OnuRegister::INTERFACE_FIELD];
+                    $register->currentPonType = $_POST[OnuRegister::TYPE_FIELD];
                     $register->onuIdentifier = $onuIdentifier;
-                    show_window(__('Result'), $register->$avidity_w($_POST['modelid'], $_POST['vlan'], $login, $save, $router, $mac_onu, $PONizerAdd));
+                    $loginCheck = $register->checkOltParams();
+                    if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
+                        show_error(__($loginCheck));
+                    } else {
+                        show_window(__('Result'), $register->$avidity_w($_POST[OnuRegister::MODELID_FIELD], $_POST[OnuRegister::VLAN_FIELD], $login, $save, $router, $mac_onu, $PONizerAdd));
+                    }
+                } else {
+                    show_error(__(OnuRegister::ERROR_WRONG_MODELID));
+                }
+            } elseif (wf_CheckPost(array(OnuRegister::TYPE_FIELD))) {
+                show_error(__(OnuRegister::ERROR_NOT_ALL_FIELDS));
+                if (!wf_CheckPost(array(OnuRegister::INTERFACE_FIELD))) {
+                    show_error(__(OnuRegister::ERROR_NO_INTERFACE_SET));
+                }
+                if (!wf_CheckPost(array(OnuRegister::OLTIP_FIELD))) {
+                    show_error(__(OnuRegister::ERROR_NO_OLTIP_SET));
+                }
+                if (!wf_CheckPost(array(OnuRegister::VLAN_FIELD))) {
+                    show_error(__(OnuRegister::ERROR_NO_VLAN_SET));
                 }
             }
         } else {
-            show_error(__('No license key available'));
+            show_error(__(OnuRegister::ERROR_NO_LICENSE));
         }
     } else {
-        show_error(__('Access denied'));
+        show_error(__(OnuRegister::ERROR_NO_RIGHTS));
     }
 } else {
-    show_error(__('This module is disabled'));
+    show_error(__(OnuRegister::ERROR_NOT_ENABLED));
 }
