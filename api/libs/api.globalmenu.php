@@ -253,7 +253,7 @@ class GlobalMenu {
                         $formCells.= wf_TableCell(wf_CheckInput('_glmdisabled[' . $io . ']', '', false, $disabledFlag));
                         $fastAccessFlag = (isset($this->fastAccess[$io])) ? true : false;
                         $formCells.= wf_TableCell(wf_CheckInput('_glmfastacc[' . $io . ']', '', false, $fastAccessFlag));
-                        $formRows = wf_TableRow($formCells, 'row3');
+                        $formRows = wf_TableRow($formCells, 'row5');
                         $tmpArr[$each['CATEGORY']].=$formRows;
                     }
                 }
