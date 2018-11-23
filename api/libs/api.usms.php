@@ -26,7 +26,10 @@ class UbillingSMS {
     public function __construct() {
         global $ubillingConfig;
         $this->smsRoutingFlag = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
-        $this->smsDirections = new SMSDirections();
+
+        if ($this->smsRoutingFlag) {
+            $this->smsDirections = new SMSDirections();
+        }
     }
 
     /**

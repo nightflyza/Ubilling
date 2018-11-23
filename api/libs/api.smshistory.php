@@ -10,11 +10,11 @@ The future is coming on
 class SMSHistory {
     const URL_ME = '?module=smshistory';
 
-    protected $SMSAdvancedEnabled = false;
+    protected $smsAdvancedEnabled = false;
 
     public function __construct() {
         global $ubillingConfig;
-        $this->SMSAdvancedEnabled = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
+        $this->smsAdvancedEnabled = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
     }
 
     /**
@@ -42,7 +42,9 @@ class SMSHistory {
      */
     public function renderJSON($QueryData) {
         $json = new wf_JqDtHelper();
-        $smsDirections = new SMSDirections();
+        if ($this->smsAdvancedEnabled) {
+            $smsDirections = new SMSDirections();
+        }
 
         if ( !empty($QueryData) ) {
             $data = array();
@@ -51,7 +53,7 @@ class SMSHistory {
                 foreach ($EachRec as $FieldName => $FieldVal) {
                     switch ($FieldName) {
                         case 'smssrvid':
-                            if ($this->SMSAdvancedEnabled) {
+                            if ($this->smsAdvancedEnabled) {
                                 $SMSSrvName = $smsDirections->getDirectionNameById($FieldVal);
 
                                 if ( !empty($SMSSrvName) ) {
@@ -92,7 +94,7 @@ class SMSHistory {
     public function renderJQDT($UserLogin = '') {
         $AjaxURLStr = ( empty($UserLogin) ) ? '' . self::URL_ME . '&ajax=true' . '' : '' . self::URL_ME . '&ajax=true&usrlogin=' . $UserLogin . '';
         $columns = array();
-        if ($this->SMSAdvancedEnabled) {
+        if ($this->smsAdvancedEnabled) {
             $columnTargets = (empty($UserLogin)) ? '[0, 4, 5, 9]' : '[0, 2, 4, 5, 9]';
             $CheckCol1 = '8';
             $CheckCol2 = '9';
@@ -126,7 +128,7 @@ class SMSHistory {
                   }
                 ';
         $columns[] = ('ID');
-        if ($this->SMSAdvancedEnabled) {
+        if ($this->smsAdvancedEnabled) {
             $columns[] = __('SMS service');
         }
         $columns[] = ('Login');
@@ -260,9 +262,9 @@ class SMSHistory {
         $inputs .= wf_CleanDiv() . wf_delimiter();
         $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
         $inputs .= wf_JQDTColumnHideShow('__showdbidclmn', 'change', $JQDTID, 0);
-        $inputs .= wf_JQDTColumnHideShow('__showselfidclmn', 'change', $JQDTID, ($this->SMSAdvancedEnabled) ? 4 : 3);
-        $inputs .= wf_JQDTColumnHideShow('__showpackidclmn', 'change', $JQDTID, ($this->SMSAdvancedEnabled) ? 5 : 4);
-        $inputs .= wf_JQDTColumnHideShow('__shownostatuschkclmn', 'change', $JQDTID, ($this->SMSAdvancedEnabled) ? 9 : 8);
+        $inputs .= wf_JQDTColumnHideShow('__showselfidclmn', 'change', $JQDTID, ($this->smsAdvancedEnabled) ? 4 : 3);
+        $inputs .= wf_JQDTColumnHideShow('__showpackidclmn', 'change', $JQDTID, ($this->smsAdvancedEnabled) ? 5 : 4);
+        $inputs .= wf_JQDTColumnHideShow('__shownostatuschkclmn', 'change', $JQDTID, ($this->smsAdvancedEnabled) ? 9 : 8);
         $inputs .= '$(\'#' . $QickSelID .'\').on("change", function() {
                         $(\'#' . $DateFromID .'\').datepicker("setDate", $(\'#' . $QickSelID .'\').val());
                         
