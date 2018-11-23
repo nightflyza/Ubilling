@@ -166,10 +166,11 @@ if (cfr('SWITCHPOLL')) {
                                 $modActions = wf_BackLink('?module=switches');
                                 $modActions.= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
                                 $modActions.= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
-                                show_window($deviceTemplate.' '.$eachDevice['ip'] . ' - ' . $eachDevice['location'], $modActions);
+                                show_window($deviceTemplate . ' ' . $eachDevice['ip'] . ' - ' . $eachDevice['location'], $modActions);
                                 sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $eachDevice['snmpwrite'], false);
                             } else {
-                                show_window(__('Error'), __('Switch dead since') . ' ' . @$deathTime[$eachDevice['ip']] . wf_delimiter() . wf_BackLink('?module=switches'));
+                                show_error(__('Switch dead since') . ' ' . @$deathTime[$eachDevice['ip']]);
+                                show_window('', wf_BackLink('?module=switches') . ' ' . wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit switch'), false, 'ubButton'));
                             }
                         } else {
                             show_error(__('No') . ' ' . __('SNMP template'));
