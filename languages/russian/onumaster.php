@@ -34,5 +34,5 @@ $lang['def']['Some fields were not set.'] = 'Нехватает некоторы
 $lang['def']['No interface value found.'] = 'Значение interface не найдено.';
 $lang['def']['No OLT IP address value found.'] = 'IP адрес OLT не найден.';
 $lang['def']['No VLAN value found.'] = 'VLAN не найден.';
-$lang['def'][] = '';
+
 
