@@ -38,6 +38,13 @@ if (cfr('ROOT')) {
         protected $allApt = array();
 
         /**
+         * List of allowed extensions
+         *
+         * @var array
+         */
+        protected $allowedExtensions = array('csv');
+
+        /**
          * login=>aptid=>id
          *
          * @var array
@@ -49,8 +56,9 @@ if (cfr('ROOT')) {
         protected $rawCsv = '';
         protected $tariffPrefix = 'Speed-';
         protected $offsets = array();
-        protected $grayIpNet = '172.16';
+        protected $grayIpNet = '10.11';
         protected $whiteIpNet = '195.162.80';
+        protected $nasIpAddr = '195.162.83.29';
         protected $nethosts = array();
         protected $currentIp = 2;
         protected $currentNet = 1;
@@ -63,6 +71,13 @@ if (cfr('ROOT')) {
         protected $currentAptId = 1;
         protected $currentAddressId = 1;
         protected $orphans = 0;
+
+        /**
+         * Some upload options
+         */
+        const UPLOAD_PATH = 'exports/';
+        const SQL_PREPEND = 'docs/conv/cleanbase_092/ubilling_clean_base.sql';
+        const MLG_PREPEND = 'docs/multigen/dump.sql';
 
         public function __construct() {
             $this->setOffsets();
@@ -301,6 +316,16 @@ if (cfr('ROOT')) {
             $failedUsers = array();
 
             $result = '';
+
+            if (file_exists(self::SQL_PREPEND)) {
+                $result.=file_get_contents(self::SQL_PREPEND); //some clean base here
+            }
+
+
+            if (file_exists(self::MLG_PREPEND)) {
+                $result.=file_get_contents(self::MLG_PREPEND); // and multigen presets
+            }
+
             if (!empty($this->rawCsv)) {
                 foreach ($this->rawCsv as $io => $eachLine) {
                     $count++;
@@ -411,6 +436,11 @@ if (cfr('ROOT')) {
                         $result.= "INSERT INTO `nethosts` (`id` ,`ip` ,`mac` ,`netid` ,`option`) "
                                 . "VALUES (NULL , '" . $io . "', '" . $each['mac'] . "', '" . $each['netid'] . "', '');" . "\n";
                     }
+
+                    foreach ($this->networks as $io => $each) {
+                        $result.= "INSERT INTO `nas` (`id` ,`netid` , `nasip` , `nasname` , `nastype` , `bandw`) VALUES
+                                   (NULL , '" . $each['id'] . "', '" . $this->nasIpAddr . "', 'PPPoE',  'radius', '');";
+                    }
                 }
 
                 //generating address data
@@ -434,11 +464,77 @@ if (cfr('ROOT')) {
             file_put_contents('content/backups/sql/convertador.sql', $result);
         }
 
+        /**
+         * Returns upload form
+         * 
+         * @return string
+         */
+        public function renderUploadForm() {
+            $uploadinputs = wf_HiddenInput('uploadconvertadorks', 'true');
+            $uploadinputs .= __('CSV file') . wf_tag('br');
+            $uploadinputs .= wf_tag('input', false, '', 'id="fileselector" type="file" name="convertadorcsv"') . wf_tag('br');
+            $uploadinputs .= wf_Submit('Upload');
+            $uploadform = bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
+            return ($uploadform);
+        }
+
+        /**
+         * Process of uploading of raw csv
+         * 
+         * @return array
+         */
+        public function csvDoUpload() {
+            $result = array();
+            $extCheck = true;
+            //check file type
+            foreach ($_FILES as $file) {
+                if ($file['tmp_name'] > '') {
+                    if (@!in_array(end(explode(".", strtolower($file['name']))), $this->allowedExtensions)) {
+                        $extCheck = false;
+                    }
+                }
+            }
+
+            if ($extCheck) {
+                $filename = $_FILES['convertadorcsv']['name'];
+                $uploadfile = self::UPLOAD_PATH . $filename;
+
+                if (move_uploaded_file($_FILES['convertadorcsv']['tmp_name'], $uploadfile)) {
+                    $fileContent = file_get_contents(self::UPLOAD_PATH . $filename);
+                    $fileHash = md5($fileContent);
+                    $fileContent = ''; //free some memory
+
+                    $result = array(
+                        'filename' => $_FILES['convertadorcsv']['name'],
+                        'savedname' => $filename,
+                        'hash' => $fileHash
+                    );
+                } else {
+                    show_error(__('Cant upload file to') . ' ' . self::UPLOAD_PATH);
+                }
+            } else {
+                show_error(__('Wrong file type'));
+            }
+            return ($result);
+        }
+
     }
 
-    $raw = file_get_contents('exports/all2.csv');
     $conv = new ConverTador();
-    $conv->setCsv($raw);
-    $conv->processing();
+    if (!wf_CheckPost(array('uploadconvertadorks'))) {
+        show_window(__('Upload'), $conv->renderUploadForm());
+    } else {
+        $uploadResult = $conv->csvDoUpload();
+        if (!empty($uploadResult)) {
+            $filename = $conv::UPLOAD_PATH . $uploadResult['savedname'];
+            if (file_exists($filename)) {
+                $raw = file_get_contents($filename);
+                $conv->setCsv($raw);
+                $conv->processing();
+            }
+        }
+    }
+} else {
+    show_error(__('Access denied'));
 }
 ?>
