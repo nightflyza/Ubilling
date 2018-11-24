@@ -5371,3 +5371,18 @@ CREATE TABLE IF NOT EXISTS `bankstamd` (
   `processed` tinyint(4) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- mlg issues fix
+DROP TABLE IF EXISTS `mlg_acct`;
+DROP TABLE IF EXISTS `mlg_postauth`;
+DROP TABLE IF EXISTS `mlg_check`;
+DROP TABLE IF EXISTS `mlg_reply`;
+DROP TABLE IF EXISTS `mlg_groupcheck`;
+DROP TABLE IF EXISTS `mlg_groupreply`;
+DROP TABLE IF EXISTS `mlg_usergroup`;
+DROP TABLE IF EXISTS `mlg_nasattributes`;
+DROP TABLE IF EXISTS `mlg_nasoptions`;
+DROP TABLE IF EXISTS `mlg_services`;
+DROP TABLE IF EXISTS `mlg_userstates`;
+DROP TABLE IF EXISTS `mlg_traffic`;
+
