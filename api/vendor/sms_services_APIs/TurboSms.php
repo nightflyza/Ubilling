@@ -43,10 +43,12 @@ class TurboSms extends SMSServiceApi {
         $TsmsDB->close();
 
         //rendering result
-        $inputs = wf_DatePickerPreset('showdate', curdate());
-        $inputs.= wf_Submit(__('Show'));
-        $dateform = wf_Form("", 'POST', $inputs, 'glamour');
+        $formInputId = wf_InputId();
+        $tableBlockId = wf_InputId();
 
+        $inputs= wf_DatePickerPreset('showdate', curdate(), false, '', '__DatePickerSMS');
+        $inputs.= wf_Submit(__('Show'));
+        $dateform = wf_Form($this->instanceSendDog->getBaseUrl(), 'POST', $inputs, 'glamour __TSMSGetQueue', '', $formInputId);
 
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Msg ID'));
@@ -78,12 +80,35 @@ class TurboSms extends SMSServiceApi {
             }
         }
 
-        //$result.= wf_BackLink(self::URL_ME, '', true);
         $result.= $dateform;
+        $result.= wf_tag('div', false, '', 'id="' . $tableBlockId . '"');
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
         $result.= __('Total') . ': ' . $total;
-        //return ($result);
-        die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '888'));
+        $result.= wf_tag('div', true);
+
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        $result.= ' $(\'#' . $_POST['ModalWBID'] . '\').append($(\'#' . $formInputId .'\'));
+                    $(\'#' . $_POST['ModalWBID'] . '\').append($(\'#' . $tableBlockId .'\'));
+                                   
+                    $(document).on("submit", ".__TSMSGetQueue", function(evt) {
+                        var FrmData   = $(".__TSMSGetQueue").serialize() + \'&SMSAPIName=' . get_class($this) . '&smssrvid=' . $this->serviceId . '&modalWindowId=' . $_POST['modalWindowId'] . '&ModalWBID=' . $_POST['ModalWBID'] . '&action=getSMSQueue' . '\';
+                        var FrmAction = $(".__TSMSGetQueue").attr("action");
+                        evt.preventDefault();
+                        
+                        $.ajax({
+                            type: "POST",
+                            url: FrmAction,                       
+                            data: FrmData,
+                            success: function(result) {
+                                        $(\'#' . $_POST['ModalWBID'] . '\').html(result);
+                                    }
+                        });
+                    });
+                    ';
+        $result.= wf_tag('script', true);
+        $modalForm = wf_modalAutoForm(__('View SMS sending queue'), '', $_POST['modalWindowId'], $_POST['ModalWBID'], true, 'false', '888');
+
+        die($result . $modalForm);
     }
 
     public function pushMessages() {
@@ -115,7 +140,7 @@ class TurboSms extends SMSServiceApi {
         }
     }
 
-    public  function checkMessagesStatuses() {
+    public function checkMessagesStatuses() {
         log_register('Checking statuses for [' . get_class($this) . '] SMS service is not implemented');
     }
 }
