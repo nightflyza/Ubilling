@@ -103,6 +103,11 @@ class SMSDirections {
 
         return ($dirsCache);
     }
+
+    public function refreshCacheForced() {
+        $this->ubCache->set('SMS_SERVICES_DIRECTIONS', $this->getSMSServicesDirectionsData(), $this->directionsCacheLifeTime);
+        $this->directionsCache = $this->ubCache->get('SMS_SERVICES_DIRECTIONS', $this->directionsCacheLifeTime);
+    }
 }
 
 ?>

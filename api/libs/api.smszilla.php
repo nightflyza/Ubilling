@@ -1353,7 +1353,43 @@ class SMSZilla {
         $result.=wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&numlists=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&excludes=true', wf_img('skins/icon_deleterow.png') . ' ' . __('Excludes'), true, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&excludes=true', wf_img('skins/icon_deleterow.png') . ' ' . __('Excludes'), !$this->sms->smsRoutingFlag, 'ubButton') . ' ';
+
+        if ($this->sms->smsRoutingFlag) {
+            $cacheLnkId = wf_InputId();
+            $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
+            $addServiceJS .= '
+                                $(\'#' . $cacheLnkId . '\').click(function(evt) {
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "' . self::URL_ME . '",
+                                        data: { 
+                                                action:"RefreshBindingsCache",                                                                                                                                                                
+                                                modalWindowId:"dialog-modal_' . $cacheLnkId . '", 
+                                                ModalWBID:"body_dialog-modal_' . $cacheLnkId . '"                                                        
+                                               },
+                                        success: function(result) {
+                                                    $(document.body).append(result);
+                                                    $(\'#dialog-modal_' . $cacheLnkId . '\').dialog("open");
+                                                 }
+                                    });
+            
+                                    evt.preventDefault();
+                                    return false;
+                                });
+                            ';
+            $addServiceJS .= wf_tag('script', true);
+
+            $result.= wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), true, 'ubButton', 'id="' . $cacheLnkId . '"') . $addServiceJS;
+        }
+
+        if (wf_CheckPost(array('action')) and $_POST['action'] == 'RefreshBindingsCache') {
+            $this->sms->smsDirections->refreshCacheForced();
+            $messageWindow = $this->messages->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
+                                                                'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+            die(wf_modalAutoForm('', $messageWindow, $_POST['modalWindowId'], '', true));
+        }
+
         if (wf_CheckGet(array('templates'))) {
             $result.=wf_tag('br');
             if (wf_CheckGet(array('edittemplate'))) {

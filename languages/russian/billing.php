@@ -2993,6 +2993,7 @@ $lang['def']['User login to access API'] = 'Логин пользователя 
 $lang['def']['User password for access API'] = 'Пароль пользователя для доступа к API';
 $lang['def']['Use Lifecell as default SMS service'] = 'Использовать Lifecell как службу SMS по-умолчанию';
 $lang['def']['No OLT devices found - can not associate ONU'] = 'ОЛТ устройства не найдены - невозможно ассоциировать ОНУ';
+$lang['def']['SMS services cache bindings updated succesfuly'] = 'Кэш связей СМС сервисов успешно обновлен';
+$lang['def']['Refresh SMS services bindings cache'] = 'Обновить кэш связей СМС сервисов';
 $lang['def'][''] = '';
-
 ?>

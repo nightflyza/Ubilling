@@ -36,6 +36,13 @@ if (cfr('SENDDOG')) {
             }
 
             if ( wf_CheckPost(array('action')) ) {
+                if ($_POST['action'] == 'RefreshBindingsCache') {
+                    $sendDog->getSmsQueueInstance()->smsDirections->refreshCacheForced();
+                    $messageWindow = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
+                                                                                                'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                    die(wf_modalAutoForm('', $messageWindow, $_POST['modalWindowId'], '', true));
+                }
+
                 if ( wf_CheckPost(array('smssrvid')) ) {
                     $smsServiceId = $_POST['smssrvid'];
 
@@ -104,6 +111,7 @@ if (cfr('SENDDOG')) {
             show_window(__('Telegram'), $form);
 
             $lnkId = wf_InputId();
+            $cacheLnkId = wf_InputId();
             $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
             $addServiceJS .= '
                             $(\'#' . $lnkId . '\').click(function(evt) {
@@ -124,10 +132,30 @@ if (cfr('SENDDOG')) {
                                 evt.preventDefault();
                                 return false;
                             });
+                            
+                            $(\'#' . $cacheLnkId . '\').click(function(evt) {
+                                $.ajax({
+                                    type: "POST",
+                                    url: "' . $sendDog::URL_ME .'",
+                                    data: { 
+                                            action:"RefreshBindingsCache",                                                                                                                                                                
+                                            modalWindowId:"dialog-modal_' . $cacheLnkId . '", 
+                                            ModalWBID:"body_dialog-modal_' . $cacheLnkId . '"                                                        
+                                           },
+                                    success: function(result) {
+                                                $(document.body).append(result);
+                                                $(\'#dialog-modal_' . $cacheLnkId . '\').dialog("open");
+                                             }
+                                });
+        
+                                evt.preventDefault();
+                                return false;
+                            });
                         ';
             $addServiceJS .= wf_tag('script', true);
 
-            show_window(__('SMS services'), wf_Link('#', web_add_icon() . __('Add SMS service'), false, 'ubButton', 'id="' . $lnkId . '"')
+            show_window(__('SMS services'), wf_Link('#', web_add_icon() . ' ' . __('Add SMS service'), false, 'ubButton', 'id="' . $lnkId . '"')
+                                            . wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), false, 'ubButton', 'id="' . $cacheLnkId . '"')
                                             . wf_delimiter() . $addServiceJS . $sendDog->renderJQDT());
         } else {
             $sendDog = new SendDog();
