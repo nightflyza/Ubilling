@@ -1244,8 +1244,9 @@ function wf_DatePicker($field, $extControls = false) {
  * @return string
  *  
  */
-function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '') {
+function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '', $ctrlClass = '') {
     $inputid = ( empty($CtrlID) ) ? wf_InputId() : $CtrlID;
+    $class = ( empty($ctrlClass) ) ? '' : ' class="' . $ctrlClass . '" ';
     $curlang = curlang();
     if ($extControls) {
         $extControls = ',
@@ -1329,7 +1330,7 @@ function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '') 
 	});
 	</script>
         
-        <input type="text" id="' . $inputid . '" name="' . $field . '" value="' . $date . '" size="10">
+        <input type="text" id="' . $inputid . '" name="' . $field . '" value="' . $date . '" size="10"' . $class . '>
         ';
     return($result);
 }
@@ -2523,6 +2524,7 @@ function wf_nbsp($count = 1) {
 /**
  * Returns JS onElementInserted() func which allow to make any actions for
  * dynamically created objects right after the moment of it's creation
+ * elementSelector MUST be a class selector, like '.SomeMyClass'
  *
  * Source code: https://stackoverflow.com/a/38517525
  *
