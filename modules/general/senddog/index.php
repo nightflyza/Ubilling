@@ -32,7 +32,7 @@ if (cfr('SENDDOG')) {
                     }
                 }
 
-                die(wf_modalAutoForm(__('Add SMS service'), $sendDog->renderAddForm($_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['ModalWBID'], true));
+                die(wf_modalAutoForm(__('Add SMS service'), $sendDog->renderAddForm($_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['modalWindowBodyId'], true));
             }
 
             if ( wf_CheckPost(array('action')) ) {
@@ -113,45 +113,8 @@ if (cfr('SENDDOG')) {
             $lnkId = wf_InputId();
             $cacheLnkId = wf_InputId();
             $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
-            $addServiceJS .= '
-                            $(\'#' . $lnkId . '\').click(function(evt) {
-                                $.ajax({
-                                    type: "POST",
-                                    url: "' . $sendDog::URL_ME .'",
-                                    data: { 
-                                            smssrvcreate:true,                                                                                                                                                                
-                                            modalWindowId:"dialog-modal_' . $lnkId . '", 
-                                            ModalWBID:"body_dialog-modal_' . $lnkId . '"                                                        
-                                           },
-                                    success: function(result) {
-                                                $(document.body).append(result);
-                                                $(\'#dialog-modal_' . $lnkId . '\').dialog("open");
-                                             }
-                                });
-        
-                                evt.preventDefault();
-                                return false;
-                            });
-                            
-                            $(\'#' . $cacheLnkId . '\').click(function(evt) {
-                                $.ajax({
-                                    type: "POST",
-                                    url: "' . $sendDog::URL_ME .'",
-                                    data: { 
-                                            action:"RefreshBindingsCache",                                                                                                                                                                
-                                            modalWindowId:"dialog-modal_' . $cacheLnkId . '", 
-                                            ModalWBID:"body_dialog-modal_' . $cacheLnkId . '"                                                        
-                                           },
-                                    success: function(result) {
-                                                $(document.body).append(result);
-                                                $(\'#dialog-modal_' . $cacheLnkId . '\').dialog("open");
-                                             }
-                                });
-        
-                                evt.preventDefault();
-                                return false;
-                            });
-                        ';
+            $addServiceJS .= wf_JSAjaxModalOpener($sendDog::URL_ME, array('smssrvcreate' => 'true'), $lnkId, false, 'POST');
+            $addServiceJS .= wf_JSAjaxModalOpener($sendDog::URL_ME, array('action' => 'RefreshBindingsCache'), $cacheLnkId, false,'POST');
             $addServiceJS .= wf_tag('script', true);
 
             show_window(__('SMS services'), wf_Link('#', web_add_icon() . ' ' . __('Add SMS service'), false, 'ubButton', 'id="' . $lnkId . '"')

@@ -2478,6 +2478,62 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
 }
 
 /**
+ * Returns JS for a control which will be responsible for opening dynamic modal windows via ajax call to a specific URL
+ *
+ * @param $ajaxURL
+ * @param $dataArray
+ * @param string $queryType
+ * @param string $controlId
+ * @param string $jsEvent
+ * @param bool $noPreventDefault
+ * @param bool $noReturnFalse
+ * @param bool $wrapWithJSScriptTag
+ *
+ * @return string
+ */
+function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET',
+                              $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false) {
+
+    $inputId            = (empty($controlId)) ? wf_InputId() : $controlId;
+    $modalWindowId      = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
+    $modalWindowBodyId  = 'modalWindowBodyId:"body_dialog-modal_' . $inputId . '"';
+    $preventDefault     = ($noPreventDefault) ? "" : "\nevt.preventDefault();";
+    $returnFalse        = ($noReturnFalse) ? "" : "\nreturn false;";
+
+    $ajaxData = '';
+    foreach ($dataArray as $io => $each) {
+        $ajaxData.= $io . ':"' . $each . '", ';
+    }
+
+    $result = '$(\'#' . $inputId . '\').' . $jsEvent . '(function(evt) {
+                  $.ajax({
+                      type: "' . $queryType . '",
+                      url: "' . $ajaxURL . '",
+                      data: {' .  $ajaxData
+                               .  $modalWindowId
+                               .  $modalWindowBodyId
+                               . '},
+                      success: function(ajaxresult) {
+                                  $(document.body).append(ajaxresult);
+                                  $(\'#dialog-modal_' . $inputId . '\').dialog("open");
+                               }
+                  });'
+
+                  . $preventDefault
+                  . $returnFalse
+              . '});
+              ';
+
+    if ($wrapWithJSScriptTag) {
+        $result = wf_tag('script', false, '', 'type="text/javascript"')
+                  . $result
+                  . wf_tag('script', true);
+    }
+
+    return ($result);
+}
+
+/**
  * Returns plain JS-code of 'empty' function to use for checking an empty value in JS code
  *
  * @return string
