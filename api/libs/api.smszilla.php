@@ -1357,37 +1357,15 @@ class SMSZilla {
 
         if ($this->sms->smsRoutingFlag) {
             $cacheLnkId = wf_InputId();
-            $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
-            $addServiceJS .= '
-                                $(\'#' . $cacheLnkId . '\').click(function(evt) {
-                                    $.ajax({
-                                        type: "POST",
-                                        url: "' . self::URL_ME . '",
-                                        data: { 
-                                                action:"RefreshBindingsCache",                                                                                                                                                                
-                                                modalWindowId:"dialog-modal_' . $cacheLnkId . '", 
-                                                ModalWBID:"body_dialog-modal_' . $cacheLnkId . '"                                                        
-                                               },
-                                        success: function(result) {
-                                                    $(document.body).append(result);
-                                                    $(\'#dialog-modal_' . $cacheLnkId . '\').dialog("open");
-                                                 }
-                                    });
-            
-                                    evt.preventDefault();
-                                    return false;
-                                });
-                            ';
-            $addServiceJS .= wf_tag('script', true);
-
+            $addServiceJS = wf_JSAjaxModalOpener(self::URL_ME, array('action' => 'RefreshBindingsCache'), $cacheLnkId, true);
             $result.= wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), true, 'ubButton', 'id="' . $cacheLnkId . '"') . $addServiceJS;
         }
 
-        if (wf_CheckPost(array('action')) and $_POST['action'] == 'RefreshBindingsCache') {
+        if (wf_CheckGet(array('action')) and $_GET['action'] == 'RefreshBindingsCache') {
             $this->sms->smsDirections->refreshCacheForced();
             $messageWindow = $this->messages->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
                                                                 'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-            die(wf_modalAutoForm('', $messageWindow, $_POST['modalWindowId'], '', true));
+            die(wf_modalAutoForm('', $messageWindow, $_GET['modalWindowId'], '', true));
         }
 
         if (wf_CheckGet(array('templates'))) {
