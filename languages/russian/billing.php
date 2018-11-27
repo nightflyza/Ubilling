@@ -2995,5 +2995,7 @@ $lang['def']['Use Lifecell as default SMS service'] = 'Использовать 
 $lang['def']['No OLT devices found - can not associate ONU'] = 'ОЛТ устройства не найдены - невозможно ассоциировать ОНУ';
 $lang['def']['SMS services cache bindings updated succesfuly'] = 'Кэш связей СМС сервисов успешно обновлен';
 $lang['def']['Refresh SMS services bindings cache'] = 'Обновить кэш связей СМС сервисов';
+$lang['def']['Instruments'] = 'Инструменты';
 $lang['def'][''] = '';
+
 ?>

@@ -3011,4 +3011,6 @@ $lang['def']['Use Lifecell as default SMS service'] = 'Використовув�
 $lang['def']['No OLT devices found - can not associate ONU'] = 'Не знайдено ОЛТ пристроїв - неможливо асоціювати ОНУ';
 $lang['def']['SMS services cache bindings updated succesfuly'] = 'Кеш біндінгів СМС зв\'язків успішно оновлено';
 $lang['def']['Refresh SMS services bindings cache'] = 'Оновити кеш біндінгів СМС зв\'язків';
+$lang['def']['Instruments'] = 'Інструменти';
+
 ?>
