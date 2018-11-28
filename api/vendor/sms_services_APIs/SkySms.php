@@ -133,14 +133,19 @@ class SkySms extends SMSServiceApi {
      * @return void
      */
     public function checkMessagesStatuses() {
-        if ( empty($this->smsMessagePack) ) {
-            if ($this->isDefaultService) {
-                $query = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1 AND (`smssrvid` = " . $this->serviceId . " OR `smssrvid` = 0);";
-            } else {
-                $query = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1 AND `smssrvid` = " . $this->serviceId . ";";
-            }
-            $chkMessages = simple_queryall($query);
-        } else { $chkMessages = $this->smsMessagePack; }
+        /*if ( empty($this->smsMessagePack) ) {
+        } else { $chkMessages = $this->smsMessagePack; }*/
+
+        // we better ignore the contents of $this->smsMessagePack because it will probably come not distinguished by srvmsgpack_id
+        // which will mess up all the things and flood our events log with plenty of unneeded shit
+        // and as long as SkySms allows to check statuses by packet ID (no need to do it for every message individually)
+        // it will be better to requery data from DB in our manner:
+        if ($this->isDefaultService) {
+            $query = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1 AND (`smssrvid` = " . $this->serviceId . " OR `smssrvid` = 0);";
+        } else {
+            $query = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1 AND `smssrvid` = " . $this->serviceId . ";";
+        }
+        $chkMessages = simple_queryall($query);
 
         if ( !empty($chkMessages) ) {
             $skySmsApiUrl   = $this->serviceGatewayAddr;
@@ -195,7 +200,8 @@ class SkySms extends SMSServiceApi {
                             }
                         }
 
-                        log_register('SENDDOG SKYSMS checked SMS packet ' . $smsPacketID . ' send status');
+                        //log_register('SENDDOG SKYSMS checked SMS message ' . $messageId . ' send status');
+                        log_register('SENDDOG SKYSMS checking SMS packet ' . $smsPacketID . ' send status');
                     } else {
                         $serverErrorMsg = $this->decodeSkySMSErrorMsg($serverAnswerCode);
                         log_register('SENDDOG SKYSMS failed to get SMS packet ' . $smsPacketID . ' send status. Server answer: ' . $serverErrorMsg . ( ($serverAnswerCode == '42') ? $result : '') );
