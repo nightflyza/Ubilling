@@ -756,7 +756,7 @@ class WifiCPE {
                         $result .= $cpeWebIfaceLink . '&nbsp&nbsp&nbsp';
                     }
 
-                    if (!empty($cpeData['uplinkapid'])) {
+                    if ( !empty($cpeData['uplinkapid']) and !empty($this->allAP[$cpeData['uplinkapid']]) ) {
                         $apWebIfaceLink  = wf_tag('a', false, 'ubButton', 'href="http://' . $this->allAP[$cpeData['uplinkapid']]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
                         $apWebIfaceLink .= wf_img('skins/ymaps/network.png') . ' AP - ' . __('Go to the web interface');
                         $apWebIfaceLink .= wf_tag('a', true);
