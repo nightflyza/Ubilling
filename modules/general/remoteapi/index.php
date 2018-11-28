@@ -1213,6 +1213,45 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+
+                    //TrinityTV userstats control options
+                    if ($_GET['action'] == 'trinitytvcontrol') {
+                        if ($alterconf['TRINITYTV_ENABLED']) {
+
+                            $trinityClass = new TrinityTv();
+
+                            if (wf_CheckGet(array('param', 'tariffid', 'userlogin'))) {
+                                if ($_GET['param'] == 'subscribe') {
+                                    $subResult = $trinityClass->createSubscribtion($_GET['userlogin'], $_GET['tariffid']);
+                                    die($subResult);
+                                }
+                            }
+
+                            if (wf_CheckGet(array('param', 'tariffid', 'userlogin'))) {
+                                if ($_GET['param'] == 'unsubscribe') {
+                                    $subResult = $trinityClass->deleteSubscribtion($_GET['userlogin']);
+                                    die($subResult);
+                                }
+                            }
+
+                            if (wf_CheckGet(array('param'))) {
+                                if ($_GET['param'] == 'chargefee') {
+                                    $trinityClass->subscriptionFeeProcessing();
+                                    die('TRINITYTV_CHARGE_DONE');
+                                }
+
+                                if ($_GET['param'] == 'resurrect') {
+                                    $trinityClass->resurrectAllSubscribers();
+                                    die('TRINITYTV_RESURRECT_DONE');
+                                }
+                            }
+
+                        } else {
+                            die('ERROR: TRINITYTV DISABLED');
+                        }
+                    }
+
+
                     ////
                     //// End of actions
                     ////
