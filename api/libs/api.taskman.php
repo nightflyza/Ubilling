@@ -1841,7 +1841,7 @@ function ts_TaskChangeForm($taskid) {
         $tablecells.= wf_TableCell($taskLogin . $loginType);
         $tablerows.= wf_TableRow($tablecells, 'row3');
 
-        if (!empty($taskLogin)) {
+        if (!empty($taskLogin) and in_array($taskLogin, zb_UserGetAllStargazerLogins())) {
             $UserIpMAC = zb_UserGetAllData($taskLogin);
 
             $tablecells = wf_TableCell(__('IP'));
