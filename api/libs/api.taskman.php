@@ -2052,6 +2052,7 @@ function ts_renderLogsDataAjax($taskid = '') {
     if (!empty($result_log)) {
         $allemployee = ts_GetAllEmployee();
         $alljobtypes = ts_GetAllJobtypes();
+        
         foreach ($result_log as $each) {
             $administratorChange = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
 
