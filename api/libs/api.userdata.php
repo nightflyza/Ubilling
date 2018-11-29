@@ -153,6 +153,15 @@ function zb_UserGetAllData($login = '') {
     $altCfg = $ubillingConfig->getAlter();
     $result = array();
     $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
+
+    // we can use such check here:
+    // $query_wh = (!empty($login) and in_array($login, zb_UserGetAllStargazerLogins())) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
+    // but I doubt if it may broke something else in:
+    // zb_PrintCheck()      - api.cess
+    // ts_CreateTask()      - api.taskman
+    // ts_ModifyTask()      - api.taskman
+    // loadUserAlldata()    - api.userprofile
+
     $query = "
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `Down`, `Password`,`AlwaysOnline`, `Tariff`, `TariffChange`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,";
