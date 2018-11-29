@@ -2069,7 +2069,7 @@ function ts_renderLogsDataAjax($taskid = '') {
             } elseif ($each['event'] == 'modify') {
                 $data[] = __('Edit task');
                 $data_event = '';
-                $logDataArr = unserialize($each['logs']);
+                $logDataArr = @unserialize($each['logs']);
                 if (isset($logDataArr['address'])) {
                     $data_event.= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
                     $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['address']['old'] . wf_tag('font', true);
