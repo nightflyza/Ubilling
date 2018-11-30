@@ -6,8 +6,7 @@
  * http://trinity-tv.net/
  * http://partners.trinity-tv.net/
  */
-class TrinityTvApi
-{
+class TrinityTvApi {
 
     /**
      * Partner ID
@@ -30,9 +29,7 @@ class TrinityTvApi
      */
     protected $urlApi = 'http://partners.trinity-tv.net/partners';
 
-
-    public function __construct($partnerId = '', $salt = '', $urlApi = '')
-    {
+    public function __construct($partnerId = '', $salt = '', $urlApi = '') {
         $this->partnerId = $partnerId;
         $this->salt = $salt;
 
@@ -41,7 +38,6 @@ class TrinityTvApi
         }
     }
 
-
     /**
      * Add subscription to user
      *
@@ -49,8 +45,7 @@ class TrinityTvApi
      * @param $subscrid
      * @return bool|mixed
      */
-    public function createUser($localid = 0, $subscrid)
-    {
+    public function createUser($localid = 0, $subscrid) {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $localid . $subscrid . $this->salt);
@@ -59,7 +54,6 @@ class TrinityTvApi
 
         return $this->sendRequest($uri);
     }
-
 
     /**
      * Change User Data
@@ -71,8 +65,7 @@ class TrinityTvApi
      * @param string $address
      * @return bool|mixed
      */
-    public function updateUser($localid = 0, $lastname = '', $firstname = '', $middlename = '', $address = '')
-    {
+    public function updateUser($localid = 0, $lastname = '', $firstname = '', $middlename = '', $address = '') {
         $requestid = $this->getRequestId();
 
         $firstname = urlencode($firstname);
@@ -87,14 +80,12 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Getting a list of users and their statuses.
      *
      * @return bool|mixed
      */
-    public function listUsers()
-    {
+    public function listUsers() {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $this->salt);
@@ -104,7 +95,6 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Suspending and Restoring a Subscription
      *
@@ -112,8 +102,7 @@ class TrinityTvApi
      * @param string $operationid
      * @return bool|mixed
      */
-    public function subscription($localid = 0, $operationid = 'suspend')
-    {
+    public function subscription($localid = 0, $operationid = 'suspend') {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $localid . $operationid . $this->salt);
@@ -123,15 +112,13 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Getting the list of subscriptions of the user.
      *
      * @param int $localid
      * @return bool|mixed
      */
-    public function subscriptionInfo($localid = 0)
-    {
+    public function subscriptionInfo($localid = 0) {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $localid . $this->salt);
@@ -141,7 +128,6 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Authorization MAC / UUID device
      *
@@ -150,15 +136,14 @@ class TrinityTvApi
      * @param string $uuid
      * @return bool|mixed
      */
-    public function addMacDevice($localid = 0, $mac = '', $uuid = '')
-    {
+    public function addMacDevice($localid = 0, $mac = '', $uuid = '') {
         $requestid = $this->getRequestId();
 
         // The string, mac device subscriber, 12 characters in uppercase
         $mac = str_replace(array(
             "-",
             ":"
-        ), "", strtoupper($mac));
+                ), "", strtoupper($mac));
 
         $hash = md5($requestid . $this->partnerId . $localid . $mac . $this->salt);
 
@@ -167,7 +152,6 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Authorization of MAC / UUID device by code
      *
@@ -175,8 +159,7 @@ class TrinityTvApi
      * @param string $code
      * @return bool|mixed
      */
-    public function addCodeMacDevice($localid = 0, $code = '')
-    {
+    public function addCodeMacDevice($localid = 0, $code = '') {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $localid . $code . $this->salt);
@@ -186,7 +169,6 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Deauthorize MAC / UUID devices
      *
@@ -195,15 +177,14 @@ class TrinityTvApi
      * @param string $uuid
      * @return bool|mixed
      */
-    public function deleteMacDevice($localid = 0, $mac = '', $uuid = '')
-    {
+    public function deleteMacDevice($localid = 0, $mac = '', $uuid = '') {
         $requestid = $this->getRequestId();
 
         // The string, mac device subscriber, 12 characters in uppercase
         $mac = str_replace(array(
             "-",
             ":"
-        ), "", strtoupper($mac));
+                ), "", strtoupper($mac));
 
         $hash = md5($requestid . $this->partnerId . $localid . $mac . $this->salt);
 
@@ -212,15 +193,13 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Listing authorized MAC / UUID devices
      *
      * @param int $localid
      * @return bool|mixed
      */
-    public function listDevices($localid = 0)
-    {
+    public function listDevices($localid = 0) {
         $requestid = $this->getRequestId();
 
         $hash = md5($requestid . $this->partnerId . $localid . $this->salt);
@@ -230,26 +209,22 @@ class TrinityTvApi
         return $this->sendRequest($uri);
     }
 
-
     /**
      * Generate Unique number
      *
      * @return mixed
      */
-    private function getRequestId()
-    {
+    private function getRequestId() {
 
         list($usec, $sec) = explode(' ', microtime());
 
-        return str_replace('.', '', ((float)$sec . (float)$usec));
+        return str_replace('.', '', ((float) $sec . (float) $usec));
     }
-
 
     /**
      * Send request
      */
-    private function sendRequest($url)
-    {
+    private function sendRequest($url) {
         $response = file_get_contents($url);
 
         if (!empty($response)) {
@@ -258,10 +233,10 @@ class TrinityTvApi
 
         return false;
     }
+
 }
 
-class TrinityTv
-{
+class TrinityTv {
 
     /**
      * TrinityTV API object
@@ -292,13 +267,6 @@ class TrinityTv
     protected $allUsers = array();
 
     /**
-     * Contains local queue for deffered actions
-     *
-     * @var array
-     */
-    protected $queue = array();
-
-    /**
      * System message helper object placeholder
      *
      * @var object
@@ -313,19 +281,11 @@ class TrinityTv
     protected $chanIconSize = 32;
 
     /**
-     * Is tariffs unsub delayed in queue or not flag
-     *
-     * @var bool
-     */
-    protected $unsubDelay = false;
-
-    /**
      * Contains array of currently suspended users without base tariff
      *
      * @var array
      */
     protected $suspended = array();
-
 
     /**
      * * Default tariffs viewing URL
@@ -346,35 +306,26 @@ class TrinityTv
      * Default subscriber profile viewing URL
      */
     const URL_SUBSCRIBER = '?module=trinitytv&subscriberid=';
-
-
     const URL_SUBS = 'subscriptions=true';
     const URL_AJSUBS = 'ajsubs=true';
     const URL_SUBVIEW = 'subview=true';
     const URL_REPORTS = 'reports=true';
-
     const TABLE_SUBS = 'trinitytv_subscribers';
     const TABLE_TARIFFS = 'trinitytv_tariffs';
     const TABLE_DEVICES = 'trinitytv_devices';
     const TABLE_SUSPENDS = 'trinitytv_suspend';
-    const TABLE_QUEUE = 'trinitytv_queue';
-
 
     /**
      * Creates new TriityTV instance
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->initApi();
-
         $this->initMessages();
         $this->loadTariffs();
         $this->loadUsers();
         $this->loadSubscribers();
-        $this->loadQueue();
         $this->loadSuspended();
     }
-
 
     /**
      * Trys to render human-readable tariff name
@@ -383,8 +334,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function getTariffName($tariffId)
-    {
+    protected function getTariffName($tariffId) {
         $result = '';
 
         if (isset($this->allTariffs[$tariffId])) {
@@ -395,14 +345,12 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Get all devices
      *
      * @return array
      */
-    private function getDevices()
-    {
+    private function getDevices() {
         $result = array();
 
         $query = "SELECT * from " . self::TABLE_DEVICES;
@@ -417,15 +365,13 @@ class TrinityTv
         return $result;
     }
 
-
     /**
      * Get subscriber devices
      *
      * @param $subscriberId
      * @return array
      */
-    private function getSubscriberDevices($subscriberId)
-    {
+    private function getSubscriberDevices($subscriberId) {
         $result = array();
         $subscriberId = mysql_real_escape_string($subscriberId);
 
@@ -441,7 +387,6 @@ class TrinityTv
         return $result;
     }
 
-
     /**
      * Returns local subscriber ID from database
      *
@@ -449,8 +394,7 @@ class TrinityTv
      *
      * @return int
      */
-    public function getSubscriberId($userLogin)
-    {
+    public function getSubscriberId($userLogin) {
         $result = '';
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $subscriber) {
@@ -463,7 +407,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Returns local subscriber login by ID from database
      *
@@ -471,8 +414,7 @@ class TrinityTv
      *
      * @return string
      */
-    public function getSubscriberLogin($subscriberId)
-    {
+    public function getSubscriberLogin($subscriberId) {
         $result = '';
         if (!empty($this->allSubscribers)) {
             if (isset($this->allSubscribers[$subscriberId])) {
@@ -482,7 +424,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Returns tariff local data
      *
@@ -490,8 +431,7 @@ class TrinityTv
      *
      * @return array
      */
-    protected function getTariffData($tariffId)
-    {
+    protected function getTariffData($tariffId) {
         $result = array();
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $tariff) {
@@ -503,15 +443,13 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Renders available tariffs list
      *
      * @param $subscriberId
      * @return string
      */
-    public function renderDevices($subscriberId)
-    {
+    public function renderDevices($subscriberId) {
         $result = '';
 
         $cells = wf_TableCell(__('ID'));
@@ -547,14 +485,12 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Renders available tariffs list
      *
      * @return string
      */
-    public function renderTariffs()
-    {
+    public function renderTariffs() {
         $result = '';
 
         $cells = wf_TableCell(__('ID'));
@@ -594,8 +530,7 @@ class TrinityTv
      *
      * @return string
      */
-    public function renderTariffCreateForm()
-    {
+    public function renderTariffCreateForm() {
         $result = '';
 
         $inputs = wf_TextInput('newtariffname', __('Tariff name'), '', true, '20');
@@ -609,7 +544,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Returns tariff editing form
      *
@@ -617,8 +551,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function tariffEditForm($tariffId)
-    {
+    protected function tariffEditForm($tariffId) {
         $result = '';
         $inputs = wf_HiddenInput('edittariffid', $tariffId);
         $inputs .= wf_TextInput('edittariffname', __('Tariff name'), $this->allTariffs[$tariffId]['name'], true, '20');
@@ -631,20 +564,18 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Catches tariff editing form data
      *
      * @return void/string on error
      */
-    public function updateTariff()
-    {
+    public function updateTariff() {
         $result = '';
         if (wf_CheckPost(array(
-            'edittariffid',
-            'edittariffname',
-            'edittariffserviceid'
-        ))) {
+                    'edittariffid',
+                    'edittariffname',
+                    'edittariffserviceid'
+                ))) {
             $tariffId = vf($_POST['edittariffid'], 3);
             if (isset($this->allTariffs[$tariffId])) {
                 $where = " WHERE `id`='" . $tariffId . "';";
@@ -664,13 +595,12 @@ class TrinityTv
      *
      * @return void/string on error
      */
-    public function createTariff()
-    {
+    public function createTariff() {
         $result = '';
         if (wf_CheckPost(array(
-            'newtariffname',
-            'newtariffserviceid'
-        ))) {
+                    'newtariffname',
+                    'newtariffserviceid'
+                ))) {
             $nameF = mysql_real_escape_string($_POST['newtariffname']);
             $feeF = mysql_real_escape_string($_POST['newtarifffee']);
             $serviceidF = mysql_real_escape_string($_POST['newtariffserviceid']);
@@ -690,7 +620,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Checks is tariff used by some users
      *
@@ -698,8 +627,7 @@ class TrinityTv
      *
      * @return bool
      */
-    protected function tariffProtected($tariffid)
-    {
+    protected function tariffProtected($tariffid) {
         $result = false;
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $subscriber) {
@@ -719,8 +647,7 @@ class TrinityTv
      *
      * @return void/string
      */
-    public function deleteTariff($tariffId)
-    {
+    public function deleteTariff($tariffId) {
         $tariffId = vf($tariffId, 3);
         $result = '';
         if (isset($this->allTariffs[$tariffId])) {
@@ -737,12 +664,10 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Inits API object for further usage
      */
-    protected function initApi()
-    {
+    protected function initApi() {
         global $ubillingConfig;
         $config = $ubillingConfig->getAlter();
 
@@ -765,8 +690,7 @@ class TrinityTv
      *
      * @return void
      */
-    protected function initMessages()
-    {
+    protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
     }
 
@@ -775,8 +699,7 @@ class TrinityTv
      *
      * @return void
      */
-    protected function loadTariffs()
-    {
+    protected function loadTariffs() {
         $query = "SELECT * from " . self::TABLE_TARIFFS;
         $tariffs = simple_queryall($query);
         if (!empty($tariffs)) {
@@ -786,30 +709,12 @@ class TrinityTv
         }
     }
 
-
-    /**
-     * Loads existing queue records for some actions
-     *
-     * @return void
-     */
-    protected function loadQueue()
-    {
-        $query = "SELECT * from " . self::TABLE_QUEUE;
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $queue) {
-                $this->queue[$queue['id']] = $queue;
-            }
-        }
-    }
-
     /**
      * Loads existing suspended users
      *
      * @return void
      */
-    protected function loadSuspended()
-    {
+    protected function loadSuspended() {
         $query = "SELECT * from " . self::TABLE_SUSPENDS;
         $suspends = simple_queryall($query);
         if (!empty($suspends)) {
@@ -819,14 +724,12 @@ class TrinityTv
         }
     }
 
-
     /**
      * Loads existing subscribers data
      *
      * @return void
      */
-    protected function loadSubscribers()
-    {
+    protected function loadSubscribers() {
         $query = "SELECT * from " . self::TABLE_SUBS;
         $subscribers = simple_queryall($query);
         if (!empty($subscribers)) {
@@ -836,17 +739,14 @@ class TrinityTv
         }
     }
 
-
     /**
      * Loads internet users data into protected property for further usage
      *
      * @return void
      */
-    protected function loadUsers()
-    {
+    protected function loadUsers() {
         $this->allUsers = zb_UserGetAllData();
     }
-
 
     /**
      * Renders form to manual tariff changing
@@ -855,8 +755,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function renderManualTariffForm($subscriberId)
-    {
+    protected function renderManualTariffForm($subscriberId) {
         $subscriberId = vf($subscriberId, 3);
         $result = '';
         $subcribersData = @$this->allSubscribers[$subscriberId];
@@ -885,8 +784,7 @@ class TrinityTv
      *
      * @return void
      */
-    public function changeTariffs($subscriberId, $tariffId)
-    {
+    public function changeTariffs($subscriberId, $tariffId) {
         $tariffId = vf($tariffId, 3);
 
         $subscriberId = vf($subscriberId, 3);
@@ -928,7 +826,6 @@ class TrinityTv
                 simple_update_field(self::TABLE_SUBS, 'active', '1', "WHERE `id`='" . $subscriberId . "'");
                 log_register('TRINITYTV RESURRECT USER (' . $userLogin . ') AS [' . $subscriberId . ']');
             }
-
         }
     }
 
@@ -937,8 +834,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function renderDeviceAddForm($subscriberId)
-    {
+    protected function renderDeviceAddForm($subscriberId) {
         $result = '';
         $inputs = wf_HiddenInput('manualassigndevice', 'true');
         $inputs .= wf_HiddenInput('subscriberid', $subscriberId);
@@ -953,8 +849,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function renderDeviceByCodeAddForm($subscriberId)
-    {
+    protected function renderDeviceByCodeAddForm($subscriberId) {
         $result = '';
         $inputs = wf_HiddenInput('manualassigndevice', 'true');
         $inputs .= wf_HiddenInput('subscriberid', $subscriberId);
@@ -964,14 +859,12 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      *  Check exists device by MAC
      * @param $mac
      * @return bool
      */
-    public function existsDevice($mac)
-    {
+    public function existsDevice($mac) {
         $mac = strtoupper($mac);
 
         $query = "SELECT * from `" . self::TABLE_DEVICES . "` WHERE `mac` ='" . $mac . "'";
@@ -984,14 +877,12 @@ class TrinityTv
         return false;
     }
 
-
     /**
      * Assigns some device by code to some subscriber
      *
      * @return void/string on error
      */
-    public function addDeviceByCode($subscriberId, $code)
-    {
+    public function addDeviceByCode($subscriberId, $code) {
         $result = '';
 
         $subscriberId = vf($subscriberId, 3); //int
@@ -1015,8 +906,7 @@ class TrinityTv
      *
      * @return void/string on error
      */
-    public function addDevice($subscriberId, $mac)
-    {
+    public function addDevice($subscriberId, $mac) {
         $result = '';
 
         $subscriberId = vf($subscriberId, 3); //int
@@ -1054,8 +944,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function renderProfileControls($subscriberId)
-    {
+    protected function renderProfileControls($subscriberId) {
         $subscriberId = vf($subscriberId, 3);
         $result = wf_tag('br');
         $result .= wf_Link(self::URL_ME . '&subscriberid=' . $subscriberId . '&blockuser=true', web_bool_led(0) . ' ' . __('Block user'), false, 'ubButton');
@@ -1072,8 +961,7 @@ class TrinityTv
      *
      * @return void
      */
-    public function setSubscriberActive($subscriberId, $state)
-    {
+    public function setSubscriberActive($subscriberId, $state) {
         $subscriberId = vf($subscriberId, 3);
         if (isset($this->allSubscribers[$subscriberId])) {
 
@@ -1104,8 +992,7 @@ class TrinityTv
      *
      * @return void
      */
-    protected function suspendUser($userLogin, $state)
-    {
+    protected function suspendUser($userLogin, $state) {
         $login_f = mysql_real_escape_string($userLogin);
         $subscriberId = $this->getSubscriberId($userLogin);
         if ($state) {
@@ -1126,8 +1013,7 @@ class TrinityTv
      *
      * @return string
      */
-    public function renderUserInfo($subscriberId)
-    {
+    public function renderUserInfo($subscriberId) {
         $subscriberId = vf($subscriberId, 3);
         $result = '';
 
@@ -1180,7 +1066,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Returns device activation code ajax link
      *
@@ -1189,8 +1074,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function ajDevCodeLink($subscriberId, $label)
-    {
+    protected function ajDevCodeLink($subscriberId, $label) {
         $result = wf_AjaxLink(self::URL_ME . '&subscriptions=true&getdevicecode=' . $subscriberId, $label, 'deviceactivationcodecontainer');
         return ($result);
     }
@@ -1200,8 +1084,7 @@ class TrinityTv
      *
      * @return string
      */
-    public function renderPanel()
-    {
+    public function renderPanel() {
         $result = '';
         $result .= wf_Link(self::URL_ME . '&subscriptions=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&tariffs=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
@@ -1214,8 +1097,7 @@ class TrinityTv
      *
      * @return string
      */
-    protected function renderUserRegisterForm()
-    {
+    protected function renderUserRegisterForm() {
 
         $baseTariffs = array();
         foreach ($this->allTariffs as $tariff) {
@@ -1233,7 +1115,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Renders tariff editing form
      *
@@ -1241,17 +1122,16 @@ class TrinityTv
      *
      * @return string
      */
-    protected function renderTariffEditForm($tariffId)
-    {
+    protected function renderTariffEditForm($tariffId) {
         $tariffId = vf($tariffId, 3);
         $result = '';
         if (isset($this->allTariffs[$tariffId])) {
             $tariffData = $this->allTariffs[$tariffId];
             if (!empty($tariffData)) {
                 $tariffsTypes = array(
-                    'base'   => __('Base'),
+                    'base' => __('Base'),
                     'bundle' => __('Bundle'),
-                    'promo'  => __('Promo')
+                    'promo' => __('Promo')
                 );
 
                 $inputs = wf_HiddenInput('edittariffid', $tariffId);
@@ -1266,14 +1146,12 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Renders list of available tariffs
      *
      * @return string
      */
-    public function renderTariffsList()
-    {
+    public function renderTariffsList() {
         $result = '';
         if (!empty($this->allTariffs)) {
             $cells = wf_TableCell(__('ID'));
@@ -1302,7 +1180,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Deletes device assigned to some subscriberid
      *
@@ -1310,8 +1187,7 @@ class TrinityTv
      *
      * @return void
      */
-    public function deleteDevice($deviceId)
-    {
+    public function deleteDevice($deviceId) {
         $result = '';
 
         $deviceId = vf($deviceId, 3);
@@ -1327,7 +1203,7 @@ class TrinityTv
             log_register('TRINITYTV DEVICE DELETE [' . $allDevices[$deviceId]['mac'] . ']');
 
             if (isset($response->result) AND $response->result == 'success') {
-
+                
             } else {
                 $result = __('Something went wrong') . ": Trinity response " . @$response->result;
             }
@@ -1338,8 +1214,7 @@ class TrinityTv
         return ($result);
     }
 
-    public function deleteSubscribtion($login)
-    {
+    public function deleteSubscribtion($login) {
         $result = '';
 
         if (isset($this->allUsers[$login])) {
@@ -1357,7 +1232,6 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Creates new user profile
      *
@@ -1365,8 +1239,7 @@ class TrinityTv
      *
      * @return void
      */
-    public function createSubscribtion($login, $tariffId)
-    {
+    public function createSubscribtion($login, $tariffId) {
 
         $tariffId = vf($tariffId, 3);
         $login_f = mysql_real_escape_string($login);
@@ -1413,7 +1286,6 @@ class TrinityTv
 
                         zb_CashAdd($login, '-' . $tariffFee, 'add', 1, 'TRINITYTV:' . $tariffId);
                         log_register('TRINITYTV FEE (' . $login . ') -' . $tariffFee);
-
                     } else {
                         $result .= 'Wrong tariff';
                     }
@@ -1431,7 +1303,6 @@ class TrinityTv
         }
 
         return ($result);
-
     }
 
     /**
@@ -1441,13 +1312,11 @@ class TrinityTv
      *
      * @return float
      */
-    protected function getDaylyFee($tariffFee)
-    {
+    protected function getDaylyFee($tariffFee) {
         $monthDays = date("t");
         $result = round(($tariffFee / $monthDays), 2);
         return ($result);
     }
-
 
     /**
      * Charges fee for some tariff
@@ -1457,8 +1326,7 @@ class TrinityTv
      *
      * @return void
      */
-    protected function chargeFee($userLogin, $tariffId)
-    {
+    protected function chargeFee($userLogin, $tariffId) {
         $tariffData = $this->getTariffData($tariffId);
 
         $subscriberID = $this->getSubscriberId($userLogin);
@@ -1473,8 +1341,7 @@ class TrinityTv
      *
      * @return string
      */
-    public function renderSubscribtionsReportMonthly()
-    {
+    public function renderSubscribtionsReportMonthly() {
         $result = '';
         $selectedMonth = (wf_CheckPost(array('monthsel'))) ? $_POST['monthsel'] : date("m");
         $selectedYear = (wf_CheckPost(array('yearsel'))) ? $_POST['yearsel'] : date("Y");
@@ -1495,8 +1362,7 @@ class TrinityTv
                 $tariffId = $tariffId[1];
                 if (isset($tmpArr[$tariffId])) {
                     $tmpArr[$tariffId]['summ'] = $tmpArr[$tariffId]['summ'] + abs($payment['summ']);
-                    $tmpArr[$tariffId]['count']++;
-
+                    $tmpArr[$tariffId]['count'] ++;
                 } else {
                     $tmpArr[$tariffId]['summ'] = abs($payment['summ']);
                     $tmpArr[$tariffId]['count'] = 1;
@@ -1544,8 +1410,7 @@ class TrinityTv
      *
      * @return string
      */
-    public function renderSubscribtions()
-    {
+    public function renderSubscribtions() {
         $result = '';
 
         // Кнопка создать подписку
@@ -1568,14 +1433,12 @@ class TrinityTv
         return ($result);
     }
 
-
     /**
      * Renders ajax data subscriptions
      *
      * @return void
      */
-    public function subscribtionsListAjax()
-    {
+    public function subscribtionsListAjax() {
 
         $json = new wf_JqDtHelper();
 
@@ -1604,14 +1467,12 @@ class TrinityTv
         $json->getJson();
     }
 
-
     /**
      * Charges all users tariffs fee, disables it when users go down
      *
      * @return void
      */
-    public function subscriptionFeeProcessing()
-    {
+    public function subscriptionFeeProcessing() {
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $subscriber) {
 
@@ -1653,20 +1514,18 @@ class TrinityTv
         }
     }
 
-
     /**
      * Resurrects some users if their was disabled by inactivity
      *
      * @return void
      */
-    public function resurrectAllSubscribers()
-    {
+    public function resurrectAllSubscribers() {
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $subscriber) {
                 if (!$subscriber['active']) {
                     if (isset($this->allUsers[$subscriber['login']])) {
                         $userData = $this->allUsers[$subscriber['login']];
-                        if (($userData['Passive'] == 0) AND ($userData['Cash'] >= '-' . $userData['Credit'])) {
+                        if (($userData['Passive'] == 0) AND ( $userData['Cash'] >= '-' . $userData['Credit'])) {
                             if (!empty($subscriber['tariffid'])) {
                                 //check is user resurrection suspended?
                                 if (!isset($this->suspended[$subscriber['login']])) {

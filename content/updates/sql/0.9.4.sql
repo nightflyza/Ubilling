@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `trinitytv_devices` (
   `login` varchar(255) DEFAULT NULL,
   `subscriber_id` int(11) DEFAULT NULL,
   `mac` varchar(128) NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
