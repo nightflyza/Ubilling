@@ -1698,9 +1698,10 @@ class SendDogAdvanced extends SendDog {
         $columnTarget2 = ($hidePasswords) ? '6' : '7';
         $columnTarget3 = ($hidePasswords) ? '7' : '8';
         $columnTarget4 = ($hidePasswords) ? '[5, 6, 7, 8]' : '[6, 7, 8, 9]';
+        $columnTarget5 = ($hidePasswords) ? '[0, 1, 2, 3]' : '[0, 1, 2, 3, 4]';
         $columns = array();
         $opts = ' "order": [[ 0, "desc" ]], 
-                                "columnDefs": [ {"className": "dt-head-center", "targets": [0, 1, 2, 3, 4]},
+                                "columnDefs": [ {"className": "dt-head-center", "targets": ' . $columnTarget5 . '},
                                                 {"width": "20%", "className": "dt-head-center jqdt_word_wrap", "targets": ' . $columnTarget1 . '}, 
                                                 {"width": "8%", "targets": ' . $columnTarget2 . '},
                                                 {"width": "10%", "targets": ' . $columnTarget3 . '},
