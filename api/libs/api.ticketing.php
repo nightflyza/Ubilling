@@ -165,7 +165,9 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
     $query = "INSERT INTO `ticketing` (`id` , `date` , `replyid` , `status` ,`from` , `to` , `text`, `admin`) "
             . "VALUES (NULL , '" . $date . "', " . $replyto . ", '0', '" . $from . "', '" . $to . "', '" . $text . "', '" . $admin . "');";
     nr_query($query);
-    log_register("TICKET CREATE (" . $to . ")");
+
+    $logreplyto = (empty($replyto)) ? '' : 'reply to [' . $replyto . ']';
+    log_register("TICKET CREATE (" . $to . ") " . $logreplyto);
 }
 
 /**
