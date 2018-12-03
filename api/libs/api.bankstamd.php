@@ -35,7 +35,7 @@ class BankstaMd {
      *
      * @var array
      */
-    protected $allowedExtensions = array('xls');
+    protected $allowedExtensions = array('xls', 'xlsx');
 
     /**
      * Excel reader object placeholder
@@ -123,6 +123,12 @@ class BankstaMd {
         }
         if (@$this->altCfg['BANKSTAMD_DEBUG']) {
             $this->debug = true;
+        }
+
+        //some custom options if required 
+        if (@$this->altCfg['BANKSTAMD_OPTIONS']) {
+            $rawOpts = explode('|', $this->altCfg['BANKSTAMD_OPTIONS']);
+            //TODO:single line opts parsing
         }
     }
 
