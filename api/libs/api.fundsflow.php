@@ -38,6 +38,13 @@ class FundsFlow {
     protected $fundsTmp = array();
 
     /**
+     * Contains assigned user tags
+     *
+     * @var array
+     */
+    protected $userTags = array();
+
+    /**
      * Rendering coloring settings
      */
     protected $colorPayment = '005304';
@@ -109,6 +116,15 @@ class FundsFlow {
                 $this->allTariffsData[$each['name']] = $each;
             }
         }
+    }
+
+    /**
+     * Loads existing tagtypes and usertags into protected props for further usage
+     * 
+     * @return void
+     */
+    protected function loadUserTags() {
+        $this->userTags = zb_UserGetAllTags();
     }
 
     /**
@@ -459,6 +475,25 @@ class FundsFlow {
     }
 
     /**
+     * Renders user tags if available
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    protected function renderUserTags($userLogin) {
+        $result = '';
+        if (!empty($userLogin)) {
+            if (isset($this->userTags[$userLogin])) {
+                if (!empty($this->userTags[$userLogin])) {
+                    $result.=implode(', ', $this->userTags[$userLogin]);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders table for corps users payments/fees stats
      * 
      * @param array $fundsFlows
@@ -490,6 +525,8 @@ class FundsFlow {
             $ignoreArr = $cemetery->getAllTagged();
         }
 
+        //loading some user tags
+        $this->loadUserTags();
 
         if (!empty($fundsFlows)) {
             foreach ($fundsFlows as $io => $eachop) {
@@ -524,7 +561,13 @@ class FundsFlow {
                 } else {
                     $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['login'], false, '');
                 }
+                if (!empty($rawData['login'])) {
+                    $currentTags = $this->renderUserTags($rawData['login']);
+                } else {
+                    $currentTags = '';
+                }
                 $cells.=wf_TableCell($loginLink);
+                $cells.=wf_TableCell($currentTags);
                 $cells.=wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
                 $cells.=wf_TableCell(round($rawData['payments'], 2));
                 $cells.=wf_TableCell(round($rawData['paymentscorr'], 2));
@@ -552,6 +595,7 @@ class FundsFlow {
         if (!empty($this->fundsTmp)) {
             $cells = wf_TableCell('');
             $cells.=wf_TableCell(__('Total'));
+            $cells.=wf_TableCell('');
             $cells.=wf_TableCell('');
             $cells.=wf_TableCell('');
             $cells.=wf_TableCell(round($this->fundsTmp['col1'], 2));
@@ -584,11 +628,12 @@ class FundsFlow {
         $result.= wf_TableCell($cd . __('Organisation') . $cde, '141', '', 'rowspan="3"');
         $result.= wf_TableCell('', '62', '', '');
         $result.= wf_TableCell('', '62', '', '');
-        $result.= wf_TableCell($cd . $month . ' ' . $year . $cde, '240', '', 'colspan="4"');
+        $result.= wf_TableCell($cd . $month . ' ' . $year . $cde, '240', '', 'colspan="5"');
         $result.= wf_tag('tr', true);
 
         $result.= wf_tag('tr', false, 'row2');
         $result.= wf_TableCell($cd . __('Contract') . $cde, '62', '', 'rowspan="2"');
+        $result.= wf_TableCell($cd . __('Tags') . $cde, '62', '', 'rowspan="2"');
         $result.= wf_TableCell($cd . __('Fee') . $cde, '62', '', 'rowspan="2"');
         $result.= wf_TableCell($cd . __('Income') . $cde, '84', '', 'colspan="2"');
         $result.= wf_TableCell($cd . __('Current deposit') . $cde, '68', '', 'rowspan="2"');
