@@ -22,7 +22,7 @@ define('PBX_DEBUG_MODE', 0);
 define('PBX_USE_AGENTCODES', 0);
 
 //URL вашего работающего Ubilling
-define('API_URL', 'http://jesus.ctv/dev/ubilling/');
+define('API_URL', 'http://localhost/billing/');
 //И его серийный номер
 define('API_KEY', 'UBxxxxxxxxxx');
 
