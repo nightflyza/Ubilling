@@ -76,6 +76,7 @@ class BankstaMd {
     protected $bsAddressOff = 2;
     protected $bsSumOff = 3;
     protected $bsDateOff = 4;
+    protected $contractNumeric = 0;
 
     /**
      * Default payment ID to push banksta payments
@@ -128,7 +129,20 @@ class BankstaMd {
         //some custom options if required 
         if (@$this->altCfg['BANKSTAMD_OPTIONS']) {
             $rawOpts = explode('|', $this->altCfg['BANKSTAMD_OPTIONS']);
-            //TODO:single line opts parsing
+            if (sizeof($rawOpts) >= 7) {
+                if ($this->debug) {
+                    show_window(__('Custom options'), wf_tag('pre') . print_r($rawOpts, true) . wf_tag('pre', true));
+                }
+                $this->skipRecords = trim($rawOpts[0]); //skip offset 0 
+                $this->bsContractOff = trim($rawOpts[1]); //contract offset 1
+                $this->bsRealnameOff = trim($rawOpts[2]); //realname offset 2
+                $this->bsAddressOff = trim($rawOpts[3]); //address offset 3
+                $this->bsSumOff = trim($rawOpts[4]); //summ offset 4
+                $this->bsDateOff = trim($rawOpts[5]); //date offset 5
+                $this->contractNumeric = trim($rawOpts[6]); //numeric contract filter offset 6
+            } else {
+                show_error(__('Something went wrong') . ': BANKSTAMD_OPTIONS ' . __('wrong format'));
+            }
         }
     }
 
@@ -294,24 +308,27 @@ class BankstaMd {
                 $newAdmin = whoami();
 
                 $this->initExcelReader(self::BANKSTA_PATH . $bankstadata['savedname']);
-
                 $importCounter = 0;
                 foreach ($this->excelReader as $eachRow) {
-                    if ($this->debug) {
-                        debarr($eachRow);
-                    }
-
                     if ($importCounter >= $this->skipRecords) {
                         if (!empty($eachRow)) {
+                            if ($this->debug) {
+                                debarr($eachRow);
+                            }
                             $newDate = date("Y-m-d H:i:s");
-                            $newContract = trim($eachRow[$this->bsContractOff]);
+                            @$newContract = trim($eachRow[$this->bsContractOff]);
                             $newContract = mysql_real_escape_string($newContract);
-                            $newSumm = trim($eachRow[$this->bsSumOff]);
+                            //filter only numeric values from contract
+                            if ($this->contractNumeric) {
+                                $newContract = vf($newContract, 3);
+                            }
+                            @$newSumm = trim($eachRow[$this->bsSumOff]);
                             $newSumm = mysql_real_escape_string($newSumm);
-                            $newAddress = mysql_real_escape_string($eachRow[$this->bsAddressOff]);
-                            $newRealname = mysql_real_escape_string($eachRow[$this->bsRealnameOff]);
+                            $newSumm = str_replace(' ', '', $newSumm);
+                            @$newAddress = mysql_real_escape_string($eachRow[$this->bsAddressOff]);
+                            @$newRealname = mysql_real_escape_string($eachRow[$this->bsRealnameOff]);
                             $newNotes = '';
-                            $timeStamp = strtotime($eachRow[$this->bsDateOff]);
+                            @$timeStamp = strtotime($eachRow[$this->bsDateOff]);
                             if (!empty($timeStamp)) {
                                 $newPdate = date("Y-m-d", $timeStamp);
                                 $newPtime = date("H:i:s", $timeStamp);
