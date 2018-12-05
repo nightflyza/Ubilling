@@ -2383,6 +2383,97 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
 }
 
 /**
+ * Renders Google line chart
+ * 
+ * @param array $params data in format like 
+ *      $params=array(
+ *       0=>array('month','total','active','inactive'),
+ *       1=>array('Февраль',200,150,50),
+ *       2=>array('Сентябрь',200,160,40)
+ *       );
+ * @param string $title chart title
+ * @param string $width chart width in px or %, 500px default
+ * @param string $height chart height in px or %, 500px default
+ * @param string $options google charts options
+ * 
+ * @return string
+ */
+function wf_gchartsLineZeroIsBad($params, $title = '', $width = '', $height = '', $options = '') {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+
+    $containerId = wf_InputId();
+    $width = ($width) ? $width : '500px';
+    $height = ($height) ? $height : '500px';
+    $result = '';
+    $chartData = '';
+    $enableFlag = true;
+    if (!isset($altCfg['GCHARTS_ENABLED'])) {
+        $enableFlag = true;
+    } else {
+        if ($altCfg['GCHARTS_ENABLED']) {
+            $enableFlag = true;
+        } else {
+            $enableFlag = false;
+        }
+    }
+
+    if ($enableFlag) {
+        if (!empty($params)) {
+            $chartData = json_encode($params, JSON_NUMERIC_CHECK);
+        }
+
+        $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
+        $result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $result .= 'google.charts.load(\'current\', {\'packages\':[\'corechart\']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable(
+          ' . $chartData . '
+        );
+
+        var options = {
+          title: \'' . $title . '\',
+          curveType: \'function\',
+           ' . $options . '
+          legend: { position: \'bottom\' }
+        };
+        
+var dataView = new google.visualization.DataView(data);
+  dataView.setColumns([
+    // reference existing columns by index
+    0, 1,
+    // add function for line color
+    {
+      calc: function(data, row) {
+        var colorDown = "#FF0000";
+        var colorUp = "#0d8a00";
+
+        if ((data.getValue(row, 1) < 0)) {
+          return colorDown;
+        } else {
+          //return colorUp;
+        }
+      },
+      type: "string",
+      role: "style"
+    }
+  ]);
+
+        var chart = new google.visualization.LineChart(document.getElementById(\'' . $containerId . '\'));
+
+        chart.draw(dataView, options);
+      }
+        ';
+        $result .= wf_tag('script', true);
+        $result .= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
+    }
+
+    return ($result);
+}
+
+/**
  * Returns default back control
  * 
  * @param string $url Link URL

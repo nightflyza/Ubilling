@@ -2996,6 +2996,8 @@ $lang['def']['No OLT devices found - can not associate ONU'] = 'ОЛТ устр�
 $lang['def']['SMS services cache bindings updated succesfuly'] = 'Кэш связей СМС сервисов успешно обновлен';
 $lang['def']['Refresh SMS services bindings cache'] = 'Обновить кэш связей СМС сервисов';
 $lang['def']['Instruments'] = 'Инструменты';
-$lang['def'][''] = '';
+
+//rev 6555
+$lang['def']['Packets lost'] = 'Пакетов потерялось';
 
 ?>

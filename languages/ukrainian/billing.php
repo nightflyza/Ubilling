@@ -3013,4 +3013,7 @@ $lang['def']['SMS services cache bindings updated succesfuly'] = 'Кеш бін�
 $lang['def']['Refresh SMS services bindings cache'] = 'Оновити кеш біндінгів СМС зв\'язків';
 $lang['def']['Instruments'] = 'Інструменти';
 
+//rev 6555
+$lang['def']['Packets lost'] = 'Пакетів занапастилось';
+
 ?>
