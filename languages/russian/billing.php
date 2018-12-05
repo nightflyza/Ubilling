@@ -2999,5 +2999,10 @@ $lang['def']['Instruments'] = 'Инструменты';
 
 //rev 6555
 $lang['def']['Packets lost'] = 'Пакетов потерялось';
+$lang['def']['Packets count'] = 'Количество пакетов';
+$lang['def']['Packets received'] = 'Пакетов получено';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 ?>

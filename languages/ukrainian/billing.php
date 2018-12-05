@@ -3015,5 +3015,7 @@ $lang['def']['Instruments'] = 'Інструменти';
 
 //rev 6555
 $lang['def']['Packets lost'] = 'Пакетів занапастилось';
+$lang['def']['Packets count'] = 'Кількість пакетів';
+$lang['def']['Packets received'] = 'Пакетів отримано';
 
 ?>

@@ -36,10 +36,13 @@ if (cfr('PLPINGER')) {
         $userdata = zb_UserGetStargazerData($login);
         $user_ip = $userdata['IP'];
         $pingCount = 10;
+        $pingSize = 64;
+        $rttTmp = '';
         //setting ping parameters
         $addParams = '';
         if (wf_CheckGet(array('packsize'))) {
-            $addParams.=' -s ' . vf($_GET['packsize'], 3);
+            $pingSize = vf($_GET['packsize'], 3);
+            $addParams.=' -s ' . $pingSize;
         }
 
         if (wf_CheckGet(array('packcount'))) {
@@ -50,7 +53,8 @@ if (cfr('PLPINGER')) {
         //setting ajax background params
         $addAjax = '';
         if (wf_CheckPost(array('packet'))) {
-            $addAjax.="&packsize=" . vf($_POST['packet'], 3);
+            $pingSize = vf($_POST['packet'], 3);
+            $addAjax.="&packsize=" . $pingSize;
             $addParams.=' -s ' . vf($_POST['packet'], 3);
         }
 
@@ -75,6 +79,10 @@ if (cfr('PLPINGER')) {
         $rawResult = shell_exec($command);
         //some charts
         if (wf_CheckGet(array('charts'))) {
+            /**
+             * 心の声で散弾銃のように
+             * 唄い続けた
+             */
             if (!empty($rawResult)) {
                 $pingLines = explodeRows($rawResult);
                 $tmpArr = array();
@@ -95,6 +103,12 @@ if (cfr('PLPINGER')) {
                                 $latency = explode(' ', $latency[3]);
                                 $latency = $latency[0];
                                 $succArray[$seq] = $latency;
+                            }
+                        } else {
+                            //RTT here
+                            if (ispos($eachLine, 'min/avg/max')) {
+                                $rttTmp = explode('=', $eachLine);
+                                $rttTmp = 'RTT: ' . __('min/avg/max/dev') . ' ' . $rttTmp[1];
                             }
                         }
                     }
@@ -127,15 +141,26 @@ if (cfr('PLPINGER')) {
                         trigger: 'none'
                     },";
 
-            $rawResult = wf_gchartsLineZeroIsBad($params, '', '100%', '300px', $chartsOptions);
-            $lossPercent = (100 - zb_PercentValue($pingCount, sizeof($succArray)));
             $messages = new UbillingMessageHelper();
+            //overriding result output
+            $pingParams = __('IP') . ': ' . $user_ip . ' ' . __('Packets count') . ': ' . $pingCount . ' ' . __('Packet size') . ': ' . $pingSize;
+            $rawResult = $messages->getStyledMessage($pingParams, 'info');
+
+            $rawResult.= wf_gchartsLineZeroIsBad($params, '', '100%', '300px', $chartsOptions);
+            $lossPercent = (100 - zb_PercentValue($pingCount, sizeof($succArray)));
+
             if ($lossPercent > 0) {
                 $noticeStyle = 'error';
+                $summaryStyle = 'warning';
             } else {
                 $noticeStyle = 'success';
+                $summaryStyle = 'info';
             }
+            //loss stats
             $rawResult.=$messages->getStyledMessage(__('Packets lost') . ': ' . $lossPercent . '%', $noticeStyle);
+            $succCount = sizeof($succArray);
+            $pingSummary = __('Packets received') . ': ' . $succCount . ' ' . __('Packets lost') . ': ' . ($pingCount - $succCount) . ' ' . $rttTmp;
+            $rawResult.= $messages->getStyledMessage($pingSummary, $summaryStyle);
         }
 
         if (wf_CheckGet(array('ajax'))) {
