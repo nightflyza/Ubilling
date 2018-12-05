@@ -1981,7 +1981,7 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
                 }
             }
             $cells .= wf_TableCell($actions);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
     // Результат - таблица
