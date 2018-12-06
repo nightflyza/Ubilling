@@ -1281,13 +1281,19 @@ function ts_ShowPanel() {
     //show type selector
     $whoami = whoami();
     $employeeid = ts_GetEmployeeByLogin($whoami);
-    if ($employeeid) {
-        $result.= wf_delimiter();
-        $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
-        $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
-        $inputs = wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
-        if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+    if ($employeeid OR $advFiltersEnabled) {
+        $result .= wf_delimiter();
+        $inputs = '';
+
+        if ($employeeid) {
+            $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
+            $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
+            $inputs.= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+        }
+
+        if ($advFiltersEnabled) {
             $inputs.= ts_AdvFiltersControls();
         }
 
