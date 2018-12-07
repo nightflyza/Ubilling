@@ -1018,7 +1018,7 @@ function web_TariffSpeedLister() {
             }
             $actLinks = wf_JSAlert('?module=tariffspeeds&tariff=' . $eachtariff['name'], web_edit_icon(), __('Are you serious'));
             $cells .= wf_TableCell($actLinks);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
