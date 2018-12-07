@@ -2303,3 +2303,5 @@ ALTER TABLE `trinitytv_devices`  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `trinitytv_subscribers`  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `trinitytv_suspend`  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `trinitytv_tariffs`  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `sms_history` MODIFY `msg_text` varchar(500) NOT NULL DEFAULT '';
