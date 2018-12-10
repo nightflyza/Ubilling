@@ -2826,11 +2826,6 @@ class Warehouse {
                 }
             }
 
-            if (!empty($tmpArr)) {
-                foreach ($tmpArr as $io => $each) {
-                    
-                }
-            }
         }
         $result['sum'] = $sum;
 

@@ -115,6 +115,20 @@ class Salary {
     protected $allAppointments = array();
 
     /**
+     * Contains previously detected tasks jobs mappings
+     *
+     * @var array
+     */
+    protected $taskJobsCache = array();
+
+    /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
      * System telegram object placeholder
      *
      * @var object
@@ -131,6 +145,7 @@ class Salary {
     const URL_LTR = 'ltreport=true';
     const URL_TSHEETS = 'timesheets=true';
     const URL_YRREP = 'yearreport=true';
+    const CACHE_TIMEOUT = 2592000;
 
     /**
      * Creates new Salary instance
@@ -149,6 +164,8 @@ class Salary {
         $this->loadSalaryJobs($taskid);
         $this->loadPaid();
         $this->initTelegram();
+        $this->initCache();
+        $this->loadTaskJobsCache();
         if (empty($taskid)) {
             $this->loadTimesheets();
         }
@@ -324,6 +341,24 @@ class Salary {
         if ($this->altCfg['SENDDOG_ENABLED']) {
             $this->telegram = new UbillingTelegram();
         }
+    }
+
+    /**
+     * Inits system cache for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Loads tasks=>jobs cache
+     * 
+     * @return void
+     */
+    protected function loadTaskJobsCache() {
+        $this->taskJobsCache = $this->cache->get('TASKSJOBS', self::CACHE_TIMEOUT);
     }
 
     /**
@@ -641,6 +676,31 @@ class Salary {
     }
 
     /**
+     * Filters available jobs for some task
+     * 
+     * @param int $taskid
+     * @return array
+     */
+    protected function filterTaskJobsCached($taskid) {
+        $taskid = vf($taskid, 3);
+        $result = array();
+        if (!empty($this->allJobs)) {
+            if (!isset($this->taskJobsCache[$taskid])) {
+                foreach ($this->allJobs as $io => $each) {
+                    if ($each['taskid'] == $taskid) {
+                        $result[$each['id']] = $each;
+                    }
+                }
+                $this->taskJobsCache[$taskid] = $result;
+                $this->cache->set('TASKSJOBS', $this->taskJobsCache, self::CACHE_TIMEOUT);
+            } else {
+                $result = $this->taskJobsCache[$taskid];
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Checks is employee active for timesheets and salary accounting or not
      * 
      * @param int $employeeId
@@ -824,7 +884,7 @@ class Salary {
         $taskid = vf($taskid, 3);
         $result = '';
         $totalSumm = 0;
-        $all = $this->filterTaskJobs($taskid);
+        $all = $this->filterTaskJobsCached($taskid);
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {

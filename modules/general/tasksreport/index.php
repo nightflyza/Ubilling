@@ -161,6 +161,13 @@ if (cfr('TASKREPORT')) {
             protected $salaryMultiplier = 0;
 
             /**
+             * System caching object placeholder
+             *
+             * @var object
+             */
+            protected $cache = '';
+
+            /**
              * Contains basic URL for task editing
              */
             const URL_TASK = '?module=taskman&edittask=';
@@ -169,6 +176,11 @@ if (cfr('TASKREPORT')) {
              * Contains basic URL for user profile
              */
             const URL_USER = '?module=userprofile&username=';
+
+            /**
+             * Basic module URL
+             */
+            const URL_ME = '?module=tasksreport';
 
             /**
              * Creates new TasksReport object instance
@@ -189,6 +201,7 @@ if (cfr('TASKREPORT')) {
                 $this->initWarehouse();
                 $this->initSalary();
                 $this->initTelepathy();
+                $this->initCache();
             }
 
             /**
@@ -278,6 +291,24 @@ if (cfr('TASKREPORT')) {
              */
             protected function loadContracts() {
                 $this->userContracts = array_flip(zb_UserGetAllContracts());
+            }
+
+            /**
+             * Inits system cache for further usage
+             * 
+             * @return void
+             */
+            protected function initCache() {
+                $this->cache = new UbillingCache();
+            }
+
+            /**
+             * Cleans some cached data
+             * 
+             * @return void
+             */
+            public function cacheCleanup() {
+                $this->cache->delete('TASKSJOBS');
             }
 
             /**
@@ -461,6 +492,7 @@ if (cfr('TASKREPORT')) {
                 $warehouseSpent = 0;
                 $salarySpent = 0;
                 $signupMaterialsSpent = array();
+                $nonSignupsMaterialsSpent = array();
 
                 if (!empty($this->allTasks)) {
                     $cells = wf_TableCell('№');
@@ -525,6 +557,10 @@ if (cfr('TASKREPORT')) {
                                     if (isset($warehouseSpentRaw['items'])) {
                                         $signupMaterialsSpent[] = $warehouseSpentRaw['items'];
                                     }
+                                } else {
+                                    if (isset($warehouseSpentRaw['items'])) {
+                                        $nonSignupsMaterialsSpent[] = $warehouseSpentRaw['items'];
+                                    }
                                 }
                                 $warehouseSpent = $warehouseSpentRaw['sum'];
                             }
@@ -535,7 +571,8 @@ if (cfr('TASKREPORT')) {
                                     $salarySpent = $this->salary->getTaskPrice($each['id']);
                                 }
                             }
-                            $cells.= wf_TableCell(($warehouseSpent + $salarySpent));
+                            $totalTaskSpent = $warehouseSpent + $salarySpent;
+                            $cells.= wf_TableCell($totalTaskSpent);
                         }
                         //detecting signup price and some counters only for signup tasks
                         if (isset($this->signupJobtypeId[$each['jobtype']])) {
@@ -554,7 +591,20 @@ if (cfr('TASKREPORT')) {
                         $cells.= wf_TableCell($tariffPrice);
 
                         $cells.= wf_TableCell(@$this->userTags[$userLogin]);
-                        $rows.= wf_TableRow($cells, 'row3');
+
+                        //row coloring
+                        if (empty($userLogin)) {
+                            $rowColor = 'undone';
+                        } else {
+                            if (@$totalTaskSpent > ($signupPrice + $tariffPrice)) {
+                                $rowColor = 'ukvbankstadup';
+                            } else {
+                                $rowColor = 'row3';
+                            }
+                        }
+
+
+                        $rows.= wf_TableRow($cells, $rowColor);
 
                         //report summary
                         if (isset($tasksSummary[$each['jobtype']])) {
@@ -660,6 +710,43 @@ if (cfr('TASKREPORT')) {
                             $result.= wf_tag('br');
                         }
 
+                        //warehouse items spent on non-signup tasks
+                        if (!empty($nonSignupsMaterialsSpent)) {
+                            $warehouseNonSignupStats = array();
+                            foreach ($nonSignupsMaterialsSpent as $io => $flow) {
+                                if (!empty($flow)) {
+                                    foreach ($flow as $ia => $each) {
+                                        if (isset($warehouseNonSignupStats[$each['itemtypeid']])) {
+                                            $warehouseNonSignupStats[$each['itemtypeid']]['count']+=$each['count'];
+                                            $warehouseNonSignupStats[$each['itemtypeid']]['price']+=$each['price'] * $each['count'];
+                                        } else {
+                                            $warehouseNonSignupStats[$each['itemtypeid']]['count'] = $each['count'];
+                                            $warehouseNonSignupStats[$each['itemtypeid']]['price'] = $each['price'] * $each['count'];
+                                        }
+                                    }
+                                }
+                            }
+
+                            $cells = wf_TableCell(__('Category'));
+                            $cells.= wf_TableCell(__('Warehouse item types'));
+                            $cells.= wf_TableCell(__('Count'));
+                            $cells.= wf_TableCell(__('Money'));
+                            $rows = wf_TableRow($cells, 'row1');
+
+                            foreach ($warehouseNonSignupStats as $io => $each) {
+                                $cells = wf_TableCell($this->warehouse->itemtypeGetCategory($io));
+                                $cells.= wf_TableCell($this->warehouse->itemtypeGetName($io));
+                                $cells.= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
+                                $cells.= wf_TableCell($each['price']);
+                                $rows.= wf_TableRow($cells, 'row3');
+                            }
+
+
+                            $result.=wf_tag('b') . __('Total spent for other tasks') . ' (' . __('From warehouse storage') . ')' . wf_tag('b', true);
+                            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                            $result.= wf_tag('br');
+                        }
+
                         //appending totals counters
                         $cells = wf_TableCell(__('Counter'));
                         $cells.= wf_TableCell(__('Money'));
@@ -705,7 +792,13 @@ if (cfr('TASKREPORT')) {
 
         set_time_limit(0);
         $report = new TasksReport();
-        show_window(__('Search'), $report->renderDatesForm());
+
+        if (wf_CheckGet(array('cleancache'))) {
+            $report->cacheCleanup();
+            rcms_redirect($report::URL_ME);
+        }
+        $cacheCleanupControl = wf_Link($report::URL_ME . '&cleancache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')));
+        show_window(__('Search') . ' ' . $cacheCleanupControl, $report->renderDatesForm());
         show_window(__('Tasks report'), $report->renderReport());
     } else {
         show_error(__('This module disabled'));
