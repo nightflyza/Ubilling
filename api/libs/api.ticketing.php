@@ -259,7 +259,7 @@ function web_TicketsShow() {
             $tablecells.=wf_TableCell(@$allcash[$eachticket['from']]);
             $tablecells.=wf_TableCell(@$allcredits[$eachticket['from']]);
             $tablecells.=wf_TableCell(web_bool_led($eachticket['status']), '', '', 'sorttable_customkey="' . $eachticket['status'] . '"');
-            $actionlink = wf_Link('?module=ticketing&showticket=' . $eachticket['id'], 'Show', false, 'ubButton');
+            $actionlink = wf_Link('?module=ticketing&showticket=' . $eachticket['id'], wf_img_sized('skins/icon_search_small.gif', '', '12') . ' ' . __('Show'), false, 'ubButton');
             $tablecells.=wf_TableCell($actionlink);
             $tablerows.=wf_TableRow($tablecells, 'row3');
         }
@@ -447,8 +447,10 @@ function web_TicketReplyForm($ticketid) {
         $replyform = __('Ticket is closed');
     }
 
-    $TicketEvents = getTicketEvents($ticketid, true);
-    if ( !empty($TicketEvents) ) { $replyform .= wf_delimiter() . wf_modalAuto(__('Show ticket events'), __('Events for ticket') . '  ' . $ticketid, $TicketEvents, 'ubButton'); }
+    $ticketEvents = getTicketEvents($ticketid, true);
+    if (!empty($ticketEvents)) {
+        $replyform .= wf_delimiter() . wf_modalAuto(wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), __('Events for ticket') . '  ' . $ticketid, $ticketEvents, 'ubButton');
+    }
 
     return ($replyform);
 }
@@ -496,9 +498,9 @@ function web_TicketDialogue($ticketid) {
         $alluserips = zb_UserGetAllIPs();
 
         if ($ticketdata['status']) {
-            $actionlink = wf_Link('?module=ticketing&openticket=' . $ticketdata['id'], 'Open', false, 'ubButton');
+            $actionlink = wf_Link('?module=ticketing&openticket=' . $ticketdata['id'], wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton');
         } else {
-            $actionlink = wf_Link('?module=ticketing&closeticket=' . $ticketdata['id'], 'Close', false, 'ubButton');
+            $actionlink = wf_Link('?module=ticketing&closeticket=' . $ticketdata['id'], wf_img('skins/icon_lock.png') . ' ' . __('Close'), false, 'ubButton');
         }
 
 
@@ -613,7 +615,7 @@ function web_TicketDialogue($ticketid) {
         foreach ($allprevious as $io => $eachprevious) {
             $tablecells = wf_TableCell($eachprevious['date']);
             $tablecells.=wf_TableCell(web_bool_led($eachprevious['status']));
-            $prevaction = wf_Link('?module=ticketing&showticket=' . $eachprevious['id'], 'Show', false, 'ubButton');
+            $prevaction = wf_Link('?module=ticketing&showticket=' . $eachprevious['id'], wf_img_sized('skins/icon_search_small.gif', '', '12') . ' ' . __('Show'), false, 'ubButton');
             $tablecells.=wf_TableCell($prevaction);
             $tablerows = wf_TableRow($tablecells, 'row3');
             $previoustickets.=wf_TableBody($tablerows, '100%', '0');
@@ -673,13 +675,13 @@ function getTicketEvents($TicketID, $ReturnHTML = false) {
     $tQuery = "SELECT * FROM `weblogs` WHERE `event` LIKE 'TICKET%[" . $TicketID . "]'  ORDER BY `date` DESC";
     $QResult = simple_queryall($tQuery);
 
-    if ($ReturnHTML and !empty($QResult) ) {
+    if ($ReturnHTML and ! empty($QResult)) {
         $TableCells = wf_TableCell(__('ID'));
         $TableCells.= wf_TableCell(__('Date'));
         $TableCells.= wf_TableCell(__('Admin'));
         $TableCells.= wf_TableCell(__('IP'));
         $TableCells.= wf_TableCell(__('Event'));
-        $TableRows  = wf_TableRow($TableCells, 'row1');
+        $TableRows = wf_TableRow($TableCells, 'row1');
 
         foreach ($QResult as $Rec) {
             $Event = htmlspecialchars($Rec['event']);
@@ -697,4 +699,5 @@ function getTicketEvents($TicketID, $ReturnHTML = false) {
 
     return ( ($ReturnHTML) ? $HTMLStr : $QResult );
 }
+
 ?>
