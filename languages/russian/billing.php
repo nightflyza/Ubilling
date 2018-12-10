@@ -3001,8 +3001,8 @@ $lang['def']['Instruments'] = 'Инструменты';
 $lang['def']['Packets lost'] = 'Пакетов потерялось';
 $lang['def']['Packets count'] = 'Количество пакетов';
 $lang['def']['Packets received'] = 'Пакетов получено';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Job added on'] = 'Работа добавлена на';
+$lang['def']['Job price'] = 'Стоимость работы';
 $lang['def'][''] = '';
 
 ?>

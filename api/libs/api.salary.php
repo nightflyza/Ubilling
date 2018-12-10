@@ -3,6 +3,13 @@
 class Salary {
 
     /**
+     * System alter.ini config stored as array key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Available active employee as employeeid=>name
      *
      * @var array
@@ -15,6 +22,20 @@ class Salary {
      * @var array
      */
     protected $allEmployeeRaw = array();
+
+    /**
+     * Contains available employee telegram chatid data as id=>chatid
+     *
+     * @var array
+     */
+    protected $allEmployeeTelegram = array();
+
+    /**
+     * Contains all available employee realnames as login=>name
+     *
+     * @var array
+     */
+    protected $allEmployeeLogins = array();
 
     /**
      * Available jobtypes as jobtypeid=>name
@@ -93,6 +114,13 @@ class Salary {
      */
     protected $allAppointments = array();
 
+    /**
+     * System telegram object placeholder
+     *
+     * @var object
+     */
+    protected $telegram = '';
+
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -112,17 +140,30 @@ class Salary {
      * @return void
      */
     public function __construct($taskid = '') {
+        $this->loadAltCfg();
         $this->setUnitTypes();
-        $this->loadEmployee();
-        $this->loadEmployeeRaw();
+        $this->loadEmployeeData();
         $this->loadJobtypes();
         $this->loadJobprices();
         $this->loadWages();
         $this->loadSalaryJobs($taskid);
         $this->loadPaid();
+        $this->initTelegram();
         if (empty($taskid)) {
             $this->loadTimesheets();
         }
+    }
+
+    /**
+     * Loads system alter config
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAltCfg() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -130,17 +171,21 @@ class Salary {
      * 
      * @return void
      */
-    protected function loadEmployee() {
-        $this->allEmployee = ts_GetActiveEmployee();
-    }
-
-    /**
-     * Loads all of employees from database
-     * 
-     * @return void
-     */
-    protected function loadEmployeeRaw() {
-        $this->allEmployeeRaw = ts_GetAllEmployee();
+    protected function loadEmployeeData() {
+        $query = "SELECT * from `employee`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allEmployeeRaw[$each['id']] = $each['name'];
+                if ($each['active']) {
+                    $this->allEmployee[$each['id']] = $each['name'];
+                }
+                if (!empty($each['admlogin'])) {
+                    $this->allEmployeeLogins[$each['admlogin']] = $each['name'];
+                }
+                $this->allEmployeeTelegram[$each['id']] = $each['telegram'];
+            }
+        }
     }
 
     /**
@@ -271,6 +316,17 @@ class Salary {
     }
 
     /**
+     * Inits telegram object as protected instance for further usage
+     * 
+     * @return void
+     */
+    protected function initTelegram() {
+        if ($this->altCfg['SENDDOG_ENABLED']) {
+            $this->telegram = new UbillingTelegram();
+        }
+    }
+
+    /**
      * Renders job price editing form
      * 
      * @param int $jobtypeid
@@ -313,6 +369,61 @@ class Salary {
         } else {
             log_register('SALARY CREATE JOBPRICE FAIL EXIST JOBID [' . $jobtypeid . ']');
         }
+    }
+
+    /**
+     * Stores Telegram message for some employee
+     * 
+     * @param int $employeeid
+     * @param string $message
+     * 
+     * @return void
+     */
+    protected function sendTelegram($employeeId, $message) {
+        if ($this->altCfg['SENDDOG_ENABLED']) {
+            $chatId = @$this->allEmployeeTelegram[$employeeId];
+            if (!empty($chatId)) {
+                $this->telegram->sendMessage($chatId, $message, false, 'SALARY');
+            }
+        }
+    }
+
+    /**
+     * Sends some notificaton about salary job creation to employee
+     * 
+     * @param type $JobId
+     * @param type $taskid
+     * @param type $employeeid
+     * @param type $jobtypeid
+     * @param type $factor
+     * @param type $overprice
+     * @param type $notes
+     * 
+     * @return void
+     */
+    protected function salaryCreationNotify($jobId, $taskid, $employeeid, $jobtypeid, $factor, $overprice, $notes) {
+        $taskData = ts_GetTaskData($taskid);
+        $message = '';
+        $jobName = @$this->allJobtypes[$jobtypeid];
+        $jobPrice = 0;
+
+        if (empty($overprice)) {
+            if (isset($this->allJobPrices[$jobtypeid])) {
+                $jobPrice = $this->allJobPrices[$jobtypeid] * $factor;
+            }
+        } else {
+            $jobPrice = $overprice;
+        }
+
+
+        $unitType = @$this->allJobUnits[$jobtypeid];
+
+        $message.=__('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
+        $message.=__('Job type') . ': ' . $jobName . '\r\n ';
+        $message.=__('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
+        $message.=__('Job price') . ': ' . $jobPrice . '\r\n ';
+
+        $this->sendTelegram($employeeid, $message);
     }
 
     /**
@@ -506,6 +617,8 @@ class Salary {
         nr_query($query);
         $newId = simple_get_lastid('salary_jobs');
         log_register('SALARY CREATE JOB [' . $newId . '] TASK [' . $taskid . '] EMPLOYEE [' . $employeeid . '] JOBTYPE [' . $jobtypeid . '] FACTOR `' . $factor . '` OVERPRICE `' . $overprice . '`');
+        //some telegram notification
+        $this->salaryCreationNotify($newId, $taskid, $employeeid, $jobtypeid, $factor, $overprice, $notes);
     }
 
     /**
@@ -1020,7 +1133,7 @@ class Salary {
                     $unit = __('No');
                 }
 
-                //job time spent collecting
+//job time spent collecting
                 $jobTimeSpent = 0;
                 if (isset($this->allJobTimes[$each['jobtypeid']])) {
                     $jobFactor = $each['factor'];
@@ -1072,7 +1185,7 @@ class Salary {
             }
         }
 
-        //timesheets processing
+//timesheets processing
         if (!empty($rangeTimesheets)) {
             foreach ($rangeTimesheets as $io => $each) {
                 if ($each['employeeid'] == $employeeid) {
@@ -1099,7 +1212,7 @@ class Salary {
 
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
-            //chart data postprocessing
+//chart data postprocessing
             if (!empty($timeChartData)) {
                 foreach ($timeChartData as $io => $each) {
                     $timeChartData[$io . ' ' . $each] = $each;
@@ -1200,7 +1313,7 @@ class Salary {
 
 
 
-        //jobs preprocessing
+//jobs preprocessing
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $jobPrice = $this->getJobPrice($each['id']);
@@ -1273,7 +1386,7 @@ class Salary {
 
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_delimiter();
-        //charts
+//charts
         $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
         $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
@@ -1990,7 +2103,7 @@ class Salary {
                 }
             }
         }
-        //  print_r($tmpArr);
+//  print_r($tmpArr);
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $employeeid => $each) {
                 $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeid]);
@@ -2051,16 +2164,16 @@ class Salary {
         $seconds = $seconds % 60;
 
         if ($init < 3600) {
-            //less than 1 hour
+//less than 1 hour
             if ($init < 60) {
-                //less than minute
+//less than minute
                 $result = $seconds . ' ' . __('sec.');
             } else {
-                //more than one minute
+//more than one minute
                 $result = $minutes . ' ' . __('minutes');
             }
         } else {
-            //more than hour
+//more than hour
             $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes');
         }
         return ($result);
@@ -2073,7 +2186,7 @@ class Salary {
      */
     public function ltReportRenderForm() {
         $result = '';
-        //getting previous state
+//getting previous state
         $curdateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : curdate();
         $curdateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
         $curJobTypeId = (wf_CheckPost(array('jobtypeid'))) ? $_POST['jobtypeid'] : '-';
@@ -2109,7 +2222,7 @@ class Salary {
             $jobtypeId = mysql_real_escape_string($_POST['jobtypeid']);
 
 
-            //any job type
+//any job type
             if ($jobtypeId == '-') {
                 $employeeJobsTmp = array();
                 if (!empty($this->allEmployee)) {
@@ -2177,7 +2290,7 @@ class Salary {
                     $result = $messages->getStyledMessage(__('Nothing found'), 'info');
                 }
             } else {
-                //some other job types
+//some other job types
                 $employeeJobsTmp = array();
                 $totalTimeSpent = 0;
                 $chartData = array();
@@ -2225,7 +2338,7 @@ class Salary {
                         $cells.= wf_TableCell(@$this->percentValue($totalTimeSpent, $each['timespent']) . '%');
                         $rows.= wf_TableRow($cells, 'row3');
 
-                        //chart data
+//chart data
                         $chartData[$this->allEmployee[$io]] = $each['timespent'];
                     }
 
@@ -2271,14 +2384,14 @@ class Salary {
         $result.=wf_delimiter();
 
         if (!empty($this->allJobs)) {
-            //debarr($this->allJobs);
+//debarr($this->allJobs);
             foreach ($this->allJobs as $io => $each) {
                 $timestamp = strtotime($each['date']);
                 $year = date("Y", $timestamp);
                 if ($year == $showYear) {
                     $month = date("m", $timestamp);
                     $jobPrice = $this->getJobPrice($each['id']);
-                    ///filling year summary report
+///filling year summary report
                     $jobPaid = ($each['state']) ? true : false;
                     if ($jobPaid) {
                         $yearSummaryArr[$month]['paid']+=$jobPrice;
@@ -2288,7 +2401,7 @@ class Salary {
                     $yearSummaryArr[$month]['total']+=$jobPrice;
                     $yearSummaryArr[$month]['jobscount'] ++;
                     $totalJobPrices+=$jobPrice;
-                    //filling employee summary
+//filling employee summary
                     if (isset($employeSummaryArr[$each['employeeid']])) {
                         $employeSummaryArr[$each['employeeid']][$month] += $jobPrice;
                     } else {
@@ -2300,7 +2413,7 @@ class Salary {
                 }
             }
 
-            //rendering year summary report
+//rendering year summary report
             if (!empty($yearSummaryArr)) {
                 $result.=wf_tag('h3') . __('Employee wages') . ' ' . $showYear . wf_tag('h3', true);
                 $cells = wf_TableCell('');
@@ -2326,7 +2439,7 @@ class Salary {
                 $result.=wf_TableBody($rows, '100%', 0, 'sortable');
             }
 
-            //rendering per employee year report
+//rendering per employee year report
             if (!empty($employeSummaryArr)) {
                 $cells = wf_TableCell('');
                 foreach ($monthArr as $monthNum => $monthName) {

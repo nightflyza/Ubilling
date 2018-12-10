@@ -3017,5 +3017,8 @@ $lang['def']['Instruments'] = 'Інструменти';
 $lang['def']['Packets lost'] = 'Пакетів занапастилось';
 $lang['def']['Packets count'] = 'Кількість пакетів';
 $lang['def']['Packets received'] = 'Пакетів отримано';
+$lang['def']['Job added on'] = 'Додано роботу на';
+$lang['def']['Job price'] = 'Вартість роботи';
+
 
 ?>
