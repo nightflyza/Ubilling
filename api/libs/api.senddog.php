@@ -2080,7 +2080,7 @@ class SendDogAdvanced extends SendDog {
         }
 
         if (!empty($serviceApi)) {
-            include (self::API_IMPL_PATH . $serviceApi . '.php');
+            include_once (self::API_IMPL_PATH . $serviceApi . '.php');
             $tmpApiObj = new $serviceApi($serviceId, $messagePack);
 
             if ($checkStatuses) {
