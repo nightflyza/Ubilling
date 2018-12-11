@@ -275,6 +275,16 @@ if (cfr('TASKREPORT')) {
             }
 
             /**
+             * Returns dates from object instance
+             * 
+             * @return array
+             */
+            public function getDates() {
+                $result = array('from' => $this->dateFrom, 'to' => $this->dateTo);
+                return ($result);
+            }
+
+            /**
              * Loads available jobtypes data
              * 
              * @return void
@@ -637,6 +647,10 @@ if (cfr('TASKREPORT')) {
                                 $rowColor = 'row3';
                             }
                         }
+                        //back coloring for non signup types
+                        if (!isset($this->signupJobtypeId[$each['jobtype']])) {
+                            $rowColor='row3';
+                        }
 
 
                         $rows.= wf_TableRow($cells, $rowColor);
@@ -842,14 +856,15 @@ if (cfr('TASKREPORT')) {
             if (file_exists($report::PRINT_PATH)) {
                 if (filesize($report::PRINT_PATH) > 0) {
                     $printableData = file_get_contents($report::PRINT_PATH);
-                    die($report->reportPrintable(__('Warehouse'), $printableData));
+                    $datesFiltered = $report->getDates();
+                    die($report->reportPrintable(__('Warehouse') . ': ' . $datesFiltered['from'] . '-' . $datesFiltered['to'], $printableData));
                 }
             }
         }
         $cacheCleanupControl = wf_Link($report::URL_ME . '&cleancache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')));
         show_window(__('Search') . ' ' . $cacheCleanupControl, $report->renderDatesForm());
         show_window(__('Tasks report'), $report->renderReport());
-        $printControl = ((file_exists($report::PRINT_PATH)) AND ( filesize($report::PRINT_PATH) > 0) ) ? wf_Link($report::URL_ME . '&print=true', web_icon_print().' '.__('Print'), false, 'ubButton','target="_blank"') : '';
+        $printControl = ((file_exists($report::PRINT_PATH)) AND ( filesize($report::PRINT_PATH) > 0) ) ? wf_Link($report::URL_ME . '&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton', 'target="_blank"') : '';
         show_window('', $printControl);
     } else {
         show_error(__('This module disabled'));
