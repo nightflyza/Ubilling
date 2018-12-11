@@ -183,6 +183,11 @@ if (cfr('TASKREPORT')) {
             const URL_ME = '?module=tasksreport';
 
             /**
+             * Printable temp file path
+             */
+            const PRINT_PATH = 'exports/taskreportprint.html';
+
+            /**
              * Creates new TasksReport object instance
              * 
              * @return void
@@ -476,12 +481,41 @@ if (cfr('TASKREPORT')) {
             }
 
             /**
+             * shows printable report content
+             * 
+             * @param $title report title
+             * @param $data  report data to printable transform
+             * 
+             * @return void
+             */
+            public function reportPrintable($title, $data) {
+                $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
+                $header = wf_tag('html', false);
+                $header.= wf_tag('head', false);
+                $header.= wf_tag('title') . $title . wf_tag('title', true);
+                $header.= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
+                $header.= wf_tag('style', false, '', 'type="text/css"');
+                $header.= $style;
+                $header.=wf_tag('style', true);
+                $header.= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
+                $header.=wf_tag('head', true);
+                $header.= wf_tag('body', false);
+                $footer = wf_tag('body', true);
+                $footer.= wf_tag('html', true);
+
+                $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
+                $data = $header . $title . $data . $footer;
+                die($data);
+            }
+
+            /**
              * Renders report by preloaded data
              * 
              * @return string
              */
             public function renderReport() {
                 $result = '';
+                $resultPrintable = '';
                 $count = 1;
                 $signupsTotalSpent = 0;
                 $signupsTotalPayments = 0;
@@ -706,9 +740,9 @@ if (cfr('TASKREPORT')) {
                             }
 
 
-                            $result.=wf_tag('b') . __('Total spent materials for signups') . wf_tag('b', true);
-                            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-                            $result.= wf_tag('br');
+                            $resultPrintable.=wf_tag('b') . __('Total spent materials for signups') . wf_tag('b', true);
+                            $resultPrintable.= wf_TableBody($rows, '100%', 0, 'sortable');
+                            $resultPrintable.= wf_tag('br');
                         }
 
                         //warehouse items spent on non-signup tasks
@@ -743,9 +777,10 @@ if (cfr('TASKREPORT')) {
                             }
 
 
-                            $result.=wf_tag('b') . __('Total spent for other tasks') . ' (' . __('From warehouse storage') . ')' . wf_tag('b', true);
-                            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-                            $result.= wf_tag('br');
+                            $resultPrintable.=wf_tag('b') . __('Total spent for other tasks') . ' (' . __('From warehouse storage') . ')' . wf_tag('b', true);
+                            $resultPrintable.= wf_TableBody($rows, '100%', 0, 'sortable');
+                            $resultPrintable.= wf_tag('br');
+                            $result.=$resultPrintable;
                         }
 
                         //appending totals counters
@@ -786,6 +821,10 @@ if (cfr('TASKREPORT')) {
                 } else {
                     $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
                 }
+
+                //saving printable results
+                file_put_contents(self::PRINT_PATH, $resultPrintable);
+
                 return ($result);
             }
 
@@ -798,9 +837,20 @@ if (cfr('TASKREPORT')) {
             $report->cacheCleanup();
             rcms_redirect($report::URL_ME);
         }
+
+        if (wf_CheckGet(array('print'))) {
+            if (file_exists($report::PRINT_PATH)) {
+                if (filesize($report::PRINT_PATH) > 0) {
+                    $printableData = file_get_contents($report::PRINT_PATH);
+                    die($report->reportPrintable(__('Warehouse'), $printableData));
+                }
+            }
+        }
         $cacheCleanupControl = wf_Link($report::URL_ME . '&cleancache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')));
         show_window(__('Search') . ' ' . $cacheCleanupControl, $report->renderDatesForm());
         show_window(__('Tasks report'), $report->renderReport());
+        $printControl = ((file_exists($report::PRINT_PATH)) AND ( filesize($report::PRINT_PATH) > 0) ) ? wf_Link($report::URL_ME . '&print=true', web_icon_print().' '.__('Print'), false, 'ubButton','target="_blank"') : '';
+        show_window('', $printControl);
     } else {
         show_error(__('This module disabled'));
     }
