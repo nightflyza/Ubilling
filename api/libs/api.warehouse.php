@@ -115,6 +115,13 @@ class Warehouse {
     protected $outDests = array();
 
     /**
+     * Contains previously detected tasks outcomings mappings
+     *
+     * @var array
+     */
+    protected $taskOutsCache = array();
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -127,6 +134,13 @@ class Warehouse {
      * @var object
      */
     protected $telegram = '';
+
+    /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
 
     /**
      * Default asterisk required fields notifier
@@ -155,6 +169,8 @@ class Warehouse {
     const URL_REPORTS = 'reports=true';
     const URL_RESERVE = 'reserve=true';
     const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
+    //some caching timeout
+    const CACHE_TIMEOUT = 2592000;
 
     /**
      * Creates new warehouse instance
@@ -176,6 +192,8 @@ class Warehouse {
         $this->loadStorages();
         $this->loadContractors();
         $this->initTelegram();
+        $this->initCache();
+        $this->loadTaskOutsCache();
         if (empty($taskid)) {
             $this->loadReserve();
             $this->loadReserveHistory();
@@ -213,6 +231,24 @@ class Warehouse {
         if ($this->altCfg['SENDDOG_ENABLED']) {
             $this->telegram = new UbillingTelegram();
         }
+    }
+
+    /**
+     * Inits system cache for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Loads tasks=>outcomings cache
+     * 
+     * @return void
+     */
+    protected function loadTaskOutsCache() {
+        $this->taskOutsCache = $this->cache->get('TASKSOUTS', self::CACHE_TIMEOUT);
     }
 
     /**
@@ -2818,15 +2854,28 @@ class Warehouse {
         $taskid = vf($taskid, 3);
         $result = array();
         $sum = 0;
+
         if (!empty($this->allOutcoming)) {
-            foreach ($this->allOutcoming as $io => $each) {
-                if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
-                    $sum = $sum + ($each['price'] * $each['count']);
-                    $result['items'][] = $each;
+            if (!isset($this->taskOutsCache[$taskid])) {
+                foreach ($this->allOutcoming as $io => $each) {
+                    if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
+                        $sum = $sum + ($each['price'] * $each['count']);
+                        $result['items'][] = $each;
+                    }
+                }
+                $this->taskOutsCache[$taskid] = $result;
+                $this->cache->set('TASKSOUTS', $this->taskOutsCache, self::CACHE_TIMEOUT);
+            } else {
+                $result = $this->taskOutsCache[$taskid];
+
+                if (!empty($this->taskOutsCache[$taskid]['items'])) {
+                    foreach ($this->taskOutsCache[$taskid]['items'] as $io => $each) {
+                        $sum = $sum + ($each['price'] * $each['count']);
+                    }
                 }
             }
-
         }
+
         $result['sum'] = $sum;
 
         return ($result);

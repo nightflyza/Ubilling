@@ -309,6 +309,7 @@ if (cfr('TASKREPORT')) {
              */
             public function cacheCleanup() {
                 $this->cache->delete('TASKSJOBS');
+                $this->cache->delete('TASKSOUTS');
             }
 
             /**

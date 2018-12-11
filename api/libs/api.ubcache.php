@@ -57,6 +57,13 @@ class UbillingCache {
     protected $storagePath = '';
 
     /**
+     * Just debugging flag
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
      * Single instance of memcached object
      *
      * @var object
@@ -64,6 +71,7 @@ class UbillingCache {
     protected $memcached = ''; // single memcached object
 
     const CACHE_PREFIX = 'UBCACHE_';
+    const LOG_PATH = 'exports/cache.log';
 
     /**
      * Creates new UbillingCache instance
@@ -98,6 +106,10 @@ class UbillingCache {
             $this->storage = $this->altCfg['UBCACHE_STORAGE'];
         } else {
             $this->storage = 'fake';
+        }
+
+        if (@$this->altCfg['UBCACHE_DEBUG']) {
+            $this->debug = true;
         }
 
         if ($this->storage == 'memcached') {
@@ -163,6 +175,22 @@ class UbillingCache {
     }
 
     /**
+     * Logs data if logging is enabled
+     * 
+     * @param string $data
+     * @param int $logLevel
+     * 
+     * @return void
+     */
+    protected function logEvent($data) {
+        if ($this->debug) {
+            $curDate = curdatetime();
+            $logData = $curDate . ' ' . $data . "\n";
+            file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
+        }
+    }
+
+    /**
      * Puts data into cache storage
      * 
      * @param string $key
@@ -191,6 +219,8 @@ class UbillingCache {
             $this->redis->set($key, $data);
             $this->redis->setTimeout($key, $expiration);
         }
+
+        $this->logEvent('SET KEY: ' . $key);
     }
 
     /**
@@ -205,6 +235,8 @@ class UbillingCache {
         $result = '';
         $keyRaw = $key;
         $key = $this->genKey($key);
+        $this->logEvent('GET KEY: ' . $key);
+
         //files storage
         if ($this->storage == 'files') {
             $cacheName = $this->storagePath . $key;
@@ -311,6 +343,8 @@ class UbillingCache {
         if ($this->storage == 'redis') {
             $this->redis->delete($key);
         }
+
+        $this->logEvent('DELETE KEY: ' . $key);
     }
 
     /**
@@ -373,7 +407,7 @@ class UbillingCache {
      */
     public function deleteAllcache() {
         $cache_data = $this->getAllcache();
-
+        $this->logEvent('TOTAL CLEANUP');
         //files storage
         if ($this->storage == 'files' and ! empty($cache_data)) {
             foreach ($cache_data as $cache) {
