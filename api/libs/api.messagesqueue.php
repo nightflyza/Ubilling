@@ -153,7 +153,11 @@ class MessagesQueue {
         $result = '';
         $smsQueueCount = $this->sms->getQueueCount();
         if ($smsQueueCount > 0) {
-            $columns = array('Date', 'Mobile', 'Actions');
+            if ($this->sms->smsRoutingFlag) {
+                $columns = array('Date', 'Mobile', __('SMS service'), 'Actions');
+            } else {
+                $columns = array('Date', 'Mobile', 'Actions');
+            }
             $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajaxsms=true', false, __('SMS'), 100, '"order": [[ 0, "desc" ]]');
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
@@ -180,6 +184,11 @@ class MessagesQueue {
                 $actLinks.= wf_JSAlert(self::URL_ME . '&deletesms=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['date'];
                 $data[] = $each['number'];
+
+                if ($this->sms->smsRoutingFlag) {
+                    $data[] = $this->sms->smsDirections->getDirectionNameById($each['smssrvid']);
+                }
+
                 $data[] = $actLinks;
                 $this->json->addRow($data);
                 unset($data);
