@@ -88,7 +88,7 @@ function prevmonth() {
 }
 
 /**
- * Returns current year
+ * Returns current year as just Y
  * 
  * @return string
  */

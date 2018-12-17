@@ -3005,8 +3005,8 @@ $lang['def']['Job added on'] = 'Работа добавлена на';
 $lang['def']['Job price'] = 'Стоимость работы';
 $lang['def']['Assign additional login'] = 'Присвоить дополнительный логин';
 $lang['def']['Additional login'] = 'Дополнительный логин';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['report'] = 'отчет';
+$lang['def']['Tasks creation per-admin stats'] = 'Создание задач администраторами';
 $lang['def'][''] = '';
 
 ?>

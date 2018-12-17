@@ -1269,6 +1269,10 @@ function ts_ShowPanel() {
     if (cfr('TASKMANTIMING')) {
         $tools.= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
     }
+    
+    if (cfr('TASKMANADMREP')) {
+        $tools.= wf_Link('?module=taskmanadmreport', wf_img('skins/mcdonalds.png') . ' ' . __('Hataraku Maou-sama!'), false, 'ubButton');
+    }
 
     if (cfr('TASKMANNWATCHLOG')) {
         $tools.= wf_Link('?module=taskman&show=logs', wf_img('skins/icon_note.gif') . ' ' . __('Logs'), false, 'ubButton');

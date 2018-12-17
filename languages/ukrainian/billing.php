@@ -3021,5 +3021,7 @@ $lang['def']['Job added on'] = 'Додано роботу на';
 $lang['def']['Job price'] = 'Вартість роботи';
 $lang['def']['Assign additional login'] = 'Присвоїти додатковий логін';
 $lang['def']['Additional login'] = 'Додатковий логін';
+$lang['def']['report'] = 'отчет';
+$lang['def']['Tasks creation per-admin stats'] = 'Створення задач адміністраторами';
 
 ?>
