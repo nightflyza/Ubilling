@@ -135,6 +135,13 @@ class Salary {
      */
     protected $telegram = '';
 
+    /**
+     * Telegram force notification flag
+     *
+     * @var bool
+     */
+    protected $telegramNotify = false;
+
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -156,6 +163,7 @@ class Salary {
      */
     public function __construct($taskid = '') {
         $this->loadAltCfg();
+        $this->setOptions();
         $this->setUnitTypes();
         $this->loadEmployeeData();
         $this->loadJobtypes();
@@ -181,6 +189,17 @@ class Salary {
     protected function loadAltCfg() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some config based options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (isset($this->altCfg['SALARY_TELEGRAM']) AND $this->altCfg['SALARY_TELEGRAM']) {
+            $this->telegramNotify = true;
+        }
     }
 
     /**
@@ -437,28 +456,30 @@ class Salary {
      * @return void
      */
     protected function salaryCreationNotify($jobId, $taskid, $employeeid, $jobtypeid, $factor, $overprice, $notes) {
-        $taskData = ts_GetTaskData($taskid);
-        $message = '';
-        $jobName = @$this->allJobtypes[$jobtypeid];
-        $jobPrice = 0;
+        if ($this->telegramNotify) {
+            $taskData = ts_GetTaskData($taskid);
+            $message = '';
+            $jobName = @$this->allJobtypes[$jobtypeid];
+            $jobPrice = 0;
 
-        if (empty($overprice)) {
-            if (isset($this->allJobPrices[$jobtypeid])) {
-                $jobPrice = $this->allJobPrices[$jobtypeid] * $factor;
+            if (empty($overprice)) {
+                if (isset($this->allJobPrices[$jobtypeid])) {
+                    $jobPrice = $this->allJobPrices[$jobtypeid] * $factor;
+                }
+            } else {
+                $jobPrice = $overprice . ' (' . __('Price override') . ')';
             }
-        } else {
-            $jobPrice = $overprice;
+
+
+            $unitType = @$this->allJobUnits[$jobtypeid];
+
+            $message.=__('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
+            $message.=__('Job type') . ': ' . $jobName . '\r\n ';
+            $message.=__('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
+            $message.=__('Job price') . ': ' . $jobPrice . '\r\n ';
+
+            $this->sendTelegram($employeeid, $message);
         }
-
-
-        $unitType = @$this->allJobUnits[$jobtypeid];
-
-        $message.=__('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
-        $message.=__('Job type') . ': ' . $jobName . '\r\n ';
-        $message.=__('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
-        $message.=__('Job price') . ': ' . $jobPrice . '\r\n ';
-
-        $this->sendTelegram($employeeid, $message);
     }
 
     /**

@@ -136,6 +136,13 @@ class Warehouse {
     protected $telegram = '';
 
     /**
+     * Telegram force notification flag
+     *
+     * @var bool
+     */
+    protected $telegramNotify = false;
+
+    /**
      * System caching object placeholder
      *
      * @var object
@@ -181,6 +188,7 @@ class Warehouse {
      */
     public function __construct($taskid = '') {
         $this->loadAltCfg();
+        $this->setOptions();
         $this->loadOutOperations($taskid);
         $this->setUnitTypes();
         $this->setOutDests();
@@ -211,6 +219,17 @@ class Warehouse {
     protected function loadAltCfg() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some config based options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (isset($this->altCfg['WAREHOUSE_TELEGRAM']) AND $this->altCfg['WAREHOUSE_TELEGRAM']) {
+            $this->telegramNotify = true;
+        }
     }
 
     /**
@@ -526,13 +545,15 @@ class Warehouse {
      * @return void
      */
     protected function reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId) {
-        $message = '';
-        $adminLogin = whoami();
-        $adminName = (isset($this->allEmployeeLogins[$adminLogin])) ? $this->allEmployeeLogins[$adminLogin] : $adminLogin;
-        $message.=__('From warehouse storage') . ' ' . $this->allStorages[$storageId] . '\r\n ';
-        $message.= $adminName . ' ' . __('reserved for you') . ': ';
-        $message.=$this->allItemTypeNames[$itemtypeId] . ' ' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
-        $this->sendTelegram($employeeId, $message);
+        if ($this->telegramNotify) {
+            $message = '';
+            $adminLogin = whoami();
+            $adminName = (isset($this->allEmployeeLogins[$adminLogin])) ? $this->allEmployeeLogins[$adminLogin] : $adminLogin;
+            $message.=__('From warehouse storage') . ' ' . $this->allStorages[$storageId] . '\r\n ';
+            $message.= $adminName . ' ' . __('reserved for you') . ': ';
+            $message.=$this->allItemTypeNames[$itemtypeId] . ' ' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+            $this->sendTelegram($employeeId, $message);
+        }
     }
 
     /**
