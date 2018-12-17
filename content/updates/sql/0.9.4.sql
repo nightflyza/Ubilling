@@ -41,3 +41,10 @@ ALTER TABLE `trinitytv_suspend`  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `trinitytv_tariffs`  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `sms_history` MODIFY `msg_text` varchar(500) NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS `pononuextusers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `onuid` int(11) NOT NULL,
+  `login` VARCHAR(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

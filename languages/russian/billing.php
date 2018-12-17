@@ -3003,6 +3003,10 @@ $lang['def']['Packets count'] = 'Количество пакетов';
 $lang['def']['Packets received'] = 'Пакетов получено';
 $lang['def']['Job added on'] = 'Работа добавлена на';
 $lang['def']['Job price'] = 'Стоимость работы';
+$lang['def']['Assign additional login'] = 'Присвоить дополнительный логин';
+$lang['def']['Additional login'] = 'Дополнительный логин';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>

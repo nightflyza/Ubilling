@@ -3,11 +3,18 @@
 class PONizer {
 
     /**
-     * All available ONU devices
+     * All available ONU devices as id=>onudata
      *
      * @var array
      */
     protected $allOnu = array();
+
+    /**
+     * Contains array of additional ONU users as id=>binddata
+     *
+     * @var array
+     */
+    protected $allOnuExtUsers = array();
 
     /**
      * OLT models data as id=>model data array
@@ -148,6 +155,7 @@ class PONizer {
     const DEREGCACHE_PATH = 'exports/';
     const DEREGCACHE_EXT = 'ONUDEREGS';
     const URL_ME = '?module=ponizer';
+    const URL_USERPROFILE = '?module=userprofile&username=';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
@@ -164,6 +172,7 @@ class PONizer {
         $this->loadSnmpTemplates();
         $this->initSNMP();
         $this->loadOnu();
+        $this->loadOnuExtUsers();
         $this->loadModels();
         $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
@@ -279,6 +288,15 @@ class PONizer {
                 if ($each['login'] == $login) {
                     $result = $each['id'];
                     break;
+                }
+            }
+
+            if (!empty($this->allOnuExtUsers)) {
+                foreach ($this->allOnuExtUsers as $io => $each) {
+                    if ($each['login'] == $login) {
+                        $result = $each['onuid'];
+                        break;
+                    }
                 }
             }
         }
@@ -1849,6 +1867,21 @@ class PONizer {
     }
 
     /**
+     * Loads avaliable ONUs additional users bindings from database into private data property
+     *
+     * @return void
+     */
+    protected function loadOnuExtUsers() {
+        $query = "SELECT * from `pononuextusers`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allOnuExtUsers[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
      * Returns Available OLT devices ONU counts
      * 
      * @return string
@@ -2293,6 +2326,80 @@ class PONizer {
     }
 
     /**
+     * Returns array of additional ONU assigned users
+     * 
+     * @param int $onuId
+     * 
+     * @return array
+     */
+    protected function getOnuExtUsers($onuId) {
+        $result = array();
+        if (!empty($this->allOnuExtUsers)) {
+            foreach ($this->allOnuExtUsers as $io => $each) {
+                if ($each['onuid'] == $onuId) {
+                    $result[$each['id']] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes existing user binding to ONU by user Id
+     * 
+     * @param int $extUserId
+     * 
+     * @return void
+     */
+    public function deleteOnuExtUser($extUserId) {
+        $extUserId = vf($extUserId, 3);
+        if (isset($this->allOnuExtUsers[$extUserId])) {
+            $oldData = $this->allOnuExtUsers[$extUserId];
+            $query = "DELETE FROM `pononuextusers` WHERE `id`='" . $extUserId . "';";
+            nr_query($query);
+            log_register('PON EDIT ONU [' . $oldData['onuid'] . '] DELETE EXTUSER (' . $oldData['login'] . ')');
+        }
+    }
+
+    /**
+     * Renders additional user creation form
+     * 
+     * @param int $onuId
+     * 
+     * @return string
+     */
+    protected function renderOnuExtUserForm($onuId) {
+        $result = '';
+        $onuId = vf($onuId, 3);
+        if (isset($this->allOnu[$onuId])) {
+            $inputs = wf_HiddenInput('newpononuextid', $onuId);
+            $inputs.= wf_TextInput('newpononuextlogin', __('Login'), '', false, 20) . ' ';
+            $inputs.=wf_Submit(__('Create'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates new ONU additional user binding
+     * 
+     * @param int $onuId
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function createOnuExtUser($onuId, $login) {
+        $onuId = vf($onuId, 3);
+        if (isset($this->allOnu[$onuId])) {
+            $loginF = mysql_real_escape_string($login);
+            $query = "INSERT INTO `pononuextusers` (`id`,`onuid`,`login`) VALUES "
+                    . "(NULL,'" . $onuId . "','" . $loginF . "');";
+            nr_query($query);
+            log_register('PON EDIT ONU [' . $onuId . '] ASSIGN EXTUSER (' . $login . ')');
+        }
+    }
+
+    /**
      * Returns ONU edit form
      *
      * @param int $onuId
@@ -2318,6 +2425,11 @@ class PONizer {
                 }
             }
 
+            $onuPortsCount = $this->allModelsData[$this->allOnu[$onuId]['onumodelid']]['ports'];
+            $onuMaxUsers = $onuPortsCount - 1;
+            $onuExtUsers = $this->getOnuExtUsers($onuId);
+            $onuCurrentExtUsers = sizeof($onuExtUsers);
+
             $inputs = wf_HiddenInput('editonu', $onuId);
             $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
             $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
@@ -2329,17 +2441,37 @@ class PONizer {
             $inputs .= wf_TextInput('editip', $ipFieldLabel, $this->allOnu[$onuId]['ip'], true, 20);
             $inputs .= wf_TextInput('editmac', __('MAC') . $this->sup . ' ' . $this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
             $inputs .= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
+
             $inputs .= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
+
+
+            if (!empty($onuExtUsers)) {
+                foreach ($onuExtUsers as $io => $each) {
+                    //Editing feature: 100$ donate or do it yourself. Im to lazy right now.
+                    $inputs.=wf_tag('input', false, '', 'name="onuextlogin_' . $each['id'] . '" type="text" value="' . $each['login'] . '" size="20" DISABLED') . ' ';
+                    $inputs.=wf_JSAlert(self::URL_ME . '&editonu=' . $onuId . '&deleteextuser=' . $each['id'], wf_img_sized('skins/icon_del.gif', __('Delete'), '13'), $messages->getDeleteAlert()) . ' ';
+                    $inputs.= wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon());
+                    $inputs.=wf_tag('br');
+                }
+            }
+
             $inputs .= wf_Submit(__('Save'));
-
-
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_CleanDiv();
-            $result .= wf_delimiter();
 
+
+            $result .= wf_delimiter();
             $result .= wf_BackLink(self::URL_ME);
+
+            //back to primary user profile control
             if (!empty($this->allOnu[$onuId]['login'])) {
-                $result .= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
+                $result .= wf_Link(self::URL_USERPROFILE . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
+            }
+
+            //additional login append forms
+            if (sizeof($onuExtUsers) < $onuMaxUsers) {
+                $extCreationLabel = wf_img_sized('skins/add_icon.png', '', '13') . ' ' . __('Assign additional login');
+                $result.=wf_modalAuto($extCreationLabel, __('Additional login') . ' (' . ($onuMaxUsers - $onuCurrentExtUsers) . ' ' . __('remains') . ')', $this->renderOnuExtUserForm($onuId), 'ubButton');
             }
             $result .= wf_JSAlertStyled(self::URL_ME . '&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
         } else {
@@ -3312,6 +3444,18 @@ class PONizer {
                     $result = false;
                 } else {
                     $result = true;
+                }
+            }
+
+            //something strange
+            if ($result == false) {
+                $onuExtUsers = $this->getOnuExtUsers($onuId);
+                if (!empty($onuExtUsers)) {
+                    foreach ($onuExtUsers as $io => $each) {
+                        if ($each['login'] == $userLogin) {
+                            $result = true;
+                        }
+                    }
                 }
             }
         }

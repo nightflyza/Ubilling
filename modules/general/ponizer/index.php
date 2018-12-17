@@ -133,6 +133,17 @@ if ($altCfg['PON_ENABLED']) {
                 }
             }
         } else {
+            //deleting additional users
+            if (wf_CheckGet(array('deleteextuser'))) {
+                $pon->deleteOnuExtUser($_GET['deleteextuser']);
+                rcms_redirect($pon::URL_ME . '&editonu=' . $_GET['editonu']);
+            }
+
+            //creating new additional user
+            if (wf_CheckPost(array('newpononuextid', 'newpononuextlogin'))) {
+                $pon->createOnuExtUser($_POST['newpononuextid'], $_POST['newpononuextlogin']);
+                rcms_redirect($pon::URL_ME . '&editonu=' . $_GET['editonu']);
+            }
             //show ONU editing interface
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));
             show_window(__('ONU FDB'), $pon->renderOltFdbList($_GET['editonu']));
