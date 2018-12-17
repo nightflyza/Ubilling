@@ -681,6 +681,7 @@ class Corps {
             $inputs.= wf_TextInput('addpersonim', __('Instant messenger (Skype, ICQ, Jabber, etc)'), '', true, '20');
             $inputs.= wf_TextInput('addpersonemail', __('Email'), '', true, '20');
             $inputs.= wf_TextInput('addpersonappointment', __('Appointment'), '', true, '30');
+            $inputs.= wf_TextArea('addpersonnotes', __('Notes'), '', true, '30x3');
             $inputs.= wf_Submit(__('Create'));
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -710,6 +711,7 @@ class Corps {
             $inputs.= wf_TextInput('editpersonim', __('Instant messenger (Skype, ICQ, Jabber, etc)'), $data['im'], true, '20');
             $inputs.= wf_TextInput('editpersonemail', __('Email'), $data['email'], true, '20');
             $inputs.= wf_TextInput('editpersonappointment', __('Appointment'), $data['appointment'], true, '30');
+            $inputs.= wf_TextArea('editpersonnotes', __('Notes'), $data['notes'], true, '30x3');
             $inputs.= wf_Submit(__('Save'));
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -735,6 +737,7 @@ class Corps {
             simple_update_field('corp_persons', 'im', $_POST['editpersonim'], "WHERE `id`='" . $id . "'");
             simple_update_field('corp_persons', 'email', $_POST['editpersonemail'], "WHERE `id`='" . $id . "'");
             simple_update_field('corp_persons', 'appointment', $_POST['editpersonappointment'], "WHERE `id`='" . $id . "'");
+            simple_update_field('corp_persons', 'notes', $_POST['editpersonnotes'], "WHERE `id`='" . $id . "'");
             log_register("CORPS EDIT PERSON [" . $id . "]");
         }
     }
@@ -753,9 +756,10 @@ class Corps {
             $im = mysql_real_escape_string($_POST['addpersonim']);
             $email = mysql_real_escape_string($_POST['addpersonemail']);
             $appointment = mysql_real_escape_string($_POST['addpersonappointment']);
+            $notes = mysql_real_escape_string($_POST['addpersonnotes']);
 
             if (isset($this->corps[$corpid])) {
-                $query = "INSERT INTO `corp_persons` (`id`, `corpid`, `realname`, `phone`, `im`, `email`, `appointment`) VALUES (NULL, '" . $corpid . "', '" . $realname . "', '" . $phone . "', '" . $im . "', '" . $email . "', '" . $appointment . "');";
+                $query = "INSERT INTO `corp_persons` (`id`, `corpid`, `realname`, `phone`, `im`, `email`, `appointment`, `notes`) VALUES (NULL, '" . $corpid . "', '" . $realname . "', '" . $phone . "', '" . $im . "', '" . $email . "', '" . $appointment . "', '" . $notes . "');";
                 nr_query($query);
                 $newId = simple_get_lastid('corp_persons');
                 log_register("CORPS CREATE PERSON [" . $newId . "] FOR CORP [" . $corpid . "]");
