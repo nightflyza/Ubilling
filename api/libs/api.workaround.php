@@ -2933,6 +2933,12 @@ function zb_BillingStats($quiet = false) {
         $thisubid = $hostid['value'];
     }
 
+    if (wf_CheckGet(array('module'))) {
+        $moduleStats = 'x' . $_GET['module'];
+    } else {
+        $moduleStats = 'xnone';
+    }
+
     //detect stats collection feature
     $thiscollect = (file_exists($statsflag)) ? 0 : 1;
 
@@ -3002,7 +3008,7 @@ function zb_BillingStats($quiet = false) {
     $ubstatsinputs .= ' ' . wf_Submit('Save');
     $ubstatsform = wf_Form("", 'POST', $ubstatsinputs, 'glamour');
     $ubstatsform .= wf_CleanDiv();
-    $statsurl = $ubstatsurl . $ubillingInstanceStats;
+    $statsurl = $ubstatsurl . $ubillingInstanceStats . $moduleStats;
     $tracking_code = wf_tag('div', false, '', 'style="display:none;"') . wf_tag('iframe', false, '', 'src="' . $statsurl . '" width="1" height="1" frameborder="0"') . wf_tag('iframe', true) . wf_tag('div', true);
     if ($quiet == false) {
         show_window(__('Billing info'), $ubstatsform);
@@ -3015,6 +3021,8 @@ function zb_BillingStats($quiet = false) {
             if (extension_loaded('curl')) {
                 $curlStats = curl_init($statsurl);
                 curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
+                curl_setopt($curlStats, CURLOPT_TIMEOUT, 5);
                 $output = curl_exec($curlStats);
                 curl_close($curlStats);
             }
