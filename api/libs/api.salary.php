@@ -483,6 +483,64 @@ class Salary {
     }
 
     /**
+     * Sends notification for jobs created by current day
+     * 
+     * @return void
+     */
+    public function telegramDailyNotify() {
+        if (!empty($this->allJobs)) {
+            if ($this->altCfg['SENDDOG_ENABLED']) {
+                $curdate = curdate();
+                $sendTmp = array(); //employeeid => text aggregated
+                foreach ($this->allJobs as $io => $eachJob) {
+                    if (ispos($eachJob['date'], $curdate)) {
+                        $employeeId = $eachJob['employeeid'];
+                        $chatId = @$this->allEmployeeTelegram[$employeeId];
+                        $factor = $eachJob['factor'];
+                        $jobtypeid = $eachJob['jobtypeid'];
+                        $overprice = $eachJob['overprice'];
+                        if (!empty($chatId)) {
+                            if (!isset($sendTmp[$employeeId])) {
+                                $sendTmp[$employeeId] = '';
+                            }
+                            $message = '';
+                            $taskid = $eachJob['taskid'];
+                            $taskData = ts_GetTaskData($taskid);
+
+                            $jobName = @$this->allJobtypes[$jobtypeid];
+                            $jobPrice = 0;
+
+                            if (empty($overprice)) {
+                                if (isset($this->allJobPrices[$jobtypeid])) {
+                                    $jobPrice = $this->allJobPrices[$jobtypeid] * $factor;
+                                }
+                            } else {
+                                $jobPrice = $overprice . ' (' . __('Price override') . ')';
+                            }
+
+
+                            $unitType = @$this->allJobUnits[$jobtypeid];
+
+                            $message.=__('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
+                            $message.=__('Job type') . ': ' . $jobName . '\r\n ';
+                            $message.=__('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
+                            $message.=__('Job price') . ': ' . $jobPrice . '\r\n ';
+                            $message.='💰💰💰💰' . '\r\n '; // vsrate emoji
+                            $sendTmp[$employeeId].=$message;
+                        }
+                    }
+                }
+
+                if (!empty($sendTmp)) {
+                    foreach ($sendTmp as $io => $eachMessage) {
+                        $this->sendTelegram($io, $eachMessage);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Renders job prices list with required controls
      * 
      * @return string
