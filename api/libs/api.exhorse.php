@@ -150,6 +150,13 @@ class ExistentialHorse {
     protected $messages = '';
 
     /**
+     * Castypes array with cash values
+     *
+     * @var array
+     */
+    protected $cashIds = array();
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=exhorse';
@@ -228,6 +235,18 @@ class ExistentialHorse {
         //is DOCSIS support enabled?
         if ($this->altCfg['DOCSIS_SUPPORT']) {
             $this->docsisFlag = true;
+        }
+
+        //custom cashtypeids for cash stats 
+        $this->cashIds = array(1 => 1); // default cash cashtypeid
+        if (isset($this->altCfg['EXHORSE_CASHIDS'])) {
+            if (!empty($this->altCfg['EXHORSE_CASHIDS'])) {
+                $rawCashIds = explode(',', $this->altCfg['EXHORSE_CASHIDS']);
+                if (!empty($rawCashIds)) {
+                    $rawCashIds = array_flip($rawCashIds);
+                    $this->cashIds = $rawCashIds;
+                }
+            }
         }
     }
 
@@ -457,7 +476,7 @@ class ExistentialHorse {
                 $this->storeTmp['f_paymentscount'] ++;
 
                 //cash money processing
-                if (($each['summ'] >= 0) AND ( $each['cashtypeid'] == 1)) {
+                if (($each['summ'] >= 0) AND ( isset($this->cashIds[$each['cashtypeid']]))) {
                     $this->storeTmp['f_cashmoney']+=round($each['summ'], 2);
                     $this->storeTmp['f_cashcount'] ++;
                 }
@@ -1037,7 +1056,7 @@ class ExistentialHorse {
                     $fontEnd = wf_tag('font', true);
 
                     if (!empty($riseOfTheNorthStar['active'])) {
-                        $starDelimiter=' / ';
+                        $starDelimiter = ' / ';
                         $riseTotal = $each['u_activeusers'] - $riseOfTheNorthStar['active'];
                         if ($riseTotal > 0) {
                             $fontColor = wf_tag('font', false, '', 'color="#009f04"');
@@ -1051,12 +1070,12 @@ class ExistentialHorse {
                         $riseUsersIcon = '';
                         $riseTotal = '';
                         $fontEnd = '';
-                        $starDelimiter='';
+                        $starDelimiter = '';
                     }
 
 
                     if (!empty($riseOfTheNorthStar['active'])) {
-                        $riseActive = ($each['u_activeusers'] - ($riseOfTheNorthStar['active']+$each['u_signups']));
+                        $riseActive = ($each['u_activeusers'] - ($riseOfTheNorthStar['active'] + $each['u_signups']));
                         if ($riseActive > 0) {
                             $fontColorActive = wf_tag('font', false, '', 'color="#009f04"');
                             $riseActiveIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
