@@ -3019,7 +3019,7 @@ $lang['def']['Packets count'] = 'Кількість пакетів';
 $lang['def']['Packets received'] = 'Пакетів отримано';
 $lang['def']['Job added on'] = 'Додано роботу на';
 $lang['def']['Job price'] = 'Вартість роботи';
-$lang['def']['Assign additional loging'] = 'Присвоїти додатковий логін';
+$lang['def']['Assign additional login'] = 'Присвоїти додатковий логін';
 $lang['def']['Additional login'] = 'Додатковий логін';
 
 ?>
