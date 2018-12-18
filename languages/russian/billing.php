@@ -3007,6 +3007,8 @@ $lang['def']['Assign additional login'] = 'Присвоить дополните
 $lang['def']['Additional login'] = 'Дополнительный логин';
 $lang['def']['report'] = 'отчет';
 $lang['def']['Tasks creation per-admin stats'] = 'Создание задач администраторами';
+$lang['def']['right to control TrinityTV'] = 'Право управлять TrinityTV';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>
