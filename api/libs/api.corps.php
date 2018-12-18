@@ -648,7 +648,7 @@ class Corps {
                     $cells.= wf_TableCell($each['email']);
                     $cells.= wf_TableCell($each['appointment']);
                     $actLinks = wf_JSAlert(self::URL_CORPS_EDIT . $corpid . '&deletepersonid=' . $each['id'], web_delete_icon(), $this->alertDelete());
-                    $actLinks.= wf_modal(web_edit_icon(), __('Edit'), $this->personEditForm($each['id']), '', '550', '270');
+                    $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->personEditForm($each['id']), '');
                     $cells.= wf_TableCell($actLinks);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
