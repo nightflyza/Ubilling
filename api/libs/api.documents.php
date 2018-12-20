@@ -220,8 +220,7 @@ class ProfileDocuments {
         $tariffspeeds = zb_TariffGetAllSpeeds();
         $tariffprices = zb_TariffGetPricesAll();
         $multinetdata = zb_MultinetGetAllData();
-        $allcontracts = zb_UserGetAllContracts();
-        $allcontracts = array_flip($allcontracts);
+        $allcontracts = zb_UserGetAllLoginContracts();
         $contractDates = $this->getContractDatesAll();
         $allphonedata = zb_UserGetAllPhoneData();
         $allrealnames = zb_UserGetAllRealnames();

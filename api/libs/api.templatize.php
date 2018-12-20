@@ -95,8 +95,7 @@ function zb_TemplateGetAllUserData() {
     $tariffspeeds = zb_TariffGetAllSpeeds();
     $tariffprices = zb_TariffGetPricesAll();
     $multinetdata = zb_MultinetGetAllData();
-    $allcontracts = zb_UserGetAllContracts();
-    $allcontracts = array_flip($allcontracts);
+    $allcontracts = zb_UserGetAllLoginContracts();
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslist();
     $allemails = zb_UserGetAllEmails();

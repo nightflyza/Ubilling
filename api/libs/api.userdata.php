@@ -455,6 +455,23 @@ function zb_UserGetAllContracts() {
 }
 
 /**
+ * Returns all contracts as array login=>contract
+ * 
+ * @return array
+ */
+function zb_UserGetAllLoginContracts() {
+    $result = array();
+    $query = "SELECT * from `contracts`";
+    $allcontracts = simple_queryall($query);
+    if (!empty($allcontracts)) {
+        foreach ($allcontracts as $io => $eachcontract) {
+            $result[$eachcontract['login']] = $eachcontract['contract'];
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns all of available emails records as login=>email array
  * 
  * @return array
