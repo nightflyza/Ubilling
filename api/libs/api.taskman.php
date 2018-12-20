@@ -815,7 +815,7 @@ function ts_JGetAllTasks() {
     } else {
         if ($appendQuery) {
             //$appendQuery = str_replace('AND', 'WHERE', $appendQuery);
-            $appendQuery = preg_replace('AND', 'WHERE', $appendQuery, 1);
+            $appendQuery = preg_replace('/AND/', 'WHERE', $appendQuery, 1);
         }
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` " . $appendQuery . " ORDER BY `date` ASC";
