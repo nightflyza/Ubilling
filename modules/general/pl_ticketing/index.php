@@ -55,7 +55,7 @@ if (cfr('TICKETING')) {
                     }
                     $cells.= wf_TableCell($textPreview);
                     $cells.= wf_TableCell(web_bool_led($each['status']));
-                    $cells.= wf_TableCell(wf_Link('?module=ticketing&showticket=' . $each['id'], __('Show'), false, 'ubButton'));
+                    $cells.= wf_TableCell(wf_Link('?module=ticketing&showticket=' . $each['id'], wf_img_sized('skins/icon_search_small.gif', '', '12') . ' ' . __('Show'), false, 'ubButton'));
                     $rows.= wf_TableRow($cells, 'row3');
                 }
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
