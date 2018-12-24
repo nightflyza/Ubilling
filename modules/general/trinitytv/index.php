@@ -29,9 +29,9 @@ if (cfr('TRINITYTV')) {
 
             //tariff editing
             if (wf_CheckPost(array(
-                'edittariffid',
-                'edittariffname'
-            ))) {
+                        'edittariffid',
+                        'edittariffname'
+                    ))) {
                 $tariffSaveResult = $interface->updateTariff();
                 if (!$tariffSaveResult) {
                     rcms_redirect($interface::URL_ME . '&' . $interface::URL_TARIFFS);
@@ -73,6 +73,7 @@ if (cfr('TRINITYTV')) {
 
             //rendering user list container
             show_window(__('Subscriptions'), $interface->renderSubscribtions());
+            zb_BillingStats(true);
         }
 
         if (wf_CheckGet(array('subscriberid'))) {
@@ -97,10 +98,10 @@ if (cfr('TRINITYTV')) {
 
             //user device assign
             if (wf_CheckPost(array(
-                'manualassigndevice',
-                'subscriberid',
-                'mac'
-            ))) {
+                        'manualassigndevice',
+                        'subscriberid',
+                        'mac'
+                    ))) {
                 $assignResult = $interface->addDevice($_POST['subscriberid'], $_POST['mac']);
                 if (empty($assignResult)) {
                     rcms_redirect($interface::URL_SUBSCRIBER . $_GET['subscriberid']);
@@ -111,10 +112,10 @@ if (cfr('TRINITYTV')) {
 
             // user device assign bu code
             if (wf_CheckPost(array(
-                'manualassigndevice',
-                'subscriberid',
-                'code'
-            ))) {
+                        'manualassigndevice',
+                        'subscriberid',
+                        'code'
+                    ))) {
                 $assignResult = $interface->addDeviceByCode($_POST['subscriberid'], $_POST['code']);
                 if (empty($assignResult)) {
                     rcms_redirect($interface::URL_SUBSCRIBER . $_GET['subscriberid']);
@@ -125,9 +126,9 @@ if (cfr('TRINITYTV')) {
 
             //deleting existing device for some user
             if (wf_CheckGet(array(
-                'deletedeviceid',
-                'subscriberid'
-            ))) {
+                        'deletedeviceid',
+                        'subscriberid'
+                    ))) {
 
                 $errorMsg = $interface->deleteDevice($_GET['deletedeviceid']);
                 if (empty($errorMsg)) {
@@ -145,10 +146,10 @@ if (cfr('TRINITYTV')) {
 
         //new user manual registration
         if (wf_CheckPost(array(
-            'manualregister',
-            'manualregisterlogin',
-            'manualregistertariff'
-        ))) {
+                    'manualregister',
+                    'manualregisterlogin',
+                    'manualregistertariff'
+                ))) {
 
             $manualRegResult = $interface->createSubscribtion($_POST['manualregisterlogin'], $_POST['manualregistertariff']);
 
@@ -185,7 +186,6 @@ if (cfr('TRINITYTV')) {
             //montly accounting report
             show_window(__('Subscriptions report'), $interface->renderSubscribtionsReportMonthly());
         }
-
     } else {
         show_error(__('This module is disabled'));
     }

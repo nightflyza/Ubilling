@@ -73,6 +73,7 @@ if (cfr('PROCRAST')) {
 
         $applicationsList.=wf_CleanDiv();
         show_window(__('Procrastination helper'), $applicationsList);
+        zb_BillingStats(true);
     }
 } else {
     show_error(__('Access denied'));

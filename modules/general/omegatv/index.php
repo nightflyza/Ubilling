@@ -66,6 +66,7 @@ if (cfr('OMEGATV')) {
 
             //rendering user list container
             show_window(__('Subscriptions'), $omega->renderUserListContainer());
+            zb_BillingStats(true);
         }
 
         if (wf_CheckGet(array('customerprofile'))) {

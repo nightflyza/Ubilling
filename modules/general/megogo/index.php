@@ -54,6 +54,7 @@ if ($altCfg['MG_ENABLED']) {
             }
             //active subscriptions list
             show_window(__('Subscriptions'), $interface->renderSubscribtions());
+            zb_BillingStats(true);
         }
 
         //subscriptions manual control

@@ -1,4 +1,5 @@
 <?php
+
 if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
     if (cfr('UKV')) {
 
@@ -51,6 +52,7 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
         //full users listing
         if (wf_CheckGet(array('users', 'userslist'))) {
             show_window(__('Available users'), $ukv->renderUsers());
+            zb_BillingStats(true);
         }
 
         //users registration
