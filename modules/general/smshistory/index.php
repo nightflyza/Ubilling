@@ -1,12 +1,13 @@
 <?php
+
 if (cfr('SMSHIST')) {
 
     if ($ubillingConfig->getAlterParam('SMS_HISTORY_ON')) {
         $SMSHist = new SMSHistory();
-        $inputs  = $SMSHist->renderControls();
+        $inputs = $SMSHist->renderControls();
 
-        $FilterDateFrom  = ( wf_CheckGet(array('smshistdatefrom')) ) ? $_GET['smshistdatefrom'] : '"' . curdate() . '"';
-        $FilterDateTo    = ( wf_CheckGet(array('smshistdateto')) ) ? $_GET['smshistdateto'] : '"' . curdate() . '"';
+        $FilterDateFrom = ( wf_CheckGet(array('smshistdatefrom')) ) ? $_GET['smshistdatefrom'] : '"' . curdate() . '"';
+        $FilterDateTo = ( wf_CheckGet(array('smshistdateto')) ) ? $_GET['smshistdateto'] : '"' . curdate() . '"';
         $FilterMsgStatus = ( wf_CheckGet(array('msgstatus')) ) ? $_GET['msgstatus'] : 'all';
 
         if ($FilterDateFrom == $FilterDateTo) {
@@ -27,13 +28,14 @@ if (cfr('SMSHIST')) {
                 break;
         }
 
-        if ( wf_CheckGet(array('ajax')) ) {
+        if (wf_CheckGet(array('ajax'))) {
             $WhereString = ( wf_CheckGet(array('usrlogin')) ) ? " WHERE `login` = '" . $_GET['usrlogin'] . "'" : $WhereString;
             $SMSHistoryData = $SMSHist->getSMSHistoryData($WhereString);
             $SMSHist->renderJSON($SMSHistoryData);
         }
 
         show_window(__('SMS messages history'), $inputs . $SMSHist->renderJQDT());
+        zb_BillingStats(true);
     } else {
         show_error(__('This module is disabled'));
     }
