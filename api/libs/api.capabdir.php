@@ -52,15 +52,15 @@ class CapabilitiesDirectory {
      */
     public function __construct($noloaders = false) {
         if (!$noloaders) {
-            //load existing capabilities
+//load existing capabilities
             $this->loadCapabilities();
-            //load they ids
+//load they ids
             $this->loadAllIds();
-            //load existing states
+//load existing states
             $this->loadCapabStates();
-            //load employees
+//load employees
             $this->loadEmployees();
-            //init telepathy
+//init telepathy
             $this->initTelepathy();
         }
     }
@@ -249,13 +249,13 @@ class CapabilitiesDirectory {
                 $actions.= wf_link(self::URL_ME . "&edit=" . $each['id'], web_edit_icon(), false);
 
                 $loginGuess = $this->telepathy->getLogin($each['address']);
-                $profileLink = (!empty($loginGuess)) ? wf_Link('?module=userprofile&username=' . $loginGuess, web_profile_icon(), false, '') : '';
+                $profileLink = (!empty($loginGuess)) ? wf_Link('?module=userprofile&username=' . $loginGuess, web_profile_icon(), false, '') . ' (' . __('guessed') . ')' : '';
 
                 $jsonItem[] = $each['id'];
                 $jsonItem[] = $each['date'];
                 $jsonItem[] = $each['address'] . ' ' . $profileLink;
                 $jsonItem[] = $each['phone'];
-                $jsonItem[] = wf_tag('span', false, '', 'style="display:none;"') . $each['stateid'] . wf_tag('span', true) . wf_tag('font', false, '', 'color="#' . $stateColor . '"') . $stateName . wf_tag('font', true);
+                $jsonItem[] = wf_tag('span', false, '', 'style = "display:none;"') . $each['stateid'] . wf_tag('span', true) . wf_tag('font', false, '', 'color = "#' . $stateColor . '"') . $stateName . wf_tag('font', true);
                 $jsonItem[] = $each['notes'];
                 $jsonItem[] = $each['price'];
                 $jsonItem[] = $employeeName;
@@ -382,7 +382,7 @@ class CapabilitiesDirectory {
             $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '');
             $taskControl = wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
 
-            $result = wf_BackLink('?module=capabilities&page=' . $curpage) . ' ';
+            $result = wf_BackLink('?module = capabilities&page = ' . $curpage) . ' ';
             $result.= $taskControl . wf_delimiter();
 
             $inputs = wf_TextInput('editaddress', __('Full address') . $sup, $this->allcapab[$id]['address'], true);
@@ -456,7 +456,7 @@ class CapabilitiesDirectory {
             foreach ($this->capabstates as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['state']);
-                $color = wf_tag('font', false, '', 'color="#' . $each['color'] . '"') . $each['color'] . wf_tag('font', true);
+                $color = wf_tag('font', false, '', 'color = "#' . $each['color'] . '"') . $each['color'] . wf_tag('font', true);
                 $cells.= wf_TableCell($color);
                 if ($each['id'] != 0) {
                     $actions = wf_JSAlert("?module=capabilities&states=true&deletestate=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
@@ -480,7 +480,7 @@ class CapabilitiesDirectory {
      */
     public function statesAddForm() {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $result = wf_BackLink('?module=capabilities', '', true);
+        $result = wf_BackLink('?module = capabilities', '', true);
         $inputs = wf_TextInput('createstate', __('New status') . $sup, '', true, '20');
         $inputs.= wf_ColPicker('createstatecolor', __('New status color') . $sup, '#' . $this->genRandomColor(), true, '10');
         $inputs.= wf_Submit(__('Create'));
@@ -612,9 +612,9 @@ class CapabilitiesDirectory {
         $result.= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
         $result.= wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
         if (wf_CheckGet(array('calendar'))) {
-            $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'),false,'ubButton');
+            $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
         } else {
-            $result.= wf_Link(self::URL_ME . '&calendar=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'),false,'ubButton');
+            $result.= wf_Link(self::URL_ME . '&calendar=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
         }
         $result.=wf_tag('br') . wf_tag('br');
 
