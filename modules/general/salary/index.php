@@ -124,12 +124,12 @@ if (cfr('SALARY')) {
                     if (wf_CheckPost(array('premployeeid'))) {
                         //single employee report
                         $reportTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_POST['premployeeid']) . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'] . ' ';
-
-                        $printLink = wf_tag('a', false, '', 'href="' . $salary::URL_ME . '&' . salary::URL_PAYROLL . '&print=true&e=' . $_POST['premployeeid'] . '&df=' . $_POST['prdatefrom'] . '&dt=' . $_POST['prdateto'] . '" TARGET="_BLANK"');
+                        $extraParams = (wf_CheckPost(array('prnocharts'))) ? '&nc=1' : '';
+                        $printLink = wf_tag('a', false, '', 'href="' . $salary::URL_ME . '&' . salary::URL_PAYROLL . '&print=true&e=' . $_POST['premployeeid'] . '&df=' . $_POST['prdatefrom'] . '&dt=' . $_POST['prdateto'] . $extraParams . '" TARGET="_BLANK"');
                         $printLink.= web_icon_print();
                         $printLink.= wf_tag('a', true);
                         $reportTitle.=$printLink;
-                        show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid'],$_POST['prjobtypeid']));
+                        show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid'], $_POST['prjobtypeid']));
                     } else {
                         //multiple employee report
                         $reportTitle = __('Payroll') . ': ' . __('All') . ' ' . __('Employee') . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'];
@@ -213,7 +213,7 @@ if (cfr('SALARY')) {
                 show_window(__('Labor time'), $salary->ltReportRenderResults());
                 show_window('', wf_BackLink($salary::URL_ME));
             }
-            
+
             if (wf_CheckGet(array('yearreport'))) {
                 show_window(__('Year salary reports'), $salary->renderYearReport());
                 show_window('', wf_BackLink($salary::URL_ME));

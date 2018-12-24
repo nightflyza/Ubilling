@@ -1170,11 +1170,13 @@ class Salary {
         $toDate = (wf_CheckPost(array('prdateto'))) ? $_POST['prdateto'] : curdate();
         $currentEmployee = (wf_CheckPost(array('premployeeid'))) ? $_POST['premployeeid'] : '';
         $currentJobTypeId = (wf_CheckPost(array('prjobtypeid'))) ? $_POST['prjobtypeid'] : '';
+        $currentChartsFlag = (wf_CheckPost(array('prnocharts'))) ? true : false;
 
         $inputs = wf_DatePickerPreset('prdatefrom', $fromDate, true) . ' ';
         $inputs.= wf_DatePickerPreset('prdateto', $toDate, true) . ' ';
         $inputs.= wf_Selector('premployeeid', $empParams, __('Worker'), $currentEmployee, false);
         $inputs.= wf_Selector('prjobtypeid', $jobtypeParams, __('Job type'), $currentJobTypeId, false, false);
+        $inputs.= wf_CheckInput('prnocharts', __('No charts'), false, $currentChartsFlag);
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -1197,6 +1199,10 @@ class Salary {
         $totalTimeSpent = 0; //in minutes
         $timeSheetsTimeSpent = 0; // in minutes
         $rangeTimesheets = $this->timesheetFilterDateRange($datefrom, $dateto);
+        $currentChartsFlag = (wf_CheckPost(array('prnocharts'))) ? true : false;
+        if (wf_CheckGet(array('nc'))) {
+            $currentChartsFlag = true;
+        }
 
         $chartData = array();
         $chartDataCash = array();
@@ -1375,13 +1381,62 @@ class Salary {
             }
 
             $result.=wf_tag('div', false, '', 'style="page-break-after: always;"') . wf_tag('div', true);
-            $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
-            $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time') . ' (' . __('hours') . ')', '600px', '400px', $chartOpts));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
-            $chartRows = wf_TableRow($chartCells);
-            $chartCells = wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
-            $chartRows.= wf_TableRow($chartCells);
-            $result.= wf_TableBody($chartRows, '100%', 0, '');
+            if (!$currentChartsFlag) {
+                $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
+                $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time') . ' (' . __('hours') . ')', '600px', '400px', $chartOpts));
+                $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
+                $chartRows = wf_TableRow($chartCells);
+                $chartCells = wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
+                $chartRows.= wf_TableRow($chartCells);
+                $result.= wf_TableBody($chartRows, '100%', 0, '');
+            } else {
+                $result.=wf_tag('br');
+                $result.=$this->renderTableViewStats($timeChartData, __('Time') . ' (' . __('hours') . ')', true);
+                $result.=$this->renderTableViewStats($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', true, true);
+                $result.=$this->renderTableViewStats($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', true, true);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders default pie-chart data as table summary
+     * 
+     * @param array $chartData
+     * @param string $title
+     * @param bool $filterType
+     * @param boolt $replaceValue
+     * @return string
+     */
+    protected function renderTableViewStats($chartData, $title = '', $filterType = true, $replaceValue = false) {
+        $result = '';
+        $result.= wf_tag('b') . __($title) . wf_tag('b', true);
+        if (!empty($chartData)) {
+            $cells = wf_TableCell(__('Type'));
+            $cells.= wf_TableCell(__('Value'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($chartData as $io => $each) {
+                $type = $io;
+                $value = $each;
+
+                if ($replaceValue) {
+                    if (preg_match('/\([^)]+\)/', $type, $match)) {
+                        $value = $match[0];
+                        $value = str_replace('(', '', $value);
+                        $value = str_replace(')', '', $value);
+                    }
+                }
+
+                if ($filterType) {
+                    $type = str_replace($each, '', $type);
+                    $type = preg_replace("/\([^)]+\)/", '', $type);
+                }
+
+                $cells = wf_TableCell($type);
+                $cells.= wf_TableCell($value);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
         }
         return ($result);
     }
@@ -1420,6 +1475,8 @@ class Salary {
         $datefrom = mysql_real_escape_string($datefrom);
         $dateto = mysql_real_escape_string($dateto);
         $jobtypeid = vf($jobtypeid, 3);
+
+        $currentChartsFlag = (wf_CheckPost(array('prnocharts'))) ? true : false;
 
         $result = '';
         $totalSum = 0;
@@ -1526,16 +1583,23 @@ class Salary {
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_delimiter();
 //charts
-        $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
         $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
-        $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px', $chartOpts));
-        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px', $chartOpts));
-        $rows = wf_TableRow($cells);
-        $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px', $chartOpts));
-        $cells.= wf_TableCell('');
-        $rows.= wf_TableRow($cells);
-        $result.= wf_TableBody($rows, '100%', 0, '');
+        if (!$currentChartsFlag) {
+            $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
+
+            $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px', $chartOpts));
+            $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px', $chartOpts));
+            $rows = wf_TableRow($cells);
+            $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px', $chartOpts));
+            $cells.= wf_TableCell('');
+            $rows.= wf_TableRow($cells);
+            $result.= wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result.=$this->renderTableViewStats($sumCharts, __('Money'), true);
+            $result.=$this->renderTableViewStats($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), true);
+            $result.=$this->renderTableViewStats($employeeCharts, __('Jobs'), true);
+        }
 
         return ($result);
     }
