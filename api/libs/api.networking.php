@@ -37,7 +37,7 @@ function multinet_show_available_networks() {
                 $actions .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_freeradius('Set RADIUS-attributes'));
             }
             $cells .= wf_TableCell($actions);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -220,7 +220,7 @@ function multinet_show_available_services() {
             $actionlinks = wf_JSAlert('?module=multinet&deleteservice=' . $eachservice['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actionlinks.= wf_JSAlert('?module=multinet&editservice=' . $eachservice['id'], web_edit_icon(), 'Are you serious');
             $tablecells.= wf_TableCell($actionlinks);
-            $tablerows.= wf_TableRow($tablecells, 'row3');
+            $tablerows.= wf_TableRow($tablecells, 'row5');
         }
     }
 
