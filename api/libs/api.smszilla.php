@@ -628,6 +628,7 @@ class SMSZilla {
             'filternotariff' => 'User have no tariff assigned',
             'filterpassive' => 'User is frozen',
             'filternotpassive' => 'User is not frozen',
+            'filteractive' => 'User is active',
             'filtertags' => 'User have tag assigned',
             'filtertariff' => 'User have tariff',
             'filtertariffcontain' => 'User tariff contains',
@@ -694,7 +695,7 @@ class SMSZilla {
         $name = mysql_real_escape_string($name);
         $text = mysql_real_escape_string($text);
         $query = "INSERT INTO `smz_templates` (`id`,`name`,`text`) VALUES ";
-        $query.= "(NULL,'" . $name . "','" . $text . "');";
+        $query .= "(NULL,'" . $name . "','" . $text . "');";
         nr_query($query);
         $newId = simple_get_lastid('smz_templates');
         log_register('SMSZILLA TEMPLATE CREATE [' . $newId . ']');
@@ -752,14 +753,14 @@ class SMSZilla {
     public function renderTemplateCreateForm() {
         $result = '';
         $inputs = wf_TextInput('newtemplatename', __('Name'), '', true, '40');
-        $inputs.=__('Template') . wf_tag('br');
-        $inputs.= wf_TextArea('newtemplatetext', '', '', true, '45x5');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= __('Template') . wf_tag('br');
+        $inputs .= wf_TextArea('newtemplatetext', '', '', true, '45x5');
+        $inputs .= wf_Submit(__('Create'));
         $form = wf_Form(self::URL_ME . '&templates=true', 'POST', $inputs, 'glamour');
         $cells = wf_TableCell($form, '50%', '', 'valign="top"');
-        $cells.= wf_TableCell($this->renderMacroHelp(), '', '', 'valign="top"');
+        $cells .= wf_TableCell($this->renderMacroHelp(), '', '', 'valign="top"');
         $rows = wf_TableRow($cells);
-        $result.=wf_TableBody($rows, '100%', 0);
+        $result .= wf_TableBody($rows, '100%', 0);
         return ($result);
     }
 
@@ -771,11 +772,11 @@ class SMSZilla {
     protected function renderMacroHelp() {
         $result = '';
         if (!empty($this->supportedMacro)) {
-            $result.=wf_tag('strong') . __('Available macroses') . ':' . wf_tag('strong', true) . wf_delimiter();
+            $result .= wf_tag('strong') . __('Available macroses') . ':' . wf_tag('strong', true) . wf_delimiter();
             foreach ($this->supportedMacro as $io => $each) {
-                $result.=wf_tag('b') . $io . wf_tag('b', true) . ' - ' . $each . wf_tag('br');
+                $result .= wf_tag('b') . $io . wf_tag('b', true) . ' - ' . $each . wf_tag('br');
             }
-            $result.=wf_tag('br') . wf_Link(self::URL_MACROHELP, __('Details'));
+            $result .= wf_tag('br') . wf_Link(self::URL_MACROHELP, __('Details'));
         }
         return ($result);
     }
@@ -793,18 +794,18 @@ class SMSZilla {
         if (isset($this->templates[$templateId])) {
             $templateData = $this->templates[$templateId];
             $inputs = wf_HiddenInput('edittemplateid', $templateId);
-            $inputs.= wf_TextInput('edittemplatename', __('Name'), $templateData['name'], true, '40');
-            $inputs.=__('Template') . wf_tag('br');
-            $inputs.= wf_TextArea('edittemplatetext', '', $templateData['text'], true, '45x5');
+            $inputs .= wf_TextInput('edittemplatename', __('Name'), $templateData['name'], true, '40');
+            $inputs .= __('Template') . wf_tag('br');
+            $inputs .= wf_TextArea('edittemplatetext', '', $templateData['text'], true, '45x5');
             $templateSize = mb_strlen($templateData['text'], 'utf-8');
-            $inputs.=__('Text size') . ' ~' . $templateSize . wf_tag('br');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= __('Text size') . ' ~' . $templateSize . wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
             $form = wf_Form(self::URL_ME . '&templates=true&edittemplate=' . $templateId, 'POST', $inputs, 'glamour');
 
             $cells = wf_TableCell($form, '50%', '', 'valign="top"');
-            $cells.= wf_TableCell($this->renderMacroHelp(), '', '', 'valign="top"');
+            $cells .= wf_TableCell($this->renderMacroHelp(), '', '', 'valign="top"');
             $rows = wf_TableRow($cells);
-            $result.=wf_TableBody($rows, '100%', 0);
+            $result .= wf_TableBody($rows, '100%', 0);
         } else {
             $result = $this->messages->getStyledMessage(__('Something went wrong') . ': TEMPLATE_ID_NOT_EXISTS', 'error');
         }
@@ -820,19 +821,19 @@ class SMSZilla {
         $result = '';
         if (!empty($this->templates)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.=wf_TableCell(__('Name'));
-            $cells.=wf_TableCell(__('Text'));
-            $cells.=wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Text'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->templates as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.=wf_TableCell($each['name']);
-                $cells.=wf_TableCell($each['text']);
+                $cells .= wf_TableCell($each['name']);
+                $cells .= wf_TableCell($each['text']);
                 $actLinks = wf_JSAlert(self::URL_ME . '&templates=true&deletetemplate=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_JSAlert(self::URL_ME . '&templates=true&edittemplate=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert());
+                $actLinks .= wf_JSAlert(self::URL_ME . '&templates=true&edittemplate=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert());
 
-                $cells.=wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
@@ -891,7 +892,7 @@ class SMSZilla {
         if (!empty($mobileNumF)) {
             if (!isset($this->excludeNumbers[$mobileNumF])) {
                 $query = "INSERT INTO `smz_excl` (`id`,`mobile`) VALUES ";
-                $query.="(NULL,'" . $mobileNumF . "');";
+                $query .= "(NULL,'" . $mobileNumF . "');";
                 nr_query($query);
                 $newId = simple_get_lastid('smz_excl');
                 log_register('SMSZILLA EXCLUDE CREATE [' . $newId . '] `' . $mobileNum . '`');
@@ -921,8 +922,8 @@ class SMSZilla {
     public function renderNumListCreateForm() {
         $result = '';
         $inputs = wf_TextInput('newnumlistname', __('Name'), '', false, 20) . ' ';
-        $inputs.= wf_Submit(__('Create'));
-        $result.= wf_Form(self::URL_ME . '&numlists=true', 'POST', $inputs, 'glamour');
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form(self::URL_ME . '&numlists=true', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -938,9 +939,9 @@ class SMSZilla {
         $numlistId = vf($numlistId, 3);
         if (isset($this->allNumListsNames[$numlistId])) {
             $inputs = wf_HiddenInput('editnumlistid', $numlistId);
-            $inputs.= wf_TextInput('editnumlistname', __('Name'), $this->allNumListsNames[$numlistId], true, '20');
-            $inputs.=wf_Submit(__('Save'));
-            $result.=wf_Form(self::URL_ME . '&numlists=true', 'POST', $inputs, 'glamour');
+            $inputs .= wf_TextInput('editnumlistname', __('Name'), $this->allNumListsNames[$numlistId], true, '20');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form(self::URL_ME . '&numlists=true', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -970,23 +971,23 @@ class SMSZilla {
         $result = '';
         if (!empty($this->allNumListsNames)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Name'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allNumListsNames as $io => $each) {
                 $cells = wf_TableCell($io);
-                $cells.= wf_TableCell($each);
+                $cells .= wf_TableCell($each);
                 $actLinks = wf_JSAlert(self::URL_ME . '&numlists=true&deletenumlistid=' . $io, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_JSAlert(self::URL_ME . '&numlists=true&editnumlistid=' . $io, web_edit_icon(), $this->messages->getEditAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $actLinks .= wf_JSAlert(self::URL_ME . '&numlists=true&editnumlistid=' . $io, web_edit_icon(), $this->messages->getEditAlert());
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
-        $result.=wf_tag('br');
-        $result.=$this->renderNumListCreateForm();
+        $result .= wf_tag('br');
+        $result .= $this->renderNumListCreateForm();
         return ($result);
     }
 
@@ -1002,7 +1003,7 @@ class SMSZilla {
         $nameF = mysql_real_escape_string($name);
         if (!empty($nameF)) {
             $query = "INSERT INTO `smz_lists` (`id`,`name`) VALUES ";
-            $query.="(NULL,'" . $nameF . "');";
+            $query .= "(NULL,'" . $nameF . "');";
             nr_query($query);
             $newId = simple_get_lastid('smz_lists');
             log_register('SMSZILLA NUMLIST CREATE [' . $newId . '] `' . $name . '`');
@@ -1043,10 +1044,10 @@ class SMSZilla {
         $result = '';
         if (!empty($this->allNumListsNames)) {
             $inputs = wf_Selector('newsinglenumlistid', $this->allNumListsNames, __('Numbers list'), '', false);
-            $inputs.= wf_TextInput('newsinglenumlistmobile', __('Mobile'), '', false, 15, 'mobile');
-            $inputs.= wf_TextInput('newsinglenumlistnotes', __('Notes'), '', false, 30);
-            $inputs.= wf_Submit(__('Add'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_TextInput('newsinglenumlistmobile', __('Mobile'), '', false, 15, 'mobile');
+            $inputs .= wf_TextInput('newsinglenumlistnotes', __('Notes'), '', false, 30);
+            $inputs .= wf_Submit(__('Add'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -1059,15 +1060,15 @@ class SMSZilla {
     public function uploadNumListNumbersForm() {
         $result = '';
         if (!empty($this->allNumListsNames)) {
-            $result.= wf_tag('form', false, 'glamour', 'action="" enctype="multipart/form-data" method="POST"');
-            $result.= wf_HiddenInput('uploadnumlistnumbers', 'true');
-            $result.=wf_Selector('newnumslistid', $this->allNumListsNames, __('Numbers list'), '', false);
-            $result.= wf_tag('input', false, '', 'id="fileselector" type="file" name="smznumlistcsv"');
-            $result.=wf_Submit('Upload');
-            $result.=wf_tag('form', true);
-            $result.=wf_CleanDiv();
+            $result .= wf_tag('form', false, 'glamour', 'action="" enctype="multipart/form-data" method="POST"');
+            $result .= wf_HiddenInput('uploadnumlistnumbers', 'true');
+            $result .= wf_Selector('newnumslistid', $this->allNumListsNames, __('Numbers list'), '', false);
+            $result .= wf_tag('input', false, '', 'id="fileselector" type="file" name="smznumlistcsv"');
+            $result .= wf_Submit('Upload');
+            $result .= wf_tag('form', true);
+            $result .= wf_CleanDiv();
         } else {
-            $result.=$this->messages->getStyledMessage(__('No existing numbers lists available'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('No existing numbers lists available'), 'warning');
         }
         return ($result);
     }
@@ -1088,12 +1089,12 @@ class SMSZilla {
             $mobileF = mysql_real_escape_string($mobile);
             $notes = mysql_real_escape_string($notes);
             $query = "INSERT INTO `smz_nums` (`id`,`numid`,`mobile`,`notes`) VALUES ";
-            $query.="(NULL, '" . $numlistId . "','" . $mobileF . "','" . $notes . "');";
+            $query .= "(NULL, '" . $numlistId . "','" . $mobileF . "','" . $notes . "');";
             nr_query($query);
             $newId = simple_get_lastid('smz_nums');
             log_register('SMSZILLA NUMLISTNUM CREATE [' . $numlistId . '] MOBILE  `' . $mobile . '`');
         } else {
-            $result.=__('Oh no') . ': EX_NUMLISTID_NOT_EXISTS';
+            $result .= __('Oh no') . ': EX_NUMLISTID_NOT_EXISTS';
         }
         return ($result);
     }
@@ -1149,7 +1150,7 @@ class SMSZilla {
                 }
             }
         } else {
-            $result.=__('You are not mentally prepared for this');
+            $result .= __('You are not mentally prepared for this');
         }
         return ($result);
     }
@@ -1163,11 +1164,11 @@ class SMSZilla {
         $result = '';
         if (!empty($this->allNumListsNames)) {
             $inputs = wf_Selector('cleanupnumlistid', $this->allNumListsNames, __('Numbers list'), '', false) . ' ';
-            $inputs.= wf_CheckInput('cleanupagree', __('I`m ready'), false, false) . ' ';
-            $inputs.= wf_Submit(__('Cleanup'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_CheckInput('cleanupagree', __('I`m ready'), false, false) . ' ';
+            $inputs .= wf_Submit(__('Cleanup'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return ($result);
     }
@@ -1236,12 +1237,12 @@ class SMSZilla {
                             $newNotes = '';
                             unset($lineExploded[0]);
                             foreach ($lineExploded as $ia => $nts) {
-                                $newNotes.=$nts . ' ';
+                                $newNotes .= $nts . ' ';
                             }
                             $newNotes = trim($newNotes);
                             $newNotes = mysql_real_escape_string($newNotes);
                             $query = "INSERT INTO `smz_nums` (`id`,`numid`,`mobile`,`notes`) VALUES ";
-                            $query.="(NULL,'" . $numlistId . "','" . $newNumber . "','" . $newNotes . "');";
+                            $query .= "(NULL,'" . $numlistId . "','" . $newNumber . "','" . $newNotes . "');";
                             nr_query($query);
                             $count++;
                         }
@@ -1261,7 +1262,7 @@ class SMSZilla {
     public function renderNumsContainer() {
         $result = '';
         $columns = array('ID', 'Numbers list', 'Mobile', 'Notes', 'Actions');
-        $result.=wf_JqDtLoader($columns, self::URL_ME . '&numlists=true&ajnums=true', false, __('Mobile'), 100);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&numlists=true&ajnums=true', false, __('Mobile'), 100);
         return ($result);
     }
 
@@ -1312,19 +1313,19 @@ class SMSZilla {
         $result = '';
         if (!empty($this->excludeNumbers)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Mobile'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Mobile'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->excludeNumbers as $io => $each) {
                 $cells = wf_TableCell($each);
-                $cells.= wf_TableCell($io);
+                $cells .= wf_TableCell($io);
                 $actLinks = wf_JSAlertStyled(self::URL_ME . '&excludes=true&deleteexclnumid=' . $each, web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Oh no') . ': ' . __('Nothing to show'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Oh no') . ': ' . __('Nothing to show'), 'warning');
         }
         return ($result);
     }
@@ -1337,8 +1338,8 @@ class SMSZilla {
     public function renderExcludeCreateForm() {
         $result = '';
         $inputs = wf_TextInput('newexcludenumber', __('Mobile'), '', false, '20', 'mobile');
-        $inputs.= wf_Submit(__('Create'));
-        $result.=wf_Form(self::URL_ME . '&excludes=true', 'POST', $inputs, 'glamour');
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form(self::URL_ME . '&excludes=true', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -1349,31 +1350,30 @@ class SMSZilla {
      */
     public function panel() {
         $result = '';
-        $result.=wf_Link(self::URL_ME . '&sending=true', wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS sending'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&numlists=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&excludes=true', wf_img('skins/icon_deleterow.png') . ' ' . __('Excludes'), !$this->sms->smsRoutingFlag, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&sending=true', wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS sending'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&numlists=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&excludes=true', wf_img('skins/icon_deleterow.png') . ' ' . __('Excludes'), !$this->sms->smsRoutingFlag, 'ubButton') . ' ';
 
         if ($this->sms->smsRoutingFlag) {
             $cacheLnkId = wf_InputId();
             $addServiceJS = wf_JSAjaxModalOpener(self::URL_ME, array('action' => 'RefreshBindingsCache'), $cacheLnkId, true);
-            $result.= wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), true, 'ubButton', 'id="' . $cacheLnkId . '"') . $addServiceJS;
+            $result .= wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), true, 'ubButton', 'id="' . $cacheLnkId . '"') . $addServiceJS;
         }
 
         if (wf_CheckGet(array('action')) and $_GET['action'] == 'RefreshBindingsCache') {
             $this->sms->smsDirections->refreshCacheForced();
-            $messageWindow = $this->messages->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
-                                                                'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+            $messageWindow = $this->messages->getStyledMessage(__('SMS services cache bindings updated succesfuly'), 'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
             die(wf_modalAutoForm('', $messageWindow, $_GET['modalWindowId'], '', true));
         }
 
         if (wf_CheckGet(array('templates'))) {
-            $result.=wf_tag('br');
+            $result .= wf_tag('br');
             if (wf_CheckGet(array('edittemplate'))) {
-                $result.=wf_BackLink(self::URL_ME . '&templates=true') . ' ';
+                $result .= wf_BackLink(self::URL_ME . '&templates=true') . ' ';
             } else {
-                $result.=wf_modalAuto(web_icon_create() . ' ' . __('Create new template'), __('Create new template'), $this->renderTemplateCreateForm(), 'ubButton');
+                $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new template'), __('Create new template'), $this->renderTemplateCreateForm(), 'ubButton');
             }
         }
         return ($result);
@@ -1386,9 +1386,9 @@ class SMSZilla {
      */
     public function renderFilterCreateForm() {
         $result = '';
-        $result.=wf_AjaxLoader();
+        $result .= wf_AjaxLoader();
         $inputs = wf_AjaxContainer('inputscontainer', '', $this->catchAjRequest(true));
-        $result.= wf_Form(self::URL_ME . '&filters=true', 'POST', $inputs, 'glamour');
+        $result .= wf_Form(self::URL_ME . '&filters=true', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -1447,78 +1447,79 @@ class SMSZilla {
 
 
         $districtsParams = array('' => __('Any'));
-        $districtsParams+=$this->districts->getDistricts();
+        $districtsParams += $this->districts->getDistricts();
 
 
-        $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), self::URL_ME . '&filters=true&newfilterdirection=' . $direction, true);
-        $inputs.= wf_tag('br');
+        $inputs .= wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), self::URL_ME . '&filters=true&newfilterdirection=' . $direction, true);
+        $inputs .= wf_tag('br');
 
         if ($direction != 'none') {
-            $inputs.= wf_HiddenInput('newfilterdirection', $direction);
-            $inputs.= wf_TextInput('newfiltername', __('Filter name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '30');
+            $inputs .= wf_HiddenInput('newfilterdirection', $direction);
+            $inputs .= wf_TextInput('newfiltername', __('Filter name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '30');
 
             if (($direction == 'login') OR ( $direction == 'ukv')) {
-                $inputs.=wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
-                $inputs.= wf_TextInput('newfilteraddress', __('Address contains'), '', true, '40');
+                $inputs .= wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
+                $inputs .= wf_TextInput('newfilteraddress', __('Address contains'), '', true, '40');
             }
 
             if (($direction == 'login') OR ( $direction == 'ukv') OR ( $direction == 'employee')) {
-                $inputs.= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
+                $inputs .= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
             }
 
 
             if (($direction == 'login')) {
-                $inputs.= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
-                $inputs.= wf_TextInput('newfilterip', __('IP contains'), '', true, '20');
-                $inputs.= wf_CheckInput('newfiltercashmonth', __('Balance is not enough for the next month'), true, false);
-                $inputs.= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
+                $inputs .= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
+                $inputs .= wf_TextInput('newfilterip', __('IP contains'), '', true, '20');
+                $inputs .= wf_CheckInput('newfiltercashmonth', __('Balance is not enough for the next month'), true, false);
+                $inputs .= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
             }
 
             if ($direction == 'ukv') {
-                $inputs.=wf_Selector('newfilterukvtariff', $ukvTariffParams, __('User have tariff'), '', true, false);
-                $inputs.= wf_CheckInput('newfilterukvdebtor', __('Debtors'), true, false);
-                $inputs.= wf_CheckInput('newfilterukvactive', __('User is active'), true, false);
+                $inputs .= wf_Selector('newfilterukvtariff', $ukvTariffParams, __('User have tariff'), '', true, false);
+                $inputs .= wf_CheckInput('newfilterukvdebtor', __('Debtors'), true, false);
+                $inputs .= wf_CheckInput('newfilterukvactive', __('User is active'), true, false);
             }
 
             if (($direction == 'login') OR ( $direction == 'ukv')) {
-                $inputs.= wf_TextInput('newfiltercashgreater', __('Balance is greater than'), '', true, '5');
-                $inputs.= wf_TextInput('newfiltercashlesser', __('Balance is less than'), '', true, '5');
-                $inputs.= wf_CheckInput('newfiltercashlesszero', __('Balance is less than zero'), true, false);
-                $inputs.= wf_CheckInput('newfiltercashzero', __('Balance is zero'), true, false);
-                $inputs.=wf_Selector('newfiltertags', $tagsParams, __('User have tag assigned'), '', true, false);
+                $inputs .= wf_TextInput('newfiltercashgreater', __('Balance is greater than'), '', true, '5');
+                $inputs .= wf_TextInput('newfiltercashlesser', __('Balance is less than'), '', true, '5');
+                $inputs .= wf_CheckInput('newfiltercashlesszero', __('Balance is less than zero'), true, false);
+                $inputs .= wf_CheckInput('newfiltercashzero', __('Balance is zero'), true, false);
+                $inputs .= wf_Selector('newfiltertags', $tagsParams, __('User have tag assigned'), '', true, false);
             }
 
 
             if (($direction == 'login')) {
-                $inputs.= wf_CheckInput('newfiltercreditset', __('User have credit'), true, false);
-                $inputs.= wf_CheckInput('newfilterpassive', __('User is frozen'), true, false);
-                $inputs.= wf_CheckInput('newfilternotpassive', __('User is not frozen'), true, false);
-                $inputs.= wf_CheckInput('newfilterdown', __('User is down'), true, false);
-                $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, true);
-                $inputs.=wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
-                $inputs.=wf_TextInput('newfiltertariffcontain', __('User tariff contains'), '', true, '15');
-                $inputs.= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
-                $inputs.= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
-                $inputs.=wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
-                $inputs.=wf_Selector('newfilterdistrict', $districtsParams, __('District'), '', true, false);
+                $inputs .= wf_CheckInput('newfiltercreditset', __('User have credit'), true, false);
+                $inputs .= wf_CheckInput('newfilterpassive', __('User is frozen'), true, false);
+                $inputs .= wf_CheckInput('newfilternotpassive', __('User is not frozen'), true, false);
+                $inputs .= wf_CheckInput('newfilteractive', __('User is active'), true, false);
+                $inputs .= wf_CheckInput('newfilterdown', __('User is down'), true, false);
+                $inputs .= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, true);
+                $inputs .= wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
+                $inputs .= wf_TextInput('newfiltertariffcontain', __('User tariff contains'), '', true, '15');
+                $inputs .= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
+                $inputs .= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
+                $inputs .= wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
+                $inputs .= wf_Selector('newfilterdistrict', $districtsParams, __('District'), '', true, false);
             }
 
             if (($direction == 'numlist')) {
-                $inputs.=wf_Selector('newfilternumlist', $numListParams, __('Numbers list'), '', true, false);
-                $inputs.=wf_TextInput('newfilternumcontain', __('Notes contains'), '', true, '20');
-                $inputs.=wf_TextInput('newfilternumnotcontain', __('Notes not contains'), '', true, '20');
-                $inputs.= wf_CheckInput('newfilternumnotouruser', __('Is not our user'), true, false);
+                $inputs .= wf_Selector('newfilternumlist', $numListParams, __('Numbers list'), '', true, false);
+                $inputs .= wf_TextInput('newfilternumcontain', __('Notes contains'), '', true, '20');
+                $inputs .= wf_TextInput('newfilternumnotcontain', __('Notes not contains'), '', true, '20');
+                $inputs .= wf_CheckInput('newfilternumnotouruser', __('Is not our user'), true, false);
             }
 
             if ($direction == 'employee') {
-                $inputs.= wf_TextInput('newfilteremployeeappointment', __('Appointment'), '', true, '30');
-                $inputs.= wf_CheckInput('newfilteremployeeactive', __('Employee is active'), true, true);
+                $inputs .= wf_TextInput('newfilteremployeeappointment', __('Appointment'), '', true, '30');
+                $inputs .= wf_CheckInput('newfilteremployeeactive', __('Employee is active'), true, true);
             }
 
-            $inputs.=wf_tag('br');
-            $inputs.=wf_Submit(__('Create'));
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Create'));
         } else {
-            $inputs.=__('Please select SMS direction');
+            $inputs .= __('Please select SMS direction');
         }
 
         if (!$remote) {
@@ -1549,7 +1550,7 @@ class SMSZilla {
                     $filterParams = json_encode($filterParams);
                     $filterParams = mysql_real_escape_string($filterParams);
                     $query = "INSERT INTO `smz_filters` (`id`,`name`,`filters`) VALUES ";
-                    $query.="(NULL,'" . $filterNameF . "','" . $filterParams . "');";
+                    $query .= "(NULL,'" . $filterNameF . "','" . $filterParams . "');";
                     nr_query($query);
                     $newId = simple_get_lastid('smz_filters');
                     log_register('SMSZILLA FILTER CREATE [' . $newId . '] `' . $filterName . '`');
@@ -1589,7 +1590,7 @@ class SMSZilla {
             $unpack = json_decode($filters, true);
             if (!empty($unpack)) {
                 $cells = wf_TableCell(__('Filter'));
-                $cells.= wf_TableCell(__('Parameter'));
+                $cells .= wf_TableCell(__('Parameter'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($unpack as $io => $each) {
                     $filterName = str_replace('new', '', $io);
@@ -1597,10 +1598,10 @@ class SMSZilla {
                         $filterName = __($this->filterNames[$filterName]);
                     }
                     $cells = wf_TableCell($filterName);
-                    $cells.= wf_TableCell($each);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($each);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result.= wf_TableBody($rows, '100%', 0, '');
+                $result .= wf_TableBody($rows, '100%', 0, '');
             }
         }
         return ($result);
@@ -1615,20 +1616,20 @@ class SMSZilla {
         $result = '';
         if (!empty($this->filters)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Name'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->filters as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['name']);
+                $cells .= wf_TableCell($each['name']);
                 $actLinks = wf_JSAlert(self::URL_ME . '&filters=true&deletefilterid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_modalAuto(web_icon_search(), __('Preview'), $this->renderFilterPreview($each['filters']));
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $actLinks .= wf_modalAuto(web_icon_search(), __('Preview'), $this->renderFilterPreview($each['filters']));
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return ($result);
     }
@@ -1729,19 +1730,19 @@ class SMSZilla {
 
 
             $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), $curTemplateId, false) . ' ';
-            $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), $curFilterId, false) . ' ';
-            $inputs.= wf_CheckInput('sendingvisualfilters', __('Visual'), false, $curVisualFlag) . ' ';
-            $inputs.= wf_CheckInput('forcetranslit', __('Forced transliteration'), false, $curTranslitFlag) . ' ';
-            $inputs.= wf_CheckInput('sendingperform', __('Perform real sending'), false, false) . ' ';
+            $inputs .= wf_Selector('sendingfilterid', $filterParams, __('Filter'), $curFilterId, false) . ' ';
+            $inputs .= wf_CheckInput('sendingvisualfilters', __('Visual'), false, $curVisualFlag) . ' ';
+            $inputs .= wf_CheckInput('forcetranslit', __('Forced transliteration'), false, $curTranslitFlag) . ' ';
+            $inputs .= wf_CheckInput('sendingperform', __('Perform real sending'), false, false) . ' ';
 
-            $inputs.= wf_Submit(__('Send SMS'));
+            $inputs .= wf_Submit(__('Send SMS'));
 
-            $result.=wf_Form(self::URL_ME . '&sending=true', 'POST', $inputs, 'glamour');
+            $result .= wf_Form(self::URL_ME . '&sending=true', 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('No existing templates or filters available'), 'warning');
-            $result.=wf_CleanDiv();
-            $result.=wf_delimiter();
-            $result.=wf_tag('center') . wf_img('skins/gojiracry.jpg') . wf_tag('center', true);
+            $result .= $this->messages->getStyledMessage(__('No existing templates or filters available'), 'warning');
+            $result .= wf_CleanDiv();
+            $result .= wf_delimiter();
+            $result .= wf_tag('center') . wf_img('skins/gojiracry.jpg') . wf_tag('center', true);
         }
         return ($result);
     }
@@ -1916,7 +1917,7 @@ class SMSZilla {
                 $filterNormalName = (isset($this->filterNames[$filterName])) ? __($this->filterNames[$filterName]) : $filterName;
                 $params[] = array($filterNormalName, $entityCount);
             }
-            $result.=wf_gchartsLine($params, __('Filters'), '100%', '300px', $chartsOptions);
+            $result .= wf_gchartsLine($params, __('Filters'), '100%', '300px', $chartsOptions);
         }
         return ($result);
     }
@@ -1985,7 +1986,7 @@ class SMSZilla {
             $this->extractEntitiesNumbers();
             $sendingStats = $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . (sizeof($this->filteredNumbers) + $this->extMobilesCount), 'info');
             if (wf_CheckPost(array('sendingperform'))) {
-                $sendingStats.=$this->messages->getStyledMessage(__('SMS for all of extracted numbers stored in sending queue'), 'success');
+                $sendingStats .= $this->messages->getStyledMessage(__('SMS for all of extracted numbers stored in sending queue'), 'success');
             }
             show_window('', $sendingStats);
 
@@ -2686,6 +2687,42 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['Passive'] != '0') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * User activity filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filteractive($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Passive'] == '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+
+                            if ($entity['Down'] == '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+
+                            if ($entity['AlwaysOnline'] == '0') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+
+                            if ($entity['Cash'] < '-' . $entity['Credit']) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
