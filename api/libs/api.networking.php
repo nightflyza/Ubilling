@@ -1,6 +1,112 @@
 <?php
 
 /**
+ * Returns IP usage stats for available networks
+ * 
+ * @return array
+ */
+function multinet_getFreeIpStats() {
+    $result = array();
+    $allServices = array();
+    $allNets = array();
+    $nethostsUsed = array();
+
+    $servicesTmp = multinet_get_services();
+    $netsTmp = multinet_get_all_networks();
+    $neth_q = "SELECT COUNT(id) as count, netid from `nethosts` group by `netid`";
+    $nethTmp = simple_queryall($neth_q);
+
+    if (!empty($nethTmp)) {
+        foreach ($nethTmp as $io => $each) {
+            $nethostsUsed[$each['netid']] = $each['count'];
+        }
+    }
+
+    if (!empty($servicesTmp)) {
+        foreach ($servicesTmp as $io => $each) {
+            $allServices[$each['netid']] = $each['desc'];
+        }
+    }
+
+    if (!empty($netsTmp)) {
+        foreach ($netsTmp as $io => $each) {
+            $totalIps = multinet_expand_network($each['startip'], $each['endip']);
+            $allNets[$each['id']]['desc'] = $each['desc'];
+            $allNets[$each['id']]['total'] = count($totalIps);
+            //finding used hosts count
+            if (isset($nethostsUsed[$each['id']])) {
+                $allNets[$each['id']]['used'] = $nethostsUsed[$each['id']];
+            } else {
+                $allNets[$each['id']]['used'] = 0;
+            }
+            //finding network associated service
+            if (isset($allServices[$each['id']])) {
+                $allNets[$each['id']]['service'] = $allServices[$each['id']];
+            } else {
+                $allNets[$each['id']]['service'] = '';
+            }
+        }
+    }
+
+    return ($allNets);
+}
+
+/**
+ * Renders IP usage stats in existing networks. Reacts to allnets GET parameter.
+ * 
+ * @return string
+ */
+function web_FreeIpStats() {
+    $result = '';
+    $data = multinet_getFreeIpStats();
+
+    //checking service filters
+    if (wf_CheckGet(array('allnets'))) {
+        $servFlag = false;
+    } else {
+        $servFlag = true;
+    }
+
+    $cells = wf_TableCell(__('ID'));
+    $cells .= wf_TableCell(__('Network/CIDR'));
+    $cells .= wf_TableCell(__('Total') . ' ' . __('IP'));
+    $cells .= wf_TableCell(__('Used') . ' ' . __('IP'));
+    $cells .= wf_TableCell(__('Free') . ' ' . __('IP'));
+    $cells .= wf_TableCell(__('Service'));
+    $rows = wf_TableRow($cells, 'row1');
+
+    if (!empty($data)) {
+        foreach ($data as $io => $each) {
+            if ($servFlag) {
+                if (!empty($each['service'])) {
+                    $appendResult = true;
+                } else {
+                    $appendResult = false;
+                }
+            } else {
+                $appendResult = true;
+            }
+
+            if ($appendResult) {
+                $free = $each['total'] - $each['used'];
+                $fontColor = ($free <= 5) ? '#a90000' : '';
+                $cells = wf_TableCell($io);
+                $cells .= wf_TableCell($each['desc']);
+                $cells .= wf_TableCell($each['total']);
+                $cells .= wf_TableCell($each['used']);
+                $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
+                $cells .= wf_TableCell($each['service']);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+        }
+    }
+
+
+    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+    return ($result);
+}
+
+/**
  * Renders list of available networks
  * 
  * @global object $ubillingConfig
@@ -41,7 +147,8 @@ function multinet_show_available_networks() {
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    show_window(__('Networks'), $result);
+    $statsControls = wf_Link('?module=multinet&freeipstats=true', wf_img_sized('skins/icon_stats.gif', __('IP usage stats'), 16));
+    show_window(__('Networks') . ' ' . $statsControls, $result);
 }
 
 /**
@@ -62,20 +169,20 @@ function multinet_show_neteditform($netid) {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('netedit', 'true');
-    $inputs.= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20', 'ip');
-    $inputs.= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20', 'ip');
-    $inputs.= multinet_nettype_selector($netdata['nettype']) . ' ' . __('Network type') . wf_tag('br');
-    $inputs.= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20', 'net-cidr');
+    $inputs .= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20', 'ip');
+    $inputs .= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20', 'ip');
+    $inputs .= multinet_nettype_selector($netdata['nettype']) . ' ' . __('Network type') . wf_tag('br');
+    $inputs .= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20', 'net-cidr');
     if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
-        $inputs.= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
+        $inputs .= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
     } else {
-        $inputs.=wf_HiddenInput('edituse_radius', '0');
+        $inputs .= wf_HiddenInput('edituse_radius', '0');
     }
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_Submit(__('Save'));
 
     $form = wf_Form('', "POST", $inputs, 'glamour');
 
-    $form.=wf_BackLink('?module=multinet');
+    $form .= wf_BackLink('?module=multinet');
     show_window(__('Edit'), $form);
 }
 
@@ -90,11 +197,11 @@ function multinet_show_serviceeditform($serviceid) {
     $serviceid = vf($serviceid, 3);
     $servicedata = multinet_get_service_params($serviceid);
     $inputs = wf_HiddenInput('serviceedit', 'true');
-    $inputs.= multinet_network_selector($servicedata['netid']) . ' ' . __('Service network') . wf_tag('br');
-    $inputs.=wf_TextInput('editservicename', __('Service description') . wf_tag('sup') . '*' . wf_tag('sup', true), $servicedata['desc'], true, 15);
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= multinet_network_selector($servicedata['netid']) . ' ' . __('Service network') . wf_tag('br');
+    $inputs .= wf_TextInput('editservicename', __('Service description') . wf_tag('sup') . '*' . wf_tag('sup', true), $servicedata['desc'], true, 15);
+    $inputs .= wf_Submit(__('Save'));
     $form = wf_Form('', 'POST', $inputs, 'glamour');
-    $form.=wf_BackLink('?module=multinet');
+    $form .= wf_BackLink('?module=multinet');
     show_window(__('Edit'), $form);
 }
 
@@ -181,17 +288,17 @@ function multinet_show_networks_create_form() {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('addnet', 'true');
-    $inputs.= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20', 'ip');
-    $inputs.= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20', 'ip');
-    $inputs.= multinet_nettype_selector() . ' ' . __('Network type') . wf_tag('br');
-    $inputs.= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20', 'net-cidr');
+    $inputs .= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20', 'ip');
+    $inputs .= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20', 'ip');
+    $inputs .= multinet_nettype_selector() . ' ' . __('Network type') . wf_tag('br');
+    $inputs .= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20', 'net-cidr');
     if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
-        $inputs.= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
-        $inputs.= wf_tag('br');
+        $inputs .= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
+        $inputs .= wf_tag('br');
     } else {
-        $inputs.=wf_HiddenInput('use_radius', '0');
+        $inputs .= wf_HiddenInput('use_radius', '0');
     }
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
 
     show_window(__('Add network'), $form);
@@ -206,21 +313,21 @@ function multinet_show_available_services() {
     $allservices = multinet_get_services();
 
     $tablecells = wf_TableCell(__('ID'));
-    $tablecells.= wf_TableCell(__('Network'));
-    $tablecells.= wf_TableCell(__('Service name'));
-    $tablecells.= wf_TableCell(__('Actions'));
+    $tablecells .= wf_TableCell(__('Network'));
+    $tablecells .= wf_TableCell(__('Service name'));
+    $tablecells .= wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
             $netdesc = multinet_get_network_params($eachservice['netid']);
             $tablecells = wf_TableCell($eachservice['id']);
-            $tablecells.= wf_TableCell($netdesc['desc']);
-            $tablecells.= wf_TableCell($eachservice['desc']);
+            $tablecells .= wf_TableCell($netdesc['desc']);
+            $tablecells .= wf_TableCell($eachservice['desc']);
             $actionlinks = wf_JSAlert('?module=multinet&deleteservice=' . $eachservice['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            $actionlinks.= wf_JSAlert('?module=multinet&editservice=' . $eachservice['id'], web_edit_icon(), 'Are you serious');
-            $tablecells.= wf_TableCell($actionlinks);
-            $tablerows.= wf_TableRow($tablecells, 'row5');
+            $actionlinks .= wf_JSAlert('?module=multinet&editservice=' . $eachservice['id'], web_edit_icon(), 'Are you serious');
+            $tablecells .= wf_TableCell($actionlinks);
+            $tablerows .= wf_TableRow($tablecells, 'row5');
         }
     }
 
@@ -285,9 +392,9 @@ function multinet_service_selector() {
  */
 function multinet_show_service_add_form() {
     $inputs = wf_HiddenInput('serviceadd', 'true');
-    $inputs.= multinet_network_selector() . ' ' . __('Service network') . wf_tag('br');
-    $inputs.= wf_TextInput('servicename', __('Service description'), '', true, 15);
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= multinet_network_selector() . ' ' . __('Service network') . wf_tag('br');
+    $inputs .= wf_TextInput('servicename', __('Service description'), '', true, 15);
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Add service'), $form);
 }
@@ -447,7 +554,7 @@ function handle_dhcp_rebuild_static($netid, $confname) {
         if (!empty($allhosts)) {
             foreach ($allhosts as $io => $eachhost) {
                 $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                $result.='
+                $result .= '
    host ' . $dhcphostname . ' {
    hardware ethernet ' . $eachhost['mac'] . ';
    fixed-address ' . $eachhost['ip'] . ';
@@ -500,7 +607,7 @@ function handle_dhcp_rebuild_option82($netid, $confname) {
                     $parseTemplate = str_ireplace('{CIRCUITID}', $options[1], $parseTemplate);
                     $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
 
-                    $result.=$parseTemplate;
+                    $result .= $parseTemplate;
                 }
             }
 
@@ -551,7 +658,7 @@ allow members of "{HOSTNAME}";
                         $parseTemplate = str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
                         $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
                         $parseTemplate = str_ireplace('{REMOTEID}', $remote, $parseTemplate);
-                        $result.=$parseTemplate;
+                        $result .= $parseTemplate;
                     }
                 }
             }
@@ -586,7 +693,7 @@ function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
                     $macFull = explode(":", $allOnu[$login]);
                     foreach ($macFull as $eachOctet) {
                         $validOctet = preg_replace('/^0/', '', $eachOctet);
-                        $mac.=$validOctet . ':';
+                        $mac .= $validOctet . ':';
                     }
                     $mac_len = strlen($mac);
                     $mac = substr($mac, 0, $mac_len - 1);
@@ -605,7 +712,7 @@ allow members of "{HOSTNAME}";
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
                     $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-                    $result.=$parseTemplate;
+                    $result .= $parseTemplate;
                 }
             }
             file_put_contents($confpath, $result);
@@ -639,7 +746,7 @@ function handle_dhcp_rebuild_option82_zte($netid, $confname) {
                     $macFull = explode(":", $allOnu[$login]);
                     foreach ($macFull as $eachOctet) {
                         $validOctet = preg_replace('/^0/', '', $eachOctet);
-                        $mac.=strtoupper($eachOctet);
+                        $mac .= strtoupper($eachOctet);
                     }
                     $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
                     $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
@@ -656,7 +763,7 @@ allow members of "{HOSTNAME}";
                     $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
                     $parseTemplate = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
                     $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-                    $result.=$parseTemplate;
+                    $result .= $parseTemplate;
                 }
             }
             file_put_contents($confpath, $result);
@@ -682,7 +789,7 @@ function handle_ppp_rebuild_static($netid) {
         foreach ($allhosts as $io => $eachhost) {
             $accdata_q = "SELECT `login`,`Password` from `users` WHERE `IP`='" . $eachhost['ip'] . "'";
             $accdata = simple_query($accdata_q);
-            $result.=$accdata['login'] . ' ' . $accdata['Password'] . ' ' . $eachhost['ip'] . "\n";
+            $result .= $accdata['login'] . ' ' . $accdata['Password'] . ' ' . $eachhost['ip'] . "\n";
         }
     }
     file_put_contents($confpath, $result);
@@ -704,7 +811,7 @@ function handle_ppp_rebuild_dynamic($netid) {
         foreach ($allhosts as $io => $eachhost) {
             $accdata_q = "SELECT `login`,`Password` from `users` WHERE `IP`='" . $eachhost['ip'] . "'";
             $accdata = simple_query($accdata_q);
-            $result.=$accdata['login'] . ' ' . $accdata['Password'] . "\n";
+            $result .= $accdata['login'] . ' ' . $accdata['Password'] . "\n";
         }
     }
     file_put_contents($confpath, $result);
@@ -764,7 +871,7 @@ function multinet_rebuild_globalconf() {
         foreach ($allMembers as $ix => $eachMember) {
             $memberClass = 'm' . str_replace('.', 'x', $eachMember['ip']);
             ;
-            $membersMacroContent.='deny members of "' . $memberClass . '";' . "\n";
+            $membersMacroContent .= 'deny members of "' . $memberClass . '";' . "\n";
         }
     }
 
@@ -774,7 +881,7 @@ function multinet_rebuild_globalconf() {
         if (!empty($allVlanMembers)) {
             foreach ($allVlanMembers as $ivl => $eachVlanMember) {
                 $memberVlanClass = 'm' . str_replace('.', 'x', $eachVlanMember['ip']);
-                $vlanMembersMacroContent.='deny members of "' . $memberVlanClass . '";' . "\n";
+                $vlanMembersMacroContent .= 'deny members of "' . $memberVlanClass . '";' . "\n";
             }
         }
     }
@@ -784,7 +891,7 @@ function multinet_rebuild_globalconf() {
     if (!empty($allOnuMembers)) {
         foreach ($allOnuMembers as $index => $eachOnuMember) {
             $memberOnuClass = 'm' . str_replace('.', 'x', $eachOnuMember['ip']);
-            $onuMembersMacroContent.='deny members of "' . $memberOnuClass . '";' . "\n";
+            $onuMembersMacroContent .= 'deny members of "' . $memberOnuClass . '";' . "\n";
         }
     }
 
@@ -808,7 +915,7 @@ function multinet_rebuild_globalconf() {
                 } else {
                     $currentsubtpl = $subnets_template;
                 }
-                $subnets.=multinet_ParseTemplate($currentsubtpl, $templatedata) . "\n";
+                $subnets .= multinet_ParseTemplate($currentsubtpl, $templatedata) . "\n";
             }
         }
     }
@@ -1367,7 +1474,7 @@ function zb_NasConfigSave() {
         foreach ($allnas as $io => $eachnas) {
             $net_q = multinet_get_network_params($eachnas['netid']);
             $net_cidr = $net_q['desc'];
-            $result.=$net_cidr . ' ' . $eachnas['nasip'] . "\n";
+            $result .= $net_cidr . ' ' . $eachnas['nasip'] . "\n";
         }
     }
     file_put_contents('remote_nas.conf', $result);
@@ -1483,11 +1590,11 @@ function zb_BandwidthdGenLinks($ip) {
         } else {
             $urls['dayr'] = $bandwidthd_url . $alluserips[$ip] . '>/daily.gif';
             $urls['days'] = null;
-            $urls['weekr'] = $bandwidthd_url  . $alluserips[$ip] . '>/weekly.gif';
+            $urls['weekr'] = $bandwidthd_url . $alluserips[$ip] . '>/weekly.gif';
             $urls['weeks'] = null;
             $urls['monthr'] = $bandwidthd_url . $alluserips[$ip] . '>/monthly.gif';
             $urls['months'] = null;
-            $urls['yearr'] = $bandwidthd_url  . $alluserips[$ip] . '>/yearly.gif';
+            $urls['yearr'] = $bandwidthd_url . $alluserips[$ip] . '>/yearly.gif';
             $urls['years'] = null;
         }
     } else {
@@ -1552,10 +1659,10 @@ function zb_NewMacShow() {
 
     $cells = wf_TableCell(__('MAC'));
     if (!empty($fdbColumn)) {
-        $cells.= wf_TableCell(__('Switch'));
+        $cells .= wf_TableCell(__('Switch'));
     }
     if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
-        $cells.= wf_TableCell(__('Manufacturer'));
+        $cells .= wf_TableCell(__('Manufacturer'));
     }
     $rows = wf_TableRow($cells, 'row1');
 
@@ -1571,28 +1678,28 @@ function zb_NewMacShow() {
         if (!empty($un_arr)) {
             if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
                 //adding ajax loader
-                $result.=wf_AjaxLoader();
+                $result .= wf_AjaxLoader();
             }
             foreach ($un_arr as $io => $eachmac) {
                 if (zb_checkMacFree($eachmac, $allusedMacs)) {
                     $cells = wf_TableCell(@$eachmac);
                     if (!empty($fdbColumn)) {
-                        $cells.= wf_TableCell(sn_SnmpParseFdbExtract(@$fdbArr[$eachmac]));
+                        $cells .= wf_TableCell(sn_SnmpParseFdbExtract(@$fdbArr[$eachmac]));
                     }
 
                     if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
                         $containerName = 'NMRSMCNT_' . zb_rand_string(8);
                         $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . @$eachmac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
-                        $lookupVendorLink.= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
-                        $cells.= wf_TableCell($lookupVendorLink, '350');
+                        $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
+                        $cells .= wf_TableCell($lookupVendorLink, '350');
                     }
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
         }
     }
 
-    $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
 
 
     return($result);

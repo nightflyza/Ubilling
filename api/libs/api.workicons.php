@@ -111,6 +111,17 @@ function web_stats_icon($title = 'Stats') {
 }
 
 /**
+ * Returns standard charts icon small
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_charts($title = 'Stats') {
+    $icon = wf_img('skins/icon_charts.png', __($title));
+    return($icon);
+}
+
+/**
  * Returns standard corporate icon
  * 
  * @param string $title
