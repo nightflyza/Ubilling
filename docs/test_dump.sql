@@ -2314,3 +2314,5 @@ CREATE TABLE IF NOT EXISTS `pononuextusers` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 ALTER TABLE `corp_persons` ADD COLUMN `notes` TEXT NULL AFTER `appointment`;
+
+ALTER TABLE `employee` ADD `amountLimit` VARCHAR(45) NOT NULL DEFAULT '0' AFTER `tagid`;
