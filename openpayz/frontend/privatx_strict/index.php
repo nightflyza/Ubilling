@@ -312,6 +312,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
             }
 
             if (empty($agentCode) or PBX_USER_AGENT_ID !== intval($agentCode)) {
+                // useragent from where the payment comes is not the same as in DB for this login
                 $result = $templateFail;
                 $result = trim($result);
                 return ($result);
