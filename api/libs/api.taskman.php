@@ -38,6 +38,7 @@ function em_EmployeeShowForm() {
     $cells.= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
     $cells.= wf_TableCell(__('Administrator'));
     $cells.= wf_TableCell(__('Tag'));
+    $cells.= wf_TableCell(__('Monthly top up limit'));
     $cells.= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
@@ -60,6 +61,7 @@ function em_EmployeeShowForm() {
             $employeeTagName = (!empty($employeeTagId)) ? $allTagNames[$employeeTagId] : '';
             $employeeTagLabel = (!empty($employeeTagName)) ? $employeeTagName . ' (' . $employeeTagId . ')' : '';
             $cells.= wf_TableCell($employeeTagLabel);
+            $cells.= wf_TableCell($eachemployee['amountLimit']);
             $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions.= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
             $cells.= wf_TableCell($actions);
@@ -77,6 +79,7 @@ function em_EmployeeShowForm() {
     $inputs.= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 15));
     $inputs.= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
     $inputs.= wf_TableCell(em_TagSelector('editadtagid'));
+    $inputs.= wf_TableCell(wf_TextInput('amountLimit', '', '', false, 10, 'finance'));
     $inputs.= wf_TableCell(wf_Submit(__('Create')));
     $inputs = wf_TableRow($inputs, 'row2');
     $addForm = wf_Form("", 'POST', $inputs, '');
@@ -139,15 +142,15 @@ function em_JobTypeForm() {
  * 
  * @return void
  */
-function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '') {
+function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '', $amountLimit = 0) {
     $name = mysql_real_escape_string(trim($name));
     $job = mysql_real_escape_string(trim($job));
     $mobile = mysql_real_escape_string($mobile);
     $telegram = mysql_real_escape_string($telegram);
     $admlogin = mysql_real_escape_string($admlogin);
     $tagid = mysql_real_escape_string($tagid);
-    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`)
-              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . "); ";
+    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`, `amountLimit`)
+              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . ", " . $amountLimit . "); ";
     nr_query($query);
     $employee_id = simple_query("SELECT LAST_INSERT_ID() as id");
     $employee_id = $employee_id['id'];

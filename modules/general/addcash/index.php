@@ -16,12 +16,33 @@ if (cfr('CASH')) {
             // Empty cash hotfix:
             if ($cash != '') {
                 if (zb_checkMoney($cash)) {
-                    if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
-                        zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
+                    $whoami = whoami();
+                    $employeeId = ts_GetEmployeeByLogin($whoami);
+                    $employeeData = stg_get_employee_data($employeeId);
+                    $employeeLimit = @$employeeData['amountLimit'];
+                    if (! cfr('ROOT') and !empty($employeeLimit)) {
+                        $query = "SELECT sum(`summ`) as `summa` FROM `payments` WHERE MONTH(`date`) = MONTH(NOW()) AND YEAR(`date`) = YEAR(NOW()) AND admin = '" . $whoami . "'";
+                        $summa = simple_query($query);
+                        $summa = $summa['summa'];
+                        if ($employeeLimit-$summa >= $cash) {
+                            if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
+                                zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
+                            } else {
+                                zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+                            }
+                            rcms_redirect("?module=addcash&username=" . $login);
+                        } else {
+                            show_window('', wf_modalOpened(__('Error'), __('Payment amount exceeded per month') . wf_tag('br') . __('You can top up for the amount of:') . ' ' . __($employeeLimit-$summa), '400', '200'));
+                            log_register('BALANCEADDFAIL (' . $login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit-$summa) . '` TRY ADD SUMM `' . $cash . '`');
+                        }
                     } else {
-                        zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+                        if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
+                            zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
+                        } else {
+                            zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+                        }
+                        rcms_redirect("?module=addcash&username=" . $login);
                     }
-                    rcms_redirect("?module=addcash&username=" . $login);
                 } else {
                     show_window('', wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
                     log_register('BALANCEADDFAIL (' . $login . ') WRONG SUMM `' . $cash . '`');
@@ -49,10 +70,8 @@ if (cfr('CASH')) {
 
         $form = '';
         $form.= wf_FormDisabler();
-        $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
+        $form.= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
         
-
-
         // Check is user corporate?
         if ($alter['USER_LINKING_ENABLED']) {
             if ($alter['USER_LINKING_CASH']) {

@@ -5,7 +5,7 @@ if (cfr('EMPLOYEEDIR')) {
     $ubCache = new UbillingCache();
 
     if (wf_CheckPost(array('addemployee', 'employeename'))) {
-        em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile'], @$_POST['employeetelegram'], @$_POST['employeeadmlogin'], @$_POST['editadtagid']);
+        em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile'], @$_POST['employeetelegram'], @$_POST['employeeadmlogin'], @$_POST['editadtagid'], @$_POST['amountLimit']);
         $ubCache->delete('EMPLOYEE_LOGINS');
         rcms_redirect("?module=employee");
     }
@@ -63,6 +63,7 @@ if (cfr('EMPLOYEEDIR')) {
             simple_update_field('employee', 'telegram', $_POST['edittelegram'], "WHERE `id`='" . $editemployee . "'");
             simple_update_field('employee', 'admlogin', $_POST['editadmlogin'], "WHERE `id`='" . $editemployee . "'");
             simple_update_field('employee', 'tagid', $_POST['editadtagid'], "WHERE `id`='" . $editemployee . "'", true);
+            simple_update_field('employee', 'amountLimit', (!empty($_POST['amountLimit'])) ? $_POST['amountLimit'] : 0, "WHERE `id`='" . $editemployee . "'");
 
             if (wf_CheckPost(array('editactive'))) {
                 simple_update_field('employee', 'active', '1', "WHERE `id`='" . $editemployee . "'");
@@ -82,13 +83,14 @@ if (cfr('EMPLOYEEDIR')) {
             $actflag = false;
         }
         $editinputs = wf_TextInput('editname', 'Real Name', $employeedata['name'], true, 20);
-        $editinputs.=wf_TextInput('editappointment', 'Appointment', $employeedata['appointment'], true, 20);
-        $editinputs.=wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
-        $editinputs.=wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20);
-        $editinputs.=wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
-        $editinputs.=em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
-        $editinputs.=wf_CheckInput('editactive', 'Active', true, $actflag);
-        $editinputs.=wf_Submit('Save');
+        $editinputs.= wf_TextInput('editappointment', 'Appointment', $employeedata['appointment'], true, 20);
+        $editinputs.= wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
+        $editinputs.= wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20);
+        $editinputs.= wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
+        $editinputs.= em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
+        $editinputs.= wf_TextInput('amountLimit', __('Monthly top up limit'), $employeedata['amountLimit'], true, 20, 'finance');
+        $editinputs.= wf_CheckInput('editactive', 'Active', true, $actflag);
+        $editinputs.= wf_Submit('Save');
         $editform = wf_Form('', 'POST', $editinputs, 'glamour');
         show_window(__('Edit'), $editform);
         show_window('', wf_BackLink('?module=employee', 'Back', true, 'ubButton'));
