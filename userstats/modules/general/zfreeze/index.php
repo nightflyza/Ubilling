@@ -11,6 +11,7 @@ if ($us_config['AF_ENABLED']) {
     $freezeprice = $us_config['AF_FREEZPRICE'];
     $allowed_tariffs_raw = $us_config['AF_TARIFFSALLOWED'];
     $allowed_tariffs = explode(',', $allowed_tariffs_raw);
+    $allowed_any_tariff = (isset($us_config['AF_TARIFF_ALLOW_ANY'])) ? $us_config['AF_TARIFF_ALLOW_ANY'] : 0;
     $af_cahtypeid = $us_config['AF_CASHTYPEID'];
     $af_currency = $us_config['currency'];
     $AllowFreezeOnNegativeBal = ( isset($us_config['FREEZE_ALLOW_ON_NEGATIVE_BALANCE']) && $us_config['FREEZE_ALLOW_ON_NEGATIVE_BALANCE'] );
@@ -22,7 +23,7 @@ if ($us_config['AF_ENABLED']) {
     $passive_current = $userdata['Passive'];
 
     //check is tariff allowed?
-    if (in_array($user_tariff, $allowed_tariffs)) {
+    if ($allowed_any_tariff or in_array($user_tariff, $allowed_tariffs)) {
         //is user really active now?
         if ($usercash >= 0 || $AllowFreezeOnNegativeBal) {
             //check for prevent dual freeze
