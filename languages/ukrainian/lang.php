@@ -1,4 +1,4 @@
-<?
+<?php
 ////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ReloadCMS Development Team                                 //
 //   http://reloadcms.sf.net                                                  //
@@ -40,7 +40,7 @@ $lang['def']['Category updated'] = 'Категорію поновлено';
 $lang['def']['Back'] = 'Назад';
 $lang['def']['Create new category'] = 'Нова категорія';
 $lang['def']['Description'] = 'Опис';
-$lang['def']['Minimum access level'] = 'Мінімальный рівень доступу';
+$lang['def']['Minimum access level'] = 'Мінімальний рівень доступу';
 $lang['def']['Icon for category'] = 'Іконка';
 $lang['def']['Edit category'] = 'Редагування категорії';
 $lang['def']['Add category'] = 'Створити категорію';
@@ -500,7 +500,7 @@ $lang['def']['Feedback requests'] = 'Запити зворотнього звя�
 $lang['def']['Core controls'] = 'Основне керування';
 $lang['def']['Article posting form'] = 'Форма публікації статті';
 $lang['def']['Articles calendar'] = 'Календар статей';
-$lang['def']['You can use modifiers to create link to specified part of your site. Type MODIFIER:OPTIONS in "Link" column. If you want to override default title of modified link you must enter your title to "Title" column, or leave it empty to use default one. Here is a list of modifiers:'] = 'Ви можете використовувати модифікатори для створення посилання в деякі частини сайту, для цього введіть МОДИФІКАТОР:ОПЦІЇ в колонці "Посилання".  Аби переназвати заголовок що генерується модифікатором введіть свій в полі "Заголовок", інакше залиште його порожнім. Нижче приведені описи доступных модифікаторів.';
+$lang['def']['You can use modifiers to create link to specified part of your site. Type MODIFIER:OPTIONS in "Link" column. If you want to override default title of modified link you must enter your title to "Title" column, or leave it empty to use default one. Here is a list of modifiers:'] = 'Ви можете використовувати модифікатори для створення посилання в деякі частини сайту, для цього введіть МОДИФІКАТОР:ОПЦІЇ в колонці "Посилання".  Аби переназвати заголовок що генерується модифікатором введіть свій в полі "Заголовок", інакше залиште його порожнім. Нижче приведені описи доступних модифікаторів.';
 $lang['def']['This modifier is used to create links to modules, just type module\'s ID after ":". Default title will be localised name of module.'] = 'Використовується для створення посилання на модуль, вам достатньо лишь ввести його ID посля символу ":".';
 $lang['def']['This modifier is used to create links to sections, categories and articles. After ":" you must type section\'s ID, category ID (if you want to link to specified category/article, if you want to link to article in system conatainer (#root) you must skip this field), article ID (if you want to link to article) separated by "/" symbol.'] = 'Використовується для створення посилання на розділ, категорію чи статтю, введіть після коми ID разделу, категорію (якщо бажаєте створити посилання на категорію чи статтю, якщо на статтю в системному розділі, то пропустіть це поле) і статтю (якщо бажаєте створити посилання на статтю) розділивши їх символом "/".'; 
 
