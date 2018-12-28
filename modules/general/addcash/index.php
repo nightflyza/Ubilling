@@ -20,11 +20,11 @@ if (cfr('CASH')) {
                     $employeeId = ts_GetEmployeeByLogin($whoami);
                     $employeeData = stg_get_employee_data($employeeId);
                     $employeeLimit = @$employeeData['amountLimit'];
-                    if (! cfr('ROOT') and !empty($employeeLimit)) {
-                        $query = "SELECT sum(`summ`) as `summa` FROM `payments` WHERE MONTH(`date`) = MONTH(NOW()) AND YEAR(`date`) = YEAR(NOW()) AND admin = '" . $whoami . "'";
+                    if (!cfr('ROOT') and ! empty($employeeLimit)) {
+                        $query = "SELECT sum(`summ`) as `summa` FROM `payments` WHERE MONTH(`date`) = MONTH(NOW()) AND YEAR(`date`) = YEAR(NOW()) AND admin = '" . $whoami . "' AND `summ`>0";
                         $summa = simple_query($query);
                         $summa = $summa['summa'];
-                        if ($employeeLimit-$summa >= $cash) {
+                        if ($employeeLimit - $summa >= $cash) {
                             if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
                                 zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
                             } else {
@@ -32,8 +32,8 @@ if (cfr('CASH')) {
                             }
                             rcms_redirect("?module=addcash&username=" . $login);
                         } else {
-                            show_window('', wf_modalOpened(__('Error'), __('Payment amount exceeded per month') . wf_tag('br') . __('You can top up for the amount of:') . ' ' . __($employeeLimit-$summa), '400', '200'));
-                            log_register('BALANCEADDFAIL (' . $login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit-$summa) . '` TRY ADD SUMM `' . $cash . '`');
+                            show_window('', wf_modalOpened(__('Error'), __('Payment amount exceeded per month') . wf_tag('br') . __('You can top up for the amount of:') . ' ' . __($employeeLimit - $summa), '400', '200'));
+                            log_register('BALANCEADDFAIL (' . $login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit - $summa) . '` TRY ADD SUMM `' . $cash . '`');
                         }
                     } else {
                         if (isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS'])) {
@@ -71,7 +71,7 @@ if (cfr('CASH')) {
         $form = '';
         $form.= wf_FormDisabler();
         $form.= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
-        
+
         // Check is user corporate?
         if ($alter['USER_LINKING_ENABLED']) {
             if ($alter['USER_LINKING_CASH']) {
@@ -167,9 +167,9 @@ if (cfr('CASH')) {
                     }
                 }
                 if ($PaymentNote != $oldPaymentNote) {
-                        simple_update_field('payments', 'note', $PaymentNote, "WHERE `id`='" . $editPaymentId . "'");
-                        log_register("PAYMENT EDIT NOTE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentNote . "` ON `" . $PaymentNote . "`");
-                        rcms_redirect('?module=addcash&username=' . $login);
+                    simple_update_field('payments', 'note', $PaymentNote, "WHERE `id`='" . $editPaymentId . "'");
+                    log_register("PAYMENT EDIT NOTE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentNote . "` ON `" . $PaymentNote . "`");
+                    rcms_redirect('?module=addcash&username=' . $login);
                 }
             } else {
                 log_register("PAYMENT UNAUTH EDITING ATTEMPT [" . $editPaymentId . "] (" . $login . ")");
