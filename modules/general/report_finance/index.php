@@ -51,7 +51,7 @@ if (cfr('REPORTFINANCE')) {
         $controlgrid = wf_TableBody($controlrows, '100%', 0, '');
         show_window('', $controlgrid);
 
-
+//display year payments summary 
         web_PaymentsShowGraph($show_year);
 
 

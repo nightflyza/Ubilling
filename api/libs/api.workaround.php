@@ -1835,7 +1835,7 @@ function web_PaymentsShowGraph($year) {
             $cells .= wf_TableCell($paycount);
             $cells .= wf_TableCell($monthArpu);
             $cells .= wf_TableCell(web_roundValue($month_summ, 2));
-            $cells .= wf_TableCell(web_bar($month_summ, $year_summ));
+            $cells .= wf_TableCell(web_bar($month_summ, $year_summ), '', '', 'sorttable_customkey="' . $month_summ . '"');
             $rows .= wf_TableRow($cells, 'row3');
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
