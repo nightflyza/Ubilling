@@ -17,7 +17,7 @@ if (cfr('REPORTFINANCE')) {
         $dateform = wf_Form("?module=report_finance", 'POST', $dateinputs, 'glamour');
 
 
-        $yearinputs = wf_YearSelector('yearsel');
+        $yearinputs = wf_YearSelectorPreset('yearsel', '', false, $show_year);
         $yearinputs.=wf_Submit(__('Show'));
         $yearform = wf_Form("?module=report_finance", 'POST', $yearinputs, 'glamour');
 
