@@ -539,7 +539,7 @@ if (cfr('REPORTSIGNUP')) {
             $year = $_POST['yearsel'];
         }
 
-        $yearinputs = wf_YearSelector('yearsel');
+        $yearinputs = wf_YearSelectorPreset('yearsel', '', false, $year);
         $yearinputs.=wf_Submit(__('Show'));
         $yearform = wf_Form('?module=report_signup', 'POST', $yearinputs, 'glamour');
         $yearform.= wf_CleanDiv();
