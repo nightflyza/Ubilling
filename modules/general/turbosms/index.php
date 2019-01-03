@@ -163,7 +163,26 @@ if (cfr('TURBOSMS')) {
                 }
                 }
             }
-            
+
+            //money less next month
+             if ($type == 'msendlessmonth') {
+                if (!empty($td_users)) {
+                foreach ($td_users as $login=>$data) {
+                    @$userMobile = $td_mobiles[$login];
+                    if (tsms_CheckMobile($userMobile)) {
+                        $userTariff = $data['Tariff'];
+                        @$userTariffPrice = $td_tariffprices[$userTariff];
+                        @$userTariffPeriod = $td_tariffperiods[$userTariff];
+                        if ($userTariffPeriod == 'month') {
+                            if (($data['Cash']<$userTariffPrice) AND ($data['Cash']>=0)) {
+                                $result[$login] = $userMobile;
+                            }
+                        }
+                    }
+                }
+                }
+            }
+       
             //cash == 0
             if ($type == 'msendzero') {
               if (!empty($td_users)) {
@@ -262,6 +281,7 @@ if (cfr('TURBOSMS')) {
             
             $inputs = wf_RadioInput('msendtype', __('Debtors with balance less then 0'), 'msenddebtors', true, true);
             $inputs.= wf_RadioInput('msendtype', __('Users who have money left for 5 days'), 'msendless5', true, false);
+            $inputs.= wf_RadioInput('msendtype', __('Users who have money left for next month'), 'msendlessmonth', true, false);
             $inputs.= wf_RadioInput('msendtype', __('Users who have zero balance'), 'msendzero', true, false);
             $inputs.= wf_RadioInput('msendtype', __('All users with mobile'), 'msendall', true, false);
             $inputs.= wf_RadioInput('msendtype', __('All users with tariff'), 'msendtariff', false, false);
