@@ -1257,6 +1257,7 @@ $lang['def']['No mobile'] = 'Нет мобильного';
 $lang['def']['Send SMS for user group'] = 'Рассылка SMS группе пользователей';
 $lang['def']['Debtors with balance less then 0'] = 'Должники, у которых на счету осталось меньше ноля';
 $lang['def']['Users who have money left for 5 days'] = 'Пользователи у которых денег осталось меньше чем на 5 дней';
+$lang['def']['Users who have money left for next month'] = 'Пользователи у которых недостаточно денег на следующий месяц';
 $lang['def']['All users with mobile'] = 'Все пользователи у которых есть мобильный';
 $lang['def']['Send SMS for all of this users'] = 'Разослать сообщения всем этим пользователям';
 $lang['def']['Confirmation'] = 'Подтверждение';
