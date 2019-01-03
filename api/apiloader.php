@@ -117,6 +117,7 @@ include('api/libs/api.ldap.php');
 include('api/libs/api.districts.php');
 include('api/libs/api.multigen.php');
 include('api/libs/api.onepunch.php');
+include('api/libs/api.fwtbt.php');
 include('api/libs/api.sphinxsearch.php');
 
 

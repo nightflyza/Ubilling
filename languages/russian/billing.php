@@ -3011,6 +3011,7 @@ $lang['def']['Tasks creation per-admin stats'] = 'Создание задач а
 $lang['def']['right to control TrinityTV'] = 'Право управлять TrinityTV';
 $lang['def']['guessed'] = 'угадано';
 $lang['def']['No charts'] = 'Без графиков';
+$lang['def']['Calling'] = 'Звонит';
 $lang['def'][''] = '';
 
 ?>
