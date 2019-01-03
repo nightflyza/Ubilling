@@ -21,14 +21,14 @@ class ForWhomTheBellTolls {
      *
      * @var int
      */
-    protected $pollingInterval = 7000;
+    protected $pollingInterval = 5000;
 
     /**
      * Notification display timeout
      *
      * @var int
      */
-    protected $popupTimeout = 10000;
+    protected $popupTimeout = 6000;
 
     /**
      *
@@ -95,8 +95,8 @@ class ForWhomTheBellTolls {
                             if (!empty($line)) {
                                 //  if (ispos($line, $curMinute)) {
                                 $line = explode(' ', $line);
-                                $number = $line[$this->offsetNumber]; //phone number offset
-                                $status = $line[$this->offsetStatus]; //call status offset
+                                @$number = $line[$this->offsetNumber]; //phone number offset
+                                @$status = $line[$this->offsetStatus]; //call status offset
                                 if (isset($line[$this->offsetLogin])) { //detected login offset
                                     $login = $line[$this->offsetLogin];
                                 } else {
@@ -131,8 +131,9 @@ class ForWhomTheBellTolls {
                                 $reply[$count]['text'] = __('Calling') . ' ' . $number . ' ' . $callerName . ' ' . $profileControl;
                                 $reply[$count]['type'] = $style;
                                 // }
+                                $count++;
                             }
-                            $count++;
+                            
                         }
                     }
                 }
