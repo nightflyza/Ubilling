@@ -41,6 +41,12 @@
       <td class="post">
         <?rcms_show_element('menu_point', 'up_center@window')?>
         <?rcms_show_element('main_point', $module . '@window')?>
+          <?php
+                if ($ubillingConfig->getAlterParam('FWTBT_ENABLED')) {
+                    $fwtbtFront = new ForWhomTheBellTolls();
+                    print($fwtbtFront->renderWidget());
+                }
+         ?>
       </td>
     </tr>
   </tbody>

@@ -3012,6 +3012,7 @@ $lang['def']['right to control TrinityTV'] = 'Право управлять Trin
 $lang['def']['guessed'] = 'угадано';
 $lang['def']['No charts'] = 'Без графиков';
 $lang['def']['Calling'] = 'Звонит';
+$lang['def']['right to to know for whom the bell tolls'] = 'Право знать по ком звонит колокол';
 $lang['def'][''] = '';
 
 ?>

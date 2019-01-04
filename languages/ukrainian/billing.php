@@ -3028,5 +3028,6 @@ $lang['def']['guessed'] = 'вгадано';
 $lang['def']['No charts'] = 'Без графіків';
 $lang['def']['Users who have money left for next month'] = 'Користувачі в котрих не достатньо коштів на наступний місяць';
 $lang['def']['Calling'] = 'Телефонує';
+$lang['def']['right to to know for whom the bell tolls'] = 'Право знати по кому подзвін';
 
 ?>

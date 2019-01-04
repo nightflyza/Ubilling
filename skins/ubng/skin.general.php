@@ -57,7 +57,7 @@
             <div class="user">
                 <p>
                     <a href="?forceLogout=true" title="<?= __('Log out'); ?>" class="logout_user"><img src="skins/ubng/images/poweroff.png"></a>
-<?= whoami(); ?>
+                    <?= whoami(); ?>
                 </p>
                 <a class="menu_toggle" href="javascript:showhideGlobalMenu();" title="<?= __('Toggle menu'); ?>"><?= __('Toggle menu'); ?></a> 
             </div>
@@ -105,7 +105,7 @@
                     <form name="skin_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?= user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"') ?></form>
 
                 </li>
-<?php if (cfr('GLMENUCONF')) { ?> <li><img src="skins/menuicons/icn_settings.png"><a href="?module=glmenuconf"><?= __('Personalize menu'); ?></a></li> <?php } ?>
+                <?php if (cfr('GLMENUCONF')) { ?> <li><img src="skins/menuicons/icn_settings.png"><a href="?module=glmenuconf"><?= __('Personalize menu'); ?></a></li> <?php } ?>
             </ul>
 
             <footer>
@@ -150,6 +150,12 @@
             <article class="module width_full">
                 <?rcms_show_element('menu_point', 'up_center@window')?>
                 <?rcms_show_element('main_point', $module . '@window')?>
+                <?php
+                if ($ubillingConfig->getAlterParam('FWTBT_ENABLED')) {
+                    $fwtbtFront = new ForWhomTheBellTolls();
+                    print($fwtbtFront->renderWidget());
+                }
+                ?>
             </article>
             <div class="spacer"></div>
         </section>

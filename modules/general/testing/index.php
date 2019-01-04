@@ -4,12 +4,4 @@
 error_reporting(E_ALL);
 
 
-$fwtbt=new ForWhomTheBellTolls();
-
-$fwtbt->getCalls();
-
-deb($fwtbt->renderCallsNotification());
-
-
-
 ?>

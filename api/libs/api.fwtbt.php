@@ -21,22 +21,63 @@ class ForWhomTheBellTolls {
      *
      * @var int
      */
-    protected $pollingInterval = 5000;
+    protected $pollingInterval = 7000;
 
     /**
-     * Notification display timeout
+     * Notification display timeout in ms.
      *
      * @var int
      */
-    protected $popupTimeout = 6000;
+    protected $popupTimeout = 10000;
 
     /**
+     * System cache object placeholder
      *
-     * @var type 
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Caching  timeout based on polling timeout in seconds.
+     *
+     * @var int
+     */
+    protected $cachingTimeout = 7;
+
+    /**
+     * Default number position offset
+     *
+     * @var int
      */
     protected $offsetNumber = 3;
+
+    /**
+     * Default call status position offset
+     *
+     * @var int
+     */
     protected $offsetStatus = 5;
+
+    /**
+     * Default detected login offset
+     *
+     * @var int
+     */
     protected $offsetLogin = 7;
+
+    /**
+     * Render notification code everywhere in web interface or just on taskbar
+     *
+     * @var bool
+     */
+    protected $anywhere = false;
+
+    /**
+     * Array of administrators for whom display notifications.
+     *
+     * @var array
+     */
+    protected $showFor = array();
 
     /**
      * Default log path to parse
@@ -44,9 +85,14 @@ class ForWhomTheBellTolls {
     protected $dataSource = 'content/documents/askozianum.log';
 
     /**
+     * Reply cache key name
+     */
+    const CACHE_KEY = 'FWTBT_REPLY';
+
+    /**
      * URL with json list of recieved calls
      */
-    const URL_CALLS = '?module=testing&getcalls=true';
+    const URL_CALLS = '?module=fwtbt&getcalls=true';
 
     /**
      * URL of user profile route
@@ -58,6 +104,8 @@ class ForWhomTheBellTolls {
      */
     public function __construct() {
         $this->loadConfig();
+        $this->setOptions();
+        $this->initCache();
     }
 
     /**
@@ -74,6 +122,48 @@ class ForWhomTheBellTolls {
     }
 
     /**
+     * Inits system cache
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Sets basic object instance options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        /**
+         * Make his fight on the hill in the early day
+         * Constant chill deep inside
+         */
+        if (@$this->altCfg['FWTBT_INTERVAL']) {
+            $this->pollingInterval = $this->altCfg['FWTBT_INTERVAL'] * 1000; //option is in seconds
+            $this->cachingTimeout = $this->altCfg['FWTBT_INTERVAL'];
+        }
+
+        if (@$this->altCfg['FWTBT_TIMER']) {
+            $this->popupTimeout = $this->altCfg['FWTBT_TIMER'] * 1000; //option is in seconds
+        }
+
+        if (@$this->altCfg['FWTBT_ANYWHERE']) {
+            $this->anywhere = true;
+        }
+
+        if (@$this->altCfg['FWTBT_ADMINS']) {
+            $this->showFor = explode(',', $this->altCfg['FWTBT_ADMINS']);
+            $this->showFor = array_flip($this->showFor);
+        }
+        /**
+         * Shouting gun, on they run through the endless grey
+         * On the fight, for they are right, yes, by who's to say?
+         */
+    }
+
+    /**
      * Renders calls data by last minute
      * 
      * @return void
@@ -81,100 +171,135 @@ class ForWhomTheBellTolls {
     public function getCalls() {
         if (wf_CheckGet(array('getcalls'))) {
             $reply = array();
-            $allAddress = zb_AddressGetFulladdresslistCached();
-
-            if (file_exists($this->dataSource)) {
-                $curMinute = date("Y-m-d H:i:");
-                $command = $this->billingCfg['TAIL'] . ' -n 20 ' . $this->dataSource;
-                $rawData = shell_exec($command);
-                if (!empty($rawData)) {
-                    $rawData = explodeRows($rawData);
-                    $count = 0;
+            $cachedReply = $this->cache->get(self::CACHE_KEY, $this->cachingTimeout);
+            if (empty($cachedReply)) {
+                $allAddress = zb_AddressGetFulladdresslistCached();
+                if (file_exists($this->dataSource)) {
+                    $curMinute = date("Y-m-d H:i:");
+                    $command = $this->billingCfg['TAIL'] . ' -n 20 ' . $this->dataSource;
+                    $rawData = shell_exec($command);
                     if (!empty($rawData)) {
-                        foreach ($rawData as $io => $line) {
-                            if (!empty($line)) {
-                                //  if (ispos($line, $curMinute)) {
-                                $line = explode(' ', $line);
-                                @$number = $line[$this->offsetNumber]; //phone number offset
-                                @$status = $line[$this->offsetStatus]; //call status offset
-                                if (isset($line[$this->offsetLogin])) { //detected login offset
-                                    $login = $line[$this->offsetLogin];
-                                } else {
-                                    $login = '';
-                                }
-                                switch ($status) {
-                                    case '0':
-                                        //user not found
-                                        $style = 'info';
-                                        break;
-                                    case '1':
-                                        //user found and active
-                                        $style = 'success';
-                                        break;
-                                    case '2':
-                                        //user is debtor
-                                        $style = 'error';
-                                        break;
-                                    case '3':
-                                        //user is frozen
-                                        $style = 'warning';
-                                        break;
-                                }
-                                if (!empty($login)) {
-                                    $profileControl = ' ' . wf_Link(self::URL_PROFILE . $login, web_profile_icon(), false, 'ubButton') . ' ';
-                                    $callerName = isset($allAddress[$login]) ? $allAddress[$login] : '';
-                                } else {
-                                    $profileControl = '';
-                                    $callerName = '';
-                                }
+                        $rawData = explodeRows($rawData);
+                        $count = 0;
+                        if (!empty($rawData)) {
+                            foreach ($rawData as $io => $line) {
+                                if (!empty($line)) {
+                                    if (ispos($line, $curMinute)) {
+                                        $line = explode(' ', $line);
+                                        @$number = $line[$this->offsetNumber]; //phone number offset
+                                        @$status = $line[$this->offsetStatus]; //call status offset
+                                        if (isset($line[$this->offsetLogin])) { //detected login offset
+                                            $login = $line[$this->offsetLogin];
+                                        } else {
+                                            $login = '';
+                                        }
+                                        switch ($status) {
+                                            case '0':
+                                                //user not found
+                                                $style = 'info';
+                                                break;
+                                            case '1':
+                                                //user found and active
+                                                $style = 'success';
+                                                break;
+                                            case '2':
+                                                //user is debtor
+                                                $style = 'error';
+                                                break;
+                                            case '3':
+                                                //user is frozen
+                                                $style = 'warning';
+                                                break;
+                                        }
+                                        if (!empty($login)) {
+                                            $profileControl = ' ' . wf_Link(self::URL_PROFILE . $login, web_profile_icon(), false, 'ubButton') . ' ';
+                                            $callerName = isset($allAddress[$login]) ? $allAddress[$login] : '';
+                                        } else {
+                                            $profileControl = '';
+                                            $callerName = '';
+                                        }
 
-                                $reply[$count]['text'] = __('Calling') . ' ' . $number . ' ' . $callerName . ' ' . $profileControl;
-                                $reply[$count]['type'] = $style;
-                                // }
-                                $count++;
+                                        $reply[$count]['text'] = __('Calling') . ' ' . $number . ' ' . $callerName . ' ' . $profileControl;
+                                        $reply[$count]['type'] = $style;
+
+                                        $count++;
+                                    }
+                                }
                             }
-                            
                         }
                     }
                 }
+                $this->cache->set(self::CACHE_KEY, $reply, $this->cachingTimeout);
+            } else {
+                $reply = $cachedReply;
             }
-            debarr($reply);
             die(json_encode($reply));
         }
     }
 
     /**
-     * Renders notification frontend with some background polling
+     * Returns notification frontend with some background polling
      * 
      * @return string
      */
-    public function renderCallsNotification() {
+    protected function getCallsNotification() {
+        $result = '';
         $result = wf_tag('script');
         $result.= '
-        $(document).ready(function() {
-        $(".dismiss").click(function(){$("#notification").fadeOut("slow");});
-           setInterval(
-           function() {
-            $.get("' . self::URL_CALLS . '",function(message) {
-            if (message) {
-            var data= JSON.parse(message);
-            data.forEach(function(key) {  
-            new Noty({
-                theme: \'relax\',
-                timeout: \'' . $this->popupTimeout . '\',
-                progressBar: true,
-                type: key.type,
-                layout: \'bottomRight\',
-                text: key.text
-                }).show(); });
-                }
-              }
-            )
-            },
-            ' . $this->pollingInterval . ');
-        })';
+                $(document).ready(function() {
+                $(".dismiss").click(function(){$("#notification").fadeOut("slow");});
+                   setInterval(
+                   function() {
+                    $.get("' . self::URL_CALLS . '",function(message) {
+                    if (message) {
+                    var data= JSON.parse(message);
+                    data.forEach(function(key) {  
+                    new Noty({
+                        theme: \'relax\',
+                        timeout: \'' . $this->popupTimeout . '\',
+                        progressBar: true,
+                        type: key.type,
+                        layout: \'bottomRight\',
+                        killer: key.text,
+                        queue: key.text,
+                        text: key.text
+                        }).show(); });
+                        }
+                      }
+                    )
+                    },
+                    ' . $this->pollingInterval . ');
+                })';
         $result.=wf_tag('script', true);
         return ($result);
+    }
+
+    /**
+     * Renders widget code if it required for current situation
+     * 
+     * @return void
+     */
+    public function renderWidget() {
+        $result = '';
+        if (cfr('FWTBT')) {
+            if (@$this->altCfg['FWTBT_ENABLED']) {
+                $widget = $this->getCallsNotification();
+                if ($this->anywhere) {
+                    $result.=$widget;
+                } else {
+                    if ((@$_GET['module'] == 'taskbar') OR ( !isset($_GET['module']))) {
+                        $result.=$widget;
+                    }
+                }
+
+                //per-admin controls
+                $myLogin = whoami();
+                if ((!empty($this->showFor) AND ( !isset($this->showFor[$myLogin])))) {
+                    $result = '';
+                }
+                print($result);
+            }
+        }
     }
 
 }
