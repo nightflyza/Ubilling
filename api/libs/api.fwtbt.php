@@ -254,7 +254,14 @@ class ForWhomTheBellTolls {
      */
     protected function getCallsNotification() {
         $result = '';
-        $result = wf_tag('script');
+        //some custom style
+        $result.=wf_tag('style');
+        $result.='
+            #noty_layout__bottomRight {
+            width: 425px; !important; }';
+        $result.=wf_tag('style',true);
+        //basic notification frontend
+        $result.= wf_tag('script');
         $result.= '
                 $(document).ready(function() {
                 $(".dismiss").click(function(){$("#notification").fadeOut("slow");});
