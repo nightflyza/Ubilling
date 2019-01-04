@@ -221,16 +221,23 @@ class ForWhomTheBellTolls {
                                                 break;
                                         }
                                         if (!empty($login)) {
-                                            $profileControl = ' ' . wf_Link(self::URL_PROFILE . $login, web_profile_icon(), false, 'ubButton') . ' ';
+                                            $profileControl = ' ' . wf_Link(self::URL_PROFILE . $login, web_profile_icon(), false, 'ubButton fwtbtprofile') . ' ';
                                             $callerName = isset($allAddress[$login]) ? $allAddress[$login] : '';
                                         } else {
                                             $profileControl = '';
                                             $callerName = '';
                                         }
 
-                                        $reply[$count]['text'] = __('Calling') . ' ' . $number . ' ' . $callerName . ' ' . $profileControl;
+
+                                        $notificationText = wf_tag('div', false, 'fwtbttext');
+                                        $notificationText.=__('Calling') . ' ' . $number . ' ' . $callerName;
+                                        $notificationText.= wf_tag('div', true);
+                                        $notificationText.= $profileControl;
+                                        
+
+                                        $reply[$count]['text'] = $notificationText;
                                         $reply[$count]['type'] = $style;
-                                        $reply[$count]['queue'] = 'q'.$count;
+                                        $reply[$count]['queue'] = 'q' . $count;
 
                                         $count++;
                                     }
@@ -256,10 +263,24 @@ class ForWhomTheBellTolls {
         $result = '';
         //some custom style
         $result.=wf_tag('style');
+        //this style is inline for preventing of css caching
         $result.='
             #noty_layout__bottomRight {
-            width: 425px; !important; }';
-        $result.=wf_tag('style',true);
+            width: 425px; !important; 
+            }
+            
+            .fwtbttext {
+             float: left;
+             display: block;
+             height: 32px;
+            }
+            
+            .fwtbtprofile {
+             float: right;
+             margin-bottom: 5px;
+            }
+            ';
+        $result.=wf_tag('style', true);
         //basic notification frontend
         $result.= wf_tag('script');
         $result.= '
