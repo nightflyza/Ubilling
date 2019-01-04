@@ -80,6 +80,13 @@ class ForWhomTheBellTolls {
     protected $showFor = array();
 
     /**
+     * Contains current instance user login
+     *
+     * @var string
+     */
+    protected $myLogin = '';
+
+    /**
      * Default log path to parse
      */
     protected $dataSource = 'content/documents/askozianum.log';
@@ -140,6 +147,8 @@ class ForWhomTheBellTolls {
          * Make his fight on the hill in the early day
          * Constant chill deep inside
          */
+        $this->myLogin = whoami();
+
         if (@$this->altCfg['FWTBT_INTERVAL']) {
             $this->pollingInterval = $this->altCfg['FWTBT_INTERVAL'] * 1000; //option is in seconds
             $this->cachingTimeout = $this->altCfg['FWTBT_INTERVAL'];
@@ -221,6 +230,7 @@ class ForWhomTheBellTolls {
 
                                         $reply[$count]['text'] = __('Calling') . ' ' . $number . ' ' . $callerName . ' ' . $profileControl;
                                         $reply[$count]['type'] = $style;
+                                        $reply[$count]['queue'] = 'q'.$count;
 
                                         $count++;
                                     }
@@ -250,7 +260,7 @@ class ForWhomTheBellTolls {
                 $(".dismiss").click(function(){$("#notification").fadeOut("slow");});
                    setInterval(
                    function() {
-                    $.get("' . self::URL_CALLS . '",function(message) {
+                    $.get("' . self::URL_CALLS . '&reqadm=' . $this->myLogin . '",function(message) {
                     if (message) {
                     var data= JSON.parse(message);
                     data.forEach(function(key) {  
@@ -260,8 +270,8 @@ class ForWhomTheBellTolls {
                         progressBar: true,
                         type: key.type,
                         layout: \'bottomRight\',
-                        killer: key.text,
-                        queue: key.text,
+                        killer: key.queue,
+                        queue: key.queue,
                         text: key.text
                         }).show(); });
                         }
@@ -293,8 +303,7 @@ class ForWhomTheBellTolls {
                 }
 
                 //per-admin controls
-                $myLogin = whoami();
-                if ((!empty($this->showFor) AND ( !isset($this->showFor[$myLogin])))) {
+                if ((!empty($this->showFor) AND ( !isset($this->showFor[$this->myLogin])))) {
                     $result = '';
                 }
                 print($result);
