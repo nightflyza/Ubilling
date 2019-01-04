@@ -603,10 +603,13 @@ class BankstaMd {
      * 
      * @return void
      */
-    public function bankstaSetProcessed($bankstaid) {
+    public function bankstaSetProcessed($bankstaid, $logging = true) {
         $bankstaid = vf($bankstaid, 3);
+        $this->bankstarecords[$bankstaid]['processed'] = 1;
         simple_update_field(self::BANKSTA_TABLE, 'processed', 1, "WHERE `id`='" . $bankstaid . "'");
-        log_register('BANKSTAMD [' . $bankstaid . '] LOCKED');
+        if ($logging) {
+            log_register('BANKSTAMD [' . $bankstaid . '] LOCKED');
+        }
     }
 
     /**
@@ -634,8 +637,8 @@ class BankstaMd {
                         if (!empty($userLogin)) {
                             if (isset($this->allUsersData[$userLogin])) {
                                 if (zb_checkMoney($summ)) {
+                                    $this->bankstaSetProcessed($eachstatement['bankstaid'], false);
                                     zb_CashAdd($eachstatement['userlogin'], $summ, 'add', $this->bsPaymentId, $paymentNote);
-                                    $this->bankstaSetProcessed($eachstatement['bankstaid']);
                                 }
                             } else {
                                 log_register('BANKSTAMD [' . $eachstatement['bankstaid'] . '] FAIL LOGIN (' . $userLogin . ')');
