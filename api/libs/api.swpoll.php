@@ -820,33 +820,33 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     $MacOfDevice = $snmp->walk($ip, $community, '.1.0.8802.1.1.2.1.3.2.0', true);
                 } else {
                     /* Need Tests
-                    if ($deviceMACMode == 'dlp') {
-                        //custom dlink mac
-                        $tmpOid = '';
-                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
-                    }
+                      if ($deviceMACMode == 'dlp') {
+                      //custom dlink mac
+                      $tmpOid = '';
+                      $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                      }
 
-                    if ($deviceMACMode == 'tlp5428ev2') {
-                        $tmpOid = '';
-                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
-                    }
+                      if ($deviceMACMode == 'tlp5428ev2') {
+                      $tmpOid = '';
+                      $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                      }
 
-                    if ($deviceMACMode == 'tlp2428') {
-                        $tmpOid = '';
-                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
-                    }
+                      if ($deviceMACMode == 'tlp2428') {
+                      $tmpOid = '';
+                      $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                      }
 
-                    if ($deviceMACMode == 'tlp2210') {
-                        $tmpOid = '';
-                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
-                    }
+                      if ($deviceMACMode == 'tlp2210') {
+                      $tmpOid = '';
+                      $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                      }
 
-                    //foxgate lazy parsing
-                    if ($deviceMACMode == 'flp') {
-                        $tmpOid = '';
-                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
-                    }
-                    */
+                      //foxgate lazy parsing
+                      if ($deviceMACMode == 'flp') {
+                      $tmpOid = '';
+                      $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                      }
+                     */
                 }
                 if (!empty($MacOfDevice)) {
                     if ($deviceMACMode == 'default') {
@@ -854,29 +854,28 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $MACData = sn_SnmpParseDeviceMAC($MacOfDevice);
                     } else {
                         /* Need test
-                        if ($deviceMACMode == 'dlp') {
-                            //exotic dlink parser
-                            $MACData = sn_SnmpParseDeviceMAC($MacOfDevice);
-                        }
+                          if ($deviceMACMode == 'dlp') {
+                          //exotic dlink parser
+                          $MACData = sn_SnmpParseDeviceMAC($MacOfDevice);
+                          }
 
-                        if (($deviceMACMode == 'tlp5428ev2') OR ( $deviceMACMode == 'tlp2428') OR ( $deviceMACMode == 'tlp2210')) {
-                            //more exotic tplink parser
-                            $MACData = sn_SnmpParseDeviceMAC($MacOfDevice, $tmpOid);
-                        }
+                          if (($deviceMACMode == 'tlp5428ev2') OR ( $deviceMACMode == 'tlp2428') OR ( $deviceMACMode == 'tlp2210')) {
+                          //more exotic tplink parser
+                          $MACData = sn_SnmpParseDeviceMAC($MacOfDevice, $tmpOid);
+                          }
 
-                        // foxgate - its you again? Oo
-                        if ($deviceMACMode == 'flp') {
-                            $MACData = sn_SnmpParseDeviceMAC($MacOfDevice, $tmpOid);
-                        }
-                        */
+                          // foxgate - its you again? Oo
+                          if ($deviceMACMode == 'flp') {
+                          $MACData = sn_SnmpParseDeviceMAC($MacOfDevice, $tmpOid);
+                          }
+                         */
                     }
 
                     // Write Device MAC address to file
-                        if (!empty($MACData)) {
-                            file_put_contents('exports/' . $ip . '_MAC', $MACData);
-                        }
+                    if (!empty($MACData)) {
+                        file_put_contents('exports/' . $ip . '_MAC', $MACData);
+                    }
                 }
-
             }
         }
     }
@@ -916,6 +915,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
     $rawFilters = zb_StorageGet('FDBCACHEMACFILTERS');
     $filteredCounter = 0;
     $switchdata = array();
+    $switchIds = array();
     $allfilters = array();
     $json = new wf_JqDtHelper();
 
@@ -923,6 +923,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $eachswitch) {
             $switchdata[$eachswitch['ip']] = $eachswitch['location'];
+            $switchIds[$eachswitch['ip']] = $eachswitch['id'];
         }
     }
     //mac filters preprocessing
@@ -946,6 +947,13 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
         $nameExplode = explode('_', $each_raw);
         if (sizeof($nameExplode) == 2) {
             $switchIp = $nameExplode[0];
+            $switchId = (isset($switchIds[$switchIp])) ? $switchIds[$switchIp] : '';
+            $switchControls = '';
+            if (!empty($switchId)) {
+                if (cfr('SWITCHES')) {
+                    $switchControls.= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon());
+                }
+            }
             if (file_exists('exports/' . $each_raw)) {
                 $eachfdb_raw = file_get_contents('exports/' . $each_raw);
                 $eachfdb = unserialize($eachfdb_raw);
@@ -967,7 +975,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
                         if (sn_FDBFilterCheckMac($mac, $allfilters)) {
                             $data[] = $switchIp;
                             $data[] = $port;
-                            $data[] = @$switchdata[$switchIp];
+                            $data[] = @$switchdata[$switchIp].' '.$switchControls;
                             $data[] = $mac;
                             $data[] = $userlink;
                             $json->addRow($data);
@@ -1063,7 +1071,7 @@ function sn_SnmpParseDeviceMAC($data) {
         if (!empty($device_mac_t)) {
             $device_mac = str_replace(" ", ":", $device_mac_t);
             $result_temp = strtolower($device_mac);
-            if(check_mac_format($result_temp)) {
+            if (check_mac_format($result_temp)) {
                 $result = $result_temp;
             }
         }
