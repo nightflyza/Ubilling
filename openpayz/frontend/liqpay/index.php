@@ -70,7 +70,7 @@ if (lq_CheckPost(array('data', 'signature'))) {
                     $hash = $data_js->order_id;
                     $customerid = $data_js->description;
                     $summ = $data_js->amount;
-                    //$summ = round($summ*0.9725, 2); //Зачисляем сумму без процентов
+                    $summ = round($summ/($liqConf['ADD_COMMISSION']), 2); //Зачисляем сумму без процентов
                     $paysys = "LIQPAY";
                     $note = "TRANSACTION ID: " . $data_js->transaction_id;
                     if (lq_CheckTransaction($hash)) {
