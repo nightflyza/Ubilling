@@ -59,18 +59,19 @@ if (lq_CheckPost(array('data', 'signature'))) {
     $data = $_POST['data'];
     $reqSig = $_POST['signature'];
     $private_key = $liqConf['SIGNATURE'];
-    $signature = base64_encode( sha1($private_key . $data . $private_key , 1 ));
+    $signature = base64_encode(sha1($private_key . $data . $private_key, 1));
     if ($reqSig == $signature) {
         $data_decoded = base64_decode($data);
 
         if (!empty($data_decoded)) {
-            $data_js = json_decode($data_decoded); 
-            if ( ! json_last_error()) {
+            $data_js = json_decode($data_decoded);
+            if (!json_last_error()) {
                 if ($data_js->status == 'success') {
                     $hash = $data_js->order_id;
                     $customerid = $data_js->description;
                     $summ = $data_js->amount;
-                    $summ = round($summ/($liqConf['ADD_COMMISSION']), 2); //Зачисляем сумму без процентов
+                    $addCommission = (isset($liqConf['ADD_COMMISSION'])) ? $liqConf['ADD_COMMISSION'] : 1;
+                    $summ = round(($summ / $addCommission), 2); //Зачисляем сумму без процентов
                     $paysys = "LIQPAY";
                     $note = "TRANSACTION ID: " . $data_js->transaction_id;
                     if (lq_CheckTransaction($hash)) {
