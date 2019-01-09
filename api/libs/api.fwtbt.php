@@ -219,6 +219,10 @@ class ForWhomTheBellTolls {
                                                 //user is frozen
                                                 $style = 'warning';
                                                 break;
+                                           default:
+                                                //user not found
+                                                $style = 'info';
+                                                break;
                                         }
                                         if (!empty($login)) {
                                             $profileControl = ' ' . wf_Link(self::URL_PROFILE . $login, web_profile_icon(), false, 'ubButton fwtbtprofile') . ' ';
