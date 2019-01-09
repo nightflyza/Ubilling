@@ -996,8 +996,13 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if ($alterconf['ASTERISK_ENABLED']) {
                             if (wf_CheckGet(array('number'))) {
                                 if (wf_CheckGet(array('param'))) {
+                                    $number = trim($_GET['number']);
+                                    $askNum = new AskoziaNum();
+                                    $askNum->setNumber($number);
+                                    $askNum->renderReply(true);
                                     $asterisk = new Asterisk();
-                                    $result = $asterisk->AsteriskGetInfoApi($_GET['number'], $_GET['param']);
+                                    $result = $asterisk->AsteriskGetInfoApi($number, $_GET['param']);
+
                                     die($result);
                                 } else {
                                     die('ERROR: NOT HAVE PARAMETR');
@@ -1037,19 +1042,19 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if ($alterconf['DSHAPER_ENABLED']) {
                             $Now = date('H:i:s');
 
-                            $DNDataQuery = "SELECT  `usr_nh`.*, `nas`.`nasip`, `nas`.`options`, 
-                                                    `speeds`.`speeddown`, `speeds`.`speedup`,  `speeds`.`burstdownload`, `speeds`.`burstupload`, `speeds`.`bursttimedownload`, `speeds`.`burstimetupload`, 
-                                                    `dshpt`.`threshold1`, `dshpt`.`threshold2`, `dshpt`.`speed` 
-                                              FROM  (
-                                                      SELECT `users`.`login`, `users`.`ip`, `users`.`Tariff`, `nh`.`netid` 
-                                                          FROM `users` 
-                                                            LEFT JOIN `nethosts` AS `nh` ON `users`.`ip` = `nh`.`ip`
-                                                          WHERE !`users`.`Down` AND !( `users`.`Cash` < -(`users`.`Credit`) )
+                            $DNDataQuery = "SELECT `usr_nh`.*, `nas`.`nasip`, `nas`.`options`, 
+                                                   `speeds`.`speeddown`, `speeds`.`speedup`,  `speeds`.`burstdownload`, `speeds`.`burstupload`, `speeds`.`bursttimedownload`, `speeds`.`burstimetupload`, 
+                                                   `dshpt`.`threshold1`, `dshpt`.`threshold2`, `dshpt`.`speed` 
+                                            FROM (
+                                                    SELECT `users`.`login`, `users`.`ip`, `users`.`Tariff`, `nh`.`netid` 
+                                                    FROM `users` 
+                                                    LEFT JOIN `nethosts` AS `nh` ON `users`.`ip` = `nh`.`ip`
+                                                    WHERE !`users`.`Down` AND !( `users`.`Cash` < -(`users`.`Credit`) )
                                                     ) AS `usr_nh` 
-                                                LEFT JOIN `nas` ON `usr_nh`.`netid` = `nas`.`netid`
-                                                LEFT JOIN `dshape_time` AS `dshpt` ON `usr_nh`.`Tariff` = `dshpt`.`tariff`
-                                                LEFT JOIN `speeds` ON `usr_nh`.`Tariff` = `speeds`.`tariff`
-                                              WHERE `nas`.`nastype` = 'mikrotik' AND `dshpt`.`speed` IS NOT NULL AND '" . $Now . "' BETWEEN `dshpt`.`threshold1` AND `dshpt`.`threshold2`;";
+                                            LEFT JOIN `nas` ON `usr_nh`.`netid` = `nas`.`netid`
+                                            LEFT JOIN `dshape_time` AS `dshpt` ON `usr_nh`.`Tariff` = `dshpt`.`tariff`
+                                            LEFT JOIN `speeds` ON `usr_nh`.`Tariff` = `speeds`.`tariff`
+                                            WHERE `nas`.`nastype` = 'mikrotik' AND `dshpt`.`speed` IS NOT NULL AND '" . $Now . "' BETWEEN `dshpt`.`threshold1` AND `dshpt`.`threshold2`;";
 
                             $DNData = simple_queryall($DNDataQuery);
 

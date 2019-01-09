@@ -170,8 +170,12 @@ class AskoziaNum {
      * 
      * @return void
      */
-    public function renderReply() {
-        die($this->getReply());
+    public function renderReply($asteriskGet = false) {
+        if (!$asteriskGet) {
+            die($this->getReply());
+        } else {
+            $this->getReply();
+        }
     }
 
 }
