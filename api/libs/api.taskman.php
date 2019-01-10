@@ -142,13 +142,14 @@ function em_JobTypeForm() {
  * 
  * @return void
  */
-function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '', $amountLimit = 0) {
+function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '', $amountLimit = '') {
     $name = mysql_real_escape_string(trim($name));
     $job = mysql_real_escape_string(trim($job));
     $mobile = mysql_real_escape_string($mobile);
     $telegram = mysql_real_escape_string($telegram);
     $admlogin = mysql_real_escape_string($admlogin);
     $tagid = mysql_real_escape_string($tagid);
+    $amountLimit = (empty($amountLimit)) ? 0 : $amountLimit;
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`, `amountLimit`)
               VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . ", " . $amountLimit . "); ";
     nr_query($query);
