@@ -234,12 +234,13 @@ class ForWhomTheBellTolls {
 
 
                                         $notificationText = wf_tag('div', false, 'fwtbttext');
-                                        $notificationText.=__('Calling') . ' ' . $number . ' ' . $callerName;
+                                        $notificationText.= __('Calling') . ' ' . $number . ' ' . $callerName;
                                         $notificationText.= wf_tag('div', true);
                                         $notificationText.= $profileControl;
                                         
 
                                         $reply[$count]['text'] = $notificationText;
+                                        $reply[$count]['cleartext'] = __('Calling') . ' ' . $number . ' ' . $callerName;
                                         $reply[$count]['type'] = $style;
                                         $reply[$count]['queue'] = 'q' . $count;
 
@@ -254,6 +255,7 @@ class ForWhomTheBellTolls {
             } else {
                 $reply = $cachedReply;
             }
+
             die(json_encode($reply));
         }
     }
@@ -266,25 +268,25 @@ class ForWhomTheBellTolls {
     protected function getCallsNotification() {
         $result = '';
         //some custom style
-        $result.=wf_tag('style');
+        $result.= wf_tag('style');
         //this style is inline for preventing of css caching
-        $result.='
-            #noty_layout__bottomRight {
-            width: 425px; !important; 
-            }
-            
-            .fwtbttext {
-             float: left;
-             display: block;
-             height: 32px;
-            }
-            
-            .fwtbtprofile {
-             float: right;
-             margin-bottom: 5px;
-            }
+        $result.= '
+                #noty_layout__bottomRight {
+                width: 425px; !important; 
+                }
+
+                .fwtbttext {
+                 float: left;
+                 display: block;
+                 height: 32px;
+                }
+
+                .fwtbtprofile {
+                 float: right;
+                 margin-bottom: 5px;
+                }
             ';
-        $result.=wf_tag('style', true);
+        $result.= wf_tag('style', true);
         //basic notification frontend
         $result.= wf_tag('script');
         $result.= '
@@ -305,14 +307,43 @@ class ForWhomTheBellTolls {
                         killer: key.queue,
                         queue: key.queue,
                         text: key.text
-                        }).show(); });
+                        }).show();
+                            if (typeof (sendNotificationDesctop) === "function") {
+                            var title = "' . __('Calling') .'";
+                            var options = {
+                                body: key.cleartext,
+                                icon: "skins/icon_user.gif",
+                                tag: key.queue
+                            };
+                                sendNotificationDesctop(title, options);
+                            }
+                    });
                         }
                       }
                     )
                     },
                     ' . $this->pollingInterval . ');
-                })';
-        $result.=wf_tag('script', true);
+                })
+                ';
+        $result.=  wf_tag('script', true);
+
+        if(@$this->altCfg['FWTBT_DESCTOP']) {
+            $result.= wf_tag('script');
+            $result.= '
+                   function sendNotificationDesctop(title, options) {
+                        if (Notification.permission === "granted") {
+                            var notification = new Notification(title, options);
+                        } else if (Notification.permission !== "denied") {
+                            Notification.requestPermission(function (permission) {
+                                if (permission === "granted") {
+                                    var notification = new Notification(title, options);
+                                }
+                            });
+                        }
+                        };
+                    ';
+            $result.=  wf_tag('script', true);
+        }
         return ($result);
     }
 
@@ -327,10 +358,10 @@ class ForWhomTheBellTolls {
             if (@$this->altCfg['FWTBT_ENABLED']) {
                 $widget = $this->getCallsNotification();
                 if ($this->anywhere) {
-                    $result.=$widget;
+                    $result.= $widget;
                 } else {
                     if ((@$_GET['module'] == 'taskbar') OR ( !isset($_GET['module']))) {
-                        $result.=$widget;
+                        $result.= $widget;
                     }
                 }
 
