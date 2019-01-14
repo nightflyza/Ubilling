@@ -32,6 +32,11 @@ class AskoziaNum {
      * Log path
      */
     const LOG_PATH = 'content/documents/askozianum.log';
+    
+    /**
+     * Default calls logging table
+     */
+    const LOG_TABLE='callshist';
 
     /**
      * Debug/Log flag
@@ -79,6 +84,21 @@ class AskoziaNum {
     }
 
     /**
+     * Saves incoming call into database
+     * 
+     * @return void
+     */
+    protected function saveCallsHist($date, $number, $login = '') {
+        $login = mysql_real_escape_string($login);
+        $number = mysql_real_escape_string($number);
+        $number=trim($number);
+        $login=trim($login);
+        $query = "INSERT INTO `".self::LOG_TABLE."` (`id`,`date`,`number`,`login`) VALUES "
+                . "(NULL, '" . $date . "', '" . $number . "','" . $login . "');";
+        nr_query($query);
+    }
+
+    /**
      * Saves some data to log
      * 
      * @param int $reply
@@ -91,6 +111,7 @@ class AskoziaNum {
             $curdateTime = curdatetime();
             $logData = $curdateTime . ' NUMBER: ' . $this->number . ' REPLY: ' . $reply . ' LOGIN: ' . $login . "\n";
             file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
+            $this->saveCallsHist($curdateTime, $this->number, $login);
         }
     }
 
