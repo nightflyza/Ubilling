@@ -171,6 +171,37 @@ class ForWhomTheBellTolls {
          * On the fight, for they are right, yes, by who's to say?
          */
     }
+    
+    
+    /**
+     * Gets and stores calls history into db from datasource
+     * 
+     * @return void
+     */
+    public function saveCalls() {
+
+        $reply = array();
+        $cachedReply = $this->cache->get(self::CACHE_KEY, $this->cachingTimeout);
+
+  
+        if (file_exists($this->dataSource)) {
+            $dateFilter= date("Y-m-d H:");
+            $command = $this->billingCfg['CAT'] . ' ' . $this->dataSource.' | '.$this->billingCfg['GREP'].' '.$dateFilter;
+            $rawData = shell_exec($command);
+            if (!empty($rawData)) {
+                $rawData = explodeRows($rawData);
+              
+                if (!empty($rawData)) {
+                    foreach ($rawData as $io => $line) {
+                        if (!empty($line)) {
+                         
+                        }
+                    }
+                }
+            }
+        }
+        $this->cache->set(self::CACHE_KEY, $reply, $this->cachingTimeout);
+    }
 
     /**
      * Renders calls data by last minute
