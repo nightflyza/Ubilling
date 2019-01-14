@@ -206,27 +206,33 @@ class ForWhomTheBellTolls {
                                             case '0':
                                                 //user not found
                                                 $style = 'info';
+                                                $icon = 'skins/call_info.png';
                                                 break;
                                             case '1':
                                                 //user found and active
                                                 $style = 'success';
+                                                $icon = 'skins/call_success.png';
                                                 break;
                                             case '2':
                                                 //user is debtor
                                                 $style = 'error';
+                                                $icon = 'skins/wdycnotify.png';
                                                 break;
                                             case '3':
                                                 //user is frozen
                                                 $style = 'warning';
+                                                $icon = 'skins/call_warning.png';
                                                 break;
                                            default:
                                                 //user not found
                                                 $style = 'info';
+                                                $icon = 'skins/call_info.png';
                                                 break;
                                         }
                                         if (!empty($login)) {
                                             $profileControl = ' ' . wf_Link(self::URL_PROFILE . $login, web_profile_icon(), false, 'ubButton fwtbtprofile') . ' ';
                                             $callerName = isset($allAddress[$login]) ? $allAddress[$login] : '';
+                                            $link = self::URL_PROFILE . $login;
                                         } else {
                                             $profileControl = '';
                                             $callerName = '';
@@ -242,6 +248,8 @@ class ForWhomTheBellTolls {
                                         $reply[$count]['text'] = $notificationText;
                                         $reply[$count]['cleartext'] = __('Calling') . ' ' . $number . ' ' . $callerName;
                                         $reply[$count]['type'] = $style;
+                                        $reply[$count]['icon'] = $icon;
+                                        $reply[$count]['link'] = $link;
                                         $reply[$count]['queue'] = 'q' . $count;
 
                                         $count++;
@@ -314,15 +322,16 @@ class ForWhomTheBellTolls {
                         text: key.text
                         }).show();
 
-                            if (typeof (sendNotificationDesktop) === "function") {
+                        if (typeof (sendNotificationDesktop) === "function") {
                             var title = "' . __('Calling') .'";
                             var options = {
                                 body: key.cleartext,
-                                icon: "skins/icon_user.gif",
-                                tag: key.queue
+                                icon: key.icon,
+                                tag: key.queue,
+                                dir: "auto"
                             };
-                                sendNotificationDesktop(title, options);
-                            }
+                                sendNotificationDesktop(title, options, key.link);
+                        }
                     });
                         }
                       }
@@ -336,13 +345,23 @@ class ForWhomTheBellTolls {
         if(@$this->altCfg['FWTBT_DESCTOP']) {
             $result.= wf_tag('script');
             $result.= '
-                   function sendNotificationDesktop(title, options) {
+                   function sendNotificationDesktop(title, options, link) {
                         if (Notification.permission === "granted") {
                             var notification = new Notification(title, options);
+                            if(link) {
+                                notification.onclick = function() {
+                                    window.open(link,"_self");
+                                }
+                            }
                         } else if (Notification.permission !== "denied") {
                             Notification.requestPermission(function (permission) {
                                 if (permission === "granted") {
                                     var notification = new Notification(title, options);
+                                    if(link) {
+                                        notification.onclick = function() {
+                                            window.open(link,"_self");
+                                        }
+                                    }
                                 }
                             });
                         }
