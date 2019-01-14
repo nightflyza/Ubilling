@@ -296,7 +296,7 @@ class ForWhomTheBellTolls {
                 }
             ';
 
-        if(@$this->altCfg['FWTBT_DESTOP']) {
+        if(@$this->altCfg['FWTBT_DESKTOP']) {
             $result.= '
                 #noty_layout__bottomRight {
                 margin-bottom: 120px !important;
