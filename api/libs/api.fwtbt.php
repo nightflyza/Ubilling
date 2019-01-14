@@ -236,6 +236,7 @@ class ForWhomTheBellTolls {
                                         } else {
                                             $profileControl = '';
                                             $callerName = '';
+                                            $link = '';
                                         }
 
 
