@@ -296,7 +296,7 @@ class ForWhomTheBellTolls {
                 }
             ';
 
-        if(@$this->altCfg['FWTBT_DESCTOP']) {
+        if(@$this->altCfg['FWTBT_DESTOP']) {
             $result.= '
                 #noty_layout__bottomRight {
                 margin-bottom: 120px !important;
@@ -352,7 +352,7 @@ class ForWhomTheBellTolls {
                 ';
         $result.=  wf_tag('script', true);
 
-        if(@$this->altCfg['FWTBT_DESCTOP']) {
+        if(@$this->altCfg['FWTBT_DESKTOP']) {
             $result.= wf_tag('script');
             $result.= '
                    function sendNotificationDesktop(title, options, link) {
