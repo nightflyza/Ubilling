@@ -280,7 +280,7 @@ class ForWhomTheBellTolls {
         //this style is inline for preventing of css caching
         $result.= '
                 #noty_layout__bottomRight {
-                width: 425px; !important; 
+                width: 425px !important;
                 }
 
                 .fwtbttext {
@@ -294,6 +294,15 @@ class ForWhomTheBellTolls {
                  margin-bottom: 5px;
                 }
             ';
+
+        if(@$this->altCfg['FWTBT_DESCTOP']) {
+            $result.= '
+                #noty_layout__bottomRight {
+                margin-bottom: 120px !important;
+                }
+            ';
+        }
+
         $result.= wf_tag('style', true);
         //basic notification frontend
         $result.= wf_tag('script');
