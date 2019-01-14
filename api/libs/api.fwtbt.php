@@ -291,6 +291,11 @@ class ForWhomTheBellTolls {
         $result.= wf_tag('script');
         $result.= '
                 $(document).ready(function() {
+
+                Notification.requestPermission().then(function(result) {
+                    console.log(result);
+                });
+
                 $(".dismiss").click(function(){$("#notification").fadeOut("slow");});
                    setInterval(
                    function() {
@@ -308,14 +313,15 @@ class ForWhomTheBellTolls {
                         queue: key.queue,
                         text: key.text
                         }).show();
-                            if (typeof (sendNotificationDesctop) === "function") {
+
+                            if (typeof (sendNotificationDesktop) === "function") {
                             var title = "' . __('Calling') .'";
                             var options = {
                                 body: key.cleartext,
                                 icon: "skins/icon_user.gif",
                                 tag: key.queue
                             };
-                                sendNotificationDesctop(title, options);
+                                sendNotificationDesktop(title, options);
                             }
                     });
                         }
@@ -330,7 +336,7 @@ class ForWhomTheBellTolls {
         if(@$this->altCfg['FWTBT_DESCTOP']) {
             $result.= wf_tag('script');
             $result.= '
-                   function sendNotificationDesctop(title, options) {
+                   function sendNotificationDesktop(title, options) {
                         if (Notification.permission === "granted") {
                             var notification = new Notification(title, options);
                         } else if (Notification.permission !== "denied") {
@@ -341,6 +347,7 @@ class ForWhomTheBellTolls {
                             });
                         }
                         };
+
                     ';
             $result.=  wf_tag('script', true);
         }
