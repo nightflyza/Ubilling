@@ -1667,7 +1667,7 @@ $lang['def']['Show tasks for all users'] = 'Показати задачі для
 $lang['def']['Show only mine tasks'] = 'Показати задачі тільки для мене';
 $lang['def']['Userstats announcements'] = 'Оголошення кабінету користувача';
 $lang['def']['Is userstats announcements management enabled'] = 'Керування оголошеннями кабінету користувача';
-$lang['def']['right to control userstats announcements'] = 'Право керувати оголошеннями кабінету користувача';
+$lang['def']['right to view announcements'] = 'Право переглядати оголошення';
 $lang['def']['Preview'] = 'Попередній перегляд';
 
 //rev  3491
@@ -3036,5 +3036,9 @@ $lang['def']['Try to find user by MAC'] = 'Спробувати знайти к�
 $lang['def']['increase/decrease searched MAC address on (use negative value to decrease MAC)'] = 'збільшити/зменшити шукану MAC адресу на (використовуйте від\'ємне значення, щоб зменшити МАС)';
 $lang['def']['All calls'] = 'Всі дзвінки';
 $lang['def']['right to view calls history'] = 'Право переглядати історію дзвінків';
+$lang['def']['userstats announcement'] = 'оголошення кабінету користувача';
+$lang['def']['administrators announcement'] = 'оголошення адміністраторам';
+$lang['def']['right to config announcements'] = 'Право керувати оголошеннями';
+$lang['def']['acquainted'] = 'ознайомлені';
 
 ?>
