@@ -3019,7 +3019,7 @@ $lang['def']['Subscriber is not found'] = 'Абонент не найден';
 $lang['def']['Try to find user by MAC'] = 'Попытаться найти пользователя по MAC';
 $lang['def']['increase/decrease searched MAC address on (use negative value to decrease MAC)'] = 'увеличить/уменьшить искомый MAC адрес на (используйте отрицательное значение, чтобы уменьшить МАС)';
 $lang['def']['All calls'] = 'Все звонки';
-$lang['def'][''] = '';
+$lang['def']['right to view calls history'] = 'Право просматривать историю звонков';
 $lang['def'][''] = '';
 
 ?>
