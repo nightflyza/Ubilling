@@ -248,7 +248,7 @@ class ForWhomTheBellTolls {
                                         
 
                                         $reply[$count]['text'] = $notificationText;
-                                        $reply[$count]['cleartext'] = __('Calling') . ' ' . $number . ' ' . $callerName;
+                                        $reply[$count]['cleartext'] = $number . ' ' . $callerName;
                                         $reply[$count]['type'] = $style;
                                         $reply[$count]['icon'] = $icon;
                                         $reply[$count]['link'] = $link;
