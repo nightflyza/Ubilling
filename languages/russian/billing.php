@@ -3013,6 +3013,11 @@ $lang['def']['guessed'] = 'угадано';
 $lang['def']['No charts'] = 'Без графиков';
 $lang['def']['Calling'] = 'Звонит';
 $lang['def']['right to to know for whom the bell tolls'] = 'Право знать по ком звонит колокол';
+$lang['def']['Login is not found'] = 'Логин не найден';
+$lang['def']['User is not found'] = 'Пользователь не найден';
+$lang['def']['Subscriber is not found'] = 'Абонент не найден';
+$lang['def']['Try to find user by MAC'] = 'Попытаться найти пользователя по MAC';
+$lang['def']['increase/decrease searched MAC address on (use negative value to decrease MAC)'] = 'увеличить/уменьшить искомый MAC адрес на (используйте отрицательное значение, чтобы уменьшить МАС)';
 $lang['def'][''] = '';
 
 ?>

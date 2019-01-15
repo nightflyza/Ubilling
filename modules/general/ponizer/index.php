@@ -26,6 +26,10 @@ if ($altCfg['PON_ENABLED']) {
             }
         }
 
+        if (wf_CheckGet(array('searchunknownonu', 'searchunknownmac'))) {
+            die ($pon->getUserByONUMAC($_GET['searchunknownmac'], $_GET['searchunknownincrement'], $_GET['searchunknownserialize']));
+        }
+
         //getting unregistered ONU list
         if (wf_CheckGet(array('ajaxunknownonu'))) {
             $pon->ajaxOnuUnknownData();
@@ -108,7 +112,7 @@ if ($altCfg['PON_ENABLED']) {
                         $newOnuMac = mysql_real_escape_string($_GET['onumac']);
                         show_window(__('Register new ONU'), wf_BackLink('?module=ponizer&unknownonulist=true', __('Back'), true) . $pon->onuRegisterForm($newOltId, $newOnuMac));
                     } else {
-                        show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknowOnuList());
+                        show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknownOnuList());
                     }
                 } else {
                     if (wf_CheckGet(array('fdbcachelist'))) {

@@ -3029,5 +3029,9 @@ $lang['def']['No charts'] = 'Без графіків';
 $lang['def']['Users who have money left for next month'] = 'Користувачі в котрих не достатньо коштів на наступний місяць';
 $lang['def']['Calling'] = 'Телефонує';
 $lang['def']['right to to know for whom the bell tolls'] = 'Право знати по кому подзвін';
-
+$lang['def']['Login is not found'] = 'Логін не знайдено';
+$lang['def']['User is not found'] = 'Користувача не знайдено';
+$lang['def']['Subscriber is not found'] = 'Абонента не знайдено';
+$lang['def']['Try to find user by MAC'] = 'Спробувати знайти користувача по MAC';
+$lang['def']['increase/decrease searched MAC address on (use negative value to decrease MAC)'] = 'збільшити/зменшити шукану MAC адресу на (використовуйте від\'ємне значення, щоб зменшити МАС)';
 ?>

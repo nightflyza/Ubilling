@@ -142,6 +142,42 @@ class PONizer {
      */
     protected $ONUChartsSpoilerClosed = false;
 
+    /**
+     * Is user search by MAC for unknown ONU registering form enabled?
+     *
+     * @var bool
+     */
+    protected $onuUknownUserByMACSearchShow = false;
+
+    /**
+     * Increment for user search by MAC telepathy for unknown ONU registering form
+     *
+     * @var string
+     */
+    protected $onuUknownUserByMACSearchIncrement = 0;
+
+    /**
+     * Is user search by MAC for unknown ONU registering form enabled mandatory?
+     *
+     * @var bool
+     */
+    protected $onuUknownUserByMACSearchShowAlways = false;
+
+    /**
+     * Is user search by MAC telepathy for unknown ONU registering form enabled?
+     *
+     * @var bool
+     */
+    protected $onuUknownUserByMACSearchTelepathy = false;
+
+
+    /**
+     * Placeholder for UbillingConfig object
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
     const DISTCACHE_PATH = 'exports/';
@@ -166,6 +202,9 @@ class PONizer {
      * @return void
      */
     public function __construct() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+
         $this->loadAlter();
         $this->loadOltDevices();
         $this->loadOltModels();
@@ -176,21 +215,22 @@ class PONizer {
         $this->loadModels();
         $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
-        $this->EnableQuickOLTLinks = ( empty($this->altCfg['PON_QUICK_OLT_LINKS']) ) ? false : true;
-        $this->OLTIndividualRepollAJAX = ( empty($this->altCfg['PON_OLT_INDIVIDUAL_REPOLL_AJAX']) ) ? false : true;
-        $this->ONUChartsSpoilerClosed = ( empty($this->altCfg['PON_ONU_CHARTS_SPOILER_CLOSED']) ) ? false : true;
+        $this->EnableQuickOLTLinks = $this->ubConfig->getAlterParam('PON_QUICK_OLT_LINKS');
+        $this->OLTIndividualRepollAJAX = $this->ubConfig->getAlterParam('PON_OLT_INDIVIDUAL_REPOLL_AJAX');
+        $this->ONUChartsSpoilerClosed = $this->ubConfig->getAlterParam('PON_ONU_CHARTS_SPOILER_CLOSED');
+        $this->onuUknownUserByMACSearchShow = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_SHOW');
+        $this->onuUknownUserByMACSearchIncrement = ($this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_INCREMENT')) ? $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_INCREMENT') : 0;
+        $this->onuUknownUserByMACSearchShowAlways = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_SHOW_ALWAYS');
+        $this->onuUknownUserByMACSearchTelepathy = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_TELEPATHY');
     }
 
     /**
      * Loads system alter.ini config into private data property
      * 
-     * @global object $ubillingConfig
-     * 
      * @return void
      */
     protected function loadAlter() {
-        global $ubillingConfig;
-        $this->altCfg = $ubillingConfig->getAlter();
+        $this->altCfg = $this->ubConfig->getAlter();
     }
 
     /**
@@ -1965,6 +2005,37 @@ class PONizer {
     }
 
     /**
+     * Performs search in nethosts for a MAC and a login linked to it
+     *
+     * @param string $mac
+     * @param int $macIncrementWith
+     *
+     * @return array
+     */
+    public function getUserByONUMAC($mac, $macIncrementWith = 0, $doSerialize = false) {
+        if (!empty($macIncrementWith)) {
+            $macAsHex = str_replace(':', '', $mac);
+            $macAsHex = dechex(('0x' . $macAsHex) + $macIncrementWith);
+
+            $mac = implode(":", str_split($macAsHex, 2));
+        }
+
+        $query = "SELECT `users`.`login`, `users`.`ip`, `nethosts`.`mac` FROM `users` RIGHT JOIN `nethosts` USING(ip) WHERE mac = '" . $mac . "'";
+        $queryResult = simple_queryall($query);
+
+        if (empty($queryResult)) {
+            //$result = array('login' => '', 'ip' => '');
+            $result = array();
+        } else {
+            $result = $queryResult[0];
+        }
+
+        $result = ($doSerialize) ? json_encode($result) : $result;
+
+        return ($result);
+    }
+
+    /**
      * Loads available device models from database
      *
      * @return void
@@ -2200,6 +2271,8 @@ class PONizer {
      */
     public function onuRegisterForm($oltId, $onuMac, $UserLogin = '', $UserIP = '', $RenderedOutside = false, $PageReloadAfterDone = false, $CtrlIDToReplaceAfterDone = '', $ModalWindowID = '') {
         $models = array();
+        $telepathyArray = array();
+
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
                 if (@$this->altCfg['ONUMODELS_FILTER']) {
@@ -2212,13 +2285,36 @@ class PONizer {
             }
         }
 
+        if ($this->onuUknownUserByMACSearchTelepathy and (empty($UserLogin) or empty($UserIP))) {
+            $telepathyArray = $this->getUserByONUMAC($onuMac, $this->onuUknownUserByMACSearchIncrement);
+
+            if (!empty($telepathyArray)) {
+                $UserLogin = $telepathyArray['login'];
+                $UserIP = $telepathyArray['ip'];
+            }
+        }
+
         $inputs = wf_HiddenInput('createnewonu', 'true');
         $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
         $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
-        $inputs .= wf_TextInput('newip', __('IP'), $UserIP, true, 20);
-        $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20);
+        $inputs .= wf_TextInput('newip', __('IP'), $UserIP, true, 20, '', '__NewONUIP');
+        $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20, '', '__NewONUMAC');
         $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
-        $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20);
+        $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
+
+        if (($this->onuUknownUserByMACSearchShow and empty($telepathyArray)) or $this->onuUknownUserByMACSearchShowAlways) {
+            $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
+            $inputs .= __('Try to find user by MAC') . ':';
+            $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
+            $inputs .=  wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px; display: inline-block; float: left;"') .
+                        __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                        wf_tag('span', false, '', 'style="display: inline-block; padding: 5px 0;"') .
+                        wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                        wf_tag('span', true);
+            $inputs .= wf_tag('div', true);
+            $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
+            $inputs .= wf_tag('div', true);
+        }
 
         $NoRedirChkID = 'NoRedirChk_' . wf_InputId();
         $ReloadChkID = 'ReloadChk_' . wf_InputId();
@@ -2496,8 +2592,7 @@ class PONizer {
      * @return string
      */
     protected function onuSignalHistory($onuId, $ShowTitle = false, $ShowXLabel = false, $ShowYLabel = false, $ShowRangeSelector = false) {
-        global $ubillingConfig;
-        $billCfg = $ubillingConfig->getBilling();
+        $billCfg = $this->ubConfig->getBilling();
         $onuId = vf($onuId, 3);
         $result = '';
         if (isset($this->allOnu[$onuId])) {
@@ -2609,6 +2704,7 @@ class PONizer {
         }
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $result .= wf_JSEmptyFunc();
         $result .= 'function OLTIndividualRefresh(OLTID, JQAjaxTab, RefreshButtonSelector) {                                
                         $.ajax({
                             type: "GET",
@@ -2664,6 +2760,12 @@ class PONizer {
 
 // making an event binding for "ONU create&assign form" 'Submit' action to be able to create "ONU create&assign form" dynamically
         $result .= '$(document).on("submit", ".__ONUAssignAndCreateForm", function(evt) {
+                            if ($(document.activeElement).attr("class") == \'__MACIncrementWith\') {
+                                evt.preventDefault();
+                                $(".__UserByMACSearchBtn").click();
+                                return false;
+                            }
+                            
                             //var FrmAction = \'"\' + $(".__ONUAssignAndCreateForm").attr("action") + \'"\';                            
                             var FrmAction = $(".__ONUAssignAndCreateForm").attr("action");
                             
@@ -2683,7 +2785,38 @@ class PONizer {
                                 });
                             }                            
                         });
+                        
                         ';
+
+        $result .= '$(document).on("click", ".__UserByMACSearchBtn", function(evt) {
+                        //__NewONULogin, __NewONUIP, __NewONUMAC, __MACIncrementWith
+                        
+                        $.ajax({
+                            type: "GET",
+                            url: "' . self::URL_ME . '",
+                            data: { 
+                                    searchunknownonu:true,
+                                    searchunknownmac:$(".__NewONUMAC").val(), 
+                                    searchunknownincrement:$(".__MACIncrementWith").val(),
+                                    searchunknownserialize:true
+                                   },
+                            success: function(result) {
+                                        var tObj = JSON.parse(result);
+                                        
+                                        if ( empty(tObj.login) && empty(tObj.ip) ) {
+                                            alert(\'' . __('User is not found') . '\');
+                                        } else {
+                                            $(".__NewONULogin").val(tObj.login);
+                                            $(".__NewONUIP").val(tObj.ip);
+                                        }
+                                     }
+                        });
+                                                                        
+                        evt.preventDefault();
+                        return false;
+                    });
+                    ';
+
         $result .= wf_tag('script', true);
 
         $result .= wf_delimiter();
@@ -2952,7 +3085,7 @@ class PONizer {
      *
      * @return string
      */
-    public function renderUnknowOnuList() {
+    public function renderUnknownOnuList() {
         $result = '';
         $columns = array('OLT', 'Login', 'Address', 'Real Name', 'Tariff', 'IP', 'MAC', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
@@ -2984,6 +3117,7 @@ class PONizer {
         $columns = array('ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid . '', false, 'ONU', 100, $opts);
+
         return ($result);
     }
 
