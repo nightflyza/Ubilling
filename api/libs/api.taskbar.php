@@ -427,7 +427,7 @@ class UbillingTaskbar {
                     $admAnnouncements->setAcquainted($_GET['setacquainted']);
                     rcms_redirect(self::URL_ME);
                 }
-                $result.=$admAnnouncements->showAnnouncements();
+                $result.= $admAnnouncements->showAnnouncements();
             }
         }
         return ($result);

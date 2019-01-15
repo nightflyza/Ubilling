@@ -1,93 +1,545 @@
 <?php
 
-/**
- * Renders module controls
- * 
- * @return string
- */
-function web_AnnouncementsControls() {
-    $introObj = new ZbsIntro();
-    $result = '';
-    $result.=wf_Link('?module=zbsannouncements', wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats announcements'), false, 'ubButton') . ' ';
-    $result.= wf_modalAuto(wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats intro'), __('Userstats intro'), $introObj->introEditForm(), 'ubButton');
-    $result.=wf_Link('?module=zbsannouncements&admiface=true', wf_img('skins/admannouncements.png') . ' ' . __('Administrators announcements'), false, 'ubButton');
-    return ($result);
-}
-
-/**
- * Userstats announcements base class
- */
-class ZbsAnnouncements {
+class Announcements {
 
     /**
-     * Contains available userstats announcements data as id=>data
+     * Contains current user login
+     *
+     * @var string
+     */
+    protected $myLogin = '';
+
+    /**
+     * Contains Announce ID from $_GET
+     *
+     * @var string
+     */
+    protected $ann_id  = '';
+
+    /**
+     * Contains Announce FOR from $_GET
+     *
+     * @var string
+     */
+    protected $ann_for  = 'USERS';
+
+    /**
+     * Contains log parametr
+     *
+     * @var string
+     */
+    protected $log_register  = '';
+
+    /**
+     * Contains admiface #_GET parametr
+     *
+     * @var string
+     */
+    protected $admiface  = '';
+
+    /**
+     * Contains Databases announcements table
+     *
+     * @var string
+     */
+    protected $announcementsTable = 'zbsannouncements';
+
+    /**
+     * Contains Databases history table
+     *
+     * @var string
+     */
+    protected $historyTable = 'zbsannhist';
+
+    /**
+     * Contains admns Name as admin_login => admin_name
      *
      * @var array
      */
-    protected $data = array();
+    protected $adminsName = array();
 
     /**
-     * Contains available administrators announcements data as id=>data
+     * Contains all announces as id => array (public, type, title, text)
      *
      * @var array
      */
-    protected $adminData = array();
+    protected $announcesAvaible = array();
 
     /**
-     * Contains acquainted users history log as id=>data
+     * Contains all announces history as [annid] => Array ( parametr => Array ( [login] => $value))
      *
      * @var array
      */
-    protected $history = array();
+    protected $announcesHistory = array();
 
     /**
-     * Contains all users address data
+     * Contains announces history count as annid => count
      *
      * @var array
      */
-    protected $allAddress = array();
+    protected $announcesHistoryCount = array();
+
+     /**
+     * Contains current intro text
+     *
+     * @var string
+     */
+    protected $introText = '';
 
     /**
-     * Contains all users realname data
-     *
-     * @var array
+     * Contains intro text storage key name
      */
-    protected $allRealNames = array();
+    const INTRO_KEY = 'ZBS_INTRO';
+
+    /**
+     * Polls caching time
+     *
+     * @var int
+     */
+    protected $cacheTime = 2592000; //month by default
+
+    const URL_ME = '?module=announcements';
 
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
-    /**
-     * Creates new object instance
-     * 
-     * @return void
-     */
     public function __construct() {
-        $this->loadData();
-        $this->loadUsersData();
+        $this->initMessages();
+        $this->setLogin();
+        $this->initCache();
+        $this->setAnnounceFor();
+        $this->setAnnounceId();
+        $this->loadAdminsName();
+        $this->avaibleAnnouncementsCached();
+        $this->loadAnnouncesHistoryCached();
+        $this->loadIntroText();
     }
 
     /**
-     * loads all existing announcements/history into private data property
+     * Inits system messages helper object for further usage
      * 
      * @return void
      */
-    protected function loadData() {
-        //loading announcements data
-        $query = "SELECT * from `zbsannouncements` ORDER by `id` DESC;";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->data[$each['id']] = $each;
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
+    }
+
+     /**
+     * Sets current user login
+     * 
+     * @return void
+     */
+    protected function setLogin() {
+        $this->myLogin = whoami();
+    }
+
+    /**
+     * Initalizes system cache object
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Initalizes $ann_for
+     * 
+     * @return void
+     */
+    protected function setAnnounceFor() {
+        if (wf_CheckGet(array('admiface')) OR ((@$_GET['module'] == 'taskbar') OR !isset($_GET['module']))) {
+            $this->ann_for = 'ADMINS';
+            $this->admiface = '&admiface=true';
+            $this->announcementsTable = 'admannouncements';
+            $this->historyTable = 'admacquainted';
+            $this->log_register = 'ADM ';
+        }
+    }
+
+    /**
+     * Initalizes $ann_id
+     * 
+     * @return void
+     */
+    protected function setAnnounceId() {
+        if (wf_CheckGet(array('ann_id'))) {
+            $this->ann_id = vf($_GET['ann_id']);
+        }
+    }
+
+    /**
+     * Loads admis Name
+     * 
+     * @return void
+     */
+    protected function loadAdminsName() {
+        @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+        if (!empty($employeeLogins)) {
+            foreach ($employeeLogins as $login => $name){
+                $this->adminsName[$login] = $name;
             }
         }
-        //loading acquainted data
-        $query = "SELECT * from `zbsannhist`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->history[$each['id']] = $each;
+    }
+
+    /**
+     * Init admin Name
+     * 
+     * @param string $admin
+     * @return void
+     */
+    protected function initAdminName($admin) {
+        $result = '';
+        if (!empty($admin)) {
+            $result = (isset($this->adminsName[$admin])) ? $this->adminsName[$admin] : $admin;
+        }
+        return ($result);
+    }
+
+     /**
+     * Loads All avaible Announcements from cache
+     * 
+     * @return array
+     */
+    protected function avaibleAnnouncementsCached() {
+        $obj = $this;
+        $ann_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for, function() use ($obj) {
+                    return ($obj->loadAvaibleAnnouncements());
+                    }, $this->cacheTime);
+        if (!empty($ann_arr)) {
+            foreach ($ann_arr as $key => $data) {
+                $this->announcesAvaible[$data['id']]['public'] = @$data['public'];
+                $this->announcesAvaible[$data['id']]['type'] = @$data['type'];
+                $this->announcesAvaible[$data['id']]['title'] = $data['title'];
+                $this->announcesAvaible[$data['id']]['text'] = $data['text'];
             }
         }
+    }
+
+     /**
+     * Loads All avaible Announcements from databases
+     * 
+     * @return array
+     */
+    public function loadAvaibleAnnouncements() {
+        $query = "SELECT * from `" . $this->announcementsTable . "` ORDER by `id` ASC";
+        $result = simple_queryall($query);
+        return ($result);
+    }
+
+    /**
+     * Check for last cache data and if need clean
+     * 
+     * @return void
+     */
+    protected function announcesHistoryCacheInfoClean($ann_id) {
+        $query = "SELECT `id` FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "' ORDER BY `id` DESC LIMIT 1";
+        $last_db_uniqueid = simple_query($query);
+        $last_cache_id = $this->cache->get('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
+        if ($last_db_uniqueid != $last_cache_id) {
+            $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
+            $this->cache->set('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $last_db_uniqueid, $this->cacheTime);
+        }
+    }
+
+     /**
+     * Loads all avaible hystory results from cache
+     * 
+     * @return array announcesHistory
+     * @return array announcesHistoryCount
+     */
+    protected function loadAnnouncesHistoryCached($ann_id = '') {
+        // Initialises ann_id
+        $ann_id = ($ann_id) ? $ann_id : $this->ann_id;
+
+        if (isset($this->announcesAvaible[$ann_id])) {
+            // Check for needed cache by ann_id
+            $this->announcesHistoryCacheInfoClean($ann_id);
+            $obj = $this;
+            $votes_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', function() use ($ann_id, $obj) {
+                        return ($obj->loadAnnounceHistory($ann_id));
+                        }, $this->cacheTime);
+            if ( ! empty($votes_arr)) {
+                foreach ($votes_arr as $data) {
+                    $this->announcesHistory[$data['annid']]['id'][$data['login']] = $data['id'];
+                    $this->announcesHistory[$data['annid']]['date'][$data['login']] = $data['date'];
+                }
+                // Count Announces History votes
+                    $this->announcesHistoryCount[$data['annid']] = count($this->announcesHistory[$data['annid']]['id']);
+            }
+        }
+    }
+
+     /**
+     * Loads all avaible votes result from databases
+     * 
+     * @return array
+     */
+    public function loadAnnounceHistory($ann_id) {
+        if ($this->ann_for != 'ADMINS') {
+            $query = "SELECT * FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "'";
+        } else {
+            $query = "SELECT *,`admin` as `login` FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "'";
+        }
+        $result = simple_queryall($query);
+        return ($result);
+    }
+
+    /**
+     * Create Announce on database
+     * 
+     * @param int $public, $type, $title, $text
+     * @return void
+     */
+    protected function createAnnounce($title, $text, $public, $type) {
+        $ann_id = '';
+        $public = vf($public, 3);
+        $type = vf($type);
+        $title = mysql_real_escape_string($title);
+        $text = mysql_real_escape_string($text);
+        if ($this->ann_for != 'ADMINS') {
+            $query = "INSERT INTO `zbsannouncements` (`id`,`public`,`type`,`title`,`text`) VALUES
+                    (NULL, '" . $public . "', '" . $type . "', '" . $title . "', '" . $text . "'); ";
+        } else {
+            $query = "INSERT INTO `admannouncements` (`id`,`title`,`text`) VALUES
+                    (NULL, '" . $title . "', '" . $text . "'); ";
+        }
+        nr_query($query);
+        $query_ann_id = "SELECT LAST_INSERT_ID() as id";
+        $ann_id = simple_query($query_ann_id);
+        $ann_id = $ann_id['id'];
+        log_register("ANNOUNCEMENT ". $this->log_register . "CREATE [" . $ann_id . "]");
+        $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+        return ($ann_id);
+    }
+
+    /**
+     * Change Announce data on database
+     * 
+     * @param int $ann_id, array $new_ann_data
+     * @return void
+     */
+    protected function editAnnounce($ann_id, $new_ann_data) {
+        $old_ann_data = $this->announcesAvaible[$ann_id];
+        $diff_data = array_diff_assoc($new_ann_data, $old_ann_data);
+        if (!empty($diff_data)) {
+            foreach ($diff_data as $field => $value) {
+                simple_update_field($this->announcementsTable, $field, $value, "WHERE `id`='" . $ann_id . "'");
+            }
+            $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+            log_register("ANNOUNCEMENT ". $this->log_register . "EDIT [" . $ann_id . "]");
+        }
+    }
+
+    /**
+     * Delete Announce from database
+     * 
+     * @param int $ann_id
+     * @return void
+     */
+    protected function deleteAnnounce($ann_id) {
+        $this->deleteAnnounceHistory($ann_id);
+        $query = "DELETE FROM `" . $this->announcementsTable . "` WHERE `id` ='" . $ann_id . "'";
+        nr_query($query);
+        $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+    }
+
+    /**
+     * Delete Announce History from database
+     * 
+     * @param int $ann_id
+     * @return void
+     */
+    protected function deleteAnnounceHistory($ann_id) {
+        $query = "DELETE FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "'";
+        nr_query($query);
+        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
+        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
+    }
+
+    /**
+     * Deletes all data about Announce from database by ID
+     * 
+     * @param int $ann_id
+     * @return void
+     */
+    public function deleteAnnounceData() {
+        if(isset($this->announcesAvaible[$this->ann_id])) {
+            $this->deleteAnnounce($this->ann_id);
+            log_register("ANNOUNCEMENT ". $this->log_register . "DELETE [" . $this->ann_id . "]");
+        }
+        rcms_redirect(self::URL_ME . $this->admiface);
+    }
+
+    /**
+     * updates some existing announcement in database
+     * 
+     * @param int  $id   existing announcement ID
+     * 
+     * @return void
+     */
+    public function controlAnn(array $announcements_data) {
+        $result = '';
+        $message_warn = '';
+        if ( ! empty($announcements_data)) {
+            // Check announcements name
+            if ( !empty($announcements_data['title'])) {
+                $name = ($announcements_data['title']) ;
+            } else {
+                $message_warn.= $this->messages->getStyledMessage(__('Title cannot be empty'), 'warning');
+            }
+
+            // Check that we dont have warning message and create Announce
+            if (empty($message_warn) and @$_POST['createann']) {
+                $ann_id = $this->createAnnounce($name, $announcements_data['text'], @$announcements_data['public'], @$announcements_data['type']);
+                // Check that we create Announce, get his $ann_id and redirect to module
+                if ($ann_id) {
+                    rcms_redirect(self::URL_ME . $this->admiface);
+                }
+            } elseif (empty($message_warn) and @$_POST['editann']) {
+                if ($this->ann_for != 'ADMINS') {
+                    $new_ann_data = array('title' => $name, 'text' => $announcements_data['text'], 'public' => $announcements_data['public'], 'type' => $announcements_data['type']);
+                } else {
+                    $new_ann_data = array('title' => $name, 'text' => $announcements_data['text']);
+                }
+                $this->editAnnounce($this->ann_id, $new_ann_data);
+                rcms_redirect(self::URL_ME . '&action=edit&ann_id=' . $this->ann_id . $this->admiface);
+            }
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Poll data cannot be empty '), 'warning');
+        }
+
+        $result.= $message_warn;
+
+        return ($result);
+    }
+
+    /**
+     * returns announcement edit form
+     * 
+     * @param int $id existing announcement ID
+     *  
+     * @return string
+     */
+    public function renderForm() {
+        $states = array(1 => __('Yes'), 0 => __('No'));
+        $types = array("text" => __('Text'), "html" => __('HTML'));
+        $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+        $result = '';
+        if (!empty($this->ann_id)) {
+            $ann_action = 'editann';
+            $result.= wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($this->ann_id), 'ubButton', '600', '400');
+            $result.= wf_delimiter();
+            $inputs = wf_TextInput($ann_action . '[title]', __('Title'), $this->announcesAvaible[$this->ann_id]['title'], true, 40);
+            $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
+            $inputs.= wf_TextArea($ann_action . '[text]', '', $this->announcesAvaible[$this->ann_id]['text'], true, '60x10');
+            // Check that we dont use admin parametr
+            if ($this->ann_for != 'ADMINS') {
+                $inputs.= wf_Selector($ann_action . '[public]', $states, __('Public'), $this->announcesAvaible[$this->ann_id]['public'], false);
+                $inputs.= wf_Selector($ann_action . '[type]', $types, __('Type'), $this->announcesAvaible[$this->ann_id]['type'], false);
+            }
+            $inputs.= wf_delimiter();
+            $inputs.= wf_Submit(__('Save'));
+            $result.= wf_Form("", 'POST', $inputs, 'glamour');
+            return ($result);
+        } else {
+            $ann_action = 'createann';
+            $inputs = wf_TextInput($ann_action . '[title]', __('Title'), '', true, 40);
+            $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
+            $inputs.= wf_TextArea($ann_action . '[text]', '', '', true, '60x10');
+            // Check that we dont use admin parametr
+            if ($this->ann_for != 'ADMINS') {
+                $inputs.= wf_Selector($ann_action . '[public]', $states, __('Public'), '', false);
+                $inputs.= wf_Selector($ann_action . '[type]', $types, __('Type'), '', false);
+            }
+            $inputs.= wf_delimiter();
+            $inputs.= wf_Submit(__('Create'));
+            $result = wf_Form("", 'POST', $inputs, 'glamour');
+            return ($result);
+        }
+    }
+
+    /**
+     * Loads current intro text from database
+     * 
+     * @return void
+     */
+    protected function loadIntroText() {
+        $this->introText = zb_StorageGet(self::INTRO_KEY);
+    }
+
+    /**
+     * Renders intro text editing form
+     * 
+     * @return string
+     */
+    protected function introEditForm() {
+        $result = '';
+        $inputs = wf_HiddenInput('newzbsintro', 'true');
+        $inputs.= __('Text') . ' (HTML)' . wf_tag('br');
+        $inputs.= wf_TextArea('newzbsintrotext', '', $this->introText, true, '70x15');
+        $inputs.= wf_Submit(__('Save'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Stores new intro text in database
+     * 
+     * @param string $data
+     * 
+     * @return void
+     */
+    public function saveIntroText($data) {
+        zb_StorageSet(self::INTRO_KEY, $data);
+        log_register('ANNOUNCEMENT INTRO UPDATE');
+    }
+
+    /**
+     * Renders module controls
+     * 
+     * @return string
+     */
+    public function panel() {
+        $result = '';
+        // Add backlink
+        if (wf_CheckGet(array('action')) OR wf_CheckGet(array('show_acquainted'))) {
+            $result.= wf_BackLink(self::URL_ME . $this->admiface);
+        }
+
+        if (cfr('ZBSANNCONFIG') AND !wf_CheckGet(array('action')) AND !wf_CheckGet(array('show_acquainted'))) {
+            $result.= wf_Link(self::URL_ME . '&action=create' . $this->admiface, web_icon_create() . ' ' . __('Create'), false, 'ubButton');
+        }
+        if (cfr('ZBSANNCONFIG')) {
+            $result.= wf_modalAuto(wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats intro'), __('Userstats intro'), $this->introEditForm(), 'ubButton');
+        }
+        if (wf_CheckGet(array('show_acquainted')) OR wf_CheckGet(array('admiface'))) {
+            $result.= wf_Link(self::URL_ME, wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats announcements'), false, 'ubButton') . ' ';
+        }
+        if (wf_CheckGet(array('show_acquainted')) OR !wf_CheckGet(array('admiface'))) {
+            $result.= wf_Link(self::URL_ME . '&admiface=true', wf_img('skins/admannouncements.png') . ' ' . __('Administrators announcements'), false, 'ubButton');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * returns announcement preview
+     * 
+     * @param int $id existing announcement ID
+     * 
+     * @return string
+     */
+    protected function preview($id) {
+        $result = '';
+        if (isset($this->announcesAvaible[$id])) {
+            if (!empty($this->announcesAvaible[$id]['title'])) {
+                $result = wf_tag('h3', false, 'row2', '') . $this->announcesAvaible[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
+            }
+            $previewtext = $this->announcesAvaible[$id]['text'];
+            $result.= nl2br($previewtext);
+            $result.= wf_delimiter();
+        }
+        return ($result);
     }
 
     /**
@@ -101,129 +553,20 @@ class ZbsAnnouncements {
     }
 
     /**
-     * deletes announcement from database
+     * Renders list of users which acquainted with some announcement
      * 
-     * @param int $id existing announcement ID
-     * 
-     * @return void
-     */
-    public function delete($id) {
-        $id = vf($id, 3);
-        if (isset($this->data[$id])) {
-            $query = "DELETE from `zbsannouncements` WHERE `id`='" . $id . "';";
-            nr_query($query);
-            log_register("ANNOUNCEMENT DELETE [" . $id . "]");
-            $queryHistory = "DELETE from `zbsannhist` WHERE `annid`='" . $id . "';";
-            nr_query($queryHistory);
-        } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
-        }
-    }
-
-    /**
-     * creates new announcement in database
-     * @param int       $public
-     * @param string    $type
-     * @param string    $title
-     * @param string    $text
-     * 
-     * @return int
-     */
-    public function create($public, $type, $title, $text) {
-        $public = vf($public, 3);
-        $type = vf($type);
-        $title = mysql_real_escape_string($title);
-        $text = mysql_real_escape_string($text);
-        $query = "INSERT INTO `zbsannouncements` (`id`,`public`,`type`,`title`,`text`) VALUES
-                (NULL, '" . $public . "', '" . $type . "', '" . $title . "', '" . $text . "'); ";
-        nr_query($query);
-        $newId = simple_get_lastid('zbsannouncements');
-        log_register("ANNOUNCEMENT CREATE [" . $newId . "]");
-        return ($newId);
-    }
-
-    /**
-     * updates some existing announcement in database
-     * 
-     * @param int  $id   existing announcement ID
-     * 
-     * @return void
-     */
-    public function save($id) {
-        $id = vf($id, 3);
-        if (isset($this->data[$id])) {
-            simple_update_field('zbsannouncements', 'public', $_POST['editpublic'], "WHERE `id`='" . $id . "'");
-            simple_update_field('zbsannouncements', 'type', $_POST['edittype'], "WHERE `id`='" . $id . "'");
-            simple_update_field('zbsannouncements', 'title', $_POST['edittitle'], "WHERE `id`='" . $id . "'");
-            simple_update_field('zbsannouncements', 'text', $_POST['edittext'], "WHERE `id`='" . $id . "'");
-            log_register("ANNOUNCEMENT EDIT [" . $id . "]");
-        } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
-        }
-    }
-
-    /**
-     * returns announcement preview
-     * 
-     * @param int $id existing announcement ID
+     * @param int $id
      * 
      * @return string
      */
-    protected function preview($id) {
-        $id = vf($id, 3);
-        if (isset($this->data[$id])) {
-            $result = wf_tag('h3', false, 'row2', '') . $this->data[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
-            $result.= wf_delimiter();
-            if ($this->data[$id]['type'] == 'text') {
-                $previewtext = strip_tags($this->data[$id]['text']);
-                $result.= nl2br($previewtext);
-            }
-
-            if ($this->data[$id]['type'] == 'html') {
-                $result.=$this->data[$id]['text'];
-            }
-            $result.=wf_delimiter();
-            return ($result);
+    public function renderAcquaintedUsers() {
+        $opts = '"order": [[ 0, "desc" ]]';
+        if ($this->ann_for != 'ADMINS') { 
+            $columns = array('ID', 'Login', 'Address', 'Real Name', 'Date');
         } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
+            $columns = array('ID', 'Admin', 'Date');
         }
-    }
-
-    /**
-     * Returns users count which acquainted with some announcement
-     * 
-     * @param int $id
-     * 
-     * @return int
-     */
-    protected function getAcquaintedUsersCount($id) {
-        $result = 0;
-        if (!empty($this->history)) {
-            foreach ($this->history as $io => $each) {
-                if ($each['annid'] == $id) {
-                    $result++;
-                }
-            }
-        }
-        return ($result);
-    }
-
-    /**
-     * Returns users data which acquainted with some announcement
-     * 
-     * @param int $id
-     * 
-     * @return array
-     */
-    protected function getAcquaintedUsersData($id) {
-        $result = array();
-        if (!empty($this->history)) {
-            foreach ($this->history as $io => $each) {
-                if ($each['annid'] == $id) {
-                    $result[] = $each;
-                }
-            }
-        }
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxannusers=true&ann_id=' . $this->ann_id . $this->admiface, false, 'Users', 100, $opts);
         return ($result);
     }
 
@@ -234,424 +577,117 @@ class ZbsAnnouncements {
      * 
      * @return string
      */
-    protected function renderAcquaintedUsers($id) {
-        $result = '';
-        $viewsData = $this->getAcquaintedUsersData($id);
-        if (!empty($viewsData)) {
-            $cells = wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Date'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($viewsData as $io => $each) {
-                $cells = wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login']));
-                $cells.= wf_TableCell(@$this->allAddress[$each['login']]);
-                $cells.= wf_TableCell(@$this->allRealNames[$each['login']]);
-                $cells.= wf_TableCell($each['date']);
-                $rows.= wf_TableRow($cells, 'row3');
-            }
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        }
-        return ($result);
-    }
-
-    /**
-     * renders list of existing announcements by private data prop
-     * 
-     * @return string
-     */
-    public function render() {
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Public'));
-        $cells.= wf_TableCell(__('Type'));
-        $cells.= wf_TableCell(__('Acquainted'));
-        $cells.= wf_TableCell(__('Title'));
-        $cells.= wf_TableCell(__('Text'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
-
-        if (!empty($this->data)) {
-            foreach ($this->data as $io => $each) {
-                $viewsCount = $this->getAcquaintedUsersCount($each['id']);
-                $viewsData = '';
-                //announcement view stats
-                if ($viewsCount > 0) {
-                    $viewsData = wf_modalAuto($viewsCount, __('Acquainted'), $this->renderAcquaintedUsers($each['id']));
+    public function ajaxAvaibAcquaintedUsers() {
+       $json = new wf_JqDtHelper();
+        if (isset($this->announcesHistory[$this->ann_id])) {
+            $this->loadUsersData();
+            foreach ($this->announcesHistory[$this->ann_id]['id'] as $login => $value) {
+                $data[] = $this->announcesHistory[$this->ann_id]['id'][$login];
+                if ($this->ann_for != 'ADMINS') { 
+                    $data[] = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login);
+                    $data[] = @$this->allAddress[$login];
+                    $data[] = @$this->allRealNames[$login];
                 } else {
-                    $viewsData = '0';
+                    $data[] = $this->initAdminName($login);
                 }
-                $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell(web_bool_led($each['public']));
-                $cells.= wf_TableCell($each['type']);
-                $cells.= wf_TableCell($viewsData);
-                $cells.= wf_TableCell(strip_tags($each['title']));
-                if (strlen($each['text']) > 100) {
-                    $textPreview = mb_substr(strip_tags($each['text']), 0, 100, 'utf-8') . '...';
-                } else {
-                    $textPreview = strip_tags($each['text']);
-                }
-                $cells.= wf_TableCell($textPreview);
-                $actionLinks = wf_JSAlert('?module=zbsannouncements&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                $actionLinks.= wf_JSAlert('?module=zbsannouncements&edit=' . $each['id'], web_edit_icon(), __('Are you serious'));
-                $actionLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($each['id']), '', '600', '400');
-                $cells.= wf_TableCell($actionLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $data[] = $this->announcesHistory[$this->ann_id]['date'][$login];
+
+                $json->addRow($data);
+                unset($data);
             }
         }
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        return ($result);
+
+        $json->getJson();
     }
 
     /**
-     * returns announcement create form
+     * Renders Announces module control panel interface
      * 
      * @return string
      */
-    public function createForm() {
-        $states = array("1" => __('Yes'), "0" => __('No'));
-        $types = array("text" => __('Text'), "html" => __('HTML'));
-
-        $inputs = wf_TextInput('newtitle', __('Title'), '', true, 40);
-        $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $inputs.= __('Text') . $sup . wf_tag('br');
-        $inputs.= wf_TextArea('newtext', '', '', true, '60x10');
-        $inputs.= wf_Selector('newpublic', $states, __('Public'), '', false);
-        $inputs.= wf_Selector('newtype', $types, __('Type'), '', false);
-        $inputs.= wf_delimiter();
-        $inputs.= wf_Submit(__('Create'));
-        $result = wf_Form("", 'POST', $inputs, 'glamour');
-        return ($result);
-    }
-
-    /**
-     * returns announcement edit form
-     * 
-     * @param int $id existing announcement ID
-     *  
-     * @return string
-     */
-    public function editForm($id) {
-        $id = vf($id, 3);
-        $states = array(1 => __('Yes'), 0 => __('No'));
-        $types = array("text" => __('Text'), "html" => __('HTML'));
-        $result = wf_BackLink('?module=zbsannouncements');
-        $result.=wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');
-        $result.=wf_delimiter();
-        if (isset($this->data[$id])) {
-            $inputs = wf_TextInput('edittitle', __('Title'), $this->data[$id]['title'], true, 40);
-            $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-            $inputs.= __('Text') . $sup . wf_tag('br');
-            $inputs.= wf_TextArea('edittext', '', $this->data[$id]['text'], true, '60x10');
-            $inputs.= wf_Selector('editpublic', $states, __('Public'), $this->data[$id]['public'], false);
-            $inputs.= wf_Selector('edittype', $types, __('Type'), $this->data[$id]['type'], false);
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form("", 'POST', $inputs, 'glamour');
-            return ($result);
+    public function renderAvaibleAnnouncements() {
+        $opts = '"order": [[ 0, "desc" ]]';
+        if ($this->ann_for != 'ADMINS') {
+            $columns = array('ID', 'Title', 'Status', 'Type', 'Text', 'Acquainted', 'Actions');
         } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
+            $columns = array('ID', 'Title', 'Text', 'Acquainted', 'Actions');
         }
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxavaibleann=true' . $this->admiface, false, 'Announcements', 100, $opts);
+        return ($result);
     }
 
+    /**
+     * Renders json formatted data about Announces
+     * 
+     * @return void
+     */
+    public function ajaxAvaibleAnnouncements() {
+        $json = new wf_JqDtHelper();
+        if (!empty($this->announcesAvaible)) {
+            foreach ($this->announcesAvaible as $ann_id => $announce) {
+                $this->loadAnnouncesHistoryCached($ann_id);
+                $actionLinks = '';
+                if (cfr('ZBSANNCONFIG')) {
+                    $actionLinks.= wf_JSAlert(self::URL_ME . '&action=delete&ann_id=' . $ann_id . $this->admiface, web_delete_icon(), __('Removing this may lead to irreparable results'));
+                    $actionLinks.= wf_JSAlert(self::URL_ME . '&action=edit&ann_id=' . $ann_id . $this->admiface, web_edit_icon(), __('Are you serious'));
+                }
+                $actionLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($ann_id), '', '600', '400');
+                
+                if (isset($this->announcesHistoryCount[$ann_id])) {
+                    $announcesHistory = wf_Link(self::URL_ME . '&show_acquainted=true&ann_id=' . $ann_id . $this->admiface, $this->announcesHistoryCount[$ann_id]);
+                } else {
+                    $announcesHistory = 0;
+                }
+
+                if (strlen($announce['text']) > 100) {
+                    $textPreview = mb_substr(strip_tags($announce['text']), 0, 100, 'utf-8') . '...';
+                } else {
+                    $textPreview = strip_tags($announce['text']);
+                }
+
+                $data[] = $ann_id;
+                $data[] = strip_tags($announce['title']);
+
+                if ($this->ann_for != 'ADMINS') {
+                    $data[] = web_bool_led($announce['public']);
+                    $data[] = $announce['type'];
+                }
+
+                $data[] = $textPreview;
+                $data[] = $announcesHistory;
+                $data[] = $actionLinks;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
 }
 
-/**
- * Administrator interface announcements base class
- */
-class AdminAnnouncements {
-
-    /**
-     * Contains available administrators announcements data as id=>data
-     *
-     * @var array
-     */
-    protected $data = array();
-
-    /**
-     * Contains current administrators login
-     *
-     * @var string
-     */
-    protected $myLogin = '';
-
-    /**
-     * Contains array of acquainted announcements as annid=>date
-     *
-     * @var array
-     */
-    protected $acquainted = array();
-
-    /**
-     * Contains data about administrators viewed some announcement as annid=>data
-     *
-     * @var array
-     */
-    protected $acStats = array();
-
-    const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
+class AdminAnnouncements extends Announcements {
 
     public function __construct() {
         $this->setLogin();
-        if ($this->checkBaseAvail()) { // checking required tables availability
-            $this->loadData();
-            $this->loadAcquainted();
-        }
+        $this->initCache();
+        $this->setAnnounceFor();
+        $this->avaibleAnnouncementsCached();
     }
 
     /**
-     * Must prevent update troubles and make billing usable between 0.8.2 and 0.8.3 releases
-     * 
-     * @return bool
-     */
-    protected function checkBaseAvail() {
-        $result = false;
-        $fileFlagPath = 'exports/admannouncementsdb';
-        if (file_exists($fileFlagPath)) {
-            $result = true;
-        } else {
-            if (zb_CheckTableExists('admannouncements')) {
-                $result = true;
-                file_put_contents($fileFlagPath, 'ok');
-            } else {
-                $result = false;
-            }
-        }
-        return ($result);
-    }
-
-    /**
-     * Sets current administrators login into protected property
-     * 
-     * @return voids
-     */
-    protected function setLogin() {
-        $this->myLogin = whoami();
-    }
-
-    /**
-     * loads all existing announcements into private data property
-     * 
-     * @return void
-     */
-    protected function loadData() {
-        $query = "SELECT * from `admannouncements` ORDER by `id` DESC;";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->data[$each['id']] = $each;
-            }
-        }
-    }
-
-    /**
-     * Loads acquainted administrators list from database
-     * 
-     * @return void
-     */
-    protected function loadAcquainted() {
-        if (!empty($this->myLogin)) {
-            $loginFiltered = mysql_real_escape_string($this->myLogin);
-            $query = "SELECT * from `admacquainted` WHERE `admin`='" . $loginFiltered . "';";
-            $all = simple_queryall($query);
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
-                    $this->acquainted[$each['annid']][$each['admin']] = $each['date'];
-                }
-            }
-        }
-    }
-
-    /**
-     * Loads data about users which acquainted announcement
-     * 
-     * @return void
-     */
-    protected function loadAcquaintedStats() {
-        $query = "SELECT * from `admacquainted`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->acStats[$each['annid']][$each['admin']] = $each['date'];
-            }
-        }
-    }
-
-    /**
-     * deletes announcement from database
-     * 
-     * @param int $id existing announcement ID
-     * 
-     * @return void
-     */
-    public function delete($id) {
-        $id = vf($id, 3);
-        if (isset($this->data[$id])) {
-            $query = "DELETE from `admannouncements` WHERE `id`='" . $id . "';";
-            nr_query($query);
-            log_register("ANNOUNCEMENT ADM DELETE [" . $id . "]");
-        } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
-        }
-    }
-
-    /**
-     * creates new announcement in database
-     * 
-     * @param int       $public
-     * @param string    $type
-     * @param string    $title
-     * @param string    $text
-     * 
-     * @return int
-     */
-    public function create($title, $text) {
-        $title = mysql_real_escape_string($title);
-        $text = mysql_real_escape_string($text);
-        $query = "INSERT INTO `admannouncements` (`id`,`title`,`text`) VALUES
-                (NULL, '" . $title . "', '" . $text . "'); ";
-        nr_query($query);
-        $newId = simple_get_lastid('zbsannouncements');
-        log_register("ANNOUNCEMENT ADM CREATE [" . $newId . "]");
-        return ($newId);
-    }
-
-    /**
-     * updates some existing announcement in database
-     * 
-     * @param int  $id   existing announcement ID
-     * 
-     * @return void
-     */
-    public function save($id) {
-        $id = vf($id, 3);
-        if (isset($this->data[$id])) {
-            simple_update_field('admannouncements', 'title', $_POST['edittitle'], "WHERE `id`='" . $id . "'");
-            simple_update_field('admannouncements', 'text', $_POST['edittext'], "WHERE `id`='" . $id . "'");
-            log_register("ANNOUNCEMENT ADM EDIT [" . $id . "]");
-        } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
-        }
-    }
-
-    /**
-     * returns announcement preview
-     * 
-     * @param int $id existing announcement ID
+     * gets poll that user not voted yet
      * 
      * @return string
      */
-    protected function preview($id) {
+    protected function loadAnnouncementsForAcquainted() {
         $result = '';
-        if (isset($this->data[$id])) {
-            if (!empty($this->data[$id]['title'])) {
-                $result = wf_tag('h3', false, 'row2', '') . $this->data[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
-            }
-            $previewtext = $this->data[$id]['text'];
-            $result.= nl2br($previewtext);
-            $result.=wf_delimiter();
-        }
+        $date = date("Y-m-d H:i:s");
+        $query = "SELECT * FROM `admannouncements` WHERE `id` NOT IN (SELECT `annid` FROM `admacquainted` "
+                . "WHERE `admin` = '" .$this->myLogin . "') "
+                ;
+        $result = simple_queryall($query);
         return ($result);
-    }
-
-    /**
-     * renders list of existing announcements by private data prop
-     * 
-     * @return string
-     */
-    public function render() {
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Title'));
-        $cells.= wf_TableCell(__('Acquainted'));
-        $cells.= wf_TableCell(__('Text'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
-        $this->loadAcquaintedStats();
-        $adminNames = ts_GetAllEmployeeLoginsCached();
-        $adminNames = unserialize($adminNames);
-
-        if (!empty($this->data)) {
-            foreach ($this->data as $io => $each) {
-                $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell(strip_tags($each['title']));
-                $acCount = (isset($this->acStats[$each['id']])) ? sizeof($this->acStats[$each['id']]) : 0;
-                if (!empty($acCount)) {
-                    $acList = '';
-                    if (!empty($this->acStats[$each['id']])) {
-                        $acCells = wf_TableCell(__('Admin'));
-                        $acCells.= wf_TableCell(__('Date'));
-                        $acRows = wf_TableRow($acCells, 'row1');
-                        foreach ($this->acStats[$each['id']] as $eachAdmLogin => $eachAc) {
-                            $adminLabel = (isset($adminNames[$eachAdmLogin])) ? $adminNames[$eachAdmLogin] : $eachAdmLogin;
-                            $acCells = wf_TableCell($adminLabel);
-                            $acCells.= wf_TableCell($eachAc);
-                            $acRows.= wf_TableRow($acCells, 'row3');
-                        }
-
-
-                        $acList.=wf_TableBody($acRows, '100%', 0, 'sortable');
-                    }
-                    $acControl = wf_modalAuto($acCount, __('Acquainted'), $acList);
-                } else {
-                    $acControl = $acCount;
-                }
-                $cells.= wf_TableCell($acControl);
-                if (strlen($each['text']) > 100) {
-                    $textPreview = mb_substr(strip_tags($each['text']), 0, 100, 'utf-8') . '...';
-                } else {
-                    $textPreview = strip_tags($each['text']);
-                }
-                $cells.= wf_TableCell($textPreview);
-                $actionLinks = wf_JSAlert('?module=zbsannouncements&admiface=true&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                $actionLinks.= wf_JSAlert('?module=zbsannouncements&admiface=true&&edit=' . $each['id'], web_edit_icon(), __('Are you serious'));
-                $actionLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($each['id']), '', '600', '400');
-                $cells.= wf_TableCell($actionLinks);
-                $rows.= wf_TableRow($cells, 'row3');
-            }
-        }
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        return ($result);
-    }
-
-    /**
-     * returns announcement create form
-     * 
-     * @return string
-     */
-    public function createForm() {
-        $inputs = wf_TextInput('newtitle', __('Title'), '', true, 40);
-        $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
-        $inputs.= wf_TextArea('newtext', '', '', true, '60x10');
-        $inputs.= wf_delimiter();
-        $inputs.= wf_Submit(__('Create'));
-        $result = wf_Form("", 'POST', $inputs, 'glamour');
-        return ($result);
-    }
-
-    /**
-     * returns announcement edit form
-     * 
-     * @param int $id existing announcement ID
-     *  
-     * @return string
-     */
-    public function editForm($id) {
-        $id = vf($id, 3);
-        $result = wf_BackLink('?module=zbsannouncements&admiface=true');
-        $result.=wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');
-        $result.=wf_delimiter();
-        if (isset($this->data[$id])) {
-            $inputs = wf_TextInput('edittitle', __('Title'), $this->data[$id]['title'], true, 40);
-            $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-            $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
-            $inputs.= wf_TextArea('edittext', '', $this->data[$id]['text'], true, '60x10');
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form("", 'POST', $inputs, 'glamour');
-            return ($result);
-        } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
-        }
     }
 
     /**
@@ -661,13 +697,12 @@ class AdminAnnouncements {
      */
     public function showAnnouncements() {
         $result = '';
-        if (!empty($this->data)) {
+        $AnnouncementsForAcquainted = $this->loadAnnouncementsForAcquainted();
+        if (!empty($AnnouncementsForAcquainted)) {
             if (!empty($this->myLogin)) {
-                foreach ($this->data as $io => $each) {
-                    if (!isset($this->acquainted[$each['id']])) {
-                        $result.=$this->preview($each['id']);
-                        $result.=wf_Link('?module=taskbar&setacquainted=' . $each['id'], __('Acquainted'), true, 'ubButton');
-                    }
+                foreach ($AnnouncementsForAcquainted as $io => $each) {
+                        $result.= $this->preview($each['id']);
+                        $result.= wf_Link('?module=taskbar&setacquainted=' . $each['id'], __('Acquainted'), true, 'ubButton');
                 }
             }
         }
@@ -696,64 +731,5 @@ class AdminAnnouncements {
             log_register("ANNOUNCEMENT ADM READ [" . $announcementId . "]");
         }
     }
-
 }
-
-class ZbsIntro {
-
-    /**
-     * Contains current intro text
-     *
-     * @var string
-     */
-    protected $introText = '';
-
-    /**
-     * Contains intro text storage key name
-     */
-    const INTRO_KEY = 'ZBS_INTRO';
-
-    /**
-     * Creates new intro instance
-     */
-    public function __construct() {
-        $this->loadIntroText();
-    }
-
-    /**
-     * Loads current intro text from database
-     * 
-     * @return void
-     */
-    protected function loadIntroText() {
-        $this->introText = zb_StorageGet(self::INTRO_KEY);
-    }
-
-    /**
-     * Renders intro text editing form
-     * 
-     * @return string
-     */
-    public function introEditForm() {
-        $result = '';
-        $inputs = wf_HiddenInput('newzbsintro', 'true');
-        $inputs.= __('Text') . ' (HTML)' . wf_tag('br');
-        $inputs.= wf_TextArea('newzbsintrotext', '', $this->introText, true, '70x15');
-        $inputs.= wf_Submit(__('Save'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
-        return ($result);
-    }
-
-    /**
-     * Stores new intro text in database
-     * 
-     * @param string $data
-     * 
-     * @return void
-     */
-    public function saveIntroText($data) {
-        zb_StorageSet(self::INTRO_KEY, $data);
-        log_register('ANNOUNCEMENT INTRO UPDATE');
-    }
-
-}
+?>
