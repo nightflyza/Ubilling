@@ -1209,6 +1209,8 @@ class Salary {
         $timeChartData = array();
 
         $result = '';
+
+
         $totalSum = 0;
         $payedSum = 0;
         $jobCount = 0;
@@ -1218,6 +1220,8 @@ class Salary {
         $jobtypeFilter = (!empty($jobtypeid)) ? "AND `jobtypeid`='" . $jobtypeid . "'" : '';
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "' " . $jobtypeFilter . ";";
         $all = simple_queryall($query);
+        
+        $selectAllControl=  wf_CheckInput('selectallbears', __('All'), false, false, '', 'gummybear');
 
         $cells = wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Task'));
@@ -1228,7 +1232,7 @@ class Salary {
         $cells.= wf_TableCell(__('Notes'));
         $cells.= wf_TableCell(__('Paid'));
         $cells.= wf_TableCell(__('Money'));
-        $cells.= wf_TableCell(__(''));
+        $cells.= wf_TableCell($selectAllControl);
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
@@ -1306,7 +1310,7 @@ class Salary {
 
                 $cells.= wf_TableCell($jobPrice);
                 if (!$each['state']) {
-                    $actControls = wf_CheckInput('_prstatecheck[' . $each['id'] . ']', '', true, false);
+                    $actControls = wf_CheckInput('_prstatecheck[' . $each['id'] . ']', '', true, false, '', 'someonelikeyou');
                 } else {
                     $actControls = '';
                 }
@@ -1339,11 +1343,28 @@ class Salary {
             }
         }
 
-        $result = wf_TableBody($rows, '100%', 0, '');
+        $result.= wf_TableBody($rows, '100%', 0, '');
         $result.= wf_HiddenInput('prstateprocessing', 'true');
+        $result.=wf_tag('script', false);
+        $result.='
+       var checkboxes = document.querySelectorAll(".someonelikeyou");
+         //Never mind Ill find someone like you
+         //I wish nothing but the best for you too
+        function selectCheckbox() {
+         var newstate=$(".gummybear").is(\':checked\');
+          checkboxes.forEach(function(checkbox) {
+          checkbox.checked = newstate;
+         })
+        }
+        ';
+        $result.=wf_tag('script', true);
+        
+
         if ($jobCount > 0) {
             $result.= wf_Submit(__('Processing')) . wf_delimiter();
         }
+
+
 
         $result = wf_Form('', 'POST', $result, '');
 
