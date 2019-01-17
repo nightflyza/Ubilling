@@ -91,7 +91,9 @@ if (cfr('USERREG')) {
             }
 
             if (isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED']) {
-                if (isset($_POST['userMAC']) and ! empty($_POST['userMAC'])) {
+                $newMac = '';
+
+                if (isset($_POST['userMAC']) and !empty($_POST['userMAC'])) {
                     $newMac = $_POST['userMAC'];
                     $newMac = trim($newMac);
                     $newMac = strtolower($newMac);
