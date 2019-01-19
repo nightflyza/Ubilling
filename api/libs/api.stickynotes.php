@@ -10,6 +10,13 @@ class StickyNotes {
     protected $allnotes = array();
 
     /**
+     * Is revelations enabled?
+     *
+     * @var bool
+     */
+    protected $revelationsFlag = false;
+
+    /**
      * Contains active user notes which may require notification
      *
      * @var array
@@ -42,11 +49,24 @@ class StickyNotes {
      */
     public function __construct($onlyActive) {
         $this->setLogin();
+        $this->loadConfig();
         if ($onlyActive) {
             $this->loadActiveNotes();
         } else {
             $this->loadAllNotes();
         }
+    }
+
+    /**
+     * Loads required options
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->revelationsFlag = $ubillingConfig->getAlterParam('STICKY_REVELATIONS_ENABLED');
     }
 
     /**

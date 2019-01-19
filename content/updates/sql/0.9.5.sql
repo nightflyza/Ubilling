@@ -8,3 +8,19 @@ CREATE TABLE IF NOT EXISTS `callshist` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `stickyrevelations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `owner` varchar(255) NOT NULL,
+  `showto` text,
+  `createdate` datetime NOT NULL,
+  `dayfrom` int(11) DEFAULT NULL,
+  `dayto` int(11) DEFAULT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `text` text,
+  PRIMARY KEY (`id`),
+  KEY `owner` (`owner`),
+  KEY `dayfrom` (`dayfrom`),
+  KEY `dayto` (`dayto`),
+  KEY `active` (`active`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
