@@ -312,6 +312,12 @@ class IpChange {
                         } else {
                             $billing->setdown($this->login, 0);
                         }
+
+                        //optional arp cleanup here
+                        if (@$this->altCfg['IPCHANGE_ARP_CLEANUP']) {
+                            $command = $this->billingCfg['SUDO'] . ' arp -d ' . $this->currentIp;
+                            shell_exec($command);
+                        }
                     } else {
                         log_register("CHANGE FAIL MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . " NO_NETHOST");
                         $result = __('No existing nethost for current IP');
