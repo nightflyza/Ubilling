@@ -127,7 +127,6 @@ if (cfr('TASKMAN')) {
             if ($_GET['show'] == 'all') {
                 $showtasks = ts_JGetAllTasks();
             }
-
         } else {
             $showtasks = ts_JGetUndoneTasks();
         }
@@ -135,7 +134,7 @@ if (cfr('TASKMAN')) {
         if (!isset($_GET['edittask'])) {
             if (!wf_CheckGet(array('print'))) {
                 if (!wf_CheckGet(array('lateshow'))) {
-                    if (wf_CheckGet(array('show')) and ($_GET['show'] == 'logs' and cfr('TASKMANNWATCHLOG')) ) {
+                    if (wf_CheckGet(array('show')) and ( $_GET['show'] == 'logs' and cfr('TASKMANNWATCHLOG'))) {
                         // Task logs
                         show_window(__('View log'), ts_renderLogsListAjax());
                     } else {
@@ -165,7 +164,7 @@ if (cfr('TASKMAN')) {
                 $smsDataRaw = ts_SendSMS($_POST['postsendemployee'], $_POST['postsendsmstext']);
                 if (!empty($smsDataRaw)) {
                     $smsDataSave = serialize($smsDataRaw);
-                    $smsDataSave = "'" . base64_encode($smsDataSave) . "'";
+                    $smsDataSave = base64_encode($smsDataSave);
                     simple_update_field('taskman', 'smsdata', $smsDataSave, "WHERE `id`='" . $_GET['edittask'] . "'");
                     //flushing dark void
                     $darkVoid = new DarkVoid();
