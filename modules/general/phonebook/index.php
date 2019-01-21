@@ -177,52 +177,66 @@ if (cfr('PHONEBOOK')) {
         }
 
         /**
-         * Renders phone data with available controls
+         * Renders phone data container
          * 
          * @return string
          */
-        public function renderContacts() {
+        public function renderContactsContainer() {
             $result = '';
+            if (cfr('PHONEBOOKEDIT')) {
+                $columns = array('Phone', 'Name', 'Actions');
+            } else {
+                $columns = array('Phone', 'Name');
+            }
+            $opts = '';
+            $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajax=true', false, 'Phones', 100, $opts);
+            return ($result);
+        }
+
+        /**
+         * Renders phone data with available controls
+         * 
+         * @return void
+         */
+        public function renderAjaxContacts() {
+            $result = '';
+            $json = new wf_JqDtHelper();
             $messages = new UbillingMessageHelper();
+
             if ((!empty($this->allContacts)) OR ( !empty($this->allBuildContacts))) {
-                $cells = wf_TableCell(__('Phone'));
-                $cells.= wf_TableCell(__('Name'));
-                if (cfr('PHONEBOOKEDIT')) {
-                    $cells.= wf_TableCell(__('Actions'));
-                }
-                $rows = wf_TableRow($cells, 'row1');
+
                 //normal contacts processing
                 if (!empty($this->allContacts)) {
                     foreach ($this->allContacts as $io => $each) {
-                        $cells = wf_TableCell($each['phone']);
-                        $cells.= wf_TableCell($each['name']);
+                        $data[] = $each['phone'];
+                        $data[] = $each['name'];
+
                         if (cfr('PHONEBOOKEDIT')) {
                             $actLinks = wf_JSAlert(self::URL_ME . '&deletecontactid=' . $io, web_delete_icon(), $messages->getDeleteAlert());
                             $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($io));
-                            $cells.= wf_TableCell($actLinks);
+                            $data[] = $actLinks;
                         }
-                        $rows.= wf_TableRow($cells, 'row3');
+
+                        $json->addRow($data);
+                        unset($data);
                     }
                 }
 
                 //build passport contacts processing
                 if (!empty($this->allBuildContacts)) {
                     foreach ($this->allBuildContacts as $io => $each) {
-                        $cells = wf_TableCell($each['phone']);
-                        $cells.= wf_TableCell($each['name']);
+                        $data[] = $each['phone'];
+                        $data[] = $each['name'];
                         if (cfr('PHONEBOOKEDIT')) {
-                            $cells.= wf_TableCell('');
+                            $data[] = '';
                         }
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $json->addRow($data);
+                        unset($data);
                     }
                 }
-
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-            } else {
-                $messages = new UbillingMessageHelper();
-                $result = $messages->getStyledMessage(__('Nothing found'), 'info');
             }
-            return ($result);
+
+            $json->getJson();
         }
 
     }
@@ -231,6 +245,10 @@ if (cfr('PHONEBOOK')) {
     if ($altCfg['PHONEBOOK_ENABLED']) {
 
         $phonebook = new PhoneBook();
+
+        if (wf_CheckGet(array('ajax'))) {
+            $phonebook->renderAjaxContacts();
+        }
 
         //yep, edit rights check here
         if (cfr('PHONEBOOKEDIT')) {
@@ -253,7 +271,7 @@ if (cfr('PHONEBOOK')) {
             }
         }
 
-        show_window(__('Phonebook'), $phonebook->renderContacts());
+        show_window(__('Phonebook'), $phonebook->renderContactsContainer());
 
         if (cfr('PHONEBOOKEDIT')) {
             show_window(__('Create new contact'), $phonebook->createForm());
