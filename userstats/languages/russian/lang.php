@@ -383,4 +383,8 @@ $lang['def']['On unsubscription will be charged fee the equivalent value of the 
 $lang['def']['Balance before'] = 'Баланс до';
 $lang['def']['Base'] = 'Базовый';
 
+$lang['def']['Assign device by MAC'] = 'Добавить устройство по MAC';
+$lang['def']['Assign device by Code'] = 'Добавить устройство по коду';
+$lang['def']['Assign device'] = 'Добавить устройство';
+
 ?>

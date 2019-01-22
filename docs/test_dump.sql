@@ -2343,3 +2343,5 @@ CREATE TABLE IF NOT EXISTS `stickyrevelations` (
   KEY `dayto` (`dayto`),
   KEY `active` (`active`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `trinitytv_tariffs` ADD `description` VARCHAR(128) NULL DEFAULT NULL AFTER `name`;

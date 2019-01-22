@@ -828,3 +828,137 @@ dirty magic class ;)
 .somemagic {
     display: none;
 }
+
+
+.trinity-col {
+    position: relative;
+    min-height: 1px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+@media (min-width: 992px){
+    .trinity-col {
+        width: 44.33333333%;
+    }
+}
+
+@media (min-width: 992px){
+    .trinity-col {
+        float: left;
+    }
+}
+
+.trinity-list {
+    padding: 10px;
+    font-size: 10pt;
+}
+
+.trinity-bl1 {
+    margin-bottom: 15px;
+    display: block;
+    height: 340px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
+}
+
+.trinity-bl1 p {
+
+    padding: 5px;
+    border-radius: 5px;
+    color: white;
+    background: #6cb121;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    text-transform: uppercase;
+    right: 0;
+    width: 75%;
+}
+
+.trinity-button {
+    text-decoration: none;
+    border-radius: 5px;
+    color: white;
+    background: #6cb121;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    right: 0;
+    width: 65%;
+    padding: 10px 10px 10px 10px;
+}
+
+.trinity-button-s {
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+    color: white;
+    background: #6cb121;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    text-transform: uppercase;
+    right: 0;
+    width: 65%;
+    padding: 10px 10px 10px 10px;
+}
+
+.trinity-button-u {
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+    color: white;
+    background: #a1a79c;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    text-transform: uppercase;
+    right: 0;
+    width: 65%;
+    padding: 10px 10px 10px 10px;
+}
+
+
+.trinity-price {
+    font-size: 35pt;
+    padding-top: 20px;
+    /* font-family: 'Myriad Pro Bold';*/
+}
+
+.trinity-green {
+    margin-top: 10px;
+    height: 40px;
+    background: #6cb121;
+    color: white;
+    font-size: 12pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 40px;
+}
+
+p a {
+    color:white;
+    display:block;
+}
+
+.trinity-tariff-b s{
+    background: rgba(85, 148, 27, 0.59);
+}
+
+.trinity-price sup {
+    text-transform: uppercase;
+    font-size: 15pt;
+    /*font-family: 'Myriad Pro Regular';*/
+}
+
+sup {
+    top: -0.5em;
+}
+sub, sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
