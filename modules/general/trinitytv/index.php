@@ -98,11 +98,12 @@ if (cfr('TRINITYTV')) {
 
             //user device assign
             if (wf_CheckPost(array(
-                        'manualassigndevice',
+                        'device',
                         'subscriberid',
+                        'userlogin',
                         'mac'
                     ))) {
-                $assignResult = $interface->addDevice($_POST['subscriberid'], $_POST['mac']);
+                $assignResult = $interface->addDevice($_POST['userlogin'], $_POST['mac']);
                 if (empty($assignResult)) {
                     rcms_redirect($interface::URL_SUBSCRIBER . $_GET['subscriberid']);
                 } else {
@@ -114,9 +115,10 @@ if (cfr('TRINITYTV')) {
             if (wf_CheckPost(array(
                         'manualassigndevice',
                         'subscriberid',
+                        'userlogin',
                         'code'
                     ))) {
-                $assignResult = $interface->addDeviceByCode($_POST['subscriberid'], $_POST['code']);
+                $assignResult = $interface->addDeviceByCode($_POST['userlogin'], $_POST['code']);
                 if (empty($assignResult)) {
                     rcms_redirect($interface::URL_SUBSCRIBER . $_GET['subscriberid']);
                 } else {
@@ -130,7 +132,7 @@ if (cfr('TRINITYTV')) {
                         'subscriberid'
                     ))) {
 
-                $errorMsg = $interface->deleteDevice($_GET['deletedeviceid']);
+                $errorMsg = $interface->deleteDeviceById($_GET['deletedeviceid']);
                 if (empty($errorMsg)) {
                     rcms_redirect($interface::URL_SUBSCRIBER . $_GET['subscriberid']);
                 } else {

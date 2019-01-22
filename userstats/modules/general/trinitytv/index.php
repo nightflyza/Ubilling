@@ -33,11 +33,49 @@ if (@$us_config['TRINITYTV_ENABLED']) {
             }
         }
 
+        //try delete device
+        if (la_CheckGet(array('deletedevice'))) {
+            $delDeviceResult = $trinitytvFront->pushDeviceDeleteRequest($_GET['deletedevice']);
+            if (!$delDeviceResult) {
+                rcms_redirect('?module=trinitytv');
+            } else {
+                show_window(__('Sorry'), __($delDeviceResult));
+            }
+        }
+
+        // manual add device
+        if(la_CheckPost(array('device'))){
+
+            // add device by mac
+            if(la_CheckPost(array('mac'))){
+                $addDeviceResult = $trinitytvFront->pushDeviceAddMacRequest($_POST['mac']);
+                if (!$addDeviceResult) {
+                    rcms_redirect('?module=trinitytv');
+                } else {
+                    show_window(__('Sorry'), __($addDeviceResult));
+                }
+            }
+
+            // add device by code
+            if(la_CheckPost(array('code'))){
+                $addDeviceResult = $trinitytvFront->pushDeviceAddCodeRequest($_POST['code']);
+                if (!$addDeviceResult) {
+                    rcms_redirect('?module=trinitytv');
+                } else {
+                    show_window(__('Sorry'), __($addDeviceResult));
+                }
+            }
+        }
+
         //view button if is some subscriptions here
         if ($trinitytvFront->haveSubscribtions()) {
             show_window(__('Your subscriptions'), $trinitytvFront->renderSubscribtions());
             show_window('', la_tag('br'));
         }
+
+        // device
+        show_window(__('Devices'), $trinitytvFront->renderDevices());
+        show_window('', la_tag('br'));
 
         //default sub/unsub form
         show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());

@@ -223,6 +223,9 @@ class TrinityTvApi {
 
     /**
      * Send request
+     *
+     * @param $url
+     * @return bool|mixed
      */
     private function sendRequest($url) {
         $response = file_get_contents($url);
@@ -388,6 +391,31 @@ class TrinityTv {
     }
 
     /**
+     * Get device id
+     *
+     * @param $subscriberId
+     * @param $mac
+     * @return bool
+     */
+    private function getDeviceId($subscriberId, $mac) {
+        $subscriberId = mysql_real_escape_string($subscriberId);
+
+        $query = "SELECT * from `" . self::TABLE_DEVICES . "` WHERE `subscriber_id` = " . $subscriberId;
+        $devices = simple_queryall($query);
+
+        if (!empty($devices)) {
+            foreach ($devices AS $device) {
+                if($device['mac'] == $mac){
+                    return $device['id'];
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
      * Returns local subscriber ID from database
      *
      * @param string $userLogin
@@ -534,6 +562,7 @@ class TrinityTv {
         $result = '';
 
         $inputs = wf_TextInput('newtariffname', __('Tariff name'), '', true, '20');
+        $inputs .= wf_TextInput('newtariffdesc', __('Description'), '', true, '20');
         $inputs .= wf_TextInput('newtarifffee', __('Fee'), '', true, '5');
         $inputs .= wf_TextInput('newtariffserviceid', __('Service ID'), '', true, '10');
         $inputs .= '<hr>';
@@ -555,6 +584,7 @@ class TrinityTv {
         $result = '';
         $inputs = wf_HiddenInput('edittariffid', $tariffId);
         $inputs .= wf_TextInput('edittariffname', __('Tariff name'), $this->allTariffs[$tariffId]['name'], true, '20');
+        $inputs .= wf_TextInput('edittariffdesc', __('Description'), $this->allTariffs[$tariffId]['description'], true, '20');
         $inputs .= wf_TextInput('edittarifffee', __('Fee'), $this->allTariffs[$tariffId]['fee'], true, '5');
         $inputs .= wf_TextInput('edittariffserviceid', __('Service ID'), $this->allTariffs[$tariffId]['serviceid'], true, '10');
         $inputs .= '<hr>';
@@ -574,12 +604,14 @@ class TrinityTv {
         if (wf_CheckPost(array(
                     'edittariffid',
                     'edittariffname',
+                    'edittariffdesc',
                     'edittariffserviceid'
                 ))) {
             $tariffId = vf($_POST['edittariffid'], 3);
             if (isset($this->allTariffs[$tariffId])) {
                 $where = " WHERE `id`='" . $tariffId . "';";
                 simple_update_field(self::TABLE_TARIFFS, 'name', $_POST['edittariffname'], $where);
+                simple_update_field(self::TABLE_TARIFFS, 'description', $_POST['edittariffdesc'], $where);
                 simple_update_field(self::TABLE_TARIFFS, 'fee', $_POST['edittarifffee'], $where);
                 simple_update_field(self::TABLE_TARIFFS, 'serviceid', $_POST['edittariffserviceid'], $where);
                 log_register('TRINITY TARIFF EDIT [' . $tariffId . '] `' . $_POST['edittariffname'] . '` FEE `' . $_POST['edittarifffee'] . '`');
@@ -599,15 +631,17 @@ class TrinityTv {
         $result = '';
         if (wf_CheckPost(array(
                     'newtariffname',
+                    'newtariffdesc',
                     'newtariffserviceid'
                 ))) {
             $nameF = mysql_real_escape_string($_POST['newtariffname']);
             $feeF = mysql_real_escape_string($_POST['newtarifffee']);
+            $desc = mysql_real_escape_string($_POST['newtariffdesc']);
             $serviceidF = mysql_real_escape_string($_POST['newtariffserviceid']);
 
             if (zb_checkMoney($feeF)) {
-                $query = "INSERT INTO `" . self::TABLE_TARIFFS . "` (`id`,`name`,`fee`,`serviceid`) VALUES ";
-                $query .= "(NULL,'" . $nameF . "','" . $feeF . "','" . $serviceidF . "')";
+                $query = "INSERT INTO `" . self::TABLE_TARIFFS . "` (`id`,`name`,`description`,`fee`,`serviceid`) VALUES ";
+                $query .= "(NULL,'" . $nameF . "','" . $desc . "','" . $feeF . "','" . $serviceidF . "')";
                 nr_query($query);
                 $newId = simple_get_lastid(self::TABLE_TARIFFS);
                 log_register('TRINITY TARIFF CREATE [' . $newId . '] `' . $_POST['newtariffname'] . '` FEE `' . $_POST['newtarifffee'] . '`');
@@ -836,8 +870,10 @@ class TrinityTv {
      */
     protected function renderDeviceAddForm($subscriberId) {
         $result = '';
-        $inputs = wf_HiddenInput('manualassigndevice', 'true');
+        $inputs = wf_HiddenInput('device', 'true');
         $inputs .= wf_HiddenInput('subscriberid', $subscriberId);
+        $userlogin = $this->getSubscriberLogin($subscriberId);
+        $inputs .= wf_HiddenInput('userlogin', $userlogin);
         $inputs .= wf_TextInput('mac', __('MAC'), '', true, 20, 'mac');
         $inputs .= wf_Submit(__('Assign'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -851,8 +887,10 @@ class TrinityTv {
      */
     protected function renderDeviceByCodeAddForm($subscriberId) {
         $result = '';
-        $inputs = wf_HiddenInput('manualassigndevice', 'true');
+        $inputs = wf_HiddenInput('device', 'true');
         $inputs .= wf_HiddenInput('subscriberid', $subscriberId);
+        $userlogin = $this->getSubscriberLogin($subscriberId);
+        $inputs .= wf_HiddenInput('userlogin', $userlogin);
         $inputs .= wf_TextInput('code', __('Code'), '', true, 20);
         $inputs .= wf_Submit(__('Assign'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -880,11 +918,14 @@ class TrinityTv {
     /**
      * Assigns some device by code to some subscriber
      *
-     * @return void/string on error
+     * @param $userLogin
+     * @param $code
+     * @return string
      */
-    public function addDeviceByCode($subscriberId, $code) {
+    public function addDeviceByCode($userLogin, $code) {
         $result = '';
 
+        $subscriberId = $this->getSubscriberId($userLogin);
         $subscriberId = vf($subscriberId, 3); //int
         $code = vf(strtoupper($code)); //alphanumeric
 
@@ -892,7 +933,7 @@ class TrinityTv {
 
         if (isset($response->result) AND $response->result == 'success') {
 
-            $result = $this->addDevice($subscriberId, $response->mac, $response->uuid);
+            $result = $this->addDevice($userLogin, $response->mac);
         } else {
             $result = __('Strange exeption') . ': ' . @$response->result;
         }
@@ -901,14 +942,18 @@ class TrinityTv {
         return ($result);
     }
 
+
     /**
      * Assigns some device uniq to some subscriber
      *
-     * @return void/string on error
+     * @param $userLogin
+     * @param $mac
+     * @return string
      */
-    public function addDevice($subscriberId, $mac) {
+    public function addDevice($userLogin, $mac) {
         $result = '';
 
+        $subscriberId = $this->getSubscriberId($userLogin);
         $subscriberId = vf($subscriberId, 3); //int
         $mac = vf(strtoupper($mac)); //alphanumeric
 
@@ -1066,18 +1111,6 @@ class TrinityTv {
         return ($result);
     }
 
-    /**
-     * Returns device activation code ajax link
-     *
-     * @param int $subscriberId
-     * @param string $label
-     *
-     * @return string
-     */
-    protected function ajDevCodeLink($subscriberId, $label) {
-        $result = wf_AjaxLink(self::URL_ME . '&subscriptions=true&getdevicecode=' . $subscriberId, $label, 'deviceactivationcodecontainer');
-        return ($result);
-    }
 
     /**
      * Renders default module controls
@@ -1183,11 +1216,47 @@ class TrinityTv {
     /**
      * Deletes device assigned to some subscriberid
      *
+     * @param string $userLogin
+     * @param string $mac
+     *
+     * @return void
+     */
+    public function deleteDevice($userLogin, $mac) {
+        $result = '';
+        $subscriberId = $this->getSubscriberId($userLogin);
+        $deviceId = $this->getDeviceId($subscriberId, $mac);
+        $deviceId = vf($deviceId, 3);
+
+        $allDevices = $this->getDevices();
+        if (isset($allDevices[$deviceId])) {
+
+            // Delete a subscription on the Trinity
+            $response = $this->api->deleteMacDevice($allDevices[$deviceId]['subscriber_id'], $allDevices[$deviceId]['mac']);
+
+            $query = "DELETE from `" . self::TABLE_DEVICES . "` WHERE `id`='" . $deviceId . "';";
+            nr_query($query);
+            log_register('TRINITYTV DEVICE DELETE [' . $allDevices[$deviceId]['mac'] . ']');
+
+            if (isset($response->result) AND $response->result == 'success') {
+                
+            } else {
+                $result = __('Something went wrong') . ": Trinity response " . @$response->result;
+            }
+        } else {
+            $result = __('Not existing item');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Deletes device assigned to some subscriberid
+     *
      * @param string $deviceId
      *
      * @return void
      */
-    public function deleteDevice($deviceId) {
+    public function deleteDeviceById($deviceId) {
         $result = '';
 
         $deviceId = vf($deviceId, 3);
@@ -1203,7 +1272,7 @@ class TrinityTv {
             log_register('TRINITYTV DEVICE DELETE [' . $allDevices[$deviceId]['mac'] . ']');
 
             if (isset($response->result) AND $response->result == 'success') {
-                
+
             } else {
                 $result = __('Something went wrong') . ": Trinity response " . @$response->result;
             }
@@ -1235,9 +1304,9 @@ class TrinityTv {
     /**
      * Creates new user profile
      *
-     * @param string $login
-     *
-     * @return void
+     * @param $login
+     * @param $tariffId
+     * @return string
      */
     public function createSubscribtion($login, $tariffId) {
 

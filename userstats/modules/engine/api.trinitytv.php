@@ -75,8 +75,8 @@ class TrinityTvFrontend {
 
     /**
      * Sets current user login
-     * 
-     * @return void
+     *
+     * @param $login
      */
     public function setLogin($login) {
         $this->userLogin = $login;
@@ -133,6 +133,27 @@ class TrinityTvFrontend {
         }
     }
 
+    /**
+     * Get subscriber devices
+     *
+     * @return array
+     */
+    private function getSubscriberDevices() {
+        $result = array();
+
+        $subscriberId = $this->getSubscriberId($this->userLogin);
+
+        $query = "SELECT * from `" . self::TABLE_DEVICES . "` WHERE `subscriber_id` = " . $subscriberId;
+        $devices = simple_queryall($query);
+
+        if (!empty($devices)) {
+            foreach ($devices AS $device) {
+                $result[$device['id']] = $device;
+            }
+        }
+
+        return $result;
+    }
 
     /**
      * Loads available users from database
@@ -171,54 +192,127 @@ class TrinityTvFrontend {
     }
 
     /**
-     * Renders tariffs list with subscribtion form
-     * 
-     * @return string
+     * Returns local subscriber ID from database
+     *
+     * @param string $userLogin
+     *
+     * @return int
      */
-    public function renderSubscribeForm() {
+    public function getSubscriberId($userLogin) {
         $result = '';
-        $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result.=la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
-
-        if (!empty($this->allTariffs)) {
-            foreach ($this->allTariffs as $tariff) {
-                $freeAppend = la_delimiter();
-                $tariffFee = $tariff['fee'];
-
-                $tariffInfo = la_tag('div', false, 'mgheaderprimary') . $tariff['name'] . la_tag('div', true);
-                $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
-                $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
-                $rows = la_TableRow($cells);
-                $tariffInfo.=la_TableBody($rows, '100%', 0);
-                $tariffInfo.=$freeAppend;
-
-                if ($this->checkBalance()) {
-                    if ($this->isUserSubscribed($this->userLogin, $tariff['id'])) {
-                        $subscribeControl = la_Link('?module=trinitytv&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
-                    } else {
-                        if ($this->checkUserProtection($tariff['id'])) {
-                            $subscribeControl = la_Link('?module=trinitytv&subscribe=' . $tariff['id'], __('Subscribe'), false, 'mgsubcontrol');
-                        } else {
-                            $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
-                        }
-                    }
-
-                    $tariffInfo.=$subscribeControl;
-                } else {
-                    $tariffInfo.=__('The amount of money in your account is not sufficient to process subscription');
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $subscriber) {
+                if ($subscriber['login'] == $userLogin) {
+                    $result = $subscriber['id'];
+                    break;
                 }
-
-                $result.=la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
             }
         }
         return ($result);
     }
 
     /**
-     * Runs default subscribtion routine
+     * Renders tariffs list with subscribtion form
      * 
-     * @return void/string on error
+     * @return string
+     */
+    public function renderSubscribeForm() {
+        $result = '';
+        $result.=la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
+        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $tariff) {
+
+                $tariffFee = $tariff['fee'];
+
+                $tariffInfo = la_tag('div', false, 'trinity-col'). la_tag('div', false, 'trinity-bl1');
+
+                $tariffInfo .= la_tag('div', false, 'trinity-price');
+                $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
+                $tariffInfo .= la_tag('sup', false) .  $this->usConfig['currency'] . ' <br> ' .__('per month'). la_tag('sup', true);
+                $tariffInfo .= la_tag('div', true, 'trinity-price');
+
+
+                $tariffInfo .= la_tag('div', false, 'trinity-green s') . $tariff['name'] . la_tag('div', true, 'trinity-green s');
+                $tariffInfo .= '<br/>';
+
+                if(!empty($tariff['description'])){
+                    $desc= $tariff['description'];
+                }else{
+                    $desc= 'Описание тарифа: <br> '.$tariff['name'].'<br><br>';
+                }
+                $tariffInfo .= la_tag('div', false, 'trinity-list') . $desc . la_tag('div', true, 'trinity-list');
+
+
+                if ($this->checkBalance()) {
+
+                    if ($this->isUserSubscribed($this->userLogin, $tariff['id'])) {
+                        $tariffInfo .= la_Link('?module=trinitytv&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
+                    }else{
+                        if ($this->checkUserProtection($tariff['id'])) {
+                            $tariffInfo .= la_Link('?module=trinitytv&subscribe=' . $tariff['id'], __('Subscribe'), false, 'trinity-button-s');
+                        } else {
+                            $tariffInfo .= la_tag('div', false, 'trinity-list') .  __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                        }
+                    }
+                } else {
+                    $tariffInfo .= la_tag('div', false, 'trinity-list') .  __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                }
+
+                $tariffInfo .= la_tag('div', true, 'trinity-bl1'). la_tag('div', true, 'trinity-col');
+
+
+                $result.= $tariffInfo;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Runs default add device mac routine
+     *
+     * @param $mac
+     * @return bool|string
+     */
+    public function pushDeviceAddMacRequest($mac) {
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=adddevice&userlogin=' . $this->userLogin . '&mac=' . $mac;
+        @$result = file_get_contents($action);
+
+        return ($result);
+    }
+
+    /**
+     * Runs default add device by code routine
+     *
+     * @param $code
+     * @return bool|string
+     */
+    public function pushDeviceAddCodeRequest($code) {
+      $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=adddevice&userlogin=' . $this->userLogin . '&code=' . $code;
+      @$result = file_get_contents($action);
+
+        return ($result);
+    }
+
+    /**
+     * Runs default delete device by code routine
+     *
+     * @param $mac
+     * @return bool|string
+     */
+    public function pushDeviceDeleteRequest($mac) {
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=deldevice&userlogin=' . $this->userLogin . '&mac=' . $mac;
+        @$result = file_get_contents($action);
+
+        return ($result);
+    }
+
+    /**
+     * Runs default subscribtion routine
+     *
+     * @param $tariffid
+     * @return bool|string
      */
     public function pushSubscribeRequest($tariffid) {
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=subscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
@@ -229,8 +323,9 @@ class TrinityTvFrontend {
 
     /**
      * Runs default unsubscribtion routine
-     * 
-     * @return void/string on error
+     *
+     * @param $tariffid
+     * @return bool|string
      */
     public function pushUnsubscribeRequest($tariffid) {
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=unsubscribe&userlogin=' . $this->userLogin . '&tariffid=' . $tariffid;
@@ -266,7 +361,6 @@ class TrinityTvFrontend {
         $result = false;
         if (!empty($this->userLogin)) {
             if (isset($this->allUsers[$this->userLogin])) {
-                $userData = $this->allUsers[$this->userLogin];
                 $userBalance = $this->allUsers[$this->userLogin]['Cash'];
                 if ($userBalance >= 0) {
                     $result = true;
@@ -290,7 +384,6 @@ class TrinityTvFrontend {
             if ($this->usConfig['TRINITYTV_PROTECTION']) {
                 if (isset($this->allTariffs[$tariffId])) {
                     $tariffFee = $this->allTariffs[$tariffId]['fee'];
-                    $tariffData = $this->allTariffs[$tariffId];
                     $userData = $this->allUsers[$this->userLogin];
                     $userBalance = $userData['Cash'];
 
@@ -315,18 +408,18 @@ class TrinityTvFrontend {
         $result = '';
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
         if (!empty($this->allSubscribers)) {
-            $cells = la_TableCell(__('Date'));
-            $cells.= la_TableCell(__('Tariff'));
-            $cells.= la_TableCell(__('Active'));
+            $cells = la_TableCell(__('Tariff'));
+            $cells .= la_TableCell(__('Date'));
+            $cells .= la_TableCell(__('Active'));
             $rows = la_TableRow($cells, 'row1');
 
             foreach ($this->allSubscribers as $io => $each) {
                 if ($each['login'] == $this->userLogin) {
+                    $cells= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
                     $activeFlag = ($each['active']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
-                    $cells = la_TableCell($each['actdate']);
-                    $cells.= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
-                    $cells.= la_TableCell($activeFlag);
-                    $rows.= la_TableRow($cells, 'row2');
+                    $cells .= la_TableCell($each['actdate']);
+                    $cells .= la_TableCell($activeFlag);
+                    $rows .= la_TableRow($cells, 'row2');
                 }
             }
 
@@ -335,6 +428,81 @@ class TrinityTvFrontend {
         }
         return ($result);
     }
+
+
+    /**
+     * Return device
+     *
+     * @return string
+     */
+    public function renderDevices(){
+        $result = '';
+        if (!empty($this->userLogin)) {
+
+            //available devices
+            $devices = $this->getSubscriberDevices();
+
+            // Add device
+            $result .= la_modal( __('Assign device by MAC') , __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button', 260,160);
+
+            // Add device by MAC
+            $result .= la_modal( __('Assign device by Code') , __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button',  260,160);
+
+            $result .= "<br><br> ";
+
+            $cells = la_TableCell(__('MAC address'));
+            $cells .= la_TableCell(__('Date'));
+            $cells .= la_TableCell(__('Actions'));
+            $rows = la_TableRow($cells, 'row1');
+
+            if (!empty($devices)) {
+                foreach ($devices as $device) {
+
+                    $cells = la_TableCell($device['mac']);
+                    $cells .= la_TableCell($device['created_at']);
+
+                    $deviceControls = la_JSAlert('?module=trinitytv&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
+                    $cells.= la_TableCell($deviceControls);
+
+                    $rows .= la_TableRow($cells, 'row3');
+                }
+            }
+
+            $result .= la_TableBody($rows, '100%', 0, 'sortable');
+
+        }
+        return ($result);
+    }
+
+
+    /**
+     * Renders manual device assign form
+     *
+     * @return string
+     */
+    protected function renderDeviceAddForm() {
+        $result = '';
+        $inputs = la_HiddenInput('device', 'true');
+        $inputs .= la_TextInput('mac', __('MAC'), '', true, 20, 'mac');
+        $inputs .= la_Submit(__('Assign device'));
+        $result .= la_Form('', 'POST', $inputs, 'glamour', '' , false);
+        return ($result);
+    }
+
+    /**
+     * Renders manual device assign form
+     *
+     * @return string
+     */
+    protected function renderDeviceByCodeAddForm() {
+        $result = '';
+        $inputs = la_HiddenInput('device', 'true');
+        $inputs .= la_TextInput('code', __('Code'), '', true, 20);
+        $inputs .= la_Submit(__('Assign device'));
+        $result .= la_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
 
 }
 
