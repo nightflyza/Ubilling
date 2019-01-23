@@ -1324,9 +1324,10 @@ function ts_ShowPanel() {
 function ts_SendSMS($employeeid, $message) {
     $query = "SELECT `mobile`,`name` from `employee` WHERE `id`='" . $employeeid . "'";
     $empData = simple_query($query);
-    $mobile = $empData['mobile'];
+    $mobile = zb_normalizePhoneFormat($empData['mobile']);
     $result = array();
     $sms = new UbillingSMS();
+
     if (!empty($mobile)) {
         if (ispos($mobile, '+')) {
             $sms->sendSMS($mobile, $message, true, 'TASKMAN');
@@ -1336,6 +1337,7 @@ function ts_SendSMS($employeeid, $message) {
             throw new Exception('BAD_MOBILE_FORMAT ' . $mobile);
         }
     }
+
     return ($result);
 }
 

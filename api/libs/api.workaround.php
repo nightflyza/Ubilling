@@ -5237,3 +5237,61 @@ function zb_getUsersPreferredSMSService($userLogin) {
 
     return $smsServiceIdName;
 }
+
+function zb_normalizePhoneFormat($mobile, $countryCode = '380', $mobileLen = 12, $normalizerDebug = false) {
+    $mobile = vf($mobile, 3);
+
+    if (!empty($mobile)) {
+        $inputLen = strlen($mobile);
+        $codeLen = strlen($countryCode);
+
+        if ($inputLen < $mobileLen) {
+//trying to append country code if number is not ok by default or too short
+            $mobileTmp = $mobile;
+            for ($i = 1; $i <= $codeLen; $i++) {
+                $appendedLen = strlen($mobileTmp);
+                if ($appendedLen < $mobileLen) {
+                    $appendCode = substr($countryCode, 0, $i);
+                    $mobileTmp = $appendCode . $mobile;
+                    $appendedLen = $appendedLen = strlen($mobileTmp);
+                    if ($normalizerDebug) {
+                        show_warning('Try to append: ' . $appendCode . ' to ' . $mobile . ' now len of (' . $mobileTmp . ') is ' . strlen($mobileTmp));
+                    }
+                    if ($appendedLen == $mobileLen) {
+                        $mobile = $mobileTmp;
+                        if ($normalizerDebug) {
+                            show_success('Yeah! now mobile normalized to ' . $mobile);
+                        }
+                    }
+                } else {
+                    $mobile = $mobileTmp;
+                    if ($normalizerDebug) {
+                        show_success('Number len normalized: ' . $mobileTmp);
+                    }
+                }
+            }
+        } else {
+            if ($normalizerDebug) {
+                show_info('Number is ok by default: ' . $mobile);
+            }
+        }
+
+//checking is number starting from full country code?
+        if (strpos($mobile, $countryCode) === false) {
+            if ($normalizerDebug) {
+                show_error('Number doesnt start with ' . $countryCode . ': ' . $mobile);
+            }
+            $mobile = '';
+        }
+
+//appending plus symbol due E164 standard
+        $newLen = strlen($mobile);
+        if ($newLen == $mobileLen) {
+            $mobile = '+' . $mobile;
+        } else {
+            $mobile = '';
+        }
+    }
+
+    return ($mobile);
+}
