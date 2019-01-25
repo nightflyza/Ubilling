@@ -3024,7 +3024,10 @@ $lang['def']['userstats announcement'] = 'объявление кабинета 
 $lang['def']['administrators announcement'] = 'объявление администраторам';
 $lang['def']['right to config announcements'] = 'Право управлять объявлениями';
 $lang['def']['acquainted'] = 'ознакомлены';
+$lang['def']['Revelations'] = 'Откровения';
+$lang['def']['Remind only between this days of month'] = 'Показывать только между этими датами';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
+
 
 ?>

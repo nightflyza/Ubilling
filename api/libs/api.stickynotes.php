@@ -10,6 +10,13 @@ class StickyNotes {
     protected $allnotes = array();
 
     /**
+     * Contains all available revelations
+     *
+     * @var array
+     */
+    protected $allRevelations = array();
+
+    /**
      * Is revelations enabled?
      *
      * @var bool
@@ -36,6 +43,11 @@ class StickyNotes {
     const URL_ME = '?module=stickynotes';
 
     /**
+     * Default revelations management module URL
+     */
+    const URL_REVELATIONS = '?module=stickynotes&revelations=true';
+
+    /**
      * Sets max uncutted note text size
      */
     const PREVIEW_LEN = 190;
@@ -52,8 +64,14 @@ class StickyNotes {
         $this->loadConfig();
         if ($onlyActive) {
             $this->loadActiveNotes();
+            if ($this->revelationsFlag) {
+                $this->loadRevelations(true);
+            }
         } else {
             $this->loadAllNotes();
+            if ($this->revelationsFlag) {
+                $this->loadRevelations(false);
+            }
         }
     }
 
@@ -111,6 +129,29 @@ class StickyNotes {
     }
 
     /**
+     * Loads all revelations from database
+     * 
+     * @param bool $onlyForMe
+     * 
+     * @return void
+     */
+    protected function loadRevelations($onlyForMe = false) {
+        if ($onlyForMe) {
+            //yeah, logins must be space-separated
+            $query = "SELECT * from `stickyrevelations` WHERE `showto` LIKE '% " . $this->myLogin . " %'  AND `active`='1' ORDER BY `id` ASC";
+        } else {
+            $query = "SELECT * from `stickyrevelations` ORDER BY `id` DESC";
+        }
+
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allRevelations[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
      * Returns note data extracted from private allnotes property
      * 
      * @param int $noteId
@@ -122,6 +163,23 @@ class StickyNotes {
         if (!empty($this->allnotes)) {
             if (isset($this->allnotes[$noteId])) {
                 $result = $this->allnotes[$noteId];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns revelation data
+     * 
+     * @param int $revelationId
+     * 
+     * @return array
+     */
+    protected function getRevelationData($revelationId) {
+        $result = array();
+        if (!empty($this->allRevelations)) {
+            if (isset($this->allRevelations[$revelationId])) {
+                $result = $this->allRevelations[$revelationId];
             }
         }
         return ($result);
@@ -234,15 +292,53 @@ class StickyNotes {
     }
 
     /**
+     * Renders existing revelations list with some controls
+     * 
+     * @return string
+     */
+    public function renderRevelationsList() {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        if (!empty($this->allRevelations)) {
+            $cells = wf_TableCell(__('Creation date'));
+            $cells.= wf_TableCell(__('Day') . ' ' . __('From'));
+            $cells.= wf_TableCell(__('Day') . ' ' . __('To'));
+            $cells.= wf_TableCell(__('Status'));
+            $cells.= wf_TableCell(__('Text'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allRevelations as $io => $each) {
+                $cells = wf_TableCell($each['createdate']);
+                $dayFrom = (!empty($each['dayfrom'])) ? $each['dayfrom'] : '';
+                $dayTo = (!empty($each['dayto'])) ? $each['dayto'] : '';
+                $cells.= wf_TableCell($dayFrom);
+                $cells.= wf_TableCell($dayTo);
+                $cells.= wf_TableCell(web_bool_led($each['active']));
+                $previewContent = nl2br($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN));
+                $cells.= wf_TableCell($previewContent);
+                $actiLinks = wf_JSAlert(self::URL_REVELATIONS . '&deleterev=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                $actiLinks.= wf_Link(self::URL_REVELATIONS . '&editrev=' . $each['id'], web_edit_icon());
+                $cells.= wf_TableCell($actiLinks);
+                $rows.= wf_TableRow($cells, 'row5');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.=$messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        return ($result);
+    }
+
+    /**
      * Creates new note in database
      * 
-     * @param string  $owner
-     * @param string  $createDate
+
      * @param string  $remindDate
      * @param int     $activity
      * @param string  $text
      */
-    protected function createNote($owner, $createDate, $remindDate, $remindTime, $activity, $text) {
+    protected function createNote($remindDate, $remindTime, $activity, $text) {
+        $createDate = curdatetime();
+        $owner = mysql_real_escape_string($this->myLogin);
         $text = strip_tags($text);
         $text = mysql_real_escape_string($text);
         $activity = vf($activity, 3);
@@ -259,7 +355,43 @@ class StickyNotes {
             $remindTime = 'NULL';
         }
         $query = "INSERT INTO `stickynotes` (`id`, `owner`, `createdate`, `reminddate`,`remindtime`, `active`, `text`) "
-                . "VALUES (NULL, '" . $this->myLogin . "', '" . $createDate . "', " . $remindDate . ", " . $remindTime . " , '" . $activity . "', '" . $text . "');";
+                . "VALUES (NULL, '" . $owner . "', '" . $createDate . "', " . $remindDate . ", " . $remindTime . " , '" . $activity . "', '" . $text . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Creates new sticky revelation in database
+     * 
+     * @param int $dayFrom
+     * @param int $dayTo
+     * @param int $activity
+     * @param string $text
+     * @param string $showTo
+     * 
+     * @return void
+     */
+    protected function createRevelation($dayFrom, $dayTo, $activity, $text, $showTo) {
+        $owner = $this->myLogin;
+        $createDate = curdatetime();
+        $text = strip_tags($text);
+        $text = mysql_real_escape_string($text);
+        $activity = vf($activity, 3);
+
+        if (!empty($dayFrom)) {
+            $dayFrom = "'" . mysql_real_escape_string($dayFrom) . "'";
+        } else {
+            $dayFrom = 'NULL';
+        }
+
+        if (!empty($dayTo)) {
+            $dayTo = "'" . mysql_real_escape_string($dayTo) . "'";
+        } else {
+            $dayTo = 'NULL';
+        }
+
+
+        $query = "INSERT INTO `stickyrevelations` (`id`, `owner`, `showto`,`createdate`, `dayfrom`,`dayto`, `active`, `text`) "
+                . "VALUES (NULL, '" . $owner . "', '" . $showTo . "' ,'" . $createDate . "', " . $dayFrom . ", " . $dayTo . " , '" . $activity . "', '" . $text . "');";
         nr_query($query);
     }
 
@@ -267,9 +399,12 @@ class StickyNotes {
      * Renders notify container with some text inside
      * 
      * @param string $text
+     * @param int $offsetLeft
+     * @param bool $isRevelation
+     * 
      * @return string
      */
-    protected function renderStickyNote($text, $offsetLeft = 0) {
+    protected function renderStickyNote($text, $offsetLeft = 0, $isRevelation = false) {
         $result = '';
         if (!empty($text)) {
             if ($offsetLeft) {
@@ -281,7 +416,11 @@ class StickyNotes {
             }
 
             $result.= wf_tag('div', false, 'stickynote', 'style="margin:' . $offsetTop . ' ' . $offsetLeft . ' 20px 20px;"');
-            $result.= wf_Link(self::URL_ME, wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
+            if ($isRevelation) {
+                $result.= wf_img('skins/pigeon_icon.png') . wf_tag('br');
+            } else {
+                $result.= wf_Link(self::URL_ME, wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
+            }
             $result.=wf_tag('div', false, 'stickynotetext');
             $result.= $text;
             $result.=wf_tag('div', true);
@@ -297,18 +436,36 @@ class StickyNotes {
      */
     public function panel() {
         $result = '';
-        $result.= wf_modalAuto(wf_img('skins/pushpin.png') . ' ' . __('Create new personal note'), __('Create new personal note'), $this->createForm(), 'ubButton');
-        if (wf_CheckGet(array('calendarview'))) {
-            $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+        if (!wf_CheckGet(array('revelations'))) {
+            $result.= wf_modalAuto(wf_img('skins/pushpin.png') . ' ' . __('Create new personal note'), __('Create new personal note'), $this->createForm(), 'ubButton');
+            if (wf_CheckGet(array('calendarview'))) {
+                $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+            } else {
+                $result.= wf_Link(self::URL_ME . '&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
+            }
+
+            if ($this->revelationsFlag) {
+                if (cfr('REVELATIONS')) {
+                    $result.=wf_link(self::URL_REVELATIONS, wf_img('skins/pigeon_icon.png') . ' ' . __('Revelations'), false, 'ubButton');
+                }
+            }
         } else {
-            $result.= wf_Link(self::URL_ME . '&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
+            if (!wf_CheckGet(array('editrev'))) {
+                $result.=wf_BackLink(self::URL_ME);
+            } else {
+                $result.=wf_BackLink(self::URL_REVELATIONS);
+            }
+            if (cfr('REVELATIONS')) {
+                $result.= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->revelationCreateForm(), 'ubButton');
+            }
         }
+
 
         return ($result);
     }
 
     /**
-     * Returns create form
+     * Returns note create form
      * 
      * @return string
      */
@@ -327,6 +484,172 @@ class StickyNotes {
         $result = wf_Form('', 'POST', $inputs, 'glamour');
 
         return ($result);
+    }
+
+    /**
+     * Returns revelation creation form
+     * 
+     * @return string
+     */
+    protected function revelationCreateForm() {
+        $days = array('' => '-');
+        for ($i = 1; $i <= 31; $i++) {
+            $days[$i] = $i;
+        }
+
+        $alladmins = rcms_scandir(USERS_PATH);
+        $adminNames = ts_GetAllEmployeeLoginsCached();
+        $adminNames = unserialize($adminNames);
+
+        $inputs = wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
+        $inputs.= wf_TextArea('newrevelationtext', '', '', true, '50x15');
+        $inputs.= wf_CheckInput('newrevelationactive', __('Active'), true, true);
+        $inputs.= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
+        $inputs.= wf_Selector('newrevelationdayfrom', $days, __('From'), '', false) . ' ';
+        $inputs.= wf_Selector('newrevelationdayto', $days, __('To'), '', false) . ' ';
+        $inputs.= wf_tag('br');
+        if (!empty($alladmins)) {
+            foreach ($alladmins as $io => $eachAdmin) {
+                $eachAdminName = (isset($adminNames[$eachAdmin])) ? $adminNames[$eachAdmin] : $eachAdmin;
+                $inputs.=wf_CheckInput('newrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, false) . ' ';
+            }
+        }
+        $inputs.= wf_tag('br');
+        $inputs.= wf_tag('br');
+        $inputs.= wf_Submit(__('Create'));
+
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Returns revelation editing form
+     * 
+     * @return string
+     */
+    public function revelationEditForm($id) {
+        $id = vf($id, 3);
+        $result = '';
+        $messages = new UbillingMessageHelper();
+
+        if (isset($this->allRevelations[$id])) {
+            $days = array('' => '-');
+            for ($i = 1; $i <= 31; $i++) {
+                $days[$i] = $i;
+            }
+
+            $revData = $this->allRevelations[$id];
+
+            $alladmins = rcms_scandir(USERS_PATH);
+            $adminNames = ts_GetAllEmployeeLoginsCached();
+            $adminNames = unserialize($adminNames);
+
+            $inputs = wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
+            $inputs.= wf_HiddenInput('editrevelationid', $id);
+            $inputs.= wf_TextArea('editrevelationtext', '', $revData['text'], true, '50x15');
+            $inputs.= wf_CheckInput('editrevelationactive', __('Active'), true, $revData['active']);
+            $inputs.= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
+            $inputs.= wf_Selector('editrevelationdayfrom', $days, __('From'), $revData['dayfrom'], false) . ' ';
+            $inputs.= wf_Selector('editrevelationdayto', $days, __('To'), $revData['dayto'], false) . ' ';
+            $inputs.= wf_tag('br');
+            if (!empty($alladmins)) {
+                foreach ($alladmins as $io => $eachAdmin) {
+                    $stateFlag = (ispos($revData['showto'], ' ' . $eachAdmin . ' ')) ? true : false;
+                    $eachAdminName = (isset($adminNames[$eachAdmin])) ? $adminNames[$eachAdmin] : $eachAdmin;
+                    $inputs.=wf_CheckInput('editrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, $stateFlag) . ' ';
+                }
+            }
+            $inputs.= wf_tag('br');
+            $inputs.= wf_tag('br');
+            $inputs.= wf_Submit(__('Save'));
+
+            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$messages->getStyledMessage(__('Something went wrong') . ': EX_ID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves changes of revelation in database
+     * 
+     * @return void
+     */
+    public function saveMyRevelation() {
+        if (wf_CheckPost(array('editrevelationtext', 'editrevelationid'))) {
+            $revelationId = vf($_POST['editrevelationid'], 3);
+            $revelationData = $this->getRevelationData($revelationId);
+            if (!empty($revelationData)) {
+                $where = "WHERE `id`='" . $revelationId . "';";
+                //text
+                $text = strip_tags($_POST['editrevelationtext']);
+                $oldText = $revelationData['text'];
+                if ($text != $oldText) {
+                    simple_update_field('stickyrevelations', 'text', $text, $where);
+                    log_register("REVELATION CHANGED TEXT [" . $revelationId . "]");
+                }
+                //days intervals
+                $dayFrom = $_POST['editrevelationdayfrom'];
+                $oldDayFrom = $revelationData['dayfrom'];
+                if ($dayFrom != $oldDayFrom) {
+                    simple_update_field('stickyrevelations', 'dayfrom', $dayFrom, $where);
+                    log_register("REVELATION CHANGED DAYFROM [" . $revelationId . "] ON " . $dayFrom . "");
+                }
+
+                $dayTo = $_POST['editrevelationdayto'];
+                $oldDayTo = $revelationData['dayto'];
+                if ($dayTo != $oldDayTo) {
+                    simple_update_field('stickyrevelations', 'dayto', $dayTo, $where);
+                    log_register("REVELATION CHANGED DAYTO [" . $revelationId . "] ON " . $dayTo . "");
+                }
+
+                //activity flag
+                $activity = (isset($_POST['editrevelationactive'])) ? 1 : 0;
+                $oldActivity = $revelationData['active'];
+                if ($activity != $oldActivity) {
+                    simple_update_field('stickyrevelations', 'active', $activity, $where);
+                    log_register("REVELATION CHANGED ACTIVE [" . $revelationId . "] ON " . $activity . "");
+                }
+
+                //admins selection
+                $showTo = '';
+                $oldsShowTo = $revelationData['showto'];
+                if (!empty($_POST['editrevelationshowto'])) {
+                    foreach ($_POST['editrevelationshowto'] as $io => $each) {
+                        $showTo.=' ' . $io . ' ';
+                    }
+                }
+                if ($showTo != $oldsShowTo) {
+                    simple_update_field('stickyrevelations', 'showto', $showTo, $where);
+                    log_register("REVELATION CHANGED SHOWTO [" . $revelationId . "]");
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates new revelation in database
+     * 
+     * @return void
+     */
+    public function addMyRevelation() {
+
+        if (wf_CheckPost(array('newrevelationtext'))) {
+            $dayFrom = (!empty($_POST['newrevelationdayfrom'])) ? $_POST['newrevelationdayfrom'] : '';
+            $dayTo = (!empty($_POST['newrevelationdayto'])) ? $_POST['newrevelationdayto'] : '';
+            $showTo = '';
+            if (!empty($_POST['newrevelationshowto'])) {
+                foreach ($_POST['newrevelationshowto'] as $io => $each) {
+                    $showTo.=' ' . $io . ' ';
+                }
+            }
+            $activity = (isset($_POST['newrevelationactive'])) ? 1 : 0;
+            $text = $_POST['newrevelationtext'];
+            $this->createRevelation($dayFrom, $dayTo, $activity, $text, $showTo);
+
+            $newId = simple_get_lastid('stickyrevelations');
+            log_register("REVELATION CREATE [" . $newId . "]");
+        }
     }
 
     /**
@@ -368,13 +691,11 @@ class StickyNotes {
      */
     public function addMyNote() {
         if (wf_CheckPost(array('newtext'))) {
-            $owner = $this->myLogin;
-            $createDate = curdatetime();
             $remindDate = (!empty($_POST['newreminddate'])) ? $_POST['newreminddate'] : '';
             $remindTime = (!empty($_POST['newremindtime'])) ? $_POST['newremindtime'] : '';
             $activity = (isset($_POST['newactive'])) ? 1 : 0;
             $text = $_POST['newtext'];
-            $this->createNote($owner, $createDate, $remindDate, $remindTime, $activity, $text);
+            $this->createNote($remindDate, $remindTime, $activity, $text);
 
             $newId = simple_get_lastid('stickynotes');
             log_register("STICKY CREATE [" . $newId . "]");
@@ -451,6 +772,22 @@ class StickyNotes {
             $query = "DELETE FROM `stickynotes` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register("STICKY DELETE [" . $id . "]");
+        }
+    }
+
+    /**
+     * Deletes some revelation by its ID
+     * 
+     * @param int $id
+     * 
+     * @return void
+     */
+    public function deleteRevelation($id) {
+        $id = vf($id, 3);
+        if (!empty($id)) {
+            $query = "DELETE FROM `stickyrevelations` WHERE `id`='" . $id . "';";
+            nr_query($query);
+            log_register("REVELATION DELETE [" . $id . "]");
         }
     }
 
@@ -542,7 +879,53 @@ class StickyNotes {
                     $offsetLeft = $offsetLeft + 10;
                 }
             }
+        }
 
+        if (!empty($this->allRevelations)) {
+            foreach ($this->allRevelations as $io => $each) {
+                $needToShow = false;
+                $curDay = date("j");
+                if (!empty($each['dayfrom']) AND ( !empty($each['dayto']))) {
+                    if (($curDay >= $each['dayfrom']) AND ( $curDay <= $each['dayto'])) {
+                        $needToShow = true;
+                    }
+                }
+
+                if (!empty($each['dayfrom']) AND ( empty($each['dayto']))) {
+                    if ($curDay >= $each['dayfrom']) {
+                        $needToShow = true;
+                    }
+                }
+
+                if (empty($each['dayfrom']) AND ( !empty($each['dayto']))) {
+
+                    if ($curDay <= $each['dayto']) {
+                        $needToShow = true;
+                    }
+                }
+
+                if (empty($each['dayfrom']) AND ( empty($each['dayto']))) {
+                    $needToShow = true;
+                }
+
+                if ($needToShow) {
+                    $tmpText = $each['text'];
+                    $tmpText = strip_tags($tmpText);
+                    $output = $tmpText;
+                    $output.=$delimiterId;
+
+                    $output = str_replace($delimiterId, $delimiterCode, $output);
+                    $output = $this->cutString($output, self::PREVIEW_LEN);
+                    $output = nl2br($output);
+
+
+                    $result.=$this->renderStickyNote($output, $offsetLeft, true);
+                    $offsetLeft = $offsetLeft + 10;
+                }
+            }
+        }
+
+        if (!empty($result)) {
             $result.=wf_tag('script');
             $result.='$( function() { $( ".stickynote" ).draggable({ scroll: false, cancel: ".stickynotetext" }); } );';
             $result.=wf_tag('script', true);

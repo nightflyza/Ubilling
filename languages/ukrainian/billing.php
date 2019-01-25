@@ -3040,5 +3040,7 @@ $lang['def']['userstats announcement'] = 'оголошення кабінету 
 $lang['def']['administrators announcement'] = 'оголошення адміністраторам';
 $lang['def']['right to config announcements'] = 'Право керувати оголошеннями';
 $lang['def']['acquainted'] = 'ознайомлені';
+$lang['def']['Revelations'] = 'Откровення';
+$lang['def']['Remind only between this days of month'] = 'Показувати тільки між цими датами';
 
 ?>
