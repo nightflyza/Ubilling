@@ -2080,7 +2080,7 @@ function ts_renderLogsDataAjax($taskid = '') {
 
             if ($each['event'] == 'create') {
                 $data[] = __('Create task');
-                $data_event = unserialize($each['logs']);
+                $data_event = @unserialize($each['logs']);
             } elseif ($each['event'] == 'modify') {
                 $data[] = __('Edit task');
                 $data_event = '';
