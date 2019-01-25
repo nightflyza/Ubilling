@@ -999,11 +999,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                     $number = trim($_GET['number']);
                                     $askNum = new AskoziaNum();
                                     $askNum->setNumber($number);
-                                    $askNum->renderReply(true);
-                                    $asterisk = new Asterisk();
-                                    $result = $asterisk->AsteriskGetInfoApi($number, $_GET['param']);
 
-                                    die($result);
+                                    if ($_GET['param'] == 'userstatus') {
+                                        $askNum->renderReply();
+                                    } else {
+                                        $askNum->renderReply(true);
+
+                                        $asterisk = new Asterisk();
+                                        $result = $asterisk->AsteriskGetInfoApi($number, $_GET['param']);
+                                        die($result);
+                                    }
                                 } else {
                                     die('ERROR: NOT HAVE PARAMETR');
                                 }
