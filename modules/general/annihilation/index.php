@@ -51,6 +51,13 @@ if (cfr('ANNIHILATION')) {
                 $branchObj->userDeleteBranch($login);
             }
         }
+
+        //delete user connection details
+        if (@$alter_conf['CONDET_ENABLED']) {
+            $condet = new ConnectionDetails();
+            $condet->delete($login);
+        }
+
         multinet_delete_host($user_ip);
         multinet_rebuild_all_handlers();
         //destroy stargazer user

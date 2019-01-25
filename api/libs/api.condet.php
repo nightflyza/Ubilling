@@ -3,11 +3,20 @@
 /**
  * Connection (signup) details base class
  */
-
 class ConnectionDetails {
 
+    /**
+     * Contains all signup details data
+     *
+     * @var array
+     */
     protected $allDetails = array();
 
+    /**
+     * Creates new condet instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAllData();
     }
@@ -59,6 +68,19 @@ class ConnectionDetails {
         $length = vf($length, 3);
         $price = mysql_real_escape_string($price);
         $query = "INSERT INTO `condet` (`id`,`login`,`seal`,`length`,`price`) VALUES (NULL,'" . $login . "','" . $seal . "','" . $length . "', '" . $price . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Deletes signup details from database
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function delete($login) {
+        $login = mysql_real_escape_string($login);
+        $query = "DELETE from `condet` WHERE `login`='" . $login . "';";
         nr_query($query);
     }
 
