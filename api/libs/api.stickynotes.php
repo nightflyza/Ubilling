@@ -511,10 +511,9 @@ class StickyNotes {
         if (!empty($alladmins)) {
             foreach ($alladmins as $io => $eachAdmin) {
                 $eachAdminName = (isset($adminNames[$eachAdmin])) ? $adminNames[$eachAdmin] : $eachAdmin;
-                $inputs.=wf_CheckInput('newrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, false) . ' ';
+                $inputs.=wf_CheckInput('newrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, false) . ' '.  wf_tag('br');
             }
         }
-        $inputs.= wf_tag('br');
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Create'));
 
