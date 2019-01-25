@@ -3026,7 +3026,7 @@ $lang['def']['right to config announcements'] = 'Право управлять �
 $lang['def']['acquainted'] = 'ознакомлены';
 $lang['def']['Revelations'] = 'Откровения';
 $lang['def']['Remind only between this days of month'] = 'Показывать только между этими датами';
-$lang['def'][''] = '';
+$lang['def']['right to manage sticky revelations'] = 'Право управлять откровениями';
 $lang['def'][''] = '';
 
 
