@@ -2398,7 +2398,8 @@ class SMSZilla {
                             if ($daysLeft > 0) {
                                 $curMonthDays = date("t");
                                 $curDate = date("j");
-                                $expr = ($curMonthDays - $curDate) + 30;
+                                $nextMonthDays = date("t", strtotime(date('Y-m-d', strtotime('+1 month'))));
+                                $expr = ($curMonthDays - $curDate) + $nextMonthDays;
                                 if ($daysLeft > $expr) {
                                     unset($this->filteredEntities[$entity['login']]);
                                 }
