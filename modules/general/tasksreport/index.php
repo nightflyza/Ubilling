@@ -269,8 +269,13 @@ if (cfr('TASKREPORT')) {
                     $this->dateFrom = mysql_real_escape_string($_POST['datefrom']);
                     $this->dateTo = mysql_real_escape_string($_POST['dateto']);
                 } else {
-                    $this->dateFrom = date("Y-m") . '-01';
-                    $this->dateTo = curdate();
+                    if (wf_CheckGet(array('dateto', 'datefrom'))) {
+                        $this->dateFrom = mysql_real_escape_string($_GET['datefrom']);
+                        $this->dateTo = mysql_real_escape_string($_GET['dateto']);
+                    } else {
+                        $this->dateFrom = date("Y-m") . '-01';
+                        $this->dateTo = curdate();
+                    }
                 }
             }
 
@@ -649,7 +654,7 @@ if (cfr('TASKREPORT')) {
                         }
                         //back coloring for non signup types
                         if (!isset($this->signupJobtypeId[$each['jobtype']])) {
-                            $rowColor='row3';
+                            $rowColor = 'row3';
                         }
 
 
@@ -864,7 +869,9 @@ if (cfr('TASKREPORT')) {
         $cacheCleanupControl = wf_Link($report::URL_ME . '&cleancache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')));
         show_window(__('Search') . ' ' . $cacheCleanupControl, $report->renderDatesForm());
         show_window(__('Tasks report'), $report->renderReport());
-        $printControl = ((file_exists($report::PRINT_PATH)) AND ( filesize($report::PRINT_PATH) > 0) ) ? wf_Link($report::URL_ME . '&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton', 'target="_blank"') : '';
+        $datesFiltered = $report->getDates();
+        $printDates = '&datefrom=' . $datesFiltered['from'] . '&dateto=' . $datesFiltered['to'];
+        $printControl = ((file_exists($report::PRINT_PATH)) AND ( filesize($report::PRINT_PATH) > 0) ) ? wf_Link($report::URL_ME . '&print=true' . $printDates, web_icon_print() . ' ' . __('Print'), false, 'ubButton', 'target="_blank"') : '';
         show_window('', $printControl);
     } else {
         show_error(__('This module disabled'));

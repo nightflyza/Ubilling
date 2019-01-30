@@ -503,8 +503,9 @@ class Warehouse {
      * @param int $itemtypeId
      * @param float $count
      * @param int $employeeId
+     * @param int $reserveId
      */
-    protected function reservePushLog($type, $storageId = '', $itemtypeId = '', $count = '', $employeeId = '') {
+    protected function reservePushLog($type, $storageId = '', $itemtypeId = '', $count = '', $employeeId = '', $reserveId = '') {
         $curdate = curdatetime();
         $type = vf($type);
         $adminLogin = mysql_real_escape_string(whoami());
@@ -512,8 +513,9 @@ class Warehouse {
         $itemtypeId = "'" . vf($itemtypeId, 3) . "'";
         $count = "'" . mysql_real_escape_string($count) . "'";
         $employeeId = "'" . vf($employeeId, 3) . "'";
-        $query = "INSERT INTO `wh_reshist` (`id`,`date`,`type`,`storageid`,`itemtypeid`,`count`,`employeeid`,`admin`) VALUES ";
-        $query.= "(NULL,'" . $curdate . "','" . $type . "'," . $storageId . "," . $itemtypeId . "," . $count . "," . $employeeId . ",'" . $adminLogin . "');";
+        $reserveId = vf($reserveId, 3);
+        $query = "INSERT INTO `wh_reshist` (`id`,`resid`,`date`,`type`,`storageid`,`itemtypeid`,`count`,`employeeid`,`admin`) VALUES ";
+        $query.= "(NULL,'" . $reserveId . "','" . $curdate . "','" . $type . "'," . $storageId . "," . $itemtypeId . "," . $count . "," . $employeeId . ",'" . $adminLogin . "');";
         nr_query($query);
     }
 
@@ -590,7 +592,7 @@ class Warehouse {
                         nr_query($query);
                         $newId = simple_get_lastid('wh_reserve');
                         log_register('WAREHOUSE RESERVE CREATE [' . $newId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
-                        $this->reservePushLog('create', $storageId, $itemtypeId, $count, $employeeId);
+                        $this->reservePushLog('create', $storageId, $itemtypeId, $count, $employeeId, $newId);
                         $this->reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId);
                     } else {
                         $result = $this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
@@ -793,7 +795,7 @@ class Warehouse {
         if (isset($this->allReserve[$id])) {
             $reserveData = $this->allReserve[$id];
             if (!empty($reserveData)) {
-                $this->reservePushLog('delete', $reserveData['storageid'], $reserveData['itemtypeid'], $reserveData['count'], $reserveData['employeeid']);
+                $this->reservePushLog('delete', $reserveData['storageid'], $reserveData['itemtypeid'], $reserveData['count'], $reserveData['employeeid'], $id);
             }
             $query = "DELETE from `wh_reserve` WHERE `id`='" . $id . "';";
             nr_query($query);
@@ -846,7 +848,7 @@ class Warehouse {
             if ($newCountF > 0) {
                 simple_update_field('wh_reserve', 'count', $newCountF, $where);
                 log_register('WAREHOUSE RESERVE DRAIN [' . $reserveId . ']  COUNT `' . $newCount . '` EMPLOYEE [' . $reserveData['employeeid'] . ']');
-                $this->reservePushLog('update', $reserveData['storageid'], $reserveData['itemtypeid'], $newCount, $reserveData['employeeid']);
+                $this->reservePushLog('update', $reserveData['storageid'], $reserveData['itemtypeid'], $newCount, $reserveData['employeeid'], $reserveId);
             } else {
                 $this->reserveDelete($reserveId);
             }
@@ -883,7 +885,7 @@ class Warehouse {
                         simple_update_field('wh_reserve', 'employeeid', $employeeId, $where);
                         simple_update_field('wh_reserve', 'count', $countF, $where);
                         log_register('WAREHOUSE RESERVE EDIT [' . $id . ']  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
-                        $this->reservePushLog('update', $reserveStorage, $reserveItemtypeId, $count, $employeeId);
+                        $this->reservePushLog('update', $reserveStorage, $reserveItemtypeId, $count, $employeeId, $id);
                     } else {
                         log_register('WAREHOUSE RESERVE FAIL [' . $id . ']  TO MANY  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
                     }
@@ -970,7 +972,14 @@ class Warehouse {
                         $operationType = __('Deleted');
                         break;
                 }
-                $data[] = $each['id'];
+
+                if (!empty($each['resid'])) {
+                    $resIdLabel = __('Reserve') . '@' . $each['resid'];
+                } else {
+                    $resIdLabel = '';
+                }
+
+                $data[] = $resIdLabel;
                 $data[] = $each['date'];
                 $data[] = $operationType;
                 $data[] = @$this->allStorages[$each['storageid']];
@@ -996,7 +1005,7 @@ class Warehouse {
         $result = '';
         if (!empty($this->allReserveHistory)) {
             $colums = array('ID', 'Date', 'Type', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Employee', 'Admin');
-            $opts = '"order": [[ 0, "desc" ]]';
+            $opts = '"order": [[ 1, "desc" ]]';
             $result.= wf_JqDtLoader($colums, self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true', false, __('Reserve'), 10, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
