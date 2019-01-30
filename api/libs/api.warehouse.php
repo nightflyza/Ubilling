@@ -559,6 +559,56 @@ class Warehouse {
     }
 
     /**
+     * Sends reserve remains daily notifications to employees
+     * 
+     * @return void
+     */
+    public function telegramReserveDailyNotify() {
+        if (!empty($this->allReserve)) {
+            if ($this->altCfg['SENDDOG_ENABLED']) {
+                $curdate = curdate();
+                $sendTmp = array(); //employeeid => text aggregated
+                $reserveTmp = array(); //employeeid=>reserve data with aggr
+                foreach ($this->allReserve as $io => $eachReserve) {
+                    $employeeId = $eachReserve['employeeid'];
+                    $chatId = @$this->allEmployeeTelegram[$employeeId];
+                    $itemtypeId = $eachReserve['itemtypeid'];
+                    $itemCount = $eachReserve['count'];
+                    if (!empty($chatId)) {
+                        if (!isset($reserveTmp[$employeeId])) {
+                            $reserveTmp[$employeeId] = array();
+                        }
+
+                        if (isset($reserveTmp[$employeeId][$itemtypeId])) {
+                            $reserveTmp[$employeeId][$itemtypeId]+=$itemCount;
+                        } else {
+                            $reserveTmp[$employeeId][$itemtypeId] = $itemCount;
+                        }
+                    }
+                }
+
+
+                if (!empty($reserveTmp)) {
+                    foreach ($reserveTmp as $eachEmployee => $reservedItems) {
+                        $message = __('Is reserved for you'). '\r\n ';;
+                        foreach ($reservedItems as $eachItemId => $eachItemCount) {
+                            $message.= @$this->allItemTypeNames[$eachItemId] . ': ' . $eachItemCount . ' ' . @$this->unitTypes[$this->allItemTypes[$eachItemId]['unit']] . '\r\n ';
+                        }
+                        $message.='📦📦📦📦' . '\r\n '; // very vsrate emoji
+                        $sendTmp[$eachEmployee]=$message;
+                    }
+                }
+
+                if (!empty($sendTmp)) {
+                    foreach ($sendTmp as $io => $eachMessage) {
+                         $this->sendTelegram($io, $eachMessage);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Creates new reserve record in database
      * 
      * @param int $storageId

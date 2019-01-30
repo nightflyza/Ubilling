@@ -3043,5 +3043,6 @@ $lang['def']['acquainted'] = 'ознайомлені';
 $lang['def']['Revelations'] = 'Откровення';
 $lang['def']['Remind only between this days of month'] = 'Показувати тільки між цими датами';
 $lang['def']['right to manage sticky revelations'] = 'Право керувати откровеннями';
+$lang['def']['Is reserved for you'] = 'Заброньовано на тебе';
 
 ?>
