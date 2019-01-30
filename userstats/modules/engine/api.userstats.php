@@ -5,17 +5,22 @@
  * 
  * @param string $login
  * @param string $password
- * @return string
+ * @return string/void on error
  */
 function zbs_UserCheckLoginAuth($login, $password) {
+    $result = '';
     $login = vf($login);
+    $login = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $login);
+    $login = preg_replace('/\0/s', '', $login);
     $password = vf($password);
-    $query = "SELECT `IP` from `users` WHERE `login`='" . $login . "' AND MD5(`password`)='" . $password . "'";
-    $data = simple_query($query);
-    if (!empty($data)) {
-        $result = $data['IP'];
-    } else {
-        $result = '';
+    $password = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $password);
+    $password = preg_replace('/\0/s', '', $password);
+    if (!empty($login) AND ( !empty($password))) {
+        $query = "SELECT `IP` from `users` WHERE `login`='" . $login . "' AND MD5(`password`)='" . $password . "'";
+        $data = simple_query($query);
+        if (!empty($data)) {
+            $result = $data['IP'];
+        }
     }
     return ($result);
 }
@@ -884,9 +889,9 @@ function zbs_vservicesShow($login, $currency) {
                 foreach ($userservices as $eachservicetagid => $dbid) {
 
                     if ($allservices[$eachservicetagid] >= 0) {
-                        $servicePrice = __('Price').' '.@$allservices[$eachservicetagid] . ' ' . $currency;
+                        $servicePrice = __('Price') . ' ' . @$allservices[$eachservicetagid] . ' ' . $currency;
                     } else {
-                        $servicePrice = __('Bonus').' '.abs(@$allservices[$eachservicetagid]) . ' ' . $currency;
+                        $servicePrice = __('Bonus') . ' ' . abs(@$allservices[$eachservicetagid]) . ' ' . $currency;
                     }
                     $cells = la_TableCell(@$tagnames[$eachservicetagid]);
                     $cells.= la_TableCell($servicePrice);
