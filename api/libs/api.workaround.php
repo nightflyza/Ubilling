@@ -2228,6 +2228,10 @@ function web_AddressOccupancyForm() {
  * @return  str             Module content
  */
 function web_UserTraffStats($login) {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+    $ishimuraTable = Multigen::NAS_ISHIMURA;
     $login = vf($login);
     $dirs = zb_DirectionsGetAll();
 
@@ -2242,6 +2246,21 @@ function web_UserTraffStats($login) {
         foreach ($dirs as $dir) {
             $query_downup = "SELECT `D" . $dir['rulenumber'] . "`,`U" . $dir['rulenumber'] . "` FROM `users` WHERE `login` = '" . $login . "'";
             $downup = simple_query($query_downup);
+            //yeah, no classes at all
+            if ($dir['rulenumber'] == 0) {
+                if ($altCfg[$ishimuraOption]) {
+                    $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+                    $dataHideki = simple_query($query_hideki);
+                    if (isset($downup['D0'])) {
+                        $downup['D0']+=$dataHideki['D0'];
+                        $downup['U0']+=$dataHideki['U0'];
+                    } else {
+                        $downup['D0'] = $dataHideki['D0'];
+                        $downup['U0'] = $dataHideki['U0'];
+                    }
+                }
+            }
+
             $cells = wf_TableCell($dir['rulename']);
             $cells .= wf_TableCell(stg_convert_size($downup['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['D' . $dir['rulenumber']] . '"');
             $cells .= wf_TableCell(stg_convert_size($downup['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['U' . $dir['rulenumber']] . '"');
@@ -2327,9 +2346,29 @@ function web_UserTraffStats($login) {
         foreach ($dirs as $dir) {
             $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`,`month`;";
             $prevmonths = simple_queryall($query_prev);
+            //and again no classes
+            if ($dir['rulenumber'] == 0) {
+                if ($altCfg[$ishimuraOption]) {
+                    $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
+                    $dataHideki = simple_queryall($query_hideki);
+                    if (!empty($dataHideki)) {
+                        foreach ($dataHideki as $io => $each) {
+                            foreach ($prevmonths as $ia => $stgEach) {
+                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
+                                    $prevmonths[$ia]['D0']+=$each['D0'];
+                                    $prevmonths[$ia]['U0']+=$each['U0'];
+                                    $prevmonths[$ia]['cash']+=$each['cash'];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if (!empty($prevmonths)) {
                 $prevmonths = array_reverse($prevmonths);
             }
+
+
             if (!empty($prevmonths)) {
                 foreach ($prevmonths as $prevmonth) {
                     $cells = wf_TableCell($prevmonth['year']);

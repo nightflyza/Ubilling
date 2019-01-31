@@ -229,6 +229,18 @@ if ($system->checkForRight('ONLINE')) {
      */
     function zb_AjaxOnlineDataSourceSafe() {
         global $alter_conf;
+        $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+        $ishimuraTable = Multigen::NAS_ISHIMURA;
+        $additionalTraffic = array();
+        if ($alter_conf[$ishimuraOption]) {
+            $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+            $dataHideki = simple_queryall($query_hideki);
+            if (!empty($dataHideki)) {
+                foreach ($dataHideki as $io => $each) {
+                    $additionalTraffic[$each['login']] = $each['D0'] + $each['U0'];
+                }
+            }
+        }
         $allcontracts = array();
         $allcontractdates = array();
 
@@ -309,6 +321,10 @@ if ($system->checkForRight('ONLINE')) {
                     $uc = 'U' . $classcounter . '';
                     $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
                 }
+                //ishimura traffic mixing
+                $currentAdditionalTraff = (isset($additionalTraffic[$eachuser['login']])) ? $additionalTraffic[$eachuser['login']] : 0;
+                $tinet = $tinet + $currentAdditionalTraff;
+
                 $act = '<img src=skins/icon_active.gif>' . __('Yes');
                 //finance check
                 if ($cash < '-' . $credit) {
@@ -316,11 +332,10 @@ if ($system->checkForRight('ONLINE')) {
                 }
                 if ($displayFreezeFlag) {
                     if (@$alter_conf['ONLINE_SHOW_FREEZE_LAT']) {
-                      $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . date('Y-m-d', $eachuser['LastActivityTime']) : '';
+                        $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . date('Y-m-d', $eachuser['LastActivityTime']) : '';
                     } else {
                         $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
                     }
-
                 }
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {

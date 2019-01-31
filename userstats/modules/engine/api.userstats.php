@@ -48,7 +48,7 @@ function zbs_UserDetectIp($debug = false) {
         }
     }
     if ($debug) {
-        //$ip='172.30.0.2'; 
+        //$ip = '172.30.0.2';
     }
 
     return($ip);
@@ -1177,10 +1177,12 @@ function zbs_CashGetUserPayments($login) {
  * @return string
  */
 function zbs_UserTraffStats($login) {
+    global $us_config;
     $login = vf($login);
     $alldirs = zbs_DirectionsGetAll();
     $monthnames = zbs_months_array_wz();
-
+    $ishimuraOption = 'ISHIMURA_ENABLED';
+    $ishimuraTable = 'mlg_ishimura';
     /*
      * Current month traffic stats
      */
@@ -1197,6 +1199,21 @@ function zbs_UserTraffStats($login) {
         foreach ($alldirs as $io => $eachdir) {
             $query_downup = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "` from `users` WHERE `login`='" . $login . "'";
             $downup = simple_query($query_downup);
+            //yeah, no classes at all
+            if ($eachdir['rulenumber'] == 0) {
+
+                if ($us_config[$ishimuraOption]) {
+                    $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . date("Y") . "'";
+                    $dataHideki = simple_query($query_hideki);
+                    if (isset($downup['D0'])) {
+                        $downup['D0']+=$dataHideki['D0'];
+                        $downup['U0']+=$dataHideki['U0'];
+                    } else {
+                        $downup['D0'] = $dataHideki['D0'];
+                        $downup['U0'] = $dataHideki['U0'];
+                    }
+                }
+            }
             $cells = la_TableCell($eachdir['rulename']);
             $cells.= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
             $cells.= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
@@ -1228,6 +1245,24 @@ function zbs_UserTraffStats($login) {
         foreach ($alldirs as $io => $eachdir) {
             $query_prev = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "`,`month`,`year`,`cash` from `stat` WHERE `login`='" . $login . "' ORDER BY `year`,`month`";
             $allprevmonth = simple_queryall($query_prev);
+            //and again no classes
+            if ($dir['rulenumber'] == 0) {
+                if ($us_config[$ishimuraOption]) {
+                    $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
+                    $dataHideki = simple_queryall($query_hideki);
+                    if (!empty($dataHideki)) {
+                        foreach ($dataHideki as $io => $each) {
+                            foreach ($allprevmonth as $ia => $stgEach) {
+                                if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
+                                    $allprevmonth[$ia]['D0']+=$each['D0'];
+                                    $allprevmonth[$ia]['U0']+=$each['U0'];
+                                    $allprevmonth[$ia]['cash']+=$each['cash'];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if (!empty($allprevmonth)) {
                 $allprevmonth = array_reverse($allprevmonth);
             }

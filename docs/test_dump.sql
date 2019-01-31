@@ -2347,3 +2347,13 @@ CREATE TABLE IF NOT EXISTS `stickyrevelations` (
 ALTER TABLE `trinitytv_tariffs` ADD `description` VARCHAR(128) NULL DEFAULT NULL AFTER `name`;
 
 ALTER TABLE `wh_reshist` ADD `resid` INT NULL AFTER `id`; 
+
+CREATE TABLE IF NOT EXISTS `mlg_ishimura` (
+  `login` varchar(50) DEFAULT NULL,
+  `month` tinyint(4) DEFAULT NULL,
+  `year` smallint(6) DEFAULT NULL,
+  `U0` bigint(20) DEFAULT NULL,
+  `D0` bigint(20) DEFAULT NULL,
+  `cash` double DEFAULT NULL,
+  KEY `login` (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ;

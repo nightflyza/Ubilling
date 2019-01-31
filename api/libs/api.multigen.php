@@ -269,6 +269,13 @@ class MultiGen {
     protected $previousTraffic = array();
 
     /**
+     * Contains ishimura archived year/month traffic stats for current month
+     *
+     * @var array
+     */
+    protected $trafficArchive = array();
+
+    /**
      * Contains current accounting traffic stats as login=>data
      *
      * @var array
@@ -281,6 +288,13 @@ class MultiGen {
      * @var array
      */
     protected $usersTraffic = array();
+
+    /**
+     * Contains users current balance cash amount as login=>cash
+     *
+     * @var array
+     */
+    protected $allUsersCash = array();
 
     /**
      * Contains default echo path
@@ -316,6 +330,13 @@ class MultiGen {
      * @var int
      */
     protected $remotePort = 3799;
+
+    /**
+     * Ishimura enabled flag
+     *
+     * @var int
+     */
+    protected $ishimuraFlag = 0;
 
     /**
      * Contains basic module path
@@ -356,6 +377,11 @@ class MultiGen {
      * Default traffic aggregation table name
      */
     const NAS_TRAFFIC = 'mlg_traffic';
+
+    /**
+     * Default previous/current traffic stats table name
+     */
+    const NAS_ISHIMURA = 'mlg_ishimura';
 
     /**
      * Default user states database table name
@@ -411,6 +437,11 @@ class MultiGen {
      * Default accounting days option name
      */
     const OPTION_DAYS = 'MULTIGEN_DAYSACCT';
+
+    /**
+     * Default ishimura mech enabling option name
+     */
+    const OPTION_ISHIMURA = 'ISHIMURA_ENABLED';
 
     /**
      * log path
@@ -513,6 +544,12 @@ class MultiGen {
             }
         }
 
+        if (isset($this->altCfg[self::OPTION_ISHIMURA])) {
+            if ($this->altCfg[self::OPTION_ISHIMURA]) {
+                $this->ishimuraFlag = $this->altCfg[self::OPTION_ISHIMURA];
+            }
+        }
+
         $this->usernameTypes = array(
             'login' => __('Login'),
             'ip' => __('IP'),
@@ -607,6 +644,15 @@ class MultiGen {
      */
     protected function loadUserData() {
         $this->allUserData = zb_UserGetAllData();
+    }
+
+    /**
+     * Loads all existing users data from database
+     * 
+     * @return void
+     */
+    protected function loadUserCash() {
+        $this->allUsersCash = zb_UserGetAllBalance();
     }
 
     /**
@@ -3044,6 +3090,16 @@ class MultiGen {
                 $this->previousTraffic[$each['login']] = $each;
             }
         }
+
+        if ($this->ishimuraFlag) {
+            $query = "select * from `" . self::NAS_ISHIMURA . "` WHERE `year`='" . curyear() . "' AND `month`='" . date("n") . "';";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->trafficArchive[$each['login']] = $each;
+                }
+            }
+        }
     }
 
     /**
@@ -3052,7 +3108,8 @@ class MultiGen {
      * @return void
      */
     protected function loadUserTraffData() {
-        $query = "select `login`,`D0`,`U0` from `users`;";
+        $trafficDataTable = (!$this->ishimuraFlag) ? 'users' : self::NAS_ISHIMURA;
+        $query = "SELECT `login`,`D0`,`U0` FROM `" . $trafficDataTable . "`;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -3070,6 +3127,10 @@ class MultiGen {
     public function aggregateTraffic() {
         $this->loadAcctTraffData();
         $this->loadUserTraffData();
+        if ($this->ishimuraFlag) {
+            $this->loadUserCash();
+        }
+
         $currentTimestamp = time();
         $dateTo = date("Y-m-d H:i:s", $currentTimestamp);
         $lastRunTimestamp = $this->cache->get('MLG_TRAFFLASTRUN', 2592000);
@@ -3080,10 +3141,12 @@ class MultiGen {
             $lastRunTimestamp = $currentTimestamp - 3600;
         }
         $this->cache->set('MLG_TRAFFLASTRUN', $currentTimestamp, 2592000);
+
         $query = "SELECT `username`,`acctoutputoctets`,`acctinputoctets`,`acctupdatetime`,`acctstoptime` from `" . self::NAS_ACCT . "`"
                 . " WHERE `acctupdatetime` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ORDER BY `radacctid` DESC;";
 
         $all = simple_queryall($query);
+
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $loginDetect = $this->getUserLogin($each['username'], $allUserNames);
@@ -3100,9 +3163,16 @@ class MultiGen {
                 }
             }
 
-
             if (!empty($this->currentTraffic)) {
                 foreach ($this->currentTraffic as $changedLogin => $currentTrafficData) {
+                    //preventing first run issues
+                    if ($this->ishimuraFlag) {
+                        if (!isset($this->usersTraffic[$changedLogin])) {
+                            $this->usersTraffic[$changedLogin]['D0'] = 0;
+                            $this->usersTraffic[$changedLogin]['U0'] = 0;
+                        }
+                    }
+
                     if (isset($this->usersTraffic[$changedLogin])) {
                         $stgDownTraffic = $this->usersTraffic[$changedLogin]['D0'];
                         $stgUpTraffic = $this->usersTraffic[$changedLogin]['U0'];
@@ -3123,7 +3193,7 @@ class MultiGen {
                         $newUpTraffic = $stgUpTraffic + $diffUpTraffic;
 
                         if (($diffDownTraffic != 0) OR ( $diffUpTraffic != 0)) {
-                            $this->saveStgTraffic($changedLogin, $newDownTraffic, $newUpTraffic);
+                            $this->saveTrafficData($changedLogin, $newDownTraffic, $newUpTraffic);
                             $newPreviousDown = $previousDownTraffic + $diffDownTraffic;
                             $newPreviousUp = $previousUpTraffic + $diffUpTraffic;
                             $this->savePreviousTraffic($changedLogin, $newPreviousDown, $newPreviousUp, $lastActivity);
@@ -3136,7 +3206,7 @@ class MultiGen {
     }
 
     /**
-     * Sets traffic value via stargazer configurator
+     * Sets traffic value via stargazer configurator or ishimura ne configurator, lol
      * 
      * @param string $login
      * @param int $trafficDown
@@ -3144,9 +3214,25 @@ class MultiGen {
      * 
      * @return void
      */
-    protected function saveStgTraffic($login, $trafficDown, $trafficUp) {
-        $command = $this->billCfg['SGCONF'] . ' set -s ' . $this->billCfg['STG_HOST'] . ' -p ' . $this->billCfg['STG_PORT'] . ' -a ' . $this->billCfg['STG_LOGIN'] . ' -w ' . $this->billCfg['STG_PASSWD'] . ' -u ' . $login . ' --d0 ' . $trafficDown . ' --u0 ' . $trafficUp;
-        shell_exec($command);
+    protected function saveTrafficData($login, $trafficDown, $trafficUp) {
+        if (!$this->ishimuraFlag) {
+            $command = $this->billCfg['SGCONF'] . ' set -s ' . $this->billCfg['STG_HOST'] . ' -p ' . $this->billCfg['STG_PORT'] . ' -a ' . $this->billCfg['STG_LOGIN'] . ' -w ' . $this->billCfg['STG_PASSWD'] . ' -u ' . $login . ' --d0 ' . $trafficDown . ' --u0 ' . $trafficUp;
+            shell_exec($command);
+        } else {
+            $curyear = curyear();
+            $curmonth = date("n");
+            $currentCash = (isset($this->allUsersCash[$login])) ? $this->allUsersCash[$login] : 0;
+            if (isset($this->trafficArchive[$login])) {
+                $where = "WHERE `login`='" . $login . "' AND `year`='" . $curyear . "' AND `month`='" . $curmonth . "'";
+                simple_update_field(self::NAS_ISHIMURA, 'D0', $trafficDown, $where);
+                simple_update_field(self::NAS_ISHIMURA, 'U0', $trafficUp, $where);
+                simple_update_field(self::NAS_ISHIMURA, 'cash', $currentCash, $where);
+            } else {
+                $query = "INSERT INTO `" . self::NAS_ISHIMURA . "` (`login`,`month`,`year`,`U0`,`D0`,`cash`) VALUES"
+                        . "('" . $login . "','" . $curmonth . "','" . $curyear . "','" . $trafficUp . "','" . $trafficDown . "','" . $currentCash . "');";
+                nr_query($query);
+            }
+        }
     }
 
     /**
