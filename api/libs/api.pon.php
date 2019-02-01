@@ -2302,7 +2302,7 @@ class PONizer {
         $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
 
-        if (($this->onuUknownUserByMACSearchShow and empty($telepathyArray)) or $this->onuUknownUserByMACSearchShowAlways) {
+        if (($this->onuUknownUserByMACSearchShow and (empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
             $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
             $inputs .= __('Try to find user by MAC') . ':';
             $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
@@ -3659,6 +3659,51 @@ class PONizer {
         $json->getJson();
     }
 
+    public function renderCpeUserControls($userLogin, $allUserData) {
+        $result = '';
+        $LnkID = wf_InputId();
+        $userIP = $allUserData[$userLogin]['ip'];
+        $userMAC = $allUserData[$userLogin]['mac'];
+
+        $result.=wf_tag('br') . wf_tag('b') . __('Users PON equipment') . wf_tag('b', true) . wf_tag('br');
+        $result.= wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/icon_link.gif') . ' ' . __('Assign PON equipment to user'), false, 'ubButton') . '&nbsp';
+        $result.=wf_modalAutoForm(__('Create new CPE'), '', 'dialog-modal_' . $LnkID, 'body_dialog-modal_' . $LnkID);
+        $result.= wf_tag('a', false, 'ubButton', 'id="' . $LnkID  . '" href="#"');
+        $result.= web_icon_create() . ' ' . __('Create new CPE');
+        $result.= wf_tag('a', true);
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+
+        $result.=  '                    
+                    $(\'#' . $LnkID . '\').click(function(evt) {
+                        $.ajax({
+                            type: "GET",
+                            url: "' . self::URL_ME . '",                              
+                            data: {
+                                renderCreateForm:true,
+                                renderedOutside:true,
+                                reloadPageAfterDone:true,
+                                userLogin:"' . $userLogin . '",
+                                onumac:"' . $userMAC . '",
+                                userIP:"' . $userIP . '",
+                                oltid:"",
+                                ActionCtrlID:"' . $LnkID . '",
+                                ModalWID:"dialog-modal_' . $LnkID . '"
+                            },
+                            success: function(result) {                                        
+                                        $(\'#body_dialog-modal_' . $LnkID . '\').html(result);
+                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");                                 
+                                     }
+                        });
+                        
+                        evt.preventDefault();
+                        return false;
+                    });
+                    ';
+        $result.= wf_tag('script', true);
+        $result.= wf_delimiter();
+
+        return ($result);
+    }
 }
 
 class PONizerLegacy extends PONizer {
@@ -3866,7 +3911,6 @@ class PONizerLegacy extends PONizer {
         $result .= show_window('', wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
         return ($result);
     }
-
 }
 
 ?>
