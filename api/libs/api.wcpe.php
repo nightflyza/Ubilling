@@ -765,8 +765,16 @@ class WifiCPE {
                         $result .= wf_Link('?module=switches&edit=' . $cpeData['uplinkapid'], web_edit_icon('Navigate to AP') . ' ' . __('Navigate to AP'), false, 'ubButton');
                         $result .= '&nbsp&nbsp&nbsp';
                     }
+
                     if (!empty($cpeData['geo'])) {
                         $result.=wf_Link('?module=switchmap&finddevice=' . $cpeData['geo'], web_icon_search('Find on map') . ' ' . __('Find on map'), false, 'ubButton');
+                        $result .= '&nbsp&nbsp&nbsp';
+                    }
+
+                    if ($this->isCPEProtected($cpeId)) {
+                        $result .= wf_JSAlert('', web_delete_icon() . ' ' . __('Delete'), __('Some users is assigned to this CPE'), '', 'ubButton');
+                    } else {
+                        $result .= wf_Link(self::URL_ME . '&deletecpeid=' . $cpeId, web_delete_icon('Delete') . ' ' . __('Delete'), false, 'ubButton');
                     }
                 }
             } else {
