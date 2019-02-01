@@ -3661,19 +3661,22 @@ class PONizer {
 
     public function renderCpeUserControls($userLogin, $allUserData) {
         $result = '';
-        $LnkID = wf_InputId();
-        $userIP = $allUserData[$userLogin]['ip'];
-        $userMAC = $allUserData[$userLogin]['mac'];
 
-        $result.=wf_tag('br') . wf_tag('b') . __('Users PON equipment') . wf_tag('b', true) . wf_tag('br');
-        $result.= wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/icon_link.gif') . ' ' . __('Assign PON equipment to user'), false, 'ubButton') . '&nbsp';
-        $result.=wf_modalAutoForm(__('Create new CPE'), '', 'dialog-modal_' . $LnkID, 'body_dialog-modal_' . $LnkID);
-        $result.= wf_tag('a', false, 'ubButton', 'id="' . $LnkID  . '" href="#"');
-        $result.= web_icon_create() . ' ' . __('Create new CPE');
-        $result.= wf_tag('a', true);
-        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        // if there is no assigned ONU with $userLogin yet
+        if (empty($this->getOnuIdByUser($userLogin))) {
+            $LnkID = wf_InputId();
+            $userIP = $allUserData[$userLogin]['ip'];
+            $userMAC = $allUserData[$userLogin]['mac'];
 
-        $result.=  '                    
+            $result .= wf_tag('br') . wf_tag('b') . __('Users PON equipment') . wf_tag('b', true) . wf_tag('br');
+            $result .= wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/icon_link.gif') . ' ' . __('Assign PON equipment to user'), false, 'ubButton') . '&nbsp';
+            $result .= wf_modalAutoForm(__('Create new CPE'), '', 'dialog-modal_' . $LnkID, 'body_dialog-modal_' . $LnkID);
+            $result .= wf_tag('a', false, 'ubButton', 'id="' . $LnkID . '" href="#"');
+            $result .= web_icon_create() . ' ' . __('Create new CPE');
+            $result .= wf_tag('a', true);
+            $result .= wf_tag('script', false, '', 'type="text/javascript"');
+
+            $result .= '                    
                     $(\'#' . $LnkID . '\').click(function(evt) {
                         $.ajax({
                             type: "GET",
@@ -3699,8 +3702,9 @@ class PONizer {
                         return false;
                     });
                     ';
-        $result.= wf_tag('script', true);
-        $result.= wf_delimiter();
+            $result .= wf_tag('script', true);
+            $result .= wf_delimiter();
+        }
 
         return ($result);
     }
