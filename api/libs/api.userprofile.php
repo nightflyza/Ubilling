@@ -1190,7 +1190,7 @@ class UserProfile {
     protected function getUserCpeControls() {
         $result = '';
 
-        if ($this->alterCfg['PON_ENABLED']) {
+        if ($this->alterCfg['PON_ENABLED'] and isset($this->alterCfg['PONCPE_CONTROLS_ENABLED']) and $this->alterCfg['PONCPE_CONTROLS_ENABLED']) {
             $poncpeFlag = true;
 
             if (isset($this->alterCfg['PONCPE_TARIFFMASK'])) {
