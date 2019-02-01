@@ -1190,8 +1190,26 @@ class UserProfile {
     protected function getUserCpeControls() {
         $result = '';
 
+        if ($this->alterCfg['PON_ENABLED']) {
+            $poncpeFlag = true;
+
+            if (isset($this->alterCfg['PONCPE_TARIFFMASK'])) {
+                if (!empty($this->alterCfg['PONCPE_TARIFFMASK'])) {
+                    if (!ispos($this->userdata['Tariff'], $this->alterCfg['PONCPE_TARIFFMASK'])) {
+                        $poncpeFlag = false;
+                    }
+                }
+            }
+
+            if ($poncpeFlag) {
+                $pon = new PONizer();
+                $result.= $pon->renderCpeUserControls($this->login, $this->AllUserData);
+            }
+        }
+
         if ($this->alterCfg['WIFICPE_ENABLED']) {
             $wcpeFlag = true;
+
             if (isset($this->alterCfg['WIFICPE_TARIFFMASK'])) {
                 if (!empty($this->alterCfg['WIFICPE_TARIFFMASK'])) {
                     if (!ispos($this->userdata['Tariff'], $this->alterCfg['WIFICPE_TARIFFMASK'])) {

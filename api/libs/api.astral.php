@@ -852,11 +852,13 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '', $options =
  * @return string
  *  
  */
-function wf_JSAlert($url, $title, $alerttext, $functiontorun = '') {
+function wf_JSAlert($url, $title, $alerttext, $functiontorun = '', $class = '') {
+    $class = (empty($class)) ? '' : 'class="' . $class . '"';
+
     if (empty($functiontorun)) {
-        $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+        $result = '<a ' . $class . ' onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
     } else {
-        $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; return false; }" href="' . $url . '">' . $title . '</a>';
+        $result = '<a ' . $class . ' onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; return false; }" href="' . $url . '">' . $title . '</a>';
     }
     return ($result);
 }
