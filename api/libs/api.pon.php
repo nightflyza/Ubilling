@@ -3662,7 +3662,7 @@ class PONizer {
     public function renderCpeUserControls($userLogin, $allUserData) {
         $result = '';
         $userHasCPE = false;
-        
+
         // if there is no assigned ONU with $userLogin yet
         $userHasCPE = $this->getOnuIdByUser($userLogin);
 
