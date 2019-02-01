@@ -367,6 +367,18 @@ class MegogoFrontend {
                 }
             }
         }
+
+        //per-tariff protection controls
+        if (isset($this->usConfig['MG_TARIFFSALLOWED'])) {
+            if (!empty($this->usConfig['MG_TARIFFSALLOWED'])) {
+                $tariffsAllowed = explode(',', $this->usConfig['MG_TARIFFSALLOWED']);
+                $tariffsAllowed = array_flip($tariffsAllowed);
+                $userTariff = $this->allUsers[$this->userLogin]['Tariff'];
+                if (!isset($tariffsAllowed[$userTariff])) {
+                    $result = false;
+                }
+            }
+        }
         return ($result);
     }
 
