@@ -3028,7 +3028,8 @@ $lang['def']['Revelations'] = 'Откровения';
 $lang['def']['Remind only between this days of month'] = 'Показывать только между этими датами';
 $lang['def']['right to manage sticky revelations'] = 'Право управлять откровениями';
 $lang['def']['Is reserved for you'] = 'Забронировано на тебя';
-$lang['def'][''] = '';
+$lang['def']['Users PON equipment'] = 'Пользовательское PON оборудование';
+$lang['def']['Assign PON equipment to user'] = 'Присвоить PON оборудование пользователю';
 $lang['def'][''] = '';
 
 
