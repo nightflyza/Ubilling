@@ -2231,7 +2231,7 @@ function web_UserTraffStats($login) {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $ishimuraOption = MultiGen::OPTION_ISHIMURA;
-    $ishimuraTable = Multigen::NAS_ISHIMURA;
+    $ishimuraTable = MultiGen::NAS_ISHIMURA;
     $login = vf($login);
     $dirs = zb_DirectionsGetAll();
 

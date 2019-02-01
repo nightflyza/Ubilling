@@ -3136,7 +3136,6 @@ class MultiGen {
         $lastRunTimestamp = $this->cache->get('MLG_TRAFFLASTRUN', 2592000);
         $dateFrom = date("Y-m-d H:i:s", $lastRunTimestamp);
         $allUserNames = $this->getAllUserNames();
-
         if (empty($lastRunTimestamp)) {
             $lastRunTimestamp = $currentTimestamp - 3600;
         }
@@ -3144,9 +3143,9 @@ class MultiGen {
 
         $query = "SELECT `username`,`acctoutputoctets`,`acctinputoctets`,`acctupdatetime`,`acctstoptime` from `" . self::NAS_ACCT . "`"
                 . " WHERE `acctupdatetime` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ORDER BY `radacctid` DESC;";
-
+        
         $all = simple_queryall($query);
-
+        
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $loginDetect = $this->getUserLogin($each['username'], $allUserNames);
@@ -3162,7 +3161,8 @@ class MultiGen {
                     }
                 }
             }
-
+            
+            
             if (!empty($this->currentTraffic)) {
                 foreach ($this->currentTraffic as $changedLogin => $currentTrafficData) {
                     //preventing first run issues
@@ -3172,7 +3172,7 @@ class MultiGen {
                             $this->usersTraffic[$changedLogin]['U0'] = 0;
                         }
                     }
-
+                    
                     if (isset($this->usersTraffic[$changedLogin])) {
                         $stgDownTraffic = $this->usersTraffic[$changedLogin]['D0'];
                         $stgUpTraffic = $this->usersTraffic[$changedLogin]['U0'];
@@ -3183,15 +3183,17 @@ class MultiGen {
                             $previousDownTraffic = 0;
                             $previousUpTraffic = 0;
                         }
-
+                        
                         $lastActivity = $currentTrafficData['activity'];
 
                         $diffDownTraffic = $currentTrafficData['down'] - $previousDownTraffic;
+                        
                         $diffUpTraffic = $currentTrafficData['up'] - $previousUpTraffic;
 
                         $newDownTraffic = $stgDownTraffic + $diffDownTraffic;
                         $newUpTraffic = $stgUpTraffic + $diffUpTraffic;
-
+                        
+                        
                         if (($diffDownTraffic != 0) OR ( $diffUpTraffic != 0)) {
                             $this->saveTrafficData($changedLogin, $newDownTraffic, $newUpTraffic);
                             $newPreviousDown = $previousDownTraffic + $diffDownTraffic;

@@ -230,7 +230,7 @@ if ($system->checkForRight('ONLINE')) {
     function zb_AjaxOnlineDataSourceSafe() {
         global $alter_conf;
         $ishimuraOption = MultiGen::OPTION_ISHIMURA;
-        $ishimuraTable = Multigen::NAS_ISHIMURA;
+        $ishimuraTable = MultiGen::NAS_ISHIMURA;
         $additionalTraffic = array();
         if ($alter_conf[$ishimuraOption]) {
             $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";

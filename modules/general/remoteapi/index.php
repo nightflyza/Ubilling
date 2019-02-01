@@ -271,6 +271,30 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 $prevTraff = array();
                                 $diffCurr = array();
                                 $diffPrev = array();
+
+                                //mixing ishimura aggregated traffic
+                                if (@$alterconf['ISHIMURA_ENABLED']) {
+                                    $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+                                    $ishimuraTable = MultiGen::NAS_ISHIMURA;
+                                    $additionalTraffic = array();
+                                    if ($alterconf[$ishimuraOption]) {
+                                        $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+                                        $dataHideki = simple_queryall($query_hideki);
+                                        if (!empty($dataHideki)) {
+                                            foreach ($dataHideki as $io => $each) {
+                                                $additionalTraffic[$each['login']] = $each['D0'] + $each['U0'];
+                                            }
+                                        }
+
+                                        if (!empty($curTraff) AND ! empty($additionalTraffic)) {
+                                            foreach ($curTraff as $io => $each) {
+                                                if (isset($additionalTraffic[$each['login']])) {
+                                                    $curTraff[$io]['traff']+=$additionalTraffic[$each['login']];
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                                 if (!file_exists('exports/prevtraff')) {
                                     $prevTraff = $curTraff;
                                     $savePrev = serialize($prevTraff);
@@ -974,18 +998,18 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     //salary daily jobs notification
                     if ($_GET['action'] == 'salarytelegram') {
                         if ($alterconf['SALARY_ENABLED']) {
-                            $salary=new Salary();
+                            $salary = new Salary();
                             $salary->telegramDailyNotify();
                             die('OK: SALARYTELEGRAM');
                         } else {
                             die('ERROR: SALARY DISABLED');
                         }
                     }
-                    
+
                     //warehouse daily reserve remains notification
-                        if ($_GET['action'] == 'warehousetelegram') {
+                    if ($_GET['action'] == 'warehousetelegram') {
                         if ($alterconf['WAREHOUSE_ENABLED']) {
-                            $warehouse=new Warehouse();
+                            $warehouse = new Warehouse();
                             $warehouse->telegramReserveDailyNotify();
                             die('OK: WAREHOUSETELEGRAM');
                         } else {
