@@ -3661,9 +3661,12 @@ class PONizer {
 
     public function renderCpeUserControls($userLogin, $allUserData) {
         $result = '';
-
+        $userHasCPE = false;
+        
         // if there is no assigned ONU with $userLogin yet
-        if (empty($this->getOnuIdByUser($userLogin))) {
+        $userHasCPE = $this->getOnuIdByUser($userLogin);
+
+        if (empty($userHasCPE)) {
             $LnkID = wf_InputId();
             $userIP = $allUserData[$userLogin]['ip'];
             $userMAC = $allUserData[$userLogin]['mac'];
