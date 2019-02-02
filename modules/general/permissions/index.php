@@ -289,10 +289,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('reginputscheck', __($CheckLabelCaption), true, $reginputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-        /*if ($root) {
-            $label .= '$(\'[name=reginputscheck]\').css(\'visibility\', \'hidden\');
-                      $("label[for=\'"+$(\'[name=reginputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
-        }*/
+       
         $label .= '$(\'[name=reginputscheck]\').change( {InputNamesList : $(\'input[name=reginputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -307,10 +304,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('sysinputscheck', __($CheckLabelCaption), true, $sysinputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-        /*if ($root) {
-            $label .= '$(\'[name=sysinputscheck]\').css(\'visibility\', \'hidden\');
-                      $("label[for=\'"+$(\'[name=sysinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
-        }*/
+     
         $label .= '$(\'[name=sysinputscheck]\').change( {InputNamesList : $(\'input[name=sysinputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -326,10 +320,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('repinputscheck', __($CheckLabelCaption), true, $repinputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-        /*if ($root) {
-            $label .= '$(\'[name=repinputscheck]\').css(\'visibility\', \'hidden\');
-                      $("label[for=\'"+$(\'[name=repinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
-        }*/
+    
         $label .= '$(\'[name=repinputscheck]\').change( {InputNamesList : $(\'input[name=repinputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -344,10 +335,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('fininputscheck', __($CheckLabelCaption), true, $fininputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-        /*if ($root) {
-            $label .= '$(\'[name=fininputsnames]\').css(\'visibility\', \'hidden\');
-                      $("label[for=\'"+$(\'[name=fininputsnames]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
-        }*/
+     
         $label .= '$(\'[name=fininputscheck]\').change( {InputNamesList : $(\'input[name=fininputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -363,10 +351,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('catvinputscheck', __($CheckLabelCaption), true, $catvinputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-        /*if ($root) {
-            $label .= '$(\'[name=catvinputscheck]\').css(\'visibility\', \'hidden\');
-                      $("label[for=\'"+$(\'[name=catvinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
-        }*/
+     
         $label .= '$(\'[name=catvinputscheck]\').change( {InputNamesList : $(\'input[name=catvinputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
