@@ -58,6 +58,7 @@ if (!empty($_POST['login_form'])) {
 }
 if (!empty($_POST['logout_form'])) {
     $system->logOutUser();
+    rcms_redirect('index.php', true);
 }
 //additional get-request user auto logout sub
 if (!empty($_GET['idleTimerAutoLogout'])) {

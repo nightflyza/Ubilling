@@ -5276,3 +5276,30 @@ function zb_getUsersPreferredSMSService($userLogin) {
 
     return $smsServiceIdName;
 }
+
+/**
+ * Inits ghost mode for some administrator login
+ * 
+ * @param string $adminLogin
+ * 
+ * @return void
+ */
+function zb_InitGhostMode($adminLogin) {
+    global $system;
+    if (file_exists(USERS_PATH . $adminLogin)) {
+        $userData = $system->getUserData($adminLogin);
+        if (!empty($userData)) {
+            $myLogin = whoami();
+            $myData = $system->getUserData($myLogin);
+            //current login data is used for ghost mode identification
+            setcookie('ghost_user', $myLogin . ':' . $myData['password'], null);
+            $_COOKIE['ghost_user'] = $myLogin . ':' . $myData['password'];
+            //login of another admin
+            rcms_log_put('Notification', $myLogin, 'Ghost logged in as ' . $adminLogin);
+            log_register('GHOSTMODE `' . $myLogin . '` LOGIN AS `' . $adminLogin . '`');
+            setcookie('reloadcms_user', $adminLogin . ':' . $userData['password'], null);
+            $_COOKIE['reloadcms_user'] = $adminLogin . ':' . $userData['password'];
+        }
+    }
+}
+

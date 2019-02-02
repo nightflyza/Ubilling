@@ -352,11 +352,38 @@ class rcms_user extends rcms_access {
      */
     function logOutUser() {
         if ($this->logged_in) {
-            rcms_log_put('Notification', $this->user['username'], 'Logged out');
-            setcookie($this->cookie_user, '', time() - 3600);
-            $_COOKIE[$this->cookie_user] = '';
-            $this->initializeUser(false);
+            //normal user logout
+            if (!@$_COOKIE['ghost_user']) {
+                rcms_log_put('Notification', $this->user['username'], 'Logged out');
+                setcookie($this->cookie_user, '', time() - 3600);
+                $_COOKIE[$this->cookie_user] = '';
+                $this->initializeUser(false);
+            } else {
+                //ghostmode logout
+                $this->deinitGhostMode();
+            }
             return true;
+        }
+    }
+
+    /**
+     * Deinits ghost mode for current ghost administrator
+     * 
+     * @return void
+     */
+    function deinitGhostMode() {
+        global $system;
+        if (@$_COOKIE['ghost_user']) {
+            $myLogin = $this->user['username'];
+            $ghostData = explode(':', $_COOKIE['ghost_user']);
+            //cleanup ghostmode data
+            setcookie('ghost_user', '', null);
+            $_COOKIE['ghost_user'] = '';
+
+            //login of another admin
+            rcms_log_put('Notification', $ghostData[0], 'Ghost logged out as ' . $myLogin);
+            setcookie('reloadcms_user', $ghostData[0] . ':' . $ghostData[1], null);
+            $_COOKIE['reloadcms_user'] = $ghostData[0] . ':' . $ghostData[1];
         }
     }
 

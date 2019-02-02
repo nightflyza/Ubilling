@@ -3030,6 +3030,8 @@ $lang['def']['right to manage sticky revelations'] = 'Право управля�
 $lang['def']['Is reserved for you'] = 'Забронировано на тебя';
 $lang['def']['Users PON equipment'] = 'Пользовательское PON оборудование';
 $lang['def']['Assign PON equipment to user'] = 'Присвоить PON оборудование пользователю';
+$lang['def']['Login as'] = 'Залогиниться как';
+$lang['def']['in ghost mode'] = 'в режиме призрака';
 $lang['def'][''] = '';
 
 

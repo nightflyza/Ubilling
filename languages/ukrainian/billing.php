@@ -3046,4 +3046,7 @@ $lang['def']['right to manage sticky revelations'] = 'Право керуват�
 $lang['def']['Is reserved for you'] = 'Заброньовано на тебе';
 $lang['def']['Users PON equipment'] = 'Користувацьке PON обладнання';
 $lang['def']['Assign PON equipment to user'] = 'Присвоїти PON обладнання користувачу';
+$lang['def']['Login as'] = 'Залогінитись як';
+$lang['def']['in ghost mode'] = 'у режимі привида';
+
 ?>

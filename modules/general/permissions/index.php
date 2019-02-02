@@ -61,6 +61,7 @@ if (cfr('PERMISSIONS')) {
      * @return string
      */
     function web_list_admins() {
+        $myLogin = whoami();
         $alladmins = rcms_scandir(USERS_PATH);
         $cells = wf_TableCell(__('Admin'));
         $cells.= wf_TableCell(__('Actions'));
@@ -68,10 +69,15 @@ if (cfr('PERMISSIONS')) {
 
         if (!empty($alladmins)) {
             foreach ($alladmins as $eachadmin) {
-                $actions = wf_JSAlert('?module=permissions&delete=' . $eachadmin, web_delete_icon(), 'Removing this may lead to irreparable results');
-                $actions.= wf_Link('?module=permissions&passwd=' . $eachadmin, web_key_icon());
-                $actions.= wf_Link('?module=permissions&edit=' . $eachadmin, web_edit_icon('Rights'));
-
+                $actions = wf_JSAlert('?module=permissions&delete=' . $eachadmin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+                $actions.= wf_Link('?module=permissions&passwd=' . $eachadmin, web_key_icon()) . ' ';
+                $actions.= wf_Link('?module=permissions&edit=' . $eachadmin, web_edit_icon('Rights')) . ' ';
+                if (cfr('ROOT')) {
+                    if ($myLogin != $eachadmin) {
+                        $ghostModeLabel = __('Login as') . ' ' . $eachadmin . ' ' . __('in ghost mode');
+                        $actions.= wf_JSAlert('?module=permissions&ghostmode=' . $eachadmin, wf_img('skins/ghost.png', $ghostModeLabel), $ghostModeLabel . '?');
+                    }
+                }
                 $cells = wf_TableCell($eachadmin);
                 $cells.= wf_TableCell($actions);
                 $rows.= wf_TableRow($cells, 'row5');
@@ -145,9 +151,18 @@ if (cfr('PERMISSIONS')) {
         $branchesinputsallchecked = true;
         $miscinputsallchecked = true;
 
-        $inputs = wf_BackLink('?module=permissions') . wf_delimiter();
+        $inputs = wf_BackLink('?module=permissions');
 
-        //$root = false;
+        //ghost mode controls
+        $myLogin = whoami();
+        if (cfr('ROOT')) {
+            if ($myLogin != $login) {
+                $ghostModeLabel = __('Login as') . ' ' . $login . ' ' . __('in ghost mode');
+                $inputs.= ' ' . wf_Link('?module=permissions&ghostmode=' . $login, wf_img('skins/ghost.png') . ' ' . $ghostModeLabel, false, ' ubButton');
+            }
+        }
+        $inputs.= wf_delimiter();
+
 
         $inputs .= wf_HiddenInput('save', '1');
         if ($system->getRightsForUser($login, $rights, $root, $level)) {
@@ -170,7 +185,8 @@ if (cfr('PERMISSIONS')) {
 
                         $miscinputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $miscinputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $miscinputsallchecked = false;
                     }
 
                     //user register rights
@@ -185,7 +201,8 @@ if (cfr('PERMISSIONS')) {
 
                         $reginputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $reginputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $reginputsallchecked = false;
                     }
 
                     //geo rights
@@ -200,7 +217,8 @@ if (cfr('PERMISSIONS')) {
 
                         $geoinputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $geoinputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $geoinputsallchecked = false;
                     }
 
                     //system config perms
@@ -215,7 +233,8 @@ if (cfr('PERMISSIONS')) {
 
                         $sysinputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $sysinputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $sysinputsallchecked = false;
                     }
 
                     //financial inputs
@@ -230,7 +249,8 @@ if (cfr('PERMISSIONS')) {
 
                         $fininputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $fininputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $fininputsallchecked = false;
                     }
 
                     //reports rights
@@ -245,7 +265,8 @@ if (cfr('PERMISSIONS')) {
 
                         $repinputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $repinputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $repinputsallchecked = false;
                     }
 
                     //catv rights
@@ -260,7 +281,8 @@ if (cfr('PERMISSIONS')) {
 
                         $catvinputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $catvinputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $catvinputsallchecked = false;
                     }
 
                     //branches inputs
@@ -275,7 +297,8 @@ if (cfr('PERMISSIONS')) {
 
                         $branchesinputsnames .= $InputName . ',';
 
-                        if ( !user_check_right($login, $right_id) ) $branchesinputsallchecked = false;
+                        if (!user_check_right($login, $right_id))
+                            $branchesinputsallchecked = false;
                     }
                 }
             }
@@ -289,7 +312,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('reginputscheck', __($CheckLabelCaption), true, $reginputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-       
+
         $label .= '$(\'[name=reginputscheck]\').change( {InputNamesList : $(\'input[name=reginputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -304,7 +327,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('sysinputscheck', __($CheckLabelCaption), true, $sysinputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-     
+
         $label .= '$(\'[name=sysinputscheck]\').change( {InputNamesList : $(\'input[name=sysinputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -320,7 +343,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('repinputscheck', __($CheckLabelCaption), true, $repinputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-    
+
         $label .= '$(\'[name=repinputscheck]\').change( {InputNamesList : $(\'input[name=repinputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -335,7 +358,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('fininputscheck', __($CheckLabelCaption), true, $fininputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-     
+
         $label .= '$(\'[name=fininputscheck]\').change( {InputNamesList : $(\'input[name=fininputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -351,7 +374,7 @@ if (cfr('PERMISSIONS')) {
         $label .= wf_CheckInput('catvinputscheck', __($CheckLabelCaption), true, $catvinputsallchecked);
         $label .= wf_tag('h3', true);
         $label .= wf_tag('script', false, '', 'type="text/javascript"');
-     
+
         $label .= '$(\'[name=catvinputscheck]\').change( {InputNamesList : $(\'input[name=catvinputsnames]\').val()},
                                                           function(EventObject) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
@@ -485,7 +508,6 @@ if (cfr('PERMISSIONS')) {
         show_window(__('Rights for') . ' ' . $login, $permission_forms);
     }
 
-
     /**
      * Shows administrator editing form
      *
@@ -546,6 +568,16 @@ if (cfr('PERMISSIONS')) {
             $targetUser = $_GET['edit'];
             $sourceUser = $_POST['admincopyselector'];
             zb_PermissionsCopyAdminRights($sourceUser, $targetUser);
+        }
+    }
+
+    //ghostmode init
+    if (wf_CheckGet(array('ghostmode'))) {
+        if (cfr('ROOT')) {
+            zb_InitGhostMode($_GET['ghostmode']);
+            rcms_redirect('index.php');
+        } else {
+            show_error(__('Access denied'));
         }
     }
 

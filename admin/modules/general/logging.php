@@ -24,7 +24,7 @@ if(!empty($_POST['showlogs']) && !empty($_POST['viewlog']) && is_array($_POST['v
 		} else {
 			$contents = file_get_contents($system->logging . $logfile);
 		}
-		$output .= rcms_parse_text('[quote=' . $logfile . ']' . $contents . '[/quote]', true, false, true);
+		$output .= wf_tag('pre').rcms_parse_text('---------------------------------' . $logfile . '' . $contents, true, false, true).  wf_tag('pre',true);
 	}
 	rcms_showAdminMessage($output);
 } elseif(!empty($_POST['showlogs_from_archive']) && !empty($_POST['archive']) && !empty($_POST['viewlog']) && is_array($_POST['viewlog'])){
