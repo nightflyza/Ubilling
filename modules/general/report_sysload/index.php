@@ -46,6 +46,11 @@ if (cfr('SYSLOAD')) {
     if (wf_CheckGet(array('ajaxredisstats'))) {
         die(web_RedisRenderStats());
     }
+    //cache key destroy
+    if (wf_CheckGet(array('deletecachekey'))) {
+        die(zb_CacheKeyDestroy($_GET['deletecachekey']));
+    }
+    
     $globconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
     $monit_url = $globconf['PHPSYSINFO'];

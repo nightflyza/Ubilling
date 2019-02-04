@@ -5133,15 +5133,42 @@ function zb_ListCacheInform($param = '') {
                 $dataSize = stg_convert_size(strlen($readableData));
                 $value = wf_tag('pre') . $readableData . wf_tag('pre', true);
                 $cells .= wf_TableCell($dataCount . ' ~ ' . $dataSize);
-                $cells .= wf_TableCell(wf_modal(__('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600'));
+                $keyActions = '';
+                $viewControls = wf_modal(wf_img_sized('skins/icon_search_small.gif', '', '10') . ' ' . __('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600') . ' ';
+                $ajDeleteContainerId = 'aj_deletecachekey' . $key['key'];
+                $deleteUrl = '?module=report_sysload&deletecachekey=' . $key['key'];
+                $deleteControls = wf_AjaxLink($deleteUrl, wf_img_sized('skins/icon_del.gif', '', '10') . ' ' . __('Delete'), $ajDeleteContainerId, false, 'ubButton');
+                $keyActions.= wf_AjaxContainer($ajDeleteContainerId, '', $deleteControls . $viewControls);
+
+
+                $cells .= wf_TableCell($keyActions);
             } else {
-                $cells .= wf_TableCell($key, '', '', 'sorttable_customkey="' . $id . '"');
+                $cells .= wf_TableCell($key, '', '', 'sorttable_customkey = "' . $id . '"');
             }
             $rows .= wf_TableRow($cells, 'row3');
         }
         $result .= $rows;
     } elseif (empty($data) and $param == 'clear') {
         $result .= $messages->getStyledMessage(__('Cache cleared'), 'success');
+    }
+    return ($result);
+}
+
+/**
+ * Deletes some entry key data from cache
+ * 
+ * @param string $key
+ * 
+ * @return string
+ */
+function zb_CacheKeyDestroy($key) {
+    $result = '';
+    $messages = new UbillingMessageHelper();
+    if (!empty($key)) {
+        $cache = new UbillingCache();
+        $key = str_replace($cache::CACHE_PREFIX, '', $key);
+        $cache->delete($key);
+        $result.=$messages->getStyledMessage(__('Deleted'), 'warning');
     }
     return ($result);
 }
@@ -5302,4 +5329,3 @@ function zb_InitGhostMode($adminLogin) {
         }
     }
 }
-
