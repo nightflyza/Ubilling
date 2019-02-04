@@ -253,6 +253,7 @@ class ForWhomTheBellTolls {
                                         $reply[$count]['icon'] = $icon;
                                         $reply[$count]['link'] = $link;
                                         $reply[$count]['queue'] = 'q' . $count;
+                                        $reply[$count]['number'] = $number;
 
                                         $count++;
                                     }
@@ -328,8 +329,8 @@ class ForWhomTheBellTolls {
                         progressBar: true,
                         type: key.type,
                         layout: \'bottomRight\',
-                        killer: key.queue,
-                        queue: key.queue,
+                        killer: key.number,
+                        queue: key.number,
                         text: key.text
                         }).show();
 
@@ -338,7 +339,7 @@ class ForWhomTheBellTolls {
                             var options = {
                                 body: key.cleartext,
                                 icon: key.icon,
-                                tag: key.queue,
+                                tag: key.number,
                                 dir: "auto"
                             };
                                 sendNotificationDesktop(title, options, key.link);
