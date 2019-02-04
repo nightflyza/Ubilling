@@ -104,7 +104,7 @@ class Announcements {
     public function __construct() {
         $this->initMessages();
         $this->setLogin();
-        $this->initCache();
+        //$this->initCache();
         $this->setAnnounceFor();
         $this->setAnnounceId();
         $this->loadAdminsName();
@@ -200,10 +200,12 @@ class Announcements {
      * @return array
      */
     protected function avaibleAnnouncementsCached() {
-        $obj = $this;
-        $ann_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for, function() use ($obj) {
-            return ($obj->loadAvaibleAnnouncements());
-        }, $this->cacheTime);
+       // $obj = $this;
+//        $ann_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for, function() use ($obj) {
+//            return ($obj->loadAvaibleAnnouncements());
+//        }, $this->cacheTime);
+        //TODO: remove it
+        $ann_arr=$this->loadAvaibleAnnouncements();
         if (!empty($ann_arr)) {
             foreach ($ann_arr as $key => $data) {
                 $this->announcesAvaible[$data['id']]['public'] = @$data['public'];
@@ -231,13 +233,14 @@ class Announcements {
      * @return void
      */
     protected function announcesHistoryCacheInfoClean($ann_id) {
-        $query = "SELECT `id` FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "' ORDER BY `id` DESC LIMIT 1";
-        $last_db_uniqueid = simple_query($query);
-        $last_cache_id = $this->cache->get('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
-        if ($last_db_uniqueid != $last_cache_id) {
-            $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
-            $this->cache->set('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $last_db_uniqueid, $this->cacheTime);
-        }
+//        $query = "SELECT `id` FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "' ORDER BY `id` DESC LIMIT 1";
+//        $last_db_uniqueid = simple_query($query);
+//        $last_cache_id = $this->cache->get('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
+//        if ($last_db_uniqueid != $last_cache_id) {
+//            $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
+//            $this->cache->set('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $last_db_uniqueid, $this->cacheTime);
+//        }
+        //TODO: remove it
     }
 
     /**
@@ -252,11 +255,14 @@ class Announcements {
 
         if (isset($this->announcesAvaible[$ann_id])) {
             // Check for needed cache by ann_id
-            $this->announcesHistoryCacheInfoClean($ann_id);
-            $obj = $this;
-            $votes_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', function() use ($ann_id, $obj) {
-                return ($obj->loadAnnounceHistory($ann_id));
-            }, $this->cacheTime);
+//            $this->announcesHistoryCacheInfoClean($ann_id);
+//            $obj = $this;
+//            $votes_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', function() use ($ann_id, $obj) {
+//                return ($obj->loadAnnounceHistory($ann_id));
+//            }, $this->cacheTime);
+            //TODO: remove it
+            
+             $votes_arr = $this->loadAnnounceHistory($ann_id);
             if (!empty($votes_arr)) {
                 foreach ($votes_arr as $data) {
                     $this->announcesHistory[$data['annid']]['id'][$data['login']] = $data['id'];
@@ -307,7 +313,8 @@ class Announcements {
         $ann_id = simple_query($query_ann_id);
         $ann_id = $ann_id['id'];
         log_register("ANNOUNCEMENT " . $this->log_register . "CREATE [" . $ann_id . "]");
-        $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+        //$this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+        //TODO: remove it
         return ($ann_id);
     }
 
@@ -324,7 +331,8 @@ class Announcements {
             foreach ($diff_data as $field => $value) {
                 simple_update_field($this->announcementsTable, $field, $value, "WHERE `id`='" . $ann_id . "'");
             }
-            $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+           // $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+            //TODO: remove it
             log_register("ANNOUNCEMENT " . $this->log_register . "EDIT [" . $ann_id . "]");
         }
     }
@@ -339,7 +347,8 @@ class Announcements {
         $this->deleteAnnounceHistory($ann_id);
         $query = "DELETE FROM `" . $this->announcementsTable . "` WHERE `id` ='" . $ann_id . "'";
         nr_query($query);
-        $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+        //$this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
+        //TODO: remove it
     }
 
     /**
@@ -351,8 +360,9 @@ class Announcements {
     protected function deleteAnnounceHistory($ann_id) {
         $query = "DELETE FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "'";
         nr_query($query);
-        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
-        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
+//        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
+//        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
+        //TODO: remove it
     }
 
     /**
