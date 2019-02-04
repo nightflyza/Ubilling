@@ -142,7 +142,7 @@ if (ibox_CheckGet($required)) {
             $allrealnames = ibox_UserGetAllRealnames();
             $userCash = simple_query("SELECT `Cash` from `users` WHERE `login`='" . $userlogin . "'");
             $good_reply = '
-                    <?xml version="1.0" encoding="UTF-16"?>
+                    <?xml version="1.0" encoding="UTF-8"?>
                     <response>
                        <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                            <result>0</result>
