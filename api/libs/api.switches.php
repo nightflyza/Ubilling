@@ -138,8 +138,16 @@ function web_SwitchModelsShow() {
  * @return array
  */
 function zb_SwitchModelsGetAll() {
+    global $ubillingConfig;
+    $sortByModelName = $ubillingConfig->getAlterParam('DEVICES_LISTS_SORT_BY_MODELNAME');
+
     $query = "SELECT * from `switchmodels`";
     $result = simple_queryall($query);
+
+    if (!empty($result) and $sortByModelName) {
+        $result = zb_sortArray($result, 'modelname');
+    }
+
     return ($result);
 }
 
@@ -564,6 +572,7 @@ function zb_SwitchGetData($switchid) {
 function zb_SwitchModelsGetAllTag() {
     $allmodels = zb_SwitchModelsGetAll();
     $result = array();
+
     if (!empty($allmodels)) {
         foreach ($allmodels as $io => $eachmodel) {
             $result[$eachmodel['id']] = $eachmodel['modelname'];

@@ -101,19 +101,28 @@ class MTsigmon {
      *
      * @var object
      */
-    protected $ubillingConfig = null;
+    protected $ubConfig = null;
 
+    /**
+     * Sorting order of APs in lists and dropdowns
+     * Possible values: id, ip, location
+     *
+     * @var string
+     */
+    protected $apSortOrder = "id";
 
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
     const CPE_SIG_PATH = 'content/documents/wifi_cpe_sig_hist/';
 
     public function __construct() {
-        $this->ubillingConfig       = new UbillingConfig();
-        $alter_config               = $this->ubillingConfig->getAlter();
-        $this->EnableQuickAPLinks   = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
-        $this->EnableCPEAutoPoll    = ( empty($alter_config['MTSIGMON_CPE_AUTOPOLL']) ) ? false : true;
-        $this->WCPEEnabled          = ( empty($alter_config['WIFICPE_ENABLED']) ) ? false : true;
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+
+        $this->EnableQuickAPLinks   = $this->ubConfig->getAlterParam('MTSIGMON_QUICK_AP_LINKS');
+        $this->EnableCPEAutoPoll    = $this->ubConfig->getAlterParam('MTSIGMON_CPE_AUTOPOLL');
+        $this->WCPEEnabled          = $this->ubConfig->getAlterParam('WIFICPE_ENABLED');
+        $this->apSortOrder          = ($this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT')) ? $this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT') : 'id';
 
         $this->LoadUsersData();
         $this->initCache();
@@ -178,6 +187,16 @@ class MTsigmon {
     protected function getMTDevices() {
         $query_where = ($this->userLogin and !empty($this->userSwitch)) ? " AND `id` = '" . $this->userSwitch . "'" : '';
         $query = "SELECT `id`,`ip`,`location`,`snmp` from `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
+
+        switch ($this->apSortOrder) {
+            case "ip":
+                $query.= ' ORDER BY `ip`';
+                break;
+
+            case "location":
+                $query.= ' ORDER BY `location`';
+        }
+
         $alldevices = simple_queryall($query);
         if (!empty($alldevices)) {
             foreach ($alldevices as $io => $each) {
@@ -261,7 +280,7 @@ class MTsigmon {
             return array();
         }
 
-        $BillCfg = $this->ubillingConfig->getBilling();
+        $BillCfg = $this->ubConfig->getBilling();
 
         if ($GetFromAP) {
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
@@ -314,7 +333,7 @@ class MTsigmon {
      */
     public function renderSignalGraphs ($WiFiCPEMAC, $FromAP = false, $ShowTitle = false, $ShowXLabel = false, $ShowYLabel = false, $ShowRangeSelector = false) {
         $result = '';
-        $BillCfg = $this->ubillingConfig->getBilling();
+        $BillCfg = $this->ubConfig->getBilling();
 
         if ($FromAP) {
             // get signal data on AP for this CPE
@@ -1196,7 +1215,6 @@ class MTsigmon {
         }
         $json->getJson();
     }
-
 }
 
 ?>
