@@ -227,7 +227,7 @@ function cpay_GetRevise($start,$end) {
                 $transDate= strtotime($each['date']);
                 $transDate= date("YmdHis",$transDate);
             }
-            $cleanHash= str_replace('CPAY_', '', $each['hash']);
+            $cleanHash= str_replace('CITY24_', '', $each['hash']);
             
             $payments.='
             <Payment>
