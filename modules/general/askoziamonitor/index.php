@@ -2,7 +2,7 @@
 
 $altcfg = $ubillingConfig->getAlter();
 if ($altcfg['ASKOZIA_ENABLED']) {
-    if (cfr('ASKOZIAMONITOR')) {
+    if (cfr('ASKOZIAMON')) {
 
         class AskoziaMonitor {
 
