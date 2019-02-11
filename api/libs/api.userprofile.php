@@ -1192,10 +1192,11 @@ class UserProfile {
 
         if ($this->alterCfg['PON_ENABLED'] and isset($this->alterCfg['PONCPE_CONTROLS_ENABLED']) and $this->alterCfg['PONCPE_CONTROLS_ENABLED']) {
             $poncpeFlag = true;
+            $ponTariffMaskCaseInsense = (isset($this->alterCfg['PONCPE_TARIFFMASK_CASEINSENS']) and $this->alterCfg['PONCPE_TARIFFMASK_CASEINSENS']);
 
             if (isset($this->alterCfg['PONCPE_TARIFFMASK'])) {
                 if (!empty($this->alterCfg['PONCPE_TARIFFMASK'])) {
-                    if (!ispos($this->userdata['Tariff'], $this->alterCfg['PONCPE_TARIFFMASK'])) {
+                    if (!ispos($this->userdata['Tariff'], $this->alterCfg['PONCPE_TARIFFMASK'], $ponTariffMaskCaseInsense)) {
                         $poncpeFlag = false;
                     }
                 }
@@ -1209,10 +1210,11 @@ class UserProfile {
 
         if ($this->alterCfg['WIFICPE_ENABLED']) {
             $wcpeFlag = true;
+            $wcpeTariffMaskCaseInsense = (isset($this->alterCfg['WIFICPE_TARIFFMASK_CASEINSENS']) and $this->alterCfg['WIFICPE_TARIFFMASK_CASEINSENS']);
 
             if (isset($this->alterCfg['WIFICPE_TARIFFMASK'])) {
                 if (!empty($this->alterCfg['WIFICPE_TARIFFMASK'])) {
-                    if (!ispos($this->userdata['Tariff'], $this->alterCfg['WIFICPE_TARIFFMASK'])) {
+                    if (!ispos($this->userdata['Tariff'], $this->alterCfg['WIFICPE_TARIFFMASK'], $wcpeTariffMaskCaseInsense)) {
                         $wcpeFlag = false;
                     }
                 }

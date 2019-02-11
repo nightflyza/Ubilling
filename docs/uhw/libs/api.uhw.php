@@ -12,13 +12,22 @@ function uhw_LoadConfig() {
  * 
  * @param string $string
  * @param string $search
+ * @param bool $caseinsensetive
  * @return bool
  */
-function ispos($string, $search) {
-    if (strpos($string, $search) === false) {
-        return(false);
+function ispos($string, $search, $caseinsensetive = false) {
+    if ($caseinsensetive) {
+        if (stripos($string, $search) === false) {
+            return (false);
+        } else {
+            return (true);
+        }
     } else {
-        return(true);
+        if (strpos($string, $search) === false) {
+            return (false);
+        } else {
+            return (true);
+        }
     }
 }
 

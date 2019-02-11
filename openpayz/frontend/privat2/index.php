@@ -203,15 +203,24 @@ function pb_IsHashUnique($ophash) {
  * 
  * @param string $string
  * @param string $search
+ * @param bool $caseinsensetive
  * @return bool
  */
-function ispos($string,$search) {
-      if (strpos($string,$search)===false) {
-        return(false);
-      } else {
-        return(true);
-      }
-     }
+function ispos($string, $search, $caseinsensetive = false) {
+    if ($caseinsensetive) {
+        if (stripos($string, $search) === false) {
+            return (false);
+        } else {
+            return (true);
+        }
+    } else {
+        if (strpos($string, $search) === false) {
+            return (false);
+        } else {
+            return (true);
+        }
+    }
+}
 
 ///////////////////////////////////////// Таки сама механика ///////
 
