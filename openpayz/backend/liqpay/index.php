@@ -33,6 +33,7 @@ function lq_SessionGen($size=16) {
 function lq_PricesForm() {
     global $liqConf;
     $result = '<form action="" method="POST">';
+    $addCommission = (isset($liqConf['ADD_COMMISSION'])) ? $liqConf['ADD_COMMISSION'] : 1;
     if (!empty($liqConf['AVAIL_PRICES'])) {
         $pricesArr = array();
         $pricesRaw = explode(',', $liqConf['AVAIL_PRICES']);
@@ -40,7 +41,7 @@ function lq_PricesForm() {
            $i=0;
             foreach ($pricesRaw as $eachPrice) {
              $selected = ($i==0) ? 'CHECKED' : '';
-             $result.= '<input type="radio" name="amount" value="' . (trim($eachPrice)*($liqConf['ADD_COMMISSION'])) . '" ' . $selected . '> ' . trim($eachPrice) . ' ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
+             $result.= '<input type="radio" name="amount" value="' . (trim($eachPrice)*($addCommission)) . '" ' . $selected . '> ' . trim($eachPrice) . ' ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
              $i++;
             }
         }
@@ -52,6 +53,7 @@ function lq_PricesForm() {
                     function change_custom_amount(){
                         var custom_amount = document.getElementById("radio_custom_amount");
                         custom_amount.value = document.getElementById("input_custom_amount").value;
+                        custom_amount.value = (custom_amount.value * ' . $addCommission . ').toFixed(2);
                     }
                 </script>
         ';
