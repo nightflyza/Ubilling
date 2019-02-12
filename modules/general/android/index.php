@@ -1,4 +1,4 @@
-п»ї<?php
+<?php
 /*
 $options = array('options' => array('min_range'=>0, 'max_range'=>9));
 
@@ -11,7 +11,7 @@ $priority = filter_input(INPUT_GET, 'cash', FILTER_VALIDATE_FLOAT, array('option
 
 $android = new AndroidApp();
 
-// РџРµСЂРІС‹Р№ СѓСЂРѕРІРµРЅСЊ Р·Р°С‰РёС‚С‹
+// Первый уровень защиты
 if ($android->access) {
 
 //   $android->DebugMessageAdd('PAUTINA', 'TEST');
@@ -25,7 +25,7 @@ if ($android->access) {
         if (wf_CheckPost(array('modifystartdate', 'modifytaskaddress', 'modifytaskphone'))) {
             if (zb_checkDate($_POST['modifystartdate'])) {
                 //if (isset($_POST['taskid']) and !empty($_POST['taskid'])) {
-                if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) { // РџСЂРѕР±СѓРµРј РЅРѕРІСѓСЋ СЃС…РµРјСѓ РІР°Р»РёРґР°С†РёРё
+                if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) { // Пробуем новую схему валидации
                     $taskid = $_POST['taskid'];
                     ts_ModifyTask($taskid, $_POST['modifystartdate'], $_POST['modifystarttime'], $_POST['modifytaskaddress'], @$_POST['modifytasklogin'], $_POST['modifytaskphone'], $_POST['modifytaskjobtype'], $_POST['modifytaskemployee'], $_POST['modifytaskjobnote']);
                 } else {

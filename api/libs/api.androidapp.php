@@ -142,7 +142,7 @@ class AndroidApp {
     protected $cache = '';
 
     public function __construct() {
-		//$this->initLoggedIn();
+        //$this->initLoggedIn();
         // Check if user logged
         if (LOGGED_IN){
             // Only once need change this parametr
