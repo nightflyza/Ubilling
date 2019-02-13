@@ -170,6 +170,12 @@ class PONizer {
      */
     protected $onuUknownUserByMACSearchTelepathy = false;
 
+    /**
+     * Is tab UI for ponizer active?
+     *
+     * @var bool
+     */
+    protected $ponizerUseTabUI = false;
 
     /**
      * Placeholder for UbillingConfig object
@@ -222,6 +228,7 @@ class PONizer {
         $this->onuUknownUserByMACSearchIncrement = ($this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_INCREMENT')) ? $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_INCREMENT') : 0;
         $this->onuUknownUserByMACSearchShowAlways = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_SHOW_ALWAYS');
         $this->onuUknownUserByMACSearchTelepathy = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_TELEPATHY');
+        $this->ponizerUseTabUI = $this->ubConfig->getAlterParam('PON_UI_USE_TABS');
     }
 
     /**
@@ -2885,7 +2892,19 @@ class PONizer {
 
         $opts = '"order": [[ 0, "desc" ]]';
 
-        $result = '';
+        $result   = '';
+        $tabsData = '';
+
+        if ($this->ponizerUseTabUI) {
+            $result.= wf_tag('script', false, '', 'type="text/javascript"');
+            $result.= ' $( function() {
+                            $( "#ui-tabs" ).tabs();
+                        } );
+                      ';
+            $result.= wf_tag('script', true);
+            $result.= wf_tag('div', false, '', 'id="ui-tabs" style="border: none; padding: 0;"');
+            $result.= wf_tag('ul', false, '', 'style="border: none; background: #fff;"');
+        }
 
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
             $AjaxURLStr = '' . self::URL_ME . '&ajaxonu=true&oltid=' . $oltId . '';
@@ -2917,9 +2936,15 @@ class PONizer {
             }
 
             if ($this->OLTIndividualRepollAJAX) {
-                $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '"');
-                $refresh_button .= wf_img('skins/refresh.gif');
-                $refresh_button .= wf_tag('a', true);
+                if ($this->ponizerUseTabUI) {
+                    $refresh_button = wf_tag('span', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '" style="cursor: pointer;"');
+                    $refresh_button .= wf_img('skins/refresh.gif');
+                    $refresh_button .= wf_tag('span', true);
+                } else {
+                    $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '"');
+                    $refresh_button .= wf_img('skins/refresh.gif');
+                    $refresh_button .= wf_tag('a', true);
+                }
                 $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
                 $refresh_button .= '$(\'#' . $OLTIDStr . '\').click(function(evt) {
                                         $(\'img\', this).addClass("image_rotate");
@@ -2933,11 +2958,28 @@ class PONizer {
             }
 
 
-            $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
+            if ($this->ponizerUseTabUI) {
+                    $result.=   wf_tag('li') .
+                                wf_tag('a', false, '', 'href="#' . $QuickOLTLinkID .'"') .
+                                    $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData .
+                                wf_tag('a', true) .
+                                wf_tag('li', true);
+
+                    $tabsData.= wf_tag('div', false, '', 'id="' . $QuickOLTLinkID . '" style="padding: 0 0 0 2px;"') .
+                                wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
+                                wf_tag('div', true);
+            } else {
+                $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
                     $QuickOLTLinkInput
-            );
+                );
+            }
         }
-        return ($result);
+
+        if ($this->ponizerUseTabUI) {
+            return (show_window('OLTs', $result . wf_tag('ul', true) . $tabsData));
+        } else {
+            return ($result);
+        }
     }
 
     /**
