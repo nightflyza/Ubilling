@@ -216,6 +216,10 @@ if (cfr('WAREHOUSE')) {
                         $warehouse->reserveHistoryAjaxReply();
                     }
 
+                    if (wf_CheckPost(array('reshistfilterfrom'))) {
+                        $warehouse->reserveHistoryPrintFiltered();
+                    }
+
                     if (wf_CheckPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
                         $massReserveResult = $warehouse->reserveMassCreate();
                         //rendering mass reserve results

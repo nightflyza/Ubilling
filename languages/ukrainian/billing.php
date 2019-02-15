@@ -3048,5 +3048,6 @@ $lang['def']['Users PON equipment'] = 'Користувацьке PON облад
 $lang['def']['Assign PON equipment to user'] = 'Присвоїти PON обладнання користувачу';
 $lang['def']['Login as'] = 'Залогінитись як';
 $lang['def']['in ghost mode'] = 'у режимі привида';
+$lang['def']['Nothing'] = 'Ніц';
 
 ?>

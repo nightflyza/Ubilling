@@ -101,6 +101,13 @@ class Warehouse {
     protected $allReserveHistory = array();
 
     /**
+     * Contains reserve creation dates as reserveId=>date string array
+     *
+     * @var array
+     */
+    protected $allReserveCreationDates = array();
+
+    /**
      * Available unit types as unittype=>localized name
      *
      * @var array
@@ -454,6 +461,11 @@ class Warehouse {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allReserveHistory[$each['id']] = $each;
+                if (!empty($each['resid'])) {
+                    if ($each['type'] == 'create') {
+                        $this->allReserveCreationDates[$each['resid']] = $each['date'];
+                    }
+                }
             }
         }
     }
@@ -590,18 +602,19 @@ class Warehouse {
 
                 if (!empty($reserveTmp)) {
                     foreach ($reserveTmp as $eachEmployee => $reservedItems) {
-                        $message = __('Is reserved for you'). '\r\n ';;
+                        $message = __('Is reserved for you') . '\r\n ';
+                        ;
                         foreach ($reservedItems as $eachItemId => $eachItemCount) {
                             $message.= @$this->allItemTypeNames[$eachItemId] . ': ' . $eachItemCount . ' ' . @$this->unitTypes[$this->allItemTypes[$eachItemId]['unit']] . '\r\n ';
                         }
                         $message.='📦📦📦📦' . '\r\n '; // very vsrate emoji
-                        $sendTmp[$eachEmployee]=$message;
+                        $sendTmp[$eachEmployee] = $message;
                     }
                 }
 
                 if (!empty($sendTmp)) {
                     foreach ($sendTmp as $io => $eachMessage) {
-                         $this->sendTelegram($io, $eachMessage);
+                        $this->sendTelegram($io, $eachMessage);
                     }
                 }
             }
@@ -947,6 +960,21 @@ class Warehouse {
     }
 
     /**
+     * Returns reserve creation date extracted from log if exists
+     * 
+     * @param int $resId
+     * 
+     * @return string
+     */
+    protected function reserveGetCreationDate($resId) {
+        $result = __('Nothing');
+        if (isset($this->allReserveCreationDates[$resId])) {
+            $result = $this->allReserveCreationDates[$resId];
+        }
+        return ($result);
+    }
+
+    /**
      * Renders list of available reserved items sorted by Employee with some controls
      * 
      * @return string
@@ -956,6 +984,7 @@ class Warehouse {
         $printFlag = (wf_CheckGet(array('printable'))) ? true : false;
         if (!empty($this->allReserve)) {
             $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Creation date'));
             $cells.=wf_TableCell(__('Warehouse storage'));
             $cells.=wf_TableCell(__('Category'));
             $cells.= wf_TableCell(__('Warehouse item type'));
@@ -970,6 +999,7 @@ class Warehouse {
             foreach ($this->allReserve as $io => $each) {
                 $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
                 $cells = wf_TableCell($each['id']);
+                $cells.= wf_TableCell($this->reserveGetCreationDate($each['id']));
                 $cells.=wf_TableCell(@$this->allStorages[$each['storageid']]);
                 $cells.= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
                 $cells.= wf_TableCell($itemTypeLink);
@@ -1007,6 +1037,7 @@ class Warehouse {
     public function reserveHistoryAjaxReply() {
         $json = new wf_JqDtHelper();
         if (!empty($this->allReserveHistory)) {
+
             $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
             foreach ($this->allReserveHistory as $io => $each) {
                 $operationType = '';
@@ -1039,11 +1070,117 @@ class Warehouse {
                 $data[] = @$this->allEmployee[$each['employeeid']];
                 $data[] = $administratorName;
 
+
                 $json->addRow($data);
                 unset($data);
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Renders reserve history print filtering form
+     * 
+     * @return string
+     */
+    public function reserveHistoryFilterForm() {
+        $result = '';
+        $inputs = __('From') . ' ' . wf_DatePickerPreset('reshistfilterfrom', date("Y-m") . '-01') . ' ';
+        $inputs.= __('To') . ' ' . wf_DatePickerPreset('reshistfilterto', curdate()) . ' ';
+        $inputs.= wf_Selector('reshistfilteremployeeid', $this->activeEmployee, __('Worker'), '', false);
+        $inputs.= wf_Submit(__('Print'));
+
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders printable report of reserve operations history
+     * 
+     * @return void
+     */
+    public function reserveHistoryPrintFiltered() {
+        $result = '';
+        if (wf_CheckPost(array('reshistfilterfrom', 'reshistfilterto', 'reshistfilteremployeeid'))) {
+            $dateFrom = $_POST['reshistfilterfrom'];
+            $dateTo = $_POST['reshistfilterto'];
+            $employeeId = vf($_POST['reshistfilteremployeeid'], 3);
+            if (zb_checkDate($dateFrom) AND zb_checkDate($dateTo)) {
+                $dateFrom = $dateFrom . ' 00:00:00';
+                $dateTo = $dateTo . ' 23:59:59';
+                $dateFrom = strtotime($dateFrom);
+                $dateTo = strtotime($dateTo);
+
+                if (!empty($this->allReserveHistory)) {
+                    $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+
+                    $cells = wf_TableCell(__('ID'));
+                    $cells.= wf_TableCell(__('Date'));
+                    $cells.= wf_TableCell(__('Type'));
+                    $cells.= wf_TableCell(__('Warehouse storage'));
+                    $cells.= wf_TableCell(__('Category'));
+                    $cells.= wf_TableCell(__('Warehouse item type'));
+                    $cells.= wf_TableCell(__('Count'));
+                    $cells.= wf_TableCell(__('Employee'));
+                    $cells.= wf_TableCell(__('Admin'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($this->allReserveHistory as $io => $each) {
+                        $operationDate = strtotime($each['date']);
+                        $filteredFlag = false;
+
+                        //data filtering
+                        if ($employeeId == $each['employeeid']) {
+                            if ($operationDate >= $dateFrom AND $operationDate <= $dateTo) {
+                                $filteredFlag = true;
+                            }
+                        }
+
+                        //report assembly
+                        if ($filteredFlag) {
+                            $operationType = '';
+                            $administratorName = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
+                            switch ($each['type']) {
+                                case 'create':
+                                    $operationType = __('Created');
+                                    break;
+                                case 'update':
+                                    $operationType = __('Updated');
+                                    break;
+                                case 'delete':
+                                    $operationType = __('Deleted');
+                                    break;
+                            }
+
+                            if (!empty($each['resid'])) {
+                                $resIdLabel = __('Reserve') . '@' . $each['resid'];
+                            } else {
+                                $resIdLabel = '';
+                            }
+
+                            $cells = wf_TableCell($resIdLabel);
+                            $cells.= wf_TableCell($each['date']);
+                            $cells.= wf_TableCell($operationType);
+                            $cells.= wf_TableCell(@$this->allStorages[$each['storageid']]);
+                            $cells.= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
+                            $cells.= wf_TableCell(@$this->allItemTypeNames[$each['itemtypeid']]);
+                            $cells.= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
+                            $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
+                            $cells.= wf_TableCell($administratorName);
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                    }
+
+                    $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+
+                    $this->reportPrintable(__('History'), $result);
+                } else {
+                    show_warning(__('Nothing to show'));
+                }
+            } else {
+                show_error(__('Wrong date format'));
+            }
+        }
     }
 
     /**
@@ -1055,8 +1192,13 @@ class Warehouse {
         $result = '';
         if (!empty($this->allReserveHistory)) {
             $colums = array('ID', 'Date', 'Type', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Employee', 'Admin');
-            $opts = '"order": [[ 1, "desc" ]]';
-            $result.= wf_JqDtLoader($colums, self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true', false, __('Reserve'), 10, $opts);
+            $opts = '"order": [[ 0, "desc" ]]';
+            $ajaxUrl = self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true';
+            $result.= wf_JqDtLoader($colums, $ajaxUrl, false, __('Reserve'), 10, $opts);
+            if (!empty($this->allReserveHistory)) {
+                $result.=wf_delimiter();
+                $result.=$this->reserveHistoryFilterForm();
+            }
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
