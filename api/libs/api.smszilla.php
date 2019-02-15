@@ -1466,10 +1466,10 @@ class SMSZilla {
                 $inputs .= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
             }
 
-
             if (($direction == 'login')) {
                 $inputs .= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
                 $inputs .= wf_TextInput('newfilterip', __('IP contains'), '', true, '20');
+				$inputs .= wf_TextInput('newfilterswitch', __('Switch'), '', true, '20');
                 $inputs .= wf_CheckInput('newfiltercashmonth', __('Balance is not enough for the next month'), true, false);
                 $inputs .= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
             }
