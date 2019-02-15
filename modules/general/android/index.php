@@ -27,7 +27,13 @@ if ($android->access) {
                 //if (isset($_POST['taskid']) and !empty($_POST['taskid'])) {
                 if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) { // Пробуем новую схему валидации
                     $taskid = $_POST['taskid'];
-                    ts_ModifyTask($taskid, $_POST['modifystartdate'], $_POST['modifystarttime'], $_POST['modifytaskaddress'], @$_POST['modifytasklogin'], $_POST['modifytaskphone'], $_POST['modifytaskjobtype'], $_POST['modifytaskemployee'], $_POST['modifytaskjobnote']);
+					$modifystartdate = $_POST['modifystartdate'];
+					$modifytasklogin = isset($_POST['modifytasklogin']) ? $_POST['modifytasklogin'] : '';
+					$modifytaskphone = isset($_POST['modifytaskphone']) ? $_POST['modifytaskphone'] : '';
+					$modifytaskjobtype = isset($_POST['modifytaskjobtype']) ? $_POST['modifytaskjobtype'] : '';
+					$modifytaskemployee = isset($_POST['modifytaskemployee']) ? $_POST['modifytaskemployee'] : '';
+					$modifytaskjobnote = isset($_POST['modifytaskjobnote']) ? $_POST['modifytaskjobnote'] : '';
+                    ts_ModifyTask($taskid, $modifystartdate, $_POST['modifystarttime'], $_POST['modifytaskaddress'], $modifytasklogin, $modifytaskphone, $modifytaskjobtype, $modifytaskemployee, $modifytaskjobnote);
                 } else {
                     $android->updateSuccessAndMessage('I dont have TASKID');
                 }
