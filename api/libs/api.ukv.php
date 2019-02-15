@@ -3021,7 +3021,7 @@ class UkvSystem {
                         if (isset($complexContracts[$eachComplexUser['login']])) {
                             $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
                             if (isset($this->users[$ukvUserId])) {
-                                if ($eachComplexUser['Passive'] == 0) { //user is not frozen
+                                if (!@$eachComplexUser['Passive']) { //user is not frozen
                                     $userStreet = (isset($userStreets[$eachComplexUser['login']])) ? $userStreets[$eachComplexUser['login']] : __('Unknown');
                                     $ukvUserData = $this->users[$ukvUserId];
                                     $debtorsArr[$userStreet][$ukvUserId] = $ukvUserData;
