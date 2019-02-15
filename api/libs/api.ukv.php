@@ -3021,13 +3021,15 @@ class UkvSystem {
                         if (isset($complexContracts[$eachComplexUser['login']])) {
                             $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
                             if (isset($this->users[$ukvUserId])) {
-                                $userStreet = (isset($userStreets[$eachComplexUser['login']])) ? $userStreets[$eachComplexUser['login']] : __('Unknown');
-                                $ukvUserData = $this->users[$ukvUserId];
-                                $debtorsArr[$userStreet][$ukvUserId] = $ukvUserData;
-                                $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
-                                $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
-                                $debtorsArr[$userStreet][$ukvUserId]['active'] = @$complexActive[$eachComplexUser['login']];
-                                $counter++;
+                                if ($eachComplexUser['Passive'] == 0) { //user is not frozen
+                                    $userStreet = (isset($userStreets[$eachComplexUser['login']])) ? $userStreets[$eachComplexUser['login']] : __('Unknown');
+                                    $ukvUserData = $this->users[$ukvUserId];
+                                    $debtorsArr[$userStreet][$ukvUserId] = $ukvUserData;
+                                    $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
+                                    $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
+                                    $debtorsArr[$userStreet][$ukvUserId]['active'] = @$complexActive[$eachComplexUser['login']];
+                                    $counter++;
+                                }
                             }
                         } else {
                             $result.=$this->messages->getStyledMessage(__('Missing registered UKV user with complex tariff') . ': ' . $eachComplexUser['login'], 'error');
