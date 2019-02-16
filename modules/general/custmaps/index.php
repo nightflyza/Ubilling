@@ -72,6 +72,7 @@ if (cfr('CUSTMAP')) {
                 if (!wf_CheckGet(array('edititem'))) {
                     //render existing custom maps list
                     show_window(__('Available custom maps'), $custmaps->renderMapList());
+                    zb_BillingStats(true);
                 } else {
                     $editItemId = $_GET['edititem'];
                     //editing item
