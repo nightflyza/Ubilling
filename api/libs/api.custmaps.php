@@ -199,8 +199,7 @@ class CustomMaps {
      * @return string
      */
     protected function mapContainer() {
-        $container = wf_tag('div', false, '', 'id="custmap" style="width: 1000; height:800px;"');
-        $container.=wf_tag('div', true);
+        $container = generic_MapContainer('1000', '800', 'custmap');
         return ($container);
     }
 
@@ -829,42 +828,7 @@ class CustomMaps {
      * @return string
      */
     protected function mapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '') {
-        if ($this->ymapsCfg['CANVAS_RENDER']) {
-            if ($iconlabel == '') {
-                $overlay = 'overlayFactory: "default#interactiveGraphics"';
-            } else {
-                $overlay = '';
-            }
-        } else {
-            $overlay = '';
-        }
-
-        if (!wf_CheckGet(array('clusterer'))) {
-            $markType = 'myMap.geoObjects';
-        } else {
-            $markType = 'clusterer';
-        }
-
-        $result = '
-            myPlacemark = new ymaps.Placemark([' . $coords . '], {
-                 iconContent: \'' . $iconlabel . '\',
-                 balloonContentHeader: \'' . $title . '\',
-                 balloonContentBody: \'' . $content . '\',
-                 balloonContentFooter: \'' . $footer . '\',
-                 hintContent: "' . $content . '",
-                } , {
-                    draggable: false,
-                    preset: \'' . $icon . '\',
-                    ' . $overlay . '
-                        
-                }),
- 
-            
-           ' . $markType . '.add(myPlacemark);
-        
-            
-            ';
-        return ($result);
+        return (generic_mapAddMark($coords, $title, $content, $footer, $icon, $this->ymapsCfg['CANVAS_RENDER']));
     }
 
     /**
@@ -877,26 +841,7 @@ class CustomMaps {
      *  
      */
     public function mapAddCircle($coords, $radius, $content = '', $hint = '') {
-        $result = '
-             myCircle = new ymaps.Circle([
-                    [' . $coords . '],
-                    ' . $radius . '
-                ], {
-                    balloonContent: "' . $content . '",
-                    hintContent: "' . $hint . '"
-                }, {
-                    draggable: true,
-             
-                    fillColor: "#00a20b55",
-                    strokeColor: "#006107",
-                    strokeOpacity: 0.5,
-                    strokeWidth: 1
-                });
-    
-            myMap.geoObjects.add(myCircle);
-            ';
-
-        return ($result);
+        return (generic_MapAddCircle($coords, $radius, $content, $hint));
     }
 
     /**
@@ -907,37 +852,9 @@ class CustomMaps {
      * @return string
      */
     public function mapInit($placemarks, $editor = '') {
-        if (empty($this->center)) {
-            $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
-        } else {
-            $center = $this->center;
-        }
-
         $result = $this->mapControls();
         $result.= $this->mapContainer();
-        $result.= wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
-        $result.=wf_tag('script', true);
-        $result.=wf_tag('script', false, '', 'type="text/javascript"');
-        $result.= '
-        ymaps.ready(init);
-        function init () {
-            var myMap = new ymaps.Map(\'custmap\', {
-                    center: [' . $center . '], 
-                    zoom: ' . $this->zoom . ',
-                    type: \'yandex#' . $this->ymapsCfg['TYPE'] . '\',
-                    behaviors: [\'default\',\'scrollZoom\']
-                })
-               
-                 myMap.controls
-                .add(\'zoomControl\')
-                .add(\'typeSelector\')
-                .add(\'mapTools\')
-                .add(\'searchControl\');
-               
-         ' . $placemarks . '    
-         ' . $editor . '
-    }';
-        $result.=wf_tag('script', true);
+        $result.= generic_MapInit($this->center, $this->zoom, $this->ymapsCfg['TYPE'], $placemarks, $editor, $this->ymapsCfg['LANG'], 'custmap');
         return ($result);
     }
 
@@ -947,27 +864,9 @@ class CustomMaps {
      * @return string
      */
     public function mapLocationEditor() {
-        $form = str_replace("'", '`', $this->itemLocationForm());
-        $form = str_replace("\n", '', $form);
-
-        $result = '
-            myMap.events.add(\'click\', function (e) {
-                if (!myMap.balloon.isOpen()) {
-                    var coords = e.get(\'coordPosition\');
-                    myMap.balloon.open(coords, {
-                        contentHeader: \'' . __('Place coordinates') . '\',
-                        contentBody: \' \' +
-                            \'<p>\' + [
-                            coords[0].toPrecision(6),
-                            coords[1].toPrecision(6)
-                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="newitemgeo" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">' . $form . '</form> \'
-                 
-                    });
-                } else {
-                    myMap.balloon.close();
-                }
-            });
-            ';
+        $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
+        $data = $this->itemLocationForm();
+        $result = generic_MapEditor('newitemgeo', $title, $data);
         return ($result);
     }
 

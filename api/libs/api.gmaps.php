@@ -15,6 +15,66 @@ function gm_MapContainer($width = '', $height = '', $id = '') {
 }
 
 /**
+ * Translates yandex to google icon code
+ * 
+ * @param string $icon
+ * @return string
+ */
+function gm_GetIconUrl($icon) {
+    $result = '';
+    switch ($icon) {
+        case 'twirl#lightblueIcon':
+            $result = 'skins/mapmarks/blue.png';
+            break;
+        case 'twirl#lightblueStretchyIcon':
+            $result = 'skins/mapmarks/blue.png';
+            break;
+        case 'twirl#redStretchyIcon':
+            $result = 'skins/mapmarks/red.png';
+            break;
+        case 'twirl#yellowIcon':
+            $result = 'skins/mapmarks/yellow.png';
+            break;
+        case 'twirl#greenIcon':
+            $result = 'skins/mapmarks/green.png';
+            break;
+        case 'twirl#pinkDotIcon':
+            $result = 'skins/mapmarks/pink.png';
+            break;
+        case 'twirl#brownIcon':
+            $result = 'skins/mapmarks/brown.png';
+            break;
+        case 'twirl#nightDotIcon':
+            $result = 'skins/mapmarks/darkblue.png';
+            break;
+        case 'twirl#redIcon':
+            $result = 'skins/mapmarks/red.png';
+            break;
+        case 'twirl#orangeIcon':
+            $result = 'skins/mapmarks/orange.png';
+            break;
+        case 'twirl#greyIcon':
+            $result = 'skins/mapmarks/grey.png';
+            break;
+        case 'twirl#buildingsIcon':
+            $result = 'skins/mapmarks/build.png';
+            break;
+        case 'twirl#houseIcon':
+            $result = 'skins/mapmarks/house.png';
+            break;
+        case 'twirl#campingIcon':
+            $result = 'skins/mapmarks/camping.png';
+            break;
+
+        default :
+            $result = 'skins/mapmarks/blue.png';
+            show_warning('Unknown icon received: ' . $icon);
+            break;
+    }
+    return ($result);
+}
+
+/**
  * Initalizes google maps API with some params
  * 
  * @param string $center
@@ -85,45 +145,6 @@ var map = new google.maps.Map(document.getElementById(\'' . $container . '\'), {
     } else {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('No valid GMAPS_APIKEY set in ymaps.ini'), 'error');
-    }
-    return ($result);
-}
-
-/**
- * Translates yandex to google icon code
- * 
- * @param string $icon
- * @return string
- */
-function gm_GetIconUrl($icon) {
-    $result = '';
-    switch ($icon) {
-        case 'twirl#lightblueIcon':
-            $result = 'skins/mapmarks/blue.png';
-            break;
-        case 'twirl#lightblueStretchyIcon':
-            $result = 'skins/mapmarks/blue.png';
-            break;
-        case 'twirl#redStretchyIcon':
-            $result = 'skins/mapmarks/red.png';
-            break;
-        case 'twirl#redIcon':
-            $result = 'skins/mapmarks/red.png';
-            break;
-        case 'twirl#buildingsIcon':
-            $result = 'skins/mapmarks/build.png';
-            break;
-        case 'twirl#houseIcon':
-            $result = 'skins/mapmarks/house.png';
-            break;
-        case 'twirl#campingIcon':
-            $result = 'skins/mapmarks/camping.png';
-            break;
-
-        default :
-            $result = 'skins/mapmarks/blue.png';
-            deb('Unknown icon received: ' . $icon);
-            break;
     }
     return ($result);
 }
@@ -339,29 +360,9 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
  * @return string
  */
 function um_MapLocationFinder() {
-    $windowId = wf_InputId();
-
-    $buildSelector = str_replace("'", '`', um_MapLocationBuildForm());
-    $buildSelector = str_replace("\n", '', $buildSelector);
-
     $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
-    $content = '<form action="" method="POST"><input type="hidden" name="placecoords" value="\'+lat+\', \'+lng+\'">' . $buildSelector . '</form>';
-
-    $windowCode = 'var contentString_' . $windowId . ' = \'<div id = "content_' . $windowId . '">' . $title . '<br> \'+lat+\', \'+lng+\' <br> ' . $content . '</div>\';
-            var infowindow_' . $windowId . ' = new google.maps.InfoWindow({
-            content: contentString_' . $windowId . '
-            });';
-    $result = '
-            google.maps.event.addListener(map, \'click\', function(event) {
-            var myLatLng = event.latLng;
-            var lat = myLatLng.lat().toPrecision(6);
-            var lng = myLatLng.lng().toPrecision(6);
-            ' . $windowCode . '
-               infowindow_' . $windowId . '.setPosition(event.latLng);
-               infowindow_' . $windowId . '.open(map);
-                  // alert(event.latLng);  
-            });
-            ';
+    $data = um_MapLocationBuildForm();
+    $result = generic_MapEditor('placecoords', $title, $data);
     return ($result);
 }
 
@@ -371,26 +372,9 @@ function um_MapLocationFinder() {
  * @return string
  */
 function sm_MapLocationFinder() {
-    $windowId = wf_InputId();
-
     $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
-    $content = '<form action="" method="POST"><input type="hidden" name="placecoords" value="\'+lat+\', \'+lng+\'">' . str_replace("\n", '', sm_MapLocationSwitchForm()) . '</form>';
-
-    $windowCode = 'var contentString_' . $windowId . ' = \'<div id = "content_' . $windowId . '">' . $title . '<br> \'+lat+\', \'+lng+\' <br> ' . $content . '</div>\';
-            var infowindow_' . $windowId . ' = new google.maps.InfoWindow({
-            content: contentString_' . $windowId . '
-            });';
-    $result = '
-            google.maps.event.addListener(map, \'click\', function(event) {
-            var myLatLng = event.latLng;
-            var lat = myLatLng.lat().toPrecision(6);
-            var lng = myLatLng.lng().toPrecision(6);
-            ' . $windowCode . '
-               infowindow_' . $windowId . '.setPosition(event.latLng);
-               infowindow_' . $windowId . '.open(map);
-                  // alert(event.latLng);  
-            });
-            ';
+    $data = sm_MapLocationSwitchForm();
+    $result = generic_MapEditor('placecoords', $title, $data);
     return ($result);
 }
 
@@ -484,6 +468,111 @@ function um_ShowMapContainer() {
  */
 function sm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '', $canvas = false) {
     return (gm_MapAddMark($coords, $title, $content, $footer, $icon, $iconlabel, $canvas));
+}
+
+/**
+ * Initalizes maps API with some params
+ * 
+ * @param string $center
+ * @param int $zoom
+ * @param string $type
+ * @param string $placemarks
+ * @param bool $editor
+ * @param string $lang
+ * @param string $container
+ * 
+ * @return string
+ */
+function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU', $container = 'ubmap') {
+    return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang, $container));
+}
+
+/**
+ * Returns map circle
+ * 
+ * @param string $coords - map coordinates
+ * @param int $radius - circle radius in meters
+ * @param string $content
+ * @param string $hint
+ * 
+ * @return string
+ *  
+ */
+function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
+    return(gm_MapAddCircle($coords, $radius, $content, $hint));
+}
+
+/**
+ * Returns map mark
+ * 
+ * @param string $coords - map coordinates
+ * @param string $title - ballon title
+ * @param string $content - ballon content
+ * @param string $footer - ballon footer content
+ * @param string $icon - YM icon class
+ * @param string $iconlabel - icon label string
+ * @param string $canvas
+ * 
+ * @return string
+ */
+function generic_mapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '', $canvas = '') {
+    return(gm_MapAddMark($coords, $title, $content, $footer, $icon, $iconlabel, $canvas));
+}
+
+/**
+ * Returns maps empty container
+ * 
+ * @return string
+ */
+function generic_MapContainer($width = '', $height = '', $id = '') {
+    return (gm_MapContainer($width, $height, $id));
+}
+
+/**
+ * Returns JS code to draw line within two points
+ * 
+ * @param string $coord1
+ * @param string $coord2
+ * @param string $color
+ * @param string $hint
+ * 
+ * @return string
+ */
+function generic_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
+    return (gm_MapAddLine($coord1, $coord2, $color, $hint, $width));
+}
+
+/**
+ * Return generic editor code
+ * 
+ * @param string $name
+ * @param string $title
+ * @param string $data
+ * 
+ * @return string
+ */
+function generic_MapEditor($name, $title = '', $data = '') {
+    $windowId = wf_InputId();
+    $data = str_replace("'", '`', $data);
+    $data = str_replace("\n", '', $data);
+
+    $content = '<form action="" method="POST"><input type="hidden" name="' . $name . '" value="\'+lat+\', \'+lng+\'">' . $data . '</form>';
+
+    $windowCode = 'var contentString_' . $windowId . ' = \'<div id = "content_' . $windowId . '">' . $title . '<br> \'+lat+\', \'+lng+\' <br> ' . $content . '</div>\';
+            var infowindow_' . $windowId . ' = new google.maps.InfoWindow({
+            content: contentString_' . $windowId . '
+            });';
+    $result = '
+            google.maps.event.addListener(map, \'click\', function(event) {
+            var myLatLng = event.latLng;
+            var lat = myLatLng.lat().toPrecision(6);
+            var lng = myLatLng.lng().toPrecision(6);
+            ' . $windowCode . '
+               infowindow_' . $windowId . '.setPosition(event.latLng);
+               infowindow_' . $windowId . '.open(map);
+            });
+            ';
+    return ($result);
 }
 
 ?>
