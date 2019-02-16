@@ -66,6 +66,21 @@ class WifiCPE {
     protected $SigmonEnabled = false;
 
     /**
+     * Placeholder for UbillingConfig object instance
+     *
+     * @var object
+     */
+    protected $ubConfig = null;
+
+    /**
+     * Sorting order of APs in lists and dropdowns
+     * Possible values: id, ip, location
+     *
+     * @var string
+     */
+    protected $apSortOrder = "id";
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=wcpe';
@@ -76,6 +91,9 @@ class WifiCPE {
     const URL_SIGMON = '?module=mtsigmon';
 
     public function __construct() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+
         $this->loadConfigs();
         $this->initMessages();
         $this->loadDeviceModels();
@@ -83,7 +101,8 @@ class WifiCPE {
         $this->loadCPEs();
         $this->loadAssigns();
 
-        $this->SigmonEnabled = $this->altCfg['MTSIGMON_ENABLED'];
+        $this->SigmonEnabled = $this->ubConfig->getAlterParam('MTSIGMON_ENABLED');
+        $this->apSortOrder   = ($this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT')) ? $this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT') : 'id';
     }
 
     /**
@@ -94,8 +113,7 @@ class WifiCPE {
      * @return void
      */
     protected function loadConfigs() {
-        global $ubillingConfig;
-        $this->altCfg = $ubillingConfig->getAlter();
+        $this->altCfg = $this->ubConfig->getAlter();
     }
 
     /**
@@ -395,7 +413,16 @@ class WifiCPE {
 
             if (!empty($this->allAP)) {
                 foreach ($this->allAP as $io => $each) {
-                    $apTmp[$each['id']] = $each['location'] . ' - ' . $each['ip'] . ' ' . @$this->allSSids[$each['id']];
+                    switch ($this->apSortOrder) {
+                        case "id":
+                        case "location":
+                            $apTmp[$each['id']] = $each['location'] . ' - ' . $each['ip'] . '  ' . @$this->allSSids[$each['id']];
+                            break;
+
+                        case "ip":
+                            $apTmp[$each['id']] = $each['ip'] . ' - ' . $each['location'] . '  ' . @$this->allSSids[$each['id']];
+                    }
+
                 }
             }
 
@@ -639,7 +666,15 @@ class WifiCPE {
                 $apTmp = array('' => __('No'));
                 if (!empty($this->allAP)) {
                     foreach ($this->allAP as $io => $each) {
-                        $apTmp[$each['id']] = $each['location'] . ' - ' . $each['ip'] . ' ' . @$this->allSSids[$each['id']];
+                        switch ($this->apSortOrder) {
+                            case "id":
+                            case "location":
+                                $apTmp[$each['id']] = $each['location'] . ' - ' . $each['ip'] . '  ' . @$this->allSSids[$each['id']];
+                                break;
+
+                            case "ip":
+                                $apTmp[$each['id']] = $each['ip'] . ' - ' . $each['location'] . '  ' . @$this->allSSids[$each['id']];
+                        }
                     }
 
                     $inputs = wf_HiddenInput('editcpe', $cpeId);
@@ -745,7 +780,7 @@ class WifiCPE {
                         $result .= wf_tag('script', true);
 
                         if (!empty($cpeData['uplinkapid'])) {
-                            $result .= $SigMon->getAPEssentialData($cpeData['uplinkapid'], true, true, true);
+                            $result .= $this->renderAPEssentialData($cpeData['uplinkapid'], $SigMon);
                         }
                     }
 

@@ -570,6 +570,8 @@ function ts_JGetJobsReport() {
 function ts_JGetUndoneTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
@@ -597,7 +599,7 @@ function ts_JGetUndoneTasks() {
         $appendQuery .= ts_AdvFiltersQuery();
     }
 
-    if (($curmonth != 1) AND ( $curmonth != 12)) {
+    if ( !$showAllYearsTasks AND ($curmonth != 1 AND $curmonth != 12) ) {
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
                     WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
@@ -689,6 +691,8 @@ function ts_JGetUndoneTasks() {
 function ts_JGetDoneTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
@@ -716,7 +720,7 @@ function ts_JGetDoneTasks() {
         $appendQuery .= ts_AdvFiltersQuery();
     }
 
-    if (($curmonth != 1) AND ( $curmonth != 12)) {
+    if ( !$showAllYearsTasks AND ($curmonth != 1 AND $curmonth != 12) ) {
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
                     WHERE `status`='1' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
@@ -785,6 +789,8 @@ function ts_JGetDoneTasks() {
 function ts_JGetAllTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
         $adcomments = new ADcomments('TASKMAN');
@@ -812,7 +818,7 @@ function ts_JGetAllTasks() {
         $appendQuery .= ts_AdvFiltersQuery();
     }
 
-    if (($curmonth != 1) AND ( $curmonth != 12)) {
+    if ( !$showAllYearsTasks AND ($curmonth != 1 AND $curmonth != 12) ) {
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
                     WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
