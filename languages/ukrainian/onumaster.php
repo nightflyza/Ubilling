@@ -34,3 +34,4 @@ $lang['def']['Some fields were not set.'] = 'Не вистачає якихос�
 $lang['def']['No interface value found.'] = 'Значення interface не знайдено.';
 $lang['def']['No OLT IP address value found.'] = 'IP адресу OLT не знайдено.';
 $lang['def']['No VLAN value found.'] = 'VLAN не знайдено.';
+$lang['def']['Registered ONU count is'] = 'Кількість зареєстрованих ONU';
