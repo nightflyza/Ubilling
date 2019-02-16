@@ -47,6 +47,7 @@ class OnuRegister {
     CONST ERROR_NO_INTERFACE_SET = 'No interface value found.';
     CONST ERROR_NO_OLTIP_SET = 'No OLT IP address value found.';
     CONST ERROR_NO_VLAN_SET = 'No VLAN value found.';
+    CONST ERROR_TOO_MANY_REGISTERED_ONU = 'Registered ONU count is';
 
     /**
      * Contains all data from billing.ini
@@ -173,13 +174,6 @@ class OnuRegister {
     protected $snmp = '';
 
     /**
-     * Placeholder for already registered ONU IDs.
-     * 
-     * @var array
-     */
-    protected $existId = array();
-
-    /**
      * Contains last registered onu id.
      * 
      * @var int
@@ -208,6 +202,13 @@ class OnuRegister {
     protected $currentOltSwId = '';
 
     /**
+     * Placeholder for already registered ONU IDs.
+     * 
+     * @var array
+     */
+    public $existId = array();
+
+    /**
      * Placeholder for current OLT's ip.
      * 
      * @var string
@@ -234,6 +235,20 @@ class OnuRegister {
      * @var string
      */
     public $onuIdentifier = '';
+
+    /**
+     * Contains error message
+     * 
+     * @var string
+     */
+    public $error = '';
+
+    /**
+     * Contains ONU registration process result.
+     * 
+     * @var string
+     */
+    public $result = '';
 
     /**
      * Base class construction.
@@ -802,7 +817,7 @@ class OnuRegister {
      * @param type $addMac
      * @param bool $PONizerAdd
      * 
-     * @return string Result of shell_exec + expect
+     * @return void
      */
     public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac = '', $PONizerAdd = false) {
         $this->currentOltSwId = $this->getOltId($this->currentOltIp);
@@ -810,7 +825,6 @@ class OnuRegister {
         $this->loadCalculatedData();
         //set serial number empty as default value because epon    
         $serial = '';
-        $result = '';
 
         if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
             $oltData = $this->allSwLogin[$this->currentOltSwId];
@@ -830,46 +844,48 @@ class OnuRegister {
                     $this->checkRegisteredGponOnu();
                 }
 
-                $onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
-                $scriptPath = CONFIG_PATH . 'scripts/' . $this->currentPonType . '_' . $this->onuModels[$onuModel]['ports'];
-                if ($router) {
-                    $scriptPath .= '_R';
-                }
-                if (file_exists($scriptPath)) {
-                    $command = $this->billingCfg['EXPECT_PATH'];
-                    $command .= ' ' . $scriptPath . ' ';
-                    $command .= $this->currentOltIp;
-                    $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method . ' ';
-                    $command .= $this->currentOltInterface;
-                    $command .= ' ' . $onuInterface . ' ';
-                    $command .= $this->lastOnuId;
-                    $command .= ' ' . $vlan . ' ';
-                    $command .= $this->onuIdentifier;
-                    $result .= shell_exec($command);
-                    if ($save) {
-                        $command = $this->billingCfg['EXPECT_PATH'];
-                        $command .= ' ' . CONFIG_PATH . 'scripts/save' . ' ';
-                        $command .= $this->currentOltIp;
-                        $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method;
-
-                        $result .= shell_exec($command);
+                if (($this->currentPonType == 'EPON' and count($this->existId) < 64) or ( $this->currentPonType == 'GPON' and count($this->existId) < 128)) {
+                    $onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
+                    $scriptPath = CONFIG_PATH . 'scripts/' . $this->currentPonType . '_' . $this->onuModels[$onuModel]['ports'];
+                    if ($router) {
+                        $scriptPath .= '_R';
                     }
-                    $result = str_replace("\n", '<br />', $result);
-                    log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
+                    if (file_exists($scriptPath)) {
+                        $command = $this->billingCfg['EXPECT_PATH'];
+                        $command .= ' ' . $scriptPath . ' ';
+                        $command .= $this->currentOltIp;
+                        $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method . ' ';
+                        $command .= $this->currentOltInterface;
+                        $command .= ' ' . $onuInterface . ' ';
+                        $command .= $this->lastOnuId;
+                        $command .= ' ' . $vlan . ' ';
+                        $command .= $this->onuIdentifier;
+                        $this->result .= shell_exec($command);
+                        if ($save) {
+                            $command = $this->billingCfg['EXPECT_PATH'];
+                            $command .= ' ' . CONFIG_PATH . 'scripts/save' . ' ';
+                            $command .= $this->currentOltIp;
+                            $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method;
 
-                    if ($PONizerAdd) {
-                        if (!empty($login) and ! empty($addMac)) {
-                            $pon = new PONizer();
-                            $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
-                        } else {
-                            log_register('ONUREG PONIZER WRONG DATA. Login: ' . $login . '. MAC: ' . $addMac);
+                            $this->result .= shell_exec($command);
+                        }
+                        $this->result = str_replace("\n", '<br />', $this->result);
+                        log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
+
+                        if ($PONizerAdd) {
+                            if (!empty($login) and ! empty($addMac)) {
+                                $pon = new PONizer();
+                                $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
+                            } else {
+                                log_register('ONUREG PONIZER WRONG DATA. Login: ' . $login . '. MAC: ' . $addMac);
+                            }
                         }
                     }
+                } else {
+                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
                 }
             }
         }
-
-        return ($result);
     }
 
     //handling persistent changes

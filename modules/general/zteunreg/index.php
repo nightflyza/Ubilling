@@ -68,7 +68,12 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
                         show_error(__($loginCheck));
                     } else {
-                        show_window(__('Result'), $register->$avidity_w($_POST[OnuRegister::MODELID_FIELD], $_POST[OnuRegister::VLAN_FIELD], $login, $save, $router, $mac_onu, $PONizerAdd));
+                        $register->$avidity_w($_POST[OnuRegister::MODELID_FIELD], $_POST[OnuRegister::VLAN_FIELD], $login, $save, $router, $mac_onu, $PONizerAdd);
+                        if (empty($register->error)) {
+                            show_window(__('Result'), $register->result);
+                        } else {
+                            show_error(__($register->error) . ': ' . count($register->existId));
+                        }
                     }
                 } else {
                     show_error(__(OnuRegister::ERROR_WRONG_MODELID));
