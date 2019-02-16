@@ -142,7 +142,6 @@ class AndroidApp {
     protected $cache = '';
 
     public function __construct() {
-        //$this->initLoggedIn();
         // Check if user logged
         if (LOGGED_IN){
             // Only once need change this parametr
@@ -151,7 +150,7 @@ class AndroidApp {
             $this->setLogin();
             $this->loadAdminsName();
             if (cfr('ANDROID')) { 
-                $this->access = true; // Äëÿ ïåðâîãî óðîâíÿ çàùèòû
+                $this->access = true;
                 $this->initDebug();
                 $this->setGetModuleAction();
                 $this->setGetDate();
@@ -162,31 +161,6 @@ class AndroidApp {
         }
     }
 
-    /**
-     * Check for user logged
-     *
-     * @return void
-     */
-/*    protected function initLoggedIn() {
-        // Check if user logged
-        if (LOGGED_IN){
-            // Only once need change this parametr
-            $this->loggedIn = true;
-            // Check who logged
-            $this->setLogin();
-            $this->loadAdminsName();
-            if (cfr('ANDROID')) { 
-                $this->access = true; // 
-                $this->initDebug();
-                $this->setGetModuleAction();
-                $this->setGetDate();
-//              $this->loadData();
-            }
-        } else {
-            $this->json['message'] = 'First you need login';
-        }
-    }
-*/
     /**
      * Check getting module
      *
