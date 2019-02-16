@@ -151,7 +151,7 @@ class AndroidApp {
             $this->setLogin();
             $this->loadAdminsName();
             if (cfr('ANDROID')) { 
-                $this->access = true; // Äëÿ ïåðâîãî óðîâíÿ çàùèòû
+                $this->access = true; // Ã„Ã«Ã¿ Ã¯Ã¥Ã°Ã¢Ã®Ã£Ã® Ã³Ã°Ã®Ã¢Ã­Ã¿ Ã§Ã Ã¹Ã¨Ã²Ã»
                 $this->initDebug();
                 $this->setGetModuleAction();
                 $this->setGetDate();
@@ -495,7 +495,7 @@ class AndroidApp {
             $this->DebugMessageAdd('function', array('renderUserData' => $this->usersData));
         } else {
             $this->updateSuccessAndMessage('EMPTY_DATABASE_USERDATA');
-            $this->DebugMessageAdd('function', array('login' => $_GET['username']));
+            $this->DebugMessageAdd('function', array('login' => @$_GET['username']));
         }
     }
 
