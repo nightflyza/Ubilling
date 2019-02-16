@@ -559,3 +559,161 @@ function sm_MapLocationSwitchForm() {
     }
     return ($result);
 }
+
+/**
+ * Returns map mark
+ * 
+ * @param $coords - map coordinates
+ * @param $title - ballon title
+ * @param $content - ballon content
+ * @param $footer - ballon footer content
+ * @param $icon - YM icon class
+ * @param $iconlabel - icon label string
+ * @param $canvas - is canvas rendering enabled?
+ * 
+ * @return string
+ */
+function sm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '', $canvas = false) {
+    return (generic_MapAddMark($coords, $title, $content, $footer, $icon, $iconlabel, $canvas));
+}
+
+/**
+ * Returns map circle
+ * 
+ * @param string $coords
+ * @param int $radius
+ * @param string $content
+ * @param string $hint
+ * 
+ * @return string
+ */
+function sm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
+    return (generic_MapAddCircle($coords, $radius, $content, $hint));
+}
+
+/**
+ * Returns JS code to draw line within two points
+ * 
+ * @param string $coord1
+ * @param string $coord2
+ * @param string $color
+ * @param string $hint
+ * 
+ * @return string
+ */
+function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
+    return (generic_MapAddLine($coord1, $coord2, $color, $hint, $width));
+}
+
+/**
+ * Initialize map container with some settings
+ * 
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
+ * 
+ * @return void
+ */
+function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
+    show_window('', generic_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
+}
+
+/**
+ * Return geo coordinates locator for builds
+ * 
+ * @return string
+ */
+function um_MapLocationFinder() {
+    $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
+    $data = um_MapLocationBuildForm();
+    $result = generic_MapEditor('placecoords', $title, $data);
+    return ($result);
+}
+
+/**
+ * Returns geo coordinates locator
+ * 
+ * @return string
+ */
+function sm_MapLocationFinder() {
+    $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
+    $data = sm_MapLocationSwitchForm();
+    $result = generic_MapEditor('placecoords', $title, $data);
+    return ($result);
+}
+
+/**
+ * Initialize map container with some settings
+ * 
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
+ * 
+ * @return void
+ */
+function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
+    return (generic_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
+}
+
+/**
+ * Initialize map container with some settings
+ * 
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
+ * 
+ * @return void
+ */
+function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
+    return (generic_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
+}
+
+/**
+ * Shows map container
+ *
+ * @return void
+ *  
+ */
+function sm_ShowMapContainer() {
+    $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
+    $container.=wf_tag('div', true);
+    $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+    $controls.= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+    if (cfr('SWITCHESEDIT')) {
+        $controls.= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
+    }
+    $controls.= wf_Link("?module=switchmap&showuplinks=true", wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
+    $controls.= wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png') . ' ' . __('Coverage area'), false, 'ubButton');
+    if (cfr('SWITCHES')) {
+        $controls.= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+    }
+    $controls.=wf_delimiter(1);
+
+    show_window(__('Active equipment map'), $controls . $container);
+}
+
+/**
+ * Shows map container for builds
+ *
+ * @return void
+ */
+function um_ShowMapContainer() {
+    $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
+    $container.=wf_tag('div', true);
+
+    $controls = wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+    $controls.= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+    $controls.= wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
+    $controls.=wf_delimiter(1);
+
+    show_window(__('Builds and users map'), $controls . $container);
+}
