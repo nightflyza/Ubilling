@@ -460,7 +460,7 @@ class AndroidApp {
                 if ($ubillingConfig->getAlterParam('OPENPAYZ_REALID')) {
                     $this->usersData[$login]['paymantid'] = zb_PaymentIDGet($login);
                 } else {
-                    $this->usersData[$login]['paymantid'] = ip2int($this->usersData[$login]['IP']);
+                    $this->usersData[$login]['paymantid'] = ip2int($this->usersData[$login]['ip']);
                 }
 				$this->usersData[$login]['notes'] = zb_UserGetNotes($login);
                 // gets and preformats last activity time
