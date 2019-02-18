@@ -2670,6 +2670,8 @@ function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts
                              
                              // dirty hack for scrollTabsPlugin to select the very first tab
                              $( "#' . $tabsDivID . '" ).scrollTabs("option", "active", 0);
+                             // another hack for Firefox
+                             $(".ui-scroll-tabs-view").css("margin-bottom", "0");
                              ';
 
         }
