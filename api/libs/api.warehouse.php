@@ -701,7 +701,7 @@ class Warehouse {
                             $result.=$reserveResult;
                         } else {
                             //success!
-                            $result.=$this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('Reserved') . ' (' . $itemCount .' '.@$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')', 'success');
+                            $result.=$this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('Reserved') . ' (' . $itemCount . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')', 'success');
                             $successCount++;
                         }
                     }
@@ -731,8 +731,8 @@ class Warehouse {
                 if ($each['employeeid'] == $employeeId) {
                     if ($each['type'] == 'create') {
                         if (ispos($each['date'], $curDate)) {
-                            $itemtypeId=$each['itemtypeid'];
-                            $label=@$this->allItemTypeNames[$itemtypeId].'. '.__('Already reserved today').' ('.$each['count'].' '.@$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']].')';
+                            $itemtypeId = $each['itemtypeid'];
+                            $label = @$this->allItemTypeNames[$itemtypeId] . '. ' . __('Already reserved today') . ' (' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')';
                             $result.=$this->messages->getStyledMessage($label, 'info');
                         }
                     }
@@ -1114,15 +1114,36 @@ class Warehouse {
     }
 
     /**
+     * Returns array of available administrators as login=>name
+     * 
+     * @return array
+     */
+    protected function getAdminNames() {
+        $result = array();
+        $all = rcms_scandir(USERS_PATH);
+        if (!empty($all)) {
+            $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            foreach ($all as $each) {
+                $administratorName = (isset($employeeLogins[$each])) ? $employeeLogins[$each] : $each;
+                $result[$each] = $administratorName;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders reserve history print filtering form
      * 
      * @return string
      */
     public function reserveHistoryFilterForm() {
         $result = '';
+        $adminNames = array('' => '-');
+        $adminNames+=$this->getAdminNames();
         $inputs = __('From') . ' ' . wf_DatePickerPreset('reshistfilterfrom', date("Y-m") . '-01') . ' ';
         $inputs.= __('To') . ' ' . wf_DatePickerPreset('reshistfilterto', curdate()) . ' ';
         $inputs.= wf_Selector('reshistfilteremployeeid', $this->activeEmployee, __('Worker'), '', false);
+        $inputs.= wf_Selector('reshistfilteradminlogin', $adminNames, __('Admin'), '', false);
         $inputs.= wf_Submit(__('Print'));
 
         $result.=wf_Form('', 'POST', $inputs, 'glamour');
@@ -1140,6 +1161,8 @@ class Warehouse {
             $dateFrom = $_POST['reshistfilterfrom'];
             $dateTo = $_POST['reshistfilterto'];
             $employeeId = vf($_POST['reshistfilteremployeeid'], 3);
+            $adminLogin = @$_POST['reshistfilteradminlogin'];
+
             if (zb_checkDate($dateFrom) AND zb_checkDate($dateTo)) {
                 $dateFrom = $dateFrom . ' 00:00:00';
                 $dateTo = $dateTo . ' 23:59:59';
@@ -1168,6 +1191,15 @@ class Warehouse {
                         if ($employeeId == $each['employeeid']) {
                             if ($operationDate >= $dateFrom AND $operationDate <= $dateTo) {
                                 $filteredFlag = true;
+                            }
+                        }
+
+                        //optional admin filtering
+                        if (!empty($adminLogin)) {
+                            if ($filteredFlag) {
+                                if ($each['admin'] != $adminLogin) {
+                                    $filteredFlag = false;
+                                }
                             }
                         }
 
