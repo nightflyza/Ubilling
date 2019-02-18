@@ -230,10 +230,10 @@ class AndroidApp {
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'USERSEARCH', 'getModuleAction' => 'usersearch'));
                     }
                     $this->permissionCheckAdd('usersearch');
+                    $this->permissionCheckAdd('addcash');
                     break;
                 case 'userprofile':
                 case 'addcash':
-                case 'useredit':
                     if (cfr('USERPROFILE')) {
                         $this->renderUserData();
                     } else {
@@ -241,6 +241,26 @@ class AndroidApp {
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'USERPROFILE', 'getModuleAction' => 'usersearch'));
                     }
                     $this->permissionCheckAdd('userprofile');
+                    $this->permissionCheckAdd('addcash');
+                    break;
+                case 'useredit':
+                    if (cfr('USEREDIT')) {
+                        $this->renderUserData();
+                    } else {
+                        $this->updateSuccessAndMessage('Permission denied');
+                        $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'USEREDIT', 'getModuleAction' => 'useredit'));
+                    }
+                    $this->permissionCheckAdd('useredit');
+                    $this->permissionCheckAdd('passwordedit');
+                    $this->permissionCheckAdd('realnameedit');
+                    $this->permissionCheckAdd('phoneedit');
+                    $this->permissionCheckAdd('mobileedit');
+                    $this->permissionCheckAdd('mailedit');
+                    $this->permissionCheckAdd('downedit');
+                    $this->permissionCheckAdd('passiveedit');
+                    $this->permissionCheckAdd('notesedit');
+                    $this->permissionCheckAdd('reset');
+                    $this->permissionCheckAdd('condetedit');
                     break;
                 case 'pl_dhcp':
                     if (cfr('PLDHCP')) {
@@ -446,9 +466,9 @@ class AndroidApp {
                 }
                 //Returns user connection details with optional controls inside if enabled
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
-					$conDet = new ConnectionDetails();
-					$this->usersData[$login]['ConnectionDetails'] = $conDet->renderData($login);
-				}
+                    $conDet = new ConnectionDetails();
+                    $this->usersData[$login]['ConnectionDetails'] = $conDet->renderData($login);
+                }
 
             }
         } else { 
