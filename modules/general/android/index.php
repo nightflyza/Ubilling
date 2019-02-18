@@ -3,10 +3,10 @@
 $options = array('options' => array('min_range'=>0, 'max_range'=>9));
 
 $priority = filter_input(INPUT_GET, 'cash', FILTER_VALIDATE_FLOAT, array('options' => array('default'=>1, ), 'flags' => FILTER_FLAG_ALLOW_THOUSAND));
-	var_dump($priority );
-	if ($priority) {
-		print 'PAUTINA: ' . $priority . PHP_EOL;
-	}
+    var_dump($priority );
+    if ($priority) {
+        print 'PAUTINA: ' . $priority . PHP_EOL;
+    }
 */
 
 $android = new AndroidApp();
@@ -27,12 +27,12 @@ if ($android->access) {
                 //if (isset($_POST['taskid']) and !empty($_POST['taskid'])) {
                 if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) { // Пробуем новую схему валидации
                     $taskid = $_POST['taskid'];
-					$modifystartdate = $_POST['modifystartdate'];
-					$modifytasklogin = isset($_POST['modifytasklogin']) ? $_POST['modifytasklogin'] : '';
-					$modifytaskphone = isset($_POST['modifytaskphone']) ? $_POST['modifytaskphone'] : '';
-					$modifytaskjobtype = isset($_POST['modifytaskjobtype']) ? $_POST['modifytaskjobtype'] : '';
-					$modifytaskemployee = isset($_POST['modifytaskemployee']) ? $_POST['modifytaskemployee'] : '';
-					$modifytaskjobnote = isset($_POST['modifytaskjobnote']) ? $_POST['modifytaskjobnote'] : '';
+                    $modifystartdate = $_POST['modifystartdate'];
+                    $modifytasklogin = isset($_POST['modifytasklogin']) ? $_POST['modifytasklogin'] : '';
+                    $modifytaskphone = isset($_POST['modifytaskphone']) ? $_POST['modifytaskphone'] : '';
+                    $modifytaskjobtype = isset($_POST['modifytaskjobtype']) ? $_POST['modifytaskjobtype'] : '';
+                    $modifytaskemployee = isset($_POST['modifytaskemployee']) ? $_POST['modifytaskemployee'] : '';
+                    $modifytaskjobnote = isset($_POST['modifytaskjobnote']) ? $_POST['modifytaskjobnote'] : '';
                     ts_ModifyTask($taskid, $modifystartdate, $_POST['modifystarttime'], $_POST['modifytaskaddress'], $modifytasklogin, $modifytaskphone, $modifytaskjobtype, $modifytaskemployee, $modifytaskjobnote);
                 } else {
                     $android->updateSuccessAndMessage('I dont have TASKID');
@@ -77,7 +77,7 @@ if ($android->access) {
             // $operation = vf($_POST['operation']);
             $operation = 'add';
             $cashtype = vf(@$_POST['cashtype']);
-            $note = ( isset($_POST['newpaymentnote']) ) ? mysql_real_escape_string($_POST['newpaymentnote']) : '';
+            $note = (isset($_POST['newpaymentnote'])) ? mysql_real_escape_string($_POST['newpaymentnote']) : '';
 
             // Empty cash hotfix:
             if ($cash != '') {
