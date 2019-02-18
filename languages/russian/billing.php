@@ -3032,8 +3032,10 @@ $lang['def']['Users PON equipment'] = 'Пользовательское PON об
 $lang['def']['Assign PON equipment to user'] = 'Присвоить PON оборудование пользователю';
 $lang['def']['Login as'] = 'Залогиниться как';
 $lang['def']['in ghost mode'] = 'в режиме призрака';
+
+//rev 6672
 $lang['def']['Nothing'] = 'Ничегошеньки';
-$lang['def'][''] = '';
+$lang['def']['Total cost'] = 'Общая стоимость';
 $lang['def'][''] = '';
 
 

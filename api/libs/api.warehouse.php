@@ -581,6 +581,7 @@ class Warehouse {
                 $curdate = curdate();
                 $sendTmp = array(); //employeeid => text aggregated
                 $reserveTmp = array(); //employeeid=>reserve data with aggr
+                $totalCostSumm = 0;
                 foreach ($this->allReserve as $io => $eachReserve) {
                     $employeeId = $eachReserve['employeeid'];
                     $chatId = @$this->allEmployeeTelegram[$employeeId];
@@ -606,7 +607,11 @@ class Warehouse {
                         ;
                         foreach ($reservedItems as $eachItemId => $eachItemCount) {
                             $message.= @$this->allItemTypeNames[$eachItemId] . ': ' . $eachItemCount . ' ' . @$this->unitTypes[$this->allItemTypes[$eachItemId]['unit']] . '\r\n ';
+                            $itemCost = $this->getIncomeMiddlePrice($eachItemId);
+                            $totalCostSumm+=$itemCost * $eachItemCount;
                         }
+
+                        $message.=__('Total cost') . ': ' . $totalCostSumm . '\r\n '; //pugalo inside
                         $message.='📦📦📦📦' . '\r\n '; // very vsrate emoji
                         $sendTmp[$eachEmployee] = $message;
                     }
