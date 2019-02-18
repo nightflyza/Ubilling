@@ -29,7 +29,7 @@ function wf_InputId() {
  * @return  string
  *
  */
-function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID = '') {
+function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID = '', $target = '') {
     $FrmID = ( (empty($CtrlID)) ? 'Form_' . wf_InputId() : $CtrlID );
 
     if ($class != '') {
@@ -43,9 +43,15 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
         $form_legend = '';
     }
 
+    if ($target != '') {
+        $target = ' target="' . $target . '" ';
+    } else {
+        $target = '';
+    }
+
     $form = '
-        <form action="' . $action . '" method="' . $method . '" ' . $form_class . 'id="' . $FrmID . '">
-         ' . $form_legend . '
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . 'id="' . $FrmID . '"' . $target . '>
+        ' . $form_legend . '
         ' . $inputs . '
         </form>
         <div style="clear:both;"></div>
