@@ -591,15 +591,16 @@ class AndroidApp {
 
         //additional comments 
         if ($ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED')) {
-            array_walk($tasksArr, 
-                function ($item, $key) use (&$tasksArr) {
-                    $query = "SELECT * from `adcomments` WHERE `scope`='TASKMAN' AND `item`='" . $item['id'] . "' ORDER BY `date` ASC;";
-                    $all = simple_queryall($query);
-
-                    $tasksArr[$key]['comments'] = $all;
-                    return($tasksArr);
-                }
-            );
+            if(!empty($tasksArr)) {
+                array_walk($tasksArr, 
+                    function ($item, $key) use (&$tasksArr) {
+                        $query = "SELECT * from `adcomments` WHERE `scope`='TASKMAN' AND `item`='" . $item['id'] . "' ORDER BY `date` ASC;";
+                        $all = simple_queryall($query);
+                        $tasksArr[$key]['comments'] = $all;
+                        return($tasksArr);
+                    }
+                );
+            }
         }
 
         $this->data = $tasksArr;
