@@ -11,21 +11,15 @@ $priority = filter_input(INPUT_GET, 'cash', FILTER_VALIDATE_FLOAT, array('option
 
 $android = new AndroidApp();
 
-// Первый уровень защиты
+// First level of protection
 if ($android->access) {
-
-//   $android->DebugMessageAdd('PAUTINA', 'TEST');
-//   $android->DebugMessageAdd('PAUTINA', 'TEST2');
-//   $android->DebugMessageAdd('PAUTINA3', 'TEST3');
-//   $android->DebugMessageAdd('PAUTINA4', 'TEST4');
-//   $android->checkRight('TASKMANNWATCHLOG');
 
     //modify task sub
     if (isset($_GET['action']) and $_GET['action'] == 'modifytask' and $android->checkRight('TASKMAN')) {
         if (wf_CheckPost(array('modifystartdate', 'modifytaskaddress', 'modifytaskphone'))) {
             if (zb_checkDate($_POST['modifystartdate'])) {
                 //if (isset($_POST['taskid']) and !empty($_POST['taskid'])) {
-                if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) { // Пробуем новую схему валидации
+                if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) {
                     $taskid = $_POST['taskid'];
                     $modifystartdate = $_POST['modifystartdate'];
                     $modifytasklogin = isset($_POST['modifytasklogin']) ? $_POST['modifytasklogin'] : '';
@@ -69,9 +63,7 @@ if ($android->access) {
 
     // Add user cash
     if (isset($_GET['action']) and $_GET['action'] == 'addcash' and $android->checkRight('CASH')) {
-        if (isset($_GET['username'])) {
-            $login = vf($_GET['username']);
-            $login = trim($login);
+        if ($android->login) {
             // Init
             $cash = @$_POST['newcash'];
             // $operation = vf($_POST['operation']);
@@ -92,37 +84,34 @@ if ($android->access) {
                         $summa = $summa['summa'];
                         if ($employeeLimit - $summa >= $cash) {
                             if ($ubillingConfig->getAlterParam('SIGNUP_PAYMENTS')) {
-                                zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
+                                zb_CashAddWithSignup($android->login, $cash, $operation, $cashtype, $note);
                             } else {
-                                zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+                                zb_CashAdd($android->login, $cash, $operation, $cashtype, $note);
                             }
                         } else {
                             $android->updateSuccessAndMessage('Payment amount exceeded per month. You can top up for the amount of: ' . $employeeLimit - $summa);
-                            log_register('ANDROID BALANCEADDFAIL (' . $login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit - $summa) . '` TRY ADD SUMM `' . $cash . '`');
+                            log_register('ANDROID BALANCEADDFAIL (' . $android->login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit - $summa) . '` TRY ADD SUMM `' . $cash . '`');
                         }
                     } else {
                         if ($ubillingConfig->getAlterParam('SIGNUP_PAYMENTS')) {
-                            zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
+                            zb_CashAddWithSignup($android->login, $cash, $operation, $cashtype, $note);
                         } else {
-                            zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+                            zb_CashAdd($android->login, $cash, $operation, $cashtype, $note);
                         }
                     }
                 } else {
                     $android->updateSuccessAndMessage('Wrong format of a sum of money to pay');
-                    log_register('ANDROID BALANCEADDFAIL (' . $login . ') WRONG SUMM `' . $cash . '`');
+                    log_register('ANDROID BALANCEADDFAIL (' . $android->login . ') WRONG SUMM `' . $cash . '`');
                 }
             } else {
                 $android->updateSuccessAndMessage('You have not completed the required amount of money to deposit into account. We hope next time you will be more attentive.');
-                log_register('ANDROID BALANCEADDFAIL (' . $login . ') EMPTY SUMM `' . $cash . '`');
+                log_register('ANDROID BALANCEADDFAIL (' . $android->login . ') EMPTY SUMM `' . $cash . '`');
             }
-
             // Load user data
-            $android->getUserData($login);
-
+            $android->getUserData();
        } else {
             $android->updateSuccessAndMessage('GET_NO_USERNAME');
         }
-
     }
 
     //search users
@@ -136,10 +125,8 @@ if ($android->access) {
 
     // Get user data
     if (isset($_GET['action']) and $_GET['action'] == 'userprofile' and $android->checkRight('USERPROFILE')) {
-        if (isset($_GET['username'])) {
-            $login = vf($_GET['username']);
-            $login = trim($login);
-            $android->getUserData($login);
+        if ($android->login) {
+            $android->getUserData();
        } else {
             $android->updateSuccessAndMessage('GET_NO_USERNAME');
         }
@@ -151,16 +138,13 @@ if ($android->access) {
      * Can change: username, password, REALNAME, PHONE, MOBILE, EMAIL, PASSIVE state, Down state, NOTES
      */
     if (isset($_GET['action']) and $_GET['action'] == 'useredit' and $android->checkRight('USEREDIT')) {
-        if (isset($_GET['username'])) {
-            $login = vf($_GET['username']);
-            $login = trim($login);
-
+        if ($android->login) {
             // change password  if need
             if (wf_CheckPost(array('newpassword')) and $android->checkRight('PASSWORD')) {
                 $password = $_POST['newpassword'];
                 if (zb_CheckPasswordUnique($password)) {
-                    $billing->setpassword($login, $password);
-                    log_register('ANDROID CHANGE Password (' . $login . ') ON `' . $password . '`');
+                    $billing->setpassword($android->login, $password);
+                    log_register('ANDROID CHANGE Password (' . $android->login . ') ON `' . $password . '`');
                 } else {
                      $android->updateSuccessAndMessage('We do not recommend using the same password for different users. Try another.');
                 }
@@ -169,56 +153,56 @@ if ($android->access) {
             // change realname if need
             if (wf_CheckPost(array('newrealname')) and $android->checkRight('REALNAME')) {
                 $realname = $_POST['newrealname'];
-                zb_UserChangeRealName($login, $realname);
-                log_register('ANDROID CHANGE REALNAME (' . $login . ') ON `' . mysql_real_escape_string($realname) . '`');
+                zb_UserChangeRealName($android->login, $realname);
+                log_register('ANDROID CHANGE REALNAME (' . $android->login . ') ON `' . mysql_real_escape_string($realname) . '`');
             }
 
             // change  phone if need
             if (wf_CheckPost(array('newphone')) and $android->checkRight('PHONE')) {
                 $phone = $_POST['newphone'];
-                zb_UserChangePhone($login, $phone);
+                zb_UserChangePhone($android->login, $phone);
             }
 
             // change phone if need
             if (wf_CheckPost(array('newmobile')) and $android->checkRight('MOBILE')) {
                 $mobile = $_POST['newmobile'];
-                zb_UserChangeMobile($login, $mobile);
+                zb_UserChangeMobile($android->login, $mobile);
             }
 
             // change mail if need
             if (wf_CheckPost(array('newmail')) and $android->checkRight('EMAIL')) {
                 $mail = $_POST['newmail'];
-                zb_UserChangeEmail($login, $mail);
+                zb_UserChangeEmail($android->login, $mail);
             }
 
             // change down if need
             if (wf_CheckPost(array('newdown')) and $android->checkRight('DOWN')) {
                 $down = $_POST['newdown'];
-                $billing->setdown($login, $down);
-                log_register('ANDROID CHANGE Down (' . $login . ') ON '. $down);
+                $billing->setdown($android->login, $down);
+                log_register('ANDROID CHANGE Down (' . $android->login . ') ON '. $down);
             }
 
             // change passive if need
             if (wf_CheckPost(array('newpassive')) and $android->checkRight('PASSIVE')) {
                 $passive = $_POST['newpassive'];
-                $billing->setpassive($login, $passive);
-                log_register('ANDROID CHANGE Passive (' . $login . ') ON ' . $passive);
+                $billing->setpassive($android->login, $passive);
+                log_register('ANDROID CHANGE Passive (' . $android->login . ') ON ' . $passive);
             }
             
             // change notes if need
             if (wf_CheckPost(array('newnotes')) and $android->checkRight('NOTES')) {
                 $notes = $_POST['newnotes'];
-                zb_UserDeleteNotes($login);
-                zb_UserCreateNotes($login, $notes);
+                zb_UserDeleteNotes($android->login);
+                zb_UserCreateNotes($android->login, $notes);
             }
 
             // reset user if need
             if (wf_CheckPost(array('reset')) and $android->checkRight('RESET')) {
-                $billing->resetuser($login);
-                log_register("ANDROID RESET User (" . $login . ")");
+                $billing->resetuser($android->login);
+                log_register("ANDROID RESET User (" . $android->login . ")");
                 //resurrect if user is disconnected
                 if ($ubillingConfig->getAlterParam('RESETHARD')) {
-                    zb_UserResurrect($login);
+                    zb_UserResurrect($android->login);
                 }
             }
 
@@ -226,13 +210,13 @@ if ($android->access) {
             if (wf_CheckPost(array('editcondet')) and $android->checkRight('CONDET')) {
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED') ) {
                     $conDet = new ConnectionDetails();
-                    $conDet->set($login, @$_POST['newseal'], @$_POST['newlength'], @$_POST['newprice']);
+                    $conDet->set($android->login, @$_POST['newseal'], @$_POST['newlength'], @$_POST['newprice']);
                 } else {
                     $android->updateSuccessAndMessage('This module is disabled');
                 }
             }
 
-            $android->getUserData($login);
+            $android->getUserData();
        } else {
             $android->updateSuccessAndMessage('GET_NO_USERNAME');
         }
@@ -240,10 +224,8 @@ if ($android->access) {
 
     // Get user DHCP LOG
     if (isset($_GET['action']) and $_GET['action'] == 'pl_dhcp' and $android->checkRight('PLDHCP')) {
-        if (isset($_GET['username'])) {
-            $login = vf($_GET['username']);
-            $login = trim($login);
-            $android->getUserDhcpLog($login);
+        if ($android->login) {
+            $android->getUserDhcpLog();
        } else {
             $android->updateSuccessAndMessage('GET_NO_USERNAME');
         }
@@ -251,10 +233,8 @@ if ($android->access) {
 
     // Get user Ping result
     if (isset($_GET['action']) and $_GET['action'] == 'pl_pinger' and $android->checkRight('PLPINGER')) {
-        if (isset($_GET['username'])) {
-            $login = vf($_GET['username']);
-            $login = trim($login);
-            $android->getUserPingResult($login);
+        if ($android->login) {
+            $android->getUserPingResult();
        } else {
             $android->updateSuccessAndMessage('GET_NO_USERNAME');
         }
@@ -263,7 +243,11 @@ if ($android->access) {
     // Add new comments for tasks
     if (isset($_GET['action']) and $_GET['action'] == 'newadcommentstext' and $ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED')) {
         if (wf_CheckPost(array('taskid', 'newcommentstext'))) {
-            $android->createComment($_POST['taskid'], $_POST['newcommentstext']);
+            if (filter_input(INPUT_POST, 'taskid', FILTER_VALIDATE_INT)) {
+                $android->createComment($_POST['taskid'], $android->filterStr($_POST['newcommentstext']));
+            } else {
+                $android->updateSuccessAndMessage('I dont have TASKID');
+            }
         } else {
             $android->updateSuccessAndMessage('All fields marked with an asterisk are mandatory');
         }

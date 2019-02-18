@@ -135,6 +135,13 @@ class AndroidApp {
     protected $adminsName = array();
 
     /**
+     * Current user login. Must be set in constructor
+     *
+     * @var string
+     */
+    public $login = '';
+
+    /**
      * UbillingCache object placeholder
      *
      * @var object
@@ -154,7 +161,7 @@ class AndroidApp {
                 $this->initDebug();
                 $this->setGetModuleAction();
                 $this->setGetDate();
-//              $this->loadData();
+                $this->initUsernameLogin();
             }
         } else {
             $this->json['message'] = 'First you need login';
@@ -340,10 +347,10 @@ class AndroidApp {
      * 
      * @return void
      */
-    public function getUserDhcpLog($login) {
+    public function getUserDhcpLog() {
         global $ubillingConfig;
-        if (!empty($login)) {
-            $this->usersData = zb_UserGetAllData($login);
+        if ($this->login) {
+            $this->usersData = zb_UserGetAllData($this->login);
             // Check that we have some data user
             if (current($this->usersData)) {
                 $config = $ubillingConfig->getBilling();
@@ -353,9 +360,9 @@ class AndroidApp {
                 $tail_path = $config['TAIL'];
                 $sudo_path = $config['SUDO'];
                 $leasefile = $ubillingConfig->getAlterParam('NMLEASES');
-                $command = $sudo_path.' '.$cat_path.' '.$leasefile.' | '.$grep_path.' '.$this->usersData[$login]['mac'].' | '.$tail_path.'  -n 30';
+                $command = $sudo_path.' '.$cat_path.' '.$leasefile.' | '.$grep_path.' '.$this->usersData[$this->login]['mac'].' | '.$tail_path.'  -n 30';
                 $output = shell_exec($command);
-                $this->usersData[$login]['dhcp'] = $output;
+                $this->usersData[$this->login]['dhcp'] = $output;
                 } else { 
                     $this->updateSuccessAndMessage('Username cannot be empty');
                 }
@@ -367,19 +374,19 @@ class AndroidApp {
      * 
      * @return void
      */
-    public function getUserPingResult($login) {
+    public function getUserPingResult() {
         global $ubillingConfig;
-        if (!empty($login)) {
-            $this->usersData = zb_UserGetAllData($login);
+        if ($this->login) {
+            $this->usersData = zb_UserGetAllData($this->login);
             // Check that we have some data user
             if (current($this->usersData)) {
                 $config = $ubillingConfig->getBilling();
                 $alter_conf = $ubillingConfig->getAlter();
                 $ping_path = $config['PING'];
                 $sudo_path = $config['SUDO'];
-                $command = $sudo_path . ' ' . $ping_path . ' -i 0.01 -c 10 ' . $this->usersData[$login]['ip'];
+                $command = $sudo_path . ' ' . $ping_path . ' -i 0.01 -c 10 ' . $this->usersData[$this->login]['ip'];
                 $output = shell_exec($command);
-                $this->usersData[$login]['ping'] = $output;
+                $this->usersData[$this->login]['ping'] = $output;
                 } else { 
                     $this->updateSuccessAndMessage('Username cannot be empty');
                 }
@@ -405,6 +412,21 @@ class AndroidApp {
     }
 
     /**
+     * Filtering variables
+     * 
+     * @param string $str some string for filter
+     * 
+     * @return void
+     */
+    public function filterStr($str) {
+        $str = strip_tags($str);
+        $str = trim($str);
+        $str = stripslashes($str);
+        $str = htmlspecialchars($str);
+        return $str;
+    }
+
+    /**
      * Creates new comment in database
      * 
      * @param string $text text for new comment
@@ -413,7 +435,6 @@ class AndroidApp {
      */
     public function createComment($id, $text) {
         $curdate = curdatetime();
-        $text = strip_tags($text);
         $text = mysql_real_escape_string($text);
         $query = "INSERT INTO `adcomments` (`id`, `scope`, `item`, `date`, `admin`, `text`) "
                 . "VALUES (NULL, 'TASKMAN', '" . $id . "', '" . $curdate . "', '" . $this->adminLogin . "', '" . $text . "');";
@@ -428,46 +449,46 @@ class AndroidApp {
      * 
      * @return void
      */
-    public function getUserData($login) {
+    public function getUserData() {
         global $ubillingConfig;
-        if (!empty($login)) {
-            $this->usersData = zb_UserGetAllData($login);
+        if ($this->login) {
+            $this->usersData = zb_UserGetAllData($this->login);
             // Check that we have some data user
             if (current($this->usersData)) {
                 // check thate need add contract date
                 if ($ubillingConfig->getAlterParam('CONTRACTDATE_IN_PROFILE')) {
-                    $contract = $this->usersData[$login]['contract'];
+                    $contract = $this->usersData[$this->login]['contract'];
                     if (!empty($contract)) {
                         $allContractDates = zb_UserContractDatesGetAll();
                         $contractDate = (isset($allContractDates[$contract])) ? $allContractDates[$contract] : '';
-                        $this->usersData[$login]['contractdate'] = $contractDate;
+                        $this->usersData[$this->login]['contractdate'] = $contractDate;
                     }
                 }
                 //additional mobile data
                 if ($ubillingConfig->getAlterParam('MOBILES_EXT')) {
                     $extMob = new MobilesExt();
-                    $allExt = array_column($extMob->getUserMobiles($login), 'mobile');
+                    $allExt = array_column($extMob->getUserMobiles($this->login), 'mobile');
                     $additionalNumbers = implode(', ', $allExt);
-                    $this->usersData[$login]['additionalNumbers'] = $additionalNumbers;
+                    $this->usersData[$this->login]['additionalNumbers'] = $additionalNumbers;
                 }
                 // User payment ID 
                 if ($ubillingConfig->getAlterParam('OPENPAYZ_REALID')) {
-                    $this->usersData[$login]['paymantid'] = zb_PaymentIDGet($login);
+                    $this->usersData[$this->login]['paymantid'] = zb_PaymentIDGet($this->login);
                 } else {
-                    $this->usersData[$login]['paymantid'] = ip2int($this->usersData[$login]['ip']);
+                    $this->usersData[$this->login]['paymantid'] = ip2int($this->usersData[$this->login]['ip']);
                 }
-                $this->usersData[$login]['notes'] = zb_UserGetNotes($login);
+                $this->usersData[$this->login]['notes'] = zb_UserGetNotes($this->login);
                 // gets and preformats last activity time
                 if ($ubillingConfig->getAlterParam('PROFILE_LAT')) {
-                    //if ($this->usersData[$login]['LastActivityTime'] != 0) {
-                        //$data = date("Y-m-d H:i:s", $this->usersData[$login]['LastActivityTime']);
-                    //  $this->usersData[$login]['LastActivityTime'] = $data;
+                    //if ($this->usersData[$this->login]['LastActivityTime'] != 0) {
+                        //$data = date("Y-m-d H:i:s", $this->usersData[$this->login]['LastActivityTime']);
+                    //  $this->usersData[$this->login]['LastActivityTime'] = $data;
                     //}
                 }
                 //Returns user connection details with optional controls inside if enabled
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
                     $conDet = new ConnectionDetails();
-                    $this->usersData[$login]['ConnectionDetails'] = $conDet->renderData($login);
+                    $this->usersData[$this->login]['ConnectionDetails'] = $conDet->renderData($this->login);
                 }
 
             }
@@ -483,13 +504,11 @@ class AndroidApp {
      */
     protected function renderUserData() {
         if (!empty($this->usersData)) {
-            //$login = key($this->usersData);
-            //$this->data = $this->usersData[$login];
             $this->data = $this->usersData;
             $this->DebugMessageAdd('function', array('renderUserData' => $this->usersData));
         } else {
             $this->updateSuccessAndMessage('EMPTY_DATABASE_USERDATA');
-            $this->DebugMessageAdd('function', array('login' => @$_GET['username']));
+            $this->DebugMessageAdd('function', array('login' => $this->login));
         }
     }
 
@@ -637,6 +656,20 @@ class AndroidApp {
      */
     protected function setLogin() {
         $this->adminLogin = whoami();
+    }
+
+     /**
+     * Sets current user login
+     * 
+     * @return void
+     */
+    protected function initUsernameLogin() {
+        if (isset($_GET['username'])) {
+            $login = vf($_GET['username']);
+            $login = $this->filterStr($login);
+            $this->login = mysql_real_escape_string($login);
+            $this->DebugMessageAdd('Use function', array('function' => 'initUsernameLogin', 'login' => $this->login));
+        }
     }
 
     /**
