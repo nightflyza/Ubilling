@@ -745,7 +745,7 @@ class AndroidApp {
         header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
         header("Pragma: no-cache");
 
-        return (json_encode($this->json, JSON_PRETTY_PRINT));
+        return (json_encode($this->json));
     }
 }
 ?>
