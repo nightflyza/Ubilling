@@ -155,8 +155,14 @@ if (cfr('TASKMAN')) {
                         ts_PrintTasksTable($_POST['printdatefrom'], $_POST['printdateto']);
                     }
                 }
+
                 //show printing form
                 show_window(__('Tasks printing'), ts_PrintDialogue());
+
+                /*if (wf_CheckPost(array('showemptyqueryerror'))) {
+                    $messages = new UbillingMessageHelper();
+                    show_window(__('Warning'), $messages->getStyledMessage(__('Query returned empty result'), 'warning'));
+                }*/
             }
         } else {
             //sms post sending

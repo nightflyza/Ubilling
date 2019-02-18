@@ -2316,8 +2316,27 @@ function ts_TaskProblemsEditForm() {
  * @return string
  */
 function ts_PrintDialogue() {
+    global $ubillingConfig;
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+
     $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
     $inputs.= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
+
+    if ($advFiltersEnabled) {
+        $inputs.= wf_delimiter();
+
+        $whoami = whoami();
+        $employeeid = ts_GetEmployeeByLogin($whoami);
+
+        if ($employeeid) {
+            $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
+            $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
+            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+        }
+
+        $inputs .= ts_AdvFiltersControls();
+    }
+
     $inputs.= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
     $inputs.= wf_Submit(__('Print'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -2333,6 +2352,9 @@ function ts_PrintDialogue() {
  * @return void
  */
 function ts_PrintTasks($datefrom, $dateto) {
+    global $ubillingConfig;
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
@@ -2364,8 +2386,19 @@ function ts_PrintTasks($datefrom, $dateto) {
         ';
     $result.= wf_tag('style', true);
 
-    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'";
+    $advFilter = ($advFiltersEnabled) ? ts_AdvFiltersQuery() : '';
+    $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+    if ($displaytype == 'onlyme') {
+        $whoami = whoami();
+        $curempid = ts_GetEmployeeByLogin($whoami);
+        $appendQuery = " AND `employee`='" . $curempid . "'";
+    } else {
+        $appendQuery = '';
+    }
+
+    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . " " . $advFilter . " " . $appendQuery;
     $alltasks = simple_queryall($query);
+
     if (!empty($alltasks)) {
         foreach ($alltasks as $io => $each) {
             $rows = '';
@@ -2404,8 +2437,15 @@ function ts_PrintTasks($datefrom, $dateto) {
         $result.= wf_tag('script', false, '', 'language="javascript"');
         $result.= 'window.print();';
         $result.= wf_tag('script', true);
-        die($result);
+    } else {
+        //$_POST['showemptyqueryerror'] = 'true';
+
+        $messages = new UbillingMessageHelper();
+        $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
+        $result.= $messages->getStyledMessage(__('Query returned empty result'), 'warning');
     }
+
+    die($result);
 }
 
 /**
@@ -2417,6 +2457,9 @@ function ts_PrintTasks($datefrom, $dateto) {
  * @return void
  */
 function ts_PrintTasksTable($datefrom, $dateto) {
+    global $ubillingConfig;
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
@@ -2451,8 +2494,19 @@ function ts_PrintTasksTable($datefrom, $dateto) {
         ';
     $result.= wf_tag('style', true);
 
-    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0' ORDER BY `address`";
+    $advFilter = ($advFiltersEnabled) ? ts_AdvFiltersQuery() : '';
+    $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+    if ($displaytype == 'onlyme') {
+        $whoami = whoami();
+        $curempid = ts_GetEmployeeByLogin($whoami);
+        $appendQuery = " AND `employee`='" . $curempid . "'";
+    } else {
+        $appendQuery = '';
+    }
+
+    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . $advFilter . " " . $appendQuery . " " . "ORDER BY `address`";
     $alltasks = simple_queryall($query);
+
     if (!empty($alltasks)) {
         foreach ($alltasks as $io => $each) {
             $tmpArr[$each['employee']][] = $each;
@@ -2488,8 +2542,15 @@ function ts_PrintTasksTable($datefrom, $dateto) {
         $result.= wf_tag('script', false, '', 'language="javascript"');
         $result.= 'window.print();';
         $result.= wf_tag('script', true);
-        die($result);
+    } else {
+        //$_POST['showemptyqueryerror'] = 'true';
+
+        $messages = new UbillingMessageHelper();
+        $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
+        $result.= $messages->getStyledMessage(__('Query returned empty result'), 'warning');
     }
+
+    die($result);
 }
 
 /**
