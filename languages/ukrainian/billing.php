@@ -3053,5 +3053,6 @@ $lang['def']['in ghost mode'] = 'у режимі привида';
 //rev 6672
 $lang['def']['Nothing'] = 'Ніц';
 $lang['def']['Total cost'] = 'Загальна вартість';
+$lang['def']['Already reserved today'] = 'Ниньки заброньовано';
 
 ?>

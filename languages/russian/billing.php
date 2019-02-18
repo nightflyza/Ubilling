@@ -3036,6 +3036,7 @@ $lang['def']['in ghost mode'] = 'в режиме призрака';
 //rev 6672
 $lang['def']['Nothing'] = 'Ничегошеньки';
 $lang['def']['Total cost'] = 'Общая стоимость';
+$lang['def']['Already reserved today'] = 'Уже забронировано сегодня';
 $lang['def'][''] = '';
 
 

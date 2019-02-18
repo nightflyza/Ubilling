@@ -157,7 +157,7 @@ class UbillingMessageHelper {
      * 
      * @param string $data text message for styling
      * @param string $style error, warning, info, success
-     * @param string $opts
+     * @param string $opts custom container options
      * 
      * @return string
      */

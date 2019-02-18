@@ -701,7 +701,7 @@ class Warehouse {
                             $result.=$reserveResult;
                         } else {
                             //success!
-                            $result.=$this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('Reserved') . ' (' . $itemCount . ')', 'success');
+                            $result.=$this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('Reserved') . ' (' . $itemCount .' '.@$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')', 'success');
                             $successCount++;
                         }
                     }
@@ -710,6 +710,33 @@ class Warehouse {
             //live data update
             if ($successCount > 0) {
                 $this->loadReserve();
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders current dayly items reserved for some employee
+     * 
+     * @param int $employeeId
+     * 
+     * @return string
+     */
+    protected function reserveRenderTodayReserved($employeeId) {
+        $employeeId = vf($employeeId, 3);
+        $result = '';
+        if (!empty($this->allReserveHistory)) {
+            $curDate = curdate();
+            foreach ($this->allReserveHistory as $io => $each) {
+                if ($each['employeeid'] == $employeeId) {
+                    if ($each['type'] == 'create') {
+                        if (ispos($each['date'], $curDate)) {
+                            $itemtypeId=$each['itemtypeid'];
+                            $label=@$this->allItemTypeNames[$itemtypeId].'. '.__('Already reserved today').' ('.$each['count'].' '.@$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']].')';
+                            $result.=$this->messages->getStyledMessage($label, 'info');
+                        }
+                    }
+                }
             }
         }
         return ($result);
@@ -772,6 +799,9 @@ class Warehouse {
             }
 
             $result.=wf_Form('', 'POST', $inputs, '');
+            if (wf_CheckPost(array('newmassemployeeid'))) {
+                $result.=$this->reserveRenderTodayReserved(@$_POST['newmassemployeeid']);
+            }
             if ($emptyWarehouse) {
                 //       ,_    /) (\    _,
                 //        >>  <<,_,>>  <<
