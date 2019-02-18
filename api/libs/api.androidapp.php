@@ -599,7 +599,7 @@ class AndroidApp {
                     $tasksArr[$key]['comments'] = $all;
                     return($tasksArr);
                 }
-            );
+            )
         }
 
         $this->data = $tasksArr;
