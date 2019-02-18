@@ -436,7 +436,7 @@ class AndroidApp {
                 } else {
                     $this->usersData[$login]['paymantid'] = ip2int($this->usersData[$login]['ip']);
                 }
-				$this->usersData[$login]['notes'] = zb_UserGetNotes($login);
+                $this->usersData[$login]['notes'] = zb_UserGetNotes($login);
                 // gets and preformats last activity time
                 if ($ubillingConfig->getAlterParam('PROFILE_LAT')) {
                     //if ($this->usersData[$login]['LastActivityTime'] != 0) {
@@ -444,8 +444,8 @@ class AndroidApp {
                     //  $this->usersData[$login]['LastActivityTime'] = $data;
                     //}
                 }
-				//Returns user connection details with optional controls inside if enabled
-				if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
+                //Returns user connection details with optional controls inside if enabled
+                if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
 					$conDet = new ConnectionDetails();
 					$this->usersData[$login]['ConnectionDetails'] = $conDet->renderData($login);
 				}
