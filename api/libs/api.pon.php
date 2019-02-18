@@ -2893,18 +2893,11 @@ class PONizer {
         $opts = '"order": [[ 0, "desc" ]]';
 
         $result   = '';
-        $tabsData = '';
-
-        if ($this->ponizerUseTabUI) {
-            $result.= wf_tag('script', false, '', 'type="text/javascript"');
-            $result.= ' $( function() {
-                            $( "#ui-tabs" ).tabs();
-                        } );
-                      ';
-            $result.= wf_tag('script', true);
-            $result.= wf_tag('div', false, '', 'id="ui-tabs" style="border: none; padding: 0;"');
-            $result.= wf_tag('ul', false, '', 'style="border: none; background: #fff;"');
-        }
+        $tabClickScript = '';
+        $tabsList = array();
+        $tabsData = array();
+        // to prevent changing the keys order of $this->allOLTDevices we are using "+" opreator and not all those "array_merge" and so on
+        $QickOLTsArray = array(-9999 => '') + $this->allOltDevices;
 
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
             $AjaxURLStr = '' . self::URL_ME . '&ajaxonu=true&oltid=' . $oltId . '';
@@ -2915,22 +2908,33 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
-
-// to prevent changing the keys order of $this->allOLTDevices we are using "+" opreator and not all those "array_merge" and so on
-            $QickOLTsArray = array(-9999 => '') + $this->allOltDevices;
+                            wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             if ($this->EnableQuickOLTLinks) {
-                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
+                if ($this->ponizerUseTabUI) {
+                    $QuickOLTDDLName = 'QuickOLTDDL_100500';
+
+                    $tabClickScript = wf_tag('script', false, '', 'type="text/javascript"');
+                    $tabClickScript .= '$(\'a[href="#' . $QuickOLTLinkID . '"]\').click(function(evt) {
+                                            var tmpID = $(this).attr("href").replace("#QuickOLTLinkID_", "");
+                                            if ($(\'[name="' . $QuickOLTDDLName . '"]\').val() != tmpID) {
+                                                $(\'[name="' . $QuickOLTDDLName . '"]\').val(tmpID);
+                                            }
+                                        });
+                                        ';
+                    $tabClickScript .= wf_tag('script', true);
+                } else {
+                    $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
                         wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
                         wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
                         wf_tag('script', false, '', 'type="text/javascript"') .
                         '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
-                                            var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
-                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
-                                        });' .
+                                        var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
+                                        $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
+                                    });' .
                         wf_tag('script', true) .
                         wf_tag('div', true);
+                }
             } else {
                 $QuickOLTLinkInput = '';
             }
@@ -2945,6 +2949,7 @@ class PONizer {
                     $refresh_button .= wf_img('skins/refresh.gif');
                     $refresh_button .= wf_tag('a', true);
                 }
+
                 $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
                 $refresh_button .= '$(\'#' . $OLTIDStr . '\').click(function(evt) {
                                         $(\'img\', this).addClass("image_rotate");
@@ -2959,24 +2964,44 @@ class PONizer {
 
 
             if ($this->ponizerUseTabUI) {
-                    $result.=   wf_tag('li') .
-                                wf_tag('a', false, '', 'href="#' . $QuickOLTLinkID .'"') .
-                                    $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData .
-                                wf_tag('a', true) .
-                                wf_tag('li', true);
+                    $tabsList[$QuickOLTLinkID] = array('options' => '',
+                                                       'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
+                                                       'additional_data' => $tabClickScript
+                                                       );
 
-                    $tabsData.= wf_tag('div', false, '', 'id="' . $QuickOLTLinkID . '" style="padding: 0 0 0 2px;"') .
-                                wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
-                                wf_tag('div', true);
+                    $tabsData[$QuickOLTLinkID] = array('options' => 'style="padding: 0 0 0 2px;"',
+                                                       'body' => wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
+                                                        'additional_data' => ''
+                                                       );
             } else {
-                $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
-                    $QuickOLTLinkInput
+                $result .=  show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData,
+                            wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) . $QuickOLTLinkInput
                 );
             }
         }
 
         if ($this->ponizerUseTabUI) {
-            return (show_window('OLTs', $result . wf_tag('ul', true) . $tabsData));
+            $tabsDivOpts = 'style="border: none; padding: 0;"';
+            $tabsLstOpts = 'style="border: none; background: #fff;"';
+
+            if ($this->EnableQuickOLTLinks) {
+                $QuickOLTDDLName = 'QuickOLTDDL_100500';
+                $QickOLTsArray = $this->allOltDevices;
+
+                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;"') .
+                    wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                    wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                    wf_tag('script', false, '', 'type="text/javascript"') .
+                    '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                                            $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
+                                        });' .
+                    wf_tag('script', true) .
+                    wf_tag('div', true);
+            } else {
+                $QuickOLTLinkInput = '';
+            }
+
+            show_window('OLTs', $QuickOLTLinkInput . wf_delimiter() . wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true));
         } else {
             return ($result);
         }

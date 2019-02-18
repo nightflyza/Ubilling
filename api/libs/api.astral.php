@@ -2626,6 +2626,89 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
     return ($result);
 }
 
+
+/**
+ * Generates tabbed UI for almost any data.
+ *
+ * @param $tabsDivID - ID of the main tab div
+ * @param $tabsList - array of: tab ID => array('tab_options' => 'options',
+ *                                              'tab_caption' => 'caption,
+ *                                              'additional_data' => 'anything')
+ *                    which represents the tabs itself.
+ *                    Additional data can be anything, like some JS script or comments or whatever.
+ * @param $tabsBody - array of: div ID => array('div_options' => 'options',
+ *                                              'tab_body_data' => 'data'
+ *                                              'additional_data' => 'anything')
+ *                    which represents the divs with tabs data.
+ *                    Additional data can be anything, like some JS script or comments or whatever.
+ * @param string $mainDivOpts
+ * @param string $ulOpts
+ * @param bool $tabsCarouselOn
+ *
+ * @return string
+ */
+function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts = '', $tabsCarouselOn = false) {
+    $result = '';
+
+    if (!empty($tabsDivID) and !empty($tabsList) and !empty($tabsBody)) {
+        $divOps = 'id="' . $tabsDivID . '" ' . $mainDivOpts;
+        $initTabsJSStr = '$( "#' . $tabsDivID . '" ).tabs();';
+
+        if ($tabsCarouselOn) {
+            $result.= '<link rel="stylesheet" href="modules/jsc/JQUI_ScrollTabs/style.css" type="text/css">';
+            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.ba-throttle-debounce.min.js"></script>';
+            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.mousewheel.min.js"></script>';
+            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.touchSwipe.min.js"></script>';
+            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.ui.scrolltabs.js"></script>';
+
+            $initTabsJSStr = '$("#' . $tabsDivID . '").scrollTabs({        
+                                scrollOptions: {
+                                    showFirstLastArrows: false,                                    
+                        	        closable: false
+                                }
+                             });
+                             
+                             // dirty hack for scrollTabsPlugin to select the very first tab
+                             $( "#' . $tabsDivID . '" ).scrollTabs("option", "active", 0);
+                             ';
+
+        }
+
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        $result.= ' $( function() { ' .
+                        $initTabsJSStr .
+                    ' } );
+                  ';
+        $result.= wf_tag('script', true);
+
+        $result .= wf_tag('div', false, '', $divOps);
+        $result .= wf_tag('ul', false, '', $ulOpts);
+
+        foreach ($tabsList as $tabhref => $tabData) {
+            $result.=   wf_tag('li') .
+                        wf_tag('a', false, '', 'href="#' . $tabhref . '" ' . $tabData['options']) .
+                            $tabData['caption'] .
+                        wf_tag('a', true) .
+                        wf_tag('li', true) .
+                        $tabData['additional_data'];
+        }
+
+        $result.= wf_tag('ul', true);
+
+        foreach ($tabsBody as $bodyID => $bodyData) {
+            $result.=   wf_tag('div', false, '', 'id="' . $bodyID . '" ' . $bodyData['options']) .
+                            $bodyData['body'] .
+                        wf_tag('div', true) .
+                        $bodyData['additional_data'];
+        }
+
+        $result.= wf_tag('div', true);
+    }
+
+    return ($result);
+}
+
+
 /**
  * Returns plain JS-code of 'empty' function to use for checking an empty value in JS code
  *
