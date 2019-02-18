@@ -467,7 +467,11 @@ class AndroidApp {
                 //additional mobile data
                 if ($ubillingConfig->getAlterParam('MOBILES_EXT')) {
                     $extMob = new MobilesExt();
-                    $allExt = array_column($extMob->getUserMobiles($this->login), 'mobile');
+                    if (version_compare(phpversion(), '5.5.0', '<')) {
+                        $allExt =  array();
+                    } else {
+                        $allExt = array_column($extMob->getUserMobiles($this->login), 'mobile');
+                    }
                     $additionalNumbers = implode(', ', $allExt);
                     $this->usersData[$this->login]['additionalNumbers'] = $additionalNumbers;
                 }
