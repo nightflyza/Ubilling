@@ -1116,6 +1116,16 @@ class DealWithIt {
                 $tags_options[$eachtad['id']] = $eachtad['tagname'];
             }
         }
+        // Load switches
+        $query_allswitches = "SELECT * from `switches` ORDER BY `location`";
+        $allswitches = simple_queryall($query_allswitches);
+        $switches_options = array();
+
+        if (!empty($alltags)) {
+            foreach ($allswitches as $io => $eachtad) {
+                $switches_options[$eachtad['id']] = $eachtad['ip'] . ' - ' . $eachtad['location'];
+            }
+        }
 
         // Рисуем форму, которая включает в запрос пользователей
         $cells = wf_TableCell(wf_tag('b') . __('Include in search query') . wf_tag('b'), '', '', 'colspan="3"');
@@ -1151,6 +1161,11 @@ class DealWithIt {
         $cells.= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '', false));
         $rows.= wf_TableRow($cells, 'row2');
 
+        $cells = wf_TableCell(__('Switch'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][switch]', '', false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[switch]', $switches_options, '', '', false));
+        $rows.= wf_TableRow($cells, 'row2');
+
         // Рисуем форму, которая исключает из запроса пользователей
         $cells_ex = wf_TableCell(wf_tag('b') . __('Exclude from search query') . wf_tag('/b'), '', '', 'colspan="3"');
         $rows_ex = wf_TableRow($cells_ex, 'row2');
@@ -1183,6 +1198,11 @@ class DealWithIt {
         $cells_ex = wf_TableCell(__('Tags'));
         $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tags]', '', false));
         $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tags]', $tags_options, '', '', false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('Switch'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_switch]', '', false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_switch]', $switches_options, '', '', false));
         $rows_ex.= wf_TableRow($cells_ex, 'row2');
 
         $rows_ex.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
@@ -1303,6 +1323,16 @@ class DealWithIt {
                 }
             }
         }
+        // Search login by Switch
+        if (isset($search_field['switch']) and $search_field['switch'] == 'on') {
+            $query = "SELECT `login` from `switchportassign` WHERE `switchid`='" . vf($_POST['dealwithit_search']['switch'], 3) . "'";
+            $data_switches = simple_queryall($query);
+            if (!empty($data_switches)) {
+                foreach ($data_switches as $login) {
+                    $result[] = $login['login'];
+                }
+            }
+        }
 
         // Исключаем из запроса пользователей
         // Начинаем заполнять массив исключения
@@ -1399,6 +1429,16 @@ class DealWithIt {
             $data_tags_exclude = simple_queryall($query_exclude);
             if (!empty($data_tags_exclude)) {
                 foreach ($data_tags_exclude as $login) {
+                    $result_exclude[] = $login['login'];
+                }
+            }
+        }
+        // Search login by switch
+        if (isset($exclude_field['ex_switch']) and $exclude_field['ex_switch'] == 'on') {
+            $query_exclude = "SELECT `login` from `switchportassign` WHERE `switchid`='" . vf($_POST['dealwithit_search']['ex_switch'], 3) . "'";
+            $data_switches_exclude = simple_queryall($query_exclude);
+            if (!empty($data_switches_exclude)) {
+                foreach ($data_switches_exclude as $login) {
                     $result_exclude[] = $login['login'];
                 }
             }
