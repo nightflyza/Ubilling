@@ -31,6 +31,20 @@ class SMSZilla {
     protected $allCities = array();
 
     /**
+     * Contains available swithes as swithid=>data
+     *
+     * @var array
+     */
+    protected $allSwitches = array();
+
+    /**
+     * Contains all users swithes as login=>switchid
+     *
+     * @var array
+     */
+    protected $allSwitchesUsers = array();
+
+    /**
      * Contains data of all available Internet users as login=>data
      *
      * @var array
@@ -321,6 +335,7 @@ class SMSZilla {
         $this->initCache();
         $this->initSMS();
         $this->loadCities();
+        $this->loadSwitches();
         $this->loadUsers();
         $this->loadOpCustomers();
         $this->loadDownUsers();
@@ -456,6 +471,28 @@ class SMSZilla {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allCities[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing switches from database
+     * 
+     * @return void
+     */
+    protected function loadSwitches() {
+        $query = "SELECT * from `switches` ORDER BY `location`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allSwitches[$each['id']] = $each;
+            }
+        }
+        $queryUsers = "SELECT * from `switchportassign`";
+        $allUsers = simple_queryall($queryUsers);
+        if (!empty($allUsers)) {
+            foreach ($allUsers as $io => $each) {
+                $this->allSwitchesUsers[$each['login']] = $each['switchid'];
             }
         }
     }
@@ -641,6 +678,7 @@ class SMSZilla {
             'filternumnotcontain' => 'Notes not contains',
             'filternumnotouruser' => 'Is not our user',
             'filterdistrict' => 'District',
+            'filterswitch' => 'Switch',
         );
 
         $this->directionNames = array(
@@ -1436,7 +1474,6 @@ class SMSZilla {
 
         $numListParams = $this->allNumListsNames;
 
-
         $branchParams = array('' => __('Any'));
         $availBranches = $this->branches->getBranchesAvailable();
         if (!empty($availBranches)) {
@@ -1445,6 +1482,12 @@ class SMSZilla {
             }
         }
 
+        $switchesParams = array('' => __('Any'));
+        if (!empty($this->allSwitches)) {
+            foreach ($this->allSwitches as $io => $each) {
+                $switchesParams[$each['id']] = $each['ip'] . ' - ' . $each['location'];
+            }
+        }
 
         $districtsParams = array('' => __('Any'));
         $districtsParams += $this->districts->getDistricts();
@@ -1469,7 +1512,7 @@ class SMSZilla {
             if (($direction == 'login')) {
                 $inputs .= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
                 $inputs .= wf_TextInput('newfilterip', __('IP contains'), '', true, '20');
-				$inputs .= wf_TextInput('newfilterswitch', __('Switch'), '', true, '20');
+                $inputs .= wf_Selector('newfilterswitch', $switchesParams, __('Switch'), '', true, false);
                 $inputs .= wf_CheckInput('newfiltercashmonth', __('Balance is not enough for the next month'), true, false);
                 $inputs .= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
             }
@@ -1672,6 +1715,25 @@ class SMSZilla {
                         return ($result);
                     }
                 }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks have user switchId
+     * 
+     * @param string $login
+     * @param int $switchId
+     * 
+     * @return bool
+     */
+    protected function checkSwitchId($login, $switchId) {
+        $result = false;
+        if (isset($this->allSwitchesUsers[$login])) {
+            if ($this->allSwitchesUsers[$login] == $switchId) {
+                        $result = true;
+                        return ($result);
             }
         }
         return ($result);
@@ -2675,6 +2737,30 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['Passive'] != '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Switch filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterswitch($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!$this->checkSwitchId($entity['login'], $param)) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
