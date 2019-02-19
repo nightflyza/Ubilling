@@ -1433,7 +1433,7 @@ class DealWithIt {
                 }
             }
         }
-        // Search login by switch
+        // Exclude login by switch
         if (isset($exclude_field['ex_switch']) and $exclude_field['ex_switch'] == 'on') {
             $query_exclude = "SELECT `login` from `switchportassign` WHERE `switchid`='" . vf($_POST['dealwithit_search']['ex_switch'], 3) . "'";
             $data_switches_exclude = simple_queryall($query_exclude);
