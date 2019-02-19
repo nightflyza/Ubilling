@@ -418,11 +418,12 @@ class AndroidApp {
      * 
      * @return void
      */
-    public function filterStr($str) {
-        $str = strip_tags($str);
+    public function filterStr($strOrigin) {
+        $str = strip_tags($strOrigin);
         $str = trim($str);
         $str = stripslashes($str);
         $str = htmlspecialchars($str);
+        $this->DebugMessageAdd('function', array('filterStr' => array('origin' => $strOrigin, 'return' => $str)));
         return $str;
     }
 

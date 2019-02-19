@@ -65,10 +65,10 @@ if ($android->access) {
     if (isset($_GET['action']) and $_GET['action'] == 'addcash' and $android->checkRight('CASH')) {
         if ($android->login) {
             // Init
-            $cash = @$_POST['newcash'];
+            $cash = isset($_POST['newcash']) ? $_POST['newcash'] : '';
             // $operation = vf($_POST['operation']);
             $operation = 'add';
-            $cashtype = vf(@$_POST['cashtype']);
+            $cashtype = isset($_POST['cashtype']) ? vf($_POST['cashtype']) : '';
             $note = (isset($_POST['newpaymentnote'])) ? mysql_real_escape_string($_POST['newpaymentnote']) : '';
 
             // Empty cash hotfix:
@@ -135,11 +135,12 @@ if ($android->access) {
     /**
      * Change user profile
      *
-     * Can change: username, password, REALNAME, PHONE, MOBILE, EMAIL, PASSIVE state, Down state, NOTES
+     * Can change: PASSWORD, REALNAME, PHONE, MOBILE, EMAIL, PASSIVE state, Down state, NOTES, ConnectionDetails (not fully works)
      */
     if (isset($_GET['action']) and $_GET['action'] == 'useredit' and $android->checkRight('USEREDIT')) {
         if ($android->login) {
             // change password  if need
+            // use wf_CheckPost(array('newpassword')) - because user must always contain password
             if (wf_CheckPost(array('newpassword')) and $android->checkRight('PASSWORD')) {
                 $password = $_POST['newpassword'];
                 if (zb_CheckPasswordUnique($password)) {
@@ -151,52 +152,68 @@ if ($android->access) {
             }
 
             // change realname if need
+            // use wf_CheckPost(array('newrealname')) - because user must always contain realname
             if (wf_CheckPost(array('newrealname')) and $android->checkRight('REALNAME')) {
-                $realname = $_POST['newrealname'];
+                $realname = $android->filterStr($_POST['newrealname']);
                 zb_UserChangeRealName($android->login, $realname);
                 log_register('ANDROID CHANGE REALNAME (' . $android->login . ') ON `' . mysql_real_escape_string($realname) . '`');
             }
 
             // change  phone if need
-            if (wf_CheckPost(array('newphone')) and $android->checkRight('PHONE')) {
-                $phone = $_POST['newphone'];
+            // use isset($_POST['newphone']) - because we can delete phone number
+            if (isset($_POST['newphone']) and $android->checkRight('PHONE')) {
+                $phone =  $android->filterStr($_POST['newphone']);
                 zb_UserChangePhone($android->login, $phone);
             }
 
             // change phone if need
-            if (wf_CheckPost(array('newmobile')) and $android->checkRight('MOBILE')) {
-                $mobile = $_POST['newmobile'];
-                zb_UserChangeMobile($android->login, $mobile);
+            // use isset($_POST['newmobile']) - because we can delete mobile number
+            if (isset($_POST['newmobile']) and $android->checkRight('MOBILE')) {
+                $mobile = $android->filterStr($_POST['newmobile']);
+                if (empty($mobile) or preg_match('/^\+?(\d{1,3})?\d{2,3}\d{7}$/', $mobile)) {
+                    zb_UserChangeMobile($android->login, $mobile);
+                }
             }
 
             // change mail if need
-            if (wf_CheckPost(array('newmail')) and $android->checkRight('EMAIL')) {
-                $mail = $_POST['newmail'];
-                zb_UserChangeEmail($android->login, $mail);
+            // use isset($_POST['newmobile']) - because we can delete user email
+            if (isset($_POST['newmail']) and $android->checkRight('EMAIL')) {
+                $mail = $android->filterStr($_POST['newmail']);
+                if (empty($mail) or preg_match('/^([\w\._-]+)@([\w\._-]+)\.([a-z]{2,6}\.?)$/', $mail)) {
+                    zb_UserChangeEmail($android->login, $mail);
+                }
             }
 
             // change down if need
-            if (wf_CheckPost(array('newdown')) and $android->checkRight('DOWN')) {
-                $down = $_POST['newdown'];
-                $billing->setdown($android->login, $down);
-                log_register('ANDROID CHANGE Down (' . $android->login . ') ON '. $down);
+            // use isset($_POST['newdown']) - because parametr can be 0 or 1
+            if (isset($_POST['newdown']) and $android->checkRight('DOWN')) {
+                if (preg_match('/^[01]{1}$/', $_POST['newdown'])) {
+                    $down = $_POST['newdown'];
+                    $billing->setdown($android->login, $down);
+                    log_register('ANDROID CHANGE Down (' . $android->login . ') ON '. $down);
+                }
             }
 
             // change passive if need
-            if (wf_CheckPost(array('newpassive')) and $android->checkRight('PASSIVE')) {
-                $passive = $_POST['newpassive'];
-                $billing->setpassive($android->login, $passive);
-                log_register('ANDROID CHANGE Passive (' . $android->login . ') ON ' . $passive);
+            // use isset($_POST['newpassive']) - because parametr can be 0 or 1
+            if (isset($_POST['newpassive']) and $android->checkRight('PASSIVE')) {
+                if (preg_match('/^[01]{1}$/', $_POST['newpassive'])) {
+                    $passive = $_POST['newpassive'];
+                    $billing->setpassive($android->login, $passive);
+                    log_register('ANDROID CHANGE Passive (' . $android->login . ') ON ' . $passive);
+                }
             }
-            
+
             // change notes if need
-            if (wf_CheckPost(array('newnotes')) and $android->checkRight('NOTES')) {
-                $notes = $_POST['newnotes'];
+            // use isset($_POST['newmobile']) - because we can delete notes
+            if (isset($_POST['newnotes']) and $android->checkRight('NOTES')) {
+                $notes = $android->filterStr($_POST['newnotes']);
                 zb_UserDeleteNotes($android->login);
                 zb_UserCreateNotes($android->login, $notes);
             }
 
             // reset user if need
+            // use wf_CheckPost(array('reset')) - because POST input can be only TRUE
             if (wf_CheckPost(array('reset')) and $android->checkRight('RESET')) {
                 $billing->resetuser($android->login);
                 log_register("ANDROID RESET User (" . $android->login . ")");
@@ -253,30 +270,6 @@ if ($android->access) {
         }
     }
 
-    //search users
-    if (isset($_GET['action']) and $_GET['action'] == 'test') {
-        print_r('
-                <form action="?module=android&debug=true&action=usersearch" method="POST" class="ubLoginForm" id="Form_1zged3ok">
-                <input type="text" name="searchquery" value="" size="12" id="wwa1z5db" class="">
-                <label for="wwa1z5db">QUERY</label>
-                <input type="submit" value="Search" id="Submit_u4etly1m">
-                </form>'
-        );
-        die();
-    }
-
-    //search users
-    if (isset($_GET['action']) and $_GET['action'] == 'test2') {
-        print_r('
-                <form action="?module=android&debug=true&action=newadcommentstext" method="POST" class="ubLoginForm" id="Form_1zged3ok">
-                <input type="text" name="newcommentstext" value="" size="12" id="wwa1z5db" class="">
-                <input type="text" name="taskid" value="" size="12" id="wwa1z5db" class="">
-                <label for="wwa1z5db">QUERY</label>
-                <input type="submit" value="Search" id="Submit_u4etly1m">
-                </form>'
-        );
-        die();
-    }
 }
 
 $android->loadData();
