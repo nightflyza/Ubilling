@@ -2988,7 +2988,7 @@ class PONizer {
                 $QuickOLTDDLName = 'QuickOLTDDL_100500';
                 $QickOLTsArray = $this->allOltDevices;
 
-                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;"') .
+                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px; text-align: right;"') .
                     wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
                     wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
                     wf_tag('script', false, '', 'type="text/javascript"') .
@@ -3001,7 +3001,7 @@ class PONizer {
                 $QuickOLTLinkInput = '';
             }
 
-            show_window('OLTs', $QuickOLTLinkInput . wf_delimiter() . wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true));
+            show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) . $QuickOLTLinkInput);
         } else {
             return ($result);
         }

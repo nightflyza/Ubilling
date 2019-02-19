@@ -328,3 +328,9 @@ table.dataTable td {
     margin-top: 0.5em;
   }
 }
+
+.ui-widget-content .dataTables_wrapper, .ui-widget .dataTables_wrapper {
+  font-family: "Helvetica Neue", Helvetica, Arial, Verdana, sans-serif;
+  color: #666;
+  font-size: 12px;
+}
