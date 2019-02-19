@@ -1112,8 +1112,8 @@ class DealWithIt {
         $tags_options = array();
 
         if (!empty($alltags)) {
-            foreach ($alltags as $io => $eachtad) {
-                $tags_options[$eachtad['id']] = $eachtad['tagname'];
+            foreach ($alltags as $io => $eachtag) {
+                $tags_options[$eachtag['id']] = $eachtag['tagname'];
             }
         }
         // Load switches
@@ -1121,9 +1121,9 @@ class DealWithIt {
         $allswitches = simple_queryall($query_allswitches);
         $switches_options = array();
 
-        if (!empty($alltags)) {
-            foreach ($allswitches as $io => $eachtad) {
-                $switches_options[$eachtad['id']] = $eachtad['ip'] . ' - ' . $eachtad['location'];
+        if (!empty($allswitches)) {
+            foreach ($allswitches as $io => $eachsw) {
+                $switches_options[$eachsw['id']] = $eachsw['ip'] . ' - ' . $eachsw['location'];
             }
         }
 
