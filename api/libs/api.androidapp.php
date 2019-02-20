@@ -162,6 +162,7 @@ class AndroidApp {
                 $this->setGetModuleAction();
                 $this->setGetDate();
                 $this->initUsernameLogin();
+                $this->loadPermissionCheckGlobal();
             }
         } else {
             $this->json['message'] = 'First you need login';
@@ -207,6 +208,33 @@ class AndroidApp {
             $this->setGetStartDate = true;
         }
         $this->DebugMessageAdd('date', array('getDate' => $this->getDate, 'getStartDate' => $this->getStartDate, 'getEndDate' => $this->getEndDate));
+    }
+
+    /**
+     * Set check permissons for modules that use global
+     *
+     * @return void
+     */
+    protected function loadPermissionCheckGlobal() {
+            $this->permissionCheckAdd('taskmansearch');
+            $this->permissionCheckAdd('taskman');
+            $this->permissionCheckAdd('userprofile');
+            $this->permissionCheckAdd('useredit');
+            $this->permissionCheckAdd('pl_dhcp');
+            $this->permissionCheckAdd('pl_pinger');
+            $this->permissionCheckAdd('useredit');
+            $this->permissionCheckAdd('passwordedit');
+            $this->permissionCheckAdd('realnameedit');
+            $this->permissionCheckAdd('phoneedit');
+            $this->permissionCheckAdd('mobileedit');
+            $this->permissionCheckAdd('mailedit');
+            $this->permissionCheckAdd('downedit');
+            $this->permissionCheckAdd('passiveedit');
+            $this->permissionCheckAdd('notesedit');
+            $this->permissionCheckAdd('reset');
+            $this->permissionCheckAdd('condetedit');
+            $this->permissionCheckAdd('addcash');
+            $this->permissionCheckAdd('usersearch');
     }
 
     /**
@@ -304,26 +332,6 @@ class AndroidApp {
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'TASKMAN', 'getModuleAction' => 'default'));
                     }
             }
-            // Set check permissons for modules that use global
-            $this->permissionCheckAdd('taskmansearch');
-            $this->permissionCheckAdd('taskman');
-            $this->permissionCheckAdd('userprofile');
-            $this->permissionCheckAdd('useredit');
-            $this->permissionCheckAdd('pl_dhcp');
-            $this->permissionCheckAdd('pl_pinger');
-            $this->permissionCheckAdd('useredit');
-            $this->permissionCheckAdd('passwordedit');
-            $this->permissionCheckAdd('realnameedit');
-            $this->permissionCheckAdd('phoneedit');
-            $this->permissionCheckAdd('mobileedit');
-            $this->permissionCheckAdd('mailedit');
-            $this->permissionCheckAdd('downedit');
-            $this->permissionCheckAdd('passiveedit');
-            $this->permissionCheckAdd('notesedit');
-            $this->permissionCheckAdd('reset');
-            $this->permissionCheckAdd('condetedit');
-            $this->permissionCheckAdd('addcash');
-            $this->permissionCheckAdd('usersearch');
         }
     }
 
