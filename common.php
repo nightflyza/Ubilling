@@ -14,7 +14,7 @@ error_reporting(E_ALL);
 // Unset any globals created by register_globals being turned ON
 foreach ($GLOBALS as $key => $global) {
     if (!preg_match('/^(_POST|_GET|_COOKIE|_SERVER|_FILES|GLOBALS|HTTP.*|_REQUEST)$/', $key)){
-        unset($$key);
+        unset(&$key);
     }
 }
 unset($global);
