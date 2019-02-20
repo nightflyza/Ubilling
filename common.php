@@ -12,10 +12,10 @@
 error_reporting(E_ALL);
 
 // Unset any globals created by register_globals being turned ON
-while (list($global) = each($GLOBALS)){
-	if (!preg_match('/^(_POST|_GET|_COOKIE|_SERVER|_FILES|GLOBALS|HTTP.*|_REQUEST)$/', $global)){
-		unset($$global);
-	}
+foreach ($GLOBALS as $key => $global) {
+    if (!preg_match('/^(_POST|_GET|_COOKIE|_SERVER|_FILES|GLOBALS|HTTP.*|_REQUEST)$/', $key)){
+        unset($$key);
+    }
 }
 unset($global);
 
