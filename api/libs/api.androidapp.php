@@ -236,8 +236,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'USERSEARCH', 'getModuleAction' => 'usersearch'));
                     }
-                    $this->permissionCheckAdd('usersearch');
-                    $this->permissionCheckAdd('addcash');
                     break;
                 case 'userprofile':
                 case 'addcash':
@@ -247,8 +245,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'USERPROFILE', 'getModuleAction' => 'usersearch'));
                     }
-                    $this->permissionCheckAdd('userprofile');
-                    $this->permissionCheckAdd('addcash');
                     break;
                 case 'useredit':
                     if (cfr('USEREDIT')) {
@@ -257,17 +253,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'USEREDIT', 'getModuleAction' => 'useredit'));
                     }
-                    $this->permissionCheckAdd('useredit');
-                    $this->permissionCheckAdd('passwordedit');
-                    $this->permissionCheckAdd('realnameedit');
-                    $this->permissionCheckAdd('phoneedit');
-                    $this->permissionCheckAdd('mobileedit');
-                    $this->permissionCheckAdd('mailedit');
-                    $this->permissionCheckAdd('downedit');
-                    $this->permissionCheckAdd('passiveedit');
-                    $this->permissionCheckAdd('notesedit');
-                    $this->permissionCheckAdd('reset');
-                    $this->permissionCheckAdd('condetedit');
                     break;
                 case 'pl_dhcp':
                     if (cfr('PLDHCP')) {
@@ -276,7 +261,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'PLDHCP', 'getModuleAction' => 'pl_dhcp'));
                     }
-                    $this->permissionCheckAdd('pl_dhcp');
                     break;
                 case 'pl_pinger':
                     if (cfr('PLPINGER')) {
@@ -285,7 +269,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'PLPINGER', 'getModuleAction' => 'pl_pinger'));
                     }
-                    $this->permissionCheckAdd('pl_pinger');
                     break;
                 case 'taskmanundone':
                     if (cfr('TASKMAN')) {
@@ -294,9 +277,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'TASKMAN', 'getModuleAction' => 'taskman'));
                     }
-                    $this->permissionCheckAdd('taskman');
-                    $this->permissionCheckAdd('userprofile');
-                    
                     break; 
                 case 'taskmandone':
                     if (cfr('TASKMAN')) {
@@ -305,9 +285,6 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'TASKMAN', 'getModuleAction' => 'taskmandone'));
                     }
-                    $this->permissionCheckAdd('taskman');
-                    $this->permissionCheckAdd('userprofile');
-                    
                     break;
                 case 'taskman':
                     if (cfr('TASKMAN')) {
@@ -316,15 +293,10 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'TASKMAN', 'getModuleAction' => 'taskman'));
                     }
-                    $this->permissionCheckAdd('taskman');
-                    $this->permissionCheckAdd('userprofile');
-                    
                     break;
                 default:
                     if (cfr('TASKMAN')) {
                         $this->getTasks();
-                        $this->permissionCheckAdd('taskman');
-                        $this->permissionCheckAdd('userprofile');
                     } else {
                         $this->success = false;
                         $this->message = __('Permission denied');
@@ -339,6 +311,19 @@ class AndroidApp {
             $this->permissionCheckAdd('useredit');
             $this->permissionCheckAdd('pl_dhcp');
             $this->permissionCheckAdd('pl_pinger');
+            $this->permissionCheckAdd('useredit');
+            $this->permissionCheckAdd('passwordedit');
+            $this->permissionCheckAdd('realnameedit');
+            $this->permissionCheckAdd('phoneedit');
+            $this->permissionCheckAdd('mobileedit');
+            $this->permissionCheckAdd('mailedit');
+            $this->permissionCheckAdd('downedit');
+            $this->permissionCheckAdd('passiveedit');
+            $this->permissionCheckAdd('notesedit');
+            $this->permissionCheckAdd('reset');
+            $this->permissionCheckAdd('condetedit');
+            $this->permissionCheckAdd('addcash');
+            $this->permissionCheckAdd('usersearch');
         }
     }
 
