@@ -13,7 +13,7 @@
 function gravatar_GetUrl($email) {
     $hash = strtolower($email);
     $hash = md5($hash);
-    $proto = 'http://gravatar.com/avatar/';
+    $proto = 'https://gravatar.com/avatar/';
     $result = $proto . $hash;
     return ($result);
 }
