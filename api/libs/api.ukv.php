@@ -1594,6 +1594,9 @@ class UkvSystem {
             if (cfr('UKVSEAL')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal') . wf_tag('div', true);
             }
+            if (cfr('EMPLOYEE')) {
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))).__('Jobs') . wf_tag('div', true);
+            }
             if (cfr('UKVDEL')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
             }

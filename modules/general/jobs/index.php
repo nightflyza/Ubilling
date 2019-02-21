@@ -17,11 +17,15 @@ if (cfr('EMPLOYEE')) {
             stg_delete_job($_GET['deletejob']);
             rcms_redirect("?module=jobs&username=" . $username);
         }
-
+        //just jobs
         web_showPreviousJobs($username);
-        $previousUserTasks = ts_PreviousUserTasksRender($username, '', true);
-        if (!empty($previousUserTasks)) {
-            show_window(__('Previous user tasks'), $previousUserTasks);
+        
+        //previous tasks
+        if (cfr('TASKMAN')) {
+            $previousUserTasks = ts_PreviousUserTasksRender($username, '', true);
+            if (!empty($previousUserTasks)) {
+                show_window(__('Previous user tasks'), $previousUserTasks);
+            }
         }
         show_window('', web_UserControls($username));
     }
