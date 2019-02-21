@@ -235,6 +235,7 @@ class AndroidApp {
             $this->permissionCheckAdd('condetedit');
             $this->permissionCheckAdd('addcash');
             $this->permissionCheckAdd('usersearch');
+            $this->permissionCheckAdd('macedit');
     }
 
     /**
@@ -487,12 +488,36 @@ class AndroidApp {
                     //  $this->usersData[$this->login]['LastActivityTime'] = $data;
                     //}
                 }
-                //Returns user connection details with optional controls inside if enabled
+                // Returns user connection details
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
                     $conDet = new ConnectionDetails();
+                    $connectionDetails = $conDet->getByLogin($this->login);
                     $this->usersData[$this->login]['ConnectionDetails'] = $conDet->renderData($this->login);
+                    $this->usersData[$this->login]['seal'] = (isset($connectionDetails['seal'])) ? $connectionDetails['seal'] : '';
+                    $this->usersData[$this->login]['length'] = (isset($connectionDetails['length'])) ? $connectionDetails['length'] : '';
+                    $this->usersData[$this->login]['price'] = (isset($connectionDetails['price'])) ? $connectionDetails['price'] : '';
                 }
-
+                // Returns user PON signal from cache
+                if ($ubillingConfig->getAlterParam('PON_ENABLED') and $ubillingConfig->getAlterParam('SIGNAL_IN_PROFILE')) {
+                    $searched = __('No');
+                    $query = "SELECT `id`,`mac`,`oltid`,`serial` FROM `pononu` WHERE `login`='" . $this->login . "'";
+                    $onu_data = simple_query($query);
+                    if (!empty($onu_data)) {
+                        $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
+                        if (!empty($availCacheData)) {
+                            foreach ($availCacheData as $io => $each) {
+                                $raw = file_get_contents(PONizer::SIGCACHE_PATH . $each);
+                                $raw = unserialize($raw);
+                                foreach ($raw as $mac => $signal) {
+                                    if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
+                                        $searched = $signal;
+                                    }
+                                }
+                            }
+                        }
+                        $this->usersData[$this->login]['signal'] = $searched;
+                    }
+                }
             }
         } else { 
             $this->updateSuccessAndMessage('Username cannot be empty');
