@@ -255,49 +255,13 @@ function stg_get_jobtype_color($id) {
 }
 
 /**
- * Returns employee selector box
- * 
- * @return string
- */
-function stg_worker_selector() {
-    $query = "SELECT * from `employee` WHERE `active`='1'";
-    $allemployee = simple_queryall($query);
-    $employeez = array();
-    if (!empty($allemployee)) {
-        foreach ($allemployee as $io => $eachwrker) {
-            $employeez[$eachwrker['id']] = $eachwrker['name'];
-        }
-    }
-    $result = wf_Selector('worker', $employeez, '', '', false);
-    return($result);
-}
-
-/**
- * Returns jobtype selector box
- * 
- * @return string
- */
-function stg_jobtype_selector() {
-    $query = "SELECT * from `jobtypes` ORDER by `id` ASC";
-    $alljobtypes = simple_queryall($query);
-    $params = array();
-    if (!empty($alljobtypes)) {
-        foreach ($alljobtypes as $io => $eachjobtype) {
-            $params[$eachjobtype['id']] = $eachjobtype['jobname'];
-        }
-    }
-    $result = wf_Selector('jobtype', $params, '', '', false);
-    return($result);
-}
-
-/**
  * Renders list with controls for jobs done for some user
  * 
  * @param string $username
  * 
  * @return void
  */
-function stg_show_jobs($username) {
+function web_showPreviousJobs($username) {
     $query_jobs = 'SELECT * FROM `jobs` WHERE `login`="' . $username . '" ORDER BY `id` ASC';
     $alljobs = simple_queryall($query_jobs);
     $allemployee = ts_GetAllEmployee();
@@ -338,8 +302,8 @@ function stg_show_jobs($username) {
     $inputs.= wf_HiddenInput('jobdate', $curdatetime);
     $inputs.= wf_TableCell('');
     $inputs.= wf_tableCell($curdatetime);
-    $inputs.= wf_TableCell(stg_worker_selector());
-    $inputs.= wf_TableCell(stg_jobtype_selector());
+    $inputs.= wf_TableCell(wf_Selector('worker', $activeemployee, '', '', false));
+    $inputs.= wf_TableCell(wf_Selector('jobtype', $alljobtypes, '', '', false));
     $inputs.= wf_TableCell(wf_TextInput('notes', '', '', false, '20'));
     $inputs.= wf_TableCell(wf_Submit('Create'));
     $inputs = wf_TableRow($inputs, 'row2');
@@ -599,7 +563,7 @@ function ts_JGetUndoneTasks() {
         $appendQuery .= ts_AdvFiltersQuery();
     }
 
-    if ( !$showAllYearsTasks AND ($curmonth != 1 AND $curmonth != 12) ) {
+    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
                     WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
@@ -720,7 +684,7 @@ function ts_JGetDoneTasks() {
         $appendQuery .= ts_AdvFiltersQuery();
     }
 
-    if ( !$showAllYearsTasks AND ($curmonth != 1 AND $curmonth != 12) ) {
+    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
                     WHERE `status`='1' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
@@ -818,7 +782,7 @@ function ts_JGetAllTasks() {
         $appendQuery .= ts_AdvFiltersQuery();
     }
 
-    if ( !$showAllYearsTasks AND ($curmonth != 1 AND $curmonth != 12) ) {
+    if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
         $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
                       LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
                     WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
@@ -986,7 +950,7 @@ function ts_TaskCreateForm() {
         if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
             $allAddress = zb_AddressGetFulladdresslistCached();
         } else {
-            $allAddress= zb_AddressGetStreetsWithBuilds();
+            $allAddress = zb_AddressGetStreetsWithBuilds();
         }
         $inputs.= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
     }
@@ -1051,7 +1015,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $TaskDate = new DateTime();
         $TaskDate->add(new DateInterval('P1D'));
         $TaskDate->setTime(8, 00);
-        // В воскресенье работать работать не хочу
+        // В воскресенье работать не хочу
         if ($newTaskDate = $TaskDate->format('w') == 0) {
             $TaskDate->add(new DateInterval('P1D'));
         }
@@ -1106,23 +1070,27 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
  * 
  * @return string
  */
-function ts_PreviousUserTasksRender($login) {
+function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false) {
     $result = '';
     $userTasks = array();
     $telepathyTasks = array();
     $telepathy = new Telepathy(false, true);
 
-    if (!empty($login)) {
-        $alljobtypes = ts_GetAllJobtypes();
-        $allemployee = ts_GetActiveEmployee();
-        $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
-        $rawTasks = simple_queryall($query);
-        if (!empty($rawTasks)) {
+
+    $alljobtypes = ts_GetAllJobtypes();
+    $allemployee = ts_GetActiveEmployee();
+    $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
+    $rawTasks = simple_queryall($query);
+    if (!empty($rawTasks)) {
+        if (!$noFixedWidth) {
             $result.= wf_tag('hr');
-            foreach ($rawTasks as $io => $each) {
+        }
+        foreach ($rawTasks as $io => $each) {
+            if (!empty($login)) {
                 if ($each['login'] == $login) {
                     $userTasks[$each['id']] = $each;
                 }
+
                 //address guessing
                 if ($telepathy->getLogin($each['address']) == $login) {
                     if (!isset($userTasks[$each['id']])) {
@@ -1130,20 +1098,30 @@ function ts_PreviousUserTasksRender($login) {
                         $telepathyTasks[$each['id']] = $each['id'];
                     }
                 }
-            }
-
-            if (!empty($userTasks)) {
-                foreach ($userTasks as $io => $each) {
-                    $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
-                    $taskColor = ($each['status']) ? 'donetask' : 'undone';
-                    $result.= wf_tag('div', false, $taskColor, 'style="width:400px;"');
-                    $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']] . ' ' . $telepathyFlag;
-                    $result.= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
-                    $result.= wf_tag('div', true);
+            } else {
+                //just address guessing
+                if (!empty($address)) {
+                    if ($address == $each['address']) {
+                        $userTasks[$each['id']] = $each;
+                        $telepathyTasks[$each['id']] = $each['id'];
+                    }
                 }
             }
         }
+
+        if (!empty($userTasks)) {
+            foreach ($userTasks as $io => $each) {
+                $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
+                $taskColor = ($each['status']) ? 'donetask' : 'undone';
+                $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
+                $result.= wf_tag('div', false, $taskColor, $divStyle);
+                $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']] . ' ' . $telepathyFlag;
+                $result.= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
+                $result.= wf_tag('div', true);
+            }
+        }
     }
+
     return ($result);
 }
 
@@ -1279,7 +1257,7 @@ function ts_ShowPanel() {
     if (cfr('TASKMANTIMING')) {
         $tools.= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
     }
-    
+
     if (cfr('TASKMANADMREP')) {
         $tools.= wf_Link('?module=taskmanadmreport', wf_img('skins/mcdonalds.png') . ' ' . __('Hataraku Maou-sama!'), false, 'ubButton');
     }
@@ -2072,7 +2050,7 @@ function ts_renderLogsDataAjax($taskid = '') {
     if (!empty($result_log)) {
         $allemployee = ts_GetAllEmployee();
         $alljobtypes = ts_GetAllJobtypes();
-        
+
         foreach ($result_log as $each) {
             $administratorChange = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
 
