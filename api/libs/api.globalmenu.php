@@ -203,10 +203,12 @@ class GlobalMenu {
         if (!empty($this->categories)) {
             if (!empty($this->menuData)) {
                 foreach ($this->categories as $eachCategoryName => $eachCategoryId) {
-                    $this->menuCode.=wf_tag('h3', false) . __($eachCategoryName) . wf_tag('h3', true);
-                    $this->menuCode.= wf_tag('ul', false, 'toggleGMENU');
-                    $this->menuCode.=$this->menuData[$eachCategoryId];
-                    $this->menuCode.= wf_tag('ul', true);
+                    if (!empty($this->menuData[$eachCategoryId])) {
+                        $this->menuCode.=wf_tag('h3', false) . __($eachCategoryName) . wf_tag('h3', true);
+                        $this->menuCode.= wf_tag('ul', false, 'toggleGMENU');
+                        $this->menuCode.=$this->menuData[$eachCategoryId];
+                        $this->menuCode.= wf_tag('ul', true);
+                    }
                 }
             }
         }

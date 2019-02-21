@@ -305,18 +305,15 @@ class UbillingTaskbar {
         $result = '';
         $elementsPath = self::BASE_PATH . $category . '/';
         $allElements = rcms_scandir($elementsPath, '*.ini');
-
+        $categoryContent = '';
         if (!empty($allElements)) {
             $categoryName = (isset($this->categories[$category])) ? $this->categories[$category] : '';
-
-            $result.=wf_tag('p') . wf_tag('h3') . wf_tag('u') . $categoryName . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
-            $result.= wf_tag('div', false, 'dashboard');
             foreach ($allElements as $io => $eachfilename) {
                 $elementData = rcms_parse_ini_file($elementsPath . $eachfilename);
                 if ((isset($elementData['TYPE'])) AND ( isset($elementData['ID']))) {
                     if (!isset($this->loadedElements[$elementData['ID']])) {
                         $this->loadedElements[$elementData['ID']] = $elementData;
-                        $result.=$this->buildElement($elementData);
+                        $categoryContent.=$this->buildElement($elementData);
                     } else {
                         $this->currentAlerts.=$this->messages->getStyledMessage(__('Duplicate element ID') . ': ' . $elementData['ID'] . ' -> ' . $eachfilename, 'warning');
                     }
@@ -324,10 +321,15 @@ class UbillingTaskbar {
                     $this->currentAlerts.=$this->messages->getStyledMessage(__('Wrong element format') . ': ' . $eachfilename, 'warning');
                 }
             }
-            $result.= wf_tag('div', true);
-            $result.= wf_tag('div', false, '', 'style="clear:both"') . wf_tag('div', true);
-        }
 
+            if (!empty($categoryContent)) {
+                $result.=wf_tag('p') . wf_tag('h3') . wf_tag('u') . $categoryName . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
+                $result.= wf_tag('div', false, 'dashboard');
+                $result.=$categoryContent;
+                $result.= wf_tag('div', true);
+                $result.= wf_CleanDiv();
+            }
+        }
         return ($result);
     }
 
