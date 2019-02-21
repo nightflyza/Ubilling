@@ -581,7 +581,6 @@ class Warehouse {
                 $curdate = curdate();
                 $sendTmp = array(); //employeeid => text aggregated
                 $reserveTmp = array(); //employeeid=>reserve data with aggr
-                $totalCostSumm = 0;
                 foreach ($this->allReserve as $io => $eachReserve) {
                     $employeeId = $eachReserve['employeeid'];
                     $chatId = @$this->allEmployeeTelegram[$employeeId];
@@ -603,6 +602,7 @@ class Warehouse {
 
                 if (!empty($reserveTmp)) {
                     foreach ($reserveTmp as $eachEmployee => $reservedItems) {
+                        $totalCostSumm = 0;
                         $message = __('Is reserved for you') . '\r\n ';
                         ;
                         foreach ($reservedItems as $eachItemId => $eachItemCount) {
@@ -611,8 +611,9 @@ class Warehouse {
                             $totalCostSumm+=$itemCost * $eachItemCount;
                         }
 
-                        $message.=__('Total cost') . ': ' . $totalCostSumm . '\r\n '; //pugalo inside
                         $message.='📦📦📦📦' . '\r\n '; // very vsrate emoji
+                        $message.=__('Total cost') . ': ' . $totalCostSumm . '\r\n '; //pugalo inside
+                        $message.='💸💸💸💸' . '\r\n '; // dont ask me why
                         $sendTmp[$eachEmployee] = $message;
                     }
                 }
