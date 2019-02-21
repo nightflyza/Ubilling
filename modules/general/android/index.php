@@ -227,11 +227,53 @@ if ($android->access) {
             if (wf_CheckPost(array('editcondet')) and $android->checkRight('CONDET')) {
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED') ) {
                     $conDet = new ConnectionDetails();
-                    $conDet->set($android->login, @$_POST['newseal'], @$_POST['newlength'], @$_POST['newprice']);
+                    $newseal = (isset($_POST['newseal'])) ? $android->filterStr($_POST['newseal']) : '';
+                    $newlength = (isset($_POST['newlength'])) ? $android->filterStr($_POST['newlength']) : '';
+                    $newprice = (isset($_POST['newprice'])) ? $android->filterStr($_POST['newprice']) : '';
+                    $conDet->set($android->login, $newseal, $newlength, $newprice);
                 } else {
                     $android->updateSuccessAndMessage('This module is disabled');
                 }
             }
+
+        // change mac if need
+        if (isset($_POST['newmac']) and $android->checkRight('MAC')) {
+            $mac =  $android->filterStr($_POST['newmac']);
+            $allUsedMacs = zb_getAllUsedMac();
+            //check mac for free
+            if (zb_checkMacFree($mac, $allUsedMacs)) {
+                //validate mac format
+                if (check_mac_format($mac)) {
+                    $ip = zb_UserGetIP($android->login);
+                    $old_mac = zb_MultinetGetMAC($ip);
+                    multinet_change_mac($ip, $mac);
+                    log_register("ANDROID MAC CHANGE (" . $android->login . ") " . $ip . " FROM  " . $old_mac . " ON " . $mac);
+                    multinet_rebuild_all_handlers();
+                    // need reset after mac change
+                    $billing->resetuser($android->login);
+                    log_register("ANDROID RESET User (" . $android->login . ")");
+                    //ressurect user if required
+                    if ($ubillingConfig->getAlterParam('RESETHARD')) {
+                        zb_UserResurrect($android->login);
+                    }
+                        if ($ubillingConfig->getAlterParam('MACCHGDOUBLEKILL')) {
+                            $billing->resetuser($android->login);
+                            log_register("ANDROID RESET User (" . $android->login . ") DOUBLEKILL");
+                        }
+
+                } else {
+                    //show error when MAC haz wrong format
+                     $android->updateSuccessAndMessage('This MAC have wrong format');
+                    //debuglog
+                    log_register("ANDROID MACINVALID TRY (" . $android->login . ")");
+                }
+            } else {
+                //show error when MAC is in usage
+                $android->updateSuccessAndMessage('This MAC is currently used');
+                //debuglog
+                log_register("ANDROID MACDUPLICATE TRY (" . $android->login . ")");
+            }
+        }
 
             $android->getUserData();
        } else {
