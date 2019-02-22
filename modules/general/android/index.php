@@ -1,13 +1,4 @@
 <?php
-/*
-$options = array('options' => array('min_range'=>0, 'max_range'=>9));
-
-$priority = filter_input(INPUT_GET, 'cash', FILTER_VALIDATE_FLOAT, array('options' => array('default'=>1, ), 'flags' => FILTER_FLAG_ALLOW_THOUSAND));
-    var_dump($priority );
-    if ($priority) {
-        print 'PAUTINA: ' . $priority . PHP_EOL;
-    }
-*/
 
 $android = new AndroidApp();
 
