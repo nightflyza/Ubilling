@@ -7,13 +7,26 @@
  * @return string
  */
 function web_UserControls($login) {
+    global $ubillingConfig;
+    $oldStyleFlag = $ubillingConfig->getAlterParam('OLD_USERCONTROLS');
+
     $urlProfile = '?module=userprofile&username=';
     $urlUserEdit = '?module=useredit&username=';
 
     $controls = wf_tag('div', false);
-    $controls .= wf_Link($urlProfile . $login, wf_img_sized('skins/icon_user_big.gif', __('Back to user profile'), '48') . __('Back to user profile'), true, '');
-    $controls .= wf_tag('br');
-    $controls .= wf_Link($urlUserEdit . $login, wf_img_sized('skins/icon_user_edit_big.gif', __('Back to user edit'), '48') . __('Back to user edit'), false, '');
+    if ($oldStyleFlag) {
+        $controls .= wf_Link($urlProfile . $login, wf_img_sized('skins/icon_user_big.gif', __('Back to user profile'), '48') . __('Back to user profile'), true, '');
+        $controls .= wf_tag('br');
+        $controls .= wf_Link($urlUserEdit . $login, wf_img_sized('skins/icon_user_edit_big.gif', __('Back to user edit'), '48') . __('Back to user edit'), false, '');
+    } else {
+        if (cfr('USERPROFILE')) {
+            $controls .= wf_Link($urlProfile . $login, wf_img_sized('skins/backprofile.png', __('Back to user profile'), '16') . ' ' . __('Back to user profile'), false, 'ubbackprofile') . ' ';
+        }
+
+        if ((cfr('USEREDIT')) AND ( @$_GET['module'] != 'useredit')) {
+            $controls .= wf_Link($urlUserEdit . $login, wf_img_sized('skins/backedit.png', __('Back to user edit'), '16') . ' ' . __('Back to user edit'), false, 'ubbackedit');
+        }
+    }
     $controls .= wf_tag('div', true);
     return($controls);
 }
