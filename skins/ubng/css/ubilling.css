@@ -922,7 +922,7 @@ div.dhtml_menu div.vert_menu a.active:hover
 	-moz-box-shadow:inset 0px 1px 0px 0px #fce2c1;
 	-webkit-box-shadow:inset 0px 1px 0px 0px #fce2c1;
 	box-shadow:inset 0px 1px 0px 0px #fce2c1;
-	background-color:#ffc477;
+	/* background-color:#ffc477; */
 	-moz-border-radius:6px;
 	-webkit-border-radius:6px;
 	border-radius:6px;
@@ -949,7 +949,7 @@ div.dhtml_menu div.vert_menu a.active:hover
 	-moz-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
 	-webkit-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
 	box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-	background-color:#79bbff;
+	/* background-color:#79bbff; */
 	-moz-border-radius:6px;
 	-webkit-border-radius:6px;
 	border-radius:6px;
