@@ -1075,7 +1075,8 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
     $userTasks = array();
     $telepathyTasks = array();
     $telepathy = new Telepathy(false, true);
-
+    $cache = new UbillingCache();
+    $addressLoginsCache = $cache->get('ADDRESSTELEPATHY', 2592000);
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
@@ -1092,7 +1093,16 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                 }
 
                 //address guessing
-                if ($telepathy->getLogin($each['address']) == $login) {
+                if (isset($addressLoginsCache[$each['address']])) {
+                    $guessedLogin = $addressLoginsCache[$each['address']];
+                } else {
+                    $guessedLogin = $telepathy->getLogin($each['address']);
+                    if ($guessedLogin) {
+                        $addressLoginsCache[$each['address']] = $guessedLogin;
+                    }
+                }
+
+                if ($guessedLogin == $login) {
                     if (!isset($userTasks[$each['id']])) {
                         $userTasks[$each['id']] = $each;
                         $telepathyTasks[$each['id']] = $each['id'];
@@ -1108,6 +1118,8 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                 }
             }
         }
+        //cache update
+        $cache->set('ADDRESSTELEPATHY', $addressLoginsCache, 2592000);
 
         if (!empty($userTasks)) {
             foreach ($userTasks as $io => $each) {
