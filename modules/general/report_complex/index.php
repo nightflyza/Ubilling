@@ -55,7 +55,7 @@ if (cfr('REPORTCOMPLEX')) {
                 if (!empty($altercfg['COMPLEX_CFIDS'])) {
                     if (!empty($altercfg['COMPLEX_CFIDS'])) {
                         $cfieldsRaw = explode(',', $altercfg['COMPLEX_CFIDS']);
-                        if (sizeof($cfieldsRaw) != '3') {
+                        if (sizeof($cfieldsRaw) == 2) {
                             $this->cfields['contract'] = trim($cfieldsRaw[0]);
                             $this->cfields['active'] = trim($cfieldsRaw[1]);
                         } else {
