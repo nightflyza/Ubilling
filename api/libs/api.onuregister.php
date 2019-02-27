@@ -805,7 +805,7 @@ class OnuRegister {
                 foreach ($oltInterface as $eachOid => $name) {
                     $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
                     $name = str_replace("STRING:", '', $name);
-                    $name = str_replce('"', '', $name);
+                    $name = str_replace('"', '', $name);
                     $name = trim($name);
                     $interfaceList[$interfaceId] = $name;
                 }
