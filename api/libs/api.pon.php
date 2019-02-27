@@ -696,7 +696,8 @@ class PONizer {
                 $devOID = trim($line[0]);
                 $devline = explode('.', $devOID);
                 $devIndex = trim($devline[0]);
-                if (!empty($this->interfaceDecodeZTE($devIndex))) {
+                $naturalIndex = $this->interfaceDecodeZTE($devIndex);
+                if (!empty($naturalIndex)) {
                     if (isset($devline[1])) {
                         $FDBvlan = trim($devline[1]);
                         $macPart[] = dechex($devline[2]);
@@ -713,7 +714,6 @@ class PONizer {
                         }
 
                         $FDBmac = implode(':', $macPart);
-                        $naturalIndex = $this->interfaceDecodeZTE($devIndex);
                         $FDBTmp[$naturalIndex][$counter]['mac'] = $FDBmac;
                         $FDBTmp[$naturalIndex][$counter]['vlan'] = $FDBvlan;
                         $counter++;
@@ -725,8 +725,9 @@ class PONizer {
             foreach ($macIndex as $ioIndex => $eachMac) {
                 $eachMac = strtolower($eachMac);
                 $eachMac = str_replace(" ", ":", $eachMac);
-                if (!empty($this->interfaceDecodeZTE($ioIndex))) {
-                    $macTmp[$this->interfaceDecodeZTE($ioIndex)] = $eachMac;
+                $interface = $this->interfaceDecodeZTE($ioIndex);
+                if (!empty($interface)) {
+                    $macTmp[$interface] = $eachMac;
                 }
             }
 
