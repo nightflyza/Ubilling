@@ -237,6 +237,13 @@ class OnuRegister {
     public $currentPonType = '';
 
     /**
+     * Contains count of all service ports on HUAWEI OLT
+     * 
+     * @var integer
+     */
+    private $servicePort = 1;
+
+    /**
      * Placeholder for ONU identifier. Mac or Serial.
      * 
      * @var string
@@ -882,6 +889,20 @@ class OnuRegister {
                     $this->existId[] = $number;
                 }
             }
+            $allServicePorts = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['SERVICEPORTS']);
+            if (!empty($allServicePorts)) {
+                $count = count($allServicePorts);
+                for ($i = 1; $i <= 65536; $i++) {
+                    $allPorts[$i] = $i;
+                }
+                foreach ($allServicePorts as $eachOid => $value) {
+                    $split = explode(":", $value);
+                    $number = trim($split[1]);
+                    $usedPorts[$number] = $number;
+                }
+                $freePorts = array_diff($allPorts, $usedPorts);
+                $this->servicePort = current($freePorts);
+            }
         }
         $free = array_diff($allID, $this->existId);
         reset($free);
@@ -937,6 +958,7 @@ class OnuRegister {
         $this->loadCalculatedData();
         //set serial number empty as default value because epon    
         $serial = '';
+        $scriptPath = '';
 
         if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
             $oltData = $this->allSwLogin[$this->currentOltSwId];
@@ -957,8 +979,17 @@ class OnuRegister {
                 }
 
                 if (($this->currentPonType == 'EPON' and count($this->existId) < 64) or ( $this->currentPonType == 'GPON' and count($this->existId) < 128)) {
-                    $onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
-                    $scriptPath = CONFIG_PATH . 'scripts/' . $this->currentPonType . '_' . $this->onuModels[$onuModel]['ports'];
+                    $scriptPath .= CONFIG_PATH . 'scripts/';
+                    if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                        $scriptPath .= 'HUAWEI_';
+                        $splitName = explode(" ", $this->currentOltInterface);
+                        $splitInterface = explode("/", $splitName[1]);
+                        $this->currentOltInterface = $splitInterface[0] . '/' . $splitInterface[1];
+                        $onuInterface = $splitInterface[2];
+                    } else {
+                        $onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
+                    }
+                    $scriptPath .= $this->currentPonType . '_' . $this->onuModels[$onuModel]['ports'];
                     if ($router) {
                         $scriptPath .= '_R';
                     }
@@ -972,10 +1003,17 @@ class OnuRegister {
                         $command .= $this->lastOnuId;
                         $command .= ' ' . $vlan . ' ';
                         $command .= $this->onuIdentifier;
+                        if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                            $command .= ' ' . $this->servicePort;
+                        }
                         $this->result .= shell_exec($command);
                         if ($save) {
                             $command = $this->billingCfg['EXPECT_PATH'];
-                            $command .= ' ' . CONFIG_PATH . 'scripts/save' . ' ';
+                            $command .= ' ' . CONFIG_PATH . 'scripts/';
+                            if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                                $command .= 'HUAWEI_';
+                            }
+                            $command .= 'save' . ' ';
                             $command .= $this->currentOltIp;
                             $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method;
 
