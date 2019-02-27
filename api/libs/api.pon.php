@@ -563,11 +563,11 @@ class PONizer {
                 $result[$eachMac] = $interface;
                 $macTmp[$ioIndex] = $eachMac;
             } else {
-                if (!empty($this->interfaceDecodeZTE($ioIndex))) {
+                $interface = $this->interfaceDecodeZTE($ioIndex);
+                if (!empty($interface)) {
                     $eachMac = strtolower($eachMac);
                     $eachMac = explode(" ", $eachMac);
                     $eachMac = implode(":", $eachMac);
-                    $interface = $this->interfaceDecodeZTE($ioIndex);
                     $result[$eachMac] = $interface;
                     $macTmp[$ioIndex] = $eachMac;
                 }
