@@ -62,7 +62,7 @@ if ($altCfg['MAPON_ENABLED']) {
                 show_warning(__('Nothing to show'));
             }
         } catch (Mapon\ApiException $e) {
-            show_error('API Error! Code: ' . $e->getCode() . ' Message: ' . $e->getMessage());
+            show_error(__('Something went wrong') . ': ' . 'API error code: ' . $e->getCode() . ', ' . $e->getMessage());
         }
     } else {
         show_error(__('Access denied'));
