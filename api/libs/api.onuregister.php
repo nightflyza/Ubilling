@@ -560,6 +560,8 @@ class OnuRegister {
                     return ($id);
                 }
             }
+        }
+        if (!empty($this->allHuaweiOlt)) {
             foreach ($this->allHuaweiOlt as $id => $eachOlt) {
                 if ($eachOlt['ip'] == $ip) {
                     return ($id);
