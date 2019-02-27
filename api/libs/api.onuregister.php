@@ -956,10 +956,13 @@ class OnuRegister {
         $this->currentOltSwId = $this->getOltId($this->currentOltIp);
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
             $this->currentSnmpCommunity = $this->allHuaweiOlt[$this->currentOltSwId]['snmp'];
+            $snmpTemplateName = $this->allHuaweiOlt[$this->currentOltSwId]['snmptemplate'];
         }
         if (isset($this->allZteOlt[$this->currentOltSwId])) {
             $this->currentSnmpCommunity = $this->allZteOlt[$this->currentOltSwId]['snmp'];
+            $snmpTemplateName = $this->allZteOlt[$this->currentOltSwId]['snmptemplate'];
         }
+
         $this->loadCalculatedData();
         //set serial number empty as default value because epon    
         $serial = '';
@@ -970,7 +973,7 @@ class OnuRegister {
             $swlogin = $oltData['swlogin'];
             $swpassword = $oltData['swpass'];
             $method = $oltData['method'];
-            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$this->currentOltSwId]['snmptemplate'])) {
+            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $snmpTemplateName)) {
                 $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$this->currentOltSwId]['snmptemplate'], true);
                 if ($this->currentPonType == 'EPON') {
                     $addMac = $this->onuIdentifier;
@@ -985,7 +988,15 @@ class OnuRegister {
 
                 if (($this->currentPonType == 'EPON' and count($this->existId) < 64) or ( $this->currentPonType == 'GPON' and count($this->existId) < 128)) {
                     $scriptPath .= CONFIG_PATH . 'scripts/';
-                    $onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
+                    if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                        $scriptPath .= 'HUAWEI_';
+                        $splitName = explode(" ", $this->currentOltInterface);
+                        $splitInterface = explode("/", $splitName[1]);
+                        $this->currentOltInterface = $splitInterface[0] . '/' . $splitInterface[1];
+                        $onuInterface = $splitInterface[2];
+                    } else {
+                        $onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
+                    }
                     $scriptPath .= $this->currentPonType . '_' . $this->onuModels[$onuModel]['ports'];
                     if ($router) {
                         $scriptPath .= '_R';
@@ -1000,70 +1011,17 @@ class OnuRegister {
                         $command .= $this->lastOnuId;
                         $command .= ' ' . $vlan . ' ';
                         $command .= $this->onuIdentifier;
+                        if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                            $command .= ' ' . $this->servicePort;
+                        }
                         $this->result .= shell_exec($command);
                         if ($save) {
                             $command = $this->billingCfg['EXPECT_PATH'];
-                            $command .= ' ' . CONFIG_PATH . 'scripts/save' . ' ';
-                            $command .= $this->currentOltIp;
-                            $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method;
-
-                            $this->result .= shell_exec($command);
-                        }
-                        $this->result = str_replace("\n", '<br />', $this->result);
-                        log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
-
-                        if ($PONizerAdd) {
-                            if (!empty($login) and ! empty($addMac)) {
-                                $pon = new PONizer();
-                                $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
-                            } else {
-                                log_register('ONUREG PONIZER WRONG DATA. Login: ' . $login . '. MAC: ' . $addMac);
+                            $command .= ' ' . CONFIG_PATH . 'scripts/';
+                            if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                                $command .= 'HUAWEI_';
                             }
-                        }
-                    }
-                } else {
-                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                }
-            }
-            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $this->allHuaweiOlt[$this->currentOltSwId]['snmptemplate'])) {
-                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->allHuaweiOlt[$this->currentOltSwId]['snmptemplate'], true);
-                if ($this->currentPonType == 'EPON') {
-                    $addMac = $this->onuIdentifier;
-                    $this->onuIdentifier = $this->transformMac();
-                    $this->checkRegisterdEponOnu();
-                }
-                if ($this->currentPonType == 'GPON') {
-                    $this->onuIdentifier = strtoupper($this->onuIdentifier);
-                    $serial = $this->onuIdentifier;
-                    $this->checkRegisteredGponOnu();
-                }
-
-                if (($this->currentPonType == 'EPON' and count($this->existId) < 64) or ( $this->currentPonType == 'GPON' and count($this->existId) < 128)) {
-                    $scriptPath .= CONFIG_PATH . 'scripts/';
-                    $scriptPath .= 'HUAWEI_';
-                    $splitName = explode(" ", $this->currentOltInterface);
-                    $splitInterface = explode("/", $splitName[1]);
-                    $this->currentOltInterface = $splitInterface[0] . '/' . $splitInterface[1];
-                    $onuInterface = $splitInterface[2];
-                    $scriptPath .= $this->currentPonType . '_' . $this->onuModels[$onuModel]['ports'];
-                    if ($router) {
-                        $scriptPath .= '_R';
-                    }
-                    if (file_exists($scriptPath)) {
-                        $command = $this->billingCfg['EXPECT_PATH'];
-                        $command .= ' ' . $scriptPath . ' ';
-                        $command .= $this->currentOltIp;
-                        $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method . ' ';
-                        $command .= $this->currentOltInterface;
-                        $command .= ' ' . $onuInterface . ' ';
-                        $command .= $this->lastOnuId;
-                        $command .= ' ' . $vlan . ' ';
-                        $command .= $this->onuIdentifier;
-                        $command .= ' ' . $this->servicePort;
-                        $this->result .= shell_exec($command);
-                        if ($save) {
-                            $command = $this->billingCfg['EXPECT_PATH'];
-                            $command .= ' ' . CONFIG_PATH . 'scripts/HUAWEI_save' . ' ';
+                            $command .= 'save' . ' ';
                             $command .= $this->currentOltIp;
                             $command .= ' ' . $swlogin . ' ' . $swpassword . ' ' . $method;
 
