@@ -150,7 +150,7 @@ class OnuRegister {
      * 
      * @var array
      */
-    protected $gponCards = array('GPFA' => 4, 'GPFAE' => 4, 'GTGO' => 8, 'GTGH' => 16, 'GTGHG' => 16, 'GPBD' => 8, 'GPFD' => 8, 'GPBH' => 8, 'GPMD' => 8);
+    protected $gponCards = array('GPFA' => 4, 'GPFAE' => 4, 'GTGO' => 8, 'GTGH' => 16, 'GTGHG' => 16, 'GPBD' => 8, 'GPFD' => 16, 'GPBH' => 8, 'GPMD' => 8);
 
     /**
      * Greed placeholder
