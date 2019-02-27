@@ -892,7 +892,7 @@ class OnuRegister {
             $allServicePorts = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['SERVICEPORTS']);
             if (!empty($allServicePorts)) {
                 $count = count($allServicePorts);
-                for ($i = 0; $i <= 65536; $i++) {
+                for ($i = 1; $i <= 65536; $i++) {
                     $allPorts[$i] = $i;
                 }
                 foreach ($allServicePorts as $eachOid => $value) {
