@@ -3037,7 +3037,13 @@ $lang['def']['in ghost mode'] = 'в режиме призрака';
 $lang['def']['Nothing'] = 'Ничегошеньки';
 $lang['def']['Total cost'] = 'Общая стоимость';
 $lang['def']['Already reserved today'] = 'Уже забронировано сегодня';
+$lang['def']['Total mileage'] = 'Общий пробег';
+$lang['def']['standing'] = 'стоит';
+$lang['def']['driving'] = 'едет';
+$lang['def']['Cars'] = 'Машинки';
+$lang['def']['right to use MapOn module'] = 'Право использовать модуль MapOn';
 $lang['def'][''] = '';
+
 
 
 ?>

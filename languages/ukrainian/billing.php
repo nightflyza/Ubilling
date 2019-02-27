@@ -3054,5 +3054,10 @@ $lang['def']['in ghost mode'] = 'у режимі привида';
 $lang['def']['Nothing'] = 'Ніц';
 $lang['def']['Total cost'] = 'Загальна вартість';
 $lang['def']['Already reserved today'] = 'Ниньки заброньовано';
+$lang['def']['Total mileage'] = 'Загальний пробіг';
+$lang['def']['standing'] = 'стоїть';
+$lang['def']['driving'] = 'їде';
+$lang['def']['Cars'] = 'Машинки';
+$lang['def']['right to use MapOn module'] = 'Право використовувати модуль MapOn';
 
 ?>

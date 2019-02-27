@@ -67,7 +67,7 @@ class MapOn {
      */
     protected function initMapOn() {
         require_once 'api/libs/api.maponapi.php';
-        $this->api = new Mapon\MaponAPI($this->apiKey, self::API_URL);
+            $this->api = new Mapon\MaponAPI($this->apiKey, self::API_URL);
     }
 
     /**
@@ -89,8 +89,8 @@ class MapOn {
      */
     protected function getRoutes($dateFrom, $dateTo) {
         $result = $this->api->get('route/list', array(
-            'from' => '' . $dateFrom . 'T00:00:00Z',
-            'till' => '' . $dateTo . 'T23:59:59Z',
+            'from' => '' . $dateFrom,
+            'till' => '' . $dateTo,
             'include' => array('polyline', 'speed')
         ));
         return ($result);
@@ -104,15 +104,17 @@ class MapOn {
     public function getTodayRoutes() {
         $result = array();
         $curday = curdate();
-        $routes = $this->getRoutes($curday, $curday);
+        $routes = $this->getRoutes($curday . 'T00:00:00Z', $curday . 'T23:59:59Z');
         if ($routes) {
             if (isset($routes->data)) {
                 foreach ($routes->data->units as $io => $each) {
                     $unitId = $each->unit_id;
                     foreach ($each->routes as $route) {
                         if ($route->type == 'route') {
-                            $points = $this->api->decodePolyline($route->polyline, $route->speed, strtotime($route->start->time));
-                            $result[$unitId] = $points;
+                            if (@$route->speed) {
+                                $points = $this->api->decodePolyline($route->polyline, $route->speed, strtotime($route->start->time));
+                                $result[$unitId] = $points;
+                            }
                         }
                     }
                 }
@@ -120,28 +122,30 @@ class MapOn {
         }
         return ($result);
     }
-    
-    
+
+    /**
+     * Reuturns current units state
+     * 
+     * @return array
+     */
     public function getUnits() {
-        $result=array();
-        $raw = $this->api->get('unit/list');
-        $drivers = $this->api->get('driver/list');
-        debarr($drivers);
+        $result = array();
+        $raw = $this->api->get('unit/list', array('include' => array('drivers')));
         if ($raw) {
             if ($raw->data) {
-                foreach ($raw->data as $io=>$eachUnit) {
+                foreach ($raw->data as $io => $eachUnit) {
                     if (!empty($eachUnit)) {
-                        foreach ($eachUnit as $ia=>$each) {
-                            $unitId=$each->unit_id;
-                            $result[$unitId]['unitid']=$unitId;
-                            $result[$unitId]['label']=$each->label;
-                            $result[$unitId]['number']=$each->number;
-                            $result[$unitId]['mileage']=$each->mileage;
-                            $result[$unitId]['lat']=$each->lat;
-                            $result[$unitId]['lng']=$each->lng;
-                            $result[$unitId]['last_update']=$each->last_update;
-                            $result[$unitId]['state']=$each->state->name;
-                            
+                        foreach ($eachUnit as $ia => $each) {
+                            $unitId = $each->unit_id;
+                            $result[$unitId]['unitid'] = $unitId;
+                            $result[$unitId]['label'] = $each->label;
+                            $result[$unitId]['number'] = $each->number;
+                            $result[$unitId]['mileage'] = $each->mileage;
+                            $result[$unitId]['lat'] = $each->lat;
+                            $result[$unitId]['lng'] = $each->lng;
+                            $result[$unitId]['last_update'] = $each->last_update;
+                            $result[$unitId]['state'] = $each->state->name;
+                            $result[$unitId]['driver'] = $each->drivers->driver1->name;
                         }
                     }
                 }
