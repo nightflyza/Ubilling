@@ -880,7 +880,7 @@ class OnuRegister {
         }
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
             $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['LLIDLIST'] . $this->ponArray[$this->currentOltInterface]);
-            for ($i = 1; $i <= 128; $i++) {
+            for ($i = 0; $i < 128; $i++) {
                 $allID[$i] = $i;
             }
             if (!empty($getAllId)) {
@@ -892,7 +892,7 @@ class OnuRegister {
             $allServicePorts = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['SERVICEPORTS']);
             if (!empty($allServicePorts)) {
                 $count = count($allServicePorts);
-                for ($i = 1; $i <= 65536; $i++) {
+                for ($i = 0; $i <= 65536; $i++) {
                     $allPorts[$i] = $i;
                 }
                 foreach ($allServicePorts as $eachOid => $value) {
@@ -974,7 +974,7 @@ class OnuRegister {
             $swpassword = $oltData['swpass'];
             $method = $oltData['method'];
             if (file_exists(CONFIG_PATH . "/snmptemplates/" . $snmpTemplateName)) {
-                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->allZteOlt[$this->currentOltSwId]['snmptemplate'], true);
+                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $snmpTemplateName, true);
                 if ($this->currentPonType == 'EPON') {
                     $addMac = $this->onuIdentifier;
                     $this->onuIdentifier = $this->transformMac();
