@@ -81,7 +81,11 @@ if (cfr('MTSIGMON')) {
 
             // rendering availavle MT LIST
             show_window(__('Wireless APs signal monitor'), $sigmon->controls());
-            $sigmon->renderMTList();
+            if ($sigmon->useSwtichGroupsAndTabs()) {
+                $sigmon->renderMTListTabbed();
+            } else {
+                $sigmon->renderMTList();
+            }
         }
     } else {
         show_error(__('This module disabled'));

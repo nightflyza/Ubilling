@@ -111,6 +111,34 @@ class MTsigmon {
      */
     protected $apSortOrder = "id";
 
+    /**
+     * Placeholder for SWITCH_GROUPS_ENABLED alter.ini option
+     *
+     * @var bool
+     */
+    protected $switchGroupsEnabled = false;
+
+    /**
+     * Placeholder for SIGMON_GROUP_AP_BY_SWITCHGROUP_WITH_TABS alter.ini option
+     *
+     * @var bool
+     */
+    protected $groupAPsBySwitchGroupWithTabs = false;
+
+    /**
+     * Contains array which represents sigmon devices and their groups, like: mtId => switchGroup
+     *
+     * @var array
+     */
+    protected $allMTSwitchGroups = array();
+
+    /**
+     * Contains groups in which only sigmon devices are present
+     *
+     * @var array
+     */
+    protected $existingMTSwitchGroups = array();
+
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
     const CPE_SIG_PATH = 'content/documents/wifi_cpe_sig_hist/';
@@ -123,6 +151,8 @@ class MTsigmon {
         $this->EnableCPEAutoPoll    = $this->ubConfig->getAlterParam('MTSIGMON_CPE_AUTOPOLL');
         $this->WCPEEnabled          = $this->ubConfig->getAlterParam('WIFICPE_ENABLED');
         $this->apSortOrder          = ($this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT')) ? $this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT') : 'id';
+        $this->switchGroupsEnabled  = $this->ubConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+        $this->groupAPsBySwitchGroupWithTabs = $this->ubConfig->getAlterParam('SIGMON_GROUP_AP_BY_SWITCHGROUP_WITH_TABS');
 
         $this->LoadUsersData();
         $this->initCache();
@@ -185,25 +215,59 @@ class MTsigmon {
      * @return array
      */
     protected function getMTDevices() {
-        $query_where = ($this->userLogin and !empty($this->userSwitch)) ? " AND `id` = '" . $this->userSwitch . "'" : '';
-        $query = "SELECT `id`,`ip`,`location`,`snmp` from `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
+        $query_where = ($this->userLogin and !empty($this->userSwitch)) ? " AND `id` = '" . $this->userSwitch . "' " : '';
 
-        switch ($this->apSortOrder) {
-            case "ip":
-                $query.= ' ORDER BY `ip`';
-                break;
+        if ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs) {
+            $query = "SELECT `switches`.`id`, `switches`.`ip`, `switches`.`location`, `switches`.`snmp`, COALESCE(`swgrp`.`groupname`, '') AS groupname, `swgrp`.`groupdescr`
+                        FROM `switches`
+                          LEFT JOIN (SELECT `switch_groups_relations`.`switch_id`, `switch_groups`.`groupname`, `switch_groups`.`groupdescr` 
+                                        FROM `switch_groups_relations`
+                                          LEFT JOIN `switch_groups` 
+                                            ON `switch_groups_relations`.`sw_group_id` = `switch_groups`.`id`) AS swgrp
+                            ON `switches`.`id` = `swgrp`.`switch_id` 
+                        WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
+        } else {
+            $query = "SELECT `id`, `ip`, `location`, `snmp` FROM `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
+        }
 
-            case "location":
-                $query.= ' ORDER BY `location`';
+        if ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs) {
+            switch ($this->apSortOrder) {
+                case "ip":
+                    $query .= ' GROUP BY `groupname`, `ip`';
+                    break;
+
+                case "location":
+                    $query .= ' GROUP BY `groupname`, `location`';
+            }
+        } else {
+            switch ($this->apSortOrder) {
+                case "ip":
+                    $query.= ' ORDER BY `ip`';
+                    break;
+
+                case "location":
+                    $query.= ' ORDER BY `location`';
+            }
         }
 
         $alldevices = simple_queryall($query);
+
         if (!empty($alldevices)) {
             foreach ($alldevices as $io => $each) {
                 $this->allMTDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
+
                 if (!empty($each['snmp'])) {
                     $this->allMTSnmp[$each['id']]['ip'] = $each['ip'];
                     $this->allMTSnmp[$each['id']]['community'] = $each['snmp'];
+                }
+
+                if ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs) {
+                    $this->allMTSwitchGroups[$each['id']]['groupname'] = $each['groupname'];
+                    $this->allMTSwitchGroups[$each['id']]['groupdescr'] = $each['groupdescr'];
+
+                    if (!in_array($each['groupname'], $this->existingMTSwitchGroups)) {
+                        $this->existingMTSwitchGroups[] = $each['groupname'];
+                    }
                 }
             }
         }
@@ -1015,6 +1079,8 @@ class MTsigmon {
         } elseif (!empty($this->allMTDevices) and ! empty($this->userLogin) and ! empty($this->userSwitch)) {
             $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$this->allMTDevices[$this->userSwitch]), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $this->userSwitch . '&username=' . $this->userLogin, false, __('results'), 100, $opts));
         } elseif (!empty($this->allMTDevices) and empty($this->userLogin)) {
+            // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
+            $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
 
             foreach ($this->allMTDevices as $MTId => $eachMT) {
                 $MTsigmonData = $this->cache->get(self::CACHE_PREFIX . $MTId, $this->cacheTime);
@@ -1030,7 +1096,6 @@ class MTsigmon {
                     }
                 }
 
-
                 $AjaxURLStr     = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
                 $JQDTId         = 'jqdt_' . md5($AjaxURLStr);
                 $APIDStr        = 'APID_' . $MTId;
@@ -1041,15 +1106,13 @@ class MTsigmon {
                 $QuickAPLink    =   wf_tag('span', false, '', 'id="' . $QuickAPLinkID . '"') .
                                     wf_img('skins/wifi.png') . wf_tag('span', true);
 
-
-                // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
-                $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
-
                 if ( isset($this->allMTSnmp[$MTId]['ip']) ) {
                     $apWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $this->allMTSnmp[$MTId]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
                     $apWebIfaceLink .= wf_img('skins/ymaps/network.png');
                     $apWebIfaceLink .= wf_tag('a', true);
-                } else { $apWebIfaceLink = ''; }
+                } else {
+                    $apWebIfaceLink = '';
+                }
 
                 $APInfoBlock = wf_tag('div', false, '', 'id="' . $InfoBlockID . '"');
                 $APInfoBlock .= wf_tag('div', true);
@@ -1091,7 +1154,9 @@ class MTsigmon {
                                         });' .
                                         wf_tag('script', true) .
                                         wf_tag('div', true);
-                } else {$QuickAPLinkInput = '';}
+                } else {
+                    $QuickAPLinkInput = '';
+                }
 
                 $result .= show_window( $refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $APInfoButton . '&nbsp&nbsp&nbsp&nbsp' . $apWebIfaceLink . '&nbsp&nbsp&nbsp&nbsp' . $QuickAPLink . '&nbsp&nbsp' .
                                         __(@$eachMT), $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts) .
@@ -1103,6 +1168,181 @@ class MTsigmon {
             $result.= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
         }
         $result.= wf_delimiter();
+        return ($result);
+    }
+
+
+    public function renderMTListTabbed() {
+        $result = '';
+        $loopIndex = 0;     // for dirty-dirty hack
+
+        if (!empty($this->existingMTSwitchGroups)) {
+            $result = '';
+            $columns = array();
+            $opts = '"order": [[ 0, "desc" ]]';
+            $columns[] = ('Login');
+            $columns[] = ('Address');
+            $columns[] = ('Real Name');
+            $columns[] = ('Tariff');
+            $columns[] = ('IP');
+            $columns[] = ('MAC');
+            $columns[] = __('Signal') . ' (' . __('dBm') . ')';
+
+            if ($this->WCPEEnabled) {
+                $columns[] = __('Actions');
+            }
+
+            foreach ($this->existingMTSwitchGroups as $io => $eachGroup) {
+                $groupName = (empty($eachGroup)) ? __('Ungrouped') : $eachGroup;
+                $groupWindowCaption = wf_tag('span', false, '', 'id="GroupLnk_' . $io . '"') .
+                                      $groupName .
+                                      wf_tag('span', true);
+                $displayGroup = array_filter($this->allMTSwitchGroups, function ($var) use ($eachGroup) { return ($var['groupname'] == $eachGroup); });
+                $curGroupMTDevices = array_intersect_key($this->allMTDevices, $displayGroup);
+
+                $tabClickScript = '';
+                $tabsList = array();
+                $tabsData = array();
+                $QuickAPDDLName = 'QuickAPDDL_' . wf_InputId();
+                $quickGrpDDLName = 'quickGrpDDLName_' . wf_InputId();
+
+                if ($this->EnableQuickAPLinks) {
+                    $QuickGrpLinkInput = wf_tag('span', false, '', 'style="float: right; clear: right;') .
+                        wf_tag('font', false, '', 'style="font-weight: 600;"') . __('Go to group') . wf_tag('font', true) .
+                        wf_nbsp(2) . wf_Selector($quickGrpDDLName, $this->existingMTSwitchGroups, '', '', true) .
+                        wf_tag('script', false, '', 'type="text/javascript"') .
+                        '$(\'[name="' . $quickGrpDDLName . '"]\').change(function(evt) {                                            
+                                            var LinkIDObjFromVal = $(\'#GroupLnk_\'+$(this).val());
+                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
+                                        });' .
+                        wf_tag('script', true) .
+                        wf_tag('span', true);
+                } else {
+                    $QuickGrpLinkInput = '';
+                }
+
+                foreach ($displayGroup as $MTId => $eachMT) {
+                    $deviceInfo = $curGroupMTDevices[$MTId];
+                    $MTsigmonData = $this->cache->get(self::CACHE_PREFIX . $MTId, $this->cacheTime);
+
+                    if (!empty($MTsigmonData)) {
+                        foreach ($MTsigmonData as $eachmac => $eachsig) {
+                            if (strpos($eachsig, '/') !== false) {
+                                $columns[6] = __('Signal') . ' RX / TX (' . __('dBm') . ')';
+                            } else {
+                                $columns[6] = __('Signal') . ' (' . __('dBm') . ')';
+                            }
+
+                            break;
+                        }
+                    }
+
+                    $AjaxURLStr = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
+                    $JQDTId = 'jqdt_' . md5($AjaxURLStr);
+                    $APIDStr = 'APID_' . $MTId;
+                    $InfoButtonID = 'InfID_' . $MTId;
+                    $InfoBlockID = 'InfBlck_' . $MTId;
+                    $QuickAPLinkID = 'QuickAPLinkID_' . $MTId;
+                    $webIfaceLnkId = 'webIfaceLnk_' . $MTId;
+
+                    if (isset($this->allMTSnmp[$MTId]['ip'])) {
+                        $apWebIfaceLink = wf_tag('span', false, '', 'id="' . $webIfaceLnkId . '" href="http://' . $this->allMTSnmp[$MTId]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '" style="cursor: pointer;"');
+                        $apWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                        $apWebIfaceLink .= wf_tag('span', true);
+                        $apWebIfaceLink .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $apWebIfaceLink .= '$(\'#' . $webIfaceLnkId . '\').click(function(evt) {
+                                                window.open(\'http://' . $this->allMTSnmp[$MTId]['ip'] . '\', \'_blank\');
+                                           });
+                                          ';
+                        $apWebIfaceLink .= wf_tag('script', true);
+                    } else {
+                        $apWebIfaceLink = '';
+                    }
+
+                    $APInfoBlock = wf_tag('div', false, '', 'id="' . $InfoBlockID . '"');
+                    $APInfoBlock .= wf_tag('div', true);
+
+                    $APInfoButton = wf_tag('span', false, '', 'href="#" id="' . $InfoButtonID . '" title="' . __('Get system info for this AP') . '" style="cursor: pointer;"');
+                    $APInfoButton .= wf_img('skins/icn_alert_info.png');
+                    $APInfoButton .= wf_tag('span', true);
+                    $APInfoButton .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $APInfoButton .= '$(\'#' . $InfoButtonID . '\').click(function(evt) {
+                                        $(\'img\', this).toggleClass("image_rotate");
+                                        getAPInfo(' . $MTId . ', "#' . $InfoBlockID . '", true, true, ' . $InfoButtonID . ');                                        
+                                        evt.preventDefault();
+                                        return false;                
+                                    });';
+                    $APInfoButton .= wf_tag('script', true);
+
+                    if ($this->EnableQuickAPLinks) {
+                        $tabClickScript = wf_tag('script', false, '', 'type="text/javascript"');
+                        $tabClickScript .= '$(\'a[href="#' . $QuickAPLinkID . '"]\').click(function(evt) {
+                                            var tmpID = $(this).attr("href").replace("#QuickAPLinkID_", "");
+                                            if ($(\'[name="' . $QuickAPDDLName . '"]\').val() != tmpID) {
+                                                $(\'[name="' . $QuickAPDDLName . '"]\').val(tmpID);
+                                            }
+                                        });
+                                        ';
+                        $tabClickScript .= wf_tag('script', true);
+                    }
+
+                    $refresh_button = wf_tag('span', false, '', 'href="#" id="' . $APIDStr . '" title="' . __('Refresh data for this AP') . '" style="cursor: pointer;"');
+                    $refresh_button .= wf_img('skins/refresh.gif');
+                    $refresh_button .= wf_tag('span', true);
+                    $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $refresh_button .= '$(\'#' . $APIDStr . '\').click(function(evt) {
+                                        $(\'img\', this).toggleClass("image_rotate");
+                                        APIndividualRefresh(' . $MTId . ', ' . $JQDTId . ', ' . $APIDStr . ');                                        
+                                        evt.preventDefault();
+                                        return false;                
+                                    });';
+                    $refresh_button .= wf_tag('script', true);
+
+                    $tabsList[$QuickAPLinkID] = array('options' => '',
+                                                      'caption' => $refresh_button . wf_nbsp(2) . $APInfoButton . wf_nbsp(2) . $apWebIfaceLink .
+                                                            wf_nbsp(2) . wf_img('skins/wifi.png') . wf_nbsp(2) . @$deviceInfo,
+                                                      'additional_data' => $tabClickScript
+                                                     );
+
+                    $tabsData[$QuickAPLinkID] = array('options' => 'style="padding: 0 0 0 2px;"',
+                                                      'body' => $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
+                                                      'additional_data' => ''
+                                                     );
+                }
+
+                $tabsDivOpts = 'style="border: none; padding: 0; width: 100%;"';
+                $tabsLstOpts = 'style="border: none; background: #fff;"';
+
+                if ($this->EnableQuickAPLinks) {
+                    $QuickAPLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px; text-align: right;"') .
+                                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
+                                        wf_nbsp(2) . wf_Selector($QuickAPDDLName, $curGroupMTDevices, '', '', true) .
+                                        wf_tag('script', false, '', 'type="text/javascript"') .
+                                        '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
+                                            $(\'a[href="#QuickAPLinkID_\'+$(this).val()+\'"]\').click();
+                                        });' .
+                                        wf_tag('script', true) .
+                                        wf_tag('div', true);
+                } else {
+                    $QuickAPLinkInput = '';
+                }
+
+                // ditry-dirty hack...khe-khe
+                if ($loopIndex < 1) {
+                    $TabsCarouselInitLinking = wf_TabsCarouselInitLinking();
+                } else {
+                    $TabsCarouselInitLinking = '';
+                }
+
+                $loopIndex++;
+
+                $tmpTabsDivId = 'ui-tabs_' . wf_InputId();
+                $result.= show_window($groupWindowCaption . $QuickGrpLinkInput, $QuickAPLinkInput . wf_delimiter(0) .
+                                      $TabsCarouselInitLinking . wf_TabsGen($tmpTabsDivId, $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                                      $QuickAPLinkInput . wf_delimiter());
+            }
+        }
+
         return ($result);
     }
 
@@ -1214,6 +1454,10 @@ class MTsigmon {
             }
         }
         $json->getJson();
+    }
+
+    public function useSwtichGroupsAndTabs() {
+        return ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs);
     }
 }
 

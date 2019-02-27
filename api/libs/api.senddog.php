@@ -1745,6 +1745,20 @@ class SendDogAdvanced extends SendDog {
                     $(document).on("change", ".__SMSSrvAlphaAsLoginChk", function(evt) {
                           toggleAlphaNameFieldReadonly();
                     });
+                    
+                    function chekEmptyVal(ctrlCalssName) {
+                        $(document).on("focus keydown", ctrlCalssName, function(evt) {
+                            if ( $(ctrlCalssName).css("border-color") == "rgb(255, 0, 0)" ) {
+                                $(ctrlCalssName).val("");
+                                $(ctrlCalssName).css("border-color", "");
+                                $(ctrlCalssName).css("color", "");
+                            }
+                        });
+                    }
+                     
+                    onElementInserted(\'body\', \'.__EmptyCheck\', function(element) {
+                        chekEmptyVal(\'.__EmptyCheck\');
+                    });
 
                     $(document).on("submit", ".__SMSSrvForm", function(evt) {
                         var AlphaNameAsLogin = ( $(".__SMSSrvAlphaAsLoginChk").is(\':checked\') ) ? 1 : 0;
@@ -1752,23 +1766,31 @@ class SendDogAdvanced extends SendDog {
                         var DefaultService   = ( $(".__SMSSrvDefaultSrvChk").is(\':checked\') ) ? 1 : ( $(".__DefaultServHidID").val() ) ? 1 : 0;
                         var FrmAction        = $(".__SMSSrvForm").attr("action");
                         var FrmData          = $(".__SMSSrvForm").serialize() + \'&smssrvalphaaslogin=\' + AlphaNameAsLogin + \'&smssrvdefault=\' + DefaultService + \'&errfrmid=' . $errorModalWindowId . '\'; 
-                        var modalWindowId         = $(".__SMSSrvForm").closest(\'div\').attr(\'id\');
+                        //var modalWindowId    = $(".__SMSSrvForm").closest(\'div\').attr(\'id\');
                         evt.preventDefault();
+
+                        var emptyCheckClass = \'.__EmptyCheck\';
                     
-                        $.ajax({
-                            type: "POST",
-                            url: FrmAction,
-                            data: FrmData,
-                            success: function(result) {
-                                        if ( !empty(result) ) {                                            
-                                            $(document.body).append(result);                                                
-                                            $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
-                                        } else {
-                                            $(\'#' . $jqdtId . '\').DataTable().ajax.reload();
-                                            $( \'#\'+$(".__SMSSrvFormModalWindowID").val() ).dialog("close");
+                        if ( empty( $(emptyCheckClass).val() ) || $(emptyCheckClass).css("border-color") == "rgb(255, 0, 0)" ) {                            
+                            $(emptyCheckClass).css("border-color", "red");
+                            $(emptyCheckClass).css("color", "grey");
+                            $(emptyCheckClass).val("' . __('Mandatory field') . '");                            
+                        } else {
+                            $.ajax({
+                                type: "POST",
+                                url: FrmAction,
+                                data: FrmData,
+                                success: function(result) {
+                                            if ( !empty(result) ) {                                            
+                                                $(document.body).append(result);                                                
+                                                $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
+                                            } else {
+                                                $(\'#' . $jqdtId . '\').DataTable().ajax.reload();
+                                                $( \'#\'+$(".__SMSSrvFormModalWindowID").val() ).dialog("close");
+                                            }
                                         }
-                                    }
-                        });                       
+                            });                       
+                        }
                     });
     
                     function deleteSMSSrv(SMSSrvID, AjaxURL, ActionName, ErrFrmID) {
@@ -1812,7 +1834,7 @@ class SendDogAdvanced extends SendDog {
         $result = simple_queryall($query);
         $useAsDefaultService = ( empty($result) );    // if no services yet - use the first added as default
 
-        $inputs = wf_TextInput('smssrvname', __('Name'), '', true);
+        $inputs = wf_TextInput('smssrvname', __('Name'), '', true, '', '', '__EmptyCheck');
         $inputs .= wf_TextInput('smssrvlogin', __('Login'), '', true);
         $inputs .= wf_CheckInput('smssrvalphaaslogin', __('Use login as alpha name'), true, false, $alphaAsLoginChkId, '__SMSSrvAlphaAsLoginChk');
         $inputs .= ($ubillingConfig->getAlterParam('PASSWORDSHIDE')) ? wf_PasswordInput('smssrvpassw', __('Password'), '', true) :
@@ -1865,7 +1887,7 @@ class SendDogAdvanced extends SendDog {
         $serviceIsDefault = $smsServiceData[0]['default_service'];
         $serviceApiFile = $smsServiceData[0]['api_file_name'];
 
-        $inputs = wf_TextInput('smssrvname', __('Name'), $serviceName, true);
+        $inputs = wf_TextInput('smssrvname', __('Name'), $serviceName, true, '', '', '__EmptyCheck');
         $inputs .= wf_TextInput('smssrvlogin', __('Login'), $serviceLogin, true);
         $inputs .= wf_CheckInput('smssrvalphaaslogin', __('Use login as alpha name'), true, (!empty($serviceLogin) and $serviceLogin == $serviceAlphaName), $alphaAsLoginChkId, '__SMSSrvAlphaAsLoginChk');
         $inputs .= ($ubillingConfig->getAlterParam('PASSWORDSHIDE')) ? wf_PasswordInput('smssrvpassw', __('Password'), $servicePassword, true) :

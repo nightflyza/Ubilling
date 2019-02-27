@@ -890,6 +890,12 @@ div.dhtml_menu div.vert_menu a.active:hover
     background: #ffffff;
 }
 
+.ui-widget .spoiler, .ui-widget-content .spoiler {
+    font-family: "Helvetica Neue", Helvetica, Arial, Verdana, sans-serif;
+    color: #666;
+    font-size: 12px;
+}
+
 .spoiler_title {
     background: #F1F1F4 url(../images/secondary_bar.png) repeat-x;
     -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;
