@@ -3042,8 +3042,17 @@ $lang['def']['standing'] = 'стоит';
 $lang['def']['driving'] = 'едет';
 $lang['def']['Cars'] = 'Машинки';
 $lang['def']['right to use MapOn module'] = 'Право использовать модуль MapOn';
+$lang['def']['Switch group'] = 'Группа свичей';
+$lang['def']['Switch groups'] = 'Группы свичей';
+$lang['def']['Add switch group'] = 'Добавить группу свичей';
+$lang['def']['Edit switch group'] = 'Редактировать группу свичей';
+$lang['def']['Switch count'] = 'Количество свичей';
+$lang['def']['Switches of the group'] = 'Свичи из группы';
+$lang['def']['Show switches in this group'] = 'Отобразить свичи из этой группы';
+$lang['def']['Switch group with such name already exists with ID: '] = 'Группа свичей с таким именем уже существует с ID: ';
+$lang['def']['Can not remove switch group which has existing relations on users or other DB entities'] = 'Нельзя удалить группу свичей имеющую связи с пользователями или другими объектами в БД';
+$lang['def']['Go to group'] = 'Перейти к группе';
+$lang['def']['right to control switch groups'] = 'Право управлять группами свичей';
 $lang['def'][''] = '';
-
-
 
 ?>

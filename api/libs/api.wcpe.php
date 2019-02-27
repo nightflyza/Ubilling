@@ -1454,7 +1454,11 @@ class WifiCPE {
     public function getAPCPESignalControls($CPEMAC, $SignalContainerSelector, $PollDateContainerSelector, $UplinkAPID = 0, $CPEIP = '', $CPESNMPCommunity = '') {
         $ReturnedControlsArray = array();
 
-        if (empty($SignalContainerSelector) || empty($PollDateContainerSelector) || empty($CPEMAC)) {
+        if (empty($CPEMAC) || empty($SignalContainerSelector) || empty($PollDateContainerSelector)) {
+            $ReturnedControlsArray = array( 'LastPollDate' => '',
+                                            'SignalLevelLabel' => '',
+                                            'RefreshButton' => ''
+                                           );
             return $ReturnedControlsArray;
         }
 

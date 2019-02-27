@@ -282,6 +282,7 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSw
 function web_SwitchFormAdd() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $addinputs = wf_TextInput('newip', 'IP', '', true, 20);
     $addinputs.= wf_TextInput('newlocation', 'Location', '', true, 30);
     $addinputs.= wf_TextInput('newdesc', 'Description', '', true, 30);
@@ -295,6 +296,11 @@ function web_SwitchFormAdd() {
     $addinputs.= wf_tag('br');
     $addinputs.= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '');
     $addinputs.= wf_tag('br');
+
+    if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
+        $switchGroups = new SwitchGroups();
+        $addinputs.= $switchGroups->renderSwitchGroupsSelector('newswgroup') . wf_delimiter();
+    }
 
     $addinputs.= wf_tag('br');
     $addinputs.= wf_Submit('Save');
@@ -382,6 +388,7 @@ function web_SwitchDownlinksList($switchId) {
  */
 function web_SwitchEditForm($switchid) {
     global $ubillingConfig;
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $switchid = vf($switchid, 3);
     $altCfg = $ubillingConfig->getAlter();
     $result = '';
@@ -413,7 +420,13 @@ function web_SwitchEditForm($switchid) {
         $uplinkSwitchLabel = __('Uplink switch');
     }
     $editinputs.= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
+
     $editinputs.= wf_tag('br');
+
+    if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
+        $switchGroups = new SwitchGroups();
+        $editinputs.= $switchGroups->renderSwitchGroupsSelector('editswgroup', $switchid) . wf_delimiter();
+    }
 
     if (cfr('SWITCHESEDIT')) {
         $editinputs.= wf_Submit('Save');
@@ -1037,12 +1050,18 @@ function web_SwitchesRenderList() {
     $result = '';
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
     $summaryCache = 'exports/switchcounterssummary.dat';
     $columns = array('ID', 'IP');
     if ($alterconf['SWITCHES_SNMP_MAC_EXORCISM']) {
         $columns[] = ('MAC');
     }
-    array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
+
+    if ($swGroupsEnabled) {
+        array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Group', 'Actions');
+    } else {
+        array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
+    }
     $opts = '"order": [[ 0, "desc" ]]';
     $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
     if (file_exists($summaryCache)) {
@@ -1060,6 +1079,14 @@ function zb_SwitchesRenderAjaxList() {
     $result = '';
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
+
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+    $allswitchgroups = '';
+    if ($swGroupsEnabled) {
+        $switchGroups = new SwitchGroups();
+        $allswitchgroups = $switchGroups->getSwitchesIdsWithGroupsData();
+    }
+
     $allswitches = zb_SwitchesGetAll();
     $modelnames = zb_SwitchModelsGetAllTag();
     $deathTime = zb_SwitchesGetAllDeathTime();
@@ -1143,6 +1170,11 @@ function zb_SwitchesRenderAjaxList() {
             $jsonItem[] = $eachswitch['snmp'];
             $jsonItem[] = $eachswitch['geo'];
             $jsonItem[] = $eachswitch['desc'];
+
+            if ($swGroupsEnabled) {
+                $jsonItem[] = (isset($allswitchgroups[$eachswitch['id']])) ? $allswitchgroups[$eachswitch['id']]['groupname'] : '';
+            }
+
             $switchcontrols = '';
             if (cfr('SWITCHES')) {
                 $switchcontrols.= wf_Link('?module=switches&edit=' . $eachswitch['id'], web_edit_icon());
@@ -1235,7 +1267,7 @@ function zb_SwitchesRenderAjaxList() {
  * @param string $geo
  * @param int    $parentid
  */
-function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '', $snmpwrite = '') {
+function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '', $snmpwrite = '', $switchgroupid = '') {
     $modelid = vf($modelid, 3);
     $ip = mysql_real_escape_string($ip);
     $desc = mysql_real_escape_string($desc);
@@ -1252,7 +1284,14 @@ function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $pare
     $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`swid`,`geo`,`parentid`,`snmpwrite`) "
             . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . ",'" . $snmpwrite . "' );";
     nr_query($query);
+
     $lastid = simple_get_lastid('switches');
+
+    if (!empty($switchgroupid)) {
+        $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $lastid . ", " . $switchgroupid . ")";
+        nr_query($query);
+    }
+
     log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location . '`');
     show_window(__('Add switch'), __('Was added new switch') . ' ' . $ip . ' ' . $location);
 }
@@ -1292,10 +1331,19 @@ function ub_SwitchFlushChilds($switchid) {
  * @param int $switchid existing switch database ID
  */
 function ub_SwitchDelete($switchid) {
+    global $ubillingConfig;
+    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+
     $switchid = vf($switchid);
     $switchdata = zb_SwitchGetData($switchid);
     $query = "DELETE from `switches` WHERE `id`='" . $switchid . "'";
     nr_query($query);
+
+    if ($swGroupsEnabled) {
+        $switchGroups = new SwitchGroups();
+        $switchGroups->removeSwitchFromGroup($switchid);
+    }
+
     log_register('SWITCH DELETE [' . $switchid . '] IP ' . $switchdata['ip'] . ' LOC ' . $switchdata['location']);
 }
 

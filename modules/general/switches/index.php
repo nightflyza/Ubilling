@@ -33,7 +33,8 @@ if (cfr('SWITCHES')) {
             $geo = $_POST['newgeo'];
             $parentid = $_POST['newparentid'];
             $snmpwrite = $_POST['newsnmpwrite'];
-            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid, $snmpwrite);
+            $switchgroup = (wf_CheckPost(array('newswgroup'))) ? $_POST['newswgroup'] : '';
+            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid, $snmpwrite, $switchgroup);
             rcms_redirect("?module=switches");
         } else {
             show_window(__('Error'), __('Access denied'));
@@ -82,6 +83,13 @@ if (cfr('SWITCHES')) {
             $toolsLinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
             $toolsLinks.=wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
             $toolsLinks.=wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
+
+            if ($ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED')) {
+                if (cfr('SWITCHGROUPS')) {
+                    $toolsLinks.=wf_Link('?module=switchgroups', wf_img('skins/switch_models.png') . ' ' . __('Switch groups'), false, 'ubButton');
+                }
+            }
+
             if ($altCfg['SWITCHES_EXTENDED']) {
                 $toolsLinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
             }
@@ -100,6 +108,7 @@ if (cfr('SWITCHES')) {
                 $swlinks.=wf_Link(SwitchLogin::MODULE_URL, wf_img('skins/sw_login.png') . ' ' . __('Switch login'), false, 'ubButton');
             }
         }
+
         //parental switch deletion alternate controls
         if (isset($_GET['switchdelete'])) {
             $swlinks = '';
@@ -192,6 +201,24 @@ if (cfr('SWITCHES')) {
                             simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
                         }
                     }
+
+                    $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+                    if ($swGroupsEnabled) {
+                        $switchGroups = new SwitchGroups();
+                        $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
+
+                        if (empty($switchAlreadyInGroup) and !empty($_POST['editswgroup'])) {
+                            $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . $_POST['editswgroup'] . ")";
+                            nr_query($query);
+                        } else {
+                            if ($_POST['editswgroup'] == '0') {
+                                $switchGroups->removeSwitchFromGroup($switchid);
+                            } else {
+                                simple_update_field('switch_groups_relations', 'sw_group_id', $_POST['editswgroup'], "WHERE `switch_id`='" . $switchid . "'");
+                            }
+                        }
+                    }
+
                     log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
                     rcms_redirect("?module=switches&edit=" . $switchid);
                 } else {

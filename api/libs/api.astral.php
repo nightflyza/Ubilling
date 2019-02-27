@@ -2661,12 +2661,6 @@ function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts
         $initTabsJSStr = '$( "#' . $tabsDivID . '" ).tabs();';
 
         if ($tabsCarouselOn) {
-            $result.= '<link rel="stylesheet" href="modules/jsc/JQUI_ScrollTabs/style.css" type="text/css">';
-            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.ba-throttle-debounce.min.js"></script>';
-            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.mousewheel.min.js"></script>';
-            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.touchSwipe.min.js"></script>';
-            $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.ui.scrolltabs.js"></script>';
-
             $initTabsJSStr = '$("#' . $tabsDivID . '").scrollTabs({        
                                 scrollOptions: {
                                     showFirstLastArrows: false,                                    
@@ -2716,6 +2710,20 @@ function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts
     return ($result);
 }
 
+
+/**
+ * Returns scripts and CSS links for tabs carousel plugin.
+ * Be sure to add this once to a page if you planning to use wf_TabsGen function with tabsCarouselOn
+ */
+function wf_TabsCarouselInitLinking() {
+    $result = '<link rel="stylesheet" href="modules/jsc/JQUI_ScrollTabs/style.css" type="text/css">';
+    $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.ba-throttle-debounce.min.js"></script>';
+    $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.mousewheel.min.js"></script>';
+    $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.touchSwipe.min.js"></script>';
+    $result.= '<script type="text/javascript" src="modules/jsc/JQUI_ScrollTabs/jquery.ui.scrolltabs.js"></script>';
+
+    return ($result);
+}
 
 /**
  * Returns plain JS-code of 'empty' function to use for checking an empty value in JS code

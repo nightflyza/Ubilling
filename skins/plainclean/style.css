@@ -1075,6 +1075,12 @@ table.sortable.id tbody tr::before {
     float: left;
 }
 
+.ui-widget .spoiler, .ui-widget-content .spoiler {
+    font-family: "Helvetica Neue", Helvetica, Arial, Verdana, sans-serif;
+    color: #666;
+    font-size: 12px;
+}
+
 .spoiler_link, .spoiler_link:hover {
     color: #000 !important;
     font-size: 13px;
