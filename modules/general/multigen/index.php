@@ -2,7 +2,7 @@
 
 if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
     if (cfr('MULTIGEN')) {
-
+        set_time_limit(0);
         $multigen = new MultiGen();
 
         if (wf_CheckGet(array('editnasoptions'))) {

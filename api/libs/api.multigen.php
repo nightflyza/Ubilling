@@ -2493,7 +2493,7 @@ class MultiGen {
                     if (($io != $nasId) AND ( isset($this->allNas[$io]))) {
                         $nasBasicData = $this->allNas[$io];
                         $nasExtendedOptions = $each;
-                        $nasUsernameType = $this->usernameTypes[$nasExtendedOptions['usernametype']];
+                        $nasUsernameType = @$this->usernameTypes[$nasExtendedOptions['usernametype']];
                         $nasService = $this->serviceTypes[$nasExtendedOptions['service']];
                         $attributeTemplates = $this->getNasAttributes($io);
                         $attributeTemplatesCount = sizeof($attributeTemplates);
