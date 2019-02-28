@@ -339,6 +339,13 @@ class MultiGen {
     protected $ishimuraFlag = 0;
 
     /**
+     * Contains default usernames caching timeout in seconds
+     *
+     * @var int
+     */
+    protected $usernamesCachingTimeout = 0;
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -444,6 +451,11 @@ class MultiGen {
     const OPTION_ISHIMURA = 'ISHIMURA_ENABLED';
 
     /**
+     * Default 
+     */
+    const OPTION_USERNAMESTIMEOUT = 'MULTIGEN_UNTIMEOUT';
+
+    /**
      * log path
      */
     const LOG_PATH = 'exports/multigen.log';
@@ -547,6 +559,12 @@ class MultiGen {
         if (isset($this->altCfg[self::OPTION_ISHIMURA])) {
             if ($this->altCfg[self::OPTION_ISHIMURA]) {
                 $this->ishimuraFlag = $this->altCfg[self::OPTION_ISHIMURA];
+            }
+        }
+
+        if (isset($this->altCfg[self::OPTION_USERNAMESTIMEOUT])) {
+            if ($this->altCfg[self::OPTION_USERNAMESTIMEOUT]) {
+                $this->usernamesCachingTimeout = $this->altCfg[self::OPTION_USERNAMESTIMEOUT];
             }
         }
 
@@ -2762,10 +2780,34 @@ class MultiGen {
         $result = '';
         $totalCount = 0;
         $json = new wf_JqDtHelper();
-
+        if ($this->usernamesCachingTimeout) {
+            $guessedUsernames = $this->cache->get('MLG_TELEPATHY', $this->usernamesCachingTimeout); //contains already guessed logins by usernames
+        } else {
+            $guessedUsernames = array();
+        }
         $this->loadAcctData();
         //login filtering
-        $allUserNames = $this->getAllUserNames();
+        if ($this->usernamesCachingTimeout) {
+            $allUserNames = $this->cache->get('MLG_USERNAMES', $this->usernamesCachingTimeout);
+            if (empty($allUserNames)) {
+                $allUserNames = $this->getAllUserNames();
+            } else {
+                //here required to preload some users data
+                if (empty($this->allUserData)) {
+                    $this->loadUserData();
+                    if ((isset($this->altCfg[self::OPTION_SWASSIGN])) AND ( isset($this->altCfg[self::OPTION_QINQ]))) {
+                        if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
+                            $this->loadSwitches();
+                            $this->loadSwithchAssigns();
+                            $this->loadSwitchesQinQ();
+                        }
+                    }
+                }
+            }
+        } else {
+            $allUserNames = $this->getAllUserNames();
+        }
+
         if (wf_CheckGet(array('login'))) {
             $filterLogin = $_GET['login'];
         } else {
@@ -2795,8 +2837,14 @@ class MultiGen {
                     $fc = wf_tag('font', false, '', 'color="#005304"');
                 }
 
+                //try to speed up that search
+                if (isset($guessedUsernames[$each['username']])) {
+                    $eachUserLogin = $guessedUsernames[$each['username']];
+                } else {
+                    $eachUserLogin = $this->getUserLogin($each['username'], $allUserNames);
+                    $guessedUsernames[$each['username']] = $eachUserLogin;
+                }
 
-                $eachUserLogin = $this->getUserLogin($each['username'], $allUserNames);
                 if (!empty($eachUserLogin)) {
                     $userLink = wf_Link(self::URL_PROFILE . $eachUserLogin, web_profile_icon() . ' ' . @$this->allUserData[$eachUserLogin]['fulladress']);
                 } else {
@@ -2831,6 +2879,10 @@ class MultiGen {
             }
         }
 
+        if ($this->usernamesCachingTimeout) {
+            $this->cache->set('MLG_TELEPATHY', $guessedUsernames, $this->usernamesCachingTimeout);
+            $this->cache->set('MLG_USERNAMES', $allUserNames, $this->usernamesCachingTimeout);
+        }
         $json->getJson();
     }
 
