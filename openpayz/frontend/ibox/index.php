@@ -148,8 +148,8 @@ if (ibox_CheckGet($required)) {
                            <result>0</result>
                            <fields>
                               <field1 name="balance">' . @$userCash['Cash'] . '</field1>
-                              <field3 name="name">' . @$allrealnames[$userlogin] . '</field3>
-                              <field4 name="address">' . @$alladdress[$userlogin] . '</field4>
+                              <field2 name="name">' . @$allrealnames[$userlogin] . '</field3>
+                              <field3 name="address">' . @$alladdress[$userlogin] . '</field4>
                            </fields>
                     </response>
                     ';
