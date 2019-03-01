@@ -5,8 +5,8 @@ $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 
 /**
+ * Returns total cost of all additional services. Needs SC_VSCREDIT=1 in userstats.ini
  * 
- * needs SC_VSCREDIT=1 in userstats.ini
  * @param type $login user's login
  * @return price for all virtual services if such exists for user
  */
@@ -160,7 +160,7 @@ if ($us_config['SC_ENABLED']) {
     $sc_price = $us_config['SC_PRICE'];
     $sc_cashtypeid = $us_config['SC_CASHTYPEID'];
     $sc_monthcontrol = $us_config['SC_MONTHCONTROL'];
-    $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND !empty($us_config['SC_HACKCONTROL'])) ? true : false;
+    $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND ! empty($us_config['SC_HACKCONTROL'])) ? true : false;
     $sc_allowed = array();
     $vs_price = zbs_VServicesGetPrice($user_login);
 //allowed tariffs option
@@ -230,8 +230,12 @@ if ($us_config['SC_ENABLED']) {
                             show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
                         }
                     } else {
-                        //no use self credit
-                        show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
+                        //not allowed to use self credit
+                        if ($current_cash < 0) {
+                            show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
+                        } else {
+                            show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                        }
                     }
                 } else {
                     // agreement check
