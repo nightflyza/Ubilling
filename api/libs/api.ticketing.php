@@ -447,10 +447,19 @@ function web_TicketReplyForm($ticketid) {
         $replyform = __('Ticket is closed');
     }
 
-    $ticketEvents = getTicketEvents($ticketid, true);
-    if (!empty($ticketEvents)) {
-        $replyform .= wf_delimiter() . wf_modalAuto(wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), __('Events for ticket') . '  ' . $ticketid, $ticketEvents, 'ubButton');
+    //ajax background render
+    if (wf_CheckGet(array('ajevents'))) {
+        $currentTicketEvents = wf_tag('h3') . __('Events for ticket') . '  ' . $ticketid . wf_tag('h3', true);
+        $currentTicketEvents.=getTicketEvents($ticketid, true);
+        die($currentTicketEvents);
     }
+
+    //previous ticket events
+    $replyform.=wf_AjaxLoader();
+    $replyform.= wf_delimiter();
+    $replyform.=wf_AjaxLink('?module=ticketing&showticket=' . $ticketid . '&ajevents=true', wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), 'ajticketevents', false, 'ubButton');
+    $replyform.=wf_AjaxContainer('ajticketevents', '', '');
+
 
     return ($replyform);
 }
@@ -668,6 +677,14 @@ function web_TicketsCalendar() {
     return ($result);
 }
 
+/**
+ * Returns previous ticket events parsed from log.
+ * 
+ * @param int $TicketID
+ * @param bool $ReturnHTML
+ * 
+ * @return array/string
+ */
 function getTicketEvents($TicketID, $ReturnHTML = false) {
     $QResult = array();
     $HTMLStr = '';
