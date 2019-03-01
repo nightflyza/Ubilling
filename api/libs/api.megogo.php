@@ -906,8 +906,9 @@ class MegogoInterface {
         $allAddress = zb_AddressGetFulladdresslistCached();
         $allRealNames = zb_UserGetAllRealnames();
         $allBalance = zb_UserGetAllBalance();
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
+
+
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $io => $each) {
                 $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
@@ -922,26 +923,25 @@ class MegogoInterface {
                 $actLinks = wf_Link(self::URL_ME . '&' . self::URL_SUBVIEW . '&subid=' . $each['id'], wf_img('skins/icon_edit.gif'));
                 $actLinks = $this->jqDtFilter($actLinks);
                 @$userCash = $this->jqDtFilter($allBalance[$each['login']]);
-                $result.='
-                    [
-                    "' . $each['id'] . '",
-                    "' . $userLink . '",
-                    "' . $userRealName . '",
-                    "' . $userCash . '",
-                    "' . @$this->allTariffs[$each['tariffid']]['name'] . '",
-                    "' . $each['actdate'] . '",
-                    "' . $actFlag . '",
-                    "' . $primFlag . '",
-                    "' . $freeperiodFlag . '",
-                    "' . $actLinks . '"
-                    ],';
+
+
+                $data[] = $each['id'];
+                $data[] = $userLink;
+                $data[] = $userRealName;
+                $data[] = $userCash;
+                $data[] = @$this->allTariffs[$each['tariffid']]['name'];
+                $data[] = $each['actdate'];
+                $data[] = $actFlag;
+                $data[] = $primFlag;
+                $data[] = $freeperiodFlag;
+                $data[] = $actLinks;
+
+                $json->addRow($data);
+                unset($data);
             }
         }
 
-        $result = zb_CutEnd($result);
-        $result.='] 
-        }';
-        die($result);
+        $json->getJson();
     }
 
     /**
