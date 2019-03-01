@@ -563,12 +563,11 @@ class PONizer {
                 $result[$eachMac] = $interface;
                 $macTmp[$ioIndex] = $eachMac;
             } else {
-                $interface = $this->interfaceDecodeZTE($ioIndex);
-                if (!empty($interface)) {
+                if ($this->interfaceDecodeZTE($ioIndex)) {
                     $eachMac = strtolower($eachMac);
                     $eachMac = explode(" ", $eachMac);
                     $eachMac = implode(":", $eachMac);
-                    $result[$eachMac] = $interface;
+                    $result[$eachMac] = $this->interfaceDecodeZTE($ioIndex);
                     $macTmp[$ioIndex] = $eachMac;
                 }
             }
@@ -682,7 +681,7 @@ class PONizer {
      *
      * @return void
      */
-    protected function FDBParseZTE($oltid, $FDBIndex, $macIndex, $bridgeIndex) {
+    protected function FDBParseZTE($oltid, $FDBIndex, $macIndex) {
         $counter = 1;
         $FDBTmp = array();
         $macTmp = array();
@@ -696,8 +695,7 @@ class PONizer {
                 $devOID = trim($line[0]);
                 $devline = explode('.', $devOID);
                 $devIndex = trim($devline[0]);
-                $naturalIndex = $this->interfaceDecodeZTE($devIndex);
-                if (!empty($naturalIndex)) {
+                if ($this->interfaceDecodeZTE($devIndex)) {
                     if (isset($devline[1])) {
                         $FDBvlan = trim($devline[1]);
                         $macPart[] = dechex($devline[2]);
@@ -714,8 +712,8 @@ class PONizer {
                         }
 
                         $FDBmac = implode(':', $macPart);
-                        $FDBTmp[$naturalIndex][$counter]['mac'] = $FDBmac;
-                        $FDBTmp[$naturalIndex][$counter]['vlan'] = $FDBvlan;
+                        $FDBTmp[$this->interfaceDecodeZTE($devIndex)][$counter]['mac'] = $FDBmac;
+                        $FDBTmp[$this->interfaceDecodeZTE($devIndex)][$counter]['vlan'] = $FDBvlan;
                         $counter++;
                     }
                 }
@@ -723,11 +721,9 @@ class PONizer {
 
 //mac index preprocessing
             foreach ($macIndex as $ioIndex => $eachMac) {
-                $eachMac = strtolower($eachMac);
-                $eachMac = str_replace(" ", ":", $eachMac);
-                $interface = $this->interfaceDecodeZTE($ioIndex);
-                if (!empty($interface)) {
-                    $macTmp[$interface] = $eachMac;
+                $eachMac = strtolower(str_replace(" ", ":", $eachMac));
+                if ($this->interfaceDecodeZTE($ioIndex)) {
+                    $macTmp[$this->interfaceDecodeZTE($ioIndex)] = $eachMac;
                 }
             }
 
@@ -1781,27 +1777,16 @@ class PONizer {
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
                                 if (isset($this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'])) {
                                     $onu_id_start = 805830912;
-                                    $bridge_id_start = 1073741824;
                                     $intIndex = array();
-                                    $bridgeIndex = array();
                                     for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']; $card <= 20; $card++) {
                                         $onu_id = $onu_id_start + (524288 * ($card - 1));
-                                        if ($this->snmpTemplates[$oltModelId]['define']['DEVICE'] == "ZTE 320") {
-                                            $bridge_id = $bridge_id_start + (524288 * ($card - 1));
-                                        } else {
-                                            $bridge_id = $bridge_id_start + (524288 * ($card - 2));
-                                        }
                                         for ($port = 1; $port <= 16; $port++) {
                                             $tmp_id = $onu_id;
-                                            $tmp_bridge_id = $bridge_id;
                                             for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
                                                 $intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
-                                                $bridgeIndex[$tmp_bridge_id] = $tmp_id;
                                                 $tmp_id += 256;
-                                                $tmp_bridge_id += 256;
                                             }
                                             $onu_id += 65536;
-                                            $bridge_id += 65536;
                                         }
                                     }
                                     $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
@@ -1809,7 +1794,7 @@ class PONizer {
                                     $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
                                     $FDBIndex = explodeRows($FDBIndex);
 
-                                    $this->FDBParseZTE($oltid, $FDBIndex, $macIndexTmp, $bridgeIndex);
+                                    $this->FDBParseZTE($oltid, $FDBIndex, $macIndexTmp);
                                     $this->interfaceParseZTE($oltid, $intIndex, $macIndexTmp);
                                     $this->onuidParseZTE($oltid, $macIndexTmp);
                                 }
@@ -2329,7 +2314,7 @@ class PONizer {
             }
         }
 
-        if ($this->onuUknownUserByMACSearchTelepathy and (empty($UserLogin) or empty($UserIP))) {
+        if ($this->onuUknownUserByMACSearchTelepathy and ( empty($UserLogin) or empty($UserIP))) {
             $telepathyArray = $this->getUserByONUMAC($onuMac, $this->onuUknownUserByMACSearchIncrement);
 
             if (!empty($telepathyArray)) {
@@ -2346,15 +2331,15 @@ class PONizer {
         $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
 
-        if (($this->onuUknownUserByMACSearchShow and (empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
+        if (($this->onuUknownUserByMACSearchShow and ( empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
             $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
             $inputs .= __('Try to find user by MAC') . ':';
             $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
             $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px; display: inline-block; float: left;"') .
-                       __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                       wf_tag('span', false, '', 'style="display: inline-block; padding: 5px 0;"') .
-                       wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
-                       wf_tag('span', true);
+                    __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                    wf_tag('span', false, '', 'style="display: inline-block; padding: 5px 0;"') .
+                    wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                    wf_tag('span', true);
             $inputs .= wf_tag('div', true);
             $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
             $inputs .= wf_tag('div', true);
@@ -2916,7 +2901,7 @@ class PONizer {
         $columns[] = 'Actions';
         $opts = '"order": [[ 0, "desc" ]]';
 
-        $result   = '';
+        $result = '';
         $tabClickScript = '';
         $tabsList = array();
         $tabsData = array();
@@ -2932,7 +2917,7 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                            wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             if ($this->EnableQuickOLTLinks) {
                 if ($this->ponizerUseTabUI) {
@@ -2948,15 +2933,15 @@ class PONizer {
                     $tabClickScript .= wf_tag('script', true);
                 } else {
                     $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
-                                         wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                                         wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                                         wf_tag('script', false, '', 'type="text/javascript"') .
-                                         '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                            wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                            wf_tag('script', false, '', 'type="text/javascript"') .
+                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
                                             var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                          });' .
-                                         wf_tag('script', true) .
-                                         wf_tag('div', true);
+                            wf_tag('script', true) .
+                            wf_tag('div', true);
                 }
             } else {
                 $QuickOLTLinkInput = '';
@@ -2987,17 +2972,16 @@ class PONizer {
 
             if ($this->ponizerUseTabUI) {
                 $tabsList[$QuickOLTLinkID] = array('options' => '',
-                                                   'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
-                                                   'additional_data' => $tabClickScript
-                                                   );
+                    'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
+                    'additional_data' => $tabClickScript
+                );
 
                 $tabsData[$QuickOLTLinkID] = array('options' => 'style="padding: 0 0 0 2px;"',
-                                                   'body' => wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
-                                                   'additional_data' => ''
-                                                   );
+                    'body' => wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
+                    'additional_data' => ''
+                );
             } else {
-                $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData,
-                           wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) . $QuickOLTLinkInput
+                $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) . $QuickOLTLinkInput
                 );
             }
         }
@@ -3011,21 +2995,21 @@ class PONizer {
                 $QickOLTsArray = $this->allOltDevices;
 
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px; text-align: right;"') .
-                                     wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                                     wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                                     wf_tag('script', false, '', 'type="text/javascript"') .
-                                     '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                        wf_tag('script', false, '', 'type="text/javascript"') .
+                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
                                         $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
                                      });' .
-                                     wf_tag('script', true) .
-                                     wf_tag('div', true);
+                        wf_tag('script', true) .
+                        wf_tag('div', true);
             } else {
                 $QuickOLTLinkInput = '';
             }
 
             show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                            wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                            $QuickOLTLinkInput);
+                    wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                    $QuickOLTLinkInput);
         } else {
             return ($result);
         }
@@ -3794,6 +3778,7 @@ class PONizer {
 
         return ($result);
     }
+
 }
 
 class PONizerLegacy extends PONizer {
@@ -4001,6 +3986,7 @@ class PONizerLegacy extends PONizer {
         $result .= show_window('', wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
         return ($result);
     }
+
 }
 
 ?>
