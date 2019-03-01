@@ -291,7 +291,7 @@ class OnuRegister {
      * @return void
      */
     protected function loadOnu() {
-        $query = "SELECT * from `pononu`";
+        $query = 'SELECT * from `pononu`';
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -334,7 +334,7 @@ class OnuRegister {
      * @return void
      */
     protected function loadOnuModels() {
-        $query = "SELECT * FROM `switchmodels` WHERE `modelname` LIKE '%ONU%'";
+        $query = 'SELECT * FROM `switchmodels` WHERE `modelname` LIKE "%ONU%"';
         $data = simple_queryall($query);
         if (!empty($data)) {
             foreach ($data as $each) {
@@ -398,7 +398,7 @@ class OnuRegister {
      * @return void
      */
     protected function loadAllSwLogin() {
-        $query = "SELECT * FROM `switch_login`";
+        $query = 'SELECT * FROM `switch_login`';
         $allLogin = simple_queryall($query);
         if (!empty($allLogin)) {
             foreach ($allLogin as $eachLogin) {
@@ -416,7 +416,7 @@ class OnuRegister {
      */
     protected function loadZteBind($swid) {
         $swid = mysql_real_escape_string(strip_tags($swid));
-        $query = "SELECT * FROM `" . self::BIND_TABLE . "` WHERE `swid` = '" . $swid . "' GROUP BY `slot_number`, `port_number`";
+        $query = 'SELECT * FROM `' . self::BIND_TABLE . '` WHERE `swid` = ' . $swid . ' GROUP BY `slot_number`, `port_number`';
         $data = simple_queryall($query);
         if (!empty($data)) {
             foreach ($data as $each) {
@@ -431,7 +431,7 @@ class OnuRegister {
      * @return void
      */
     protected function loadZteCards() {
-        $query = "SELECT * FROM `" . self::CARDS_TABLE . "` ORDER BY `slot_number` ASC";
+        $query = 'SELECT * FROM `' . self::CARDS_TABLE . '` ORDER BY `slot_number` ASC';
         $allCards = simple_queryall($query);
         if (!empty($allCards)) {
             foreach ($allCards as $eachCard) {
@@ -452,10 +452,10 @@ class OnuRegister {
         if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if (isset($this->allZteOlt[$eachCard['swid']])) {
-                    $this->cardSelector[$eachCard['slot_number']] = $this->allZteOlt[$eachCard['swid']]['ip'] . ' | ' . $eachCard['slot_number'] . " | " . $eachCard['card_name'];
+                    $this->cardSelector[$eachCard['slot_number']] = $this->allZteOlt[$eachCard['swid']]['ip'] . ' | ' . $eachCard['slot_number'] . ' | ' . $eachCard['card_name'];
                 }
                 if (isset($this->allHuaweiOlt[$eachCard['swid']])) {
-                    $this->cardSelector[$eachCard['slot_number']] = $this->allHuaweiOlt[$eachCard['swid']]['ip'] . ' | ' . $eachCard['slot_number'] . " | " . $eachCard['card_name'];
+                    $this->cardSelector[$eachCard['slot_number']] = $this->allHuaweiOlt[$eachCard['swid']]['ip'] . ' | ' . $eachCard['slot_number'] . ' | ' . $eachCard['card_name'];
                 }
             }
         }
@@ -540,7 +540,7 @@ class OnuRegister {
                 if (!empty($oltInterface)) {
                     foreach ($oltInterface as $eachOid => $name) {
                         $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
-                        $name = str_replace("STRING:", '', $name);
+                        $name = str_replace('STRING:', '', $name);
                         $name = str_replace('"', '', $name);
                         $name = trim($name);
                         $this->ponArray[$name] = $interfaceId;
@@ -583,7 +583,7 @@ class OnuRegister {
      * @return string
      */
     protected function getBindVlan() {
-        $interface = explode("/", $this->currentOltInterface);
+        $interface = explode('/', $this->currentOltInterface);
         $slot = $interface[1];
         $port = $interface[2];
         $this->loadZteBind($this->getOltId($this->currentOltIp));
@@ -670,8 +670,8 @@ class OnuRegister {
         foreach ($uncfgSn as $eachIndex => $rawValue) {
             $rawValue = explode('=', $rawValue);
             $rawSn = trim($rawValue[1]);
-            $rawSn = trim(str_replace("Hex-STRING:", '', $rawSn));
-            $tmp = explode(" ", $rawSn);
+            $rawSn = trim(str_replace('Hex-STRING:', '', $rawSn));
+            $tmp = explode(' ', $rawSn);
             $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]);
             $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
             foreach ($this->ponArray as $slot => $each_id) {
@@ -694,8 +694,8 @@ class OnuRegister {
 
         if (!empty($this->allZteOlt)) {
             foreach ($this->allZteOlt as $this->currentOltSwId => $eachOlt) {
-                if (file_exists(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'])) {
-                    $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'], true);
+                if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
+                    $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'], true);
                     $this->currentPonType = $this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'];
                     $this->currentOltIp = $eachOlt['ip'];
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
@@ -715,8 +715,8 @@ class OnuRegister {
 
         if (!empty($this->allHuaweiOlt)) {
             foreach ($this->allHuaweiOlt as $this->currentOltSwId => $eachOlt) {
-                if (file_exists(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'])) {
-                    $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $eachOlt['snmptemplate'], true);
+                if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
+                    $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'], true);
                     $this->currentPonType = $this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'];
                     $this->currentOltIp = $eachOlt['ip'];
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
@@ -748,8 +748,8 @@ class OnuRegister {
             $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST']);
             if (!empty($allUnreg)) {
                 foreach ($allUnreg as $eachUncfgPort => $value) {
-                    $value = trim(str_replace("Hex-STRING:", '', $value));
-                    $mac = str_replace(" ", ':', $value);
+                    $value = trim(str_replace('Hex-STRING:', '', $value));
+                    $mac = str_replace(' ', ':', $value);
                     $interfaceIdNum = str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'] . '.', '', $eachUncfgPort);
                     $interfaceId = substr($interfaceIdNum, 0, 9);
 
@@ -782,7 +782,7 @@ class OnuRegister {
             $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $allUncfgOid);
             if (!empty($allUnreg)) {
                 foreach ($allUnreg as $eachUncfgPort => $value) {
-                    $value = str_replace("INTEGER:", '', $value);
+                    $value = str_replace('INTEGER:', '', $value);
                     $value = trim($value);
                     if ($value > 0) {
                         $interfaceId = str_replace($allUncfgOid . '.', '', $eachUncfgPort);
@@ -804,17 +804,20 @@ class OnuRegister {
             if (!empty($allUnreg) and ! empty($oltInterface)) {
                 foreach ($oltInterface as $eachOid => $name) {
                     $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
-                    $name = str_replace("STRING:", '', $name);
+                    $name = str_replace('STRING:', '', $name);
                     $name = str_replace('"', '', $name);
                     $name = trim($name);
                     $interfaceList[$interfaceId] = $name;
                 }
                 foreach ($allUnreg as $eachUncfgPort => $value) {
                     $eachUncfgPort = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'] . '.', '', $eachUncfgPort));
-                    $eachUncfgPort = explode(".", $eachUncfgPort);
+                    $eachUncfgPort = explode('.', $eachUncfgPort);
                     $uncfgPort = $eachUncfgPort[0];
-                    $value = trim(str_replace("Hex-STRING:", '', $value));
-                    $sn = str_replace(" ", '', $value);
+                    $value = trim(str_replace('Hex-STRING:', '', $value));
+                    if (strpos($value, 'STRING:') !== false) {
+                        $value = bin2hex(trim(str_replace('STRING:', '', $value)));
+                    }
+                    $sn = str_replace(' ', '', $value);
                     $slot = $interfaceList[$uncfgPort];
                     $unregData[] = $this->currentOltIp . '|' . $slot . '|' . $sn;
                 }
@@ -872,7 +875,7 @@ class OnuRegister {
             }
             if (!empty($getAllId)) {
                 foreach ($getAllId as $oid => $value) {
-                    $number = explode(":", $value);
+                    $number = explode(':', $value);
                     $number = trim($number[1]);
                     $this->existId[] = $number;
                 }
@@ -896,7 +899,7 @@ class OnuRegister {
                     $allPorts[$i] = $i;
                 }
                 foreach ($allServicePorts as $eachOid => $value) {
-                    $split = explode(":", $value);
+                    $split = explode(':', $value);
                     $number = trim($split[1]);
                     $usedPorts[$number] = $number;
                 }
@@ -915,7 +918,7 @@ class OnuRegister {
      * @return void
      */
     protected function transformMac() {
-        $macRaw = explode(":", $this->onuIdentifier);
+        $macRaw = explode(':', $this->onuIdentifier);
         $macPart[] = $macRaw[0] . $macRaw[1];
         $macPart[] = $macRaw[2] . $macRaw[3];
         $macPart[] = $macRaw[4] . $macRaw[5];
@@ -973,8 +976,8 @@ class OnuRegister {
             $swlogin = $oltData['swlogin'];
             $swpassword = $oltData['swpass'];
             $method = $oltData['method'];
-            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $snmpTemplateName)) {
-                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $snmpTemplateName, true);
+            if (file_exists(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName)) {
+                $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName, true);
                 if ($this->currentPonType == 'EPON') {
                     $addMac = $this->onuIdentifier;
                     $this->onuIdentifier = $this->transformMac();
@@ -990,8 +993,8 @@ class OnuRegister {
                     $scriptPath .= CONFIG_PATH . 'scripts/';
                     if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
                         $scriptPath .= 'HUAWEI_';
-                        $splitName = explode(" ", $this->currentOltInterface);
-                        $splitInterface = explode("/", $splitName[1]);
+                        $splitName = explode(' ', $this->currentOltInterface);
+                        $splitInterface = explode('/', $splitName[1]);
                         $this->currentOltInterface = $splitInterface[0] . '/' . $splitInterface[1];
                         $onuInterface = $splitInterface[2];
                     } else {
@@ -1027,7 +1030,7 @@ class OnuRegister {
 
                             $this->result .= shell_exec($command);
                         }
-                        $this->result = str_replace("\n", '<br />', $this->result);
+                        $this->result = str_replace('\n', '<br />', $this->result);
                         log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
 
                         if ($PONizerAdd) {
@@ -1073,7 +1076,7 @@ class OnuRegister {
         $card = mysql_real_escape_string($card);
         $query = 'INSERT INTO `' . self::CARDS_TABLE . '` (`id`, `swid`, `slot_number`, `card_name`, `chasis_number`) VALUE (NULL, "' . $swid . '", "' . $slot . '", "' . $card . '", "' . $chasis . '")';
         nr_query($query);
-        log_register("ZTE Registered new card. OLT ID: " . $swid . "Slot: `" . $slot . "`. Card name: `" . $card . "`.");
+        log_register('ZTE Registered new card. OLT ID: ' . $swid . 'Slot: `' . $slot . '`. Card name: `' . $card . '`.');
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
 
         return (true);
@@ -1094,7 +1097,7 @@ class OnuRegister {
         $card = mysql_real_escape_string($card);
         $query = 'UPDATE ' . self::CARDS_TABLE . ' SET `card_name` = "' . $card . '" WHERE `swid` = "' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
-        log_register("ZTE Edited card. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Card name: `" . $card . "`.");
+        log_register('ZTE Edited card. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Card name: `' . $card . '`.');
 
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
     }
@@ -1112,7 +1115,7 @@ class OnuRegister {
         $slot = vf($slot, 3);
         $query = 'DELETE FROM `' . self::CARDS_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
-        log_register("ZTE Deleted card. OLT ID: " . $swid . ". Slot: `" . $slot . "`");
+        log_register('ZTE Deleted card. OLT ID: ' . $swid . '. Slot: `' . $slot . '`');
 
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
     }
@@ -1143,7 +1146,7 @@ class OnuRegister {
         $vlan = vf($vlan, 3);
         $query = 'INSERT INTO `' . self::BIND_TABLE . '` (`id`, `swid`, `slot_number`, `port_number`, `vlan`) VALUE (NULL, "' . $swid . '", "' . $slot . '", "' . $port . '", "' . $vlan . '")';
         nr_query($query);
-        log_register("ZTE Created new vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
+        log_register('ZTE Created new vlan bind. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Port: `' . $port . '`. VLAN: `' . $vlan . '`');
 
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
@@ -1163,7 +1166,7 @@ class OnuRegister {
         $port = vf($port, 3);
         $query = 'DELETE FROM `' . self::BIND_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` = "' . $port . '"';
         nr_query($query);
-        log_register("ZTE Deleted vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`.");
+        log_register('ZTE Deleted vlan bind. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Port: `' . $port . '`.');
 
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
@@ -1185,7 +1188,7 @@ class OnuRegister {
         $vlan = vf($vlan, 3);
         $query = 'UPDATE `' . self::BIND_TABLE . '` SET `vlan` = "' . $vlan . '" WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` ="' . $port . '"';
         nr_query($query);
-        log_register("ZTE Edited vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
+        log_register('ZTE Edited vlan bind. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Port: `' . $port . '`. VLAN: `' . $vlan . '`');
 
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
@@ -1319,7 +1322,7 @@ class OnuRegister {
         $cell .= wf_Tag('br');
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form("", 'POST', $Row, 'glamour');
+        $form = wf_Form('', 'POST', $Row, 'glamour');
 
         return ($form);
     }
@@ -1343,7 +1346,7 @@ class OnuRegister {
         $cell .= wf_Tag('br');
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form("", 'POST', $Row, 'glamour');
+        $form = wf_Form('', 'POST', $Row, 'glamour');
 
         return ($form);
     }
@@ -1361,7 +1364,7 @@ class OnuRegister {
         $cell .= wf_HiddenInput('show_snmp', 'true');
         $cell .= wf_Submit(__('Request'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form("", 'GET', $Row, 'glamour');
+        $form = wf_Form('', 'GET', $Row, 'glamour');
 
         return ($form);
     }
@@ -1422,8 +1425,8 @@ class OnuRegister {
             if (isset($this->allHuaweiOlt[$swid])) {
                 $oltData = $this->allHuaweiOlt[$swid];
             }
-            if (file_exists(CONFIG_PATH . "/snmptemplates/" . $oltData['snmptemplate'])) {
-                $snmpTemplate = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $oltData['snmptemplate'], true);
+            if (file_exists(CONFIG_PATH . '/snmptemplates/' . $oltData['snmptemplate'])) {
+                $snmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $oltData['snmptemplate'], true);
                 if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'])) {
                     $allCards = @snmp2_real_walk($oltData['ip'], $oltData['snmp'], $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS']);
                 }
@@ -1470,7 +1473,7 @@ class OnuRegister {
         $cell .= wf_Tag('br');
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form("", 'POST', $Row, 'glamour');
+        $form = wf_Form('', 'POST', $Row, 'glamour');
         $form .= '
 <script>
 $(".changeType").change(function () {
@@ -1567,7 +1570,7 @@ $(".changeType").change(function () {
         $cell .= wf_delimiter();
         $cell .= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form("", 'POST', $Row, 'glamour');
+        $form = wf_Form('', 'POST', $Row, 'glamour');
 
         return ($form);
     }
@@ -1590,7 +1593,7 @@ $(".changeType").change(function () {
             foreach ($allOnu as $eachType => $io) {
                 foreach ($io as $eachNumber => $eachOnu) {
                     foreach ($eachOnu as $eachData) {
-                        $eachData = explode("|", $eachData);
+                        $eachData = explode('|', $eachData);
                         $ip = $eachData[0];
                         $interface = $eachData[1];
                         $macOnu = strtolower($eachData[2]);
@@ -1637,9 +1640,9 @@ $(".changeType").change(function () {
                 $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
                 $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
                 $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
-                $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __("Add ONU to PONizer"), true, true);
+                $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __('Add ONU to PONizer'), true, true);
                 $cell .= wf_Tag('br');
-                $cell .= wf_CheckInput(self::SAVE_FIELD, __("Save config"), true);
+                $cell .= wf_CheckInput(self::SAVE_FIELD, __('Save config'), true);
 
                 break;
             case 'GPON':
@@ -1651,18 +1654,18 @@ $(".changeType").change(function () {
                 $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
                 $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
                 $cell .= wf_TextInput(self::MAC_ONU_FIELD, __('MAC ONU for PONizer'), '', true);
-                $cell .= wf_CheckInput(self::RANDOM_MAC_FIELD, __("Generate random mac"), true, true);
-                $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __("Add ONU to PONizer"), true, true);
+                $cell .= wf_CheckInput(self::RANDOM_MAC_FIELD, __('Generate random mac'), true, true);
+                $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __('Add ONU to PONizer'), true, true);
                 $cell .= wf_Tag('br');
-                $cell .= wf_CheckInput(self::SAVE_FIELD, __("Save config"), true);
-                $cell .= wf_CheckInput(self::ROUTER_FIELD, __("Router ONU mode"), true);
+                $cell .= wf_CheckInput(self::SAVE_FIELD, __('Save config'), true);
+                $cell .= wf_CheckInput(self::ROUTER_FIELD, __('Router ONU mode'), true);
 
                 break;
         }
         $cell .= wf_delimiter();
         $cell .= wf_Submit(__('Register'));
         $Row = wf_TableRow($cell, 'row1');
-        $form = wf_Form("", 'POST', $Row, 'glamour');
+        $form = wf_Form('', 'POST', $Row, 'glamour');
 
         return ($form);
     }
