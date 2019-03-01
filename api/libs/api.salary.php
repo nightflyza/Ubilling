@@ -2120,8 +2120,9 @@ class Salary {
                     unset($rawData);
                 }
 
-                $tableData->getJson();
+                
             }
+            $tableData->getJson();
         } else {
             $opts = '"order": [[ 0, "desc" ]]';
             $result = wf_JqDtLoader($columns, $linkBase . '&ajaxtimesheetsdata=true', false, __('Timesheets'), 100, $opts);
