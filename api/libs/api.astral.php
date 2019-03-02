@@ -932,6 +932,8 @@ function wf_pagination($total, $perpage, $current, $link, $class = '') {
  * Returns image body
  * 
  * @param string $url image url
+ * @param string $title image title
+ * 
  * @return string
  *  
  */

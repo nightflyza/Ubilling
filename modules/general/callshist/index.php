@@ -35,6 +35,13 @@ if ($altcfg['CALLSHIST_ENABLED']) {
             protected $loginSearch = '';
 
             /**
+             * Contains user assigned tags as login=>usertags
+             *
+             * @var array
+             */
+            protected $userTags = array();
+
+            /**
              * URL of user profile route
              */
             const URL_PROFILE = '?module=userprofile&username=';
@@ -94,13 +101,41 @@ if ($altcfg['CALLSHIST_ENABLED']) {
             }
 
             /**
+             * Loads existing tagtypes and usertags into protected props for further usage
+             * 
+             * @return void
+             */
+            protected function loadUserTags() {
+                $this->userTags = zb_UserGetAllTags();
+            }
+
+            /**
+             * Renders user tags if available
+             * 
+             * @param string $userLogin
+             * 
+             * @return string
+             */
+            protected function renderUserTags($userLogin) {
+                $result = '';
+                if (!empty($userLogin)) {
+                    if (isset($this->userTags[$userLogin])) {
+                        if (!empty($this->userTags[$userLogin])) {
+                            $result.=implode(', ', $this->userTags[$userLogin]);
+                        }
+                    }
+                }
+                return ($result);
+            }
+
+            /**
              * Renders calls log container
              * 
              * @return string
              */
             public function renderCalls() {
                 $result = '';
-                $columns = array('Date', 'Number', 'Address', 'Real Name', 'Tariff');
+                $columns = array('Date', 'Number', 'User', 'Tariff', 'Tags');
                 $opts = '"order": [[ 0, "desc" ]]';
                 $loginFilter = (!empty($this->loginSearch)) ? '&username=' . $this->loginSearch : '';
                 $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajaxcalls=true' . $loginFilter, false, __('Calls'), 100, $opts);
@@ -115,29 +150,72 @@ if ($altcfg['CALLSHIST_ENABLED']) {
             public function renderCallsAjaxList() {
                 //loading some data
                 $this->loadCalls();
+                $this->loadUserTags();
                 $allUserData = zb_UserGetAllDataCache();
+
                 $json = new wf_JqDtHelper();
+                $directionIcon = wf_img('skins/calls/incoming.png'); //thinking about future
                 if (!empty($this->allCalls)) {
                     foreach ($this->allCalls as $io => $each) {
                         if (!empty($each['login'])) {
-                            $userLink = wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon()) . ' ' . @$allUserData[$each['login']]['fulladress'];
                             $userRealName = @$allUserData[$each['login']]['realname'];
                             $userTariff = @$allUserData[$each['login']]['Tariff'];
+                            $userLink = wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . @$allUserData[$each['login']]['fulladress']) . ' ' . $userRealName;
+                            $userTags = $this->renderUserTags($each['login']);
                         } else {
                             $userLink = '';
                             $userRealName = '';
                             $userTariff = '';
+                            $userTags = '';
                         }
-                        $data[] = $each['date'];
+
+                        $data[] = $directionIcon . ' ' . $each['date'];
                         $data[] = $each['number'];
                         $data[] = $userLink;
-                        $data[] = $userRealName;
                         $data[] = $userTariff;
+                        $data[] = $userTags;
                         $json->addRow($data);
                         unset($data);
                     }
                 }
                 $json->getJson();
+            }
+
+            /**
+             * Updates data for calls without previously guessed user login
+             * 
+             * @return string
+             */
+            public function updateUnknownLogins() {
+                set_time_limit(0);
+                $messages = new UbillingMessageHelper();
+                $this->loadCalls();
+                $telepathy = new Telepathy(false, true, false, true);
+                $telepathy->usePhones();
+
+                $result = '';
+                $countGuessed = 0;
+                $countMissed = 0;
+                if (!empty($this->allCalls)) {
+                    foreach ($this->allCalls as $io => $each) {
+                        //user unknown
+                        if (empty($each['login'])) {
+                            $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
+                            if (!empty($detectedLogin)) {
+                                simple_update_field($this->dataSource, 'login', $detectedLogin, "WHERE `id`='" . $each['id'] . "'");
+                                $notification = $each['date'] . ' ' . $each['number'] . ' ' . __('Assigned') . ' ' . $detectedLogin;
+                                $result.=$messages->getStyledMessage($notification, 'success');
+                                $countGuessed++;
+                            } else {
+                                $countMissed++;
+                            }
+                        }
+                    }
+                }
+                
+                $result.=$messages->getStyledMessage(__('telepathically guessed').': '.$countGuessed, 'info');
+                $result.=$messages->getStyledMessage(__('skipped').': '.$countMissed, 'warning');
+                return ($result);
             }
 
         }
@@ -158,12 +236,26 @@ if ($altcfg['CALLSHIST_ENABLED']) {
         }
 
         //rendering report container
-        show_window(__('Calls history'), $report->renderCalls());
-
+        if (!wf_CheckGet(array('updateusers'))) {
+            if (cfr('ROOT')) {
+                $updateControls = ' ' . wf_Link($report::URL_ME . '&updateusers=true', wf_img('skins/refresh.gif',__('User calls assign update')));
+            } else {
+                $updateControls = '';
+            }
+            show_window(__('Calls history') . $updateControls, $report->renderCalls());
+        } else {
+            //user logins telepathy update
+            if (cfr('ROOT')) {
+                show_window(__('User calls assign update'), $report->updateUnknownLogins());
+                show_window('', wf_BackLink($report::URL_ME));
+            } else {
+                show_error(__('Access denied'));
+            }
+        }
         if (wf_CheckGet(array('username'))) {
             //optional profile-return links
             $controlsLinks = wf_BackLink($report::URL_PROFILE . $_GET['username']) . ' ';
-            $controlsLinks.= wf_Link($report::URL_ME, wf_img('skins/done_icon.png').' '.__('All calls'), false, 'ubButton');
+            $controlsLinks.= wf_Link($report::URL_ME, wf_img('skins/done_icon.png') . ' ' . __('All calls'), false, 'ubButton');
             show_window('', $controlsLinks);
         }
     } else {

@@ -3070,5 +3070,7 @@ $lang['def']['Switch group with such name already exists with ID: '] = 'Груп
 $lang['def']['Can not remove switch group which has existing relations on users or other DB entities'] = 'Не можна вилучити группу свічів, що має зв\'язки з користувачами або іншими об\'єктами в БД';
 $lang['def']['Go to group'] = 'Перейти до групи';
 $lang['def']['right to control switch groups'] = 'Право керувати групами свічів';
+$lang['def']['skipped'] = 'пропущено';
+$lang['def']['User calls assign update'] = 'Оновлення користувацьких даних дзвінків';
 
 ?>
