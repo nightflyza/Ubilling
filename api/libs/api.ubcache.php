@@ -177,15 +177,27 @@ class UbillingCache {
     /**
      * Logs data if logging is enabled
      * 
-     * @param string $data
-     * @param int $logLevel
+     * @param string $event
+     * @param string $dataSample
      * 
      * @return void
      */
-    protected function logEvent($data) {
+    protected function logEvent($event, $dataSample = '') {
         if ($this->debug) {
             $curDate = curdatetime();
-            $logData = $curDate . ' ' . $data . "\n";
+            $dataSize = '';
+            if (!empty($dataSample)) {
+                $dataSize = strlen(serialize($dataSample)) . ' bytes';
+                if (ispos($event, 'GET KEY')) {
+                    $dataSize.=' HIT';
+                }
+            } else {
+                $dataSize = 'EMPTY_DATA';
+                if (ispos($event, 'GET KEY')) {
+                    $dataSize.=' MISS YA';
+                }
+            }
+            $logData = $curDate . ' ' . $this->storage . ' ' . $event . ' ' . $dataSize . "\n";
             file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
         }
     }
@@ -220,7 +232,7 @@ class UbillingCache {
             $this->redis->setTimeout($key, $expiration);
         }
 
-        $this->logEvent('SET KEY: ' . $key);
+        $this->logEvent('SET KEY: ' . $key, $data);
     }
 
     /**
@@ -229,13 +241,13 @@ class UbillingCache {
      * @param string $key Storage key name
      * @param int   $expiration Expiration time in seconds
      * 
-     * @return string
+     * @return mixed
      */
     public function get($key, $expiration = 2592000) {
         $result = '';
         $keyRaw = $key;
         $key = $this->genKey($key);
-        $this->logEvent('GET KEY: ' . $key);
+
 
         //files storage
         if ($this->storage == 'files') {
@@ -262,6 +274,7 @@ class UbillingCache {
                 $result = '';
                 $this->delete($keyRaw);
             }
+            $this->logEvent('GET KEY: ' . $key, $result);
             return ($result);
         }
 
@@ -271,6 +284,7 @@ class UbillingCache {
             if (!$result) {
                 $result = '';
             }
+            $this->logEvent('GET KEY: ' . $key, $result);
             return ($result);
         }
 
@@ -280,12 +294,14 @@ class UbillingCache {
             if (!$result) {
                 $result = '';
             }
+            $this->logEvent('GET KEY: ' . $key, $result);
             return ($result);
         }
 
         //fake storage
         if ($this->storage == 'fake') {
             $result = '';
+            $this->logEvent('GET KEY: ' . $key, $result);
             return ($result);
         }
 
