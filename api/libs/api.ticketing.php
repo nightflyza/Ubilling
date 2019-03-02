@@ -499,12 +499,16 @@ function web_TicketDialogue($ticketid) {
 
     $result = wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
     if (!empty($ticketdata)) {
-        $alladdress = zb_AddressGetFulladdresslist();
-        $allrealnames = zb_UserGetAllRealnames();
-        $alltariffs = zb_TariffsGetAllUsers();
-        $allcash = zb_CashGetAllUsers();
-        $allcredits = zb_CreditGetAllUsers();
-        $alluserips = zb_UserGetAllIPs();
+        $userLogin = $ticketdata['from'];
+        $userAddress = zb_UserGetFullAddress($userLogin);
+        //this data not used cache, to be 100% actual
+        $userRealName = zb_UserGetRealName($userLogin);
+        $userData = zb_UserGetStargazerData($userLogin);
+        $userIp = $userData['IP'];
+        $userCredit = $userData['Credit'];
+        $userCash = $userData['Cash'];
+        $userTariff = $userData['Tariff'];
+
 
         if ($ticketdata['status']) {
             $actionlink = wf_Link('?module=ticketing&openticket=' . $ticketdata['id'], wf_img('skins/icon_unlock.png') . ' ' . __('Open'), false, 'ubButton');
@@ -529,12 +533,12 @@ function web_TicketDialogue($ticketid) {
         $tablecells.=wf_TableCell($ticketdata['date']);
         $profilelink = wf_Link('?module=userprofile&username=' . $ticketdata['from'], web_profile_icon() . ' ' . $ticketdata['from']);
         $tablecells.=wf_TableCell($profilelink);
-        $tablecells.=wf_TableCell(@$allrealnames[$ticketdata['from']]);
-        $tablecells.=wf_TableCell(@$alladdress[$ticketdata['from']]);
-        $tablecells.=wf_TableCell(@$alluserips[$ticketdata['from']]);
-        $tablecells.=wf_TableCell(@$alltariffs[$ticketdata['from']]);
-        $tablecells.=wf_TableCell(@$allcash[$ticketdata['from']]);
-        $tablecells.=wf_TableCell(@$allcredits[$ticketdata['from']]);
+        $tablecells.=wf_TableCell($userRealName);
+        $tablecells.=wf_TableCell($userAddress);
+        $tablecells.=wf_TableCell($userIp);
+        $tablecells.=wf_TableCell($userTariff);
+        $tablecells.=wf_TableCell($userCash);
+        $tablecells.=wf_TableCell($userCash);
         $tablecells.=wf_TableCell(web_bool_led($ticketdata['status']));
         $tablerows.=wf_TableRow($tablecells, 'row3');
         $result.=wf_TableBody($tablerows, '100%', '0');
