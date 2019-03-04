@@ -1,6 +1,12 @@
 <?php
 if ($ubillingConfig->getAlterParam('ASTERISK_ENABLED')) {
     $asterisk = new Asterisk();
+
+	//getting asterisk data
+	if (wf_CheckGet(array('ajax'))) {
+		$asterisk->ajaxAvaibleCDR();
+	}
+
     if (isset($_GET['username'])) {
         $user_login = vf($_GET['username']);
         // Profile:
@@ -42,10 +48,8 @@ if ($ubillingConfig->getAlterParam('ASTERISK_ENABLED')) {
             show_window(__('Calls history'),$asterisk->panel());
 
             //and parse some calls history if this needed
-            if (wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskGetCDR($_POST['datefrom'], $_POST['dateto'], $user_login);
-            } elseif (isset($user_login) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskGetCDR('2000-01-01', curdate(), $user_login);
+            if (wf_CheckPost(array('datefrom', 'dateto')) or isset($user_login)) {
+                show_window('', $asterisk->renderAsteriskCDR());
             }
         }
     } else {
