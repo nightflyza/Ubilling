@@ -227,7 +227,7 @@ class Asterisk {
      * 
      * @return array
      */
-    protected function AsteriskQuery($query) {
+    public function AsteriskQuery($query) {
         if ($this->connected) {
             $result = array();
             $result_query = $this->AsteriskDB->query($query, MYSQLI_USE_RESULT);
