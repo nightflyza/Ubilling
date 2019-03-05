@@ -750,12 +750,12 @@ class Asterisk {
             $totalTime = 0;
             $callsCounter = 0;
             foreach ($cdrData as $io => $each) {
-                if (isset($normalData[$io - 1]['src'])) {
-                    if ($normalData[$io]['src'] == $normalData[$io - 1]['src'] and $normalData[$io - 1]['disposition'] == 'NO ANSWER' and $normalData[$io]['disposition'] != 'ANSWERED')
+                if (isset($cdrData[$io - 1]['src'])) {
+                    if ($cdrData[$io]['src'] == $cdrData[$io - 1]['src'] and $cdrData[$io - 1]['disposition'] == 'NO ANSWER' and $cdrData[$io]['disposition'] != 'ANSWERED')
                         continue;
-                    if ($normalData[$io]['src'] == $normalData[$io - 1]['src'] and $normalData[$io - 1]['dst'] == 'hangup')
+                    if ($cdrData[$io]['src'] == $cdrData[$io - 1]['src'] and $cdrData[$io - 1]['dst'] == 'hangup')
                         continue;
-                    if ($normalData[$io]['src'] == $normalData[$io - 1]['src'] and $normalData[$io - 1]['dst'] == 'musiconhold')
+                    if ($cdrData[$io]['src'] == $cdrData[$io - 1]['src'] and $cdrData[$io - 1]['dst'] == 'musiconhold')
                         continue;
                 }
                 $callsCounter++;
