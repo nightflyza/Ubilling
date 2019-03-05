@@ -1030,7 +1030,7 @@ class OnuRegister {
 
                             $this->result .= shell_exec($command);
                         }
-                        $this->result = str_replace('\n', '<br />', $this->result);
+                        $this->result = nl2br($this->result);
                         log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
 
                         if ($PONizerAdd) {
