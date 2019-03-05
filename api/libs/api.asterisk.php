@@ -227,7 +227,7 @@ class Asterisk {
      * 
      * @return array
      */
-    public function AsteriskQuery($query) {
+    protected function AsteriskQuery($query) {
         if ($this->connected) {
             $result = array();
             $result_query = $this->AsteriskDB->query($query, MYSQLI_USE_RESULT);
@@ -717,7 +717,7 @@ class Asterisk {
      */
     public function renderAsteriskCDR() {
         $result = '';
-        $columns = array('ID', 'Time', 'From', 'Real Name', 'Address', 'To', 'Type', 'Status', 'Talk time');
+        $columns = array('#', 'ID', 'Time', 'From', 'Real Name', 'Address', 'To', 'Type', 'Status', 'Talk time');
 
         if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
             $columns[]= 'Назойливость';
@@ -731,7 +731,7 @@ class Asterisk {
         $to = isset($_POST['dateto']) ? $_POST['dateto'] : curdate();
         $user_login = isset($_GET['username']) ? '&username=' . vf($_GET['username']) : '';
 
-        $opts = '"order": [[ 1, "desc" ]]';
+        $opts = '"order": [[ 0, "asc" ]]';
         $result = wf_JqDtLoader($columns, '?module=asterisk&ajax=true&datefrom=' . $from  . '&dateto=' . $to . $user_login . $countnum, false, 'Calls', 100, $opts);
         return ($result);
     }
@@ -819,6 +819,7 @@ class Asterisk {
                 $totalTime = $totalTime + $each['billsec'];
                 $speekTime = $this->AsteriskFormatTime($speekTime);
 
+                $data[] = $callsCounter;
                 $data[] = wf_modal($callsCounter, $callsCounter, $debugData, '', '500', '600');
                 $data[] = $sessionTimeStats;
                 $data[] = $link_src;
