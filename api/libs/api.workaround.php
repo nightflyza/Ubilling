@@ -357,6 +357,14 @@ function zb_NewMacSelect($name = 'newmac') {
                 $nmarr[] = $matches[0];
                 $unique_nmarr = array_unique($nmarr);
             }
+            if ($alter_conf['NMLEASES_EXTEND']) {
+                $eachline = preg_replace('/([a-f0-9]{2})(?!$)[\.\:\-]?/', '\1:', $eachline);
+                preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
+                if (!empty($matches[0])) {
+                    $nmarr[] = $matches[0];
+                    $unique_nmarr = array_unique($nmarr);
+                }
+            }
         }
         if (!empty($unique_nmarr)) {
             foreach ($unique_nmarr as $newmac) {
@@ -2265,8 +2273,8 @@ function web_UserTraffStats($login) {
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
                     $dataHideki = simple_query($query_hideki);
                     if (isset($downup['D0'])) {
-                        $downup['D0']+=$dataHideki['D0'];
-                        $downup['U0']+=$dataHideki['U0'];
+                        $downup['D0'] += $dataHideki['D0'];
+                        $downup['U0'] += $dataHideki['U0'];
                     } else {
                         $downup['D0'] = $dataHideki['D0'];
                         $downup['U0'] = $dataHideki['U0'];
@@ -2368,9 +2376,9 @@ function web_UserTraffStats($login) {
                         foreach ($dataHideki as $io => $each) {
                             foreach ($prevmonths as $ia => $stgEach) {
                                 if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
-                                    $prevmonths[$ia]['D0']+=$each['D0'];
-                                    $prevmonths[$ia]['U0']+=$each['U0'];
-                                    $prevmonths[$ia]['cash']+=$each['cash'];
+                                    $prevmonths[$ia]['D0'] += $each['D0'];
+                                    $prevmonths[$ia]['U0'] += $each['U0'];
+                                    $prevmonths[$ia]['cash'] += $each['cash'];
                                 }
                             }
                         }
@@ -5151,7 +5159,7 @@ function zb_ListCacheInform($param = '') {
                 $ajDeleteContainerId = 'aj_deletecachekey' . $key['key'];
                 $deleteUrl = '?module=report_sysload&deletecachekey=' . $key['key'];
                 $deleteControls = wf_AjaxLink($deleteUrl, wf_img_sized('skins/icon_del.gif', '', '10') . ' ' . __('Delete'), $ajDeleteContainerId, false, 'ubButton');
-                $keyActions.= wf_AjaxContainer($ajDeleteContainerId, '', $deleteControls . $viewControls);
+                $keyActions .= wf_AjaxContainer($ajDeleteContainerId, '', $deleteControls . $viewControls);
 
 
                 $cells .= wf_TableCell($keyActions);
@@ -5181,7 +5189,7 @@ function zb_CacheKeyDestroy($key) {
         $cache = new UbillingCache();
         $key = str_replace($cache::CACHE_PREFIX, '', $key);
         $cache->delete($key);
-        $result.=$messages->getStyledMessage(__('Deleted'), 'warning');
+        $result .= $messages->getStyledMessage(__('Deleted'), 'warning');
     }
     return ($result);
 }
