@@ -358,7 +358,7 @@ function zb_NewMacSelect($name = 'newmac') {
                 $nmarr[] = $matches[0];
             }
             if ($alter_conf['NMLEASES_EXTEND']) {
-                $eachline = preg_replace('/([a-f0-9]{2})(?!$)[\.\:\-]?/', '\1:', $eachline);
+                $eachline = preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/gm', '\1:', $eachline);
                 preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
                 if (!empty($matches[0])) {
                     $nmarr[] = $matches[0];
