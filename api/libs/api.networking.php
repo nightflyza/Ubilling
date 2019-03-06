@@ -1673,6 +1673,14 @@ function zb_NewMacShow() {
             if (!empty($matches)) {
                 $allarp[] = $matches[0];
             }
+            if ($alter_config['NMLEASES_EXTEND']) {
+                $eachline = preg_replace('/([a-f0-9]{2})(?!$)[\.\:\-]?/', '\1:', $eachline);
+                preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
+                if (!empty($matches[0])) {
+                    $nmarr[] = $matches[0];
+                    $unique_nmarr = array_unique($nmarr);
+                }
+            }
         }
         $un_arr = array_unique($allarp);
         if (!empty($un_arr)) {
