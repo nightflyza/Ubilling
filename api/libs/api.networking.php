@@ -1677,8 +1677,7 @@ function zb_NewMacShow() {
                 $eachline = preg_replace('/([a-f0-9]{2})(?!$)[\.\:\-]?/', '\1:', $eachline);
                 preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $eachline, $matches);
                 if (!empty($matches[0])) {
-                    $nmarr[] = $matches[0];
-                    $unique_nmarr = array_unique($nmarr);
+                    $allarp[] = $matches[0];
                 }
             }
         }
