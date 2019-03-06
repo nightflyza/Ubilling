@@ -16,6 +16,7 @@ if (cfr('BANKSTAMD')) {
                 //main interface with upload form and loaded banksta list
                 show_window(__('Upload'), $banksta->renderBankstaLoadForm());
                 show_window(__('Previously loaded bank statements'), $banksta->renderBankstaList());
+                zb_BillingStats(true);
             } else {
                 //some row detailed info
                 show_window(__('Bank statement'), $banksta->bankstaGetDetailedRowInfo($_GET['showdetailed']));
