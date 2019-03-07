@@ -901,6 +901,7 @@ class OnuRegister {
                 foreach ($allServicePorts as $eachOid => $value) {
                     $split = explode(':', $value);
                     $number = trim($split[1]);
+                    $number--;
                     $usedPorts[$number] = $number;
                 }
                 $freePorts = array_diff($allPorts, $usedPorts);
@@ -1034,7 +1035,10 @@ class OnuRegister {
                         log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
 
                         if ($PONizerAdd) {
-                            if (!empty($login) and ! empty($addMac)) {
+                            if (empty($login)) {
+                                $login = '';
+                            }
+                            if (!empty($addMac)) {
                                 $pon = new PONizer();
                                 $pon->onuCreate($onuModel, $this->currentOltSwId, '', $addMac, $serial, $login);
                             } else {
