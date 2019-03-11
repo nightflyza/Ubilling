@@ -1,17 +1,24 @@
 <?php
 
 if (cfr('PASSWORD')) {
+    $altCfg = $ubillingConfig->getAlter();
     if (isset($_GET['username'])) {
         $login = vf($_GET['username']);
         // change password  if need
         if (wf_CheckPost(array('newpassword'))) {
             $password = $_POST['newpassword'];
-            if (zb_CheckPasswordUnique($password)) {
+            if (!$altCfg['IGNORE_PASSWORD_UNIQUE']) {
+                if (zb_CheckPasswordUnique($password)) {
+                    $billing->setpassword($login, $password);
+                    log_register('CHANGE Password (' . $login . ') ON `' . $password . '`');
+                    rcms_redirect("?module=passwordedit&username=" . $login);
+                } else {
+                    show_error(__('We do not recommend using the same password for different users. Try another.'));
+                }
+            } else {
                 $billing->setpassword($login, $password);
                 log_register('CHANGE Password (' . $login . ') ON `' . $password . '`');
                 rcms_redirect("?module=passwordedit&username=" . $login);
-            } else {
-                show_error(__('We do not recommend using the same password for different users. Try another.'));
             }
         }
 
@@ -29,9 +36,11 @@ if (cfr('PASSWORD')) {
         show_window(__('Edit password'), $form);
 
 //check non unique passwords
-        $duppasswords = zb_GetNonUniquePasswordUsers();
-        if (!empty($duppasswords)) {
-            show_window(__('These users have identical passwords'), web_UserArrayShower($duppasswords));
+        if (!$altCfg['IGNORE_PASSWORD_UNIQUE']) {
+            $duppasswords = zb_GetNonUniquePasswordUsers();
+            if (!empty($duppasswords)) {
+                show_window(__('These users have identical passwords'), web_UserArrayShower($duppasswords));
+            }
         }
 
         show_window('', web_UserControls($login));
