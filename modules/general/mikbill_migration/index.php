@@ -3,22 +3,21 @@
 if (cfr('MIKMIGR')) {
     $greed = new Avarice();
     $beggar = $greed->runtime('MIKMIGR');
-    $mik = new mikbill();
     if (!empty($beggar)) {
         foreach ($beggar['CERT'] as $each) {
             eval($each);
         }
         if (file_exists($beggar['DUMP'])) {
-
-            show_window('', $mik->web_MikbillMigrationNetworksForm());            
+            $mik = new mikbill();
+            show_window('', $mik->web_MikbillMigrationNetworksForm());
             $converts = array('db_user', 'db_pass', 'db_host', 'db_name', 'tariff_period');
             if (wf_CheckPost($converts)) {
-                if(isset($_POST['login_as_pass'])) {
+                if (isset($_POST['login_as_pass'])) {
                     $login_ap = true;
                 } else {
                     $login_ap = false;
                 }
-                if(isset($_POST['contract_as_uid'])) {
+                if (isset($_POST['contract_as_uid'])) {
                     $contract_au = true;
                 } else {
                     $contract_au = false;
