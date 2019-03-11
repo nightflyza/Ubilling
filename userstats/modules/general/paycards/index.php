@@ -15,10 +15,10 @@ $pc_brute = $us_config['PC_BRUTE'];
  */
 function zbs_PaycardsShowForm() {
     $inputs = la_tag('br');
-    $inputs.= __('Payment card number') . ' ';
-    $inputs.= la_TextInput('paycard', '', '', false, 25);
-    $inputs.= la_Submit(__('Use this card'));
-    $inputs.= la_delimiter();
+    $inputs .= __('Payment card number') . ' ';
+    $inputs .= la_TextInput('paycard', '', '', false, 25);
+    $inputs .= la_Submit(__('Use this card'));
+    $inputs .= la_delimiter();
     $form = la_Form('', 'POST', $inputs, '');
 
     return ($form);
@@ -48,9 +48,14 @@ function zbs_PaycardBruteLog($cardnumber) {
  * @param string $cardnumber
  * @return bool
  */
-function zbs_PaycardCheck($cardnumber) {
+function zbs_PaycardCheck($cardnumber, $series = false) {
     $cardnumber = vf($cardnumber);
     $query = "SELECT `id` from `cardbank` WHERE `serial`='" . $cardnumber . "' AND `active`='1' AND `used`='0' AND `usedlogin` = ''";
+    if ($series) {
+        $series = vf($series);
+        $query .= ' AND `part`="' . $series . '"';
+    }
+
     $cardcheck = simple_query($query);
     if (!empty($cardcheck)) {
         return (true);
@@ -162,8 +167,14 @@ if ($pc_enabled) {
         //add cash routine with checks
         if (isset($_POST['paycard'])) {
             if (!empty($_POST['paycard'])) {
+                $series = false;
+                if ($us_config['PC_SERIES_AND_SN']) {
+                    $serialNumber = substr($_POST['paycard'], $us_config['PC_SERIES_LENGTH']);
+                    $series = str_replace($serialNumber, '', $_POST['paycard']);
+                    $_POST['paycard'] = $serialNumber;
+                }
                 //use this card
-                if (zbs_PaycardCheck($_POST['paycard'])) {
+                if (zbs_PaycardCheck($_POST['paycard'], $series)) {
                     if (!@$us_config['PC_QUEUED']) {
                         zbs_PaycardUse($_POST['paycard']);
                     } else {
