@@ -1508,8 +1508,15 @@ class UkvSystem {
 
 //task creation control
             if ($this->altCfg['CREATETASK_IN_PROFILE']) {
+                $customData = '';
+                if ($this->altCfg['CONDET_ENABLED']) {
+                    if (!empty($userData['cableseal'])) {
+                        $userCableSeal = __('Cable seal') . ': ' . $userData['cableseal'] . '\r\n';
+                        $customData = wf_HiddenInput('unifiedformtelegramappend', $userCableSeal);
+                    }
+                }
                 $shortAddress = $userData['street'] . ' ' . $userData['build'] . $apt;
-                $taskForm = ts_TaskCreateFormUnified($shortAddress, $userData['mobile'], $userData['phone'], '');
+                $taskForm = ts_TaskCreateFormUnified($shortAddress, $userData['mobile'], $userData['phone'], '', $customData);
                 $taskControl = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $taskForm, '', '420', '500');
             } else {
                 $taskControl = '';
@@ -1595,7 +1602,7 @@ class UkvSystem {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal') . wf_tag('div', true);
             }
             if (cfr('EMPLOYEE')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))).__('Jobs') . wf_tag('div', true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))) . __('Jobs') . wf_tag('div', true);
             }
             if (cfr('UKVDEL')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);

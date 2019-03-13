@@ -1144,9 +1144,10 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
  * @param string $mobile
  * @param string $phone
  * @param string $login
+ * @param string $customData
  * @return  string
  */
-function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
+function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $customData = '') {
     global $ubillingConfig;
     $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
@@ -1184,6 +1185,9 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
     $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
     $inputs.= ts_TaskTypicalNotesSelector();
     $inputs.= wf_TextArea('newjobnote', '', '', true, '35x5');
+    if (!empty($customData)) {
+        $inputs.=$customData;
+    }
     $inputs.= $smsInputs;
     $inputs.= $telegramInputs;
     $inputs.= wf_Submit(__('Create new task'));
@@ -1475,12 +1479,29 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             if (!empty($login)) {
                 $userData = zb_UserGetAllData($login);
 
+                $userCableSeal = '';
+                if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
+                    $userCondet = new ConnectionDetails();
+                    $userCableSeal = $userCondet->getByLogin($login);
+                    if (!empty($userCableSeal)) {
+                        $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . '\r\n'; // kabelnyi tyulenchik
+                    }
+                }
+
                 $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
                 $newTelegramText.= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
                 $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
                 $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
                 $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
                 $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+                if (!empty($userCableSeal)) {
+                    $newTelegramText.=$userCableSeal;
+                }
+            }
+            
+            //some hack to append UKV users cable seals
+            if (wf_CheckPost(array('unifiedformtelegramappend'))) {
+                $newTelegramText.=$_POST['unifiedformtelegramappend'];
             }
             ts_SendTelegram($employeeid, $newTelegramText);
         }
@@ -1596,6 +1617,7 @@ function ts_TaskModifyForm($taskid) {
  * @return void
  */
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
+    global $ubillingConfig;
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
     $starttimeRaw = (!empty($starttime)) ? $starttime : '';
@@ -1641,12 +1663,24 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
 
+            $userCableSeal = '';
+            if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
+                $userCondet = new ConnectionDetails();
+                $userCableSeal = $userCondet->getByLogin($login);
+                if (!empty($userCableSeal)) {
+                    $userCableSeal = __('Cable seal') . ': ' . $userCableSeal['seal'] . '\r\n';
+                }
+            }
+
             $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
             $newTelegramText.= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
             $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
             $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
             $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
             $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+            if (!empty($userCableSeal)) {
+                $newTelegramText.=$userCableSeal;
+            }
         }
         ts_SendTelegram($employeeid, $newTelegramText);
     }
