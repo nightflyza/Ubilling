@@ -35,6 +35,13 @@ class CapabilitiesDirectory {
     protected $availids = array();
 
     /**
+     * Contains array of capabilities history
+     *
+     * @var array
+     */
+    protected $history = array();
+
+    /**
      * System telepathy object placeholder
      *
      * @var object
@@ -58,6 +65,8 @@ class CapabilitiesDirectory {
             $this->loadAllIds();
 //load existing states
             $this->loadCapabStates();
+//loads capabs history
+            $this->loadHistory();
 //load employees
             $this->loadEmployees();
 //init telepathy
@@ -78,6 +87,45 @@ class CapabilitiesDirectory {
                 $this->availids[$each['id']] = $each['id'];
             }
         }
+    }
+
+    /**
+     * Loads capabs history into protected prop
+     * 
+     * @return void
+     */
+    protected function loadHistory() {
+        $query = "SELECT * from `capabhist` ORDER BY `id` ASC";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->history[$each['capabid']][] = $each;
+            }
+        }
+    }
+
+    /**
+     * Returns capab created admin login
+     * 
+     * @param int $capabId
+     *
+     * @return void/string
+     */
+    protected function getHistoryCreated($capabId) {
+        $result = '';
+        if (!empty($this->history)) {
+            if (isset($this->history[$capabId])) {
+                $capabHist = $this->history[$capabId];
+                if (!empty($capabHist)) {
+                    foreach ($capabHist as $io => $each) {
+                        if ($each['type'] == 'create') {
+                            $result = $each['admin'];
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -158,7 +206,7 @@ class CapabilitiesDirectory {
      */
     public function render() {
         $result = '';
-        $columns = array(__('ID'), __('Date'), __('Address'), __('Phone'), __('Status'), __('Notes'), __('Price'), __('Employee'), __('Changed'), __('Actions'));
+        $columns = array(__('Admin'), __('Date'), __('Address'), __('Phone'), __('Status'), __('Notes'), __('Price'), __('Employee'), __('Changed'), __('Actions'));
         $result = $this->panel();
         $opts = '"order": [[ 4, "asc" ]]';
         $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Objects'), 100, $opts);
@@ -250,8 +298,9 @@ class CapabilitiesDirectory {
 
                 $loginGuess = $this->telepathy->getLogin($each['address']);
                 $profileLink = (!empty($loginGuess)) ? wf_Link('?module=userprofile&username=' . $loginGuess, web_profile_icon(), false, '') . ' (' . __('guessed') . ')' : '';
+                $adminCreated = $this->getHistoryCreated($each['id']);
 
-                $jsonItem[] = $each['id'];
+                $jsonItem[] = $adminCreated;
                 $jsonItem[] = $each['date'];
                 $jsonItem[] = $each['address'] . ' ' . $profileLink;
                 $jsonItem[] = $each['phone'];
@@ -286,9 +335,29 @@ class CapabilitiesDirectory {
             $query = "DELETE from `capab` WHERE `id`='" . $id . "'";
             nr_query($query);
             log_register("CAPABILITY DELETE [" . $id . "]");
+            $this->logCapability($id, 'delete');
         } else {
             throw new Exception(self::NO_ID);
         }
+    }
+
+    /**
+     * Saves some capab actions into history
+     * 
+     * @param int $capabId
+     * @param string $type
+     * @param string $event
+     */
+    protected function logCapability($capabId, $type, $event = '') {
+        $capabId = vf($capabId, 3);
+        $type = vf($type);
+        $eventF = mysql_real_escape_string($event);
+        $admin = whoami();
+        $date = curdatetime();
+        $query = "INSERT INTO `capabhist` (`id`,`capabid`,`admin`,`date`,`type`,`event`) VALUES "
+                . "(NULL, '" . $capabId . "','" . $admin . "','" . $date . "','" . $type . "','" . $eventF . "');";
+
+        nr_query($query);
     }
 
     /**
@@ -312,6 +381,7 @@ class CapabilitiesDirectory {
         nr_query($query);
         $lastId = simple_get_lastid('capab');
         log_register("CAPABILITY ADD [" . $lastId . "] `" . $address . "`");
+        $this->logCapability($lastId, 'create');
     }
 
     /**
@@ -355,11 +425,13 @@ class CapabilitiesDirectory {
     public function editForm($id) {
         $id = vf($id, 3);
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $curpage = (wf_CheckGet(array('page'))) ? vf($_GET['page'], 3) : 1;
         $result = '';
+        $messages = new UbillingMessageHelper();
         $stateSelector = array();
         $employeeSelector = array();
         $employeeSelector['NULL'] = '-';
+        $employeeLogins = ts_GetAllEmployeeLoginsCached();
+        $employeeLogins = unserialize($employeeLogins);
 
         if (isset($this->availids[$id])) {
             //states preprocessing
@@ -380,9 +452,9 @@ class CapabilitiesDirectory {
             //task creation form
 
             $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '');
-            $taskControl = wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
+            $taskControl = wf_modalAuto(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
 
-            $result = wf_BackLink('?module = capabilities&page = ' . $curpage) . ' ';
+            $result = wf_BackLink(self::URL_ME) . ' ';
             $result.= $taskControl . wf_delimiter();
 
             $inputs = wf_TextInput('editaddress', __('Full address') . $sup, $this->allcapab[$id]['address'], true);
@@ -395,7 +467,41 @@ class CapabilitiesDirectory {
             $inputs.= wf_delimiter();
             $inputs.= wf_Submit(__('Save'));
 
-            $result.= wf_Form("", 'POST', $inputs, 'glamour');
+
+            $form = wf_Form("", 'POST', $inputs, 'glamour');
+            $form.=wf_CleanDiv();
+
+            $capabHist = '';
+            if (isset($this->history[$id])) {
+                if (!empty($this->history[$id])) {
+                    foreach ($this->history[$id] as $io => $each) {
+                        $employeeName = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
+                        $label = '';
+                        switch ($each['type']) {
+                            case 'create':
+                                $style = 'success';
+                                $label = __('Created');
+                                break;
+                            case 'edit':
+                                $style = 'warning';
+                                $label = __('Changed');
+                                break;
+                            case 'delete':
+                                $style = 'error';
+                                $label = __('Deleted');
+                                break;
+                            default:
+                                $style = 'info';
+                                break;
+                        }
+                        $capabHist.=$messages->getStyledMessage($label . ' ' . $each['date'] . ' ' . $employeeName, $style);
+                    }
+                }
+            }
+            $cells = wf_TableCell($form, '', '', 'valign="top"');
+            $cells.= wf_TableCell($capabHist, '', '', 'valign="top"');
+            $rows = wf_TableRow($cells);
+            $result.=wf_TableBody($rows, '100%', 0);
         } else {
             throw new Exception(self::NO_ID);
         }
@@ -433,6 +539,7 @@ class CapabilitiesDirectory {
             simple_update_field('capab', 'price', $price, "WHERE `id`='" . $id . "';");
             simple_update_field('capab', 'employeeid', $employeeid, "WHERE `id`='" . $id . "';");
             log_register("CAPABILITY EDIT [" . $id . "] `" . $address . "`");
+            $this->logCapability($id, 'edit');
         } else {
             throw new Exception(self::NO_ID);
         }
@@ -459,8 +566,8 @@ class CapabilitiesDirectory {
                 $color = wf_tag('font', false, '', 'color = "#' . $each['color'] . '"') . $each['color'] . wf_tag('font', true);
                 $cells.= wf_TableCell($color);
                 if ($each['id'] != 0) {
-                    $actions = wf_JSAlert("?module=capabilities&states=true&deletestate=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                    $actions.= wf_JSAlert("?module=capabilities&states=true&editstate=" . $each['id'], web_edit_icon(), __('Are you serious'));
+                    $actions = wf_JSAlert(self::URL_ME . "&states=true&deletestate=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+                    $actions.= wf_JSAlert(self::URL_ME . "&states=true&editstate=" . $each['id'], web_edit_icon(), __('Are you serious'));
                 } else {
                     $actions = '';
                 }
@@ -480,7 +587,7 @@ class CapabilitiesDirectory {
      */
     public function statesAddForm() {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $result = wf_BackLink('?module = capabilities', '', true);
+        $result = wf_BackLink(self::URL_ME, '', true);
         $inputs = wf_TextInput('createstate', __('New status') . $sup, '', true, '20');
         $inputs.= wf_ColPicker('createstatecolor', __('New status color') . $sup, '#' . $this->genRandomColor(), true, '10');
         $inputs.= wf_Submit(__('Create'));
@@ -497,7 +604,7 @@ class CapabilitiesDirectory {
     public function statesEditForm($id) {
 
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $result = wf_BackLink('?module=capabilities&states=true', '', true);
+        $result = wf_BackLink(self::URL_ME . '&states=true', '', true);
         $inputs = wf_TextInput('editstate', __('New status') . $sup, $this->capabstates[$id]['state'], true, '20');
         $inputs.= wf_ColPicker('editstatecolor', __('New status color') . $sup, '#' . $this->capabstates[$id]['color'], true, '10');
         $inputs.= wf_Submit(__('Save'));
@@ -607,7 +714,7 @@ class CapabilitiesDirectory {
     protected function panel() {
         $result = '';
         if (cfr('ROOT')) {
-            $result.= wf_Link("?module=capabilities&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
+            $result.= wf_Link(self::URL_ME . "&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
         $result.= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
         $result.= wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
