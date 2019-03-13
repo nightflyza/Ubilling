@@ -78,7 +78,7 @@ if (!extension_loaded('mysql')) {
         if (DEBUG) {
             print ($query . "\n");
         }
-        $result = '';
+        $result = [];
         $queried = $loginDB->query($query) or die('wrong data input: ' . $query);
         while ($row = mysqli_fetch_assoc($queried)) {
             $result[] = $row;
@@ -336,7 +336,7 @@ if (!extension_loaded('mysql')) {
         if (DEBUG) {
             print ($query . "\n");
         }
-        $result = '';
+        $result = [];
         $queried = mysql_query($query) or die('wrong data input: ' . $query);
         while ($row = mysql_fetch_assoc($queried)) {
             $result[] = $row;
