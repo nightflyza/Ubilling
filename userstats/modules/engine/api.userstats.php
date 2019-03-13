@@ -290,7 +290,7 @@ function zbs_AddressGetFullCityNames() {
  */
 function zbs_AddressGetFulladdresslist() {
     $alterconf = zbs_LoadConfig();
-    $result = array();
+    $result = [];
     $query_full = "
         SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address`
         INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id`
