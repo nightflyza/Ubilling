@@ -458,6 +458,27 @@ class UbillingUpdateManager {
         return ($result);
     }
 
+    /**
+     * Renders current release info data and update check controls
+     * 
+     * @return string
+     */
+    public function renderVersionInfo() {
+        $currentRelease = file_get_contents("RELEASE");
+        $updatechecker = wf_tag('br') . wf_tag('div', false, '', 'style="margin-left: 3%;"');
+        $updatechecker.= wf_AjaxLink('?module=updatemanager&checkupdates=true', wf_img('skins/question.png') . ' ' . __('Check updates'), 'lastrelease', false, 'ubButton');
+        $updatechecker.= wf_tag('div', true);
+        $updatechecker.= wf_CleanDiv();
+
+        $releaseInfo = wf_tag('style') . '#ubajaxloaderanim { margin-left: 3%; margin-top: 10px; }' . wf_tag('style', true);
+        $releaseInfo.= $updatechecker;
+        $releaseInfo.= $this->messages->getStyledMessage(__('Current Ubilling version') . ': ' . $currentRelease, 'info');
+        $releaseInfo.= wf_AjaxContainer('lastrelease', '', '');
+
+        $releaseInfo.= wf_AjaxLoader();
+        return ($releaseInfo);
+    }
+
 }
 
 class UbillingUpdateStuff {

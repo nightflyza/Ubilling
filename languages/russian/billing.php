@@ -3055,7 +3055,7 @@ $lang['def']['Go to group'] = 'Перейти к группе';
 $lang['def']['right to control switch groups'] = 'Право управлять группами свичей';
 $lang['def']['skipped'] = 'пропущено';
 $lang['def']['User calls assign update'] = 'Обновление данных звонков о пользователях';
-$lang['def'][''] = '';
+$lang['def']['Current Ubilling version'] = 'Текущая версия Ubilling';
 $lang['def'][''] = '';
 
 ?>

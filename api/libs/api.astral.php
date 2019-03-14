@@ -1535,7 +1535,7 @@ function wf_tag($tag, $closed = false, $class = '', $options = '') {
 }
 
 /**
- * Constructs ajax loader 
+ * Constructs ajax loader. Animation image have id: ubajaxloaderanim
  * 
  * @return string
  */
@@ -1579,7 +1579,7 @@ function wf_AjaxLoader() {
         var contentElem = document.getElementById(container);
         myrequest.open(\'POST\', docum, true);
         myrequest.setRequestHeader(\'Content-Type\', \'application/x-www-form-urlencoded\');
-       contentElem.innerHTML = \'<img src=skins/ajaxloader.gif>\';
+       contentElem.innerHTML = \'<img src=skins/ajaxloader.gif id=ubajaxloaderanim>\';
         myrequest.onreadystatechange = function()
         {
             if (myrequest.readyState == 4)
@@ -1624,7 +1624,7 @@ function wf_AjaxLoader() {
  * 
  * @param string $containerName container name aka ID
  * @param string $options misc options like size/display if required
- * @param srring $content default container content
+ * @param string $content default container content
  * 
  * @return string
  */
