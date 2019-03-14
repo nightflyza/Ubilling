@@ -742,4 +742,45 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
     }
 }
 
+/**
+ * Returns array of all available virtual services as tagid=>price
+ * 
+ * @return array
+ */
+function zb_VservicesGetAllPrices() {
+    $result = array();
+    $query = "SELECT * from `vservices`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['tagid']] = $each['price'];
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns price summary of all virtual services fees assigned to user
+ * 
+ * @param string $login
+ * 
+ * @return float
+ */
+function zb_VservicesGetUserPrice($login) {
+    $result = 0;
+    $allUserTags = zb_UserGetAllTags();
+    //user have some tags assigned
+    if (isset($allUserTags[$login])) {
+        if (!empty($allUserTags[$login])) {
+            $vservicePrices = zb_VservicesGetAllPrices();
+            foreach ($allUserTags[$login] as $tagId => $tagName) {
+                if (isset($vservicePrices[$tagId])) {
+                    $result+=$vservicePrices[$tagId];
+                }
+            }
+        }
+    }
+    return ($result);
+}
+
 ?>

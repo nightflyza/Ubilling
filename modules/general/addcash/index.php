@@ -65,6 +65,9 @@ if (cfr('CASH')) {
         // Edit money form construct:
         $user_tariff = $user_data['Tariff'];
         $tariff_price = zb_TariffGetPrice($user_tariff);
+        if (@$alter['BABLOGUESSING']) {
+            $tariff_price+=zb_VservicesGetUserPrice($login);
+        }
         $fieldnames = array('fieldname1' => __('Current Cash state'), 'fieldname2' => __('New cash'));
         $fieldkey = 'newcash';
 
