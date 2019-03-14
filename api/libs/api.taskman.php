@@ -2420,7 +2420,7 @@ function ts_PrintTasks($datefrom, $dateto) {
         $appendQuery = '';
     }
 
-    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . " " . $advFilter . " " . $appendQuery;
+    $query = "select * from `taskman` LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . " " . $advFilter . " " . $appendQuery;
     $alltasks = simple_queryall($query);
 
     if (!empty($alltasks)) {
@@ -2443,7 +2443,8 @@ function ts_PrintTasks($datefrom, $dateto) {
             $rows.= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Job type'));
-            $cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+            //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+            $cells.= wf_TableCell($each['jobname']);
             $rows.= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Who should do'));
@@ -2528,7 +2529,7 @@ function ts_PrintTasksTable($datefrom, $dateto) {
         $appendQuery = '';
     }
 
-    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . $advFilter . " " . $appendQuery . " " . "ORDER BY `address`";
+    $query = "select * from `taskman` LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . $advFilter . " " . $appendQuery . " " . "ORDER BY `address`";
     $alltasks = simple_queryall($query);
 
     if (!empty($alltasks)) {
@@ -2552,7 +2553,8 @@ function ts_PrintTasksTable($datefrom, $dateto) {
                             $cells = wf_TableCell($each['startdate'] . ' ' . wf_tag('b') . @$each['starttime'] . wf_tag('b', true));
                             $cells.= wf_TableCell($each['address']);
                             $cells.= wf_TableCell($each['phone']);
-                            $cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+                            //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+                            $cells.= wf_TableCell($each['jobname']);
                             $cells.= wf_TableCell(nl2br($each['jobnote']));
                             $cells.= wf_TableCell('');
                             $rows.= wf_TableRow($cells, 'row3');
