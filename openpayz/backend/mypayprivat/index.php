@@ -10,6 +10,24 @@ $ispName = $mypConf['TEMPLATE_ISP'];
 $ispLogo = $mypConf['TEMPLATE_ISP_LOGO'];
 $merchant_service = $mypConf['MERCHANT_SERVICE'];
 
+if (!function_exists('rcms_redirect')) {
+
+    /**
+     * Shows redirection javascript. 
+     * 
+     * @param string $url
+     * @param bool $header
+     */
+    function rcms_redirect($url, $header = false) {
+        if ($header) {
+            @header('Location: ' . $url);
+        } else {
+            echo '<script language="javascript">document.location.href="' . $url . '";</script>';
+        }
+    }
+
+}
+
 /*
  * shows payment summ selection form
  * 
@@ -92,7 +110,7 @@ function myp_PaymentForm($customer_id) {
         $staticToken = $mypConf['STATIC_TOKEN'];
     }
 
-    $result = '<h2><a href="https://my-payments.privatbank.ua/mypayments/customauth/identification/fp/static?staticToken=' . $staticToken . '&acc=' . $customer_id . '&amount=' . $summ . '">' . $mypConf['TEMPLATE_ISP_SERVICE'] . '</a>';
+    $result = 'https://my-payments.privatbank.ua/mypayments/customauth/identification/fp/static?staticToken=' . $staticToken . '&acc=' . $customer_id . '&amount=' . $summ;
 
     return ($result);
 }
@@ -106,6 +124,7 @@ if (isset($_GET['customer_id'])) {
         $paymentForm = myp_PricesForm();
     } else {
         $paymentForm = myp_PaymentForm($customer_id);
+        rcms_redirect($paymentForm);
     }
 
     //рендерим все в темплейт
