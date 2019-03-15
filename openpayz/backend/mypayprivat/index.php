@@ -92,7 +92,7 @@ function myp_PaymentForm($customer_id) {
         $staticToken = $mypConf['STATIC_TOKEN'];
     }
 
-    $result= "<h2><a href='https://my-payments.privatbank.ua/mypayments/customauth/identification/fp/static?staticToken=" . $staticToken ."&acc=" . $customer_id . "&amount=" . $summ . "'>" . $mypConf['TEMPLATE_ISP_SERVICE'] . "</a>";
+    $result= '<h2><a href="https://my-payments.privatbank.ua/mypayments/customauth/identification/fp/static?staticToken=' . $staticToken . '&acc=' . $customer_id . '&amount=' . $summ . '">' . $mypConf['TEMPLATE_ISP_SERVICE'] . '</a>';
 
     return ($result);
 }
