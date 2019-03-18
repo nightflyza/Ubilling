@@ -585,68 +585,79 @@ class PONizer {
      * @param type $interfaceType
      * @return string
      */
-    protected function interfaceDecodeZTE($uuid) {
+    protected function interfaceDecodeZTE($uuid, $cardOffset = 0) {
         $binary = decbin($uuid);
-        $typeName = array(1 => 'epon_olt_virtualIfBER', 3 => 'epon-onu', 9 => 'epon-onu', 10 => 'epon-onu');
+        $typeName = array(1 => 'epon_olt_virtualIfBER', 3 => 'epon-onu', 8 => 'epon-onu', 9 => 'epon-onu', 10 => 'epon-onu', 12 => 'epon-onu');
         $match = array();
         $result = '';
 
-        preg_match("/(\d{4})(\d{4})(\d{5})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+        switch (strlen($binary)) {
+            case 30:
+                preg_match("/(\d{4})(\d{3})(\d{4})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+                break;
+            case 31:
+                preg_match("/(\d{4})(\d{4})(\d{4})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+                break;
+            case 32:
+                preg_match("/(\d{4})(\d{4})(\d{5})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+                break;
+        }
 
         foreach ($match as &$each) {
             $each = bindec($each);
         }
 
-        if (isset($match[1])) {
+        if (!empty($match)) {
             $type = $match[1];
             $shelf = $match[2];
             $slot = $match[3];
             $olt = $match[4] + 1;
             $onu = $match[5];
 
-            if ($type == 3) {
-                $result = $typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu;
-            }
-
-            if ($type == 1) {
-                $result = $typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt;
-            }
-
-            if ($type == 6) {
-                $result = $shelf . '/' . $slot . '/';
-            }
-
-            if ($type == 9) {
-                preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match);
-                foreach ($match as &$each) {
-                    $each = bindec($each);
-                }
-                if (isset($match[1])) {
-                    $type = $match[1];
-                    $shelf = $match[2];
-                    $slot = $match[3];
-                    $olt = $match[4] + 1;
-                    $onu = $match[5];
-                    $result = $typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu;
-                }
-            }
-
-            if ($type == 10) {
-                preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match);
-                foreach ($match as &$each) {
-                    $each = bindec($each);
-                }
-                if (isset($match[1])) {
-                    $type = $match[1];
-                    $shelf = $match[2];
-                    $slot = $match[3] + 1;
-                    $olt = $match[4] + 1;
-                    $onu = $match[5] + 1;
-                    $result = $typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu;
-                }
+            switch ($type) {
+                case 1:
+                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt);
+                case 3:
+                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
+                case 6:
+                    return($shelf . '/' . $slot . '/');
+                case 8:
+                    $slot += $cardOffset;
+                    $onu += 1;
+                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
+                case 9:
+                    preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match);
+                    foreach ($match as &$each) {
+                        $each = bindec($each);
+                    }
+                    if (isset($match[1])) {
+                        $type = $match[1];
+                        $shelf = $match[2];
+                        $slot = $match[3];
+                        $olt = $match[4] + 1;
+                        $onu = $match[5];
+                        return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
+                    }
+                    break;
+                case 10:
+                    preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match);
+                    foreach ($match as &$each) {
+                        $each = bindec($each);
+                    }
+                    if (isset($match[1])) {
+                        $type = $match[1];
+                        $shelf = $match[2];
+                        $slot = $match[3] + 1;
+                        $olt = $match[4] + 1;
+                        $onu = $match[5] + 1;
+                        return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
+                    }
+                    break;
+                case 12:
+                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
             }
         }
-        return $result;
+        return FALSE;
     }
 
     /**
@@ -681,12 +692,11 @@ class PONizer {
      *
      * @return void
      */
-    protected function FDBParseZTE($oltid, $FDBIndex, $macIndex) {
+    protected function FDBParseZTE($oltid, $FDBIndex, $macIndex, $cardOffset = 0) {
         $counter = 1;
         $FDBTmp = array();
         $macTmp = array();
         $result = array();
-
 //fdb index preprocessing
         if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
             foreach ($FDBIndex as $io => $eachfdb) {
@@ -695,7 +705,7 @@ class PONizer {
                 $devOID = trim($line[0]);
                 $devline = explode('.', $devOID);
                 $devIndex = trim($devline[0]);
-                if ($this->interfaceDecodeZTE($devIndex)) {
+                if ($this->interfaceDecodeZTE($devIndex, $cardOffset)) {
                     if (isset($devline[1])) {
                         $FDBvlan = trim($devline[1]);
                         $macPart[] = dechex($devline[2]);
@@ -704,29 +714,30 @@ class PONizer {
                         $macPart[] = dechex($devline[5]);
                         $macPart[] = dechex($devline[6]);
                         $macPart[] = dechex($devline[7]);
-
                         foreach ($macPart as &$eachPart) {
                             if (strlen($eachPart) < 2) {
                                 $eachPart = '0' . $eachPart;
                             }
                         }
-
                         $FDBmac = implode(':', $macPart);
-                        $FDBTmp[$this->interfaceDecodeZTE($devIndex)][$counter]['mac'] = $FDBmac;
-                        $FDBTmp[$this->interfaceDecodeZTE($devIndex)][$counter]['vlan'] = $FDBvlan;
+                        $FDBTmp[$this->interfaceDecodeZTE($devIndex, $cardOffset)][$counter]['mac'] = $FDBmac;
+                        $FDBTmp[$this->interfaceDecodeZTE($devIndex, $cardOffset)][$counter]['vlan'] = $FDBvlan;
                         $counter++;
                     }
                 }
             }
-
+//            print_r($FDBIndex);
+//            print_r($macIndex);
 //mac index preprocessing
             foreach ($macIndex as $ioIndex => $eachMac) {
                 $eachMac = strtolower(str_replace(" ", ":", $eachMac));
-                if ($this->interfaceDecodeZTE($ioIndex)) {
-                    $macTmp[$this->interfaceDecodeZTE($ioIndex)] = $eachMac;
+                if ($this->interfaceDecodeZTE($ioIndex, $cardOffset)) {
+                    $macTmp[$this->interfaceDecodeZTE($ioIndex, $cardOffset)] = $eachMac;
                 }
             }
 
+            print_r($FDBTmp);
+            print_r($macTmp);
 //storing results
             if (!empty($macTmp)) {
                 foreach ($macTmp as $devId => $eachMac) {
@@ -735,10 +746,10 @@ class PONizer {
                         $result[$eachMac] = $fdb;
                     }
                 }
-                $result = serialize($result);
-                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
             }
         }
+        $result = serialize($result);
+        file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
     }
 
     /**
@@ -1790,11 +1801,11 @@ class PONizer {
                                         }
                                     }
                                     $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
-                                    $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
-                                    $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
-                                    $FDBIndex = explodeRows($FDBIndex);
+                                    $FDBIndexTmp = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
+                                    $FDBIndexTmp = str_replace($FDBIndexOid . '.', '', $FDBIndexTmp);
+                                    $FDBIndex = explodeRows($FDBIndexTmp);
 
-                                    $this->FDBParseZTE($oltid, $FDBIndex, $macIndexTmp);
+                                    $this->FDBParseZTE($oltid, $FDBIndex, $macIndexTmp, $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']);
                                     $this->interfaceParseZTE($oltid, $intIndex, $macIndexTmp);
                                     $this->onuidParseZTE($oltid, $macIndexTmp);
                                 }
