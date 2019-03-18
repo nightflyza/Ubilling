@@ -150,11 +150,14 @@ function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc
 if ($us_config['SC_ENABLED']) {
 
 // let needed params
-    $userData=  zbs_UserGetStargazerData($user_login);
+    $userData = zbs_UserGetStargazerData($user_login);
     $current_cash = $userData['Cash'];
-    $current_credit=$userData['Credit'];
-    $current_credit_expire=$userData['CreditExpire'];
-    
+    $current_credit = $userData['Credit'];
+    $current_credit_expire = $userData['CreditExpire'];
+    $tariff = $userData['Tariff'];
+    $frozenFlag = $userData['Passive'];
+    $downFlag = $userData['Down'];
+
     $us_currency = $us_config['currency'];
     $sc_minday = $us_config['SC_MINDAY'];
     $sc_maxday = $us_config['SC_MAXDAY'];
@@ -172,7 +175,8 @@ if ($us_config['SC_ENABLED']) {
             $sc_allowed = array_flip($sc_allowed);
         }
     }
-    $tariff = zbs_UserGetTariff($user_login);
+
+
     $tariffprice = zbs_UserGetTariffPrice($tariff);
     $tariffprice+=$vs_price;
     $cday = date("d");
@@ -203,41 +207,44 @@ if ($us_config['SC_ENABLED']) {
                     $creditSeconds = ($sc_term * 86400); //days*secs
                     $creditOffset = $nowTimestamp + $creditSeconds;
                     $scend = date("Y-m-d", $creditOffset);
-
-                    if (abs($current_cash) <= $tariffprice) {
-                        if ($current_cash < 0) {
-                            if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {
-                                //additional hack contol enabled
-                                if ($sc_hackhcontrol AND ! zbs_CreditLogCheckHack($user_login)) {
-                                    show_window(__('Sorry'), __('You can not take out a credit because you have not paid since the previous time'));
-                                } else {
-                                    //additional month contol enabled
-                                    if ($sc_monthcontrol) {
-                                        if (zbs_CreditLogCheckMonth($user_login)) {
-                                            //check for allow option
-                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
-                                        } else {
-                                            show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
-                                        }
+                    if ((!$frozenFlag) AND ( !$downFlag)) {
+                        if (abs($current_cash) <= $tariffprice) {
+                            if ($current_cash < 0) {
+                                if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {
+                                    //additional hack contol enabled
+                                    if ($sc_hackhcontrol AND ! zbs_CreditLogCheckHack($user_login)) {
+                                        show_window(__('Sorry'), __('You can not take out a credit because you have not paid since the previous time'));
                                     } else {
-                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                        //additional month contol enabled
+                                        if ($sc_monthcontrol) {
+                                            if (zbs_CreditLogCheckMonth($user_login)) {
+                                                //check for allow option
+                                                zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                            } else {
+                                                show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                            }
+                                        } else {
+                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                        }
+                                        //end of self credit main code
                                     }
-                                    //end of self credit main code
+                                } else {
+                                    show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
                                 }
                             } else {
-                                show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
+                                //to many money
+                                show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
                             }
                         } else {
-                            //to many money
-                            show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                            //not allowed to use self credit
+                            if ($current_cash < 0) {
+                                show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
+                            } else {
+                                show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                            }
                         }
                     } else {
-                        //not allowed to use self credit
-                        if ($current_cash < 0) {
-                            show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
-                        } else {
-                            show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
-                        }
+                        show_window(__('Sorry'), __('Your account has been frozen'));
                     }
                 } else {
                     // agreement check
