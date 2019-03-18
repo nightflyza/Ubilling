@@ -150,9 +150,11 @@ function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc
 if ($us_config['SC_ENABLED']) {
 
 // let needed params
-    $current_credit = zbs_CashGetUserCredit($user_login);
-    $current_cash = zbs_CashGetUserBalance($user_login);
-    $current_credit_expire = zbs_CashGetUserCreditExpire($user_login);
+    $userData=  zbs_UserGetStargazerData($user_login);
+    $current_cash = $userData['Cash'];
+    $current_credit=$userData['Credit'];
+    $current_credit_expire=$userData['CreditExpire'];
+    
     $us_currency = $us_config['currency'];
     $sc_minday = $us_config['SC_MINDAY'];
     $sc_maxday = $us_config['SC_MAXDAY'];
