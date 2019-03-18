@@ -42,70 +42,76 @@ $uconf = uhw_LoadConfig();
                                 // debug
                                 //$remote_ip='172.32.0.118';
                                 $remote_ip = $_SERVER['REMOTE_ADDR'];
-                                $usermac = uhw_FindMac($remote_ip);
-                                if ($usermac) {
-                                    //show user mac 
-                                    uhw_MacDisplay($usermac);
 
-                                    if ($uconf['SELFACT_ENABLED']) {
-                                        //is all passwords unique?
-                                        if (uhw_IsAllPasswordsUnique() or $uconf['USE_LOGIN']) {
-                                            $brute_attempts = uhw_GetBrute($usermac);
-                                            if ($brute_attempts < $uconf['SELFACT_BRUTE']) {
-                                                if (uhw_IsMacUnique($usermac)) {
-                                                    //catch actiivation request
-                                                    if ((!$uconf['USE_LOGIN'] and isset($_POST['password'])) or ( $uconf['USE_LOGIN'] and isset($_POST['login']) and isset($_POST['password']))) {
-                                                        if ((!$uconf['USE_LOGIN'] and ! empty($_POST['password'])) or ( $uconf['USE_LOGIN'] and ! empty($_POST['login']) and ! empty($_POST['password']))) {
-                                                            $trylogin = (isset($_POST['login']) and ! empty($_POST['login'])) ? $_POST['login'] : '';
-                                                            $trypassword = $_POST['password'];
-                                                            $userlogin = uhw_FindUserByPassword($trypassword, $trylogin);
-                                                            if ($userlogin) {
-                                                                //password ok, we know user login
-                                                                // lets detect his ip
-                                                                $tryip = uhw_UserGetIp($userlogin);
-                                                                if ($tryip) {
-                                                                    //get nethost id
-                                                                    $nethost_id = uhw_NethostGetID($tryip);
-                                                                    if ($nethost_id) {
-                                                                        //almost done, now we need too change mac in nethosts
-                                                                        //and call rebuild handlers and user reset API calls
-                                                                        $oldmac = uhw_NethostGetMac($nethost_id);
-                                                                        uhw_ChangeMac($nethost_id, $usermac);
-                                                                        uhw_LogSelfact($trypassword, $userlogin, $tryip, $nethost_id, $oldmac, $usermac);
-                                                                        uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'reset', $userlogin);
-                                                                        uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'handlersrebuild');
+                                if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
+                                    $usermac = uhw_FindMac($remote_ip);
+                                    if ($usermac) {
+                                        //show user mac 
+                                        uhw_MacDisplay($usermac);
 
-                                                                        print(uhw_modal_open($uconf['SUP_SELFACT'], $uconf['SUP_SELFACTDONE'], '400', '300'));
+                                        if ($uconf['SELFACT_ENABLED']) {
+                                            //is all passwords unique?
+                                            if (uhw_IsAllPasswordsUnique() or $uconf['USE_LOGIN']) {
+                                                $brute_attempts = uhw_GetBrute($usermac);
+                                                if ($brute_attempts < $uconf['SELFACT_BRUTE']) {
+                                                    if (uhw_IsMacUnique($usermac)) {
+                                                        //catch actiivation request
+                                                        if ((!$uconf['USE_LOGIN'] and isset($_POST['password'])) or ( $uconf['USE_LOGIN'] and isset($_POST['login']) and isset($_POST['password']))) {
+                                                            if ((!$uconf['USE_LOGIN'] and ! empty($_POST['password'])) or ( $uconf['USE_LOGIN'] and ! empty($_POST['login']) and ! empty($_POST['password']))) {
+                                                                $trylogin = (isset($_POST['login']) and ! empty($_POST['login'])) ? $_POST['login'] : '';
+                                                                $trypassword = $_POST['password'];
+                                                                $userlogin = uhw_FindUserByPassword($trypassword, $trylogin);
+                                                                if ($userlogin) {
+                                                                    //password ok, we know user login
+                                                                    // lets detect his ip
+                                                                    $tryip = uhw_UserGetIp($userlogin);
+                                                                    if ($tryip) {
+                                                                        //get nethost id
+                                                                        $nethost_id = uhw_NethostGetID($tryip);
+                                                                        if ($nethost_id) {
+                                                                            //almost done, now we need too change mac in nethosts
+                                                                            //and call rebuild handlers and user reset API calls
+                                                                            $oldmac = uhw_NethostGetMac($nethost_id);
+                                                                            uhw_ChangeMac($nethost_id, $usermac);
+                                                                            uhw_LogSelfact($trypassword, $userlogin, $tryip, $nethost_id, $oldmac, $usermac);
+                                                                            uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'reset', $userlogin);
+                                                                            uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'handlersrebuild');
+
+                                                                            print(uhw_modal_open($uconf['SUP_SELFACT'], $uconf['SUP_SELFACTDONE'], '400', '300'));
+                                                                        } else {
+                                                                            print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_STRANGE'] . ' NO_NHID', '400', '300'));
+                                                                        }
                                                                     } else {
-                                                                        print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_STRANGE'] . ' NO_NHID', '400', '300'));
+                                                                        print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_STRANGE'] . ' NO_IP', '400', '300'));
                                                                     }
                                                                 } else {
-                                                                    print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_STRANGE'] . ' NO_IP', '400', '300'));
+                                                                    //wrong password action
+                                                                    uhw_LogBrute($trypassword, $usermac, $trylogin);
+                                                                    print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_WRONGPASS'], '400', '300'));
                                                                 }
-                                                            } else {
-                                                                //wrong password action
-                                                                uhw_LogBrute($trypassword, $usermac, $trylogin);
-                                                                print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_WRONGPASS'], '400', '300'));
                                                             }
                                                         }
-                                                    }
-                                                    //
-                                                    //show selfact form
-                                                    //
+                                                        //
+                                                        //show selfact form
+                                                        //
                             uhw_PasswordForm($uconf);
+                                                    } else {
+                                                        print($uconf['SUP_MACEXISTS']);
+                                                    }
                                                 } else {
-                                                    print($uconf['SUP_MACEXISTS']);
+                                                    //bruteforce prevention
+                                                    print('<br><br><br>' . uhw_modal($uconf['SUP_SELFACT'], $uconf['SUP_SELFACT'], $uconf['SUP_BRUTEERROR'], 'ubButton', '400', '300'));
                                                 }
                                             } else {
-                                                //bruteforce prevention
-                                                print('<br><br><br>' . uhw_modal($uconf['SUP_SELFACT'], $uconf['SUP_SELFACT'], $uconf['SUP_BRUTEERROR'], 'ubButton', '400', '300'));
+                                                print('DEBUG: EXEPTION_PASS_UNIQ ');
                                             }
-                                        } else {
-                                            print('DEBUG: EXEPTION_PASS_UNIQ ');
                                         }
+                                    } else {
+                                        print($uconf['SUP_NOMAC']);
                                     }
                                 } else {
-                                    print($uconf['SUP_NOMAC']);
+                                    //not unknown user network
+                                    uhw_redirect($uconf['ISP_URL']);
                                 }
                                 ?>
 
