@@ -1,43 +1,47 @@
 <?php
+
 if (cfr('PLARPING')) {
 
-  function wf_PlPingerOptionsForm() {
-      //previous setting
-      if (wf_CheckPost(array('packet'))) {
-          $currentpack = vf($_POST['packet'], 3);
-      } else {
-          $currentpack = '';
-      }
-      if (wf_CheckPost(array('count'))) {
-          $getCount = vf($_POST['count'], 3);
-          if ($getCount <= 10000) {
-              $currentcount = $getCount;
-          } else {
-              $currentcount = '';
-          }
-      } else {
-          $currentcount = '';
-      }
-      $inputs.= wf_TextInput('count', __('Count'), $currentcount, false, 5);
-      $inputs.= wf_Submit(__('Save'));
-      $result = wf_Form('', 'POST', $inputs, 'glamour');
-      return ($result);
-  }
+    function wf_PlPingerOptionsForm() {
+        //previous setting
+        if (wf_CheckPost(array('packet'))) {
+            $currentpack = vf($_POST['packet'], 3);
+        } else {
+            $currentpack = '';
+        }
+        if (wf_CheckPost(array('count'))) {
+            $getCount = vf($_POST['count'], 3);
+            if ($getCount <= 10000) {
+                $currentcount = $getCount;
+            } else {
+                $currentcount = '';
+            }
+        } else {
+            $currentcount = '';
+        }
+        $inputs = wf_TextInput('count', __('Count'), $currentcount, false, 5);
+        $inputs.= wf_Submit(__('Save'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
 
     if (isset($_GET['username'])) {
-        $login=$_GET['username'];
-        $config=rcms_parse_ini_file(CONFIG_PATH.'billing.ini');
-        $alterconfig=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
-        $parseMe='';
-        $cloneFlag=false;
-        $arping_path=$alterconfig['ARPING'];
-        $arping_iface=$alterconfig['ARPING_IFACE'];
-        $arping_options=$alterconfig['ARPING_EXTRA_OPTIONS'];
-        $sudo_path=$config['SUDO'];
-        $userdata=zb_UserGetStargazerData($login);
-        $user_ip=$userdata['IP'];
+        $login = $_GET['username'];
+        $config = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
+        $alterconfig = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+        $parseMe = '';
+        $cloneFlag = false;
+        $messages = new UbillingMessageHelper();
+        $arping_path = $alterconfig['ARPING'];
+        $arping_iface = $alterconfig['ARPING_IFACE'];
+        $arping_options = $alterconfig['ARPING_EXTRA_OPTIONS'];
+        $sudo_path = $config['SUDO'];
+        $userdata = zb_UserGetStargazerData($login);
+        $user_ip = $userdata['IP'];
         $pingCount = 10;
         $rttTmp = '';
+        $params=array();
+        $succArray=array();
         //setting ping parameters
         $addParams = '';
         //setting ajax background params
@@ -54,8 +58,8 @@ if (cfr('PLARPING')) {
         if (wf_CheckGet(array('charts'))) {
             $addAjax.='&charts=true';
         }
-        $command=$sudo_path.' '.$arping_path.' '.$arping_iface.' -c '.$pingCount.' '.$arping_options.' '.$addParams.' '.$user_ip;
-        $raw_result=  shell_exec($command);
+        $command = $sudo_path . ' ' . $arping_path . ' ' . $arping_iface . ' -c ' . $pingCount . ' ' . $arping_options . ' ' . $addParams . ' ' . $user_ip;
+        $raw_result = shell_exec($command);
         $ping_result = wf_AjaxLoader();
         if (!wf_CheckGet(array('charts'))) {
             $ping_result.=wf_Link('?module=pl_arping&charts=true&username=' . $_GET['username'], wf_img_sized('skins/icon_stats.gif', '', '16') . ' ' . __('Graphs'), false, 'ubButton');
@@ -65,35 +69,33 @@ if (cfr('PLARPING')) {
         $ping_result.= wf_AjaxLink('?module=pl_arping&username=' . $login . '&ajax=true' . $addAjax, wf_img('skins/refresh.gif') . ' ' . __('Renew'), 'ajaxarping', true, 'ubButton');
         $rawResult = shell_exec($command);
         //detecting duplicate MAC
-        $rawArray=  explodeRows($raw_result);
+        $rawArray = explodeRows($raw_result);
         if (!empty($rawArray)) {
-            foreach ($rawArray as $io=>$eachline) {
-              if (ispos($eachline, 'packets transmitted')) {
-            $parseMe=$eachline;
-              }
+            foreach ($rawArray as $io => $eachline) {
+                if (ispos($eachline, 'packets transmitted')) {
+                    $parseMe = $eachline;
+                }
             }
         }
 
         if (!empty($parseMe)) {
-            $parseMe=  explode(',', $parseMe);
-              if (sizeof($parseMe)==3) {
-                  $txCount=vf($parseMe[0],3);
-                  $rxCount=vf($parseMe[1],3);
-                    if ($rxCount>$txCount) {
-                      $cloneFlag=true;
-                    }
-              }
+            $parseMe = explode(',', $parseMe);
+            if (sizeof($parseMe) == 3) {
+                $txCount = vf($parseMe[0], 3);
+                $rxCount = vf($parseMe[1], 3);
+                if ($rxCount > $txCount) {
+                    $cloneFlag = true;
+                }
+            }
         }
 
         if ($cloneFlag) {
-            $ping_result.=wf_tag('font', false, '', 'color="#ff0000" size="4"').__('It looks like this MAC addresses has duplicate on the network').  wf_tag('font',true);
+            $ping_result.=$messages->getStyledMessage(__('It looks like this MAC addresses has duplicate on the network'), 'error');
         }
+
         //some charts
         if (wf_CheckGet(array('charts'))) {
-            /**
-             * 心の声で散弾銃のように
-             * 唄い続けた
-             */
+
             if (!empty($rawResult)) {
                 $pingLines = explodeRows($rawResult);
                 $tmpArr = array();
@@ -113,7 +115,7 @@ if (cfr('PLARPING')) {
                             if (isset($latency[2])) {
                                 $latency = explode(' ', $latency[2]);
                                 $latency = $latency[0];
-	                                $succArray[$seq] = $latency;
+                                $succArray[$seq] = $latency;
                             }
                         } else {
                             //RTT here
@@ -131,7 +133,7 @@ if (cfr('PLARPING')) {
                 for ($packCount = 0; $packCount <= $pingCount - 1; $packCount++) {
                     if (isset($succArray[$packCount])) {
                         $params[] = array($packCount, $succArray[$packCount]);
-	                    } else {
+                    } else {
                         $params[] = array($packCount, $tmpArr[$packCount]);
                     }
                 }
@@ -153,7 +155,7 @@ if (cfr('PLARPING')) {
                         trigger: 'none'
                     },";
 
-            $messages = new UbillingMessageHelper();
+
             //overriding result output
             $pingParams = __('IP') . ': ' . $user_ip . ' ' . __('Packets count') . ': ' . $pingCount;
             $rawResult = $messages->getStyledMessage($pingParams, 'info');
@@ -185,6 +187,6 @@ if (cfr('PLARPING')) {
         show_window('', web_UserControls($login));
     }
 } else {
-      show_error(__('You cant control this module'));
+    show_error(__('You cant control this module'));
 }
 ?>
