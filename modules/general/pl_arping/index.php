@@ -18,7 +18,7 @@ if (cfr('PLARPING')) {
       } else {
           $currentcount = '';
       }
-      $inputs.= wf_TextInput('count', __('Count'), $currentcount, false, 5);
+      $inputs = wf_TextInput('count', __('Count'), $currentcount, false, 5);
       $inputs.= wf_Submit(__('Save'));
       $result = wf_Form('', 'POST', $inputs, 'glamour');
       return ($result);
