@@ -895,7 +895,7 @@ class MultiGen {
     protected function loadAcctData() {
         $fieldsList = implode(', ', $this->acctFieldsRequired);
         if (!empty($this->acctFieldsAdditional)) {
-            $fieldsList.=', ' . implode(', ', $this->acctFieldsAdditional);
+            $fieldsList .= ', ' . implode(', ', $this->acctFieldsAdditional);
         }
         if (wf_CheckGet(array('datefrom', 'dateto'))) {
             $searchDateFrom = mysql_real_escape_string($_GET['datefrom']);
@@ -2006,6 +2006,74 @@ class MultiGen {
     }
 
     /**
+     * Need to disconnect user when data like username changed.
+     * 
+     * @param string $userLogin
+     * @param array $userData
+     * 
+     * @return void
+     */
+    public function podOnExternalEvent($userLogin, $userData, $old = false) {
+        if (!empty($this->allUserData)) {
+            $this->preprocessUserData();
+            $userNases = $this->userNases[$userLogin];
+            if (!empty($userNases)) {
+                foreach ($userNases as $eachNasId) {
+                    @$nasOptions = $this->nasOptions[$eachNasId];
+                    $userNameType = $nasOptions['usernametype'];
+                    if ($userNameType == 'mac' or $userNameType == 'macju') {
+                        $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
+                        if (!empty($userName)) {
+                            if (!empty($nasOptions)) {
+                                if ($nasOptions['service'] != 'none') {
+                                    $nasServices = @$this->services[$eachNasId];
+                                    if (!empty($nasServices)) {
+                                        if (strpos($nasOptions['service'], 'pod') !== false) {
+                                            $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                                            $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
+                                            $this->savePodQueue($podCommand);
+                                            if ($old) {
+                                                $this->removeSingleUser($userName);
+                                            }
+
+                                            //adding else to avoid user double kill when use pod + coa services
+                                        } else {
+                                            if (strpos($nasOptions['service'], 'coa') !== false) {
+                                                $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                                                $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
+                                                $this->saveCoaQueue($podCommand);
+                                                if ($old) {
+                                                    $this->removeSingleUser($userName);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove old username from mlg_* tables
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    protected function removeSingleUser($userLogin) {
+        if (!empty($userLogin)) {
+            foreach ($$this->scenarios as $eachScenario) {
+                $query = 'DELETE from `' . $eachScenario . '` WHERE `username`="' . $userLogin . '"';
+                nr_query($query);
+            }
+        }
+    }
+
+    /**
      * Performs generation of user attributes if their NAS requires it.
      * 
      * @return void
@@ -3043,7 +3111,7 @@ class MultiGen {
                             $this->logEvent('POD MANUAL ' . $userLogin . ' AS ' . $userName, 3);
                             log_register('MULTIGEN POD MANUAL (' . $userLogin . ') AS `' . $userName . '` NASID [' . $nasId . ']');
                         } else {
-                            $result.=__('Something went wrong') . ': ' . __('cant detect username for') . ' ' . $userLogin;
+                            $result .= __('Something went wrong') . ': ' . __('cant detect username for') . ' ' . $userLogin;
                         }
                     } else {
                         $result .= __('No') . ' ' . __('NAS options') . ': ' . $nasId;
