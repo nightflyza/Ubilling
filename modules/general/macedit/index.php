@@ -18,7 +18,24 @@ if (cfr('MAC')) {
                 if (check_mac_format($mac)) {
                     $ip = zb_UserGetIP($login);
                     $old_mac = zb_MultinetGetMAC($ip);
+                    if ($altercfg['MULTIGEN_ENABLED']) {
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] > 0) {
+                            $mlg = new MultiGen();
+                            $userData = zb_ProfileGetStgData($login);
+                        }
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
+                            $mlg->podOnExternalEvent($login, $userData);
+                        }
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
+                            $mlg->podOnExternalEvent($login, $userData, true);
+                        }
+                    }
                     multinet_change_mac($ip, $mac);
+                    if ($altercfg['MULTIGEN_ENABLED']) {
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
+                            $mlg->podOnExternalEvent($login, $userData);
+                        }
+                    }
                     log_register("MAC CHANGE (" . $login . ") " . $ip . " FROM  " . $old_mac . " ON " . $mac);
                     multinet_rebuild_all_handlers();
                     // need reset after mac change
@@ -64,14 +81,14 @@ if (cfr('MAC')) {
             $form = web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $current_mac);
         }
 
-        $form.=wf_Link('?module=macedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Simple MAC selector'), false, 'ubButton');
-        $form.=wf_Link('?module=macedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Manual MAC input'), false, 'ubButton');
-        $form.=wf_delimiter();
+        $form .= wf_Link('?module=macedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Simple MAC selector'), false, 'ubButton');
+        $form .= wf_Link('?module=macedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Manual MAC input'), false, 'ubButton');
+        $form .= wf_delimiter();
 
         if ($newmac_report) {
-            $form.= wf_tag('h2') . __('Unknown MAC address') . wf_tag('h2', true) . zb_NewMacShow();
+            $form .= wf_tag('h2') . __('Unknown MAC address') . wf_tag('h2', true) . zb_NewMacShow();
         }
-        $form.=web_UserControls($login);
+        $form .= web_UserControls($login);
 
         show_window(__('Edit MAC'), $form);
     }
