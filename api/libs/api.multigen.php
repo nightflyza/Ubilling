@@ -2013,7 +2013,7 @@ class MultiGen {
      * 
      * @return void
      */
-    public function podOnExternalEvent($userLogin, $userData, $old = false) {
+    public function podOnExternalEvent($userLogin, $userData, $newUserData = array()) {
         $this->loadHugeRegenData();
         if (!empty($this->allUserData)) {
             $this->preprocessUserData();
@@ -2033,8 +2033,9 @@ class MultiGen {
                                             $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
                                             $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
                                             $this->savePodQueue($podCommand);
-                                            if ($old) {
-                                                $this->removeSingleUser($userName);
+                                            if (!empty($newUserData)) {
+                                                $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
+                                                $this->removeSingleUser($newUserName);
                                             }
 
                                             //adding else to avoid user double kill when use pod + coa services
@@ -2043,8 +2044,9 @@ class MultiGen {
                                                 $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
                                                 $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
                                                 $this->saveCoaQueue($podCommand);
-                                                if ($old) {
-                                                    $this->removeSingleUser($userName);
+                                                if (!empty($newUserData)) {
+                                                    $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
+                                                    $this->removeSingleUser($newUserName);
                                                 }
                                             }
                                         }
@@ -2054,6 +2056,15 @@ class MultiGen {
                         }
                     }
                 }
+            }
+            //run PoD queue
+            if (isset($this->runServices['pod'])) {
+                $this->runPodQueue();
+            }
+
+            //run CoA queue
+            if (isset($this->runServices['coa'])) {
+                $this->runCoaQueue();
             }
         }
     }
@@ -2065,10 +2076,10 @@ class MultiGen {
      * 
      * @return void
      */
-    protected function removeSingleUser($userLogin) {
-        if (!empty($userLogin)) {
+    protected function replaceSingleUser($newUserName, $oldUserName) {
+        if (!empty($newUserName) and ! empty($oldUserName)) {
             foreach ($this->scenarios as $eachScenario) {
-                $query = 'DELETE from `' . self::SCENARIO_PREFIX . $eachScenario . '` WHERE `username`="' . $userLogin . '"';
+                $query = 'UPDATE `' . self::SCENARIO_PREFIX . $eachScenario . '` SET `username`="' . $eachScenario . '" WHERE `username`="' . $oldUserName . '"';
                 nr_query($query);
             }
         }
