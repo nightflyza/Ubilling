@@ -23,15 +23,15 @@ if (cfr('MAC')) {
                             $mlg = new MultiGen();
                             $userData = zb_ProfileGetStgData($login);
                         }
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
-                            $mlg->podOnExternalEvent($login, $userData);
-                        }
                         if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
                             $mlg->podOnExternalEvent($login, $userData, true);
                         }
                     }
                     multinet_change_mac($ip, $mac);
                     if ($altercfg['MULTIGEN_ENABLED']) {
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
+                            $mlg->podOnExternalEvent($login, $userData);
+                        }
                         if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
                             $mlg->podOnExternalEvent($login, $userData);
                         }
