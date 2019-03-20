@@ -2014,7 +2014,7 @@ class MultiGen {
      * @return void
      */
     public function podOnExternalEvent($userLogin, $userData, $old = false) {
-        $this->loadUserData();
+        $this->loadHugeRegenData();
         if (!empty($this->allUserData)) {
             $this->preprocessUserData();
             $userNases = $this->userNases[$userLogin];
@@ -2030,7 +2030,7 @@ class MultiGen {
                                     $nasServices = @$this->services[$eachNasId];
                                     if (!empty($nasServices)) {
                                         if (strpos($nasOptions['service'], 'pod') !== false) {
-                                            $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                                            $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
                                             $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
                                             $this->savePodQueue($podCommand);
                                             if ($old) {
@@ -2040,7 +2040,7 @@ class MultiGen {
                                             //adding else to avoid user double kill when use pod + coa services
                                         } else {
                                             if (strpos($nasOptions['service'], 'coa') !== false) {
-                                                $podCommand = '{PRINTF} "User-Name= {USERNAME}" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}';
+                                                $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
                                                 $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
                                                 $this->saveCoaQueue($podCommand);
                                                 if ($old) {
@@ -2068,7 +2068,7 @@ class MultiGen {
     protected function removeSingleUser($userLogin) {
         if (!empty($userLogin)) {
             foreach ($this->scenarios as $eachScenario) {
-                $query = 'DELETE from `' . $eachScenario . '` WHERE `username`="' . $userLogin . '"';
+                $query = 'DELETE from `' . self::SCENARIO_PREFIX . $eachScenario . '` WHERE `username`="' . $userLogin . '"';
                 nr_query($query);
             }
         }
