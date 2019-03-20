@@ -18,26 +18,19 @@ if (cfr('MAC')) {
                 if (check_mac_format($mac)) {
                     $ip = zb_UserGetIP($login);
                     $old_mac = zb_MultinetGetMAC($ip);
-                    if ($altercfg['MULTIGEN_ENABLED']) {
-                        $userData = zb_UserGetAllData($login);
-                        $userData = $userData[$login];
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
-                            $mlgOld = new MultiGen();
-                            $mlgOld->podOnExternalEvent($login, $userData, true);
-                        }
-                    }
+                    $userData = zb_UserGetAllData($login);
+                    $userData = $userData[$login];
                     multinet_change_mac($ip, $mac);
-                    $userData['mac'] = $mac;
                     if ($altercfg['MULTIGEN_ENABLED']) {
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] > 0) {
-                            //Create new object after data changed
-                            $mlgNew = new MultiGen();
-                            if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
-                                $mlgNew->podOnExternalEvent($login, $userData);
-                            }
-                            if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
-                                $mlgNew->podOnExternalEvent($login, $userData);
-                            }
+                        $newUserData = $userData;
+                        $newUserData['mac'] = $mac;
+                        $mlg = new MultiGen();
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
+                            $mlg->podOnExternalEvent($login, $userData, $newUserData);
+                            $mlg->podOnExternalEvent($login, $newUserData);
+                        }
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
+                            $mlg->podOnExternalEvent($login, $newUserData);
                         }
                     }
                     log_register("MAC CHANGE (" . $login . ") " . $ip . " FROM  " . $old_mac . " ON " . $mac);
