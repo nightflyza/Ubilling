@@ -39,3 +39,4 @@ $lang['def']['for'] = 'для';
 $lang['def']['Last sessions'] = 'Останні сесії';
 $lang['def']['cant detect username for'] = 'не вийшло визначити юзернейм для';
 $lang['def']['Multigen sessions'] = 'Сесії КупаГен-а';
+$lang['def']['Show only unfinished'] = 'Показувати тільки незавершені';

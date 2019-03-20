@@ -2845,7 +2845,7 @@ class MultiGen {
         }
         $inputs = wf_DatePickerPreset('datefrom', $preDateFrom, false);
         $inputs .= wf_DatePickerPreset('dateto', $preDateTo, false);
-        $inputs .= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
+        $inputs .= wf_CheckInput('showunfinished', __('Show only unfinished'), false, $unfinishedFlag);
         $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
