@@ -2014,6 +2014,7 @@ class MultiGen {
      * @return void
      */
     public function podOnExternalEvent($userLogin, $userData, $old = false) {
+        $this->loadUserData();
         if (!empty($this->allUserData)) {
             $this->preprocessUserData();
             $userNases = $this->userNases[$userLogin];
