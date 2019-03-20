@@ -2066,7 +2066,7 @@ class MultiGen {
      */
     protected function removeSingleUser($userLogin) {
         if (!empty($userLogin)) {
-            foreach ($$this->scenarios as $eachScenario) {
+            foreach ($this->scenarios as $eachScenario) {
                 $query = 'DELETE from `' . $eachScenario . '` WHERE `username`="' . $userLogin . '"';
                 nr_query($query);
             }
