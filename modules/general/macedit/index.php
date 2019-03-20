@@ -19,21 +19,23 @@ if (cfr('MAC')) {
                     $ip = zb_UserGetIP($login);
                     $old_mac = zb_MultinetGetMAC($ip);
                     if ($altercfg['MULTIGEN_ENABLED']) {
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] > 0) {
-                            $mlg = new MultiGen();
-                            $userData = zb_ProfileGetStgData($login);
-                        }
+                        $userData = zb_ProfileGetStgData($login);
                         if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
-                            $mlg->podOnExternalEvent($login, $userData, true);
+                            $mlgOld = new MultiGen();
+                            $mlgOld->podOnExternalEvent($login, $userData, true);
                         }
                     }
                     multinet_change_mac($ip, $mac);
                     if ($altercfg['MULTIGEN_ENABLED']) {
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
-                            $mlg->podOnExternalEvent($login, $userData);
-                        }
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
-                            $mlg->podOnExternalEvent($login, $userData);
+                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] > 0) {
+                            //Create new object after data changed
+                            $mlgNew = new MultiGen();
+                            if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
+                                $mlgNew->podOnExternalEvent($login, $userData);
+                            }
+                            if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
+                                $mlgNew->podOnExternalEvent($login, $userData);
+                            }
                         }
                     }
                     log_register("MAC CHANGE (" . $login . ") " . $ip . " FROM  " . $old_mac . " ON " . $mac);
