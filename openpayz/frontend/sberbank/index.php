@@ -1,10 +1,10 @@
 <?php
 /*
  * Фронтенд поддержки приема платежей от сбербанка посредством GET запросов
- * согласно протокола: http://store.nightfly.biz/st/1393110118/sberbank.rtf
+ * согласно протокола тип Б
  */
 
-
+$allowed_ips = "91.232.246.58"; 
 // подключаем API OpenPayz
 include ("../../libs/api.openpayz.php");
 
@@ -68,31 +68,41 @@ function sber_getTransactionDate($hash) {
     return ($result);
 }   
    
-   
-$required=array('action');
+// Проверка разрешенных IP для доступа
+$ips = explode(",",$allowed_ips);
+if (array_search($_SERVER["REMOTE_ADDR"],$ips) === FALSE)
+{
+    $replyCheck='Wrong IP';
+    $replyCheck=trim($replyCheck);
+    die($replyCheck);
+    exit;
+};
+
+$required=array('command');
 
 // ловим объязательные параметры
 if (sber_CheckGet($required)) {
-    $action=vf($_GET['action']);
+    $action=vf($_GET['command']);
     //проверка на валидность юзера
     if ($action=='check') {
-        if (sber_CheckGet(array('number'))) {
+        if (sber_CheckGet(array('account'))) {
             $allcustomers=  op_CustomersGetAll();
-            if (isset($allcustomers[$_GET['number']])) {
+            if (isset($allcustomers[$_GET['account']])) {
                 $replyCheck='
-                <?xml version="1.0" encoding="utf-8"?>
+                <?xml version=”1.0” encoding=”UTF-8”?>
                 <response>
-                <code>0</code>
-                <message>Абонент существует, возможен прием Платежей</message>
+                    <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
+                    <result>0</result>
                 </response>
                 ';
 
             } else {
                 $replyCheck='
-                <?xml version="1.0" encoding="utf-8"?>
+                <?xml version=”1.0” encoding=”UTF-8”?>
                 <response>
-                <code>2</code>
-                <message>Абонент не найден</message>
+                    <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
+                    <result>5</result>
+                    <comment>Идентификатор абонента не найден (Ошиблись номером)</comment>
                 </response>
                 ';
             }
@@ -104,13 +114,13 @@ if (sber_CheckGet($required)) {
     
     //обработка входящего платежа
     if ($action=='payment') {
-        if (sber_CheckGet(array('amount','receipt','number'))) {
-            $hashClean= $_GET['receipt'];
+        if (sber_CheckGet(array('sum','txn_id','account'))) {
+            $hashClean= $_GET['txn_id'];
             $hashStore='SBERBANK_'.$hashClean;
-            $summ= $_GET['amount'];
+            $summ= $_GET['sum'];
             $paysys='SBERBANK';
             $note='some debug info here';
-            $customer_id=$_GET['number'];
+            $customer_id=$_GET['account'];
             $date=date("Y-m-d\TH:i:s");
             
             $allcustomers=  op_CustomersGetAll();
@@ -123,32 +133,36 @@ if (sber_CheckGet($required)) {
                  op_ProcessHandlers();
                     
                     $replyPayment='
-                    <?xml version="1.0" encoding="utf-8"?>
-                    <response>
-                    <code>0</code>
-                    <date>'.$date.'</date>
-                    <message>Платеж успешно обработан</message>
-                    </response>
-                    ';
+                        <?xml version=”1.0” encoding=”UTF-8”?>
+                        <response>
+                            <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
+                            <prv_txn>'.$hashStore.'</prv_txn>
+                            <sum>'.$summ.'</sum>
+                            <result>0</result>
+                        </response>
+                        ';
                     
                 } else {
                     $replyPayment='
-                    <?xml version="1.0" encoding="utf-8"?>
-                    <response>
-                    <code>0</code>
-                    <date>'.$date.'</date>
-                    <message>Платеж уже обработан</message>
-                    </response>
-                    ';
+                        <?xml version=”1.0” encoding=”UTF-8”?>
+                        <response>
+                            <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
+                            <prv_txn>'.$hashStore.'</prv_txn>
+                            <sum>'.$summ.'</sum>
+                            <result>0</result>
+                        </response>
+                        ';
                 }
                 
             } else {
                 $replyPayment='
-                    <?xml version="1.0" encoding="utf-8"?>
+                    <?xml version=”1.0” encoding=”UTF-8”?>
                     <response>
-                    <code>2</code>
-                    <date>'.$date.'</date>
-                    <message>Абонент не найден</message>
+                        <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
+                        <prv_txn>'.$hashStore.'</prv_txn>
+                        <sum>'.$summ.'</sum>
+                        <result>5</result>
+                        <comment>Идентификатор абонента не найден (Ошиблись номером)</comment>
                     </response>
                     ';
             }
