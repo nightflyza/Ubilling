@@ -238,6 +238,8 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_TextInput('contract', __('Search by users contract'), '', true, '10');
         $inputs.= wf_CheckInput('type_login', '', false, false);
         $inputs.= wf_TextInput('login', __('Search by users login'), '', true, '10');
+        $inputs.= wf_CheckInput('type_loginwildcard', '', false, false);
+        $inputs.= wf_TextInput('loginwildcard', __('Login contains'), '', true, '10');
         $inputs.= wf_CheckInput('type_summ', '', false, false);
         $inputs.= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
         $inputs.= wf_CheckInput('type_payidenc', '', false, false);
@@ -491,6 +493,12 @@ if (cfr('PAYFIND')) {
     if (wf_CheckPost(array('type_login', 'login'))) {
         $userlogin = mysql_real_escape_string($_POST['login']);
         $markers.="AND `login`='" . $userlogin . "' ";
+    }
+
+    //not strict login search
+    if (wf_CheckPost(array('type_loginwildcard', 'loginwildcard'))) {
+        $userloginW = mysql_real_escape_string($_POST['loginwildcard']);
+        $markers.="AND `login` LIKE '%" . $userloginW . "%' ";
     }
 
     //payment sum  search
