@@ -726,8 +726,6 @@ class PONizer {
                     }
                 }
             }
-//            print_r($FDBIndex);
-//            print_r($macIndex);
 //mac index preprocessing
             foreach ($macIndex as $ioIndex => $eachMac) {
                 $eachMac = strtolower(str_replace(" ", ":", $eachMac));
@@ -736,8 +734,6 @@ class PONizer {
                 }
             }
 
-            print_r($FDBTmp);
-            print_r($macTmp);
 //storing results
             if (!empty($macTmp)) {
                 foreach ($macTmp as $devId => $eachMac) {
@@ -1838,8 +1834,8 @@ class PONizer {
                                             $tmp[3] = $tmpSn[6] . $tmpSn[7];
                                             $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
                                             if (!isset($tmpSn[12])) {
-                                                print_r($tmpSn);
-                                                echo '<br />';
+//                                                print_r($tmpSn);
+//                                                echo '<br />';
                                             }
                                             $tmpSn = $tmp;
                                         } else {
