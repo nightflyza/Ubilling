@@ -2017,36 +2017,38 @@ class MultiGen {
         $this->loadHugeRegenData();
         if (!empty($this->allUserData)) {
             $this->preprocessUserData();
-            $userNases = $this->userNases[$userLogin];
-            if (!empty($userNases)) {
-                foreach ($userNases as $eachNasId) {
-                    @$nasOptions = $this->nasOptions[$eachNasId];
-                    $userNameType = $nasOptions['usernametype'];
-                    if ($userNameType == 'mac' or $userNameType == 'macju') {
-                        $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
-                        if (!empty($userName)) {
-                            if (!empty($nasOptions)) {
-                                if ($nasOptions['service'] != 'none') {
-                                    $nasServices = @$this->services[$eachNasId];
-                                    if (!empty($nasServices)) {
-                                        if (strpos($nasOptions['service'], 'pod') !== false) {
-                                            $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
-                                            $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
-                                            $this->savePodQueue($podCommand);
-                                            if (!empty($newUserData)) {
-                                                $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
-                                                $this->reaplceSingleUser($newUserName, $userName);
-                                            }
-
-                                            //adding else to avoid user double kill when use pod + coa services
-                                        } else {
-                                            if (strpos($nasOptions['service'], 'coa') !== false) {
+            if (isset($this->userNases[$userLogin])) {
+                $userNases = $this->userNases[$userLogin];
+                if (!empty($userNases)) {
+                    foreach ($userNases as $eachNasId) {
+                        @$nasOptions = $this->nasOptions[$eachNasId];
+                        $userNameType = $nasOptions['usernametype'];
+                        if ($userNameType == 'mac' or $userNameType == 'macju') {
+                            $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
+                            if (!empty($userName)) {
+                                if (!empty($nasOptions)) {
+                                    if ($nasOptions['service'] != 'none') {
+                                        $nasServices = @$this->services[$eachNasId];
+                                        if (!empty($nasServices)) {
+                                            if (strpos($nasOptions['service'], 'pod') !== false) {
                                                 $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
                                                 $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
-                                                $this->saveCoaQueue($podCommand);
+                                                $this->savePodQueue($podCommand);
                                                 if (!empty($newUserData)) {
                                                     $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
-                                                    $this->replaceSingleUser($newUserName, $userName);
+                                                    $this->reaplceSingleUser($newUserName, $userName);
+                                                }
+
+                                                //adding else to avoid user double kill when use pod + coa services
+                                            } else {
+                                                if (strpos($nasOptions['service'], 'coa') !== false) {
+                                                    $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
+                                                    $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
+                                                    $this->saveCoaQueue($podCommand);
+                                                    if (!empty($newUserData)) {
+                                                        $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
+                                                        $this->replaceSingleUser($newUserName, $userName);
+                                                    }
                                                 }
                                             }
                                         }
@@ -2070,7 +2072,7 @@ class MultiGen {
     }
 
     /**
-     * Remove old username from mlg_* tables
+     * Replaces old username in mlg_* tables
      * 
      * @param string $userLogin
      * 
