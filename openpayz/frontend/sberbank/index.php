@@ -83,13 +83,13 @@ $required=array('command');
 // ловим объязательные параметры
 if (sber_CheckGet($required)) {
     $action=vf($_GET['command']);
-    //проверка на валидность юзера
+    //проверка на валидность юзера и транзакции
     if ($action=='check') {
         if (sber_CheckGet(array('account'))) {
             $allcustomers=  op_CustomersGetAll();
             if (isset($allcustomers[$_GET['account']])) {
                 $replyCheck='
-                <?xml version=”1.0” encoding=”UTF-8”?>
+                <?xml version="1.0" encoding="UTF-8"?>
                 <response>
                     <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
                     <result>0</result>
@@ -98,7 +98,7 @@ if (sber_CheckGet($required)) {
 
             } else {
                 $replyCheck='
-                <?xml version=”1.0” encoding=”UTF-8”?>
+                <?xml version="1.0" encoding="UTF-8"?>
                 <response>
                     <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
                     <result>5</result>
@@ -113,7 +113,7 @@ if (sber_CheckGet($required)) {
     }
     
     //обработка входящего платежа
-    if ($action=='payment') {
+    if ($action=='pay') {
         if (sber_CheckGet(array('sum','txn_id','account'))) {
             $hashClean= $_GET['txn_id'];
             $hashStore='SBERBANK_'.$hashClean;
@@ -133,7 +133,7 @@ if (sber_CheckGet($required)) {
                  op_ProcessHandlers();
                     
                     $replyPayment='
-                        <?xml version=”1.0” encoding=”UTF-8”?>
+                        <?xml version="1.0" encoding="UTF-8"?>
                         <response>
                             <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
                             <prv_txn>'.$hashStore.'</prv_txn>
@@ -144,7 +144,7 @@ if (sber_CheckGet($required)) {
                     
                 } else {
                     $replyPayment='
-                        <?xml version=”1.0” encoding=”UTF-8”?>
+                        <?xml version="1.0" encoding="UTF-8"?>
                         <response>
                             <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
                             <prv_txn>'.$hashStore.'</prv_txn>
@@ -156,7 +156,7 @@ if (sber_CheckGet($required)) {
                 
             } else {
                 $replyPayment='
-                    <?xml version=”1.0” encoding=”UTF-8”?>
+                    <?xml version="1.0" encoding="UTF-8"?>
                     <response>
                         <osmp_txn_id>'.$txn_id.'</osmp_txn_id>
                         <prv_txn>'.$hashStore.'</prv_txn>
@@ -172,58 +172,6 @@ if (sber_CheckGet($required)) {
             
         }
     }
-    
-    //проверка состояния транзакции
-    if ($action=='status') {
-        if (sber_CheckGet(array('receipt'))) {
-            $hashClean=$_GET['receipt'];
-            $hashStore='SBERBANK_'.$hashClean;
-            
-            if (!sber_CheckTransaction($hashStore)) {
-                $date=  sber_getTransactionDate($hashStore);
-                
-                $replyStatus='
-                    <?xml version="1.0" encoding="utf-8"?>
-                    <response>
-                    <code>0</code>
-                    <date>'.$date.'</date>
-                    <message>Платеж обработан</message>
-                    </response>
-                    ';
-            } else {
-                $date=date("Y-m-d\TH:i:s");
-                
-                $replyStatus='
-                    <?xml version="1.0" encoding="utf-8"?>
-                    <response>
-                    <code>6</code>
-                    <date>'.$date.'</date>
-                    <message>Платеж не найден</message>
-                    </response>
-                    ';
-            }
-            
-            $replyStatus=trim($replyStatus);
-            die($replyStatus);
-            
-        }
-    }
-    
-    //отмену платежей игнорируем - чай не булочками торгуем.
-    if ($action=='cancel') {
-        $date=date("Y-m-d\TH:i:s");
-        $replyCancel='
-                  <?xml version="1.0" encoding="utf-8"?>
-                    <response>
-                    <code>1</code>
-                    <date>'.$date.'</date>
-                    <message>Операция не поддерживается</message>
-                    </response>
-            ';
-        $replyCancel=trim($replyCancel);
-        die($replyCancel);
-    }
-    
 }
 
 ?>
