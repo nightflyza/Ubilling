@@ -3056,6 +3056,9 @@ $lang['def']['right to control switch groups'] = 'Право управлять 
 $lang['def']['skipped'] = 'пропущено';
 $lang['def']['User calls assign update'] = 'Обновление данных звонков о пользователях';
 $lang['def']['Current Ubilling version'] = 'Текущая версия Ubilling';
+$lang['def']['recommended'] = 'рекомендованная';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>

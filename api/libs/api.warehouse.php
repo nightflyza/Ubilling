@@ -164,6 +164,13 @@ class Warehouse {
     protected $sup = '';
 
     /**
+     * Recommended price flag
+     *
+     * @var bool
+     */
+    protected $recPriceFlag = false;
+
+    /**
      * Default routing defs
      */
     const URL_ME = '?module=warehouse';
@@ -236,6 +243,10 @@ class Warehouse {
     protected function setOptions() {
         if (isset($this->altCfg['WAREHOUSE_TELEGRAM']) AND $this->altCfg['WAREHOUSE_TELEGRAM']) {
             $this->telegramNotify = true;
+        }
+
+        if (isset($this->altCfg['WAREHOUSE_RECPRICE']) AND $this->altCfg['WAREHOUSE_RECPRICE']) {
+            $this->recPriceFlag = true;
         }
     }
 
@@ -2583,7 +2594,8 @@ class Warehouse {
             $inputs.= wf_HiddenInput('newoutitemtypeid', $itemtypeid);
             $inputs.= wf_HiddenInput('newoutstorageid', $storageid);
             $inputs.= wf_TextInput('newoutcount', $itemUnit . ' (' . __('maximum') . ' ' . $maxItemCount . ')', '', true, '4');
-            $inputs.= wf_TextInput('newoutprice', __('Price') . ' (' . __('middle price') . ': ' . $this->getIncomeMiddlePrice($itemtypeid) . ')', '', true, '4');
+            $midPriceLabel = ($this->recPriceFlag) ? __('recommended') : __('middle price');
+            $inputs.= wf_TextInput('newoutprice', __('Price') . ' (' . $midPriceLabel . ': ' . $this->getIncomeMiddlePrice($itemtypeid) . ')', '', true, '4');
             if ($fromReserve) {
                 $inputs.=wf_HiddenInput('newoutfromreserve', $reserveid);
                 $notesPreset = ' ' . __('from reserved on') . ' ' . @$this->allEmployee[$reserveData['employeeid']];
@@ -3335,6 +3347,19 @@ class Warehouse {
                     if ($each['price'] != 0) {
                         if ($each['contractorid'] != 0) { //ignoring move ops
                             $totalSumm+=($each['price'] * $each['count']);
+                            $itemsCount+=$each['count'];
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($this->recPriceFlag) {
+            if (!empty($this->allOutcoming)) {
+                foreach ($this->allOutcoming as $io => $each) {
+                    if ($each['itemtypeid'] == $itemtypeId) {
+                        if ($each['price'] != 0) {
+                            $totalSumm+=(abs($each['price']) * $each['count']);
                             $itemsCount+=$each['count'];
                         }
                     }
