@@ -392,11 +392,6 @@ class PONizer {
                 if (isset($line[1])) {
                     $distanceRaw = trim($line[1]); // distance
                     $devIndex = trim($line[0]); // device index
-
-
-                    if ($distanceRaw == 0) {
-// $distanceRaw = ''; //not sure about this
-                    }
                     $distTmp[$devIndex] = $distanceRaw;
                 }
             }
@@ -757,7 +752,7 @@ class PONizer {
      *
      * @return void
      */
-    protected function interfaceParseBd($oltid, $intIndex, $macIndex) {
+    protected function interfaceParseStels12($oltid, $intIndex, $macIndex) {
         $oltid = vf($oltid, 3);
         $intTmp = array();
         $macTmp = array();
@@ -766,15 +761,76 @@ class PONizer {
 //distance index preprocessing
         if ((!empty($intIndex)) AND ( !empty($macIndex))) {
             foreach ($intIndex as $io => $eachint) {
-                $line = explode('=', $eachint);
-//distance is present
-                if (isset($line[1])) {
-                    $interfaceRaw = trim($line[1]); // distance
-                    $devIndex = trim($line[0]); // device index
+                if (ispos($eachint, 'pon')) {
+                    $line = explode('=', $eachint);
 
-                    if ($interfaceRaw == 0) {
-// $interfaceRaw = ''; //not sure about this
+                    if (isset($line[1])) {
+                        $interfaceRaw = trim($line[1]); // interface name
+                        $devIndex = trim($line[0]); // interface index
+                        $intTmp[$devIndex] = $interfaceRaw;
                     }
+                }
+            }
+
+
+//mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+//mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                }
+            }
+
+//storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    $currentInterface = '';
+                    $onuNum = '';
+                    if (!empty($intTmp)) {
+                        foreach ($intTmp as $intefaceOffset => $interfaceName) {
+                            if ($devId > $intefaceOffset) {
+                                $currentInterface = $intefaceOffset;
+                                $onuNum = $devId - $intefaceOffset;
+                            }
+                        }
+
+                        $result[$eachMac] = (isset($intTmp[$currentInterface])) ? $intTmp[$currentInterface] . ':' . $onuNum : __('On ho');
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $intIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function interfaceParseBd($oltid, $intIndex, $macIndex) {
+        $oltid = vf($oltid, 3);
+        $intTmp = array();
+        $macTmp = array();
+        $result = array();
+
+//interface index preprocessing
+        if ((!empty($intIndex)) AND ( !empty($macIndex))) {
+            foreach ($intIndex as $io => $eachint) {
+                $line = explode('=', $eachint);
+//interface is present
+                if (isset($line[1])) {
+                    $interfaceRaw = trim($line[1]); // interface
+                    $devIndex = trim($line[0]); // device index
                     $intTmp[$devIndex] = $interfaceRaw;
                 }
             }
@@ -1591,7 +1647,9 @@ class PONizer {
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
 
-// BDCOM/Eltex devices polling
+                        /**
+                         *  BDCOM/Eltex devices polling
+                         */
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'BDCOM') {
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -1661,6 +1719,64 @@ class PONizer {
 //processing last dereg reason data
                                             $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
                                         }
+                                    }
+                                }
+                            }
+                        }
+
+                        /**
+                         * Stels FD12XX devices polling
+                         */
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELS12') {
+                            $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
+
+                            $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
+                            $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
+                            $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
+                            $sigIndex = str_replace('.0.0 = ', ' = ', $sigIndex);
+                            $sigIndex = explodeRows($sigIndex);
+//ONU distance polling for stels12 devices
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                        $distIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
+                                        $distIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $distIndexOid, self::SNMPCACHE);
+                                        $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
+                                        $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
+                                        $distIndex = explodeRows($distIndex);
+                                        $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
+                                        $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
+                                        $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
+                                        $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
+                                        $onuIndex = str_replace('.0.0 = ', ' = ', $onuIndex);
+                                        $onuIndex = explodeRows($onuIndex);
+
+
+                                        $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
+                                        $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
+                                        $intIndex = str_replace($intIndexOid . '.', '', $intIndex);
+                                        $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
+                                        $intIndex = explodeRows($intIndex);
+                                    }
+                                }
+                            }
+
+//getting MAC index. 
+                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
+                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
+                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
+                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
+                            $macIndex = explodeRows($macIndex);
+
+                            $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+// processing distance data
+                                        $this->distanceParseBd($oltid, $distIndex, $macIndex);
+//processing interfaces data
+                                        $this->interfaceParseStels12($oltid, $intIndex, $macIndex);
                                     }
                                 }
                             }
