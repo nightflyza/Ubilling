@@ -11,7 +11,6 @@ if (cfr('USERREG')) {
     }
     
     $registerSteps=array(
-      
         __('Step').' 1'=>__('Select city'),
         __('Step').' 2'=>__('Select street'),
         __('Step').' 3'=>__('Select build'),

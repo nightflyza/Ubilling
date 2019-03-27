@@ -810,6 +810,14 @@ class UkvSystem {
      */
     public function userRegisterForm() {
         $aptsel = '';
+        $currentStep = 0;
+        $registerSteps = array(
+            __('Step') . ' 1' => __('Select city'),
+            __('Step') . ' 2' => __('Select street'),
+            __('Step') . ' 3' => __('Select build'),
+            __('Success') => __('Confirm'),
+        );
+
 
         if (!isset($_POST['citysel'])) {
             $citysel = web_CitySelectorAc(); // onChange="this.form.submit();
@@ -818,12 +826,14 @@ class UkvSystem {
             $citydata = zb_AddressGetCityData($_POST['citysel']);
             $citysel = $citydata['cityname'] . wf_HiddenInput('citysel', $citydata['id']);
             $streetsel = web_StreetSelectorAc($citydata['id']);
+            $currentStep = 1;
         }
 
         if (isset($_POST['streetsel'])) {
             $streetdata = zb_AddressGetStreetData($_POST['streetsel']);
             $streetsel = $streetdata['streetname'] . wf_HiddenInput('streetsel', $streetdata['id']);
             $buildsel = web_BuildSelectorAc($_POST['streetsel']);
+            $currentStep = 2;
         } else {
             $buildsel = '';
         }
@@ -842,6 +852,7 @@ class UkvSystem {
             $submit_btn.= wf_tag('td', false);
             $submit_btn.= wf_tag('td', true);
             $submit_btn.= wf_tag('tr', true);
+            $currentStep = 3;
         } else {
             $submit_btn = '';
         }
@@ -871,7 +882,8 @@ class UkvSystem {
         $formData = wf_Form('', 'POST', $formInputs);
         $form = wf_TableBody($formData, '100%', '0', 'glamour');
         $form.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
-
+        
+        $form.=wf_StepsMeter($registerSteps, $currentStep);
         return($form);
     }
 
