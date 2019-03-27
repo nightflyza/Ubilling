@@ -912,7 +912,7 @@ class UserProfile {
                 }
                 $cells = wf_TableCell(__("ONU Signal"), '30%', 'row2');
                 $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true) .
-                                        wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()) );
+                        wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }
@@ -1346,8 +1346,8 @@ class UserProfile {
         $row = '';
 
         if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
-            if ( wf_CheckPost(array('ajax')) and wf_CheckPost(array('action')) == 'BindSMSSrv' ) {
-                if ( wf_CheckPost(array('createrec')) ) {
+            if (wf_CheckPost(array('ajax')) and wf_CheckPost(array('action')) == 'BindSMSSrv') {
+                if (wf_CheckPost(array('createrec'))) {
                     $query = "INSERT INTO `sms_services_relations` (`sms_srv_id`, `user_login`)
                                   VALUES ('" . $_POST['smssrvid'] . "', '" . $_GET['username'] . "')";
                     nr_query($query);
@@ -1362,9 +1362,9 @@ class UserProfile {
             $preferredSMSSrvId = $preferredSMSSrv[0];
 
             $row.= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
-                wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
-                wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
-                wf_tag('span', true)
+                    wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
+                    wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
+                    wf_tag('span', true)
             );
             $row.= wf_tag('script', false, '', 'type="text/javascript"');
             $row.= '$(\'#related_sms_srv\').change(function() {
@@ -1390,6 +1390,84 @@ class UserProfile {
         }
 
         return $row;
+    }
+
+    /**
+     * Returns easy charge form and controller
+     * 
+     * @return string
+     */
+    protected function getEasyChargeController() {
+        global $billing;
+
+        $result = '';
+        if (@$this->alterCfg['EASY_CHARGE']) {
+            $inputs = wf_HiddenInput('easychargedosomething', 'true');
+            $inputs.= wf_TextInput('easychargesumm', __('Withdraw from user account'), '', true, 5, 'finance');
+            $inputs.= wf_TextInput('easychargenote', __('Notes'), '', true, 30);
+            $inputs.= wf_CheckInput('easychargecreditm', __('Set user credit to end of month if required'), true, true);
+            $inputs.=wf_delimiter(0);
+            $inputs.= wf_Submit(__('Charge'));
+            $form = wf_Form('', 'POST', $inputs, 'glamour');
+            $result.=' ' . wf_modalAuto(wf_img_sized('skins/icon_minus.png', __('Charge'), '10'), __('Charge'), $form);
+
+            //controller part
+            if (wf_CheckPost(array('easychargedosomething', 'easychargesumm'))) {
+                $currentUserData = $this->AllUserData[$this->login];
+                $currentUserBalance = $currentUserData['Cash'];
+                $currentUserCredit = $currentUserData['Credit'];
+                $chargeType = ($this->alterCfg['EASY_CHARGE'] == 1) ? 'add' : 'correct';
+
+                $chargeSumm = mysql_real_escape_string($_POST['easychargesumm']);
+                $chargeSumm = abs($chargeSumm);
+                if (zb_checkMoney($_POST['easychargesumm'])) {
+                    $cashAfterCharge = $currentUserBalance - $chargeSumm;
+                    $nextUserCredit = $currentUserCredit;
+                    $note = mysql_real_escape_string($_POST['easychargenote']);
+
+                    if (abs($cashAfterCharge) >= $currentUserCredit) {
+                        $nextUserCredit = abs($cashAfterCharge);
+                    }
+                    //charge some money
+                    zb_CashAdd($this->login, '-' . $chargeSumm, $chargeType, 1, $note);
+
+                    //is new credit required?
+                    if ($cashAfterCharge < '-' . $currentUserCredit) {
+                        if (wf_CheckPost(array('easychargecreditm'))) {
+                            //set credit
+                            $billing->setcredit($this->login, $nextUserCredit);
+                            log_register('CHANGE Credit (' . $this->login . ') ON ' . $nextUserCredit);
+                            //set credit expire date
+                            $nextMonthStart = date('Y-m-d', mktime(0, 0, 0, date('m') + 1, 1, date('Y')));
+                            $billing->setcreditexpire($this->login, $nextMonthStart);
+                            log_register('CHANGE CreditExpire (' . $this->login . ') ON ' . $nextMonthStart);
+                        }
+                    }
+
+                    //preventing charing duplicates
+                    if (wf_CheckGet(array('module'))) {
+                        $currentModule = $_GET['module'];
+
+                        $redirectUrl = '';
+                        if ($currentModule == 'userprofile') {
+                            $redirectUrl = '?module=userprofile&username=' . $this->login;
+                        }
+
+                        if ($currentModule == 'addcash') {
+                            $redirectUrl = '?module=addcash&username=' . $this->login . '#profileending';
+                        }
+
+                        if (!empty($redirectUrl)) {
+                            rcms_redirect($redirectUrl, true);
+                        }
+                    }
+                } else {
+                    $result.=wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200');
+                    log_register('EASYCHARGEFAIL (' . $this->login . ') WRONG SUMM `' . $_POST['easychargesumm'] . '`');
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -1476,7 +1554,7 @@ class UserProfile {
 // signup pricing row
         $profile .= $this->getSignupPricing();
 //User current cash row
-        $profile .= $this->addRow(__('Balance'), $this->getUserCash(), true);
+        $profile .= $this->addRow(__('Balance') . $this->getEasyChargeController(), $this->getUserCash(), true);
 //User credit row & easycredit control if needed
         $profile .= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
 //credit expire row
@@ -1497,9 +1575,8 @@ class UserProfile {
         if ($this->userdata['Passive']) {
             if ($this->userdata['PassiveTime']) {
                 $passiveTimeLabel = wf_AjaxLoader();
-                $passiveTimeLink = wf_AjaxLink('?module=passiveinfo&username='.$this->login, ' (' . zb_formatTime($this->userdata['PassiveTime']) . ')', 'passivedatecontainer');
-                $passiveTimeLabel .= wf_AjaxContainerSpan('passivedatecontainer','',$passiveTimeLink);
-                
+                $passiveTimeLink = wf_AjaxLink('?module=passiveinfo&username=' . $this->login, ' (' . zb_formatTime($this->userdata['PassiveTime']) . ')', 'passivedatecontainer');
+                $passiveTimeLabel .= wf_AjaxContainerSpan('passivedatecontainer', '', $passiveTimeLink);
             }
         }
         $profile .= $this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
