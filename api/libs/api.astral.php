@@ -1701,6 +1701,51 @@ $(function() {
 }
 
 /**
+ * Returns new opened modal window with some content and automatic sizes
+ * 
+ * @param string $title modal window title
+ * @param string $content modal window content
+ * 
+ * @return string
+ */
+function wf_modalOpenedAuto($title, $content) {
+
+    $wid = wf_inputid();
+
+    $width = "'auto'";
+    $height = "'auto'";
+
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: true,
+			width: ' . $width . ',
+                        height: ' . $height . ',
+			modal: true,
+                        show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                      	return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+        ' . $content . '
+        </p>
+</div>
+';
+
+    return($dialog);
+}
+
+/**
  * Returns Chart source
  * 
  * @param string $data      - CSV formatted data
@@ -2592,14 +2637,13 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
  *
  * @return string
  */
-function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET',
-                              $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false) {
+function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false) {
 
-    $inputId            = (empty($controlId)) ? wf_InputId() : $controlId;
-    $modalWindowId      = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
-    $modalWindowBodyId  = 'modalWindowBodyId:"body_dialog-modal_' . $inputId . '"';
-    $preventDefault     = ($noPreventDefault) ? "" : "\nevt.preventDefault();";
-    $returnFalse        = ($noReturnFalse) ? "" : "\nreturn false;";
+    $inputId = (empty($controlId)) ? wf_InputId() : $controlId;
+    $modalWindowId = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
+    $modalWindowBodyId = 'modalWindowBodyId:"body_dialog-modal_' . $inputId . '"';
+    $preventDefault = ($noPreventDefault) ? "" : "\nevt.preventDefault();";
+    $returnFalse = ($noReturnFalse) ? "" : "\nreturn false;";
 
     $ajaxData = '';
     foreach ($dataArray as $io => $each) {
@@ -2610,30 +2654,28 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
                   $.ajax({
                       type: "' . $queryType . '",
                       url: "' . $ajaxURL . '",
-                      data: {' .  $ajaxData
-                               .  $modalWindowId
-                               .  $modalWindowBodyId
-                               . '},
+                      data: {' . $ajaxData
+            . $modalWindowId
+            . $modalWindowBodyId
+            . '},
                       success: function(ajaxresult) {
                                   $(document.body).append(ajaxresult);
                                   $(\'#dialog-modal_' . $inputId . '\').dialog("open");
                                }
                   });'
-
-                  . $preventDefault
-                  . $returnFalse
-              . '});
+            . $preventDefault
+            . $returnFalse
+            . '});
               ';
 
     if ($wrapWithJSScriptTag) {
         $result = wf_tag('script', false, '', 'type="text/javascript"')
-                  . $result
-                  . wf_tag('script', true);
+                . $result
+                . wf_tag('script', true);
     }
 
     return ($result);
 }
-
 
 /**
  * Generates tabbed UI for almost any data.
@@ -2658,7 +2700,7 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
 function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts = '', $tabsCarouselOn = false) {
     $result = '';
 
-    if (!empty($tabsDivID) and !empty($tabsList) and !empty($tabsBody)) {
+    if (!empty($tabsDivID) and ! empty($tabsList) and ! empty($tabsBody)) {
         $divOps = 'id="' . $tabsDivID . '" ' . $mainDivOpts;
         $initTabsJSStr = '$( "#' . $tabsDivID . '" ).tabs();';
 
@@ -2675,13 +2717,12 @@ function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts
                              // another hack for Firefox
                              $(".ui-scroll-tabs-view").css("margin-bottom", "0");
                              ';
-
         }
 
         $result.= wf_tag('script', false, '', 'type="text/javascript"');
         $result.= ' $( function() { ' .
-                        $initTabsJSStr .
-                    ' } );
+                $initTabsJSStr .
+                ' } );
                   ';
         $result.= wf_tag('script', true);
 
@@ -2689,21 +2730,21 @@ function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts
         $result .= wf_tag('ul', false, '', $ulOpts);
 
         foreach ($tabsList as $tabhref => $tabData) {
-            $result.=   wf_tag('li') .
-                        wf_tag('a', false, '', 'href="#' . $tabhref . '" ' . $tabData['options']) .
-                            $tabData['caption'] .
-                        wf_tag('a', true) .
-                        wf_tag('li', true) .
-                        $tabData['additional_data'];
+            $result.= wf_tag('li') .
+                    wf_tag('a', false, '', 'href="#' . $tabhref . '" ' . $tabData['options']) .
+                    $tabData['caption'] .
+                    wf_tag('a', true) .
+                    wf_tag('li', true) .
+                    $tabData['additional_data'];
         }
 
         $result.= wf_tag('ul', true);
 
         foreach ($tabsBody as $bodyID => $bodyData) {
-            $result.=   wf_tag('div', false, '', 'id="' . $bodyID . '" ' . $bodyData['options']) .
-                            $bodyData['body'] .
-                        wf_tag('div', true) .
-                        $bodyData['additional_data'];
+            $result.= wf_tag('div', false, '', 'id="' . $bodyID . '" ' . $bodyData['options']) .
+                    $bodyData['body'] .
+                    wf_tag('div', true) .
+                    $bodyData['additional_data'];
         }
 
         $result.= wf_tag('div', true);
@@ -2711,7 +2752,6 @@ function wf_TabsGen($tabsDivID, $tabsList, $tabsBody, $mainDivOpts = '', $ulOpts
 
     return ($result);
 }
-
 
 /**
  * Returns scripts and CSS links for tabs carousel plugin.
@@ -2803,6 +2843,149 @@ function wf_JSElemInsertedCatcherFunc() {
              ';
 
     return $Result;
+}
+
+/**
+ * Renders default steps-meter progressbar
+ * 
+ * @param array $params as stepname=>decription
+ * @param int $current
+ * 
+ * @return type
+ */
+function wf_StepsMeter($params, $current) {
+    $style = wf_tag('style');
+    $style.=" 
+   .steps{
+    min-height:90px;
+    padding:30px 30px 0 30px;
+    position:relative
+    } 
+    
+    .steps .steps-container{
+    background:#DDD;
+    height:10px;
+    width:95%;
+    
+    border-radius:10px ;
+    -moz-border-radius:10px ;
+    -webkit-border-radius:10px ;
+    -ms-border-radius:10px ;
+    margin:0;
+    list-style:none
+    }
+    
+    .steps .steps-container li{
+    text-align:center;
+    list-style:none;
+    float:left
+    }
+    
+    .steps .steps-container li .step{
+    padding:0 50px
+    }
+    
+    .steps .steps-container li .step .step-image{
+    margin:-14px 0 0 0
+    }
+    
+    .steps .steps-container li .step .step-image span{
+    background-color:#DDD;
+    display:block;
+    width:37px;
+    height:37px;
+    margin:0 auto;
+    border-radius:37px ;
+    -moz-border-radius:37px ;
+    -webkit-border-radius:37px ;
+    -ms-border-radius:37px 
+    }
+    
+    .steps .steps-container li .step .step-current{
+    font-size:11px;
+    font-style:italic;
+    color:#999;
+    margin:8px 0 0 0
+    }
+    
+    .steps .steps-container li .step .step-description{
+    font-size:13px;
+    font-style:italic;
+    color:#538897
+    }
+    
+    .steps .steps-container li.activated .step .step-image span{
+    background-color:#5DC177
+    }
+    
+    .steps .steps-container li.activated .step .step-image span:after{
+    background-color:#FFF;
+    display:block;
+    content:'';
+    position:absolute;
+    z-index:1;
+    width:27px;
+    height:27px;
+    margin:5px;
+    border-radius:27px ;
+    -moz-border-radius:27px ;
+    -webkit-border-radius:27px ;
+    -ms-border-radius:27px ;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.15) ;
+    -moz-box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.15) ;
+    -webkit-box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.15) 
+    }
+    
+    .steps .step-bar{
+    background-color:#5DC177;
+    height:10px;
+    position:absolute;
+    top:30px;
+    border-radius:10px 0 0 10px;
+    -moz-border-radius:10px 0 0 10px;
+    -webkit-border-radius:10px 0 0 10px;
+    -ms-border-radius:10px 0 0 10px
+    }
+    
+    .steps .step-bar.last{
+    border-radius:10px ;
+    -moz-border-radius:10px ;
+    -webkit-border-radius:10px ;
+    -ms-border-radius:10px 
+    }
+
+  ";
+
+    $style.=wf_tag('style', true);
+    $count = 1;
+    $paramsCount = sizeof($params);
+    if (!empty($params)) {
+        $width = round(100 / $paramsCount) - 1;
+        $code = wf_tag('div', false, 'steps');
+        $code.= wf_tag('ul', false, 'steps-container');
+        foreach ($params as $io => $each) {
+            $currentClass = ($count <= $current) ? 'activated' : '';
+            $code.= wf_tag('li', false, $currentClass, 'style="width:' . $width . '%;"');
+            $code.= wf_tag('div', false, 'step');
+            $code.= wf_tag('div', false, 'step-image') . wf_tag('span') . wf_tag('span', true) . wf_tag('div', true);
+            $code.= wf_tag('div', false, 'step-current') . $io . wf_tag('div', true);
+            $code.= wf_tag('div', false, 'step-description') . $each . wf_tag('div', true);
+            $code.=wf_tag('div', true);
+            $code.=wf_tag('li', true);
+            $count++;
+        }
+
+        $code.=wf_tag('ul', true);
+        $widthBar = $width * $current;
+        $code.= wf_tag('div', false, 'step-bar', 'style="width: ' . $widthBar . '%;"') . wf_tag('div', true);
+        $code.=wf_tag('div', true);
+
+        $code.=wf_CleanDiv();
+
+
+        $result = $style . $code;
+    }
+    return ($result);
 }
 
 /**

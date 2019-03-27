@@ -577,8 +577,8 @@ $lang['def']['SNMP community'] = 'SNMP комьюніті';
 $lang['def']['Delete switch'] = 'Видалити свіч';
 $lang['def']['Available switch models'] = 'Наявні моделі комутаторів';
 $lang['def']['Ports'] = 'Порти';
-$lang['def']['User registration step 1 (location)'] = 'Реєстрація користувача, крок 1 (місцезнаходження)';
-$lang['def']['User registration step 2 (Services)'] = 'Реєстрація користувача, крок 2 (сервіси)';
+$lang['def']['User registration part 1 (location)'] = 'Реєстрація користувача, частина 1 (місцезнаходження)';
+$lang['def']['User registration part 2 (Services)'] = 'Реєстрація користувача, частина 2 (сервіси)';
 
 //rev 611
 $lang['def']['Display city name in address fields'] = 'Відображення населених пунктів в адресах';
@@ -3077,5 +3077,15 @@ $lang['def']['recommended'] = 'рекомендована';
 $lang['def']['Charge'] = 'Нарахувати';
 $lang['def']['Withdraw from user account'] = 'Зняти з рахунку користувача';
 $lang['def']['Set user credit to end of month if required'] = 'Встановити кредит до наступного місяця у разі потреби';
+$lang['def']['Its incredible, but you now have a new user'] = 'Це неймовірно але у вас тепер є новий користувач';
+$lang['def']['Success'] = 'Успіх';
+$lang['def']['Step'] = 'Крок';
+$lang['def']['Select city'] = 'Оберіть місто';
+$lang['def']['Select street'] = 'Оберіть вулицю';
+$lang['def']['Select build'] = 'Оберіть дім';
+$lang['def']['Select service'] = 'Оберіть послугу';
+$lang['def']['Confirm'] = 'Підтвердьте';
+$lang['def'][''] = '';
+
 
 ?>

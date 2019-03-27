@@ -9,6 +9,15 @@ if (cfr('USERREG')) {
             $dbLockEnabled = true;
         }
     }
+    
+    $registerSteps=array(
+      
+        __('Step').' 1'=>__('Select city'),
+        __('Step').' 2'=>__('Select street'),
+        __('Step').' 3'=>__('Select build'),
+        __('Step').' 4'=>__('Select service'),
+        __('Success')=>__('Confirm'),
+    );
 
     //getting UnknonwsSelector for userreg
     if (wf_CheckGet(array('getunknownlist', 'oltid'))) {
@@ -43,7 +52,7 @@ if (cfr('USERREG')) {
     }
 
     if ((!isset($_POST['apt'])) AND ( !isset($_POST['IP']))) {
-        show_window(__('User registration step 1 (location)'), web_UserRegFormLocation());
+        show_window(__('User registration part 1 (location)'), web_UserRegFormLocation());
     } else {
 
         if (isset($_POST['apt'])) {
@@ -74,7 +83,7 @@ if (cfr('USERREG')) {
                 $dbLock = $dbLockCheck['result'];
             }
         }
-        show_window(__('User registration step 2 (Services)'), web_UserRegFormNetData($newuser_data));
+        show_window(__('User registration part 2 (Services)'), web_UserRegFormNetData($newuser_data));
         zb_BillingStats(true);
 
         if (isset($_POST['IP'])) {

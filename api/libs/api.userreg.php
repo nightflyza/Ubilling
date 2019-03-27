@@ -101,8 +101,10 @@ function web_AddressBuildShowAptsCheck($buildid) {
  * @return string
  */
 function web_UserRegFormLocation() {
+    global $registerSteps;
     $aptsel = '';
     $servicesel = '';
+    $currentStep = 0;
     if (!isset($_POST['citysel'])) {
         $citysel = web_CitySelectorAc(); // onChange="this.form.submit();
         $streetsel = '';
@@ -110,12 +112,14 @@ function web_UserRegFormLocation() {
         $citydata = zb_AddressGetCityData($_POST['citysel']);
         $citysel = $citydata['cityname'] . wf_HiddenInput('citysel', $citydata['id']);
         $streetsel = web_StreetSelectorAc($citydata['id']);
+        $currentStep = 1;
     }
 
     if (isset($_POST['streetsel'])) {
         $streetdata = zb_AddressGetStreetData($_POST['streetsel']);
         $streetsel = $streetdata['streetname'] . wf_HiddenInput('streetsel', $streetdata['id']);
         $buildsel = web_BuildSelectorAc($_POST['streetsel']);
+        $currentStep = 2;
     } else {
         $buildsel = '';
     }
@@ -126,6 +130,7 @@ function web_UserRegFormLocation() {
         $buildsel = $builddata['buildnum'] . wf_HiddenInput('buildsel', $builddata['id']);
         $aptsel = web_AddressBuildShowAptsCheck($builddata['id']) . web_AptCreateForm();
         $servicesel = multinet_service_selector();
+        $currentStep = 3;
         //contrahens user diff
         $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
         if (isset($alter_conf['LOGIN_GENERATION'])) {
@@ -178,7 +183,7 @@ function web_UserRegFormLocation() {
     $formData = wf_Form('', 'POST', $formInputs);
     $form = wf_TableBody($formData, '100%', '0', 'glamour');
     $form.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
-
+    $form.= wf_StepsMeter($registerSteps, $currentStep);
     return($form);
 }
 
@@ -430,6 +435,8 @@ function zb_CheckLoginRscriptdCompat($login) {
  * @return string
  */
 function web_UserRegFormNetData($newuser_data) {
+    global $registerSteps;
+    $currentStep = 4;
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     if ($alterconf['BRANCHES_ENABLED']) {
         global $branchControl;
@@ -508,7 +515,7 @@ function web_UserRegFormNetData($newuser_data) {
     $form.= wf_tag('td', true);
     $form.= wf_tag('tr', true);
 
-    if ( isset($alterconf['USERREG_MAC_INPUT_ENABLED']) and $alterconf['USERREG_MAC_INPUT_ENABLED'] ) {
+    if (isset($alterconf['USERREG_MAC_INPUT_ENABLED']) and $alterconf['USERREG_MAC_INPUT_ENABLED']) {
         $form .= wf_tag('tr', false, 'row3');
         $form .= wf_tag('td', false);
         $form .= wf_tag('input', false, '', 'type="text" name="userMAC"');
@@ -699,6 +706,7 @@ function web_UserRegFormNetData($newuser_data) {
     $form.=wf_tag('form', true);
 
     $form.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+    $form.= wf_StepsMeter($registerSteps, $currentStep);
     return($form);
 }
 
@@ -791,13 +799,15 @@ function zb_UserRegister($user_data, $goprofile = true) {
         $NeedONUAssignment = !empty($ONUMAC);
     }
 
-    if ( isset($user_data['userMAC']) and !empty($user_data['userMAC']) ) {
+    if (isset($user_data['userMAC']) and ! empty($user_data['userMAC'])) {
         $mac = strtolower($user_data['userMAC']);
     } elseif ($billingconf['REGRANDOM_MAC']) {
         // if random mac needed
         // funny random mac, yeah? :)
         $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
-    } else { $mac = null; }
+    } else {
+        $mac = null;
+    }
 
     $netid = multinet_get_service_networkid($serviceid);
     $busylogins = zb_AllBusyLogins();
@@ -945,7 +955,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
     ///////////////////////////////////
     if ($goprofile) {
-        rcms_redirect("?module=userprofile&username=" . $login);
+        rcms_redirect("?module=userprofile&username=" . $login . '&justregistered=true');
     }
 }
 
