@@ -1401,69 +1401,71 @@ class UserProfile {
         global $billing;
 
         $result = '';
-        if (@$this->alterCfg['EASY_CHARGE']) {
-            $inputs = wf_HiddenInput('easychargedosomething', 'true');
-            $inputs.= wf_TextInput('easychargesumm', __('Withdraw from user account'), '', true, 5, 'finance');
-            $inputs.= wf_TextInput('easychargenote', __('Notes'), '', true, 30);
-            $inputs.= wf_CheckInput('easychargecreditm', __('Set user credit to end of month if required'), true, true);
-            $inputs.=wf_delimiter(0);
-            $inputs.= wf_Submit(__('Charge'));
-            $form = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=' ' . wf_modalAuto(wf_img_sized('skins/icon_minus.png', __('Charge'), '10'), __('Charge'), $form);
+        if (cfr('CASH')) {
+            if (@$this->alterCfg['EASY_CHARGE']) {
+                $inputs = wf_HiddenInput('easychargedosomething', 'true');
+                $inputs.= wf_TextInput('easychargesumm', __('Withdraw from user account'), '', true, 5, 'finance');
+                $inputs.= wf_TextInput('easychargenote', __('Notes'), '', true, 30);
+                $inputs.= wf_CheckInput('easychargecreditm', __('Set user credit to end of month if required'), true, true);
+                $inputs.=wf_delimiter(0);
+                $inputs.= wf_Submit(__('Charge'));
+                $form = wf_Form('', 'POST', $inputs, 'glamour');
+                $result.=' ' . wf_modalAuto(wf_img_sized('skins/icon_minus.png', __('Charge'), '10'), __('Charge'), $form);
 
-            //controller part
-            if (wf_CheckPost(array('easychargedosomething', 'easychargesumm'))) {
-                $currentUserData = $this->AllUserData[$this->login];
-                $currentUserBalance = $currentUserData['Cash'];
-                $currentUserCredit = $currentUserData['Credit'];
-                $chargeType = ($this->alterCfg['EASY_CHARGE'] == 1) ? 'add' : 'correct';
+                //controller part
+                if (wf_CheckPost(array('easychargedosomething', 'easychargesumm'))) {
+                    $currentUserData = $this->AllUserData[$this->login];
+                    $currentUserBalance = $currentUserData['Cash'];
+                    $currentUserCredit = $currentUserData['Credit'];
+                    $chargeType = ($this->alterCfg['EASY_CHARGE'] == 1) ? 'add' : 'correct';
 
-                $chargeSumm = mysql_real_escape_string($_POST['easychargesumm']);
-                $chargeSumm = abs($chargeSumm);
-                if (zb_checkMoney($_POST['easychargesumm'])) {
-                    $cashAfterCharge = $currentUserBalance - $chargeSumm;
-                    $nextUserCredit = $currentUserCredit;
-                    $note = mysql_real_escape_string($_POST['easychargenote']);
+                    $chargeSumm = mysql_real_escape_string($_POST['easychargesumm']);
+                    $chargeSumm = abs($chargeSumm);
+                    if (zb_checkMoney($_POST['easychargesumm'])) {
+                        $cashAfterCharge = $currentUserBalance - $chargeSumm;
+                        $nextUserCredit = $currentUserCredit;
+                        $note = mysql_real_escape_string($_POST['easychargenote']);
 
-                    if (abs($cashAfterCharge) >= $currentUserCredit) {
-                        $nextUserCredit = abs($cashAfterCharge);
+                        if (abs($cashAfterCharge) >= $currentUserCredit) {
+                            $nextUserCredit = abs($cashAfterCharge);
+                        }
+                        //charge some money
+                        zb_CashAdd($this->login, '-' . $chargeSumm, $chargeType, 1, $note);
+
+                        //is new credit required?
+                        if ($cashAfterCharge < '-' . $currentUserCredit) {
+                            if (wf_CheckPost(array('easychargecreditm'))) {
+                                //set credit
+                                $billing->setcredit($this->login, $nextUserCredit);
+                                log_register('CHANGE Credit (' . $this->login . ') ON ' . $nextUserCredit);
+                                //set credit expire date
+                                $nextMonthStart = date('Y-m-d', mktime(0, 0, 0, date('m') + 1, 1, date('Y')));
+                                $billing->setcreditexpire($this->login, $nextMonthStart);
+                                log_register('CHANGE CreditExpire (' . $this->login . ') ON ' . $nextMonthStart);
+                            }
+                        }
+
+                        //preventing charing duplicates
+                        if (wf_CheckGet(array('module'))) {
+                            $currentModule = $_GET['module'];
+
+                            $redirectUrl = '';
+                            if ($currentModule == 'userprofile') {
+                                $redirectUrl = '?module=userprofile&username=' . $this->login;
+                            }
+
+                            if ($currentModule == 'addcash') {
+                                $redirectUrl = '?module=addcash&username=' . $this->login . '#profileending';
+                            }
+
+                            if (!empty($redirectUrl)) {
+                                rcms_redirect($redirectUrl, true);
+                            }
+                        }
+                    } else {
+                        $result.=wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200');
+                        log_register('EASYCHARGEFAIL (' . $this->login . ') WRONG SUMM `' . $_POST['easychargesumm'] . '`');
                     }
-                    //charge some money
-                    zb_CashAdd($this->login, '-' . $chargeSumm, $chargeType, 1, $note);
-
-                    //is new credit required?
-                    if ($cashAfterCharge < '-' . $currentUserCredit) {
-                        if (wf_CheckPost(array('easychargecreditm'))) {
-                            //set credit
-                            $billing->setcredit($this->login, $nextUserCredit);
-                            log_register('CHANGE Credit (' . $this->login . ') ON ' . $nextUserCredit);
-                            //set credit expire date
-                            $nextMonthStart = date('Y-m-d', mktime(0, 0, 0, date('m') + 1, 1, date('Y')));
-                            $billing->setcreditexpire($this->login, $nextMonthStart);
-                            log_register('CHANGE CreditExpire (' . $this->login . ') ON ' . $nextMonthStart);
-                        }
-                    }
-
-                    //preventing charing duplicates
-                    if (wf_CheckGet(array('module'))) {
-                        $currentModule = $_GET['module'];
-
-                        $redirectUrl = '';
-                        if ($currentModule == 'userprofile') {
-                            $redirectUrl = '?module=userprofile&username=' . $this->login;
-                        }
-
-                        if ($currentModule == 'addcash') {
-                            $redirectUrl = '?module=addcash&username=' . $this->login . '#profileending';
-                        }
-
-                        if (!empty($redirectUrl)) {
-                            rcms_redirect($redirectUrl, true);
-                        }
-                    }
-                } else {
-                    $result.=wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200');
-                    log_register('EASYCHARGEFAIL (' . $this->login . ') WRONG SUMM `' . $_POST['easychargesumm'] . '`');
                 }
             }
         }
