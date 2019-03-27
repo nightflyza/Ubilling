@@ -3057,8 +3057,9 @@ $lang['def']['skipped'] = 'пропущено';
 $lang['def']['User calls assign update'] = 'Обновление данных звонков о пользователях';
 $lang['def']['Current Ubilling version'] = 'Текущая версия Ubilling';
 $lang['def']['recommended'] = 'рекомендованная';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Charge'] = 'Начислить';
+$lang['def']['Withdraw from user account'] = 'Снять с пользовательского счета';
+$lang['def']['Set user credit to end of month if required'] = 'Установить кредит до следующего месяца если требуется';
 $lang['def'][''] = '';
 
 ?>

@@ -3074,5 +3074,8 @@ $lang['def']['skipped'] = 'пропущено';
 $lang['def']['User calls assign update'] = 'Оновлення користувацьких даних дзвінків';
 $lang['def']['Current Ubilling version'] = 'Поточна версія Ubilling';
 $lang['def']['recommended'] = 'рекомендована';
+$lang['def']['Charge'] = 'Нарахувати';
+$lang['def']['Withdraw from user account'] = 'Зняти з рахунку користувача';
+$lang['def']['Set user credit to end of month if required'] = 'Встановити кредит до наступного місяця у разі потреби';
 
 ?>
