@@ -395,6 +395,12 @@ class FundsFlow {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
                     $operation = __('Friendship');
                 }
+                
+                //manual charged
+                  if (ispos($each['note'], 'ECHARGE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Charged');
+                }
 
                 //notes translation
                 if ($this->alterConf['TRANSLATE_PAYMENTS_NOTES']) {

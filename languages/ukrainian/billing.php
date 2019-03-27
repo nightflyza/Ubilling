@@ -3085,6 +3085,8 @@ $lang['def']['Select street'] = 'Оберіть вулицю';
 $lang['def']['Select build'] = 'Оберіть дім';
 $lang['def']['Select service'] = 'Оберіть послугу';
 $lang['def']['Confirm'] = 'Підтвердьте';
+$lang['def']['Manually charged'] = 'Нараховано вручну';
+$lang['def']['Charged'] = 'Нараховано';
 $lang['def'][''] = '';
 
 

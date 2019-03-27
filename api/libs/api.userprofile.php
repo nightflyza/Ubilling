@@ -1430,7 +1430,7 @@ class UserProfile {
                             $nextUserCredit = abs($cashAfterCharge);
                         }
                         //charge some money
-                        zb_CashAdd($this->login, '-' . $chargeSumm, $chargeType, 1, $note);
+                        zb_CashAdd($this->login, '-' . $chargeSumm, $chargeType, 1, 'ECHARGE:' . $note);
 
                         //is new credit required?
                         if ($cashAfterCharge < '-' . $currentUserCredit) {

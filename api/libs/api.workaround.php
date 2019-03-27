@@ -995,6 +995,11 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
     if (ispos($paynote, 'SCHEDULED')) {
         $paynote = __('Scheduled');
     }
+    
+    if (ispos($paynote, 'ECHARGE')) {
+        $echarged = explode(':', $paynote);
+        $paynote = __('Manually charged') . ' ' . $echarged[1];
+    }
 
     return ($paynote);
 }

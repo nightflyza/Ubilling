@@ -3068,8 +3068,8 @@ $lang['def']['Select street'] = 'Выберите улицу';
 $lang['def']['Select build'] = 'Выберите дом';
 $lang['def']['Select service'] = 'Выберите услугу';
 $lang['def']['Confirm'] = 'Подтвердите';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Manually charged'] = 'Начислено вручную';
+$lang['def']['Charged'] = 'Начислено';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
