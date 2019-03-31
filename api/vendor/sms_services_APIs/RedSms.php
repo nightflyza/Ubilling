@@ -1,33 +1,28 @@
 <?php
 
 class RedSms extends SMSServiceApi {
+
     public function __construct($smsServiceId, $smsPack = array()) {
         parent::__construct($smsServiceId, $smsPack);
     }
 
     public function getBalance() {
         $result = '';
-        $timestamp = file_get_contents('https://lk.redsms.ru/get/timestamp.php');
+        $timestamp = microtime().rand(0, 10000);
         $api_key = $this->serviceApiKey;
         $login = $this->serviceLogin;
-        $return = 'xml';
-        $params = array(
-            'timestamp' => $timestamp,
-            'login' => $login,
-            'return' => $return
-        );
-        ksort($params);
-        reset($params);
-        $signature = md5(implode($params) . $api_key);
-        $query = "https://lk.redsms.ru/get/balance.php?login=" . $login . "&signature=" . $signature . "&timestamp=" . $timestamp . "&return=" . $return;
+
+        $signature = md5($timestamp . $api_key);
+        $query = $this->serviceGatewayAddr . "/client/info?login=" . $login . "&secret=" . $signature . "&ts=" . $timestamp;
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $query);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($curl);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
+        $response = json_decode(curl_exec($curl));
         curl_close($curl);
-
+        $ballance = $response->{"info"}->{"balance"};
         //$result.= wf_BackLink(self::URL_ME, '', true);
-        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response . ' RUR', 'info');
+        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $ballance . ' RUR', 'info');
         //return ($result);
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
@@ -38,32 +33,31 @@ class RedSms extends SMSServiceApi {
 
     public function pushMessages() {
         $result = '';
-        $timestamp = file_get_contents('https://lk.redsms.ru/get/timestamp.php');
+        $timestamp = microtime().rand(0, 10000);
         $api_key = $this->serviceApiKey;
         $login = $this->serviceLogin;
-        $return = 'xml';
         $sender = $this->serviceAlphaName;
 
         $allSmsQueue = $this->smsMessagePack;
         if (!empty($allSmsQueue)) {
             foreach ($allSmsQueue as $io => $eachsms) {
 
-                $phone = str_replace('+', '', $eachsms['number']); //numbers in international format without +
+                $phone = $eachsms['number'];
                 $text = $eachsms['message'];
+                
 
 
-                $params = array(
-                    'timestamp' => $timestamp,
+                $signature = md5($timestamp . $api_key);
+                $data = array(
                     'login' => $login,
-                    'phone' => $phone,
-                    'text' => $text,
-                    'sender' => $sender,
-                    'return' => $return);
-
-                ksort($params);
-                reset($params);
-                $signature = md5(implode($params) . $api_key);
-                $query = $this->serviceGatewayAddr . "?login=" . $login . "&signature=" . $signature . "&phone=" . $phone . "&sender=" . $sender . "&return=" . $return . "&timestamp=" . $timestamp . "&text=" . urlencode($text);
+                    'secret' => $signature,
+                    'to' => $phone,
+                    'from' => $sender,
+                    'ts' => $timestamp,
+                    'text' => $text
+                );
+                $postdata = http_build_query($data);
+                $query = $this->serviceGatewayAddr . "/message?" . $postdata;
                 $curl = curl_init();
                 curl_setopt($curl, CURLOPT_URL, $query);
                 curl_setopt($curl, CURLOPT_ENCODING, "utf-8");
@@ -71,9 +65,13 @@ class RedSms extends SMSServiceApi {
                 curl_setopt($curl, CURLOPT_TIMEOUT, 120);
                 curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $postdata);
+                curl_setopt($curl, CURLOPT_POST, true);
                 $response = curl_exec($curl);
                 curl_close($curl);
-
+                log_register("SENDDOG RedSms responded: " . $response);
+                echo $response;
                 //remove old sent message
                 $this->instanceSendDog->getSmsQueueInstance()->deleteSms($eachsms['filename']);
             }
