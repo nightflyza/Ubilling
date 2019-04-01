@@ -70,8 +70,7 @@ class RedSms extends SMSServiceApi {
                 curl_setopt($curl, CURLOPT_POST, true);
                 $response = curl_exec($curl);
                 curl_close($curl);
-                log_register("SENDDOG RedSms responded: " . $response);
-                echo $response;
+
                 //remove old sent message
                 $this->instanceSendDog->getSmsQueueInstance()->deleteSms($eachsms['filename']);
             }
