@@ -1,18 +1,14 @@
 <?php
-
 /*
  * Фронтенд для получения оплат от IBOX в виде GET запроса для разных контрагентов (да, это которые в справочнике Предприниматели)
  * Документация по реализуемому протоколу: http://store.nightfly.biz/st/1543921862/IBOXmulti (2).docx
  */
-
 //Использовать ли внешний кодификатор контрагентов из agentcodes.ini?
 define('IBX_USE_AGENTCODES', 0);
-
 //URL вашего работающего Ubilling
 define('API_URL', 'http://localhost/billing/');
 //И его серийный номер
 define('API_KEY', 'UBxxxxxxxxxxxxxxxx');
-
 
 error_reporting(E_ALL);
 // подключаем API OpenPayz
@@ -22,7 +18,6 @@ header('Last-Modified: ' . gmdate('r'));
 header('Content-Type: text/html; charset=utf-8');
 header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
 header("Pragma: no-cache");
-
 /**
  * Check for GET have needed variables
  *
@@ -45,7 +40,6 @@ function ibox_CheckGet($params) {
     }
     return ($result);
 }
-
 /**
  * Gets user associated agent data JSON
  * 
@@ -58,7 +52,6 @@ function getAgentData($userlogin) {
     @$result = file_get_contents($action);
     return ($result);
 }
-
 /**
  * Check is transaction unique?
  * 
@@ -76,7 +69,6 @@ function ibox_CheckTransaction($hash) {
         return (true);
     }
 }
-
 /**
  * Returns all user RealNames
  *
@@ -93,7 +85,6 @@ function ibox_UserGetAllRealnames() {
     }
     return($result);
 }
-
 /**
  * Returns user stargazer data by login
  *
@@ -107,7 +98,6 @@ function ibox_UserGetStargazerData($login) {
     $result = simple_query($query);
     return ($result);
 }
-
 /**
  * Returns array of availble user address as login=>address
  * 
@@ -142,7 +132,6 @@ function ibox_AddressGetFulladdresslist() {
     }
     return($result);
 }
-
 /**
  * Get transaction id by its hash
  *
@@ -156,7 +145,6 @@ function ibox_getIdByHash($hash) {
     $result = simple_query($query);
     return ($result['id']);
 }
-
 /**
  * Get transaction datetime by its hash
  *
@@ -170,27 +158,21 @@ function ibox_getDateByHash($hash) {
     $result = simple_query($query);
     return ($result['date']);
 }
-
 $required = array('command', 'txn_id', 'account', 'sum');
-
 //если нас пнули объязательными параметрами
 if (ibox_CheckGet($required)) {
-
     //это нас Ibox как-бы проверяет на вшивость
     if ($_GET['command'] == 'check') {
         $allcustomers = op_CustomersGetAll();
-
         $hashClean = trim($_GET['txn_id']);
         $customerid = trim($_GET['account']);
-
         //нашелся братиша!
         if (isset($allcustomers[$customerid])) {
-
-            $customerLogin = $allcustomers[$customerid];
-            $allrealnames = ibox_UserGetAllRealnames();
+            $userlogin = $allcustomers[$customerid];
             $alladdress = ibox_AddressGetFulladdresslist();
-            $userData = ibox_UserGetStargazerData($customerLogin);
-            $agentData = getAgentData($customerLogin);
+            $allrealnames = ibox_UserGetAllRealnames();
+            $userData = simple_query("SELECT * from `users` WHERE `login`='" . $userlogin . "'");
+            $agentData = getAgentData($userlogin);
             if (!empty($agentData)) {
                 $agentData = json_decode($agentData, true);
                 if (!empty($agentData)) {
@@ -207,9 +189,9 @@ if (ibox_CheckGet($required)) {
                     }
                     $companyData = '<fields>
                                     <field1 name="balance">' . @$userData['Cash'] . '</field1>
-                                    <field2 name="company">' . $agentCode . '</field2> 
-                                    <field3 name="name">' . @$allrealnames[$customerLogin] . '</field3>
-                                    <field4 name="address">' . @$alladdress[$customerLogin] . '</field4>
+                                    <field2 name="name">' . @$allrealnames[$userlogin] . '</field2>
+                                    <field3 name="address">' . @$alladdress[$userlogin] . '</field3>
+                                    <field4 name="fop_id">' . $agentCode . '</field4>   
                       </fields>';
                 } else {
                     die('ERROR:WRONG_API_CONNECTION');
@@ -217,9 +199,6 @@ if (ibox_CheckGet($required)) {
             } else {
                 $companyData = '';
             }
-
-
-
             $good_reply = '
                     <?xml version="1.0"?>
                     <response>
@@ -231,7 +210,6 @@ if (ibox_CheckGet($required)) {
             $good_reply = trim($good_reply);
             die($good_reply);
         } else {
-
             $bad_reply = '
                   <?xml version="1.0"?>
                     <response>
@@ -243,31 +221,25 @@ if (ibox_CheckGet($required)) {
             die($bad_reply);
         }
     }
-
     //Запрос на внесение платежа 
     if ($_GET['command'] == 'pay') {
-
         $hash = 'IBOX_' . trim($_GET['txn_id']);
         $hashClean = trim($_GET['txn_id']);
         $summ = $_GET['sum'];
         $customerid = trim($_GET['account']);
         $paysys = 'IBOX';
         $note = 'some debug info';
-
         $allcustomers = op_CustomersGetAll();
         //опять ожидаем подляны и все-таки проверим хотя бы валидность кастомера
         if (isset($allcustomers[$customerid])) {
-
             //а также уникальность транзакции
             if (ibox_CheckTransaction($hash)) {
                 //регистрируем новую транзакцию
                 op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
                 //вызываем обработчики необработанных транзакций
                 op_ProcessHandlers();
-
                 $newTransactionId = ibox_getIdByHash($hash);
                 $newTransactionDate = ibox_getDateByHash($hash);
-
                 $good_reply = '
             <?xml version="1.0" encoding="UTF-8"?>
             <response>
@@ -296,7 +268,6 @@ if (ibox_CheckGet($required)) {
                     <comment>OK</comment>
                     </response>
                     ';
-
                 $transactionDoneReply = trim($transactionDoneReply);
                 die($transactionDoneReply);
             }
