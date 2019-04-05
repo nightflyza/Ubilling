@@ -126,18 +126,36 @@ class DoomsDayTariffs {
      */
     public function renderCreateForm() {
         $result = '';
-        $inputs = wf_HiddenInput('createnewddtsignal', 'true');
-        $inputs.= wf_Selector('createnewddttariff', $this->allTariffNames, __('Tariff'), '', true);
-        $inputs.= wf_Selector('createnewddtperiod', $this->periods, __('Period'), '', true);
-        $inputs.= wf_TextInput('createnewddtduration', __('Duration'), '1', true, 4, 'digits');
-        $inputs.= wf_CheckInput('createnewddtstartnow', __('Take into account the current period'), true, false);
-        $inputs.= wf_CheckInput('createnewddtchargefee', __('Charge current tariff fee'), true, false);
-        $inputs.= wf_TextInput('createnewddtchargeuntilday', __('Charge current tariff fee if day less then'), '1', true, 2, 'digits');
-        $inputs.= wf_Selector('createnewddttariffmove', $this->allTariffNames, __('Move to tariff after ending of periods'), '', true);
-        $inputs.=wf_delimiter(0);
-        $inputs.= wf_Submit(__('Create'));
 
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        if (!empty($this->allTariffNames)) {
+            $tariffsNewAvail = $this->allTariffNames;
+            $currentTariffsDDT = $this->getCurrentTariffsDDT();
+            if (!empty($currentTariffsDDT)) {
+                foreach ($currentTariffsDDT as $io => $each) {
+                    unset($tariffsNewAvail[$io]);
+                }
+            }
+
+            if (!empty($tariffsNewAvail)) {
+                $inputs = wf_HiddenInput('createnewddtsignal', 'true');
+                $inputs.= wf_Selector('createnewddttariff', $tariffsNewAvail, __('Tariff'), '', true);
+                $inputs.= wf_Selector('createnewddtperiod', $this->periods, __('Period'), '', true);
+                $inputs.= wf_TextInput('createnewddtduration', __('Duration'), '1', true, 4, 'digits');
+                $inputs.= wf_CheckInput('createnewddtstartnow', __('Take into account the current period'), true, false);
+                $inputs.= wf_CheckInput('createnewddtchargefee', __('Charge current tariff fee'), true, false);
+                $inputs.= wf_TextInput('createnewddtchargeuntilday', __('Charge current tariff fee if day less then'), '1', true, 2, 'digits');
+                $inputs.= wf_Selector('createnewddttariffmove', $this->allTariffNames, __('Move to tariff after ending of periods'), '', true);
+                $inputs.=wf_delimiter(0);
+                $inputs.= wf_Submit(__('Create'));
+                $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('You already planned doomsday for all of available tariffs'), 'success');
+            }
+        } else {
+            $result.=$this->messages->getStyledMessage(__('No existing tariffs available at all'), 'error');
+        }
+
+
         return ($result);
     }
 
@@ -158,19 +176,41 @@ class DoomsDayTariffs {
             $newStartNow = (wf_CheckPost(array('createnewddtstartnow'))) ? 1 : 0;
             $newChargeFee = (wf_CheckPost(array('createnewddtchargefee'))) ? 1 : 0;
             $newChargeDay = vf($_POST['createnewddtchargeuntilday'], 3);
-
+            $currentTariffsDDT = $this->getCurrentTariffsDDT();
             if ($newTariff != $newTariffMove) {
                 if (!empty($newDuration)) {
-                    $query = "INSERT INTO `ddt_options` (`id`,`tariffname`,`period`,`startnow`,`duration`,`chargefee`,`chargeuntilday`,`tariffmove`)"
-                            . " VALUES (NULL,'" . $newTariff_f . "','" . $newPeriod . "','" . $newStartNow . "','" . $newDuration . "','" . $newChargeFee . "','" . $newChargeDay . "','" . $newTariffMove_f . "'); ";
-                    nr_query($query);
-                    $newId = simple_get_lastid('ddt_options');
-                    log_register('DDT CREATE [' . $newId . '] TARIFF `' . $newTariff . '` MOVE ON `' . $newTariffMove . '` IN ' . $newDuration . ' `' . $newPeriod . '`');
+                    if (!isset($currentTariffsDDT[$newTariff])) {
+                        $query = "INSERT INTO `ddt_options` (`id`,`tariffname`,`period`,`startnow`,`duration`,`chargefee`,`chargeuntilday`,`tariffmove`)"
+                                . " VALUES (NULL,'" . $newTariff_f . "','" . $newPeriod . "','" . $newStartNow . "','" . $newDuration . "','" . $newChargeFee . "','" . $newChargeDay . "','" . $newTariffMove_f . "'); ";
+                        nr_query($query);
+                        $newId = simple_get_lastid('ddt_options');
+                        log_register('DDT CREATE [' . $newId . '] TARIFF `' . $newTariff . '` MOVE ON `' . $newTariffMove . '` IN ' . $newDuration . ' `' . $newPeriod . '`');
+                    } else {
+                        $result = __('You already have doomsday assigned for tariff') . ' ' . $newTariff;
+                        log_register('DDT CREATE FAIL DUPLICATE TARIFF `' . $newTariff . '`');
+                    }
                 } else {
                     $result = __('Duration cannot be empty');
+                    log_register('DDT CREATE FAIL EMPTY DURATION');
                 }
             } else {
                 $result = __('Tariffs must be different');
+                log_register('DDT CREATE FAIL SAME TARIFFS `' . $newTariff . '`');
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns list of available ddt tariffs as tariffname=>options
+     * 
+     * @return array
+     */
+    public function getCurrentTariffsDDT() {
+        $result = array();
+        if (!empty($this->allOptions)) {
+            foreach ($this->allOptions as $io => $each) {
+                $result[$each['tariffname']] = $each;
             }
         }
         return ($result);
@@ -194,7 +234,7 @@ class DoomsDayTariffs {
             $cells.= wf_TableCell(__('New tariff'));
             $cells.= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
-            
+
             foreach ($this->allOptions as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['tariffname']);
@@ -204,8 +244,10 @@ class DoomsDayTariffs {
                 $cells.= wf_TableCell(web_bool_led($each['chargefee']));
                 $cells.= wf_TableCell($each['chargeuntilday']);
                 $cells.= wf_TableCell($each['tariffmove']);
-                $cells.= wf_TableCell(__('Actions'));
-                $rows.= wf_TableRow($cells, 'row3');
+
+                $actLinks = wf_JSAlert(self::URL_ME . '&deleteddtariff=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row5');
             }
 
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
@@ -230,6 +272,6 @@ if (wf_CheckPost(array('createnewddtsignal'))) {
 }
 
 
-deb($ddt->renderCreateForm());
-deb($ddt->renderTariffsList());
+show_window(__('Create new doomsday tariff'), $ddt->renderCreateForm());
+show_window(__('Available doomsday tariffs'), $ddt->renderTariffsList());
 ?>
