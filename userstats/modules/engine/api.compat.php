@@ -40,7 +40,7 @@ setcookie("zbs_lang", $lang, time() + 2592000);
 $langglobal = zbs_LoadLang($lang);
 
 //setting auth cookies subroutine
-if ($statsconfig['auth'] == 'login') { //if enabled login based auth
+if ($statsconfig['auth'] == 'login' OR $statsconfig['auth'] == 'both') { //if enabled login based auth
     if ((isset($_POST['ulogin'])) AND isset($_POST['upassword'])) {
         $ulogin = trim(vf($_POST['ulogin']));
         $upassword = trim(vf($_POST['upassword']));

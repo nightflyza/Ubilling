@@ -47,6 +47,21 @@ function zbs_UserDetectIp($debug = false) {
             $ip = zbs_UserCheckLoginAuth($ulogin, $upassword);
         }
     }
+
+    //trying to find user by IP, than if failed - login based auth.
+    if ($glob_conf['auth'] == 'both') {
+        $ipCheck = $_SERVER['REMOTE_ADDR'];
+        if (zbs_UserGetLoginByIp($ipCheck)) {
+            $ip = $ipCheck;
+        } else {
+            if ((isset($_COOKIE['ulogin'])) AND ( isset($_COOKIE['upassword']))) {
+                $ulogin = trim(vf($_COOKIE['ulogin']));
+                $upassword = trim(vf($_COOKIE['upassword']));
+                $ip = zbs_UserCheckLoginAuth($ulogin, $upassword);
+            }
+        }
+    }
+
     if ($debug) {
         //$ip = '172.30.0.2';
     }
@@ -226,9 +241,14 @@ function zbs_LoginForm() {
  * @return void
  */
 function zbs_LogoutForm() {
+    $form = '';
     $inputs = la_HiddenInput('ulogout', 'true');
     $inputs.= la_Submit(__('Logout'));
-    $form = la_Form('', 'POST', $inputs);
+    if (isset($_COOKIE['upassword'])) {
+        if ($_COOKIE['upassword'] != 'nopassword') {
+            $form.= la_Form('', 'POST', $inputs);
+        }
+    }
     show_window('', $form);
 }
 

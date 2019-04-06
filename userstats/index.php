@@ -27,7 +27,7 @@ if (!empty($us_access)) {
 }
 
 if ($user_ip) {
-    if ($us_config['auth'] == 'login') {
+    if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
         // IF ALREADY SIGNED:
         zbs_LogoutForm();
     }
@@ -76,7 +76,7 @@ if ($user_ip) {
     } else
         zbs_LoadModule($_GET['module']);
 } else {
-    if ($us_config['auth'] == 'login') {
+    if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
         zbs_LoginForm();
         //bottom auth intro
         if (isset($us_config['INTRO_MODE'])) {
