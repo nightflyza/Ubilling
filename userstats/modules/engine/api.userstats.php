@@ -77,8 +77,11 @@ function zbs_UserDetectIp($debug = false) {
  */
 function zbs_UserGetLoginByIp($ip) {
     $glob_conf = zbs_LoadConfig();
-    $query = "SELECT `login` from `users` where `IP`='" . $ip . "'";
-    $result = simple_query($query);
+    $result = '';
+    if (!empty($ip)) {
+        $query = "SELECT `login` from `users` where `IP`='" . $ip . "'";
+        $result = simple_query($query);
+    }
     if (!empty($result)) {
         return($result['login']);
     } else {
