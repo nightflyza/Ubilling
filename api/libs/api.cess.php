@@ -314,7 +314,7 @@ function zb_AgentAssignAdd($ahenid, $streetname) {
 function web_AgentAssignForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = zb_ContrAhentSelect();
-    $inputs.= __('Contrahent name') . wf_tag('br');
+    $inputs.= wf_tag('br');
     $inputs.= wf_TextInput('newassign', __('Street name') . $sup, '', true);
     $inputs.= wf_Submit(__('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
