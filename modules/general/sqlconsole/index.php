@@ -48,6 +48,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
     if (cfr('ROOT')) {
         $migrationControls.=wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
         $migrationControls.=wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2', false, 'ubButton');
+        $migrationControls.=wf_Link("?module=migration2_ukv", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2 UKV', false, 'ubButton');
     }
     if (cfr('MIKMIGR')) {
         $migrationControls.=wf_Link("?module=mikbill_migration", wf_img('skins/ukv/dollar.png') . ' ' . __('Migration') . ' MikBiLL', false, 'ubButton');
