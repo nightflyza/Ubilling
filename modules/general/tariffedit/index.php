@@ -80,6 +80,7 @@ if (cfr('TARIFFEDIT')) {
 //DDT locks
         $form = '';
         $formAccessible = true;
+        $additionalDelimiter='';
         if (@$alter_conf['DDT_ENABLED']) {
             $ddt = new DoomsDayTariffs(true);
             $messages = new UbillingMessageHelper();
@@ -87,7 +88,7 @@ if (cfr('TARIFFEDIT')) {
             if (isset($currentDDTTariffs[$current_tariff])) {
                 $ddtOptions = $currentDDTTariffs[$current_tariff];
                 $form.=$messages->getStyledMessage(__('Current tariff') . ' ' . $current_tariff . ' ' . __('will be changed to') . ' ' . $ddtOptions['tariffmove'] . ' ' . __('automatically'), 'info');
-
+                $additionalDelimiter.=wf_delimiter(0);
                 //form lock
                 $dwiTaskData = $ddt->getTaskCreated($login);
                 if ($dwiTaskData) {
@@ -98,6 +99,7 @@ if (cfr('TARIFFEDIT')) {
         }
 //old style tariff selector
         if ($formAccessible) {
+            $form.=$additionalDelimiter;
             if (!isset($_GET['oldform'])) {
                 $form.= web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $current_tariff);
             } else {
