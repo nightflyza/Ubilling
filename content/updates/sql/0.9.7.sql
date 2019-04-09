@@ -7,3 +7,6 @@ CREATE TABLE IF NOT EXISTS `capabhist` (
   `event` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+ALTER TABLE `ddt_options` ADD `setcredit` TINYINT NULL AFTER `chargeuntilday`; 

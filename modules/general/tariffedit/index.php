@@ -1,12 +1,13 @@
 <?php
 
 if (cfr('TARIFFEDIT')) {
+    $alter_conf = $ubillingConfig->getAlter();
 
     if (isset($_GET['username'])) {
         $login = vf($_GET['username']);
         // change tariff  if need
         if (isset($_POST['newtariff'])) {
-            $alter_conf = $ubillingConfig->getAlter();
+
             $tariff = $_POST['newtariff'];
             if (!isset($_POST['nextmonth'])) {
                 $billing->settariff($login, $tariff);
@@ -55,7 +56,6 @@ if (cfr('TARIFFEDIT')) {
 
 
         //check is user corporate?
-        $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
         if ($alter_conf['USER_LINKING_ENABLED']) {
             if ($alter_conf['USER_LINKING_TARIFF']) {
                 if (cu_IsChild($login)) {
@@ -76,16 +76,38 @@ if (cfr('TARIFFEDIT')) {
 // Edit form construct
         $fieldname = __('Current tariff');
         $fieldkey = 'newtariff';
-//old style tariff selector
-        if (!isset($_GET['oldform'])) {
-            $form = web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $current_tariff);
-        } else {
-            $form = web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $current_tariff);
+
+//DDT locks
+        $form = '';
+        $formAccessible = true;
+        if (@$alter_conf['DDT_ENABLED']) {
+            $ddt = new DoomsDayTariffs(true);
+            $messages = new UbillingMessageHelper();
+            $currentDDTTariffs = $ddt->getCurrentTariffsDDT();
+            if (isset($currentDDTTariffs[$current_tariff])) {
+                $ddtOptions = $currentDDTTariffs[$current_tariff];
+                $form.=$messages->getStyledMessage(__('Current tariff') . ' ' . $current_tariff . ' ' . __('will be changed to') . ' ' . $ddtOptions['tariffmove'] . ' ' . __('automatically'), 'info');
+
+                //form lock
+                $dwiTaskData = $ddt->getTaskCreated($login);
+                if ($dwiTaskData) {
+                    $form.=$messages->getStyledMessage(__('On') . ' ' . $dwiTaskData['date'] . ' ' . __('is already planned tariff change to') . ' ' . $dwiTaskData['param'], 'warning');
+                    $formAccessible = false;
+                }
+            }
         }
+//old style tariff selector
+        if ($formAccessible) {
+            if (!isset($_GET['oldform'])) {
+                $form.= web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $current_tariff);
+            } else {
+                $form.= web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $current_tariff);
+            }
 
 
-        $form.=wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
-        $form.=wf_Link('?module=tariffedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
+            $form.=wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
+            $form.=wf_Link('?module=tariffedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
+        }
         $form.=wf_delimiter();
 
         $form.=web_UserControls($login);

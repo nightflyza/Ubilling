@@ -113,6 +113,15 @@ class DealWithIt {
     }
 
     /**
+     * Returns all available dealwithit tasks
+     * 
+     * @return array
+     */
+    public function getAvailableTasks() {
+        return ($this->allTasks);
+    }
+
+    /**
      * Sets available actions array with icons
      * 
      * @return void
@@ -228,7 +237,7 @@ class DealWithIt {
      * @param string $param
      * @param string $note
      * 
-     * @return void
+     * @return int
      */
     public function createTask($date, $login, $action, $param, $note) {
         $dateF = mysql_real_escape_string($date);
@@ -242,6 +251,7 @@ class DealWithIt {
         $newId = simple_get_lastid('dealwithit');
         $this->logTask($newId, $dateF, $loginF, $actionF, $paramF, $noteF, false);
         log_register('SCHEDULER CREATE ID [' . $newId . '] (' . $login . ')  DATE `' . $date . ' `ACTION `' . $action . '` NOTE `' . $note . '`');
+        return ($newId);
     }
 
     /**
@@ -381,6 +391,7 @@ class DealWithIt {
     }
 
     /**
+     * Creates new schedule task
      * 
      * @return void/error notice
      */

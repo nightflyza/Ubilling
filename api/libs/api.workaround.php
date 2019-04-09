@@ -995,10 +995,15 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
     if (ispos($paynote, 'SCHEDULED')) {
         $paynote = __('Scheduled');
     }
-    
+
     if (ispos($paynote, 'ECHARGE')) {
         $echarged = explode(':', $paynote);
         $paynote = __('Manually charged') . ' ' . $echarged[1];
+    }
+
+    if (ispos($paynote, 'DDT')) {
+        $ddtcharged = explode(':', $paynote);
+        $paynote = __('Doomsday tariff') . ': ' . $ddtcharged[1];
     }
 
     return ($paynote);
@@ -2967,7 +2972,7 @@ function strtolower_utf8($string) {
  */
 function zb_BillingCheckUpdates($return = false) {
     $release_url = 'http://ubilling.net.ua/RELEASE';
-    
+
     @$last_release = file_get_contents($release_url);
     if ($last_release) {
         $result = __('Last stable release is') . ': ' . $last_release;

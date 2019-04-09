@@ -18,6 +18,12 @@ $lang['def']['You already have doomsday assigned for tariff'] = 'У вас уж�
 $lang['def']['You already planned doomsday for all of available tariffs'] = 'Вы уже запланировали судный день для всех существующих тарифов';
 $lang['def']['No existing tariffs available at all'] = 'Нету существующих тарифов вообще';
 $lang['def']['Doomsday tariffs'] = 'Тарифы судного дня';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Doomsday tariff'] = 'Тариф судного дня';
+$lang['def']['disabled'] = 'отключен';
+$lang['def']['Set a user credit if the money is not enough to use the service now'] = 'Установить пользователю кредит если денег не хватит для использования услуги сейчас';
+$lang['def']['Set credit'] = 'Установить кредит';
+$lang['def']['will be changed to'] = 'будет изменен на';
+$lang['def']['automatically'] = 'автоматически';
+$lang['def']['On'] = 'На';
+$lang['def']['is already planned tariff change to'] = 'уже запланирована смена тарифа на';
+
