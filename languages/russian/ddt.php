@@ -26,4 +26,4 @@ $lang['def']['will be changed to'] = 'будет изменен на';
 $lang['def']['automatically'] = 'автоматически';
 $lang['def']['On'] = 'На';
 $lang['def']['is already planned tariff change to'] = 'уже запланирована смена тарифа на';
-
+$lang['def']['right to manage doomsday tariffs'] = 'Право управлять тарифами судного дня';
