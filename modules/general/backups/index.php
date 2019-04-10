@@ -58,21 +58,23 @@ if (cfr('BACKUP')) {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($availbacks as $eachDump) {
-                    $fileDate = filectime($backupsPath . $eachDump);
-                    $fileDate = date("Y-m-d H:i:s", $fileDate);
-                    $fileSize = filesize($backupsPath . $eachDump);
-                    $fileSize = stg_convert_size($fileSize);
-                    $encodedDumpPath = base64_encode($backupsPath . $eachDump);
-                    $downloadLink = wf_Link('?module=backups&download=' . $encodedDumpPath, $eachDump, false, '');
-                    $actLinks = wf_JSAlert('?module=backups&deletedump=' . $encodedDumpPath, web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
-                    $actLinks.= wf_Link('?module=backups&download=' . $encodedDumpPath, wf_img('skins/icon_download.png', __('Download')), false, '');
-                    $actLinks.= wf_JSAlert('?module=backups&restore=true&restoredump=' . $encodedDumpPath, wf_img('skins/icon_restoredb.png', __('Restore DB')), __('Are you serious'));
+                    if (is_file($backupsPath . $eachDump)) {
+                        $fileDate = filectime($backupsPath . $eachDump);
+                        $fileDate = date("Y-m-d H:i:s", $fileDate);
+                        $fileSize = filesize($backupsPath . $eachDump);
+                        $fileSize = stg_convert_size($fileSize);
+                        $encodedDumpPath = base64_encode($backupsPath . $eachDump);
+                        $downloadLink = wf_Link('?module=backups&download=' . $encodedDumpPath, $eachDump, false, '');
+                        $actLinks = wf_JSAlert('?module=backups&deletedump=' . $encodedDumpPath, web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
+                        $actLinks.= wf_Link('?module=backups&download=' . $encodedDumpPath, wf_img('skins/icon_download.png', __('Download')), false, '');
+                        $actLinks.= wf_JSAlert('?module=backups&restore=true&restoredump=' . $encodedDumpPath, wf_img('skins/icon_restoredb.png', __('Restore DB')), __('Are you serious'));
 
-                    $cells = wf_TableCell($fileDate);
-                    $cells.= wf_TableCell($fileSize);
-                    $cells.= wf_TableCell($downloadLink);
-                    $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row3');
+                        $cells = wf_TableCell($fileDate);
+                        $cells.= wf_TableCell($fileSize);
+                        $cells.= wf_TableCell($downloadLink);
+                        $cells.= wf_TableCell($actLinks);
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
                 }
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
             }
