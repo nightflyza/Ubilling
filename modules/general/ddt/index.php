@@ -39,6 +39,7 @@ if (cfr('DDT')) {
                     show_window(__($avidity['L']['REM']), $ddt->$avidity_m());
                     $avidity_m = $avidity['M']['MEGUMIN'];
                     show_window(__($avidity['L']['RAM']), $ddt->$avidity_m());
+                    zb_BillingStats(true);
                 } else {
                     if (wf_CheckGet(array($avidity['V']['SAD']))) {
                         $avidity_m = $avidity['M']['BUTTRUE'];
