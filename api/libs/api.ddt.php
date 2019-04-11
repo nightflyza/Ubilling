@@ -537,11 +537,14 @@ class DoomsDayTariffs {
         if (!empty($this->allDDTUsers)) {
             $opts = '"order": [[ 1, "desc" ]]';
             $ajaxUrl = self::URL_HIST . '&ajax=true';
+            $userControls = '';
             if ($userLogin) {
                 $ajaxUrl.='&username=' . $userLogin;
+                $userControls = wf_delimiter(0) . web_UserControls($userLogin);
             }
             $columns = array('User', 'Date', 'Tariff', 'End date', 'New tariff', 'Deal with it');
             $result.=wf_JqDtLoader($columns, $ajaxUrl, false, __('Users'), 100, $opts);
+            $result.=$userControls;
         } else {
             $result.=$this->messages->getStyledMessage(__('There is nothing to watch'), 'warning');
         }
