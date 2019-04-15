@@ -69,12 +69,14 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  string $size input size
  * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac
  * @param  string $class class of the element
+ * @param  string $ctrlID id of the element
  *
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '') {
-    $inputid = wf_InputId();
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '', $ctrlID = '') {
+    $inputid = ( empty($ctrlID) ) ? wf_InputId() : $ctrlID;
+
     //set size
     if ($size != '') {
         $input_size = 'size="' . $size . '"';
@@ -205,11 +207,14 @@ function wf_AjaxLink($url, $title, $container, $br = false, $class = '') {
  * @param string  $value current value
  * @param bool    $br append new line
  * @param bool    $checked is checked?
+ * @param  string $ctrlID id of the element
+ *
  * @return string
  *
  */
-function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = false) {
-    $inputid = wf_InputId();
+function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = false, $ctrlID = '') {
+    $inputid = ( empty($ctrlID) ) ? wf_InputId() : $ctrlID;
+
     if ($br) {
         $newline = '<br>';
     } else {
@@ -403,7 +408,7 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
  * @param bool    $sort alphabetical sorting of params array by value
- * @param string  $CtrlID
+ * @param string  $CtrlID id of the element
  * 
  * @return  string
  *
