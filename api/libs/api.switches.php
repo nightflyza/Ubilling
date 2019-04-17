@@ -432,7 +432,7 @@ function web_SwitchEditForm($switchid) {
         $editinputs.= wf_Submit('Save');
     }
     $mainForm.= wf_Form('', 'POST', $editinputs, 'glamour');
-    
+
     //some qinq interface here
     if (@$altCfg['QINQ_ENABLED']) {
         $switchesQinQ = new SwitchesQinQ();
@@ -444,7 +444,7 @@ function web_SwitchEditForm($switchid) {
                 show_error($qinqSaveResult);
             }
         }
-        
+
         $mainForm.=$switchesQinQ->renderEditForm($switchid);
     }
 
@@ -1690,6 +1690,39 @@ function zb_SwitchGetIdbyIP($ip) {
  */
 function web_SwitchProfileLink($switchId) {
     $result = ' [' . trim(wf_Link('?module=switches&edit=' . $switchId, $switchId)) . '] ';
+    return ($result);
+}
+
+/**
+ * Returns all available users switches assigns as login=>switchid,switchip,port,location,label
+ * 
+ * @return array
+ */
+function zb_SwitchesGetAssignsAll() {
+    $result = array();
+    $allSwitches = array();
+    $allSwitchesTmp = zb_SwitchesGetAll();
+    if (!empty($allSwitchesTmp)) {
+        foreach ($allSwitchesTmp as $io => $each) {
+            $allSwitches[$each['id']] = $each;
+        }
+
+        $switchAssigns_q = "SELECT * from `switchportassign`";
+        $switchAssignsTmp = simple_queryall($switchAssigns_q);
+        if (!empty($switchAssignsTmp)) {
+            foreach ($switchAssignsTmp as $io => $each) {
+                if (isset($allSwitches[$each['switchid']])) {
+                    $switchData = $allSwitches[$each['switchid']];
+                    $result[$each['login']]['switchid'] = $switchData['id'];
+                    $result[$each['login']]['switchip'] = $switchData['ip'];
+                    $result[$each['login']]['port'] = $each['port'];
+                    $result[$each['login']]['location'] = $switchData['location'];
+                    $result[$each['login']]['label'] = $switchData['ip'] . ' - ' . $switchData['location'] . ' ' . __('Port') . ' ' . $each['port'];
+                }
+            }
+        }
+    }
+
     return ($result);
 }
 

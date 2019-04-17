@@ -1494,11 +1494,19 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
                 $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
                 $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+
+                if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
+                    $allAssigns = zb_SwitchesGetAssignsAll();
+                    if (isset($allAssigns[$login])) {
+                        $newTelegramText.=__('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
+                    }
+                }
+
                 if (!empty($userCableSeal)) {
                     $newTelegramText.=$userCableSeal;
                 }
             }
-            
+
             //some hack to append UKV users cable seals
             if (wf_CheckPost(array('unifiedformtelegramappend'))) {
                 $newTelegramText.=$_POST['unifiedformtelegramappend'];
@@ -1678,6 +1686,14 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
             $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
             $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
             $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+
+            if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
+                $allAssigns = zb_SwitchesGetAssignsAll();
+                if (isset($allAssigns[$login])) {
+                    $newTelegramText.=__('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
+                }
+            }
+
             if (!empty($userCableSeal)) {
                 $newTelegramText.=$userCableSeal;
             }
@@ -1758,7 +1774,7 @@ function ts_GetAllEmployeeLoginsCached() {
 }
 
 /**
- * Shows task editing/management form
+ * Shows task editing/management form aka task profile
  * 
  * @global object $ubillingConfig
  * @param int $taskid
@@ -1887,7 +1903,6 @@ function ts_TaskChangeForm($taskid) {
 
         if (!empty($taskLogin) and in_array($taskLogin, zb_UserGetAllStargazerLogins())) {
             $UserIpMAC = zb_UserGetAllData($taskLogin);
-
             $tablecells = wf_TableCell(__('IP'));
             $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
             $tablerows.= wf_TableRow($tablecells, 'row3');
@@ -1895,6 +1910,15 @@ function ts_TaskChangeForm($taskid) {
             $tablecells = wf_TableCell(__('MAC'));
             $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
             $tablerows.= wf_TableRow($tablecells, 'row3');
+
+            if (@$altercfg['SWITCHPORT_IN_PROFILE']) {
+                $allAssigns = zb_SwitchesGetAssignsAll();
+                if (isset($allAssigns[$taskLogin])) {
+                    $tablecells = wf_TableCell(__('Switch'));
+                    $tablecells.= wf_TableCell(@$allAssigns[$taskLogin]['label']);
+                    $tablerows.= wf_TableRow($tablecells, 'row3');
+                }
+            }
         }
 
         $tablecells = wf_TableCell(__('Phone'));
