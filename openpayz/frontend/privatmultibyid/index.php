@@ -59,7 +59,7 @@ function getAgentDataByID($customer_id) {
                 }
             }
             $customer_id_m = mysql_real_escape_string($customer_id);
-            $query = "SELECT `tagid` FROM `tags` WHERE `login` = '" . $customer_id_m . "' AND (" . $where . ")";
+            $query = "SELECT `tagid` FROM `tags` INNER JOIN `op_customers` ON (`tags`.`login`= `op_customers`.`realid`) WHERE `op_customers`.`virtualid` = '" . $customer_id_m . "' AND (" . $where . ")";
             $data = simple_query($query);
             if (!empty($data)) {
                 $result = $data['tagid'];
