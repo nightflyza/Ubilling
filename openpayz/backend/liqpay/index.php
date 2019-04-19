@@ -23,7 +23,7 @@ function lq_SessionGen($size=16) {
     }
 
     return ($string);
- }
+}
 
 /*
  * shows payment summ selection form
@@ -94,11 +94,10 @@ function lq_PaymentForm($customer_id) {
                 } else {
                     $where.= "`tagid` = '" . trim($tag) . "'";
                 }
-
             }
 
             $customer_id_m = mysql_real_escape_string($customer_id);
-            $query = "SELECT `tagid` FROM `tags` WHERE `login` = '" . $customer_id_m . "' AND (" . $where . ")";
+            $query = "SELECT `tagid` FROM `tags` INNER JOIN `op_customers` ON (`tags`.`login`= `op_customers`.`realid`) WHERE `op_customers`.`virtualid` = '" . $customer_id_m . "' AND (" . $where . ")";
             $data = simple_query($query);
             if (!empty($data)) {
                 $tag_id = $data['tagid'];
@@ -135,8 +134,7 @@ function lq_PaymentForm($customer_id) {
                 'version'        => '3'
                 ));
 
-return ($result);
-    
+    return ($result);
 }
 
 /*
