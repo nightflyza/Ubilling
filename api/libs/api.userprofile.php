@@ -541,6 +541,8 @@ class UserProfile {
 
         //sms history button
         $result .= $this->getSMSHistoryControls();
+        //receipt print button
+        $result .= $this->getReceiptControls();
 
         $result .= wf_tag('td', true);
         $result .= wf_tag('tbody', true);
@@ -1470,6 +1472,25 @@ class UserProfile {
             }
         }
         return ($result);
+    }
+
+
+    protected function getReceiptControls() {
+        global $ubillingConfig;
+
+        if ($ubillingConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $ubillingConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
+            $receiptsPrinter = new PrintReceipt();
+
+            $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
+            $result .= $receiptsPrinter->renderWebFormForProfile($this->login,'inetsrv', __('Internet'),
+                                                                $this->AllUserData[$this->login]['streetname'],
+                                                                $this->AllUserData[$this->login]['buildnum']);
+            $result .= wf_tag('br');
+            $result .= __('Print receipt');
+            $result .= wf_tag('div', true);
+
+            return($result);
+        }
     }
 
     /**
