@@ -232,7 +232,7 @@ if ($system->checkForRight('ONLINE')) {
         $ishimuraOption = MultiGen::OPTION_ISHIMURA;
         $ishimuraTable = MultiGen::NAS_ISHIMURA;
         $additionalTraffic = array();
-        if ($alter_conf[$ishimuraOption]) {
+        if (@$alter_conf[$ishimuraOption]) {
             $query_hideki = "SELECT `login`,`D0`,`U0` from `" . $ishimuraTable . "` WHERE `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
             $dataHideki = simple_queryall($query_hideki);
             if (!empty($dataHideki)) {
