@@ -68,6 +68,23 @@
             padding-bottom: 1px;
             padding-top: 2px;
         }
+
+        @media print {
+            .receipt_container {
+                height: 21cm;
+                padding-top: 3cm;
+
+            }
+
+            .pagebreak_footer {
+                page-break-after: always;
+                bottom: 0;
+            }
+
+            .footer_dashed_line {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -129,18 +146,28 @@ QR8bitByte.prototype.write = function(buffer) {
 };
 /* Hack End*/
 
-$(document).ready(function() {
-   var qrCodesCount = $('#qr_count').val();
+function genQRs() {
+    // if you plan to save generated page as document -
+    // need to prevent the duplication of QRs
+    $('[name ^= "qr"] canvas').remove();
 
-	for (i = 1; i <= qrCodesCount; i++) {
-		var qrContent = $('#qr_content_' + i).val();
-		$('[name = "qr' + i + '"]').qrcode({
-			text: qrContent,
-			width: 150,
-			height: 150,
-			correctLevel : QRErrorCorrectLevel.M
-		});
-	}
+    var qrCodesCount = $('#qr_count').val();
+
+    for (i = 1; i <= qrCodesCount; i++) {
+        var qrContent = $('#qr_content_' + i).val();
+        $('[name = "qr' + i + '"]').qrcode({
+            text: qrContent,
+            width: 150,
+            height: 150,
+            correctLevel : QRErrorCorrectLevel.M
+        });
+    }
+}
+</script>
+
+<script type="text/javascript" id="QRGen">
+$(document).ready(function() {
+    genQRs();
 });
 </script>
 
@@ -149,6 +176,7 @@ $(document).ready(function() {
 {QR_EXT_START}
 ООО "Рога&Копыта"  ИНН: 456789213  Р/С: 204087899521005  +38(50)125-26-15  г. Аркхэм, ул. Вязов, 51, офис №1
 Л/С: {CONTRACT} {REALNAME} {STREET} {BUILD}{APT} моб. тел.: {MOBILE}
+К оплате: {SUMMCOINS}. Оплата за период: {PAYFORPERIODSTR}
 {QR_EXT_END}
 {DATES_FORMAT_START}Y-m-d{DATES_FORMAT_END}
 {MONTHYEAR_FORMAT_START}m-Y{MONTHYEAR_FORMAT_END}

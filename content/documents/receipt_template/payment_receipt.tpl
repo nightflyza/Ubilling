@@ -1,13 +1,17 @@
-
+<div class="receipt_container">
 <input id="qr_content_{QR_INDEX}" type="hidden" value="{QR_CODE_CONTENT}" />
 
-<table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 9pt; margin-top: 40px;">
+<table class="pagebreak_before" border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 11pt;">
     <tr>
-        <td rowspan="10" style="width: 25%">
+        <td rowspan="11" style="width: 25%">
             <span name="qr{QR_INDEX}" style="text-align: center"></span>
         </td>
         <tr>
-            <td class="brdr-bottom-right">Дата счета:</td><td class="brdr-bottom-right">{CURDATE}</td><td class="brdr-bottom-right">Оплатить до:</td><td class="brdr-bottom">05.{PAYTILLMONTHYEAR}</td>
+            <!--<td class="brdr-bottom-right">Дата счета:</td><td class="brdr-bottom-right">{CURDATE}</td>-->
+            <td class="brdr-bottom-right">Оплатить до:</td><td class="brdr-bottom" colspan="3">05.{PAYTILLMONTHYEAR}</td>
+        </tr>
+        <tr>
+            <td class="brdr-bottom-right-left">Оплата за период:</td><td class="brdr-bottom-right" colspan="3">{PAYFORPERIODSTR}</td>
         </tr>
         <tr>
             <td class="brdr-bottom-right">Оплата услуги:</td><td class="brdr-bottom" colspan="3">{SERVICENAME}</td>
@@ -28,7 +32,7 @@
             <td class="brdr-bottom-right">Адрес:</td><td class="brdr-bottom" colspan="3">{STREET} {BUILD}{APT}</td>
         </tr>
         <tr>
-            <td class="brdr-bottom-right">Тариф:</td><td class="brdr-bottom-right">{TARIFF} за {TARIFFPRICE} денег/мес.</td><td class="brdr-bottom-right">Сумма к оплате:</td><td class="brdr-bottom">{SUMM} денег</td>
+            <td class="brdr-bottom-right">Тариф:</td><td class="brdr-bottom-right">{TARIFF} за {TARIFFPRICEDECIMALS} денег/мес.</td><td class="brdr-bottom-right">Сумма к оплате:</td><td class="brdr-bottom">{SUMMDECIMALS} денег</td>
         </tr>
         <tr>
             <td class="brdr-bottom" colspan="2" style="padding-top: 10px;">Кассир:</td><td class="brdr-bottom" colspan="2" style="padding-top: 10px;">Плательщик:</td>
@@ -38,13 +42,17 @@
 
 <p style="border-bottom: 1px dashed #000; margin: 5px 0"></p>
 
-<table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 9pt;">
+<table border="0" cellpadding="0" cellspacing="0" style="width: 19.5cm; font-size: 11pt;">
     <tr>
-        <td rowspan="10" style="width: 25%">
-            <!--<span name="{QR-NAME}"></span>-->
+        <td rowspan="11" style="width: 25%">
+            <!--<span name="qr{QR_INDEX}" style="text-align: center"></span>-->
         </td>
         <tr>
-            <td class="brdr-bottom-right-left-top">Дата счета:</td><td class="brdr-bottom-right-top">{CURDATE}</td><td class="brdr-bottom-right-top">Оплатить до:</td><td class="brdr-bottom-right-top">05.{PAYTILLMONTHYEAR}</td>
+            <!--<td class="brdr-bottom-right-left-top">Дата счета:</td><td class="brdr-bottom-right-top">{CURDATE}</td>-->
+            <td class="brdr-bottom-right-top">Оплатить до:</td><td class="brdr-bottom-right-top" colspan="3">05.{PAYTILLMONTHYEAR}</td>
+        </tr>
+        <tr>
+            <td class="brdr-bottom-right-left">Оплата за период:</td><td class="brdr-bottom-right" colspan="3">{PAYFORPERIODSTR}</td>
         </tr>
         <tr>
             <td class="brdr-bottom-right-left">Оплата услуги:</td><td class="brdr-bottom-right" colspan="3">{SERVICENAME}</td>
@@ -65,14 +73,15 @@
             <td class="brdr-bottom-right-left">Адрес:</td><td class="brdr-bottom-right" colspan="3">{STREET} {BUILD}{APT}</td>
         </tr>
         <tr>
-            <td class="brdr-bottom-right-left">Тариф:</td><td class="brdr-bottom-right">{TARIFF} за {TARIFFPRICE} денег/мес.</td><td class="brdr-bottom-right">Сумма к оплате:</td><td class="brdr-bottom-right">{SUMM} денег</td>
+            <td class="brdr-bottom-right-left">Тариф:</td><td class="brdr-bottom-right">{TARIFF} за {TARIFFPRICEDECIMALS} денег/мес.</td><td class="brdr-bottom-right">Сумма к оплате:</td><td class="brdr-bottom-right">{SUMMDECIMALS} денег</td>
         </tr>
         <tr>
-            <td class="brdr-bottom-left" colspan="2" style="padding-top: 10px;">Кассир:</td><td class="brdr-bottom-right" colspan="2" style="padding-top: 10px;">Плательщик:</td>
+            <td class="brdr-bottom-left" colspan="2" style="padding-top: 20px;">Кассир:</td><td class="brdr-bottom-right" colspan="2" style="padding-top: 20px;">Плательщик:</td>
         </tr>
     </tr>
 </table>
-<p style="margin: 45px 0 5px 100px">Адрес: {STREET} {BUILD}{APT}&nbsp&nbsp&nbsp&nbspОплата услуги:&nbsp{SERVICENAME}</p>
+</div>
+<p class="pagebreak_footer" style="margin: 70px 0 5px 100px;">Адрес: {STREET} {BUILD}{APT}&nbsp&nbsp&nbsp&nbspОплата услуги:&nbsp{SERVICENAME}</p>
 
-<p style="border-bottom: 4px dashed #000; margin: 10px 0 0 0"></p>
-
+<p class="footer_dashed_line" style="border-bottom: 4px dashed #000; margin: 20px 0 70px 0"></p>
+</div>

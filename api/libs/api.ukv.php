@@ -1494,6 +1494,8 @@ class UkvSystem {
      * @return string
      */
     public function userProfile($userid) {
+        global $ubillingConfig;
+
         $userid = vf($userid, 3);
         if (isset($this->users[$userid])) {
             $userData = $this->users[$userid];
@@ -1618,6 +1620,16 @@ class UkvSystem {
             }
             if (cfr('UKVDEL')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
+            }
+
+            if ($ubillingConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $ubillingConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
+                $receiptsPrinter = new PrintReceipt();
+
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
+                $profilePlugins.= $receiptsPrinter->renderWebFormForProfile($userid,'ctvsrv', __('Cable television'), $userData['street'],$userData['build']);
+                $profilePlugins.= wf_tag('br');
+                $profilePlugins.= __('Print receipt');
+                $profilePlugins.= wf_tag('div', true);
             }
 
 //main view construction
