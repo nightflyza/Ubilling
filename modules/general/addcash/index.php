@@ -60,7 +60,11 @@ if (cfr('CASH')) {
         $user_data = $profile->extractUserData();
         $current_balance = $user_data['Cash'];
         $useraddress = $profile->extractUserAddress() . ' (' . $login . ')';
-        $userrealname = $profile->extractUserRealName() . ' (' . $profile->extractUserContract() . ')';
+        $userContract = $profile->extractUserContract();
+        if (!empty($userContract)) {
+            $userContract = ' (' . $profile->extractUserContract() . ')';
+        }
+        $userrealname = $profile->extractUserRealName() . $userContract;
 
         // Edit money form construct:
         $user_tariff = $user_data['Tariff'];
