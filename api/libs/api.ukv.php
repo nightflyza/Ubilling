@@ -3799,9 +3799,14 @@ class UkvSystem {
      * @return void
      */
     public function reportStreets() {
+        global $ubillingConfig;
+
+        $withAddress = $ubillingConfig->getAlterParam('UKV_STREET_REP_BUILD_SEL');
         $ukvCities = array();
         $ukvStreets = array();
-//loads cities and streets occupied by UKV users
+        $ukvBuilds = array('' => '-');
+
+//loads cities, streets and builds occupied by UKV users
         $ukvCities_q = "SELECT DISTINCT `city` from `ukv_users` ORDER BY `city` ASC";
         $ukvCitiesRaw = simple_queryall($ukvCities_q);
         if (!empty($ukvCitiesRaw)) {
@@ -3818,12 +3823,64 @@ class UkvSystem {
             }
         }
 
+        if ($withAddress) {
+            $ukvBuilds_q = "SELECT `street`.`streetname`, `build`.`buildnum` FROM `street` RIGHT JOIN `build` ON `build`.`streetid` = `street`.`id` ORDER BY `buildnum`;";
+            $ukvBuildsRaw = simple_queryall($ukvBuilds_q);
+
+            if (!empty($ukvBuildsRaw)) {
+                foreach ($ukvBuildsRaw as $io => $each) {
+                    $ukvBuilds[trim($each['streetname']) . trim($each['buildnum'])] = trim($each['buildnum']);
+                }
+            }
+        }
+
 //main codepart
         $citySelected = (wf_CheckPost(array('streetreportcity'))) ? $_POST['streetreportcity'] : '';
         $streetSelected = (wf_CheckPost(array('streetreportstreet'))) ? $_POST['streetreportstreet'] : '';
+        $buildSelected = (wf_CheckPost(array('streetreportbuild'))) ? $_POST['streetreportbuild'] : '';
 
         $inputs = wf_Selector('streetreportcity', $ukvCities, __('City'), $citySelected, false);
-        $inputs.= wf_Selector('streetreportstreet', $ukvStreets, __('Street'), $streetSelected, false);
+        $inputs.= wf_Selector('streetreportstreet', $ukvStreets, __('Street'), $streetSelected, false, '', 'ReportStreetsSel');
+
+        if ($withAddress) {
+            $inputs.= wf_Selector('streetreportbuild', $ukvBuilds, __('Build'), $buildSelected, false, '', 'ReportBuildsSel');
+            $inputs.= wf_HiddenInput('printthemall', base64_encode(json_encode($ukvBuilds)), 'TmpBuildsAll');
+
+            $inputs.= wf_tag('script', false, '', 'type="text/javascript"');
+            $inputs.= '$(document).ready(function() {                        
+                        $(\'#ReportStreetsSel\').change(function(evt) {
+                            var keyword = $(this).val();             
+                            var source = JSON.parse(atob($(\'#TmpBuildsAll\').val()));
+                            
+                            filterBuildsSelect(keyword, source);
+                        });
+                        
+                        function filterBuildsSelect(search_keyword, search_array) {
+                            var newselect = $("<select id=\"ReportBuildsSel\" name=\"streetreportbuild\" />");
+                            
+                            $("<option />", {value: \'\', text: \'-\'}).appendTo(newselect);
+                            
+                            if (search_keyword.length > 0 && search_keyword.trim() !== "-") {
+                                for (var key in search_array) {
+                                    if ( key.toLowerCase() == search_keyword.toLowerCase() + search_array[key] && key.trim() !== "" ) {                                       
+                                        $("<option />", {value: key, text: search_array[key]}).appendTo(newselect);
+                                    }  
+                                }
+                            }
+                            
+                            $(\'#ReportBuildsSel\').replaceWith(newselect);
+                        }
+                        
+                        var buildSelected = $(\'#ReportBuildsSel\').val()
+                        var keyword = $(\'#ReportStreetsSel\').val();
+                        var source = JSON.parse(atob($(\'#TmpBuildsAll\').val()));
+                            
+                        filterBuildsSelect(keyword, source);
+                        $(\'#ReportBuildsSel\').val(buildSelected);
+                   });
+                  ';
+            $inputs.= wf_tag('script', true);
+        }
         $inputs.= wf_Submit(__('Show'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -3835,12 +3892,14 @@ class UkvSystem {
             if (wf_CheckPost(array('streetreportcity', 'streetreportstreet'))) {
                 $citySearch = $_POST['streetreportcity'];
                 $streetSearch = $_POST['streetreportstreet'];
+                $buildSearch = (wf_CheckPost(array('streetreportbuild'))) ? str_ireplace($streetSearch, '', $_POST['streetreportbuild']) : '';
             }
 
 //or printable report
             if (wf_CheckGet(array('rc', 'rs'))) {
                 $citySearch = $_GET['rc'];
                 $streetSearch = $_GET['rs'];
+                $buildSearch = (wf_CheckGet(array('rb'))) ? $_GET['rb'] : '';
             }
 
             if (!empty($this->users)) {
@@ -3856,7 +3915,7 @@ class UkvSystem {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($this->users as $io => $eachUser) {
-                    if (($eachUser['city'] == $citySearch) AND ( $eachUser['street'] == $streetSearch)) {
+                    if (($eachUser['city'] == $citySearch) AND ($eachUser['street'] == $streetSearch) AND (empty($buildSearch) ? true : $eachUser['build'] == $buildSearch) ) {
                         $cells = wf_TableCell($eachUser['contract']);
                         $fullAddress = $this->userGetFullAddress($eachUser['id']);
                         $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
@@ -3870,14 +3929,18 @@ class UkvSystem {
                         $counter++;
                     }
                 }
+
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
                 $result.= __('Total') . ': ' . $counter;
 
+                $buildLinkPart = empty($buildSearch) ? '' : '&rb=' . $buildSearch;
+                $buildCaptPart = empty($buildSearch) ? ' ' : ' / ' . $buildSearch . ' ';
+
                 if (wf_CheckGet(array('printable'))) {
-                    $this->reportPrintable($citySearch . ' / ' . $streetSearch, $result);
+                    $this->reportPrintable($citySearch . ' / ' . $streetSearch . $buildCaptPart, $result);
                 } else {
-                    $printlink = wf_Link(self::URL_REPORTS_MGMT . 'reportStreets&rc=' . $citySearch . '&rs=' . $streetSearch . '&printable=true', wf_img('skins/icon_print.png', __('Print')), false, '');
-                    show_window($citySearch . ' / ' . $streetSearch . ' ' . $printlink, $result);
+                    $printlink = wf_Link(self::URL_REPORTS_MGMT . 'reportStreets&rc=' . $citySearch . '&rs=' . $streetSearch . $buildLinkPart . '&printable=true', wf_img('skins/icon_print.png', __('Print')), false);
+                    show_window($citySearch . ' / ' . $streetSearch . $buildCaptPart . $printlink, $result);
                 }
             } else {
                 show_window(__('Result'), __('Any users found'));
@@ -3885,7 +3948,7 @@ class UkvSystem {
         }
     }
 
-    /**
+     /**
      * Renders users stats with assigned internet account
      * 
      * @return string
