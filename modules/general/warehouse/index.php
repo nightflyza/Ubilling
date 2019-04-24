@@ -281,21 +281,28 @@ if (cfr('WAREHOUSE')) {
                 }
 
                 if (wf_CheckGet(array('calendarops'))) {
-                    show_window(__('Operations in the context of time'), $warehouse->reportCalendarOps());
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Operations in the context of time'), $warehouse->reportCalendarOps());
+                    } else {
+                        show_error(__('Access denied'));
+                    }
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 }
                 if (wf_CheckGet(array('totalremains'))) {
-                    $calendarLink = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&calendarops=true', wf_img('skins/icon_calendar.gif', __('Operations in the context of time')), false, '');
-                    $dateRemainsLink = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&dateremains=true', wf_img('skins/ukv/report.png', __('Date remains')));
-                    show_window(__('The remains in all storages') . ' ' . $calendarLink . ' ' . $dateRemainsLink, $warehouse->reportAllStoragesRemains());
+                    show_window(__('The remains in all storages'), $warehouse->reportAllStoragesRemains());
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m();
                 }
+
                 if (wf_CheckGet(array('dateremains'))) {
-                    show_window(__('Date remains'), $warehouse->reportDateRemains());
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Date remains'), $warehouse->reportDateRemains());
+                    } else {
+                        show_error(__('Access denied'));
+                    }
                     $avidity_m = $avidity['M']['FALL'];
-                    $warehouse->$avidity_m();
+                    $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 }
             }
 

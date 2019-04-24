@@ -1452,13 +1452,21 @@ class Warehouse {
             $result.=wf_Link(self::URL_ME . '&' . self::URL_RESERVE, wf_img('skins/whreservation.png') . ' ' . __('Reserved'), false, 'ubButton');
         }
 
-        $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
-        $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
-        $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
-        $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractors'), false, 'ubButton');
+        if (cfr('WAREHOUSEREPORTS')) {
+            $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
+            $reportControls.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_time_small.png') . ' ' . __('Operations in the context of time'), false, 'ubButton');
+            $result.=wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
+        }
+
         if (cfr('WAREHOUSEDIR')) {
+            $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
+            $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
+            $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
+            $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractors'), false, 'ubButton');
             $result.=wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $dirControls, 'ubButton');
         }
+
+
         return ($result);
     }
 
@@ -3287,7 +3295,7 @@ class Warehouse {
         $result.=wf_tag('tr', true);
         $result.=wf_tag('tr', false, 'row2');
         $result.= wf_tag('td', false, '', 'colspan="2" align="center" valign="bottom"') . __('Incoming') . wf_tag('td', true);
-        $result.= wf_tag('td', false, '', 'colspan="2" align="center" valign="bottom"') . __('Outcoming') . wf_tag('td', true);
+        $result.= wf_tag('td', false, '', 'colspan="2" align="center" valign="bottom"') . __('Outcoming') . ' (' . __('Signups') . '/' . __('Other') . ')' . wf_tag('td', true);
         $result.= wf_tag('tr', true);
         $result.= wf_tag('tr', false, 'row2');
         $result.= wf_TableCell(__('Count'));
@@ -3378,12 +3386,48 @@ class Warehouse {
     }
 
     /**
+     * Returns list of all signup typed tasks as id=>id
+     * 
+     * @return array
+     */
+    protected function getAllSignupTasks() {
+        $result = array();
+        $signupJobTypes = array();
+
+        $signupJobTypesTmp = $this->altCfg['TASKREPORT_SIGNUPJOBTYPES'];
+        if (!empty($signupJobTypesTmp)) {
+            $signupJobTypesTmp = explode(',', $signupJobTypesTmp);
+            if (!empty($signupJobTypesTmp)) {
+                foreach ($signupJobTypesTmp as $io => $each) {
+                    $signupJobTypes[$each] = $each;
+                }
+            }
+        }
+
+        $allTasks = ts_GetAllTasks();
+        if (!empty($allTasks)) {
+            foreach ($allTasks as $io => $each) {
+                if (isset($signupJobTypes[$each['jobtype']])) {
+                    $result[$each['id']] = $each['id'];
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders date remains report
      * 
      * @return string
      */
     public function reportDateRemains() {
         $result = '';
+
+        $taskReportFlag = (@$this->altCfg['TASKREPORT_ENABLED']) ? true : false;
+        $allSignupTasks = array();
+        if ($taskReportFlag) {
+            $allSignupTasks = $this->getAllSignupTasks();
+        }
 
         $curyear = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : date("Y");
         $curmonth = (wf_CheckPost(array('monthsel'))) ? vf($_POST['monthsel'], 3) : date("m");
@@ -3511,9 +3555,17 @@ class Warehouse {
                         if (isset($upperOutcome[$each['itemtypeid']])) {
                             $upperOutcome[$each['itemtypeid']]['count'] = $upperOutcome[$each['itemtypeid']]['count'] + $each['count'];
                             $upperOutcome[$each['itemtypeid']]['price'] = $upperOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                            if ($each['desttype'] == 'task' AND isset($allSignupTasks[$each['destparam']])) {
+                                $upperOutcome[$each['itemtypeid']]['sigcount'] = $upperOutcome[$each['itemtypeid']]['sigcount'] + $each['count'];
+                                $upperOutcome[$each['itemtypeid']]['sigprice'] = $upperOutcome[$each['itemtypeid']]['sigprice'] + ($each['count'] * $each['price']);
+                            }
                         } else {
                             $upperOutcome[$each['itemtypeid']]['count'] = $each['count'];
                             $upperOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                            if ($each['desttype'] == 'task' AND isset($allSignupTasks[$each['destparam']])) {
+                                $upperOutcome[$each['itemtypeid']]['sigcount'] = $each['count'];
+                                $upperOutcome[$each['itemtypeid']]['sigprice'] = $each['count'] * $each['price'];
+                            }
                         }
                     }
                 }
@@ -3550,6 +3602,14 @@ class Warehouse {
                 $thirdColumnCount = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['count'] : 0;
                 $thirdColumnPrice = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['price'] : 0;
 
+                if ($taskReportFlag) {
+                    $thirdColumnCountSig = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['sigcount'] : 0;
+                    $thirdColumnPriceSig = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['sigprice'] : 0;
+                } else {
+                    $thirdColumnCountSig = 0;
+                    $thirdColumnPriceSig = 0;
+                }
+
                 $fourthColumnCount = $lowerRemains[$itemtypeId]['count'] + $secondColumnCount - $thirdColumnCount;
                 $fourthColumnPrice = $lowerRemains[$itemtypeId]['price'] + $secondColumnPrice - $thirdColumnPrice;
 
@@ -3558,8 +3618,8 @@ class Warehouse {
                     round($firstColumnPrice, 2),
                     $secondColumnCount,
                     round($secondColumnPrice, 2),
-                    $thirdColumnCount,
-                    round($thirdColumnPrice, 2),
+                    $thirdColumnCount . ' (' . $thirdColumnCountSig . '/' . ($thirdColumnCount - $thirdColumnCountSig) . ')',
+                    round($thirdColumnPrice, 2) . ' (' . $thirdColumnPriceSig . '/' . ($thirdColumnPrice - $thirdColumnPriceSig) . ')',
                     $fourthColumnCount,
                     round($fourthColumnPrice, 2)));
 
@@ -3568,7 +3628,7 @@ class Warehouse {
                 $thirdColumnTotal+=$thirdColumnPrice;
                 $fourthColumnTotal+=$fourthColumnPrice;
             }
-
+            //table summary append
             $result.=$this->reportDateRemainsAddRow('', array('', $firstColumnTotal, '', $secondColumnTotal, '', $thirdColumnTotal, '', $fourthColumnTotal));
         }
 

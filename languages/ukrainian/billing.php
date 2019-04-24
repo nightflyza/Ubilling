@@ -3087,7 +3087,10 @@ $lang['def']['Select service'] = 'Оберіть послугу';
 $lang['def']['Confirm'] = 'Підтвердьте';
 $lang['def']['Manually charged'] = 'Нараховано вручну';
 $lang['def']['Charged'] = 'Нараховано';
-$lang['def'][''] = '';
+
+//rev 6786
+$lang['def']['Other'] = 'Інше';
+
 
 
 ?>
