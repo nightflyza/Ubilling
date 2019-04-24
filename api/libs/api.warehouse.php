@@ -3562,10 +3562,8 @@ class Warehouse {
                         } else {
                             $upperOutcome[$each['itemtypeid']]['count'] = $each['count'];
                             $upperOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
-                            if ($each['desttype'] == 'task' AND isset($allSignupTasks[$each['destparam']])) {
-                                $upperOutcome[$each['itemtypeid']]['sigcount'] = $each['count'];
-                                $upperOutcome[$each['itemtypeid']]['sigprice'] = $each['count'] * $each['price'];
-                            }
+                            $upperOutcome[$each['itemtypeid']]['sigcount'] = $each['count'];
+                            $upperOutcome[$each['itemtypeid']]['sigprice'] = $each['count'] * $each['price'];
                         }
                     }
                 }
@@ -3602,7 +3600,7 @@ class Warehouse {
                 $thirdColumnCount = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['count'] : 0;
                 $thirdColumnPrice = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['price'] : 0;
 
-                if ($taskReportFlag) {
+                if (isset($upperOutcome[$itemtypeId]['sigcount']) AND isset($upperOutcome[$itemtypeId]['sigprice'])) {
                     $thirdColumnCountSig = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['sigcount'] : 0;
                     $thirdColumnPriceSig = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['sigprice'] : 0;
                 } else {
