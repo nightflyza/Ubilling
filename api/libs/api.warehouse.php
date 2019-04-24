@@ -1454,7 +1454,7 @@ class Warehouse {
 
         if (cfr('WAREHOUSEREPORTS')) {
             $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
-            $reportControls.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_time_small.png') . ' ' . __('Date remains'), false, 'ubButton');
+            $reportControls.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
             $result.=wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
