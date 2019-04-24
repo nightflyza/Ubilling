@@ -1454,7 +1454,7 @@ class Warehouse {
 
         if (cfr('WAREHOUSEREPORTS')) {
             $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
-            $reportControls.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_time_small.png') . ' ' . __('Operations in the context of time'), false, 'ubButton');
+            $reportControls.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_time_small.png') . ' ' . __('Date remains'), false, 'ubButton');
             $result.=wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
@@ -3053,6 +3053,8 @@ class Warehouse {
                 $timestamp = strtotime($each['date']);
                 $date = date("Y, n-1, j", $timestamp);
                 $itemName = @$this->allItemTypeNames[$each['itemtypeid']];
+                $itemName = str_replace("'", '`', $itemName);
+
                 $itemCount = @$each['count'];
                 $itemUnit = @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $calendarData.="
@@ -3562,8 +3564,13 @@ class Warehouse {
                         } else {
                             $upperOutcome[$each['itemtypeid']]['count'] = $each['count'];
                             $upperOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
-                            $upperOutcome[$each['itemtypeid']]['sigcount'] = $each['count'];
-                            $upperOutcome[$each['itemtypeid']]['sigprice'] = $each['count'] * $each['price'];
+                            if ($each['desttype'] == 'task' AND isset($allSignupTasks[$each['destparam']])) {
+                                $upperOutcome[$each['itemtypeid']]['sigcount'] = $each['count'];
+                                $upperOutcome[$each['itemtypeid']]['sigprice'] = $each['count'] * $each['price'];
+                            } else {
+                                $upperOutcome[$each['itemtypeid']]['sigcount'] = 0;
+                                $upperOutcome[$each['itemtypeid']]['sigprice'] = 0;
+                            }
                         }
                     }
                 }
