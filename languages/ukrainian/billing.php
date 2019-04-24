@@ -3090,7 +3090,7 @@ $lang['def']['Charged'] = 'Нараховано';
 
 //rev 6786
 $lang['def']['Other'] = 'Інше';
-
+$lang['def']['right to control warehouse reports'] = 'Право переглядати звіти складу';
 
 
 ?>

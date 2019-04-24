@@ -3073,6 +3073,7 @@ $lang['def']['Charged'] = 'Начислено';
 
 //rev 6786
 $lang['def']['Other'] = 'Другое';
+$lang['def']['right to control warehouse reports'] = 'Право просматривать складские отчеты';
 $lang['def'][''] = '';
 
 ?>
