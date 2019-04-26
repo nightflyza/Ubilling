@@ -8,7 +8,7 @@ $lang['def']['There is no marks types to show'] = 'Нет типов меток 
 $lang['def']['There is no marks to show']       = 'Нет меток для отображения';
 $lang['def']['There is no lines to show']       = 'Нет линий для отображения';
 
-$lang['def']['Place on map']    = 'Размесить на карте';
+$lang['def']['Place on map']    = 'Разместить на карте';
 $lang['def']['Remove from map'] = 'Удалить с карты';
 
 $lang['def']['Adding of mark']  = 'Добавление метки';
