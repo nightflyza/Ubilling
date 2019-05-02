@@ -453,10 +453,14 @@ class OnuRegister {
         if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if (isset($this->allZteOlt[$eachCard['swid']])) {
-                    $this->cardSelector[$eachCard['slot_number']] = $this->allZteOlt[$eachCard['swid']]['ip'] . ' | ' . $eachCard['slot_number'] . ' | ' . $eachCard['card_name'];
+                    $this->cardSelector[$eachCard['slot_number']] = $this->allZteOlt[$eachCard['swid']]['ip'];
+                    $this->cardSelector[$eachCard['slot_number']] .= ' | ' . $eachCard['slot_number'];
+                    $this->cardSelector[$eachCard['slot_number']] .= ' | ' . $eachCard['card_name'];
                 }
                 if (isset($this->allHuaweiOlt[$eachCard['swid']])) {
-                    $this->cardSelector[$eachCard['slot_number']] = $this->allHuaweiOlt[$eachCard['swid']]['ip'] . ' | ' . $eachCard['slot_number'] . ' | ' . $eachCard['card_name'];
+                    $this->cardSelector[$eachCard['slot_number']] = $this->allHuaweiOlt[$eachCard['swid']]['ip'];
+                    $this->cardSelector[$eachCard['slot_number']] .= ' | ' . $eachCard['slot_number'];
+                    $this->cardSelector[$eachCard['slot_number']] .= ' | ' . $eachCard['card_name'];
                 }
             }
         }
@@ -501,13 +505,11 @@ class OnuRegister {
     }
 
     /**
-     * Calculating snmp indexes for each OLT.
+     * Loads cards information 
      * 
-     * @param int $swid     
-     * 
-     * @return void
+     * @return array
      */
-    protected function loadCalculatedData() {
+    protected function loadCards() {
         $cards = array();
         if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
             foreach ($this->allCards[$this->currentOltSwId] as $eachId => $eachCard) {
@@ -527,6 +529,18 @@ class OnuRegister {
                 }
             }
         }
+        return($cards);
+    }
+
+    /**
+     * Calculating snmp indexes for each OLT.
+     * 
+     * @param int $swid     
+     * 
+     * @return void
+     */
+    protected function loadCalculatedData() {
+        $cards = $this->loadCards();
         if (!empty($cards)) {
             $this->ponArray = array();
             $this->onuArray = array();
@@ -677,7 +691,8 @@ class OnuRegister {
             $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
             foreach ($this->ponArray as $slot => $each_id) {
                 if ($each_id == $interfaceId) {
-                    $result[] = $this->currentOltIp . '|' . $slot . '|' . $sn . '|' . $this->currentOltSwId;
+                    $result[] = array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId);
+                    //$result[] = $this->currentOltIp . '|' . $slot . '|' . $sn . '|' . $this->currentOltSwId;
                 }
             }
         }
@@ -686,13 +701,11 @@ class OnuRegister {
     }
 
     /**
-     * Get all unautheticated ONUs/ONTs.
+     * Polling ZTE OLTs to check unauthenticated ONT.
      * 
-     * @return array
+     * @return void
      */
-    protected function getAllUnauth() {
-        $allUnreg = array();
-
+    protected function getAllZteUnauth() {
         if (!empty($this->allZteOlt)) {
             foreach ($this->allZteOlt as $this->currentOltSwId => $eachOlt) {
                 if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
@@ -703,17 +716,24 @@ class OnuRegister {
                     $this->loadCalculatedData();
 
                     if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
-                        if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'EPON') {
-                            $allUnreg['EPON'][] = $this->getAllUnauthEpon();
+                        if ($this->currentPonType == 'EPON') {
+                            $this->allUnreg['EPON'][] = $this->getAllUnauthEpon();
                         }
-                        if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'GPON') {
-                            $allUnreg['GPON'][] = $this->getAllUnauthGpon();
+                        if ($this->currentPonType == 'GPON') {
+                            $this->allUnreg['GPON'][] = $this->getAllUnauthGpon();
                         }
                     }
                 }
             }
         }
+    }
 
+    /**
+     * Polling Huawei OLTs to check unauthenticated ONT.
+     * 
+     * @return void
+     */
+    protected function getAllHuaweiUnauth() {
         if (!empty($this->allHuaweiOlt)) {
             foreach ($this->allHuaweiOlt as $this->currentOltSwId => $eachOlt) {
                 if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
@@ -724,109 +744,139 @@ class OnuRegister {
                     $this->loadCalculatedData();
 
                     if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
-                        if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'EPON') {
-                            $allUnreg['EPON'][] = $this->getAllUnauthEpon();
+                        if ($this->currentPonType == 'EPON') {
+                            $this->allUnreg['EPON'][] = $this->getAllUnauthEpon();
                         }
-                        if ($this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'] == 'GPON') {
-                            $allUnreg['GPON'][] = $this->getAllUnauthGpon();
+                        if ($this->currentPonType == 'GPON') {
+                            $this->allUnreg['GPON'][] = $this->getAllUnauthGpon();
                         }
                     }
                 }
             }
         }
+    }
 
-        return ($allUnreg);
+    /**
+     * Get all unautheticated ONUs/ONTs.
+     * 
+     * @return void
+     */
+    protected function getAllUnauth() {
+        $this->allUnreg = array();
+
+        $this->getAllZteUnauth();
+        $this->getAllHuaweiUnauth();
     }
 
     /**
      * Check for unauthenticated EPON ONU for specified OLT.
      * 
-     * @return array
+     * @return void
      */
     protected function getAllUnauthEpon() {
-        $result = array();
         if (isset($this->allZteOlt[$this->currentOltSwId])) {
-            $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST']);
-            if (!empty($allUnreg)) {
-                foreach ($allUnreg as $eachUncfgPort => $value) {
-                    $value = trim(str_replace('Hex-STRING:', '', $value));
-                    $mac = str_replace(' ', ':', $value);
-                    $interfaceIdNum = str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'] . '.', '', $eachUncfgPort);
-                    $interfaceId = substr($interfaceIdNum, 0, 9);
-
-                    foreach ($this->ponArray as $slot => $each_id) {
-                        if ($each_id == $interfaceId) {
-                            $result[] = $this->currentOltIp . '|' . $slot . '|' . $mac . '|' . $this->currentOltSwId;
-                        }
-                    }
-                }
-            }
+            $this->getAllUnauthEponZte();
         }
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
             
         }
+    }
 
-        return ($result);
+    /**
+     * Get unautheticated epon ONT for specified OLT.
+     * 
+     * @return void
+     */
+    protected function getAllUnauthEponZte() {
+        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST']);
+        if (!empty($allUnreg)) {
+            foreach ($allUnreg as $eachUncfgPort => $value) {
+                $value = trim(str_replace('Hex-STRING:', '', $value));
+                $mac = str_replace(' ', ':', $value);
+                $interfaceIdNum = str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'] . '.', '', $eachUncfgPort);
+                $interfaceId = substr($interfaceIdNum, 0, 9);
+
+                foreach ($this->ponArray as $slot => $each_id) {
+                    if ($each_id == $interfaceId) {
+                        $this->allUnreg['EPON'][] = array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $mac, 'swid' => $this->currentOltSwId);
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Check for unautheticated GPON ONT for specified OLT.
      * 
-     * @return array
+     * @return void
      */
     protected function getAllUnauthGpon() {
-        $result = array();
         if (isset($this->allZteOlt[$this->currentOltSwId])) {
-            $allUncfgOid = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'];
-            $getUncfgSn = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'];
-
-            $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $allUncfgOid);
-            if (!empty($allUnreg)) {
-                foreach ($allUnreg as $eachUncfgPort => $value) {
-                    $value = str_replace('INTEGER:', '', $value);
-                    $value = trim($value);
-                    if ($value > 0) {
-                        $interfaceId = str_replace($allUncfgOid . '.', '', $eachUncfgPort);
-                        $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
-                        for ($i = 0; $i <= self::GPON_RETRIES; $i++) {
-                            if (!empty($uncfgSn)) {
-                                break;
-                            }
-                            $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
-                        }
-                        $result = $this->parseUncfgGpon($uncfgSn, $interfaceId);
-                    }
-                }
-            }
+            $this->getAllUnauthGponZte();
         }
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
-            $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN']);
-            $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
-            if (!empty($allUnreg) and ! empty($oltInterface)) {
-                foreach ($oltInterface as $eachOid => $name) {
-                    $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
-                    $name = str_replace('STRING:', '', $name);
-                    $name = str_replace('"', '', $name);
-                    $name = trim($name);
-                    $interfaceList[$interfaceId] = $name;
-                }
-                foreach ($allUnreg as $eachUncfgPort => $value) {
-                    $eachUncfgPort = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'] . '.', '', $eachUncfgPort));
-                    $eachUncfgPort = explode('.', $eachUncfgPort);
-                    $uncfgPort = $eachUncfgPort[0];
-                    $value = trim(str_replace('Hex-STRING:', '', $value));
-                    if (strpos($value, 'STRING:') !== false) {
-                        $value = bin2hex(trim(str_replace('STRING:', '', $value)));
+            $this->getAllUnauthGponHuawei();
+        }
+    }
+
+    /**
+     * Getting unauthenticated gpon ONT from ZTE OLT.
+     * 
+     * @return void
+     */
+    protected function getAllUnauthGponZte() {
+        $allUncfgOid = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'];
+        $getUncfgSn = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'];
+
+        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $allUncfgOid);
+        if (!empty($allUnreg)) {
+            foreach ($allUnreg as $eachUncfgPort => $value) {
+                $value = str_replace('INTEGER:', '', $value);
+                $value = trim($value);
+                if ($value > 0) {
+                    $interfaceId = str_replace($allUncfgOid . '.', '', $eachUncfgPort);
+                    $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
+                    for ($i = 0; $i <= self::GPON_RETRIES; $i++) {
+                        if (!empty($uncfgSn)) {
+                            break;
+                        }
+                        $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
                     }
-                    $sn = str_replace(' ', '', $value);
-                    $slot = $interfaceList[$uncfgPort];
-                    $unregData[] = $this->currentOltIp . '|' . $slot . '|' . $sn . '|' . $this->currentOltSwId;
+                    $this->allUnreg['GPON'][] = $this->parseUncfgGpon($uncfgSn, $interfaceId);
                 }
-                $result = $unregData;
             }
         }
+    }
 
-        return ($result);
+    /**
+     * Getting unauthenticated gpon ONT from Huawei OLT.
+     * 
+     * @return void
+     */
+    protected function getAllUnauthGponHuawei() {
+        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN']);
+        $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
+        if (!empty($allUnreg) and ! empty($oltInterface)) {
+            foreach ($oltInterface as $eachOid => $name) {
+                $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
+                $name = str_replace('STRING:', '', $name);
+                $name = str_replace('"', '', $name);
+                $name = trim($name);
+                $interfaceList[$interfaceId] = $name;
+            }
+            foreach ($allUnreg as $eachUncfgPort => $value) {
+                $eachUncfgPort = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'] . '.', '', $eachUncfgPort));
+                $eachUncfgPort = explode('.', $eachUncfgPort);
+                $uncfgPort = $eachUncfgPort[0];
+                $value = trim(str_replace('Hex-STRING:', '', $value));
+                if (strpos($value, 'STRING:') !== false) {
+                    $value = bin2hex(trim(str_replace('STRING:', '', $value)));
+                }
+                $sn = str_replace(' ', '', $value);
+                $slot = $interfaceList[$uncfgPort];
+                $this->allUnreg['GPON'][] = array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId);
+            }
+        }
     }
 
     /**
@@ -1495,6 +1545,24 @@ $(".changeType").change(function () {
         return ($form);
     }
 
+    protected function getListZteBind($oltType, $swid) {
+        $tablerows = '';
+        foreach ($this->allBinds as $each => $eachBind) {
+            if (isset($oltType[$eachBind['swid']])) {
+                $tablecells = wf_TableCell($eachBind['id']);
+                $tablecells .= wf_TableCell($this->allZteOlt[$eachBind['swid']]['ip']);
+                $tablecells .= wf_TableCell($eachBind['slot_number']);
+                $tablecells .= wf_TableCell($eachBind['port_number']);
+                $tablecells .= wf_TableCell($eachBind['vlan']);
+                $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&edit=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'] . '&vlan=' . $eachBind['vlan'], web_edit_icon(), $this->messages->getEditAlert());
+                $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&delete=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $tablecells .= wf_TableCell($actionLinks);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
+            }
+        }
+        return ($tablerows);
+    }
+
     /**
      * Lists all vlan bindings.
      * 
@@ -1514,34 +1582,10 @@ $(".changeType").change(function () {
 
         if (!empty($this->allBinds)) {
             if (!empty($this->allZteOlt)) {
-                foreach ($this->allBinds as $each => $eachBind) {
-                    if (isset($this->allZteOlt[$eachBind['swid']])) {
-                        $tablecells = wf_TableCell($eachBind['id']);
-                        $tablecells .= wf_TableCell($this->allZteOlt[$eachBind['swid']]['ip']);
-                        $tablecells .= wf_TableCell($eachBind['slot_number']);
-                        $tablecells .= wf_TableCell($eachBind['port_number']);
-                        $tablecells .= wf_TableCell($eachBind['vlan']);
-                        $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&edit=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'] . '&vlan=' . $eachBind['vlan'], web_edit_icon(), $this->messages->getEditAlert());
-                        $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&delete=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'], web_delete_icon(), $this->messages->getDeleteAlert());
-                        $tablecells .= wf_TableCell($actionLinks);
-                        $tablerows .= wf_TableRow($tablecells, 'row3');
-                    }
-                }
+                $tablerows .= $this->getListZteBind($this->allZteOlt, $swid);
             }
             if (!empty($this->allHuaweiOlt)) {
-                foreach ($this->allBinds as $each => $eachBind) {
-                    if (isset($this->allHuaweiOlt[$eachBind['swid']])) {
-                        $tablecells = wf_TableCell($eachBind['id']);
-                        $tablecells .= wf_TableCell($this->allHuaweiOlt[$eachBind['swid']]['ip']);
-                        $tablecells .= wf_TableCell($eachBind['slot_number']);
-                        $tablecells .= wf_TableCell($eachBind['port_number']);
-                        $tablecells .= wf_TableCell($eachBind['vlan']);
-                        $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&edit=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'] . '&vlan=' . $eachBind['vlan'], web_edit_icon(), $this->messages->getEditAlert());
-                        $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&delete=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'], web_delete_icon(), $this->messages->getDeleteAlert());
-                        $tablecells .= wf_TableCell($actionLinks);
-                        $tablerows .= wf_TableRow($tablecells, 'row3');
-                    }
-                }
+                $tablerows .= $this->getListZteBind($this->allHuaweiOlt, $swid);
             }
         }
 
@@ -1585,39 +1629,36 @@ $(".changeType").change(function () {
      * @return string
      */
     public function listAllUncfg() {
+        $this->getAllUnauth();
         $tablecells = wf_TableCell(__('OLT IP'));
         $tablecells .= wf_TableCell(__('Type'));
         $tablecells .= wf_TableCell(__('Interface'));
         $tablecells .= wf_TableCell('MAC/SN');
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
-        $allOnu = $this->getAllUnauth();
 
-        if (!empty($allOnu)) {
-            foreach ($allOnu as $eachType => $io) {
+        if (!empty($this->allUnreg)) {
+            foreach ($this->allUnreg as $eachType => $io) {
                 foreach ($io as $eachNumber => $eachOnu) {
-                    foreach ($eachOnu as $eachData) {
-                        $eachData = explode('|', $eachData);
-                        $ip = $eachData[0];
-                        $interface = $eachData[1];
-                        $macOnu = strtolower($eachData[2]);
-                        $oltID = $eachData[3];
-                        $tablecells = wf_TableCell($ip);
-                        $tablecells .= wf_TableCell($eachType);
-                        $tablecells .= wf_TableCell($interface);
-                        $tablecells .= wf_TableCell($macOnu);
-                        switch ($eachType) {
-                            case 'GPON':
-                                $identifier = '&' . self::SERIAL_FIELD . '=';
-                                break;
-                            case 'EPON':
-                                $identifier = '&' . self::MACONU_FIELD . '=';
-                                break;
-                        }
-                        $actionLinks = wf_Link(self::UNREG_ACT_URL . $ip . '&interface=' . $interface . $identifier . $macOnu . '&type=' . $eachType . '&swid=' . $oltID, wf_img('skins/add_icon.png', __('Register')), false);
-                        $tablecells .= wf_TableCell($actionLinks);
-                        $tablerows .= wf_TableRow($tablecells, 'row3');
+                    $ip = $eachData['oltip'];
+                    $interface = $eachData['slot'];
+                    $macOnu = strtolower($eachData['identifier']);
+                    $oltId = $eachData['swid'];
+                    $tablecells = wf_TableCell($ip);
+                    $tablecells .= wf_TableCell($eachType);
+                    $tablecells .= wf_TableCell($interface);
+                    $tablecells .= wf_TableCell($macOnu);
+                    switch ($eachType) {
+                        case 'GPON':
+                            $identifier = '&' . self::SERIAL_FIELD . '=';
+                            break;
+                        case 'EPON':
+                            $identifier = '&' . self::MACONU_FIELD . '=';
+                            break;
                     }
+                    $actionLinks = wf_Link(self::UNREG_ACT_URL . $ip . '&interface=' . $interface . $identifier . $macOnu . '&type=' . $eachType . '&swid=' . $oltId, wf_img('skins/add_icon.png', __('Register')), false);
+                    $tablecells .= wf_TableCell($actionLinks);
+                    $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
             }
         }
