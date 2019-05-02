@@ -734,6 +734,8 @@ class OnuRegister {
      */
     protected function getAllUnauth() {
         $this->allUnreg = array();
+        $this->allUnreg['GPON'] = array();
+        $this->allUnreg['EPON'] = array();
 
         $this->getAllZteUnauth();
         $this->getAllHuaweiUnauth();
@@ -784,10 +786,10 @@ class OnuRegister {
 
                     if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentPonType == 'EPON') {
-                            $this->allUnreg['EPON'][] = $this->getAllUnauthEpon();
+                            $this->getAllUnauthEpon();
                         }
                         if ($this->currentPonType == 'GPON') {
-                            $this->allUnreg['GPON'][] = $this->getAllUnauthGpon();
+                            $this->getAllUnauthGpon();
                         }
                     }
                 }
@@ -812,10 +814,10 @@ class OnuRegister {
 
                     if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentPonType == 'EPON') {
-                            $this->allUnreg['EPON'][] = $this->getAllUnauthEpon();
+                            $this->getAllUnauthEpon();
                         }
                         if ($this->currentPonType == 'GPON') {
-                            $this->allUnreg['GPON'][] = $this->getAllUnauthGpon();
+                            $this->getAllUnauthGpon();
                         }
                     }
                 }
@@ -839,7 +841,7 @@ class OnuRegister {
 
                 foreach ($this->ponArray as $slot => $each_id) {
                     if ($each_id == $interfaceId) {
-                        $this->allUnreg['EPON'][] = array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $mac, 'swid' => $this->currentOltSwId);
+                        array_push($this->allUnreg['EPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $mac, 'swid' => $this->currentOltSwId));
                     }
                 }
             }
@@ -869,7 +871,7 @@ class OnuRegister {
                         }
                         $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
                     }
-                    $this->allUnreg['GPON'][] = $this->parseUncfgGpon($uncfgSn, $interfaceId);
+                    $this->parseUncfgGpon($uncfgSn, $interfaceId);
                 }
             }
         }
@@ -901,7 +903,7 @@ class OnuRegister {
                 }
                 $sn = str_replace(' ', '', $value);
                 $slot = $interfaceList[$uncfgPort];
-                $this->allUnreg['GPON'][] = array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId);
+                array_push($this->allUnreg['GPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId));
             }
         }
     }
@@ -926,12 +928,10 @@ class OnuRegister {
             $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
             foreach ($this->ponArray as $slot => $each_id) {
                 if ($each_id == $interfaceId) {
-                    $result[] = array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId);
+                    array_push($this->allUnreg['GPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId));
                 }
             }
         }
-
-        return ($result);
     }
 
     /**
@@ -1729,11 +1729,11 @@ $(".changeType").change(function () {
 
         if (!empty($this->allUnreg)) {
             foreach ($this->allUnreg as $eachType => $io) {
-                foreach ($io as $eachNumber => $eachOnu) {
-                    $ip = $eachData['oltip'];
-                    $interface = $eachData['slot'];
-                    $macOnu = strtolower($eachData['identifier']);
-                    $oltId = $eachData['swid'];
+                foreach ($io as $eachOnu) {
+                    $ip = $eachOnu['oltip'];
+                    $interface = $eachOnu['slot'];
+                    $macOnu = strtolower($eachOnu['identifier']);
+                    $oltId = $eachOnu['swid'];
                     $tablecells = wf_TableCell($ip);
                     $tablecells .= wf_TableCell($eachType);
                     $tablecells .= wf_TableCell($interface);
