@@ -66,11 +66,15 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     $register->currentPonType = $_POST[OnuRegister::TYPE_FIELD];
                     $register->onuIdentifier = $onuIdentifier;
                     $register->currentOltSwId = $_POST[OnuRegister::OLTID_FIELD];
+                    $register->save = $save;
+                    $register->router = $router;
+                    $register->vlan = $_POST[OnuRegister::VLAN_FIELD];
+                    $register->onuModel = $_POST[OnuRegister::MODELID_FIELD];
                     $loginCheck = $register->checkOltParams();
                     if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
                         show_error(__($loginCheck));
                     } else {
-                        $register->$avidity_w($_POST[OnuRegister::MODELID_FIELD], $_POST[OnuRegister::VLAN_FIELD], $login, $save, $router, $mac_onu, $PONizerAdd);
+                        $register->$avidity_w($login, $mac_onu, $PONizerAdd);
                         if (empty($register->error)) {
                             show_window(__('Result'), $register->result);
                         } else {
