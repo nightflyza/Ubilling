@@ -23,6 +23,7 @@ class OnuRegister {
     CONST TYPE_FIELD = 'type';
     CONST INTERFACE_FIELD = 'interface';
     CONST OLTIP_FIELD = 'oltip';
+    CONST OLTID_FIELD = 'swid';
     CONST MODELID_FIELD = 'modelid';
     CONST MODELID_PLACEHOLDER = '======';
     CONST VLAN_FIELD = 'vlan';
@@ -206,7 +207,7 @@ class OnuRegister {
      * 
      * @var integer
      */
-    protected $currentOltSwId = '';
+    public $currentOltSwId = '';
 
     /**
      * Placeholder for already registered ONU IDs.
@@ -586,7 +587,7 @@ class OnuRegister {
         $interface = explode('/', $this->currentOltInterface);
         $slot = $interface[1];
         $port = $interface[2];
-        $this->loadZteBind($this->getOltId($this->currentOltIp));
+        $this->loadZteBind($this->currentOltSwId);
 
         if (!empty($this->allBinds)) {
             foreach ($this->allBinds as $id => $eachBind) {
@@ -676,7 +677,7 @@ class OnuRegister {
             $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
             foreach ($this->ponArray as $slot => $each_id) {
                 if ($each_id == $interfaceId) {
-                    $result[] = $this->currentOltIp . '|' . $slot . '|' . $sn;
+                    $result[] = $this->currentOltIp . '|' . $slot . '|' . $sn . '|' . $this->currentOltSwId;
                 }
             }
         }
@@ -755,7 +756,7 @@ class OnuRegister {
 
                     foreach ($this->ponArray as $slot => $each_id) {
                         if ($each_id == $interfaceId) {
-                            $result[] = $this->currentOltIp . '|' . $slot . '|' . $mac;
+                            $result[] = $this->currentOltIp . '|' . $slot . '|' . $mac . '|' . $this->currentOltSwId;
                         }
                     }
                 }
@@ -819,7 +820,7 @@ class OnuRegister {
                     }
                     $sn = str_replace(' ', '', $value);
                     $slot = $interfaceList[$uncfgPort];
-                    $unregData[] = $this->currentOltIp . '|' . $slot . '|' . $sn;
+                    $unregData[] = $this->currentOltIp . '|' . $slot . '|' . $sn . '|' . $this->currentOltSwId;
                 }
                 $result = $unregData;
             }
@@ -957,7 +958,6 @@ class OnuRegister {
      * @return void
      */
     public function RegisterOnu($onuModel, $vlan, $login = '', $save = false, $router = false, $addMac = '', $PONizerAdd = false) {
-        $this->currentOltSwId = $this->getOltId($this->currentOltIp);
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
             $this->currentSnmpCommunity = $this->allHuaweiOlt[$this->currentOltSwId]['snmp'];
             $snmpTemplateName = $this->allHuaweiOlt[$this->currentOltSwId]['snmptemplate'];
@@ -1601,6 +1601,7 @@ $(".changeType").change(function () {
                         $ip = $eachData[0];
                         $interface = $eachData[1];
                         $macOnu = strtolower($eachData[2]);
+                        $oltID = $eachData[3];
                         $tablecells = wf_TableCell($ip);
                         $tablecells .= wf_TableCell($eachType);
                         $tablecells .= wf_TableCell($interface);
@@ -1613,7 +1614,7 @@ $(".changeType").change(function () {
                                 $identifier = '&' . self::MACONU_FIELD . '=';
                                 break;
                         }
-                        $actionLinks = wf_Link(self::UNREG_ACT_URL . $ip . '&interface=' . $interface . $identifier . $macOnu . '&type=' . $eachType, wf_img('skins/add_icon.png', __('Register')), false);
+                        $actionLinks = wf_Link(self::UNREG_ACT_URL . $ip . '&interface=' . $interface . $identifier . $macOnu . '&type=' . $eachType . '&swid=' . $oltID, wf_img('skins/add_icon.png', __('Register')), false);
                         $tablecells .= wf_TableCell($actionLinks);
                         $tablerows .= wf_TableRow($tablecells, 'row3');
                     }
@@ -1641,6 +1642,7 @@ $(".changeType").change(function () {
                 $cell .= wf_HiddenInput(self::INTERFACE_FIELD, $this->currentOltInterface);
                 $cell .= wf_HiddenInput(self::OLTIP_FIELD, $this->currentOltIp);
                 $cell .= wf_HiddenInput(self::MAC_FIELD, $this->onuIdentifier);
+                $cell .= wf_HiddenInput(self::OLTID_FIELD, $this->currentOltSwId);
                 $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
                 $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
                 $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
@@ -1654,6 +1656,7 @@ $(".changeType").change(function () {
                 $cell .= wf_HiddenInput(self::INTERFACE_FIELD, $this->currentOltInterface);
                 $cell .= wf_HiddenInput(self::OLTIP_FIELD, $this->currentOltIp);
                 $cell .= wf_HiddenInput(self::SN_FIELD, $this->onuIdentifier);
+                $cell .= wf_HiddenInput(self::OLTID_FIELD, $this->currentOltSwId);
                 $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
                 $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
                 $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
