@@ -2023,7 +2023,7 @@ class MultiGen {
                     foreach ($userNases as $eachNasId) {
                         @$nasOptions = $this->nasOptions[$eachNasId];
                         $userNameType = $nasOptions['usernametype'];
-                        if ($userNameType == 'mac' or $userNameType == 'macju') {
+                        if ($userNameType == 'mac' or $userNameType == 'macju' or $userNameType == 'ip') {
                             $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
                             if (!empty($userName)) {
                                 if (!empty($nasOptions)) {
@@ -2081,7 +2081,7 @@ class MultiGen {
     protected function replaceSingleUser($newUserName, $oldUserName) {
         if (!empty($newUserName) and ! empty($oldUserName)) {
             foreach ($this->scenarios as $eachScenario) {
-                $query = 'UPDATE `' . self::SCENARIO_PREFIX . $eachScenario . '` SET `username`="' . $eachScenario . '" WHERE `username`="' . $oldUserName . '"';
+                $query = 'UPDATE `' . self::SCENARIO_PREFIX . $eachScenario . '` SET `username`="' . $newUserName . '" WHERE `username`="' . $oldUserName . '"';
                 nr_query($query);
             }
         }
