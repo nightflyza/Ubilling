@@ -306,6 +306,24 @@ class IpChange {
                         multinet_RestartDhcp();
                         zb_UserGetAllDataCacheClean();
 
+                        if ($this->altCfg['MULTIGEN_ENABLED']) {
+                            if ($this->altCfg['MULTIGEN_POD_ON_IP_CHANGE']) {
+                                $newUserData = zb_UserGetAllData($this->login);
+                                $newUserData = $newUserData[$this->login];
+
+                                $userData = $newUserData;
+                                $userData['ip'] = $this->currentIp;
+                                $mlg = new MultiGen();
+                                if ($this->altCfg['MULTIGEN_POD_ON_IP_CHANGE'] == 2) {
+                                    $mlg->podOnExternalEvent($this->login, $userData, $newUserData);
+                                    $mlg->podOnExternalEvent($this->login, $newUserData);
+                                }
+                                if ($this->altCfg['MULTIGEN_POD_ON_IP_CHANGE'] == 1) {
+                                    $mlg->podOnExternalEvent($this->login, $newUserData);
+                                }
+                            }
+                        }
+
                         //back teh user online
                         if ($this->billingCfg['RESET_AO']) {
                             $billing->setao($this->login, 1);
