@@ -2036,7 +2036,7 @@ class MultiGen {
                                                 $this->savePodQueue($podCommand);
                                                 if (!empty($newUserData)) {
                                                     $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
-                                                    $this->reaplceSingleUser($newUserName, $userName);
+                                                    $this->replaceSingleUser($newUserName, $userName);
                                                 }
 
                                                 //adding else to avoid user double kill when use pod + coa services
