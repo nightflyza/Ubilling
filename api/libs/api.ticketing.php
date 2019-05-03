@@ -538,7 +538,7 @@ function web_TicketDialogue($ticketid) {
         $tablecells.=wf_TableCell($userIp);
         $tablecells.=wf_TableCell($userTariff);
         $tablecells.=wf_TableCell($userCash);
-        $tablecells.=wf_TableCell($userCash);
+        $tablecells.=wf_TableCell($userCredit);
         $tablecells.=wf_TableCell(web_bool_led($ticketdata['status']));
         $tablerows.=wf_TableRow($tablecells, 'row3');
         $result.=wf_TableBody($tablerows, '100%', '0');
