@@ -2209,7 +2209,7 @@ function ts_renderLogsDataAjax($taskid = '') {
             } elseif ($each['event'] == 'done') {
                 $data[] = __('Task is done');
                 $data_event = '';
-                $logDataArr = unserialize($each['logs']);
+                $logDataArr = @unserialize($each['logs']);
 
                 $data_event.= wf_tag('b') . __('Finish date') . ": " . wf_tag('b', true);
                 $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['editenddate'] . wf_tag('font', true);
@@ -2228,7 +2228,7 @@ function ts_renderLogsDataAjax($taskid = '') {
             } elseif ($each['event'] == 'delete') {
                 $data[] = __('Task delete');
                 $data_event = '';
-                $logDataArr = unserialize($each['logs']);
+                $logDataArr = @unserialize($each['logs']);
 
                 $data_event.= wf_tag('b') . __('Create date') . ": " . wf_tag('b', true);
                 $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['date'] . wf_tag('font', true);
