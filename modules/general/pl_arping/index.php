@@ -31,6 +31,7 @@ if (cfr('PLARPING')) {
         $alterconfig = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
         $parseMe = '';
         $cloneFlag = false;
+        $wrongMacFlag = false;
         $messages = new UbillingMessageHelper();
         $arping_path = $alterconfig['ARPING'];
         $arping_iface = $alterconfig['ARPING_IFACE'];
@@ -38,10 +39,12 @@ if (cfr('PLARPING')) {
         $sudo_path = $config['SUDO'];
         $userdata = zb_UserGetStargazerData($login);
         $user_ip = $userdata['IP'];
+        $user_mac = zb_MultinetGetMAC($user_ip);
+        $user_mac = strtolower($user_mac);
         $pingCount = 10;
         $rttTmp = '';
-        $params=array();
-        $succArray=array();
+        $params = array();
+        $succArray = array();
         //setting ping parameters
         $addParams = '';
         //setting ajax background params
@@ -72,6 +75,20 @@ if (cfr('PLARPING')) {
         $rawArray = explodeRows($raw_result);
         if (!empty($rawArray)) {
             foreach ($rawArray as $io => $eachline) {
+                //mac reply extraction
+                if (!empty($user_mac)) {
+                    if (ispos($eachline, 'time')) {
+                        $macReplied = zb_ExtractMacAddress($eachline);
+                        if (!empty($macReplied)) {
+                            $macReplied = strtolower($macReplied);
+                            if ($macReplied != $user_mac) {
+                                $wrongMacFlag = true;
+                            }
+                        }
+                    }
+                }
+
+                //summmary
                 if (ispos($eachline, 'packets transmitted')) {
                     $parseMe = $eachline;
                 }
@@ -91,6 +108,10 @@ if (cfr('PLARPING')) {
 
         if ($cloneFlag) {
             $ping_result.=$messages->getStyledMessage(__('It looks like this MAC addresses has duplicate on the network'), 'error');
+        }
+
+        if ($wrongMacFlag) {
+            $ping_result.=$messages->getStyledMessage(__('It looks like another MAC which is not assigned to this user has replied to requests'), 'error');
         }
 
         //some charts

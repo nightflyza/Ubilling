@@ -3074,6 +3074,7 @@ $lang['def']['Charged'] = 'Начислено';
 //rev 6786
 $lang['def']['Other'] = 'Другое';
 $lang['def']['right to control warehouse reports'] = 'Право просматривать складские отчеты';
+$lang['def']['It looks like another MAC which is not assigned to this user has replied to requests'] = 'Похоже, что какой-то другой MAC, не присвоенный абоненту отвечает на запросы';
 $lang['def'][''] = '';
 
 ?>
