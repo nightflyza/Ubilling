@@ -346,6 +346,13 @@ class MultiGen {
     protected $usernamesCachingTimeout = 0;
 
     /**
+     * Contains current multigen instance unique ID
+     *
+     * @var string
+     */
+    protected $instanceId = '';
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -463,12 +470,12 @@ class MultiGen {
     /**
      * Contains default path to PoD scripts queue
      */
-    const POD_PATH = 'content/documents/pod_queue';
+    const POD_PATH = 'exports/pod_queue_';
 
     /**
      * Contains default path to CoA scripts queue
      */
-    const COA_PATH = 'content/documents/coa_queue';
+    const COA_PATH = 'exports/coa_queue_';
 
     /**
      * Creates new MultiGen instance
@@ -567,6 +574,8 @@ class MultiGen {
                 $this->usernamesCachingTimeout = $this->altCfg[self::OPTION_USERNAMESTIMEOUT];
             }
         }
+
+        $this->instanceId = 'MLG' . zb_rand_string(8);
 
         $this->usernameTypes = array(
             'login' => __('Login'),
@@ -2334,8 +2343,8 @@ class MultiGen {
      */
     protected function savePodQueue($data) {
         $this->runServices['pod'] = 1;
-        file_put_contents(self::POD_PATH, $data, FILE_APPEND);
-        $this->logEvent('POD_QUEUE_ADD: ' . trim($data), 3); //Omae wa mou shindeiru
+        file_put_contents(self::POD_PATH . $this->instanceId, $data, FILE_APPEND);
+        $this->logEvent('POD_QUEUE_ADD ' . $this->instanceId . ': ' . trim($data), 3); //Omae wa mou shindeiru
     }
 
     /**
@@ -2347,8 +2356,8 @@ class MultiGen {
      */
     protected function saveCoaQueue($data) {
         $this->runServices['coa'] = 1;
-        file_put_contents(self::COA_PATH, $data, FILE_APPEND);
-        $this->logEvent('COA_QUEUE_ADD: ' . trim($data), 3);
+        file_put_contents(self::COA_PATH . $this->instanceId, $data, FILE_APPEND);
+        $this->logEvent('COA_QUEUE_ADD ' . $this->instanceId . ': ' . trim($data), 3);
     }
 
     /**
@@ -2357,16 +2366,16 @@ class MultiGen {
      * @return void
      */
     protected function runPodQueue() {
-        if (file_exists(self::POD_PATH)) {
-            chmod(self::POD_PATH, 0755);
-            $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . "\n";
+        if (file_exists(self::POD_PATH . $this->instanceId)) {
+            chmod(self::POD_PATH . $this->instanceId, 0755);
+            $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . $this->instanceId . "\n";
             $this->savePodQueue($podQueueCleanup);
             if ($this->logging >= 4) {
-                shell_exec(self::POD_PATH . ' >>' . self::LOG_PATH . ' 2>> ' . self::LOG_PATH);
+                shell_exec(self::POD_PATH . $this->instanceId . ' >>' . self::LOG_PATH . ' 2>> ' . self::LOG_PATH);
             } else {
-                shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
+                shell_exec(self::POD_PATH . $this->instanceId . ' >/dev/null 2>/dev/null &');
             }
-            $this->logEvent('POD_QUEUE_RUN', 3); //nani?
+            $this->logEvent('POD_QUEUE_RUN: ' . $this->instanceId, 3); //nani?
         }
     }
 
@@ -2376,16 +2385,16 @@ class MultiGen {
      * @return void
      */
     protected function runCoaQueue() {
-        if (file_exists(self::COA_PATH)) {
-            chmod(self::COA_PATH, 0755);
-            $coaQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::COA_PATH . "\n";
+        if (file_exists(self::COA_PATH . $this->instanceId)) {
+            chmod(self::COA_PATH . $this->instanceId, 0755);
+            $coaQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::COA_PATH . $this->instanceId . "\n";
             $this->saveCoaQueue($coaQueueCleanup);
             if ($this->logging >= 4) {
-                shell_exec(self::COA_PATH . ' >>' . self::LOG_PATH . ' 2>> ' . self::LOG_PATH);
+                shell_exec(self::COA_PATH . $this->instanceId . ' >>' . self::LOG_PATH . ' 2>> ' . self::LOG_PATH);
             } else {
-                shell_exec(self::COA_PATH . ' >/dev/null 2>/dev/null &');
+                shell_exec(self::COA_PATH . $this->instanceId . ' >/dev/null 2>/dev/null &');
             }
-            $this->logEvent('COA_QUEUE_RUN', 3);
+            $this->logEvent('COA_QUEUE_RUN: ' . $this->instanceId, 3);
         }
     }
 
