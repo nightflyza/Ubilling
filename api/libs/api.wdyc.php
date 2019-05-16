@@ -221,7 +221,7 @@ class WhyDoYouCall {
 
                             //outcoming call success - deleting form unanswered, adding it to recalled cache
                             if (ispos($each[16], 'out')) {
-                                $reactionTime=0;
+                                $reactionTime = 0;
                                 if (ispos($each[14], 'ANSWERED')) {
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         unset($unansweredCalls[$destinationNumber]);
@@ -468,9 +468,11 @@ class WhyDoYouCall {
             if (!empty($rawData)) {
                 $rawData = unserialize($rawData);
                 if (!empty($rawData)) {
-                    $missedCallsCount = sizeof($rawData);
                     foreach ($rawData as $missedNumber => $callData) {
-                        $missedCallsNumbers.= $missedNumber . ' ';
+                        if (!ispos($missedNumber, 'anonymous')) {
+                            $missedCallsNumbers.= $missedNumber . ' ';
+                            $missedCallsCount++;
+                        }
                     }
                 }
             }

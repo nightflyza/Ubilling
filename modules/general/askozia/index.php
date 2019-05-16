@@ -219,6 +219,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $WorkHoursAnswerCounter = 0;
             $WorkHoursNoAnswerCounter = 0;
             $busycount = 0;
+            $callFlows = array();
 
             $chartData = array();
 
@@ -240,6 +241,37 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     if (sizeof($each) > 25) {
                         array_splice($each, 3, 1);
                     }
+
+                    /*
+                     * CFLOWS FIX
+                     * ************** */
+                    //some flow started for income call
+                    if (!ispos($each['16'], 'out')) {
+                        $incomeNumber = $each[1];
+                        if ($each[2] == 'CALLFLOW-START' OR ispos($each[8], 'CALLFLOW-START')) {
+
+                            $callFlows[$incomeNumber . '|' . $each[11]] = 'NO ANSWER';
+                        } else {
+                            if (isset($callFlows[$incomeNumber . '|' . $each[11]])) {
+                                $callFlows[$incomeNumber . '|' . $each[11]] = $each[14];
+                            } else {
+                                foreach ($callFlows as $cflowid => $cflowdata) {
+                                    if (ispos($cflowid, $incomeNumber)) {
+                                        $flowtime = explode('|', $cflowid);
+                                        $flowtime = $flowtime[1];
+                                        $flowtime = strtotime($flowtime);
+                                        $callTimeTmp = strtotime($each[11]);
+                                        if (($callTimeTmp - $flowtime) <= 10) {
+                                            if (ispos($each[14], 'ANS')) {
+                                                $callFlows[$cflowid] = $each[14];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     $callsCounter++;
                     $debugData = wf_tag('pre') . print_r($each, true) . wf_tag('pre', true);
 
@@ -483,7 +515,6 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
 
-
             if (!empty($controlStats)) {
                 $ccells = wf_TableCell(__('Phone'));
                 $ccells.= wf_TableCell(__('Total calls'));
@@ -533,6 +564,32 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $result.= wf_Graph($gdata, '800', '200', false);
                     $result.=wf_tag('div', true);
                     $result.=wf_delimiter();
+                }
+            }
+
+
+            if (!empty($callFlows)) {
+                $noAnswerCounter = 0;
+                $answerCounter = 0;
+                $WorkHoursNoAnswerCounter = 0;
+                $WorkHoursAnswerCounter = 0;
+                $callsCounter = sizeof($callFlows);
+                foreach ($callFlows as $cflowid => $cflowdata) {
+                    $flowTime = explode('|', $cflowid);
+                    $flowTime = explode(' ', $flowTime[1]);
+                    $flowTime = $flowTime[1];
+
+                    if ($cflowdata == 'NO ANSWER') {
+                        $noAnswerCounter++;
+                        if (zb_isTimeBetween($workStartTime, $workEndTime, $flowTime)) {
+                            $WorkHoursNoAnswerCounter++;
+                        }
+                    } else {
+                        $answerCounter++;
+                        if (zb_isTimeBetween($workStartTime, $workEndTime, $flowTime)) {
+                            $WorkHoursAnswerCounter++;
+                        }
+                    }
                 }
             }
 

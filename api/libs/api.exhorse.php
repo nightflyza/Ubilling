@@ -661,6 +661,7 @@ class ExistentialHorse {
             if ((!empty($this->askoziaUrl)) AND ( !empty($this->askoziaLogin)) AND ( !empty($this->askoziaPassword))) {
                 $callsTmp = array();
                 $normalCalls = array();
+                $callFlows = array();
                 //working time setup
                 $rawWorkTime = $this->altCfg['WORKING_HOURS'];
                 $rawWorkTime = explode('-', $rawWorkTime);
@@ -701,6 +702,7 @@ class ExistentialHorse {
                     if (!empty($normalCalls)) {
                         unset($normalCalls[0]);
                         foreach ($normalCalls as $io => $each) {
+                           
                             //Askozia CFE fix
                             if (sizeof($each) > 25) {
                                 array_splice($each, 3, 1);
@@ -718,6 +720,52 @@ class ExistentialHorse {
                                         $this->storeTmp['a_totalcalls'] ++;
                                         //call duration in seconds increment
                                         $this->storeTmp['a_totalcallsduration']+=$each[13];
+                                    }
+                                }
+                            }
+                            
+                             /*
+                             * CFLOWS FIX
+                             * ************** */
+                            //some flow started for income call
+                            if (!ispos($each['16'], 'out')) {
+                                $incomeNumber = $each[1];
+                                if ($each[2] == 'CALLFLOW-START' OR ispos($each[8], 'CALLFLOW-START')) {
+                                    $callFlows[$incomeNumber . '|' . $each[11]] = 'NO ANSWER';
+                                } else {
+                                    if (isset($callFlows[$incomeNumber . '|' . $each[11]])) {
+                                        $callFlows[$incomeNumber . '|' . $each[11]] = $each[14];
+                                    } else {
+                                        foreach ($callFlows as $cflowid => $cflowdata) {
+                                            if (ispos($cflowid, $incomeNumber)) {
+                                                $flowtime = explode('|', $cflowid);
+                                                $flowtime = $flowtime[1];
+                                                $flowtime = strtotime($flowtime);
+                                                $callTimeTmp = strtotime($each[11]);
+                                                if (($callTimeTmp - $flowtime) <= 10) {
+                                                    if (ispos($each[14], 'ANS')) {
+                                                        $callFlows[$cflowid] = $each[14];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!empty($callFlows)) {
+                            $this->storeTmp['a_totalanswered'] = 0;
+                            $this->storeTmp['a_totalcalls'] = sizeof($callFlows);
+                            
+                            foreach ($callFlows as $cflowid => $cflowdata) {
+                                $flowTime = explode('|', $cflowid);
+                                $flowTime = explode(' ', $flowTime[1]);
+                                $flowTime = $flowTime[1];
+
+                                if ($cflowdata == 'ANSWERED') {
+                                    if (zb_isTimeBetween($workStartTime, $workEndTime, $flowTime)) {
+                                        $this->storeTmp['a_totalanswered'] ++;
                                     }
                                 }
                             }
@@ -746,7 +794,7 @@ class ExistentialHorse {
                 }
                 $totalCalls = $totalRecalls + $totalMissed;
                 $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc));
-                $this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
+                @$this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
             }
         }
     }
