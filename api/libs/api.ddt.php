@@ -520,7 +520,9 @@ class DoomsDayTariffs {
      */
     public function renderControls() {
         $result = '';
-        $result.=wf_Link(self::URL_ME, web_icon_extended() . ' ' . __('Configuration'), false, 'ubButton');
+        if (cfr('DDTCONF')) {
+            $result.=wf_Link(self::URL_ME, web_icon_extended() . ' ' . __('Configuration'), false, 'ubButton');
+        }
         $result.=wf_Link(self::URL_HIST, wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
         return ($result);
     }
