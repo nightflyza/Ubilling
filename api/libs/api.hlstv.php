@@ -290,4 +290,29 @@ class HlsTV {
         return ($result);
     }
 
+    /**
+     * Assigns new playlist to some customer
+     * 
+     * @param int $customerId
+     * 
+     * @return array
+     */
+    public function addPlayList($customerId) {
+        $result = $this->pushApiRequest('customer/url/add', array('customer_id' => $customerId));
+        return ($result);
+    }
+
+    /**
+     * Deletes playlist by its uniq
+     * 
+     * @param int $customerId
+     * @param string $playlistId 
+     * 
+     * @return array
+     */
+    public function deletePlayList($customerId, $playlistId) {
+        $result = $this->pushApiRequest('customer/url/remove', array('customer_id' => $customerId, 'uniq' => $playlistId));
+        return ($result);
+    }
+
 }
