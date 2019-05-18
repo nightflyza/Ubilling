@@ -228,7 +228,8 @@ class OmegaTvFrontend {
 
                     foreach ($currentPlaylists as $io => $each) {
                         $cells = la_TableCell($each['uniq']);
-                        $cells.= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
+                        $actDate=($each['activation_data']) ? date("Y-m-d H:i:s", $each['activation_data']) : '-' ;
+                        $cells.= la_TableCell($actDate);
                         $playlistControls = la_Link($each['url'], __('Playlist'));
                         $cells.= la_TableCell($playlistControls);
                         $deviceControls = la_JSAlert('?module=omegatv&deleteplaylist=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');

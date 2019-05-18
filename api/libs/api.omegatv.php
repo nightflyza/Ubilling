@@ -605,7 +605,6 @@ class OmegaTV {
 
         if (isset($userInfo['result'])) {
             $userInfo = $userInfo['result'];
-
             $cells = wf_TableCell(__('Full address'), '', 'row2');
             $userAddress = @$this->allUserData[$localUserInfo['login']]['fulladress'];
             $userLink = wf_Link(self::URL_PROFILE . $localUserInfo['login'], web_profile_icon() . ' ' . $userAddress);
@@ -655,7 +654,8 @@ class OmegaTV {
             if (!empty($userInfo['playlists'])) {
                 foreach ($userInfo['playlists'] as $io => $each) {
                     $cells = wf_TableCell(__('Playlist') . ' ' . $io, '', 'row2');
-                    $playlistLabel = __('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . date("Y-m-d H:i:s", $each['activation_data']) . ' ' . wf_Link($each['url'], __('Download'));
+                    $actDate = ($each['activation_data']) ? date("Y-m-d H:i:s", $each['activation_data']) : __('Inactive');
+                    $playlistLabel = __('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . $actDate . ' ' . wf_Link($each['url'], __('Download'));
                     $playlistControls = wf_JSAlert(self::URL_ME . '&subscriptions=true&customerid=' . $customerId . '&deleteplaylist=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
                     $cells .= wf_TableCell($playlistControls . ' ' . $playlistLabel);
                     $rows .= wf_TableRow($cells, 'row3');
