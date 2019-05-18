@@ -1276,10 +1276,24 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                     die($omega->getUserDevicesData($_GET['userlogin']));
                                 }
 
+                                if ($_GET['param'] == 'getplaylists') {
+                                    die($omega->getUserPlaylistsData($_GET['userlogin']));
+                                }
+
                                 if ($_GET['param'] == 'deletedev') {
                                     if (wf_CheckGet(array('uniq'))) {
                                         die($omega->deleteUserDevice($_GET['userlogin'], $_GET['uniq']));
                                     }
+                                }
+
+                                if ($_GET['param'] == 'deletepl') {
+                                    if (wf_CheckGet(array('uniq'))) {
+                                        die($omega->deleteUserPlaylist($_GET['userlogin'], $_GET['uniq']));
+                                    }
+                                }
+
+                                if ($_GET['param'] == 'assignpl') {
+                                    die($omega->assignUserPlaylist($_GET['userlogin']));
                                 }
                             }
                         } else {

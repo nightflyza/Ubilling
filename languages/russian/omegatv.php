@@ -27,3 +27,5 @@ $lang['def']['OmegaTV public key'] = 'Публичный ключ OmegaTV';
 $lang['def']['OmegaTV private key'] = 'Приватный ключ OmegaTV';
 $lang['def']['Assign device'] = 'Присвоить устройство';
 $lang['def']['This user have not existing OmegaTV subscription profile. You can register it using appropriate button on upper panel.'] = 'У этого пользователя нет существующего профиля подписки на OmegaTV. Вы можете зарегистрировать его, используя соответствующую кнопку на панели выше.';
+$lang['def']['Playlist'] = 'Плейлист';
+$lang['def']['Just create new playlist'] = 'Просто добавить новый плейлист';

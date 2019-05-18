@@ -388,4 +388,8 @@ $lang['def']['Assign device by MAC'] = 'Додати пристрій по MAC';
 $lang['def']['Assign device by Code'] = 'Додати пристрій за кодом';
 $lang['def']['Assign device'] = 'Додати пристрій';
 
+$lang['def']['Playlist'] = 'Плейлист';
+$lang['def']['Add playlist'] = 'Додати плейлист';
+$lang['def']['Get device activation code'] = 'Отримати код активації пристрою';
+
 ?>

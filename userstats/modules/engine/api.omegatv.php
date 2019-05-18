@@ -202,11 +202,17 @@ class OmegaTvFrontend {
         if (!empty($this->userLogin)) {
             //available devices
             $currentDevices = $this->getDevicesData();
+            $currentPlaylists = $this->getPlaylistsData();
+
             $devCount = 0;
-            if (!empty($currentDevices)) {
+            $rows = '';
+
+            if (!empty($currentDevices) OR ( !empty($currentPlaylists))) {
                 $currentDevices = json_decode($currentDevices, true);
+                $currentPlaylists = json_decode($currentPlaylists, true);
+
                 if (!empty($currentDevices)) {
-                    $rows = '';
+
                     foreach ($currentDevices as $io => $each) {
                         $cells = la_TableCell($each['uniq']);
                         $cells.= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
@@ -216,8 +222,23 @@ class OmegaTvFrontend {
                         $rows.=la_TableRow($cells, 'row3');
                         $devCount++;
                     }
-                    $result.=la_TableBody($rows, '100%', 0, 'sortable');
                 }
+
+                if (!empty($currentPlaylists)) {
+
+                    foreach ($currentPlaylists as $io => $each) {
+                        $cells = la_TableCell($each['uniq']);
+                        $cells.= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
+                        $playlistControls = la_Link($each['url'], __('Playlist'));
+                        $cells.= la_TableCell($playlistControls);
+                        $deviceControls = la_JSAlert('?module=omegatv&deleteplaylist=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
+                        $cells.= la_TableCell($deviceControls);
+                        $rows.=la_TableRow($cells, 'row3');
+                        $devCount++;
+                    }
+                }
+
+                $result.=la_TableBody($rows, '100%', 0, 'sortable');
             }
 
             //maximum devices limit
@@ -228,9 +249,10 @@ class OmegaTvFrontend {
                     $result.=la_tag('br');
                     $result.=la_tag('h3', false) . __('Activation code') . ': ' . $actCode . la_tag('h3', true);
                 } else {
-                    $actCodeControl = la_Link('?module=omegatv&getcode=true', __('Get activation code'));
                     $result.=la_tag('br');
-                    $result.=$actCodeControl;
+                    $actCodeControl = la_Link('?module=omegatv&getcode=true', __('Get device activation code'));
+                    $newPlControl = la_Link('?module=omegatv&newplaylist=true', __('Add playlist'));
+                    $result.=$actCodeControl . ' / ' . $newPlControl;
                 }
             }
         }
@@ -290,8 +312,8 @@ class OmegaTvFrontend {
                 $freeAppend = la_delimiter();
                 $tariffFee = $each['fee'];
                 $primaryLabel = ($each['type'] == 'base') ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
-                $subscribedLabel= ($this->isUserSubscribed($this->userLogin, $each['id'])) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
-                
+                $subscribedLabel = ($this->isUserSubscribed($this->userLogin, $each['id'])) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
+
                 $tariffInfo = la_tag('div', false, $headerType) . $each['tariffname'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
@@ -304,7 +326,7 @@ class OmegaTvFrontend {
                 $rows.= la_TableRow($cells);
                 $tariffInfo.=la_TableBody($rows, '100%', 0);
                 $tariffInfo.=$freeAppend;
-                
+
 
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
@@ -325,9 +347,6 @@ class OmegaTvFrontend {
 
                 $result.=la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
             }
-            
-            
-            
         }
         return ($result);
     }
@@ -413,7 +432,7 @@ class OmegaTvFrontend {
     }
 
     /**
-     * Gets view URL via remote API
+     * Gets device activation code via remote API
      * 
      * @return string
      */
@@ -425,13 +444,25 @@ class OmegaTvFrontend {
     }
 
     /**
-     * Gets view URL via remote API
+     * Gets devices data via remote API
      * 
      * @return string
      */
     public function getDevicesData() {
         $result = '';
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getdevices&userlogin=' . $this->userLogin;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Gets playlists data via remote API
+     * 
+     * @return string
+     */
+    public function getPlaylistsData() {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=getplaylists&userlogin=' . $this->userLogin;
         @$result = file_get_contents($action);
         return ($result);
     }
@@ -446,6 +477,34 @@ class OmegaTvFrontend {
     public function pushDeviceDelete($uniq) {
         $result = '';
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=deletedev&userlogin=' . $this->userLogin . '&uniq=' . $uniq;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Pushes playlist deletion request via remote API
+     * 
+     * @param string $uniq
+     * 
+     * @return string
+     */
+    public function pushPlaylistDelete($uniq) {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=deletepl&userlogin=' . $this->userLogin . '&uniq=' . $uniq;
+        @$result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Pushes playlist assign request via remote API
+     * 
+     * @param string $uniq
+     * 
+     * @return string
+     */
+    public function pushPlaylistAssign() {
+        $result = '';
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=omcontrol&param=assignpl&userlogin=' . $this->userLogin;
         @$result = file_get_contents($action);
         return ($result);
     }

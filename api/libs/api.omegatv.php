@@ -278,7 +278,29 @@ class OmegaTV {
             if (isset($userInfo['result'])) {
                 $userInfo = $userInfo['result'];
                 if (isset($userInfo['devices'])) {
-                    $result .= json_encode($userInfo['devices']);
+                    $result.=json_encode($userInfo['devices']);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns current user playlists info as JSON
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function getUserPlaylistsData($userLogin) {
+        $result = '';
+        $customerId = $this->getLocalCustomerId($userLogin);
+        if (!empty($customerId)) {
+            $userInfo = $this->hls->getUserInfo($customerId);
+            if (isset($userInfo['result'])) {
+                $userInfo = $userInfo['result'];
+                if (isset($userInfo['playlists'])) {
+                    $result.=json_encode($userInfo['playlists']);
                 }
             }
         }
@@ -313,6 +335,63 @@ class OmegaTV {
                 }
             }
         }
+    }
+
+    /**
+     * Deletes some playlists assigned from user
+     * 
+     * @param string $userLogin
+     * @param string $uniq
+     * 
+     * @return void
+     */
+    public function deleteUserPlaylist($userLogin, $uniq) {
+        $customerId = $this->getLocalCustomerId($userLogin);
+        $uniq = trim($uniq);
+        if (!empty($customerId)) {
+            $userInfo = $this->hls->getUserInfo($customerId);
+            if (isset($userInfo['result'])) {
+                //checking for user playlist ownership
+                $userInfo = $userInfo['result'];
+                if (isset($userInfo['playlists'])) {
+                    if (!empty($userInfo['playlists'])) {
+                        foreach ($userInfo['playlists'] as $io => $each) {
+                            if ($each['uniq'] == $uniq) {
+                                $this->deletePlaylist($customerId, $uniq);
+                                log_register('OMEGATV PLAYLIST DELETE `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates new playlist and assigns it to existing user
+     * 
+     * @param string $userLogin
+     * 
+     * @return void/string on error
+     */
+    public function assignUserPlaylist($userLogin) {
+        $result = '';
+        $customerId = $this->getLocalCustomerId($userLogin);
+        if (!empty($customerId)) {
+            if (isset($this->allUsers[$customerId])) {
+                $assignResult = $this->hls->addPlayList($customerId);
+                if (isset($assignResult['error'])) {
+                    $result.=__('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
+                } else {
+                    $uniq = $assignResult['result']['uniq'];
+                    $userLogin = $this->getLocalCustomerLogin($customerId);
+                    log_register('OMEGATV PLAYLIST ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('User not exists');
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -410,6 +489,7 @@ class OmegaTV {
         $inputs = wf_HiddenInput('manualassigndevice', 'true');
         $inputs.= wf_HiddenInput('manualassigndevicecustomerid', $customerId);
         $inputs.= wf_TextInput('manualassigndeviceuniq', __('Uniq'), '', true, 20, 'alphanumeric');
+        $inputs.=wf_CheckInput('manualassignnewplaylist', __('Just create new playlist'), true, false);
         $inputs.=wf_Submit(__('Assign'));
         $result.=wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -432,6 +512,31 @@ class OmegaTV {
                 } else {
                     $userLogin = $this->getLocalCustomerLogin($customerId);
                     log_register('OMEGATV DEVICE ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('User not exists');
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Assigns new playlist for some existing user
+     * 
+     * @return void/string on error
+     */
+    public function assignPlaylistManual() {
+        $result = '';
+        if (wf_CheckPost(array('manualassigndevicecustomerid', 'manualassigndevice', 'manualassignnewplaylist'))) {
+            $customerId = vf($_POST['manualassigndevicecustomerid'], 3); //int
+            if (isset($this->allUsers[$customerId])) {
+                $assignResult = $this->hls->addPlayList($customerId);
+                if (isset($assignResult['error'])) {
+                    $result.=__('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
+                } else {
+                    $uniq = $assignResult['result']['uniq'];
+                    $userLogin = $this->getLocalCustomerLogin($customerId);
+                    log_register('OMEGATV PLAYLIST ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('User not exists');
@@ -495,6 +600,7 @@ class OmegaTV {
         $result .= wf_AjaxLoader();
 
         $userInfo = $this->hls->getUserInfo($customerId);
+
         $localUserInfo = @$this->allUsers[$customerId];
 
         if (isset($userInfo['result'])) {
@@ -541,7 +647,17 @@ class OmegaTV {
                     $cells = wf_TableCell(__('Device') . ' ' . $io, '', 'row2');
                     $deviceLabel = __('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . date("Y-m-d H:i:s", $each['activation_data']) . ' ' . __('Model') . ': ' . $each['model'];
                     $deviceControls = wf_JSAlert(self::URL_ME . '&subscriptions=true&customerid=' . $customerId . '&deletedevice=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
-                    $cells .= wf_TableCell($deviceLabel . ' ' . $deviceControls);
+                    $cells .= wf_TableCell($deviceControls . ' ' . $deviceLabel);
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+            }
+
+            if (!empty($userInfo['playlists'])) {
+                foreach ($userInfo['playlists'] as $io => $each) {
+                    $cells = wf_TableCell(__('Playlist') . ' ' . $io, '', 'row2');
+                    $playlistLabel = __('Uniq') . ': ' . $each['uniq'] . ' ' . __('Date') . ': ' . date("Y-m-d H:i:s", $each['activation_data']) . ' ' . wf_Link($each['url'], __('Download'));
+                    $playlistControls = wf_JSAlert(self::URL_ME . '&subscriptions=true&customerid=' . $customerId . '&deleteplaylist=' . $each['uniq'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells .= wf_TableCell($playlistControls . ' ' . $playlistLabel);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
             }
@@ -1113,6 +1229,18 @@ class OmegaTV {
      */
     public function deleteDevice($customerId, $deviceId) {
         $this->hls->deleteDevice($customerId, $deviceId);
+    }
+
+    /**
+     * Deletes playlist assigned to some customerid
+     * 
+     * @param int $customerId
+     * @param string $playlistId
+     * 
+     * @return void
+     */
+    public function deletePlaylist($customerId, $playlistId) {
+        $this->hls->deletePlayList($customerId, $playlistId);
     }
 
     /**

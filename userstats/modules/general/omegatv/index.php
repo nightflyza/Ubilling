@@ -17,6 +17,18 @@ if (@$us_config['OM_ENABLED']) {
             rcms_redirect('?module=omegatv');
         }
 
+        //playlist deletion
+        if (la_CheckGet(array('deleteplaylist'))) {
+            $omegaFront->pushPlaylistDelete($_GET['deleteplaylist']);
+            rcms_redirect('?module=omegatv');
+        }
+
+        //new playlist creation
+        if (la_CheckGet(array('newplaylist'))) {
+            $omegaFront->pushPlaylistAssign();
+            rcms_redirect('?module=omegatv');
+        }
+
         //subscription for some tariff
         if (la_CheckGet(array('subscribe'))) {
             $subscribeResult = $omegaFront->pushSubscribeRequest($_GET['subscribe']);

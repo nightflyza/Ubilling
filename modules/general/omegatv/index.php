@@ -59,6 +59,15 @@ if (cfr('OMEGATV')) {
                 rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerid']);
             }
 
+            //deleting existing playlist for some user
+            if (wf_CheckGet(array('deleteplaylist', 'customerid'))) {
+                $deleteUniq = $_GET['deleteplaylist'];
+                $playlistDeleteLogin = $omega->getLocalCustomerLogin($_GET['customerid']);
+                $omega->deletePlaylist($_GET['customerid'], $deleteUniq);
+                log_register('OMEGATV PLAYLIST DELETE `' . $deleteUniq . '` FOR (' . $playlistDeleteLogin . ') AS [' . $_GET['customerid'] . ']');
+                rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerid']);
+            }
+
             //json ajax data for subscribers list
             if (wf_CheckGet(array('ajuserlist'))) {
                 $omega->ajUserList();
@@ -92,6 +101,16 @@ if (cfr('OMEGATV')) {
             //user device assign
             if (wf_CheckPost(array('manualassigndevice', 'manualassigndevicecustomerid', 'manualassigndeviceuniq'))) {
                 $assignResult = $omega->assignDeviceManual();
+                if (empty($assignResult)) {
+                    rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
+                } else {
+                    show_error($assignResult);
+                }
+            }
+
+            //cretaion of new playlist
+            if (wf_CheckPost(array('manualassigndevicecustomerid', 'manualassigndevice', 'manualassignnewplaylist'))) {
+                $assignResult = $omega->assignPlaylistManual();
                 if (empty($assignResult)) {
                     rcms_redirect($omega::URL_SUBSCRIBER . $_GET['customerprofile']);
                 } else {
