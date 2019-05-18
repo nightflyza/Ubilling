@@ -228,7 +228,7 @@ class OmegaTvFrontend {
 
                     foreach ($currentPlaylists as $io => $each) {
                         $cells = la_TableCell($each['uniq']);
-                        $actDate=($each['activation_data']) ? date("Y-m-d H:i:s", $each['activation_data']) : '-' ;
+                        $actDate = ($each['activation_data']) ? date("Y-m-d H:i:s", $each['activation_data']) : '-';
                         $cells.= la_TableCell($actDate);
                         $playlistControls = la_Link($each['url'], __('Playlist'));
                         $cells.= la_TableCell($playlistControls);
