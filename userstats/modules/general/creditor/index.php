@@ -179,6 +179,13 @@ if ($us_config['SC_ENABLED']) {
 
     $tariffprice = zbs_UserGetTariffPrice($tariff);
     $tariffprice+=$vs_price;
+    if (isset($us_config['SC_DAILY_FIX'])) {
+        if ($us_config['SC_DAILY_FIX']) {
+            $tariffprice=$tariffprice*$us_config['SC_TERM'];
+        }
+    }
+   
+
     $cday = date("d");
 
 //welcome message
