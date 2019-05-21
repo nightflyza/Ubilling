@@ -126,6 +126,8 @@ function zbs_CreditCheckAllowed($sc_allowed, $usertariff) {
 /**
  * Sets credit for user, logs it, sets expire date and redirects in main profile
  * 
+ * @global array $us_config
+ * 
  * @param string $user_login
  * @param float  $tariffprice
  * @param int    $sc_price
@@ -135,6 +137,7 @@ function zbs_CreditCheckAllowed($sc_allowed, $usertariff) {
  *  @return void
  */
 function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid) {
+    global $us_config;
     $creditLimit = $tariffprice + $sc_price;
     zbs_CreditLogPush($user_login);
     billing_setcredit($user_login, $creditLimit);
@@ -143,6 +146,20 @@ function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc
     billing_addcash($user_login, '-' . $sc_price);
     log_register('CHANGE Credit (' . $user_login . ') ON ' . $creditLimit);
     show_window('', __('Now you have a credit'));
+    if (isset($us_config['SC_MTAPI_FIX'])) {
+        if ($us_config['SC_MTAPI_FIX']) {
+            //Reset via Down flag
+            if ($us_config['SC_MTAPI_FIX'] == 1) {
+                executor('-u ' . $user_login . ' -d 1');
+                executor('-u ' . $user_login . ' -d 0');
+            }
+            //Reset via AO flag
+            if ($us_config['SC_MTAPI_FIX'] == 2) {
+                executor('-u ' . $user_login . ' --always-online 0');
+                executor('-u ' . $user_login . ' --always-online 1');
+            }
+        }
+    }
     rcms_redirect("index.php");
 }
 
@@ -181,10 +198,10 @@ if ($us_config['SC_ENABLED']) {
     $tariffprice+=$vs_price;
     if (isset($us_config['SC_DAILY_FIX'])) {
         if ($us_config['SC_DAILY_FIX']) {
-            $tariffprice=$tariffprice*$us_config['SC_TERM'];
+            $tariffprice = $tariffprice * $us_config['SC_TERM'];
         }
     }
-   
+
 
     $cday = date("d");
 
