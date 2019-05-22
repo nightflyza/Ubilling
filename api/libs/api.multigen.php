@@ -587,7 +587,8 @@ class MultiGen {
         //some additional username types
         if ((isset($this->altCfg[self::OPTION_SWASSIGN])) AND ( isset($this->altCfg[self::OPTION_QINQ]))) {
             if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
-                $this->usernameTypes['qinq'] = __('QinQ');
+                $this->usernameTypes['qinq'] = __('QinQ') . ' ' . __('default');
+                $this->usernameTypes['qinqju'] = __('QinQ') . ' ' . __('JunOS like');
             }
         }
 
@@ -1955,16 +1956,19 @@ class MultiGen {
                 $result = $userLogin;
                 break;
             case 'ip':
-                $result = $userData['ip'];
+                $result = @$userData['ip'];
                 break;
             case 'mac':
-                $result = $userData['mac'];
+                $result = @$userData['mac'];
                 break;
             case 'macju':
-                $result = $this->transformMacDotted($userData['mac']);
+                $result = @$this->transformMacDotted($userData['mac']);
                 break;
             case 'qinq':
-                $result = $this->getSwitchesQinQUsername($userLogin);
+                $result = $this->getSwitchesQinQUsername($userLogin, '.');
+                break;
+            case 'qinqju':
+                $result = $this->getSwitchesQinQUsername($userLogin, '-');
                 break;
         }
         return ($result);
@@ -1974,10 +1978,11 @@ class MultiGen {
      * Returns default switch based QinQ username
      * 
      * @param string $userLogin
+     * @param string $delimiter
      * 
      * @return string/void
      */
-    protected function getSwitchesQinQUsername($userLogin) {
+    protected function getSwitchesQinQUsername($userLogin, $delimiter = '.') {
         $result = '';
         if (isset($this->userSwitchAssigns[$userLogin])) {
             $assignData = $this->userSwitchAssigns[$userLogin];
@@ -1986,7 +1991,7 @@ class MultiGen {
             if (isset($this->switchesQinQ[$assignedSwitchId])) {
                 $qinqData = $this->switchesQinQ[$assignedSwitchId];
                 if (!empty($assignedPort)) {
-                    $result .= $qinqData['svlan'] . '.' . ($qinqData['cvlan'] + ($assignedPort - 1));
+                    $result .= $qinqData['svlan'] . $delimiter . ($qinqData['cvlan'] + ($assignedPort - 1));
                 }
             }
         }
