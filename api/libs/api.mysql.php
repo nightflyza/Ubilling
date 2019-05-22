@@ -10,7 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Debug on/off
+ * Debug on/off flag
  */
 define("DEBUG", 0);
 $query_counter = 0;
@@ -20,7 +20,6 @@ if (!extension_loaded('mysql')) {
     $ubillingDatabaseDriver = 'mysqli';
     /**
      * MySQLi database layer
-     *
      */
     if (!($db_config = @parse_ini_file('config/' . 'mysql.ini'))) {
         print('Cannot load mysql configuration');
@@ -41,8 +40,8 @@ if (!extension_loaded('mysql')) {
     /**
      * Escapes special characters in a string for use in an SQL statement, taking into account the current charset of the connection
      * 
-     * @global mysqli $loginDB
-     * @param aata to filter $parametr
+     * @global object $loginDB
+     * @param  string $parametr data to filter
      * 
      * @return string
      */
@@ -72,6 +71,7 @@ if (!extension_loaded('mysql')) {
      * 
      * @global int $query_counter
      * @param string $query
+     * 
      * @return array
      */
     function simple_queryall($query) {
@@ -114,6 +114,8 @@ if (!extension_loaded('mysql')) {
      * @param string $value
      * @param string $where
      * @param bool $NoQuotesAroundValue
+     * 
+     * @return void
      */
     function simple_update_field($tablename, $field, $value, $where = '', $NoQuotesAroundValue = false) {
         $tablename = loginDB_real_escape_string($tablename);
@@ -133,6 +135,7 @@ if (!extension_loaded('mysql')) {
      * Returns last used `id` field available in some table
      * 
      * @param string $tablename
+     * 
      * @return int
      */
     function simple_get_lastid($tablename) {
@@ -147,6 +150,7 @@ if (!extension_loaded('mysql')) {
      * 
      * @global int $query_counter
      * @param string $query
+     * 
      * @return mixed
      */
     function nr_query($query) {
@@ -163,8 +167,7 @@ if (!extension_loaded('mysql')) {
     $ubillingDatabaseDriver = 'mysql';
 
     /**
-     * MySQL database old driver abstraction class
-     *
+     * MySQL database old driver abstraction class. Used for PHP <7 legacy.
      */
     class MySQLDB {
 
@@ -230,7 +233,7 @@ if (!extension_loaded('mysql')) {
          * @param string $query
          * @return MySQL result
          */
-        function query($query) {
+        public function query($query) {
             // use escape/vf function for input data.
             $result = @mysql_query($query, $this->connection) or $this->db_error(0, $query);
             $this->last_query_num++;
@@ -243,7 +246,7 @@ if (!extension_loaded('mysql')) {
          * @param string $query
          * @param bool $assoc
          */
-        function ExecuteReader($query, $assoc = true) {
+        public function ExecuteReader($query, $assoc = true) {
             $this->lastresult = $this->query($query);
             $this->assoc = $assoc;
         }
@@ -254,7 +257,7 @@ if (!extension_loaded('mysql')) {
          * @param string $query
          * @return MySQL result
          */
-        function ExecuteNonQuery($query) {
+        public function ExecuteNonQuery($query) {
             $result = $this->query($query);
             return (mysql_affected_rows() == 0 ? false : $result);
         }
@@ -264,7 +267,7 @@ if (!extension_loaded('mysql')) {
          *
          * @return array
          */
-        function Read() {
+        public function Read() {
             if ($this->assoc) {
                 $result = @mysql_fetch_assoc($this->lastresult) or false;
             } else {
@@ -277,17 +280,19 @@ if (!extension_loaded('mysql')) {
          * Returns one row from the current query result
          *
          * @param int $row
+         * 
          * @return string
          */
-        function ReadSingleRow($row) {
+        public function ReadSingleRow($row) {
             return mysql_result($this->lastresult, $row) or false;
         }
 
         /**
          * Prints MySQL error message; swithing DEBUG, prints MySQL error description or sends it to administrator
          *
+         * @return void
          */
-        function db_error($show = 0, $query = '') {
+        public function db_error($show = 0, $query = '') {
             global $system;
             if (!in_array(mysql_errno(), array(1062, 1065, 1191))) { // Errcodes in array are handled at another way :)
                 if (DEBUG == 1 || $show == 1) {
@@ -307,9 +312,10 @@ if (!extension_loaded('mysql')) {
          * Escapes string to use in SQL query
          *
          * @param string $string
+         * 
          * @return string
          */
-        function escape($string) {
+        public function escape($string) {
             if (!get_magic_quotes_gpc())
                 return mysql_real_escape_string($string, $this->connection);
             else
@@ -319,8 +325,9 @@ if (!extension_loaded('mysql')) {
         /**
          * Disconnects from database server
          *
+         * @return void
          */
-        function disconnect() {
+        public function disconnect() {
             @mysql_close($this->connection);
         }
 
@@ -331,6 +338,7 @@ if (!extension_loaded('mysql')) {
      * 
      * @global int $query_counter
      * @param string $query
+     * 
      * @return array
      */
     function simple_queryall($query) {
@@ -352,6 +360,7 @@ if (!extension_loaded('mysql')) {
      * 
      * @global int $query_counter
      * @param string $query
+     * 
      * @return array
      */
     function simple_query($query) {
@@ -373,6 +382,8 @@ if (!extension_loaded('mysql')) {
      * @param string $value
      * @param string $where
      * @param bool $NoQuotesAroundValue
+     * 
+     * @return void
      */
     function simple_update_field($tablename, $field, $value, $where = '', $NoQuotesAroundValue = false) {
         $tablename = mysql_real_escape_string($tablename);
@@ -392,6 +403,7 @@ if (!extension_loaded('mysql')) {
      * Returns last used `id` field available in some table
      * 
      * @param string $tablename
+     * 
      * @return int
      */
     function simple_get_lastid($tablename) {
@@ -406,6 +418,7 @@ if (!extension_loaded('mysql')) {
      * 
      * @global int $query_counter
      * @param string $query
+     * 
      * @return mixed
      */
     function nr_query($query) {
@@ -434,6 +447,7 @@ if (!extension_loaded('mysql')) {
  *
  * @param string $data
  * @param int $mode
+ * 
  * @return string
  */
 function vf($data, $mode = 0) {
