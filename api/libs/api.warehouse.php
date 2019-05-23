@@ -3369,8 +3369,8 @@ class Warehouse {
                 foreach ($this->allOutcoming as $io => $each) {
                     if ($each['itemtypeid'] == $itemtypeId) {
                         if ($each['price'] != 0) {
-                            $totalSumm+=(abs($each['price']) * $each['count']);
-                            $itemsCount+=$each['count'];
+                            $totalSumm-=(abs($each['price']) * $each['count']);
+                            $itemsCount-=$each['count'];
                         }
                     }
                 }
