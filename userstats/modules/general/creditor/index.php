@@ -198,11 +198,11 @@ if ($us_config['SC_ENABLED']) {
     $tariffprice+=$vs_price;
     if (isset($us_config['SC_DAILY_FIX'])) {
         if ($us_config['SC_DAILY_FIX']) {
-            $tariffprice = $tariffprice * $us_config['SC_TERM'];
+            $tariffprice = abs($current_cash) + ($tariffprice * $us_config['SC_TERM']);
         }
     }
 
-
+    
     $cday = date("d");
 
 //welcome message
