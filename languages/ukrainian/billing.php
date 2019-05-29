@@ -3092,5 +3092,8 @@ $lang['def']['Charged'] = 'Нараховано';
 $lang['def']['Other'] = 'Інше';
 $lang['def']['right to control warehouse reports'] = 'Право переглядати звіти складу';
 $lang['def']['It looks like another MAC which is not assigned to this user has replied to requests'] = 'Схоже, що якийсь інший MAC, не присвоєний абоненту відповідає на запити';
-
+$lang['def']['Signups map'] = 'Мапа підключень';
+$lang['def']['Builds without geo location assigned'] = 'Будинків з неприсвоєними гео координатами';
+$lang['def']['Already deleted users'] = 'Користувачів вже видалено';
+$lang['def']['Users rendered on map'] = 'Користувачів відрендерено на мапі';
 ?>

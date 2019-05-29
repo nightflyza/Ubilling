@@ -562,10 +562,11 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
+ * @param bool    $allTime
+ * 
  * @return  string
- *
  */
-function wf_MonthSelector($name, $label, $selected = '', $br = false) {
+function wf_MonthSelector($name, $label, $selected = '', $br = false, $allTime = false) {
     $allmonth = months_array();
     $params = array();
 
@@ -591,6 +592,11 @@ function wf_MonthSelector($name, $label, $selected = '', $br = false) {
             }
             $result .= '<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
+    }
+
+    if ($allTime) {
+        $selectedM = ($selected== '1488') ? 'SELECTED' : ''; // yep, this required to passing vf() checks and empty() checks.
+        $result.= '<option value="1488"  ' . $selectedM . '>' . __('All time') . '</option>';
     }
 
     $result .= '</select>' . "\n";

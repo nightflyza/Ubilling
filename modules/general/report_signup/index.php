@@ -110,7 +110,15 @@ if (cfr('REPORTSIGNUP')) {
             $result.= ' ' . $aliveStats['alive'] . ' ' . __('of them remain active');
             $result.= ' ' . __('and') . ' ' . $aliveStats['dead'] . ' ' . wf_Link('?module=report_signup&showdeadusers=' . $year, __('now is dead')) . ' (' . zb_PercentValue($aliveStats['total'], $aliveStats['dead']) . '%)';
         }
-        show_window(__('User signups by year') . ' ' . $year, $result);
+
+        $sigMapLinkControls = '';
+        if (cfr('REPORTSIGNUP') AND cfr('USERSMAP')) {
+            $sigMapLinkControls.=wf_tag('div', false, '', 'style="float:right; padding-top: 0px;"');
+            $sigMapLinkControls.=wf_Link('?module=report_sigmap', wf_img_sized('skins/swmapsmall.png', '', '12') . ' ' . __('Signups map'), false, 'ubButton');
+            $sigMapLinkControls.=wf_tag('div', true);
+        }
+
+        show_window(__('User signups by year') . ' ' . $year, $result . $sigMapLinkControls);
     }
 
     /**
