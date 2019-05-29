@@ -757,9 +757,11 @@ function zbs_PaymentIDGet($login) {
  * Returns tariff speed
  * 
  * @param string $tariff
+ * @param bool $raw
+ * 
  * @return string
  */
-function zbs_TariffGetSpeed($tariff) {
+function zbs_TariffGetSpeed($tariff, $raw = false) {
     $offset = 1024;
     $query = "SELECT * from `speeds` where `Tariff`='" . $tariff . "'";
     $speedData = simple_query($query);
@@ -770,6 +772,10 @@ function zbs_TariffGetSpeed($tariff) {
                 $result = $speedData['speeddown'] . ' ' . __('Kbit/s');
             } else {
                 $result = ($speedData['speeddown'] / $offset) . ' ' . __('Mbit/s');
+            }
+
+            if ($raw) {
+                $result = $speedData['speeddown'];
             }
         } else {
             $result = __('Unlimited');
@@ -1040,15 +1046,26 @@ function zbs_UserShowProfile($login) {
 
     //tariff speeds
     if ($us_config['SHOW_SPEED']) {
+        $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
         $speedOffset = 1024;
         $userSpeedOverride = zbs_SpeedGetOverride($login);
         if ($userSpeedOverride == 0) {
-            $showSpeed = zbs_TariffGetSpeed($userdata['Tariff']);
+            $showSpeed = zbs_TariffGetSpeed($userdata['Tariff'], $rawSpeedMbits);
         } else {
-            if ($userSpeedOverride < $speedOffset) {
-                $showSpeed = $userSpeedOverride . ' ' . __('Kbit/s');
+            if (!$rawSpeedMbits) {
+                if ($userSpeedOverride < $speedOffset) {
+                    $showSpeed = $userSpeedOverride . ' ' . __('Kbit/s');
+                } else {
+                    $showSpeed = ($userSpeedOverride / $speedOffset) . ' ' . __('Mbit/s');
+                }
             } else {
-                $showSpeed = ($userSpeedOverride / $speedOffset) . ' ' . __('Mbit/s');
+                $showSpeed = $userSpeedOverride;
+            }
+        }
+
+        if ($rawSpeedMbits) {
+            if (is_numeric($showSpeed)) {
+                $showSpeed.=' ' . __('Mbit/s');
             }
         }
 
