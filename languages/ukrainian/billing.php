@@ -3096,4 +3096,9 @@ $lang['def']['Signups map'] = 'Мапа підключень';
 $lang['def']['Builds without geo location assigned'] = 'Будинків з неприсвоєними гео координатами';
 $lang['def']['Already deleted users'] = 'Користувачів вже видалено';
 $lang['def']['Users rendered on map'] = 'Користувачів відрендерено на мапі';
+$lang['def']['File parsing error'] = 'Помилка парсингу файлу';
+$lang['def']['Error message'] = 'Повідомлення про помилку';
+$lang['def']['Telepathy'] = 'Телепатія';
+$lang['def'][''] = '';
+
 ?>
