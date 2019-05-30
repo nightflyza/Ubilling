@@ -158,9 +158,9 @@ if (cfr('BANKSTA2')) {
         }
 
         if (wf_CheckGet(array('proceedstatementimport'))) {
-            $Banksta->processBankStatement(unserialize(base64_decode(zb_StorageGet('BANKSTA2_STATEMENT_DATA'))),
-                                           unserialize(base64_decode(zb_StorageGet('BANKSTA2_STATEMENT_FILEDATA'))));
-            rcms_redirect($Banksta::URL_BANKSTA2_BANKSTALIST);
+            $statementFileData = unserialize(base64_decode(zb_StorageGet('BANKSTA2_STATEMENT_FILEDATA')));
+            $Banksta->processBankStatement(unserialize(base64_decode(zb_StorageGet('BANKSTA2_STATEMENT_DATA'))), $statementFileData);
+            rcms_redirect($Banksta::URL_BANKSTA2_PROCESSING . $statementFileData['hash']);
         }
 
         if (wf_CheckPost(array('import_rawdata'))) {
