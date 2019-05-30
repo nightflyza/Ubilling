@@ -523,7 +523,7 @@ class Banksta2 {
                 $fileHash = md5($fileContent);
                 $fileContent = ''; //free some memory
 
-                if ($this->checkHash($fileHash)) {
+                if (!$this->checkHashExists($fileHash)) {
                     $result = array(
                                     'filename' => $_FILES['uploadbnksta2']['name'],
                                     'savedname' => $fileName,
@@ -545,19 +545,19 @@ class Banksta2 {
     }
 
     /**
-     * checks is banksta hash unique?
+     * checks if banksta hash exists?
      *
      * @param string $hash  bank statement raw content hash
      *
      * @return bool
      */
-    protected function checkHash($hash) {
+    protected function checkHashExists($hash) {
         $query = "SELECT `id` FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash`='" . $hash . "'";
         $data = simple_query($query);
         if (empty($data)) {
-            return (true);
-        } else {
             return (false);
+        } else {
+            return (true);
         }
     }
 
@@ -844,14 +844,14 @@ class Banksta2 {
             $cells = wf_TableCell($i);
             $cancelRow = 0;
 
-            $realname = ($importOpts['col_realname'] != 'NONE') ? $eachRow[$importOpts['col_realname']] : '';
-            $address  = ($importOpts['col_address'] != 'NONE') ? $eachRow[$importOpts['col_address']] : '';
-            $notes    = ($importOpts['col_paypurpose'] != 'NONE') ? $eachRow[$importOpts['col_paypurpose']] : '';
-            $ptime    = ($importOpts['col_paytime'] != 'NONE') ? $eachRow[$importOpts['col_paytime']] : '';
+            $realname = ($importOpts['col_realname'] !== 'NONE') ? $eachRow[$importOpts['col_realname']] : '';
+            $address  = ($importOpts['col_address'] !== 'NONE') ? $eachRow[$importOpts['col_address']] : '';
+            $notes    = ($importOpts['col_paypurpose'] !== 'NONE') ? $eachRow[$importOpts['col_paypurpose']] : '';
+            $ptime    = ($importOpts['col_paytime'] !== 'NONE') ? $eachRow[$importOpts['col_paytime']] : '';
             $summ     = $eachRow[$importOpts['col_paysum']];
             $pdate    = $eachRow[$importOpts['col_paydate']];
-            $contract = ($importOpts['col_contract'] != 'NONE') ? $eachRow[$importOpts['col_contract']] : '';
-            $skipRowContent = ($importOpts['col_skiprow'] != 'NONE') ? $eachRow[$importOpts['col_skiprow']] : '';
+            $contract = ($importOpts['col_contract'] !== 'NONE') ? $eachRow[$importOpts['col_contract']] : '';
+            $skipRowContent = ($importOpts['col_skiprow'] !== 'NONE') ? $eachRow[$importOpts['col_skiprow']] : '';
             $service_type   = $serviceType;
             $srvTypeMatched = false;
 
@@ -1576,41 +1576,43 @@ class Banksta2 {
      */
     public function web_BSProcessingForm($hash) {
         $hash = mysql_real_escape_string($hash);
-        $tQuery = "SELECT * FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash`='" . $hash . "' ORDER BY `id` ASC;";
-        $tQueryResult = simple_queryall($tQuery);
-        $cashPairs = array();
-        $tServices = array('' => __('-'),
-                           'Internet' => __('Internet'),
-                           'UKV' => __('UKV')
-                          );
 
-        $cells = wf_TableCell(__('ID'));
-        $cells .= wf_TableCell(__('Statement Address'));
-        $cells .= wf_TableCell(__('Statement Real Name'));
-        $cells .= wf_TableCell(__('Statement Contract'));
-        $cells .= wf_TableCell(__('Service type'));
-        $cells .= wf_TableCell(__('Edit record'));
-        $cells .= wf_TableCell(__('Payment ID'));
-        $cells .= wf_TableCell(__('Cash'));
-        $cells .= wf_TableCell(__('Processed'));
-        $cells .= wf_TableCell(__('Canceled'));
-        $cells .= wf_TableCell(__('Contract'));
-        $cells .= wf_TableCell(__('Real Name'));
-        $cells .= wf_TableCell(__('Address'));
-        $cells .= wf_TableCell(__('Tariff'));
-        $rows = wf_TableRow($cells, 'row1');
+        if ($this->checkHashExists($hash)) {
+            $tQuery = "SELECT * FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash`='" . $hash . "' ORDER BY `id` ASC;";
+            $tQueryResult = simple_queryall($tQuery);
+            $cashPairs = array();
+            $tServices = array('' => __('-'),
+                'Internet' => __('Internet'),
+                'UKV' => __('UKV')
+            );
 
-        if (!empty($tQueryResult)) {
-            foreach ($tQueryResult as $io => $eachRec) {
-                $recProcessed = ($eachRec['processed']) ? true : false;
-                $recCanceled  = ($eachRec['canceled']) ? true : false;
-                $serviceType  = trim($eachRec['service_type']);
-                $detailsWinID = wf_InputId();
-                $lnkID        = wf_InputId();
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Statement Address'));
+            $cells .= wf_TableCell(__('Statement Real Name'));
+            $cells .= wf_TableCell(__('Statement Contract'));
+            $cells .= wf_TableCell(__('Service type'));
+            $cells .= wf_TableCell(__('Edit record'));
+            $cells .= wf_TableCell(__('Payment ID'));
+            $cells .= wf_TableCell(__('Cash'));
+            $cells .= wf_TableCell(__('Processed'));
+            $cells .= wf_TableCell(__('Canceled'));
+            $cells .= wf_TableCell(__('Contract'));
+            $cells .= wf_TableCell(__('Real Name'));
+            $cells .= wf_TableCell(__('Address'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $rows = wf_TableRow($cells, 'row1');
 
-                $addInfoControl = wf_Link('#', $eachRec['id'], false, '', ' id="' . $lnkID . '" ');
-                $addInfoControl .= wf_tag('script', false, '', 'type="text/javascript"');
-                $addInfoControl .=  '$(\'#' . $lnkID . '\').click(function(evt) {
+            if (!empty($tQueryResult)) {
+                foreach ($tQueryResult as $io => $eachRec) {
+                    $recProcessed = ($eachRec['processed']) ? true : false;
+                    $recCanceled = ($eachRec['canceled']) ? true : false;
+                    $serviceType = trim($eachRec['service_type']);
+                    $detailsWinID = wf_InputId();
+                    $lnkID = wf_InputId();
+
+                    $addInfoControl = wf_Link('#', $eachRec['id'], false, '', ' id="' . $lnkID . '" ');
+                    $addInfoControl .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $addInfoControl .= '$(\'#' . $lnkID . '\').click(function(evt) {
                                         $.ajax({
                                             type: "GET",
                                             url: "' . self::URL_ME . '",
@@ -1628,134 +1630,136 @@ class Banksta2 {
                                         return false;
                                      });
                                     ';
-                $addInfoControl .= wf_tag('script', true);
+                    $addInfoControl .= wf_tag('script', true);
 
-                $cells = wf_TableCell($addInfoControl);
-                $cells .= wf_TableCell($eachRec['address']);
-                $cells .= wf_TableCell($eachRec['realname']);
+                    $cells = wf_TableCell($addInfoControl);
+                    $cells .= wf_TableCell($eachRec['address']);
+                    $cells .= wf_TableCell($eachRec['realname']);
 
-                if ($recProcessed) {
-                    if ($recCanceled) {
-                        $editInputs = wf_CheckInput('recallrowprocessing', __('Recall record processing'), false, false);
+                    if ($recProcessed) {
+                        if ($recCanceled) {
+                            $editInputs = wf_CheckInput('recallrowprocessing', __('Recall record processing'), false, false);
+                            $editInputs .= wf_HiddenInput('bankstaeditrowid', $eachRec['id']);
+                            $editInputs .= wf_delimiter(0);
+                            $editInputs .= wf_Submit(__('Save'));
+                            $editForm = wf_Form('', 'POST', $editInputs);
+                        } else {
+                            $editForm = __('Record processed');
+                        }
+
+                        $cells .= wf_TableCell($eachRec['contract']);
+                        $cells .= wf_TableCell($serviceType);
+                        $cells .= wf_TableCell($editForm);
+                    } else {
+                        $formID = wf_InputId();
+                        $cells .= wf_TableCell(wf_TextInput('newbankstacontract', '', $eachRec['contract'], false, '6', '', '', '', 'form="' . $formID . '"'));
+                        $cells .= wf_TableCell(wf_Selector('newbankstarvtype', $tServices, '', $serviceType, '', '', '', '', 'form="' . $formID . '"'));
+
+                        $editInputs = wf_CheckInput('cancelrowprocessing', __('Cancel record processing'), false, false);
                         $editInputs .= wf_HiddenInput('bankstaeditrowid', $eachRec['id']);
                         $editInputs .= wf_delimiter(0);
                         $editInputs .= wf_Submit(__('Save'));
-                        $editForm = wf_Form('', 'POST', $editInputs);
-                    } else {
-                        $editForm = __('Record processed');
+                        $editForm = wf_Form('', 'POST', $editInputs, '', '', $formID);
+
+                        $cells .= wf_TableCell($editForm);
                     }
 
-                    $cells .= wf_TableCell($eachRec['contract']);
-                    $cells .= wf_TableCell($serviceType);
-                    $cells .= wf_TableCell($editForm);
-                } else {
-                    $formID = wf_InputId();
-                    $cells .= wf_TableCell(wf_TextInput('newbankstacontract', '', $eachRec['contract'], false, '6', '', '', '', 'form="' . $formID . '"'));
-                    $cells .= wf_TableCell(wf_Selector('newbankstarvtype', $tServices, '', $serviceType, '', '', '', '', 'form="' . $formID . '"'));
-
-                    $editInputs = wf_CheckInput('cancelrowprocessing', __('Cancel record processing'), false, false);
-                    $editInputs .= wf_HiddenInput('bankstaeditrowid', $eachRec['id']);
-                    $editInputs .= wf_delimiter(0);
-                    $editInputs .= wf_Submit(__('Save'));
-                    $editForm = wf_Form('', 'POST', $editInputs, '', '', $formID);
-
-                    $cells .= wf_TableCell($editForm);
-                }
-
-                $cells .= wf_TableCell($eachRec['payid']);
-                $cells .= wf_TableCell($eachRec['summ']);
-                $cells .= wf_TableCell(web_bool_led($recProcessed));
-                $cells .= wf_TableCell(web_bool_led($recCanceled));
+                    $cells .= wf_TableCell($eachRec['payid']);
+                    $cells .= wf_TableCell($eachRec['summ']);
+                    $cells .= wf_TableCell(web_bool_led($recProcessed));
+                    $cells .= wf_TableCell(web_bool_led($recCanceled));
 
 //user detection
-                $detectedContract = '';
-                $detectedAddress = '';
-                $detectedRealName = '';
-                $detectedTariff = '';
-                if ($eachRec['processed'] == 1) {
-                    $rowClass = 'row2';
-                } else {
-                    $rowClass = 'undone';
-                }
+                    $detectedContract = '';
+                    $detectedAddress = '';
+                    $detectedRealName = '';
+                    $detectedTariff = '';
+                    if ($eachRec['processed'] == 1) {
+                        $rowClass = 'row2';
+                    } else {
+                        $rowClass = 'undone';
+                    }
 
-                switch (strtolower($serviceType)) {
-                    case ('internet'):
-                        if (isset($this->allContractsInet[$eachRec['contract']])) {
-                            $detectedUser       = $this->allUsersDataInet[$this->allContractsInet[$eachRec['contract']]];
-                            $detectedContract   = wf_Link(self::URL_USERS_PROFILE_INET . $detectedUser['login'], web_profile_icon() . ' ' . $detectedUser['contract'], false, '');
-                            $detectedAddress    = $detectedUser['fulladress'];
-                            $detectedRealName   = $detectedUser['realname'];
-                            $detectedTariff     = $detectedUser['Tariff'];
+                    switch (strtolower($serviceType)) {
+                        case ('internet'):
+                            if (isset($this->allContractsInet[$eachRec['contract']])) {
+                                $detectedUser = $this->allUsersDataInet[$this->allContractsInet[$eachRec['contract']]];
+                                $detectedContract = wf_Link(self::URL_USERS_PROFILE_INET . $detectedUser['login'], web_profile_icon() . ' ' . $detectedUser['contract'], false, '');
+                                $detectedAddress = $detectedUser['fulladress'];
+                                $detectedRealName = $detectedUser['realname'];
+                                $detectedTariff = $detectedUser['Tariff'];
 
-                            if (!$recProcessed) {
-                                $cashPairs[$eachRec['id']]['bankstaid']     = $eachRec['id'];
-                                $cashPairs[$eachRec['id']]['userlogin']     = $detectedUser['login'];
-                                $cashPairs[$eachRec['id']]['usercontract']  = $detectedUser['contract'];
-                                $cashPairs[$eachRec['id']]['summ']          = $eachRec['summ'];
-                                $cashPairs[$eachRec['id']]['payid']         = $this->inetPaymentId;
-                                $cashPairs[$eachRec['id']]['service']       = $serviceType;
-                            }
+                                if (!$recProcessed) {
+                                    $cashPairs[$eachRec['id']]['bankstaid'] = $eachRec['id'];
+                                    $cashPairs[$eachRec['id']]['userlogin'] = $detectedUser['login'];
+                                    $cashPairs[$eachRec['id']]['usercontract'] = $detectedUser['contract'];
+                                    $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
+                                    $cashPairs[$eachRec['id']]['payid'] = $this->inetPaymentId;
+                                    $cashPairs[$eachRec['id']]['service'] = $serviceType;
+                                }
 
-                            $rowClass = 'row3';
+                                $rowClass = 'row3';
 //try to highlight multiple payments
-                            if (!isset($this->bankstaFoundUsers[$eachRec['contract']])) {
-                                $this->bankstaFoundUsers[$eachRec['contract']] = $detectedUser['login'];
-                            } else {
-                                $rowClass = 'ukvbankstadup';
+                                if (!isset($this->bankstaFoundUsers[$eachRec['contract']])) {
+                                    $this->bankstaFoundUsers[$eachRec['contract']] = $detectedUser['login'];
+                                } else {
+                                    $rowClass = 'ukvbankstadup';
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    case ('ukv'):
-                        if (isset($this->allContractsUKV[$eachRec['contract']])) {
-                            $detectedUser       = $this->allUsersDataUKV[$this->allContractsUKV[$eachRec['contract']]];
-                            $detectedContract   = wf_Link(self::URL_USERS_PROFILE_UKV . $detectedUser['id'], web_profile_icon() . ' ' . $detectedUser['contract'], false, '');
-                            $detectedAddress    = $detectedUser['street'] . ' ' . $detectedUser['build'] . '/' . $detectedUser['apt'];
-                            $detectedRealName   = $detectedUser['realname'];
-                            $detectedTariff     = $detectedUser['tariffid'];
-                            $detectedTariff     = $this->ukvTariffs[$detectedTariff]['tariffname'];
+                        case ('ukv'):
+                            if (isset($this->allContractsUKV[$eachRec['contract']])) {
+                                $detectedUser = $this->allUsersDataUKV[$this->allContractsUKV[$eachRec['contract']]];
+                                $detectedContract = wf_Link(self::URL_USERS_PROFILE_UKV . $detectedUser['id'], web_profile_icon() . ' ' . $detectedUser['contract'], false, '');
+                                $detectedAddress = $detectedUser['street'] . ' ' . $detectedUser['build'] . '/' . $detectedUser['apt'];
+                                $detectedRealName = $detectedUser['realname'];
+                                $detectedTariff = $detectedUser['tariffid'];
+                                $detectedTariff = $this->ukvTariffs[$detectedTariff]['tariffname'];
 
-                            if (!$recProcessed) {
-                                $cashPairs[$eachRec['id']]['bankstaid']     = $eachRec['id'];
-                                $cashPairs[$eachRec['id']]['userlogin']     = $detectedUser['id'];
-                                $cashPairs[$eachRec['id']]['usercontract']  = $detectedUser['contract'];
-                                $cashPairs[$eachRec['id']]['summ']          = $eachRec['summ'];
-                                $cashPairs[$eachRec['id']]['payid']         = $this->ukvPaymentId;
-                                $cashPairs[$eachRec['id']]['service']       = $serviceType;
-                            }
+                                if (!$recProcessed) {
+                                    $cashPairs[$eachRec['id']]['bankstaid'] = $eachRec['id'];
+                                    $cashPairs[$eachRec['id']]['userlogin'] = $detectedUser['id'];
+                                    $cashPairs[$eachRec['id']]['usercontract'] = $detectedUser['contract'];
+                                    $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
+                                    $cashPairs[$eachRec['id']]['payid'] = $this->ukvPaymentId;
+                                    $cashPairs[$eachRec['id']]['service'] = $serviceType;
+                                }
 
-                            $rowClass = 'row3';
+                                $rowClass = 'row3';
 //try to highlight multiple payments
-                            if (!isset($this->bankstaFoundUsers[$eachRec['contract']])) {
-                                $this->bankstaFoundUsers[$eachRec['contract']] = $detectedUser['id'];
-                            } else {
-                                $rowClass = 'ukvbankstadup';
+                                if (!isset($this->bankstaFoundUsers[$eachRec['contract']])) {
+                                    $this->bankstaFoundUsers[$eachRec['contract']] = $detectedUser['id'];
+                                } else {
+                                    $rowClass = 'ukvbankstadup';
+                                }
                             }
-                        }
-                        break;
+                            break;
 
-                    default:
-                        // maybe sometime in future here would be some defaults
+                        default:
+                            // maybe sometime in future here would be some defaults
+                    }
+
+                    $cells .= wf_TableCell($detectedContract);
+                    $cells .= wf_TableCell($detectedRealName);
+                    $cells .= wf_TableCell($detectedAddress);
+                    $cells .= wf_TableCell($detectedTariff);
+                    $rows .= wf_TableRow($cells, $rowClass);
                 }
-
-                $cells .= wf_TableCell($detectedContract);
-                $cells .= wf_TableCell($detectedRealName);
-                $cells .= wf_TableCell($detectedAddress);
-                $cells .= wf_TableCell($detectedTariff);
-                $rows .= wf_TableRow($cells, $rowClass);
             }
+
+            $result = wf_TableBody($rows, '100%', '0', '');
+
+            if (!empty($cashPairs)) {
+                $cashPairs = serialize($cashPairs);
+                $cashPairs = base64_encode($cashPairs);
+                $cashInputs = wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
+                $cashInputs .= wf_Submit(__('Process current bank statement'));
+                $result .= wf_Form('', 'POST', $cashInputs, 'glamour');
+            }
+        } else {
+            $result = $this->getUbMsgHelperInstance()->getStyledMessage(__('Specified bank statement hash does not exists'), 'warning');
         }
-
-        $result = wf_TableBody($rows, '100%', '0', '');
-
-        if (!empty($cashPairs)) {
-            $cashPairs = serialize($cashPairs);
-            $cashPairs = base64_encode($cashPairs);
-            $cashInputs = wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
-            $cashInputs .= wf_Submit(__('Process current bank statement'));
-            $result .= wf_Form('', 'POST', $cashInputs, 'glamour');
-        }
-
 
         return ($result);
     }
@@ -2065,7 +2069,7 @@ class Banksta2 {
         $contractGuessing = (empty($fmpData['guess_contract'])) ? false : true;
         $rowSkipping = (empty($fmpData['skip_row'])) ? false : true;
 
-        $inputs = wf_TextInput('fmpname', __(' Preset name'), $fmpData['presetname'], true, '', '', '__FMPEmptyCheck');
+        $inputs = wf_TextInput('fmpname', __('Preset name'), $fmpData['presetname'], true, '', '', '__FMPEmptyCheck');
 
         $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), $fmpData['col_realname'], false, '4'));
         $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), $fmpData['col_address'], false, '4'));
