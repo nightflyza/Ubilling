@@ -169,12 +169,13 @@ class Banksta2 {
     /**
      * Some banksta options
      */
-    const BANKSTA2_PATH = 'content/banksta2/';
+    const BANKSTA2_PATH = 'content/documents/banksta2/';
 
 
     public function __construct() {
-        $this->ubConfig = new UbillingConfig();
-        $this->billing = new ApiBilling();
+        global $ubillingConfig, $billing;
+        $this->ubConfig=$ubillingConfig;
+        $this->billing=$billing;
         $this->initMessages();
         $this->loadOptions();
         $this->loadUserDataInet();
@@ -1239,7 +1240,7 @@ class Banksta2 {
         $uploadinputs.= wf_delimiter(0);
         $uploadinputs.= wf_Selector('encoding', $encodings, __('Encoding') . ' (' . __('this setting does not have any effect on') . ' .XLS/.XLSX)', '', true);
         $uploadinputs.= wf_delimiter(0);
-        $uploadinputs.= wf_TextInput('skiprowscount', __('Skip certain numbers of rows in the .CSV/.TXT/.XLS/.XLSX (if those rows are empty, or contain fields captions, or whatever)'), 0, true, '4', 'digits');
+        $uploadinputs.= wf_TextInput('skiprowscount', __('Skip specified numbers of rows from the beginning of .CSV/.TXT/.XLS/.XLSX file (if those rows are empty, or contain fields captions, or whatever)'), 0, true, '4', 'digits');
         $uploadinputs.= wf_delimiter(0);
         $uploadinputs.= wf_CheckInput('usedbfcolnames', __('Use .DBF column names instead of record values in mapping visualizer'), true, false);
         $uploadinputs.= wf_tag('div', true);
@@ -1321,9 +1322,9 @@ class Banksta2 {
             $inputs.= wf_delimiter(0);
             $inputs.= wf_TextInput('bscontractdelimstart', __('Contract') . ' (' . __('Payment ID') . '): ' . __('start delimiter string'), '', true, '', '', '', 'BankstaContractDelimStart');
             $inputs.= wf_TextInput('bscontractdelimend', __('Contract') . ' (' . __('Payment ID') . '): ' . __('end delimiter string'), '', true, '', '', '', 'BankstaContractDelimEnd');
-            $inputs.= wf_delimiter(0);
+            $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 700px; padding: 11px 0 7px 0; color: #666; margin-block-end: 0; margin-block-start: 0;"');
             $inputs.= __('If your contracts(payment IDs) are 100% DIGITAL - you may specify their minimum and maximum length to extract them properly(delimiters will not be taken into account)');
-            $inputs.= wf_delimiter(0);
+            $inputs.= wf_tag('h4', true);
             $inputs.= wf_TextInput('bscontractminlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('min length'), '0', true, '', '', '', 'BankstaContractMinLen');
             $inputs.= wf_TextInput('bscontractmaxlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('max length'), '0', true, '', '', '', 'BankstaContractMaxLen');
             $inputs.= wf_tag('div', true);
@@ -1997,22 +1998,32 @@ class Banksta2 {
         $closeFormChkId = 'CloseFrmChkID_' . wf_InputId();
 
         $inputs = wf_TextInput('fmpname', __('Preset name'), '', true, '', '', '__FMPEmptyCheck');
-        $inputs.= wf_TextInput('fmpcolrealname', __('Real name column number'), '0', true, '4');
-        $inputs.= wf_TextInput('fmpcoladdr', __('Address column number'), '0', true, '4');
-        $inputs.= wf_TextInput('fmpcolpaysum', __('Payment sum column number'), '0', true, '4');
-        $inputs.= wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), '0', true, '4');
-        $inputs.= wf_TextInput('fmpcolpaydate', __('Payment date column number'), '0', true, '4');
-        $inputs.= wf_TextInput('fmpcolpaytime', __('Payment time column number'), '0', true, '4');
-        $inputs.= wf_delimiter(0);
+
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), '0', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), '0', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaysum', __('Payment sum column number'), '0', false, '4'));
+        $inputsrows = wf_TableRow($inputscells);
+
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), '0', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), '0', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), '0', true, '4'));
+        $inputsrows.= wf_TableRow($inputscells);
+        $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
+
+        $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number'), '0', true, '4');
-        $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field (ONLY, if mapped contract field for some row will be empty)'), true, false, 'BankstaTryGuessContract');
+        $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field'), true, false, 'BankstaTryGuessContract');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+        $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
+        $inputs.= wf_tag('h4', true);
         $inputs.= wf_TextInput('fmpcontractdelimstart', __('Contract') . ' (' . __('Payment ID') . '): ' . __('start delimiter string'), '', true, '', '', '', 'BankstaContractDelimStart');
         $inputs.= wf_TextInput('fmpcontractdelimend', __('Contract') . ' (' . __('Payment ID') . '): ' . __('end delimiter string'), '', true, '', '', '', 'BankstaContractDelimEnd');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 11px 0 7px 0; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('If your contracts(payment IDs) are 100% DIGITAL - you may specify their minimum and maximum length to extract them properly(delimiters will not be taken into account)');
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_tag('h4', true);
         $inputs.= wf_TextInput('fmpcontractminlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('min length'), '0', true, '', '', '', 'BankstaContractMinLen');
         $inputs.= wf_TextInput('fmpcontractmaxlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('max length'), '0', true, '', '', '', 'BankstaContractMaxLen');
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_Selector('fmpsrvtype', $this->bankstaServiceType, __('Service type'), '', true, false, 'BankstaSrvType');
         $inputs.= wf_TextInput('fmpinetdelimstart', __('Internet service before keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimStart');
         $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords divided with comas'), '', true, '40', '', '', 'BankstaInetKeyWords');
@@ -2021,9 +2032,9 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimStart');
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords divided with comas'), '', true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if selected field contains keywords below'), true, false, 'BankstaSkipRow');
-        $inputs.= wf_TextInput('fmpcolskiprow', __('Column to check row skipping'), '', true, '4', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_TextInput('fmpcolskiprow', __('Column to check row skipping'), '', true, '4', '', '', 'BankstaSkipRowKeyWordsCol');
         $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords divided with comas'), '', true, '40', '', '', 'BankstaSkipRowKeyWords');
         $inputs.= wf_delimiter(0);
 
@@ -2052,22 +2063,32 @@ class Banksta2 {
         $rowSkipping = (empty($fmpData['skip_row'])) ? false : true;
 
         $inputs = wf_TextInput('fmpname', __(' Preset name'), $fmpData['presetname'], true, '', '', '__FMPEmptyCheck');
-        $inputs.= wf_TextInput('fmpcolrealname', __('Real name column number'), $fmpData['col_realname'], true, '4');
-        $inputs.= wf_TextInput('fmpcoladdr', __('Address column number'), $fmpData['col_address'], true, '4');
-        $inputs.= wf_TextInput('fmpcolpaysum', __('Payment sum column number'), $fmpData['col_paysum'], true, '4');
-        $inputs.= wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), $fmpData['col_paypurpose'], true, '4');
-        $inputs.= wf_TextInput('fmpcolpaydate', __('Payment date column number'), $fmpData['col_paydate'], true, '4');
-        $inputs.= wf_TextInput('fmpcolpaytime', __('Payment time column number'), $fmpData['col_paytime'], true, '4');
-        $inputs.= wf_delimiter(0);
+
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), $fmpData['col_realname'], false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), $fmpData['col_address'], false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaysum', __('Payment sum column number'), $fmpData['col_paysum'], false, '4'));
+        $inputsrows = wf_TableRow($inputscells);
+
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), $fmpData['col_paypurpose'], false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), $fmpData['col_paydate'], false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), $fmpData['col_paytime'], true, '4'));
+        $inputsrows.= wf_TableRow($inputscells);
+        $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
+
+        $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number'), $fmpData['col_contract'], true, '4');
-        $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field (ONLY, if mapped contract field for some row will be empty)'), true, $contractGuessing, 'BankstaTryGuessContract');
+        $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field'), true, $contractGuessing, 'BankstaTryGuessContract');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+        $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
+        $inputs.= wf_tag('h4', true);
         $inputs.= wf_TextInput('fmpcontractdelimstart', __('Contract') . ' (' . __('Payment ID') . '): ' . __('start delimiter string'), $fmpData['contract_delim_start'], true, '', '', '', 'BankstaContractDelimStart');
         $inputs.= wf_TextInput('fmpcontractdelimend', __('Contract') . ' (' . __('Payment ID') . '): ' . __('end delimiter string'), $fmpData['contract_delim_end'], true, '', '', '', 'BankstaContractDelimEnd');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 11px 0 7px 0; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('If your contracts(payment IDs) are 100% DIGITAL - you may specify their minimum and maximum length to extract them properly(delimiters will not be taken into account)');
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_tag('h4', true);
         $inputs.= wf_TextInput('fmpcontractminlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('min length'), $fmpData['contract_min_len'], true, '', '', '', 'BankstaContractMinLen');
         $inputs.= wf_TextInput('fmpcontractmaxlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('max length'), $fmpData['contract_max_len'], true, '', '', '', 'BankstaContractMaxLen');
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_Selector('fmpsrvtype', $this->bankstaServiceType, __('Service type'), $fmpData['service_type'], true, false, 'BankstaSrvType');
         $inputs.= wf_TextInput('fmpinetdelimstart', __('Internet service before keywords delimiter string'), $fmpData['inet_srv_start_delim'], true, '', '', '', 'BankstaInetDelimStart');
         $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords divided with comas'), $fmpData['inet_srv_keywords'], true, '40', '', '', 'BankstaInetKeyWords');
@@ -2076,11 +2097,12 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), $fmpData['ukv_srv_start_delim'], true, '', '', '', 'BankstaUKVDelimStart');
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords divided with comas'), $fmpData['ukv_srv_keywords'], true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), $fmpData['ukv_srv_end_delim'], true, '', '', '', 'BankstaUKVDelimEnd');
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if selected field contains keywords below'), true, $rowSkipping, 'BankstaSkipRow');
-        $inputs.= wf_TextInput('fmpcolskiprow', __('Column to check row skipping'), $fmpData['col_skiprow'], true, '4', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_TextInput('fmpcolskiprow', __('Column to check row skipping'), $fmpData['col_skiprow'], true, '4', '', '', 'BankstaSkipRowKeyWordsCol');
         $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords divided with comas'), $fmpData['skip_row_keywords'], true, '40', '', '', 'BankstaSkipRowKeyWords');
         $inputs.= wf_delimiter(0);
+
         $inputs.= wf_CheckInput('formclose', __('Close form after operation'), false, true, $closeFormChkId, '__CloseFrmOnSubmitChk');
 
         $inputs.= wf_HiddenInput('', $modalWindowId, '', '__FMPFormModalWindowId');
