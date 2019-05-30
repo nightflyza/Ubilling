@@ -1316,7 +1316,10 @@ class Banksta2 {
 
             $inputs.= wf_delimiter(0);
             $inputs.= wf_Selector('bscontract_col', $bscontract_arr, __('User contract') . ' (' . __('Payment ID') . ')', '6', true);
-            $inputs.= wf_CheckInput('bstryguesscontract', __('Try to get contract from payment purpose field (ONLY, if mapped contract field for some row will be empty)'), true, false, 'BankstaTryGuessContract');
+            $inputs.= wf_CheckInput('bstryguesscontract', __('Try to get contract from payment purpose field'), true, false, 'BankstaTryGuessContract');
+            $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 700px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+            $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
+            $inputs.= wf_tag('h4', true);
             $inputs.= wf_tag('div', false, '', 'id="BankstaContractGuessingBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
             $inputs.= __('If it is possible that there are users contracts between start/end delimiters in payment purpose field of the bank statement - they will be extracted');
             $inputs.= wf_delimiter(0);
