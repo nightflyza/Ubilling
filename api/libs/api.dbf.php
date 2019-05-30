@@ -171,6 +171,7 @@ class dbf_class {
     }
 
     function getRowAssoc($recnum) {
+        $memoeot = chr(26) . chr(26);
         $rawrow = substr($this->_raw, $recnum * $this->_rowsize + $this->_hdrsize, $this->_rowsize);
         $rowrecs = array();
         $beg = 1;

@@ -74,8 +74,9 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '', $ctrlID = '') {
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '', $ctrlID = '', $options = '') {
     $inputid = ( empty($ctrlID) ) ? wf_InputId() : $ctrlID;
+    $opts = ( empty($options) ) ? '' : $options;
 
     //set size
     if ($size != '') {
@@ -102,7 +103,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'alphanumeric') ? 'pattern="[a-zA-Z0-9]+" placeholder="aZ09" title="' . __('This field can only contain Latin letters and numbers') . '"' : $pattern;
     $pattern = ($pattern == 'mac') ? 'pattern="^[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}$|^[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}-[a-fA-F0-9]{2}$" placeholder="00:02:02:34:72:a5" title="' . __('This MAC have wrong format') . '"' : $pattern;
 
-    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $pattern . '>' . "\n";
+    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
@@ -413,15 +414,18 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @return  string
  *
  */
-function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false, $CtrlID = '') {
+function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false, $CtrlID = '', $CtrlClass = '', $options = '') {
 
     $inputid = ( empty($CtrlID) ) ? wf_InputId() : $CtrlID;
+    $inputclass = ( empty($CtrlClass) ) ? '' : ' class="' . $CtrlClass . '"';
+    $opts = ( empty($options)) ? '' : ' ' . $options . ' ';
+
     if ($br) {
         $newline = '<br>';
     } else {
         $newline = '';
     }
-    $result = '<select name="' . $name . '" id="' . $inputid . '">';
+    $result = '<select name="' . $name . '" id="' . $inputid . '"' . $inputclass . $options . '>';
     if (!empty($params)) {
         ($sort) ? asort($params) : $params;
         foreach ($params as $value => $eachparam) {
@@ -801,7 +805,7 @@ function wf_TableRowStyled($cells, $class = '', $style = '') {
  * @return string
  *  
  */
-function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
+function wf_TableCell($data, $width = '', $class = '', $customkey = '', $colspan = '', $rowspan = '') {
     if ($width != '') {
         $cellwidth = 'width="' . $width . '"';
     } else {
@@ -817,7 +821,11 @@ function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
     } else {
         $customkey = '';
     }
-    $result = '<td ' . $cellwidth . ' ' . $cellclass . ' ' . $customkey . '>' . $data . '</td>' . "\n";
+
+    $colspan = (empty($colspan)) ? '' : 'colspan="' . $colspan . '"';
+    $rowspan = (empty($rowspan)) ? '' : 'rowspan="' . $rowspan . '"';
+
+    $result = '<td ' . $cellwidth . ' ' . $cellclass . ' ' . $customkey . ' ' . $colspan . ' ' . $rowspan . '>' . $data . '</td>' . "\n";
     return ($result);
 }
 
@@ -2835,18 +2843,27 @@ function wf_JSElemInsertedCatcherFunc() {
     $Result = '
                 function onElementInserted(containerSelector, elementSelector, callback) {
                     var onMutationsObserved = function(mutations) {
-                        mutations.forEach(function(mutation) {
+                        mutations.forEach(function(mutation) {                            
                             if (mutation.addedNodes.length) {
                                 var elements = $(mutation.addedNodes).find(elementSelector);
+                                
+                                if (elements.length <= 0) {
+                                    elements = $(mutation.addedNodes).closest(elementSelector);
+                                }
+                            
                                 for (var i = 0, len = elements.length; i < len; i++) {
                                     callback(elements[i]);
                                 }
+                            }
+                            
+                            if (mutation.type == \'attributes\' && (\'.\' + $(mutation.target).attr(\'class\') == elementSelector)) {
+                                callback(mutation.target);
                             }
                         });
                     };
                 
                     var target = $(containerSelector)[0];
-                    var config = { childList: true, subtree: true };
+                    var config = { childList: true, subtree: true, attributes: true};
                     var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
                     var observer = new MutationObserver(onMutationsObserved);    
                     observer.observe(target, config);                    

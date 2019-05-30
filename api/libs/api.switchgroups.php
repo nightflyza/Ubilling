@@ -482,7 +482,7 @@ class SwitchGroups {
                     WHERE `id`= '" . $swGroupId . "'";
 
         nr_query($query);
-        log_register('CHANGE SMS service [' . $swGroupId . '] `' . $swGroupName);
+        log_register('CHANGE switch group [' . $swGroupId . '] `' . $swGroupName);
     }
 
     /**

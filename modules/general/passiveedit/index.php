@@ -58,7 +58,7 @@ if (isset ($_GET['username'])) {
 
                     $cells = wf_TableCell(__('User'), '', 'row2');
                     $cells.= wf_TableCell($useraddress, '', 'row3');
-                    $rows.= wf_TableRow($cells);
+                    $rows = wf_TableRow($cells);
 
                     $cells = wf_TableCell(__('Current passive state'), '', 'row2');
                     $cells.= wf_TableCell(web_trigger($current_passive), '', 'row2');
