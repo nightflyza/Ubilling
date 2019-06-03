@@ -1667,9 +1667,13 @@ class UserProfile {
                 $profile .= wf_tag('h2', true);
             }
 
-            $profile .= wf_tag('div', false, '', 'style="margin-bottom: 15px; padding: 8px 11px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0px 2px 5px #A0A0A0; -webkit-box-shadow: 0px 2px 5px #A0A0A0; -moz-box-shadow: 0px 2px 5px #A0A0A0;"');
-            $profile .= stg_show_user_tags($this->login);
-            $profile .= wf_tag('div', true);
+            $userTags = stg_show_user_tags($this->login);
+
+            if (!empty($userTags)) {
+                $profile .= wf_tag('div', false, '', 'style="margin-bottom: 15px; padding: 8px 11px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0px 2px 5px #A0A0A0; -webkit-box-shadow: 0px 2px 5px #A0A0A0; -moz-box-shadow: 0px 2px 5px #A0A0A0;"');
+                $profile .= $userTags;
+                $profile .= wf_tag('div', true);
+            }
         } else {
             if (cfr('TAGS')) {
                 $profile .= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Tags')), false);
