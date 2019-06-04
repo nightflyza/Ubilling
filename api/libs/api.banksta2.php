@@ -819,19 +819,19 @@ class Banksta2 {
         $statementRawData  = unserialize(base64_decode($statementRawData));
 
         $contractGuess   = $importOpts['guess_contract'];
-        $contractDelimS  = preg_quote($importOpts['contract_delim_start']);
-        $contractDelimE  = preg_quote($importOpts['contract_delim_end']);
+        $contractDelimS  = (empty($importOpts['contract_delim_start'])) ? '' : preg_quote($importOpts['contract_delim_start']);
+        $contractDelimE  = (empty($importOpts['contract_delim_end'])) ? '' : preg_quote($importOpts['contract_delim_end']);
         $contactMinLen   = $importOpts['contract_min_len'];
         $contactMaxLen   = $importOpts['contract_max_len'];
         $serviceType     = $importOpts['service_type'];
-        $inetSrvDelimS   = preg_quote($importOpts['inet_srv_start_delim']);
-        $inetSrvDelimE   = preg_quote($importOpts['inet_srv_end_delim']);
-        $inetSrvKeywords = preg_quote($importOpts['inet_srv_keywords']);
-        $ukvSrvDelimS    = preg_quote($importOpts['ukv_srv_start_delim']);
-        $ukvSrvDelimE    = preg_quote($importOpts['ukv_srv_end_delim']);
-        $ukvSrvKeywords  = preg_quote($importOpts['ukv_srv_keywords']);
-        $skipRow         = preg_quote($importOpts['skip_row']);
-        $skipRowKeywords = preg_quote($importOpts['skip_row_keywords']);
+        $inetSrvDelimS   = (empty($importOpts['inet_srv_start_delim'])) ? '' : preg_quote($importOpts['inet_srv_start_delim']);
+        $inetSrvDelimE   = (empty($importOpts['inet_srv_end_delim'])) ? '' : preg_quote($importOpts['inet_srv_end_delim']);
+        $inetSrvKeywords = (empty($importOpts['inet_srv_keywords'])) ? '' : preg_quote($importOpts['inet_srv_keywords']);
+        $ukvSrvDelimS    = (empty($importOpts['ukv_srv_start_delim'])) ? '' : preg_quote($importOpts['ukv_srv_start_delim']);
+        $ukvSrvDelimE    = (empty($importOpts['ukv_srv_end_delim'])) ? '' : preg_quote($importOpts['ukv_srv_end_delim']);
+        $ukvSrvKeywords  = (empty($importOpts['ukv_srv_keywords'])) ? '' : preg_quote($importOpts['ukv_srv_keywords']);
+        $skipRow         = $importOpts['skip_row'];
+        $skipRowKeywords = (empty($importOpts['skip_row_keywords'])) ? '' : preg_quote($importOpts['skip_row_keywords']);
 
         $i = 0;
         $rows = '';
@@ -908,6 +908,8 @@ class Banksta2 {
 
                             if (isset($matchResult[1])) {
                                 $betweenDelimStr = trim($matchResult[1]);
+                            } else {
+                                $betweenDelimStr = $notes;
                             }
                         }
 
@@ -941,6 +943,8 @@ class Banksta2 {
 
                             if (isset($matchResult[1])) {
                                 $betweenDelimStr = trim($matchResult[1]);
+                            } else {
+                                $betweenDelimStr = $notes;
                             }
                         }
 
