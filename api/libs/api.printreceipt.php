@@ -27,7 +27,9 @@ class PrintReceipt {
 
 
     public function __construct() {
-        $this->receiptAllUserStatuses = array('debt' => __('Debtors'),
+        $this->receiptAllUserStatuses = array(
+                                              'debt' => __('Debtors'),
+                                              'debtasbalance' => __('Debtors (as of current balance)'),
                                               'undebt' => __('AntiDebtors'),
                                               'all' => __('All')
                                              );
@@ -89,6 +91,7 @@ class PrintReceipt {
      */
     public function getUsersPrintData($receiptServiceType, $receiptUserStatus, $receiptUserLogin = '', $receiptDebtCash = '', $receiptStreet = '', $receiptBuild = '') {
         $whereClause = '';
+        $debtAsBalance = 0;
 
         switch ($receiptUserStatus) {
             case 'debt':
@@ -99,6 +102,11 @@ class PrintReceipt {
             case 'undebt':
                 $receiptDebtCash = (empty($receiptDebtCash)) ? 0 : (vf($receiptDebtCash, 3));
                 $whereClause = ' WHERE `cash` > ' . $receiptDebtCash . ' ';
+                break;
+
+            case 'debtasbalance':
+                $whereClause = ' WHERE `cash` < \'0\' ';
+                $debtAsBalance = 1;
                 break;
         }
 
@@ -130,7 +138,8 @@ class PrintReceipt {
             $query = "SELECT * FROM
                           (SELECT `users`.`login`, `users`.`cash`, `realname`.`realname`, `tariffs`.`name` AS `tariffname`, `tariffs`.`fee` AS `tariffprice`, 
                                   `contracts`.`contract`, `phones`.`phone`, `phones`.`mobile`,  
-                                  `tmp_addr`.`cityname` AS `city`, `tmp_addr`.`streetname` AS `street`, `tmp_addr`.`buildnum` AS `build`, `tmp_addr`.`apt`
+                                  `tmp_addr`.`cityname` AS `city`, `tmp_addr`.`streetname` AS `street`, `tmp_addr`.`buildnum` AS `build`, `tmp_addr`.`apt`,
+                                  " . $debtAsBalance . " AS `debtasbalance` 
                               FROM `users` 
                                   LEFT JOIN `tariffs` ON `users`.`tariff` = `tariffs`.`name`
                                   LEFT JOIN `contracts` USING(`login`)
@@ -147,7 +156,8 @@ class PrintReceipt {
 
         } else {
             $query = "SELECT * FROM 
-                          ( SELECT `ukv_users`.`id` AS login, `ukv_users`.*, `ukv_tariffs`.`tariffname`, `ukv_tariffs`.`price` AS `tariffprice` 
+                          ( SELECT `ukv_users`.`id` AS login, `ukv_users`.*, `ukv_tariffs`.`tariffname`, `ukv_tariffs`.`price` AS `tariffprice`,
+                                   " . $debtAsBalance . " AS `debtasbalance`  
                                     FROM `ukv_users` 
                                         LEFT JOIN `ukv_tariffs` ON `ukv_users`.`tariffid` = `ukv_tariffs`.`id`) AS tmpQ " .
                           $whereClause . " ORDER BY `street` ASC, `build` ASC";
@@ -201,6 +211,12 @@ class PrintReceipt {
         }
 
         foreach ($usersDataToPrint as $item => $eachUser) {
+            if ($eachUser['debtasbalance']) {
+                $receiptPaySum = abs($eachUser['cash']);
+            } else {
+                $receiptPaySum = $eachUser['tariffprice'] * $receiptMonthsCnt;
+            }
+
             // replacing macro values for qr-code info in template
             $tmpQRCode = str_ireplace('{CURDATE}', date($formatDates), $qrCodeExtInfo);
             $tmpQRCode = str_ireplace('{PAYFORPERIODSTR}', $receiptPayForPeriod, $qrCodeExtInfo);
@@ -219,9 +235,9 @@ class PrintReceipt {
             $tmpQRCode = str_ireplace('{TARIFFPRICE}', $eachUser['tariffprice'], $qrCodeExtInfo);
             $tmpQRCode = str_ireplace('{TARIFFPRICECOINS}', $eachUser['tariffprice'] * 100, $qrCodeExtInfo);
             $tmpQRCode = str_ireplace('{TARIFFPRICEDECIMALS}', number_format((float)$eachUser['tariffprice'], 2, '.', ''), $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SUMM}', $eachUser['tariffprice'] * $receiptMonthsCnt, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SUMMCOINS}', ($eachUser['tariffprice'] * $receiptMonthsCnt) * 100, $qrCodeExtInfo);
-            $tmpQRCode = str_ireplace('{SUMMDECIMALS}', number_format((float)($eachUser['tariffprice'] * $receiptMonthsCnt),2, '.', ''), $qrCodeExtInfo);
+            $tmpQRCode = str_ireplace('{SUMM}', $receiptPaySum, $qrCodeExtInfo);
+            $tmpQRCode = str_ireplace('{SUMMCOINS}', $receiptPaySum * 100, $qrCodeExtInfo);
+            $tmpQRCode = str_ireplace('{SUMMDECIMALS}', number_format((float)($receiptPaySum),2, '.', ''), $qrCodeExtInfo);
 
             // replacing macro values in template
             $rowtemplate = $rawTemplate;
@@ -244,9 +260,9 @@ class PrintReceipt {
             $rowtemplate = str_ireplace('{TARIFFPRICE}', $eachUser['tariffprice'], $rowtemplate);
             $rowtemplate = str_ireplace('{TARIFFPRICECOINS}', $eachUser['tariffprice'] * 100, $rowtemplate);
             $rowtemplate = str_ireplace('{TARIFFPRICEDECIMALS}', number_format((float)$eachUser['tariffprice'], 2, '.', ''), $rowtemplate);
-            $rowtemplate = str_ireplace('{SUMM}', $eachUser['tariffprice'] * $receiptMonthsCnt, $rowtemplate);
-            $rowtemplate = str_ireplace('{SUMMCOINS}', ($eachUser['tariffprice'] * $receiptMonthsCnt) * 100, $rowtemplate);
-            $rowtemplate = str_ireplace('{SUMMDECIMALS}', number_format((float)($eachUser['tariffprice'] * $receiptMonthsCnt),2, '.', ''), $rowtemplate);
+            $rowtemplate = str_ireplace('{SUMM}', $receiptPaySum, $rowtemplate);
+            $rowtemplate = str_ireplace('{SUMMCOINS}', $receiptPaySum * 100, $rowtemplate);
+            $rowtemplate = str_ireplace('{SUMMDECIMALS}', number_format((float)($receiptPaySum),2, '.', ''), $rowtemplate);
 
             $printableTemplate.= $rowtemplate;
         }
@@ -270,11 +286,11 @@ class PrintReceipt {
         $inputs.= wf_delimiter(0);
         $inputs.= wf_Selector('receiptsubscrstatus', $this->receiptAllUserStatuses, __('Subscriber\'s account status'), '', true, false, 'ReceiptDirSel');
         $inputs.= wf_TextInput('receiptdebtcash', __('The threshold at which the money considered user debtor'), '0', true, 4, '', '', 'ReceiptDebtSumm');
+        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, 4, '', '', 'ReceiptMonthsCnt');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_Selector('receiptstreets', $this->receiptAllStreets, __('Street'), '', true, true, 'ReceiptStreets');
         $inputs.= wf_Selector('receiptbuilds', array('' => '-'), __('Build'), '', true, true, 'ReceiptBuilds');
         $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, 4, '', '', 'ReceiptMonthsCnt');
         $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, 40, '', '', 'ReceiptPayPeriod');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_tag('span', false);
@@ -299,15 +315,32 @@ class PrintReceipt {
                         });
                         
                         $(\'#ReceiptDirSel\').change(function(evt) {
-                            if ($(this).val() !== \'all\') {
-                                $(\'#ReceiptDebtSumm\').val(\'0\');
-                                $(\'#ReceiptDebtSumm\').show();
-                                $("label[for=\'ReceiptDebtSumm\']").text(\'' . __('The threshold at which the money considered user debtor') . '\');
-                            } else {
-                                $(\'#ReceiptDebtSumm\').val(\'\');
-                                $(\'#ReceiptDebtSumm\').hide();
-                                $("label[for=\'ReceiptDebtSumm\']").text(\'\');
-                            }   
+                            switch ($(this).val()) {
+                                case \'all\':
+                                    $(\'#ReceiptDebtSumm\').val(\'\');
+                                    $(\'#ReceiptDebtSumm\').hide();
+                                    $("label[for=\'ReceiptDebtSumm\']").text(\'\');
+                                    break;
+                                    
+                                case \'debtasbalance\':
+                                    $(\'#ReceiptDebtSumm\').val(\'\');
+                                    $(\'#ReceiptDebtSumm\').hide();
+                                    $("label[for=\'ReceiptDebtSumm\']").text(\'\');
+                                    
+                                    $(\'#ReceiptMonthsCnt\').val(\'\');
+                                    $(\'#ReceiptMonthsCnt\').hide();
+                                    $("label[for=\'ReceiptMonthsCnt\']").text(\'\');                                    
+                                    break;
+                                    
+                                default:
+                                    $(\'#ReceiptDebtSumm\').val(\'0\');
+                                    $(\'#ReceiptDebtSumm\').show();
+                                    $("label[for=\'ReceiptDebtSumm\']").text(\'' . __('The threshold at which the money considered user debtor') . '\');
+                                    
+                                    $(\'#ReceiptMonthsCnt\').val(\'0\');
+                                    $(\'#ReceiptMonthsCnt\').show();
+                                    $("label[for=\'ReceiptMonthsCnt\']").text(\'' . __('Amount of months to be payed(will be multiplied on tariff cost)') . '\');
+                            }
                         });
                         
                         $(\'#ReceiptStreets\').change(function(evt) {
