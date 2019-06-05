@@ -1195,7 +1195,7 @@ class Salary {
         $dateto = mysql_real_escape_string($dateto);
         $jobtypeid = vf($jobtypeid, 3);
         $employeeid = vf($employeeid, 3);
-        $allTasks = ts_GetAllTasks();
+        $allTasks = ts_GetAllTasksQuickData();
         $totalTimeSpent = 0; //in minutes
         $timeSheetsTimeSpent = 0; // in minutes
         $rangeTimesheets = $this->timesheetFilterDateRange($datefrom, $dateto);
@@ -1775,7 +1775,7 @@ class Salary {
         $messages = new UbillingMessageHelper();
 
         $tmpArr = array();
-        $allTasks = ts_GetAllTasks();
+        $allTasks = ts_GetAllTasksQuickData();
 
         if (!empty($this->allJobs)) {
             foreach ($this->allJobs as $io => $each) {

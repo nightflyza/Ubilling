@@ -2741,6 +2741,25 @@ function ts_GetAllTasks() {
     return ($result);
 }
 
+/**
+ * Returns all tasks short data as taskid=>data
+ * 
+ * @return array
+ */
+function ts_GetAllTasksQuickData() {
+    $result = array();
+    $query = "SELECT `id`,`address`,`startdate`,`employee` from `taskman`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['id']]['address'] = $each['address'];
+            $result[$each['id']]['startdate'] = $each['startdate'];
+            $result[$each['id']]['employee'] = $each['employee'];
+        }
+    }
+    return ($result);
+}
+
 function ts_AdvFiltersControls() {
     $alljobtypes = ts_GetAllJobtypes();
     $alljobtypes = array('0' => __('Any')) + $alljobtypes;
