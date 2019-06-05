@@ -52,6 +52,8 @@ if (@$us_config['OM_ENABLED']) {
         //default sub/unsub form
         show_window(__('Attention'), __('On unsubscription will be charged fee the equivalent value of the subscription.'));
         show_window(__('Available subscribtions'), $omegaFront->renderSubscribeForm());
+        $accountIdLabel = la_tag('h3') . __('Your account ID is') . ': ' . $omegaFront->generateCustormerId($user_login) . la_tag('h3', true) . la_tag('br');
+        show_window('', $accountIdLabel);
 
 
         $subscribedTrariffs = $omegaFront->getSubscribedTariffs();

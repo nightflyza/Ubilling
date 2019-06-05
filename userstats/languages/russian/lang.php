@@ -391,4 +391,7 @@ $lang['def']['Playlist'] = 'Плейлист';
 $lang['def']['Add playlist'] = 'Добавить плейлист';
 $lang['def']['Get device activation code'] = 'Получить код активации устройства';
 
+$lang['def']['Your account ID is'] = 'Ваш аккаунт ID';
+
+
 ?>
