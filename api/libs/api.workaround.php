@@ -4474,7 +4474,7 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
 }
 
 /**
- * Returns array of Stargazer tariffs payment periods
+ * Returns array of Stargazer tariffs payment periods as tariffname=>period
  * 
  * @return array
  */
