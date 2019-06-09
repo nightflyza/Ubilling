@@ -40,9 +40,13 @@ if (cfr('PROCRAST')) {
                 $jsCode = file_get_contents('modules/jsc/procrastdata/2048/2048.html');
                 show_window(__('2048'), $jsCode);
                 break;
-            case 'robotunicorn':
+            case 'isaac':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/isaac.html');
+                show_window(__('The Binding of Isaac'), $jsCode);
+                break;
+             case 'robotunicorn':
                 $jsCode = file_get_contents('modules/jsc/procrastdata/robotunicorn.html');
-                show_window(__('Robot Unicorn Attack'), $jsCode);
+                show_window(__('Robot unicorn attack'), $jsCode);
                 break;
             case 'motox3m':
                 $jsCode = file_get_contents('modules/jsc/procrastdata/motox3m.html');
@@ -59,6 +63,7 @@ if (cfr('PROCRAST')) {
         $applicationArr = array(
             'tetris' => __('Tetris'),
             '2048' => __('2048'),
+            'isaac' => __('The Binding of Isaac'),
             'robotunicorn' => __('Robot Unicorn Attack'),
             'motox3m' => __('Moto X3M'),
             'happywheels' => __('Happy Wheels')
