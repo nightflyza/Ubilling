@@ -53,6 +53,7 @@ class UbillingVisor {
     const URL_DVRS = '&dvrs=true';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
+    const URL_USERVIEW = '&showuser=';
 
     /**
      * Some default tables names
@@ -186,7 +187,9 @@ class UbillingVisor {
                 $data[] = $each['phone'];
                 $data[] = web_bool_led($each['chargecams'], true);
                 $data[] = $this->getUserCamerasCount($each['id']);
-                $actLinks = wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks = '';
+                //$actLinks.= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
@@ -287,6 +290,22 @@ class UbillingVisor {
             }
         } else {
             $result.=__('User not exists');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders visor users profile with associated cameras and some controls
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    public function renderUserProfile($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            
         }
         return ($result);
     }
