@@ -51,7 +51,8 @@ class UbillingVisor {
     const URL_USERS = '&users=true';
     const URL_CAMS = '&cams=true';
     const URL_DVRS = '&dvrs=true';
-    const URL_AJUSERS='&ajaxusers=true';
+    const URL_AJUSERS = '&ajaxusers=true';
+    const URL_DELUSER = '&deleteuserid=';
 
     /**
      * Some default tables names
@@ -184,8 +185,9 @@ class UbillingVisor {
                 $data[] = $each['realname'];
                 $data[] = $each['phone'];
                 $data[] = web_bool_led($each['chargecams'], true);
-                $data[] = 'TODO';
-                $data[] = 'TODO';
+                $data[] = $this->getUserCamerasCount($each['id']);
+                $actLinks = wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
             }
@@ -227,6 +229,66 @@ class UbillingVisor {
             $newId = simple_get_lastid(self::TABLE_USERS);
             log_register('VISOR USER CREATE [' . $newId . ']');
         }
+    }
+
+    /**
+     * Returns array of cameras associated to some user
+     * 
+     * @param int $userId
+     * 
+     * @return array
+     */
+    protected function getUserCameras($userId) {
+        $result = array();
+        if (!empty($this->allCams)) {
+            foreach ($this->allCams as $io => $each) {
+                if ($each['userid'] == $userId) {
+                    $result[$each['id']] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns count of associated user cameras
+     * 
+     * @param int $userId
+     * 
+     * @return int
+     */
+    protected function getUserCamerasCount($userId) {
+        $result = 0;
+        $userCameras = $this->getUserCameras($userId);
+        if (!empty($userCameras)) {
+            $result = sizeof($userCameras);
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes user from database
+     * 
+     * @param int $userId
+     * 
+     * @return void/string on error
+     */
+    public function deleteUser($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $camerasCount = $this->getUserCamerasCount($userId);
+            if ($camerasCount == 0) {
+                $query = "DELETE from `" . self::TABLE_USERS . "` WHERE `id`='" . $userId . "';";
+                nr_query($query);
+                log_register('VISOR USER DELETE [' . $userId . ']');
+            } else {
+                $result.=__('User have some cameras associated');
+            }
+        } else {
+            $result.=__('User not exists');
+        }
+        return ($result);
     }
 
 }
