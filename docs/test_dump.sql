@@ -2415,6 +2415,9 @@ CREATE TABLE IF NOT EXISTS `capabhist` (
 ALTER TABLE `ddt_options` ADD `setcredit` TINYINT NULL AFTER `chargeuntilday`;
 
 -- 0.9.8 update
+ALTER TABLE `pononu` ADD KEY login (`login`);
+
+-- 0.9.9 update
 
 CREATE TABLE IF NOT EXISTS `banksta2` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -2464,3 +2467,37 @@ CREATE TABLE IF NOT EXISTS `banksta2_presets` (
   PRIMARY KEY (`id`),
   UNIQUE KEY (`presetname`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `visor_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `regdate` datetime NOT NULL,
+  `realname` varchar(250) DEFAULT NULL,
+  `phone` varchar(40) DEFAULT NULL,
+  `chargecams` tinyint(4) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `visor_cams` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `visorid` int(11) NOT NULL,
+  `login` varchar(250) NOT NULL,
+  `primary` tinyint(4) NOT NULL,
+  `camlogin` varchar(250) DEFAULT NULL,
+  `campassword` varchar(250) DEFAULT NULL,
+  `port` int(11) DEFAULT NULL,
+  `dvrid` int(11) DEFAULT NULL,
+  `dvrlogin` varchar(250) DEFAULT NULL,
+  `dvrpassword` varchar(250) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `visor_dvrs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip` varchar(250) NOT NULL,
+  `port` int(11) DEFAULT NULL,
+  `login` varchar(250) DEFAULT NULL,
+  `password` varchar(250) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

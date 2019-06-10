@@ -119,6 +119,7 @@ include('api/libs/api.multigen.php');
 include('api/libs/api.onepunch.php');
 include('api/libs/api.fwtbt.php');
 include('api/libs/api.ddt.php');
+include('api/libs/api.visor.php');
 include('api/libs/api.sphinxsearch.php');
 
 
