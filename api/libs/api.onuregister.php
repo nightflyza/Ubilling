@@ -1062,18 +1062,10 @@ class OnuRegister {
     /**
      * Make final checks with some data preparing.
      * And finally register ONU.
-     *      
-     * @param int $onuModel
-     * @param int $vlan
-     * @param string $login
-     * @param bool $save
-     * @param bool $router
-     * @param type $addMac
-     * @param bool $PONizerAdd
      * 
      * @return void
      */
-    public function RegisterOnu($login = '', $addMac = '', $PONizerAdd = false) {
+    public function RegisterOnu() {
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
             $this->currentSnmpCommunity = $this->allHuaweiOlt[$this->currentOltSwId]['snmp'];
             $snmpTemplateName = $this->allHuaweiOlt[$this->currentOltSwId]['snmptemplate'];
@@ -1092,7 +1084,7 @@ class OnuRegister {
             if (file_exists(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName)) {
                 $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $snmpTemplateName, true);
                 if ($this->currentPonType == 'EPON') {
-                    $addMac = $this->onuIdentifier;
+                    $this->addMac = $this->onuIdentifier;
                     $this->onuIdentifier = $this->transformMac();
                     $this->checkRegisterdEponOnu();
                 }
