@@ -32,13 +32,13 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
             }
             if (wf_CheckPost(array(OnuRegister::TYPE_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::OLTIP_FIELD, OnuRegister::MODELID_FIELD, OnuRegister::VLAN_FIELD, OnuRegister::OLTID_FIELD))) {
                 if ($_POST[OnuRegister::MODELID_FIELD] != OnuRegister::MODELID_PLACEHOLDER) {
-                    $mac_onu = OnuRegister::EMPTY_FIELD;
+                    $this->addMac = OnuRegister::EMPTY_FIELD;
                     $save = false;
                     $router = false;
-                    $login = OnuRegister::EMPTY_FIELD;
+                    $this->login = OnuRegister::EMPTY_FIELD;
                     $PONizerAdd = false;
                     if (wf_CheckPost(array(OnuRegister::LOGIN_FIELD))) {
-                        $login = $_POST[OnuRegister::LOGIN_FIELD];
+                        $this->login = $_POST[OnuRegister::LOGIN_FIELD];
                     }
                     if (wf_CheckPost(array(OnuRegister::MAC_FIELD))) {
                         $onuIdentifier = $_POST[OnuRegister::MAC_FIELD];
@@ -50,16 +50,16 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                         $router = $_POST[OnuRegister::ROUTER_FIELD];
                     }
                     if (isset($_POST[OnuRegister::MAC_ONU_FIELD])) {
-                        $mac_onu = $_POST[OnuRegister::MAC_ONU_FIELD];
+                        $this->addMac = $_POST[OnuRegister::MAC_ONU_FIELD];
                     }
                     if (isset($_POST[OnuRegister::RANDOM_MAC_FIELD])) {
-                        $mac_onu = $register->generateRandomOnuMac();
+                        $this->addMac = $register->generateRandomOnuMac();
                     }
                     if (isset($_POST[OnuRegister::SAVE_FIELD])) {
                         $save = $_POST[OnuRegister::SAVE_FIELD];
                     }
                     if (isset($_POST[OnuRegister::PONIZER_ADD_FIELD])) {
-                        $PONizerAdd = true;
+                        $register->ponizerAdd = true;
                     }
                     $register->currentOltIp = $_POST[OnuRegister::OLTIP_FIELD];
                     $register->currentOltInterface = $_POST[OnuRegister::INTERFACE_FIELD];
@@ -74,7 +74,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
                         show_error(__($loginCheck));
                     } else {
-                        $register->$avidity_w($login, $mac_onu, $PONizerAdd);
+                        $register->$avidity_w();
                         if (empty($register->error)) {
                             show_window(__('Result'), $register->result);
                         } else {
