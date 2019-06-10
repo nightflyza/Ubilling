@@ -32,13 +32,13 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
             }
             if (wf_CheckPost(array(OnuRegister::TYPE_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::OLTIP_FIELD, OnuRegister::MODELID_FIELD, OnuRegister::VLAN_FIELD, OnuRegister::OLTID_FIELD))) {
                 if ($_POST[OnuRegister::MODELID_FIELD] != OnuRegister::MODELID_PLACEHOLDER) {
-                    $this->addMac = OnuRegister::EMPTY_FIELD;
+                    $register->addMac = OnuRegister::EMPTY_FIELD;
                     $save = false;
                     $router = false;
-                    $this->login = OnuRegister::EMPTY_FIELD;
+                    $register->login = OnuRegister::EMPTY_FIELD;
                     $PONizerAdd = false;
                     if (wf_CheckPost(array(OnuRegister::LOGIN_FIELD))) {
-                        $this->login = $_POST[OnuRegister::LOGIN_FIELD];
+                        $register->login = $_POST[OnuRegister::LOGIN_FIELD];
                     }
                     if (wf_CheckPost(array(OnuRegister::MAC_FIELD))) {
                         $onuIdentifier = $_POST[OnuRegister::MAC_FIELD];
@@ -50,10 +50,10 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                         $router = $_POST[OnuRegister::ROUTER_FIELD];
                     }
                     if (isset($_POST[OnuRegister::MAC_ONU_FIELD])) {
-                        $this->addMac = $_POST[OnuRegister::MAC_ONU_FIELD];
+                        $register->addMac = $_POST[OnuRegister::MAC_ONU_FIELD];
                     }
                     if (isset($_POST[OnuRegister::RANDOM_MAC_FIELD])) {
-                        $this->addMac = $register->generateRandomOnuMac();
+                        $register->addMac = $register->generateRandomOnuMac();
                     }
                     if (isset($_POST[OnuRegister::SAVE_FIELD])) {
                         $save = $_POST[OnuRegister::SAVE_FIELD];

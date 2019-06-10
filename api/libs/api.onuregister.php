@@ -340,7 +340,7 @@ class OnuRegister {
         snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
     }
 
-    //Load and init section.
+//Load and init section.
 
     /**
      * Loads avaliable ONUs from database into private data property
@@ -621,7 +621,7 @@ class OnuRegister {
         }
     }
 
-    //Getters section.
+//Getters section.
 
     /**
      * Find OLT id by IP.
@@ -699,7 +699,7 @@ class OnuRegister {
         return pack('H*', $hex);
     }
 
-    //Main section
+//Main section
 
     /*
      * Recursive function to generate random and unique MAC.
@@ -1077,7 +1077,7 @@ class OnuRegister {
 
         $this->loadCalculatedData();
 
-        //set serial number empty as default value because epon    
+//set serial number empty as default value because epon    
         $serial = '';
 
         if (!empty($this->allSwLogin) and isset($this->allSwLogin[$this->currentOltSwId])) {
@@ -1094,7 +1094,7 @@ class OnuRegister {
                     $this->checkRegisteredGponOnu();
                 }
 
-                //Exit if onu number is 65+ for epon and 128+ for gpon.
+//Exit if onu number is 65+ for epon and 128+ for gpon.
                 if (($this->currentPonType == 'EPON' and count($this->existId) >= 64) or ( $this->currentPonType == 'GPON' and count($this->existId) >= 128)) {
                     $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
                     return('');
@@ -1103,7 +1103,7 @@ class OnuRegister {
                 $this->result .= shell_exec($this->getRegisterOnuCommand());
                 $this->result .= shell_exec($this->getSaveConfigCommand());
                 $this->result = nl2br($this->result);
-                log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . '. OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
+                log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . 'OLT IP: ' . $this->currentOltIp . 'OLT INTERFACE: ' . $this->currentOltInterface . '. ONU NUMBER: ' . $this->lastOnuId);
 
                 if ($this->ponizerAdd) {
                     if (!empty($this->addMac)) {
@@ -1249,7 +1249,7 @@ class OnuRegister {
     public function deleteZteCard($swid, $slot) {
         $swid = vf($swid, 3);
         $slot = vf($slot, 3);
-        $query = 'DELETE FROM `' . self::CARDS_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '"';
+        $query = 'DELETE FROM `' . self::CARDS_TABLE . '` WHERE `swid` = "' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
         log_register('ZTE Deleted card. OLT ID: ' . $swid . '. Slot: `' . $slot . '`');
 
@@ -1300,7 +1300,7 @@ class OnuRegister {
         $swid = vf($swid, 3);
         $slot = vf($slot, 3);
         $port = vf($port, 3);
-        $query = 'DELETE FROM `' . self::BIND_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` = "' . $port . '"';
+        $query = 'DELETE FROM `' . self::BIND_TABLE . '` WHERE `swid` = "' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` = "' . $port . '"';
         nr_query($query);
         log_register('ZTE Deleted vlan bind. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Port: `' . $port . '`.');
 
@@ -1322,7 +1322,7 @@ class OnuRegister {
         $slot = vf($slot, 3);
         $port = vf($port, 3);
         $vlan = vf($vlan, 3);
-        $query = 'UPDATE `' . self::BIND_TABLE . '` SET `vlan` = "' . $vlan . '" WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` ="' . $port . '"';
+        $query = 'UPDATE `' . self::BIND_TABLE . '` SET `vlan` = "' . $vlan . '" WHERE `swid` = "' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` = "' . $port . '"';
         nr_query($query);
         log_register('ZTE Edited vlan bind. OLT ID: ' . $swid . '. Slot: `' . $slot . '`. Port: `' . $port . '`. VLAN: `' . $vlan . '`');
 
@@ -1430,8 +1430,8 @@ class OnuRegister {
                 $tablecells .= wf_TableCell($eachCard['chasis_number']);
                 $tablecells .= wf_TableCell($eachCard['slot_number']);
                 $tablecells .= wf_TableCell($eachCard['card_name']);
-                $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&edit=true&slot_number=' . $eachCard['slot_number'] . '&card_name=' . $eachCard['card_name'], web_edit_icon(), $this->messages->getEditAlert());
-                $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&edit = true&slot_number = ' . $eachCard['slot_number'] . '&card_name = ' . $eachCard['card_name'], web_edit_icon(), $this->messages->getEditAlert());
+                $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete = true&slot_number = ' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $tablecells .= wf_TableCell($actionLinks);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
             }
@@ -1604,7 +1604,8 @@ class OnuRegister {
         $cell = wf_HiddenInput('createZteBind', 'true');
         $cell .= wf_HiddenInput('swid', $swid);
         $cell .= wf_SelectorClassed('slot_number', $this->cardSelector, __('IP | Slot number | Card name'), '', true, 'changeType');
-        $cell .= wf_tag('div', false, 'changePorts', 'style="width: 100%;"') . wf_tag('div', true);
+        $cell .= wf_tag('div', false, 'changePorts', 'style="width: 100%;
+"') . wf_tag('div', true);
         $cell .= wf_TextInput('vlan', 'VLAN');
         $cell .= wf_Tag('br');
         $cell .= wf_Submit(__('Save'));
