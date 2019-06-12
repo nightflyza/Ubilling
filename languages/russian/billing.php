@@ -3082,6 +3082,10 @@ $lang['def']['Users rendered on map'] = 'Пользователей отренд
 $lang['def']['File parsing error'] = 'Ошибка парсинга файла';
 $lang['def']['Error message'] = 'Сообщение об ошибке';
 $lang['def']['Telepathy'] = 'Телепатия';
+$lang['def']['Tasks map'] = 'Карта задач';
+$lang['def']['Total tasks'] = 'Всего задач';
+$lang['def']['Tasks rendered on map'] = 'Задач отрендерено на карте';
+$lang['def']['Already deleted users or tasks without user'] = 'Уже удаленных пользователей либо задач без пользователя';
 $lang['def'][''] = '';
 
 ?>
