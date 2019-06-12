@@ -33,7 +33,7 @@ if (cfr('TASKMAN')) {
         protected $showMonth = '';
 
         /**
-         * Contains default signups data source table
+         * Contains default tasks data source table
          *
          * @var string
          */
@@ -266,11 +266,11 @@ if (cfr('TASKMAN')) {
 
     }
 
-    $sigmap = new ReportTasksMap();
+    $taskmap = new ReportTasksMap();
 
-    show_window(__('Filters'), $sigmap->renderDateForm());
-    show_window(__('Tasks map'), $sigmap->renderMap());
-    show_window('', $sigmap->renderStats());
+    show_window(__('Filters'), $taskmap->renderDateForm());
+    show_window(__('Tasks map'), $taskmap->renderMap());
+    show_window('', $taskmap->renderStats());
     show_window('', wf_BackLink('?module=taskman'));
 } else {
     show_error(__('Access denied'));
