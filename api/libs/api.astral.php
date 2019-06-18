@@ -2656,9 +2656,10 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
  *
  * @return string
  */
-function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false) {
+function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false, $jqdtToRefreshID = '') {
 
     $inputId = (empty($controlId)) ? wf_InputId() : $controlId;
+    $jqdtRefreshCode = (empty($jqdtToRefreshID)) ? '' : '$(\'#' . $jqdtToRefreshID . '\').DataTable().ajax.reload();';
     $modalWindowId = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
     $modalWindowBodyId = 'modalWindowBodyId:"body_dialog-modal_' . $inputId . '"';
     $preventDefault = ($noPreventDefault) ? "" : "\nevt.preventDefault();";
@@ -2680,6 +2681,7 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
                       success: function(ajaxresult) {
                                   $(document.body).append(ajaxresult);
                                   $(\'#dialog-modal_' . $inputId . '\').dialog("open");
+                                  ' . $jqdtRefreshCode . '
                                }
                   });'
             . $preventDefault

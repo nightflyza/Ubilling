@@ -212,7 +212,7 @@ class PrintReceipt {
 
         foreach ($usersDataToPrint as $item => $eachUser) {
             if ($eachUser['debtasbalance']) {
-                $receiptPaySum = abs($eachUser['cash']);
+                $receiptPaySum = abs(round($eachUser['cash'], 2));
             } else {
                 $receiptPaySum = $eachUser['tariffprice'] * $receiptMonthsCnt;
             }
@@ -282,16 +282,16 @@ class PrintReceipt {
         $inputs.= wf_RadioInput('receiptsrv', __('Internet'), 'inetsrv', false, true, 'ReceiptSrvInet');
         $inputs.= wf_RadioInput('receiptsrv', __('UKV'), 'ctvsrv', true, false, 'ReceiptSrvCTV');
         $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptsrvtxt', __('Service'), __('Internet'), true, '', '', '', 'ReceiptSrvName');
+        $inputs.= wf_TextInput('receiptsrvtxt', __('Service'), __('Internet'), true, '28', '', '', 'ReceiptSrvName');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_Selector('receiptsubscrstatus', $this->receiptAllUserStatuses, __('Subscriber\'s account status'), '', true, false, 'ReceiptDirSel');
-        $inputs.= wf_TextInput('receiptdebtcash', __('The threshold at which the money considered user debtor'), '0', true, 4, '', '', 'ReceiptDebtSumm');
-        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, 4, '', '', 'ReceiptMonthsCnt');
+        $inputs.= wf_TextInput('receiptdebtcash', __('The threshold at which the money considered user debtor'), '0', true, '4', '', '', 'ReceiptDebtSumm');
+        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, '4', '', '', 'ReceiptMonthsCnt');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_Selector('receiptstreets', $this->receiptAllStreets, __('Street'), '', true, true, 'ReceiptStreets');
         $inputs.= wf_Selector('receiptbuilds', array('' => '-'), __('Build'), '', true, true, 'ReceiptBuilds');
         $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, 40, '', '', 'ReceiptPayPeriod');
+        $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, '40', '', '', 'ReceiptPayPeriod');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_tag('span', false);
         $inputs.= wf_DatePickerPreset('receiptpaytill', date("Y-m-d", strtotime("+5 days")), true);
@@ -383,25 +383,37 @@ class PrintReceipt {
     /**
      * Returns button with modal form attached for user profile
      *
-     * @param string/int $receiptLogin
+     * @param mixed $receiptLogin
      * @param $receiptServiceType
      * @param string $receiptServiceName
+     * @param mixed $userBalance
      * @param string $receiptStreet
      * @param string $receiptBuild
      *
      * @return string
      */
-    public function renderWebFormForProfile($receiptLogin, $receiptServiceType, $receiptServiceName = '', $receiptStreet = '', $receiptBuild = '') {
-        $inputs= wf_TextInput('receiptsrvtxt', __('Service'), __($receiptServiceName), true, '', '', '', 'ReceiptSrvName');
+    public function renderWebFormForProfile($receiptLogin, $receiptServiceType, $receiptServiceName = '', $userBalance = 0, $receiptStreet = '', $receiptBuild = '') {
+        $receiptSumSources = array(
+                                   'debtasbalance' => __('Get current balance debt sum'),
+                                   '' => __('Specify number of months')
+                                  );
+
+        $inputs= wf_TextInput('receiptsrvtxt', __('Service'), __($receiptServiceName), true, '28', '', '', 'ReceiptSrvName');
         $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, 4, '', '', 'ReceiptMonthsCnt');
-        $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, 40, '', '', 'ReceiptPayPeriod');
+
+        if ($userBalance < 0) {
+            $inputs .= wf_Selector('receiptsumsource', $receiptSumSources, __('Specify receipt sum source'), '', true, false, 'ReceiptSumSource');
+            $inputs .= wf_TextInput('receiptbalancesum', __('Current user\'s balance debt sum'), abs(round($userBalance, 2)), true, '4', '', '', 'ReceiptBalanceSum', 'readonly="readonly"');
+        }
+
+        $inputs.= wf_TextInput('receiptmonthscnt', __('Amount of months to be payed(will be multiplied on tariff cost)'), '1', true, '4', '', '', 'ReceiptMonthsCnt');
+        $inputs.= wf_TextInput('receiptpayperiod', __('Pay for period(months), e.g.: March 2019, April 2019'), '', true, '40', '', '', 'ReceiptPayPeriod');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_tag('span', false);
         $inputs.= wf_DatePickerPreset('receiptpaytill', date("Y-m-d", strtotime("+5 days")), true);
         $inputs.= wf_nbsp(2) . __('Pay till date');
         $inputs.= wf_tag('span', true);
-        $inputs.= wf_HiddenInput('receiptsubscrstatus', '');
+        $inputs.= wf_HiddenInput('receiptsubscrstatus', '', 'ReceiptSubscrStatus');
         $inputs.= wf_HiddenInput('receiptdebtcash', '');
         $inputs.= wf_HiddenInput('receiptsrv', $receiptServiceType);
         $inputs.= wf_HiddenInput('receiptslogin', $receiptLogin);
@@ -412,6 +424,33 @@ class PrintReceipt {
         $inputs.= wf_Submit(__('Print'));
 
         $form = wf_Form('?module=printreceipts',  'POST', $inputs, 'glamour', '', 'ReceiptPrintForm', "_blank");
+
+        if ($userBalance < 0) {
+            $form .= wf_tag('script', false, '', 'type="text/javascript"');
+            $form .= '
+                    $(document).ready(function() {
+                        endisControls();
+                    });
+                    
+                    $(\'#ReceiptSumSource\').change(function() {
+                        endisControls();
+                    });
+                    
+                    function endisControls() {
+                        if ( $(\'#ReceiptSumSource\').val() == \'debtasbalance\' ) {
+                            $(\'#ReceiptBalanceSum\').prop("disabled", false);
+                            $(\'#ReceiptMonthsCnt\').prop("disabled", true);                                                       
+                        } else {
+                            $(\'#ReceiptBalanceSum\').prop("disabled", true);
+                            $(\'#ReceiptMonthsCnt\').prop("disabled", false);
+                        } 
+                        
+                        $(\'#ReceiptSubscrStatus\').val($(\'#ReceiptSumSource\').val());
+                    }
+                    ';
+            $form .= wf_tag('script', true);
+        }
+
         $form = wf_modalAuto(wf_img_sized('skins/taskbar/receipt_big.png', __('Print receipt'), '', '64'), __('Print receipt'), $form);
 
         return($form);

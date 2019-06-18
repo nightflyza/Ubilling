@@ -1626,7 +1626,8 @@ class UkvSystem {
                 $receiptsPrinter = new PrintReceipt();
 
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
-                $profilePlugins.= $receiptsPrinter->renderWebFormForProfile($userid,'ctvsrv', __('Cable television'), $userData['street'],$userData['build']);
+                $profilePlugins.= $receiptsPrinter->renderWebFormForProfile($userid, 'ctvsrv', __('Cable television'),
+                                                                            $userData['cash'], $userData['street'], $userData['build']);
                 $profilePlugins.= wf_tag('br');
                 $profilePlugins.= __('Print receipt');
                 $profilePlugins.= wf_tag('div', true);

@@ -1482,9 +1482,10 @@ class UserProfile {
             $receiptsPrinter = new PrintReceipt();
 
             $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
-            $result .= $receiptsPrinter->renderWebFormForProfile($this->login,'inetsrv', __('Internet'),
-                                                                $this->AllUserData[$this->login]['streetname'],
-                                                                $this->AllUserData[$this->login]['buildnum']);
+            $result .= $receiptsPrinter->renderWebFormForProfile($this->login, 'inetsrv', __('Internet'),
+                                                                 $this->AllUserData[$this->login]['Cash'],
+                                                                 $this->AllUserData[$this->login]['streetname'],
+                                                                 $this->AllUserData[$this->login]['buildnum']);
             $result .= wf_tag('br');
             $result .= __('Print receipt');
             $result .= wf_tag('div', true);

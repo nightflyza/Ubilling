@@ -277,6 +277,35 @@ if ($system->checkForRight('ONLINE')) {
             }
         }
 
+        $showUserNotes = false;
+        $adCommentsON = false;
+        if (isset($alter_conf['ONLINE_SHOW_USERNOTES']) && $alter_conf['ONLINE_SHOW_USERNOTES']) {
+            $showUserNotes = true;
+
+            if (isset($alter_conf['ADCOMMENTS_ENABLED']) && $alter_conf['ADCOMMENTS_ENABLED']) {
+                $adCommentsON = true;
+                $adcomments = new ADcomments('USERNOTES');
+            }
+
+            $query = "SELECT * from `notes`";
+            $tmpUserNotes = simple_queryall($query);
+
+            if (!empty($tmpUserNotes)) {
+                foreach ($tmpUserNotes as $io => $eachUN) {
+                    $adCommentsCount = 0;
+
+                    if (!empty($eachUN['note'])) {
+                        if ($adCommentsON) {
+                            $adCommentsCount = $adcomments->getCommentsCount($eachUN['login']);
+                        }
+
+                        $adCommentsLink = (empty($adCommentsCount)) ? '' : wf_nbsp() . wf_Link('?module=notesedit&username=' . $eachUN['login'], wf_tag('sup') . $adCommentsCount . wf_tag('sup', true));
+                        $allUserNotes[$eachUN['login']] = array('note' => $eachUN['note'], 'adcomment' => $adCommentsLink);
+                    }
+                }
+            }
+        }
+
         $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
@@ -363,7 +392,7 @@ if ($system->checkForRight('ONLINE')) {
                         $jsonItem[] = @$allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '' );
                     }
 
-                    $jsonItem[] = @$fioz[$eachuser['login']];
+                    $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) .  '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
                     $jsonItem[] = $eachuser['IP'];
                     $jsonItem[] = $eachuser['Tariff'];
                     $jsonItem[] = $act;
@@ -383,7 +412,7 @@ if ($system->checkForRight('ONLINE')) {
                             $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
                         }
 
-                        $jsonItem[] = @$fioz[$eachuser['login']];
+                        $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
                         $jsonItem[] = $eachuser['IP'];
                         $jsonItem[] = $eachuser['Tariff'];
                         $jsonItem[] = $act;
