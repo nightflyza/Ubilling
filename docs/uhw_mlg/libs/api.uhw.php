@@ -88,10 +88,9 @@ function uhw_FindMac($ip) {
 
     //$raw = shell_exec($sudo_path . ' ' . $cat_path . ' ' . $logpath . ' | ' . $grep_path . ' "' . $unknown_lease . $ip . ' " | ' . $tail_path . ' -n1');
     if (!empty($raw)) {
-        $mac_detect = preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $raw[$macField]);
-        $mac_detect = uhw_MacParse($mac_detect);
+        $mac_detect = uhw_MacParse(preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $raw[$macField]));        
         if ($mac_detect) {
-            return ($matches[0]);
+            return ($mac_detect);
         }
     }
     return(false);
