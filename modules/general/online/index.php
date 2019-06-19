@@ -392,7 +392,7 @@ if ($system->checkForRight('ONLINE')) {
                         $jsonItem[] = @$allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '' );
                     }
 
-                    $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) .  '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+                    $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
                     $jsonItem[] = $eachuser['IP'];
                     $jsonItem[] = $eachuser['Tariff'];
                     $jsonItem[] = $act;
