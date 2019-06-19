@@ -89,14 +89,14 @@ function uhw_FindMac($ip) {
     //$raw = shell_exec($sudo_path . ' ' . $cat_path . ' ' . $logpath . ' | ' . $grep_path . ' "' . $unknown_lease . $ip . ' " | ' . $tail_path . ' -n1');
     if (!empty($raw)) {
         $mac_detect = preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $raw[$macField]);
-        if ($mac_detect) {
-            return ($mac_detect);
-        } else {
-            return (false);
+        preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $mac_detect, $matches);
+        if (!empty($matches)) {
+            if (isset($matches[0])) {
+                return ($matches[0]);
+            }
         }
-    } else {
-        return (false);
     }
+    return(false);
 }
 
 function uhw_modal($link, $title, $content, $linkclass = '', $width = '', $height = '') {
