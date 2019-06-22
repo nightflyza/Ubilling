@@ -1,6 +1,5 @@
 <?php
 
-
 class TrinityTvFrontend {
 
     /**
@@ -106,8 +105,7 @@ class TrinityTvFrontend {
      * 
      * @return void
      */
-    protected function loadTariffs()
-    {
+    protected function loadTariffs() {
         $query = "SELECT * from " . self::TABLE_TARIFFS;
         $tariffs = simple_queryall($query);
         if (!empty($tariffs)) {
@@ -122,8 +120,7 @@ class TrinityTvFrontend {
      * 
      * @return void
      */
-    protected function loadSubscribers()
-    {
+    protected function loadSubscribers() {
         $query = "SELECT * from " . self::TABLE_SUBS;
         $subscribers = simple_queryall($query);
         if (!empty($subscribers)) {
@@ -142,16 +139,16 @@ class TrinityTvFrontend {
         $result = array();
 
         $subscriberId = $this->getSubscriberId($this->userLogin);
+        if (!empty($subscriberId)) {
+            $query = "SELECT * from `" . self::TABLE_DEVICES . "` WHERE `subscriber_id` = " . $subscriberId;
+            $devices = simple_queryall($query);
 
-        $query = "SELECT * from `" . self::TABLE_DEVICES . "` WHERE `subscriber_id` = " . $subscriberId;
-        $devices = simple_queryall($query);
-
-        if (!empty($devices)) {
-            foreach ($devices AS $device) {
-                $result[$device['id']] = $device;
+            if (!empty($devices)) {
+                foreach ($devices AS $device) {
+                    $result[$device['id']] = $device;
+                }
             }
         }
-
         return $result;
     }
 
@@ -182,7 +179,7 @@ class TrinityTvFrontend {
         $result = false;
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $subscriber) {
-                if (($subscriber['login'] == $login) AND $subscriber['tariffid'] == $tariffid AND  $subscriber['active']) {
+                if (($subscriber['login'] == $login) AND $subscriber['tariffid'] == $tariffid AND $subscriber['active']) {
                     $result = true;
                     break;
                 }
@@ -226,21 +223,21 @@ class TrinityTvFrontend {
 
                 $tariffFee = $tariff['fee'];
 
-                $tariffInfo = la_tag('div', false, 'trinity-col'). la_tag('div', false, 'trinity-bl1');
+                $tariffInfo = la_tag('div', false, 'trinity-col') . la_tag('div', false, 'trinity-bl1');
 
                 $tariffInfo .= la_tag('div', false, 'trinity-price');
                 $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
-                $tariffInfo .= la_tag('sup', false) .  $this->usConfig['currency'] . ' <br> ' .__('per month'). la_tag('sup', true);
+                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' <br> ' . __('per month') . la_tag('sup', true);
                 $tariffInfo .= la_tag('div', true, 'trinity-price');
 
 
                 $tariffInfo .= la_tag('div', false, 'trinity-green s') . $tariff['name'] . la_tag('div', true, 'trinity-green s');
                 $tariffInfo .= '<br/>';
 
-                if(!empty($tariff['description'])){
-                    $desc= $tariff['description'];
-                }else{
-                    $desc= 'Описание тарифа: <br> '.$tariff['name'].'<br><br>';
+                if (!empty($tariff['description'])) {
+                    $desc = $tariff['description'];
+                } else {
+                    $desc = 'Описание тарифа: <br> ' . $tariff['name'] . '<br><br>';
                 }
                 $tariffInfo .= la_tag('div', false, 'trinity-list') . $desc . la_tag('div', true, 'trinity-list');
 
@@ -249,18 +246,18 @@ class TrinityTvFrontend {
 
                     if ($this->isUserSubscribed($this->userLogin, $tariff['id'])) {
                         $tariffInfo .= la_Link('?module=trinitytv&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
-                    }else{
+                    } else {
                         if ($this->checkUserProtection($tariff['id'])) {
                             $tariffInfo .= la_Link('?module=trinitytv&subscribe=' . $tariff['id'], __('Subscribe'), false, 'trinity-button-s');
                         } else {
-                            $tariffInfo .= la_tag('div', false, 'trinity-list') .  __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                            $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
                         }
                     }
                 } else {
-                    $tariffInfo .= la_tag('div', false, 'trinity-list') .  __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                    $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
                 }
 
-                $tariffInfo .= la_tag('div', true, 'trinity-bl1'). la_tag('div', true, 'trinity-col');
+                $tariffInfo .= la_tag('div', true, 'trinity-bl1') . la_tag('div', true, 'trinity-col');
 
 
                 $result.= $tariffInfo;
@@ -289,8 +286,8 @@ class TrinityTvFrontend {
      * @return bool|string
      */
     public function pushDeviceAddCodeRequest($code) {
-      $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=adddevice&userlogin=' . $this->userLogin . '&code=' . $code;
-      @$result = file_get_contents($action);
+        $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=trinitytvcontrol&param=adddevice&userlogin=' . $this->userLogin . '&code=' . $code;
+        @$result = file_get_contents($action);
 
         return ($result);
     }
@@ -351,7 +348,6 @@ class TrinityTvFrontend {
         return ($result);
     }
 
-
     /**
      * Check user balance for subscribtion availability
      * 
@@ -369,7 +365,6 @@ class TrinityTvFrontend {
         }
         return ($result);
     }
-
 
     /**
      * Checks is user protected from his own stupidity?
@@ -390,7 +385,6 @@ class TrinityTvFrontend {
                     if ($userBalance < $tariffFee) {
                         $result = false;
                     }
-
                 } else {
                     $result = false;
                 }
@@ -415,7 +409,7 @@ class TrinityTvFrontend {
 
             foreach ($this->allSubscribers as $io => $each) {
                 if ($each['login'] == $this->userLogin) {
-                    $cells= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
+                    $cells = la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
                     $activeFlag = ($each['active']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
                     $cells .= la_TableCell($each['actdate']);
                     $cells .= la_TableCell($activeFlag);
@@ -429,13 +423,12 @@ class TrinityTvFrontend {
         return ($result);
     }
 
-
     /**
      * Return device
      *
      * @return string
      */
-    public function renderDevices(){
+    public function renderDevices() {
         $result = '';
         if (!empty($this->userLogin)) {
 
@@ -443,10 +436,10 @@ class TrinityTvFrontend {
             $devices = $this->getSubscriberDevices();
 
             // Add device
-            $result .= la_modal( __('Assign device by MAC') , __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button', 260,160);
+            $result .= la_modal(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button', 260, 160);
 
             // Add device by MAC
-            $result .= la_modal( __('Assign device by Code') , __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button',  260,160);
+            $result .= la_modal(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button', 260, 160);
 
             $result .= "<br><br> ";
 
@@ -469,11 +462,9 @@ class TrinityTvFrontend {
             }
 
             $result .= la_TableBody($rows, '100%', 0, 'sortable');
-
         }
         return ($result);
     }
-
 
     /**
      * Renders manual device assign form
@@ -485,7 +476,7 @@ class TrinityTvFrontend {
         $inputs = la_HiddenInput('device', 'true');
         $inputs .= la_TextInput('mac', __('MAC'), '', true, 20, 'mac');
         $inputs .= la_Submit(__('Assign device'));
-        $result .= la_Form('', 'POST', $inputs, 'glamour', '' , false);
+        $result .= la_Form('', 'POST', $inputs, 'glamour', '', false);
         return ($result);
     }
 
@@ -502,7 +493,6 @@ class TrinityTvFrontend {
         $result .= la_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
-
 
 }
 
