@@ -293,4 +293,6 @@ $lang['def']['Terms'] = 'Condiţii';
 $lang['def']['Bonus'] = 'bonus';
 $lang['def']['Balance before'] = 'Soldul înainte';
 
+$lang['def']['Freezing'] = 'Inghetarea contului';
+
 ?>

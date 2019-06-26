@@ -336,3 +336,4 @@ $lang['def']['Additional mobile'] = 'Móvil opcional';
 
 $lang['def']['Terms'] = 'Condiciones';
 $lang['def']['Bonus'] = 'Prima';
+$lang['def']['Freezing'] = 'El helamiento de la cuenta';

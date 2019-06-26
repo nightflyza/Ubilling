@@ -247,5 +247,6 @@ $lang['def']['trillions']='трилион';
 
 $lang['def']['Terms'] = 'Условия';
 $lang['def']['Bonus'] = 'Премия';
+$lang['def']['Freezing'] = 'Замразяване сметки';
 
 ?>

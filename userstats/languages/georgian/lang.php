@@ -339,5 +339,5 @@ $lang['def']['Terms'] = 'ვადები';
 $lang['def']['Bonus'] = 'ბონუსი';
 $lang['def']['Balance before'] = 'ბალანსი ადრე';
 
-
+$lang['def']['Freezing'] = 'ანგარიშის გაყინვა';
 ?>
