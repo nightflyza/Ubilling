@@ -24,10 +24,12 @@ function la_InputId() {
  * @param string $inputs inputs string to include
  * @param string $class  class for form
  * @param string $legend form legend
+ * @param bool   $cleanStyle clean css style
+ * @param string $options some inline form options
  * 
  * @return  string
  */
-function la_Form($action, $method, $inputs, $class = '', $legend = '', $cleanStyle = true) {
+function la_Form($action, $method, $inputs, $class = '', $legend = '', $cleanStyle = true, $options = '') {
     if ($class != '') {
         $form_class = ' class="' . $class . '" ';
     } else {
@@ -46,7 +48,7 @@ function la_Form($action, $method, $inputs, $class = '', $legend = '', $cleanSty
     }
 
     $form = '
-        <form action="' . $action . '" method="' . $method . '" ' . $form_class . '>
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . ' ' . $options . '>
          ' . $form_legend . '
         ' . $inputs . '
         </form>

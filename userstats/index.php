@@ -27,10 +27,7 @@ if (!empty($us_access)) {
 }
 
 if ($user_ip) {
-    if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
-        // IF ALREADY SIGNED:
-        zbs_LogoutForm();
-    }
+
 
     if (!isset($_GET['module'])) {
         if ($us_config['UBA_ENABLED']) {
@@ -73,8 +70,15 @@ if ($user_ip) {
                 show_window('', zbs_IntroLoadText());
             }
         }
-    } else
+    } else {
         zbs_LoadModule($_GET['module']);
+    }
+    //render logout form if user already signed in
+    if (isset($us_config['INLINE_LOGOUT']) AND $us_config['INLINE_LOGOUT']) {
+        if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
+            zbs_LogoutForm();
+        }
+    }
 } else {
     if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
         zbs_LoginForm();

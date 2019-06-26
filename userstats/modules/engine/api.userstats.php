@@ -239,20 +239,30 @@ function zbs_LoginForm() {
 }
 
 /**
- * Renders user logout form (only for login auth)
+ * Renders user logout form (only for login/both auth)
+ * 
+ * @param bool $return
  * 
  * @return void
  */
-function zbs_LogoutForm() {
-    $form = '';
-    $inputs = la_HiddenInput('ulogout', 'true');
-    $inputs.= la_Submit(__('Logout'));
-    if (isset($_COOKIE['upassword'])) {
-        if ($_COOKIE['upassword'] != 'nopassword') {
-            $form.= la_Form('', 'POST', $inputs);
+function zbs_LogoutForm($return = false) {
+    global $us_config;
+    if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
+        $form = '';
+        $inputs = la_HiddenInput('ulogout', 'true');
+        $inputs.= la_Submit(__('Logout'));
+        if (isset($_COOKIE['upassword'])) {
+            if ($_COOKIE['upassword'] != 'nopassword') {
+                $form.= la_Form('', 'POST', $inputs);
+            }
+        }
+
+        if (!$return) {
+            show_window('', $form);
+        } else {
+            return ($form);
         }
     }
-    show_window('', $form);
 }
 
 /**
