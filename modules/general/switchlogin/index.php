@@ -6,36 +6,36 @@ if ($altcfg['SWITCH_AUTOCONFIG']) {
     if (cfr(SwitchLogin::MODULE)) {
         if (wf_CheckGet(array('ajax'))) {
             if ($_GET['ajax'] == 'snmp') {
-                $swLogin->SwLoginAddSnmpForm();
+                $swLogin->web_loginAddSnmp();
             }
             if ($_GET['ajax'] == 'connect') {
-                $swLogin->SwLoginAddConnForm();
+                $swLogin->web_loginAddConn();
             }
             if ($_GET['ajax'] == 'snmp_edit') {
-                $swLogin->SwLoginEditSnmpForm($_GET['edit']);
+                $swLogin->web_loginEditSnmp($_GET['edit']);
             }
             if ($_GET['ajax'] == 'connect_edit') {
-                $swLogin->SwLoginEditConnForm($_GET['edit']);
+                $swLogin->web_loginEditConn($_GET['edit']);
             }
         }
         if (!isset($_GET['edit'])) {
             $megaForm = wf_AjaxLoader();
-            $megaForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=snmp', 'SNMP', 'megaContainer1', false, 'ubButton');
-            $megaForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=connect', 'Connect', 'megaContainer1', false, 'ubButton');
-            $megaForm.= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
+            $megaForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=snmp', 'SNMP', 'megaContainer1', false, 'ubButton');
+            $megaForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=connect', 'Connect', 'megaContainer1', true, 'ubButton');
+            $megaForm .= wf_delimiter() . wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
             show_window(__("Switches login data"), $megaForm);
             $swLogin->ShowSwAllLogin();
         } else {
             $megaEditForm = wf_AjaxLoader();
-            $megaEditForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=snmp_edit', 'SNMP', 'megaContainer1', false, 'ubButton');
-            $megaEditForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=connect_edit', 'Connect', 'megaContainer1', false, 'ubButton');
-            $megaEditForm.= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
-            show_warning(__("Are you sure that you want to change switch login data") . "?");            
+            $megaEditForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=snmp_edit', 'SNMP', 'megaContainer1', false, 'ubButton');
+            $megaEditForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=connect_edit', 'Connect', 'megaContainer1', false, 'ubButton');
+            $megaEditForm .= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
+            show_warning(__("Are you sure that you want to change switch login data") . "?");
             show_window(__("Switches login data"), $megaEditForm);
             $back = wf_BackLink(SwitchLogin::MODULE_URL);
             show_window('', $back);
         }
-        
+
         if (isset($_POST['add'])) {
             $params = array('swmodel', 'SwMethod');
             if (wf_CheckPost($params)) {
