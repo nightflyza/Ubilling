@@ -121,6 +121,7 @@ include('api/libs/api.fwtbt.php');
 include('api/libs/api.ddt.php');
 include('api/libs/api.visor.php');
 include('api/libs/api.sphinxsearch.php');
+include('api/libs/api.switchlogin.php');
 
 
 /*
