@@ -1155,12 +1155,14 @@ class UserProfile {
     /**
      * Returns tariff info container for data display
      * 
+     * @param bool $nextMonth
+     * 
      * @return string
      */
-    protected function getTariffInfoContrainer() {
+    protected function getTariffInfoContrainer($nextMonth = false) {
         $result = '';
         if (@$this->alterCfg['TARIFFINFO_IN_PROFILE']) {
-            $containerId = 'TARIFFINFO_CONTAINER';
+            $containerId = ($nextMonth) ? 'TARIFFINFO_CONTAINER' : 'TARIFFINFO_CONTAINERNM';
             $result = wf_tag('div', false, '', 'id="' . $containerId . '" style="display:block;"') . wf_tag('div');
         }
         return ($result);
@@ -1170,12 +1172,14 @@ class UserProfile {
      * Returns tariff info ajax controls
      * 
      * @param string $tariffName
+     * @param bool $nextMonth
+     * 
      * @return string
      */
-    protected function getTariffInfoControls($tariffName) {
+    protected function getTariffInfoControls($tariffName, $nextMonth = false) {
         $result = '';
         if (@$this->alterCfg['TARIFFINFO_IN_PROFILE']) {
-            $containerId = 'TARIFFINFO_CONTAINER';
+            $containerId = ($nextMonth) ? 'TARIFFINFO_CONTAINER' : 'TARIFFINFO_CONTAINERNM';
             if (!empty($tariffName)) {
                 $result .= wf_AjaxLoader();
                 $result .= wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
@@ -1474,7 +1478,6 @@ class UserProfile {
         return ($result);
     }
 
-
     protected function getReceiptControls() {
         global $ubillingConfig;
 
@@ -1482,10 +1485,7 @@ class UserProfile {
             $receiptsPrinter = new PrintReceipt();
 
             $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
-            $result .= $receiptsPrinter->renderWebFormForProfile($this->login, 'inetsrv', __('Internet'),
-                                                                 $this->AllUserData[$this->login]['Cash'],
-                                                                 $this->AllUserData[$this->login]['streetname'],
-                                                                 $this->AllUserData[$this->login]['buildnum']);
+            $result .= $receiptsPrinter->renderWebFormForProfile($this->login, 'inetsrv', __('Internet'), $this->AllUserData[$this->login]['Cash'], $this->AllUserData[$this->login]['streetname'], $this->AllUserData[$this->login]['buildnum']);
             $result .= wf_tag('br');
             $result .= __('Print receipt');
             $result .= wf_tag('div', true);
@@ -1571,7 +1571,7 @@ class UserProfile {
 //User tariff row
         $profile .= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
 //Tariff change row
-        $profile .= $this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange']), $this->userdata['TariffChange']);
+        $profile .= $this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange'], true), $this->userdata['TariffChange'] . $this->getTariffInfoContrainer(true));
 //old CaTv backlink if needed
         $profile .= $this->getCatvBacklinks();
 //Speed override row
