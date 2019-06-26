@@ -462,7 +462,6 @@ function la_TableRow($cells, $class = '') {
  * @param string $customkey table cell custom param
  * 
  * @return string
- *  
  */
 function la_TableCell($data, $width = '', $class = '', $customkey = '') {
     if ($width != '') {

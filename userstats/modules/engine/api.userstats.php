@@ -904,6 +904,7 @@ function zbs_getUserTags($login) {
  * @return string
  */
 function zbs_vservicesShow($login, $currency) {
+    global $us_config;
     $result = '';
     $userservices = array();
     $allservices = zbs_getVservicesAll(); // tagid => price
@@ -921,7 +922,7 @@ function zbs_vservicesShow($login, $currency) {
             if (!empty($userservices)) {
                 $tagnames = zbs_getTagNames(); //tagid => name
 
-                $cells = la_TableCell(__('Service'));
+                $cells = la_TableCell(__('Service'), '60%');
                 $cells.= la_TableCell(__('Terms'));
                 $rows = la_TableRow($cells, 'row1');
 
@@ -942,6 +943,10 @@ function zbs_vservicesShow($login, $currency) {
                 $result.= la_TableBody($rows, '100%', 0);
             }
         }
+    }
+
+    if ($us_config['VSERVICES_SHOW'] == 2) {
+      //TODO
     }
     return ($result);
 }
