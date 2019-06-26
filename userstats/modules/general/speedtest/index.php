@@ -36,6 +36,20 @@ if ($us_config['SP_ENABLED']) {
          */
         protected $notice = '';
 
+        /**
+         * Custom width
+         *
+         * @var string
+         */
+        protected $width = '100%';
+
+        /**
+         * Custom height
+         *
+         * @var string
+         */
+        protected $height = '500';
+
         public function __construct() {
             $this->loadConfig();
             $this->setOptions();
@@ -62,6 +76,18 @@ if ($us_config['SP_ENABLED']) {
             if (isset($this->usConf['SP_TYPE'])) {
                 if (!empty($this->usConf['SP_TYPE'])) {
                     $this->type = $this->usConf['SP_TYPE'];
+                }
+            }
+            
+            if (isset($this->usConf['SP_SIZE'])) {
+                if (!empty($this->usConf['SP_SIZE'])) {
+                    $split=  explode('|', $this->usConf['SP_SIZE']);
+                    if (isset($split[1])) {
+                        $this->width=$split[0];
+                        $this->height=$split[1];
+                    } else {
+                        show_window(__('Error'), __('wrong format').': SP_SIZE');
+                    }
                 }
             }
 
@@ -111,32 +137,13 @@ if ($us_config['SP_ENABLED']) {
         }
 
         /**
-         * Returns legacy ookla speedtest mini flash embedding code
+         * Returns iframe with custom URL
          * 
          * @return string
          */
-        protected function getOoklaMini() {
-            $result = la_tag('script', false, '', 'type="text/javascript" src="' . $this->url . 'speedtest/swfobject.js?v=2.2"');
-            $result.=la_tag('script', true);
-            $result.= '
-	<div id="mini-demo">
-	 Speedtest.net Mini requires at least version 8 of Flash. Please <a href="http://get.adobe.com/flashplayer/">update your client</a>.
-	 </div><!--/mini-demo-->
-	' . la_tag('script', false, '', 'type="text/javascript"') . '
-	 var flashvars = {
-	     upload_extension: "php"
-	   };
-	  var params = {
-		wmode: "transparent",
-		quality: "high",
-		menu: "false",
-		allowScriptAccess: "always"
-		};
-		var attributes = {};
-		swfobject.embedSWF("' . $this->url . 'speedtest.swf?v=2.1.8", "mini-demo", "350", "200", "9.0.0", "' . $this->url . 'speedtest/expressInstall.swf", flashvars, params, attributes);
-	
-          ';
-            $result.=la_tag('script', true);
+        protected function getIframe() {
+            $result = '';
+            $result.=la_tag('iframe', false, '', 'width="'.$this->width.'" height="'.$this->height.'" frameborder="0" src="' . $this->url . '"') . la_tag('iframe', true);
             return ($result);
         }
 
@@ -156,7 +163,7 @@ if ($us_config['SP_ENABLED']) {
                     $this->goRedirect();
                     break;
                 case 3:
-                    $data = $this->getOoklaMini();
+                    $data = $this->getIframe();
                     break;
             }
             $result = $this->getContainer($data);
