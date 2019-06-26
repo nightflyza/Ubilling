@@ -394,5 +394,6 @@ $lang['def']['Get device activation code'] = 'Получить код актив
 $lang['def']['Your account ID is'] = 'Ваш аккаунт ID';
 
 $lang['def']['Freezing'] = 'Заморозка';
+$lang['def']['Code'] = 'Код';
 
 ?>

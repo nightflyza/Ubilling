@@ -58,13 +58,21 @@ class TrinityTvFrontend {
      */
     protected $apiKey = '';
 
+    /**
+     * Contains basic module controller URL
+     *
+     * @var string
+     */
+    protected $urlMe = '?module=trinitytv';
+
     const TABLE_SUBS = 'trinitytv_subscribers';
     const TABLE_TARIFFS = 'trinitytv_tariffs';
     const TABLE_DEVICES = 'trinitytv_devices';
     const TABLE_SUSPENDS = 'trinitytv_suspend';
     const TABLE_QUEUE = 'trinitytv_queue';
 
-    public function __construct() {
+    public function __construct($url = '') {
+        $this->setUrl($url);
         $this->loadUsConfig();
         $this->setOptions();
         $this->loadUsers();
@@ -88,6 +96,28 @@ class TrinityTvFrontend {
      */
     protected function loadUsConfig() {
         $this->usConfig = zbs_LoadConfig();
+    }
+
+    /**
+     * Control module URL setter
+     * 
+     * @param string $url
+     * 
+     * @return void
+     */
+    protected function setUrl($url) {
+        if (!empty($url)) {
+            $this->urlMe = $url;
+        }
+    }
+
+    /**
+     * Control module URL getter
+     * 
+     * @return string
+     */
+    public function getUrl() {
+        return ($this->urlMe);
     }
 
     /**
@@ -245,10 +275,10 @@ class TrinityTvFrontend {
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($this->userLogin, $tariff['id'])) {
-                        $tariffInfo .= la_Link('?module=trinitytv&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
+                        $tariffInfo .= la_Link($this->urlMe . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
-                            $tariffInfo .= la_Link('?module=trinitytv&subscribe=' . $tariff['id'], __('Subscribe'), false, 'trinity-button-s');
+                            $tariffInfo .= la_Link($this->urlMe . '&subscribe=' . $tariff['id'], __('Subscribe'), false, 'trinity-button-s');
                         } else {
                             $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
                         }
@@ -454,7 +484,7 @@ class TrinityTvFrontend {
                     $cells = la_TableCell($device['mac']);
                     $cells .= la_TableCell($device['created_at']);
 
-                    $deviceControls = la_JSAlert('?module=trinitytv&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
+                    $deviceControls = la_JSAlert($this->urlMe . '&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
                     $cells.= la_TableCell($deviceControls);
 
                     $rows .= la_TableRow($cells, 'row3');

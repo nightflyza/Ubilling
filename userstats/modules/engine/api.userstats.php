@@ -946,7 +946,7 @@ function zbs_vservicesShow($login, $currency) {
     }
 
     if ($us_config['VSERVICES_SHOW'] == 2) {
-      //TODO
+        //TODO
     }
     return ($result);
 }
@@ -1399,7 +1399,11 @@ function zbs_ModulesMenuShow($icons = false) {
                 if (file_exists($iconsPath . $eachmodule . ".gif")) {
                     $iconlink = ' <img src="' . $iconsPath . $eachmodule . '.gif" class="menuicon"> ';
                 } else {
-                    $iconlink = '';
+                    if (file_exists($iconsPath . $eachmodule . ".png")) {
+                        $iconlink = ' <img src="' . $iconsPath . $eachmodule . '.png" class="menuicon"> ';
+                    } else {
+                        $iconlink = '';
+                    }
                 }
             } else {
                 $iconlink = '';
