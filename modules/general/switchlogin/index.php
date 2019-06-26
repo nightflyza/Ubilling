@@ -19,19 +19,21 @@ if ($altcfg['SWITCH_AUTOCONFIG']) {
             }
         }
         if (!isset($_GET['edit'])) {
-            $megaForm = wf_AjaxLoader();
+            $megaForm = wf_tag('div', false, '', '') . '<h3>' . __('Choose connection method') . ':</h3>' . wf_tag('div', true);
+            $megaForm .= wf_AjaxLoader();
             $megaForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=snmp', 'SNMP', 'megaContainer1', false, 'ubButton');
-            $megaForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=connect', 'Connect', 'megaContainer1', true, 'ubButton');
+            $megaForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=connect', 'Telnet/SSH', 'megaContainer1', true, 'ubButton');
             $megaForm .= wf_delimiter() . wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
-            show_window(__("Switches login data"), $megaForm);
+            show_window(__("Add credentials"), $megaForm);
             $swLogin->ShowSwAllLogin();
+            $back = wf_BackLink("?module=switches");
+            show_window('', $back);
         } else {
             $megaEditForm = wf_AjaxLoader();
             $megaEditForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=snmp_edit', 'SNMP', 'megaContainer1', false, 'ubButton');
-            $megaEditForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=connect_edit', 'Connect', 'megaContainer1', false, 'ubButton');
+            $megaEditForm .= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=connect_edit', 'Telnet/SSH', 'megaContainer1', false, 'ubButton');
             $megaEditForm .= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
-            show_warning(__("Are you sure that you want to change switch login data") . "?");
-            show_window(__("Switches login data"), $megaEditForm);
+            show_window(__("Edit credentials"), $megaEditForm);
             $back = wf_BackLink(SwitchLogin::MODULE_URL);
             show_window('', $back);
         }
