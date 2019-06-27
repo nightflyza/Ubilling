@@ -29,9 +29,31 @@ class TrinityTvApi {
      */
     protected $urlApi = 'http://partners.trinity-tv.net/partners';
 
-    public function __construct($partnerId = '', $salt = '', $urlApi = '') {
+    /**
+     * Debug flag
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
+     * Default debug log path
+     */
+    const LOG_PATH = 'exports/trinitytv.log';
+
+    /**
+     * 
+     * @param string $partnerId
+     * @param string $salt
+     * @param string $urlApi
+     * @param bool $debug
+     * 
+     * @return void
+     */
+    public function __construct($partnerId = '', $salt = '', $urlApi = '', $debug = false) {
         $this->partnerId = $partnerId;
         $this->salt = $salt;
+        $this->debug = $debug;
 
         if (!empty($urlApi)) {
             $this->urlApi = $urlApi;
@@ -228,11 +250,29 @@ class TrinityTvApi {
      * @return bool|mixed
      */
     private function sendRequest($url) {
+        if ($this->debug) {
+            file_put_contents(self::LOG_PATH, curdatetime() . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, '>>>>>QUERY>>>>>' . "\n", FILE_APPEND);
+            file_put_contents(self::LOG_PATH, print_r($url, true) . "\n", FILE_APPEND);
+        }
+
         $response = file_get_contents($url);
+
+        if ($this->debug) {
+            file_put_contents(self::LOG_PATH, '<<<<<RESPONSE<<<<<' . "\n", FILE_APPEND);
+            if (!empty($response)) {
+                file_put_contents(self::LOG_PATH, print_r(json_decode($response, true), true) . "\n", FILE_APPEND);
+            } else {
+                file_put_contents(self::LOG_PATH, 'EMPTY_RESPONCE_RECEIVED' . "\n", FILE_APPEND);
+            }
+            file_put_contents(self::LOG_PATH, '==================' . "\n", FILE_APPEND);
+        }
 
         if (!empty($response)) {
             return json_decode($response);
         }
+
+
 
         return false;
     }
@@ -405,7 +445,7 @@ class TrinityTv {
 
         if (!empty($devices)) {
             foreach ($devices AS $device) {
-                if($device['mac'] == $mac){
+                if ($device['mac'] == $mac) {
                     return $device['id'];
                 }
             }
@@ -413,7 +453,6 @@ class TrinityTv {
 
         return false;
     }
-
 
     /**
      * Returns local subscriber ID from database
@@ -716,7 +755,13 @@ class TrinityTv {
             $salt = $config['TRINITYTV_SALT'];
         }
 
-        $this->api = new TrinityTvApi($partnerId, $salt);
+        if (isset($config['TRINITYTV_DEBUG'])) {
+            $debug = $config['TRINITYTV_DEBUG'];
+        } else {
+            $debug = false;
+        }
+
+        $this->api = new TrinityTvApi($partnerId, $salt, '', $debug);
     }
 
     /**
@@ -942,7 +987,6 @@ class TrinityTv {
         return ($result);
     }
 
-
     /**
      * Assigns some device uniq to some subscriber
      *
@@ -1061,12 +1105,12 @@ class TrinityTv {
     public function renderUserInfo($subscriberId) {
         $subscriberId = vf($subscriberId, 3);
         $result = '';
-        
+
         $subscriber = @$this->allSubscribers[$subscriberId];
-        
+
         if (!empty($subscriber)) {
-            $remoteServiceData=$this->api->subscriptionInfo($subscriberId);
-            
+            $remoteServiceData = $this->api->subscriptionInfo($subscriberId);
+
             $result .= wf_tag('b') . __('Local profile') . wf_tag('b', true) . wf_tag('br');
             $rows = '';
 
@@ -1089,7 +1133,7 @@ class TrinityTv {
             $cells .= wf_TableCell($userLink);
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Contract').' '.__('Trinity'), '', 'row2');
+            $cells = wf_TableCell(__('Contract') . ' ' . __('Trinity'), '', 'row2');
             $cells .= wf_TableCell($subscriber['contracttrinity']);
             $rows .= wf_TableRow($cells, 'row3');
 
@@ -1100,14 +1144,14 @@ class TrinityTv {
             $cells = wf_TableCell(__('Date'), '', 'row2');
             $cells .= wf_TableCell($this->getTariffName($subscriber['actdate']));
             $rows .= wf_TableRow($cells, 'row3');
-            
-            $remoteServiceStatus= $remoteServiceData->subscriptions->subscrstatus;
 
-            $cells = wf_TableCell(__('Status').' '.__('local'), '', 'row2');
+            $remoteServiceStatus = $remoteServiceData->subscriptions->subscrstatus;
+
+            $cells = wf_TableCell(__('Status') . ' ' . __('local'), '', 'row2');
             $cells .= wf_TableCell(web_bool_led($subscriber['active']));
             $rows .= wf_TableRow($cells, 'row3');
-            
-             $cells = wf_TableCell(__('Status').' '.__('Trinity'), '', 'row2');
+
+            $cells = wf_TableCell(__('Status') . ' ' . __('Trinity'), '', 'row2');
             $cells .= wf_TableCell($remoteServiceStatus);
             $rows .= wf_TableRow($cells, 'row3');
 
@@ -1118,7 +1162,6 @@ class TrinityTv {
 
         return ($result);
     }
-
 
     /**
      * Renders default module controls
@@ -1280,7 +1323,7 @@ class TrinityTv {
             log_register('TRINITYTV DEVICE DELETE [' . $allDevices[$deviceId]['mac'] . ']');
 
             if (isset($response->result) AND $response->result == 'success') {
-
+                
             } else {
                 $result = __('Something went wrong') . ": Trinity response " . @$response->result;
             }
