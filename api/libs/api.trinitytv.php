@@ -1061,10 +1061,12 @@ class TrinityTv {
     public function renderUserInfo($subscriberId) {
         $subscriberId = vf($subscriberId, 3);
         $result = '';
-
+        
         $subscriber = @$this->allSubscribers[$subscriberId];
-
+        
         if (!empty($subscriber)) {
+            $remoteServiceData=$this->api->subscriptionInfo($subscriberId);
+            
             $result .= wf_tag('b') . __('Local profile') . wf_tag('b', true) . wf_tag('br');
             $rows = '';
 
@@ -1087,7 +1089,7 @@ class TrinityTv {
             $cells .= wf_TableCell($userLink);
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Contract Trinity'), '', 'row2');
+            $cells = wf_TableCell(__('Contract').' '.__('Trinity'), '', 'row2');
             $cells .= wf_TableCell($subscriber['contracttrinity']);
             $rows .= wf_TableRow($cells, 'row3');
 
@@ -1098,9 +1100,15 @@ class TrinityTv {
             $cells = wf_TableCell(__('Date'), '', 'row2');
             $cells .= wf_TableCell($this->getTariffName($subscriber['actdate']));
             $rows .= wf_TableRow($cells, 'row3');
+            
+            $remoteServiceStatus= $remoteServiceData->subscriptions->subscrstatus;
 
-            $cells = wf_TableCell(__('Status'), '', 'row2');
+            $cells = wf_TableCell(__('Status').' '.__('local'), '', 'row2');
             $cells .= wf_TableCell(web_bool_led($subscriber['active']));
+            $rows .= wf_TableRow($cells, 'row3');
+            
+             $cells = wf_TableCell(__('Status').' '.__('Trinity'), '', 'row2');
+            $cells .= wf_TableCell($remoteServiceStatus);
             $rows .= wf_TableRow($cells, 'row3');
 
             $result .= wf_TableBody($rows, '100%', 0);

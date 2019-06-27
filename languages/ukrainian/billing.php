@@ -3103,5 +3103,8 @@ $lang['def']['Tasks map'] = 'Мапа задач';
 $lang['def']['Total tasks'] = 'Усього задач';
 $lang['def']['Tasks rendered on map'] = 'Задач відрендерено на мапі';
 $lang['def']['Already deleted users or tasks without user'] = 'Вже видалених користувачів чи задач без користувача';
+$lang['def']['by code'] = 'за кодом';
+$lang['def']['by MAC'] = 'за MAC';
+$lang['def']['local'] = 'локально';
 
 ?>
