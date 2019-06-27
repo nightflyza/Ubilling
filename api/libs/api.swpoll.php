@@ -495,10 +495,12 @@ function sp_SnmpParseFdbDl($portTable) {
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
                 $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                $port = vf($rawMac[1], 3);
                 unset($parts[0]);
-                if (count($parts) == 7) {
+                // Some devices show CPU interface as port 0
+                if (count($parts) == 7 and intval($port) != 0) {
                     $cleanMac = call_user_func_array('sprintf', $parts);
-                    $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                    $portData[strtolower($cleanMac)] = $port;
                 }
             }
         }
