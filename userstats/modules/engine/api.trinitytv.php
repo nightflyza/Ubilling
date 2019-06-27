@@ -473,7 +473,7 @@ class TrinityTvFrontend {
 
             $result .= "<br><br> ";
 
-            $cells = la_TableCell(__('MAC address'));
+            $cells = la_TableCell(__('MAC').' '.__('Address'));
             $cells .= la_TableCell(__('Date'));
             $cells .= la_TableCell(__('Actions'));
             $rows = la_TableRow($cells, 'row1');
