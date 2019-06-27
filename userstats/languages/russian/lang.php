@@ -395,5 +395,6 @@ $lang['def']['Your account ID is'] = 'Ваш аккаунт ID';
 
 $lang['def']['Freezing'] = 'Заморозка';
 $lang['def']['Code'] = 'Код';
+$lang['def']['How to configure your devices and use service'] = 'Как настроить ваши устройства и воспользоваться услугой';
 
 ?>

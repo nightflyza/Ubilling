@@ -44,10 +44,10 @@ if (@$us_config['TRINITYTV_ENABLED']) {
         }
 
         // manual add device
-        if(la_CheckPost(array('device'))){
+        if (la_CheckPost(array('device'))) {
 
             // add device by mac
-            if(la_CheckPost(array('mac'))){
+            if (la_CheckPost(array('mac'))) {
                 $addDeviceResult = $trinitytvFront->pushDeviceAddMacRequest($_POST['mac']);
                 if (!$addDeviceResult) {
                     rcms_redirect('?module=trinitytv');
@@ -57,7 +57,7 @@ if (@$us_config['TRINITYTV_ENABLED']) {
             }
 
             // add device by code
-            if(la_CheckPost(array('code'))){
+            if (la_CheckPost(array('code'))) {
                 $addDeviceResult = $trinitytvFront->pushDeviceAddCodeRequest($_POST['code']);
                 if (!$addDeviceResult) {
                     rcms_redirect('?module=trinitytv');
@@ -80,6 +80,12 @@ if (@$us_config['TRINITYTV_ENABLED']) {
         //default sub/unsub form
         show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
 
+        //display some guide links if required
+        if (@$us_config['TRINITYTV_GUIDE_URL']) {
+            $guideLink = la_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'), false, 'trinity-button');
+            show_window('', $guideLink);
+        }
+        
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }

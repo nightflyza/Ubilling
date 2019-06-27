@@ -83,6 +83,12 @@ if (@$us_config['SWEETTV_ENABLED']) {
 
         //default sub/unsub form
         show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
+        
+        //display some guide links if required
+        if (@$us_config['TRINITYTV_GUIDE_URL']) {
+            $guideLink=la_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'),false,'trinity-button');
+            show_window('', $guideLink);
+        }
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }
