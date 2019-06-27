@@ -351,11 +351,21 @@ function web_SwitchDownlinksList($switchId) {
         }
     }
 
+    //load dead switches cache
+    $dead_switches_raw = zb_StorageGet('SWDEAD');
+    if (!$dead_switches_raw) {
+        $dead_switches = array();
+    } else {
+        $dead_switches = unserialize($dead_switches_raw);
+    }
+    $deathTime = zb_SwitchesGetAllDeathTime();
+
     if (!empty($downlinks)) {
         $allModels = zb_SwitchModelsGetAllTag();
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('IP'));
         $cells.= wf_TableCell(__('Location'));
+        $cells.= wf_TableCell(__('Active'));
         $cells.= wf_TableCell(__('Model'));
         $cells.= wf_TableCell(__('SNMP community'));
         $cells.= wf_TableCell(__('Geo location'));
@@ -363,9 +373,29 @@ function web_SwitchDownlinksList($switchId) {
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
         foreach ($downlinks as $io => $each) {
+
+            if (isset($dead_switches[$each['ip']])) {
+                if (isset($deathTime[$each['ip']])) {
+                    $obituary = __('Switch dead since') . ' ' . $deathTime[$each['ip']];
+                } else {
+                    $obituary = '';
+                }
+                $aliveled = web_red_led($obituary) . ' ' . __('No');
+                $aliveflag = '0';
+            } else {
+                if (strpos($each['desc'], 'NP') === false) {
+                    $aliveled = web_green_led() . ' ' . __('Yes');
+                    $aliveflag = '1';
+                } else {
+                    $aliveled = web_yellow_led() . ' ' . __('NP');
+                    $aliveflag = '2';
+                }
+            }
+
             $cells = wf_TableCell($each['id']);
             $cells.= wf_TableCell($each['ip']);
             $cells.= wf_TableCell($each['location']);
+            $cells.= wf_TableCell($aliveled);
             $cells.= wf_TableCell(@$allModels[$each['modelid']]);
             $cells.= wf_TableCell($each['snmp']);
             $cells.= wf_TableCell($each['geo']);
