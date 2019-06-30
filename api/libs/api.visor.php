@@ -50,6 +50,7 @@ class UbillingVisor {
     const URL_ME = '?module=visor';
     const URL_USERS = '&users=true';
     const URL_CAMS = '&cams=true';
+    const URL_USERCAMS = '&ajaxusercams=';
     const URL_DVRS = '&dvrs=true';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
@@ -153,9 +154,9 @@ class UbillingVisor {
      */
     public function panel() {
         $result = '';
-        $result.=wf_Link(self::URL_ME . self::URL_USERS, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . self::URL_USERS, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
         return ($result);
     }
 
@@ -168,7 +169,7 @@ class UbillingVisor {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Date', 'Name', 'Phone', 'Charge', 'Cams', 'Actions');
-        $result.=wf_JqDtLoader($columns, self::URL_ME . self::URL_AJUSERS, false, 'Users', 50, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . self::URL_AJUSERS, false, 'Users', 50, $opts);
         return ($result);
     }
 
@@ -189,7 +190,7 @@ class UbillingVisor {
                 $data[] = $this->getUserCamerasCount($each['id']);
                 $actLinks = '';
                 //$actLinks.= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
+                $actLinks .= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
@@ -207,11 +208,11 @@ class UbillingVisor {
         $result = '';
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = wf_HiddenInput('newusercreate', 'true');
-        $inputs.= wf_TextInput('newusername', __('Name') . $sup, '', true, 25);
-        $inputs.= wf_TextInput('newuserphone', __('Phone'), '', true, 20, 'mobile');
-        $inputs.= wf_CheckInput('newuserchargecams', __('Charge money from primary account for linked camera users if required'), true, false);
-        $inputs.=wf_Submit(__('Create'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs .= wf_TextInput('newusername', __('Name') . $sup, '', true, 25);
+        $inputs .= wf_TextInput('newuserphone', __('Phone'), '', true, 20, 'mobile');
+        $inputs .= wf_CheckInput('newuserchargecams', __('Charge money from primary account for linked camera users if required'), true, false);
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -245,7 +246,7 @@ class UbillingVisor {
         $result = array();
         if (!empty($this->allCams)) {
             foreach ($this->allCams as $io => $each) {
-                if ($each['userid'] == $userId) {
+                if ($each['visorid'] == $userId) {
                     $result[$each['id']] = $each;
                 }
             }
@@ -286,10 +287,10 @@ class UbillingVisor {
                 nr_query($query);
                 log_register('VISOR USER DELETE [' . $userId . ']');
             } else {
-                $result.=__('User have some cameras associated');
+                $result .= __('User have some cameras associated');
             }
         } else {
-            $result.=__('User not exists');
+            $result .= __('User not exists');
         }
         return ($result);
     }
@@ -305,9 +306,64 @@ class UbillingVisor {
         $result = '';
         $userId = vf($userId, 3);
         if (isset($this->allUsers[$userId])) {
-            
+            $userData = $this->allUsers[$userId];
+            if (!empty($userData)) {
+                $cells = wf_TableCell(__('Name'), '', 'row2');
+                $cells .= wf_TableCell($userData['realname']);
+                $rows = wf_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('Phone'), '', 'row2');
+                $cells .= wf_TableCell($userData['phone']);
+                $rows .= wf_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('Charge'), '', 'row2');
+                $cells .= wf_TableCell(web_bool_led($userData['chargecams'], false));
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $result .= wf_TableBody($rows, '100%', 0, '');
+                $userCamsCount = $this->getUserCamerasCount($userId);
+                if ($userCamsCount > 0) {
+                    $result .= $this->renderCamerasContainer(self::URL_ME.self::URL_USERCAMS.$userId);
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('User have no cameras assigned'), 'warning');
+                }
+            }
         }
         return ($result);
+    }
+
+    /**
+     * Renders default cameras view container
+     * 
+     * @param string $url
+     * 
+     * @return string
+     */
+    protected function renderCamerasContainer($url) {
+        $result = '';
+        $opts = '"order": [[ 0, "desc" ]]';
+        $columns=array('ID','User','Address','IP','Actions');
+        $result .= wf_JqDtLoader($columns, $url, false, __('Cams'), 50, $opts);
+        return($result);
+    }
+    
+    /**
+     * Renders ajax json backend for some user assigned cameras
+     * 
+     * @param int $userId
+     * 
+     * @return void
+     */
+    public function ajaxUserCams($userId) {
+        $userId=vf($userId,3);
+        $json=new wf_JqDtHelper();
+        if (isset($this->allUsers[$userId])) {
+            $allUserCams= $this->getUserCameras($userId);
+            if (!empty($allUserCams)) {
+                foreach ($allUserCams as $io=>$each) {
+                   //TODO 
+                }
+            }
+        }
+        $json->getJson();
     }
 
 }

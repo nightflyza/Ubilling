@@ -14,6 +14,11 @@ if (cfr('VISOR')) {
         if (wf_CheckGet(array('ajaxusers'))) {
             $visor->ajaxUsersList();
         }
+        
+        //user cameras listing
+        if (wf_CheckGet(array('ajaxusercams'))) {
+            $visor->ajaxUserCams($_GET['ajaxusercams']);
+        }
 
         //users creation
         if (wf_CheckPost(array('newusercreate', 'newusername'))) {
@@ -39,6 +44,12 @@ if (cfr('VISOR')) {
             $userCreateForm = $visor->renderUserCreateForm();
             $userCreateControls = ' ' . wf_modalAuto(web_add_icon(__('User registration')), __('User registration'), $userCreateForm);
             show_window(__('Users') . $userCreateControls, $visor->renderUsers());
+        }
+        
+        
+        //user profile rendering
+        if (wf_CheckGet(array('showuser'))) {
+            show_window(__('User profile'), $visor->renderUserProfile($_GET['showuser']));
         }
     } else {
         show_error(__('This module is disabled'));
