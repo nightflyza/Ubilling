@@ -2204,50 +2204,70 @@ function web_AddressAptForm($login) {
  * @return string
  */
 function web_AddressOccupancyForm() {
-
     $inputs = '';
-    if (!isset($_POST['citysel'])) {
+    $rows = '';
 
-        $inputs = __('City') . ' ' . web_CitySelectorAc();
+    if (!isset($_POST['citysel'])) {
+        $inputs = '';
+        $inputs = wf_TableCell(web_CitySelectorAc());
+        $inputs .= wf_TableCell(__('City'), '50%');
+        $rows .= wf_TableRow($inputs, 'row3');
     } else {
         $cityname = zb_AddressGetCityData($_POST['citysel']);
         $cityname = $cityname['cityname'];
 
-        $inputs .= web_ok_icon() . ' ';
-        $inputs .= wf_HiddenInput('citysel', $_POST['citysel']);
-        $inputs .= $cityname . wf_tag('br');
+        $inputs = wf_HiddenInput('citysel', $_POST['citysel']);
+        $inputs .= wf_TableCell($cityname, '50%');
+        $inputs .= wf_TableCell(web_ok_icon() . ' ' . __('City'));
+        $rows .= wf_TableRow($inputs, 'row3');
 
         if (!isset($_POST['streetsel'])) {
+            //$inputs .= __('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
 
-            $inputs .= __('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
+            $inputs = wf_TableCell(web_StreetSelectorAc($_POST['citysel']));
+            $inputs .= wf_TableCell(__('Street'));
+
+            $rows .= wf_TableRow($inputs, 'row3');
         } else {
             $streetname = zb_AddressGetStreetData($_POST['streetsel']);
             $streetname = $streetname['streetname'];
 
-            $inputs .= web_ok_icon() . ' ';
-            $inputs .= wf_HiddenInput('streetsel', $_POST['streetsel']);
-            $inputs .= $streetname . wf_tag('br');
+            $inputs = wf_HiddenInput('streetsel', $_POST['streetsel']);
+            $inputs .= wf_TableCell($streetname);
+            $inputs .= wf_TableCell(web_ok_icon() . ' ' . __('Street'));
 
+
+            $rows .= wf_TableRow($inputs, 'row3');
 
             if (!isset($_POST['buildsel'])) {
+                $inputs = wf_TableCell(web_BuildSelectorAc($_POST['streetsel']));
 
-                $inputs .= __('Build') . ' ' . web_BuildSelectorAc($_POST['streetsel']);
+                $inputs .= wf_TableCell(__('Build'));
+                $rows .= wf_TableRow($inputs, 'row3');
             } else {
                 $buildnum = zb_AddressGetBuildData($_POST['buildsel']);
                 $buildnum = $buildnum['buildnum'];
 
+                $inputs = wf_HiddenInput('buildsel', $_POST['buildsel']);
+                $inputs .= wf_TableCell($buildnum);
+                $inputs .= wf_TableCell(web_ok_icon() . ' ' . __('Build'));
+                $rows .= wf_TableRow($inputs, 'row3');
 
-                $inputs .= web_ok_icon() . ' ';
-                $inputs .= wf_HiddenInput('buildsel', $_POST['buildsel']);
-                $inputs .= $buildnum . wf_tag('br');
-                $inputs .= web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm();
-                $inputs .= wf_Submit(__('Create'));
+                $inputs = wf_TableCell(web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm());
+                $inputs .= wf_TableCell(__('Apartment'));
+                $rows .= wf_TableRow($inputs, 'row3');
+
+                $inputs = wf_TableCell(wf_Submit(__('Create')));
+                $inputs .= wf_TableCell('');
+                $rows .= wf_TableRow($inputs, 'row3');
             }
         }
     }
 
+    $form = wf_Form('', 'POST', $rows, '');
 
-    $form = wf_Form('', 'POST', $inputs, '');
+    $form = wf_TableBody($form, '100%', 0, 'glamour');
+    $form .= wf_CleanDiv();
 
     return($form);
 }
