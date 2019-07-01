@@ -1057,9 +1057,9 @@ class UserSideApi {
                     //thats replies for a ticket
                     if ((isset($result[$each['replyid']]))) {
                         $replyAuthor = (!empty($each['admin'])) ? $each['admin'] : $each['from'];
-                        $result[$each['replyid']]['text'].=PHP_EOL . '=========' . PHP_EOL;
-                        $result[$each['replyid']]['text'].=PHP_EOL . __('Message') . ' ' . $each['date'] . ' (' . $replyAuthor . ')';
-                        $result[$each['replyid']]['text'].=': ' . PHP_EOL . $each['text'] . PHP_EOL;
+                        $result[$each['replyid']]['text'] .= PHP_EOL . '=========' . PHP_EOL;
+                        $result[$each['replyid']]['text'] .= PHP_EOL . __('Message') . ' ' . $each['date'] . ' (' . $replyAuthor . ')';
+                        $result[$each['replyid']]['text'] .= ': ' . PHP_EOL . $each['text'] . PHP_EOL;
                     }
                 }
             }
@@ -1252,12 +1252,18 @@ class UserSideApi {
                 }
 
                 if (isset($allUserTags[$userLogin])) {
+                    $srvCount = 0;
                     foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
                         if (isset($this->serviceTagMappings[$eachTagid])) {
                             $serviceId = $this->serviceTagMappings[$eachTagid];
-                            $result[$userLogin]['service'][$serviceId]['cost'] = $this->vServices[$serviceId]['price'];
-                            $result[$userLogin]['service'][$serviceId]['date_add'] = '';
-                            $result[$userLogin]['service'][$serviceId]['comment'] = '';
+                            if (isset($result[$userLogin]['service'][$serviceId])) {
+                                $srvCount++;
+                            } else {
+                                $srvCount = 0;
+                            }
+                            $result[$userLogin]['service'][$serviceId][$srvCount]['cost'] = $this->vServices[$serviceId]['price'];
+                            $result[$userLogin]['service'][$serviceId][$srvCount]['date_add'] = '';
+                            $result[$userLogin]['service'][$serviceId][$srvCount]['comment'] = '';
                         }
                     }
                 }
