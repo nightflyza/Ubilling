@@ -4605,14 +4605,23 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
         $setCredit = vf($_POST['easycreditlimit']);
         $setLogin = mysql_real_escape_string($_POST['easycreditlogin']);
         $setExpire = mysql_real_escape_string($_POST['easycreditexpire']);
-        //set credit
-        $billing->setcredit($setLogin, $setCredit);
-        log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
-        //set credit expire date
-        $billing->setcreditexpire($setLogin, $setExpire);
-        log_register('CHANGE CreditExpire (' . $setLogin . ') ON ' . $setExpire);
-
-        rcms_redirect('?module=userprofile&username=' . $setLogin);
+        if (zb_checkDate($setExpire)) {
+            if (zb_checkMoney($setCredit)) {
+                //set credit
+                $billing->setcredit($setLogin, $setCredit);
+                log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
+                //set credit expire date
+                $billing->setcreditexpire($setLogin, $setExpire);
+                log_register('CHANGE CreditExpire (' . $setLogin . ') ON ' . $setExpire);
+                rcms_redirect('?module=userprofile&username=' . $setLogin);
+            } else {
+                show_error(__('Wrong format of money sum'));
+                log_register('EASYCREDIT FAIL WRONG SUMM `' . $setCredit . '`');
+            }
+        } else {
+            show_error(__('Wrong date format'));
+            log_register('EASYCREDIT FAIL DATEFORMAT `' . $setExpire . '`');
+        }
     }
 
     ////////////////////////////////////
@@ -4637,7 +4646,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     $controlIcon = wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
     $inputs = '';
     $inputs .= wf_HiddenInput('easycreditlogin', $login);
-    $inputs .= wf_TextInput('easycreditlimit', '', $creditProposal, false, '5') . __('credit limit') . ' ';
+    $inputs .= wf_TextInput('easycreditlimit', '', $creditProposal, false, 5, 'finance') . __('credit limit') . ' ';
     $inputs .= __('until');
     $inputs .= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
     $inputs .= wf_Submit(__('Save'));
