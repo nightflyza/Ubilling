@@ -2222,8 +2222,6 @@ function web_AddressOccupancyForm() {
         $rows .= wf_TableRow($inputs, 'row3');
 
         if (!isset($_POST['streetsel'])) {
-            //$inputs .= __('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
-
             $inputs = wf_TableCell(web_StreetSelectorAc($_POST['citysel']));
             $inputs .= wf_TableCell(__('Street'));
 
