@@ -209,7 +209,7 @@ class Salary {
         }
 
         if (isset($this->altCfg['SALARY_FACTOR_DEFAULT']) AND $this->altCfg['SALARY_FACTOR_DEFAULT']) {
-            $this->defaultFactor = vf($this->altCfg['SALARY_FACTOR_DEFAULT'], 3);
+            $this->defaultFactor = $this->altCfg['SALARY_FACTOR_DEFAULT'];
         }
     }
 
