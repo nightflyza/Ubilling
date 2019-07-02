@@ -115,6 +115,13 @@ class Salary {
     protected $allAppointments = array();
 
     /**
+     * Default factor value for newly created salary jobs
+     *
+     * @var int
+     */
+    protected $defaultFactor = 0;
+
+    /**
      * Contains previously detected tasks jobs mappings
      *
      * @var array
@@ -199,6 +206,10 @@ class Salary {
     protected function setOptions() {
         if (isset($this->altCfg['SALARY_TELEGRAM']) AND $this->altCfg['SALARY_TELEGRAM']) {
             $this->telegramNotify = true;
+        }
+
+        if (isset($this->altCfg['SALARY_FACTOR_DEFAULT']) AND $this->altCfg['SALARY_FACTOR_DEFAULT']) {
+            $this->defaultFactor = vf($this->altCfg['SALARY_FACTOR_DEFAULT'], 3);
         }
     }
 
@@ -341,12 +352,12 @@ class Salary {
         $result = '';
         if (!empty($this->allJobtypes)) {
             $inputs = wf_Selector('newjobtypepriceid', $this->allJobtypes, __('Job type'), '', true) . ' ';
-            $inputs.= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', true) . ' ';
-            $inputs.= wf_TextInput('newjobtypeprice', __('Price'), '', true, 5) . ' ';
-            $inputs.= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('minutes') . ')', '', true, 5) . ' ';
-            $inputs.= wf_Submit(__('Create'));
+            $inputs .= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', true) . ' ';
+            $inputs .= wf_TextInput('newjobtypeprice', __('Price'), '', true, 5) . ' ';
+            $inputs .= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('minutes') . ')', '', true, 5) . ' ';
+            $inputs .= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.= wf_CleanDiv();
+            $result .= wf_CleanDiv();
         }
         return ($result);
     }
@@ -391,10 +402,10 @@ class Salary {
         $result = '';
         if (isset($this->allJobPrices[$jobtypeid])) {
             $inputs = wf_HiddenInput('editjobtypepriceid', $jobtypeid);
-            $inputs.= wf_Selector('editjobtypepriceunit', $this->unitTypes, __('Units'), $this->allJobUnits[$jobtypeid], true);
-            $inputs.= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5);
-            $inputs.= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 2) . ' ';
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_Selector('editjobtypepriceunit', $this->unitTypes, __('Units'), $this->allJobUnits[$jobtypeid], true);
+            $inputs .= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5);
+            $inputs .= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 2) . ' ';
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
@@ -473,10 +484,10 @@ class Salary {
 
             $unitType = @$this->allJobUnits[$jobtypeid];
 
-            $message.=__('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
-            $message.=__('Job type') . ': ' . $jobName . '\r\n ';
-            $message.=__('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
-            $message.=__('Job price') . ': ' . $jobPrice . '\r\n ';
+            $message .= __('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
+            $message .= __('Job type') . ': ' . $jobName . '\r\n ';
+            $message .= __('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
+            $message .= __('Job price') . ': ' . $jobPrice . '\r\n ';
 
             $this->sendTelegram($employeeid, $message);
         }
@@ -521,12 +532,12 @@ class Salary {
 
                             $unitType = @$this->allJobUnits[$jobtypeid];
 
-                            $message.=__('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
-                            $message.=__('Job type') . ': ' . $jobName . '\r\n ';
-                            $message.=__('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
-                            $message.=__('Job price') . ': ' . $jobPrice . '\r\n ';
-                            $message.='💰💰💰💰' . '\r\n '; // vsrate emoji
-                            $sendTmp[$employeeId].=$message;
+                            $message .= __('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
+                            $message .= __('Job type') . ': ' . $jobName . '\r\n ';
+                            $message .= __('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
+                            $message .= __('Job price') . ': ' . $jobPrice . '\r\n ';
+                            $message .= '💰💰💰💰' . '\r\n '; // vsrate emoji
+                            $sendTmp[$employeeId] .= $message;
                         }
                     }
                 }
@@ -549,22 +560,22 @@ class Salary {
         $result = '';
         $messages = new UbillingMessageHelper();
         $cells = wf_TableCell(__('Job type'));
-        $cells.= wf_TableCell(__('Units'));
-        $cells.= wf_TableCell(__('Price'));
-        $cells.= wf_TableCell(__('Minutes'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Units'));
+        $cells .= wf_TableCell(__('Price'));
+        $cells .= wf_TableCell(__('Minutes'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allJobPrices)) {
             foreach ($this->allJobPrices as $jobtypeid => $eachprice) {
                 $cells = wf_TableCell(@$this->allJobtypes[$jobtypeid]);
-                $cells.= wf_TableCell(__($this->allJobUnits[$jobtypeid]));
-                $cells.= wf_TableCell($eachprice);
-                $cells.= wf_TableCell($this->allJobTimes[$jobtypeid]);
+                $cells .= wf_TableCell(__($this->allJobUnits[$jobtypeid]));
+                $cells .= wf_TableCell($eachprice);
+                $cells .= wf_TableCell($this->allJobTimes[$jobtypeid]);
                 $actLinks = wf_JSAlert('?module=salary&deletejobprice=' . $jobtypeid, web_delete_icon(), $messages->getDeleteAlert());
-                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobPricesEditForm($jobtypeid));
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobPricesEditForm($jobtypeid));
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -610,18 +621,18 @@ class Salary {
      */
     public function renderControls() {
         $result = '';
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/dollar.png') . ' ' . __('Payroll'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_TSHEETS, wf_img('skins/icon_calendar.gif') . ' ' . __('Timesheet'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/dollar.png') . ' ' . __('Payroll'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_TSHEETS, wf_img('skins/icon_calendar.gif') . ' ' . __('Timesheet'), false, 'ubButton');
 
         $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
-        $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
-        $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $directoriesControls, 'ubButton');
+        $directoriesControls .= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
+        $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $directoriesControls, 'ubButton');
 
         $reports = wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
-        $reports.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
-        $reports.= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/clock.png') . ' ' . __('Labor time'), false, 'ubButton');
-        $reports.= wf_Link(self::URL_ME . '&' . self::URL_YRREP, wf_img('skins/icon_table.png') . ' ' . __('Year salary reports'), false, 'ubButton');
-        $result.=wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reports, 'ubButton');
+        $reports .= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
+        $reports .= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/clock.png') . ' ' . __('Labor time'), false, 'ubButton');
+        $reports .= wf_Link(self::URL_ME . '&' . self::URL_YRREP, wf_img('skins/icon_table.png') . ' ' . __('Year salary reports'), false, 'ubButton');
+        $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reports, 'ubButton');
         return ($result);
     }
 
@@ -638,7 +649,7 @@ class Salary {
         $employeeTmp = array();
 
         if (cfr('SALARYTASKSVIEW')) {
-            $result.=$this->renderTaskJobs($taskid);
+            $result .= $this->renderTaskJobs($taskid);
         }
 
         if (cfr('SALARYTASKS')) {
@@ -662,23 +673,33 @@ class Salary {
                     }
                 }
 
-
+                if (@$this->altCfg['SALARY_EMPLOYEE_PRESET']) {
+                    $taskData = ts_GetTaskData($taskid);
+                    $taskEmployeeId = @$taskData['employee'];
+                    if (isset($employeeTmp[$taskEmployeeId])) {
+                        $defaultEmployeeSelected = $taskEmployeeId;
+                    } else {
+                        $defaultEmployeeSelected = '';
+                    }
+                } else {
+                    $defaultEmployeeSelected = '';
+                }
 
                 $inputs = zb_JSHider();
-                $inputs.= wf_HiddenInput('newsalarytaskid', $taskid);
-                $inputs.= wf_Selector('newsalaryemployeeid', $employeeTmp, __('Worker'), '', true);
-                $inputs.= wf_Selector('newsalaryjobtypeid', $jobtypes, __('Job type'), '', true);
-                $inputs.= wf_TextInput('newsalaryfactor', __('Factor'), '0', true, 4);
-                $inputs.=wf_tag('input', false, '', 'type="checkbox" id="overpricebox" name="overpricebox" onclick="showhide(\'overpricecontainer\');" ');
-                $inputs.= wf_tag('label', false, '', 'for="overpricebox"') . __('Price override') . wf_tag('label', true);
-                $inputs.= wf_tag('span', false, '', 'id="overpricecontainer" style="display:none;"') . ' ';
-                $inputs.= wf_TextInput('newsalaryoverprice', '', '', false, 4);
-                $inputs.= wf_tag('span', true);
-                $inputs.= wf_tag('br');
-                $inputs.= wf_TextInput('newsalarynotes', __('Notes'), '', true, 25);
-                $inputs.= wf_Submit(__('Save'));
-                $result.= wf_modalAuto(wf_img('skins/icon_ok.gif') . ' ' . __('Create new job'), __('Create new job'), wf_Form('', 'POST', $inputs, 'glamour'), 'ubButton');
-                $result.=wf_CleanDiv();
+                $inputs .= wf_HiddenInput('newsalarytaskid', $taskid);
+                $inputs .= wf_Selector('newsalaryemployeeid', $employeeTmp, __('Worker'), $defaultEmployeeSelected, true);
+                $inputs .= wf_Selector('newsalaryjobtypeid', $jobtypes, __('Job type'), '', true);
+                $inputs .= wf_TextInput('newsalaryfactor', __('Factor'), $this->defaultFactor, true, 4);
+                $inputs .= wf_tag('input', false, '', 'type="checkbox" id="overpricebox" name="overpricebox" onclick="showhide(\'overpricecontainer\');" ');
+                $inputs .= wf_tag('label', false, '', 'for="overpricebox"') . __('Price override') . wf_tag('label', true);
+                $inputs .= wf_tag('span', false, '', 'id="overpricecontainer" style="display:none;"') . ' ';
+                $inputs .= wf_TextInput('newsalaryoverprice', '', '', false, 4);
+                $inputs .= wf_tag('span', true);
+                $inputs .= wf_tag('br');
+                $inputs .= wf_TextInput('newsalarynotes', __('Notes'), '', true, 25);
+                $inputs .= wf_Submit(__('Save'));
+                $result .= wf_modalAuto(wf_img('skins/icon_ok.gif') . ' ' . __('Create new job'), __('Create new job'), wf_Form('', 'POST', $inputs, 'glamour'), 'ubButton');
+                $result .= wf_CleanDiv();
             }
         }
         return ($result);
@@ -845,12 +866,12 @@ class Salary {
         $result = '';
         if (isset($this->allJobs[$jobid])) {
             $inputs = wf_HiddenInput('editsalaryjobid', $jobid);
-            $inputs.= wf_Selector('editsalaryemployeeid', $this->allEmployee, __('Worker'), $this->allJobs[$jobid]['employeeid'], true);
-            $inputs.= wf_Selector('editsalaryjobtypeid', $this->allJobtypes, __('Job type'), $this->allJobs[$jobid]['jobtypeid'], true);
-            $inputs.= wf_TextInput('editsalaryfactor', __('Factor'), $this->allJobs[$jobid]['factor'], true, 4);
-            $inputs.= wf_TextInput('editsalaryoverprice', __('Price override'), $this->allJobs[$jobid]['overprice'], true, 4);
-            $inputs.= wf_TextInput('editsalarynotes', __('Notes'), $this->allJobs[$jobid]['note'], true, 25);
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_Selector('editsalaryemployeeid', $this->allEmployee, __('Worker'), $this->allJobs[$jobid]['employeeid'], true);
+            $inputs .= wf_Selector('editsalaryjobtypeid', $this->allJobtypes, __('Job type'), $this->allJobs[$jobid]['jobtypeid'], true);
+            $inputs .= wf_TextInput('editsalaryfactor', __('Factor'), $this->allJobs[$jobid]['factor'], true, 4);
+            $inputs .= wf_TextInput('editsalaryoverprice', __('Price override'), $this->allJobs[$jobid]['overprice'], true, 4);
+            $inputs .= wf_TextInput('editsalarynotes', __('Notes'), $this->allJobs[$jobid]['note'], true, 25);
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         } else {
             $result = __('Strange exeption') . ': NOT_EXISTING_JOBID';
@@ -899,14 +920,14 @@ class Salary {
         $all = $this->filterTaskJobs($taskid);
 
         $cells = wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Paid'));
-        $cells.= wf_TableCell(__('Worker'));
-        $cells.= wf_TableCell(__('Job type'));
-        $cells.= wf_TableCell(__('Factor'));
-        $cells.= wf_TableCell(__('Price override'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Paid'));
+        $cells .= wf_TableCell(__('Worker'));
+        $cells .= wf_TableCell(__('Job type'));
+        $cells .= wf_TableCell(__('Factor'));
+        $cells .= wf_TableCell(__('Price override'));
+        $cells .= wf_TableCell(__('Notes'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
@@ -917,36 +938,36 @@ class Salary {
                     $unit = __('No');
                 }
                 $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell($this->renderPaidDataLed($each['id']));
-                $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
-                $cells.= wf_TableCell(@$this->allJobtypes[$each['jobtypeid']]);
-                $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
-                $cells.= wf_TableCell($each['overprice']);
-                $cells.= wf_TableCell($each['note']);
+                $cells .= wf_TableCell($this->renderPaidDataLed($each['id']));
+                $cells .= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
+                $cells .= wf_TableCell(@$this->allJobtypes[$each['jobtypeid']]);
+                $cells .= wf_TableCell($each['factor'] . ' / ' . $unit);
+                $cells .= wf_TableCell($each['overprice']);
+                $cells .= wf_TableCell($each['note']);
                 $jobPrice = $this->getJobPrice($each['id']);
-                $cells.= wf_TableCell($jobPrice);
+                $cells .= wf_TableCell($jobPrice);
                 if (cfr('SALARYTASKS')) {
                     $actLinks = wf_JSAlert(self::URL_TS . $taskid . '&deletejobid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());
-                    $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobEditForm($each['id']));
+                    $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobEditForm($each['id']));
                 } else {
                     $actLinks = '';
                 }
-                $cells.= wf_TableCell($actLinks);
+                $cells .= wf_TableCell($actLinks);
 
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row3');
                 $totalSumm = $totalSumm + $jobPrice;
             }
 
             $cells = wf_TableCell(__('Total'));
-            $cells.= wf_TableCell('');
-            $cells.= wf_TableCell('');
-            $cells.= wf_TableCell('');
-            $cells.= wf_TableCell('');
-            $cells.= wf_TableCell('');
-            $cells.= wf_TableCell('');
-            $cells.= wf_TableCell($totalSumm);
-            $cells.= wf_TableCell('');
-            $rows.= wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell($totalSumm);
+            $cells .= wf_TableCell('');
+            $rows .= wf_TableRow($cells, 'row2');
         }
 
         $result = wf_TableBody($rows, '100%', 0, '');
@@ -1058,12 +1079,12 @@ class Salary {
 
         if (!empty($this->allEmployee)) {
             $inputs = wf_Selector('newemployeewageemployeeid', $employeeTmp, __('Worker'), '', true) . ' ';
-            $inputs.= wf_TextInput('newemployeewage', __('Wage'), '', true, 5) . ' ';
-            $inputs.= wf_TextInput('newemployeewagebounty', __('Bounty'), '', true, 5) . ' ';
-            $inputs.= wf_TextInput('newemployeewageworktime', __('Work hours'), '', true, 5);
-            $inputs.=wf_Submit(__('Create'));
+            $inputs .= wf_TextInput('newemployeewage', __('Wage'), '', true, 5) . ' ';
+            $inputs .= wf_TextInput('newemployeewagebounty', __('Bounty'), '', true, 5) . ' ';
+            $inputs .= wf_TextInput('newemployeewageworktime', __('Work hours'), '', true, 5);
+            $inputs .= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.= wf_CleanDiv();
+            $result .= wf_CleanDiv();
         }
         return ($result);
     }
@@ -1079,12 +1100,12 @@ class Salary {
         $result = '';
         if (isset($this->allWages[$employeeid])) {
             $inputs = wf_HiddenInput('editemployeewageemployeeid', $employeeid);
-            $inputs.= wf_TextInput('editemployeewage', __('Wage'), $this->allWages[$employeeid]['wage'], true, 5) . ' ';
-            $inputs.= wf_TextInput('editemployeewagebounty', __('Bounty'), $this->allWages[$employeeid]['bounty'], true, 5) . ' ';
-            $inputs.= wf_TextInput('editemployeewageworktime', __('Work hours'), $this->allWages[$employeeid]['worktime'], true, 5) . ' ';
-            $inputs.=wf_Submit(__('Save'));
+            $inputs .= wf_TextInput('editemployeewage', __('Wage'), $this->allWages[$employeeid]['wage'], true, 5) . ' ';
+            $inputs .= wf_TextInput('editemployeewagebounty', __('Bounty'), $this->allWages[$employeeid]['bounty'], true, 5) . ' ';
+            $inputs .= wf_TextInput('editemployeewageworktime', __('Work hours'), $this->allWages[$employeeid]['worktime'], true, 5) . ' ';
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.= wf_CleanDiv();
+            $result .= wf_CleanDiv();
         } else {
             $result = __('Strange exeption') . ': NOT_EXISTING_EMPLOYEID';
         }
@@ -1123,23 +1144,23 @@ class Salary {
         $messages = new UbillingMessageHelper();
 
         $cells = wf_TableCell(__('Employee'));
-        $cells.= wf_TableCell(__('Wage'));
-        $cells.= wf_TableCell(__('Bounty'));
-        $cells.= wf_TableCell(__('Work hours'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Wage'));
+        $cells .= wf_TableCell(__('Bounty'));
+        $cells .= wf_TableCell(__('Work hours'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allWages)) {
             foreach ($this->allWages as $io => $each) {
                 $rowClass = (isset($this->allEmployee[$io])) ? 'row3' : 'sigdeleteduser';
                 $cells = wf_TableCell(@$this->allEmployeeRaw[$io]);
-                $cells.= wf_TableCell($this->allWages[$io]['wage']);
-                $cells.= wf_TableCell($this->allWages[$io]['bounty']);
-                $cells.= wf_TableCell($this->allWages[$io]['worktime']);
+                $cells .= wf_TableCell($this->allWages[$io]['wage']);
+                $cells .= wf_TableCell($this->allWages[$io]['bounty']);
+                $cells .= wf_TableCell($this->allWages[$io]['worktime']);
                 $actlinks = wf_JSAlertStyled('?module=salary&employeewages=true&deletewage=' . $io, web_delete_icon(), $messages->getDeleteAlert());
-                $actlinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->employeeWageEditForm($io));
-                $cells.= wf_TableCell($actlinks);
-                $rows.= wf_TableRow($cells, $rowClass);
+                $actlinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->employeeWageEditForm($io));
+                $cells .= wf_TableCell($actlinks);
+                $rows .= wf_TableRow($cells, $rowClass);
             }
         }
 
@@ -1164,7 +1185,7 @@ class Salary {
         }
 
         $jobtypeParams = array('' => __('Any'));
-        $jobtypeParams+=$this->allJobtypes;
+        $jobtypeParams += $this->allJobtypes;
 
         $fromDate = (wf_CheckPost(array('prdatefrom'))) ? $_POST['prdatefrom'] : curdate();
         $toDate = (wf_CheckPost(array('prdateto'))) ? $_POST['prdateto'] : curdate();
@@ -1173,11 +1194,11 @@ class Salary {
         $currentChartsFlag = (wf_CheckPost(array('prnocharts'))) ? true : false;
 
         $inputs = wf_DatePickerPreset('prdatefrom', $fromDate, true) . ' ';
-        $inputs.= wf_DatePickerPreset('prdateto', $toDate, true) . ' ';
-        $inputs.= wf_Selector('premployeeid', $empParams, __('Worker'), $currentEmployee, false);
-        $inputs.= wf_Selector('prjobtypeid', $jobtypeParams, __('Job type'), $currentJobTypeId, false, false);
-        $inputs.= wf_CheckInput('prnocharts', __('No charts'), false, $currentChartsFlag);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_DatePickerPreset('prdateto', $toDate, true) . ' ';
+        $inputs .= wf_Selector('premployeeid', $empParams, __('Worker'), $currentEmployee, false);
+        $inputs .= wf_Selector('prjobtypeid', $jobtypeParams, __('Job type'), $currentJobTypeId, false, false);
+        $inputs .= wf_CheckInput('prnocharts', __('No charts'), false, $currentChartsFlag);
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -1220,19 +1241,19 @@ class Salary {
         $jobtypeFilter = (!empty($jobtypeid)) ? "AND `jobtypeid`='" . $jobtypeid . "'" : '';
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "' " . $jobtypeFilter . ";";
         $all = simple_queryall($query);
-        
-        $selectAllControl=  wf_CheckInput('selectallbears', __('All'), false, false, '', 'gummybear');
+
+        $selectAllControl = wf_CheckInput('selectallbears', __('All'), false, false, '', 'gummybear');
 
         $cells = wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Task'));
-        $cells.= wf_TableCell(__('Job type'));
-        $cells.= wf_TableCell(__('Factor'));
-        $cells.= wf_TableCell(__('Time'));
-        $cells.= wf_TableCell(__('Price override'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Paid'));
-        $cells.= wf_TableCell(__('Money'));
-        $cells.= wf_TableCell($selectAllControl);
+        $cells .= wf_TableCell(__('Task'));
+        $cells .= wf_TableCell(__('Job type'));
+        $cells .= wf_TableCell(__('Factor'));
+        $cells .= wf_TableCell(__('Time'));
+        $cells .= wf_TableCell(__('Price override'));
+        $cells .= wf_TableCell(__('Notes'));
+        $cells .= wf_TableCell(__('Paid'));
+        $cells .= wf_TableCell(__('Money'));
+        $cells .= wf_TableCell($selectAllControl);
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
@@ -1243,11 +1264,11 @@ class Salary {
 
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
-                        $chartData[$jobName]['count'] +=$each['factor'];
+                        $chartData[$jobName]['count'] += $each['factor'];
                         if ($each['state'] == 0) {
-                            $chartData[$jobName]['unpaid'] +=$each['factor'];
+                            $chartData[$jobName]['unpaid'] += $each['factor'];
                         } else {
-                            $chartData[$jobName]['paid'] +=$each['factor'];
+                            $chartData[$jobName]['paid'] += $each['factor'];
                         }
 
                         $chartDataCash[$jobName]['cash'] = $chartDataCash[$jobName]['cash'] + $jobPrice;
@@ -1288,11 +1309,11 @@ class Salary {
                     $jobFactor = $each['factor'];
                     $jobTimePlanned = $this->allJobTimes[$each['jobtypeid']];
                     $jobTimeSpent = $jobFactor * $jobTimePlanned;
-                    $totalTimeSpent+=$jobTimeSpent;
+                    $totalTimeSpent += $jobTimeSpent;
                     $jobTypeName = $this->allJobtypes[$each['jobtypeid']];
                     if (!empty($jobTypeName)) {
                         if (isset($timeChartData[$jobTypeName])) {
-                            $timeChartData[$jobTypeName]+=$jobTimeSpent;
+                            $timeChartData[$jobTypeName] += $jobTimeSpent;
                         } else {
                             $timeChartData[$jobTypeName] = $jobTimeSpent;
                         }
@@ -1300,22 +1321,22 @@ class Salary {
                 }
 
                 $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell(wf_Link(self::URL_TS . $each['taskid'], $each['taskid']) . ' ' . @$allTasks[$each['taskid']]['address']);
-                $cells.= wf_TableCell($jobName);
-                $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
-                $cells.= wf_TableCell($this->formatTime($jobTimeSpent * 60));
-                $cells.= wf_TableCell($each['overprice']);
-                $cells.= wf_TableCell($each['note']);
-                $cells.= wf_TableCell($this->renderPaidDataLed($each['id']));
+                $cells .= wf_TableCell(wf_Link(self::URL_TS . $each['taskid'], $each['taskid']) . ' ' . @$allTasks[$each['taskid']]['address']);
+                $cells .= wf_TableCell($jobName);
+                $cells .= wf_TableCell($each['factor'] . ' / ' . $unit);
+                $cells .= wf_TableCell($this->formatTime($jobTimeSpent * 60));
+                $cells .= wf_TableCell($each['overprice']);
+                $cells .= wf_TableCell($each['note']);
+                $cells .= wf_TableCell($this->renderPaidDataLed($each['id']));
 
-                $cells.= wf_TableCell($jobPrice);
+                $cells .= wf_TableCell($jobPrice);
                 if (!$each['state']) {
                     $actControls = wf_CheckInput('_prstatecheck[' . $each['id'] . ']', '', true, false, '', 'someonelikeyou');
                 } else {
                     $actControls = '';
                 }
-                $cells.= wf_TableCell($actControls);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($actControls);
+                $rows .= wf_TableRow($cells, 'row3');
 
                 if ($each['state'] == 0) {
                     if ($unitType != 'litre') {
@@ -1338,15 +1359,15 @@ class Salary {
         if (!empty($rangeTimesheets)) {
             foreach ($rangeTimesheets as $io => $each) {
                 if ($each['employeeid'] == $employeeid) {
-                    $timeSheetsTimeSpent+=$each['hours'] * 60; // rly in minutes
+                    $timeSheetsTimeSpent += $each['hours'] * 60; // rly in minutes
                 }
             }
         }
 
-        $result.= wf_TableBody($rows, '100%', 0, '');
-        $result.= wf_HiddenInput('prstateprocessing', 'true');
-        $result.=wf_tag('script', false);
-        $result.='
+        $result .= wf_TableBody($rows, '100%', 0, '');
+        $result .= wf_HiddenInput('prstateprocessing', 'true');
+        $result .= wf_tag('script', false);
+        $result .= '
        var checkboxes = document.querySelectorAll(".someonelikeyou");
          //Never mind Ill find someone like you
          //I wish nothing but the best for you too
@@ -1357,27 +1378,27 @@ class Salary {
          })
         }
         ';
-        $result.=wf_tag('script', true);
-        
+        $result .= wf_tag('script', true);
+
 
         if ($jobCount > 0) {
-            $result.= wf_Submit(__('Processing')) . wf_delimiter();
+            $result .= wf_Submit(__('Processing')) . wf_delimiter();
         }
 
 
 
         $result = wf_Form('', 'POST', $result, '');
 
-        $result.= __('Not paid money') . ': ' . $totalSum . wf_tag('br');
-        $result.= __('Not paid fuel') . ': ' . $litreCountUnpaid . ' ' . __('litre') . wf_tag('br');
-        $result.= __('Paid money') . ': ' . $payedSum . wf_tag('br');
-        $result.= __('Paid fuel') . ': ' . $litreCountPaid . ' ' . __('litre') . wf_tag('br');
-        $result.= __('Total money') . ': ' . ($payedSum + $totalSum) . wf_tag('br');
-        $result.= __('Total') . ' ' . __('time') . ': ' . $this->formatTime($totalTimeSpent * 60) . wf_tag('br');
-        $result.= __('Total') . ' ' . __('Work hours') . ': ' . $this->formatTime($timeSheetsTimeSpent * 60);
+        $result .= __('Not paid money') . ': ' . $totalSum . wf_tag('br');
+        $result .= __('Not paid fuel') . ': ' . $litreCountUnpaid . ' ' . __('litre') . wf_tag('br');
+        $result .= __('Paid money') . ': ' . $payedSum . wf_tag('br');
+        $result .= __('Paid fuel') . ': ' . $litreCountPaid . ' ' . __('litre') . wf_tag('br');
+        $result .= __('Total money') . ': ' . ($payedSum + $totalSum) . wf_tag('br');
+        $result .= __('Total') . ' ' . __('time') . ': ' . $this->formatTime($totalTimeSpent * 60) . wf_tag('br');
+        $result .= __('Total') . ' ' . __('Work hours') . ': ' . $this->formatTime($timeSheetsTimeSpent * 60);
 
         if (!empty($chartData)) {
-            $result.= wf_CleanDiv();
+            $result .= wf_CleanDiv();
 //chart data postprocessing
             if (!empty($timeChartData)) {
                 foreach ($timeChartData as $io => $each) {
@@ -1401,20 +1422,20 @@ class Salary {
                 }
             }
 
-            $result.=wf_tag('div', false, '', 'style="page-break-after: always;"') . wf_tag('div', true);
+            $result .= wf_tag('div', false, '', 'style="page-break-after: always;"') . wf_tag('div', true);
             if (!$currentChartsFlag) {
                 $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
                 $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time') . ' (' . __('hours') . ')', '600px', '400px', $chartOpts));
-                $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
+                $chartCells .= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
                 $chartRows = wf_TableRow($chartCells);
                 $chartCells = wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '600px', '400px', $chartOpts));
-                $chartRows.= wf_TableRow($chartCells);
-                $result.= wf_TableBody($chartRows, '100%', 0, '');
+                $chartRows .= wf_TableRow($chartCells);
+                $result .= wf_TableBody($chartRows, '100%', 0, '');
             } else {
-                $result.=wf_tag('br');
-                $result.=$this->renderTableViewStats($timeChartData, __('Time') . ' (' . __('hours') . ')', true);
-                $result.=$this->renderTableViewStats($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', true, true);
-                $result.=$this->renderTableViewStats($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', true, true);
+                $result .= wf_tag('br');
+                $result .= $this->renderTableViewStats($timeChartData, __('Time') . ' (' . __('hours') . ')', true);
+                $result .= $this->renderTableViewStats($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', true, true);
+                $result .= $this->renderTableViewStats($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', true, true);
             }
         }
         return ($result);
@@ -1431,10 +1452,10 @@ class Salary {
      */
     protected function renderTableViewStats($chartData, $title = '', $filterType = true, $replaceValue = false) {
         $result = '';
-        $result.= wf_tag('b') . __($title) . wf_tag('b', true);
+        $result .= wf_tag('b') . __($title) . wf_tag('b', true);
         if (!empty($chartData)) {
             $cells = wf_TableCell(__('Type'));
-            $cells.= wf_TableCell(__('Value'));
+            $cells .= wf_TableCell(__('Value'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($chartData as $io => $each) {
                 $type = $io;
@@ -1454,10 +1475,10 @@ class Salary {
                 }
 
                 $cells = wf_TableCell($type);
-                $cells.= wf_TableCell($value);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($value);
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         }
         return ($result);
     }
@@ -1516,7 +1537,7 @@ class Salary {
         if (!empty($rangeTimesheets)) {
             foreach ($rangeTimesheets as $io => $each) {
                 if (isset($perEmployeeTimesheets[$each['employeeid']])) {
-                    $perEmployeeTimesheets[$each['employeeid']]+=$each['hours'];
+                    $perEmployeeTimesheets[$each['employeeid']] += $each['hours'];
                 } else {
                     $perEmployeeTimesheets[$each['employeeid']] = $each['hours'];
                 }
@@ -1544,23 +1565,23 @@ class Salary {
                 } else {
                     $payedSum = ($each['state']) ? $jobPrice : 0;
                     $jobsTmp[$each['employeeid']]['count'] ++;
-                    $jobsTmp[$each['employeeid']]['sum']+=$jobPrice;
-                    $jobsTmp[$each['employeeid']]['payed']+=$payedSum;
-                    $jobsTmp[$each['employeeid']]['time']+=$jobTime;
+                    $jobsTmp[$each['employeeid']]['sum'] += $jobPrice;
+                    $jobsTmp[$each['employeeid']]['payed'] += $payedSum;
+                    $jobsTmp[$each['employeeid']]['time'] += $jobTime;
                 }
-                $totalPayedSum+=$payedSum;
-                $totalSum+=$jobPrice;
+                $totalPayedSum += $payedSum;
+                $totalSum += $jobPrice;
             }
         }
 
         $cells = wf_TableCell(__('Worker'));
-        $cells.= wf_TableCell(__('Wage'));
-        $cells.= wf_TableCell(__('Bounty'));
-        $cells.= wf_TableCell(__('Work hours'));
-        $cells.= wf_TableCell(__('Jobs'));
-        $cells.= wf_TableCell(__('Spent time') . ' (' . __('hours') . ')');
-        $cells.= wf_TableCell(__('Earned money'));
-        $cells.= wf_TableCell(__('Paid'));
+        $cells .= wf_TableCell(__('Wage'));
+        $cells .= wf_TableCell(__('Bounty'));
+        $cells .= wf_TableCell(__('Work hours'));
+        $cells .= wf_TableCell(__('Jobs'));
+        $cells .= wf_TableCell(__('Spent time') . ' (' . __('hours') . ')');
+        $cells .= wf_TableCell(__('Earned money'));
+        $cells .= wf_TableCell(__('Paid'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allEmployee)) {
@@ -1572,19 +1593,19 @@ class Salary {
                     $worktime = (isset($this->allWages[$io]['worktime'])) ? $this->allWages[$io]['worktime'] : __('No');
                     $workerJobsData = (isset($jobsTmp[$io])) ? $jobsTmp[$io] : array('count' => 0, 'sum' => 0, 'payed' => 0, 'time' => 0);
 
-                    $cells.= wf_TableCell($wage);
-                    $cells.= wf_TableCell($bounty);
-                    $cells.= wf_TableCell(@$perEmployeeTimesheets[$io]);
-                    $cells.= wf_TableCell($workerJobsData['count']);
-                    $cells.= wf_TableCell(round(($workerJobsData['time'] / 60), 2));
-                    $cells.= wf_TableCell($workerJobsData['sum']);
-                    $cells.= wf_TableCell($workerJobsData['payed']);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($wage);
+                    $cells .= wf_TableCell($bounty);
+                    $cells .= wf_TableCell(@$perEmployeeTimesheets[$io]);
+                    $cells .= wf_TableCell($workerJobsData['count']);
+                    $cells .= wf_TableCell(round(($workerJobsData['time'] / 60), 2));
+                    $cells .= wf_TableCell($workerJobsData['sum']);
+                    $cells .= wf_TableCell($workerJobsData['payed']);
+                    $rows .= wf_TableRow($cells, 'row3');
 
-                    $totalWage+=$wage;
-                    $totalBounty+=$bounty;
-                    $totalWorkTime+=$workerJobsData['time'];
-                    $jobCount+=$workerJobsData['count'];
+                    $totalWage += $wage;
+                    $totalBounty += $bounty;
+                    $totalWorkTime += $workerJobsData['time'];
+                    $jobCount += $workerJobsData['count'];
                     $employeeCharts[$each] = $workerJobsData['count'];
                     $employeeChartsMoney[$each] = $workerJobsData['sum'];
                 }
@@ -1592,17 +1613,17 @@ class Salary {
         }
 
         $cells = wf_TableCell(__('Total'));
-        $cells.= wf_TableCell($totalWage);
-        $cells.= wf_TableCell($totalBounty);
-        $cells.= wf_TableCell('');
-        $cells.= wf_TableCell($jobCount);
-        $cells.= wf_TableCell(round(($totalWorkTime / 60), 2));
-        $cells.= wf_TableCell($totalSum);
-        $cells.= wf_TableCell($totalPayedSum);
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell($totalWage);
+        $cells .= wf_TableCell($totalBounty);
+        $cells .= wf_TableCell('');
+        $cells .= wf_TableCell($jobCount);
+        $cells .= wf_TableCell(round(($totalWorkTime / 60), 2));
+        $cells .= wf_TableCell($totalSum);
+        $cells .= wf_TableCell($totalPayedSum);
+        $rows .= wf_TableRow($cells, 'row2');
 
         $result = wf_TableBody($rows, '100%', 0, '');
-        $result.= wf_delimiter();
+        $result .= wf_delimiter();
 //charts
         $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
@@ -1610,16 +1631,16 @@ class Salary {
             $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
 
             $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px', $chartOpts));
-            $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px', $chartOpts));
+            $cells .= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px', $chartOpts));
             $rows = wf_TableRow($cells);
             $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px', $chartOpts));
-            $cells.= wf_TableCell('');
-            $rows.= wf_TableRow($cells);
-            $result.= wf_TableBody($rows, '100%', 0, '');
+            $cells .= wf_TableCell('');
+            $rows .= wf_TableRow($cells);
+            $result .= wf_TableBody($rows, '100%', 0, '');
         } else {
-            $result.=$this->renderTableViewStats($sumCharts, __('Money'), true);
-            $result.=$this->renderTableViewStats($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), true);
-            $result.=$this->renderTableViewStats($employeeCharts, __('Jobs'), true);
+            $result .= $this->renderTableViewStats($sumCharts, __('Money'), true);
+            $result .= $this->renderTableViewStats($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), true);
+            $result .= $this->renderTableViewStats($employeeCharts, __('Jobs'), true);
         }
 
         return ($result);
@@ -1638,13 +1659,13 @@ class Salary {
         $payedSum = 0;
 
         $cells = wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Task'));
-        $cells.= wf_TableCell(__('Job type'));
-        $cells.= wf_TableCell(__('Factor'));
-        $cells.= wf_TableCell(__('Price override'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Paid'));
-        $cells.= wf_TableCell(__('Money'));
+        $cells .= wf_TableCell(__('Task'));
+        $cells .= wf_TableCell(__('Job type'));
+        $cells .= wf_TableCell(__('Factor'));
+        $cells .= wf_TableCell(__('Price override'));
+        $cells .= wf_TableCell(__('Notes'));
+        $cells .= wf_TableCell(__('Paid'));
+        $cells .= wf_TableCell(__('Money'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($taskArr)) {
@@ -1656,15 +1677,15 @@ class Salary {
                     $unit = __('No');
                 }
                 $cells = wf_TableCell($jobData['date']);
-                $cells.= wf_TableCell($jobData['taskid']);
-                $cells.= wf_TableCell(@$this->allJobtypes[$jobData['jobtypeid']]);
-                $cells.= wf_TableCell($jobData['factor'] . ' / ' . $unit);
-                $cells.= wf_TableCell($jobData['overprice']);
-                $cells.= wf_TableCell($jobData['note']);
+                $cells .= wf_TableCell($jobData['taskid']);
+                $cells .= wf_TableCell(@$this->allJobtypes[$jobData['jobtypeid']]);
+                $cells .= wf_TableCell($jobData['factor'] . ' / ' . $unit);
+                $cells .= wf_TableCell($jobData['overprice']);
+                $cells .= wf_TableCell($jobData['note']);
                 $jobPrice = $this->getJobPrice($jobData['id']);
-                $cells.= wf_TableCell(web_bool_led($jobData['state']));
-                $cells.= wf_TableCell($jobPrice);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell(web_bool_led($jobData['state']));
+                $cells .= wf_TableCell($jobPrice);
+                $rows .= wf_TableRow($cells, 'row3');
                 if (!$jobData['state']) {
                     $totalSum = $totalSum + $jobPrice;
                 } else {
@@ -1673,8 +1694,8 @@ class Salary {
             }
         }
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.= __('Total') . ' ' . __('money') . ': ' . $totalSum . wf_tag('br');
-        $result.= __('Processed') . ' ' . __('money') . ': ' . $payedSum;
+        $result .= __('Total') . ' ' . __('money') . ': ' . $totalSum . wf_tag('br');
+        $result .= __('Processed') . ' ' . __('money') . ': ' . $payedSum;
 
         return ($result);
     }
@@ -1686,7 +1707,7 @@ class Salary {
      */
     public function payrollStateProcessingForm() {
         $result = '';
-        $result.=wf_HiddenInput('prstateprocessingconfirmed', 'true');
+        $result .= wf_HiddenInput('prstateprocessingconfirmed', 'true');
         $tmpArr = array();
         if (wf_CheckPost(array('_prstatecheck'))) {
             if (!empty($_POST['_prstatecheck'])) {
@@ -1694,11 +1715,11 @@ class Salary {
 
                 foreach ($checksRaw as $io => $each) {
                     $tmpArr[$io] = $each;
-                    $result.= wf_HiddenInput('_prstatecheck[' . $io . ']', 'on');
+                    $result .= wf_HiddenInput('_prstatecheck[' . $io . ']', 'on');
                 }
-                $result.= $this->renderJobList($tmpArr);
-                $result.= wf_delimiter();
-                $result.= wf_Submit(__('Payment confirmation'));
+                $result .= $this->renderJobList($tmpArr);
+                $result .= wf_delimiter();
+                $result .= wf_Submit(__('Payment confirmation'));
                 $result = wf_Form('', 'POST', $result, '');
             }
         }
@@ -1754,8 +1775,8 @@ class Salary {
         $result = '';
         if (!empty($this->allJobtypes)) {
             $inputs = wf_Selector('facontroljobtypeid', $this->allJobtypes, __('Job type'), '', false);
-            $inputs.= wf_TextInput('facontrolmaxfactor', '> ' . __('Factor'), '', false, '4');
-            $inputs.= wf_Submit(__('Show'));
+            $inputs .= wf_TextInput('facontrolmaxfactor', '> ' . __('Factor'), '', false, '4');
+            $inputs .= wf_Submit(__('Show'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
@@ -1781,7 +1802,7 @@ class Salary {
             foreach ($this->allJobs as $io => $each) {
                 if ($jobtypeid == $each['jobtypeid']) {
                     if (isset($tmpArr[$each['taskid']])) {
-                        $tmpArr[$each['taskid']]+=$each['factor'];
+                        $tmpArr[$each['taskid']] += $each['factor'];
                     } else {
                         $tmpArr[$each['taskid']] = $each['factor'];
                     }
@@ -1796,27 +1817,27 @@ class Salary {
                 $unit = __('No');
             }
             $cells = wf_TableCell(__('Task'));
-            $cells.= wf_TableCell(__('Address'));
-            $cells.= wf_TableCell(__('Target date'));
-            $cells.= wf_TableCell(__('Job type'));
-            $cells.= wf_TableCell(__('Who should do'));
-            $cells.= wf_TableCell(__('Factor') . ' (' . $unit . ')');
+            $cells .= wf_TableCell(__('Address'));
+            $cells .= wf_TableCell(__('Target date'));
+            $cells .= wf_TableCell(__('Job type'));
+            $cells .= wf_TableCell(__('Who should do'));
+            $cells .= wf_TableCell(__('Factor') . ' (' . $unit . ')');
             $rows = wf_TableRow($cells, 'row1');
 
 
             foreach ($tmpArr as $taskid => $factorOverflow) {
                 if ($factorOverflow > $factor) {
                     $cells = wf_TableCell(wf_Link(self::URL_TS . $taskid, $taskid));
-                    $cells.= wf_TableCell(@$allTasks[$taskid]['address']);
-                    $cells.= wf_TableCell(@$allTasks[$taskid]['startdate']);
-                    $cells.= wf_TableCell(@$this->allJobtypes[$jobtypeid]);
-                    $cells.= wf_TableCell(@$this->allEmployeeRaw[$allTasks[$taskid]['employee']]);
-                    $cells.= wf_TableCell($factorOverflow);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(@$allTasks[$taskid]['address']);
+                    $cells .= wf_TableCell(@$allTasks[$taskid]['startdate']);
+                    $cells .= wf_TableCell(@$this->allJobtypes[$jobtypeid]);
+                    $cells .= wf_TableCell(@$this->allEmployeeRaw[$allTasks[$taskid]['employee']]);
+                    $cells .= wf_TableCell($factorOverflow);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
 
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result = $messages->getStyledMessage(__('Nothing found'), 'info');
         }
@@ -1835,8 +1856,8 @@ class Salary {
         $result = '';
         $curdate = curdate();
         $inputs = wf_DatePickerPreset('twfdatefrom', $curdate, true);
-        $inputs.= wf_DatePickerPreset('twfdateto', $curdate, true);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_DatePickerPreset('twfdateto', $curdate, true);
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -1869,11 +1890,11 @@ class Salary {
             if (!empty($tmpArr)) {
 
                 $cells = wf_TableCell(__('Task'));
-                $cells.= wf_TableCell(__('Address'));
-                $cells.= wf_TableCell(__('Target date'));
-                $cells.= wf_TableCell(__('Job type'));
-                $cells.= wf_TableCell(__('Who should do'));
-                $cells.= wf_TableCell(__('Done'));
+                $cells .= wf_TableCell(__('Address'));
+                $cells .= wf_TableCell(__('Target date'));
+                $cells .= wf_TableCell(__('Job type'));
+                $cells .= wf_TableCell(__('Who should do'));
+                $cells .= wf_TableCell(__('Done'));
 
                 $rows = wf_TableRow($cells, 'row1');
 
@@ -1881,16 +1902,16 @@ class Salary {
                 foreach ($tmpArr as $io => $eachTask) {
                     $taskid = $eachTask['id'];
                     $cells = wf_TableCell(wf_Link(self::URL_TS . $taskid, $taskid));
-                    $cells.= wf_TableCell(@$eachTask['address']);
-                    $cells.= wf_TableCell(@$eachTask['startdate']);
-                    $cells.= wf_TableCell(@$this->allJobtypes[$eachTask['jobtype']]);
-                    $cells.= wf_TableCell(@$this->allEmployeeRaw[$eachTask['employee']]);
-                    $cells.= wf_TableCell(web_bool_led($eachTask['status']));
+                    $cells .= wf_TableCell(@$eachTask['address']);
+                    $cells .= wf_TableCell(@$eachTask['startdate']);
+                    $cells .= wf_TableCell(@$this->allJobtypes[$eachTask['jobtype']]);
+                    $cells .= wf_TableCell(@$this->allEmployeeRaw[$eachTask['employee']]);
+                    $cells .= wf_TableCell(web_bool_led($eachTask['status']));
 
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
                 $result = $messages->getStyledMessage(__('Nothing found'), 'info');
             }
@@ -1986,19 +2007,19 @@ class Salary {
         $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
 
         $header = wf_tag('!DOCTYPE', false, '', 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"');
-        $header.= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru"');
-        $header.= wf_tag('head', false);
-        $header.= wf_tag('title') . $title . wf_tag('title', true);
-        $header.= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
-        $header.= wf_tag('style', false, '', 'type="text/css"');
-        $header.= $style;
-        $header.=wf_tag('style', true);
-        $header.= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
-        $header.=wf_tag('head', true);
-        $header.= wf_tag('body', false);
+        $header .= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru"');
+        $header .= wf_tag('head', false);
+        $header .= wf_tag('title') . $title . wf_tag('title', true);
+        $header .= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
+        $header .= wf_tag('style', false, '', 'type="text/css"');
+        $header .= $style;
+        $header .= wf_tag('style', true);
+        $header .= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
+        $header .= wf_tag('head', true);
+        $header .= wf_tag('body', false);
 
         $footer = wf_tag('body', true);
-        $footer.= wf_tag('html', true);
+        $footer .= wf_tag('html', true);
 
         $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
         $data = $header . $title . $data . $footer;
@@ -2021,30 +2042,30 @@ class Salary {
     public function timesheetCreateForm() {
         $result = '';
         if (!empty($this->allEmployee)) {
-            $result.= '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-            $result.= wf_HiddenInput('newtimesheet', 'true');
-            $result.= wf_DatePickerPreset('newtimesheetdate', curdate(), false);
+            $result .= '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+            $result .= wf_HiddenInput('newtimesheet', 'true');
+            $result .= wf_DatePickerPreset('newtimesheetdate', curdate(), false);
 
             $headers = wf_TableCell(__('Worker'));
-            $headers.= wf_TableCell(__('Hours'));
-            $headers.= wf_TableCell(__('Hospitalized'));
-            $headers.= wf_TableCell(__('Holidays'));
+            $headers .= wf_TableCell(__('Hours'));
+            $headers .= wf_TableCell(__('Hospitalized'));
+            $headers .= wf_TableCell(__('Holidays'));
             $rows = wf_TableRow($headers, 'row1');
 
             foreach ($this->allEmployee as $employeeid => $employeename) {
                 if ($this->checkEmployeeWage($employeeid)) {
                     $defaultWorkTime = (isset($this->allWages[$employeeid]['worktime'])) ? $this->allWages[$employeeid]['worktime'] : 0;
                     $cells = wf_TableCell($employeename);
-                    $cells.= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
-                    $cells.= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
-                    $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
+                    $cells .= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
+                    $cells .= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
 
-            $result.= wf_TableBody($rows, '100%', '0', '');
-            $result.= wf_tag('br', false);
-            $result.= wf_Submit(__('Create'));
+            $result .= wf_TableBody($rows, '100%', '0', '');
+            $result .= wf_tag('br', false);
+            $result .= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $result, '');
         }
         return ($result);
@@ -2119,8 +2140,6 @@ class Salary {
                     $tableData->addRow($rawData);
                     unset($rawData);
                 }
-
-                
             }
             $tableData->getJson();
         } else {
@@ -2182,26 +2201,26 @@ class Salary {
         if (!empty($timesheetData)) {
 
             $headers = wf_TableCell(__('Worker'));
-            $headers.= wf_TableCell(__('Hours'));
-            $headers.= wf_TableCell(__('Hospitalized'));
-            $headers.= wf_TableCell(__('Holidays'));
-            $headers.= wf_TableCell(__('Actions'));
+            $headers .= wf_TableCell(__('Hours'));
+            $headers .= wf_TableCell(__('Hospitalized'));
+            $headers .= wf_TableCell(__('Holidays'));
+            $headers .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($headers, 'row1');
 
             foreach ($timesheetData as $io => $each) {
                 $hospitalFlag = ($each['hospital']) ? true : false;
                 $holidayFlag = ($each['holiday']) ? true : false;
                 $cells = wf_TableCell(@$this->allEmployeeRaw[$each['employeeid']]);
-                $cells.= wf_TableCell(wf_TextInput('editemployeehours', '', $each['hours'], false, '2'));
-                $cells.= wf_TableCell(wf_CheckInput('edithospital', '', false, $hospitalFlag));
-                $cells.= wf_TableCell(wf_CheckInput('editholiday', '', false, $holidayFlag));
-                $cells.= wf_TableCell(wf_HiddenInput('edittimesheetid', $each['id']) . wf_Submit(__('Save')));
+                $cells .= wf_TableCell(wf_TextInput('editemployeehours', '', $each['hours'], false, '2'));
+                $cells .= wf_TableCell(wf_CheckInput('edithospital', '', false, $hospitalFlag));
+                $cells .= wf_TableCell(wf_CheckInput('editholiday', '', false, $holidayFlag));
+                $cells .= wf_TableCell(wf_HiddenInput('edittimesheetid', $each['id']) . wf_Submit(__('Save')));
                 $cells = wf_Form('', 'POST', $cells, '');
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result.= wf_TableBody($rows, '100%', '0', '');
-            $result.= wf_tag('br', false);
+            $result .= wf_TableBody($rows, '100%', '0', '');
+            $result .= wf_tag('br', false);
         }
         return ($result);
     }
@@ -2250,8 +2269,8 @@ class Salary {
     public function timesheetRenderPrintableForm() {
         $result = '';
         $inputs = wf_YearSelector('tsheetprintyear', __('Year') . ' ', false);
-        $inputs.= wf_MonthSelector('tsheetprintmonth', __('Month') . ' ', date('m'), false);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_MonthSelector('tsheetprintmonth', __('Month') . ' ', date('m'), false);
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -2273,14 +2292,14 @@ class Salary {
 
 
         $cells = wf_TableCell(__('Worker'));
-        $cells.= wf_TableCell(__('Appointment'));
+        $cells .= wf_TableCell(__('Appointment'));
         for ($i = 1; $i <= 31; $i++) {
             $dayCellHeader = ($i < 10) ? '0' . $i : $i;
-            $cells.=wf_TableCell($dayCellHeader);
+            $cells .= wf_TableCell($dayCellHeader);
         }
-        $cells.= wf_TableCell(__('Total') . ' ' . __('days'));
-        $cells.= wf_TableCell(__('Holidays'));
-        $cells.= wf_TableCell(__('Total') . ' ' . __('hours'));
+        $cells .= wf_TableCell(__('Total') . ' ' . __('days'));
+        $cells .= wf_TableCell(__('Holidays'));
+        $cells .= wf_TableCell(__('Total') . ' ' . __('hours'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($allTimesheets)) {
@@ -2308,9 +2327,9 @@ class Salary {
                         $tmpArr[$each['employeeid']]['dayholiday_' . $dayNum] = 0;
                     }
                 } else {
-                    $tmpArr[$each['employeeid']]['totalhours']+=$each['hours'];
-                    $tmpArr[$each['employeeid']]['holidays']+=$each['holiday'];
-                    $tmpArr[$each['employeeid']]['hospital']+=$each['hospital'];
+                    $tmpArr[$each['employeeid']]['totalhours'] += $each['hours'];
+                    $tmpArr[$each['employeeid']]['holidays'] += $each['holiday'];
+                    $tmpArr[$each['employeeid']]['hospital'] += $each['hospital'];
                     if ($each['hours'] != 0) {
                         $tmpArr[$each['employeeid']]['totaldays'] ++;
                     }
@@ -2332,29 +2351,29 @@ class Salary {
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $employeeid => $each) {
                 $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeid]);
-                $cells.= wf_TableCell(@$this->allAppointments[$employeeid]);
+                $cells .= wf_TableCell(@$this->allAppointments[$employeeid]);
                 for ($i = 1; $i <= 31; $i++) {
                     $dayCell = (isset($each['day_' . $i])) ? $each['day_' . $i] : 0;
                     $dayCellSuffix = '';
                     if (@$each['dayholiday_' . $i]) {
-                        $dayCellSuffix.=wf_tag('sup') . 'v' . wf_tag('sup', true);
+                        $dayCellSuffix .= wf_tag('sup') . 'v' . wf_tag('sup', true);
                     }
                     if (@$each['dayhospital_' . $i]) {
-                        $dayCellSuffix.=wf_tag('sup') . 'h' . wf_tag('sup', true);
+                        $dayCellSuffix .= wf_tag('sup') . 'h' . wf_tag('sup', true);
                     }
-                    $cells.=wf_TableCell($dayCell . $dayCellSuffix);
+                    $cells .= wf_TableCell($dayCell . $dayCellSuffix);
                 }
-                $cells.= wf_TableCell($each['totaldays']);
-                $cells.= wf_TableCell($each['holidays']);
-                $cells.= wf_TableCell($each['totalhours']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($each['totaldays']);
+                $cells .= wf_TableCell($each['holidays']);
+                $cells .= wf_TableCell($each['totalhours']);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
 
-        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.= 'v - ' . __('Holidays') . wf_tag('br');
-        $result.= 'h - ' . __('Hospitalized');
+        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result .= 'v - ' . __('Holidays') . wf_tag('br');
+        $result .= 'h - ' . __('Hospitalized');
         $result = $this->reportPrintable(__('Timesheets') . ' ' . $dateOffset, $result);
         return ($result);
     }
@@ -2417,15 +2436,15 @@ class Salary {
         $curJobTypeId = (wf_CheckPost(array('jobtypeid'))) ? $_POST['jobtypeid'] : '-';
 
         $inputs = wf_DatePickerPreset('datefrom', $curdateFrom) . ' ';
-        $inputs.=wf_DatePickerPreset('dateto', $curdateTo) . ' ';
+        $inputs .= wf_DatePickerPreset('dateto', $curdateTo) . ' ';
         $jobtypeSelectorParams = array('-' => __('Any'));
         if (!empty($this->allJobtypes)) {
             foreach ($this->allJobtypes as $io => $each) {
                 $jobtypeSelectorParams[$io] = $each;
             }
         }
-        $inputs.= wf_Selector('jobtypeid', $jobtypeSelectorParams, __('Job type'), $curJobTypeId, false);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_Selector('jobtypeid', $jobtypeSelectorParams, __('Job type'), $curJobTypeId, false);
+        $inputs .= wf_Submit(__('Show'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -2462,7 +2481,7 @@ class Salary {
                                                 $jobFactor = $jobData['factor'];
                                                 $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                 $jobTimeSpent = $jobFactor * $jobMinutes;
-                                                $employeeJobsTmp[$employeeId]['timespent']+=$jobTimeSpent;
+                                                $employeeJobsTmp[$employeeId]['timespent'] += $jobTimeSpent;
                                                 $employeeJobsTmp[$employeeId]['timesheet'] = 0;
                                             } else {
                                                 $jobFactor = $jobData['factor'];
@@ -2483,7 +2502,7 @@ class Salary {
                                         $timeSheetTimestamp = strtotime($eachTimesheetData['date']);
                                         if (($timeSheetTimestamp >= $fromTimestamp) AND ( $timeSheetTimestamp <= $toTimestamp)) {
                                             if (isset($employeeJobsTmp[$employeeId])) {
-                                                $employeeJobsTmp[$employeeId]['timesheet']+=($eachTimesheetData['hours'] * 60);
+                                                $employeeJobsTmp[$employeeId]['timesheet'] += ($eachTimesheetData['hours'] * 60);
                                             } else {
                                                 $employeeJobsTmp[$employeeId]['timesheet'] = ($eachTimesheetData['hours'] * 60);
                                             }
@@ -2497,17 +2516,17 @@ class Salary {
 
                 if (!empty($employeeJobsTmp)) {
                     $cells = wf_TableCell(__('Employee'));
-                    $cells.= wf_TableCell(__('Job type'));
-                    $cells.= wf_TableCell(__('Timesheet') . ' (' . __('hours') . ')');
-                    $cells.= wf_TableCell(__('Spent time'));
+                    $cells .= wf_TableCell(__('Job type'));
+                    $cells .= wf_TableCell(__('Timesheet') . ' (' . __('hours') . ')');
+                    $cells .= wf_TableCell(__('Spent time'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($employeeJobsTmp as $io => $each) {
                         $cells = wf_TableCell(@$this->allEmployee[$io]);
-                        $cells.= wf_TableCell(__('Any'));
-                        $cells.= wf_TableCell(@$each['timesheet'] / 60);
-                        $cells.= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60) . ' (' . @$this->percentValue($each['timesheet'], $each['timespent']) . '%)');
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell(__('Any'));
+                        $cells .= wf_TableCell(@$each['timesheet'] / 60);
+                        $cells .= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60) . ' (' . @$this->percentValue($each['timesheet'], $each['timespent']) . '%)');
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
 
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -2532,14 +2551,14 @@ class Salary {
                                                     $jobFactor = $jobData['factor'];
                                                     $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                     $jobTimeSpent = $jobFactor * $jobMinutes;
-                                                    $employeeJobsTmp[$employeeId]['timespent']+=$jobTimeSpent;
+                                                    $employeeJobsTmp[$employeeId]['timespent'] += $jobTimeSpent;
                                                 } else {
                                                     $jobFactor = $jobData['factor'];
                                                     $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                     $jobTimeSpent = $jobFactor * $jobMinutes;
                                                     $employeeJobsTmp[$employeeId]['timespent'] = $jobTimeSpent;
                                                 }
-                                                $totalTimeSpent+=$jobTimeSpent;
+                                                $totalTimeSpent += $jobTimeSpent;
                                             }
                                         }
                                     }
@@ -2551,17 +2570,17 @@ class Salary {
 
                 if (!empty($employeeJobsTmp)) {
                     $cells = wf_TableCell(__('Employee'));
-                    $cells.= wf_TableCell(__('Job type'));
-                    $cells.= wf_TableCell(__('Spent time') . ' (' . __('hours') . ')');
-                    $cells.= wf_TableCell(__('Percent of spent time'));
+                    $cells .= wf_TableCell(__('Job type'));
+                    $cells .= wf_TableCell(__('Spent time') . ' (' . __('hours') . ')');
+                    $cells .= wf_TableCell(__('Percent of spent time'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($employeeJobsTmp as $io => $each) {
                         $cells = wf_TableCell(@$this->allEmployee[$io]);
-                        $cells.= wf_TableCell(@$this->allJobtypes[$jobtypeId]);
-                        $cells.= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60));
-                        $cells.= wf_TableCell(@$this->percentValue($totalTimeSpent, $each['timespent']) . '%');
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell(@$this->allJobtypes[$jobtypeId]);
+                        $cells .= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60));
+                        $cells .= wf_TableCell(@$this->percentValue($totalTimeSpent, $each['timespent']) . '%');
+                        $rows .= wf_TableRow($cells, 'row3');
 
 //chart data
                         $chartData[$this->allEmployee[$io]] = $each['timespent'];
@@ -2570,7 +2589,7 @@ class Salary {
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
                     if (!empty($chartData)) {
                         $chartOptions = '';
-                        $result.=wf_gcharts3DPie($chartData, __('Stats') . ' ' . @$this->allJobtypes[$jobtypeId], '800px', '500px', $chartOptions);
+                        $result .= wf_gcharts3DPie($chartData, __('Stats') . ' ' . @$this->allJobtypes[$jobtypeId], '800px', '500px', $chartOptions);
                     }
                 } else {
                     $result = $messages->getStyledMessage(__('Nothing found'), 'info');
@@ -2604,9 +2623,9 @@ class Salary {
         }
 
         $inputs = wf_YearSelectorPreset('showyear', __('Year'), false, $showYear) . ' ';
-        $inputs.= wf_Submit(__('Show'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-        $result.=wf_delimiter();
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_delimiter();
 
         if (!empty($this->allJobs)) {
 //debarr($this->allJobs);
@@ -2619,13 +2638,13 @@ class Salary {
 ///filling year summary report
                     $jobPaid = ($each['state']) ? true : false;
                     if ($jobPaid) {
-                        $yearSummaryArr[$month]['paid']+=$jobPrice;
+                        $yearSummaryArr[$month]['paid'] += $jobPrice;
                     } else {
-                        $yearSummaryArr[$month]['unpaid']+=$jobPrice;
+                        $yearSummaryArr[$month]['unpaid'] += $jobPrice;
                     }
-                    $yearSummaryArr[$month]['total']+=$jobPrice;
+                    $yearSummaryArr[$month]['total'] += $jobPrice;
                     $yearSummaryArr[$month]['jobscount'] ++;
-                    $totalJobPrices+=$jobPrice;
+                    $totalJobPrices += $jobPrice;
 //filling employee summary
                     if (isset($employeSummaryArr[$each['employeeid']])) {
                         $employeSummaryArr[$each['employeeid']][$month] += $jobPrice;
@@ -2640,55 +2659,55 @@ class Salary {
 
 //rendering year summary report
             if (!empty($yearSummaryArr)) {
-                $result.=wf_tag('h3') . __('Employee wages') . ' ' . $showYear . wf_tag('h3', true);
+                $result .= wf_tag('h3') . __('Employee wages') . ' ' . $showYear . wf_tag('h3', true);
                 $cells = wf_TableCell('');
-                $cells.= wf_TableCell(__('Month'));
-                $cells.= wf_TableCell(__('Jobs'));
-                $cells.= wf_TableCell(__('Paid'));
-                $cells.= wf_TableCell(__('Unpaid'));
-                $cells.= wf_TableCell(__('Total money'));
-                $cells.= wf_TableCell(__('Visual'), '50%');
+                $cells .= wf_TableCell(__('Month'));
+                $cells .= wf_TableCell(__('Jobs'));
+                $cells .= wf_TableCell(__('Paid'));
+                $cells .= wf_TableCell(__('Unpaid'));
+                $cells .= wf_TableCell(__('Total money'));
+                $cells .= wf_TableCell(__('Visual'), '50%');
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($yearSummaryArr as $io => $each) {
                     $cells = wf_TableCell($io);
-                    $cells.= wf_TableCell($each['monthname']);
-                    $cells.= wf_TableCell($each['jobscount']);
-                    $cells.= wf_TableCell($each['paid']);
-                    $cells.= wf_TableCell($each['unpaid']);
-                    $cells.= wf_TableCell($each['total']);
-                    $cells.= wf_TableCell(web_bar($each['total'], $totalJobPrices), '', '', 'sorttable_customkey="' . $each['total'] . '"');
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($each['monthname']);
+                    $cells .= wf_TableCell($each['jobscount']);
+                    $cells .= wf_TableCell($each['paid']);
+                    $cells .= wf_TableCell($each['unpaid']);
+                    $cells .= wf_TableCell($each['total']);
+                    $cells .= wf_TableCell(web_bar($each['total'], $totalJobPrices), '', '', 'sorttable_customkey="' . $each['total'] . '"');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             }
 
 //rendering per employee year report
             if (!empty($employeSummaryArr)) {
                 $cells = wf_TableCell('');
                 foreach ($monthArr as $monthNum => $monthName) {
-                    $cells.=wf_TableCell($monthName);
+                    $cells .= wf_TableCell($monthName);
                 }
-                $cells.= wf_TableCell(__('Total'));
+                $cells .= wf_TableCell(__('Total'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($employeSummaryArr as $employeeId => $each) {
                     $employeeSalaryTotal = 0;
                     $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeId]);
                     foreach ($monthArr as $ia => $mn) {
-                        $cells.=wf_TableCell($each[$ia]);
-                        $employeeSalaryTotal+=$each[$ia];
+                        $cells .= wf_TableCell($each[$ia]);
+                        $employeeSalaryTotal += $each[$ia];
                     }
-                    $cells.= wf_TableCell($employeeSalaryTotal);
-                    $rows.= wf_TableRow($cells, 'row5');
+                    $cells .= wf_TableCell($employeeSalaryTotal);
+                    $rows .= wf_TableRow($cells, 'row5');
                 }
-                $result.=wf_tag('h3') . __('Employee') . wf_tag('h3', true);
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_tag('h3') . __('Employee') . wf_tag('h3', true);
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             }
         } else {
             $messages = new UbillingMessageHelper();
-            $result.=$messages->getStyledMessage(__('Nothing to show'), 'warning');
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return ($result);
     }
@@ -2703,49 +2722,49 @@ class Salary {
         if ($_SERVER['QUERY_STRING'] == 'module=salary') {
             $messages = new UbillingMessageHelper();
             if (empty($this->allEmployee)) {
-                $result.= $messages->getStyledMessage(__('No available workers for wage creation'), 'error');
+                $result .= $messages->getStyledMessage(__('No available workers for wage creation'), 'error');
             } else {
-                $result.= $messages->getStyledMessage(__('Total existing employees') . ': ' . sizeof($this->allEmployee), 'info');
+                $result .= $messages->getStyledMessage(__('Total existing employees') . ': ' . sizeof($this->allEmployee), 'info');
             }
 
             if (empty($this->allJobtypes)) {
-                $result.=$messages->getStyledMessage(__('No available job types for pricing'), 'error');
+                $result .= $messages->getStyledMessage(__('No available job types for pricing'), 'error');
             } else {
-                $result.= $messages->getStyledMessage(__('Total existing job types') . ': ' . sizeof($this->allJobtypes), 'info');
+                $result .= $messages->getStyledMessage(__('Total existing job types') . ': ' . sizeof($this->allJobtypes), 'info');
             }
 
             if (empty($this->allJobPrices)) {
-                $result.=$messages->getStyledMessage(__('There is no set prices for job types'), 'warning');
+                $result .= $messages->getStyledMessage(__('There is no set prices for job types'), 'warning');
             } else {
-                $result.=$messages->getStyledMessage(__('Total paid types of work') . ': ' . sizeof($this->allJobPrices), 'info');
+                $result .= $messages->getStyledMessage(__('Total paid types of work') . ': ' . sizeof($this->allJobPrices), 'info');
             }
 
             if (empty($this->allWages)) {
-                $result.=$messages->getStyledMessage(__('There is no set wages for workers'), 'warning');
+                $result .= $messages->getStyledMessage(__('There is no set wages for workers'), 'warning');
             }
 
             if (empty($this->allJobs)) {
-                $result.=$messages->getStyledMessage(__('Not done yet any paid work'), 'warning');
+                $result .= $messages->getStyledMessage(__('Not done yet any paid work'), 'warning');
             } else {
                 $todayJobs = $this->jobsFilterDate(curdate());
                 $todayJobsCount = sizeof($todayJobs);
                 $monthJobs = $this->jobsFilterDate(curmonth());
                 $monthJobsCount = sizeof($monthJobs);
-                $result.= $messages->getStyledMessage(__('Today performed paid work') . ': ' . $todayJobsCount, 'success');
-                $result.= $messages->getStyledMessage(__('Month performed paid work') . ': ' . $monthJobsCount, 'success');
-                $result.= $messages->getStyledMessage(__('Total performed paid work') . ': ' . sizeof($this->allJobs), 'success');
+                $result .= $messages->getStyledMessage(__('Today performed paid work') . ': ' . $todayJobsCount, 'success');
+                $result .= $messages->getStyledMessage(__('Month performed paid work') . ': ' . $monthJobsCount, 'success');
+                $result .= $messages->getStyledMessage(__('Total performed paid work') . ': ' . sizeof($this->allJobs), 'success');
             }
 
             if (empty($this->allTimesheetDates)) {
-                $result.=$messages->getStyledMessage(__('No filled timesheets'), 'warning');
+                $result .= $messages->getStyledMessage(__('No filled timesheets'), 'warning');
             } else {
                 if (!isset($this->allTimesheetDates[curdate()])) {
-                    $result.=$messages->getStyledMessage(__('For today is not filled timesheets'), 'warning');
+                    $result .= $messages->getStyledMessage(__('For today is not filled timesheets'), 'warning');
                 } else {
-                    $result.=$messages->getStyledMessage(__('For today timesheets is filled'), 'success');
+                    $result .= $messages->getStyledMessage(__('For today timesheets is filled'), 'success');
                 }
 
-                $result.=$messages->getStyledMessage(__('Filled timesheets for') . ' ' . sizeof($this->allTimesheetDates) . ' ' . __('days'), 'success');
+                $result .= $messages->getStyledMessage(__('Filled timesheets for') . ' ' . sizeof($this->allTimesheetDates) . ' ' . __('days'), 'success');
             }
 
 
