@@ -31,59 +31,59 @@ function em_EmployeeShowForm() {
     $allTagNames = stg_get_alltagnames();
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Real Name'));
-    $cells.= wf_TableCell(__('Active'));
-    $cells.= wf_TableCell(__('Appointment'));
-    $cells.= wf_TableCell(__('Mobile'));
-    $cells.= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
-    $cells.= wf_TableCell(__('Administrator'));
-    $cells.= wf_TableCell(__('Tag'));
-    $cells.= wf_TableCell(__('Monthly top up limit'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Real Name'));
+    $cells .= wf_TableCell(__('Active'));
+    $cells .= wf_TableCell(__('Appointment'));
+    $cells .= wf_TableCell(__('Mobile'));
+    $cells .= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
+    $cells .= wf_TableCell(__('Administrator'));
+    $cells .= wf_TableCell(__('Tag'));
+    $cells .= wf_TableCell(__('Monthly top up limit'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allemployee)) {
         foreach ($allemployee as $ion => $eachemployee) {
             $cells = wf_TableCell($eachemployee['id']);
-            $cells.= wf_TableCell($eachemployee['name']);
-            $cells.= wf_TableCell(web_bool_led($eachemployee['active']));
-            $cells.= wf_TableCell($eachemployee['appointment']);
-            $cells.= wf_TableCell($eachemployee['mobile']);
-            $cells.= wf_TableCell($eachemployee['telegram']);
+            $cells .= wf_TableCell($eachemployee['name']);
+            $cells .= wf_TableCell(web_bool_led($eachemployee['active']));
+            $cells .= wf_TableCell($eachemployee['appointment']);
+            $cells .= wf_TableCell($eachemployee['mobile']);
+            $cells .= wf_TableCell($eachemployee['telegram']);
             $admlogin = $eachemployee['admlogin'];
             if (!empty($admlogin)) {
                 if (file_exists(USERS_PATH . $admlogin)) {
                     $admlogin = wf_Link('?module=permissions&edit=' . $admlogin, web_profile_icon() . ' ' . $admlogin, false);
                 }
             }
-            $cells.= wf_TableCell($admlogin);
+            $cells .= wf_TableCell($admlogin);
             $employeeTagId = $eachemployee['tagid'];
             $employeeTagName = (!empty($employeeTagId)) ? $allTagNames[$employeeTagId] : '';
             $employeeTagLabel = (!empty($employeeTagName)) ? $employeeTagName . ' (' . $employeeTagId . ')' : '';
-            $cells.= wf_TableCell($employeeTagLabel);
-            $cells.= wf_TableCell($eachemployee['amountLimit']);
+            $cells .= wf_TableCell($employeeTagLabel);
+            $cells .= wf_TableCell($eachemployee['amountLimit']);
             $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            $actions.= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
-            $cells.= wf_TableCell($actions);
-            $rows.= wf_TableRow($cells, 'row3');
+            $actions .= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
+            $cells .= wf_TableCell($actions);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
     //new employee create form inputs  
     $inputs = wf_HiddenInput('addemployee', 'true');
-    $inputs.= wf_TableCell('');
-    $inputs.= wf_TableCell(wf_TextInput('employeename', '', '', false, 30));
-    $inputs.= wf_TableCell('');
-    $inputs.= wf_TableCell(wf_TextInput('employeejob', '', '', false, 20));
-    $inputs.= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
-    $inputs.= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 15));
-    $inputs.= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
-    $inputs.= wf_TableCell(em_TagSelector('editadtagid'));
-    $inputs.= wf_TableCell(wf_TextInput('amountLimit', '', '', false, 10, 'finance'));
-    $inputs.= wf_TableCell(wf_Submit(__('Create')));
+    $inputs .= wf_TableCell('');
+    $inputs .= wf_TableCell(wf_TextInput('employeename', '', '', false, 30));
+    $inputs .= wf_TableCell('');
+    $inputs .= wf_TableCell(wf_TextInput('employeejob', '', '', false, 20));
+    $inputs .= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
+    $inputs .= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 15));
+    $inputs .= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
+    $inputs .= wf_TableCell(em_TagSelector('editadtagid'));
+    $inputs .= wf_TableCell(wf_TextInput('amountLimit', '', '', false, 10, 'finance'));
+    $inputs .= wf_TableCell(wf_Submit(__('Create')));
     $inputs = wf_TableRow($inputs, 'row2');
     $addForm = wf_Form("", 'POST', $inputs, '');
-    $rows.=$addForm;
+    $rows .= $addForm;
 
     $result = wf_TableBody($rows, '100%', '0', '');
 
@@ -100,32 +100,32 @@ function em_JobTypeForm() {
     $alljobs = simple_queryall($show_q);
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Job type'));
-    $cells.= wf_TableCell(__('Color'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Job type'));
+    $cells .= wf_TableCell(__('Color'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alljobs)) {
         foreach ($alljobs as $ion => $eachjob) {
             $cells = wf_TableCell($eachjob['id']);
-            $cells.= wf_TableCell($eachjob['jobname']);
+            $cells .= wf_TableCell($eachjob['jobname']);
             $jobColor = (!empty($eachjob['jobcolor'])) ? wf_tag('font', false, '', 'color="' . $eachjob['jobcolor'] . '"') . $eachjob['jobcolor'] . wf_tag('font', true) : '';
-            $cells.= wf_TableCell($jobColor);
+            $cells .= wf_TableCell($jobColor);
             $actionlinks = wf_JSAlert('?module=employee&deletejob=' . $eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-            $actionlinks.= wf_JSAlert('?module=employee&editjob=' . $eachjob['id'], web_edit_icon(), 'Are you serious');
-            $cells.= wf_TableCell($actionlinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $actionlinks .= wf_JSAlert('?module=employee&editjob=' . $eachjob['id'], web_edit_icon(), 'Are you serious');
+            $cells .= wf_TableCell($actionlinks);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
     $inputs = wf_HiddenInput('addjobtype', 'true');
-    $inputs.= wf_TableCell('');
-    $inputs.= wf_TableCell(wf_TextInput('newjobtype', '', '', false, '30'));
-    $inputs.= wf_TableCell(wf_ColPicker('newjobcolor', __('Color'), '', false, 8));
-    $inputs.= wf_TableCell(wf_Submit(__('Create')));
+    $inputs .= wf_TableCell('');
+    $inputs .= wf_TableCell(wf_TextInput('newjobtype', '', '', false, '30'));
+    $inputs .= wf_TableCell(wf_ColPicker('newjobcolor', __('Color'), '', false, 8));
+    $inputs .= wf_TableCell(wf_Submit(__('Create')));
     $inputs = wf_TableRow($inputs, 'row2');
     $createForm = wf_Form("", 'POST', $inputs, '');
-    $rows.= $createForm;
+    $rows .= $createForm;
 
     $result = wf_TableBody($rows, '100%', '0', '');
 
@@ -269,11 +269,11 @@ function web_showPreviousJobs($username) {
     $activeemployee = ts_GetActiveEmployee();
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_tableCell(__('Date'));
-    $cells.= wf_TableCell(__('Worker'));
-    $cells.= wf_TableCell(__('Job type'));
-    $cells.= wf_TableCell(__('Notes'));
-    $cells.= wf_TableCell('');
+    $cells .= wf_tableCell(__('Date'));
+    $cells .= wf_TableCell(__('Worker'));
+    $cells .= wf_TableCell(__('Job type'));
+    $cells .= wf_TableCell(__('Notes'));
+    $cells .= wf_TableCell('');
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alljobs)) {
@@ -287,31 +287,31 @@ function web_showPreviousJobs($username) {
             }
 
             $cells = wf_TableCell($eachjob['id']);
-            $cells.= wf_tableCell($eachjob['date']);
-            $cells.= wf_TableCell(@$allemployee[$eachjob['workerid']]);
-            $cells.= wf_TableCell(@$alljobtypes[$eachjob['jobid']]);
-            $cells.= wf_TableCell($jobnote);
-            $cells.= wf_TableCell(wf_JSAlert('?module=jobs&username=' . $username . '&deletejob=' . $eachjob['id'] . '', web_delete_icon(), 'Are you serious'));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_tableCell($eachjob['date']);
+            $cells .= wf_TableCell(@$allemployee[$eachjob['workerid']]);
+            $cells .= wf_TableCell(@$alljobtypes[$eachjob['jobid']]);
+            $cells .= wf_TableCell($jobnote);
+            $cells .= wf_TableCell(wf_JSAlert('?module=jobs&username=' . $username . '&deletejob=' . $eachjob['id'] . '', web_delete_icon(), 'Are you serious'));
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
     //onstruct job create form
     $curdatetime = curdatetime();
     $inputs = wf_HiddenInput('addjob', 'true');
-    $inputs.= wf_HiddenInput('jobdate', $curdatetime);
-    $inputs.= wf_TableCell('');
-    $inputs.= wf_tableCell($curdatetime);
-    $inputs.= wf_TableCell(wf_Selector('worker', $activeemployee, '', '', false));
-    $inputs.= wf_TableCell(wf_Selector('jobtype', $alljobtypes, '', '', false));
-    $inputs.= wf_TableCell(wf_TextInput('notes', '', '', false, '20'));
-    $inputs.= wf_TableCell(wf_Submit('Create'));
+    $inputs .= wf_HiddenInput('jobdate', $curdatetime);
+    $inputs .= wf_TableCell('');
+    $inputs .= wf_tableCell($curdatetime);
+    $inputs .= wf_TableCell(wf_Selector('worker', $activeemployee, '', '', false));
+    $inputs .= wf_TableCell(wf_Selector('jobtype', $alljobtypes, '', '', false));
+    $inputs .= wf_TableCell(wf_TextInput('notes', '', '', false, '20'));
+    $inputs .= wf_TableCell(wf_Submit('Create'));
     $inputs = wf_TableRow($inputs, 'row2');
 
     $addform = wf_Form("", 'POST', $inputs, '');
 
     if ((!empty($activeemployee)) AND ( !empty($alljobtypes))) {
-        $rows.= $addform;
+        $rows .= $addform;
     } else {
         show_error(__('No job types and employee available'));
     }
@@ -452,7 +452,7 @@ function ts_GetAllJobtypesColorStyles() {
         foreach ($alljobcolors as $jcio => $eachjobcolor) {
             if (!empty($eachjobcolor)) {
                 $customJobColorStyleName = 'jobcolorcustom_' . $jcio;
-                $customJobColorStyle.='.' . $customJobColorStyleName . ',
+                $customJobColorStyle .= '.' . $customJobColorStyleName . ',
                                                    .' . $customJobColorStyleName . ' div,
                                                    .' . $customJobColorStyleName . ' span {
                                                         background-color: ' . $eachjobcolor . '; 
@@ -462,7 +462,16 @@ function ts_GetAllJobtypesColorStyles() {
             }
         }
     }
-    $customJobColorStyle.='</style>' . "\n";
+    //anyone optional coloring
+
+    $customJobColorStyle .= '.jobcoloranyone,
+                                                   .jobcoloranyone div,
+                                                   .jobcoloranyone span {
+                                                        background-color: #d04e00; 
+                                                        border-color: #d04e00; 
+                                                        color: #FFFFFF;       
+                                                    }';
+    $customJobColorStyle .= '</style>' . "\n";
     return ($customJobColorStyle);
 }
 
@@ -511,7 +520,7 @@ function ts_JGetJobsReport() {
             $startdate = strtotime($eachjob['date']);
             $startdate = date("Y, n-1, j", $startdate);
 
-            $result.="
+            $result .= "
                       {
                         title: '" . $allemployee[$eachjob['workerid']] . " - " . @$alljobtypes[$eachjob['jobid']] . "',
                         start: new Date(" . $startdate . "),
@@ -534,6 +543,13 @@ function ts_JGetJobsReport() {
 function ts_JGetUndoneTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    if (@$altCfg['TASKMAN_ANYONE_COLORING']) {
+        $anyoneId = $altCfg['TASKMAN_ANYONE_COLORING'];
+    } else {
+        $anyoneId = false;
+    }
+
+
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
 
     //ADcomments init
@@ -607,6 +623,13 @@ function ts_JGetUndoneTasks() {
                 $jobColorClass = 'undone';
             }
 
+            //anyone employee coloring
+            if ($anyoneId) {
+                if ($eachtask['employee'] == $anyoneId) {
+                    $jobColorClass='jobcoloranyone';
+                }
+            }
+
             //time ordering
             if (!empty($eachtask['starttime'])) {
                 $startTime = $eachtask['starttime'];
@@ -630,7 +653,7 @@ function ts_JGetUndoneTasks() {
                 $adcText = '';
             }
 
-            $result.="
+            $result .= "
                       {
                         title: '" . $startTime . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
@@ -730,7 +753,7 @@ function ts_JGetDoneTasks() {
                 $adcText = '';
             }
 
-            $result.="
+            $result .= "
                       {
                         title: '" . $eachtask['address'] . " - " . @$allemployee[$eachtask['employeedone']] . $adcText . "',
                         start: new Date(" . $startdate . "),
@@ -857,7 +880,7 @@ function ts_JGetAllTasks() {
             }
 
 
-            $result.="
+            $result .= "
                       {
                         title: '" . $startTime . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
@@ -938,39 +961,39 @@ function ts_TaskCreateForm() {
     }
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-    $inputs.= wf_HiddenInput('createtask', 'true');
-    $inputs.= wf_DatePicker('newstartdate');
-    $inputs.= wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs.= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
-    $inputs.= wf_delimiter();
+    $inputs .= wf_HiddenInput('createtask', 'true');
+    $inputs .= wf_DatePicker('newstartdate');
+    $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
+    $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+    $inputs .= wf_delimiter();
 
     if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
-        $inputs.= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
+        $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
     } else {
         if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
             $allAddress = zb_AddressGetFulladdresslistCached();
         } else {
             $allAddress = zb_AddressGetStreetsWithBuilds();
         }
-        $inputs.= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
+        $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
     }
-    $inputs.= wf_tag('br');
+    $inputs .= wf_tag('br');
     //hidden for new task login input
-    $inputs.= wf_HiddenInput('newtasklogin', '');
-    $inputs.= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= ts_TaskTypicalNotesSelector();
-    $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs.= wf_TextArea('newjobnote', '', '', true, '35x5');
-    $inputs.= $smsInputs;
-    $inputs.= $telegramInputs;
-    $inputs.= wf_Submit(__('Create new task'));
+    $inputs .= wf_HiddenInput('newtasklogin', '');
+    $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= ts_TaskTypicalNotesSelector();
+    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+    $inputs .= $smsInputs;
+    $inputs .= $telegramInputs;
+    $inputs .= wf_Submit(__('Create new task'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
-    $result.= __('All fields marked with an asterisk are mandatory');
+    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1031,35 +1054,35 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-    $inputs.= wf_HiddenInput('createtask', 'true');
-    $inputs.= wf_DatePickerPreset('newstartdate', $newTaskDate);
-    $inputs.= wf_TimePickerPreset('newstarttime', $newTaskTime, '', false);
-    $inputs.= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
-    $inputs.= wf_delimiter();
-    $inputs.= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
+    $inputs .= wf_HiddenInput('createtask', 'true');
+    $inputs .= wf_DatePickerPreset('newstartdate', $newTaskDate);
+    $inputs .= wf_TimePickerPreset('newstarttime', $newTaskTime, '', false);
+    $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
     //hidden for new task login input
-    $inputs.= wf_HiddenInput('newtasklogin', $login);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, $employeeSorting);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs.= ts_TaskTypicalNotesSelector();
-    $inputs.= wf_TextArea('newjobnote', '', '', true, '35x5');
-    $inputs.= $smsInputs;
-    $inputs.= $telegramInputs;
-    $inputs.= wf_Submit(__('Create new task'));
+    $inputs .= wf_HiddenInput('newtasklogin', $login);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, $employeeSorting);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+    $inputs .= ts_TaskTypicalNotesSelector();
+    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+    $inputs .= $smsInputs;
+    $inputs .= $telegramInputs;
+    $inputs .= wf_Submit(__('Create new task'));
     if (!empty($login)) {
-        $inputs.= wf_AjaxLoader();
-        $inputs.= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
+        $inputs .= wf_AjaxLoader();
+        $inputs .= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
     }
     $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
-    $result.= __('All fields marked with an asterisk are mandatory');
+    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1084,7 +1107,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
     $rawTasks = simple_queryall($query);
     if (!empty($rawTasks)) {
         if (!$noFixedWidth) {
-            $result.= wf_tag('hr');
+            $result .= wf_tag('hr');
         }
         foreach ($rawTasks as $io => $each) {
             if (!empty($login)) {
@@ -1126,10 +1149,10 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                 $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
                 $taskColor = ($each['status']) ? 'donetask' : 'undone';
                 $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
-                $result.= wf_tag('div', false, $taskColor, $divStyle);
+                $result .= wf_tag('div', false, $taskColor, $divStyle);
                 $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']] . ' ' . $telepathyFlag;
-                $result.= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
-                $result.= wf_tag('div', true);
+                $result .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
+                $result .= wf_tag('div', true);
             }
         }
     }
@@ -1167,32 +1190,32 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
-    $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
-    $inputs.= wf_HiddenInput('createtask', 'true');
-    $inputs.= wf_DatePicker('newstartdate');
-    $inputs.= wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs.= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
-    $inputs.= wf_delimiter();
-    $inputs.= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
-    $inputs.= wf_HiddenInput('newtasklogin', $login);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs.= ts_TaskTypicalNotesSelector();
-    $inputs.= wf_TextArea('newjobnote', '', '', true, '35x5');
+    $inputs .= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+    $inputs .= wf_HiddenInput('createtask', 'true');
+    $inputs .= wf_DatePicker('newstartdate');
+    $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
+    $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
+    $inputs .= wf_HiddenInput('newtasklogin', $login);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+    $inputs .= ts_TaskTypicalNotesSelector();
+    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
     if (!empty($customData)) {
-        $inputs.=$customData;
+        $inputs .= $customData;
     }
-    $inputs.= $smsInputs;
-    $inputs.= $telegramInputs;
-    $inputs.= wf_Submit(__('Create new task'));
+    $inputs .= $smsInputs;
+    $inputs .= $telegramInputs;
+    $inputs .= wf_Submit(__('Create new task'));
     $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
-    $result.= __('All fields marked with an asterisk are mandatory');
+    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1221,29 +1244,29 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     }
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-    $inputs.= wf_HiddenInput('createtask', 'true');
-    $inputs.= wf_DatePicker('newstartdate');
-    $inputs.= wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs.= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
-    $inputs.= wf_delimiter();
-    $inputs.= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
+    $inputs .= wf_HiddenInput('createtask', 'true');
+    $inputs .= wf_DatePicker('newstartdate');
+    $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
+    $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
     //hidden for new task login input
-    $inputs.= wf_HiddenInput('newtasklogin', '');
-    $inputs.= wf_tag('br');
-    $inputs.= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $phone, true, '30');
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-    $inputs.= wf_tag('br');
-    $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs.= ts_TaskTypicalNotesSelector();
-    $inputs.= wf_TextArea('newjobnote', '', '', true, '35x5');
-    $inputs.= $smsInputs;
-    $inputs.= $telegramInputs;
-    $inputs.= wf_Submit(__('Create new task'));
+    $inputs .= wf_HiddenInput('newtasklogin', '');
+    $inputs .= wf_tag('br');
+    $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $phone, true, '30');
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+    $inputs .= wf_tag('br');
+    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+    $inputs .= ts_TaskTypicalNotesSelector();
+    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+    $inputs .= $smsInputs;
+    $inputs .= $telegramInputs;
+    $inputs .= wf_Submit(__('Create new task'));
     $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
-    $result.= __('All fields marked with an asterisk are mandatory');
+    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1259,35 +1282,35 @@ function ts_ShowPanel() {
     $createform = ts_TaskCreateForm();
     $tools = '';
     $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
-    $result.= wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
-    $result.= wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png') . ' ' . __('Done tasks'), false, 'ubButton');
-    $result.= wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('All tasks'), false, 'ubButton');
-    
+    $result .= wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
+    $result .= wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png') . ' ' . __('Done tasks'), false, 'ubButton');
+    $result .= wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('All tasks'), false, 'ubButton');
+
     if (cfr('TASKMANSEARCH')) {
-        $tools.= wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
+        $tools .= wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
     }
 
     if (cfr('TASKMANTRACK')) {
-        $tools.= wf_Link('?module=taskmantrack', wf_img('skins/track_icon.png') . ' ' . __('Tracking'), false, 'ubButton');
+        $tools .= wf_Link('?module=taskmantrack', wf_img('skins/track_icon.png') . ' ' . __('Tracking'), false, 'ubButton');
     }
 
     if (cfr('TASKMANTIMING')) {
-        $tools.= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
+        $tools .= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
     }
 
     if (cfr('TASKMANADMREP')) {
-        $tools.= wf_Link('?module=taskmanadmreport', wf_img('skins/mcdonalds.png') . ' ' . __('Hataraku Maou-sama!'), false, 'ubButton');
+        $tools .= wf_Link('?module=taskmanadmreport', wf_img('skins/mcdonalds.png') . ' ' . __('Hataraku Maou-sama!'), false, 'ubButton');
     }
 
     if (cfr('TASKMANNWATCHLOG')) {
-        $tools.= wf_Link('?module=taskman&show=logs', wf_img('skins/icon_note.gif') . ' ' . __('Logs'), false, 'ubButton');
+        $tools .= wf_Link('?module=taskman&show=logs', wf_img('skins/icon_note.gif') . ' ' . __('Logs'), false, 'ubButton');
     }
 
-    $tools.= wf_Link('?module=report_taskmanmap', wf_img('skins/swmapsmall.png') . ' ' . __('Tasks map'), false, 'ubButton');
-    $tools.= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
-    
-    
-    $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
+    $tools .= wf_Link('?module=report_taskmanmap', wf_img('skins/swmapsmall.png') . ' ' . __('Tasks map'), false, 'ubButton');
+    $tools .= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
+
+
+    $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
 
     //show type selector
     $whoami = whoami();
@@ -1301,16 +1324,16 @@ function ts_ShowPanel() {
         if ($employeeid) {
             $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
             $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
-            $inputs.= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
         if ($advFiltersEnabled) {
-            $inputs.= ts_AdvFiltersControls();
+            $inputs .= ts_AdvFiltersControls();
         }
 
-        $inputs.= wf_Submit('Show');
+        $inputs .= wf_Submit('Show');
         $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour');
-        $result.= $showTypeForm;
+        $result .= $showTypeForm;
     }
 
     return ($result);
@@ -1355,7 +1378,7 @@ function ts_TaskIsDone() {
     simple_update_field('taskman', 'change_admin', $_POST['change_admin'], "WHERE `id`='" . $editid . "'");
     simple_update_field('taskman', 'status', '1', "WHERE `id`='" . $editid . "'");
     $logQuery = "INSERT INTO `taskmandone` (`id`,`taskid`,`date`) VALUES ";
-    $logQuery.= "(NULL,'" . $editid . "','" . curdatetime() . "');";
+    $logQuery .= "(NULL,'" . $editid . "','" . curdatetime() . "');";
     nr_query($logQuery);
     $LogTaskArr = array('editenddate' => $_POST['editenddate'], 'editemployeedone' => $_POST['editemployeedone'], 'editdonenote' => $_POST['editdonenote']);
     $queryLogTask = ("
@@ -1473,12 +1496,12 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
             $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
-            $newTelegramText.= __('Address') . ': ' . $address . '\r\n';
-            $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
-            $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
-            $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
-            $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
-            $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
+            $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
+            $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
+            $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
+            $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
+            $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
+            $newTelegramText .= __('Create date') . ': ' . $jobSendTime . '\r\n';
             if (!empty($login)) {
                 $userData = zb_UserGetAllData($login);
 
@@ -1491,28 +1514,28 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                     }
                 }
 
-                $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
-                $newTelegramText.= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
-                $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
-                $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
-                $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
-                $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+                $newTelegramText .= __('Login') . ': ' . $login . '\r\n';
+                $newTelegramText .= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
+                $newTelegramText .= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
+                $newTelegramText .= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
+                $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
+                $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
 
                 if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
                     $allAssigns = zb_SwitchesGetAssignsAll();
                     if (isset($allAssigns[$login])) {
-                        $newTelegramText.=__('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
+                        $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
                     }
                 }
 
                 if (!empty($userCableSeal)) {
-                    $newTelegramText.=$userCableSeal;
+                    $newTelegramText .= $userCableSeal;
                 }
             }
 
             //some hack to append UKV users cable seals
             if (wf_CheckPost(array('unifiedformtelegramappend'))) {
-                $newTelegramText.=$_POST['unifiedformtelegramappend'];
+                $newTelegramText .= $_POST['unifiedformtelegramappend'];
             }
             ts_SendTelegram($employeeid, $newTelegramText);
         }
@@ -1572,41 +1595,41 @@ function ts_TaskModifyForm($taskid) {
     }
     if (!empty($taskdata)) {
         $inputs = wf_HiddenInput('modifytask', $taskid);
-        $inputs.= '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhackmod" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs .= '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhackmod" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         if (cfr('TASKMANDATE')) {
-            $inputs.= wf_DatePickerPreset('modifystartdate', $taskdata['startdate']);
+            $inputs .= wf_DatePickerPreset('modifystartdate', $taskdata['startdate']);
         } else {
-            $inputs.= wf_HiddenInput('modifystartdate', $taskdata['startdate']);
+            $inputs .= wf_HiddenInput('modifystartdate', $taskdata['startdate']);
         }
-        $inputs.= wf_TimePickerPreset('modifystarttime', $taskdata['starttime'], '', false);
-        $inputs.= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
-        $inputs.= wf_delimiter();
-        $inputs.= wf_tag('br');
+        $inputs .= wf_TimePickerPreset('modifystarttime', $taskdata['starttime'], '', false);
+        $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress = zb_AddressGetFulladdresslistCached();
             //Commented because significantly reduces performance. Waiting for feedback.
             //natsort($alladdress);
-            $inputs.= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
+            $inputs .= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         } else {
-            $inputs.= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
+            $inputs .= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         }
-        $inputs.= wf_tag('br');
+        $inputs .= wf_tag('br');
         //custom login text input
-        $inputs.= wf_TextInput('modifytasklogin', __('Login'), $taskdata['login'], true, 30);
-        $inputs.= wf_tag('br');
-        $inputs.= wf_TextInput('modifytaskphone', __('Phone') . '<sup>*</sup>', $taskdata['phone'], true, '30');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Selector('modifytaskjobtype', $alljobtypes, __('Job type'), $taskdata['jobtype'], true);
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Selector('modifytaskemployee', $activeemployee, __('Who should do'), $taskdata['employee'], true);
-        $inputs.= wf_tag('br');
-        $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-        $inputs.= wf_TextArea('modifytaskjobnote', '', $taskdata['jobnote'], true, '35x5');
-        $inputs.= $smsInputs;
-        $inputs.= $telegramInputs;
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('modifytasklogin', __('Login'), $taskdata['login'], true, 30);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TextInput('modifytaskphone', __('Phone') . '<sup>*</sup>', $taskdata['phone'], true, '30');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('modifytaskjobtype', $alljobtypes, __('Job type'), $taskdata['jobtype'], true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('modifytaskemployee', $activeemployee, __('Who should do'), $taskdata['employee'], true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_TextArea('modifytaskjobnote', '', $taskdata['jobnote'], true, '35x5');
+        $inputs .= $smsInputs;
+        $inputs .= $telegramInputs;
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
-        $result.= __('All fields marked with an asterisk are mandatory');
+        $result .= __('All fields marked with an asterisk are mandatory');
     }
 
     return ($result);
@@ -1666,11 +1689,11 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
         $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
-        $newTelegramText.= __('Address') . ': ' . $address . '\r\n';
-        $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
-        $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
-        $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
-        $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
+        $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
+        $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
+        $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
+        $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
+        $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
         if (!empty($login)) {
             $userData = zb_UserGetAllData($login);
 
@@ -1683,22 +1706,22 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
                 }
             }
 
-            $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
-            $newTelegramText.= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
-            $newTelegramText.= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
-            $newTelegramText.= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
-            $newTelegramText.= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
-            $newTelegramText.= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
+            $newTelegramText .= __('Login') . ': ' . $login . '\r\n';
+            $newTelegramText .= __('Password') . ': ' . @$userData[$login]['Password'] . '\r\n';
+            $newTelegramText .= __('Contract') . ': ' . @$userData[$login]['contract'] . '\r\n';
+            $newTelegramText .= __('IP') . ': ' . @$userData[$login]['ip'] . '\r\n';
+            $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
+            $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
 
             if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
                 $allAssigns = zb_SwitchesGetAssignsAll();
                 if (isset($allAssigns[$login])) {
-                    $newTelegramText.=__('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
+                    $newTelegramText .= __('Switch') . ': ' . @$allAssigns[$login]['label'] . '\r\n';
                 }
             }
 
             if (!empty($userCableSeal)) {
-                $newTelegramText.=$userCableSeal;
+                $newTelegramText .= $userCableSeal;
             }
         }
         ts_SendTelegram($employeeid, $newTelegramText);
@@ -1721,7 +1744,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $log_data = '';
     $log_data_arr = array();
     foreach ($cahged_taskdata as $par => $value) {
-        $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
+        $log_data .= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
         $log_data_arr[$par]['old'] = $value;
         $log_data_arr[$par]['new'] = $new_taskdata[$par];
     }
@@ -1819,9 +1842,9 @@ function ts_TaskChangeForm($taskid) {
         //job generation form
         if ($taskLogin) {
             $jobgencheckbox = wf_CheckInput('generatejob', __('Generate job performed for this task'), true, true);
-            $jobgencheckbox.= wf_HiddenInput('generatelogin', $taskLogin);
-            $jobgencheckbox.= wf_HiddenInput('generatejobid', $taskdata['jobtype']);
-            $jobgencheckbox.= wf_delimiter();
+            $jobgencheckbox .= wf_HiddenInput('generatelogin', $taskLogin);
+            $jobgencheckbox .= wf_HiddenInput('generatejobid', $taskdata['jobtype']);
+            $jobgencheckbox .= wf_delimiter();
         } else {
             $jobgencheckbox = '';
         }
@@ -1829,9 +1852,9 @@ function ts_TaskChangeForm($taskid) {
         //modify form handlers
         $modform = '';
         if (cfr('TASKMANTRACK')) {
-            $modform.= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task')));
+            $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task')));
         }
-        $modform.= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
+        $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
         //modform end
         //extracting sms data
         if (!empty($taskdata['smsdata'])) {
@@ -1840,11 +1863,11 @@ function ts_TaskChangeForm($taskid) {
             $rawSmsData = unserialize($rawSmsData);
 
             $smsDataCells = wf_TableCell(__('Mobile'), '', 'row2');
-            $smsDataCells.= wf_TableCell($rawSmsData['number']);
+            $smsDataCells .= wf_TableCell($rawSmsData['number']);
             $smsDataRows = wf_TableRow($smsDataCells, 'row3');
             $smsDataCells = wf_TableCell(__('Message'), '', 'row2');
-            $smsDataCells.= wf_TableCell($rawSmsData['message']);
-            $smsDataRows.= wf_TableRow($smsDataCells, 'row3');
+            $smsDataCells .= wf_TableCell($rawSmsData['message']);
+            $smsDataRows .= wf_TableRow($smsDataCells, 'row3');
             $smsDataTable = wf_TableBody($smsDataRows, '100%', '0', 'glamour');
 
             $smsDataFlushControl = wf_delimiter() . wf_JSAlert('?module=taskman&edittask=' . $taskid . '&flushsmsdata=' . $taskid, web_delete_icon(), __('Are you serious'));
@@ -1864,18 +1887,18 @@ function ts_TaskChangeForm($taskid) {
                 $newSmsText = $smsAddress . ' ' . $smsPhone . ' ' . $taskJobTypeName . ' ' . $smsJobNote . $smsJobTime;
 
                 $smsDataCells = wf_TableCell(__('Employee'), '', 'row2');
-                $smsDataCells.= wf_TableCell(@$allemployee[$taskdata['employee']]);
+                $smsDataCells .= wf_TableCell(@$allemployee[$taskdata['employee']]);
                 $smsDataRows = wf_TableRow($smsDataCells, 'row3');
                 $smsDataCells = wf_TableCell(__('Message'), '', 'row2');
-                $smsDataCells.= wf_TableCell(zb_TranslitString($newSmsText));
-                $smsDataRows.= wf_TableRow($smsDataCells, 'row3');
+                $smsDataCells .= wf_TableCell(zb_TranslitString($newSmsText));
+                $smsDataRows .= wf_TableRow($smsDataCells, 'row3');
 
                 $smsDataTable = wf_TableBody($smsDataRows, '100%', '0', 'glamour');
 
                 $smsInputs = $smsDataTable;
-                $smsInputs.= wf_HiddenInput('postsendemployee', $smsEmployee);
-                $smsInputs.= wf_HiddenInput('postsendsmstext', $newSmsText);
-                $smsInputs.= wf_Submit(__('Send SMS'));
+                $smsInputs .= wf_HiddenInput('postsendemployee', $smsEmployee);
+                $smsInputs .= wf_HiddenInput('postsendsmstext', $newSmsText);
+                $smsInputs .= wf_Submit(__('Send SMS'));
                 $smsForm = wf_Form('', 'POST', $smsInputs, '');
 
                 $smsData = wf_modal(wf_img_sized('skins/icon_mobile.gif', __('Send SMS'), '10'), __('Send SMS'), $smsForm, '', '400', '200');
@@ -1885,63 +1908,63 @@ function ts_TaskChangeForm($taskid) {
         $administratorName = (isset($employeeLogins[$taskdata['admin']])) ? $employeeLogins[$taskdata['admin']] : $taskdata['admin'];
 
         $tablecells = wf_TableCell(__('ID'), '30%');
-        $tablecells.= wf_TableCell($taskdata['id']);
+        $tablecells .= wf_TableCell($taskdata['id']);
         $tablerows = wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Task creation date') . ' / ' . __('Administrator'));
-        $tablecells.= wf_TableCell($taskdata['date'] . ' / ' . $administratorName);
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($taskdata['date'] . ' / ' . $administratorName);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Target date'));
-        $tablecells.= wf_TableCell(wf_tag('strong') . $taskdata['startdate'] . ' ' . $taskdata['starttime'] . wf_tag('strong', true));
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell(wf_tag('strong') . $taskdata['startdate'] . ' ' . $taskdata['starttime'] . wf_tag('strong', true));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Task address'));
-        $tablecells.= wf_TableCell($addresslink);
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($addresslink);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Login'));
-        $tablecells.= wf_TableCell($taskLogin . $loginType);
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($taskLogin . $loginType);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         if (!empty($taskLogin) and in_array($taskLogin, zb_UserGetAllStargazerLogins())) {
             $UserIpMAC = zb_UserGetAllData($taskLogin);
             $tablecells = wf_TableCell(__('IP'));
-            $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
-            $tablerows.= wf_TableRow($tablecells, 'row3');
+            $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
 
             $tablecells = wf_TableCell(__('MAC'));
-            $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
-            $tablerows.= wf_TableRow($tablecells, 'row3');
+            $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
 
             if (@$altercfg['SWITCHPORT_IN_PROFILE']) {
                 $allAssigns = zb_SwitchesGetAssignsAll();
                 if (isset($allAssigns[$taskLogin])) {
                     $tablecells = wf_TableCell(__('Switch'));
-                    $tablecells.= wf_TableCell(@$allAssigns[$taskLogin]['label']);
-                    $tablerows.= wf_TableRow($tablecells, 'row3');
+                    $tablecells .= wf_TableCell(@$allAssigns[$taskLogin]['label']);
+                    $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
             }
         }
 
         $tablecells = wf_TableCell(__('Phone'));
-        $tablecells.= wf_TableCell($taskdata['phone']);
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($taskdata['phone']);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Job type'));
-        $tablecells.= wf_TableCell(@$alljobtypes[$taskdata['jobtype']]);
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell(@$alljobtypes[$taskdata['jobtype']]);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Who should do'));
-        $tablecells.= wf_TableCell(@$allemployee[$taskdata['employee']] . ' ' . $smsData);
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell(@$allemployee[$taskdata['employee']] . ' ' . $smsData);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Job note'));
-        $tablecells.= wf_TableCell(nl2br($taskdata['jobnote']));
-        $tablerows.= wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell(nl2br($taskdata['jobnote']));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        $result.= wf_TableBody($tablerows, '100%', '0', 'glamour');
-        $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+        $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
+        $result .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
         // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
 
@@ -1970,21 +1993,21 @@ function ts_TaskChangeForm($taskid) {
         if ($taskdata['status'] == 0) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
-            $inputs.= wf_HiddenInput('change_admin', whoami());
+            $inputs .= wf_HiddenInput('change_admin', whoami());
             if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
                 //manual done date selection forbidden
-                $inputs.= wf_HiddenInput('editenddate', curdate());
+                $inputs .= wf_HiddenInput('editenddate', curdate());
             } else {
-                $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
+                $inputs .= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
             }
-            $inputs.= wf_tag('br');
-            $inputs.= wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
-            $inputs.= wf_tag('br');
-            $inputs.= wf_tag('label', false) . __('Finish note') . wf_tag('label', true) . wf_tag('br');
-            $inputs.= wf_TextArea('editdonenote', '', '', true, '35x3');
-            $inputs.= wf_tag('br');
-            $inputs.= $jobgencheckbox;
-            $inputs.= wf_Submit(__('This task is done'));
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_tag('label', false) . __('Finish note') . wf_tag('label', true) . wf_tag('br');
+            $inputs .= wf_TextArea('editdonenote', '', '', true, '35x3');
+            $inputs .= wf_tag('br');
+            $inputs .= $jobgencheckbox;
+            $inputs .= wf_Submit(__('This task is done'));
 
             $form = wf_Form("", 'POST', $inputs, 'glamour');
 
@@ -1998,32 +2021,32 @@ function ts_TaskChangeForm($taskid) {
             }
         } else {
             $donecells = wf_TableCell(__('Finish date'), '30%');
-            $donecells.= wf_TableCell($taskdata['enddate']);
+            $donecells .= wf_TableCell($taskdata['enddate']);
             $donerows = wf_TableRow($donecells, 'row3');
 
             $donecells = wf_TableCell(__('Worker done'));
-            $donecells.= wf_TableCell($allemployee[$taskdata['employeedone']]);
-            $donerows.= wf_TableRow($donecells, 'row3');
+            $donecells .= wf_TableCell($allemployee[$taskdata['employeedone']]);
+            $donerows .= wf_TableRow($donecells, 'row3');
 
             $donecells = wf_TableCell(__('Finish note'));
-            $donecells.= wf_TableCell($taskdata['donenote']);
-            $donerows.= wf_TableRow($donecells, 'row3');
+            $donecells .= wf_TableCell($taskdata['donenote']);
+            $donerows .= wf_TableRow($donecells, 'row3');
 
             $administratorChange = (isset($employeeLogins[$taskdata['change_admin']])) ? $employeeLogins[$taskdata['change_admin']] : $taskdata['change_admin'];
 
             $donecells = wf_TableCell(__('Administrator'));
-            $donecells.= wf_TableCell($administratorChange);
-            $donerows.= wf_TableRow($donecells, 'row3');
+            $donecells .= wf_TableCell($administratorChange);
+            $donerows .= wf_TableRow($donecells, 'row3');
 
             $doneresult = wf_TableBody($donerows, '100%', '0', 'glamour');
 
             if (cfr('TASKMANDELETE')) {
-                $doneresult.= wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton');
+                $doneresult .= wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton');
             }
 
             if (cfr('TASKMANDONE')) {
-                $doneresult.= '&nbsp;';
-                $doneresult.= wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), $messages->getEditAlert(), 'ubButton');
+                $doneresult .= '&nbsp;';
+                $doneresult .= wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), $messages->getEditAlert(), 'ubButton');
             }
 
             show_window(__('Task is done'), $doneresult);
@@ -2143,18 +2166,18 @@ function ts_renderLogsDataAjax($taskid = '') {
                 $data_event = '';
                 $logDataArr = @unserialize($each['logs']);
                 if (isset($logDataArr['address'])) {
-                    $data_event.= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['address']['old'] . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['address']['new'] . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['address']['old'] . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['address']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['login'])) {
-                    $data_event.= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['login']['old'] . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['login']['new'] . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['login']['old'] . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['login']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['jobtype'])) {
 
@@ -2163,25 +2186,25 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $jobtypeOld = @$alljobtypes[$jobTypeIdOld];
                     $jobtypeNew = @$alljobtypes[$jobTypeIdNew];
 
-                    $data_event.= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $jobtypeOld . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $jobtypeNew . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $jobtypeOld . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $jobtypeNew . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['jobnote'])) {
-                    $data_event.= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['jobnote']['old'] . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote']['new'] . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['jobnote']['old'] . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['phone'])) {
-                    $data_event.= wf_tag('b') . __('phone') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['phone']['old'] . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone']['new'] . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('phone') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['phone']['old'] . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['employee'])) {
                     $employeeIdOld = $logDataArr['employee']['old'];
@@ -2189,42 +2212,42 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $employeeOld = @$allemployee[$employeeIdOld];
                     $employeeNew = @$allemployee[$employeeIdNew];
 
-                    $data_event.= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $employeeOld . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $employeeNew . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $employeeOld . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $employeeNew . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['startdate'])) {
-                    $data_event.= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['startdate']['old'] . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate']['new'] . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['startdate']['old'] . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
                 if (isset($logDataArr['starttime'])) {
-                    $data_event.= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
-                    $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['starttime']['old'] . wf_tag('font', true);
-                    $data_event.= " => ";
-                    $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['starttime']['new'] . wf_tag('font', true);
-                    $data_event.= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['starttime']['old'] . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['starttime']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
                 }
             } elseif ($each['event'] == 'done') {
                 $data[] = __('Task is done');
                 $data_event = '';
                 $logDataArr = @unserialize($each['logs']);
 
-                $data_event.= wf_tag('b') . __('Finish date') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['editenddate'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Finish date') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['editenddate'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="green"') . @$allemployee[$logDataArr['editemployeedone']] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="green"') . @$allemployee[$logDataArr['editemployeedone']] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Finish note') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="green"') . $logDataArr['editdonenote'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Finish note') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['editdonenote'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
             } elseif ($each['event'] == 'setundone') {
                 $data[] = __('No work was done');
                 $data_event = wf_tag('font', false, '', 'color="red"') . wf_tag('b') . __('No work was done') . wf_tag('b', true) . wf_tag('font', true);
@@ -2233,49 +2256,49 @@ function ts_renderLogsDataAjax($taskid = '') {
                 $data_event = '';
                 $logDataArr = @unserialize($each['logs']);
 
-                $data_event.= wf_tag('b') . __('Create date') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['date'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Create date') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['date'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['address'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['address'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['login'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['login'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . @$alljobtypes[$logDataArr['jobtype']] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . @$alljobtypes[$logDataArr['jobtype']] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Phone') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Phone') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employee']] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employee']] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employeedone']] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employeedone']] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate'] . " " . $logDataArr['starttime'] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate'] . " " . $logDataArr['starttime'] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Admin') . ": " . wf_tag('b', true);
-                $data_event.= wf_tag('font', false, '', 'color="red"') . @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Admin') . ": " . wf_tag('b', true);
+                $data_event .= wf_tag('font', false, '', 'color="red"') . @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
+                $data_event .= wf_tag('br');
 
-                $data_event.= wf_tag('b') . __('Status') . ": " . wf_tag('b', true);
-                $data_event.= web_bool_led($logDataArr['status']);
-                $data_event.= wf_tag('br');
+                $data_event .= wf_tag('b') . __('Status') . ": " . wf_tag('b', true);
+                $data_event .= web_bool_led($logDataArr['status']);
+                $data_event .= wf_tag('br');
             } else {
                 $data[] = __($each['event']);
                 $data_event = $each['logs'];
@@ -2340,23 +2363,23 @@ function ts_TaskProblemsEditForm() {
     if (!empty($rawNotes)) {
         foreach ($rawNotes as $eachNote) {
             $cells = wf_TableCell($eachNote);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
-    $result.= wf_TableBody($rows, '100%', '0', '');
-    $result.= wf_delimiter();
+    $result .= wf_TableBody($rows, '100%', '0', '');
+    $result .= wf_delimiter();
 
     $addinputs = wf_TextInput('createtypicalnote', __('Create'), '', true, '20');
-    $addinputs.= wf_Submit(__('Save'));
+    $addinputs .= wf_Submit(__('Save'));
     $addform = wf_Form("", "POST", $addinputs, 'glamour');
-    $result.= $addform;
+    $result .= $addform;
 
     $delinputs = ts_TaskTypicalNotesSelector(false);
-    $delinputs.= wf_HiddenInput('deletetypicalnote', 'true');
-    $delinputs.= wf_Submit(__('Delete'));
+    $delinputs .= wf_HiddenInput('deletetypicalnote', 'true');
+    $delinputs .= wf_Submit(__('Delete'));
     $delform = wf_Form("", "POST", $delinputs, 'glamour');
-    $result.= $delform;
+    $result .= $delform;
 
     return ($result);
 }
@@ -2371,10 +2394,10 @@ function ts_PrintDialogue() {
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
     $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
-    $inputs.= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
+    $inputs .= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
 
     if ($advFiltersEnabled) {
-        $inputs.= wf_delimiter();
+        $inputs .= wf_delimiter();
 
         $whoami = whoami();
         $employeeid = ts_GetEmployeeByLogin($whoami);
@@ -2388,8 +2411,8 @@ function ts_PrintDialogue() {
         $inputs .= ts_AdvFiltersControls();
     }
 
-    $inputs.= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
-    $inputs.= wf_Submit(__('Print'));
+    $inputs .= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
+    $inputs .= wf_Submit(__('Print'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     return ($result);
 }
@@ -2411,7 +2434,7 @@ function ts_PrintTasks($datefrom, $dateto) {
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
     $result = wf_tag('style');
-    $result.= '
+    $result .= '
         table.gridtable {
             font-family: verdana,arial,sans-serif;
             font-size:9pt;
@@ -2435,7 +2458,7 @@ function ts_PrintTasks($datefrom, $dateto) {
             background-color: #ffffff;
         }
         ';
-    $result.= wf_tag('style', true);
+    $result .= wf_tag('style', true);
 
     $advFilter = ($advFiltersEnabled) ? ts_AdvFiltersQuery() : '';
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -2454,47 +2477,47 @@ function ts_PrintTasks($datefrom, $dateto) {
         foreach ($alltasks as $io => $each) {
             $rows = '';
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell($each['id']);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($each['id']);
+            $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Target date'));
-            $cells.= wf_TableCell($each['startdate'] . ' ' . @$each['starttime']);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($each['startdate'] . ' ' . @$each['starttime']);
+            $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Task address'));
-            $cells.= wf_TableCell($each['address']);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($each['address']);
+            $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Phone'));
-            $cells.= wf_TableCell($each['phone']);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($each['phone']);
+            $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Job type'));
             //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
-            $cells.= wf_TableCell($each['jobname']);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($each['jobname']);
+            $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Who should do'));
-            $cells.= wf_TableCell(@$allemployee[$each['employee']]);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell(@$allemployee[$each['employee']]);
+            $rows .= wf_TableRow($cells);
 
             $cells = wf_TableCell(__('Job note'));
-            $cells.= wf_TableCell($each['jobnote']);
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($each['jobnote']);
+            $rows .= wf_TableRow($cells);
             $tasktable = wf_TableBody($rows, '100%', '0', 'gridtable');
-            $result.= wf_tag('div', false, '', 'style="width: 300px; height: 250px; float: left; border: dashed; border-width:1px; margin:5px; page-break-inside: avoid;"');
-            $result.= $tasktable;
-            $result.= wf_tag('div', true);
+            $result .= wf_tag('div', false, '', 'style="width: 300px; height: 250px; float: left; border: dashed; border-width:1px; margin:5px; page-break-inside: avoid;"');
+            $result .= $tasktable;
+            $result .= wf_tag('div', true);
         }
-        $result.= wf_tag('script', false, '', 'language="javascript"');
-        $result.= 'window.print();';
-        $result.= wf_tag('script', true);
+        $result .= wf_tag('script', false, '', 'language="javascript"');
+        $result .= 'window.print();';
+        $result .= wf_tag('script', true);
     } else {
         //$_POST['showemptyqueryerror'] = 'true';
 
         $messages = new UbillingMessageHelper();
         $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
-        $result.= $messages->getStyledMessage(__('Query returned empty result'), 'warning');
+        $result .= $messages->getStyledMessage(__('Query returned empty result'), 'warning');
     }
 
     die($result);
@@ -2518,7 +2541,7 @@ function ts_PrintTasksTable($datefrom, $dateto) {
     $alljobtypes = ts_GetAllJobtypes();
     $tmpArr = array();
     $result = wf_tag('style');
-    $result.= '
+    $result .= '
         table.gridtable {
             font-family: verdana,arial,sans-serif;
             font-size:9pt;
@@ -2544,7 +2567,7 @@ function ts_PrintTasksTable($datefrom, $dateto) {
         }
       
         ';
-    $result.= wf_tag('style', true);
+    $result .= wf_tag('style', true);
 
     $advFilter = ($advFiltersEnabled) ? ts_AdvFiltersQuery() : '';
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -2567,40 +2590,40 @@ function ts_PrintTasksTable($datefrom, $dateto) {
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $eachEmployeeId => $eachEmployeeTasks) {
                 if (!empty($eachEmployeeId)) {
-                    $result.=wf_tag('h2') . @$allemployee[$eachEmployeeId] . wf_tag('h2', true);
+                    $result .= wf_tag('h2') . @$allemployee[$eachEmployeeId] . wf_tag('h2', true);
                     if (!empty($eachEmployeeTasks)) {
                         $cells = wf_TableCell(__('Target date'));
-                        $cells.= wf_TableCell(__('Task address'));
-                        $cells.= wf_TableCell(__('Phone'));
-                        $cells.= wf_TableCell(__('Job type'));
-                        $cells.= wf_TableCell(__('Job note'));
-                        $cells.= wf_TableCell(__('Additional comments'));
+                        $cells .= wf_TableCell(__('Task address'));
+                        $cells .= wf_TableCell(__('Phone'));
+                        $cells .= wf_TableCell(__('Job type'));
+                        $cells .= wf_TableCell(__('Job note'));
+                        $cells .= wf_TableCell(__('Additional comments'));
                         $rows = wf_TableRow($cells, 'row1');
                         foreach ($eachEmployeeTasks as $io => $each) {
                             $cells = wf_TableCell($each['startdate'] . ' ' . wf_tag('b') . @$each['starttime'] . wf_tag('b', true));
-                            $cells.= wf_TableCell($each['address']);
-                            $cells.= wf_TableCell($each['phone']);
+                            $cells .= wf_TableCell($each['address']);
+                            $cells .= wf_TableCell($each['phone']);
                             //$cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
-                            $cells.= wf_TableCell($each['jobname']);
-                            $cells.= wf_TableCell(nl2br($each['jobnote']));
-                            $cells.= wf_TableCell('');
-                            $rows.= wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell($each['jobname']);
+                            $cells .= wf_TableCell(nl2br($each['jobnote']));
+                            $cells .= wf_TableCell('');
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
-                        $result.=wf_TableBody($rows, '100%', 0, 'gridtable');
+                        $result .= wf_TableBody($rows, '100%', 0, 'gridtable');
                     }
                 }
             }
         }
 
-        $result.= wf_tag('script', false, '', 'language="javascript"');
-        $result.= 'window.print();';
-        $result.= wf_tag('script', true);
+        $result .= wf_tag('script', false, '', 'language="javascript"');
+        $result .= 'window.print();';
+        $result .= wf_tag('script', true);
     } else {
         //$_POST['showemptyqueryerror'] = 'true';
 
         $messages = new UbillingMessageHelper();
         $result = '<link rel="stylesheet" href="./skins/ubng/css/ubilling.css" type="text/css">';
-        $result.= $messages->getStyledMessage(__('Query returned empty result'), 'warning');
+        $result .= $messages->getStyledMessage(__('Query returned empty result'), 'warning');
     }
 
     die($result);
@@ -2624,24 +2647,24 @@ function ts_ShowLate() {
     }
 
     $cells = wf_TableCell(__('Target date'));
-    $cells.= wf_TableCell(__('Task address'));
-    $cells.= wf_TableCell(__('Phone'));
-    $cells.= wf_TableCell(__('Job type'));
-    $cells.= wf_TableCell(__('Who should do'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Task address'));
+    $cells .= wf_TableCell(__('Phone'));
+    $cells .= wf_TableCell(__('Job type'));
+    $cells .= wf_TableCell(__('Who should do'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['startdate']);
-            $cells.= wf_TableCell($each['address']);
-            $cells.= wf_TableCell($each['phone']);
-            $cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
-            $cells.= wf_TableCell(@$allemployee[$each['employee']]);
+            $cells .= wf_TableCell($each['address']);
+            $cells .= wf_TableCell($each['phone']);
+            $cells .= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+            $cells .= wf_TableCell(@$allemployee[$each['employee']]);
             $actions = wf_Link('?module=taskman&edittask=' . $each['id'], web_edit_icon(), false, '');
-            $cells.= wf_TableCell($actions);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($actions);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
