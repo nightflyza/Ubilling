@@ -5,6 +5,11 @@ if (cfr('VISOR')) {
     $altCfg = $ubillingConfig->getAlter();
 
     if ($altCfg['VISOR_ENABLED']) {
+        
+        show_success('Діждемо пори, що й ви злізете з гори.');
+        show_warning('Этот модуль пока не дописан. Мы очень надеемся закончить все к эпическому релизу 1.0.0');
+        show_success('Діждемо пори, що й ми вилізем з нори.');
+/**        
         $visor = new UbillingVisor();
         //basic controls
         show_window('', $visor->panel());
@@ -51,6 +56,8 @@ if (cfr('VISOR')) {
         if (wf_CheckGet(array('showuser'))) {
             show_window(__('User profile'), $visor->renderUserProfile($_GET['showuser']));
         }
+ * 
+ */
     } else {
         show_error(__('This module is disabled'));
     }
