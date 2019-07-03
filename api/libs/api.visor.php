@@ -51,6 +51,7 @@ class UbillingVisor {
     const URL_USERS = '&users=true';
     const URL_CAMS = '&cams=true';
     const URL_USERCAMS = '&ajaxusercams=';
+    const URL_ALLCAMS = '&ajaxallcams=true';
     const URL_DVRS = '&dvrs=true';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
@@ -185,12 +186,14 @@ class UbillingVisor {
             foreach ($this->allUsers as $io => $each) {
                 $data[] = $each['id'];
                 $data[] = $each['regdate'];
-                $data[] = $each['realname'];
+                $visorUserLabel = wf_img('skins/icon_camera_small.png') . ' ' . $each['realname'];
+                $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], $visorUserLabel);
+                $data[] = $visorUserLink;
                 $data[] = $each['phone'];
                 $data[] = web_bool_led($each['chargecams'], true);
                 $data[] = $this->getUserCamerasCount($each['id']);
                 $actLinks = '';
-                //$actLinks.= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks .= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks .= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
@@ -338,7 +341,7 @@ class UbillingVisor {
      * 
      * @return string
      */
-    protected function renderCamerasContainer($url) {
+    public function renderCamerasContainer($url) {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Actions');
@@ -376,6 +379,36 @@ class UbillingVisor {
                 }
             }
         }
+        $json->getJson();
+    }
+
+    /**
+     * Renders ajax json backend for all available cameras
+     * 
+     * @return void
+     */
+    public function ajaxAllCams() {
+        $json = new wf_JqDtHelper();
+
+
+        if (!empty($this->allCams)) {
+            foreach ($this->allCams as $io => $each) {
+                $cameraUserData = @$this->allUserData[$each['login']];
+                $data[] = $each['id'];
+                $data[] = web_bool_led($each['primary']);
+                $visorLinkLabel = wf_img('skins/icon_camera_small.png') . ' ' . @$this->allUsers[$each['visorid']]['realname'];
+                $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['visorid'], $visorLinkLabel);
+                $data[] = $visorUserLink;
+                $cameraLinkLabel = web_profile_icon() . ' ' . $cameraUserData['fulladress'];
+                $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
+                $data[] = $cameraLink;
+                $data[] = @$cameraUserData['ip'];
+                $data[] = 'ACTIONS_TODO';
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
         $json->getJson();
     }
 

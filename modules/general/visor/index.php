@@ -23,10 +23,20 @@ if (cfr('VISOR')) {
             $visor->ajaxUserCams($_GET['ajaxusercams']);
         }
 
+        //all available cameras listing
+        if (wf_CheckGet(array('ajaxallcams'))) {
+            $visor->ajaxAllCams();
+        }
+
         //users creation
         if (wf_CheckPost(array('newusercreate', 'newusername'))) {
             $visor->createUser();
             rcms_redirect($visor::URL_ME . $visor::URL_USERS);
+        }
+
+        //all cameras listing
+        if (wf_CheckGet(array('cams'))) {
+            show_window(__('Cams'), $visor->renderCamerasContainer($visor::URL_ME . $visor::URL_ALLCAMS));
         }
 
         //users deletion
