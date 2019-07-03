@@ -352,7 +352,7 @@ class SwitchLogin {
      */
     public function SwLoginDelete($id) {
         $id = vf($id);
-        $query = "DELETE FROM `switch_login` WHERE `id`='" . $id . "'";
+        $query = "DELETE FROM `switch_login` WHERE `swid`='" . $id . "'";
         nr_query($query);
         log_register('DELETE Switch Login [' . $id . ']');
     }
