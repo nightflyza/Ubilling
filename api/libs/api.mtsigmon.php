@@ -34,6 +34,13 @@ class MTsigmon {
     protected $allUsermacs = array();
 
     /**
+     * All users CPE MAC
+     *
+     * @var array
+     */
+    protected $allUserCpeMacs = array();
+
+    /**
      * All users Data
      *
      * @var array
@@ -201,7 +208,7 @@ class MTsigmon {
         $MT_fdb_arr = $this->cache->get(self::CACHE_PREFIX . 'MTID_UMAC', $this->cacheTime);
         if (!empty($MT_fdb_arr) and isset($usermac)) {
             foreach ($MT_fdb_arr as $mtid => $fdb_arr) {
-                if (in_array($usermac, $fdb_arr)) {
+                if (in_array($usermac, $fdb_arr) or in_array($this->allUserCpeMacs[$this->userLogin], $fdb_arr)) {
                     $this->userSwitch = $mtid;
                     break;
                 }
@@ -281,6 +288,24 @@ class MTsigmon {
     protected function LoadUsersData() {
         $this->allUsermacs = zb_UserGetAllMACs();
         $this->allUserData = zb_UserGetAllDataCache();
+        if ($this->WCPEEnabled) {
+            $this->LoadUsersCpeMACs();
+        }
+    }
+
+    /**
+     * Load user data, mac, adress
+     * 
+     * @return array
+     */
+    protected function LoadUsersCpeMACs() {
+        $query = "SELECT `login`,`mac` FROM `wcpeusers` INNER JOIN (SELECT `id`,`mac`,`bridge` FROM `wcpedevices`) AS wcd ON (`wcpeusers`.`cpeid`=`wcd`.`id`) WHERE `bridge` = '1'";
+        $usersCpeMacs = simple_queryall($query);
+        if (!empty($usersCpeMacs)) {
+            foreach ($usersCpeMacs as $io => $each) {
+                $this->allUserCpeMacs[$each['login']] = $each['mac'];
+            }
+        }
     }
 
     /**
@@ -1368,7 +1393,8 @@ class MTsigmon {
                     $displaysig = wf_tag('font', false, '', 'color="#006600"') . $eachsig . wf_tag('font', true);
                 }
 
-                $login = in_array($eachmac, array_map('strtolower', $this->allUsermacs)) ? array_search($eachmac, array_map('strtolower', $this->allUsermacs)) : '';
+                $allMacs = $this->allUserCpeMacs + $this->allUsermacs;
+                $login = in_array($eachmac, array_map('strtolower', $allMacs)) ? array_search($eachmac, array_map('strtolower', $allMacs)) : '';
                 //user search highlight
                 if ((!empty($this->userLogin)) AND ( $this->userLogin == $login)) {
                     $hlStart = wf_tag('font', false, '', 'color="#0045ac"');
