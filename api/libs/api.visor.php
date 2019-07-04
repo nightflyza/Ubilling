@@ -186,7 +186,7 @@ class UbillingVisor {
             foreach ($this->allUsers as $io => $each) {
                 $data[] = $each['id'];
                 $data[] = $each['regdate'];
-                $visorUserLabel = wf_img('skins/icon_camera_small.png') . ' ' . $each['realname'];
+                $visorUserLabel = $this->iconVisorUser() . ' ' . $each['realname'];
                 $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], $visorUserLabel);
                 $data[] = $visorUserLink;
                 $data[] = $each['phone'];
@@ -256,6 +256,26 @@ class UbillingVisor {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns camera user assigned visor user ID if exists
+     * 
+     * @param string $userLogin
+     * 
+     * @return int/void
+     */
+    public function getCameraUser($userLogin) {
+        $result = '';
+        if (!empty($this->allCams)) {
+            foreach ($this->allCams as $io => $each) {
+                if ($each['login'] == $userLogin) {
+                    $result = $each['visorid'];
+                    break;
+                }
+            }
+        }
+        return($result);
     }
 
     /**
@@ -366,7 +386,7 @@ class UbillingVisor {
                     $cameraUserData = @$this->allUserData[$each['login']];
                     $data[] = $each['id'];
                     $data[] = web_bool_led($each['primary']);
-                    $visorLinkLabel = wf_img('skins/icon_camera_small.png') . ' ' . @$this->allUsers[$each['visorid']]['realname'];
+                    $visorLinkLabel = $this->iconVisorUser() . ' ' . @$this->allUsers[$each['visorid']]['realname'];
                     $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['visorid'], $visorLinkLabel);
                     $data[] = $visorUserLink;
                     $cameraLinkLabel = web_profile_icon() . ' ' . $cameraUserData['fulladress'];
@@ -383,6 +403,16 @@ class UbillingVisor {
     }
 
     /**
+     * Returns default user icon coode
+     * 
+     * @return string
+     */
+    public function iconVisorUser() {
+        $result = wf_img('skins/icon_camera_small.png');
+        return($result);
+    }
+
+    /**
      * Renders ajax json backend for all available cameras
      * 
      * @return void
@@ -396,7 +426,7 @@ class UbillingVisor {
                 $cameraUserData = @$this->allUserData[$each['login']];
                 $data[] = $each['id'];
                 $data[] = web_bool_led($each['primary']);
-                $visorLinkLabel = wf_img('skins/icon_camera_small.png') . ' ' . @$this->allUsers[$each['visorid']]['realname'];
+                $visorLinkLabel = $this->iconVisorUser() . ' ' . @$this->allUsers[$each['visorid']]['realname'];
                 $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['visorid'], $visorLinkLabel);
                 $data[] = $visorUserLink;
                 $cameraLinkLabel = web_profile_icon() . ' ' . $cameraUserData['fulladress'];

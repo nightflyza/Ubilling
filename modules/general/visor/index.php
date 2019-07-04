@@ -60,6 +60,17 @@ if (cfr('VISOR')) {
         }
 
 
+        //camera user detection on black magic action
+        if (wf_CheckGet(array('username'))) {
+            $userIdDetected = $visor->getCameraUser($_GET['username']);
+            if (!empty($userIdDetected)) {
+                rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $userIdDetected);
+            } else {
+                //TODO: camera creation/assign interface
+            }
+        }
+
+
         //user profile rendering
         if (wf_CheckGet(array('showuser'))) {
             show_window(__('User profile'), $visor->renderUserProfile($_GET['showuser']));
