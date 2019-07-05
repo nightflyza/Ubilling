@@ -2547,9 +2547,11 @@ class UkvSystem {
         $profileIconMask = web_profile_icon();
         $connectedMask = web_bool_led(1, true);
         $disconnectedMask = web_bool_led(0, true);
+        $frozenMask=wf_img('skins/icon_passive.gif');
 
         $data = str_replace($profileIconMask, '', $data);
         $data = str_replace($connectedMask, __('Connected'), $data);
+        $data = str_replace($frozenMask, __('Freezed'), $data);
         $data = str_replace($disconnectedMask, wf_tag('b') . __('Disconnected') . wf_tag('b', true), $data);
 
         die($data);
@@ -2889,6 +2891,7 @@ class UkvSystem {
                 if (($eachUser['cash'] <= $debtMaxLimit) AND ( $eachUser['active'] == 1) AND ( $tariffPrice != 0)) {
                     $debtorsArr[$eachUser['street']][$eachUser['id']] = $eachUser;
                     $debtorsArr[$eachUser['street']][$eachUser['id']]['usertype'] = 'ukv';
+                    $debtorsArr[$eachUser['street']][$eachUser['id']]['dsc'] = '';
                     $counter++;
                     $summDebt = $summDebt + $eachUser['cash'];
                 }
@@ -2914,6 +2917,7 @@ class UkvSystem {
                                 $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
                                 $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
                                 $debtorsArr[$userStreet][$ukvUserId]['active'] = @$complexActive[$eachComplexUser['login']];
+                                $debtorsArr[$userStreet][$ukvUserId]['dsc'] = ($eachComplexUser['Passive']) ? ' ' . wf_img('skins/icon_passive.gif') : '';
                                 $summDebt = $summDebt + $eachComplexUser['Cash'];
                                 $counter++;
                             }
@@ -2959,7 +2963,7 @@ class UkvSystem {
                         $cells .= wf_TableCell($userTariff);
                         $cells .= wf_TableCell($userCash);
                         $cells .= wf_TableCell($cableSeal);
-                        $cells .= wf_TableCell($activeLed);
+                        $cells .= wf_TableCell($activeLed . $eachDebtor['dsc']);
                         $rows .= wf_TableRow($cells, 'row3');
                     }
                     $result .= wf_TableBody($rows, '100%', '0', 'sortable');
@@ -4525,10 +4529,29 @@ class UkvSystem {
                     //Activity state is different
                     foreach ($allComplexUsers as $io => $eachComplexUser) {
                         if (isset($complexContracts[$eachComplexUser['login']])) {
-                            if ($complexActive[$eachComplexUser['login']] != $contractsActivity[$complexContracts[$eachComplexUser['login']]]) {
+                            if (isset($complexActive[$eachComplexUser['login']])) {
+                                $cpActFlag = $complexActive[$eachComplexUser['login']];
+                            } else {
+                                $cpActFlag = 0;
+                            }
+
+                            if (isset($contractsActivity[$complexContracts[$eachComplexUser['login']]])) {
+                                $ukActFlag = $contractsActivity[$complexContracts[$eachComplexUser['login']]];
+                            } else {
+                                $ukActFlag = 0;
+                            }
+                            if ($cpActFlag != $ukActFlag) {
                                 $problemComplex[$eachComplexUser['login']]['login'] = $eachComplexUser['login'];
                                 $problemComplex[$eachComplexUser['login']]['type'] = 'activediff';
                             }
+                        }
+                    }
+
+                    //UKV user contract missing
+                    foreach ($allComplexUsers as $io => $eachComplexUser) {
+                        if (!isset($this->contracts[@$complexContracts[$eachComplexUser['login']]])) {
+                            $problemComplex[$eachComplexUser['login']]['login'] = $eachComplexUser['login'];
+                            $problemComplex[$eachComplexUser['login']]['type'] = 'noukvuser';
                         }
                     }
                 }
@@ -4579,7 +4602,8 @@ class UkvSystem {
                         $cells .= wf_TableCell(@$inetRealnames[$each['login']]);
                         $cells .= wf_TableCell(@$allUsersRaw[$each['login']]['Tariff']);
                         $cells .= wf_TableCell(@$allUsersRaw[$each['login']]['Cash']);
-                        $activityLabel = web_bool_led($complexActive[$each['login']]);
+                        $activityLabel = web_bool_led(@$complexActive[$each['login']]);
+
                         if (@isset($contractsActivity[$complexContracts[$each['login']]])) {
                             $activityLabel .= ' ' . web_bool_led(@$contractsActivity[$complexContracts[$each['login']]]);
                         }
