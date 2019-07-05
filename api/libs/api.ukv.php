@@ -411,9 +411,9 @@ class UkvSystem {
         $tariffid = vf($tariffid, 3);
 
         $inputs = wf_HiddenInput('edittariff', $tariffid);
-        $inputs.= wf_TextInput('edittariffname', __('Tariff name'), $this->tariffs[$tariffid]['tariffname'], true, '20');
-        $inputs.= wf_TextInput('edittariffprice', __('Tariff Fee'), $this->tariffs[$tariffid]['price'], true, '5');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('edittariffname', __('Tariff name'), $this->tariffs[$tariffid]['tariffname'], true, '20');
+        $inputs .= wf_TextInput('edittariffprice', __('Tariff Fee'), $this->tariffs[$tariffid]['price'], true, '5');
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -425,9 +425,9 @@ class UkvSystem {
      */
     protected function tariffCreateForm() {
         $inputs = wf_HiddenInput('createtariff', 'true');
-        $inputs.= wf_TextInput('createtariffname', __('Tariff name'), '', true, '20');
-        $inputs.= wf_TextInput('createtariffprice', __('Tariff Fee'), '', true, '5');
-        $inputs.= wf_Submit(__('Create new tariff'));
+        $inputs .= wf_TextInput('createtariffname', __('Tariff name'), '', true, '20');
+        $inputs .= wf_TextInput('createtariffprice', __('Tariff Fee'), '', true, '5');
+        $inputs .= wf_Submit(__('Create new tariff'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -440,25 +440,25 @@ class UkvSystem {
     public function renderTariffs() {
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Tariff name'));
-        $cells.= wf_TableCell(__('Tariff Fee'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Tariff name'));
+        $cells .= wf_TableCell(__('Tariff Fee'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->tariffs)) {
             foreach ($this->tariffs as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['tariffname']);
-                $cells.= wf_TableCell($each['price']);
+                $cells .= wf_TableCell($each['tariffname']);
+                $cells .= wf_TableCell($each['price']);
                 $actlinks = wf_JSAlert(self::URL_TARIFFS_MGMT . '&tariffdelete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                $actlinks.= wf_modal(web_edit_icon(), __('Edit') . ' ' . $each['tariffname'], $this->tariffEditForm($each['id']), '', '400', '200');
-                $cells.= wf_TableCell($actlinks, '', '', $customkey = 'sorttable_customkey="0"'); //need this to keep table sortable
-                $rows.= wf_TableRow($cells, 'row3');
+                $actlinks .= wf_modal(web_edit_icon(), __('Edit') . ' ' . $each['tariffname'], $this->tariffEditForm($each['id']), '', '400', '200');
+                $cells .= wf_TableCell($actlinks, '', '', $customkey = 'sorttable_customkey="0"'); //need this to keep table sortable
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= wf_modal(wf_img('skins/plus.png', __('Create new tariff')), __('Create new tariff'), $this->tariffCreateForm(), '', '400', '200');
+        $result .= wf_modal(wf_img('skins/plus.png', __('Create new tariff')), __('Create new tariff'), $this->tariffCreateForm(), '', '400', '200');
         return ($result);
     }
 
@@ -470,19 +470,19 @@ class UkvSystem {
     public function panel() {
         $result = '';
         if (cfr('UKV')) {
-            $result.= wf_Link(self::URL_USERS_LIST, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton');
+            $result .= wf_Link(self::URL_USERS_LIST, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton');
         }
         if (cfr('UKVREG')) {
-            $result.= wf_Link(self::URL_USERS_REGISTER, wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton');
+            $result .= wf_Link(self::URL_USERS_REGISTER, wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton');
         }
         if (cfr('UKVTAR')) {
-            $result.= wf_Link(self::URL_TARIFFS_MGMT, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton');
+            $result .= wf_Link(self::URL_TARIFFS_MGMT, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton');
         }
         if (cfr('UKVBST')) {
-            $result.= wf_Link(self::URL_BANKSTA_MGMT, wf_img('skins/ukv/bank.png') . ' ' . __('Bank statements'), false, 'ubButton');
+            $result .= wf_Link(self::URL_BANKSTA_MGMT, wf_img('skins/ukv/bank.png') . ' ' . __('Bank statements'), false, 'ubButton');
         }
         if (cfr('UKVREP')) {
-            $result.= wf_Link(self::URL_REPORTS_LIST, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton');
+            $result .= wf_Link(self::URL_REPORTS_LIST, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton');
         }
         return ($result);
     }
@@ -689,15 +689,15 @@ class UkvSystem {
         $userid = vf($userid, 3);
         $this->loadCashtypes();
         $inputs = '';
-        $inputs.= wf_HiddenInput('manualpaymentprocessing', $userid);
-        $inputs.= wf_TextInput('paymentsumm', __('New cash'), '', true, 5);
-        $inputs.= wf_RadioInput('paymenttype', __('Add cash'), 'add', false, true);
-        $inputs.= wf_RadioInput('paymenttype', __('Correct saldo'), 'correct', false, false);
-        $inputs.= wf_RadioInput('paymenttype', __('Mock payment'), 'mock', false, false);
-        $inputs.= wf_Selector('paymentcashtype', $this->cashtypes, __('Cash type'), '', true);
-        $inputs.= wf_TextInput('paymentnotes', __('Payment notes'), '', true, '40');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Submit(__('Payment'));
+        $inputs .= wf_HiddenInput('manualpaymentprocessing', $userid);
+        $inputs .= wf_TextInput('paymentsumm', __('New cash'), '', true, 5);
+        $inputs .= wf_RadioInput('paymenttype', __('Add cash'), 'add', false, true);
+        $inputs .= wf_RadioInput('paymenttype', __('Correct saldo'), 'correct', false, false);
+        $inputs .= wf_RadioInput('paymenttype', __('Mock payment'), 'mock', false, false);
+        $inputs .= wf_Selector('paymentcashtype', $this->cashtypes, __('Cash type'), '', true);
+        $inputs .= wf_TextInput('paymentnotes', __('Payment notes'), '', true, '40');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Payment'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -775,11 +775,11 @@ class UkvSystem {
         $userid = vf($userid, 3);
         $inputs = __('Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.') . ' <br>
                ' . __('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
-        $inputs.= wf_HiddenInput('userdeleteprocessing', $userid);
-        $inputs.= wf_delimiter();
-        $inputs.= wf_tag('input', false, '', 'type="text" name="deleteconfirmation" autocomplete="off"');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Submit(__('I really want to stop suffering User'));
+        $inputs .= wf_HiddenInput('userdeleteprocessing', $userid);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_tag('input', false, '', 'type="text" name="deleteconfirmation" autocomplete="off"');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('I really want to stop suffering User'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -844,14 +844,14 @@ class UkvSystem {
             $buildsel = $builddata['buildnum'] . wf_HiddenInput('buildsel', $builddata['id']);
             $aptsel = wf_TextInput('uregapt', __('Apartment'), '', true, '4');
 
-            $submit_btn.= wf_HiddenInput('userregisterprocessing', 'true');
-            $submit_btn.= wf_tag('tr', false, 'row3');
-            $submit_btn.= wf_tag('td', false);
-            $submit_btn.= wf_Submit(__('Let register that user'));
-            $submit_btn.= wf_tag('td', true);
-            $submit_btn.= wf_tag('td', false);
-            $submit_btn.= wf_tag('td', true);
-            $submit_btn.= wf_tag('tr', true);
+            $submit_btn .= wf_HiddenInput('userregisterprocessing', 'true');
+            $submit_btn .= wf_tag('tr', false, 'row3');
+            $submit_btn .= wf_tag('td', false);
+            $submit_btn .= wf_Submit(__('Let register that user'));
+            $submit_btn .= wf_tag('td', true);
+            $submit_btn .= wf_tag('td', false);
+            $submit_btn .= wf_tag('td', true);
+            $submit_btn .= wf_tag('tr', true);
             $currentStep = 3;
         } else {
             $submit_btn = '';
@@ -859,31 +859,31 @@ class UkvSystem {
 
 
         $formInputs = wf_tag('tr', false, 'row3');
-        $formInputs.= wf_tag('td', false, '', 'width="50%"') . $citysel . wf_tag('td', true);
-        $formInputs.= wf_tag('td', false) . __('City') . wf_tag('td', true);
-        $formInputs.= wf_tag('tr', true);
+        $formInputs .= wf_tag('td', false, '', 'width="50%"') . $citysel . wf_tag('td', true);
+        $formInputs .= wf_tag('td', false) . __('City') . wf_tag('td', true);
+        $formInputs .= wf_tag('tr', true);
 
-        $formInputs.= wf_tag('tr', false, 'row3');
-        $formInputs.= wf_tag('td', false) . $streetsel . wf_tag('td', true);
-        $formInputs.= wf_tag('td', false) . __('Street') . wf_tag('td', true);
-        $formInputs.= wf_tag('tr', true);
+        $formInputs .= wf_tag('tr', false, 'row3');
+        $formInputs .= wf_tag('td', false) . $streetsel . wf_tag('td', true);
+        $formInputs .= wf_tag('td', false) . __('Street') . wf_tag('td', true);
+        $formInputs .= wf_tag('tr', true);
 
-        $formInputs.= wf_tag('tr', false, 'row3');
-        $formInputs.= wf_tag('td', false) . $buildsel . wf_tag('td', true);
-        $formInputs.= wf_tag('td', false) . __('Build') . wf_tag('td', true);
-        $formInputs.= wf_tag('tr', true);
+        $formInputs .= wf_tag('tr', false, 'row3');
+        $formInputs .= wf_tag('td', false) . $buildsel . wf_tag('td', true);
+        $formInputs .= wf_tag('td', false) . __('Build') . wf_tag('td', true);
+        $formInputs .= wf_tag('tr', true);
 
-        $formInputs.= wf_tag('tr', false, 'row3');
-        $formInputs.= wf_tag('td', false) . $aptsel . wf_tag('td', true);
-        $formInputs.= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
-        $formInputs.= wf_tag('tr', true);
-        $formInputs.= $submit_btn;
+        $formInputs .= wf_tag('tr', false, 'row3');
+        $formInputs .= wf_tag('td', false) . $aptsel . wf_tag('td', true);
+        $formInputs .= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
+        $formInputs .= wf_tag('tr', true);
+        $formInputs .= $submit_btn;
 
         $formData = wf_Form('', 'POST', $formInputs);
         $form = wf_TableBody($formData, '100%', '0', 'glamour');
-        $form.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
-        
-        $form.=wf_StepsMeter($registerSteps, $currentStep);
+        $form .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+
+        $form .= wf_StepsMeter($registerSteps, $currentStep);
         return($form);
     }
 
@@ -965,8 +965,8 @@ class UkvSystem {
             $currentSeal = $this->users[$userid]['cableseal'];
 
             $inputs = wf_TextInput('ueditcableseal', __('Cable seal'), $currentSeal, true, 20);
-            $inputs.= wf_HiddenInput('usercablesealprocessing', $userid);
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_HiddenInput('usercablesealprocessing', $userid);
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
@@ -1007,71 +1007,71 @@ class UkvSystem {
             $inputs = '';
 
             $inputs = wf_tag('tr', false);
-            $inputs.= wf_tag('td', false, '', 'valign="top"');
+            $inputs .= wf_tag('td', false, '', 'valign="top"');
 
-            $inputs.= wf_HiddenInput('usereditprocessing', $userid);
-            $inputs.= wf_tag('div', false, 'floatpanelswide');
-            $inputs.= wf_tag('h3') . __('Full address') . wf_tag('h3', true);
-            $inputs.= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
-            $inputs.= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
-            $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], false, '5');
-            $inputs.= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
-            $inputs.= wf_tag('div', true);
+            $inputs .= wf_HiddenInput('usereditprocessing', $userid);
+            $inputs .= wf_tag('div', false, 'floatpanelswide');
+            $inputs .= wf_tag('h3') . __('Full address') . wf_tag('h3', true);
+            $inputs .= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
+            $inputs .= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
+            $inputs .= wf_TextInput('ueditbuild', __('Build'), $userData['build'], false, '5');
+            $inputs .= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
+            $inputs .= wf_tag('div', true);
 
-            $inputs.= wf_tag('td', true);
-            $inputs.= wf_tag('td', false, '', 'valign="top"');
+            $inputs .= wf_tag('td', true);
+            $inputs .= wf_tag('td', false, '', 'valign="top"');
 
-            $inputs.=wf_tag('div', false, 'floatpanelswide');
-            $inputs.= wf_tag('h3') . __('Contact info') . wf_tag('h3', true);
-            $inputs.= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '30');
-            $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
-            $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
-            $inputs.= wf_tag('div', true);
+            $inputs .= wf_tag('div', false, 'floatpanelswide');
+            $inputs .= wf_tag('h3') . __('Contact info') . wf_tag('h3', true);
+            $inputs .= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '30');
+            $inputs .= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
+            $inputs .= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
+            $inputs .= wf_tag('div', true);
 
-            $inputs.= wf_tag('td', true);
-            $inputs.= wf_tag('tr', true);
-            $inputs.= wf_tag('td', false, '', 'valign="top"');
+            $inputs .= wf_tag('td', true);
+            $inputs .= wf_tag('tr', true);
+            $inputs .= wf_tag('td', false, '', 'valign="top"');
 
-            $inputs.=wf_tag('div', false, 'floatpanelswide');
-            $inputs.= wf_tag('h3') . __('Services') . wf_tag('h3', true);
-            $inputs.= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
-            $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
-            $inputs.= wf_Selector('uedittariffnm', $tariffnmArr, __('Next month'), $userData['tariffnmid'], true);
-            $inputs.= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
-            $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
-            $inputs.= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
-            $inputs.= wf_tag('div', true);
+            $inputs .= wf_tag('div', false, 'floatpanelswide');
+            $inputs .= wf_tag('h3') . __('Services') . wf_tag('h3', true);
+            $inputs .= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
+            $inputs .= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
+            $inputs .= wf_Selector('uedittariffnm', $tariffnmArr, __('Next month'), $userData['tariffnmid'], true);
+            $inputs .= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
+            $inputs .= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
+            $inputs .= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
+            $inputs .= wf_tag('div', true);
 
-            $inputs.= wf_tag('td', true);
-            $inputs.= wf_tag('td', false, '', 'valign="top"');
+            $inputs .= wf_tag('td', true);
+            $inputs .= wf_tag('td', false, '', 'valign="top"');
 
-            $inputs.=wf_tag('div', false, 'floatpanelswide');
-            $inputs.= wf_tag('h3') . __('Passport data') . wf_tag('h3', true);
-            $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
-            $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '20');
-            $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate'], true) . __('Date of issue') . wf_tag('br');
-            $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
-            $inputs.= wf_TextInput('ueditpaddr', __('Registration address'), $userData['paddr'], true, '20');
-            $inputs.= wf_tag('div', true);
+            $inputs .= wf_tag('div', false, 'floatpanelswide');
+            $inputs .= wf_tag('h3') . __('Passport data') . wf_tag('h3', true);
+            $inputs .= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
+            $inputs .= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '20');
+            $inputs .= wf_DatePickerPreset('ueditpassdate', $userData['passdate'], true) . __('Date of issue') . wf_tag('br');
+            $inputs .= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
+            $inputs .= wf_TextInput('ueditpaddr', __('Registration address'), $userData['paddr'], true, '20');
+            $inputs .= wf_tag('div', true);
 
-            $inputs.= wf_tag('td', true);
-            $inputs.= wf_tag('tr', true);
+            $inputs .= wf_tag('td', true);
+            $inputs .= wf_tag('tr', true);
 
-            $inputs.= wf_tag('tr', false);
-            $inputs.= wf_tag('td', false, '', 'colspan="2" valign="top"');
+            $inputs .= wf_tag('tr', false);
+            $inputs .= wf_tag('td', false, '', 'colspan="2" valign="top"');
 
-            $inputs.=wf_tag('div', false, 'floatpanelswide');
-            $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], false, '60');
-            $inputs.= wf_tag('div', true);
+            $inputs .= wf_tag('div', false, 'floatpanelswide');
+            $inputs .= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], false, '60');
+            $inputs .= wf_tag('div', true);
 
-            $inputs.= wf_tag('td', true);
-            $inputs.= wf_tag('tr', true);
+            $inputs .= wf_tag('td', true);
+            $inputs .= wf_tag('tr', true);
 
-            $inputs.= wf_tag('tr', false);
-            $inputs.= wf_tag('td', false, '', 'colspan="2" valign="top"');
-            $inputs.= wf_Submit(__('Save'));
-            $inputs.= wf_tag('td', true);
-            $inputs.= wf_tag('tr', true);
+            $inputs .= wf_tag('tr', false);
+            $inputs .= wf_tag('td', false, '', 'colspan="2" valign="top"');
+            $inputs .= wf_Submit(__('Save'));
+            $inputs .= wf_tag('td', true);
+            $inputs .= wf_tag('tr', true);
 
             $inputs = wf_TableBody($inputs, '800', 0, '');
 
@@ -1097,18 +1097,18 @@ class UkvSystem {
         $all = simple_queryall($query);
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Who?'));
-        $cells.= wf_TableCell(__('When?'));
-        $cells.= wf_TableCell(__('What happen?'));
+        $cells .= wf_TableCell(__('Who?'));
+        $cells .= wf_TableCell(__('When?'));
+        $cells .= wf_TableCell(__('What happen?'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['admin']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['event']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($each['admin']);
+                $cells .= wf_TableCell($each['date']);
+                $cells .= wf_TableCell($each['event']);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -1337,11 +1337,11 @@ class UkvSystem {
         }
 
         $inputs = wf_Selector('newtagtypeid', $paramsTmp, __('Add tag'), '', false) . ' ';
-        $inputs.= wf_HiddenInput('newtaguserid', $userid);
-        $inputs.=wf_Submit(__('Save'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-        $result.= wf_CleanDiv();
-        $result.=wf_delimiter();
+        $inputs .= wf_HiddenInput('newtaguserid', $userid);
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_CleanDiv();
+        $result .= wf_delimiter();
 
         $paramsDelTmp = array();
         if (!empty($this->allUserTags)) {
@@ -1358,10 +1358,10 @@ class UkvSystem {
 
         if (!empty($paramsDelTmp)) {
             $inputs = wf_Selector('deltagid', $paramsDelTmp, __('Delete tag'), '', false);
-            $inputs.= wf_HiddenInput('deltaguserid', $userid);
-            $inputs.= wf_Submit(__('Delete'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
-            $result.= wf_CleanDiv();
+            $inputs .= wf_HiddenInput('deltaguserid', $userid);
+            $inputs .= wf_Submit(__('Delete'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_CleanDiv();
         }
 
 
@@ -1379,7 +1379,7 @@ class UkvSystem {
             $tagTypeId = vf($_POST['newtagtypeid'], 3);
             $userId = vf($_POST['newtaguserid'], 3);
             $query = "INSERT INTO `ukv_tags` (`id`,`tagtypeid`,`userid`) VALUES ";
-            $query.="(NULL,'" . $tagTypeId . "','" . $userId . "');";
+            $query .= "(NULL,'" . $tagTypeId . "','" . $userId . "');";
             nr_query($query);
             log_register('UKV TAG ADD ((' . $userId . ')) TYPE [' . $tagTypeId . ']');
             rcms_redirect(self::URL_USERS_PROFILE . $userId);
@@ -1459,11 +1459,11 @@ class UkvSystem {
         if (!empty($tagbody)) {
             $renderPower = ($power) ? $tagPower : $tagbody['tagsize'];
             $result = wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $renderPower . '"');
-            $result.= wf_tag('a', false, '', 'href="' . self::URL_REPORTS_MGMT . 'reportTagcloud&tagid=' . $id . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . $powerSup . wf_tag('a', true);
-            $result.= wf_tag('font', true);
-            $result.='&nbsp;';
+            $result .= wf_tag('a', false, '', 'href="' . self::URL_REPORTS_MGMT . 'reportTagcloud&tagid=' . $id . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . $powerSup . wf_tag('a', true);
+            $result .= wf_tag('font', true);
+            $result .= '&nbsp;';
         } else {
-            $result.=__('Deleted') . ': ' . $id . '&nbsp;';
+            $result .= __('Deleted') . ': ' . $id . '&nbsp;';
         }
         return($result);
     }
@@ -1479,7 +1479,7 @@ class UkvSystem {
         if (!empty($this->allUserTags)) {
             foreach ($this->allUserTags as $io => $eachtag) {
                 if ($eachtag['userid'] == $userid) {
-                    $result.=$this->getTagBody($eachtag['tagtypeid']);
+                    $result .= $this->getTagBody($eachtag['tagtypeid']);
                 }
             }
         }
@@ -1537,58 +1537,58 @@ class UkvSystem {
             }
 
             $cells = wf_TableCell(__('Full address') . ' ' . $taskControl, '20%', 'row2');
-            $cells.= wf_TableCell($userData['city'] . ' ' . $userData['street'] . ' ' . $userData['build'] . $apt);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['city'] . ' ' . $userData['street'] . ' ' . $userData['build'] . $apt);
+            $rows .= wf_TableRow($cells, 'row3');
 
 
             $cells = wf_TableCell(__('Real Name') . ' ' . $photoControl, '20%', 'row2');
-            $cells.= wf_TableCell($userData['realname']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['realname']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Phone'), '30%', 'row2');
-            $cells.= wf_TableCell($userData['phone']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['phone']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Mobile'), '30%', 'row2');
-            $cells.= wf_TableCell($userData['mobile']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['mobile']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(wf_tag('b') . __('Contract') . wf_tag('b', true), '20%', 'row2');
-            $cells.= wf_TableCell(wf_tag('b') . $userData['contract'] . wf_tag('b', true));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(wf_tag('b') . $userData['contract'] . wf_tag('b', true));
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Tariff'), '30%', 'row2');
-            $cells.= wf_TableCell(@$this->tariffs[$userData['tariffid']]['tariffname']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(@$this->tariffs[$userData['tariffid']]['tariffname']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Planned tariff change'), '30%', 'row2');
-            $cells.= wf_TableCell(@$this->tariffs[$userData['tariffnmid']]['tariffname']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(@$this->tariffs[$userData['tariffnmid']]['tariffname']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(wf_tag('b') . __('Cash') . wf_tag('b', true), '30%', 'row2');
-            $cells.= wf_TableCell(wf_tag('b') . $userData['cash'] . wf_tag('b', true));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(wf_tag('b') . $userData['cash'] . wf_tag('b', true));
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Connected'), '30%', 'row2');
-            $cells.= wf_TableCell(web_bool_led($userData['active']));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(web_bool_led($userData['active']));
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('User contract date'), '30%', 'row2');
-            $cells.= wf_TableCell($userData['regdate']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['regdate']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Internet account'), '30%', 'row2');
             $inetLink = (!empty($userData['inetlogin'])) ? wf_Link(self::URL_INET_USER_PROFILE . $userData['inetlogin'], web_profile_icon() . ' ' . $userData['inetlogin'], false, '') : '';
-            $cells.= wf_TableCell($inetLink);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($inetLink);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Cable seal'), '30%', 'row2');
-            $cells.= wf_TableCell($userData['cableseal']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['cableseal']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Notes'), '30%', 'row2');
-            $cells.= wf_TableCell($userData['notes']);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userData['notes']);
+            $rows .= wf_TableRow($cells, 'row3');
 
             $profileData = wf_TableBody($rows, '100%', 0, '');
 
@@ -1596,7 +1596,7 @@ class UkvSystem {
             if (!empty($this->allTagtypes)) {
                 $this->catchTagChangeRequest();
                 $tagsArea = wf_modalAuto(web_add_icon(__('Add tag')), __('Add tag'), $this->profileTagsEditForm($userid));
-                $tagsArea.=$this->renderUserTags($userid);
+                $tagsArea .= $this->renderUserTags($userid);
             } else {
                 $tagsArea = '';
             }
@@ -1604,33 +1604,32 @@ class UkvSystem {
 
             $profilePlugins = '';
             if (cfr('UKV')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600') . __('Details') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600') . __('Details') . wf_tag('div', true);
             }
             if (cfr('UKVCASH')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
             }
             if (cfr('UKVREG')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '') . __('Edit') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '') . __('Edit') . wf_tag('div', true);
             }
             if (cfr('UKVSEAL')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal') . wf_tag('div', true);
             }
             if (cfr('EMPLOYEE')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))) . __('Jobs') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link('?module=prevtasks&address=' . $shortAddress . '&ukvuserid=' . $userid, wf_img('skins/worker.png', __('Jobs'))) . __('Jobs') . wf_tag('div', true);
             }
             if (cfr('UKVDEL')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
             }
 
             if ($ubillingConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $ubillingConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
                 $receiptsPrinter = new PrintReceipt();
 
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
-                $profilePlugins.= $receiptsPrinter->renderWebFormForProfile($userid, 'ctvsrv', __('Cable television'),
-                                                                            $userData['cash'], $userData['street'], $userData['build']);
-                $profilePlugins.= wf_tag('br');
-                $profilePlugins.= __('Print receipt');
-                $profilePlugins.= wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
+                $profilePlugins .= $receiptsPrinter->renderWebFormForProfile($userid, 'ctvsrv', __('Cable television'), $userData['cash'], $userData['street'], $userData['build']);
+                $profilePlugins .= wf_tag('br');
+                $profilePlugins .= __('Print receipt');
+                $profilePlugins .= wf_tag('div', true);
             }
 
 //main view construction
@@ -1640,19 +1639,19 @@ class UkvSystem {
 
             $profilecells = wf_tag('td', false, '', 'valign="top"') . $tagsArea . wf_tag('td', true);
 
-            $profilerows.= wf_TableRow($profilecells);
+            $profilerows .= wf_TableRow($profilecells);
 
             $profilecells = wf_tag('td', false, '', ' valign="top"') . $profilePlugins . wf_tag('td', true);
             $profilerows .= wf_TableRow($profilecells);
 
             $result = wf_TableBody($profilerows, '100%', '0');
-            $result.= $this->userPaymentsRender($userid);
+            $result .= $this->userPaymentsRender($userid);
 
 
 //additional user comments
             if ($this->altCfg['ADCOMMENTS_ENABLED']) {
-                $result.=wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
-                $result.=$adcomments->renderComments($userid);
+                $result .= wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
+                $result .= $adcomments->renderComments($userid);
             }
 
             return ($result);
@@ -1798,14 +1797,14 @@ class UkvSystem {
             $all = simple_queryall($query);
 
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Cash'));
-            $cells.= wf_TableCell(__('From'));
-            $cells.= wf_TableCell(__('To'));
-            $cells.= wf_TableCell(__('Operation'));
-            $cells.= wf_TableCell(__('Cash type'));
-            $cells.= wf_TableCell(__('Notes'));
-            $cells.= wf_TableCell(__('Admin'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Cash'));
+            $cells .= wf_TableCell(__('From'));
+            $cells .= wf_TableCell(__('To'));
+            $cells .= wf_TableCell(__('Operation'));
+            $cells .= wf_TableCell(__('Cash type'));
+            $cells .= wf_TableCell(__('Notes'));
+            $cells .= wf_TableCell(__('Admin'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($all)) {
@@ -1856,15 +1855,15 @@ class UkvSystem {
                         $rowClass = 'paytoday';
                     }
                     $cells = wf_TableCell($eachpayment['id']);
-                    $cells.= wf_TableCell($eachpayment['date']);
-                    $cells.= wf_TableCell($eachpayment['summ']);
-                    $cells.= wf_TableCell($eachpayment['balance']);
-                    $cells.= wf_TableCell($newBalance);
-                    $cells.= wf_TableCell($colorStart . $operation . $colorEnd);
-                    $cells.= wf_TableCell($paymentCashtype);
-                    $cells.= wf_TableCell($notes);
-                    $cells.= wf_TableCell($eachpayment['admin']);
-                    $rows.= wf_TableRow($cells, $rowClass);
+                    $cells .= wf_TableCell($eachpayment['date']);
+                    $cells .= wf_TableCell($eachpayment['summ']);
+                    $cells .= wf_TableCell($eachpayment['balance']);
+                    $cells .= wf_TableCell($newBalance);
+                    $cells .= wf_TableCell($colorStart . $operation . $colorEnd);
+                    $cells .= wf_TableCell($paymentCashtype);
+                    $cells .= wf_TableCell($notes);
+                    $cells .= wf_TableCell($eachpayment['admin']);
+                    $rows .= wf_TableRow($cells, $rowClass);
                 }
             }
 
@@ -1886,15 +1885,15 @@ class UkvSystem {
      */
     public function bankstaLoadForm() {
         $uploadinputs = wf_HiddenInput('uploadukvbanksta', 'true');
-        $uploadinputs.=__('Bank statement') . wf_tag('br');
-        $uploadinputs.=wf_tag('input', false, '', 'id="fileselector" type="file" name="ukvbanksta"') . wf_tag('br');
-        $uploadinputs.=__('Bankstatement type');
-        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank'), 'oschad', false, true);
-        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank terminal'), 'oschadterm', false, false);
-        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('PrivatBank'), 'privatbankdbf', true, false);
+        $uploadinputs .= __('Bank statement') . wf_tag('br');
+        $uploadinputs .= wf_tag('input', false, '', 'id="fileselector" type="file" name="ukvbanksta"') . wf_tag('br');
+        $uploadinputs .= __('Bankstatement type');
+        $uploadinputs .= wf_RadioInput('ukvbankstatype', __('Oschadbank'), 'oschad', false, true);
+        $uploadinputs .= wf_RadioInput('ukvbankstatype', __('Oschadbank terminal'), 'oschadterm', false, false);
+        $uploadinputs .= wf_RadioInput('ukvbankstatype', __('PrivatBank'), 'privatbankdbf', true, false);
 
 
-        $uploadinputs.=wf_Submit('Upload');
+        $uploadinputs .= wf_Submit('Upload');
         $uploadform = bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
         return ($uploadform);
     }
@@ -2200,15 +2199,15 @@ class UkvSystem {
         $cashPairs = array();
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Contract'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('Processed'));
-        $cells.= wf_TableCell(__('Contract'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Address'));
-        $cells.= wf_TableCell(__('Tariff'));
+        $cells .= wf_TableCell(__('Address'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Contract'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Processed'));
+        $cells .= wf_TableCell(__('Contract'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Address'));
+        $cells .= wf_TableCell(__('Tariff'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
@@ -2219,21 +2218,21 @@ class UkvSystem {
                 $processed = ($each['processed']) ? true : false;
 
                 $cells = wf_TableCell($AddInfoControl);
-                $cells.= wf_TableCell($each['address']);
-                $cells.= wf_TableCell($each['realname']);
+                $cells .= wf_TableCell($each['address']);
+                $cells .= wf_TableCell($each['realname']);
 
                 if (!$processed) {
                     $editInputs = wf_TextInput('newbankcontr', '', $each['contract'], false, '6');
-                    $editInputs.= wf_CheckInput('lockbankstarow', __('Lock'), false, false);
-                    $editInputs.= wf_HiddenInput('bankstacontractedit', $each['id']);
-                    $editInputs.= wf_Submit(__('Save'));
+                    $editInputs .= wf_CheckInput('lockbankstarow', __('Lock'), false, false);
+                    $editInputs .= wf_HiddenInput('bankstacontractedit', $each['id']);
+                    $editInputs .= wf_Submit(__('Save'));
                     $editForm = wf_Form('', 'POST', $editInputs);
                 } else {
                     $editForm = $each['contract'];
                 }
-                $cells.= wf_TableCell($editForm);
-                $cells.= wf_TableCell($each['summ']);
-                $cells.= wf_TableCell(web_bool_led($processed));
+                $cells .= wf_TableCell($editForm);
+                $cells .= wf_TableCell($each['summ']);
+                $cells .= wf_TableCell(web_bool_led($processed));
 //user detection 
                 if (isset($this->contracts[$each['contract']])) {
                     $detectedUser = $this->users[$this->contracts[$each['contract']]];
@@ -2270,11 +2269,11 @@ class UkvSystem {
                     }
                 }
 
-                $cells.= wf_TableCell($detectedContract);
-                $cells.= wf_TableCell($detectedRealName);
-                $cells.= wf_TableCell($detectedAddress);
-                $cells.= wf_TableCell($detectedTariff);
-                $rows.= wf_TableRow($cells, $rowClass);
+                $cells .= wf_TableCell($detectedContract);
+                $cells .= wf_TableCell($detectedRealName);
+                $cells .= wf_TableCell($detectedAddress);
+                $cells .= wf_TableCell($detectedTariff);
+                $rows .= wf_TableRow($cells, $rowClass);
             }
         }
 
@@ -2284,8 +2283,8 @@ class UkvSystem {
             $cashPairs = serialize($cashPairs);
             $cashPairs = base64_encode($cashPairs);
             $cashInputs = wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
-            $cashInputs.= wf_Submit(__('Bank statement processing'));
-            $result.= wf_Form('', 'POST', $cashInputs, 'glamour');
+            $cashInputs .= wf_Submit(__('Bank statement processing'));
+            $result .= wf_Form('', 'POST', $cashInputs, 'glamour');
         }
 
 
@@ -2304,12 +2303,12 @@ class UkvSystem {
         $query = "SELECT * from `ukv_banksta` WHERE `id`='" . $id . "'";
         $dataRaw = simple_query($query);
         $result = '';
-        $result.= wf_BackLink(self::URL_BANKSTA_PROCESSING . $dataRaw['hash']);
-        $result.= wf_delimiter();
+        $result .= wf_BackLink(self::URL_BANKSTA_PROCESSING . $dataRaw['hash']);
+        $result .= wf_delimiter();
 
         if (!empty($dataRaw)) {
-            $result.= wf_tag('pre', false, 'floatpanelswide', '') . print_r($dataRaw, true) . wf_tag('pre', true);
-            $result.= wf_CleanDiv();
+            $result .= wf_tag('pre', false, 'floatpanelswide', '') . print_r($dataRaw, true) . wf_tag('pre', true);
+            $result .= wf_CleanDiv();
         }
 
 
@@ -2430,7 +2429,7 @@ class UkvSystem {
         $result = '';
         $columns = array(__('Date'), __('Filename'), __('Type'), __('Rows'), __('Admin'), __('Actions'));
         $opts = '"order": [[ 0, "desc" ]]';
-        $result.=wf_JqDtLoader($columns, self::URL_BANKSTA_MGMT . '&ajbslist=true', false, __('Bank statement'), 50, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_BANKSTA_MGMT . '&ajbslist=true', false, __('Bank statement'), 50, $opts);
         return ($result);
     }
 
@@ -2479,13 +2478,13 @@ class UkvSystem {
             $tbiconsize = '128';
         }
         $template = wf_tag('div', false, 'dashtask', 'style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"');
-        $template.= wf_tag('a', false, '', 'href="' . $task_link . '"');
-        $template.= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
-        $template.= wf_tag('a', true);
-        $template.= wf_tag('br');
-        $template.= wf_tag('br');
-        $template.= $task_text;
-        $template.= wf_tag('div', true);
+        $template .= wf_tag('a', false, '', 'href="' . $task_link . '"');
+        $template .= wf_tag('img', false, '', 'src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"');
+        $template .= wf_tag('a', true);
+        $template .= wf_tag('br');
+        $template .= wf_tag('br');
+        $template .= $task_text;
+        $template .= wf_tag('div', true);
         return ($template);
     }
 
@@ -2496,23 +2495,23 @@ class UkvSystem {
      */
     public function reportList() {
         $reports = '';
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportAntiDebtors', 'antidebtors.png', __('AntiDebtors'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTariffs', 'tariffsreport.jpg', __('Tariffs report'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFinance', 'financereport.jpg', __('Finance report'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportSignup', 'signupreport.jpg', __('Signup report'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFees', 'feesreport.png', __('Money fees'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtAddr', 'debtaddr.png', __('Current debtors for delivery by address'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'debtstreets.png', __('Current debtors for delivery by streets'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTagcloud', 'tagcloud.jpg', __('Tag cloud'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportIntegrity', 'integrity.png', __('Integrity control'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportAntiDebtors', 'antidebtors.png', __('AntiDebtors'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTariffs', 'tariffsreport.jpg', __('Tariffs report'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFinance', 'financereport.jpg', __('Finance report'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportSignup', 'signupreport.jpg', __('Signup report'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFees', 'feesreport.png', __('Money fees'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtAddr', 'debtaddr.png', __('Current debtors for delivery by address'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'debtstreets.png', __('Current debtors for delivery by streets'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTagcloud', 'tagcloud.jpg', __('Tag cloud'));
+        $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportIntegrity', 'integrity.png', __('Integrity control'));
         if ($this->altCfg['COMPLEX_ENABLED']) {
-            $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportComplexAssign', 'reportcomplexassign.png', __('Users with complex services'));
-            $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldbeComplex', 'shouldbecomplex.png', __('Users which should be complex in UKV'));
-            $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldNotbeComplex', 'shouldbecomplex.png', __('Users which should not be complex in UKV'));
+            $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportComplexAssign', 'reportcomplexassign.png', __('Users with complex services'));
+            $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldbeComplex', 'shouldbecomplex.png', __('Users which should be complex in UKV'));
+            $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldNotbeComplex', 'shouldbecomplex.png', __('Users which should not be complex in UKV'));
         }
-        $reports.=wf_CleanDiv();
+        $reports .= wf_CleanDiv();
         show_window(__('Reports'), $reports);
     }
 
@@ -2577,9 +2576,9 @@ class UkvSystem {
                         natsort($buildParams);
                     }
                     $buildInputs = wf_Selector('buildsel', $buildParams, __('Build'), '', true);
-                    $buildInputs.= wf_HiddenInput('streetsel', $streetId);
-                    $buildInputs.= wf_TextInput('debtcash', __('The threshold at which the money considered user debtor'), '0', true, 4);
-                    $buildInputs.= wf_Submit(__('Print'));
+                    $buildInputs .= wf_HiddenInput('streetsel', $streetId);
+                    $buildInputs .= wf_TextInput('debtcash', __('The threshold at which the money considered user debtor'), '0', true, 4);
+                    $buildInputs .= wf_Submit(__('Print'));
                     die($buildInputs);
                 } else {
                     die('');
@@ -2597,8 +2596,8 @@ class UkvSystem {
             }
 
             $inputs = wf_AjaxLoader();
-            $inputs.= wf_AjaxSelectorAC('aj_buildcontainer', $streetData, __('Street'), '', false);
-            $inputs.= wf_AjaxContainer('aj_buildcontainer');
+            $inputs .= wf_AjaxSelectorAC('aj_buildcontainer', $streetData, __('Street'), '', false);
+            $inputs .= wf_AjaxContainer('aj_buildcontainer');
 
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             show_window(__('Current debtors for delivery by address'), $form);
@@ -2620,7 +2619,7 @@ class UkvSystem {
                     $rowtemplate = str_ireplace('{DEBT}', $each['cash'], $rowtemplate);
                     $rowtemplate = str_ireplace('{CURDATE}', curdate(), $rowtemplate);
                     $rowtemplate = str_ireplace('{PAYDAY}', (date("Y-m-") . '01'), $rowtemplate);
-                    $printableTemplate.=$rowtemplate;
+                    $printableTemplate .= $rowtemplate;
                 }
                 $printableTemplate = wf_TableBody($printableTemplate, '100%', 0, 'sortable');
                 $printableTemplate = $this->reportPrintable(__('Current debtors for delivery by address'), $printableTemplate);
@@ -2641,8 +2640,8 @@ class UkvSystem {
             if (!empty($_GET['aj_rdabuildsel'])) {
                 $streetId = base64_decode($_GET['aj_rdabuildsel']);
                 $buildInputs = wf_HiddenInput('streetsel', $streetId);
-                $buildInputs.= wf_TextInput('debtcash', __('The threshold at which the money considered user debtor'), '0', true, 4);
-                $buildInputs.= wf_Submit(__('Print'));
+                $buildInputs .= wf_TextInput('debtcash', __('The threshold at which the money considered user debtor'), '0', true, 4);
+                $buildInputs .= wf_Submit(__('Print'));
                 die($buildInputs);
             } else {
                 die('');
@@ -2660,8 +2659,8 @@ class UkvSystem {
             }
 
             $inputs = wf_AjaxLoader();
-            $inputs.= wf_AjaxSelectorAC('aj_buildcontainer', $streetData, __('Street'), '', false);
-            $inputs.= wf_AjaxContainer('aj_buildcontainer');
+            $inputs .= wf_AjaxSelectorAC('aj_buildcontainer', $streetData, __('Street'), '', false);
+            $inputs .= wf_AjaxContainer('aj_buildcontainer');
 
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             show_window(__('Current debtors for delivery by streets'), $form);
@@ -2682,7 +2681,7 @@ class UkvSystem {
                     $rowtemplate = str_ireplace('{DEBT}', $each['cash'], $rowtemplate);
                     $rowtemplate = str_ireplace('{CURDATE}', curdate(), $rowtemplate);
                     $rowtemplate = str_ireplace('{PAYDAY}', (date("Y-m-") . '01'), $rowtemplate);
-                    $printableTemplate.=$rowtemplate;
+                    $printableTemplate .= $rowtemplate;
                 }
                 $printableTemplate = wf_TableBody($printableTemplate, '100%', 0, 'sortable');
                 $printableTemplate = $this->reportPrintable(__('Current debtors for delivery by streets'), $printableTemplate);
@@ -2902,7 +2901,10 @@ class UkvSystem {
             $userStreets = zb_AddressGetStreetUsers();
             if (!empty($allComplexUsers)) {
                 foreach ($allComplexUsers as $io => $eachComplexUser) {
-                    if (($eachComplexUser['Cash'] < -$eachComplexUser['Credit']) AND ( @$complexActive[$eachComplexUser['login']])) {
+                    if (
+                            (($eachComplexUser['Cash'] < -$eachComplexUser['Credit']) AND ( @$complexActive[$eachComplexUser['login']]))
+                            OR ( ( $eachComplexUser['Passive'] == 1) AND ( @$complexActive[$eachComplexUser['login']]))
+                    ) {
                         if (isset($complexContracts[$eachComplexUser['login']])) {
                             $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
                             if (isset($this->users[$ukvUserId])) {
@@ -2916,7 +2918,7 @@ class UkvSystem {
                                 $counter++;
                             }
                         } else {
-                            $result.=$this->messages->getStyledMessage(__('Missing registered UKV user with complex tariff') . ': ' . $eachComplexUser['login'], 'error');
+                            $result .= $this->messages->getStyledMessage(__('Missing registered UKV user with complex tariff') . ': ' . $eachComplexUser['login'], 'error');
                         }
                     }
                 }
@@ -2926,20 +2928,20 @@ class UkvSystem {
 
 
 //append report counter
-        $result.= wf_tag('h4', false, 'row3') . __('Total') . ': ' . $counter . ' / ' . __('Debt') . ': ' . $summDebt . wf_tag('h4', true);
+        $result .= wf_tag('h4', false, 'row3') . __('Total') . ': ' . $counter . ' / ' . __('Debt') . ': ' . $summDebt . wf_tag('h4', true);
 
 
         if (!empty($debtorsArr)) {
             foreach ($debtorsArr as $streetName => $eachDebtorStreet) {
                 if (!empty($eachDebtorStreet)) {
-                    $result.=wf_tag('h3') . $streetName . wf_tag('h3', true);
+                    $result .= wf_tag('h3') . $streetName . wf_tag('h3', true);
                     $cells = wf_TableCell(__('Contract'), '10%');
-                    $cells.= wf_TableCell(__('Full address'), '31%');
-                    $cells.= wf_TableCell(__('Real Name'), '30%');
-                    $cells.= wf_TableCell(__('Tariff'), '15%');
-                    $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Seal'));
-                    $cells.= wf_TableCell(__('Status'), '7%');
+                    $cells .= wf_TableCell(__('Full address'), '31%');
+                    $cells .= wf_TableCell(__('Real Name'), '30%');
+                    $cells .= wf_TableCell(__('Tariff'), '15%');
+                    $cells .= wf_TableCell(__('Cash'), '7%');
+                    $cells .= wf_TableCell(__('Seal'));
+                    $cells .= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
                         $debtorAddress = $this->userGetFullAddress($eachDebtor['id']);
@@ -2952,15 +2954,15 @@ class UkvSystem {
                         $userContract = $eachDebtor['contract'];
 
                         $cells = wf_TableCell($userContract);
-                        $cells.= wf_TableCell($debtorLink . $debtorAddress);
-                        $cells.= wf_TableCell($userRealname);
-                        $cells.= wf_TableCell($userTariff);
-                        $cells.= wf_TableCell($userCash);
-                        $cells.= wf_TableCell($cableSeal);
-                        $cells.= wf_TableCell($activeLed);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($debtorLink . $debtorAddress);
+                        $cells .= wf_TableCell($userRealname);
+                        $cells .= wf_TableCell($userTariff);
+                        $cells .= wf_TableCell($userCash);
+                        $cells .= wf_TableCell($cableSeal);
+                        $cells .= wf_TableCell($activeLed);
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
-                    $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+                    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
                 }
             }
         }
@@ -3052,7 +3054,7 @@ class UkvSystem {
             $userStreets = zb_AddressGetStreetUsers();
             if (!empty($allComplexUsers)) {
                 foreach ($allComplexUsers as $io => $eachComplexUser) {
-                    if (($eachComplexUser['Cash'] > -$eachComplexUser['Credit']) AND ( !@$complexActive[$eachComplexUser['login']])) {
+                    if (($eachComplexUser['Cash'] >= -$eachComplexUser['Credit']) AND ( !@$complexActive[$eachComplexUser['login']])) {
                         if (isset($complexContracts[$eachComplexUser['login']])) {
                             $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
                             if (isset($this->users[$ukvUserId])) {
@@ -3067,7 +3069,7 @@ class UkvSystem {
                                 }
                             }
                         } else {
-                            $result.=$this->messages->getStyledMessage(__('Missing registered UKV user with complex tariff') . ': ' . $eachComplexUser['login'], 'error');
+                            $result .= $this->messages->getStyledMessage(__('Missing registered UKV user with complex tariff') . ': ' . $eachComplexUser['login'], 'error');
                         }
                     }
                 }
@@ -3075,31 +3077,31 @@ class UkvSystem {
         }
 
 //append report counter
-        $result.= wf_tag('h4', false, 'row3') . __('Total') . ': ' . $counter . wf_tag('h4', true);
+        $result .= wf_tag('h4', false, 'row3') . __('Total') . ': ' . $counter . wf_tag('h4', true);
 
         if (!empty($debtorsArr)) {
             foreach ($debtorsArr as $streetName => $eachDebtorStreet) {
                 if (!empty($eachDebtorStreet)) {
-                    $result.=wf_tag('h3') . $streetName . wf_tag('h3', true);
+                    $result .= wf_tag('h3') . $streetName . wf_tag('h3', true);
                     $cells = wf_TableCell(__('Contract'), '10%');
-                    $cells.= wf_TableCell(__('Full address'), '31%');
-                    $cells.= wf_TableCell(__('Real Name'), '30%');
-                    $cells.= wf_TableCell(__('Tariff'), '15%');
-                    $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Seal'));
-                    $cells.= wf_TableCell(__('Status'), '7%');
+                    $cells .= wf_TableCell(__('Full address'), '31%');
+                    $cells .= wf_TableCell(__('Real Name'), '30%');
+                    $cells .= wf_TableCell(__('Tariff'), '15%');
+                    $cells .= wf_TableCell(__('Cash'), '7%');
+                    $cells .= wf_TableCell(__('Seal'));
+                    $cells .= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
                         $cells = wf_TableCell($eachDebtor['contract']);
                         $debtorAddress = $this->userGetFullAddress($eachDebtor['id']);
                         $debtorLink = wf_Link(self::URL_USERS_PROFILE . $eachDebtor['id'], web_profile_icon() . ' ', false);
-                        $cells.= wf_TableCell($debtorLink . $debtorAddress);
-                        $cells.= wf_TableCell($eachDebtor['realname']);
-                        $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
-                        $cells.= wf_TableCell($eachDebtor['cash']);
-                        $cells.= wf_TableCell($eachDebtor['cableseal']);
-                        $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($debtorLink . $debtorAddress);
+                        $cells .= wf_TableCell($eachDebtor['realname']);
+                        $cells .= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
+                        $cells .= wf_TableCell($eachDebtor['cash']);
+                        $cells .= wf_TableCell($eachDebtor['cableseal']);
+                        $cells .= wf_TableCell(web_bool_led($eachDebtor['active'], true));
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
 
                     $result .= wf_TableBody($rows, '100%', '0', 'sortable');
@@ -3156,42 +3158,42 @@ class UkvSystem {
 
 //tariff summary grid
         $cells = wf_TableCell(__('Tariff'));
-        $cells.= wf_TableCell(__('Total'));
-        $cells.= wf_TableCell(__('Visual'));
-        $cells.= wf_TableCell(__('Active'));
+        $cells .= wf_TableCell(__('Total'));
+        $cells .= wf_TableCell(__('Visual'));
+        $cells .= wf_TableCell(__('Active'));
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($tariffArr as $tariffId => $tariffName) {
             $tariffLink = wf_Link(self::URL_REPORTS_MGMT . 'reportTariffs&showtariffusers=' . $tariffId, $tariffName);
             $cells = wf_TableCell($tariffLink);
-            $cells.= wf_TableCell($tariffCounter[$tariffId]['all']);
-            $cells.= wf_TableCell(web_bar($tariffCounter[$tariffId]['all'], $userTotalCount));
-            $cells.= wf_TableCell(web_barTariffs($tariffCounter[$tariffId]['alive'], ($tariffCounter[$tariffId]['all'] - $tariffCounter[$tariffId]['alive'])));
-            $rows.= wf_TableRow($cells, 'row5');
+            $cells .= wf_TableCell($tariffCounter[$tariffId]['all']);
+            $cells .= wf_TableCell(web_bar($tariffCounter[$tariffId]['all'], $userTotalCount));
+            $cells .= wf_TableCell(web_barTariffs($tariffCounter[$tariffId]['alive'], ($tariffCounter[$tariffId]['all'] - $tariffCounter[$tariffId]['alive'])));
+            $rows .= wf_TableRow($cells, 'row5');
         }
 
-        $result.=wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.=wf_tag('b') . __('Total') . ': ' . $userTotalCount . wf_tag('b', true);
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+        $result .= wf_tag('b') . __('Total') . ': ' . $userTotalCount . wf_tag('b', true);
 //tariff move summary
         if (!empty($tariffMoves)) {
             if (!wf_CheckGet(array('showtariffusers'))) {
-                $result.=wf_tag('br');
-                $result.=wf_tag('h3') . __('Planned tariff changes') . wf_tag('h3', true);
+                $result .= wf_tag('br');
+                $result .= wf_tag('h3') . __('Planned tariff changes') . wf_tag('h3', true);
 
                 $cells = wf_TableCell(__('User'));
-                $cells.= wf_TableCell(__('Real Name'));
-                $cells.= wf_TableCell(__('Tariff'));
-                $cells.= wf_TableCell(__('Next month'));
+                $cells .= wf_TableCell(__('Real Name'));
+                $cells .= wf_TableCell(__('Tariff'));
+                $cells .= wf_TableCell(__('Next month'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($tariffMoves as $moveUserId => $moveData) {
                     $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $moveUserId, web_profile_icon() . ' ' . $this->userGetFullAddress($moveUserId)));
-                    $cells.= wf_TableCell($this->userGetRealName($moveUserId));
-                    $cells.= wf_TableCell($this->tariffGetName($moveData['from']));
-                    $cells.= wf_TableCell($this->tariffGetName($moveData['to']));
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($this->userGetRealName($moveUserId));
+                    $cells .= wf_TableCell($this->tariffGetName($moveData['from']));
+                    $cells .= wf_TableCell($this->tariffGetName($moveData['to']));
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-                $result.=wf_tag('b') . __('Total') . ': ' . sizeof($tariffMoves) . wf_tag('b', true);
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_tag('b') . __('Total') . ': ' . sizeof($tariffMoves) . wf_tag('b', true);
             }
         }
 
@@ -3200,31 +3202,31 @@ class UkvSystem {
             $tariffSearch = vf($_GET['showtariffusers'], 3);
             if (isset($tariffUsers[$tariffSearch])) {
                 if (!empty($tariffUsers[$tariffSearch])) {
-                    $result.=wf_delimiter();
-                    $result.=wf_tag('h2') . __('Tariff') . ': ' . $tariffArr[$tariffSearch] . wf_tag('h2', true);
+                    $result .= wf_delimiter();
+                    $result .= wf_tag('h2') . __('Tariff') . ': ' . $tariffArr[$tariffSearch] . wf_tag('h2', true);
                     $cells = wf_TableCell(__('Contract'), '10%');
-                    $cells.= wf_TableCell(__('Full address'), '31%');
-                    $cells.= wf_TableCell(__('Real Name'), '25%');
-                    $cells.= wf_TableCell(__('Tariff'), '15%');
-                    $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Seal'), '5%');
-                    $cells.= wf_TableCell(__('Status'), '7%');
+                    $cells .= wf_TableCell(__('Full address'), '31%');
+                    $cells .= wf_TableCell(__('Real Name'), '25%');
+                    $cells .= wf_TableCell(__('Tariff'), '15%');
+                    $cells .= wf_TableCell(__('Cash'), '7%');
+                    $cells .= wf_TableCell(__('Seal'), '5%');
+                    $cells .= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($tariffUsers[$_GET['showtariffusers']] as $io => $eachUser) {
                         $cells = wf_TableCell($eachUser['contract']);
                         $fullAddress = $this->userGetFullAddress($eachUser['id']);
                         $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
-                        $cells.= wf_TableCell($profileLink . $fullAddress);
-                        $cells.= wf_TableCell($eachUser['realname']);
-                        $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
-                        $cells.= wf_TableCell($eachUser['cash']);
-                        $cells.= wf_tablecell($eachUser['cableseal']);
-                        $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($profileLink . $fullAddress);
+                        $cells .= wf_TableCell($eachUser['realname']);
+                        $cells .= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                        $cells .= wf_TableCell($eachUser['cash']);
+                        $cells .= wf_tablecell($eachUser['cableseal']);
+                        $cells .= wf_TableCell(web_bool_led($eachUser['active'], true));
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
 
-                    $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+                    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
                 }
             }
             $printableControl = wf_Link(self::URL_REPORTS_MGMT . 'reportTariffs&showtariffusers=' . $tariffSearch . '&printable=true', wf_img('skins/icon_print.png', __('Print')));
@@ -3299,11 +3301,11 @@ class UkvSystem {
         $cache = new UbillingCache();
 
         $cells = wf_TableCell('');
-        $cells.= wf_TableCell(__('Month'));
-        $cells.= wf_TableCell(__('Payments count'));
-        $cells.= wf_TableCell(__('ARPU'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('Visual'), '50%');
+        $cells .= wf_TableCell(__('Month'));
+        $cells .= wf_TableCell(__('Payments count'));
+        $cells .= wf_TableCell(__('ARPU'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Visual'), '50%');
         $rows = wf_TableRow($cells, 'row1');
 
 //caching subroutine
@@ -3354,12 +3356,12 @@ class UkvSystem {
                 $paycount = $this->paymentsGetMonthCount($year, $eachmonth);
 
                 $cells = wf_TableCell($eachmonth);
-                $cells.= wf_TableCell(wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
-                $cells.= wf_TableCell($paycount);
-                $cells.= wf_TableCell(@round($month_summ / $paycount, 2));
-                $cells.= wf_TableCell(web_roundValue($month_summ, 2));
-                $cells.= wf_TableCell(web_bar($month_summ, $year_summ));
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell(wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
+                $cells .= wf_TableCell($paycount);
+                $cells .= wf_TableCell(@round($month_summ / $paycount, 2));
+                $cells .= wf_TableCell(web_roundValue($month_summ, 2));
+                $cells .= wf_TableCell(web_bar($month_summ, $year_summ));
+                $rows .= wf_TableRow($cells, 'row3');
             }
             $result = wf_TableBody($rows, '100%', '0', 'sortable');
             $yearPayData[$year]['graphs'] = $result;
@@ -3372,8 +3374,8 @@ class UkvSystem {
 //take data from cache
             if (isset($yearPayData[$year]['graphs'])) {
                 $result = $yearPayData[$year]['graphs'];
-                $result.=__('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
-                $result.=wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
+                $result .= __('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
+                $result .= wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
             } else {
                 $result = __('Strange exeption');
             }
@@ -3402,18 +3404,18 @@ class UkvSystem {
         $totalPaycount = 0;
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Cash'));
 //optional contract display
         if ($this->altCfg['FINREP_CONTRACT']) {
-            $cells.= wf_TableCell(__('Contract'));
+            $cells .= wf_TableCell(__('Contract'));
         }
 
-        $cells.= wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Cash type'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Admin'));
+        $cells .= wf_TableCell(__('Full address'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Cash type'));
+        $cells .= wf_TableCell(__('Notes'));
+        $cells .= wf_TableCell(__('Admin'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($allapayments)) {
@@ -3425,20 +3427,20 @@ class UkvSystem {
                 }
 
                 $cells = wf_TableCell($eachpayment['id']);
-                $cells.= wf_TableCell($eachpayment['date']);
-                $cells.= wf_TableCell($eachpayment['summ']);
+                $cells .= wf_TableCell($eachpayment['date']);
+                $cells .= wf_TableCell($eachpayment['summ']);
 //optional contract display
                 if ($this->altCfg['FINREP_CONTRACT']) {
-                    $cells.= wf_TableCell(@$userData['contract']);
+                    $cells .= wf_TableCell(@$userData['contract']);
                 }
 
                 $userLink = wf_Link(self::URL_USERS_PROFILE . $eachpayment['userid'], web_profile_icon());
-                $cells.= wf_TableCell($userLink . ' ' . $this->userGetFullAddress($eachpayment['userid']));
-                $cells.= wf_TableCell(@$userData['realname']);
-                $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
-                $cells.= wf_TableCell($eachpayment['note']);
-                $cells.= wf_TableCell($eachpayment['admin']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($userLink . ' ' . $this->userGetFullAddress($eachpayment['userid']));
+                $cells .= wf_TableCell(@$userData['realname']);
+                $cells .= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
+                $cells .= wf_TableCell($eachpayment['note']);
+                $cells .= wf_TableCell($eachpayment['admin']);
+                $rows .= wf_TableRow($cells, 'row3');
 
                 if ($eachpayment['summ'] > 0) {
                     $total = $total + $eachpayment['summ'];
@@ -3446,7 +3448,7 @@ class UkvSystem {
 //per cashtype tiny stats
                     if (isset($cashTypesStats[$eachpayment['cashtypeid']])) {
                         $cashTypesStats[$eachpayment['cashtypeid']]['count'] ++;
-                        $cashTypesStats[$eachpayment['cashtypeid']]['summ']+=$eachpayment['summ'];
+                        $cashTypesStats[$eachpayment['cashtypeid']]['summ'] += $eachpayment['summ'];
                     } else {
                         $cashTypesStats[$eachpayment['cashtypeid']]['count'] = 1;
                         $cashTypesStats[$eachpayment['cashtypeid']]['summ'] = $eachpayment['summ'];
@@ -3456,23 +3458,23 @@ class UkvSystem {
         }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
-        $result.=wf_tag('strong') . __('Payments count') . ': ' . $totalPaycount . wf_tag('strong', true);
+        $result .= wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
+        $result .= wf_tag('strong') . __('Payments count') . ': ' . $totalPaycount . wf_tag('strong', true);
 
 //render cashtype stats
         if (!empty($cashTypesStats)) {
             $cells = wf_TableCell(__('Cash type'));
-            $cells.= wf_TableCell(__('Count'));
-            $cells.= wf_TableCell(__('Cash'));
+            $cells .= wf_TableCell(__('Count'));
+            $cells .= wf_TableCell(__('Cash'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($cashTypesStats as $cashtypeid => $eachct) {
                 $cells = wf_TableCell(@$this->cashtypes[$cashtypeid]);
-                $cells.= wf_TableCell($eachct['count']);
-                $cells.= wf_TableCell($eachct['summ']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($eachct['count']);
+                $cells .= wf_TableCell($eachct['summ']);
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         }
 
 
@@ -3492,7 +3494,7 @@ class UkvSystem {
             if (!empty($this->allUserTags)) {
                 foreach ($this->allUserTags as $io => $each) {
                     if (!isset($reportTmp[$each['tagtypeid']])) {
-                        $result.=$this->getTagBody($each['tagtypeid'], true);
+                        $result .= $this->getTagBody($each['tagtypeid'], true);
                         $reportTmp[$each['tagtypeid']] = $each['tagtypeid'];
                     }
                 }
@@ -3501,15 +3503,15 @@ class UkvSystem {
                 $showTagid = vf($_GET['tagid'], 3);
 
 
-                $result.=wf_delimiter();
-                $result.=wf_tag('h2') . __('Tag') . ': ' . @$this->allTagtypes[$showTagid]['tagname'] . wf_tag('h2', true);
+                $result .= wf_delimiter();
+                $result .= wf_tag('h2') . __('Tag') . ': ' . @$this->allTagtypes[$showTagid]['tagname'] . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Contract'), '10%');
-                $cells.= wf_TableCell(__('Full address'), '31%');
-                $cells.= wf_TableCell(__('Real Name'), '25%');
-                $cells.= wf_TableCell(__('Tariff'), '15%');
-                $cells.= wf_TableCell(__('Cash'), '7%');
-                $cells.= wf_TableCell(__('Seal'), '5%');
-                $cells.= wf_TableCell(__('Status'), '7%');
+                $cells .= wf_TableCell(__('Full address'), '31%');
+                $cells .= wf_TableCell(__('Real Name'), '25%');
+                $cells .= wf_TableCell(__('Tariff'), '15%');
+                $cells .= wf_TableCell(__('Cash'), '7%');
+                $cells .= wf_TableCell(__('Seal'), '5%');
+                $cells .= wf_TableCell(__('Status'), '7%');
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($this->allUserTags as $io => $eachtag) {
@@ -3519,18 +3521,18 @@ class UkvSystem {
                             $cells = wf_TableCell($eachUser['contract']);
                             $fullAddress = $this->userGetFullAddress($eachUser['id']);
                             $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
-                            $cells.= wf_TableCell($profileLink . $fullAddress);
-                            $cells.= wf_TableCell($eachUser['realname']);
-                            $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
-                            $cells.= wf_TableCell($eachUser['cash']);
-                            $cells.= wf_tablecell($eachUser['cableseal']);
-                            $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
-                            $rows.= wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell($profileLink . $fullAddress);
+                            $cells .= wf_TableCell($eachUser['realname']);
+                            $cells .= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                            $cells .= wf_TableCell($eachUser['cash']);
+                            $cells .= wf_tablecell($eachUser['cableseal']);
+                            $cells .= wf_TableCell(web_bool_led($eachUser['active'], true));
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
                     }
                 }
 
-                $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+                $result .= wf_TableBody($rows, '100%', '0', 'sortable');
 
 ////////////////
             }
@@ -3552,29 +3554,29 @@ class UkvSystem {
 
         $dateSelectorPreset = (wf_CheckPost(array('showdatepayments'))) ? $_POST['showdatepayments'] : curdate();
         $dateinputs = wf_DatePickerPreset('showdatepayments', $dateSelectorPreset);
-        $dateinputs.=wf_Submit(__('Show'));
+        $dateinputs .= wf_Submit(__('Show'));
         $dateform = wf_Form(self::URL_REPORTS_MGMT . 'reportFinance', 'POST', $dateinputs, 'glamour');
 
 
         $yearinputs = wf_YearSelector('yearsel');
-        $yearinputs.=wf_Submit(__('Show'));
+        $yearinputs .= wf_Submit(__('Show'));
         $yearform = wf_Form(self::URL_REPORTS_MGMT . 'reportFinance', 'POST', $yearinputs, 'glamour');
 
 
         $controlcells = wf_TableCell(wf_tag('h3', false, 'title') . __('Year') . wf_tag('h3', true));
-        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payments by date') . wf_tag('h3', true));
-        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Debt') . wf_tag('h3', true));
+        $controlcells .= wf_TableCell(wf_tag('h3', false, 'title') . __('Payments by date') . wf_tag('h3', true));
+        $controlcells .= wf_TableCell(wf_tag('h3', false, 'title') . __('Debt') . wf_tag('h3', true));
         $controlrows = wf_TableRow($controlcells);
 
         $controlcells = wf_TableCell($yearform);
-        $controlcells.= wf_TableCell($dateform);
+        $controlcells .= wf_TableCell($dateform);
 //extract total debt summ
         $debt_q = "SELECT SUM(`cash`) as `totaldebt`, COUNT(`id`) as `debtcount` from `ukv_users` WHERE `cash`<0";
         $totalDebt = simple_query($debt_q);
         $debtData = __('Cash') . ': ' . wf_tag('b') . $totalDebt['totaldebt'] . wf_tag('b', true) . wf_tag('br');
-        $debtData.= __('Count') . ': ' . wf_tag('b') . $totalDebt['debtcount'] . wf_tag('b', true);
-        $controlcells.= wf_TableCell($debtData);
-        $controlrows.= wf_TableRow($controlcells);
+        $debtData .= __('Count') . ': ' . wf_tag('b') . $totalDebt['debtcount'] . wf_tag('b', true);
+        $controlcells .= wf_TableCell($debtData);
+        $controlrows .= wf_TableRow($controlcells);
 
         $controlgrid = wf_TableBody($controlrows, '100%', 0, '');
         show_window('', $controlgrid);
@@ -3628,7 +3630,7 @@ class UkvSystem {
 
 // show year selector
         $yearInputs = wf_YearSelector('showyear', ' ', false);
-        $yearInputs.= wf_Submit(__('Show'));
+        $yearInputs .= wf_Submit(__('Show'));
         $yearForm = wf_Form('', 'POST', $yearInputs, 'glamour');
         show_window(__('Year'), $yearForm);
 
@@ -3653,30 +3655,30 @@ class UkvSystem {
 
 //render per year grid
         $cells = wf_TableCell('');
-        $cells.= wf_TableCell(__('Month'));
-        $cells.= wf_TableCell(__('Signups'));
-        $cells.= wf_TableCell(__('Visual'));
+        $cells .= wf_TableCell(__('Month'));
+        $cells .= wf_TableCell(__('Signups'));
+        $cells .= wf_TableCell(__('Visual'));
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($months as $eachMonth => $monthName) {
             $cells = wf_TableCell($eachMonth);
             $monthLink = wf_Link(self::URL_REPORTS_MGMT . 'reportSignup&month=' . $showYear . '-' . $eachMonth, rcms_date_localise($monthName), false);
-            $cells.= wf_TableCell($monthLink);
-            $cells.= wf_TableCell($monthCount[$eachMonth]);
-            $cells.= wf_TableCell(web_bar($monthCount[$eachMonth], $yearCount));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($monthLink);
+            $cells .= wf_TableCell($monthCount[$eachMonth]);
+            $cells .= wf_TableCell(web_bar($monthCount[$eachMonth], $yearCount));
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.= __('Total') . ': ' . $yearCount;
+        $result .= __('Total') . ': ' . $yearCount;
         show_window(__('User signups by year') . ' ' . $showYear, $result);
 
 //render per month registrations
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Tariff'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Full address'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Tariff'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($regdates)) {
@@ -3693,18 +3695,18 @@ class UkvSystem {
             rsort($displayTmp);
             foreach ($displayTmp as $ix => $eachUserId) {
                 $cells = wf_TableCell($eachUserId);
-                $cells.= wf_TableCell($this->users[$eachUserId]['regdate']);
+                $cells .= wf_TableCell($this->users[$eachUserId]['regdate']);
                 $userLink = wf_Link(self::URL_USERS_PROFILE . $eachUserId, web_profile_icon() . ' ', false);
-                $cells.= wf_TableCell($userLink . $this->userGetFullAddress($eachUserId));
-                $cells.= wf_TableCell($this->users[$eachUserId]['realname']);
-                $cells.= wf_TableCell(@$this->tariffs[$this->users[$eachUserId]['tariffid']]['tariffname']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($userLink . $this->userGetFullAddress($eachUserId));
+                $cells .= wf_TableCell($this->users[$eachUserId]['realname']);
+                $cells .= wf_TableCell(@$this->tariffs[$this->users[$eachUserId]['tariffid']]['tariffname']);
+                $rows .= wf_TableRow($cells, 'row3');
                 $displayCount++;
             }
         }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= __('Total') . ': ' . $displayCount;
+        $result .= __('Total') . ': ' . $displayCount;
 
         if ($showMonth == curmonth()) {
             $monthTitle = __('Current month user signups');
@@ -3738,10 +3740,10 @@ class UkvSystem {
             foreach ($allFeesDates as $ia => $eachFee) {
                 $feeLink = wf_Link(self::URL_REPORTS_MGMT . 'reportFees&showfees=' . $eachFee['yearmonth'], $eachFee['yearmonth'], false);
                 $cells = wf_TableCell($feeLink);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
-        $result.=wf_TableBody($rows, '30%', '0', 'sortable');
+        $result .= wf_TableBody($rows, '30%', '0', 'sortable');
         show_window(__('By date'), $result);
 
 //render fees by selected month
@@ -3754,26 +3756,26 @@ class UkvSystem {
             if (!empty($allPayments)) {
 
                 $cells = wf_TableCell(__('ID'));
-                $cells.= wf_TableCell(__('Date'));
-                $cells.= wf_TableCell(__('Cash'));
-                $cells.= wf_TableCell(__('Full address'));
-                $cells.= wf_TableCell(__('Real Name'));
+                $cells .= wf_TableCell(__('Date'));
+                $cells .= wf_TableCell(__('Cash'));
+                $cells .= wf_TableCell(__('Full address'));
+                $cells .= wf_TableCell(__('Real Name'));
                 $rowsf = wf_TableRow($cells, 'row1');
 
                 foreach ($allPayments as $io => $eachPayment) {
                     if ($eachPayment['summ'] < 0) {
                         $cells = wf_TableCell($eachPayment['id']);
-                        $cells.= wf_TableCell($eachPayment['date']);
-                        $cells.= wf_TableCell($eachPayment['summ']);
+                        $cells .= wf_TableCell($eachPayment['date']);
+                        $cells .= wf_TableCell($eachPayment['summ']);
                         $userLink = wf_Link(self::URL_USERS_PROFILE . $eachPayment['userid'], web_profile_icon() . ' ', false);
                         $userAddress = $this->userGetFullAddress($eachPayment['userid']);
-                        $cells.= wf_TableCell($userLink . $userAddress);
+                        $cells .= wf_TableCell($userLink . $userAddress);
                         $userRealName = $this->users[$eachPayment['userid']]['realname'];
-                        $cells.= wf_TableCell($userRealName);
-                        $rowsf.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($userRealName);
+                        $rowsf .= wf_TableRow($cells, 'row3');
                         $feesCount++;
                         $feesSumm = $feesSumm + $eachPayment['summ'];
-                        $csvData.=$eachPayment['id'] . ';' . $eachPayment['date'] . ';' . $eachPayment['summ'] . ';' . $userAddress . ';' . $userRealName . "\r" . "\n";
+                        $csvData .= $eachPayment['id'] . ';' . $eachPayment['date'] . ';' . $eachPayment['summ'] . ';' . $userAddress . ';' . $userRealName . "\r" . "\n";
                     }
                 }
 
@@ -3784,10 +3786,10 @@ class UkvSystem {
                 $downloadLink = wf_Link(self::URL_REPORTS_MGMT . 'reportFees&downloadfeereport=' . base64_encode($csvSaveName), wf_img('skins/excel.gif', __('Download')), false);
 
                 $result = wf_tag('strong') . __('Count') . ': ' . $feesCount;
-                $result.= wf_tag('br');
-                $result.= __('Money') . ': ' . $feesSumm;
-                $result.= wf_tag('strong', true);
-                $result.= wf_TableBody($rowsf, '100%', '0', 'sortable');
+                $result .= wf_tag('br');
+                $result .= __('Money') . ': ' . $feesSumm;
+                $result .= wf_tag('strong', true);
+                $result .= wf_TableBody($rowsf, '100%', '0', 'sortable');
 
                 show_window(__('Money fees') . ' ' . $searchFees . ' ' . $downloadLink, $result);
             }
@@ -3841,14 +3843,14 @@ class UkvSystem {
         $buildSelected = (wf_CheckPost(array('streetreportbuild'))) ? $_POST['streetreportbuild'] : '';
 
         $inputs = wf_Selector('streetreportcity', $ukvCities, __('City'), $citySelected, false);
-        $inputs.= wf_Selector('streetreportstreet', $ukvStreets, __('Street'), $streetSelected, false, '', 'ReportStreetsSel');
+        $inputs .= wf_Selector('streetreportstreet', $ukvStreets, __('Street'), $streetSelected, false, '', 'ReportStreetsSel');
 
         if ($withAddress) {
-            $inputs.= wf_Selector('streetreportbuild', $ukvBuilds, __('Build'), $buildSelected, false, '', 'ReportBuildsSel');
-            $inputs.= wf_HiddenInput('printthemall', base64_encode(json_encode($ukvBuilds)), 'TmpBuildsAll');
+            $inputs .= wf_Selector('streetreportbuild', $ukvBuilds, __('Build'), $buildSelected, false, '', 'ReportBuildsSel');
+            $inputs .= wf_HiddenInput('printthemall', base64_encode(json_encode($ukvBuilds)), 'TmpBuildsAll');
 
-            $inputs.= wf_tag('script', false, '', 'type="text/javascript"');
-            $inputs.= '$(document).ready(function() {                        
+            $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
+            $inputs .= '$(document).ready(function() {                        
                         $(\'#ReportStreetsSel\').change(function(evt) {
                             var keyword = $(this).val();             
                             var source = JSON.parse(atob($(\'#TmpBuildsAll\').val()));
@@ -3880,9 +3882,9 @@ class UkvSystem {
                         $(\'#ReportBuildsSel\').val(buildSelected);
                    });
                   ';
-            $inputs.= wf_tag('script', true);
+            $inputs .= wf_tag('script', true);
         }
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_Submit(__('Show'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
 
         show_window(__('Streets report'), $form);
@@ -3907,32 +3909,32 @@ class UkvSystem {
                 $counter = 0;
 
                 $cells = wf_TableCell(__('Contract'), '10%');
-                $cells.= wf_TableCell(__('Full address'), '31%');
-                $cells.= wf_TableCell(__('Real Name'), '25%');
-                $cells.= wf_TableCell(__('Tariff'), '15%');
-                $cells.= wf_TableCell(__('Cash'), '7%');
-                $cells.= wf_TableCell(__('Seal'), '5%');
-                $cells.= wf_TableCell(__('Status'), '7%');
+                $cells .= wf_TableCell(__('Full address'), '31%');
+                $cells .= wf_TableCell(__('Real Name'), '25%');
+                $cells .= wf_TableCell(__('Tariff'), '15%');
+                $cells .= wf_TableCell(__('Cash'), '7%');
+                $cells .= wf_TableCell(__('Seal'), '5%');
+                $cells .= wf_TableCell(__('Status'), '7%');
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($this->users as $io => $eachUser) {
-                    if (($eachUser['city'] == $citySearch) AND ($eachUser['street'] == $streetSearch) AND (empty($buildSearch) ? true : $eachUser['build'] == $buildSearch) ) {
+                    if (($eachUser['city'] == $citySearch) AND ( $eachUser['street'] == $streetSearch) AND ( empty($buildSearch) ? true : $eachUser['build'] == $buildSearch)) {
                         $cells = wf_TableCell($eachUser['contract']);
                         $fullAddress = $this->userGetFullAddress($eachUser['id']);
                         $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
-                        $cells.= wf_TableCell($profileLink . $fullAddress);
-                        $cells.= wf_TableCell($eachUser['realname']);
-                        $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
-                        $cells.= wf_TableCell($eachUser['cash']);
-                        $cells.= wf_TableCell($eachUser['cableseal']);
-                        $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($profileLink . $fullAddress);
+                        $cells .= wf_TableCell($eachUser['realname']);
+                        $cells .= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                        $cells .= wf_TableCell($eachUser['cash']);
+                        $cells .= wf_TableCell($eachUser['cableseal']);
+                        $cells .= wf_TableCell(web_bool_led($eachUser['active'], true));
+                        $rows .= wf_TableRow($cells, 'row3');
                         $counter++;
                     }
                 }
 
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
-                $result.= __('Total') . ': ' . $counter;
+                $result .= __('Total') . ': ' . $counter;
 
                 $buildLinkPart = empty($buildSearch) ? '' : '&rb=' . $buildSearch;
                 $buildCaptPart = empty($buildSearch) ? ' ' : ' / ' . $buildSearch . ' ';
@@ -3949,7 +3951,7 @@ class UkvSystem {
         }
     }
 
-     /**
+    /**
      * Renders users stats with assigned internet account
      * 
      * @return string
@@ -4025,13 +4027,13 @@ class UkvSystem {
 //rendering main form
         if (!empty($inetContracts)) {
             $cells = wf_TableCell(__('Full address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Tariff'));
-            $cells.= wf_TableCell(__('Contract'));
-            $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Full address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Real Name'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Contract'));
+            $cells .= wf_TableCell(__('Login'));
+            $cells .= wf_TableCell(__('Full address'));
+            $cells .= wf_TableCell(__('Real Name'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($inetContracts as $login => $contract) {
@@ -4047,18 +4049,18 @@ class UkvSystem {
 
                                 $catvLink = wf_link(self::URL_USERS_PROFILE . $ukvUserId, web_profile_icon() . ' ' . $ukvAddress);
                                 $cells = wf_TableCell($catvLink);
-                                $cells.= wf_TableCell($ukvRealname);
-                                $cells.= wf_TableCell(@$this->tariffs[$this->users[$ukvUserId]['tariffid']]['tariffname']);
-                                $cells.= wf_TableCell($contract);
+                                $cells .= wf_TableCell($ukvRealname);
+                                $cells .= wf_TableCell(@$this->tariffs[$this->users[$ukvUserId]['tariffid']]['tariffname']);
+                                $cells .= wf_TableCell($contract);
                                 $profileLink = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login, false);
-                                $cells.= wf_TableCell($profileLink);
-                                $cells.= wf_TableCell($inetAddress);
-                                $cells.= wf_TableCell($inetRealname);
+                                $cells .= wf_TableCell($profileLink);
+                                $cells .= wf_TableCell($inetAddress);
+                                $cells .= wf_TableCell($inetRealname);
                                 $assignInputs = wf_HiddenInput('assignComplexLogin', $login);
-                                $assignInputs.= wf_HiddenInput('assignComplexUkvId', $ukvUserId);
-                                $assignInputs.= wf_Submit(__('Assign'));
+                                $assignInputs .= wf_HiddenInput('assignComplexUkvId', $ukvUserId);
+                                $assignInputs .= wf_Submit(__('Assign'));
                                 $assignContols = wf_Form('', 'POST', $assignInputs, '');
-                                $cells.= wf_TableCell($assignContols);
+                                $cells .= wf_TableCell($assignContols);
 
                                 $rowclass = 'row3';
 //coloring results
@@ -4078,15 +4080,15 @@ class UkvSystem {
                                 }
 
 
-                                $rows.= wf_TableRow($cells, $rowclass);
+                                $rows .= wf_TableRow($cells, $rowclass);
                             }
                         }
                     }
                 }
             }
 
-            $result.=$this->renderInetAssignStats() . wf_tag('br');
-            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= $this->renderInetAssignStats() . wf_tag('br');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             show_window(__('Assign UKV users to complex profiles'), $result);
         }
     }
@@ -4183,13 +4185,13 @@ class UkvSystem {
 
                 if (!empty($result)) {
                     $cells = wf_TableCell(__('Contract'));
-                    $cells.= wf_TableCell(__('Internet') . ' ' . __('tariff'));
-                    $cells.= wf_TableCell(__('Complex') . ' ' . __('Active'));
-                    $cells.= wf_TableCell(__('Full address'));
-                    $cells.= wf_TableCell(__('Real Name'));
-                    $cells.= wf_TableCell(__('Tariff') . ' ' . __('UKV'));
-                    $cells.= wf_TableCell(__('Cash'));
-                    $cells.= wf_TableCell(__('Status'));
+                    $cells .= wf_TableCell(__('Internet') . ' ' . __('tariff'));
+                    $cells .= wf_TableCell(__('Complex') . ' ' . __('Active'));
+                    $cells .= wf_TableCell(__('Full address'));
+                    $cells .= wf_TableCell(__('Real Name'));
+                    $cells .= wf_TableCell(__('Tariff') . ' ' . __('UKV'));
+                    $cells .= wf_TableCell(__('Cash'));
+                    $cells .= wf_TableCell(__('Status'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($result as $userContract => $userId) {
@@ -4209,15 +4211,15 @@ class UkvSystem {
 
                         if (($this->users[$userId]['active']) OR ( $complexFlag)) {
                             $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $userId, web_profile_icon(__('Profile') . ' ' . __('UKV'))) . ' ' . $userContract);
-                            $cells.= wf_TableCell($userTariff);
+                            $cells .= wf_TableCell($userTariff);
 
-                            $cells.= wf_TableCell(web_bool_led($complexFlag));
-                            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(__('Profile') . ' ' . __('Internet'))) . ' ' . $this->userGetFullAddress($userId));
-                            $cells.= wf_TableCell($this->users[$userId]['realname']);
-                            $cells.= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
-                            $cells.= wf_TableCell($this->users[$userid]['cash']);
-                            $cells.= wf_TableCell(web_bool_led($this->users[$userId]['active']));
-                            $rows.= wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell(web_bool_led($complexFlag));
+                            $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(__('Profile') . ' ' . __('Internet'))) . ' ' . $this->userGetFullAddress($userId));
+                            $cells .= wf_TableCell($this->users[$userId]['realname']);
+                            $cells .= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
+                            $cells .= wf_TableCell($this->users[$userid]['cash']);
+                            $cells .= wf_TableCell(web_bool_led($this->users[$userId]['active']));
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
                     }
 
@@ -4332,13 +4334,13 @@ class UkvSystem {
 
                 if (!empty($result)) {
                     $cells = wf_TableCell(__('Contract'));
-                    $cells.= wf_TableCell(__('Internet') . ' ' . __('tariff'));
-                    $cells.= wf_TableCell(__('Complex') . ' ' . __('Active'));
-                    $cells.= wf_TableCell(__('Full address'));
-                    $cells.= wf_TableCell(__('Real Name'));
-                    $cells.= wf_TableCell(__('Tariff') . ' ' . __('UKV'));
-                    $cells.= wf_TableCell(__('Cash'));
-                    $cells.= wf_TableCell(__('Status'));
+                    $cells .= wf_TableCell(__('Internet') . ' ' . __('tariff'));
+                    $cells .= wf_TableCell(__('Complex') . ' ' . __('Active'));
+                    $cells .= wf_TableCell(__('Full address'));
+                    $cells .= wf_TableCell(__('Real Name'));
+                    $cells .= wf_TableCell(__('Tariff') . ' ' . __('UKV'));
+                    $cells .= wf_TableCell(__('Cash'));
+                    $cells .= wf_TableCell(__('Status'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($result as $userContract => $userId) {
@@ -4357,15 +4359,15 @@ class UkvSystem {
                         }
 
                         $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $userId, web_profile_icon(__('Profile') . ' ' . __('UKV'))) . ' ' . $userContract);
-                        $cells.= wf_TableCell($userTariff);
+                        $cells .= wf_TableCell($userTariff);
 
-                        $cells.= wf_TableCell(web_bool_led($complexFlag));
-                        $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(__('Profile') . ' ' . __('Internet'))) . ' ' . $this->userGetFullAddress($userId));
-                        $cells.= wf_TableCell($this->users[$userId]['realname']);
-                        $cells.= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
-                        $cells.= wf_TableCell($this->users[$userid]['cash']);
-                        $cells.= wf_TableCell(web_bool_led($this->users[$userId]['active']));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell(web_bool_led($complexFlag));
+                        $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(__('Profile') . ' ' . __('Internet'))) . ' ' . $this->userGetFullAddress($userId));
+                        $cells .= wf_TableCell($this->users[$userId]['realname']);
+                        $cells .= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
+                        $cells .= wf_TableCell($this->users[$userid]['cash']);
+                        $cells .= wf_TableCell(web_bool_led($this->users[$userId]['active']));
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
 
                     $reportData = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -4397,7 +4399,8 @@ class UkvSystem {
             'addressempty' => __('Empty address'),
             'contractempty' => __('Empty contract'),
             'notariff' => __('No tariff'),
-            'noukvuser' => __('Missing registered UKV user with complex tariff')
+            'noukvuser' => __('Missing registered UKV user with complex tariff'),
+            'activediff' => __('Account activity is different')
         );
 
         if (!empty($this->users)) {
@@ -4415,6 +4418,7 @@ class UkvSystem {
                 $complexContracts = array();
                 $complexActive = array();
                 $inetCableseals = array();
+                $contractsActivity = array();
 
                 if (!empty($complexMasksTmp)) {
                     foreach ($complexMasksTmp as $io => $each) {
@@ -4500,16 +4504,31 @@ class UkvSystem {
                     $problemUsers[$eachUser['id']] = $eachUser;
                     $problemUsers[$eachUser['id']]['type'] = 'notariff';
                 }
+
+                //contracts actitivy temp fill
+                if (!empty($eachUser['contract'])) {
+                    $contractsActivity[$eachUser['contract']] = $eachUser['active'];
+                }
             }
 
             //complex processing
             if ($complexFlag) {
                 $userStreets = zb_AddressGetStreetUsers();
                 if (!empty($allComplexUsers)) {
+                    //No UKV user detected
                     foreach ($allComplexUsers as $io => $eachComplexUser) {
                         if (!isset($complexContracts[$eachComplexUser['login']])) {
                             $problemComplex[$eachComplexUser['login']]['login'] = $eachComplexUser['login'];
                             $problemComplex[$eachComplexUser['login']]['type'] = 'noukvuser';
+                        }
+                    }
+                    //Activity state is different
+                    foreach ($allComplexUsers as $io => $eachComplexUser) {
+                        if (isset($complexContracts[$eachComplexUser['login']])) {
+                            if ($complexActive[$eachComplexUser['login']] != $contractsActivity[$complexContracts[$eachComplexUser['login']]]) {
+                                $problemComplex[$eachComplexUser['login']]['login'] = $eachComplexUser['login'];
+                                $problemComplex[$eachComplexUser['login']]['type'] = 'activediff';
+                            }
                         }
                     }
                 }
@@ -4517,59 +4536,63 @@ class UkvSystem {
 
             if (!empty($problemUsers)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.= wf_TableCell(__('Contract'));
-                $cells.= wf_TableCell(__('Full address'));
-                $cells.= wf_TableCell(__('Real Name'));
-                $cells.= wf_TableCell(__('Tariff'));
-                $cells.= wf_TableCell(__('Cash'));
-                $cells.= wf_TableCell(__('Active'));
-                $cells.= wf_TableCell(__('Type'));
+                $cells .= wf_TableCell(__('Contract'));
+                $cells .= wf_TableCell(__('Full address'));
+                $cells .= wf_TableCell(__('Real Name'));
+                $cells .= wf_TableCell(__('Tariff'));
+                $cells .= wf_TableCell(__('Cash'));
+                $cells .= wf_TableCell(__('Active'));
+                $cells .= wf_TableCell(__('Type'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($problemUsers as $io => $each) {
                     $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $each['id'], web_profile_icon() . ' ' . $each['id']));
-                    $cells.= wf_TableCell($each['contract']);
-                    $cells.= wf_TableCell($this->userGetFullAddress($each['id']));
-                    $cells.= wf_TableCell($each['realname']);
-                    $cells.= wf_TableCell(@$this->tariffs[$each['tariffid']]['tariffname']);
-                    $cells.= wf_TableCell($each['cash']);
-                    $cells.= wf_TableCell(web_bool_led($each['active']));
-                    $cells.= wf_TableCell(@$problemTypes[$each['type']]);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($each['contract']);
+                    $cells .= wf_TableCell($this->userGetFullAddress($each['id']));
+                    $cells .= wf_TableCell($each['realname']);
+                    $cells .= wf_TableCell(@$this->tariffs[$each['tariffid']]['tariffname']);
+                    $cells .= wf_TableCell($each['cash']);
+                    $cells .= wf_TableCell(web_bool_led($each['active']));
+                    $cells .= wf_TableCell(@$problemTypes[$each['type']]);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.= $this->messages->getStyledMessage(__('Nothing found'), 'success');
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'success');
             }
 
             if ($complexFlag) {
                 if (!empty($problemComplex)) {
                     $cells = wf_TableCell(__('Login'));
-                    $cells.= wf_TableCell(__('Full address'));
-                    $cells.= wf_TableCell(__('Real Name'));
-                    $cells.= wf_TableCell(__('Tariff'));
-                    $cells.= wf_TableCell(__('Cash'));
-                    $cells.= wf_TableCell(__('Active'));
-                    $cells.= wf_TableCell(__('Type'));
+                    $cells .= wf_TableCell(__('Full address'));
+                    $cells .= wf_TableCell(__('Real Name'));
+                    $cells .= wf_TableCell(__('Tariff'));
+                    $cells .= wf_TableCell(__('Cash'));
+                    $cells .= wf_TableCell(__('Active'));
+                    $cells .= wf_TableCell(__('Type'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($problemComplex as $io => $each) {
                         $cells = wf_TableCell(wf_Link(self::URL_INET_USER_PROFILE . $each['login'], web_profile_icon() . ' ' . $each['login']));
-                        $cells.= wf_TableCell(@$inetAddress[$each['login']]);
-                        $cells.= wf_TableCell(@$inetRealnames[$each['login']]);
-                        $cells.= wf_TableCell(@$allUsersRaw[$each['login']]['Tariff']);
-                        $cells.= wf_TableCell(@$allUsersRaw[$each['login']]['Cash']);
-                        $cells.= wf_TableCell(web_bool_led(@$complexActive[$each['login']]));
-                        $cells.= wf_TableCell(@$problemTypes[$each['type']]);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell(@$inetAddress[$each['login']]);
+                        $cells .= wf_TableCell(@$inetRealnames[$each['login']]);
+                        $cells .= wf_TableCell(@$allUsersRaw[$each['login']]['Tariff']);
+                        $cells .= wf_TableCell(@$allUsersRaw[$each['login']]['Cash']);
+                        $activityLabel = web_bool_led($complexActive[$each['login']]);
+                        if (@isset($contractsActivity[$complexContracts[$each['login']]])) {
+                            $activityLabel .= ' ' . web_bool_led(@$contractsActivity[$complexContracts[$each['login']]]);
+                        }
+                        $cells .= wf_TableCell($activityLabel);
+                        $cells .= wf_TableCell(@$problemTypes[$each['type']]);
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
-                    $result.=wf_tag('br');
-                    $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= wf_tag('br');
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                 }
             }
         } else {
-            $result.= $this->messages->getStyledMessage(__('Any users found'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Any users found'), 'warning');
         }
         show_window(__('Integrity control'), $result);
     }

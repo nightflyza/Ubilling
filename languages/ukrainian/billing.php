@@ -3106,5 +3106,6 @@ $lang['def']['Already deleted users or tasks without user'] = 'Вже видал
 $lang['def']['by code'] = 'за кодом';
 $lang['def']['by MAC'] = 'за MAC';
 $lang['def']['local'] = 'локально';
+$lang['def']['Account activity is different'] = 'Стан активності відрізняється';
 
 ?>

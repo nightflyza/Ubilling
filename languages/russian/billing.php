@@ -3089,7 +3089,7 @@ $lang['def']['Already deleted users or tasks without user'] = 'Уже удале
 $lang['def']['by code'] = 'по коду';
 $lang['def']['by MAC'] = 'по MAC';
 $lang['def']['local'] = 'локально';
-$lang['def'][''] = '';
+$lang['def']['Account activity is different'] = 'Состояние активности отличается';
 $lang['def'][''] = '';
 
 ?>
