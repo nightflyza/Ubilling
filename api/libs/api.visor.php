@@ -38,6 +38,13 @@ class UbillingVisor {
     protected $allDvrs = array();
 
     /**
+     * Contains all available users payment IDs
+     *
+     * @var array
+     */
+    protected $allPaymentIDs = array();
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -71,6 +78,7 @@ class UbillingVisor {
         $this->initMessages();
         $this->loadUserData();
         $this->loadUsers();
+        $this->loadPaymentIds();
         $this->loadCams();
         $this->loadDvrs();
     }
@@ -106,6 +114,29 @@ class UbillingVisor {
     }
 
     /**
+     * Loads available payment IDs from database
+     * 
+     * @return void
+     */
+    protected function loadPaymentIds() {
+        if ($this->altCfg['OPENPAYZ_REALID']) {
+            $query = "SELECT `realid`,`virtualid` from `op_customers`";
+            $allcustomers = simple_queryall($query);
+            if (!empty($allcustomers)) {
+                foreach ($allcustomers as $io => $eachcustomer) {
+                    $this->allPaymentIDs[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+                }
+            }
+        } else {
+            if (!empty($this->allUserData)) {
+                foreach ($this->allUserData as $io => $each) {
+                    $this->allPaymentIDs[$each['login']] = ip2int($each['ip']);
+                }
+            }
+        }
+    }
+
+    /**
      * Loads all visor users data into protected property
      * 
      * @return void
@@ -126,7 +157,7 @@ class UbillingVisor {
      * @return void
      */
     protected function loadCams() {
-        $query = "SELECT * from `visor_cams`";
+        $query = "SELECT * from `visor_cams` ORDER BY `id` DESC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -325,6 +356,34 @@ class UbillingVisor {
     }
 
     /**
+     * Returns user primary camera controls if primary available
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserPrimaryCamera($userId) {
+        $result = '';
+        if (isset($this->allUsers[$userId])) {
+            $userCameras = $this->getUserCameras($userId);
+            if (!empty($userCameras)) {
+                foreach ($userCameras as $io => $each) {
+                    if ($each['primary']) {
+                        $primaryCamera = $each;
+
+                        $cells = wf_TableCell(__('Payment ID'), '30%', 'row2');
+                        $cells .= wf_TableCell($this->allPaymentIDs[$primaryCamera['login']]);
+                        $rows = wf_TableRow($cells, 'row3');
+                        $result .= $rows;
+                    }
+                }
+            }
+        }
+
+        return($result);
+    }
+
+    /**
      * Renders visor users profile with associated cameras and some controls
      * 
      * @param int $userId
@@ -337,21 +396,32 @@ class UbillingVisor {
         if (isset($this->allUsers[$userId])) {
             $userData = $this->allUsers[$userId];
             if (!empty($userData)) {
-                $cells = wf_TableCell(__('Name'), '', 'row2');
+                $userCamsCount = $this->getUserCamerasCount($userId);
+
+                $cells = wf_TableCell(__('Name'), '30%', 'row2');
                 $cells .= wf_TableCell($userData['realname']);
                 $rows = wf_TableRow($cells, 'row3');
                 $cells = wf_TableCell(__('Phone'), '', 'row2');
                 $cells .= wf_TableCell($userData['phone']);
                 $rows .= wf_TableRow($cells, 'row3');
                 $cells = wf_TableCell(__('Charge'), '', 'row2');
-                $cells .= wf_TableCell(web_bool_led($userData['chargecams'], false));
+                $chargeFlag = ($userData['chargecams']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') . ' ' . __('Yes') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
+                $cells .= wf_TableCell($chargeFlag);
                 $rows .= wf_TableRow($cells, 'row3');
 
+                //primary camera user inline
+                if ($userCamsCount > 0) {
+                    $rows .= $this->renderUserPrimaryCamera($userId);
+                }
                 $result .= wf_TableBody($rows, '100%', 0, '');
+
+
+
                 $result .= $this->renderUserControls($userId);
 
-                $userCamsCount = $this->getUserCamerasCount($userId);
+
                 if ($userCamsCount > 0) {
+
                     $result .= $this->renderCamerasContainer(self::URL_ME . self::URL_USERCAMS . $userId);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('User have no cameras assigned'), 'warning');
@@ -382,7 +452,7 @@ class UbillingVisor {
         }
         return($result);
     }
-    
+
     /**
      * Renders user primari camera editing interface
      * 
@@ -391,8 +461,77 @@ class UbillingVisor {
      * @return string
      */
     protected function renderUserPrimaryEditForm($userId) {
-        $result='TODO';
+        $result = '';
+        if (isset($this->allUsers[$userId])) {
+            $allUserCameras = $this->getUserCameras($userId);
+            if (!empty($allUserCameras)) {
+                $camerasTmp = array();
+                $selectedCamera = '';
+                $camerasTmp[''] = '-';
+                foreach ($allUserCameras as $io => $each) {
+                    if ($each['primary'] == '1') {
+                        $selectedCamera = $each['id'];
+                    }
+                    $camerasTmp[$each['id']] = @$this->allUserData[$each['login']]['fulladress'] . ' - ' . @$this->allUserData[$each['login']]['ip'];
+                }
+
+                $inputs = '';
+
+                $inputs = wf_Selector('newprimarycameraid', $camerasTmp, __('Primary camera'), $selectedCamera, true);
+                $inputs .= wf_HiddenInput('editprimarycamerauserid', $userId);
+                $inputs .= wf_delimiter();
+                $inputs .= wf_Submit(__('Save'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            }
+        }
         return($result);
+    }
+
+    /**
+     * Sets some camera as primary for some user
+     * 
+     * @param int $userId
+     * @param int/void $cameraId
+     * 
+     * @return void
+     */
+    protected function setCameraPrimary($userId, $cameraId) {
+        $userId = vf($userId, 3);
+        $cameraId = vf($cameraId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $userCameras = $this->getUserCameras($userId);
+            $whereUser = "WHERE `visorid`='" . $userId . "'";
+            $whereCam = "WHERE `id`='" . $cameraId . "'";
+            if (!empty($userCameras)) {
+                if (!empty($cameraId)) {
+                    if (isset($userCameras[$cameraId])) {
+                        //not already primary
+                        if ($userCameras[$cameraId]['primary'] != '1') {
+                            simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser); //dropping curent primary
+                            simple_update_field(self::TABLE_CAMS, 'primary', 1, $whereCam); //setting new
+                            log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY [' . $cameraId . ']');
+                        }
+                    }
+                } else {
+                    //just drop primary camera
+                    simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser);
+                    log_register('VISOR USER [' . $userId . '] DELETE PRIMARY');
+                }
+            }
+        }
+    }
+
+    /**
+     * Catches primary camera editing request and saves changes if required
+     * 
+     * @return void
+     */
+    public function savePrimaryCamera() {
+        if (wf_CheckPost(array('editprimarycamerauserid'))) {
+            $userId = vf($_POST['editprimarycamerauserid'], 3);
+            $newPrimaryCameraId = (wf_CheckPost(array('newprimarycameraid'))) ? vf($_POST['newprimarycameraid'], 3) : '';
+            $this->setCameraPrimary($userId, $newPrimaryCameraId);
+        }
     }
 
     /**
