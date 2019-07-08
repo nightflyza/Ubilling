@@ -217,6 +217,7 @@ class UbillingVisor {
         $inputs .= wf_TextInput('newusername', __('Name') . $sup, '', true, 25);
         $inputs .= wf_TextInput('newuserphone', __('Phone'), '', true, 20, 'mobile');
         $inputs .= wf_CheckInput('newuserchargecams', __('Charge money from primary account for linked camera users if required'), true, false);
+        $inputs .= wf_delimiter();
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -394,7 +395,7 @@ class UbillingVisor {
         $inputs .= wf_HiddenInput('userdeleteprocessing', $userId);
         $inputs .= wf_delimiter();
         $inputs .= wf_tag('input', false, '', 'type="text" name="deleteconfirmation" autocomplete="off"');
-        $inputs .= wf_tag('br');
+        $inputs .= wf_delimiter();
         $inputs .= wf_Submit(__('I really want to stop suffering User'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -603,6 +604,7 @@ class UbillingVisor {
             $inputs .= wf_TextInput('editusername', __('Name') . $sup, $currentUserData['realname'], true, 25);
             $inputs .= wf_TextInput('edituserphone', __('Phone'), $currentUserData['phone'], true, 20, 'mobile');
             $inputs .= wf_CheckInput('edituserchargecams', __('Charge money from primary account for linked camera users if required'), true, $currentUserData['chargecams']);
+            $inputs .= wf_delimiter();
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
