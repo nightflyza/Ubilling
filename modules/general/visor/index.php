@@ -92,6 +92,11 @@ if (cfr('VISOR')) {
         if (wf_CheckGet(array('showuser'))) {
             show_window(__('User profile'), $visor->renderUserProfile($_GET['showuser']));
         }
+
+        //camera profile/editing interface
+        if (wf_CheckGet(array('showcamera'))) {
+            deb('TODO');
+        }
     } else {
         show_error(__('This module is disabled'));
     }

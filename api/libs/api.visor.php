@@ -57,6 +57,7 @@ class UbillingVisor {
     const URL_DELUSER = '&deleteuserid=';
     const URL_USERVIEW = '&showuser=';
     const URL_CAMPROFILE = '?module=userprofile&username=';
+    const URL_CAMVIEW = '&showcamera=';
 
     /**
      * Some default tables names
@@ -374,10 +375,23 @@ class UbillingVisor {
             $taskE = wf_tag('div', true);
 
             $result .= $taskB . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->renderUserEditInterface($userId)) . __('Edit') . $taskE;
+            $result .= $taskB . wf_modalAuto(wf_img('skins/icon_king_big.png', __('Primary camera')), __('Primary camera'), $this->renderUserPrimaryEditForm($userId)) . __('Primary') . $taskE;
             $result .= $taskB . wf_modalAuto(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->renderUserDeletionForm($userId), '') . __('Delete') . $taskE;
 
             $result .= wf_CleanDiv();
         }
+        return($result);
+    }
+    
+    /**
+     * Renders user primari camera editing interface
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserPrimaryEditForm($userId) {
+        $result='TODO';
         return($result);
     }
 
@@ -412,9 +426,9 @@ class UbillingVisor {
     public function renderCamerasContainer($url) {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Balance', 'Actions');
+        $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Balance', 'Credit', 'Actions');
         if ($this->altCfg['DN_ONLINE_DETECT']) {
-            $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Actions');
+            $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
         }
         $result .= wf_JqDtLoader($columns, $url, false, __('Cams'), 50, $opts);
         return($result);
@@ -465,7 +479,9 @@ class UbillingVisor {
                         $data[] = $onlineState;
                     }
                     $data[] = $cameraCash;
-                    $data[] = 'ACTIONS_TODO';
+                    $data[] = $cameraCredit;
+                    $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon());
+                    $data[] = $actLinks;
                     $json->addRow($data);
                     unset($data);
                 }
@@ -524,7 +540,9 @@ class UbillingVisor {
                     $data[] = $onlineState;
                 }
                 $data[] = $cameraCash;
-                $data[] = 'ACTIONS_TODO';
+                $data[] = $cameraCredit;
+                $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon());
+                $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
             }
