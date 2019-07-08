@@ -267,8 +267,8 @@ class UbillingVisor {
             $newPhone = mysql_real_escape_string($_POST['newuserphone']);
             $newChargeCams = (wf_CheckPost(array('newuserchargecams'))) ? 1 : 0;
             $date = curdatetime();
-            $query = "INSERT INTO `" . self::TABLE_USERS . "` (`id`,`regdate`,`realname`,`phone`,`chargecams`) VALUES "
-                    . "(NULL,'" . $date . "','" . $newRealNameF . "','" . $newPhone . "','" . $newChargeCams . "');";
+            $query = "INSERT INTO `" . self::TABLE_USERS . "` (`id`,`regdate`,`realname`,`phone`,`chargecams`,`primarylogin`) VALUES "
+                    . "(NULL,'" . $date . "','" . $newRealNameF . "','" . $newPhone . "','" . $newChargeCams . "','');";
             nr_query($query);
             $newId = simple_get_lastid(self::TABLE_USERS);
             log_register('VISOR USER CREATE [' . $newId . '] NAME `' . $newRealName . '`');
@@ -308,6 +308,28 @@ class UbillingVisor {
                 if ($each['login'] == $login) {
                     $result = $each['id'];
                     break;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is some account already someones primary or not
+     * 
+     * @param string $userLogin
+     * 
+     * @return bool
+     */
+    protected function isPrimaryAccountFree($userLogin) {
+        $result = true;
+        if (!empty($userLogin)) {
+            if (!empty($this->allUsers)) {
+                foreach ($this->allUsers as $io => $each) {
+                    if ($each['primarylogin'] == $userLogin) {
+                        $result = false;
+                        break;
+                    }
                 }
             }
         }
@@ -415,9 +437,18 @@ class UbillingVisor {
                     $cells .= wf_TableCell($primaLink);
                     $rows = wf_TableRow($cells, 'row3');
 
+                    $cells = wf_TableCell(__('Balance'), '30%', 'row2');
+                    $cells .= wf_TableCell($this->allUserData[$primaryAccount]['Cash']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
                     $cells = wf_TableCell(__('Payment ID'), '30%', 'row2');
                     $cells .= wf_TableCell($this->allPaymentIDs[$primaryAccount]);
                     $rows .= wf_TableRow($cells, 'row3');
+                    $result .= $rows;
+                } else {
+                    $cells = wf_TableCell(__('Primary account'), '30%', 'row2');
+                    $cells .= wf_TableCell(__('Not exists') . ': ' . $primaryAccount);
+                    $rows = wf_TableRow($cells, 'row3');
                     $result .= $rows;
                 }
             }
@@ -504,40 +535,40 @@ class UbillingVisor {
             $currentUserData = $this->allUsers[$userId];
             $currentPrimaryAccount = $currentUserData['primarylogin'];
             $allUserCameras = $this->getUserCameras($userId);
+            $camerasTmp = array();
+            $selectedCamera = '';
+            $camerasTmp[''] = '-';
             if (!empty($allUserCameras)) {
-                $camerasTmp = array();
-                $selectedCamera = '';
-                $camerasTmp[''] = '-';
+
                 foreach ($allUserCameras as $io => $each) {
                     if ($each['login'] == $currentPrimaryAccount) {
                         $selectedCamera = $each['login'];
                     }
                     $camerasTmp[$each['login']] = @$this->allUserData[$each['login']]['fulladress'] . ' - ' . @$this->allUserData[$each['login']]['ip'];
                 }
-
-                $inputs = '';
-
-                $inputs = wf_Selector('newprimarycameralogin', $camerasTmp, __('Camera'), $selectedCamera, true);
-                $inputs .= __('Or') . wf_tag('br');
-                $inputs .= wf_TextInput('newprimaryuserlogin', __('Login'), $currentPrimaryAccount, true, 20);
-                $inputs .= wf_HiddenInput('editprimarycamerauserid', $userId);
-                $inputs .= wf_delimiter();
-                $inputs .= wf_Submit(__('Save'));
-                $result .= wf_Form('', 'POST', $inputs, 'glamour');
             }
+
+            $inputs = '';
+            $inputs = wf_Selector('newprimarycameralogin', $camerasTmp, __('Camera'), $selectedCamera, true);
+            $inputs .= __('Or') . wf_tag('br');
+            $inputs .= wf_TextInput('newprimaryuserlogin', __('Login'), $currentPrimaryAccount, true, 20);
+            $inputs .= wf_HiddenInput('editprimarycamerauserid', $userId);
+            $inputs .= wf_delimiter();
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return($result);
     }
 
     /**
-     * Sets some camera as primary for some user
+     * Sets some account as primary for some user
      * 
      * @param int $userId
      * @param string $login
      * 
      * @return void
      */
-    protected function setCameraPrimary($userId, $login = '') {
+    protected function setPrimaryAccount($userId, $login = '') {
         $userId = vf($userId, 3);
         $login = trim($login);
 
@@ -546,49 +577,36 @@ class UbillingVisor {
 
             $currentPrimary = $this->allUsers[$userId]['primarylogin'];
             if ($currentPrimary != $login) {
-                simple_update_field(self::TABLE_USERS, 'primarylogin', $login, "WHERE `id`='" . $userId . "'"); //setting primary account in profile
-                simple_update_field(self::TABLE_CAMS, 'primary', 0, "WHERE `visorid`='" . $userId . "'"); // dropping all camera primary flags
-                log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY `' . $login . '`');
-                $cameraId = $this->getCameraIdByLogin($login);
-                if (!empty($cameraId)) {
-                    simple_update_field(self::TABLE_CAMS, 'primary', '1', "WHERE `id`='" . $cameraId . "'"); //setting camera account as primary
+                if ($this->isPrimaryAccountFree($login)) {
+                    simple_update_field(self::TABLE_USERS, 'primarylogin', $login, "WHERE `id`='" . $userId . "'"); //setting primary account in profile
+                    simple_update_field(self::TABLE_CAMS, 'primary', 0, "WHERE `visorid`='" . $userId . "'"); // dropping all camera primary flags
+                    log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY `' . $login . '`');
+                    $cameraId = $this->getCameraIdByLogin($login);
+                    if (!empty($cameraId)) {
+                        simple_update_field(self::TABLE_CAMS, 'primary', '1', "WHERE `id`='" . $cameraId . "'"); //setting camera account as primary
+                    }
+                } else {
+                    log_register('VISOR USER [' . $userId . '] FAIL PRIMARY BUSY');
                 }
             }
-
-//            if (!empty($userCameras)) {
-//                if (!empty($cameraId)) {
-//                    if (isset($userCameras[$cameraId])) {
-//                        //not already primary
-//                        if ($userCameras[$cameraId]['primary'] != '1') {
-//                            simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser); //dropping curent primary
-//                            simple_update_field(self::TABLE_CAMS, 'primary', 1, $whereCam); //setting new
-//                            log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY [' . $cameraId . ']');
-//                        }
-//                    }
-//                } else {
-//                    //just drop primary camera
-//                    simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser);
-//                    log_register('VISOR USER [' . $userId . '] DELETE PRIMARY');
-//                }
-//            }
         } else {
-            log_register('VISOUR USER [' . $userId . '] FAIL PRIMARY NOUSER [' . $userId . ']');
+            log_register('VISOR USER [' . $userId . '] FAIL PRIMARY NOUSER');
         }
     }
 
     /**
-     * Catches primary camera editing request and saves changes if required
+     * Catches primary editing request and saves changes if required
      * 
      * @return void
      */
-    public function savePrimaryCamera() {
+    public function savePrimary() {
         if (wf_CheckPost(array('editprimarycamerauserid'))) {
             $userId = vf($_POST['editprimarycamerauserid'], 3);
             $newPrimaryLogin = (wf_CheckPost(array('newprimarycameralogin'))) ? $_POST['newprimarycameralogin'] : '';
             if (wf_CheckPost(array('newprimaryuserlogin')) AND ! wf_CheckPost(array('newprimarycameralogin'))) {
                 $newPrimaryLogin = $_POST['newprimaryuserlogin'];
             }
-            $this->setCameraPrimary($userId, $newPrimaryLogin);
+            $this->setPrimaryAccount($userId, $newPrimaryLogin);
         }
     }
 

@@ -68,7 +68,7 @@ if (cfr('VISOR')) {
 
         //primary camera editing
         if (wf_CheckPost(array('editprimarycamerauserid'))) {
-            $visor->savePrimaryCamera();
+            $visor->savePrimary();
             rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['editprimarycamerauserid']);
         }
 
