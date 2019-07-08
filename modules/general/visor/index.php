@@ -50,6 +50,12 @@ if (cfr('VISOR')) {
             }
         }
 
+        //camera creation
+        if (wf_CheckPost(array('newcameravisorid', 'newcameralogin'))) {
+            $visor->createCamera();
+            rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['newcameravisorid']);
+        }
+
 
 
         //users list rendering
@@ -62,11 +68,14 @@ if (cfr('VISOR')) {
 
         //camera user detection on black magic action
         if (wf_CheckGet(array('username'))) {
-            $userIdDetected = $visor->getCameraUser($_GET['username']);
+            $userLogin = $_GET['username'];
+            $userIdDetected = $visor->getCameraUser($userLogin);
             if (!empty($userIdDetected)) {
                 rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $userIdDetected);
             } else {
-                //TODO: camera creation/assign interface
+                //new camera creation interface
+                show_window(__('Create camera'), $visor->renderCameraCreateInterface($userLogin));
+                show_window('', web_UserControls($userLogin));
             }
         }
 

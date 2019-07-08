@@ -441,7 +441,58 @@ class UbillingVisor {
 
         $json->getJson();
     }
-    
 
+    /**
+     * Renders initial camera creation interface
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderCameraCreateInterface($userLogin) {
+        $result = '';
+        if (!empty($this->allUsers)) {
+            $usersTmp = array();
+            foreach ($this->allUsers as $io => $each) {
+                $usersTmp[$each['id']] = $each['realname'];
+            }
+
+            $inputs = wf_Selector('newcameravisorid', $usersTmp, __('The user who will be assigned a new camera'), '', false);
+            $inputs .= wf_delimiter();
+            $inputs .= wf_HiddenInput('newcameralogin', $userLogin);
+            $inputs .= wf_Submit(__('Create'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('No existing Visor users avaliable, you must create one at least to assign cameras'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Creates new camera account and assigns it to existing user
+     * 
+     * @return void
+     */
+    public function createCamera() {
+        if (wf_CheckPost(array('newcameravisorid', 'newcameralogin'))) {
+            $newVisorId = vf($_POST['newcameravisorid'], 3);
+            $newCameraLogin = $_POST['newcameralogin'];
+            $newCameraLoginF = mysql_real_escape_string($newCameraLogin);
+            if (isset($this->allUsers[$newVisorId])) {
+                if (!empty($newCameraLoginF)) {
+                    $query = "INSERT INTO `" . self::TABLE_CAMS . "` (`id`,`visorid`,`login`,`primary`,`camlogin`,`campassword`,`port`,`dvrid`,`dvrlogin`,`dvrpassword`)"
+                            . " VALUES "
+                            . " (NULL,'" . $newVisorId . "','" . $newCameraLoginF . "','0','','','','','','');";
+                    nr_query($query);
+                    $newId = simple_get_lastid(self::TABLE_CAMS);
+                    log_register('VISOR CAMERA CREATE [' . $newId . '] ASSIGN [' . $newVisorId . '] LOGIN (' . $newCameraLogin . ')');
+                } else {
+                    log_register('VISOR CAMERA CREATE FAIL EMPTY_LOGIN');
+                }
+            } else {
+                log_register('VISOR CAMERA CREATE FAIL VISORID_NOT_EXISTS');
+            }
+        }
+    }
 
 }
