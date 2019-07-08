@@ -56,6 +56,11 @@ if (cfr('VISOR')) {
             rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['newcameravisorid']);
         }
 
+        if (wf_CheckPost(array('edituserid', 'editusername'))) {
+            $visor->saveUser();
+            rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['edituserid']);
+        }
+
 
 
         //users list rendering

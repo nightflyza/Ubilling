@@ -193,7 +193,7 @@ class UbillingVisor {
                 $data[] = web_bool_led($each['chargecams'], true);
                 $data[] = $this->getUserCamerasCount($each['id']);
                 $actLinks = '';
-                $actLinks .= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                //$actLinks .= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks .= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
@@ -227,15 +227,16 @@ class UbillingVisor {
      */
     public function createUser() {
         if (wf_CheckPost(array('newusercreate', 'newusername'))) {
-            $newRealName = mysql_real_escape_string($_POST['newusername']);
+            $newRealName = $_POST['newusername'];
+            $newRealNameF = mysql_real_escape_string($newRealName);
             $newPhone = mysql_real_escape_string($_POST['newuserphone']);
             $newChargeCams = (wf_CheckPost(array('newuserchargecams'))) ? 1 : 0;
             $date = curdatetime();
             $query = "INSERT INTO `" . self::TABLE_USERS . "` (`id`,`regdate`,`realname`,`phone`,`chargecams`) VALUES "
-                    . "(NULL,'" . $date . "','" . $newRealName . "','" . $newPhone . "','" . $newChargeCams . "');";
+                    . "(NULL,'" . $date . "','" . $newRealNameF . "','" . $newPhone . "','" . $newChargeCams . "');";
             nr_query($query);
             $newId = simple_get_lastid(self::TABLE_USERS);
-            log_register('VISOR USER CREATE [' . $newId . ']');
+            log_register('VISOR USER CREATE [' . $newId . '] NAME `' . $newRealName . '`');
         }
     }
 
@@ -343,6 +344,8 @@ class UbillingVisor {
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $result .= wf_TableBody($rows, '100%', 0, '');
+                $result .= $this->renderUserControls($userId);
+
                 $userCamsCount = $this->getUserCamerasCount($userId);
                 if ($userCamsCount > 0) {
                     $result .= $this->renderCamerasContainer(self::URL_ME . self::URL_USERCAMS . $userId);
@@ -352,6 +355,24 @@ class UbillingVisor {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Renders Visor user defaults controls set
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserControls($userId) {
+        $result = '';
+        if (isset($this->allUsers[$userId])) {
+            $taskB = wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
+            $taskE = wf_tag('div', true);
+
+            $result .= $taskB . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->renderUserEditInterface($userId)) . __('Edit') . $taskE;
+        }
+        return($result);
     }
 
     /**
@@ -491,6 +512,62 @@ class UbillingVisor {
                 }
             } else {
                 log_register('VISOR CAMERA CREATE FAIL VISORID_NOT_EXISTS');
+            }
+        }
+    }
+
+    /**
+     * Renders users editing interface
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserEditInterface($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $currentUserData = $this->allUsers[$userId];
+            $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+            $inputs = wf_HiddenInput('edituserid', $userId);
+            $inputs .= wf_TextInput('editusername', __('Name') . $sup, $currentUserData['realname'], true, 25);
+            $inputs .= wf_TextInput('edituserphone', __('Phone'), $currentUserData['phone'], true, 20, 'mobile');
+            $inputs .= wf_CheckInput('edituserchargecams', __('Charge money from primary account for linked camera users if required'), true, $currentUserData['chargecams']);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
+     * Catches and saves user editing request if required
+     * 
+     * 
+     * @return void
+     */
+    public function saveUser() {
+        if (wf_CheckPost(array('edituserid', 'editusername'))) {
+            $editUserId = vf($_POST['edituserid'], 3);
+            if (isset($this->allUsers[$editUserId])) {
+                $currentUserData = $this->allUsers[$editUserId];
+                $where = " WHERE `id`='" . $editUserId . "'";
+                $newUserName = $_POST['editusername'];
+                $newUserPhone = $_POST['edituserphone'];
+                $newCharge = (wf_CheckPost(array('edituserchargecams'))) ? 1 : 0;
+                if ($currentUserData['realname'] != $newUserName) {
+                    simple_update_field(self::TABLE_USERS, 'realname', $newUserName, $where);
+                    log_register('VISOR USER CHANGE NAME `' . $newUserName . '`');
+                }
+
+                if ($currentUserData['phone'] != $newUserPhone) {
+                    simple_update_field(self::TABLE_USERS, 'phone', $newUserPhone, $where);
+                    log_register('VISOR USER CHANGE PHONE `' . $newUserPhone . '`');
+                }
+
+                if ($currentUserData['chargecams'] != $newCharge) {
+                    simple_update_field(self::TABLE_USERS, 'chargecams', $newCharge, $where);
+                    log_register('VISOR USER CHANGE CHARGE `' . $newUserPhone . '`');
+                }
             }
         }
     }
