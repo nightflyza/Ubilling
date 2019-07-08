@@ -13,5 +13,8 @@ switch ($mapsService) {
     case 'google':
         include('api/libs/api.gmaps.php');
         break;
+    case 'leaflet':
+        include('api/libs/api.lmaps.php');
+        break;
 }
 ?>
