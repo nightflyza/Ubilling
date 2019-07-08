@@ -157,6 +157,7 @@ class UbillingVisor {
     public function panel() {
         $result = '';
         $result .= wf_Link(self::URL_ME . self::URL_USERS, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
+        $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), __('Users registration'), $this->renderUserCreateForm(), 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
         return ($result);
@@ -371,8 +372,32 @@ class UbillingVisor {
             $taskE = wf_tag('div', true);
 
             $result .= $taskB . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->renderUserEditInterface($userId)) . __('Edit') . $taskE;
+            $result .= $taskB . wf_modalAuto(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->renderUserDeletionForm($userId), '') . __('Delete') . $taskE;
+
+            $result .= wf_CleanDiv();
         }
         return($result);
+    }
+
+    /**
+     * user deletion form
+     * 
+     * @param int $userId existing user ID
+     * 
+     * @return string
+     */
+    protected function renderUserDeletionForm($userId) {
+        $userId = vf($userId, 3);
+        $inputs = __('Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.') . ' <br>
+               ' . __('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
+        $inputs .= wf_HiddenInput('userdeleteprocessing', $userId);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_tag('input', false, '', 'type="text" name="deleteconfirmation" autocomplete="off"');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('I really want to stop suffering User'));
+
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
     }
 
     /**
