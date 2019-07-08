@@ -87,9 +87,14 @@ if (cfr('VISOR')) {
             if (!empty($userIdDetected)) {
                 rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $userIdDetected);
             } else {
-                //new camera creation interface
-                show_window(__('Create camera'), $visor->renderCameraCreateInterface($userLogin));
-                show_window('', web_UserControls($userLogin));
+                $primaryVisorId = $visor->getPrimaryAccountUserId($userLogin);
+                if ($primaryVisorId) {
+                    rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $primaryVisorId);
+                } else {
+                    //new camera creation interface
+                    show_window(__('Create camera'), $visor->renderCameraCreateInterface($userLogin));
+                    show_window('', web_UserControls($userLogin));
+                }
             }
         }
 
@@ -101,7 +106,7 @@ if (cfr('VISOR')) {
 
         //camera profile/editing interface
         if (wf_CheckGet(array('showcamera'))) {
-            deb('TODO');
+            show_window(__('Camera'), $visor->renderCameraForm($_GET['showcamera']));
         }
     } else {
         show_error(__('This module is disabled'));

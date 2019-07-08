@@ -295,6 +295,26 @@ class UbillingVisor {
     }
 
     /**
+     * Returns camera ID if login have camera associated
+     * 
+     * @param string $login
+     * 
+     * @return int/void
+     */
+    protected function getCameraIdByLogin($login) {
+        $result = '';
+        if (!empty($this->allCams)) {
+            foreach ($this->allCams as $io => $each) {
+                if ($each['login'] == $login) {
+                    $result = $each['id'];
+                    break;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns camera user assigned visor user ID if exists
      * 
      * @param string $userLogin
@@ -307,6 +327,26 @@ class UbillingVisor {
             foreach ($this->allCams as $io => $each) {
                 if ($each['login'] == $userLogin) {
                     $result = $each['visorid'];
+                    break;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns userId by its associated primary account
+     * 
+     * @param string $userLogin
+     * 
+     * @return int/void
+     */
+    public function getPrimaryAccountUserId($userLogin) {
+        $result = '';
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['primarylogin'] == $userLogin) {
+                    $result = $each['id'];
                     break;
                 }
             }
@@ -362,20 +402,23 @@ class UbillingVisor {
      * 
      * @return string
      */
-    protected function renderUserPrimaryCamera($userId) {
+    protected function renderUserPrimaryAccount($userId) {
         $result = '';
         if (isset($this->allUsers[$userId])) {
-            $userCameras = $this->getUserCameras($userId);
-            if (!empty($userCameras)) {
-                foreach ($userCameras as $io => $each) {
-                    if ($each['primary']) {
-                        $primaryCamera = $each;
+            $userData = $this->allUsers[$userId];
+            $primaryAccount = $userData['primarylogin'];
+            if (!empty($primaryAccount)) {
+                if (isset($this->allUserData[$primaryAccount])) {
+                    $cells = wf_TableCell(__('Primary account'), '30%', 'row2');
+                    $linkLabel = (@$this->allUserData[$primaryAccount]['fulladress']) ? $this->allUserData[$primaryAccount]['fulladress'] : $primaryAccount;
+                    $primaLink = wf_Link(self::URL_CAMPROFILE . $primaryAccount, web_profile_icon() . ' ' . $linkLabel);
+                    $cells .= wf_TableCell($primaLink);
+                    $rows = wf_TableRow($cells, 'row3');
 
-                        $cells = wf_TableCell(__('Payment ID'), '30%', 'row2');
-                        $cells .= wf_TableCell($this->allPaymentIDs[$primaryCamera['login']]);
-                        $rows = wf_TableRow($cells, 'row3');
-                        $result .= $rows;
-                    }
+                    $cells = wf_TableCell(__('Payment ID'), '30%', 'row2');
+                    $cells .= wf_TableCell($this->allPaymentIDs[$primaryAccount]);
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $result .= $rows;
                 }
             }
         }
@@ -409,19 +452,14 @@ class UbillingVisor {
                 $cells .= wf_TableCell($chargeFlag);
                 $rows .= wf_TableRow($cells, 'row3');
 
-                //primary camera user inline
-                if ($userCamsCount > 0) {
-                    $rows .= $this->renderUserPrimaryCamera($userId);
-                }
+                //primary user account inline
+                $rows .= $this->renderUserPrimaryAccount($userId);
+
                 $result .= wf_TableBody($rows, '100%', 0, '');
-
-
 
                 $result .= $this->renderUserControls($userId);
 
-
                 if ($userCamsCount > 0) {
-
                     $result .= $this->renderCamerasContainer(self::URL_ME . self::URL_USERCAMS . $userId);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('User have no cameras assigned'), 'warning');
@@ -445,7 +483,7 @@ class UbillingVisor {
             $taskE = wf_tag('div', true);
 
             $result .= $taskB . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->renderUserEditInterface($userId)) . __('Edit') . $taskE;
-            $result .= $taskB . wf_modalAuto(wf_img('skins/icon_king_big.png', __('Primary camera')), __('Primary camera'), $this->renderUserPrimaryEditForm($userId)) . __('Primary') . $taskE;
+            $result .= $taskB . wf_modalAuto(wf_img('skins/icon_king_big.png', __('Primary account')), __('Primary account'), $this->renderUserPrimaryEditForm($userId)) . __('Primary') . $taskE;
             $result .= $taskB . wf_modalAuto(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->renderUserDeletionForm($userId), '') . __('Delete') . $taskE;
 
             $result .= wf_CleanDiv();
@@ -454,7 +492,7 @@ class UbillingVisor {
     }
 
     /**
-     * Renders user primari camera editing interface
+     * Renders user primary account editing interface
      * 
      * @param int $userId
      * 
@@ -463,21 +501,25 @@ class UbillingVisor {
     protected function renderUserPrimaryEditForm($userId) {
         $result = '';
         if (isset($this->allUsers[$userId])) {
+            $currentUserData = $this->allUsers[$userId];
+            $currentPrimaryAccount = $currentUserData['primarylogin'];
             $allUserCameras = $this->getUserCameras($userId);
             if (!empty($allUserCameras)) {
                 $camerasTmp = array();
                 $selectedCamera = '';
                 $camerasTmp[''] = '-';
                 foreach ($allUserCameras as $io => $each) {
-                    if ($each['primary'] == '1') {
-                        $selectedCamera = $each['id'];
+                    if ($each['login'] == $currentPrimaryAccount) {
+                        $selectedCamera = $each['login'];
                     }
-                    $camerasTmp[$each['id']] = @$this->allUserData[$each['login']]['fulladress'] . ' - ' . @$this->allUserData[$each['login']]['ip'];
+                    $camerasTmp[$each['login']] = @$this->allUserData[$each['login']]['fulladress'] . ' - ' . @$this->allUserData[$each['login']]['ip'];
                 }
 
                 $inputs = '';
 
-                $inputs = wf_Selector('newprimarycameraid', $camerasTmp, __('Primary camera'), $selectedCamera, true);
+                $inputs = wf_Selector('newprimarycameralogin', $camerasTmp, __('Camera'), $selectedCamera, true);
+                $inputs .= __('Or') . wf_tag('br');
+                $inputs .= wf_TextInput('newprimaryuserlogin', __('Login'), $currentPrimaryAccount, true, 20);
                 $inputs .= wf_HiddenInput('editprimarycamerauserid', $userId);
                 $inputs .= wf_delimiter();
                 $inputs .= wf_Submit(__('Save'));
@@ -491,33 +533,46 @@ class UbillingVisor {
      * Sets some camera as primary for some user
      * 
      * @param int $userId
-     * @param int/void $cameraId
+     * @param string $login
      * 
      * @return void
      */
-    protected function setCameraPrimary($userId, $cameraId) {
+    protected function setCameraPrimary($userId, $login = '') {
         $userId = vf($userId, 3);
-        $cameraId = vf($cameraId, 3);
+        $login = trim($login);
+
         if (isset($this->allUsers[$userId])) {
             $userCameras = $this->getUserCameras($userId);
-            $whereUser = "WHERE `visorid`='" . $userId . "'";
-            $whereCam = "WHERE `id`='" . $cameraId . "'";
-            if (!empty($userCameras)) {
+
+            $currentPrimary = $this->allUsers[$userId]['primarylogin'];
+            if ($currentPrimary != $login) {
+                simple_update_field(self::TABLE_USERS, 'primarylogin', $login, "WHERE `id`='" . $userId . "'"); //setting primary account in profile
+                simple_update_field(self::TABLE_CAMS, 'primary', 0, "WHERE `visorid`='" . $userId . "'"); // dropping all camera primary flags
+                log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY `' . $login . '`');
+                $cameraId = $this->getCameraIdByLogin($login);
                 if (!empty($cameraId)) {
-                    if (isset($userCameras[$cameraId])) {
-                        //not already primary
-                        if ($userCameras[$cameraId]['primary'] != '1') {
-                            simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser); //dropping curent primary
-                            simple_update_field(self::TABLE_CAMS, 'primary', 1, $whereCam); //setting new
-                            log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY [' . $cameraId . ']');
-                        }
-                    }
-                } else {
-                    //just drop primary camera
-                    simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser);
-                    log_register('VISOR USER [' . $userId . '] DELETE PRIMARY');
+                    simple_update_field(self::TABLE_CAMS, 'primary', '1', "WHERE `id`='" . $cameraId . "'"); //setting camera account as primary
                 }
             }
+
+//            if (!empty($userCameras)) {
+//                if (!empty($cameraId)) {
+//                    if (isset($userCameras[$cameraId])) {
+//                        //not already primary
+//                        if ($userCameras[$cameraId]['primary'] != '1') {
+//                            simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser); //dropping curent primary
+//                            simple_update_field(self::TABLE_CAMS, 'primary', 1, $whereCam); //setting new
+//                            log_register('VISOR USER [' . $userId . '] CHANGE PRIMARY [' . $cameraId . ']');
+//                        }
+//                    }
+//                } else {
+//                    //just drop primary camera
+//                    simple_update_field(self::TABLE_CAMS, 'primary', 0, $whereUser);
+//                    log_register('VISOR USER [' . $userId . '] DELETE PRIMARY');
+//                }
+//            }
+        } else {
+            log_register('VISOUR USER [' . $userId . '] FAIL PRIMARY NOUSER [' . $userId . ']');
         }
     }
 
@@ -529,8 +584,11 @@ class UbillingVisor {
     public function savePrimaryCamera() {
         if (wf_CheckPost(array('editprimarycamerauserid'))) {
             $userId = vf($_POST['editprimarycamerauserid'], 3);
-            $newPrimaryCameraId = (wf_CheckPost(array('newprimarycameraid'))) ? vf($_POST['newprimarycameraid'], 3) : '';
-            $this->setCameraPrimary($userId, $newPrimaryCameraId);
+            $newPrimaryLogin = (wf_CheckPost(array('newprimarycameralogin'))) ? $_POST['newprimarycameralogin'] : '';
+            if (wf_CheckPost(array('newprimaryuserlogin')) AND ! wf_CheckPost(array('newprimarycameralogin'))) {
+                $newPrimaryLogin = $_POST['newprimaryuserlogin'];
+            }
+            $this->setCameraPrimary($userId, $newPrimaryLogin);
         }
     }
 
@@ -565,9 +623,9 @@ class UbillingVisor {
     public function renderCamerasContainer($url) {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Balance', 'Credit', 'Actions');
+        $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Tariff', 'Active', 'Balance', 'Credit', 'Actions');
         if ($this->altCfg['DN_ONLINE_DETECT']) {
-            $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
+            $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
         }
         $result .= wf_JqDtLoader($columns, $url, false, __('Cams'), 50, $opts);
         return($result);
@@ -799,6 +857,12 @@ class UbillingVisor {
                 }
             }
         }
+    }
+
+    public function renderCameraForm($cameraId) {
+        $result = 'TODO';
+        debarr($this->allCams[$cameraId]);
+        return($result);
     }
 
 }

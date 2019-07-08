@@ -1,0 +1,1 @@
+ALTER TABLE `visor_users` ADD `primarylogin` VARCHAR(255) NULL AFTER `chargecams`, ADD INDEX (`primarylogin`);
