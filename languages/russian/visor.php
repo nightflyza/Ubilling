@@ -8,6 +8,6 @@ $lang['def']['right to control visor module'] = 'Право управлять �
 $lang['def']['User have no cameras assigned'] = 'Пользователю не присвоено никаких камер';
 $lang['def']['Create camera'] = 'Создать камеру';
 $lang['def']['The user who will be assigned a new camera'] = 'Пользователь которому будет присвоена новая камера';
-$lang['def'][''] = '';
+$lang['def']['Camera'] = 'Камера';
 $lang['def'][''] = '';
 $lang['def'][''] = '';

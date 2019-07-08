@@ -9,3 +9,4 @@ $lang['def']['User have no cameras assigned'] = 'Користувачу не п�
 $lang['def']['Create camera'] = 'Створити камеру';
 $lang['def']['No existing Visor users avaliable, you must create one at least to assign cameras'] = 'Немає існуючих користувачів Visor. Створіть хоча б одного, для присвоєння йому камер.';
 $lang['def']['The user who will be assigned a new camera'] = 'Користувач якому буде присвоєно нову камеру';
+$lang['def']['Camera'] = 'Камера';

@@ -70,6 +70,7 @@ if (cfr('VISOR')) {
         //users list rendering
         if (wf_CheckGet(array('users'))) {
             show_window(__('Users'), $visor->renderUsers());
+            zb_BillingStats(true);
         }
 
 

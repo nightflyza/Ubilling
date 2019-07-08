@@ -191,7 +191,8 @@ class UbillingVisor {
                 $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], $visorUserLabel);
                 $data[] = $visorUserLink;
                 $data[] = $each['phone'];
-                $data[] = web_bool_led($each['chargecams'], true);
+                $chargeFlag = ($each['chargecams']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                $data[] = $chargeFlag;
                 $data[] = $this->getUserCamerasCount($each['id']);
                 $actLinks = '';
                 //$actLinks .= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
@@ -410,7 +411,10 @@ class UbillingVisor {
     public function renderCamerasContainer($url) {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Actions');
+        $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Balance', 'Actions');
+        if ($this->altCfg['DN_ONLINE_DETECT']) {
+            $columns = array('ID', 'Primary', 'User', 'Camera', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Actions');
+        }
         $result .= wf_JqDtLoader($columns, $url, false, __('Cams'), 50, $opts);
         return($result);
     }
@@ -425,13 +429,16 @@ class UbillingVisor {
     public function ajaxUserCams($userId) {
         $userId = vf($userId, 3);
         $json = new wf_JqDtHelper();
+        $dnFlag = ($this->altCfg['DN_ONLINE_DETECT']) ? true : false;
+
         if (isset($this->allUsers[$userId])) {
             $allUserCams = $this->getUserCameras($userId);
             if (!empty($allUserCams)) {
                 foreach ($allUserCams as $io => $each) {
                     $cameraUserData = @$this->allUserData[$each['login']];
                     $data[] = $each['id'];
-                    $data[] = web_bool_led($each['primary']);
+                    $primaryFlag = ($each['primary']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                    $data[] = $primaryFlag;
                     $visorLinkLabel = $this->iconVisorUser() . ' ' . @$this->allUsers[$each['visorid']]['realname'];
                     $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['visorid'], $visorLinkLabel);
                     $data[] = $visorUserLink;
@@ -439,6 +446,24 @@ class UbillingVisor {
                     $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
                     $data[] = $cameraLink;
                     $data[] = @$cameraUserData['ip'];
+                    $data[] = @$cameraUserData['Tariff'];
+                    $cameraCash = @$cameraUserData['Cash'];
+                    $cameraCredit = @$cameraUserData['Credit'];
+                    $cameraState = '';
+                    if ($cameraCash >= '-' . $cameraCredit) {
+                        $cameraState = web_bool_led(true) . ' ' . __('Yes');
+                    } else {
+                        $cameraState = web_bool_led(false) . ' ' . __('No');
+                    }
+                    $data[] = $cameraState;
+                    if ($dnFlag) {
+                        $onlineState = web_bool_star(false) . ' ' . __('No');
+                        if (file_exists(DATA_PATH . 'dn/' . $each['login'])) {
+                            $onlineState = web_bool_star(true) . ' ' . __('Yes');
+                        }
+                        $data[] = $onlineState;
+                    }
+                    $data[] = $cameraCash;
                     $data[] = 'ACTIONS_TODO';
                     $json->addRow($data);
                     unset($data);
@@ -465,13 +490,14 @@ class UbillingVisor {
      */
     public function ajaxAllCams() {
         $json = new wf_JqDtHelper();
-
+        $dnFlag = ($this->altCfg['DN_ONLINE_DETECT']) ? true : false;
 
         if (!empty($this->allCams)) {
             foreach ($this->allCams as $io => $each) {
                 $cameraUserData = @$this->allUserData[$each['login']];
                 $data[] = $each['id'];
-                $data[] = web_bool_led($each['primary']);
+                $primaryFlag = ($each['primary']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                $data[] = $primaryFlag;
                 $visorLinkLabel = $this->iconVisorUser() . ' ' . @$this->allUsers[$each['visorid']]['realname'];
                 $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['visorid'], $visorLinkLabel);
                 $data[] = $visorUserLink;
@@ -479,6 +505,24 @@ class UbillingVisor {
                 $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
                 $data[] = $cameraLink;
                 $data[] = @$cameraUserData['ip'];
+                $data[] = @$cameraUserData['Tariff'];
+                $cameraCash = @$cameraUserData['Cash'];
+                $cameraCredit = @$cameraUserData['Credit'];
+                $cameraState = '';
+                if ($cameraCash >= '-' . $cameraCredit) {
+                    $cameraState = web_bool_led(true) . ' ' . __('Yes');
+                } else {
+                    $cameraState = web_bool_led(false) . ' ' . __('No');
+                }
+                $data[] = $cameraState;
+                if ($dnFlag) {
+                    $onlineState = web_bool_star(false) . ' ' . __('No');
+                    if (file_exists(DATA_PATH . 'dn/' . $each['login'])) {
+                        $onlineState = web_bool_star(true) . ' ' . __('Yes');
+                    }
+                    $data[] = $onlineState;
+                }
+                $data[] = $cameraCash;
                 $data[] = 'ACTIONS_TODO';
                 $json->addRow($data);
                 unset($data);
@@ -499,6 +543,7 @@ class UbillingVisor {
         $result = '';
         if (!empty($this->allUsers)) {
             $usersTmp = array();
+            $usersTmp[''] = '-';
             foreach ($this->allUsers as $io => $each) {
                 $usersTmp[$each['id']] = $each['realname'];
             }
