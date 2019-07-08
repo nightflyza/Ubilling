@@ -398,4 +398,6 @@ $lang['def']['Freezing'] = 'Заморожування';
 $lang['def']['Code'] = 'Код';
 $lang['def']['How to configure your devices and use service'] = 'Як налаштувати ваші пристрої та скористатись послугою';
 
+$lang['def']['Surveillance'] = 'Відеоспостереження';
+
 ?>
