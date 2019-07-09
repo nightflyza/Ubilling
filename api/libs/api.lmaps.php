@@ -58,8 +58,6 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
  *  
  */
 function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
-    $circelId = wf_InputId();
-
     $result = '
            var circle = L.circle([' . $coords . '], {
                     color: \'#009d25\',
@@ -70,6 +68,11 @@ function generic_MapAddCircle($coords, $radius, $content = '', $hint = '') {
             ';
     if (!empty($content)) {
         $result .= 'circle.bindPopup("' . $content . '");';
+    }
+
+    if (!empty($hint)) {
+        $hint = str_replace('"', '\"', $hint);
+        $result .= 'circle.bindTooltip("' . $hint . '", { sticky: true});';
     }
 
 
@@ -117,8 +120,9 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     }
 
     $result = '';
-    $result .= '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"/>';
-    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"');
+
+    $result .= '<link rel="stylesheet" href="modules/jsc/leaflet/leaflet.css"/>';
+    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet/leaflet.js"');
     $result .= wf_tag('script', true);
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
 
@@ -182,22 +186,28 @@ function generic_MapEditor($name, $title = '', $data = '') {
  * @return string
  */
 function generic_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
+    $lineId = wf_InputId();
     $color = (!empty($color)) ? $color : '#000000';
     $width = (!empty($color)) ? $width : '1';
-    
+
     $result = '';
     $result .= '
         var pointA = new L.LatLng(' . $coord1 . ');
         var pointB = new L.LatLng(' . $coord2 . ');
         var pointList = [pointA, pointB];
 
-        var firstpolyline = new L.Polyline(pointList, {
+        var polyline_' . $lineId . ' = new L.Polyline(pointList, {
             color: \'' . $color . '\',
             weight: ' . $width . ',
             opacity: 0.8,
             smoothFactor: 1
         });
-        firstpolyline.addTo(map);';
+        polyline_' . $lineId . '.addTo(map);
+        ';
+    if (!empty($hint)) {
+        $hint = str_replace('"', '\"', $hint);
+        $result .= 'polyline_' . $lineId . '.bindTooltip("' . $hint . '", { sticky: true});';
+    }
     return ($result);
 }
 
