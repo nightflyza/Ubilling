@@ -108,7 +108,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
 
     //default tile layer
     $tileLayer = 'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
-    
+
     //custom tile layer
     if (isset($mapsCfg['LEAFLET_TILE_LAYER'])) {
         if ($mapsCfg['LEAFLET_TILE_LAYER']) {
@@ -117,8 +117,8 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     }
 
     $result = '';
-    $result .= '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>';
-    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""');
+    $result .= '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"/>';
+    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"');
     $result .= wf_tag('script', true);
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
 
@@ -148,38 +148,56 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
  * @return string
  */
 function generic_MapEditor($name, $title = '', $data = '') {
-    $windowId = wf_InputId();
+
     $data = str_replace("'", '`', $data);
     $data = str_replace("\n", '', $data);
+    $data = str_replace('"', '\"', $data);
+    $content = '<form action=\"\" method=\"POST\"><input type=\"hidden\" name=' . $name . ' value=\'"+e.latlng.lat+\', \'+e.latlng.lng+"\'>' . $data . '</form>';
 
-    $content = '<form action="" method="POST"><input type="hidden" name="' . $name . '" value="\'+lat+\', \'+lng+\'">' . $data . '</form>';
 
-//    $windowCode = 'var contentString_' . $windowId . ' = \'<div id = "content_' . $windowId . '">' . $title . '<br> \'+lat+\', \'+lng+\' <br> ' . $content . '</div>\';
-//            var infowindow_' . $windowId . ' = new google.maps.InfoWindow({
-//            content: contentString_' . $windowId . '
-//            });';
-//    $result = '
-//            google.maps.event.addListener(map, \'click\', function(event) {
-//            var myLatLng = event.latLng;
-//            var lat = myLatLng.lat().toPrecision(6);
-//            var lng = myLatLng.lng().toPrecision(6);
-//            ' . $windowCode . '
-//               infowindow_' . $windowId . '.setPosition(event.latLng);
-//               infowindow_' . $windowId . '.open(map);
-//            });
-//            ';
-
+    //$content = str_replace('"', '\"', $content);
+    $windowCode = '<b>' . $title . '</b><br>' . $content;
     $result = 'var popup = L.popup();
 
 	function onMapClick(e) {
 		popup
 			.setLatLng(e.latlng)
-			.setContent("You clicked the map at " + e.latlng.toString())
+                        .setContent("' . $windowCode . '<br>" + e.latlng.lat + ", " + e.latlng.lng)
 			.openOn(map);
 	}
 
 	map.on(\'click\', onMapClick);';
 
+    return ($result);
+}
+
+/**
+ * Returns JS code to draw line within two points
+ * 
+ * @param string $coord1
+ * @param string $coord2
+ * @param string $color
+ * @param string $hint
+ * 
+ * @return string
+ */
+function generic_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
+    $color = (!empty($color)) ? $color : '#000000';
+    $width = (!empty($color)) ? $width : '1';
+    
+    $result = '';
+    $result .= '
+        var pointA = new L.LatLng(' . $coord1 . ');
+        var pointB = new L.LatLng(' . $coord2 . ');
+        var pointList = [pointA, pointB];
+
+        var firstpolyline = new L.Polyline(pointList, {
+            color: \'' . $color . '\',
+            weight: ' . $width . ',
+            opacity: 0.8,
+            smoothFactor: 1
+        });
+        firstpolyline.addTo(map);';
     return ($result);
 }
 

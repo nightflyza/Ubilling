@@ -2501,3 +2501,6 @@ CREATE TABLE IF NOT EXISTS `visor_dvrs` (
   `password` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 1.0.0 update
+ALTER TABLE `visor_users` ADD `primarylogin` VARCHAR(255) NULL AFTER `chargecams`, ADD INDEX (`primarylogin`);
