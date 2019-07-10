@@ -1430,8 +1430,8 @@ class OnuRegister {
                 $tablecells .= wf_TableCell($eachCard['chasis_number']);
                 $tablecells .= wf_TableCell($eachCard['slot_number']);
                 $tablecells .= wf_TableCell($eachCard['card_name']);
-                $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&edit = true&slot_number = ' . $eachCard['slot_number'] . '&card_name = ' . $eachCard['card_name'], web_edit_icon(), $this->messages->getEditAlert());
-                $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete = true&slot_number = ' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&edit=true&slot_number=' . $eachCard['slot_number'] . '&card_name=' . $eachCard['card_name'], web_edit_icon(), $this->messages->getEditAlert());
+                $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $tablecells .= wf_TableCell($actionLinks);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
             }
