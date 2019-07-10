@@ -72,23 +72,24 @@ if (@$us_config['SWEETTV_ENABLED']) {
         //view button if is some subscriptions here
         if ($trinitytvFront->haveSubscribtions()) {
             show_window(__('Your subscriptions'), $trinitytvFront->renderSubscribtions());
-            show_window('', la_tag('br'));
+           // show_window('', la_tag('br'));
         }
 
         // device
         if ($trinitytvFront->haveSubscribtions()) {
-        show_window(__('Devices'), $trinitytvFront->renderDevices());
-        show_window('', la_tag('br'));
+            show_window(__('Devices'), $trinitytvFront->renderDevices());
+            //display some guide links if required
+            if (@$us_config['TRINITYTV_GUIDE_URL']) {
+                $guideLink = la_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'), false, 'trinity-button');
+                show_window('', $guideLink);
+            }
+            show_window('', la_tag('br'));
         }
+
+
 
         //default sub/unsub form
         show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
-        
-        //display some guide links if required
-        if (@$us_config['TRINITYTV_GUIDE_URL']) {
-            $guideLink=la_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'),false,'trinity-button');
-            show_window('', $guideLink);
-        }
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }

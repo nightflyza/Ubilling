@@ -245,8 +245,8 @@ class TrinityTvFrontend {
      */
     public function renderSubscribeForm() {
         $result = '';
-        $result.=la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
 
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $tariff) {
@@ -269,8 +269,12 @@ class TrinityTvFrontend {
                 } else {
                     $desc = 'Описание тарифа: <br> ' . $tariff['name'] . '<br><br>';
                 }
-                $tariffInfo .= la_tag('div', false, 'trinity-list') . $desc . la_tag('div', true, 'trinity-list');
-
+                if (@$this->usConfig['TRINITYTV_CHANLIST_URL']) {
+                    $descriptionLabel = la_Link($this->usConfig['TRINITYTV_CHANLIST_URL'], $desc);
+                } else {
+                    $descriptionLabel = $desc;
+                }
+                $tariffInfo .= la_tag('div', false, 'trinity-list') . $descriptionLabel . la_tag('div', true, 'trinity-list');
 
                 if ($this->checkBalance()) {
 
@@ -290,7 +294,7 @@ class TrinityTvFrontend {
                 $tariffInfo .= la_tag('div', true, 'trinity-bl1') . la_tag('div', true, 'trinity-col');
 
 
-                $result.= $tariffInfo;
+                $result .= $tariffInfo;
             }
         }
         return ($result);
@@ -448,7 +452,7 @@ class TrinityTvFrontend {
             }
 
             $result = la_TableBody($rows, '100%', 0);
-            $result.= la_tag('br');
+            $result .= la_tag('br');
         }
         return ($result);
     }
@@ -473,7 +477,7 @@ class TrinityTvFrontend {
 
             $result .= "<br><br> ";
 
-            $cells = la_TableCell(__('MAC').' '.__('Address'));
+            $cells = la_TableCell(__('MAC') . ' ' . __('Address'));
             $cells .= la_TableCell(__('Date'));
             $cells .= la_TableCell(__('Actions'));
             $rows = la_TableRow($cells, 'row1');
@@ -485,7 +489,7 @@ class TrinityTvFrontend {
                     $cells .= la_TableCell($device['created_at']);
 
                     $deviceControls = la_JSAlert($this->urlMe . '&deletedevice=' . $device['mac'], __('Delete'), __('Are you sure') . '?');
-                    $cells.= la_TableCell($deviceControls);
+                    $cells .= la_TableCell($deviceControls);
 
                     $rows .= la_TableRow($cells, 'row3');
                 }
