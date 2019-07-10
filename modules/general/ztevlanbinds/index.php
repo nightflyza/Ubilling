@@ -53,7 +53,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                 show_window('', wf_BackLink(PONizer::URL_ME));
             }
 
-            if (wf_CheckPost(array('createZteCard', 'swid', 'card_name')) AND ( !empty($_POST['chasis_number'])) AND ( !empty($_POST['slot_number']))) {
+            if (wf_CheckPost(array('createZteCard', 'swid', 'card_name')) AND ( !empty($_POST['slot_number']))) {
                 $register->createZteCard($_POST['swid'], $_POST['chasis_number'], $_POST['slot_number'], $_POST['card_name']);
             }
 
