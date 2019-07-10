@@ -257,17 +257,17 @@ class TrinityTvFrontend {
 
                 $tariffInfo .= la_tag('div', false, 'trinity-price');
                 $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
-                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' <br> ' . __('per month') . la_tag('sup', true);
+                $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' ' . la_tag('br') . ' ' . __('per month') . la_tag('sup', true);
                 $tariffInfo .= la_tag('div', true, 'trinity-price');
 
 
                 $tariffInfo .= la_tag('div', false, 'trinity-green s') . $tariff['name'] . la_tag('div', true, 'trinity-green s');
-                $tariffInfo .= '<br/>';
+                $tariffInfo .= la_tag('br');
 
                 if (!empty($tariff['description'])) {
                     $desc = $tariff['description'];
                 } else {
-                    $desc = 'Описание тарифа: <br> ' . $tariff['name'] . '<br><br>';
+                    $desc = __('Terms') . ': ' . la_tag('br') . $tariff['name'] . la_tag('br') . la_tag('br');
                 }
                 if (@$this->usConfig['TRINITYTV_CHANLIST_URL']) {
                     $descriptionLabel = la_Link($this->usConfig['TRINITYTV_CHANLIST_URL'], $desc);
@@ -475,7 +475,7 @@ class TrinityTvFrontend {
             // Add device by MAC
             $result .= la_modal(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button', 260, 160);
 
-            $result .= "<br><br> ";
+            $result .= la_tag('br') . la_tag('br');
 
             $cells = la_TableCell(__('MAC') . ' ' . __('Address'));
             $cells .= la_TableCell(__('Date'));
