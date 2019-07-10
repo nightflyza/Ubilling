@@ -215,13 +215,16 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         }
     }
 
+    //Leaflet core libs
+    $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet/leaflet.css"');
+    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet/leaflet.js"') . wf_tag('script', true);
 
+    //Geocoder libs init
+    $result .= wf_tag('link', false, '', 'rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.css"');
+    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.js"') . wf_tag('script', true);
 
-    $result .= '<link rel="stylesheet" href="modules/jsc/leaflet/leaflet.css"/>';
-    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet/leaflet.js"');
-    $result .= wf_tag('script', true);
+    //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
-
     $result .= '
 	var map = L.map(\'' . $container . '\');
         ' . $mapCenter . '
@@ -231,6 +234,9 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
 		id: \'mapbox.streets\',
                 ' . $tileLayerCustoms . '
 	}).addTo(map);
+        
+        var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "'.__('Search').'"});
+        geoControl.addTo(map);
 
 	' . $placemarks . '
         ' . $editor . '
