@@ -215,11 +215,11 @@ class OmegaTvFrontend {
 
                     foreach ($currentDevices as $io => $each) {
                         $cells = la_TableCell($each['uniq']);
-                        $cells.= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
-                        $cells.= la_TableCell($each['model']);
+                        $cells .= la_TableCell(date("Y-m-d H:i:s", $each['activation_data']));
+                        $cells .= la_TableCell($each['model']);
                         $deviceControls = la_JSAlert('?module=omegatv&deletedevice=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
-                        $cells.= la_TableCell($deviceControls);
-                        $rows.=la_TableRow($cells, 'row3');
+                        $cells .= la_TableCell($deviceControls);
+                        $rows .= la_TableRow($cells, 'row3');
                         $devCount++;
                     }
                 }
@@ -229,17 +229,17 @@ class OmegaTvFrontend {
                     foreach ($currentPlaylists as $io => $each) {
                         $cells = la_TableCell($each['uniq']);
                         $actDate = ($each['activation_data']) ? date("Y-m-d H:i:s", $each['activation_data']) : '-';
-                        $cells.= la_TableCell($actDate);
+                        $cells .= la_TableCell($actDate);
                         $playlistControls = la_Link($each['url'], __('Playlist'));
-                        $cells.= la_TableCell($playlistControls);
+                        $cells .= la_TableCell($playlistControls);
                         $deviceControls = la_JSAlert('?module=omegatv&deleteplaylist=' . $each['uniq'], __('Delete'), __('Are you sure') . '?');
-                        $cells.= la_TableCell($deviceControls);
-                        $rows.=la_TableRow($cells, 'row3');
+                        $cells .= la_TableCell($deviceControls);
+                        $rows .= la_TableRow($cells, 'row3');
                         $devCount++;
                     }
                 }
 
-                $result.=la_TableBody($rows, '100%', 0, 'sortable');
+                $result .= la_TableBody($rows, '100%', 0, 'sortable');
             }
 
             //maximum devices limit
@@ -247,13 +247,13 @@ class OmegaTvFrontend {
                 //new device activation
                 if (la_CheckGet(array('getcode'))) {
                     $actCode = $this->getDeviceActivationCode();
-                    $result.=la_tag('br');
-                    $result.=la_tag('h3', false) . __('Activation code') . ': ' . $actCode . la_tag('h3', true);
+                    $result .= la_tag('br');
+                    $result .= la_tag('h3', false) . __('Activation code') . ': ' . $actCode . la_tag('h3', true);
                 } else {
-                    $result.=la_tag('br');
+                    $result .= la_tag('br');
                     $actCodeControl = la_Link('?module=omegatv&getcode=true', __('Get device activation code'));
                     $newPlControl = la_Link('?module=omegatv&newplaylist=true', __('Add playlist'));
-                    $result.=$actCodeControl . ' / ' . $newPlControl;
+                    $result .= $actCodeControl . ' / ' . $newPlControl;
                 }
             }
         }
@@ -276,19 +276,8 @@ class OmegaTvFrontend {
                     $tariffData = $this->allTariffs[$tariffId];
                     $userData = $this->allUsers[$this->userLogin];
                     $userBalance = $userData['Cash'];
-
-                    if ($tariffData['freeperiod']) {
-                        if ($this->checkFreePeriodAvail($this->userLogin)) {
-                            $result = true;
-                        } else {
-                            if ($userBalance < $tariffFee) {
-                                $result = false;
-                            }
-                        }
-                    } else {
-                        if ($userBalance < $tariffFee) {
-                            $result = false;
-                        }
+                    if ($userBalance < $tariffFee) {
+                        $result = false;
                     }
                 } else {
                     $result = false;
@@ -317,16 +306,16 @@ class OmegaTvFrontend {
 
                 $tariffInfo = la_tag('div', false, $headerType) . $each['tariffname'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
-                $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
+                $cells .= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
                 $rows = la_TableRow($cells);
                 $cells = la_TableCell(la_tag('b') . __('Base') . la_tag('b', true));
-                $cells.= la_TableCell($primaryLabel);
-                $rows.= la_TableRow($cells);
+                $cells .= la_TableCell($primaryLabel);
+                $rows .= la_TableRow($cells);
                 $cells = la_TableCell(la_tag('b') . __('You subscribed') . la_tag('b', true));
-                $cells.= la_TableCell($subscribedLabel);
-                $rows.= la_TableRow($cells);
-                $tariffInfo.=la_TableBody($rows, '100%', 0);
-                $tariffInfo.=$freeAppend;
+                $cells .= la_TableCell($subscribedLabel);
+                $rows .= la_TableRow($cells);
+                $tariffInfo .= la_TableBody($rows, '100%', 0);
+                $tariffInfo .= $freeAppend;
 
 
                 if ($this->checkBalance()) {
@@ -341,12 +330,12 @@ class OmegaTvFrontend {
                     }
 
 
-                    $tariffInfo.=$subscribeControl;
+                    $tariffInfo .= $subscribeControl;
                 } else {
-                    $tariffInfo.=__('The amount of money in your account is not sufficient to process subscription');
+                    $tariffInfo .= __('The amount of money in your account is not sufficient to process subscription');
                 }
 
-                $result.=la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
+                $result .= la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
             }
         }
         return ($result);
