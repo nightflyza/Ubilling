@@ -123,7 +123,7 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
 
     $result .= $iconDefines;
     $result .= 'var placemark=L.marker([' . $coords . ']' . $iconCode . ').addTo(map)
-		.bindPopup("<b>' . $title . '</b><br />' . $content . '<br>' . $footer . '");';
+		.bindPopup("<b>' . $title . '</b><br />' . $content . '<br>' . $footer . '",  {maxWidth: 320, minWidth: 50, maxHeight: 600, closeButton: true, closeOnEscapeKey: true });';
 
     if (!empty($content)) {
         $result .= 'placemark.bindTooltip("' . $content . '", { sticky: true});';
@@ -207,10 +207,10 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
                 $tileLayerCustoms = "subdomains: '123',
                 tms: true";
             }
-            
+
             //google satellite
             if (ispos($tileLayer, 'google.com')) {
-                $tileLayerCustoms="subdomains:['mt0','mt1','mt2','mt3']";
+                $tileLayerCustoms = "subdomains:['mt0','mt1','mt2','mt3']";
             }
         }
     }
