@@ -956,13 +956,16 @@ function wf_pagination($total, $perpage, $current, $link, $class = '') {
  * @return string
  *  
  */
-function wf_img($url, $title = '') {
+function wf_img($url, $title = '', $style = '') {
     if ($title != '') {
         $imgtitle = 'title="' . $title . '"';
     } else {
         $imgtitle = '';
     }
-    $result = '<img src="' . $url . '" ' . $imgtitle . ' border="0">';
+
+    $imgstyle = (empty($style)) ? '' : ' style="' . $style . '" ';
+
+    $result = '<img src="' . $url . '" ' . $imgtitle . $imgstyle .' border="0">';
     return ($result);
 }
 
@@ -977,11 +980,13 @@ function wf_img($url, $title = '') {
  * @return string
  *  
  */
-function wf_img_sized($url, $title = '', $width = '', $height = '') {
+function wf_img_sized($url, $title = '', $width = '', $height = '', $style = '') {
     $imgtitle = ($title != '') ? 'title="' . $title . '"' : '';
     $imgwidth = ($width != '') ? 'width="' . $width . '"' : '';
     $imgheight = ($height != '') ? 'height="' . $height . '"' : '';
-    $result = '<img src="' . $url . '" ' . $imgtitle . ' ' . $imgwidth . ' ' . $imgheight . ' border="0">';
+    $imgstyle = (empty($style)) ? '' : ' style="' . $style . '" ';
+
+    $result = '<img src="' . $url . '" ' . $imgtitle . ' ' . $imgwidth . ' ' . $imgheight . $imgstyle . ' border="0">';
     return ($result);
 }
 
