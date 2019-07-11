@@ -294,7 +294,10 @@ class DarkVoid {
             }
         }
 
+        //appending some debug string to validate cache expire
+        $this->alerts .= '<!-- DarkVoid saved: ' . curdatetime() . ' -->';
 
+        //saving per-admin cache data
         file_put_contents(self::CACHE_PATH . self::CACHE_PREFIX . $this->myLogin, $this->alerts);
     }
 
