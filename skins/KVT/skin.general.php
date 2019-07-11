@@ -46,6 +46,12 @@
                     $fwtbtFront = new ForWhomTheBellTolls();
                     print($fwtbtFront->renderWidget());
                 }
+
+                if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and $ubillingConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED')) {
+                    $dsNotifyFront = new DreamKasNotifications();
+
+                    print($dsNotifyFront->renderWidget());
+                }
          ?>
       </td>
     </tr>

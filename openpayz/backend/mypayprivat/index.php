@@ -58,9 +58,18 @@ function myp_PricesForm() {
                         custom_amount.value = document.getElementById("input_custom_amount").value;
                         custom_amount.value = (custom_amount.value * ' . $addCommission . ').toFixed(2);
                     }
+                    
+                    document.addEventListener(\'DOMContentLoaded\', function() {
+                        // just to apply $addCommission after the page loads
+                        change_custom_amount();
+                     }, false);
                 </script>
         ';
-        $result.= '<input type="radio" name="amount" value="custom_amount" id="radio_custom_amount" onClick="change_custom_amount()">';
+        if (!empty($mypConf['AVAIL_PRICES'])) {
+            $result .= '<input type="radio" name="amount" value="' . $mypConf['CUSTOM_PRICE'] . '" id="radio_custom_amount" onClick="change_custom_amount()">';
+        } else {
+            $result.= '<input type="hidden" name="amount" value="' . $mypConf['CUSTOM_PRICE'] . '" id="radio_custom_amount">';
+        }
         $result.= '<input onchange="change_custom_amount()" id="input_custom_amount" type="number" style="width: 4em;" value="' . $mypConf['CUSTOM_PRICE'] . '" min="' . $mypConf['CUSTOM_PRICE'] . '" step="any" /> ' . $mypConf['TEMPLATE_CURRENCY'] . '<br>';
     }
 

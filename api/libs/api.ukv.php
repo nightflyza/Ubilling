@@ -97,6 +97,13 @@ class UkvSystem {
      */
     protected $messages = '';
 
+    /**
+     * UbillingConfig object placeholder
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
 //static routing URLs
 
     const URL_TARIFFS_MGMT = '?module=ukv&tariffs=true'; //tariffs management
@@ -187,6 +194,8 @@ class UkvSystem {
      */
     protected function loadConfigs() {
         global $ubillingConfig;
+
+        $this->ubConfig = $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
     }
 
@@ -690,13 +699,29 @@ class UkvSystem {
         $this->loadCashtypes();
         $inputs = '';
         $inputs .= wf_HiddenInput('manualpaymentprocessing', $userid);
-        $inputs .= wf_TextInput('paymentsumm', __('New cash'), '', true, 5);
+        $inputs .= wf_TextInput('paymentsumm', __('New cash'), '', true, '5', '', '', 'UkvPaymSum');
         $inputs .= wf_RadioInput('paymenttype', __('Add cash'), 'add', false, true);
         $inputs .= wf_RadioInput('paymenttype', __('Correct saldo'), 'correct', false, false);
-        $inputs .= wf_RadioInput('paymenttype', __('Mock payment'), 'mock', false, false);
+        $inputs .= wf_RadioInput('paymenttype', __('Mock payment'), 'mock', true, false);
         $inputs .= wf_Selector('paymentcashtype', $this->cashtypes, __('Cash type'), '', true);
         $inputs .= wf_TextInput('paymentnotes', __('Payment notes'), '', true, '40');
-        $inputs .= wf_tag('br');
+        $inputs .= wf_delimiter(0);
+
+        if ($this->ubConfig->getAlterParam('DREAMKAS_ENABLED')) {
+            $DreamKas = new DreamKas();
+            $inputs .= $DreamKas->web_FiscalizePaymentCtrls('ukv');
+            $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
+            $inputs .= '$(document).ready(function() {
+                    // dirty hack with setTimeout() to work in Chrome 
+                    setTimeout(function(){
+                            $(\'#UkvPaymSum\').focus();
+                    }, 100);
+                  });   
+                 ';
+            $inputs .= wf_tag('script', true);
+            $inputs .= wf_delimiter(0);
+        }
+
         $inputs .= wf_Submit(__('Payment'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -1432,6 +1457,17 @@ class UkvSystem {
     }
 
     /**
+     * Returns array with all user data for a certain UKV userID
+     *
+     * @return array
+     */
+    public function getUserData($userid) {
+        $result = (isset($this->users[$userid])) ? $this->users[$userid] : array();
+
+        return ($result);
+    }
+
+    /**
      * Returns tag html preprocessed body
      * 
      * @param int $id
@@ -1607,7 +1643,7 @@ class UkvSystem {
                 $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600') . __('Details') . wf_tag('div', true);
             }
             if (cfr('UKVCASH')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
             }
             if (cfr('UKVREG')) {
                 $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '') . __('Edit') . wf_tag('div', true);
@@ -4619,6 +4655,10 @@ class UkvSystem {
             $result .= $this->messages->getStyledMessage(__('Any users found'), 'warning');
         }
         show_window(__('Integrity control'), $result);
+    }
+
+    public function getUbMessagesInstance() {
+        return ($this->messages);
     }
 
 }

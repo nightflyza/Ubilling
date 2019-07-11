@@ -55,11 +55,23 @@ function lq_PricesForm() {
                         custom_amount.value = document.getElementById("input_custom_amount").value;
                         custom_amount.value = (custom_amount.value * ' . $addCommission . ').toFixed(2);
                     }
+                    
+                     document.addEventListener(\'DOMContentLoaded\', function() {
+                        // just to apply $addCommission after the page loads
+                        change_custom_amount();
+                     }, false);
                 </script>
         ';
-        $result.= '<input type="radio" name="amount" value="custom_amount" id="radio_custom_amount" onClick="change_custom_amount()">';
+
+        if (!empty($liqConf['AVAIL_PRICES'])) {
+            $result.= '<input type="radio" name="amount" value="' . $liqConf['CUSTOM_PRICE'] . '" id="radio_custom_amount" onClick="change_custom_amount()">';
+        } else {
+            $result.= '<input type="hidden" name="amount" value="' . $liqConf['CUSTOM_PRICE'] . '" id="radio_custom_amount">';
+        }
+
         $result.= '<input onchange="change_custom_amount()" id="input_custom_amount" type="number" style="width: 4em;" value="' . $liqConf['CUSTOM_PRICE'] . '" min="' . $liqConf['CUSTOM_PRICE'] . '" step="any" /> ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
     }
+
 
     $result.= '<input type="submit" value="' . $liqConf['TEMPLATE_NEXT'] . '">';
     $result.= '</form>';

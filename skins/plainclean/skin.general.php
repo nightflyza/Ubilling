@@ -51,8 +51,14 @@
                          <?rcms_show_element('main_point', $module . '@window')?>
                          <?php
                             if ($ubillingConfig->getAlterParam('FWTBT_ENABLED')) {
-                            $fwtbtFront = new ForWhomTheBellTolls();
-                            print($fwtbtFront->renderWidget());
+                                $fwtbtFront = new ForWhomTheBellTolls();
+                                print($fwtbtFront->renderWidget());
+                            }
+
+                            if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and $ubillingConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED')) {
+                                $dsNotifyFront = new DreamKasNotifications();
+
+                                print($dsNotifyFront->renderWidget());
                             }
                         ?>
 			</div>

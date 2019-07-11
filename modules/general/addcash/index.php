@@ -20,6 +20,8 @@ if (cfr('CASH')) {
                     $employeeId = ts_GetEmployeeByLogin($whoami);
                     $employeeData = stg_get_employee_data($employeeId);
                     $employeeLimit = @$employeeData['amountLimit'];
+                    $lastDKErrorParam = '';
+
                     if (!cfr('ROOT') and ! empty($employeeLimit)) {
                         $query = "SELECT sum(`summ`) as `summa` FROM `payments` WHERE MONTH(`date`) = MONTH(NOW()) AND YEAR(`date`) = YEAR(NOW()) AND admin = '" . $whoami . "' AND `summ`>0";
                         $summa = simple_query($query);
@@ -30,7 +32,16 @@ if (cfr('CASH')) {
                             } else {
                                 zb_CashAdd($login, $cash, $operation, $cashtype, $note);
                             }
-                            rcms_redirect("?module=addcash&username=" . $login);
+
+                            if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
+                                $lastDKError = doDreamkasFiscalize($login, $cash);
+
+                                if (!empty($lastDKError)) {
+                                    $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
+                                }
+                            }
+
+                            rcms_redirect("?module=addcash&username=" . $login . $lastDKErrorParam);
                         } else {
                             show_window('', wf_modalOpened(__('Error'), __('Payment amount exceeded per month') . wf_tag('br') . __('You can top up for the amount of:') . ' ' . __($employeeLimit - $summa), '400', '200'));
                             log_register('BALANCEADDFAIL (' . $login . ') AMOUNT LIMIT `' . mysql_real_escape_string($employeeLimit - $summa) . '` TRY ADD SUMM `' . $cash . '`');
@@ -41,7 +52,16 @@ if (cfr('CASH')) {
                         } else {
                             zb_CashAdd($login, $cash, $operation, $cashtype, $note);
                         }
-                        rcms_redirect("?module=addcash&username=" . $login);
+
+                        if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
+                            $lastDKError = doDreamkasFiscalize($login, $cash);
+
+                            if (!empty($lastDKError)) {
+                                $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
+                            }
+                        }
+
+                        rcms_redirect("?module=addcash&username=" . $login . $lastDKErrorParam);
                     }
                 } else {
                     show_window('', wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
@@ -183,12 +203,37 @@ if (cfr('CASH')) {
             }
         }
 
+        $errorWindow = '';
+
+        if (wf_CheckGet(array('lastdkerror'))) {
+            $messages = new UbillingMessageHelper();
+            $errorMessage = $messages->getStyledMessage(urldecode($_GET['lastdkerror']), 'error');
+            $errorWindow = wf_modalAutoForm(__('Fiscalization error'), $errorMessage, '', '', true, 'true', '700');
+        }
+
         // Show form
-        show_window(__('Money'), $form);
+        show_window(__('Money'), $errorWindow . $form);
         // Previous payments show:
         show_window(__('Previous payments'), web_PaymentsByUser($login));
     }
 } else {
     show_error(__('You cant control this module'));
+}
+
+function doDreamkasFiscalize($login, $cash) {
+    $cahsMachineID = $_POST['drscashmachines'];
+    $taxType = $_POST['drstaxtypes'];
+    $paymentType = $_POST['drspaymtypes'];
+    $userMobile = zb_UserGetMobile($login);
+    $userEmail = zb_UserGetEmail($login);
+
+    $sellPosIDsPrices = array($_POST['drssellpos'] => array('price' => ($cash * 100)));
+    $userContacts = array('email' => $userEmail, 'phone' => $userMobile);
+
+    $DreamKas = new DreamKas();
+    $preparedCheckJSON = $DreamKas->prepareCheckFiscalData($cahsMachineID, $taxType, $paymentType, $sellPosIDsPrices, $userContacts);
+    $DreamKas->fiscalizeCheck($preparedCheckJSON);
+
+    return ($DreamKas->getLastErrorMessage());
 }
 ?>
