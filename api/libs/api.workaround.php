@@ -576,6 +576,21 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $rows .= wf_TableRow($cells);
 
     $table = wf_TableBody($rows, '100%', 0, '');
+
+    if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED')) {
+        $DreamKas = new DreamKas();
+        $table.= $DreamKas->web_FiscalizePaymentCtrls('internet');
+        $table.= wf_tag('script', false, '', 'type="text/javascript"');
+        $table.= '$(document).ready(function() {
+                    // dirty hack with setTimeout() to work in Chrome 
+                    setTimeout(function(){
+                            $(\'#cashfield\').focus();
+                    }, 100);
+                  });   
+                 ';
+        $table.= wf_tag('script', true);
+    }
+
     $table .= wf_Submit(__('Payment'));
 
     $form = $suspnotifyscript;
