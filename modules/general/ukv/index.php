@@ -119,14 +119,59 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                 if ($ukv->isMoney($_POST['paymentsumm'])) {
                     if ($_POST['paymenttype'] != 'mock') {
                         $ukv->userAddCash($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
+
+                        if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
+                            $cahsMachineID = $_POST['drscashmachines'];
+                            $taxType = $_POST['drstaxtypes'];
+                            $paymentType = $_POST['drspaymtypes'];
+                            $userData = $ukv->getUserData($_POST['manualpaymentprocessing']);
+
+                            $userMobile = (empty($userData)) ? '' : $userData['mobile'];
+                            $userEmail = '';
+
+                            $sellPosIDsPrices = array($_POST['drssellpos'] => array('price' => ($_POST['paymentsumm'] * 100)));
+                            $userContacts = array('email' => $userEmail, 'phone' => $userMobile);
+
+                            $DreamKas = new DreamKas();
+                            $preparedCheckJSON = $DreamKas->prepareCheckFiscalData($cahsMachineID, $taxType, $paymentType, $sellPosIDsPrices, $userContacts);
+                            $DreamKas->fiscalizeCheck($preparedCheckJSON);
+                            $lastDKError = $DreamKas->getLastErrorMessage();
+                        }
                     } else {
                         $ukv->logPayment($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
                     }
-                    rcms_redirect(UkvSystem::URL_USERS_PROFILE . $_POST['manualpaymentprocessing']);
+
+                    $lastDKErrorParam = '';
+
+                    if (isset($lastDKError) and !empty($lastDKError)) {
+                        $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
+                    }
+
+                    rcms_redirect(UkvSystem::URL_USERS_PROFILE . $_POST['manualpaymentprocessing'] . $lastDKErrorParam);
                 } else {
                     show_window('', wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
                     log_register('UKV BALANCEADDFAIL ((' . $_POST['manualpaymentprocessing'] . ')) WRONG SUMM `' . $_POST['paymentsumm'] . '`');
                 }
+            }
+
+            $errorWindow = '';
+
+            if (wf_CheckGet(array('lastdkerror'))) {
+                $errorMessage = $ukv->getUbMessagesInstance()->getStyledMessage(urldecode($_GET['lastdkerror']), 'error');
+                $errorWindow = wf_modalAutoForm(__('Fiscalization error'), $errorMessage, '', '', true, 'true', '700');
+                /*$errorWindow.= wf_tag('script', false, '', 'type="text/javascript"');
+                $errorWindow.= '
+                                 $(document).ready(function() {
+                                    var curURL = window.location;
+
+                                    if (~curURL.indexOf("&lastdkerror")) {
+	                                    var newURL = curURL.substr(0, curURL.indexOf("&lastdkerror"));
+	                                    alert(newURL);
+	                                    window.location.href = newURL;
+                                    }
+                                 });
+                               ';
+                $errorWindow.= wf_tag('script', true);*/
             }
 
             //payments deletion
@@ -135,7 +180,7 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                 rcms_redirect(UkvSystem::URL_USERS_PROFILE . ubRouting::get('showuser'));
             }
 
-            show_window(__('User profile'), $ukv->userProfile($_GET['showuser']));
+            show_window(__('User profile'), $ukv->userProfile($_GET['showuser']) . $errorWindow);
         }
 
         // bank statements processing

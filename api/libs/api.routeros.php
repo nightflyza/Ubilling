@@ -161,6 +161,7 @@ class RouterOS {
     public function read($parse_response = true) {
         $response = array();
         $_ = '';
+        $_done = false;
 
         while ( true ) {
             $byte = ord(fread($this->socket, 1));
@@ -201,7 +202,7 @@ class RouterOS {
                 $this->debug('>>> [' . $retlen . '/' . $length . '] bytes read.');
             }
 
-            $_done = ($_ == '!done') ? true : false;
+            if ($_ == '!done') { $_done = true; }
 
             $status = socket_get_status($this->socket);
 
@@ -261,7 +262,7 @@ class RouterOS {
         foreach ( $data as $key => $value ) {
             switch ( $key[0] ) {
                 case '?':
-                    $el = $key . '=' . $value;
+                    $el = ($key[1] == '#') ? $key . $value : $key . '=' . $value;
                     break;
                 case '~':
                     $el = $key . '~' . $value;
@@ -270,7 +271,9 @@ class RouterOS {
                     $el = '=' . $key . '=' . $value;
                     break;
             }
-            $this->write($el, ($i++ == $count - 1));
+
+            $last = ($i++ == $count - 1);
+            $this->write($el, $last);
         }
         return $this->read();
     }

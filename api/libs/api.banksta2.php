@@ -816,7 +816,7 @@ class Banksta2 {
      * @return string
      */
     public function preprocessBStatement($statementRawData, $importOpts, $skipLastChecksForm = false) {
-        $statementRawData  = unserialize(base64_decode($statementRawData));
+        $statementRawData = unserialize(base64_decode($statementRawData));
 
         $contractGuess   = $importOpts['guess_contract'];
         $contractDelimS  = (empty($importOpts['contract_delim_start'])) ? '' : preg_quote($importOpts['contract_delim_start']);
@@ -844,14 +844,14 @@ class Banksta2 {
             $cells = wf_TableCell($i);
             $cancelRow = 0;
 
-            $realname = ($importOpts['col_realname'] !== 'NONE') ? $eachRow[$importOpts['col_realname']] : '';
-            $address  = ($importOpts['col_address'] !== 'NONE') ? $eachRow[$importOpts['col_address']] : '';
-            $notes    = ($importOpts['col_paypurpose'] !== 'NONE') ? $eachRow[$importOpts['col_paypurpose']] : '';
-            $ptime    = ($importOpts['col_paytime'] !== 'NONE') ? $eachRow[$importOpts['col_paytime']] : '';
-            $summ     = $eachRow[$importOpts['col_paysum']];
-            $pdate    = $eachRow[$importOpts['col_paydate']];
-            $contract = ($importOpts['col_contract'] !== 'NONE') ? $eachRow[$importOpts['col_contract']] : '';
-            $skipRowContent = ($importOpts['col_skiprow'] !== 'NONE') ? $eachRow[$importOpts['col_skiprow']] : '';
+            $realname = ($importOpts['col_realname'] !== 'NONE' and isset($eachRow[$importOpts['col_realname']])) ? $eachRow[$importOpts['col_realname']] : '';
+            $address  = ($importOpts['col_address'] !== 'NONE' and isset($eachRow[$importOpts['col_address']])) ? $eachRow[$importOpts['col_address']] : '';
+            $notes    = ($importOpts['col_paypurpose'] !== 'NONE' and isset($eachRow[$importOpts['col_paypurpose']])) ? $eachRow[$importOpts['col_paypurpose']] : '';
+            $ptime    = ($importOpts['col_paytime'] !== 'NONE' and isset($eachRow[$importOpts['col_paytime']])) ? $eachRow[$importOpts['col_paytime']] : '';
+            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? $eachRow[$importOpts['col_paysum']] : '';
+            $pdate    = (isset($eachRow[$importOpts['col_paydate']])) ? $eachRow[$importOpts['col_paydate']] : '';
+            $contract = ($importOpts['col_contract'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_contract']] : '';
+            $skipRowContent = ($importOpts['col_skiprow'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_skiprow']] : '';
             $service_type   = $serviceType;
             $srvTypeMatched = false;
 
@@ -985,15 +985,17 @@ class Banksta2 {
 
 
             // filling statement array for further processing
-            $statementData[$contract]['contract'] = $contract;
-            $statementData[$contract]['summ'] = $summ;
-            $statementData[$contract]['address'] = $address;
-            $statementData[$contract]['realname'] = $realname;
-            $statementData[$contract]['notes'] = $notes;
-            $statementData[$contract]['pdate'] = $pdate;
-            $statementData[$contract]['ptime'] = $ptime;
-            $statementData[$contract]['service_type'] = $service_type;
-            $statementData[$contract]['row_canceled'] = $cancelRow;
+            $tArrayIndex = wf_InputId() . wf_InputId();
+
+            $statementData[$tArrayIndex]['contract'] = $contract;
+            $statementData[$tArrayIndex]['summ'] = $summ;
+            $statementData[$tArrayIndex]['address'] = $address;
+            $statementData[$tArrayIndex]['realname'] = $realname;
+            $statementData[$tArrayIndex]['notes'] = $notes;
+            $statementData[$tArrayIndex]['pdate'] = $pdate;
+            $statementData[$tArrayIndex]['ptime'] = $ptime;
+            $statementData[$tArrayIndex]['service_type'] = $service_type;
+            $statementData[$tArrayIndex]['row_canceled'] = $cancelRow;
 
             if (!$skipLastChecksForm) {
                 $cells.= wf_TableCell($contract);
@@ -1033,7 +1035,8 @@ class Banksta2 {
             foreach ($statementData as $eachContract => $eachRow) {
                 if (!empty($eachRow)) {
                     $newDate = date("Y-m-d H:i:s");
-                    @$newContract = trim($eachContract);
+                    //@$newContract = trim($eachContract);
+                    @$newContract = trim($eachRow['contract']);
                     $newContract = mysql_real_escape_string($newContract);
                     @$newSumm = trim($eachRow['summ']);
                     $newSumm = mysql_real_escape_string($newSumm);
@@ -1072,10 +1075,19 @@ class Banksta2 {
     public function pushStatementPayments($paymentsToPush) {
         $paymentsToPush = unserialize(base64_decode($paymentsToPush));
         $checkForCorpUsers = $this->ubConfig->getAlterParam('USER_LINKING_ENABLED');
+        $dreamkasEnabled = $this->ubConfig->getAlterParam('DREAMKAS_ENABLED');
 
         if (!empty($paymentsToPush)) {
             $ukv = new UkvSystem();
+            $needToFiscalize = false;
+            $fiscalDataArray = array();
+
             if ($checkForCorpUsers) { $allParentUsers = cu_GetAllParentUsers(); }
+
+            if ($dreamkasEnabled and wf_CheckPost(array('bankstapaymentsfiscalize'))) {
+                $needToFiscalize = true;
+                $fiscalDataArray = json_decode(base64_decode($_POST['bankstapaymentsfiscalize']), true);
+            }
 
             foreach ($paymentsToPush as $eachRecID => $eachRec) {
                 if ($this->checkBankstaRowIsUnprocessed($eachRecID)) {
@@ -1085,11 +1097,11 @@ class Banksta2 {
                     $operation   = 'add';
                     $paymentNote = 'BANKSTA2: [' . $eachRecID . '] ASCONTRACT ' . $eachRec['usercontract'];
 
-                    if (strtolower($eachRec['service']) == 'internet') {
-                    // inet service payment processing
-                        if (!empty($userLogin)) {
-                            if (isset($this->allUsersDataInet[$userLogin])) {
-                                if (zb_checkMoney($paySumm)) {
+                    if (zb_checkMoney($paySumm)) {
+                        if (strtolower($eachRec['service']) == 'internet') {
+                            // inet service payment processing
+                            if (!empty($userLogin)) {
+                                if (isset($this->allUsersDataInet[$userLogin])) {
                                     // check for corporate user possibility
                                     if ($checkForCorpUsers and bs_cu_IsParent($eachRec['userlogin'], $allParentUsers)) {
                                         //corporate user
@@ -1112,17 +1124,49 @@ class Banksta2 {
                                     }
 
                                     $this->setBankstaRecProcessed($eachRecID);
+                                } else {
+                                    log_register('BANKSTA2 [' . $eachRecID . '] FAIL LOGIN (' . $userLogin . ')');
                                 }
                             } else {
-                                log_register('BANKSTA2 [' . $eachRecID . '] FAIL LOGIN (' . $userLogin . ')');
+                                log_register('BANKSTA2 [' . $eachRecID . '] FAIL EMPTY LOGIN');
                             }
                         } else {
-                            log_register('BANKSTA2 [' . $eachRecID . '] FAIL EMPTY LOGIN');
+                            // UKV service payment processing
+                            $ukv->userAddCash($userLogin, $paySumm, 1, $cashType, $paymentNote);
+                            $this->setBankstaRecProcessed($eachRecID);
+                        }
+
+                        // dreamkas fiscalization routine
+                        if ($needToFiscalize and isset($fiscalDataArray[$eachRecID])) {
+                            $curRecFiscalData = $fiscalDataArray[$eachRecID];
+
+                            $cahsMachineID = $curRecFiscalData['drscashmachineid'];
+                            $taxType = $curRecFiscalData['drstaxtype'];
+                            $paymentType = $curRecFiscalData['drspaymtype'];
+
+                            if (strtolower($eachRec['service']) == 'internet') {
+                                $userMobile = zb_UserGetMobile($userLogin);
+                                $userEmail = zb_UserGetEmail($userLogin);
+                            } else {
+                                $userData = $ukv->getUserData($userLogin);
+                                $userMobile = (empty($userData)) ? '' : $userData['mobile'];
+                                $userEmail = '';
+                            }
+
+                            $sellPosIDsPrices = array($curRecFiscalData['drssellingpos'] => array('price' => ($paySumm * 100)));
+                            $userContacts = array('email' => $userEmail, 'phone' => $userMobile);
+
+                            $DreamKas = new DreamKas();
+                            $preparedCheckJSON = $DreamKas->prepareCheckFiscalData($cahsMachineID, $taxType, $paymentType, $sellPosIDsPrices, $userContacts);
+                            $DreamKas->fiscalizeCheck($preparedCheckJSON, $eachRecID);
+                            $lastDKError = $DreamKas->getLastErrorMessage();
+
+                            if (!empty($lastDKError)) {
+                                log_register('BANKSTA2 FAILED: payment record ID: [' . $eachRecID . '] fiscalization for service: [' . $eachRec['service'] . '] for login: [' . $userLogin . ']. Error message: ' . $lastDKError);
+                            }
                         }
                     } else {
-                    // UKV service payment processing
-                        $ukv->userAddCash($userLogin, $paySumm, 1, $cashType, $paymentNote);
-                        $this->setBankstaRecProcessed($eachRecID);
+                        log_register('BANKSTA2 FAILED: payment record ID: [' . $eachRecID . '] for service: [' . $eachRec['service'] . '] for login: [' . $userLogin . ']. ' . __('Wrong format of a sum of money to pay'));
                     }
                 } else {
                     $this->setBankstaRecProcessed($eachRecID);
@@ -1586,9 +1630,25 @@ class Banksta2 {
             $tQueryResult = simple_queryall($tQuery);
             $cashPairs = array();
             $tServices = array('' => __('-'),
-                'Internet' => __('Internet'),
-                'UKV' => __('UKV')
-            );
+                               'Internet' => __('Internet'),
+                               'UKV' => __('UKV')
+                              );
+
+            $dreamkasEnabled = $this->ubConfig->getAlterParam('DREAMKAS_ENABLED');
+            $fiscalRecsIDsList = array();
+            $addFiscalizePaymentCtrlsJS = false;
+
+            if ($dreamkasEnabled) {
+                $DreamKas = new DreamKas();
+            }
+
+            $dreamkasEnabled = $this->ubConfig->getAlterParam('DREAMKAS_ENABLED');
+            $fiscalRecsIDsList = array();
+            $addFiscalizePaymentCtrlsJS = false;
+
+            if ($dreamkasEnabled) {
+                $DreamKas = new DreamKas();
+            }
 
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Statement Address'));
@@ -1636,7 +1696,7 @@ class Banksta2 {
                                     ';
                     $addInfoControl .= wf_tag('script', true);
 
-                    $cells = wf_TableCell($addInfoControl);
+                    $cells = wf_TableCell($addInfoControl, '', '', '', '', (($dreamkasEnabled) ? '2' : ''));
                     $cells .= wf_TableCell($eachRec['address']);
                     $cells .= wf_TableCell($eachRec['realname']);
 
@@ -1678,11 +1738,7 @@ class Banksta2 {
                     $detectedAddress = '';
                     $detectedRealName = '';
                     $detectedTariff = '';
-                    if ($eachRec['processed'] == 1) {
-                        $rowClass = 'row2';
-                    } else {
-                        $rowClass = 'undone';
-                    }
+                    $rowClass = ($recProcessed) ? 'row2' : 'undone';
 
                     switch (strtolower($serviceType)) {
                         case ('internet'):
@@ -1700,6 +1756,8 @@ class Banksta2 {
                                     $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
                                     $cashPairs[$eachRec['id']]['payid'] = $this->inetPaymentId;
                                     $cashPairs[$eachRec['id']]['service'] = $serviceType;
+
+                                    $fiscalRecsIDsList[] = $eachRec['id'];
                                 }
 
                                 $rowClass = 'row3';
@@ -1728,6 +1786,8 @@ class Banksta2 {
                                     $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
                                     $cashPairs[$eachRec['id']]['payid'] = $this->ukvPaymentId;
                                     $cashPairs[$eachRec['id']]['service'] = $serviceType;
+
+                                    $fiscalRecsIDsList[] = $eachRec['id'];
                                 }
 
                                 $rowClass = 'row3';
@@ -1744,22 +1804,69 @@ class Banksta2 {
                             // maybe sometime in future here would be some defaults
                     }
 
-                    $cells .= wf_TableCell($detectedContract);
-                    $cells .= wf_TableCell($detectedRealName);
-                    $cells .= wf_TableCell($detectedAddress);
-                    $cells .= wf_TableCell($detectedTariff);
-                    $rows .= wf_TableRow($cells, $rowClass);
+                    $cells.= wf_TableCell($detectedContract);
+                    $cells.= wf_TableCell($detectedRealName);
+                    $cells.= wf_TableCell($detectedAddress);
+                    $cells.= wf_TableCell($detectedTariff);
+                    $rows.= wf_TableRow($cells, $rowClass);
+
+                    // dreamkas fiscalizing controls
+                    if ($dreamkasEnabled) {
+                        if ($recProcessed) {
+                            if ($recCanceled) {
+                                $rows.= wf_TableRow('');
+                            } else {
+                                // geting fiscalized data
+                                $rows.= $DreamKas->web_ReceiptDetailsTableRow($eachRec['id']);
+                            }
+                        } else {
+                            $addFiscalizePaymentCtrlsJS = true;
+                            $rows.= $DreamKas->web_FiscalizePaymentCtrls($serviceType, true, $eachRec['id']);
+                        }
+                    }
                 }
             }
 
             $result = wf_TableBody($rows, '100%', '0', '');
+            $result.= ($addFiscalizePaymentCtrlsJS) ? $DreamKas->get_BS2FiscalizePaymentCtrlsJS() : '';
 
             if (!empty($cashPairs)) {
+                $formID = wf_InputId();
                 $cashPairs = serialize($cashPairs);
                 $cashPairs = base64_encode($cashPairs);
                 $cashInputs = wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
-                $cashInputs .= wf_Submit(__('Process current bank statement'));
-                $result .= wf_Form('', 'POST', $cashInputs, 'glamour');
+                $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstafiscalrecsidslist', base64_encode(json_encode($fiscalRecsIDsList))) : '';
+                $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstapaymentsfiscalize', '') : '';
+                $cashInputs.= wf_Submit(__('Process current bank statement'));
+                $result.= wf_Form('', 'POST', $cashInputs, 'glamour', '', $formID);
+
+                if ($dreamkasEnabled) {
+                    $result.= wf_tag('script', false, '', 'type="text/javascript"');
+                    $result.= '
+                                $(\'#' . $formID . '\').submit(function(evt) {
+                                    fiscalizationArr = {};
+                                    fiscalRecsIDsList = JSON.parse(atob($(\'[name="bankstafiscalrecsidslist"]\').val()));
+                                    
+                                    $(\'[name^="fiscalizepayment_"]\').each(function(chkindex, chkelement) { 
+                                        if ($(chkelement).is(\':checked\')) {
+                                            checkCtrlID = $(chkelement).attr("id").substring($(chkelement).attr("id").indexOf(\'_\') + 1);
+                                            
+                                            if ($.inArray(checkCtrlID, fiscalRecsIDsList) != -1) {		
+                                                fiscalizationArr[checkCtrlID] = {};
+                                                
+                                                fiscalizationArr[checkCtrlID][\'drscashmachineid\'] = $(\'[name=drscashmachines_\'+checkCtrlID+\']\').val();
+                                                fiscalizationArr[checkCtrlID][\'drstaxtype\'] = $(\'[name=drstaxtypes_\'+checkCtrlID+\']\').val();
+                                                fiscalizationArr[checkCtrlID][\'drspaymtype\'] = $(\'[name=drspaymtypes_\'+checkCtrlID+\']\').val();
+                                                fiscalizationArr[checkCtrlID][\'drssellingpos\'] = $(\'[name=drssellpos_\'+checkCtrlID+\']\').val();
+                                            }
+                                        }
+                                    });
+                                    
+                                    $(\'[name="bankstapaymentsfiscalize"]\').val(btoa(JSON.stringify(fiscalizationArr)));
+                                });
+                              ';
+                    $result.= wf_tag('script', true);
+                }
             }
         } else {
             $result = $this->getUbMsgHelperInstance()->getStyledMessage(__('Specified bank statement hash does not exists'), 'warning');
