@@ -388,7 +388,7 @@ class ForWhomTheBellTolls {
     /**
      * Renders widget code if it required for current situation
      * 
-     * @return void
+     * @return string/void
      */
     public function renderWidget() {
         $result = '';
@@ -407,7 +407,7 @@ class ForWhomTheBellTolls {
                 if ((!empty($this->showFor) AND ( !isset($this->showFor[$this->myLogin])))) {
                     $result = '';
                 }
-                print($result);
+                return($result);
             }
         }
     }
