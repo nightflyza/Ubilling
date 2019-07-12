@@ -32,6 +32,13 @@ class DarkVoid {
     protected $cacheTime = '10';
 
     /**
+     * UbillingConfig object placeholder
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
+    /**
      * Cache storage path
      */
     const CACHE_PATH = 'exports/';
@@ -104,6 +111,7 @@ class DarkVoid {
      */
     protected function loadAlter() {
         global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
         if (isset($this->altCfg['DARKVOID_CACHETIME'])) {
             if ($this->altCfg['DARKVOID_CACHETIME']) {
@@ -299,7 +307,12 @@ class DarkVoid {
             }
         }
 
-        //appending some debug string to validate cache expire
+        if ($this->ubConfig->getAlterParam('DREAMKAS_ENABLED') and $this->ubConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED')) {
+            $dsNotifyFront = new DreamKasNotifications();
+            $this->alerts .= $dsNotifyFront->renderWidget();
+        }
+
+            //appending some debug string to validate cache expire
         $this->alerts .= '<!-- DarkVoid saved: ' . curdatetime() . ' -->';
 
         //saving per-admin cache data
