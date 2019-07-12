@@ -470,10 +470,10 @@ class TrinityTvFrontend {
             $devices = $this->getSubscriberDevices();
 
             // Add device
-            $result .= la_modal(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button', 260, 160);
+            $result .= la_modalAuto(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button');
 
             // Add device by MAC
-            $result .= la_modal(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button', 260, 160);
+            $result .= la_modalAuto(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button');
 
             $result .= la_tag('br') . la_tag('br');
 

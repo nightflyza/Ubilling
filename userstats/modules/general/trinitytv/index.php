@@ -74,8 +74,10 @@ if (@$us_config['TRINITYTV_ENABLED']) {
         }
 
         // device
-        show_window(__('Devices'), $trinitytvFront->renderDevices());
-        show_window('', la_tag('br'));
+        if ($trinitytvFront->haveSubscribtions()) {
+            show_window(__('Devices'), $trinitytvFront->renderDevices());
+            show_window('', la_tag('br'));
+        }
 
         //default sub/unsub form
         show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
@@ -85,7 +87,6 @@ if (@$us_config['TRINITYTV_ENABLED']) {
             $guideLink = la_Link($us_config['TRINITYTV_GUIDE_URL'], __('How to configure your devices and use service'), false, 'trinity-button');
             show_window('', $guideLink);
         }
-        
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }

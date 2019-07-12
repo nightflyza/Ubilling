@@ -72,7 +72,6 @@ if (@$us_config['SWEETTV_ENABLED']) {
         //view button if is some subscriptions here
         if ($trinitytvFront->haveSubscribtions()) {
             show_window(__('Your subscriptions'), $trinitytvFront->renderSubscribtions());
-           // show_window('', la_tag('br'));
         }
 
         // device

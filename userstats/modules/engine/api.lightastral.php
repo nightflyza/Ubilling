@@ -11,7 +11,7 @@ function la_InputId() {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $result = "";
     for ($p = 0; $p < 8; $p++) {
-        $result.= $characters[mt_rand(0, (strlen($characters) - 1))];
+        $result .= $characters[mt_rand(0, (strlen($characters) - 1))];
     }
     return ($result);
 }
@@ -83,10 +83,10 @@ function la_TextInput($name, $label = '', $value = '', $br = false, $size = '') 
     }
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -116,10 +116,10 @@ function la_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
     }
     $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -145,7 +145,7 @@ function la_Link($url, $title, $br = false, $class = '') {
         $newline = '';
     }
     $result = '<a href="' . $url . '" ' . $link_class . '>' . __($title) . '</a>' . "\n";
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -174,10 +174,10 @@ function la_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
     }
     $result = '<input type="radio" name="' . $name . '" value="' . $value . '"  id="' . $inputid . '" ' . $check . '>' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -205,10 +205,10 @@ function la_CheckInput($name, $label = '', $br = false, $checked = false) {
     }
     $result = '<input type="checkbox" id="' . $inputid . '" name="' . $name . '" ' . $check . ' />';
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -239,10 +239,10 @@ function la_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
     }
     $result = '<textarea name="' . $name . '" ' . $input_size . ' id="' . $inputid . '">' . $value . '</textarea>' . "\n";
     if ($label != '') {
-        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -298,15 +298,15 @@ function la_Selector($name, $params, $label, $selected = '', $br = false) {
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -345,15 +345,15 @@ function la_MonthSelector($name, $label, $selected = '', $br = false) {
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+            $result .= '<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
-    $result.='</select>' . "\n";
+    $result .= '</select>' . "\n";
     if ($label != '') {
-        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline . "\n";
+    $result .= $newline . "\n";
     return ($result);
 }
 
@@ -377,13 +377,13 @@ function la_YearSelector($name, $label = '', $br = false) {
     }
     $selector = '<select name="' . $name . '">';
     for ($i = 0; $i < $count; $i++) {
-        $selector.='<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
+        $selector .= '<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
     }
-    $selector.='</select>';
+    $selector .= '</select>';
     if ($label != '') {
-        $selector.='<label for="' . $inputid . '">' . __($label) . '</label>';
+        $selector .= '<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $selector.=$newline;
+    $selector .= $newline;
     return($selector);
 }
 
@@ -547,7 +547,7 @@ function la_img($url, $title = '') {
 function la_delimiter($count = 1) {
     $result = '';
     for ($i = 0; $i <= $count; $i++) {
-        $result.='<br />';
+        $result .= '<br />';
     }
     return ($result);
 }
@@ -732,6 +732,61 @@ $(function() {
 	<p>
         ' . $content . '
         </p>
+</div>
+
+<a href="#" id="opener_' . $wid . '" ' . $link_class . '>' . $link . '</a>
+';
+
+    return($dialog);
+}
+
+/**
+ * Returns link that calls new modal window with automatic dimensions by inside content
+ * 
+ * @param string $link link text
+ * @param string $title modal window title
+ * @param string $content modal window content
+ * @param string $linkclass link class
+ *
+ * @return string
+ *  
+ */
+function la_modalAuto($link, $title, $content, $linkclass = '') {
+    $wid = la_inputid();
+
+//setting link class
+    if ($linkclass != '') {
+        $link_class = 'class="' . $linkclass . '"';
+    } else {
+        $link_class = '';
+    }
+
+    $width = "'auto'";
+    $height = "'auto'";
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: false,
+			width: \'auto\',
+            height: \'auto\',
+			modal: true,
+			show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+            return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+    ' . $content . '
+    </p>
 </div>
 
 <a href="#" id="opener_' . $wid . '" ' . $link_class . '>' . $link . '</a>
