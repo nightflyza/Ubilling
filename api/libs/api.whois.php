@@ -245,11 +245,9 @@ class UbillingWhois {
         if ((!empty($this->geoData->latitude)) AND ( !empty($this->geoData->longitude))) {
             global $ubillingConfig;
             $ymconf = $ubillingConfig->getYmaps();
-
-            $result = wf_tag('div', false, '', 'id="ubmap" style="width: 100%; height:400px;"');
-            $result.=wf_tag('div', true);
-            $placemarks = sm_MapAddMark($this->geoData->latitude . ',' . $this->geoData->longitude);
-            sm_MapInit($this->geoData->latitude . ',' . $this->geoData->longitude, 8, $ymconf['TYPE'], $placemarks, '', $ymconf['LANG']);
+            $result = generic_MapContainer('100%', '400px;', 'ubmap');
+            $placemarks = generic_MapAddMark($this->geoData->latitude . ',' . $this->geoData->longitude, @$this->geoData->city);
+            $result .= generic_MapInit($this->geoData->latitude . ',' . $this->geoData->longitude, 8, $ymconf['TYPE'], $placemarks, '', $ymconf['LANG'], 'ubmap');
         }
         return ($result);
     }
@@ -269,53 +267,53 @@ class UbillingWhois {
             $asLink = (!empty($this->ispData->as)) ? wf_Link(self::URL_ASINFO . $this->ispData->as, $this->ispData->as) : '';
 
             $cells = wf_TableCell(__('IP'), '', 'row2');
-            $cells.= wf_TableCell($this->ispData->ip);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($this->ispData->ip);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Reverse DNS'), '', 'row2');
-            $cells.= wf_TableCell($this->resolveData);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($this->resolveData);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('RIPE name'), '', 'row2');
-            $cells.= wf_TableCell(@$this->ispData->name_ripe);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(@$this->ispData->name_ripe);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('ISP name'), '', 'row2');
-            $cells.= wf_TableCell(@$this->ispData->name_rus);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(@$this->ispData->name_rus);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('ISP site'), '', 'row2');
-            $cells.= wf_TableCell($siteLink);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($siteLink);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('AS'), '', 'row2');
-            $cells.= wf_TableCell($asLink);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($asLink);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Prefix'), '', 'row2');
             $prefix = (!empty($this->ispData->route)) ? $this->ispData->route . '/' . $this->ispData->mask : '';
-            $cells.= wf_TableCell($prefix);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($prefix);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('IP range'), '', 'row2');
             if ((!empty($this->ispData->ip_range_start)) AND ( !empty($this->ispData->ip_range_end))) {
                 $ipRange = int2ip($this->ispData->ip_range_start) . ' - ' . int2ip($this->ispData->ip_range_end);
             } else {
                 $ipRange = '';
             }
-            $cells.= wf_TableCell($ipRange);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($ipRange);
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
         if (!empty($this->geoData)) {
             $cells = wf_TableCell(__('Country'), '', 'row2');
-            $cells.= wf_TableCell($this->geoData->country);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($this->geoData->country);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Region'), '', 'row2');
-            $cells.= wf_TableCell($this->geoData->region);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($this->geoData->region);
+            $rows .= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('City'), '', 'row2');
-            $cells.= wf_TableCell($this->geoData->city);
-            $rows.=wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($this->geoData->city);
+            $rows .= wf_TableRow($cells, 'row3');
             $miniMap = $this->renderMinimap();
         }
 
         if (!empty($rows)) {
             $result = wf_TableBody($rows, '100%', 0, '');
-            $result.=$miniMap;
+            $result .= $miniMap;
         }
 
         return ($result);
