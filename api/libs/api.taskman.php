@@ -626,7 +626,7 @@ function ts_JGetUndoneTasks() {
             //anyone employee coloring
             if ($anyoneId) {
                 if ($eachtask['employee'] == $anyoneId) {
-                    $jobColorClass='jobcoloranyone';
+                    $jobColorClass = 'jobcoloranyone';
                 }
             }
 
@@ -2579,7 +2579,14 @@ function ts_PrintTasksTable($datefrom, $dateto) {
         $appendQuery = '';
     }
 
-    $query = "select * from `taskman` LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . $advFilter . " " . $appendQuery . " " . "ORDER BY `address`";
+    $orderFilter = 'address';
+    $customOrderFilter = $ubillingConfig->getAlterParam('TASKMAN_PRINT_ORDER');
+    if ($customOrderFilter) {
+        $orderFilter = mysql_real_escape_string($customOrderFilter);
+    }
+
+    $query = "select * from `taskman` LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
+
     $alltasks = simple_queryall($query);
 
     if (!empty($alltasks)) {
