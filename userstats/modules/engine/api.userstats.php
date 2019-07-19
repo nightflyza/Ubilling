@@ -1937,10 +1937,10 @@ function zbs_AnnouncementsNotice() {
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
     if (zbs_AnnouncementsAvailable()) {
-        $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, ''));
-        $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, ''));
+        $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
+        $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
         $rows = la_TableRow($cells);
-        $result.= la_TableBody($rows, '70%', 0, '');
+        $result.= la_TableBody($rows, '100%', 0, 'announcementstable');
         show_window('', $result);
     }
 }

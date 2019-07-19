@@ -364,3 +364,12 @@ sub, sup {
     position: relative;
     vertical-align: baseline;
 }
+
+
+.announcementstable {
+    
+}
+
+.announcementslink {
+    font-size: x-large;
+}
