@@ -949,51 +949,58 @@ function ts_TaskCreateForm() {
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
-    //construct sms sending inputs
-    if ($altercfg['SENDDOG_ENABLED']) {
-        $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
-        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
-    } else {
-        $smsInputs = '';
-        $telegramInputs = '';
-    }
 
-    $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-    $inputs .= wf_HiddenInput('createtask', 'true');
-    $inputs .= wf_DatePicker('newstartdate');
-    $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
-    $inputs .= wf_delimiter();
-
-    if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
-        $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
-    } else {
-        if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
-            $allAddress = zb_AddressGetFulladdresslistCached();
+    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+        //construct sms sending inputs
+        if ($altercfg['SENDDOG_ENABLED']) {
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+            $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
         } else {
-            $allAddress = zb_AddressGetStreetsWithBuilds();
+            $smsInputs = '';
+            $telegramInputs = '';
         }
-        $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
+
+        $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs .= wf_HiddenInput('createtask', 'true');
+        $inputs .= wf_DatePicker('newstartdate');
+        $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
+        $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+        $inputs .= wf_delimiter();
+
+        if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
+            $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
+        } else {
+            if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
+                $allAddress = zb_AddressGetFulladdresslistCached();
+            } else {
+                $allAddress = zb_AddressGetStreetsWithBuilds();
+            }
+            $inputs .= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
+        }
+        $inputs .= wf_tag('br');
+        //hidden for new task login input
+        $inputs .= wf_HiddenInput('newtasklogin', '');
+        $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= ts_TaskTypicalNotesSelector();
+        $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs .= $smsInputs;
+        $inputs .= $telegramInputs;
+        $inputs .= wf_Submit(__('Create new task'));
+
+        $result = wf_Form("", 'POST', $inputs, 'glamour');
+        $result .= __('All fields marked with an asterisk are mandatory');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result = $messages->getStyledMessage(__('No job types and employee available'), 'error');
     }
-    $inputs .= wf_tag('br');
-    //hidden for new task login input
-    $inputs .= wf_HiddenInput('newtasklogin', '');
-    $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', '', true, '30');
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= ts_TaskTypicalNotesSelector();
-    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
-    $inputs .= $smsInputs;
-    $inputs .= $telegramInputs;
-    $inputs .= wf_Submit(__('Create new task'));
-    $result = wf_Form("", 'POST', $inputs, 'glamour');
-    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1013,76 +1020,81 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
-    $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
-    $telepat_who_should_do = simple_query($query);
+    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+        // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
+        $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
+        $telepat_who_should_do = simple_query($query);
 
-    //construct sms sending inputs
-    if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
-        $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
-        $telegramInputsCheck = ($ubillingConfig->getAlterParam('TASKMAN_TELEGRAM_PROFILE_CHECK')) ? TRUE : FALSE;
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
-    } else {
-        $smsInputs = '';
-        $telegramInputs = '';
-    }
-
-    //new task creation data/time generation
-    if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 1) {
-        $TaskDate = new DateTime();
-        $TaskDate->add(new DateInterval('PT1H'));
-        $newTaskDate = $TaskDate->format('Y-m-d');
-        $newTaskTime = $TaskDate->format('H:i');
-    } elseif ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 2) {
-        $TaskDate = new DateTime();
-        $TaskDate->add(new DateInterval('P1D'));
-        $TaskDate->setTime(8, 00);
-        // В воскресенье работать не хочу
-        if ($newTaskDate = $TaskDate->format('w') == 0) {
-            $TaskDate->add(new DateInterval('P1D'));
+        //construct sms sending inputs
+        if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            $telegramInputsCheck = ($ubillingConfig->getAlterParam('TASKMAN_TELEGRAM_PROFILE_CHECK')) ? TRUE : FALSE;
+            $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
+        } else {
+            $smsInputs = '';
+            $telegramInputs = '';
         }
-        $newTaskDate = $TaskDate->format('Y-m-d');
-        $newTaskTime = $TaskDate->format('H:i');
-    } else {
-        $newTaskDate = '';
-        $newTaskTime = '';
-    }
 
-    $employeeSorting = ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_EMPSORT')) ? true : false;
+        //new task creation data/time generation
+        if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 1) {
+            $TaskDate = new DateTime();
+            $TaskDate->add(new DateInterval('PT1H'));
+            $newTaskDate = $TaskDate->format('Y-m-d');
+            $newTaskTime = $TaskDate->format('H:i');
+        } elseif ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 2) {
+            $TaskDate = new DateTime();
+            $TaskDate->add(new DateInterval('P1D'));
+            $TaskDate->setTime(8, 00);
+            // В воскресенье работать не хочу
+            if ($newTaskDate = $TaskDate->format('w') == 0) {
+                $TaskDate->add(new DateInterval('P1D'));
+            }
+            $newTaskDate = $TaskDate->format('Y-m-d');
+            $newTaskTime = $TaskDate->format('H:i');
+        } else {
+            $newTaskDate = '';
+            $newTaskTime = '';
+        }
 
-    $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
+        $employeeSorting = ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_EMPSORT')) ? true : false;
 
-    $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-    $inputs .= wf_HiddenInput('createtask', 'true');
-    $inputs .= wf_DatePickerPreset('newstartdate', $newTaskDate);
-    $inputs .= wf_TimePickerPreset('newstarttime', $newTaskTime, '', false);
-    $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
-    $inputs .= wf_delimiter();
-    $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
-    //hidden for new task login input
-    $inputs .= wf_HiddenInput('newtasklogin', $login);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, $employeeSorting);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs .= ts_TaskTypicalNotesSelector();
-    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
-    $inputs .= $smsInputs;
-    $inputs .= $telegramInputs;
-    $inputs .= wf_Submit(__('Create new task'));
-    if (!empty($login)) {
-        $inputs .= wf_AjaxLoader();
-        $inputs .= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
+        $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
+
+        $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs .= wf_HiddenInput('createtask', 'true');
+        $inputs .= wf_DatePickerPreset('newstartdate', $newTaskDate);
+        $inputs .= wf_TimePickerPreset('newstarttime', $newTaskTime, '', false);
+        $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
+        //hidden for new task login input
+        $inputs .= wf_HiddenInput('newtasklogin', $login);
         $inputs .= wf_tag('br');
-        $inputs .= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
+        $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, $employeeSorting);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= ts_TaskTypicalNotesSelector();
+        $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs .= $smsInputs;
+        $inputs .= $telegramInputs;
+        $inputs .= wf_Submit(__('Create new task'));
+        if (!empty($login)) {
+            $inputs .= wf_AjaxLoader();
+            $inputs .= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
+        }
+        $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
+        $result .= __('All fields marked with an asterisk are mandatory');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result = $messages->getStyledMessage(__('No job types and employee available'), 'error');
     }
-    $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
-    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1176,46 +1188,52 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    //construct sms sending inputs
-    if ($altercfg['SENDDOG_ENABLED']) {
-        $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
-        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
+    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+
+        //construct sms sending inputs
+        if ($altercfg['SENDDOG_ENABLED']) {
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+            $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
+        } else {
+            $smsInputs = '';
+            $telegramInputs = '';
+        }
+
+        $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+
+        $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
+        $inputs .= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+        $inputs .= wf_HiddenInput('createtask', 'true');
+        $inputs .= wf_DatePicker('newstartdate');
+        $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
+        $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
+        $inputs .= wf_HiddenInput('newtasklogin', $login);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= ts_TaskTypicalNotesSelector();
+        $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+        if (!empty($customData)) {
+            $inputs .= $customData;
+        }
+        $inputs .= $smsInputs;
+        $inputs .= $telegramInputs;
+        $inputs .= wf_Submit(__('Create new task'));
+        $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
+        $result .= __('All fields marked with an asterisk are mandatory');
     } else {
-        $smsInputs = '';
-        $telegramInputs = '';
+        $messages = new UbillingMessageHelper();
+        $result = $messages->getStyledMessage(__('No job types and employee available'), 'error');
     }
-
-    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-
-    $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
-    $inputs .= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
-    $inputs .= wf_HiddenInput('createtask', 'true');
-    $inputs .= wf_DatePicker('newstartdate');
-    $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs .= wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
-    $inputs .= wf_delimiter();
-    $inputs .= wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
-    $inputs .= wf_HiddenInput('newtasklogin', $login);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs .= ts_TaskTypicalNotesSelector();
-    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
-    if (!empty($customData)) {
-        $inputs .= $customData;
-    }
-    $inputs .= $smsInputs;
-    $inputs .= $telegramInputs;
-    $inputs .= wf_Submit(__('Create new task'));
-    $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
-    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
@@ -1228,45 +1246,51 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
  * @return string
  */
 function ts_TaskCreateFormSigreq($address, $phone) {
+    global $ubillingConfig;
+    $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
 
-    //construct sms sending inputs
-    if ($altercfg['SENDDOG_ENABLED']) {
-        $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
-        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
+    if (!empty($alljobtypes) AND ! empty($allemployee)) {
+        //construct sms sending inputs
+        if ($altercfg['SENDDOG_ENABLED']) {
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+            $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+            $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
+        } else {
+            $smsInputs = '';
+            $telegramInputs = '';
+        }
+
+        $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs .= wf_HiddenInput('createtask', 'true');
+        $inputs .= wf_DatePicker('newstartdate');
+        $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
+        $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+        $inputs .= wf_delimiter();
+        $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
+        //hidden for new task login input
+        $inputs .= wf_HiddenInput('newtasklogin', '');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $phone, true, '30');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= ts_TaskTypicalNotesSelector();
+        $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs .= $smsInputs;
+        $inputs .= $telegramInputs;
+        $inputs .= wf_Submit(__('Create new task'));
+        $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
+        $result .= __('All fields marked with an asterisk are mandatory');
     } else {
-        $smsInputs = '';
-        $telegramInputs = '';
+        $messages = new UbillingMessageHelper();
+        $result = $messages->getStyledMessage(__('No job types and employee available'), 'error');
     }
-
-    $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-    $inputs .= wf_HiddenInput('createtask', 'true');
-    $inputs .= wf_DatePicker('newstartdate');
-    $inputs .= wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs .= wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
-    $inputs .= wf_delimiter();
-    $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
-    //hidden for new task login input
-    $inputs .= wf_HiddenInput('newtasklogin', '');
-    $inputs .= wf_tag('br');
-    $inputs .= wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $phone, true, '30');
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-    $inputs .= wf_tag('br');
-    $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
-    $inputs .= ts_TaskTypicalNotesSelector();
-    $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
-    $inputs .= $smsInputs;
-    $inputs .= $telegramInputs;
-    $inputs .= wf_Submit(__('Create new task'));
-    $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
-    $result .= __('All fields marked with an asterisk are mandatory');
     return ($result);
 }
 
