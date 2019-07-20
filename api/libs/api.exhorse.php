@@ -471,13 +471,13 @@ class ExistentialHorse {
         if (!empty($allPayments)) {
             foreach ($allPayments as $io => $each) {
                 //total money counting
-                $this->storeTmp['f_totalmoney']+=round($each['summ'], 2);
+                $this->storeTmp['f_totalmoney'] += round($each['summ'], 2);
                 //total payments count increment
                 $this->storeTmp['f_paymentscount'] ++;
 
                 //cash money processing
                 if (($each['summ'] >= 0) AND ( isset($this->cashIds[$each['cashtypeid']]))) {
-                    $this->storeTmp['f_cashmoney']+=round($each['summ'], 2);
+                    $this->storeTmp['f_cashmoney'] += round($each['summ'], 2);
                     $this->storeTmp['f_cashcount'] ++;
                 }
             }
@@ -538,7 +538,7 @@ class ExistentialHorse {
 
                     //total debt
                     if ($eachUser['cash'] < 0) {
-                        $this->storeTmp['c_totaldebt']+=round($eachUser['cash'], 2);
+                        $this->storeTmp['c_totaldebt'] += round($eachUser['cash'], 2);
                     }
 
                     //active users counting
@@ -588,7 +588,7 @@ class ExistentialHorse {
             if (!empty($allUkvPayments)) {
                 foreach ($allUkvPayments as $io => $eachPayment) {
                     //total summ
-                    $this->storeTmp['c_totalmoney']+=round($eachPayment['summ'], 2);
+                    $this->storeTmp['c_totalmoney'] += round($eachPayment['summ'], 2);
                     //payments count
                     $this->storeTmp['c_paymentscount'] ++;
                 }
@@ -702,7 +702,7 @@ class ExistentialHorse {
                     if (!empty($normalCalls)) {
                         unset($normalCalls[0]);
                         foreach ($normalCalls as $io => $each) {
-                           
+
                             //Askozia CFE fix
                             if (sizeof($each) > 25) {
                                 array_splice($each, 3, 1);
@@ -719,12 +719,12 @@ class ExistentialHorse {
                                         }
                                         $this->storeTmp['a_totalcalls'] ++;
                                         //call duration in seconds increment
-                                        $this->storeTmp['a_totalcallsduration']+=$each[13];
+                                        $this->storeTmp['a_totalcallsduration'] += $each[13];
                                     }
                                 }
                             }
-                            
-                             /*
+
+                            /*
                              * CFLOWS FIX
                              * ************** */
                             //some flow started for income call
@@ -757,7 +757,7 @@ class ExistentialHorse {
                         if (!empty($callFlows)) {
                             $this->storeTmp['a_totalanswered'] = 0;
                             $this->storeTmp['a_totalcalls'] = sizeof($callFlows);
-                            
+
                             foreach ($callFlows as $cflowid => $cflowdata) {
                                 $flowTime = explode('|', $cflowid);
                                 $flowTime = explode(' ', $flowTime[1]);
@@ -789,7 +789,7 @@ class ExistentialHorse {
                         $totalMissed += $each['missedcount'];
                         $totalRecalls += $each['recallscount'];
                         $totalUnsucc += $each['unsucccount'];
-                        $totalReactTime+=$each['totaltrytime'];
+                        $totalReactTime += $each['totaltrytime'];
                     }
                 }
                 $totalCalls = $totalRecalls + $totalMissed;
@@ -1045,11 +1045,11 @@ class ExistentialHorse {
         $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->showYear, true) . ' ';
         $chartsFlag = (wf_CheckPost(array('showcharts'))) ? true : false;
         $allTimeFlag = ($this->showYear == '1488') ? true : false; // dont ask me why
-        $inputs.= wf_CheckInput('showcharts', __('Graphs'), false, $chartsFlag) . ' ';
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_CheckInput('showcharts', __('Graphs'), false, $chartsFlag) . ' ';
+        $inputs .= wf_Submit(__('Show'));
         $yearForm = wf_Form('', 'POST', $inputs, 'glamour');
-        $yearForm.=wf_CleanDiv();
-        $result.=$yearForm;
+        $yearForm .= wf_CleanDiv();
+        $result .= $yearForm;
         $riseOfTheNorthStar = array(); //userbase rise and drain stats
         $riseOfTheNorthStar['total'] = 0;
         $riseOfTheNorthStar['active'] = 0;
@@ -1083,18 +1083,30 @@ class ExistentialHorse {
         $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU'), __('Debt')));
         $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
         $askoziaChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
-        $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
+
+        $equipChartData = array(0 => array(__('Month'), __('Switches')));
+
+        if ($this->ponFlag AND $this->docsisFlag) {
+            $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
+        }
+
+        if (!$this->docsisFlag AND $this->ponFlag) {
+            $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU')));
+        }
+        if ($this->docsisFlag AND ! $this->ponFlag) {
+            $equipChartData = array(0 => array(__('Month'), __('Switches'), __('DOCSIS modems')));
+        }
 
 
         if (!empty($yearData)) {
             //internet users
             $cells = wf_TableCell(__('Month'));
-            $cells.= wf_TableCell(__('Total'));
-            $cells.= wf_TableCell(__('Movement') . ' (' . __('Clean') . '/' . __('Dirty') . ')');
-            $cells.= wf_TableCell(__('Active'));
-            $cells.= wf_TableCell(__('Inactive'));
-            $cells.= wf_TableCell(__('Frozen'));
-            $cells.= wf_TableCell(__('Signups'));
+            $cells .= wf_TableCell(__('Total'));
+            $cells .= wf_TableCell(__('Movement') . ' (' . __('Clean') . '/' . __('Dirty') . ')');
+            $cells .= wf_TableCell(__('Active'));
+            $cells .= wf_TableCell(__('Inactive'));
+            $cells .= wf_TableCell(__('Frozen'));
+            $cells .= wf_TableCell(__('Signups'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($yearData as $yearNum => $monthArr) {
@@ -1138,11 +1150,11 @@ class ExistentialHorse {
                         $fontEnd = '';
                     }
 
-                    $cells.= wf_TableCell($each['u_totalusers']);
-                    $cells.= wf_TableCell($riseUsersIcon . ' ' . $fontColor . $riseTotal . $fontEnd . $starDelimiter . $riseActiveIcon . ' ' . $fontColorActive . $riseActive . $fontEnd);
-                    $cells.= wf_TableCell($each['u_activeusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_activeusers']) . '%)');
-                    $cells.= wf_TableCell($each['u_inactiveusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_inactiveusers']) . '%)');
-                    $cells.= wf_TableCell($each['u_frozenusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_frozenusers']) . '%)');
+                    $cells .= wf_TableCell($each['u_totalusers']);
+                    $cells .= wf_TableCell($riseUsersIcon . ' ' . $fontColor . $riseTotal . $fontEnd . $starDelimiter . $riseActiveIcon . ' ' . $fontColorActive . $riseActive . $fontEnd);
+                    $cells .= wf_TableCell($each['u_activeusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_activeusers']) . '%)');
+                    $cells .= wf_TableCell($each['u_inactiveusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_inactiveusers']) . '%)');
+                    $cells .= wf_TableCell($each['u_frozenusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_frozenusers']) . '%)');
                     if (!empty($each['u_citysignups'])) {
                         $signupData = '';
                         $sigDataTmp = base64_decode($each['u_citysignups']);
@@ -1151,22 +1163,22 @@ class ExistentialHorse {
                         $cityRows = '';
                         if (!empty($sigDataTmp)) {
                             $cityCells = wf_TableCell(__('City'));
-                            $cityCells.= wf_TableCell(__('Signups'));
-                            $cityRows.=wf_TableRow($cityCells, 'row1');
+                            $cityCells .= wf_TableCell(__('Signups'));
+                            $cityRows .= wf_TableRow($cityCells, 'row1');
                             foreach ($sigDataTmp as $sigCity => $cityCount) {
                                 $cityCells = wf_TableCell($sigCity);
-                                $cityCells.= wf_TableCell($cityCount);
-                                $cityRows.=wf_TableRow($cityCells, 'row3');
+                                $cityCells .= wf_TableCell($cityCount);
+                                $cityRows .= wf_TableRow($cityCells, 'row3');
                             }
-                            $citySigs.=wf_TableBody($cityRows, '100%', 0, '');
+                            $citySigs .= wf_TableBody($cityRows, '100%', 0, '');
                         }
-                        $signupData.=wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
+                        $signupData .= wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
                     } else {
                         $signupData = $each['u_signups'];
                     }
 
-                    $cells.= wf_TableCell($signupData);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($signupData);
+                    $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                     $usersChartData[] = array($yearDisplay . $months[$monthNum], $each['u_totalusers'], $each['u_activeusers'], $each['u_inactiveusers'], $each['u_frozenusers']);
@@ -1178,196 +1190,196 @@ class ExistentialHorse {
                 }
             }
 
-            $result.=wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
+            $result .= wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
-                $result.=wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
-                $result.=wf_gchartsLine($usersSignupsChartData, __('Signups'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($usersSignupsChartData, __('Signups'), '100%', '300px', $chartsOptions);
             }
 
 
             //complex data
             if ($this->complexFlag) {
-                $result.=wf_tag('h2') . __('Complex services') . wf_tag('h2', true);
+                $result .= wf_tag('h2') . __('Complex services') . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Month'));
-                $cells.= wf_TableCell(__('Total'));
-                $cells.= wf_TableCell(__('Active'));
-                $cells.= wf_TableCell(__('Inactive'));
+                $cells .= wf_TableCell(__('Total'));
+                $cells .= wf_TableCell(__('Active'));
+                $cells .= wf_TableCell(__('Inactive'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($yearData as $yearNum => $monthArr) {
                     foreach ($monthArr as $monthNum => $each) {
                         $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
 
                         $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                        $cells.= wf_TableCell($each['u_complextotal']);
-                        $cells.= wf_TableCell($each['u_complexactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexactive']) . '%)');
-                        $cells.= wf_TableCell($each['u_complexinactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexinactive']) . '%)');
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($each['u_complextotal']);
+                        $cells .= wf_TableCell($each['u_complexactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexactive']) . '%)');
+                        $cells .= wf_TableCell($each['u_complexinactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexinactive']) . '%)');
+                        $rows .= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                         $complexChartData[] = array($yearDisplay . $months[$monthNum], $each['u_complextotal'], $each['u_complexactive'], $each['u_complexinactive']);
                     }
                 }
-                $result.=wf_TableBody($rows, '100%', 0, '');
+                $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
-                    $result.=wf_gchartsLine($complexChartData, __('Complex services'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($complexChartData, __('Complex services'), '100%', '300px', $chartsOptions);
                 }
             }
 
 
             //finance data
-            $result.=wf_tag('h2') . __('Financial highlights') . wf_tag('h2', true);
+            $result .= wf_tag('h2') . __('Financial highlights') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
-            $cells.= wf_TableCell(__('Money'));
-            $cells.= wf_TableCell(__('Payments count'));
-            $cells.= wf_TableCell(__('Cash payments'));
-            $cells.= wf_TableCell(__('Cash payments count'));
-            $cells.= wf_TableCell(__('ARPU'));
-            $cells.= wf_TableCell(__('ARPAU'));
+            $cells .= wf_TableCell(__('Money'));
+            $cells .= wf_TableCell(__('Payments count'));
+            $cells .= wf_TableCell(__('Cash payments'));
+            $cells .= wf_TableCell(__('Cash payments count'));
+            $cells .= wf_TableCell(__('ARPU'));
+            $cells .= wf_TableCell(__('ARPAU'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($yearData as $yearNum => $monthArr) {
                 foreach ($monthArr as $monthNum => $each) {
                     $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                    $cells.= wf_TableCell($each['f_totalmoney']);
-                    $cells.= wf_TableCell($each['f_paymentscount']);
-                    $cells.= wf_TableCell($each['f_cashmoney'] . ' (' . $this->percentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
-                    $cells.= wf_TableCell($each['f_cashcount'] . ' (' . $this->percentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
-                    $cells.= wf_TableCell($each['f_arpu']);
-                    $cells.= wf_TableCell($each['f_arpau']);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($each['f_totalmoney']);
+                    $cells .= wf_TableCell($each['f_paymentscount']);
+                    $cells .= wf_TableCell($each['f_cashmoney'] . ' (' . $this->percentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
+                    $cells .= wf_TableCell($each['f_cashcount'] . ' (' . $this->percentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
+                    $cells .= wf_TableCell($each['f_arpu']);
+                    $cells .= wf_TableCell($each['f_arpau']);
+                    $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                     $financeChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount'], $each['f_arpu'], $each['f_arpau']);
                 }
             }
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
-                $result.=wf_gchartsLine($financeChartsData, __('Financial highlights'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($financeChartsData, __('Financial highlights'), '100%', '300px', $chartsOptions);
             }
 
             // UKV cable users
             if ($this->ukvFlag) {
-                $result.=wf_tag('h2') . __('UKV users') . wf_tag('h2', true);
+                $result .= wf_tag('h2') . __('UKV users') . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Month'));
-                $cells.= wf_TableCell(__('Total'));
-                $cells.= wf_TableCell(__('Active'));
-                $cells.= wf_TableCell(__('Inactive'));
-                $cells.= wf_TableCell(__('Illegal'));
+                $cells .= wf_TableCell(__('Total'));
+                $cells .= wf_TableCell(__('Active'));
+                $cells .= wf_TableCell(__('Inactive'));
+                $cells .= wf_TableCell(__('Illegal'));
                 if ($this->complexFlag) {
-                    $cells.= wf_TableCell(__('Complex'));
+                    $cells .= wf_TableCell(__('Complex'));
                 }
-                $cells.= wf_TableCell(__('Social'));
-                $cells.= wf_TableCell(__('Signups'));
+                $cells .= wf_TableCell(__('Social'));
+                $cells .= wf_TableCell(__('Signups'));
 
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($yearData as $yearNum => $monthArr) {
                     foreach ($monthArr as $monthNum => $each) {
                         $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                         $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                        $cells.= wf_TableCell($each['c_totalusers']);
-                        $cells.= wf_TableCell($each['c_activeusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_activeusers']) . '%)');
-                        $cells.= wf_TableCell($each['c_inactiveusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_inactiveusers']) . '%)');
-                        $cells.= wf_TableCell($each['c_illegal'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_illegal']) . '%)');
+                        $cells .= wf_TableCell($each['c_totalusers']);
+                        $cells .= wf_TableCell($each['c_activeusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_activeusers']) . '%)');
+                        $cells .= wf_TableCell($each['c_inactiveusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_inactiveusers']) . '%)');
+                        $cells .= wf_TableCell($each['c_illegal'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_illegal']) . '%)');
                         if ($this->complexFlag) {
-                            $cells.= wf_TableCell($each['c_complex'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_complex']) . '%)');
+                            $cells .= wf_TableCell($each['c_complex'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_complex']) . '%)');
                         }
 
-                        $cells.= wf_TableCell($each['c_social'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_social']) . '%)');
-                        $cells.= wf_TableCell($each['c_signups']);
+                        $cells .= wf_TableCell($each['c_social'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_social']) . '%)');
+                        $cells .= wf_TableCell($each['c_signups']);
 
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $rows .= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                         $ukvChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalusers'], $each['c_activeusers'], $each['c_inactiveusers'], $each['c_illegal'], $each['c_complex'], $each['c_social'], $each['c_signups']);
                     }
                 }
-                $result.=wf_TableBody($rows, '100%', 0, '');
+                $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
-                    $result.=wf_gchartsLine($ukvChartData, __('UKV users'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($ukvChartData, __('UKV users'), '100%', '300px', $chartsOptions);
                 }
 
                 //UKV financial data
-                $result.=wf_tag('h2') . __('UKV finance') . wf_tag('h2', true);
+                $result .= wf_tag('h2') . __('UKV finance') . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Month'));
-                $cells.= wf_TableCell(__('Money'));
-                $cells.= wf_TableCell(__('Payments count'));
-                $cells.= wf_TableCell(__('ARPU'));
-                $cells.= wf_TableCell(__('ARPAU'));
-                $cells.= wf_TableCell(__('Debt'));
+                $cells .= wf_TableCell(__('Money'));
+                $cells .= wf_TableCell(__('Payments count'));
+                $cells .= wf_TableCell(__('ARPU'));
+                $cells .= wf_TableCell(__('ARPAU'));
+                $cells .= wf_TableCell(__('Debt'));
 
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($yearData as $yearNum => $monthArr) {
                     foreach ($monthArr as $monthNum => $each) {
                         $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                         $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                        $cells.= wf_TableCell($each['c_totalmoney']);
-                        $cells.= wf_TableCell($each['c_paymentscount']);
-                        $cells.= wf_TableCell($each['c_arpu']);
-                        $cells.= wf_TableCell($each['c_arpau']);
-                        $cells.= wf_TableCell($each['c_totaldebt']);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($each['c_totalmoney']);
+                        $cells .= wf_TableCell($each['c_paymentscount']);
+                        $cells .= wf_TableCell($each['c_arpu']);
+                        $cells .= wf_TableCell($each['c_arpau']);
+                        $cells .= wf_TableCell($each['c_totaldebt']);
+                        $rows .= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                         $ukvfChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_arpu'], $each['c_arpau'], $each['c_totaldebt']);
                     }
                 }
-                $result.=wf_TableBody($rows, '100%', 0, '');
+                $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
-                    $result.=wf_gchartsLine($ukvfChartData, __('UKV finance'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($ukvfChartData, __('UKV finance'), '100%', '300px', $chartsOptions);
                 }
             }
 
             //Askozia PBX
             if ($this->askoziaFlag) {
-                $result.=wf_tag('h2') . __('AskoziaPBX integration') . wf_tag('h2', true);
+                $result .= wf_tag('h2') . __('AskoziaPBX integration') . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Month'));
-                $cells.= wf_TableCell(__('Incoming calls'));
-                $cells.= wf_TableCell(__('Total answered'));
-                $cells.= wf_TableCell(__('No answer'));
-                $cells.= wf_TableCell(__('Total duration'));
-                $cells.= wf_TableCell(__('Average duration'));
-                $cells.= wf_TableCell(__('Answers percent'));
-                $cells.= wf_TableCell(__('No reaction percent'));
-                $cells.= wf_TableCell(__('Reaction time'));
+                $cells .= wf_TableCell(__('Incoming calls'));
+                $cells .= wf_TableCell(__('Total answered'));
+                $cells .= wf_TableCell(__('No answer'));
+                $cells .= wf_TableCell(__('Total duration'));
+                $cells .= wf_TableCell(__('Average duration'));
+                $cells .= wf_TableCell(__('Answers percent'));
+                $cells .= wf_TableCell(__('No reaction percent'));
+                $cells .= wf_TableCell(__('Reaction time'));
 
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($yearData as $yearNum => $monthArr) {
                     foreach ($monthArr as $monthNum => $each) {
                         $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                         $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                        $cells.= wf_TableCell($each['a_totalcalls']);
-                        $cells.= wf_TableCell($each['a_totalanswered']);
-                        $cells.= wf_TableCell($each['a_totalcalls'] - $each['a_totalanswered']);
-                        $cells.= wf_TableCell($this->formatTime($each['a_totalcallsduration']));
-                        $cells.= wf_TableCell($this->formatTime($each['a_averagecallduration']));
-                        $cells.= wf_TableCell($this->percentValue($each['a_totalcalls'], $each['a_totalanswered']) . '%');
+                        $cells .= wf_TableCell($each['a_totalcalls']);
+                        $cells .= wf_TableCell($each['a_totalanswered']);
+                        $cells .= wf_TableCell($each['a_totalcalls'] - $each['a_totalanswered']);
+                        $cells .= wf_TableCell($this->formatTime($each['a_totalcallsduration']));
+                        $cells .= wf_TableCell($this->formatTime($each['a_averagecallduration']));
+                        $cells .= wf_TableCell($this->percentValue($each['a_totalcalls'], $each['a_totalanswered']) . '%');
                         $reactionPercent = ($each['a_recallunsuccess'] != NULL) ? $each['a_recallunsuccess'] . '%' : '';
-                        $cells.= wf_TableCell($reactionPercent);
-                        $cells.= wf_TableCell($this->formatTime($each['a_recalltrytime']));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($reactionPercent);
+                        $cells .= wf_TableCell($this->formatTime($each['a_recalltrytime']));
+                        $rows .= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                         $askoziaChartData[] = array($yearDisplay . $months[$monthNum], $each['a_totalcalls'], $each['a_totalanswered'], ($each['a_totalcalls'] - $each['a_totalanswered']));
                     }
                 }
-                $result.=wf_TableBody($rows, '100%', 0, '');
+                $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
-                    $result.=wf_gchartsLine($askoziaChartData, __('Askozia'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($askoziaChartData, __('Askozia'), '100%', '300px', $chartsOptions);
                 }
             }
 
             //Users relationship
-            $result.=wf_tag('h2') . __('Relationships with the universe') . wf_tag('h2', true);
+            $result .= wf_tag('h2') . __('Relationships with the universe') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
             if ($this->altCfg['SIGREQ_ENABLED']) {
-                $cells.= wf_TableCell(__('Signup requests'));
+                $cells .= wf_TableCell(__('Signup requests'));
             }
-            $cells.= wf_TableCell(__('Helpdesk tickets'));
-            $cells.= wf_TableCell(__('Tasks'));
+            $cells .= wf_TableCell(__('Helpdesk tickets'));
+            $cells .= wf_TableCell(__('Tasks'));
             if ($this->altCfg['CAPABDIR_ENABLED']) {
-                $cells.= wf_TableCell(__('Signup capabilities'));
-                $cells.= wf_TableCell(__('Undone') . ' ' . __('Signup capabilities'));
+                $cells .= wf_TableCell(__('Signup capabilities'));
+                $cells .= wf_TableCell(__('Undone') . ' ' . __('Signup capabilities'));
             }
 
             $rows = wf_TableRow($cells, 'row1');
@@ -1376,21 +1388,21 @@ class ExistentialHorse {
                     $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
                     if ($this->altCfg['SIGREQ_ENABLED']) {
-                        $cells.= wf_TableCell($each['t_sigreq']);
+                        $cells .= wf_TableCell($each['t_sigreq']);
                     }
-                    $cells.= wf_TableCell($each['t_tickets']);
-                    $cells.= wf_TableCell($each['t_tasks']);
+                    $cells .= wf_TableCell($each['t_tickets']);
+                    $cells .= wf_TableCell($each['t_tasks']);
                     if ($this->altCfg['CAPABDIR_ENABLED']) {
-                        $cells.= wf_TableCell($each['t_capabtotal']);
-                        $cells.= wf_TableCell($each['t_capabundone']);
+                        $cells .= wf_TableCell($each['t_capabtotal']);
+                        $cells .= wf_TableCell($each['t_capabundone']);
                     }
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                     $universeChartData[] = array($yearDisplay . $months[$monthNum], $each['t_sigreq'], $each['t_tickets'], $each['t_tasks'], $each['t_capabtotal'], $each['t_capabundone']);
                 }
             }
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
                 //deleting NULL values ugly hack
                 if (!empty($universeChartData)) {
@@ -1404,20 +1416,20 @@ class ExistentialHorse {
                         }
                     }
                 }
-                $result.=wf_gchartsLine($universeChartData, __('Relationships with the universe'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($universeChartData, __('Relationships with the universe'), '100%', '300px', $chartsOptions);
             }
 
             //Equipment
-            $result.=wf_tag('h2') . __('Equipment') . wf_tag('h2', true);
+            $result .= wf_tag('h2') . __('Equipment') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
-            $cells.= wf_TableCell(__('Switches'));
-            $cells.= wf_TableCell(__('Time') . ' ☠ ');
+            $cells .= wf_TableCell(__('Switches'));
+            $cells .= wf_TableCell(__('Time') . ' ☠ ');
 
             if ($this->ponFlag) {
-                $cells.= wf_TableCell(__('PON ONU'));
+                $cells .= wf_TableCell(__('PON ONU'));
             }
             if ($this->docsisFlag) {
-                $cells.= wf_TableCell(__('DOCSIS Modems'));
+                $cells .= wf_TableCell(__('DOCSIS Modems'));
             }
 
             $rows = wf_TableRow($cells, 'row1');
@@ -1425,29 +1437,44 @@ class ExistentialHorse {
                 foreach ($monthArr as $monthNum => $each) {
                     $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                    $cells.= wf_TableCell($each['e_switches']);
+                    $cells .= wf_TableCell($each['e_switches']);
                     $switchesRepingInterval = (@$this->altCfg['SWITCH_PING_INTERVAL']) ? $this->altCfg['SWITCH_PING_INTERVAL'] : 20;
                     $deadSwitchTime = ($switchesRepingInterval * $each['e_deadswintervals']) * 60;
-                    $cells.= wf_TableCell(zb_formatTime($deadSwitchTime));
+                    $cells .= wf_TableCell(zb_formatTime($deadSwitchTime));
                     if ($this->ponFlag) {
-                        $cells.= wf_TableCell($each['e_pononu']);
+                        $cells .= wf_TableCell($each['e_pononu']);
                     }
                     if ($this->docsisFlag) {
-                        $cells.= wf_TableCell($each['e_docsis']);
+                        $cells .= wf_TableCell($each['e_docsis']);
                     }
 
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                    $equipChartData[] = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
+
+                    $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches']);
+
+                    if ($this->ponFlag AND $this->docsisFlag) {
+                        $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
+                    }
+
+                    if ($this->ponFlag AND ! $this->docsisFlag) {
+                        $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu']);
+                    }
+
+                    if ($this->docsisFlag AND ! $this->ponFlag) {
+                        $equipChartRow = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_docsis']);
+                    }
+
+                    $equipChartData[] = $equipChartRow;
                 }
             }
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
-                $result.=wf_gchartsLine($equipChartData, __('Equipment'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($equipChartData, __('Equipment'), '100%', '300px', $chartsOptions);
             }
         } else {
-            $result.= $this->messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
     }

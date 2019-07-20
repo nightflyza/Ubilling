@@ -2253,7 +2253,7 @@ $lang['def']['Assign UKV users to complex profiles'] = 'Присвоєння к�
 
 //rev 5084
 $lang['def']['right to control warehouse reservation operations'] = 'Право керувати операціями бронювання складу';
-$lang['def']['Existential horse'] = 'Екзистенціальний кінь';
+$lang['def']['Existential horse'] = 'Екзистенційний кінь';
 $lang['def']['Internets users'] = 'Користувачі інтернетів';
 $lang['def']['Frozen'] = 'Заморожені';
 $lang['def']['Inactive'] = 'Неактивний';
@@ -2268,9 +2268,9 @@ $lang['def']['Total duration'] = 'Загальна тривалість';
 $lang['def']['Average duration'] = 'Середня тривалість';
 $lang['def']['Answers percent'] = 'Відсоток відповідей';
 $lang['def']['DOCSIS Modems'] = 'DOCSIS модеми';
-$lang['def']['right to use existential horse'] = 'Право використовувати екзистенціального коня';
+$lang['def']['right to use existential horse'] = 'Право використовувати екзистенційного коня';
 $lang['def']['Incoming calls'] = 'Вхідних дзвінків';
-$lang['def']['Is exestential horse enabled'] = 'Екзистенціального коня ввімкнено';
+$lang['def']['Is exestential horse enabled'] = 'Екзистенційного коня ввімкнено';
 $lang['def']['UKV illegal users tariff id'] = 'Тариф нелегальних користувачів УКВ';
 $lang['def']['UKV complex users tariff id'] = 'Тариф комплексних користувачів УКВ';
 $lang['def']['UKV socail service tariff id'] = 'Тариф соціальних користувачів УКВ';
