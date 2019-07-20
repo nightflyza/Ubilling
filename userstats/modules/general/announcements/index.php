@@ -48,11 +48,13 @@ function zbs_AnnouncementsReadHistory($user_login) {
  * Renders all active announcements
  * 
  * @global string $user_login
+ * @global array $us_config
  * 
  * @return void
  */
 function zbs_AnnouncementsShow() {
     global $user_login;
+    global $us_config;
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
     $query = "SELECT * from `zbsannouncements` WHERE `public`='1' ORDER by `id` DESC";
@@ -63,25 +65,32 @@ function zbs_AnnouncementsShow() {
         foreach ($all as $io => $each) {
             if (!isset($_COOKIE['zbsanread_' . $each['id']])) {
                 $readControl = la_Link('?module=announcements&anmarkasread=' . $each['id'], la_img($iconsPath . 'anunread.gif', __('Mark as read'))) . ' ';
+                $readButton = la_Link('?module=announcements&anmarkasread=' . $each['id'], __('Mark as read'), false, 'anunreadbutton');
             } else {
                 $readControl = la_Link('?module=announcements&anmarkasunread=' . $each['id'], la_img($iconsPath . 'anread.gif', __('Mark as unread'))) . ' ';
+                $readButton = la_Link('?module=announcements&anmarkasunread=' . $each['id'], __('Mark as unread'), false, 'anreadbutton');
             }
-            $result.=la_tag('h3', false, 'row1', '') . $readControl . $each['title'] . '&nbsp;' . la_tag('h3', true);
-            $result.=la_delimiter();
+            $result .= la_tag('h3', false, 'row1', '') . $readControl . $each['title'] . '&nbsp;' . la_tag('h3', true);
+
             if ($each['type'] == 'text') {
                 $eachtext = strip_tags($each['text']);
-                $result.= nl2br($eachtext);
+                $result .= nl2br($eachtext);
             }
 
             if ($each['type'] == 'html') {
-                $result.=$each['text'];
+                $result .= $each['text'];
             }
             //display logging 
             if (!isset($annHistory[$each['id']])) {
                 zbs_AnnouncementsLogPush($user_login, $each['id']);
             }
 
-            $result.=la_delimiter();
+            //additional read/unread buttons
+            if (@$us_config['AN_BUTTONS']) {
+                $result .= la_tag('br') . $readButton;
+            }
+
+            $result .= la_delimiter();
         }
     } else {
         show_window(__('Sorry'), __('There are not any announcements.'));
