@@ -41,7 +41,6 @@ if ($ubillingConfig->getAlterParam('DEALWITHIT_ENABLED')) {
             if (wf_CheckGet(array('ajinput'))) {
                 $dealWithIt->catchAjRequest();
             } else {
-                //show_error(__('Something went wrong') . ': EX_GET_NO_USERNAME');
                 $dealWithIt->renderDealWithItControl();
             }
         }
