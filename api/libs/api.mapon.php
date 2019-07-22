@@ -67,7 +67,7 @@ class MapOn {
      */
     protected function initMapOn() {
         require_once 'api/libs/api.maponapi.php';
-            $this->api = new Mapon\MaponAPI($this->apiKey, self::API_URL);
+        $this->api = new Mapon\MaponAPI($this->apiKey, self::API_URL);
     }
 
     /**
@@ -105,6 +105,7 @@ class MapOn {
         $result = array();
         $curday = curdate();
         $routes = $this->getRoutes($curday . 'T00:00:00Z', $curday . 'T23:59:59Z');
+
         if ($routes) {
             if (isset($routes->data)) {
                 foreach ($routes->data->units as $io => $each) {
@@ -113,7 +114,7 @@ class MapOn {
                         if ($route->type == 'route') {
                             if (@$route->speed) {
                                 $points = $this->api->decodePolyline($route->polyline, $route->speed, strtotime($route->start->time));
-                                $result[$unitId] = $points;
+                                $result[$unitId][] = $points;
                             }
                         }
                     }
