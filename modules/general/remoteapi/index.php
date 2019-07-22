@@ -150,6 +150,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     if ($_GET['action'] == 'backupdb') {
                         if ($alterconf['MYSQLDUMP_PATH']) {
                             $backpath = zb_backup_database(true);
+                            if (@$alterconf['BACKUPS_MAX_AGE']) {
+                                zb_backups_rotate($alterconf['BACKUPS_MAX_AGE']);
+                            }
                         } else {
                             die(__('You missed an important option') . ': MYSQLDUMP_PATH');
                         }
@@ -258,14 +261,14 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if (!empty($allMultinetNetworks)) {
                             foreach ($allMultinetNetworks as $ig => $eachsubnet) {
                                 $nmapCommand = $nmapPath . ' -sP -n ' . $eachsubnet['desc'];
-                                $fullScanResult.=shell_exec($nmapCommand);
+                                $fullScanResult .= shell_exec($nmapCommand);
                                 print($eachsubnet['desc'] . ' :' . date("Y-m-d H:i:s") . ':SCANNED' . "\n");
                             }
                         }
                         //additional parameters
                         if (isset($_GET['param'])) {
                             if ($_GET['param'] == 'traffdiff') {
-                                $fullScanResult.='== Traffic analysis diff here ==' . "\n";
+                                $fullScanResult .= '== Traffic analysis diff here ==' . "\n";
                                 $traff_q = "SELECT `login`,`IP`, (`U0`+`U1`+`U2`+`U3`+`U4`+`U5`+`U6`+`U7`+`U8`+`U9`) as `traff`  from `users`";
                                 $curTraff = simple_queryall($traff_q);
                                 $prevTraff = array();
@@ -289,7 +292,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                         if (!empty($curTraff) AND ! empty($additionalTraffic)) {
                                             foreach ($curTraff as $io => $each) {
                                                 if (isset($additionalTraffic[$each['login']])) {
-                                                    $curTraff[$io]['traff']+=$additionalTraffic[$each['login']];
+                                                    $curTraff[$io]['traff'] += $additionalTraffic[$each['login']];
                                                 }
                                             }
                                         }
@@ -324,7 +327,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                     foreach ($diffCurr as $diffLogin => $diffData) {
                                         if (isset($diffPrev[$diffLogin])) {
                                             if ($diffData['traff'] != $diffPrev[$diffLogin]['traff']) {
-                                                $fullScanResult.='login ' . $diffLogin . ' ' . $diffData['IP'] . ' looks like alive' . "\n";
+                                                $fullScanResult .= 'login ' . $diffLogin . ' ' . $diffData['IP'] . ' looks like alive' . "\n";
                                             }
                                         }
                                     }
@@ -704,8 +707,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                         $switchesCoverage = sm_MapDrawSwitchesCoverage();
                         $coverageSwMap = wf_tag('div', false, '', 'id="ubmap" style="width: ' . $mapDimensions[0] . 'px; height:' . $mapDimensions[1] . 'px;"');
-                        $coverageSwMap.=wf_tag('div', true);
-                        $coverageSwMap.= sm_MapInitBasic($ym_center, $ym_zoom, $ym_type, $area . $switchesCoverage, '', $ym_lang);
+                        $coverageSwMap .= wf_tag('div', true);
+                        $coverageSwMap .= sm_MapInitBasic($ym_center, $ym_zoom, $ym_type, $area . $switchesCoverage, '', $ym_lang);
                         die($coverageSwMap);
                     }
 

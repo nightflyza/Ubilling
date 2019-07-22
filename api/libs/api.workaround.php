@@ -3787,7 +3787,7 @@ function web_DBCleanupForm() {
             $cells .= wf_TableCell(stg_convert_size($each['size']), '', '', 'sorttable_customkey="' . $each['size'] . '"');
             $actlink = wf_JSAlert("?module=backups&tableclean=" . $each['name'], web_delete_icon(), 'Are you serious');
             $cells .= wf_TableCell($actlink);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
             $totalRows = $totalRows + $each['rows'];
             $totalSize = $totalSize + $each['size'];
             $totalCount = $totalCount + 1;
@@ -5391,6 +5391,48 @@ function zb_InitGhostMode($adminLogin) {
             log_register('GHOSTMODE `' . $myLogin . '` LOGIN AS `' . $adminLogin . '`');
             setcookie('reloadcms_user', $adminLogin . ':' . $userData['password'], null);
             $_COOKIE['reloadcms_user'] = $adminLogin . ':' . $userData['password'];
+        }
+    }
+}
+
+/**
+ * Cleanups backups directory dumps older than X days encoded in filename.
+ * 
+ * @param int $maxAge
+ * 
+ * @return void
+ */
+function zb_backups_rotate($maxAge) {
+    $maxAge = vf($maxAge, 3);
+    if ($maxAge) {
+        if (is_numeric($maxAge)) {
+            $curTimeStamp = curdate();
+            $curTimeStamp = strtotime($curTimeStamp);
+            $cleanupTimeStamp = $curTimeStamp - ($maxAge * 86400); // Option is in days
+            $backupsDirectory = DATA_PATH . 'backups/sql/';
+            $backupsPrefix = 'ubilling-';
+            $backupsExtension = '.sql';
+            $allBackups = rcms_scandir($backupsDirectory, '*' . $backupsExtension);
+            if (!empty($allBackups)) {
+                foreach ($allBackups as $io => $eachDump) {
+                    //trying to extract date from filename
+                    $cleanName = $eachDump;
+                    $cleanName = str_replace($backupsPrefix, '', $cleanName);
+                    $cleanName = str_replace($backupsExtension, '', $cleanName);
+                    if (ispos($cleanName, '_')) {
+                        $explode = explode('_', $cleanName);
+                        $cleanName = $explode[0];
+                        if (zb_checkDate($cleanName)) {
+                            $dumpTimeStamp = strtotime($cleanName);
+                            if ($dumpTimeStamp < $cleanupTimeStamp) {
+                                $rotateBackupPath = $backupsDirectory . $eachDump;
+                                rcms_delete_files($rotateBackupPath);
+                                log_register('BACKUP ROTATE `' . $rotateBackupPath . '`');
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

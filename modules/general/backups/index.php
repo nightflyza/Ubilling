@@ -73,7 +73,7 @@ if (cfr('BACKUP')) {
                         $cells.= wf_TableCell($fileSize);
                         $cells.= wf_TableCell($downloadLink);
                         $cells.= wf_TableCell($actLinks);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $rows.= wf_TableRow($cells, 'row5');
                     }
                 }
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -90,6 +90,7 @@ if (cfr('BACKUP')) {
                 'config/ymaps.ini',
                 'config/catv.ini',
                 'config/photostorage.ini',
+                'config/config.ini',
                 'config/dhcp/global.template',
                 'config/dhcp/subnets.template',
                 'config/dhcp/option82.template',
@@ -117,12 +118,12 @@ if (cfr('BACKUP')) {
                         $cells = wf_TableCell($fileDate);
                         $cells.= wf_TableCell($fileSize);
                         $cells.= wf_TableCell($downloadLink);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $rows.= wf_TableRow($cells, 'row5');
                     } else {
                         $cells = wf_TableCell('');
                         $cells.= wf_TableCell('');
                         $cells.= wf_TableCell($eachConfig);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $rows.= wf_TableRow($cells, 'row5');
                     }
                 }
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
