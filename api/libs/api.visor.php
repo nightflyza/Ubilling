@@ -496,6 +496,8 @@ class UbillingVisor {
                     $result .= $this->messages->getStyledMessage(__('User have no cameras assigned'), 'warning');
                 }
             }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' [' . $userId . ']', 'error');
         }
         return ($result);
     }
@@ -902,6 +904,12 @@ class UbillingVisor {
                 }
             }
 
+            if (!empty($this->allDvrs)) {
+                foreach ($this->allDvrs as $io => $each) {
+                    $dvrTmp[$each['id']] = $each['ip'];
+                }
+            }
+
             //is camera internet user exists?
             if (isset($this->allUserData[$camProfile])) {
                 $camProfileData = $this->allUserData[$camProfile];
@@ -939,6 +947,31 @@ class UbillingVisor {
                 $cells = wf_TableCell(__('Credit'), '30%', 'row2');
                 $cells .= wf_TableCell($cameraCredit);
                 $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Camera login'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraData['camlogin']);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Camera password'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraData['campassword']);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Port'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraData['port']);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('DVR'), '30%', 'row2');
+                $cells .= wf_TableCell(@$this->allDvrs[$cameraData['dvrid']]['ip']);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('DVR login'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraData['dvrlogin']);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('DVR password'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraData['dvrpassword']);
+                $rows .= wf_TableRow($cells, 'row3');
+
                 $result .= wf_TableBody($rows, '100%', 0);
                 $result .= wf_tag('br');
 
@@ -974,7 +1007,60 @@ class UbillingVisor {
      * @return void
      */
     public function saveCamera() {
-        
+        if (wf_CheckPost(array('editcameraid'))) {
+            $cameraId = vf($_POST['editcameraid'], 3);
+            if (isset($this->allCams[$cameraId])) {
+                $cameraData = $this->allCams[$cameraId];
+                $where = " WHERE `id`='" . $cameraId . "'";
+
+                $newVisorId = vf($_POST['editvisorid'], 3);
+                $newCamLogin = $_POST['editcamlogin'];
+                $newCamPassword = $_POST['editcampassword'];
+                $newPort = vf($_POST['editport'], 3);
+                $newDvrId = vf($_POST['editdvrid'], 3);
+                $newDvrLogin = $_POST['editdvrlogin'];
+                $newDvrPassword = $_POST['editdvrpassword'];
+
+                if ($newVisorId != $cameraData['visorid']) {
+                    simple_update_field(self::TABLE_CAMS, 'visorid', $newVisorId, $where);
+                    log_register('VISOR CAMERA CHANGE ASSIGN [' . $newVisorId . ']');
+                }
+
+                if ($newCamLogin != $cameraData['camlogin']) {
+                    simple_update_field(self::TABLE_CAMS, 'camlogin', $newCamLogin, $where);
+                    log_register('VISOR CAMERA CHANGE LOGIN `' . $newCamLogin . '`');
+                }
+
+                if ($newCamPassword != $cameraData['campassword']) {
+                    simple_update_field(self::TABLE_CAMS, 'campassword', $newCamPassword, $where);
+                    log_register('VISOR CAMERA CHANGE PASSWORD `' . $newCamPassword . '`');
+                }
+
+                if ($newPort != $cameraData['port']) {
+                    simple_update_field(self::TABLE_CAMS, 'port', $newPort, $where);
+                    log_register('VISOR CAMERA CHANGE PORT `' . $newPort . '`');
+                }
+
+                if ($newDvrId != $cameraData['dvrid']) {
+                    simple_update_field(self::TABLE_CAMS, 'dvrid', $newDvrId, $where);
+                    if (!empty($newDvrId)) {
+                        log_register('VISOR CAMERA CHANGE DVR [' . $newDvrId . ']');
+                    } else {
+                        log_register('VISOR CAMERA UNSET DVR');
+                    }
+                }
+
+                if ($newDvrLogin != $cameraData['dvrlogin']) {
+                    simple_update_field(self::TABLE_CAMS, 'dvrlogin', $newDvrLogin, $where);
+                    log_register('VISOR CAMERA CHANGE DVRLOGIN `' . $newDvrLogin . '`');
+                }
+
+                if ($newDvrLogin != $cameraData['dvrpassword']) {
+                    simple_update_field(self::TABLE_CAMS, 'dvrpassword', $newDvrPassword, $where);
+                    log_register('VISOR CAMERA CHANGE DVRPASSWORD `' . $newDvrPassword . '`');
+                }
+            }
+        }
     }
 
 }

@@ -79,6 +79,12 @@ if (cfr('VISOR')) {
             zb_BillingStats(true);
         }
 
+        //camera options editing
+        if (wf_CheckPost(array('editcameraid'))) {
+            $visor->saveCamera();
+            rcms_redirect($visor::URL_ME . $visor::URL_CAMVIEW . $_POST['editcameraid']);
+        }
+
 
         //camera user detection on black magic action
         if (wf_CheckGet(array('username'))) {
