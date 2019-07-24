@@ -708,10 +708,13 @@ class UbillingVisor {
     /**
      * Returns default user icon coode
      * 
+     * @param int size
+     * 
      * @return string
      */
-    public function iconVisorUser() {
-        $result = wf_img('skins/icon_camera_small.png');
+    public function iconVisorUser($size = '') {
+        $size = vf($size, 3);
+        $result = (!empty($size)) ? wf_img('skins/icon_camera_small.png') : wf_img_sized('skins/icon_camera_small.png', '', $size, $size);
         return($result);
     }
 
@@ -877,10 +880,101 @@ class UbillingVisor {
         }
     }
 
+    /**
+     * Renders camera profile with editing forms
+     * 
+     * @param int $cameraId
+     * 
+     * @return string 
+     */
     public function renderCameraForm($cameraId) {
-        $result = 'TODO';
-        debarr($this->allCams[$cameraId]);
+        $cameraId = vf($cameraId, 3);
+        $result = '';
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $camProfile = $cameraData['login'];
+            $usersTmp = array();
+            $dvrTmp = array('' => '-');
+
+            if (!empty($this->allUsers)) {
+                foreach ($this->allUsers as $io => $each) {
+                    $usersTmp[$each['id']] = $each['realname'];
+                }
+            }
+
+            //is camera internet user exists?
+            if (isset($this->allUserData[$camProfile])) {
+                $camProfileData = $this->allUserData[$camProfile];
+
+                $cells = wf_TableCell(__('User'), '30%', 'row2');
+                $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $cameraData['visorid'], $this->iconVisorUser('12') . ' ' . @$this->allUsers[$cameraData['visorid']]['realname']);
+                $cells .= wf_TableCell($visorUserLink);
+                $rows = wf_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('Address'), '30%', 'row2');
+                $camProfileLink = wf_Link(self::URL_CAMPROFILE . $camProfile, web_profile_icon() . ' ' . @$camProfileData['fulladress']);
+                $cells .= wf_TableCell($camProfileLink);
+                $rows .= wf_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('IP'), '30%', 'row2');
+                $cells .= wf_TableCell($camProfileData['ip']);
+                $rows .= wf_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('Tariff'), '30%', 'row2');
+                $cells .= wf_TableCell($camProfileData['Tariff']);
+                $rows .= wf_TableRow($cells, 'row3');
+                $cameraState = '';
+                $cameraCash = $camProfileData['Cash'];
+                $cameraCredit = $camProfileData['Credit'];
+                if ($cameraCash >= '-' . $cameraCredit) {
+                    $cameraState = wf_img_sized('skins/icon_active.gif', '', '12', '12') . ' ' . __('Yes');
+                } else {
+                    $cameraState = wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
+                }
+                $cells = wf_TableCell(__('Active'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraState);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Balance'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraCash);
+                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Credit'), '30%', 'row2');
+                $cells .= wf_TableCell($cameraCredit);
+                $rows .= wf_TableRow($cells, 'row3');
+                $result .= wf_TableBody($rows, '100%', 0);
+                $result .= wf_tag('br');
+
+                $inputs = '';
+                $inputs .= wf_HiddenInput('editcameraid', $cameraId);
+                $inputs .= wf_Selector('editvisorid', $usersTmp, __('User'), $cameraData['visorid'], true);
+                $inputs .= wf_TextInput('editcamlogin', __('Camera login'), $cameraData['camlogin'], true, 15);
+                $inputs .= wf_TextInput('editcampassword', __('Camera password'), $cameraData['campassword'], true, 15);
+                $inputs .= wf_TextInput('editport', __('Port'), $cameraData['port'], true, 5);
+                $inputs .= wf_tag('br');
+                $inputs .= wf_Selector('editdvrid', $dvrTmp, __('DVR'), $cameraData['dvrid'], true);
+                $inputs .= wf_TextInput('editdvrlogin', __('DVR login'), $cameraData['dvrlogin'], true, 15);
+                $inputs .= wf_TextInput('editdvrpassword', __('DVR login'), $cameraData['dvrlogin'], true, 15);
+                $inputs .= wf_tag('br');
+                $inputs .= wf_Submit(__('Save'));
+
+                $cameraEditForm = wf_Form('', 'POST', $inputs, 'glamour');
+
+                $result .= wf_Link(self::URL_ME . self::URL_USERVIEW . $cameraData['visorid'], $this->iconVisorUser() . ' ' . __('Back to user profile'), false, 'ubButton');
+                $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $cameraEditForm, 'ubButton');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' (' . $cameraData['login'] . ')', 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such camera exists') . ' [' . $cameraId . ']', 'error');
+        }
         return($result);
+    }
+
+    /**
+     * Catches camera editing request and saves data if required
+     * 
+     * @return void
+     */
+    public function saveCamera() {
+        
     }
 
 }
