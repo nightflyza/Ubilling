@@ -130,7 +130,6 @@ include('api/libs/api.ubrouting.php');
  */
 $billing = new ApiBilling();
 $ubillingConfig = new UbillingConfig();
-$ubRouting = new UbillingRouting();
 
 /**
  * Branches access control 

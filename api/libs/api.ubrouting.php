@@ -1,48 +1,145 @@
 <?php
 
-class UbillingRouting {
-
-    /**
-     * Contains current raw GET variables environment as key=>value
-     *
-     * @var array
-     */
-    protected $getVars = array();
-
-    /**
-     * Contains current raw POST variables environment as key=>value
-     *
-     * @var array
-     */
-    protected $postVars = array();
+class ubRouting {
 
     /**
      * Creates new Routing object instance
      */
     public function __construct() {
-        $this->loadEnvironment();
+        //What are you expecting here?
     }
 
     /**
-     * Preloads raw environment
+     * Checks is all of variables array present in GET scope
      * 
-     * @return void
+     * @param array $params array of variable names to check
+     * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
+     * 
+     * @return bool
      */
-    protected function loadEnvironment() {
-        $this->getVars = $_GET;
-        $this->postVars = $_POST;
+    public static function checkGet($params, $ignoreEmpty = true) {
+        if ($ignoreEmpty) {
+            $result = wf_CheckGet($params);
+        } else {
+            $result = true;
+            if (!empty($params)) {
+                foreach ($params as $index => $eachVariable) {
+                    if (!isset($_GET[$eachVariable])) {
+                        $result = false;
+                    }
+                }
+            }
+        }
+        return($result);
     }
 
     /**
+     * Checks is all of variables array present in POST scope
      * 
-     * @param type $name
-     * @param type $filtering
+     * @param array $params array of variable names to check
+     * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
+     * 
+     * @return bool
+     */
+    public static function checkPost($params, $ignoreEmpty = true) {
+        if ($ignoreEmpty) {
+            $result = wf_CheckPost($params);
+        } else {
+            $result = true;
+            if (!empty($params)) {
+                foreach ($params as $index => $eachVariable) {
+                    if (!isset($_POST[$eachVariable])) {
+                        $result = false;
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns some variable value with optional filtering from GET scope
+     * 
+     * @param string $name name of variable to extract
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $callback callback function name to filter variable value
      * 
      * @return mixed/false
      */
-    public function get($name, $filtering = 'raw') {
+    public static function get($name, $filtering = 'raw', $callback = '') {
         $result = false;
-        //TODO
+        if (isset($_GET[$name])) {
+            $rawData = $_GET[$name];
+            switch ($filtering) {
+                case 'raw':
+                    return($rawData);
+                    break;
+                case 'int':
+                    return(vf($rawData, 3));
+                    break;
+                case 'mres':
+                    return(mysql_real_escape_string($rawData));
+                    break;
+                case 'callback':
+                    if (!empty($callback)) {
+                        if (function_exists($callback)) {
+                            return($callback($rawData));
+                        } else {
+                            throw new Exception('EX_CALLBACK_NOT_DEFINED');
+                        }
+                    } else {
+
+                        throw new Exception('EX_CALLBACK_EMPTY');
+                    }
+                    break;
+                default :
+                    throw new Exception('EX_WRONG_FILTERING_MODE');
+                    break;
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns some variable value with optional filtering from POST scope
+     * 
+     * @param string $name name of variable to extract
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $callback callback function name to filter variable value
+     * 
+     * @return mixed/false
+     */
+    public static function post($name, $filtering = 'raw', $callback = '') {
+        $result = false;
+        if (isset($_GET[$name])) {
+            $rawData = $_POST[$name];
+            switch ($filtering) {
+                case 'raw':
+                    return($rawData);
+                    break;
+                case 'int':
+                    return(vf($rawData, 3));
+                    break;
+                case 'mres':
+                    return(mysql_real_escape_string($rawData));
+                    break;
+                case 'callback':
+                    if (!empty($callback)) {
+                        if (function_exists($callback)) {
+                            return($callback($rawData));
+                        } else {
+                            throw new Exception('EX_CALLBACK_NOT_DEFINED');
+                        }
+                    } else {
+
+                        throw new Exception('EX_CALLBACK_EMPTY');
+                    }
+                    break;
+                default :
+                    throw new Exception('EX_WRONG_FILTERING_MODE');
+                    break;
+            }
+        }
         return($result);
     }
 
