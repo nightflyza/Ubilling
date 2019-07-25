@@ -1,12 +1,15 @@
 <?php
 
+/**
+ * Basic Ubilling GET/POST abstraction class
+ */
 class ubRouting {
 
     /**
      * Creates new Routing object instance
      */
     public function __construct() {
-        //What are you expecting here?
+        //What did you expect to see here?
     }
 
     /**
@@ -88,7 +91,6 @@ class ubRouting {
                             throw new Exception('EX_CALLBACK_NOT_DEFINED');
                         }
                     } else {
-
                         throw new Exception('EX_CALLBACK_EMPTY');
                     }
                     break;
@@ -131,7 +133,6 @@ class ubRouting {
                             throw new Exception('EX_CALLBACK_NOT_DEFINED');
                         }
                     } else {
-
                         throw new Exception('EX_CALLBACK_EMPTY');
                     }
                     break;
