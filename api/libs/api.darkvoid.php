@@ -105,6 +105,11 @@ class DarkVoid {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        if (isset($this->altCfg['DARKVOID_CACHETIME'])) {
+            if ($this->altCfg['DARKVOID_CACHETIME']) {
+                $this->cacheTime = $this->altCfg['DARKVOID_CACHETIME'];
+            }
+        }
     }
 
     /**
