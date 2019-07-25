@@ -224,11 +224,11 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
  */
 function zbs_LoginForm() {
     $inputs = la_tag('label') . __('Login') . la_tag('label', true) . la_tag('br');
-    $inputs.= la_TextInput('ulogin', '', '', true);
-    $inputs.= la_tag('label') . __('Password') . la_tag('label', true) . la_tag('br');
-    $inputs.= la_PasswordInput('upassword', '', '', true);
+    $inputs .= la_TextInput('ulogin', '', '', true);
+    $inputs .= la_tag('label') . __('Password') . la_tag('label', true) . la_tag('br');
+    $inputs .= la_PasswordInput('upassword', '', '', true);
 
-    $inputs.= la_Submit(__('Enter'));
+    $inputs .= la_Submit(__('Enter'));
     $form = la_Form('', 'POST', $inputs, 'loginform');
 
     $cells = la_TableCell($form, '', '', 'align="center"');
@@ -250,10 +250,10 @@ function zbs_LogoutForm($return = false) {
     if ($us_config['auth'] == 'login' OR $us_config['auth'] == 'both') {
         $form = '';
         $inputs = la_HiddenInput('ulogout', 'true');
-        $inputs.= la_Submit(__('Logout'));
+        $inputs .= la_Submit(__('Logout'));
         if (isset($_COOKIE['upassword'])) {
             if ($_COOKIE['upassword'] != 'nopassword') {
-                $form.= la_Form('', 'POST', $inputs);
+                $form .= la_Form('', 'POST', $inputs);
             }
         }
 
@@ -278,7 +278,7 @@ function zbs_LangSelector() {
 
         if (!empty($allangs)) {
             $inputs = la_tag('select', false, '', 'name="changelang" onChange="this.form.submit();"');
-            $inputs.= la_tag('option', false, '', 'value="-"') . __('Language') . la_tag('option', true);
+            $inputs .= la_tag('option', false, '', 'value="-"') . __('Language') . la_tag('option', true);
             foreach ($allangs as $eachlang) {
                 $langIdPath = 'languages/' . $eachlang . '/langid.txt';
                 if (file_exists($langIdPath)) {
@@ -286,10 +286,10 @@ function zbs_LangSelector() {
                 } else {
                     $eachlangid = $eachlang;
                 }
-                $inputs.= la_tag('option', false, '', 'value="' . $eachlang . '"') . $eachlangid . la_tag('option', true);
+                $inputs .= la_tag('option', false, '', 'value="' . $eachlang . '"') . $eachlangid . la_tag('option', true);
             }
-            $inputs.=la_tag('select', true);
-            $inputs.=' ';
+            $inputs .= la_tag('select', true);
+            $inputs .= ' ';
             $form = la_Form('', 'GET', $inputs);
         }
     } else {
@@ -359,6 +359,25 @@ function zbs_UserGetStargazerData($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT * from `users` WHERE `login`='" . $login . "'";
     $result = simple_query($query);
+    return($result);
+}
+
+/**
+ * Returns array of all stargazer user data
+ * 
+ * @param string $login
+ * 
+ * @return array
+ */
+function zbs_UserGetAllStargazerData() {
+    $result = array();
+    $query = "SELECT * from `users`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['login']] = $each;
+        }
+    }
     return($result);
 }
 
@@ -452,15 +471,15 @@ function zbs_UserShowAgentData($login) {
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
                 $cn++;
-                $payments.= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['date'] . '" column="1"/>' . "\n";
+                $payments .= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['date'] . '" column="1"/>' . "\n";
                 $cn++;
-                $payments.= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['summ'] . '" column="2"/>' . "\n";
+                $payments .= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['summ'] . '" column="2"/>' . "\n";
                 $cn++;
-                $payments.= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['balance'] . '" column="3"/>' . "\n";
+                $payments .= '<cell' . $cn . ' row="' . $i . '" text="' . $eachpayment['balance'] . '" column="3"/>' . "\n";
                 $i++;
             }
         }
-        $payments.= '</cells>
+        $payments .= '</cells>
                 </content>
                 </grid>
                 </CONFIG>';
@@ -473,7 +492,7 @@ function zbs_UserShowAgentData($login) {
         $payments = '';
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
-                $payments.= $eachpayment['date'] . ' ' . $eachpayment['summ'] . ' ' . $eachpayment['balance'] . "\n";
+                $payments .= $eachpayment['date'] . ' ' . $eachpayment['summ'] . ' ' . $eachpayment['balance'] . "\n";
             }
         }
 
@@ -487,11 +506,11 @@ function zbs_UserShowAgentData($login) {
         $allmessages = simple_queryall($msg_query);
         if (!empty($allmessages)) {
             foreach ($allmessages as $io => $eachmessage) {
-                $msg_result.= $eachmessage['date'] . "\r\n";
-                $msg_result.= $eachmessage['text'] . "\r\n";
-                $msg_result.= "\n";
-                $msg_result.= "\n";
-                $msg_result.= "\n";
+                $msg_result .= $eachmessage['date'] . "\r\n";
+                $msg_result .= $eachmessage['text'] . "\r\n";
+                $msg_result .= "\n";
+                $msg_result .= "\n";
+                $msg_result .= "\n";
             }
         }
         print($msg_result);
@@ -536,34 +555,34 @@ function zbs_UserShowAgentData($login) {
     }
 
     $result = '[USERINFO]' . "\n";
-    $result.= 'fulladdress=' . @$alladdress[$login] . "\n";
-    $result.= 'realname=' . @$allrealnames[$login] . "\n";
-    $result.= 'login=' . $login . "\n";
-    $result.= 'password=' . @$userdata['Password'] . "\n";
-    $result.= 'cash=' . @round($userdata['Cash'], 2) . "\n";
-    $result.= 'login=' . $login . "\n";
-    $result.= 'password=' . @$userdata['Password'] . "\n";
-    $result.= 'ip=' . @$userdata['IP'] . "\n";
-    $result.= 'phone=' . $phone . "\n";
-    $result.= 'mobile=' . $mobile . "\n";
-    $result.= 'email=' . $email . "\n";
-    $result.= 'credit=' . @$userdata['Credit'] . "\n";
-    $result.= 'creditexpire=' . $credexpire . "\n";
-    $result.= 'payid=' . ip2int($userdata['IP']) . "\n";
-    $result.= 'contract=' . $contract . "\n";
-    $result.= 'tariff=' . $userdata['Tariff'] . "\n";
-    $result.= 'tariffnm=' . $userdata['TariffChange'] . "\n";
-    $result.= 'traffd=' . $traffdgb . "\n";
-    $result.= 'traffu=' . $traffugb . "\n";
-    $result.= 'traffd_conv=' . zbs_convert_size($traffdown) . "\n";
-    $result.= 'traffu_conv=' . zbs_convert_size($traffup) . "\n";
-    $result.= 'trafftotal_conv=' . zbs_convert_size($traffdown + $traffup) . "\n";
+    $result .= 'fulladdress=' . @$alladdress[$login] . "\n";
+    $result .= 'realname=' . @$allrealnames[$login] . "\n";
+    $result .= 'login=' . $login . "\n";
+    $result .= 'password=' . @$userdata['Password'] . "\n";
+    $result .= 'cash=' . @round($userdata['Cash'], 2) . "\n";
+    $result .= 'login=' . $login . "\n";
+    $result .= 'password=' . @$userdata['Password'] . "\n";
+    $result .= 'ip=' . @$userdata['IP'] . "\n";
+    $result .= 'phone=' . $phone . "\n";
+    $result .= 'mobile=' . $mobile . "\n";
+    $result .= 'email=' . $email . "\n";
+    $result .= 'credit=' . @$userdata['Credit'] . "\n";
+    $result .= 'creditexpire=' . $credexpire . "\n";
+    $result .= 'payid=' . ip2int($userdata['IP']) . "\n";
+    $result .= 'contract=' . $contract . "\n";
+    $result .= 'tariff=' . $userdata['Tariff'] . "\n";
+    $result .= 'tariffnm=' . $userdata['TariffChange'] . "\n";
+    $result .= 'traffd=' . $traffdgb . "\n";
+    $result .= 'traffu=' . $traffugb . "\n";
+    $result .= 'traffd_conv=' . zbs_convert_size($traffdown) . "\n";
+    $result .= 'traffu_conv=' . zbs_convert_size($traffup) . "\n";
+    $result .= 'trafftotal_conv=' . zbs_convert_size($traffdown + $traffup) . "\n";
 
 
 
-    $result.= "\n";
-    $result.= '[CONF]' . "\n";
-    $result.=' currency=' . $us_currency;
+    $result .= "\n";
+    $result .= '[CONF]' . "\n";
+    $result .= ' currency=' . $us_currency;
     print($result);
     die();
 }
@@ -583,14 +602,14 @@ function zbs_UserShowXmlAgentData($login) {
 <data>' . "\n";
             if (!empty($allpayments)) {
                 foreach ($allpayments as $io => $eachpayment) {
-                    $payments.= '<payment>' . "\n";
-                    $payments.= "\t" . '<date>' . $eachpayment['date'] . '</date>' . "\n";
-                    $payments.= "\t" . '<summ>' . $eachpayment['summ'] . '</summ>' . "\n";
-                    $payments.= "\t" . '<balance>' . $eachpayment['balance'] . '</balance>' . "\n";
-                    $payments.= '</payment>' . "\n";
+                    $payments .= '<payment>' . "\n";
+                    $payments .= "\t" . '<date>' . $eachpayment['date'] . '</date>' . "\n";
+                    $payments .= "\t" . '<summ>' . $eachpayment['summ'] . '</summ>' . "\n";
+                    $payments .= "\t" . '<balance>' . $eachpayment['balance'] . '</balance>' . "\n";
+                    $payments .= '</payment>' . "\n";
                 }
             }
-            $payments.= '</data>' . "\n";
+            $payments .= '</data>' . "\n";
         } else {
             $payments = '<?xml version="1.0" encoding="utf-8"?>' . "\n" . '<data>' . "\n" . '</data>' . "\n";
         }
@@ -614,10 +633,10 @@ function zbs_UserShowXmlAgentData($login) {
                 foreach ($allAnnouncements as $ian => $eachAnnouncement) {
                     $annText = strip_tags($eachAnnouncement['text']);
                     $allTitle = strip_tags($eachAnnouncement['title']);
-                    $announcements.='<message unic="' . $eachAnnouncement['id'] . '" title="' . $allTitle . '">' . $annText . '</message>' . "\n";
+                    $announcements .= '<message unic="' . $eachAnnouncement['id'] . '" title="' . $allTitle . '">' . $annText . '</message>' . "\n";
                 }
             }
-            $announcements.='</data>' . "\n";
+            $announcements .= '</data>' . "\n";
         } else {
             $announcements = '<?xml version="1.0" encoding="utf-8"?>' . "\n" . '<data>' . "\n" . '</data>' . "\n";
         }
@@ -712,29 +731,29 @@ function zbs_UserShowXmlAgentData($login) {
 
     $result = '<?xml version="1.0" encoding="utf-8"?>
 <userdata>' . "\n";
-    $result.= "\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
-    $result.= "\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
-    $result.= "\t" . '<login>' . $login . '</login>' . "\n";
-    $result.= "\t" . '<cash>' . @round($userdata['Cash'], 2) . '</cash>' . "\n";
-    $result.= "\t" . '<ip>' . @$userdata['IP'] . '</ip>' . "\n";
-    $result.= "\t" . '<phone>' . $phone . '</phone>' . "\n";
-    $result.= "\t" . '<mobile>' . $mobile . '</mobile>' . "\n";
-    $result.= "\t" . '<email>' . $email . '</email>' . "\n";
-    $result.= "\t" . '<credit>' . @$userdata['Credit'] . '</credit>' . "\n";
-    $result.= "\t" . '<creditexpire>' . $credexpire . '</creditexpire>' . "\n";
-    $result.= "\t" . '<payid>' . $paymentid . '</payid>' . "\n";
-    $result.= "\t" . '<contract>' . $contract . '</contract>' . "\n";
-    $result.= "\t" . '<tariff>' . $userdata['Tariff'] . '</tariff>' . "\n";
-    $result.= "\t" . '<tariffnm>' . $tariffNm . '</tariffnm>' . "\n";
-    $result.= "\t" . '<traffdownload>' . zbs_convert_size($traffdown) . '</traffdownload>' . "\n";
-    $result.= "\t" . '<traffupload>' . zbs_convert_size($traffup) . '</traffupload>' . "\n";
-    $result.= "\t" . '<trafftotal>' . zbs_convert_size($traffdown + $traffup) . '</trafftotal>' . "\n";
-    $result.= "\t" . '<accountstate>' . $passive_state . $down_state . '</accountstate>' . "\n";
-    $result.= "\t" . '<accountexpire>' . $balanceExpire . '</accountexpire>' . "\n";
-    $result.= "\t" . '<currency>' . $us_currency . '</currency>' . "\n";
-    $result.= "\t" . '<version>' . $apiVer . '</version>' . "\n";
+    $result .= "\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
+    $result .= "\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
+    $result .= "\t" . '<login>' . $login . '</login>' . "\n";
+    $result .= "\t" . '<cash>' . @round($userdata['Cash'], 2) . '</cash>' . "\n";
+    $result .= "\t" . '<ip>' . @$userdata['IP'] . '</ip>' . "\n";
+    $result .= "\t" . '<phone>' . $phone . '</phone>' . "\n";
+    $result .= "\t" . '<mobile>' . $mobile . '</mobile>' . "\n";
+    $result .= "\t" . '<email>' . $email . '</email>' . "\n";
+    $result .= "\t" . '<credit>' . @$userdata['Credit'] . '</credit>' . "\n";
+    $result .= "\t" . '<creditexpire>' . $credexpire . '</creditexpire>' . "\n";
+    $result .= "\t" . '<payid>' . $paymentid . '</payid>' . "\n";
+    $result .= "\t" . '<contract>' . $contract . '</contract>' . "\n";
+    $result .= "\t" . '<tariff>' . $userdata['Tariff'] . '</tariff>' . "\n";
+    $result .= "\t" . '<tariffnm>' . $tariffNm . '</tariffnm>' . "\n";
+    $result .= "\t" . '<traffdownload>' . zbs_convert_size($traffdown) . '</traffdownload>' . "\n";
+    $result .= "\t" . '<traffupload>' . zbs_convert_size($traffup) . '</traffupload>' . "\n";
+    $result .= "\t" . '<trafftotal>' . zbs_convert_size($traffdown + $traffup) . '</trafftotal>' . "\n";
+    $result .= "\t" . '<accountstate>' . $passive_state . $down_state . '</accountstate>' . "\n";
+    $result .= "\t" . '<accountexpire>' . $balanceExpire . '</accountexpire>' . "\n";
+    $result .= "\t" . '<currency>' . $us_currency . '</currency>' . "\n";
+    $result .= "\t" . '<version>' . $apiVer . '</version>' . "\n";
 
-    $result.= '</userdata>' . "\n";
+    $result .= '</userdata>' . "\n";
 
     header('Last-Modified: ' . gmdate('r'));
     header('Content-Type: text/html; charset=utf-8');
@@ -923,7 +942,7 @@ function zbs_vservicesShow($login, $currency) {
                 $tagnames = zbs_getTagNames(); //tagid => name
 
                 $cells = la_TableCell(__('Service'), '60%');
-                $cells.= la_TableCell(__('Terms'));
+                $cells .= la_TableCell(__('Terms'));
                 $rows = la_TableRow($cells, 'row1');
 
                 foreach ($userservices as $eachservicetagid => $dbid) {
@@ -934,13 +953,13 @@ function zbs_vservicesShow($login, $currency) {
                         $servicePrice = __('Bonus') . ' ' . abs(@$allservices[$eachservicetagid]) . ' ' . $currency;
                     }
                     $cells = la_TableCell(@$tagnames[$eachservicetagid]);
-                    $cells.= la_TableCell($servicePrice);
-                    $rows.= la_TableRow($cells, 'row3');
+                    $cells .= la_TableCell($servicePrice);
+                    $rows .= la_TableRow($cells, 'row3');
                 }
 
-                $result.= la_tag('br');
-                $result.= la_tag('h3') . __('Additional services') . la_tag('h3', true);
-                $result.= la_TableBody($rows, '100%', 0);
+                $result .= la_tag('br');
+                $result .= la_tag('h3') . __('Additional services') . la_tag('h3', true);
+                $result .= la_TableBody($rows, '100%', 0);
             }
         }
     }
@@ -969,7 +988,7 @@ function zbs_CUDShow($login, $us_config) {
             if (!empty($data)) {
                 $discount = $data['discount'];
                 $cells = la_TableCell(__('Discount'), '', 'row1');
-                $cells.= la_TableCell($discount . '%');
+                $cells .= la_TableCell($discount . '%');
                 $result = la_TableRow($cells);
             }
         }
@@ -1080,7 +1099,7 @@ function zbs_UserShowProfile($login) {
 
         if ($rawSpeedMbits) {
             if (is_numeric($showSpeed)) {
-                $showSpeed.=' ' . __('Mbit/s');
+                $showSpeed .= ' ' . __('Mbit/s');
             }
         }
 
@@ -1096,116 +1115,116 @@ function zbs_UserShowProfile($login) {
     }
 
     $profile = la_tag('table', false, '', 'width="100%" border="0" cellpadding="2" cellspacing="3"');
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Address'), '', 'row1');
-    $profile.= la_TableCell(@$alladdress[$login]);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Address'), '', 'row1');
+    $profile .= la_TableCell(@$alladdress[$login]);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Real name'), '', 'row1');
-    $profile.= la_TableCell(@$allrealnames[$login]);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Real name'), '', 'row1');
+    $profile .= la_TableCell(@$allrealnames[$login]);
+    $profile .= la_tag('tr', true);
 
     if (!@$us_config['LOGINHIDE']) {
-        $profile.= la_tag('tr');
-        $profile.= la_TableCell(__('Login'), '', 'row1');
-        $profile.= la_TableCell($login);
-        $profile.= la_tag('tr', true);
+        $profile .= la_tag('tr');
+        $profile .= la_TableCell(__('Login'), '', 'row1');
+        $profile .= la_TableCell($login);
+        $profile .= la_tag('tr', true);
     }
 
     if (!@$us_config['PASSWORDSHIDE']) {
-        $profile.= la_tag('tr');
-        $profile.= la_TableCell(__('Password'), '', 'row1');
-        $profile.= la_TableCell($userpassword);
-        $profile.= la_tag('tr', true);
+        $profile .= la_tag('tr');
+        $profile .= la_TableCell(__('Password'), '', 'row1');
+        $profile .= la_TableCell($userpassword);
+        $profile .= la_tag('tr', true);
     }
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('IP'), '', 'row1');
-    $profile.= la_TableCell($userdata['IP']);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('IP'), '', 'row1');
+    $profile .= la_TableCell($userdata['IP']);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Phone'), '', 'row1');
-    $profile.= la_TableCell($phone);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Phone'), '', 'row1');
+    $profile .= la_TableCell($phone);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Mobile'), '', 'row1');
-    $profile.= la_TableCell($mobile);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Mobile'), '', 'row1');
+    $profile .= la_TableCell($mobile);
+    $profile .= la_tag('tr', true);
 
     if (@$us_config['SHOW_EXT_MOBILES']) {
         $mobilesExt = new UserstatsMobilesExt($login);
-        $profile.= la_tag('tr');
-        $profile.= la_TableCell(__('Additional mobile'), '', 'row1');
-        $profile.= la_TableCell($mobilesExt->renderUserMobiles());
-        $profile.= la_tag('tr', true);
+        $profile .= la_tag('tr');
+        $profile .= la_TableCell(__('Additional mobile'), '', 'row1');
+        $profile .= la_TableCell($mobilesExt->renderUserMobiles());
+        $profile .= la_tag('tr', true);
     }
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Email'), '', 'row1');
-    $profile.= la_TableCell($email);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Email'), '', 'row1');
+    $profile .= la_TableCell($email);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
+    $profile .= la_tag('tr');
     $payIdAbbr = la_tag('abbr', false, '', 'title="' . __('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals') . '"');
-    $payIdAbbr.= __('Payment ID');
-    $payIdAbbr.= la_tag('abbr', true);
+    $payIdAbbr .= __('Payment ID');
+    $payIdAbbr .= la_tag('abbr', true);
 
-    $profile.= la_TableCell($payIdAbbr, '', 'row1');
-    $profile.= la_TableCell($paymentid . ' ' . $paymentidqr);
-    $profile.= la_tag('tr', true);
+    $profile .= la_TableCell($payIdAbbr, '', 'row1');
+    $profile .= la_TableCell($paymentid . ' ' . $paymentidqr);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Contract'), '', 'row1');
-    $profile.= la_TableCell($contract);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Contract'), '', 'row1');
+    $profile .= la_TableCell($contract);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Balance'), '', 'row1');
-    $profile.= la_TableCell($Cash . ' ' . $us_currency . $balanceExpire . $zdocsLink);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Balance'), '', 'row1');
+    $profile .= la_TableCell($Cash . ' ' . $us_currency . $balanceExpire . $zdocsLink);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Credit'), '', 'row1');
-    $profile.= la_TableCell($userdata['Credit'] . ' ' . $us_currency);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Credit'), '', 'row1');
+    $profile .= la_TableCell($userdata['Credit'] . ' ' . $us_currency);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Credit Expire'), '', 'row1');
-    $profile.= la_TableCell($credexpire);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Credit Expire'), '', 'row1');
+    $profile .= la_TableCell($credexpire);
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Tariff'), '', 'row1');
-    $profile.= la_TableCell(__($userdata['Tariff']));
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Tariff'), '', 'row1');
+    $profile .= la_TableCell(__($userdata['Tariff']));
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Tariff price'), '', 'row1');
-    $profile.= la_TableCell(@zbs_UserGetTariffPrice($userdata['Tariff']) . ' ' . $us_currency);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Tariff price'), '', 'row1');
+    $profile .= la_TableCell(@zbs_UserGetTariffPrice($userdata['Tariff']) . ' ' . $us_currency);
+    $profile .= la_tag('tr', true);
 
-    $profile.= $tariffSpeeds;
+    $profile .= $tariffSpeeds;
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Tariff change'), '', 'row1');
-    $profile.= la_TableCell(__($userdata['TariffChange']));
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Tariff change'), '', 'row1');
+    $profile .= la_TableCell(__($userdata['TariffChange']));
+    $profile .= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Account state'), '', 'row1');
-    $profile.= la_TableCell($passive_state . $down_state);
-    $profile.= la_tag('tr', true);
+    $profile .= la_tag('tr');
+    $profile .= la_TableCell(__('Account state'), '', 'row1');
+    $profile .= la_TableCell($passive_state . $down_state);
+    $profile .= la_tag('tr', true);
 
-    $profile.= zbs_CUDShow($login, $us_config);
+    $profile .= zbs_CUDShow($login, $us_config);
 
-    $profile.= la_tag('table', true);
+    $profile .= la_tag('table', true);
 
     //show assigned virtual services if available
     if (isset($us_config['VSERVICES_SHOW'])) {
         if ($us_config['VSERVICES_SHOW']) {
-            $profile.=zbs_vservicesShow($login, $us_currency);
+            $profile .= zbs_vservicesShow($login, $us_currency);
         }
     }
 
@@ -1244,9 +1263,9 @@ function zbs_UserTraffStats($login) {
     $result = la_tag('h3') . __('Current month traffic stats') . la_tag('h3', true);
 
     $cells = la_TableCell(__('Traffic classes'));
-    $cells.= la_TableCell(__('Downloaded'));
-    $cells.= la_TableCell(__('Uploaded'));
-    $cells.= la_TableCell(__('Total'));
+    $cells .= la_TableCell(__('Downloaded'));
+    $cells .= la_TableCell(__('Uploaded'));
+    $cells .= la_TableCell(__('Total'));
     $rows = la_TableRow($cells, 'row1');
 
 
@@ -1261,8 +1280,8 @@ function zbs_UserTraffStats($login) {
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . date("Y") . "'";
                     $dataHideki = simple_query($query_hideki);
                     if (isset($downup['D0'])) {
-                        $downup['D0']+=$dataHideki['D0'];
-                        $downup['U0']+=$dataHideki['U0'];
+                        $downup['D0'] += $dataHideki['D0'];
+                        $downup['U0'] += $dataHideki['U0'];
                     } else {
                         $downup['D0'] = $dataHideki['D0'];
                         $downup['U0'] = $dataHideki['U0'];
@@ -1270,30 +1289,30 @@ function zbs_UserTraffStats($login) {
                 }
             }
             $cells = la_TableCell($eachdir['rulename']);
-            $cells.= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
-            $cells.= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
-            $cells.= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])));
-            $rows.= la_TableRow($cells, 'row3');
+            $cells .= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
+            $cells .= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
+            $cells .= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])));
+            $rows .= la_TableRow($cells, 'row3');
         }
     }
 
-    $result.= la_TableBody($rows, '100%', 0, '');
-    $result.= la_delimiter();
+    $result .= la_TableBody($rows, '100%', 0, '');
+    $result .= la_delimiter();
 
     /*
      * traffic stats by previous months
      */
     $prevStatsTmp = array();
-    $result.=la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
+    $result .= la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
 
 
     $cells = la_TableCell(__('Year'));
-    $cells.= la_TableCell(__('Month'));
-    $cells.= la_TableCell(__('Traffic classes'));
-    $cells.= la_TableCell(__('Downloaded'));
-    $cells.= la_TableCell(__('Uploaded'));
-    $cells.= la_TableCell(__('Total'));
-    $cells.= la_TableCell(__('Cash'));
+    $cells .= la_TableCell(__('Month'));
+    $cells .= la_TableCell(__('Traffic classes'));
+    $cells .= la_TableCell(__('Downloaded'));
+    $cells .= la_TableCell(__('Uploaded'));
+    $cells .= la_TableCell(__('Total'));
+    $cells .= la_TableCell(__('Cash'));
     $rows = la_TableRow($cells, 'row1');
 
     if (!empty($alldirs)) {
@@ -1309,9 +1328,9 @@ function zbs_UserTraffStats($login) {
                         foreach ($dataHideki as $io => $each) {
                             foreach ($allprevmonth as $ia => $stgEach) {
                                 if ($stgEach['year'] == $each['year'] AND $stgEach['month'] == $each['month']) {
-                                    $allprevmonth[$ia]['D0']+=$each['D0'];
-                                    $allprevmonth[$ia]['U0']+=$each['U0'];
-                                    $allprevmonth[$ia]['cash']+=$each['cash'];
+                                    $allprevmonth[$ia]['D0'] += $each['D0'];
+                                    $allprevmonth[$ia]['U0'] += $each['U0'];
+                                    $allprevmonth[$ia]['cash'] += $each['cash'];
                                 }
                             }
                         }
@@ -1325,18 +1344,18 @@ function zbs_UserTraffStats($login) {
             if (!empty($allprevmonth)) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
                     $cells = la_TableCell($eachprevmonth['year']);
-                    $cells.= la_TableCell(__($monthnames[$eachprevmonth['month']]));
-                    $cells.= la_TableCell($eachdir['rulename']);
-                    $cells.= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]));
-                    $cells.= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]));
-                    $cells.= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])));
-                    $cells.= la_TableCell(round($eachprevmonth['cash'], 2));
-                    $rows.= la_TableRow($cells, 'row3');
+                    $cells .= la_TableCell(__($monthnames[$eachprevmonth['month']]));
+                    $cells .= la_TableCell($eachdir['rulename']);
+                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]));
+                    $cells .= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]));
+                    $cells .= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])));
+                    $cells .= la_TableCell(round($eachprevmonth['cash'], 2));
+                    $rows .= la_TableRow($cells, 'row3');
                 }
             }
         }
     }
-    $result.=la_TableBody($rows, '100%', 0, '');
+    $result .= la_TableBody($rows, '100%', 0, '');
 
     return($result);
 }
@@ -1389,9 +1408,9 @@ function zbs_ModulesMenuShow($icons = false) {
     $result = '';
     //default home link
     if ($icons) {
-        $result.='<li><a href="index.php"><img src="' . $skinPath . 'iconz/home.gif"> ' . __('Home') . '</a></li>';
+        $result .= '<li><a href="index.php"><img src="' . $skinPath . 'iconz/home.gif"> ' . __('Home') . '</a></li>';
     } else {
-        $result.='<li><a href="index.php"> ' . __('Home') . '</a></li>';
+        $result .= '<li><a href="index.php"> ' . __('Home') . '</a></li>';
     }
     if (!empty($all_modules)) {
         foreach ($all_modules as $eachmodule) {
@@ -1414,7 +1433,7 @@ function zbs_ModulesMenuShow($icons = false) {
                     $mod_name = __($mod_data['NAME']);
                     $mod_need = isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
                     if ((@$globconf[$mod_need]) OR ( empty($mod_need))) {
-                        $result.='<li><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . $mod_name . '</a></li>';
+                        $result .= '<li><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . $mod_name . '</a></li>';
                         $count++;
                     }
                 }
@@ -1423,7 +1442,7 @@ function zbs_ModulesMenuShow($icons = false) {
                 $mod_name = __($mod_data['NAME']);
                 $mod_need = isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
                 if ((@$globconf[$mod_need]) OR ( empty($mod_need))) {
-                    $result.='<li class="menublock"><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . __($mod_name) . '</a></li>';
+                    $result .= '<li class="menublock"><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . __($mod_name) . '</a></li>';
                     $count++;
                 }
             }
@@ -1938,9 +1957,9 @@ function zbs_AnnouncementsNotice() {
     $iconsPath = $skinPath . 'iconz/';
     if (zbs_AnnouncementsAvailable()) {
         $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
-        $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
+        $cells .= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
         $rows = la_TableRow($cells);
-        $result.= la_TableBody($rows, '100%', 0, 'announcementstable');
+        $result .= la_TableBody($rows, '100%', 0, 'announcementstable');
         show_window('', $result);
     }
 }

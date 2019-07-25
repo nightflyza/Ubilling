@@ -398,5 +398,14 @@ $lang['def']['Code'] = 'Код';
 $lang['def']['How to configure your devices and use service'] = 'Как настроить ваши устройства и воспользоваться услугой';
 
 $lang['def']['Surveillance'] = 'Видеонаблюдение';
+$lang['def']['You have no cameras assigned for this user profile'] = 'У вас нету камер видеонаблюдения присвоеных этой учетной записи';
+$lang['def']['Surveillance service is not enabled for you account'] = 'Услуга видеонаблюдения не подключена для этой учетной записи';
+$lang['def']['Your cameras'] = 'Ваши камеры';
+$lang['def']['Money for cameras will be charged from your primary account'] = 'Средства для камер будут списаны с вашей основной учетной записи';
+$lang['def']['if no funds for further cameras functioning'] = 'в случае, если средств будет недостаточно для дальнейшей работы камер';
+$lang['def']['Your primary account balance now is'] = 'Текущий баланс вашей основной учетной записи';
+$lang['def']['You can recharge it with following Payment ID'] = 'Вы можете пополнить его при помощи этого платежного ID';
+
+
 
 ?>
