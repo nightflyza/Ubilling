@@ -5,97 +5,94 @@ if (cfr('VISOR')) {
     $altCfg = $ubillingConfig->getAlter();
 
     if ($altCfg['VISOR_ENABLED']) {
-
-
-
         $visor = new UbillingVisor();
         //basic controls
         show_window('', $visor->panel());
 
 
         //users listing
-        if (wf_CheckGet(array('ajaxusers'))) {
+        if (ubRouting::get('ajaxusers')) {
             $visor->ajaxUsersList();
         }
 
         //user cameras listing
-        if (wf_CheckGet(array('ajaxusercams'))) {
-            $visor->ajaxUserCams($_GET['ajaxusercams']);
+        if (ubRouting::checkGet(array('ajaxusercams'))) {
+            $visor->ajaxUserCams(ubRouting::get('ajaxusercams', 'int'));
         }
 
         //all available cameras listing
-        if (wf_CheckGet(array('ajaxallcams'))) {
+        if (ubRouting::get('ajaxallcams')) {
             $visor->ajaxAllCams();
         }
 
         //users creation
-        if (wf_CheckPost(array('newusercreate', 'newusername'))) {
+        if (ubRouting::checkPost(array('newusercreate', 'newusername'))) {
             $visor->createUser();
-            rcms_redirect($visor::URL_ME . $visor::URL_USERS);
+            ubRouting::nav($visor::URL_ME . $visor::URL_USERS);
         }
 
         //all cameras listing
-        if (wf_CheckGet(array('cams'))) {
+        if (ubRouting::get('cams')) {
             show_window(__('Cams'), $visor->renderCamerasContainer($visor::URL_ME . $visor::URL_ALLCAMS));
         }
 
         //users deletion
-        if (wf_CheckPost(array('userdeleteprocessing', 'deleteconfirmation'))) {
-            if ($_POST['deleteconfirmation'] == 'confirm') {
-                $deletionResult = $visor->deleteUser($_POST['userdeleteprocessing']);
+        if (ubRouting::checkPost(array('userdeleteprocessing', 'deleteconfirmation'))) {
+            if (ubRouting::post('deleteconfirmation') == 'confirm') {
+                $deletionResult = $visor->deleteUser(ubRouting::post('userdeleteprocessing', 'int'));
                 if (empty($deletionResult)) {
-                    rcms_redirect($visor::URL_ME . $visor::URL_USERS);
+                    ubRouting::nav($visor::URL_ME . $visor::URL_USERS);
                 } else {
                     show_error($deletionResult);
                     show_window('', wf_BackLink($visor::URL_ME . $visor::URL_USERS));
                 }
             } else {
-                log_register('VISOR USER DELETE TRY [' . $_POST['userdeleteprocessing'] . ']');
+                log_register('VISOR USER DELETE TRY [' . ubRouting::post('userdeleteprocessing') . ']');
             }
         }
 
         //camera creation
-        if (wf_CheckPost(array('newcameravisorid', 'newcameralogin'))) {
+        if (ubRouting::checkPost(array('newcameravisorid', 'newcameralogin'))) {
             $visor->createCamera();
-            rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['newcameravisorid']);
+            ubRouting::nav($visor::URL_ME . $visor::URL_USERVIEW . ubRouting::post('newcameravisorid', 'int'));
         }
 
         //user editing
-        if (wf_CheckPost(array('edituserid', 'editusername'))) {
+        if (ubRouting::checkPost(array('edituserid', 'editusername'))) {
             $visor->saveUser();
-            rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['edituserid']);
+            ubRouting::nav($visor::URL_ME . $visor::URL_USERVIEW . ubRouting::post('edituserid'));
         }
 
         //primary camera editing
-        if (wf_CheckPost(array('editprimarycamerauserid'))) {
+        if (ubRouting::checkPost(array('editprimarycamerauserid'))) {
             $visor->savePrimary();
-            rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $_POST['editprimarycamerauserid']);
+            ubRouting::nav($visor::URL_ME . $visor::URL_USERVIEW . ubRouting::post('editprimarycamerauserid'));
         }
 
 
         //users list rendering
-        if (wf_CheckGet(array('users'))) {
+        if (ubRouting::checkGet(array('users'))) {
             show_window(__('Users'), $visor->renderUsers());
             zb_BillingStats(true);
         }
 
         //camera options editing
-        if (wf_CheckPost(array('editcameraid'))) {
+        if (ubRouting::checkPost(array('editcameraid'))) {
             $visor->saveCamera();
-            rcms_redirect($visor::URL_ME . $visor::URL_CAMVIEW . $_POST['editcameraid']);
+            ubRouting::nav($visor::URL_ME . $visor::URL_CAMVIEW . ubRouting::post('editcameraid'));
         }
 
 
         //camera user detection on black magic action
-        if (wf_CheckGet(array('username'))) {
-            $userLogin = $_GET['username'];
+        if (ubRouting::checkGet(array('username'))) {
+            $userLogin = ubRouting::get('username');
             $userIdDetected = $visor->getCameraUser($userLogin);
             if (!empty($userIdDetected)) {
-                rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $userIdDetected);
+                ubRouting::nav($visor::URL_ME . $visor::URL_USERVIEW . $userIdDetected);
             } else {
                 $primaryVisorId = $visor->getPrimaryAccountUserId($userLogin);
                 if ($primaryVisorId) {
-                    rcms_redirect($visor::URL_ME . $visor::URL_USERVIEW . $primaryVisorId);
+                    ubRouting::nav($visor::URL_ME . $visor::URL_USERVIEW . $primaryVisorId);
                 } else {
                     //new camera creation interface
                     show_window(__('Create camera'), $visor->renderCameraCreateInterface($userLogin));
@@ -106,26 +103,26 @@ if (cfr('VISOR')) {
 
 
         //user profile rendering
-        if (wf_CheckGet(array('showuser'))) {
-            show_window(__('User profile'), $visor->renderUserProfile($_GET['showuser']));
+        if (ubRouting::checkGet(array('showuser'))) {
+            show_window(__('User profile'), $visor->renderUserProfile(ubRouting::get('showuser')));
         }
 
         //camera profile/editing interface
-        if (wf_CheckGet(array('showcamera'))) {
-            show_window(__('Camera'), $visor->renderCameraForm($_GET['showcamera']));
+        if (ubRouting::checkGet(array('showcamera'))) {
+            show_window(__('Camera'), $visor->renderCameraForm(ubRouting::get('showcamera')));
         }
 
         //new DVR creation
-        if (wf_CheckPost(array('newdvr'))) {
+        if (ubRouting::checkPost(array('newdvr'))) {
             $visor->createDVR();
-            rcms_redirect($visor::URL_ME . $visor::URL_DVRS);
+            ubRouting::nav($visor::URL_ME . $visor::URL_DVRS);
         }
 
         //deleting existing DVR
-        if (wf_CheckGet(array('deletedvrid'))) {
-            $dvrDeletionResult = $visor->deleteDVR($_GET['deletedvrid']);
+        if (ubRouting::checkGet(array('deletedvrid'))) {
+            $dvrDeletionResult = $visor->deleteDVR(ubRouting::get('deletedvrid'));
             if (empty($dvrDeletionResult)) {
-                rcms_redirect($visor::URL_ME . $visor::URL_DVRS);
+                ubRouting::nav($visor::URL_ME . $visor::URL_DVRS);
             } else {
                 show_error($dvrDeletionResult);
                 show_window('', wf_BackLink($visor::URL_ME . $visor::URL_DVRS));
@@ -133,7 +130,7 @@ if (cfr('VISOR')) {
         }
 
         //existing DVR listing
-        if (wf_CheckGet(array('dvrs'))) {
+        if (ubRouting::checkGet(array('dvrs'))) {
             show_window(__('DVRs'), $visor->renderDVRsList());
         }
     } else {

@@ -113,7 +113,7 @@ class ubRouting {
      */
     public static function post($name, $filtering = 'raw', $callback = '') {
         $result = false;
-        if (isset($_GET[$name])) {
+        if (isset($_POST[$name])) {
             $rawData = $_POST[$name];
             switch ($filtering) {
                 case 'raw':
@@ -142,6 +142,37 @@ class ubRouting {
             }
         }
         return($result);
+    }
+
+    /**
+     * Short rcms_redirect replacement
+     * 
+     * @param string $url URL to perform redirect
+     * 
+     * @return void
+     */
+    public static function nav($url) {
+        if (!empty($url)) {
+            rcms_redirect($url);
+        }
+    }
+    
+    /**
+     * Returns complete $_GET array as is
+     * 
+     * @return array
+     */
+    public static function rawGet() {
+        return($_GET);
+    }
+    
+    /**
+     * Returns complete $_POST array as is
+     * 
+     * @return array
+     */
+    public static function rawPost() {
+        return($_POST);
     }
 
 }
