@@ -62,6 +62,7 @@ class UbillingVisor {
     const URL_DVRS = '&dvrs=true';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
+    const URL_DELDVR = '&deletedvrid=';
     const URL_USERVIEW = '&showuser=';
     const URL_CAMPROFILE = '?module=userprofile&username=';
     const URL_CAMVIEW = '&showcamera=';
@@ -866,17 +867,17 @@ class UbillingVisor {
                 $newCharge = (wf_CheckPost(array('edituserchargecams'))) ? 1 : 0;
                 if ($currentUserData['realname'] != $newUserName) {
                     simple_update_field(self::TABLE_USERS, 'realname', $newUserName, $where);
-                    log_register('VISOR USER CHANGE NAME `' . $newUserName . '`');
+                    log_register('VISOR USER [' . $editUserId . '] CHANGE NAME `' . $newUserName . '`');
                 }
 
                 if ($currentUserData['phone'] != $newUserPhone) {
                     simple_update_field(self::TABLE_USERS, 'phone', $newUserPhone, $where);
-                    log_register('VISOR USER CHANGE PHONE `' . $newUserPhone . '`');
+                    log_register('VISOR USER [' . $editUserId . '] CHANGE PHONE `' . $newUserPhone . '`');
                 }
 
                 if ($currentUserData['chargecams'] != $newCharge) {
                     simple_update_field(self::TABLE_USERS, 'chargecams', $newCharge, $where);
-                    log_register('VISOR USER CHANGE CHARGE `' . $newUserPhone . '`');
+                    log_register('VISOR USER [' . $editUserId . '] CHANGE CHARGE `' . $newUserPhone . '`');
                 }
             }
         }
@@ -1023,44 +1024,179 @@ class UbillingVisor {
 
                 if ($newVisorId != $cameraData['visorid']) {
                     simple_update_field(self::TABLE_CAMS, 'visorid', $newVisorId, $where);
-                    log_register('VISOR CAMERA CHANGE ASSIGN [' . $newVisorId . ']');
+                    log_register('VISOR CAMERA [' . $cameraId . '] CHANGE ASSIGN [' . $newVisorId . ']');
                 }
 
                 if ($newCamLogin != $cameraData['camlogin']) {
                     simple_update_field(self::TABLE_CAMS, 'camlogin', $newCamLogin, $where);
-                    log_register('VISOR CAMERA CHANGE LOGIN `' . $newCamLogin . '`');
+                    log_register('VISOR CAMERA [' . $cameraId . '] CHANGE LOGIN `' . $newCamLogin . '`');
                 }
 
                 if ($newCamPassword != $cameraData['campassword']) {
                     simple_update_field(self::TABLE_CAMS, 'campassword', $newCamPassword, $where);
-                    log_register('VISOR CAMERA CHANGE PASSWORD `' . $newCamPassword . '`');
+                    log_register('VISOR CAMERA [' . $cameraId . '] CHANGE PASSWORD `' . $newCamPassword . '`');
                 }
 
                 if ($newPort != $cameraData['port']) {
                     simple_update_field(self::TABLE_CAMS, 'port', $newPort, $where);
-                    log_register('VISOR CAMERA CHANGE PORT `' . $newPort . '`');
+                    log_register('VISOR CAMERA [' . $cameraId . '] CHANGE PORT `' . $newPort . '`');
                 }
 
                 if ($newDvrId != $cameraData['dvrid']) {
                     simple_update_field(self::TABLE_CAMS, 'dvrid', $newDvrId, $where);
                     if (!empty($newDvrId)) {
-                        log_register('VISOR CAMERA CHANGE DVR [' . $newDvrId . ']');
+                        log_register('VISOR CAMERA [' . $cameraId . '] CHANGE DVR [' . $newDvrId . ']');
                     } else {
-                        log_register('VISOR CAMERA UNSET DVR');
+                        log_register('VISOR CAMERA [' . $cameraId . '] UNSET DVR');
                     }
                 }
 
                 if ($newDvrLogin != $cameraData['dvrlogin']) {
                     simple_update_field(self::TABLE_CAMS, 'dvrlogin', $newDvrLogin, $where);
-                    log_register('VISOR CAMERA CHANGE DVRLOGIN `' . $newDvrLogin . '`');
+                    log_register('VISOR CAMERA [' . $cameraId . '] CHANGE DVRLOGIN `' . $newDvrLogin . '`');
                 }
 
                 if ($newDvrLogin != $cameraData['dvrpassword']) {
                     simple_update_field(self::TABLE_CAMS, 'dvrpassword', $newDvrPassword, $where);
-                    log_register('VISOR CAMERA CHANGE DVRPASSWORD `' . $newDvrPassword . '`');
+                    log_register('VISOR CAMERA [' . $cameraId . '] CHANGE DVRPASSWORD `' . $newDvrPassword . '`');
                 }
             }
         }
+    }
+
+    /**
+     * Renders DVR creation form
+     * 
+     * @return string
+     */
+    protected function renderDVRsCreateForm() {
+        $result = '';
+        $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+
+        $inputs = wf_HiddenInput('newdvr', 'true');
+        $inputs .= wf_TextInput('newdvrip', __('IP') . $sup, '', true, 15, 'ip');
+        $inputs .= wf_TextInput('newdvrport', __('Port'), '', true, 5, 'digits');
+        $inputs .= wf_TextInput('newdvrlogin', __('Login'), '', true, 20);
+        $inputs .= wf_TextInput('newdvrpassword', __('Password'), '', true, 20);
+        $inputs .= wf_Submit(__('Create'));
+
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
+     * Catches new DVR creation request/performs new DVR registering
+     * 
+     * @return void
+     */
+    public function createDVR() {
+        if (wf_CheckPost(array('newdvr', 'newdvrip'))) {
+            $ip = $_POST['newdvrip'];
+            $ip_f = mysql_real_escape_string($ip);
+            $port = vf($_POST['newdvrport'], 3);
+            $login = mysql_real_escape_string($_POST['newdvrlogin']);
+            $password = mysql_real_escape_string($_POST['newdvrpassword']);
+
+            $query = "INSERT INTO `" . self::TABLE_DVRS . "` (`id`,`ip`,`port`,`login`,`password`) VALUES "
+                    . "(NULL,'" . $ip_f . "','" . $port . "','" . $login . "','" . $password . "');";
+            nr_query($query);
+            $newId = simple_get_lastid(self::TABLE_DVRS);
+            log_register('VISOR DVR CREATE [' . $newId . '] IP `' . $ip . '`');
+        }
+    }
+
+    /**
+     * Renders DVR editing form
+     * 
+     * @param int $dvrId
+     * 
+     * @return string
+     */
+    protected function renderDVREditForm($dvrId) {
+        $dvrId = vf($dvrId, 3);
+        $result = 'TODO';
+        return($result);
+    }
+
+    /**
+     * Renders existing DVRs list wit some controls
+     * 
+     * @return string
+     */
+    public function renderDVRsList() {
+        $result = '';
+        if (!empty($this->allDvrs)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Port'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->allDvrs as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells .= wf_TableCell($each['ip']);
+                $cells .= wf_TableCell($each['port']);
+                $actLinks = wf_JSAlert(self::URL_ME . self::URL_DELDVR . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['ip'], $this->renderDVREditForm($each['id']));
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+
+        $result .= wf_delimiter();
+        $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Create'), __('Create'), $this->renderDVRsCreateForm(), 'ubButton');
+
+        return($result);
+    }
+
+    /**
+     * Checks is DVR used by some existing cameras
+     * 
+     * @param int $dvrId
+     * 
+     * @return bool
+     */
+    protected function isDVRProtected($dvrId) {
+        $dvrId = vf($dvrId, 3);
+        $result = false;
+        if (!empty($this->allCams)) {
+            foreach ($this->allCams as $io => $each) {
+                if ($each['dvrid'] == $dvrId) {
+                    $result = true;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing DVR from database
+     * 
+     * @param int $dvrId
+     * 
+     * @return void/string on error
+     */
+    public function deleteDVR($dvrId) {
+        $dvrId = vf($dvrId, 3);
+        $result = '';
+        if (isset($this->allDvrs[$dvrId])) {
+            if (!$this->isDVRProtected($dvrId)) {
+                $dvrData = $this->allDvrs[$dvrId];
+                $query = "DELETE from `" . self::TABLE_DVRS . "` WHERE `id`='" . $dvrId . "';";
+                nr_query($query);
+                log_register('VISOR DVR DELETE [' . $dvrId . '] IP `' . $dvrData['ip'] . '`');
+            } else {
+                $result .= __('Something went wrong') . ': ' . __('This DVR is used for some cameras');
+                log_register('VISOR DVR DELETE [' . $dvrId . '] TRY');
+            }
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('No such DVR exists') . ' [' . $dvrId . ']';
+        }
+        return($result);
     }
 
 }

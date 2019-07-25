@@ -114,6 +114,28 @@ if (cfr('VISOR')) {
         if (wf_CheckGet(array('showcamera'))) {
             show_window(__('Camera'), $visor->renderCameraForm($_GET['showcamera']));
         }
+
+        //new DVR creation
+        if (wf_CheckPost(array('newdvr'))) {
+            $visor->createDVR();
+            rcms_redirect($visor::URL_ME . $visor::URL_DVRS);
+        }
+
+        //deleting existing DVR
+        if (wf_CheckGet(array('deletedvrid'))) {
+            $dvrDeletionResult = $visor->deleteDVR($_GET['deletedvrid']);
+            if (empty($dvrDeletionResult)) {
+                rcms_redirect($visor::URL_ME . $visor::URL_DVRS);
+            } else {
+                show_error($dvrDeletionResult);
+                show_window('', wf_BackLink($visor::URL_ME . $visor::URL_DVRS));
+            }
+        }
+
+        //existing DVR listing
+        if (wf_CheckGet(array('dvrs'))) {
+            show_window(__('DVRs'), $visor->renderDVRsList());
+        }
     } else {
         show_error(__('This module is disabled'));
     }
