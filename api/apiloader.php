@@ -122,6 +122,7 @@ include('api/libs/api.ddt.php');
 include('api/libs/api.visor.php');
 include('api/libs/api.sphinxsearch.php');
 include('api/libs/api.switchlogin.php');
+include('api/libs/api.ubrouting.php');
 
 
 /*
@@ -129,7 +130,7 @@ include('api/libs/api.switchlogin.php');
  */
 $billing = new ApiBilling();
 $ubillingConfig = new UbillingConfig();
-
+$ubRouting = new UbillingRouting();
 
 /**
  * Branches access control 

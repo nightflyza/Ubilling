@@ -4,4 +4,6 @@
 error_reporting(E_ALL);
 
 
+debarr($ubRouting);
+
 ?>
