@@ -33,14 +33,14 @@ class UbillingRouting {
         $this->postVars = $_POST;
     }
 
-    
-    public function get($name) {
-        $result = false;
-        //TODO
-        return($result);
-    }
-
-    public function post($name) {
+    /**
+     * 
+     * @param type $name
+     * @param type $filtering
+     * 
+     * @return mixed/false
+     */
+    public function get($name, $filtering = 'raw') {
         $result = false;
         //TODO
         return($result);
