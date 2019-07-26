@@ -22,7 +22,20 @@ class ubRouting {
      */
     public static function checkGet($params, $ignoreEmpty = true) {
         if ($ignoreEmpty) {
-            $result = wf_CheckGet($params);
+            $result = true;
+            if (!empty($params)) {
+                foreach ($params as $eachparam) {
+                    if (isset($_GET[$eachparam])) {
+                        if (empty($_GET[$eachparam])) {
+                            $result = false;
+                            break;
+                        }
+                    } else {
+                        $result = false;
+                        break;
+                    }
+                }
+            }
         } else {
             $result = true;
             if (!empty($params)) {
@@ -46,7 +59,20 @@ class ubRouting {
      */
     public static function checkPost($params, $ignoreEmpty = true) {
         if ($ignoreEmpty) {
-            $result = wf_CheckPost($params);
+            $result = true;
+            if (!empty($params)) {
+                foreach ($params as $eachparam) {
+                    if (isset($_POST[$eachparam])) {
+                        if (empty($_POST[$eachparam])) {
+                            $result = false;
+                            break;
+                        }
+                    } else {
+                        $result = false;
+                        break;
+                    }
+                }
+            }
         } else {
             $result = true;
             if (!empty($params)) {
