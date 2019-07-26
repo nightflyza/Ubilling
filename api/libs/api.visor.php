@@ -190,9 +190,13 @@ class UbillingVisor {
     public function panel() {
         $result = '';
         $result .= wf_Link(self::URL_ME . self::URL_USERS, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
-        $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), __('Users registration'), $this->renderUserCreateForm(), 'ubButton') . ' ';
+        if (cfr('VISOREDIT')) {
+            $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), __('Users registration'), $this->renderUserCreateForm(), 'ubButton') . ' ';
+        }
         $result .= wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
+        if (cfr('VISOREDIT')) {
+            $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
+        }
         return ($result);
     }
 
@@ -512,15 +516,17 @@ class UbillingVisor {
      */
     protected function renderUserControls($userId) {
         $result = '';
-        if (isset($this->allUsers[$userId])) {
-            $taskB = wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
-            $taskE = wf_tag('div', true);
+        if (cfr('VISOREDIT')) {
+            if (isset($this->allUsers[$userId])) {
+                $taskB = wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"');
+                $taskE = wf_tag('div', true);
 
-            $result .= $taskB . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->renderUserEditInterface($userId)) . __('Edit') . $taskE;
-            $result .= $taskB . wf_modalAuto(wf_img('skins/icon_king_big.png', __('Primary account')), __('Primary account'), $this->renderUserPrimaryEditForm($userId)) . __('Primary') . $taskE;
-            $result .= $taskB . wf_modalAuto(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->renderUserDeletionForm($userId), '') . __('Delete') . $taskE;
+                $result .= $taskB . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->renderUserEditInterface($userId)) . __('Edit') . $taskE;
+                $result .= $taskB . wf_modalAuto(wf_img('skins/icon_king_big.png', __('Primary account')), __('Primary account'), $this->renderUserPrimaryEditForm($userId)) . __('Primary') . $taskE;
+                $result .= $taskB . wf_modalAuto(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->renderUserDeletionForm($userId), '') . __('Delete') . $taskE;
 
-            $result .= wf_CleanDiv();
+                $result .= wf_CleanDiv();
+            }
         }
         return($result);
     }
@@ -782,17 +788,23 @@ class UbillingVisor {
     public function renderCameraCreateInterface($userLogin) {
         $result = '';
         if (!empty($this->allUsers)) {
-            $usersTmp = array();
-            $usersTmp[''] = '-';
-            foreach ($this->allUsers as $io => $each) {
-                $usersTmp[$each['id']] = $each['realname'];
-            }
+            if (cfr('VISOREDIT')) {
+                $usersTmp = array();
+                $usersTmp[''] = '-';
+                foreach ($this->allUsers as $io => $each) {
+                    $usersTmp[$each['id']] = $each['realname'];
+                }
 
-            $inputs = wf_Selector('newcameravisorid', $usersTmp, __('The user who will be assigned a new camera'), '', false);
-            $inputs .= wf_delimiter();
-            $inputs .= wf_HiddenInput('newcameralogin', $userLogin);
-            $inputs .= wf_Submit(__('Create'));
-            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+                $inputs = wf_Selector('newcameravisorid', $usersTmp, __('The user who will be assigned a new camera'), '', false);
+                $inputs .= wf_delimiter();
+                $inputs .= wf_HiddenInput('newcameralogin', $userLogin);
+                $inputs .= wf_Submit(__('Create'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $failLabel = __('This user account is not associated with any existing Visor user or any camera account') . '. ';
+                $failLabel .= __('Contact your system administrator to fix this issue') . '.';
+                $result .= $this->messages->getStyledMessage($failLabel, 'warning');
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('No existing Visor users avaliable, you must create one at least to assign cameras'), 'error');
         }
@@ -1038,8 +1050,10 @@ class UbillingVisor {
                 $cameraEditForm = wf_Form('', 'POST', $inputs, 'glamour');
 
                 $result .= wf_Link(self::URL_ME . self::URL_USERVIEW . $cameraData['visorid'], $this->iconVisorUser() . ' ' . __('Back to user profile'), false, 'ubButton');
-                $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $cameraEditForm, 'ubButton');
-                $result .= wf_modalAuto(web_delete_icon() . ' ' . __('Delete'), __('Delete'), $this->renderCameraDeletionForm($cameraId), 'ubButton');
+                if (cfr('VISOREDIT')) {
+                    $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $cameraEditForm, 'ubButton');
+                    $result .= wf_modalAuto(web_delete_icon() . ' ' . __('Delete'), __('Delete'), $this->renderCameraDeletionForm($cameraId), 'ubButton');
+                }
             } else {
                 $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' (' . $cameraData['login'] . ')', 'error');
             }
