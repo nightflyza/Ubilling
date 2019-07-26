@@ -1387,7 +1387,8 @@ class UbillingVisor {
                                                     //charge some money from primary account
                                                     zb_CashAdd($primaryAccountLogin, $cameraLack, 'add', 1, 'VISORCHARGE:' . $eachCameraId);
                                                     //and put in onto camera account
-                                                    zb_CashAdd($cameraLogin, abs($cameraLack), 'add', 1, 'VISORPUSH:' . $eachUserId);
+                                                    zb_CashAdd($cameraLogin, abs($cameraLack), 'correct', 1, 'VISORPUSH:' . $eachUserId);
+                                                    //correcting operation here to prevent figure that as true payment in reports.
                                                     $chargedCounter++;
                                                 }
                                             }
