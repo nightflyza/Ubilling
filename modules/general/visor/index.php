@@ -140,6 +140,12 @@ if (cfr('VISOR')) {
                 }
             }
         }
+        
+        //DVR editing
+        if (ubRouting::checkPost(array('editdvrid', 'editdvrip'))) {
+            $visor->saveDVR();
+            ubRouting::nav($visor::URL_ME.$visor::URL_DVRS);
+        }
 
         //existing DVR listing
         if (ubRouting::checkGet(array('dvrs'))) {

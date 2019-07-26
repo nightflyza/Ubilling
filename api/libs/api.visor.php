@@ -1161,11 +1161,62 @@ class UbillingVisor {
      */
     protected function renderDVREditForm($dvrId) {
         $dvrId = vf($dvrId, 3);
+        $result = '';
         if (isset($this->allDvrs[$dvrId])) {
-            //TODO
-            $result = 'TODO';
+            $dvrData = $this->allDvrs[$dvrId];
+            $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+
+            $inputs = wf_HiddenInput('editdvrid', $dvrId);
+            $inputs .= wf_TextInput('editdvrip', __('IP') . $sup, $dvrData['ip'], true, 15, 'ip');
+            $inputs .= wf_TextInput('editdvrport', __('Port'), $dvrData['port'], true, 5, 'digits');
+            $inputs .= wf_TextInput('editdvrlogin', __('Login'), $dvrData['login'], true, 12);
+            $inputs .= wf_TextInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such DVR exists'), 'error');
         }
         return($result);
+    }
+
+    /**
+     * Catches DVR modification request and saves new data to database if it was changed
+     * 
+     * @return void
+     */
+    public function saveDVR() {
+        if (ubRouting::checkPost(array('editdvrid', 'editdvrip'))) {
+            $dvrId = ubRouting::post('editdvrid', 'int');
+
+            if (isset($this->allDvrs[$dvrId])) {
+                $dvrData = $this->allDvrs[$dvrId];
+                $where = " WHERE `id`='" . $dvrId . "'";
+                $newIp = ubRouting::post('editdvrip', 'mres');
+                $newPort = ubRouting::post('editdvrport', 'int');
+                $newLogin = ubRouting::post('editdvrlogin', 'mres');
+                $newPassword = ubRouting::post('editdvrpassword', 'mres');
+                if ($dvrData['ip'] != $newIp) {
+                    simple_update_field(self::TABLE_DVRS, 'ip', $newIp, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE IP `' . $newIp . '`');
+                }
+
+                if ($dvrData['port'] != $newPort) {
+                    simple_update_field(self::TABLE_DVRS, 'port', $newPort, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE PORT `' . $newPort . '`');
+                }
+
+                if ($dvrData['login'] != $newLogin) {
+                    simple_update_field(self::TABLE_DVRS, 'login', $newLogin, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE LOGIN `' . $newLogin . '`');
+                }
+
+                if ($dvrData['password'] != $newPassword) {
+                    simple_update_field(self::TABLE_DVRS, 'password', $newPassword, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE PASSWORD `' . $newPassword . '`');
+                }
+            }
+        }
     }
 
     /**
