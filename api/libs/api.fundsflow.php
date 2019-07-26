@@ -287,13 +287,13 @@ class FundsFlow {
         $result = '';
 
         $tablecells = wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Cash'));
-        $tablecells.=wf_TableCell(__('From'));
-        $tablecells.=wf_TableCell(__('To'));
-        $tablecells.=wf_TableCell(__('Operation'));
-        $tablecells.=wf_TableCell(__('Cash type'));
-        $tablecells.=wf_TableCell(__('Notes'));
-        $tablecells.=wf_TableCell(__('Admin'));
+        $tablecells .= wf_TableCell(__('Cash'));
+        $tablecells .= wf_TableCell(__('From'));
+        $tablecells .= wf_TableCell(__('To'));
+        $tablecells .= wf_TableCell(__('Operation'));
+        $tablecells .= wf_TableCell(__('Cash type'));
+        $tablecells .= wf_TableCell(__('Notes'));
+        $tablecells .= wf_TableCell(__('Admin'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($fundsflow)) {
@@ -395,18 +395,32 @@ class FundsFlow {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
                     $operation = __('Friendship');
                 }
-                
+
                 //manual charged
-                  if (ispos($each['note'], 'ECHARGE')) {
+                if (ispos($each['note'], 'ECHARGE')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
                     $operation = __('Charged');
                 }
-                
-                  //manual charged
-                  if (ispos($each['note'], 'DDT')) {
+
+                //DDT charged
+                if (ispos($each['note'], 'DDT')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
                     $operation = __('Charged');
                     $cashtype = __('Fee');
+                }
+
+                //Visor camera charged
+                if (ispos($each['note'], 'VISORCHARGE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('Camera');
+                    $cashtype = __('Fee');
+                }
+
+                //Visor cash moved from primary account
+                if (ispos($each['note'], 'VISORPUSH')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
+                    $operation = __('Charged');
+                    $cashtype = __('Payment');
                 }
 
                 //notes translation
@@ -420,32 +434,32 @@ class FundsFlow {
                 $adminName = (isset($employeeNames[$each['admin']])) ? $employeeNames[$each['admin']] : $each['admin'];
 
                 $tablecells = wf_TableCell($fc . $each['date'] . $efc, '150');
-                $tablecells.=wf_TableCell($fc . $each['summ'] . $efc);
-                $tablecells.=wf_TableCell($fc . $each['from'] . $efc);
-                $tablecells.=wf_TableCell($fc . $each['to'] . $efc);
-                $tablecells.=wf_TableCell($fc . __($operation) . $efc);
-                $tablecells.=wf_TableCell($cashtype);
-                $tablecells.=wf_TableCell($displaynote);
-                $tablecells.=wf_TableCell($adminName);
-                $tablerows.= wf_TableRow($tablecells, 'row3');
+                $tablecells .= wf_TableCell($fc . $each['summ'] . $efc);
+                $tablecells .= wf_TableCell($fc . $each['from'] . $efc);
+                $tablecells .= wf_TableCell($fc . $each['to'] . $efc);
+                $tablecells .= wf_TableCell($fc . __($operation) . $efc);
+                $tablecells .= wf_TableCell($cashtype);
+                $tablecells .= wf_TableCell($displaynote);
+                $tablecells .= wf_TableCell($adminName);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
 
             $legendcells = wf_TableCell(__('Legend') . ':');
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorPayment . '"') . __('Payment') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorFee . '"') . __('Fee') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"') . __('Bonuses') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"') . __('Additional fees') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorCorrecting . '"') . __('Correct saldo') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorMock . '"') . __('Mock payment') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorSet . '"') . __('Set cash') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorPayment . '"') . __('Payment') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorFee . '"') . __('Fee') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"') . __('Bonuses') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"') . __('Additional fees') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorCorrecting . '"') . __('Correct saldo') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorMock . '"') . __('Mock payment') . $efc);
+            $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorSet . '"') . __('Set cash') . $efc);
             $legendrows = wf_TableRow($legendcells, 'row3');
 
             $legend = wf_TableBody($legendrows, '60%', 0, 'glamour');
-            $legend.=wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
-            $legend.=wf_delimiter();
+            $legend .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+            $legend .= wf_delimiter();
 
             $result = wf_TableBody($tablerows, '100%', 0, 'sortable');
-            $result.=$legend;
+            $result .= $legend;
         }
 
         return ($result);
@@ -499,7 +513,7 @@ class FundsFlow {
         if (!empty($userLogin)) {
             if (isset($this->userTags[$userLogin])) {
                 if (!empty($this->userTags[$userLogin])) {
-                    $result.=implode(', ', $this->userTags[$userLogin]);
+                    $result .= implode(', ', $this->userTags[$userLogin]);
                 }
             }
         }
@@ -568,7 +582,7 @@ class FundsFlow {
                 //forming result
                 $cells = wf_TableCell($num);
                 $corpLink = wf_Link('?module=corps&show=corps&editid=' . $rawData['corpid'], $rawData['corpname'], false, '');
-                $cells.=wf_TableCell($corpLink);
+                $cells .= wf_TableCell($corpLink);
                 if ($rawData['contract']) {
                     $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['contract'], false, '');
                 } else {
@@ -579,20 +593,20 @@ class FundsFlow {
                 } else {
                     $currentTags = '';
                 }
-                $cells.=wf_TableCell($loginLink);
-                $cells.=wf_TableCell($currentTags);
-                $cells.=wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
-                $cells.=wf_TableCell(round($rawData['payments'], 2));
-                $cells.=wf_TableCell(round($rawData['paymentscorr'], 2));
-                $cells.=wf_TableCell(round($rawData['balance'], 2));
-                $cells.=wf_TableCell(round($rawData['used'], 2));
-                $result.=wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($loginLink);
+                $cells .= wf_TableCell($currentTags);
+                $cells .= wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
+                $cells .= wf_TableCell(round($rawData['payments'], 2));
+                $cells .= wf_TableCell(round($rawData['paymentscorr'], 2));
+                $cells .= wf_TableCell(round($rawData['balance'], 2));
+                $cells .= wf_TableCell(round($rawData['used'], 2));
+                $result .= wf_TableRow($cells, 'row3');
 
                 //fill summary data
-                $this->fundsTmp['col1']+= $rawData['payments'];
-                $this->fundsTmp['col2']+= $rawData['paymentscorr'];
-                $this->fundsTmp['col3']+= $rawData['balance'];
-                $this->fundsTmp['col4']+= $rawData['used'];
+                $this->fundsTmp['col1'] += $rawData['payments'];
+                $this->fundsTmp['col2'] += $rawData['paymentscorr'];
+                $this->fundsTmp['col3'] += $rawData['balance'];
+                $this->fundsTmp['col4'] += $rawData['used'];
             }
         }
         return ($result);
@@ -607,15 +621,15 @@ class FundsFlow {
         $result = '';
         if (!empty($this->fundsTmp)) {
             $cells = wf_TableCell('');
-            $cells.=wf_TableCell(__('Total'));
-            $cells.=wf_TableCell('');
-            $cells.=wf_TableCell('');
-            $cells.=wf_TableCell('');
-            $cells.=wf_TableCell(round($this->fundsTmp['col1'], 2));
-            $cells.=wf_TableCell(round($this->fundsTmp['col2'], 2));
-            $cells.=wf_TableCell(round($this->fundsTmp['col3'], 2));
-            $cells.=wf_TableCell(round($this->fundsTmp['col4'], 2));
-            $result.=wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell(__('Total'));
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell('');
+            $cells .= wf_TableCell(round($this->fundsTmp['col1'], 2));
+            $cells .= wf_TableCell(round($this->fundsTmp['col2'], 2));
+            $cells .= wf_TableCell(round($this->fundsTmp['col3'], 2));
+            $cells .= wf_TableCell(round($this->fundsTmp['col4'], 2));
+            $result .= wf_TableRow($cells, 'row2');
         }
         return ($result);
     }
@@ -637,26 +651,26 @@ class FundsFlow {
         $cde = wf_tag('b', true) . wf_tag('p', true);
 
         $result = wf_tag('tr', false, 'row2');
-        $result.= wf_TableCell($cd . __('Num #') . $cde, '15', '', 'rowspan="3"');
-        $result.= wf_TableCell($cd . __('Organisation') . $cde, '141', '', 'rowspan="3"');
-        $result.= wf_TableCell('', '62', '', '');
-        $result.= wf_TableCell('', '62', '', '');
-        $result.= wf_TableCell($cd . $month . ' ' . $year . $cde, '240', '', 'colspan="5"');
-        $result.= wf_tag('tr', true);
+        $result .= wf_TableCell($cd . __('Num #') . $cde, '15', '', 'rowspan="3"');
+        $result .= wf_TableCell($cd . __('Organisation') . $cde, '141', '', 'rowspan="3"');
+        $result .= wf_TableCell('', '62', '', '');
+        $result .= wf_TableCell('', '62', '', '');
+        $result .= wf_TableCell($cd . $month . ' ' . $year . $cde, '240', '', 'colspan="5"');
+        $result .= wf_tag('tr', true);
 
-        $result.= wf_tag('tr', false, 'row2');
-        $result.= wf_TableCell($cd . __('Contract') . $cde, '62', '', 'rowspan="2"');
-        $result.= wf_TableCell($cd . __('Tags') . $cde, '62', '', 'rowspan="2"');
-        $result.= wf_TableCell($cd . __('Fee') . $cde, '62', '', 'rowspan="2"');
-        $result.= wf_TableCell($cd . __('Income') . $cde, '84', '', 'colspan="2"');
-        $result.= wf_TableCell($cd . __('Current deposit') . $cde, '68', '', 'rowspan="2"');
-        $result.= wf_TableCell($cd . __('Expenditure') . $cde, '84', '', 'rowspan="2"');
-        $result.= wf_tag('tr', true);
+        $result .= wf_tag('tr', false, 'row2');
+        $result .= wf_TableCell($cd . __('Contract') . $cde, '62', '', 'rowspan="2"');
+        $result .= wf_TableCell($cd . __('Tags') . $cde, '62', '', 'rowspan="2"');
+        $result .= wf_TableCell($cd . __('Fee') . $cde, '62', '', 'rowspan="2"');
+        $result .= wf_TableCell($cd . __('Income') . $cde, '84', '', 'colspan="2"');
+        $result .= wf_TableCell($cd . __('Current deposit') . $cde, '68', '', 'rowspan="2"');
+        $result .= wf_TableCell($cd . __('Expenditure') . $cde, '84', '', 'rowspan="2"');
+        $result .= wf_tag('tr', true);
 
-        $result.= wf_tag('tr', false, 'row2');
-        $result.= wf_TableCell($cd . __('on deposit') . $cde, '41');
-        $result.= wf_TableCell($cd . __('corr.') . $cde, '41');
-        $result.= wf_tag('tr', true);
+        $result .= wf_tag('tr', false, 'row2');
+        $result .= wf_TableCell($cd . __('on deposit') . $cde, '41');
+        $result .= wf_TableCell($cd . __('corr.') . $cde, '41');
+        $result .= wf_tag('tr', true);
 
         return ($result);
     }
@@ -682,9 +696,9 @@ class FundsFlow {
          * Remember our name / Furyo 'til I Die
          */
         $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
-        $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false) . ' ';
-        $inputs.= wf_Selector('agentsel', $tmpArr, __('Contrahent name'), '', false);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_MonthSelector('monthsel', __('Month'), '', false) . ' ';
+        $inputs .= wf_Selector('agentsel', $tmpArr, __('Contrahent name'), '', false);
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -766,14 +780,14 @@ class FundsFlow {
 
 
                 $balanceExpire = wf_tag('span', false, 'alert_info');
-                $balanceExpire.=__('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
-                $balanceExpire.=' ' . $daysLabel . ' ' . __('days') . ' ' . __('of service usage') . ' ';
-                $balanceExpire.= __('or enought till the') . ' ' . $dateLabel . ' ';
-                $balanceExpire.= __('according to the tariff') . ' ' . $userTariff . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
-                $balanceExpire.= wf_tag('span', true);
+                $balanceExpire .= __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
+                $balanceExpire .= ' ' . $daysLabel . ' ' . __('days') . ' ' . __('of service usage') . ' ';
+                $balanceExpire .= __('or enought till the') . ' ' . $dateLabel . ' ';
+                $balanceExpire .= __('according to the tariff') . ' ' . $userTariff . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
+                $balanceExpire .= wf_tag('span', true);
             } else {
                 $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true);
-                $balanceExpire.=', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);
+                $balanceExpire .= ', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);
             }
 
             if ($rawDays) {

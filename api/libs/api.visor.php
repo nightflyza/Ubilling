@@ -45,6 +45,13 @@ class UbillingVisor {
     protected $allPaymentIDs = array();
 
     /**
+     * Visor charge mode from VISOR_CHARGE_MODE config option.
+     *
+     * @var int
+     */
+    protected $chargeMode = 1;
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -94,6 +101,9 @@ class UbillingVisor {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        if (@$this->altCfg['VISOR_CHARGE_MODE']) {
+            $this->chargeMode = $this->altCfg['VISOR_CHARGE_MODE'];
+        }
     }
 
     /**
@@ -1312,6 +1322,94 @@ class UbillingVisor {
             $result .= __('Something went wrong') . ': ' . __('No such DVR exists') . ' [' . $dvrId . ']';
         }
         return($result);
+    }
+
+    /**
+     * Performs default fee charge processing to prevent cameras offline
+     * 
+     * @return void
+     */
+    public function chargeProcessing() {
+        $chargedCounter = 0;
+        if (!empty($this->allUsers)) {
+            //we need some fresh data
+            $this->allUserData = zb_UserGetAllData();
+            //and tariffs fee
+            $allTariffsFee = zb_TariffGetPricesAll();
+            foreach ($this->allUsers as $eachUserId => $eachUserData) {
+                if (($eachUserData['chargecams']) AND ( !empty($eachUserData['primarylogin']))) {
+                    if (isset($this->allUserData[$eachUserData['primarylogin']])) {
+                        //further actions is required
+                        $primaryAccountData = $this->allUserData[$eachUserData['primarylogin']];
+                        $primaryAccountLogin = $primaryAccountData['login'];
+                        $primaryAccountBalance = $primaryAccountData['Cash'];
+                        $primaryAccountCredit = $primaryAccountData['Credit'];
+                        $primaryAccountTariff = $primaryAccountData['Tariff'];
+                        $primaryPossibleBalance = $primaryAccountBalance + $primaryAccountCredit; //global primary balance counter
+                        $primaryAccountFee = $allTariffsFee[$primaryAccountTariff];
+                        //loading user cameras
+                        $userCameras = $this->getUserCameras($eachUserId);
+                        if (!empty($userCameras)) {
+                            foreach ($userCameras as $eachCameraId => $eachCameraData) {
+                                if (isset($this->allUserData[$eachCameraData['login']])) {
+                                    $cameraUserData = $this->allUserData[$eachCameraData['login']];
+                                    $cameraLogin = $cameraUserData['login'];
+                                    $cameraTariff = $cameraUserData['Tariff'];
+                                    if (isset($allTariffsFee[$cameraTariff])) {
+                                        $cameraBalance = $cameraUserData['Cash'];
+                                        $cameraCredit = $cameraUserData['Credit'];
+                                        $cameraFee = $allTariffsFee[$cameraTariff];
+                                        $cameraLack = ($cameraBalance + $cameraCredit) - $cameraFee;
+                                        //this camera needs some money to continue functioning
+                                        if ($cameraLack < 0) {
+                                            //is this not a same user?
+                                            if ($cameraLogin != $primaryAccountLogin) {
+                                                $chargeThisCam = false;
+                                                //camera online priority
+                                                if ($this->chargeMode == 1) {
+                                                    $chargeThisCam = true;
+                                                }
+
+                                                //primary account internet priority
+                                                if ($this->chargeMode == 2) {
+                                                    $primaryPossibleBalance = ($primaryPossibleBalance) - abs($cameraLack);
+                                                    if ($primaryPossibleBalance >= '-' . $primaryAccountCredit) {
+                                                        //that doesnt disable primary account
+                                                        $chargeThisCam = true;
+                                                    } else {
+                                                        //and this will
+                                                        $chargeThisCam = false;
+                                                    }
+                                                }
+
+                                                //perform money movement from primary account
+                                                if ($chargeThisCam) {
+                                                    //charge some money from primary account
+                                                    zb_CashAdd($primaryAccountLogin, $cameraLack, 'add', 1, 'VISORCHARGE:' . $eachCameraId);
+                                                    //and put in onto camera account
+                                                    zb_CashAdd($cameraLogin, abs($cameraLack), 'add', 1, 'VISORPUSH:' . $eachUserId);
+                                                    $chargedCounter++;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        log_register('VISOR CAMERA [' . $eachCameraId . '] CHARGE FAIL NO_TARIFF `' . $cameraTariff . '`');
+                                    }
+                                } else {
+                                    log_register('VISOR CAMERA [' . $eachCameraId . '] CHARGE FAIL NO_USER (' . $eachCameraData['login'] . ')');
+                                }
+                            }
+                        }
+                    } else {
+                        log_register('VISOR USER [' . $eachUserId . '] PRIMARY NO_USER (' . $eachUserData['primarylogin'] . ')');
+                    }
+                }
+            }
+            //flush old cached users data
+            if ($chargedCounter > 0) {
+                zb_UserGetAllDataCacheClean();
+            }
+        }
     }
 
 }
