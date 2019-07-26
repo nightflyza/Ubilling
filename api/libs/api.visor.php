@@ -884,6 +884,52 @@ class UbillingVisor {
     }
 
     /**
+     * Returns existing camera deletion form
+     * 
+     * @param int $cameraId
+     * 
+     * @return string
+     */
+    protected function renderCameraDeletionForm($cameraId) {
+        $cameraId = vf($cameraId, 3);
+        $result = '';
+        if (isset($this->allCams[$cameraId])) {
+            $inputs = __('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
+            $inputs .= wf_delimiter();
+            $inputs .= wf_tag('input', false, '', 'type="text" name="deleteconfirmation" autocomplete="off"');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_HiddenInput('cameradeleteprocessing', $cameraId);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Delete camera'));
+
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing camera from database
+     * 
+     * @param int $cameraId
+     * 
+     * @return void/string on error
+     */
+    public function deleteCamera($cameraId) {
+        $cameraId = vf($cameraId, 3);
+        $result = '';
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $query = "DELETE  from `" . self::TABLE_CAMS . "` WHERE `id`='" . $cameraId . "';";
+            nr_query($query);
+            log_register('VISOR CAMERA DELETE [' . $cameraId . '] ASSIGNED [' . $cameraData['visorid'] . '] LOGIN (' . $cameraData['login'] . ')');
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('No such camera exists') . ' [' . $cameraId . ']';
+        }
+        return($result);
+    }
+
+    /**
      * Renders camera profile with editing forms
      * 
      * @param int $cameraId
@@ -993,6 +1039,7 @@ class UbillingVisor {
 
                 $result .= wf_Link(self::URL_ME . self::URL_USERVIEW . $cameraData['visorid'], $this->iconVisorUser() . ' ' . __('Back to user profile'), false, 'ubButton');
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $cameraEditForm, 'ubButton');
+                $result .= wf_modalAuto(web_delete_icon() . ' ' . __('Delete'), __('Delete'), $this->renderCameraDeletionForm($cameraId), 'ubButton');
             } else {
                 $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' (' . $cameraData['login'] . ')', 'error');
             }
@@ -1114,7 +1161,10 @@ class UbillingVisor {
      */
     protected function renderDVREditForm($dvrId) {
         $dvrId = vf($dvrId, 3);
-        $result = 'TODO';
+        if (isset($this->allDvrs[$dvrId])) {
+            //TODO
+            $result = 'TODO';
+        }
         return($result);
     }
 

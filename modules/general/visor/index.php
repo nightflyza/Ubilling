@@ -129,6 +129,18 @@ if (cfr('VISOR')) {
             }
         }
 
+        //deleting existing camera
+        if (ubRouting::checkPost(array('cameradeleteprocessing', 'deleteconfirmation'))) {
+            if (ubRouting::post('deleteconfirmation') == 'confirm') {
+                $camDeletionResult = $visor->deleteCamera(ubRouting::post('cameradeleteprocessing', 'int'));
+                if (empty($camDeletionResult)) {
+                    ubRouting::nav($visor::URL_ME . $visor::URL_CAMS);
+                } else {
+                    show_error($camDeletionResult);
+                }
+            }
+        }
+
         //existing DVR listing
         if (ubRouting::checkGet(array('dvrs'))) {
             show_window(__('DVRs'), $visor->renderDVRsList());

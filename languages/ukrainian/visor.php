@@ -19,3 +19,4 @@ $lang['def']['DVR login'] = 'Логін на DVR';
 $lang['def']['DVR password'] = 'Пароль на DVR';
 $lang['def']['No such DVR exists'] = 'Такого DVR не існує';
 $lang['def']['This DVR is used for some cameras'] = 'Цей DVR використовується деякими камерами';
+$lang['def']['Delete camera'] = 'Видалити камеру';
