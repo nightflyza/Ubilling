@@ -61,43 +61,73 @@ class ubRouting {
     }
 
     /**
-     * Returns some variable value with optional filtering from GET scope
+     * Returns filtered data
      * 
-     * @param string $name name of variable to extract
+     * @param type $rawData data to be filtered
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback
-     * @param string $callback callback function name to filter variable value
+     * @param string/array $callback callback function name or names array to filter variable value
      * 
      * @return mixed/false
+     * 
+     * @throws Exception
      */
-    public static function get($name, $filtering = 'raw', $callback = '') {
+    protected static function filters($rawData, $filtering = 'raw', $callback = '') {
         $result = false;
-        if (isset($_GET[$name])) {
-            $rawData = $_GET[$name];
-            switch ($filtering) {
-                case 'raw':
-                    return($rawData);
-                    break;
-                case 'int':
-                    return(vf($rawData, 3));
-                    break;
-                case 'mres':
-                    return(mysql_real_escape_string($rawData));
-                    break;
-                case 'callback':
-                    if (!empty($callback)) {
+        switch ($filtering) {
+            case 'raw':
+                return($rawData);
+                break;
+            case 'int':
+                return(vf($rawData, 3));
+                break;
+            case 'mres':
+                return(mysql_real_escape_string($rawData));
+                break;
+            case 'callback':
+                if (!empty($callback)) {
+                    //single callback function
+                    if (!is_array($callback)) {
                         if (function_exists($callback)) {
                             return($callback($rawData));
                         } else {
                             throw new Exception('EX_CALLBACK_NOT_DEFINED');
                         }
                     } else {
-                        throw new Exception('EX_CALLBACK_EMPTY');
+                        $filteredResult = $rawData;
+                        //multiple callback functions
+                        foreach ($callback as $io => $eachCallbackFunction) {
+                            if (function_exists($eachCallbackFunction)) {
+                                $filteredResult = $eachCallbackFunction($filteredResult);
+                            } else {
+                                throw new Exception('EX_CALLBACK_NOT_DEFINED');
+                            }
+                        }
+                        return($filteredResult);
                     }
-                    break;
-                default :
-                    throw new Exception('EX_WRONG_FILTERING_MODE');
-                    break;
-            }
+                } else {
+                    throw new Exception('EX_CALLBACK_EMPTY');
+                }
+                break;
+            default :
+                throw new Exception('EX_WRONG_FILTERING_MODE');
+                break;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns some variable value with optional filtering from GET scope
+     * 
+     * @param string $name name of variable to extract
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string/array $callback callback function name or names array to filter variable value
+     * 
+     * @return mixed/false
+     */
+    public static function get($name, $filtering = 'raw', $callback = '') {
+        $result = false;
+        if (isset($_GET[$name])) {
+            return(self::filters($_GET[$name], $filtering, $callback));
         }
         return($result);
     }
@@ -114,32 +144,7 @@ class ubRouting {
     public static function post($name, $filtering = 'raw', $callback = '') {
         $result = false;
         if (isset($_POST[$name])) {
-            $rawData = $_POST[$name];
-            switch ($filtering) {
-                case 'raw':
-                    return($rawData);
-                    break;
-                case 'int':
-                    return(vf($rawData, 3));
-                    break;
-                case 'mres':
-                    return(mysql_real_escape_string($rawData));
-                    break;
-                case 'callback':
-                    if (!empty($callback)) {
-                        if (function_exists($callback)) {
-                            return($callback($rawData));
-                        } else {
-                            throw new Exception('EX_CALLBACK_NOT_DEFINED');
-                        }
-                    } else {
-                        throw new Exception('EX_CALLBACK_EMPTY');
-                    }
-                    break;
-                default :
-                    throw new Exception('EX_WRONG_FILTERING_MODE');
-                    break;
-            }
+            return(self::filters($_POST[$name], $filtering, $callback));
         }
         return($result);
     }
@@ -156,7 +161,7 @@ class ubRouting {
             rcms_redirect($url);
         }
     }
-    
+
     /**
      * Returns complete $_GET array as is
      * 
@@ -165,7 +170,7 @@ class ubRouting {
     public static function rawGet() {
         return($_GET);
     }
-    
+
     /**
      * Returns complete $_POST array as is
      * 
