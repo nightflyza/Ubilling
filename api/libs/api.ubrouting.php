@@ -113,7 +113,7 @@ class ubRouting {
                 if (!empty($callback)) {
                     return(filter_var($rawData, $callback));
                 } else {
-                    throw new Exception('EX_CALLBACK_EMPTY');
+                    throw new Exception('EX_FILTER_EMPTY');
                 }
                 break;
             case 'callback':
