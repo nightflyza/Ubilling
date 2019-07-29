@@ -331,6 +331,13 @@ class TrinityTv {
     protected $suspended = array();
 
     /**
+     * Devices count rendering flag in subscribers list.
+     *
+     * @var int
+     */
+    protected $renderDevices = 0;
+
+    /**
      * * Default tariffs viewing URL
      */
     const URL_TARIFFS = 'tariffs=true';
@@ -759,6 +766,11 @@ class TrinityTv {
             $debug = $config['TRINITYTV_DEBUG'];
         } else {
             $debug = false;
+        }
+
+        //some other options setup
+        if (isset($config['TRINITYTV_RDEVS'])) {
+            $this->renderDevices = $config['TRINITYTV_RDEVS'];
         }
 
         $this->api = new TrinityTvApi($partnerId, $salt, '', $debug);
@@ -1537,18 +1549,32 @@ class TrinityTv {
         $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), __('Registration'), $this->renderUserRegisterForm(), 'ubButton');
         $result .= " <br><br>";
 
-
-        $columns = array(
-            __('ID'),
-            __('Login'),
-            __('Real Name'),
-            __('Full address'),
-            __('Cash'),
-            __('Current tariff'),
-            __('Date'),
-            __('Active'),
-            __('Actions')
-        );
+        if ($this->renderDevices) {
+            $columns = array(
+                __('ID'),
+                __('Login'),
+                __('Real Name'),
+                __('Full address'),
+                __('Cash'),
+                __('Current tariff'),
+                __('Date'),
+                __('Devices'),
+                __('Active'),
+                __('Actions')
+            );
+        } else {
+            $columns = array(
+                __('ID'),
+                __('Login'),
+                __('Real Name'),
+                __('Full address'),
+                __('Cash'),
+                __('Current tariff'),
+                __('Date'),
+                __('Active'),
+                __('Actions')
+            );
+        }
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, true, __('Subscriptions'), '100');
         return ($result);
     }
@@ -1563,6 +1589,15 @@ class TrinityTv {
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allSubscribers)) {
+            if ($this->renderDevices) {
+                $remoteUserData = $this->api->listUsers();
+                $remoteUserData = json_decode(json_encode($remoteUserData), true);
+                if (!empty($remoteUserData)) {
+                    if (isset($remoteUserData['subscribers'])) {
+                        $remoteUserData = $remoteUserData['subscribers'];
+                    }
+                }
+            }
             foreach ($this->allSubscribers as $subscriber) {
 
                 $userAddress = @$this->allUsers[$subscriber['login']]['fulladress'];
@@ -1576,6 +1611,15 @@ class TrinityTv {
                 $data[] = @$this->allUsers[$subscriber['login']]['Cash'];
                 $data[] = $this->getTariffName($subscriber['tariffid']);
                 $data[] = $subscriber['actdate'];
+                if ($this->renderDevices) {
+                    $devicesCount = 0;
+                    if (isset($remoteUserData[$subscriber['id']])) {
+                        $devicesCount = $remoteUserData[$subscriber['id']]['devicescount'];
+                    } else {
+                        $devicesCount = __('Fail');
+                    }
+                    $data[] = $devicesCount;
+                }
                 $data[] = web_bool_led($subscriber['active'], true);
                 $data[] = $actLinks;
 
