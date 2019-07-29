@@ -14,11 +14,11 @@ spl_autoload_register(function ($className) {
     $vendorClassFileName = $api_directory . $venor_directory . strtolower($className) . DIRECTORY_SEPARATOR . $classFileName . '.php';
 
 
-    if (strpos($className, 'udb_') !== false) {
-        $notOrmTable = str_replace("udb_", '', $className);
+    if (strpos($className, 'nya_') !== false) {
+        $notOrmTable = str_replace("nya_", '', $className);
 
         $exec = '
-            class ' . $className . ' extends NotOrm {
+            class ' . $className . ' extends NyanORM {
                 public function __construct() {
                   parent::__construct();
                    $this->tableName = "' . $notOrmTable . '";
