@@ -29,6 +29,13 @@ class NyanORM {
     protected $tableName = '';
 
     /**
+     * Default where expression
+     *
+     * @var string
+     */
+    protected $where = '';
+
+    /**
      * Creates new model instance
      * 
      * @param string $name table name
@@ -44,7 +51,7 @@ class NyanORM {
      * 
      * @return void
      */
-    public function setTableName($name) {
+    protected function setTableName($name) {
         if (!empty($name)) {
             $this->tableName = $name;
         } else {
@@ -53,15 +60,25 @@ class NyanORM {
     }
 
     /**
+     * Sets some protected where expression for further database queries
+     * 
+     * @param string $expression
+     * 
+     * @return void
+     */
+    public function where($expression = '') {
+        $this->where = $expression;
+    }
+
+    /**
      * Returns all keys of current database object instance
      * 
-     * @param string $options
      * 
      * @return array
      */
-    public function getAll($options = '') {
-        $options = (!empty($options)) ? ' ' . $options : '';
-        return(simple_queryall("SELECT * from `" . $this->tableName . "`" . $options));
+    public function getAll() {
+        $where = (!empty($this->where)) ? ' WHERE ' . $this->where : '';
+        return(simple_queryall("SELECT * from `" . $this->tableName . "`" . $where));
     }
 
     /**
