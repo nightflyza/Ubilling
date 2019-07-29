@@ -13,11 +13,25 @@ spl_autoload_register(function ($className) {
     $apiClassFileName = $api_directory . $libs_directory . 'api.' . $classFileName . '.php';
     $vendorClassFileName = $api_directory . $venor_directory . strtolower($className) . DIRECTORY_SEPARATOR . $classFileName . '.php';
 
-    if (file_exists($apiClassFileName)) {
-        include $apiClassFileName;
-    } elseif (file_exists($vendorClassFileName)) {
-        include $vendorClassFileName;
+
+    if (strpos($className, 'udb_') !== false) {
+        $notOrmTable = str_replace("udb_", '', $className);
+
+        $exec = '
+            class ' . $className . ' extends NotOrm {
+                public function __construct() {
+                  parent::__construct();
+                   $this->tableName = "' . $notOrmTable . '";
+                 }
+             }';
+
+        eval($exec); //automatic models generation
+    } else {
+        if (file_exists($apiClassFileName)) {
+            include $apiClassFileName;
+        } elseif (file_exists($vendorClassFileName)) {
+            include $vendorClassFileName;
+        }
     }
 });
-
 ?>

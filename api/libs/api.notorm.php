@@ -2,23 +2,23 @@
 
 class NotOrm {
 
-    protected $tablename = '';
+    public $tableName = '';
 
     public function __construct($name = '') {
-        $this->setTableName($name);
+        // $this->setTableName($name);
     }
 
     public function setTableName($name) {
         if (!empty($name)) {
-            $this->tablename = $name;
+            $this->tableName = $name;
         } else {
-            $this->tablename = strtolower(get_class($this));
+            $this->tableName = strtolower(get_class($this));
         }
     }
 
     public function getAll($options = '') {
         $options = (!empty($options)) ? ' ' . $options : '';
-        return(simple_queryall("SELECT * from `" . $this->tablename . "`" . $options));
+        return(simple_queryall("SELECT * from `" . $this->tableName . "`" . $options));
     }
 
 }
