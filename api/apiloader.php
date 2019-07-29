@@ -123,6 +123,7 @@ include('api/libs/api.visor.php');
 include('api/libs/api.sphinxsearch.php');
 include('api/libs/api.switchlogin.php');
 include('api/libs/api.ubrouting.php');
+include('api/libs/api.notorm.php');
 
 
 /*
