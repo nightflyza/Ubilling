@@ -15,75 +15,77 @@ class ubRouting {
     /**
      * Checks is all of variables array present in GET scope
      * 
-     * @param array $params array of variable names to check
+     * @param array/string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
      * 
      * @return bool
      */
     public static function checkGet($params, $ignoreEmpty = true) {
-        if ($ignoreEmpty) {
+        if (!empty($params)) {
             $result = true;
-            if (!empty($params)) {
+            if (!is_array($params)) {
+                //single param check
+                $params = array($params);
+            }
+            if ($ignoreEmpty) {
                 foreach ($params as $eachparam) {
                     if (isset($_GET[$eachparam])) {
                         if (empty($_GET[$eachparam])) {
-                            $result = false;
-                            break;
+                            return(false);
                         }
                     } else {
-                        $result = false;
-                        break;
+                        return(false);
                     }
                 }
-            }
-        } else {
-            $result = true;
-            if (!empty($params)) {
+            } else {
                 foreach ($params as $index => $eachVariable) {
                     if (!isset($_GET[$eachVariable])) {
-                        $result = false;
+                        return(false);
                     }
                 }
             }
+            return($result);
+        } else {
+            throw new Exception('EX_PARAMS_EMPTY');
         }
-        return($result);
     }
 
     /**
      * Checks is all of variables array present in POST scope
      * 
-     * @param array $params array of variable names to check
+     * @param array/string $params array of variable names to check or single variable name as string
      * @param bool  $ignoreEmpty ignore or not existing variables with empty values (like wf_Check)
      * 
      * @return bool
      */
     public static function checkPost($params, $ignoreEmpty = true) {
-        if ($ignoreEmpty) {
+        if (!empty($params)) {
             $result = true;
-            if (!empty($params)) {
+            if (!is_array($params)) {
+                //single param check
+                $params = array($params);
+            }
+            if ($ignoreEmpty) {
                 foreach ($params as $eachparam) {
                     if (isset($_POST[$eachparam])) {
                         if (empty($_POST[$eachparam])) {
-                            $result = false;
-                            break;
+                            return(false);
                         }
                     } else {
-                        $result = false;
-                        break;
+                        return(false);
                     }
                 }
-            }
-        } else {
-            $result = true;
-            if (!empty($params)) {
+            } else {
                 foreach ($params as $index => $eachVariable) {
                     if (!isset($_POST[$eachVariable])) {
-                        $result = false;
+                        return(false);
                     }
                 }
             }
+            return($result);
+        } else {
+            throw new Exception('EX_PARAMS_EMPTY');
         }
-        return($result);
     }
 
     /**
