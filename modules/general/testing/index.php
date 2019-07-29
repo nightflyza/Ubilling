@@ -4,8 +4,5 @@
 error_reporting(E_ALL);
 
 
-$payments = new udb_payments();
-debarr($payments->getFieldsCount());
-
 
 ?>
