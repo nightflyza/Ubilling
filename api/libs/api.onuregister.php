@@ -922,10 +922,27 @@ class OnuRegister {
         foreach ($uncfgSn as $eachIndex => $rawValue) {
             $rawValue = explode('=', $rawValue);
             $rawSn = trim($rawValue[1]);
-            $rawSn = trim(str_replace('Hex-STRING:', '', $rawSn));
-            $tmp = explode(' ', $rawSn);
-            $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]);
-            $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
+            $tmpSn = explode(" ", $rawSn);
+            $check = trim($tmpSn[0]);
+            if ($check == 'STRING:') {
+                $tmpSn = bin2hex($tmpSn[1]);
+                $tmp[0] = $tmpSn[0] . $tmpSn[1];
+                $tmp[1] = $tmpSn[2] . $tmpSn[3];
+                $tmp[2] = $tmpSn[4] . $tmpSn[5];
+                $tmp[3] = $tmpSn[6] . $tmpSn[7];
+                $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
+            } else {
+                $tmp[0] = $tmpSn[0];
+                $tmp[1] = $tmpSn[1];
+                $tmp[2] = $tmpSn[2];
+                $tmp[3] = $tmpSn[3];
+                $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
+                $tmpSn = $tmp;
+            }
+            $naturalSn = implode('', $tmpSn);            
+            $tmpArr = explode(' ', $naturalSn);
+            $sn = $this->hexToString($tmpArr[0]) . $this->hexToString($tmpArr[1]) . $this->hexToString($tmpArr[2]) . $this->hexToString($tmpArr[3]);
+            $sn .= $tmpArr[4] . $tmpArr[5] . $tmpArr[6] . $tmpArr[7];
             foreach ($this->ponArray as $slot => $each_id) {
                 if ($each_id == $interfaceId) {
                     array_push($this->allUnreg['GPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId));
