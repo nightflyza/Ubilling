@@ -29,18 +29,25 @@ class NyanORM {
     protected $tableName = '';
 
     /**
-     * Cumulative where expressions array
+     * Cumulative where expressions array. This will used as AND glue.
      *
      * @var array
      */
     protected $where = array();
 
     /**
+     * Cumulative where expressions array. This will used as OR glue.
+     *
+     * @var array
+     */
+    protected $orWhere = array();
+
+    /**
      * Object wide debug flag
      *
      * @var bool
      */
-    protected $debug = true;
+    protected $debug = false;
 
     /**
      * Creates new model instance
@@ -69,9 +76,9 @@ class NyanORM {
     /**
      * Appends some where expression to protected prop for further database queries. Cleans it if all params empty.
      * 
-     * @param string $field
-     * @param string $expression
-     * @param string $value
+     * @param string $field field name to apply expression
+     * @param string $expression SQL expression. For example > = <, IS NOT, LIKE etc...
+     * @param string $value expression parameter
      * 
      * @return void
      */
@@ -80,14 +87,14 @@ class NyanORM {
             $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
             $this->where[] = "`" . $field . "` " . $expression . " " . $value;
         } else {
-            $this->where = array();
+            $this->flushWhere();
         }
     }
 
     /**
      * Appends some raw where expression into cumullative where array. Or cleanup all if empty. Yeah.
      * 
-     * @param string $expression
+     * @param string $expression raw SQL expression
      * 
      * @return void
      */
@@ -100,9 +107,52 @@ class NyanORM {
     }
 
     /**
+     * Appends some OR where expression to protected prop for further database queries. Cleans it if all params empty.
+     * 
+     * @param string $field field name to apply expression
+     * @param string $expression SQL expression. For example > = <, IS NOT, LIKE etc...
+     * @param string $value expression parameter
+     * 
+     * @return void
+     */
+    public function orWhere($field = '', $expression = '', $value = '') {
+        if (!empty($field) AND ! empty($expression) AND ! empty($value)) {
+            $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
+            $this->orWhere[] = "`" . $field . "` " . $expression . " " . $value;
+        } else {
+            $this->flushWhere();
+        }
+    }
+
+    /**
+     * Appends some raw OR where expression into cumullative where array. Or cleanup all if empty.
+     * 
+     * @param string $expression raw SQL expression
+     * 
+     * @return void
+     */
+    public function orWhereRaw($expression = '') {
+        if (!empty($expression)) {
+            $this->orWhere[] = $expression;
+        } else {
+            $this->flushWhere();
+        }
+    }
+
+    /**
+     * Flushes both where cumullative arrays
+     * 
+     * @return void
+     */
+    protected function flushWhere() {
+        $this->where = array();
+        $this->orWhere = array();
+    }
+
+    /**
      * Process some debugging data if required
      * 
-     * @param string $data
+     * @param string $data now it just string that will be displayed in debug output
      * 
      * @return void
      */
@@ -113,24 +163,47 @@ class NyanORM {
     }
 
     /**
+     * Builds where string expression from protected where expressions array
+     * 
+     * @return string
+     */
+    protected function buildWhereString() {
+        $result = '';
+        if (!empty($this->where)) {
+            if (is_array($this->where)) {
+                $result .= " WHERE ";
+                $result .= implode(' AND ', $this->where);
+            }
+        }
+
+        if (!empty($this->orWhere)) {
+            if (is_array($this->orWhere)) {
+                if (empty($result)) {
+                    //maybe only OR statements here
+                    $result .= " WHERE ";
+                } else {
+                    $result .= " OR ";
+                }
+                $result .= implode(' OR ', $this->orWhere);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns all records of current database object instance
      * 
-     * @param string $assocByField
+     * @param string $assocByField field name to automatically make it as index key in results array
      * 
      * @return array
      */
     public function getAll($assocByField = '') {
-        $whereString = '';
-        if (!empty($this->where)) {
-            if (is_array($this->where)) {
-                $whereString .= " WHERE ";
-                $whereString .= implode(' AND ', $this->where);
-            }
-        }
+        $whereString = $this->buildWhereString();
         $query = "SELECT * from `" . $this->tableName . "` " . $whereString;
         $this->debugLog($query);
-
         $result = simple_queryall($query);
+
+        //automatic data preprocessing
         if (!empty($assocByField)) {
             $resultTmp = array();
             if (!empty($result)) {
@@ -141,6 +214,7 @@ class NyanORM {
                 }
             }
             $result = $resultTmp;
+            $resultTmp = array(); //cleanup?
         }
         return($result);
     }
@@ -162,6 +236,17 @@ class NyanORM {
     public function getFieldsCount($fieldsToCount = 'id') {
         $raw = simple_query("SELECT COUNT(`" . $fieldsToCount . "`) from `" . $this->tableName . "`");
         return($raw['COUNT(`' . $fieldsToCount . '`)']);
+    }
+
+    /**
+     * Enables or disables debug flag
+     * 
+     * @param bool $state object instance debug state
+     * 
+     * @return void
+     */
+    public function setDebug($state) {
+        $this->debug = $state;
     }
 
 }

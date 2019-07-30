@@ -11,14 +11,14 @@ if (ubRouting::checkGet('paymentstest')) {
     }
 
     $payments = new payments();
-
+    $payments->setDebug(true);
     $payments->where('id', '>', '100');
     $payments->where('date', 'LIKE', '2019%');
     $payments->where('summ', '>', '10');
     $payments->where('note', 'IS NOT', 'NULL');
-    $rawPayments = $payments->getAll('id');
+    $payments->orWhere('id', '=', '2');
+    $rawPayments = $payments->getAll();
 
     debarr($rawPayments);
-    
 }
 ?>
