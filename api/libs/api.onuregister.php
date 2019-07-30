@@ -926,11 +926,23 @@ class OnuRegister {
             $check = trim($tmpSn[0]);
             if ($check == 'STRING:') {
                 $tmpSn = bin2hex($tmpSn[1]);
-                $tmp[0] = $tmpSn[0] . $tmpSn[1];
-                $tmp[1] = $tmpSn[2] . $tmpSn[3];
-                $tmp[2] = $tmpSn[4] . $tmpSn[5];
-                $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
+                if (strlen($tmpSn == 20)) {
+                    $tmp[0] = $tmpSn[2] . $tmpSn[3];
+                    $tmp[1] = $tmpSn[4] . $tmpSn[5];
+                    $tmp[2] = $tmpSn[6] . $tmpSn[7];
+                    $tmp[3] = $tmpSn[8] . $tmpSn[9];
+                    $tmpStr = '';
+                    for ($i = 10; $i <= 19; $i++) {
+                        $tmpStr .= $tmpSn[$i];
+                    }
+                    $tmp[4] = $tmpStr;
+                } else {
+                    $tmp[0] = $tmpSn[0] . $tmpSn[1];
+                    $tmp[1] = $tmpSn[2] . $tmpSn[3];
+                    $tmp[2] = $tmpSn[4] . $tmpSn[5];
+                    $tmp[3] = $tmpSn[6] . $tmpSn[7];
+                    $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
+                }
             } else {
                 $tmp[0] = $tmpSn[0];
                 $tmp[1] = $tmpSn[1];
