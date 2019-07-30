@@ -90,7 +90,7 @@ class NyanORM {
      * @return void
      */
     public function where($field = '', $expression = '', $value = '') {
-        if (!empty($field) AND ! empty($expression) AND ! empty($value)) {
+        if (!empty($field) AND ! empty($expression)) {
             $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
             $this->where[] = "`" . $field . "` " . $expression . " " . $value;
         } else {
@@ -123,7 +123,7 @@ class NyanORM {
      * @return void
      */
     public function orWhere($field = '', $expression = '', $value = '') {
-        if (!empty($field) AND ! empty($expression) AND ! empty($value)) {
+        if (!empty($field) AND ! empty($expression)) {
             $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
             $this->orWhere[] = "`" . $field . "` " . $expression . " " . $value;
         } else {
