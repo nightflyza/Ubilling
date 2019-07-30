@@ -939,10 +939,7 @@ class OnuRegister {
                 $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
                 $tmpSn = $tmp;
             }
-            $naturalSn = implode('', $tmpSn);            
-            $tmpArr = explode(' ', $naturalSn);
-            $sn = $this->hexToString($tmpArr[0]) . $this->hexToString($tmpArr[1]) . $this->hexToString($tmpArr[2]) . $this->hexToString($tmpArr[3]);
-            $sn .= $tmpArr[4] . $tmpArr[5] . $tmpArr[6] . $tmpArr[7];
+            $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
             foreach ($this->ponArray as $slot => $each_id) {
                 if ($each_id == $interfaceId) {
                     array_push($this->allUnreg['GPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId));
