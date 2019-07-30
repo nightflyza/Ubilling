@@ -50,6 +50,20 @@ class NyanORM {
     protected $order = array();
 
     /**
+     * Contains default query results limit
+     *
+     * @var int
+     */
+    protected $limit = 0;
+
+    /**
+     * Contains default query limit offset
+     * 
+     * @var int
+     */
+    protected $offset = 0;
+
+    /**
      * Object wide debug flag
      *
      * @var bool
@@ -239,18 +253,67 @@ class NyanORM {
     }
 
     /**
+     * Sets query limits with optional offset
+     * 
+     * @param int $limit results limit count 
+     * @param int $offset results limit offset
+     * 
+     * @return void
+     */
+    public function limit($limit = '', $offset = '') {
+        if (!empty($limit)) {
+            $this->limit = $limit;
+            if (!empty($offset)) {
+                $this->offset = $offset;
+            }
+        } else {
+            $this->flushLimit();
+        }
+    }
+
+    /**
+     * Flushes limits values for further queries. No limits anymore! Meow!
+     * 
+     * @return void
+     */
+    protected function flushLimit() {
+        $this->limit = 0;
+        $this->offset = 0;
+    }
+
+    /**
+     * Builds SQL formatted limits string
+     * 
+     * @return string
+     */
+    protected function buildLimitString() {
+        $result = '';
+        if (!empty($this->limit)) {
+            $result .= ' LIMIT ';
+            if (!empty($this->offset)) {
+                $result .= ' ' . $this->offset . ',' . $this->limit;
+            } else {
+                $result .= ' ' . $this->limit;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns all records of current database object instance
      * 
      * @param string $assocByField field name to automatically make it as index key in results array
-     * @param bool $flushParams flush all query parameters like where, order and other after execution?
+     * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
      * 
      * @return array
      */
     public function getAll($assocByField = '', $flushParams = true) {
         $whereString = $this->buildWhereString();
         $orderString = $this->buildOrderString();
+        $limitString = $this->buildLimitString();
         //building some dummy query
-        $query = "SELECT * from `" . $this->tableName . "` " . $whereString . $orderString;
+        $query = "SELECT * from `" . $this->tableName . "` "; //base query
+        $query .= $whereString . $orderString . $limitString; //optional parameters
         $this->debugLog($query);
         $result = simple_queryall($query);
 
@@ -272,8 +335,38 @@ class NyanORM {
             //flush instance parameters for further queries
             $this->flushWhere();
             $this->flushOrder();
+            $this->flushLimit();
         }
         return($result);
+    }
+
+    /**
+     * Deletes record from database. Where must be not empty!
+     * 
+     * @param bool  $flushParams flush all query parameters like where, order, limit and other after execution?
+     * 
+     * @return void
+     */
+    public function delete($flushParams = true) {
+        if (!empty($this->where) OR ! empty($this->orWhere)) {
+            $whereString = $this->buildWhereString();
+            $limitString = $this->buildLimitString();
+            if (!empty($whereString)) {
+                //double check yeah!
+                $query = "DELETE from `" . $this->tableName . "`"; //base deletion query
+                $query .= $whereString . $limitString; //optional parameters
+                $this->debugLog($query);
+                nr_query($query);
+            } else {
+                //mb some exception here
+            }
+        }
+        if ($flushParams) {
+            //flush instance parameters for further queries
+            $this->flushWhere();
+            $this->flushOrder();
+            $this->flushLimit();
+        }
     }
 
     /**
@@ -281,7 +374,7 @@ class NyanORM {
      * 
      * @return int
      */
-    public function getIdLast() {
+    public function getLastId() {
         return(simple_get_lastid($this->tableName));
     }
 
