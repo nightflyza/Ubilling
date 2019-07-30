@@ -566,17 +566,19 @@ class Warehouse {
      * @param int $itemtypeId
      * @param float $count
      * @param int $employeeId
+     * @param int $reserveId
      * 
      * @return void
      */
-    protected function reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId) {
+    protected function reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId, $reserveId = '') {
         if ($this->telegramNotify) {
             $message = '';
             $adminLogin = whoami();
             $adminName = (isset($this->allEmployeeLogins[$adminLogin])) ? $this->allEmployeeLogins[$adminLogin] : $adminLogin;
-            $message .= __('From warehouse storage') . ' ' . $this->allStorages[$storageId] . '\r\n ';
-            $message .= $adminName . ' ' . __('reserved for you') . ': ';
-            $message .= $this->allItemTypeNames[$itemtypeId] . ' ' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+            $message .= __('From warehouse storage') . ' 📦 ' . $this->allStorages[$storageId] . '\r\n ';
+            $message .= '👤 ' . $adminName . ' ' . __('reserved for you') . ' ' . '❤️️' . ' : ';
+            $message .= $this->allItemTypeNames[$itemtypeId] . ' ' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . '\r\n ';
+            $message .= __('Reserve') . '@' . $reserveId . ' 🔒';
             $this->sendTelegram($employeeId, $message);
         }
     }
@@ -673,7 +675,7 @@ class Warehouse {
                         $newId = simple_get_lastid('wh_reserve');
                         log_register('WAREHOUSE RESERVE CREATE [' . $newId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
                         $this->reservePushLog('create', $storageId, $itemtypeId, $count, $employeeId, $newId);
-                        $this->reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId);
+                        $this->reserveCreationNotify($storageId, $itemtypeId, $count, $employeeId, $newId);
                     } else {
                         $result = $this->messages->getStyledMessage($this->allItemTypeNames[$itemtypeId] . '. ' . __('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
                     }
