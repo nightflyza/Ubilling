@@ -1241,7 +1241,7 @@ class ExistentialHorse {
                 foreach ($monthArr as $monthNum => $each) {
                     $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                    $cells .= wf_TableCell($each['f_totalmoney']);
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($each['f_totalmoney']),'','','align="right"');
                     $cells .= wf_TableCell($each['f_paymentscount']);
                     $cells .= wf_TableCell($each['f_cashmoney'] . ' (' . $this->percentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
                     $cells .= wf_TableCell($each['f_cashcount'] . ' (' . $this->percentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
@@ -1313,7 +1313,7 @@ class ExistentialHorse {
                     foreach ($monthArr as $monthNum => $each) {
                         $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                         $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
-                        $cells .= wf_TableCell($each['c_totalmoney']);
+                        $cells .= wf_TableCell(zb_CashBigValueFormat($each['c_totalmoney']),'','','align="right"');
                         $cells .= wf_TableCell($each['c_paymentscount']);
                         $cells .= wf_TableCell($each['c_arpu']);
                         $cells .= wf_TableCell($each['c_arpau']);

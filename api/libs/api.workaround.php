@@ -1865,7 +1865,7 @@ function web_PaymentsShowGraph($year) {
             $cells .= wf_TableCell(wf_Link('?module=report_finance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
             $cells .= wf_TableCell($paycount);
             $cells .= wf_TableCell($monthArpu);
-            $cells .= wf_TableCell(web_roundValue($month_summ, 2));
+            $cells .= wf_TableCell(zb_CashBigValueFormat($month_summ), '', '', 'align="right"');
             $cells .= wf_TableCell(web_bar($month_summ, $year_summ), '', '', 'sorttable_customkey="' . $month_summ . '"');
             $rows .= wf_TableRow($cells, 'row3');
         }
@@ -3914,7 +3914,6 @@ function zb_TranslitString($string, $caseSensetive = false) {
 }
 
 /**
- * 
  * Rounds $value to $precision digits
  * 
  * @param   $value      Integer which to round
@@ -3927,6 +3926,17 @@ function web_roundValue($value, $precision = 2) {
     $multiplier = pow(10, $precision);
     $rounded = (($value >= 0) ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
     return $rounded;
+}
+
+/**
+ * Big values cash display formatting for better readability
+ * 
+ * @param float $cashValue
+ * 
+ * @return string
+ */
+function zb_CashBigValueFormat($cashValue) {
+    return(number_format($cashValue, 0, '.', ' '));
 }
 
 /**

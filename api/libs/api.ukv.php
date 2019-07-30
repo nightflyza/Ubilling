@@ -3363,7 +3363,7 @@ class UkvSystem {
                 $cells .= wf_TableCell(wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
                 $cells .= wf_TableCell($paycount);
                 $cells .= wf_TableCell(@round($month_summ / $paycount, 2));
-                $cells .= wf_TableCell(web_roundValue($month_summ, 2));
+                $cells .= wf_TableCell(zb_CashBigValueFormat($month_summ), '', '', 'align="right"');
                 $cells .= wf_TableCell(web_bar($month_summ, $year_summ));
                 $rows .= wf_TableRow($cells, 'row3');
             }
