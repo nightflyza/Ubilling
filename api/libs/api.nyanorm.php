@@ -43,6 +43,13 @@ class NyanORM {
     protected $orWhere = array();
 
     /**
+     * Contains ORDER by expressions for some queries
+     *
+     * @var array
+     */
+    protected $order = array();
+
+    /**
      * Object wide debug flag
      *
      * @var bool
@@ -150,6 +157,31 @@ class NyanORM {
     }
 
     /**
+     * Appends some order by expression to protected prop
+     * 
+     * @param string $field field for ordering
+     * @param string $order SQL order direction like ASC/DESC
+     * 
+     * @return void
+     */
+    public function orderBy($field = '', $order = '') {
+        if (!empty($field) AND ! empty($order)) {
+            $this->order[] = "`" . $field . "` " . $order;
+        } else {
+            $this->flushOrder();
+        }
+    }
+
+    /**
+     * Flushes order cumullative array
+     * 
+     * @return void
+     */
+    protected function flushOrder() {
+        $this->order = array();
+    }
+
+    /**
      * Process some debugging data if required
      * 
      * @param string $data now it just string that will be displayed in debug output
@@ -191,15 +223,34 @@ class NyanORM {
     }
 
     /**
+     * Retruns order expressions as string
+     * 
+     * @return string
+     */
+    protected function buildOrderString() {
+        $result = '';
+        if (!empty($this->order)) {
+            if (is_array($this->order)) {
+                $result .= " ORDER BY ";
+                $result .= implode(' , ', $this->order);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns all records of current database object instance
      * 
      * @param string $assocByField field name to automatically make it as index key in results array
+     * @param bool $flushParams flush all query parameters like where, order and other after execution?
      * 
      * @return array
      */
-    public function getAll($assocByField = '') {
+    public function getAll($assocByField = '', $flushParams = true) {
         $whereString = $this->buildWhereString();
-        $query = "SELECT * from `" . $this->tableName . "` " . $whereString;
+        $orderString = $this->buildOrderString();
+        //building some dummy query
+        $query = "SELECT * from `" . $this->tableName . "` " . $whereString . $orderString;
         $this->debugLog($query);
         $result = simple_queryall($query);
 
@@ -215,6 +266,12 @@ class NyanORM {
             }
             $result = $resultTmp;
             $resultTmp = array(); //cleanup?
+        }
+
+        if ($flushParams) {
+            //flush instance parameters for further queries
+            $this->flushWhere();
+            $this->flushOrder();
         }
         return($result);
     }
