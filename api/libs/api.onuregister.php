@@ -925,8 +925,8 @@ class OnuRegister {
             $tmpSn = explode(" ", $rawSn);
             $check = trim($tmpSn[0]);
             if ($check == 'STRING:') {
-                $tmpSn = bin2hex($tmpSn[1]);
-                if (strlen($tmpSn == 20)) {
+                $tmpSn = bin2hex($tmpSn[1]);                
+                if (strlen($tmpSn) == 20) {
                     $tmp[0] = $tmpSn[2] . $tmpSn[3];
                     $tmp[1] = $tmpSn[4] . $tmpSn[5];
                     $tmp[2] = $tmpSn[6] . $tmpSn[7];
@@ -941,14 +941,17 @@ class OnuRegister {
                     $tmp[1] = $tmpSn[2] . $tmpSn[3];
                     $tmp[2] = $tmpSn[4] . $tmpSn[5];
                     $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                    $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
+                    for ($i = 8; $i <= 15; $i++) {
+                        $tmpStr .= $tmpSn[$i];
+                    }
+                    $tmp[4] = $tmpStr;
                 }
             } else {
-                $tmp[0] = $tmpSn[0];
-                $tmp[1] = $tmpSn[1];
-                $tmp[2] = $tmpSn[2];
-                $tmp[3] = $tmpSn[3];
-                $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
+                $tmp[0] = $tmpSn[1];
+                $tmp[1] = $tmpSn[2];
+                $tmp[2] = $tmpSn[3];
+                $tmp[3] = $tmpSn[4];
+                $tmp[4] = $tmpSn[5] . $tmpSn[6] . $tmpSn[7] . $tmpSn[8];
                 $tmpSn = $tmp;
             }
             $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
