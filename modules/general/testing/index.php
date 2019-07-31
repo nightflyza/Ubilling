@@ -4,9 +4,6 @@
 error_reporting(E_ALL);
 
 
-class todo extends NyanORM {};
-
-$todo= new todo();
 
 
 
