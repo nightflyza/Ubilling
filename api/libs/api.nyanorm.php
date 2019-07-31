@@ -381,10 +381,20 @@ class NyanORM {
     /**
      * Returns ids count in datatabase instance
      * 
+     * @param string $fieldsToCount field name to count results
+     * @param bool  $flushParams flush all query parameters like where, order, limit and other after execution?
+     * 
      * @return int
      */
-    public function getFieldsCount($fieldsToCount = 'id') {
-        $raw = simple_query("SELECT COUNT(`" . $fieldsToCount . "`) from `" . $this->tableName . "`");
+    public function getFieldsCount($fieldsToCount = 'id', $flushParams = true) {
+        $whereString = $this->buildWhereString();
+        $raw = simple_query("SELECT COUNT(`" . $fieldsToCount . "`) from `" . $this->tableName . "`" . $whereString);
+        if ($flushParams) {
+            //flush instance parameters for further queries
+            $this->flushWhere();
+            $this->flushOrder();
+            $this->flushLimit();
+        }
         return($raw['COUNT(`' . $fieldsToCount . '`)']);
     }
 
