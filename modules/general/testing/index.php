@@ -4,7 +4,8 @@
 error_reporting(E_ALL);
 
 
-
+class zzz extends NyanORM {}
+$b= new zzz();
 
 
 
