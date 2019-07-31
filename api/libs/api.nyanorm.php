@@ -426,7 +426,7 @@ class NyanORM {
     }
 
     /**
-     * 
+     * Saves current model data fields changes to database.
      * 
      * @param bool $flushParams
      * 
