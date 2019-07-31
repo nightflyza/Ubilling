@@ -154,6 +154,18 @@ class NyanORM {
     }
 
     /**
+     * Flushes all available cumulative structures in safety reasons.
+     * 
+     * @return void
+     */
+    protected function destroyAllStructs() {
+        $this->flushData();
+        $this->flushWhere();
+        $this->flushOrder();
+        $this->flushLimit();
+    }
+
+    /**
      * Appends some OR where expression to protected prop for further database queries. Cleans it if all params empty.
      * 
      * @param string $field field name to apply expression
@@ -371,9 +383,7 @@ class NyanORM {
 
         if ($flushParams) {
             //flush instance parameters for further queries
-            $this->flushWhere();
-            $this->flushOrder();
-            $this->flushLimit();
+            $this->destroyAllStructs();
         }
         return($result);
     }
@@ -396,14 +406,15 @@ class NyanORM {
                 $this->debugLog($query);
                 nr_query($query);
             } else {
-                //TODO: mb some exception here
+                throw new Exception('MEOW_WHERE_STRUCT_EMPTY');
             }
+        } else {
+            throw new Exception('MEOW_WHERE_STRUCT_EMPTY');
         }
+
         if ($flushParams) {
             //flush instance parameters for further queries
-            $this->flushWhere();
-            $this->flushOrder();
-            $this->flushLimit();
+            $this->destroyAllStructs();
         }
     }
 
@@ -451,17 +462,18 @@ class NyanORM {
                         nr_query($query);
                     }
                 } else {
-                    //TODO: mb some exception
+                    throw new Exception('MEOW_WHERE_STRUCT_EMPTY');
                 }
+            } else {
+                throw new Exception('MEOW_WHERE_STRUCT_EMPTY');
             }
+        } else {
+            throw new Exception('MEOW_DATA_STRUCT_EMPTY');
         }
 
         if ($flushParams) {
             //flush instance parameters for further queries
-            $this->flushData();
-            $this->flushWhere();
-            $this->flushOrder();
-            $this->flushLimit();
+            $this->destroyAllStructs();
         }
     }
 
@@ -492,15 +504,12 @@ class NyanORM {
             $this->debugLog($query);
             nr_query($query); //RUN THAT MEOW!!!!
         } else {
-            //TODO: mb throw some exception?
+            throw new Exception('MEOW_DATA_STRUCT_EMPTY');
         }
 
         if ($flushParams) {
             //flush instance parameters for further queries
-            $this->flushData();
-            $this->flushWhere();
-            $this->flushOrder();
-            $this->flushLimit();
+            $this->destroyAllStructs();
         }
     }
 
@@ -526,9 +535,7 @@ class NyanORM {
         $raw = simple_query("SELECT COUNT(`" . $fieldsToCount . "`) from `" . $this->tableName . "`" . $whereString);
         if ($flushParams) {
             //flush instance parameters for further queries
-            $this->flushWhere();
-            $this->flushOrder();
-            $this->flushLimit();
+            $this->destroyAllStructs();
         }
         return($raw['COUNT(`' . $fieldsToCount . '`)']);
     }
