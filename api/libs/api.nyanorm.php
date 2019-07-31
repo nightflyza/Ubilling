@@ -29,6 +29,13 @@ class NyanORM {
     protected $tableName = '';
 
     /**
+     * Contains key=>value data sets array for INSERT/UPDATE operations
+     *
+     * @var array
+     */
+    protected $data = array();
+
+    /**
      * Cumulative where expressions array. This will used as AND glue.
      *
      * @var array
@@ -69,6 +76,18 @@ class NyanORM {
      * @var bool
      */
     protected $debug = false;
+
+    /**
+     * Yet another debug flag, for full model dumping
+     *
+     * @var bool
+     */
+    protected $deepDebug = false;
+
+    /**
+     * Default log path
+     */
+    const LOG_PATH = 'exports/nyanorm.log';
 
     /**
      * Creates new model instance
@@ -205,6 +224,18 @@ class NyanORM {
     protected function debugLog($data) {
         if ($this->debug) {
             show_window(__('NyaORM Debug'), $data);
+            $curDate = curdatetime();
+            $logData = '';
+            if ($this->deepDebug) {
+                $logData = $curDate . ' Model name: "' . $this->tableName . '"' . "\n";
+                $logData .= $curDate . ' Model state: ' . print_r($this, true) . "\n";
+            }
+            $logData .= $curDate . ' ' . $data . "\n";
+            if ($this->deepDebug) {
+                $logData .= str_repeat('=', 40) . "\n";
+            }
+
+            file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
         }
     }
 
@@ -358,11 +389,69 @@ class NyanORM {
                 $this->debugLog($query);
                 nr_query($query);
             } else {
-                //mb some exception here
+                //TODO: mb some exception here
             }
         }
         if ($flushParams) {
             //flush instance parameters for further queries
+            $this->flushWhere();
+            $this->flushOrder();
+            $this->flushLimit();
+        }
+    }
+
+    /**
+     * Puts some data into protected data property for furrrrther save()/create() operations.
+     * 
+     * @param string $field
+     * @param string $value
+     * 
+     * @return void
+     */
+    public function data($field = '', $value = '') {
+        if (!empty($field)) {
+            $this->data[$field] = $value;
+        } else {
+            $this->flushData();
+        }
+    }
+
+    /**
+     * Flushes current instance data set
+     * 
+     * @return void
+     */
+    protected function flushData() {
+        $this->data = array();
+    }
+
+    /**
+     * 
+     * 
+     * @param bool $flushParams
+     * 
+     * @return void
+     */
+    public function save($flushParams = true) {
+        if (!empty($this->data)) {
+            if (!empty($this->where)) {
+                $whereString = $this->buildWhereString();
+                if (!empty($whereString)) {
+                    //double check, yeah.
+                    foreach ($this->data as $field => $value) {
+                        $query = "UPDATE `" . $this->tableName . "` SET `" . $field . "`='" . $value . "'" . $whereString;
+                        $this->debugLog($query);
+                        nr_query($query);
+                    }
+                } else {
+                    //TODO: mb some exception
+                }
+            }
+        }
+
+        if ($flushParams) {
+            //flush instance parameters for further queries
+            $this->flushData();
             $this->flushWhere();
             $this->flushOrder();
             $this->flushLimit();
@@ -402,11 +491,15 @@ class NyanORM {
      * Enables or disables debug flag
      * 
      * @param bool $state object instance debug state
+     * @param bool $deep deep debugging mode with full model dumps
      * 
      * @return void
      */
-    public function setDebug($state) {
+    public function setDebug($state, $deep = false) {
         $this->debug = $state;
+        if ($deep) {
+            $this->deepDebug = true;
+        }
     }
 
 }
