@@ -410,8 +410,8 @@ class NyanORM {
     /**
      * Puts some data into protected data property for furrrrther save()/create() operations.
      * 
-     * @param string $field
-     * @param string $value
+     * @param string $field record field name to push data
+     * @param string $value field content to push
      * 
      * @return void
      */
