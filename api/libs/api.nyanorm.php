@@ -29,6 +29,13 @@ class NyanORM {
     protected $tableName = '';
 
     /**
+     * Contains default primary key field name for current instance model
+     *
+     * @var string
+     */
+    protected $defaultPk = 'id';
+
+    /**
      * Contains key=>value data sets array for INSERT/UPDATE operations
      *
      * @var array
@@ -428,7 +435,7 @@ class NyanORM {
     /**
      * Saves current model data fields changes to database.
      * 
-     * @param bool $flushParams
+     * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
      * 
      * @return void
      */
@@ -447,6 +454,45 @@ class NyanORM {
                     //TODO: mb some exception
                 }
             }
+        }
+
+        if ($flushParams) {
+            //flush instance parameters for further queries
+            $this->flushData();
+            $this->flushWhere();
+            $this->flushOrder();
+            $this->flushLimit();
+        }
+    }
+
+    /**
+     * Creates new database record for current model instance.
+     * 
+     * @param bool $autoAiId append default NULL autoincrementing primary key?
+     * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
+     * 
+     * @return void
+     */
+    public function create($autoAiId = true, $flushParams = true) {
+        if (!empty($this->data)) {
+            $dataStruct = '';
+            $dataValues = '';
+            if ($autoAiId) {
+                $dataStruct .= '`' . $this->defaultPk . '`,';
+                $dataValues .= 'NULL,';
+            }
+            foreach ($this->data as $field => $value) {
+                $dataStruct .= '`' . $field . '`,';
+                $dataValues .= "'" . $value . "',";
+            }
+            $dataStruct = zb_CutEnd($dataStruct);
+            $dataValues = zb_CutEnd($dataValues);
+
+            $query = "INSERT INTO `" . $this->tableName . "` (" . $dataStruct . ') VALUES (' . $dataValues . ')';
+            $this->debugLog($query);
+            nr_query($query); //RUN THAT MEOW!!!!
+        } else {
+            //TODO: mb throw some exception?
         }
 
         if ($flushParams) {
