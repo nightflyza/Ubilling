@@ -574,7 +574,11 @@ class TrinityTv {
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('MAC address'));
         $cells .= wf_TableCell(__('Date'));
+        if (@$this->altCfg['MACVEN_ENABLED']) {
+            $cells .= wf_TableCell(__('Manufacturer'));
+        }
         $cells .= wf_TableCell(__('Actions'));
+
 
         $rows = wf_TableRow($cells, 'row1');
 
@@ -589,8 +593,11 @@ class TrinityTv {
         if (!empty($devices)) {
             foreach ($devices as $device) {
                 $cells = wf_TableCell($device['id']);
-                $cells .= wf_TableCell($device['mac'] . ' ' . $this->renderVendorLookup($device['mac']));
+                $cells .= wf_TableCell($device['mac']);
                 $cells .= wf_TableCell($device['created_at']);
+                if (@$this->altCfg['MACVEN_ENABLED']) {
+                    $cells .= wf_TableCell($this->renderVendorLookup($device['mac']));
+                }
 
                 $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_SUBSCRIBER . $subscriberId . '&deletedeviceid=' . $device['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $cells .= wf_TableCell($actLinks);
