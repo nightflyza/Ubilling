@@ -243,7 +243,7 @@ class FDBArchive {
      */
     public function renderArchive() {
         $result = '';
-        $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', 'User');
+        $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User').' / '.__('Device'));
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true', false, 'records', 100);
         return($result);
     }
@@ -266,11 +266,9 @@ class FDBArchive {
                 $fdbData = @unserialize($archiveRecord['data']);
                 if (!empty($fdbData)) {
                     foreach ($fdbData as $eachMac => $eachPort) {
-                        $switchLink = '';
+                        $switchLink = $switchIcon.' '.__('Not exists');
                         if (!empty($recordId)) {
                             $switchLink = wf_Link('?module=switches&editid=' . $recordId, $switchIcon . @$this->allSwitches[$recordId]['location']);
-                        } else {
-                            $switchLink = wf_Link('?module=switches&gotoswitchbyip=' . $recordIp, $switchIcon . @$this->allSwitches[$recordId]['location']);
                         }
                         $data[] = $recordDate;
                         $data[] = $recordIp;
