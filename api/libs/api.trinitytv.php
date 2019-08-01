@@ -338,6 +338,13 @@ class TrinityTv {
     protected $renderDevices = 0;
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * * Default tariffs viewing URL
      */
     const URL_TARIFFS = 'tariffs=true';
@@ -369,12 +376,30 @@ class TrinityTv {
      * Creates new TriityTV instance
      */
     public function __construct() {
+        $this->loadConfigs();
         $this->initApi();
         $this->initMessages();
         $this->loadTariffs();
         $this->loadUsers();
         $this->loadSubscribers();
         $this->loadSuspended();
+    }
+
+    /**
+     * Loads required configs into protected props
+     * 
+     * @global type $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfigs() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+
+        //some other options setup
+        if (isset($this->altCfg['TRINITYTV_RDEVS'])) {
+            $this->renderDevices = $this->altCfg['TRINITYTV_RDEVS'];
+        }
     }
 
     /**
@@ -518,6 +543,26 @@ class TrinityTv {
     }
 
     /**
+     * Returns device vendor lookup concrols + ajax container. wf_AjaxLoader required.
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    protected function renderVendorLookup($mac) {
+        $result = '';
+        if (@$this->altCfg['MACVEN_ENABLED']) {
+            if (!empty($mac)) {
+                $containerName = 'DEVMCVENCNT_' . zb_rand_string(8);
+                $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . $mac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
+                $lookupVendorLink .= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
+                $result .= $lookupVendorLink;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders available tariffs list
      *
      * @param $subscriberId
@@ -525,7 +570,7 @@ class TrinityTv {
      */
     public function renderDevices($subscriberId) {
         $result = '';
-
+        $result .= wf_AjaxLoader();
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('MAC address'));
         $cells .= wf_TableCell(__('Date'));
@@ -538,14 +583,13 @@ class TrinityTv {
 
         // Add device by MAC
         $result .= wf_modalAuto(wf_img('skins/switch_models.png') . ' ' . __('Assign device') . ' ' . __('by code'), __('Assign device'), $this->renderDeviceByCodeAddForm($subscriberId), 'ubButton');
-
-        $result .= "<br><br> ";
+        $result .= wf_delimiter();
 
         $devices = $this->getSubscriberDevices($subscriberId);
         if (!empty($devices)) {
             foreach ($devices as $device) {
                 $cells = wf_TableCell($device['id']);
-                $cells .= wf_TableCell($device['mac']);
+                $cells .= wf_TableCell($device['mac'] . ' ' . $this->renderVendorLookup($device['mac']));
                 $cells .= wf_TableCell($device['created_at']);
 
                 $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_SUBSCRIBER . $subscriberId . '&deletedeviceid=' . $device['id'], web_delete_icon(), $this->messages->getDeleteAlert());
@@ -748,29 +792,21 @@ class TrinityTv {
      * Inits API object for further usage
      */
     protected function initApi() {
-        global $ubillingConfig;
-        $config = $ubillingConfig->getAlter();
-
         $partnerId = '';
         $salt = '';
 
-        if (!empty($config['TRINITYTV_PARTNER_ID'])) {
-            $partnerId = $config['TRINITYTV_PARTNER_ID'];
+        if (!empty($this->altCfg['TRINITYTV_PARTNER_ID'])) {
+            $partnerId = $this->altCfg['TRINITYTV_PARTNER_ID'];
         }
 
-        if (!empty($config['TRINITYTV_SALT'])) {
-            $salt = $config['TRINITYTV_SALT'];
+        if (!empty($this->altCfg['TRINITYTV_SALT'])) {
+            $salt = $this->altCfg['TRINITYTV_SALT'];
         }
 
-        if (isset($config['TRINITYTV_DEBUG'])) {
-            $debug = $config['TRINITYTV_DEBUG'];
+        if (isset($this->altCfg['TRINITYTV_DEBUG'])) {
+            $debug = $this->altCfg['TRINITYTV_DEBUG'];
         } else {
             $debug = false;
-        }
-
-        //some other options setup
-        if (isset($config['TRINITYTV_RDEVS'])) {
-            $this->renderDevices = $config['TRINITYTV_RDEVS'];
         }
 
         $this->api = new TrinityTvApi($partnerId, $salt, '', $debug);
