@@ -4,8 +4,11 @@
 error_reporting(E_ALL);
 
 $fdbarchive=new FDBArchive();
-$fdbarchive->saveOltCache();
-//$fdbarchive->saveSwitchesCache();
+
+if (ubRouting::get('ajax')) {
+    $fdbarchive->ajArchiveData();
+}
+deb($fdbarchive->renderArchive());
 
 
 

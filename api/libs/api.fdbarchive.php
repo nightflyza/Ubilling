@@ -24,6 +24,13 @@ class FDBArchive {
     protected $archive = '';
 
     /**
+     * Object wide json helper placeholder
+     *
+     * @var object
+     */
+    protected $json = '';
+
+    /**
      * Contains default FDB caches storage path
      */
     const PATH_CACHE = 'exports/';
@@ -43,8 +50,14 @@ class FDBArchive {
      */
     const TABLE_ARCHIVE = 'fdbarchive';
 
+    /**
+     * Contains default module controller URL
+     */
+    const URL_ME = '?module=testing';
+
     public function __construct() {
         $this->loadConfigs();
+        $this->initJson();
         $this->initArchive();
         $this->loadSwitches();
     }
@@ -68,6 +81,15 @@ class FDBArchive {
      */
     protected function initArchive() {
         $this->archive = new NyanORM(self::TABLE_ARCHIVE);
+    }
+
+    /**
+     * Inits archive model as protected property for further usage
+     * 
+     * @return void
+     */
+    protected function initJson() {
+        $this->json = new wf_JqDtHelper();
     }
 
     /**
@@ -150,7 +172,7 @@ class FDBArchive {
      * 
      * @return void
      */
-    public function saveOltCache() {
+    protected function saveOltCache() {
         $newDate = curdatetime();
         if (@$this->altCfg['PON_ENABLED']) {
             $allCachedData = rcms_scandir(self::PATH_CACHE, '*' . self::EXT_OLTS);
@@ -180,7 +202,7 @@ class FDBArchive {
      * 
      * @return void
      */
-    public function saveSwitchesCache() {
+    protected function saveSwitchesCache() {
         $newDate = curdatetime();
         $allCachedData = rcms_scandir(self::PATH_CACHE, '*' . self::EXT_SWITCHES);
 
@@ -200,6 +222,85 @@ class FDBArchive {
                 }
             }
         }
+    }
+
+    /**
+     * Performs cache scanning and storing into archive
+     * 
+     * @return void
+     */
+    public function storeArchive() {
+        $this->saveSwitchesCache();
+        if ($this->altCfg['PON_ENABLED']) {
+            $this->saveOltCache();
+        }
+    }
+
+    /**
+     * Renders archive container
+     * 
+     * @return string
+     */
+    public function renderArchive() {
+        $result = '';
+        $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', 'User');
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true', false, 'records', 100);
+        return($result);
+    }
+
+    /**
+     * Parses archive raw data and stores data into instance json helper
+     * 
+     * @param array $archiveRecord
+     * 
+     * @return void
+     */
+    protected function parseData($archiveRecord) {
+        if (!empty($archiveRecord)) {
+            $recordDate = $archiveRecord['date'];
+            $recordId = $archiveRecord['devid'];
+            $recordIp = $archiveRecord['devip'];
+            $switchIcon = wf_img('skins/menuicons/switches.png') . ' ';
+            //normal switch data
+            if ($archiveRecord['pon'] != 1) {
+                $fdbData = @unserialize($archiveRecord['data']);
+                if (!empty($fdbData)) {
+                    foreach ($fdbData as $eachMac => $eachPort) {
+                        $switchLink = '';
+                        if (!empty($recordId)) {
+                            $switchLink = wf_Link('?module=switches&editid=' . $recordId, $switchIcon . @$this->allSwitches[$recordId]['location']);
+                        } else {
+                            $switchLink = wf_Link('?module=switches&gotoswitchbyip=' . $recordIp, $switchIcon . @$this->allSwitches[$recordId]['location']);
+                        }
+                        $data[] = $recordDate;
+                        $data[] = $recordIp;
+                        $data[] = $eachPort;
+                        $data[] = $switchLink;
+                        $data[] = $eachMac;
+                        $data[] = 'USER_TODO';
+                        $this->json->addRow($data); // HELL YEAH!!!!
+                        unset($data);
+                    }
+                }
+            } else {
+                //TODO
+            }
+        }
+    }
+
+    /**
+     * Renders JSON data for background ajax requests
+     * 
+     * @return void
+     */
+    public function ajArchiveData() {
+        $allArchiveRecords = $this->archive->getAll();
+        if (!empty($allArchiveRecords)) {
+            foreach ($allArchiveRecords as $io => $each) {
+                $this->parseData($each);
+            }
+        }
+        $this->json->getJson();
     }
 
 }
