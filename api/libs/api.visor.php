@@ -1053,7 +1053,7 @@ class UbillingVisor {
                 $inputs .= wf_tag('br');
                 $inputs .= wf_Selector('editdvrid', $dvrTmp, __('DVR'), $cameraData['dvrid'], true);
                 $inputs .= wf_TextInput('editdvrlogin', __('DVR login'), $cameraData['dvrlogin'], true, 15);
-                $inputs .= wf_TextInput('editdvrpassword', __('DVR login'), $cameraData['dvrlogin'], true, 15);
+                $inputs .= wf_TextInput('editdvrpassword', __('DVR password'), $cameraData['dvrpassword'], true, 15);
                 $inputs .= wf_tag('br');
                 $inputs .= wf_Submit(__('Save'));
 
