@@ -3090,6 +3090,8 @@ $lang['def']['by code'] = 'по коду';
 $lang['def']['by MAC'] = 'по MAC';
 $lang['def']['local'] = 'локально';
 $lang['def']['Account activity is different'] = 'Состояние активности отличается';
+$lang['def']['This user account is not associated with any existing TrinityTV subscriber'] = 'Эта учетная запись не связана ни с одним из существующих подписчиков TrinityTV';
+$lang['def']['This user account is not associated with any existing Megogo subscriber'] = 'Эта учетная запись не связана ни с одним из существующих подписчиков Megogo';
 $lang['def'][''] = '';
 
 ?>
