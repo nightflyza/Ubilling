@@ -572,6 +572,22 @@ class WatchDog {
                     if (ispos($taskActions, 'telegram')) {
                         if (!empty($this->settings['WATCHDOG_TELEGRAM'])) {
                             $allNotifyTelegramChats = explode(',', $this->settings['WATCHDOG_TELEGRAM']);
+                            $additionalChats = array();
+                            if (preg_match('!\((.*?)\)!si', $taskActions, $tmpAddChats)) {
+                                $additionalChats = explode(',', $tmpAddChats[1]);
+                                if (!empty($additionalChats)) {
+                                    if (!ispos($taskActions, 'no_tg_primary')) {
+                                        foreach ($additionalChats as $ig => $eachAdditionalChat) {
+                                            if (!empty($eachAdditionalChat)) {
+                                                $allNotifyTelegramChats[] = $eachAdditionalChat;
+                                            }
+                                        }
+                                    } else {
+                                        $allNotifyTelegramChats = $additionalChats;
+                                    }
+                                }
+                            }
+
                             if (!empty($allNotifyTelegramChats)) {
                                 $notifyMessageTlg = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
                                 //attach old result to email if needed
