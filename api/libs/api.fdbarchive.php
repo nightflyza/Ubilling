@@ -53,7 +53,7 @@ class FDBArchive {
     /**
      * Contains default module controller URL
      */
-    const URL_ME = '?module=testing';
+    const URL_ME = '?module=fdbarchive';
 
     public function __construct() {
         $this->loadConfigs();
@@ -243,7 +243,7 @@ class FDBArchive {
      */
     public function renderArchive() {
         $result = '';
-        $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User').' / '.__('Device'));
+        $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true', false, 'records', 100);
         return($result);
     }
@@ -266,7 +266,7 @@ class FDBArchive {
                 $fdbData = @unserialize($archiveRecord['data']);
                 if (!empty($fdbData)) {
                     foreach ($fdbData as $eachMac => $eachPort) {
-                        $switchLink = $switchIcon.' '.__('Not exists');
+                        $switchLink = $switchIcon . ' ' . __('Not exists');
                         if (!empty($recordId)) {
                             $switchLink = wf_Link('?module=switches&editid=' . $recordId, $switchIcon . @$this->allSwitches[$recordId]['location']);
                         }
@@ -299,6 +299,17 @@ class FDBArchive {
             }
         }
         $this->json->getJson();
+    }
+
+    /**
+     * Renders basic navigation controls
+     * 
+     * @return string
+     */
+    public static function renderNavigationPanel() {
+        $result = wf_Link('?module=switchpoller', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME, wf_img('skins/time_machine.png') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton') . ' ';
+        return($result);
     }
 
 }

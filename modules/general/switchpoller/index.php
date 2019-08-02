@@ -17,10 +17,10 @@ if (cfr('SWITCHPOLL')) {
         }
 
         $inputs = __('One MAC address per line') . wf_tag('br');
-        $inputs.= wf_TextArea('newmacfilters', '', $currentFilters, true, '40x10');
-        $inputs.= wf_HiddenInput('setmacfilters', 'true');
-        $inputs.= wf_CheckInput('deletemacfilters', __('Cleanup'), true, false);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextArea('newmacfilters', '', $currentFilters, true, '40x10');
+        $inputs .= wf_HiddenInput('setmacfilters', 'true');
+        $inputs .= wf_CheckInput('deletemacfilters', __('Cleanup'), true, false);
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
 
         return ($result);
@@ -51,18 +51,18 @@ if (cfr('SWITCHPOLL')) {
             $tailCmd = $billCfg['TAIL'];
             $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . $logPath;
             $rawResult = shell_exec($runCmd);
-            $renderData.= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
-            $renderData.= wf_Link('?module=switchpoller&dlswpolllog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
+            $renderData .= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
+            $renderData .= wf_Link('?module=switchpoller&dlswpolllog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
 
             if (!empty($rawResult)) {
                 $logData = explodeRows($rawResult);
                 if (!empty($logData)) {
 
                     $cells = wf_TableCell(__('Time') . ' (' . __('seconds') . ')');
-                    $cells.= wf_TableCell(__('Date'));
-                    $cells.= wf_TableCell(__('IP'));
-                    $cells.= wf_TableCell(__('Event'));
-                    $rows.=wf_TableRow($cells, 'row1');
+                    $cells .= wf_TableCell(__('Date'));
+                    $cells .= wf_TableCell(__('IP'));
+                    $cells .= wf_TableCell(__('Event'));
+                    $rows .= wf_TableRow($cells, 'row1');
 
                     //  $logData = array_reverse($logData);
                     foreach ($logData as $io => $each) {
@@ -80,20 +80,20 @@ if (cfr('SWITCHPOLL')) {
                                 $prevTime = strtotime($prevTime);
 
                                 $cells = wf_TableCell($diffTime);
-                                $cells.= wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
-                                $cells.= wf_TableCell($eachEntry[2]);
-                                $cells.= wf_TableCell($eachEntry[3] . ' ' . @$eachEntry[4] . ' ' . @$eachEntry[5]);
-                                $rows.=wf_TableRow($cells, 'row3');
+                                $cells .= wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
+                                $cells .= wf_TableCell($eachEntry[2]);
+                                $cells .= wf_TableCell($eachEntry[3] . ' ' . @$eachEntry[4] . ' ' . @$eachEntry[5]);
+                                $rows .= wf_TableRow($cells, 'row3');
                             } else {
                                 $eachEntry = explode(' ', $each);
                                 $prevTime = strtotime($eachEntry[0] . ' ' . $eachEntry[1]);
                             }
                         }
                     }
-                    $renderData.= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $renderData .= wf_TableBody($rows, '100%', 0, 'sortable');
                 }
             } else {
-                $renderData.= $messages->getStyledMessage(__('Nothing found'), 'warning');
+                $renderData .= $messages->getStyledMessage(__('Nothing found'), 'warning');
             }
 
             $result = wf_modal(wf_img('skins/log_icon_small.png', __('Swpoll log')), __('Swpoll log'), $renderData, '', '800', '600');
@@ -123,13 +123,17 @@ if (cfr('SWITCHPOLL')) {
     function web_FDBTableShowDataTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
         $filter = '';
         $macfilter = '';
+        $result = '';
         $filter = (!empty($fdbSwitchFilter)) ? '&swfilter=' . $fdbSwitchFilter : '';
         $macfilter = (!empty($fdbMacFilter)) ? '&macfilter=' . $fdbMacFilter : '';
         $filtersForm = wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
         $logControls = web_FDBTableLogControl();
 
+        $mainControls = FDBArchive::renderNavigationPanel();
+        show_window('', $mainControls);
+
         $columns = array('Switch IP', 'Port', 'Location', 'MAC', 'User');
-        $result = wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
+        $result .= wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
         show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
     }
@@ -164,8 +168,8 @@ if (cfr('SWITCHPOLL')) {
                                 }
                                 $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
                                 $modActions = wf_BackLink('?module=switches');
-                                $modActions.= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
-                                $modActions.= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+                                $modActions .= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
+                                $modActions .= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
                                 show_window($deviceTemplate . ' ' . $eachDevice['ip'] . ' - ' . $eachDevice['location'], $modActions);
                                 sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $eachDevice['snmpwrite'], false);
                             } else {
