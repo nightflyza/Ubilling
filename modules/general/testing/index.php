@@ -8,7 +8,8 @@ $fdbarchive=new FDBArchive();
 if (ubRouting::get('ajax')) {
     $fdbarchive->ajArchiveData();
 }
-deb($fdbarchive->renderArchive());
+//deb($fdbarchive->renderArchive());
+
 
 
 

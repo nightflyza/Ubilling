@@ -42,7 +42,7 @@ class ubRouting {
                     return (false);
                 }
                 if ($ignoreEmpty) {
-                    if (empty($_GET[$eachparam])) {
+                    if (@empty($_GET[$eachparam])) {
                         return (false);
                     }
                 }
@@ -72,7 +72,7 @@ class ubRouting {
                     return (false);
                 }
                 if ($ignoreEmpty) {
-                    if (empty($_POST[$eachparam])) {
+                    if (@empty($_POST[$eachparam])) {
                         return (false);
                     }
                 }
