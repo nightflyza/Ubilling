@@ -41,6 +41,7 @@ define('RCMS_POWERED', '<a href="' . RCMS_LINK . '">RCMS Framework</a>');
 define('SYSTEM_MODULES_PATH', RCMS_ROOT_PATH . 'modules/system/');
 define('ENGINE_PATH', RCMS_ROOT_PATH . 'modules/engine/');
 define('MODULES_PATH', RCMS_ROOT_PATH . 'modules/general/');
+define('REMOTEAPI_PATH', RCMS_ROOT_PATH . 'modules/remoteapi/');
 define('MODULES_TPL_PATH', RCMS_ROOT_PATH . 'modules/templates/');
 define('CONFIG_PATH', RCMS_ROOT_PATH . 'config/');
 define('LANG_PATH', RCMS_ROOT_PATH . 'languages/');
