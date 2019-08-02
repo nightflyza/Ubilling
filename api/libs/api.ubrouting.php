@@ -33,29 +33,21 @@ class ubRouting {
      */
     public static function checkGet($params, $ignoreEmpty = true) {
         if (!empty($params)) {
-            $result = true;
             if (!is_array($params)) {
                 //single param check
                 $params = array($params);
             }
-            if ($ignoreEmpty) {
-                foreach ($params as $eachparam) {
-                    if (isset($_GET[$eachparam])) {
-                        if (empty($_GET[$eachparam])) {
-                            return(false);
-                        }
-                    } else {
-                        return(false);
-                    }
+            foreach ($params as $eachparam) {
+                if (!isset($_GET[$eachparam])) {
+                    return (false);
                 }
-            } else {
-                foreach ($params as $index => $eachVariable) {
-                    if (!isset($_GET[$eachVariable])) {
-                        return(false);
+                if ($ignoreEmpty) {
+                    if (empty($_GET[$eachparam])) {
+                        return (false);
                     }
                 }
             }
-            return($result);
+            return(true);
         } else {
             throw new Exception('EX_PARAMS_EMPTY');
         }
@@ -71,29 +63,21 @@ class ubRouting {
      */
     public static function checkPost($params, $ignoreEmpty = true) {
         if (!empty($params)) {
-            $result = true;
             if (!is_array($params)) {
                 //single param check
                 $params = array($params);
             }
-            if ($ignoreEmpty) {
-                foreach ($params as $eachparam) {
-                    if (isset($_POST[$eachparam])) {
-                        if (empty($_POST[$eachparam])) {
-                            return(false);
-                        }
-                    } else {
-                        return(false);
-                    }
+            foreach ($params as $eachparam) {
+                if (!isset($_POST[$eachparam])) {
+                    return (false);
                 }
-            } else {
-                foreach ($params as $index => $eachVariable) {
-                    if (!isset($_POST[$eachVariable])) {
-                        return(false);
+                if ($ignoreEmpty) {
+                    if (empty($_POST[$eachparam])) {
+                        return (false);
                     }
                 }
             }
-            return($result);
+            return (true);
         } else {
             throw new Exception('EX_PARAMS_EMPTY');
         }
