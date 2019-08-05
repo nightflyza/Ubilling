@@ -36,6 +36,13 @@ class NyanORM {
     protected $defaultPk = 'id';
 
     /**
+     * Contains selectable fields list
+     *
+     * @var array
+     */
+    protected $selectable = array();
+
+    /**
      * Contains key=>value data sets array for INSERT/UPDATE operations
      *
      * @var array
@@ -121,6 +128,23 @@ class NyanORM {
     }
 
     /**
+     * Setter of filels list which will be optional used in getAll
+     * 
+     * @param  array $fieldSet
+     * 
+     * @return void
+     */
+    public function selectable($fieldSet = array()) {
+        if (!empty($fieldSet)) {
+            if (is_array($fieldSet)) {
+                $this->selectable = $fieldSet;
+            }
+        } else {
+            $this->flushSelectable();
+        }
+    }
+
+    /**
      * Appends some where expression to protected prop for further database queries. Cleans it if all params empty.
      * 
      * @param string $field field name to apply expression
@@ -163,6 +187,7 @@ class NyanORM {
         $this->flushWhere();
         $this->flushOrder();
         $this->flushLimit();
+        $this->flushSelectable();
     }
 
     /**
@@ -231,6 +256,15 @@ class NyanORM {
      */
     protected function flushOrder() {
         $this->order = array();
+    }
+
+    /**
+     * Flushes selectable cumullative struct
+     * 
+     * @return void
+     */
+    protected function flushSelectable() {
+        $this->selectable = array();
     }
 
     /**
@@ -350,6 +384,21 @@ class NyanORM {
     }
 
     /**
+     * Constucts field names which will be optionally used for data getting
+     * 
+     * @return string
+     */
+    protected function buildSelectableString() {
+        $result = '';
+        if (!empty($this->selectable)) {
+            $result .= implode(',', $this->selectable);
+        } else {
+            $result .= '*';
+        }
+        return($result);
+    }
+
+    /**
      * Returns all records of current database object instance
      * 
      * @param string $assocByField field name to automatically make it as index key in results array
@@ -361,8 +410,9 @@ class NyanORM {
         $whereString = $this->buildWhereString();
         $orderString = $this->buildOrderString();
         $limitString = $this->buildLimitString();
+        $selectableString = $this->buildSelectableString();
         //building some dummy query
-        $query = "SELECT * from `" . $this->tableName . "` "; //base query
+        $query = "SELECT " . $selectableString . " from `" . $this->tableName . "` "; //base query
         $query .= $whereString . $orderString . $limitString; //optional parameters
         $this->debugLog($query);
         $result = simple_queryall($query);
