@@ -99,7 +99,7 @@ class FDBArchive {
      * Another required URLs for internal routing
      */
     const URL_SWITCHPROFILE = '?module=switches&edit=';
-    const URL_USERPROFILE = '?module=userpfofile&username=';
+    const URL_USERPROFILE = '?module=userprofile&username=';
     const URL_ONUPROFILE = '?module=ponizer&editonu=';
 
     public function __construct() {
@@ -373,6 +373,24 @@ class FDBArchive {
     }
 
     /**
+     * Trying to detect ONU device by mac. Returns profile view control.
+     * 
+     * @param string $onuMac
+     * 
+     * @return string
+     */
+    protected function getOnuHandle($onuMac) {
+        $result = '';
+        if (!empty($onuMac)) {
+            if (isset($this->allOnuMac[$onuMac])) {
+                $onuId = $this->allOnuMac[$onuMac];
+                $result .= wf_Link(self::URL_ONUPROFILE . $onuId, $onuId);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Parses archive raw data and stores data into instance json helper
      * 
      * @param array $archiveRecord
@@ -405,7 +423,28 @@ class FDBArchive {
                     }
                 }
             } else {
-                //TODO
+                $fdbData = @unserialize($archiveRecord['data']);
+                if (!empty($fdbData)) {
+                    foreach ($fdbData as $eachMacPon => $eachOnuData) {
+                        $switchLink = $switchIcon . ' ' . __('Not exists');
+                        if (!empty($recordId)) {
+                            $switchLink = wf_Link(self::URL_SWITCHPROFILE . $recordId, $switchIcon . @$this->allSwitches[$recordId]['location']);
+                        }
+
+                        if (!empty($eachOnuData)) {
+                            foreach ($eachOnuData as $eachOnuId => $onuFdb) {
+                                $data[] = $recordDate;
+                                $data[] = $recordIp;
+                                $data[] = $this->getOnuHandle($eachMacPon);
+                                $data[] = $switchLink;
+                                $data[] = $onuFdb['mac'];
+                                $data[] = $this->getEntityControl($eachMacPon);
+                                $this->json->addRow($data);
+                                unset($data);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -435,8 +474,8 @@ class FDBArchive {
      * @return string
      */
     public static function renderNavigationPanel() {
-        $result = wf_Link(self::URL_CACHE, wf_img_sized('skins/fdbmacsearch.png','','16','16') . ' ' . __('Current FDB cache'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME, wf_img('skins/time_machine.png','','16','16') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton') . ' ';
+        $result = wf_Link(self::URL_CACHE, wf_img_sized('skins/fdbmacsearch.png', '', '16', '16') . ' ' . __('Current FDB cache'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME, wf_img('skins/time_machine.png', '', '16', '16') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton') . ' ';
         return($result);
     }
 
