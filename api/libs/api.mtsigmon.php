@@ -205,10 +205,11 @@ class MTsigmon {
      */
     protected function getMTidByUserMac() {
         $usermac = strtolower($this->allUsermacs[$this->userLogin]);
+        $userCpeMac = (isset($this->allUserCpeMacs[$this->userLogin])) ? strtolower($this->allUserCpeMacs[$this->userLogin]) : 'F0:14:78:87:41:0F';
         $MT_fdb_arr = $this->cache->get(self::CACHE_PREFIX . 'MTID_UMAC', $this->cacheTime);
         if (!empty($MT_fdb_arr) and isset($usermac)) {
             foreach ($MT_fdb_arr as $mtid => $fdb_arr) {
-                if (in_array($usermac, $fdb_arr) or in_array($this->allUserCpeMacs[$this->userLogin], $fdb_arr)) {
+                if (in_array($usermac, $fdb_arr) or in_array($userCpeMac, $fdb_arr)) {
                     $this->userSwitch = $mtid;
                     break;
                 }
