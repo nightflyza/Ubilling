@@ -357,8 +357,17 @@ class FDBArchive {
      */
     public function renderArchive() {
         $result = '';
+        $macFilter = '';
+        $switchIdFilter = '';
+        if (ubRouting::checkGet('macfilter')) {
+            $macFilter .= '&macfilter=' . ubRouting::get('macfilter');
+        }
+
+        if (ubRouting::checkGet('switchidfilter')) {
+            $macFilter .= '&switchidfilter=' . ubRouting::get('switchidfilter');
+        }
         $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true', true, 'records', 100);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $macFilter . $switchIdFilter, true, 'Objects', 100);
         return($result);
     }
 
@@ -420,33 +429,53 @@ class FDBArchive {
     /**
      * Parses archive raw data and stores data into instance json helper
      * 
-     * @param array $archiveRecord
+     * @param array  $archiveRecord
+     * @param string $macFilter
+     * @param int    $switchIdFilter
      * 
      * @return void
      */
-    protected function parseData($archiveRecord) {
+    protected function parseData($archiveRecord, $macFilter = '', $switchIdFilter = '') {
         if (!empty($archiveRecord)) {
             $recordDate = $archiveRecord['date'];
             $recordId = $archiveRecord['devid'];
             $recordIp = $archiveRecord['devip'];
             $switchIcon = wf_img('skins/menuicons/switches.png') . ' ';
+
             //normal switch data
             if ($archiveRecord['pon'] != 1) {
                 $fdbData = @unserialize($archiveRecord['data']);
                 if (!empty($fdbData)) {
                     foreach ($fdbData as $eachMac => $eachPort) {
-                        $switchLink = $switchIcon . ' ' . __('Not exists');
-                        if (!empty($recordId)) {
-                            $switchLink = wf_Link(self::URL_SWITCHPROFILE . $recordId, $switchIcon . @$this->allSwitches[$recordId]['location']);
+                        $filtered = true;
+                        //basic user MAC filtering
+                        if ($macFilter) {
+                            if ($eachMac != $macFilter) {
+                                $filtered = false;
+                            }
                         }
-                        $data[] = $recordDate;
-                        $data[] = $recordIp;
-                        $data[] = $eachPort;
-                        $data[] = $switchLink;
-                        $data[] = $eachMac;
-                        $data[] = $this->getEntityControl($eachMac);
-                        $this->json->addRow($data);
-                        unset($data);
+                        //filter records only from some switch ID
+                        if ($switchIdFilter) {
+                            if ($recordId != $switchIdFilter) {
+                                $filtered = false;
+                            }
+                        }
+
+                        if ($filtered) {
+                            $switchLink = $switchIcon . ' ' . __('Not exists');
+                            if (!empty($recordId)) {
+                                $switchLink = wf_Link(self::URL_SWITCHPROFILE . $recordId, $switchIcon . @$this->allSwitches[$recordId]['location']);
+                            }
+                            $data[] = $recordDate;
+                            $data[] = $recordIp;
+                            $data[] = $eachPort;
+                            $data[] = $switchLink;
+                            $data[] = $eachMac;
+                            $data[] = $this->getEntityControl($eachMac);
+
+                            $this->json->addRow($data);
+                            unset($data);
+                        }
                     }
                 }
             } else {
@@ -460,14 +489,31 @@ class FDBArchive {
 
                         if (!empty($eachOnuData)) {
                             foreach ($eachOnuData as $eachOnuId => $onuFdb) {
-                                $data[] = $recordDate;
-                                $data[] = $recordIp;
-                                $data[] = $this->getOnuHandle($eachMacPon);
-                                $data[] = $switchLink;
-                                $data[] = $onuFdb['mac'];
-                                $data[] = $this->getEntityControl($eachMacPon);
-                                $this->json->addRow($data);
-                                unset($data);
+                                $filtered = true;
+                                //basic MAC filtering behind ONU
+                                if ($macFilter) {
+                                    if ($onuFdb['mac'] != $macFilter) {
+                                        $filtered = false;
+                                    }
+                                }
+
+                                //filter records only from some OLT ID
+                                if ($switchIdFilter) {
+                                    if ($recordId != $switchIdFilter) {
+                                        $filtered = false;
+                                    }
+                                }
+
+                                if ($filtered) {
+                                    $data[] = $recordDate;
+                                    $data[] = $recordIp;
+                                    $data[] = $this->getOnuHandle($eachMacPon);
+                                    $data[] = $switchLink;
+                                    $data[] = $onuFdb['mac'];
+                                    $data[] = $this->getEntityControl($eachMacPon);
+                                    $this->json->addRow($data);
+                                    unset($data);
+                                }
                             }
                         }
                     }
@@ -483,13 +529,21 @@ class FDBArchive {
      */
     public function ajArchiveData() {
         $allArchiveRecords = $this->archive->getAll();
+        $macFilter = '';
+        $switchIdFilter = '';
+        if (ubRouting::checkGet('macfilter')) {
+            $macFilter = ubRouting::get('macfilter');
+        }
+        if (ubRouting::checkGet('switchidfilter')) {
+            $switchIdFilter = ubRouting::get('switchidfilter', 'int');
+        }
         if (!empty($allArchiveRecords)) {
             $this->loadUserData();
             if ($this->altCfg['PON_ENABLED']) {
                 $this->loadOnuData();
             }
             foreach ($allArchiveRecords as $io => $each) {
-                $this->parseData($each);
+                $this->parseData($each, $macFilter, $switchIdFilter);
             }
         }
         $this->json->getJson();

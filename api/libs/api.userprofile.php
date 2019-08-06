@@ -281,7 +281,8 @@ class UserProfile {
         $result = '';
         if (isset($this->alterCfg['FDB_SEARCH_IN_PROFILE'])) {
             if ($this->alterCfg['FDB_SEARCH_IN_PROFILE']) {
-                $result = wf_Link('?module=switchpoller&macfilter=' . $this->mac, wf_img('skins/fdbmacsearch.png', __('Current FDB cache')), false);
+                $result .= wf_Link('?module=switchpoller&macfilter=' . $this->mac, wf_img('skins/fdbmacsearch.png', __('Current FDB cache')), false) . ' ';
+                $result .= wf_Link('?module=fdbarchive&macfilter=' . $this->mac, wf_img_sized('skins/time_machine.png', __('FDB') . ' ' . __('Archive'), '10', '10'), false);
             }
         }
 
@@ -1215,7 +1216,7 @@ class UserProfile {
 
             if ($poncpeFlag) {
                 $pon = new PONizer();
-                $result.= $pon->renderCpeUserControls($this->login, $this->AllUserData);
+                $result .= $pon->renderCpeUserControls($this->login, $this->AllUserData);
             }
         }
 
@@ -1367,13 +1368,13 @@ class UserProfile {
             $preferredSMSSrv = zb_getUsersPreferredSMSService($this->userdata['login']);
             $preferredSMSSrvId = $preferredSMSSrv[0];
 
-            $row.= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
+            $row .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
                     wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
                     wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
                     wf_tag('span', true)
             );
-            $row.= wf_tag('script', false, '', 'type="text/javascript"');
-            $row.= '$(\'#related_sms_srv\').change(function() {
+            $row .= wf_tag('script', false, '', 'type="text/javascript"');
+            $row .= '$(\'#related_sms_srv\').change(function() {
                             var SMSSrvID = $(this).val(); 
                             var CreateRec = $(\'#related_sms_srv_create\').val();
                             
@@ -1410,13 +1411,13 @@ class UserProfile {
         if (cfr('CASH')) {
             if (@$this->alterCfg['EASY_CHARGE']) {
                 $inputs = wf_HiddenInput('easychargedosomething', 'true');
-                $inputs.= wf_TextInput('easychargesumm', __('Withdraw from user account'), '', true, 5, 'finance');
-                $inputs.= wf_TextInput('easychargenote', __('Notes'), '', true, 30);
-                $inputs.= wf_CheckInput('easychargecreditm', __('Set user credit to end of month if required'), true, true);
-                $inputs.=wf_delimiter(0);
-                $inputs.= wf_Submit(__('Charge'));
+                $inputs .= wf_TextInput('easychargesumm', __('Withdraw from user account'), '', true, 5, 'finance');
+                $inputs .= wf_TextInput('easychargenote', __('Notes'), '', true, 30);
+                $inputs .= wf_CheckInput('easychargecreditm', __('Set user credit to end of month if required'), true, true);
+                $inputs .= wf_delimiter(0);
+                $inputs .= wf_Submit(__('Charge'));
                 $form = wf_Form('', 'POST', $inputs, 'glamour');
-                $result.=' ' . wf_modalAuto(wf_img_sized('skins/icon_minus.png', __('Charge'), '10'), __('Charge'), $form);
+                $result .= ' ' . wf_modalAuto(wf_img_sized('skins/icon_minus.png', __('Charge'), '10'), __('Charge'), $form);
 
                 //controller part
                 if (wf_CheckPost(array('easychargedosomething', 'easychargesumm'))) {
@@ -1469,7 +1470,7 @@ class UserProfile {
                             }
                         }
                     } else {
-                        $result.=wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200');
+                        $result .= wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200');
                         log_register('EASYCHARGEFAIL (' . $this->login . ') WRONG SUMM `' . $_POST['easychargesumm'] . '`');
                     }
                 }
