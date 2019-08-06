@@ -557,6 +557,9 @@ class FDBArchive {
     public static function renderNavigationPanel() {
         $result = wf_Link(self::URL_CACHE, wf_img_sized('skins/fdbmacsearch.png', '', '16', '16') . ' ' . __('Current FDB cache'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME, wf_img('skins/time_machine.png', '', '16', '16') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton') . ' ';
+        if (ubRouting::checkGet('macfilter') OR ubRouting::checkGet('switchidfilter')) {
+            $result .= wf_Link(self::URL_ME, wf_img('skins/icon_cleanup.png') . __('Cleanup') . ' ' . __('Filters'), false, 'ubButton') . ' ';
+        }
         return($result);
     }
 
