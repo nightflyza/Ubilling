@@ -66,6 +66,13 @@ class FDBArchive {
     protected $json = '';
 
     /**
+     * Days counter before automatic archive cleanup/rotation
+     *
+     * @var int
+     */
+    protected $daysRotate = 0;
+
+    /**
      * Contains default FDB caches storage path
      */
     const PATH_CACHE = 'exports/';
@@ -119,6 +126,13 @@ class FDBArchive {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        if (isset($this->altCfg['FDBARCHIVE_MAX_AGE'])) {
+            if (!empty($this->altCfg['FDBARCHIVE_MAX_AGE'])) {
+                if (is_numeric($this->altCfg['FDBARCHIVE_MAX_AGE'])) {
+                    $this->daysRotate = $this->altCfg['FDBARCHIVE_MAX_AGE'];
+                }
+            }
+        }
     }
 
     /**
@@ -320,6 +334,19 @@ class FDBArchive {
         $this->saveSwitchesCache();
         if ($this->altCfg['PON_ENABLED']) {
             $this->saveOltCache();
+        }
+        $this->rotateArchive();
+    }
+
+    /**
+     * Performs automatic archived data rotation
+     * 
+     * @return void
+     */
+    protected function rotateArchive() {
+        if ($this->daysRotate) {
+            $this->archive->whereRaw("`date` <= NOW() - INTERVAL " . $this->daysRotate . " DAY");
+            $this->archive->delete();
         }
     }
 
