@@ -25,7 +25,11 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                     //Loading separate api calls controllers
                     $allRemoteApiModules = rcms_scandir(REMOTEAPI_PATH, '*.php');
-                    $disabledRemoteApiCalls = array(); //TODO: map this to some option
+                    $disabledRemoteApiCalls = array();
+                    if (!@empty($alterconf['REMOTEAPI_DISABLE_CALLS'])) {
+                        $disabledRemoteApiCalls = explode(',', $alterconf['REMOTEAPI_DISABLE_CALLS']);
+                        $disabledRemoteApiCalls = array_flip($disabledRemoteApiCalls);
+                    }
                     if (!empty($allRemoteApiModules)) {
                         foreach ($allRemoteApiModules as $rmodIndex => $eachRModuleController) {
                             $eachRModuleControllerName = basename($eachRModuleController, '.php');
