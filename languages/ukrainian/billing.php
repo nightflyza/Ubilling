@@ -3109,5 +3109,6 @@ $lang['def']['local'] = 'локально';
 $lang['def']['Account activity is different'] = 'Стан активності відрізняється';
 $lang['def']['This user account is not associated with any existing TrinityTV subscriber'] = 'Цей обліковий запис не пов`язано з жодним підписником TrinityTV';
 $lang['def']['This user account is not associated with any existing Megogo subscriber'] = 'Цей обліковий запис не пов`язано з жодним підписником Megogo';
+$lang['def']['SNMP data'] = 'SNMP дані';
 
 ?>
