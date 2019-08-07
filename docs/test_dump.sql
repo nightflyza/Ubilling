@@ -2516,3 +2516,10 @@ CREATE TABLE IF NOT EXISTS `fdbarchive` (
   KEY `devid` (`devid`,`devip`),
   KEY `pon` (`pon`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `askcalls` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `filename` varchar(250) DEFAULT NULL,
+  `login` varchar(250) DEFAULT NULL,
+   PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

@@ -133,7 +133,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 if (!empty($userLogin)) {
                     if (isset($this->userTags[$userLogin])) {
                         if (!empty($this->userTags[$userLogin])) {
-                            $result.=implode(', ', $this->userTags[$userLogin]);
+                            $result .= implode(', ', $this->userTags[$userLogin]);
                         }
                     }
                 }
@@ -155,6 +155,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $allVoiceFiles = $this->getCallsDir();
                 $telepathy = new Telepathy(false, true);
                 $telepathy->usePhones();
+                $askCalls = new nya_askcalls();
+                $previousCalls = $askCalls->getAll('filename');
+
                 if (!empty($allVoiceFiles)) {
                     /**
                      * Fuck a fucking placement, I don't need you motherfuckers
@@ -171,8 +174,15 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
                         //unfinished calls
                         if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
-                            //here onlyMobile flag used for mobile normalizing too
-                            $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                            if (!isset($previousCalls[$fileName])) {
+                                //here onlyMobile flag used for mobile normalizing too
+                                $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                                $askCalls->data('filename', ubRouting::filters($fileName, 'mres'));
+                                $askCalls->data('login', ubRouting::filters($userLogin, 'mres'));
+                                $askCalls->create();
+                            } else {
+                                $userLogin = $previousCalls[$fileName]['login'];
+                            }
                             $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                             $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                             $cleanDate = $newDateString;
@@ -200,9 +210,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
              */
             public function initPlayer() {
                 $result = '';
-                $result.=wf_tag('script', false, '', 'src="modules/jsc/wavplay/embed/domready.js"') . wf_tag('script', true);
-                $result.=wf_tag('script', false, '', 'src="modules/jsc/wavplay/embed/swfobject.js"') . wf_tag('script', true);
-                $result.=wf_tag('script', false, '', 'src="modules/jsc/wavplay/embed/tinywav.js"') . wf_tag('script', true);
+                $result .= wf_tag('script', false, '', 'src="modules/jsc/wavplay/embed/domready.js"') . wf_tag('script', true);
+                $result .= wf_tag('script', false, '', 'src="modules/jsc/wavplay/embed/swfobject.js"') . wf_tag('script', true);
+                $result .= wf_tag('script', false, '', 'src="modules/jsc/wavplay/embed/tinywav.js"') . wf_tag('script', true);
                 return ($result);
             }
 
@@ -216,10 +226,10 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             protected function getSoundcontrols($fileUrl) {
                 $result = '';
                 if (!empty($fileUrl)) {
-                    $result.=wf_tag('a', false, '', 'onclick="try{window.TinyWav.Play(\'' . $fileUrl . '\')}catch(E){alert(E)}"') . wf_img('skins/play.png', __('Play')) . wf_tag('a', true) . ' ';
-                    $result.=wf_tag('a', false, '', 'onclick="try{window.TinyWav.Pause()}catch(E){alert(E)}"') . wf_img('skins/pause.png', __('Pause')) . wf_tag('a', true) . ' ';
-                    $result.=wf_tag('a', false, '', 'onclick="try{window.TinyWav.Resume()}catch(E){alert(E)}"') . wf_img('skins/continue.png', __('Continue')) . wf_tag('a', true) . ' ';
-                    $result.=wf_Link($fileUrl, wf_img('skins/icon_download.png', __('Download')));
+                    $result .= wf_tag('a', false, '', 'onclick="try{window.TinyWav.Play(\'' . $fileUrl . '\')}catch(E){alert(E)}"') . wf_img('skins/play.png', __('Play')) . wf_tag('a', true) . ' ';
+                    $result .= wf_tag('a', false, '', 'onclick="try{window.TinyWav.Pause()}catch(E){alert(E)}"') . wf_img('skins/pause.png', __('Pause')) . wf_tag('a', true) . ' ';
+                    $result .= wf_tag('a', false, '', 'onclick="try{window.TinyWav.Resume()}catch(E){alert(E)}"') . wf_img('skins/continue.png', __('Continue')) . wf_tag('a', true) . ' ';
+                    $result .= wf_Link($fileUrl, wf_img('skins/icon_download.png', __('Download')));
                 }
 
                 return ($result);
