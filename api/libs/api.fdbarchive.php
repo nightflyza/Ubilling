@@ -367,7 +367,7 @@ class FDBArchive {
             $macFilter .= '&switchidfilter=' . ubRouting::get('switchidfilter');
         }
         $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $macFilter . $switchIdFilter, true, 'Objects', 100);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $macFilter . $switchIdFilter, false, 'Objects', 100);
         return($result);
     }
 
@@ -528,7 +528,7 @@ class FDBArchive {
      * @return void
      */
     public function ajArchiveData() {
-        if (!ubRouting::checkGet('macfilter') OR ! ubRouting::checkGet('switchidfilter')) {
+        if (!ubRouting::checkGet('macfilter') AND ! ubRouting::checkGet('switchidfilter')) {
             //ugly hack to prevent memory overusage.
             $this->archive->whereRaw("`date` >= DATE_SUB(NOW(),INTERVAL 4 HOUR)");
         }
