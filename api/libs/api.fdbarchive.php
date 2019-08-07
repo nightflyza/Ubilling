@@ -528,6 +528,10 @@ class FDBArchive {
      * @return void
      */
     public function ajArchiveData() {
+        if (!ubRouting::checkGet('macfilter') OR ! ubRouting::checkGet('switchidfilter')) {
+            //ugly hack to prevent memory overusage.
+            $this->archive->whereRaw("`date` >= DATE_SUB(NOW(),INTERVAL 4 HOUR)");
+        }
         $allArchiveRecords = $this->archive->getAll();
         $macFilter = '';
         $switchIdFilter = '';
