@@ -426,6 +426,65 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache OLT ONU distances
+     * 
+     * @param int $oltid
+     * @param array $distIndex
+     * @param array $onuIndex
+     * 
+     * @return void
+     */
+    protected function distanceParseGPBd($oltid, $distIndex, $onuIndex) {
+        $oltid = vf($oltid, 3);
+        $distTmp = array();
+        $onuTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+
+//distance index preprocessing
+        if ((!empty($distIndex)) AND ( !empty($onuIndex))) {
+            foreach ($distIndex as $io => $eachdist) {
+                $line = explode('=', $eachdist);
+//distance is present
+                if (isset($line[1])) {
+                    $distanceRaw = trim($line[1]); // distance
+                    $devIndex = trim($line[0]); // device index
+                    $distTmp[$devIndex] = $distanceRaw;
+                }
+            }
+
+//mac index preprocessing
+            foreach ($onuIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+//mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $onuTmp[$devIndex] = $macRaw;
+                }
+            }
+
+//storing results
+            if (!empty($onuTmp)) {
+                foreach ($onuTmp as $devId => $eachMac) {
+                    if (isset($distTmp[$devId])) {
+                        $distance = $distTmp[$devId];
+                        $distance_m = substr($distance, 0, -1);
+                        $distance_dm = substr($distance, -1);
+                        $result[$eachMac] = $distance_m . '.' . $distance_dm;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
+                $onuTmp = serialize($onuTmp);
+                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+            }
+        }
+    }
+
+    /**
      * Parses & stores in cache OLT ONU dereg reaesons
      *
      * @param int $oltid
@@ -930,6 +989,78 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $FDBIndex
+     * @param array $macIndex
+     * @param array $FDBDEVIndex
+     * @param array $oltModelId
+     *
+     * @return void
+     */
+        protected function FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId) {
+        $oltid = vf($oltid, 3);
+        $FDBTmp = array();
+        $macTmp = array();
+        $result = array();
+
+//fdb index preprocessing
+        if ((!empty($FDBIndex)) AND ( !empty($macIndex)) AND ( !empty($FDBDEVIndex))) {
+
+            foreach ($FDBIndex as $io => $eachfdb) {
+                if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '/', $eachfdb)) {
+                    $eachfdb = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $eachfdb);
+                    $line = explode('=', $eachfdb);
+
+                    if (isset($line[1])) {
+                        $FDBRaw = trim($line[1]); // FDB
+                        $devOID = trim($line[0]); // FDB last OID
+                        $devline = explode('.', $devOID);
+
+                        $devIndex = explode($this->snmpTemplates[$oltModelId]['misc']['FDBDEVVALUE'], $FDBDEVIndex[$io]); // Dev index
+                        $devIndex = trim($devIndex[1]);
+
+                        $FDBvlan = trim($devline[0]); // Vlan
+                        $FDBnum = trim($devline[6]); // Count number of MAC
+
+                        $FDBRaw = str_replace(' ', ':', $FDBRaw);
+                        $FDBRaw = strtolower($FDBRaw);
+
+                        $FDBTmp[$devIndex][$FDBnum]['mac'] = $FDBRaw;
+                        $FDBTmp[$devIndex][$FDBnum]['vlan'] = $FDBvlan;
+                    }
+                }
+            }
+
+//mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+//mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw; 
+                }
+            }
+
+//storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($FDBTmp[$devId])) {
+                        $fdb = $FDBTmp[$devId];
+                        $result[$eachMac] = $fdb;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
      * 
      * @param int   $oltid
@@ -1234,9 +1365,9 @@ class PONizer {
                 $tmpONUPortLLID = trim($line[0]);
 
                 if ($snmpTemplate['misc']['GETACTIVEONUMACONLY']) {
-                    $tmpONUMAC = rtrim(chunk_split(str_replace(array('"', "0x"), '', trim($line[1])), 2, ':'), ':');     //mac address
+                    $tmpONUMAC = rtrim(chunk_split(str_replace(array('"', "0x"), '', trim($line[1])), 2, ':'), ':'); //mac address
                 } else {
-                    $tmpONUMAC = str_replace('"', '', trim($line[1]));     //mac address
+                    $tmpONUMAC = str_replace('"', '', trim($line[1])); //mac address
                 }
 
 //mac is present
@@ -1284,15 +1415,15 @@ class PONizer {
 
                     switch ($tmpOIDParamaterPiece) {
                         case '3':
-                            $ONUsModulesTemps[$tmpONUPortLLID] = trim($line[1]);      // may be we'll show this somewhere in future
+                            $ONUsModulesTemps[$tmpONUPortLLID] = trim($line[1]); // may be we'll show this somewhere in future
                             break;
 
                         case '4':
-                            $ONUsModulesVoltages[$tmpONUPortLLID] = trim($line[1]);   // may be we'll show this somewhere in future
+                            $ONUsModulesVoltages[$tmpONUPortLLID] = trim($line[1]); // may be we'll show this somewhere in future
                             break;
 
                         case '5':
-                            $ONUsModulesCurrents[$tmpONUPortLLID] = trim($line[1]);   // may be we'll show this somewhere in future
+                            $ONUsModulesCurrents[$tmpONUPortLLID] = trim($line[1]); // may be we'll show this somewhere in future
                             break;
 
 // may be we'll show this somewhere in future
@@ -1723,6 +1854,78 @@ class PONizer {
                                 }
                             }
                         }
+// BDCOM GP3600
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'GPBDCOM') {
+                            $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
+                            $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
+                            $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
+                            $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
+                            $sigIndex = explodeRows($sigIndex);
+
+//ONU distance polling for bdcom devices   
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                        $distIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
+                                        $distIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $distIndexOid, self::SNMPCACHE);
+                                        $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
+                                        $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
+                                        $distIndex = explodeRows($distIndex);
+
+                                        $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
+                                        $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
+                                        $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
+                                        $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
+                                        $onuIndex = str_replace('"', '', $onuIndex);
+                                        $onuIndex = explodeRows($onuIndex);
+
+                                        $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
+                                        $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
+                                        $intIndex = str_replace($intIndexOid . '.', '', $intIndex);
+                                        $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
+                                        $intIndex = explodeRows($intIndex);
+
+                                        $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                                        $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
+                                        $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
+                                        $FDBIndex = explodeRows($FDBIndex);
+
+                                        $FDBDevIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBDEVINDEX'];
+                                        $FDBDEVIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBDevIndexOid, self::SNMPCACHE);
+                                        $FDBDEVIndex = str_replace($FDBDevIndexOid . '.', '', $FDBDEVIndex);
+                                        $FDBDEVIndex = explodeRows($FDBDEVIndex);
+                                    }
+                                }
+                            }
+
+//getting MAC index.
+                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
+                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
+                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
+                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
+                            $macIndex = str_replace('"', '', $macIndex);
+                            $macIndex = explodeRows($macIndex);
+
+                            $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+//This is here because BDCOM is BDCOM and another snmp queries cant be processed after MACINDEX query in some cases.
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+// processing distance data   
+                                        $this->distanceParseGPBd($oltid, $distIndex, $onuIndex);
+//processing interfaces data   
+                                        $this->interfaceParseBd($oltid, $intIndex, $macIndex);
+//processing FDB data   
+                                        $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId);
+
+                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+//processing last dereg reason data   
+                                            $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         /**
                          * Stels FD12XX devices polling
@@ -1901,11 +2104,11 @@ class PONizer {
                                 if (isset($this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'])) {
                                     $onu_id_start = 805830912;
                                     $intIndex = array();
-                                    for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']; $card <= 20; $card++) {
+                                    for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'];$card <= 20;$card++) {
                                         $onu_id = $onu_id_start + (524288 * ($card - 1));
-                                        for ($port = 1; $port <= 16; $port++) {
+                                        for ($port = 1;$port <= 16;$port++) {
                                             $tmp_id = $onu_id;
-                                            for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
+                                            for ($onu_num = 1;$onu_num <= 64;$onu_num++) {
                                                 $intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
                                                 $tmp_id += 256;
                                             }
@@ -1950,7 +2153,7 @@ class PONizer {
                                                 $tmp[2] = $tmpSn[6] . $tmpSn[7];
                                                 $tmp[3] = $tmpSn[8] . $tmpSn[9];
                                                 $tmpStr = '';
-                                                for ($i = 10; $i <= 17; $i++) {
+                                                for ($i = 10;$i <= 17;$i++) {
                                                     $tmpStr .= $tmpSn[$i];
                                                 }
                                                 $tmp[4] = $tmpStr;
@@ -2294,8 +2497,9 @@ class PONizer {
         $login = mysql_real_escape_string($login);
         $login = trim($login);
         $result = 0;
+        $modelid = @$this->allOltSnmp[$oltid]['modelid'];
         if (!empty($mac)) {
-            if (check_mac_format($mac)) {
+            if (check_mac_format($mac) or @$this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($mac)) {
                     $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
                             . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
@@ -2470,13 +2674,13 @@ class PONizer {
             $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
             $inputs .= __('Try to find user by MAC') . ':';
             $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
-            $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px; display: inline-block; float: left;"') .
+            $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
                     __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                    wf_tag('span', false, '', 'style="display: inline-block; padding: 5px 0;"') .
+                    wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
                     wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
                     wf_tag('span', true);
             $inputs .= wf_tag('div', true);
-            $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
+            $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%;text-align: center;padding: 6px 0;margin-top: 5px;"');
             $inputs .= wf_tag('div', true);
         }
 
@@ -2508,7 +2712,7 @@ class PONizer {
                                     url: "' . self::URL_ME . '",
                                     data: $(\'#' . $FormID . '\').serialize(),
                                     success: function() {
-                                                if ( $(\'#' . $ReloadChkID . '\').is(\':checked\') ) { location.reload(); }
+                                                if ( $(\'#' . $ReloadChkID . '\').is(\':checked\') ) { location.reload();}
                                                 $( \'#\'+$(\'#' . $HiddenReplID . '\').val() ).replaceWith(\'' . web_ok_icon() . '\');
                                                 $( \'#\'+$(\'#' . $HiddenModalID . '\').val() ).dialog("close");
                                              }
@@ -2860,7 +3064,7 @@ class PONizer {
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
         $result .= wf_JSEmptyFunc();
-        $result .= 'function OLTIndividualRefresh(OLTID, JQAjaxTab, RefreshButtonSelector) {                                
+        $result .= 'function OLTIndividualRefresh(OLTID, JQAjaxTab, RefreshButtonSelector) {  
                         $.ajax({
                             type: "GET",
                             url: "' . self::URL_ME . '",
@@ -2881,7 +3085,7 @@ class PONizer {
                         });
                     };
 
-                    function getOLTInfo(OLTID, InfoBlckSelector, ReturnHTML = false, InSpoiler = false) {                        
+                    function getOLTInfo(OLTID, InfoBlckSelector, ReturnHTML = false, InSpoiler = false) {
                         $.ajax({
                             type: "GET",
                             url: "' . self::URL_ME . '",
@@ -2891,8 +3095,8 @@ class PONizer {
                                     returnAsHTML:ReturnHTML,
                                     returnInSpoiler:InSpoiler
                                   },
-                            success: function(result) {                                        
-                                        var InfoBlck = $(InfoBlckSelector);                                        
+                            success: function(result) { 
+                                        var InfoBlck = $(InfoBlckSelector);
                                         if ( !InfoBlck.length || !(InfoBlck instanceof jQuery)) {return false;}
                                               
                                         $(InfoBlck).html(result);
@@ -2921,7 +3125,7 @@ class PONizer {
                                 return false;
                             }
                             
-                            //var FrmAction = \'"\' + $(".__ONUAssignAndCreateForm").attr("action") + \'"\';                            
+                            //var FrmAction = \'"\' + $(".__ONUAssignAndCreateForm").attr("action") + \'"\';
                             var FrmAction = $(".__ONUAssignAndCreateForm").attr("action");
                             
                             if ( $(".__ONUAACFormNoRedirChck").is(\':checked\') ) {
@@ -2932,9 +3136,9 @@ class PONizer {
                                     url: FrmAction,
                                     data: $(".__ONUAssignAndCreateForm").serialize(),
                                     success: function() {
-                                                if ( $(".__ONUAACFormPageReloadChck").is(\':checked\') ) { location.reload(); }
+                                                if ( $(".__ONUAACFormPageReloadChck").is(\':checked\') ) { location.reload();}
                                                 
-                                                $( \'#\'+$(".__ONUAACFormReplaceCtrlID").val() ).replaceWith(\'' . web_ok_icon() . '\');                                                
+                                                $( \'#\'+$(".__ONUAACFormReplaceCtrlID").val() ).replaceWith(\'' . web_ok_icon() . '\');
                                                 $( \'#\'+$(".__ONUAACFormModalWindowID").val() ).dialog("close");
                                             }
                                 });
@@ -2987,7 +3191,7 @@ class PONizer {
         $result = $this->onuSignalHistory($onuId, true, true, true, true);
 
         if ($ReturnInSpoiler) {
-            $result = wf_Spoiler($result, __('Signal levels history graphs'), $this->ONUChartsSpoilerClosed, '', '', '', '', 'style="margin: 10px auto; display: table;"');
+            $result = wf_Spoiler($result, __('Signal levels history graphs'), $this->ONUChartsSpoilerClosed, '', '', '', '', 'style="margin: 10px auto;display: table;"');
         }
 
         $result = show_window(__('ONU signal history'), $result);
@@ -3067,11 +3271,11 @@ class PONizer {
                                         ';
                     $tabClickScript .= wf_tag('script', true);
                 } else {
-                    $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
+                    $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%;text-align: right;margin-top: 15px;margin-bottom: 20px"') .
                             wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
                             wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
                             wf_tag('script', false, '', 'type="text/javascript"') .
-                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                             var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                          });' .
@@ -3096,9 +3300,9 @@ class PONizer {
                 $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
                 $refresh_button .= '$(\'#' . $OLTIDStr . '\').click(function(evt) {
                                         $(\'img\', this).addClass("image_rotate");
-                                        OLTIndividualRefresh(' . $oltId . ', ' . $JQDTId . ', ' . $OLTIDStr . ');                                        
+                                        OLTIndividualRefresh(' . $oltId . ', ' . $JQDTId . ', ' . $OLTIDStr . ');
                                         evt.preventDefault();
-                                        return false;                
+                                        return false;
                                     });';
                 $refresh_button .= wf_tag('script', true);
             } else {
@@ -3122,18 +3326,18 @@ class PONizer {
         }
 
         if ($this->ponizerUseTabUI) {
-            $tabsDivOpts = 'style="border: none; padding: 0;"';
-            $tabsLstOpts = 'style="border: none; background: #fff;"';
+            $tabsDivOpts = 'style="border: none;padding: 0;"';
+            $tabsLstOpts = 'style="border: none;background: #fff;"';
 
             if ($this->EnableQuickOLTLinks) {
                 $QuickOLTDDLName = 'QuickOLTDDL_100500';
                 $QickOLTsArray = $this->allOltDevices;
 
-                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px; text-align: right;"') .
+                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;text-align: right;"') .
                         wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
                         wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
                         wf_tag('script', false, '', 'type="text/javascript"') .
-                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                         $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
                                      });' .
                         wf_tag('script', true) .
@@ -3897,9 +4101,9 @@ class PONizer {
                                 ActionCtrlID:"' . $LnkID . '",
                                 ModalWID:"dialog-modal_' . $LnkID . '"
                             },
-                            success: function(result) {                                        
+                            success: function(result) { 
                                         $(\'#body_dialog-modal_' . $LnkID . '\').html(result);
-                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");                                 
+                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
                                      }
                         });
                         
