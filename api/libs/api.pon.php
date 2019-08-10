@@ -471,9 +471,13 @@ class PONizer {
                 foreach ($onuTmp as $devId => $eachMac) {
                     if (isset($distTmp[$devId])) {
                         $distance = $distTmp[$devId];
-                        $distance_m = substr($distance, 0, -1);
-                        $distance_dm = substr($distance, -1);
-                        $result[$eachMac] = $distance_m . '.' . $distance_dm;
+                        if (!empty($distance)) {
+                            $distance_m = substr($distance, 0, -1);
+                            $distance_dm = substr($distance, -1);
+                            $result[$eachMac] = $distance_m . '.' . $distance_dm;
+                        } else {
+                            $result[$eachMac] = 0;
+                        }
                     }
                 }
                 $result = serialize($result);
