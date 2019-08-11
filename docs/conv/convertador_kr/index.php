@@ -104,6 +104,7 @@ if (cfr('ROOT')) {
             $this->offsets['street'] = 6;
             $this->offsets['build'] = 7;
             $this->offsets['apt'] = 99;
+            $this->offsets['contract'] = 11;
 
 
             //first net will be realip
@@ -356,6 +357,7 @@ if (cfr('ROOT')) {
                                 $userRealName = str_replace('"', '``', $userRealName);
                                 $userRealName = str_replace("'", '`', $userRealName);
                                 $userRealName = $this->fixCase($userRealName);
+                                $usertContract = vf($eachLine[$this->offsets['contract']],3);
 
                                 $userPassword = $eachLine[$this->offsets['password']];
                                 $userPassword = vf($userPassword);
@@ -366,6 +368,7 @@ if (cfr('ROOT')) {
                                 if ($userCash == 50222) {
                                     $failCashCount++;
                                 }
+
                                 //user primary table
                                 $result .= "INSERT INTO `users` (`login`, `Password`, `Passive`, `Down`, `DisabledDetailStat`, `AlwaysOnline`, `Tariff`, `Address`, `Phone`, `Email`, `Note`, `RealName`, `StgGroup`, `Credit`, `TariffChange`, `Userdata0`, `Userdata1`, `Userdata2`, `Userdata3`, `Userdata4`, `Userdata5`, `Userdata6`, `Userdata7`, `Userdata8`, `Userdata9`, `CreditExpire`, `IP`, `D0`, `U0`, `D1`, `U1`, `D2`, `U2`, `D3`, `U3`, `D4`, `U4`, `D5`, `U5`, `D6`, `U6`, `D7`, `U7`, `D8`, `U8`, `D9`, `U9`, `Cash`, `FreeMb`, `LastCashAdd`, `LastCashAddTime`, `PassiveTime`, `LastActivityTime`, `NAS`) "
                                         . "VALUES ('" . $userLogin . "',"
@@ -380,7 +383,7 @@ if (cfr('ROOT')) {
                                 //emails 
                                 $result .= "INSERT INTO `emails`  (`id`,`login`,`email`) VALUES  (NULL, '" . $userLogin . "','');" . "\n";
                                 //contracts
-                                $result .= "INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES  (NULL, '" . $userLogin . "','');" . "\n";
+                                $result .= "INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES  (NULL, '" . $userLogin . "','" . $usertContract . "');" . "\n";
                                 //address creation
                                 $userAddress = $this->generateAddress($userLogin, $eachLine[$this->offsets['city']], $eachLine[$this->offsets['street']], $eachLine[$this->offsets['build']], @$eachLine[$this->offsets['apt']]);
                                 //reglog
@@ -467,6 +470,7 @@ if (cfr('ROOT')) {
             //debarr($result);
             //debarr($failedUsers);
             file_put_contents('content/backups/sql/convertador.sql', $result);
+            //debarr($result);
         }
 
         /**
