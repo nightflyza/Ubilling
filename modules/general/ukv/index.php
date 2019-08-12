@@ -109,11 +109,11 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                 //mock payment
                 if ($_POST['paymenttype'] == 'mock') {
                     $paymentVisibility = 1;
-                    $paymentNotes.='MOCK:';
+                    $paymentNotes .= 'MOCK:';
                 }
                 //set payment notes
                 if (wf_CheckPost(array('paymentnotes'))) {
-                    $paymentNotes.=$_POST['paymentnotes'];
+                    $paymentNotes .= $_POST['paymentnotes'];
                 }
 
                 if ($ukv->isMoney($_POST['paymentsumm'])) {
@@ -127,6 +127,12 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                     show_window('', wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
                     log_register('UKV BALANCEADDFAIL ((' . $_POST['manualpaymentprocessing'] . ')) WRONG SUMM `' . $_POST['paymentsumm'] . '`');
                 }
+            }
+
+            //payments deletion
+            if (wf_CheckGet(array('deletepaymentid'))) {
+                $ukv->paymentDelete(ubRouting::get('deletepaymentid'), ubRouting::get('showuser'));
+                rcms_redirect(UkvSystem::URL_USERS_PROFILE . ubRouting::get('showuser'));
             }
 
             show_window(__('User profile'), $ukv->userProfile($_GET['showuser']));

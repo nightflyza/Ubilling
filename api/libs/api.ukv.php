@@ -1789,6 +1789,15 @@ class UkvSystem {
         $altcfg = $ubillingConfig->getAlter();
         $userid = vf($userid, 3);
         $curdate = curdate();
+
+        $currentAdminLogin = whoami();
+        //extract delete admin logins
+        if (!empty($this->altCfg['CAN_DELETE_PAYMENTS'])) {
+            $deletingAdmins = explode(',', $this->altCfg['CAN_DELETE_PAYMENTS']);
+            $deletingAdmins = array_flip($deletingAdmins);
+        }
+        $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
+
         if (isset($this->users[$userid])) {
             if (empty($this->cashtypes)) {
                 $this->loadCashtypes();
@@ -1805,6 +1814,10 @@ class UkvSystem {
             $cells .= wf_TableCell(__('Cash type'));
             $cells .= wf_TableCell(__('Notes'));
             $cells .= wf_TableCell(__('Admin'));
+            if ($iCanDeletePayments) {
+                $cells .= wf_TableCell(__('Actions'));
+            }
+
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($all)) {
@@ -1863,6 +1876,11 @@ class UkvSystem {
                     $cells .= wf_TableCell($paymentCashtype);
                     $cells .= wf_TableCell($notes);
                     $cells .= wf_TableCell($eachpayment['admin']);
+                    if ($iCanDeletePayments) {
+                        $deletionRoute = self::URL_USERS_PROFILE . $userid . '&deletepaymentid=' . $eachpayment['id'];
+                        $deleteControls = wf_JSAlert($deletionRoute, wf_img('skins/delete_small.png', __('Delete')), $this->messages->getDeleteAlert());
+                        $cells .= wf_TableCell($deleteControls);
+                    }
                     $rows .= wf_TableRow($cells, $rowClass);
                 }
             }
@@ -1871,6 +1889,38 @@ class UkvSystem {
             return ($result);
         } else {
             throw new Exception(self::EX_USER_NOT_EXISTS);
+        }
+    }
+
+    /**
+     * Deletes some existing payment from database
+     * 
+     * @param int $paymentId
+     * @param int $userId
+     * 
+     * @return void
+     */
+    public function paymentDelete($paymentId, $userId) {
+        $paymentId = vf($paymentId, 3);
+        $userId = vf($userId, 3);
+        if (!empty($paymentId) AND ! empty($userId)) {
+            $currentAdminLogin = whoami();
+            //extract delete admin logins
+            if (!empty($this->altCfg['CAN_DELETE_PAYMENTS'])) {
+                $deletingAdmins = explode(',', $this->altCfg['CAN_DELETE_PAYMENTS']);
+                $deletingAdmins = array_flip($deletingAdmins);
+            }
+            $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
+
+            if ($iCanDeletePayments) {
+                $payments = new NyanORM('ukv_payments');
+                $payments->where('id', '=', $paymentId);
+                $payments->where('userid', '=', $userId);
+                $payments->delete();
+                log_register("UKV PAYMENT DELETE [" . $paymentId . "] ((" . $userId . "))");
+            } else {
+                log_register("UKV PAYMENT UNAUTH DELETION ATTEMPT [" . $paymentId . "] ((" . $userId . "))");
+            }
         }
     }
 
@@ -2547,7 +2597,7 @@ class UkvSystem {
         $profileIconMask = web_profile_icon();
         $connectedMask = web_bool_led(1, true);
         $disconnectedMask = web_bool_led(0, true);
-        $frozenMask=wf_img('skins/icon_passive.gif');
+        $frozenMask = wf_img('skins/icon_passive.gif');
 
         $data = str_replace($profileIconMask, '', $data);
         $data = str_replace($connectedMask, __('Connected'), $data);
