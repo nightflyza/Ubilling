@@ -423,7 +423,7 @@ class DreamKas {
      */
     protected function getFiscalOperationsLocal($whereClause = '') {
         $whereClause = (empty($whereClause)) ? '' : " WHERE " . $whereClause . " ";
-        $tQuery = "SELECT * FROM `dreamkas_operations`" . $whereClause;
+        $tQuery = "SELECT * FROM `dreamkas_operations`" . $whereClause . " ORDER BY `date_create` DESC";
         $tQueryResult = simple_queryall($tQuery);
 
         if (!empty($tQueryResult)) {
@@ -1558,17 +1558,17 @@ class DreamKas {
         return (wf_JqDtLoader($columns, $ajaxURLStr, false, __('Selling positions'), 100, $opts));
     }
 
-    /**
+    /**     OLD
      * JSON for fiscal operations JQDT
      */
-    public function renderFiscalOperationsListJSON($dateFrom = '', $dateTo = '') {
+/*    public function renderFiscalOperationsListJSON_old($dateFrom = '', $dateTo = '') {
         $fopsData = $this->getFiscalOperations($dateFrom, $dateTo);
         $fopsDataLocal = $this->getFiscalOperationsLocal();
         $json = new wf_JqDtHelper();
 
         if (!empty($fopsData)) {
             $this->updateFiscalOperationsLocalStorage($fopsData);
-
+            $fopsData = $this->getFiscalOperationsLocal();
             $ajaxURLStr = self::URL_ME . '&foperationslistajax=true';
             $JQDTId = 'jqdt_' . md5($ajaxURLStr);
             $data = array();
@@ -1626,7 +1626,61 @@ class DreamKas {
         }
 
         $json->getJson();
+    }*/
+
+    /**
+     * JSON for fiscal operations JQDT
+     */
+    public function renderFiscalOperationsListJSON($dateFrom = '', $dateTo = '') {
+        $fopsData = $this->getFiscalOperations($dateFrom, $dateTo);
+        $json = new wf_JqDtHelper();
+
+        if (!empty($fopsData)) {
+            $this->updateFiscalOperationsLocalStorage($fopsData);
+            $fopsData = $this->getFiscalOperationsLocal();
+            $ajaxURLStr = self::URL_ME . '&foperationslistajax=true';
+            $JQDTId = 'jqdt_' . md5($ajaxURLStr);
+            $data = array();
+            //$fopsData = $fopsData['data'];
+
+            foreach ($fopsData as $eachFOperation) {
+                $fiscopID = $eachFOperation['operation_id'];
+
+                $data[] = $fiscopID;
+                $data[] = $eachFOperation['date_create'];
+                $data[] = $eachFOperation['date_finish'];
+                $data[] = $eachFOperation['status'];
+                $data[] = $eachFOperation['error_code'];
+                $data[] = $eachFOperation['error_message'];
+                $data[] = $eachFOperation['receipt_id'];
+                $data[] = $eachFOperation['repeat_count'];
+
+                $disableLink = (strtolower($eachFOperation['status']) == 'error') ? '' : 'style="opacity: 0.35; pointer-events: none"';
+
+                $infoLnkID = wf_InputId();
+                $repeatOpLnkID = wf_InputId();
+                $ajaxInfoParams = array('showdetailedFiscOp' => $fiscopID);
+                $ajaxRepeatOpParams = array('repeatFiscOp' => $fiscopID);
+
+                $actions = wf_Link('#', wf_img('skins/icon_search_small.gif', __('Show details')), false, '', ' id="' . $infoLnkID . '" ');
+                $actions .= wf_Link('#', wf_img('skins/refresh.gif', __('Repeat this operation')), false, '', ' id="' . $repeatOpLnkID . '" ' . $disableLink);
+
+                $actions .= wf_tag('script', false, '', 'type="text/javascript"');
+                $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxInfoParams, $infoLnkID);
+                //$actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxRepeatOpParams, $repeatOpLnkID, false, 'GET', 'click', false, false, $JQDTId);
+                $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxRepeatOpParams, $repeatOpLnkID);
+                $actions .= wf_tag('script', true);
+
+                $data[] = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
     }
+
 
     /**
      * JQDT for fiscal operations list form
