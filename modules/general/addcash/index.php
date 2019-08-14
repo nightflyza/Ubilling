@@ -34,9 +34,9 @@ if (cfr('CASH')) {
                             }
 
                             if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
-                                $lastDKError = doDreamkasFiscalize($login, $cash);
+                                $lastDKError = doSomethingHorrible($login, $cash);
 
-                                if (!empty($lastDKError)) {
+                                if (isset($lastDKError) and !empty($lastDKError)) {
                                     $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
                                 }
                             }
@@ -54,9 +54,9 @@ if (cfr('CASH')) {
                         }
 
                         if ($operation == 'add' and $ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
-                            $lastDKError = doDreamkasFiscalize($login, $cash);
+                            $lastDKError = doSomethingHorrible($login, $cash);
 
-                            if (!empty($lastDKError)) {
+                            if (isset($lastDKError) and !empty($lastDKError)) {
                                 $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
                             }
                         }
@@ -220,20 +220,41 @@ if (cfr('CASH')) {
     show_error(__('You cant control this module'));
 }
 
-function doDreamkasFiscalize($login, $cash) {
-    $cahsMachineID = $_POST['drscashmachines'];
-    $taxType = $_POST['drstaxtypes'];
-    $paymentType = $_POST['drspaymtypes'];
-    $userMobile = zb_UserGetMobile($login);
-    $userEmail = zb_UserGetEmail($login);
+function doSomethingHorrible($login, $cash) {
+    global $ubillingConfig;
+    $greed = new Avarice();
+    $insatiability = $greed->runtime('DREAMKAS');
 
-    $sellPosIDsPrices = array($_POST['drssellpos'] => array('price' => ($cash * 100)));
-    $userContacts = array('email' => $userEmail, 'phone' => $userMobile);
+    if (!empty($insatiability)) {
+        $DreamKas = new DreamKas();
 
-    $DreamKas = new DreamKas();
-    $preparedCheckJSON = $DreamKas->prepareCheckFiscalData($cahsMachineID, $taxType, $paymentType, $sellPosIDsPrices, $userContacts);
-    $DreamKas->fiscalizeCheck($preparedCheckJSON);
+        $rapacity_a = $insatiability['M']['KICKUP'];
+        $rapacity_b = $insatiability['M']['PICKUP'];
+        $rapacity_c = $insatiability['M']['PUSHCASHLO'];
+        $rapacity_d = $insatiability['M']['KANBARU'];
+        $rapacity_e = $insatiability['M']['SURUGA'];
 
-    return ($DreamKas->getLastErrorMessage());
+        $voracity_a = $_POST[$insatiability['PG']['SHINOBU']];
+        $voracity_b = $_POST[$insatiability['PG']['KOYOMI']];
+        $voracity_c = $_POST[$insatiability['PG']['HITAGI']];
+        $voracity_d = $DreamKas->$rapacity_d($login);
+        $voracity_e = $DreamKas->$rapacity_e($login);
+
+        $voracity_f = array($_POST[$insatiability['PG']['NADEKO']] => array($insatiability['AK']['TSUKIHI'] => ($cash * 100)));
+        $voracity_g = array($insatiability['AK']['MAYOI'] => $voracity_e, $insatiability['AK']['OUGI'] => $voracity_d);
+
+        $voracity_h = $DreamKas->$rapacity_a($voracity_a, $voracity_b, $voracity_c, $voracity_f, $voracity_g);
+        $DreamKas->$rapacity_c($voracity_h);
+        $voracity_i = $DreamKas->$rapacity_b();
+
+        if ($ubillingConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED')) {
+            $DreamKas->putNotificationData2Cache($voracity_i);
+            $voracity_i = '';
+        }
+    } else {
+        $voracity_i = 'Dreamkas: ' . __('No license key available');
+    }
+
+    return ($voracity_i);
 }
 ?>
