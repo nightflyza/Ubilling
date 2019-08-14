@@ -819,19 +819,19 @@ class Banksta2 {
         $statementRawData = unserialize(base64_decode($statementRawData));
 
         $contractGuess   = $importOpts['guess_contract'];
-        $contractDelimS  = (empty($importOpts['contract_delim_start'])) ? '' : preg_quote($importOpts['contract_delim_start']);
-        $contractDelimE  = (empty($importOpts['contract_delim_end'])) ? '' : preg_quote($importOpts['contract_delim_end']);
+        $contractDelimS  = (empty($importOpts['contract_delim_start'])) ? '' : preg_quote($importOpts['contract_delim_start'], '/');
+        $contractDelimE  = (empty($importOpts['contract_delim_end'])) ? '' : preg_quote($importOpts['contract_delim_end'], '/');
         $contactMinLen   = $importOpts['contract_min_len'];
         $contactMaxLen   = $importOpts['contract_max_len'];
         $serviceType     = $importOpts['service_type'];
-        $inetSrvDelimS   = (empty($importOpts['inet_srv_start_delim'])) ? '' : preg_quote($importOpts['inet_srv_start_delim']);
-        $inetSrvDelimE   = (empty($importOpts['inet_srv_end_delim'])) ? '' : preg_quote($importOpts['inet_srv_end_delim']);
-        $inetSrvKeywords = (empty($importOpts['inet_srv_keywords'])) ? '' : preg_quote($importOpts['inet_srv_keywords']);
-        $ukvSrvDelimS    = (empty($importOpts['ukv_srv_start_delim'])) ? '' : preg_quote($importOpts['ukv_srv_start_delim']);
-        $ukvSrvDelimE    = (empty($importOpts['ukv_srv_end_delim'])) ? '' : preg_quote($importOpts['ukv_srv_end_delim']);
-        $ukvSrvKeywords  = (empty($importOpts['ukv_srv_keywords'])) ? '' : preg_quote($importOpts['ukv_srv_keywords']);
+        $inetSrvDelimS   = (empty($importOpts['inet_srv_start_delim'])) ? '' : preg_quote($importOpts['inet_srv_start_delim'], '/');
+        $inetSrvDelimE   = (empty($importOpts['inet_srv_end_delim'])) ? '' : preg_quote($importOpts['inet_srv_end_delim'], '/');
+        $inetSrvKeywords = (empty($importOpts['inet_srv_keywords'])) ? '' : preg_quote($importOpts['inet_srv_keywords'], '/');
+        $ukvSrvDelimS    = (empty($importOpts['ukv_srv_start_delim'])) ? '' : preg_quote($importOpts['ukv_srv_start_delim'], '/');
+        $ukvSrvDelimE    = (empty($importOpts['ukv_srv_end_delim'])) ? '' : preg_quote($importOpts['ukv_srv_end_delim'], '/');
+        $ukvSrvKeywords  = (empty($importOpts['ukv_srv_keywords'])) ? '' : preg_quote($importOpts['ukv_srv_keywords'], '/');
         $skipRow         = $importOpts['skip_row'];
-        $skipRowKeywords = (empty($importOpts['skip_row_keywords'])) ? '' : preg_quote($importOpts['skip_row_keywords']);
+        $skipRowKeywords = (empty($importOpts['skip_row_keywords'])) ? '' : preg_quote($importOpts['skip_row_keywords'], '/');
 
         $i = 0;
         $rows = '';
@@ -1072,105 +1072,152 @@ class Banksta2 {
      *
      * @return void
      */
-    public function pushStatementPayments($paymentsToPush) {
+    public function pushStatementPayments($paymentsToPush, $refiscalize = false) {
         $paymentsToPush = unserialize(base64_decode($paymentsToPush));
         $checkForCorpUsers = $this->ubConfig->getAlterParam('USER_LINKING_ENABLED');
         $dreamkasEnabled = $this->ubConfig->getAlterParam('DREAMKAS_ENABLED');
+        $needToFiscalize = false;
+        $fiscalDataArray = array();
+        $insatiability   = false;
+
+        if ($dreamkasEnabled and wf_CheckPost(array('bankstapaymentsfiscalize'))) {
+            $greed = new Avarice();
+            $insatiability = $greed->runtime('DREAMKAS');
+            if (!empty($insatiability)) {
+                $DreamKas = new DreamKas();
+            }
+
+            $needToFiscalize = true;
+            $fiscalDataArray = json_decode(base64_decode($_POST['bankstapaymentsfiscalize']), true);
+            $DreamKas = new DreamKas();
+
+            if ($refiscalize) {
+                $paymentsToPush = array();
+                $bs2RecIDs = implode(',', array_keys($fiscalDataArray));
+                $tQuery = "(SELECT `contracts`.`login` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `payid`, `service_type` AS `service` 
+                                  FROM `" . self::BANKSTA2_TABLE . "` 
+                                    RIGHT JOIN `contracts` ON `" . self::BANKSTA2_TABLE . "`.`contract` = `contracts`.`contract` 
+                                                              AND `" . self::BANKSTA2_TABLE . "`.`service_type` = 'Internet'
+                                  WHERE `" . self::BANKSTA2_TABLE . "`.`id` IN (" . $bs2RecIDs . "))
+                               UNION 
+                               (SELECT `ukv_users`.`id` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `payid`, `service_type` AS `service` 
+                                  FROM `" . self::BANKSTA2_TABLE . "` 
+                                    RIGHT JOIN `ukv_users` ON `" . self::BANKSTA2_TABLE . "`.`contract` = `ukv_users`.`contract` 
+                                                              AND `" . self::BANKSTA2_TABLE . "`.`service_type` = 'UKV'
+                                  WHERE `" . self::BANKSTA2_TABLE . "`.`id` IN (" . $bs2RecIDs . "))";
+
+                $tQueryResult = simple_queryall($tQuery);
+
+                if (!empty($tQueryResult)) {
+                    foreach ($tQueryResult as $eachRec) {
+                        $paymentsToPush[$eachRec['id']] = $eachRec;
+                    }
+                }
+            }
+        }
 
         if (!empty($paymentsToPush)) {
             $ukv = new UkvSystem();
-            $needToFiscalize = false;
-            $fiscalDataArray = array();
-
-            if ($checkForCorpUsers) { $allParentUsers = cu_GetAllParentUsers(); }
-
-            if ($dreamkasEnabled and wf_CheckPost(array('bankstapaymentsfiscalize'))) {
-                $needToFiscalize = true;
-                $fiscalDataArray = json_decode(base64_decode($_POST['bankstapaymentsfiscalize']), true);
-            }
+            $allParentUsers = ($checkForCorpUsers and !$refiscalize) ? cu_GetAllParentUsers() : array();
 
             foreach ($paymentsToPush as $eachRecID => $eachRec) {
-                if ($this->checkBankstaRowIsUnprocessed($eachRecID)) {
-                    $userLogin   = $eachRec['userlogin'];
-                    $paySumm     = $eachRec['summ'];
-                    $cashType    = $eachRec['payid'];
-                    $operation   = 'add';
-                    $paymentNote = 'BANKSTA2: [' . $eachRecID . '] ASCONTRACT ' . $eachRec['usercontract'];
+                $paymentSuccessful = false;
+                $userLogin = $eachRec['userlogin'];
+                $paySumm = $eachRec['summ'];
 
-                    if (zb_checkMoney($paySumm)) {
-                        if (strtolower($eachRec['service']) == 'internet') {
-                            // inet service payment processing
-                            if (!empty($userLogin)) {
-                                if (isset($this->allUsersDataInet[$userLogin])) {
-                                    // check for corporate user possibility
-                                    if ($checkForCorpUsers and bs_cu_IsParent($eachRec['userlogin'], $allParentUsers)) {
-                                        //corporate user
-                                        $userLink = $allParentUsers[$eachRec['userlogin']];
-                                        $allChildUsers = cu_GetAllChildUsers($userLink);
+                if (!$refiscalize) {
+                    if ($this->checkBankstaRowIsUnprocessed($eachRecID)) {
+                        $cashType = $eachRec['payid'];
+                        $operation = 'add';
+                        $paymentNote = 'BANKSTA2: [' . $eachRecID . '] ASCONTRACT ' . $eachRec['usercontract'];
 
-                                        // adding natural payment to parent user
-                                        zb_CashAdd($userLogin, $paySumm, $operation, $cashType, $paymentNote);
+                        if (zb_checkMoney($paySumm)) {
+                            if (strtolower($eachRec['service']) == 'internet') {
+                                // inet service payment processing
+                                if (!empty($userLogin)) {
+                                    if (isset($this->allUsersDataInet[$userLogin])) {
+                                        // check for corporate user possibility
+                                        if ($checkForCorpUsers and bs_cu_IsParent($eachRec['userlogin'], $allParentUsers)) {
+                                            //corporate user
+                                            $userLink = $allParentUsers[$eachRec['userlogin']];
+                                            $allChildUsers = cu_GetAllChildUsers($userLink);
 
-                                        if (!empty($allChildUsers)) {
-                                            foreach ($allChildUsers as $eachChild) {
-                                                //adding quiet payments for child users
-                                                $this->billing->addcash($eachChild, $paySumm);
-                                                log_register("BANKSTA2 GROUPBALANCE " . $eachChild . " " . $operation . " ON " . $paySumm);
+                                            // adding natural payment to parent user
+                                            zb_CashAdd($userLogin, $paySumm, $operation, $cashType, $paymentNote);
+
+                                            if (!empty($allChildUsers)) {
+                                                foreach ($allChildUsers as $eachChild) {
+                                                    //adding quiet payments for child users
+                                                    $this->billing->addcash($eachChild, $paySumm);
+                                                    log_register("BANKSTA2 GROUPBALANCE " . $eachChild . " " . $operation . " ON " . $paySumm);
+                                                }
                                             }
+                                        } else {
+                                            // ordinary user processing
+                                            zb_CashAdd($userLogin, $paySumm, $operation, $cashType, $paymentNote);
                                         }
-                                    } else {
-                                        // ordinary user processing
-                                        zb_CashAdd($userLogin, $paySumm, $operation, $cashType, $paymentNote);
-                                    }
 
-                                    $this->setBankstaRecProcessed($eachRecID);
+                                        $this->setBankstaRecProcessed($eachRecID);
+                                        $paymentSuccessful = true;
+                                    } else {
+                                        log_register('BANKSTA2 [' . $eachRecID . '] FAIL LOGIN (' . $userLogin . ')');
+                                    }
                                 } else {
-                                    log_register('BANKSTA2 [' . $eachRecID . '] FAIL LOGIN (' . $userLogin . ')');
+                                    log_register('BANKSTA2 [' . $eachRecID . '] FAIL EMPTY LOGIN');
                                 }
                             } else {
-                                log_register('BANKSTA2 [' . $eachRecID . '] FAIL EMPTY LOGIN');
+                                // UKV service payment processing
+                                $ukv->userAddCash($userLogin, $paySumm, 1, $cashType, $paymentNote);
+                                $this->setBankstaRecProcessed($eachRecID);
+                                $paymentSuccessful = true;
                             }
                         } else {
-                            // UKV service payment processing
-                            $ukv->userAddCash($userLogin, $paySumm, 1, $cashType, $paymentNote);
-                            $this->setBankstaRecProcessed($eachRecID);
-                        }
-
-                        // dreamkas fiscalization routine
-                        if ($needToFiscalize and isset($fiscalDataArray[$eachRecID])) {
-                            $curRecFiscalData = $fiscalDataArray[$eachRecID];
-
-                            $cahsMachineID = $curRecFiscalData['drscashmachineid'];
-                            $taxType = $curRecFiscalData['drstaxtype'];
-                            $paymentType = $curRecFiscalData['drspaymtype'];
-
-                            if (strtolower($eachRec['service']) == 'internet') {
-                                $userMobile = zb_UserGetMobile($userLogin);
-                                $userEmail = zb_UserGetEmail($userLogin);
-                            } else {
-                                $userData = $ukv->getUserData($userLogin);
-                                $userMobile = (empty($userData)) ? '' : $userData['mobile'];
-                                $userEmail = '';
-                            }
-
-                            $sellPosIDsPrices = array($curRecFiscalData['drssellingpos'] => array('price' => ($paySumm * 100)));
-                            $userContacts = array('email' => $userEmail, 'phone' => $userMobile);
-
-                            $DreamKas = new DreamKas();
-                            $preparedCheckJSON = $DreamKas->prepareCheckFiscalData($cahsMachineID, $taxType, $paymentType, $sellPosIDsPrices, $userContacts);
-                            $DreamKas->fiscalizeCheck($preparedCheckJSON, $eachRecID);
-                            $lastDKError = $DreamKas->getLastErrorMessage();
-
-                            if (!empty($lastDKError)) {
-                                log_register('BANKSTA2 FAILED: payment record ID: [' . $eachRecID . '] fiscalization for service: [' . $eachRec['service'] . '] for login: [' . $userLogin . ']. Error message: ' . $lastDKError);
-                            }
+                            log_register('BANKSTA2 FAILED: payment record ID: [' . $eachRecID . '] for service: [' . $eachRec['service'] . '] for login: [' . $userLogin . ']. ' . __('Wrong format of a sum of money to pay'));
                         }
                     } else {
-                        log_register('BANKSTA2 FAILED: payment record ID: [' . $eachRecID . '] for service: [' . $eachRec['service'] . '] for login: [' . $userLogin . ']. ' . __('Wrong format of a sum of money to pay'));
+                        $this->setBankstaRecProcessed($eachRecID);
+                        log_register('BANKSTA2 DUPLICATE PAYMENT PUSH TRY FOR REC ID: [' . $eachRecID . ']');
                     }
-                } else {
-                    $this->setBankstaRecProcessed($eachRecID);
-                    log_register('BANKSTA2 DUPLICATE PAYMENT PUSH TRY FOR REC ID: [' . $eachRecID . ']');
+                }
+
+                // dreamkas fiscalization routine
+                if ($needToFiscalize
+                    and !empty($insatiability)
+                    and isset($fiscalDataArray[$eachRecID])
+                    and ($paymentSuccessful or $refiscalize) ) {
+
+                    $rapacity_a = $insatiability['M']['KICKUP'];
+                    $rapacity_b = $insatiability['M']['PICKUP'];
+                    $rapacity_c = $insatiability['M']['PUSHCASHLO'];
+                    $rapacity_d = $insatiability['M']['KANBARU'];
+                    $rapacity_e = $insatiability['M']['SURUGA'];
+                    $rapacity_z = $insatiability['M']['ONONOKI'];
+
+                    $curRecFiscalData = $fiscalDataArray[$eachRecID];
+
+                    $voracity_a = $curRecFiscalData[$insatiability['B2']['OIKURA']];
+                    $voracity_b = $curRecFiscalData[$insatiability['B2']['SODACHI']];
+                    $voracity_c = $curRecFiscalData[$insatiability['B2']['IZUKO']];
+
+                    if (strtolower($eachRec[$insatiability['LT']['YOTSUGI']]) == $insatiability['LT']['MEME']) {
+                        $voracity_d = $DreamKas->$rapacity_d($userLogin);
+                        $voracity_e = $DreamKas->$rapacity_e($userLogin);
+                    } else {
+                        $voracity_d = $DreamKas->$rapacity_z($userLogin, $ukv);
+                        $voracity_d = (empty($voracity_d)) ? '' : $voracity_d[$insatiability['AK']['ARARAGI']];
+                        $voracity_e = '';
+                    }
+
+                    $voracity_f = array($curRecFiscalData[$insatiability['B2']['GAEN']] => array($insatiability['AK']['TSUKIHI'] => ($paySumm * 100)));
+                    $voracity_g = array($insatiability['AK']['MAYOI'] => $voracity_e, $insatiability['AK']['OUGI'] => $voracity_d);
+
+                    $voracity_h = $DreamKas->$rapacity_a($voracity_a, $voracity_b, $voracity_c, $voracity_f, $voracity_g);
+                    $DreamKas->$rapacity_c($voracity_h, $eachRecID);
+                    $voracity_i = $DreamKas->$rapacity_b();
+
+                    if (!empty($voracity_i)) {
+                        log_register('BANKSTA2 FAILED: payment record ID: [' . $eachRecID . '] fiscalization for service: [' . $eachRec['service'] . '] for login: [' . $userLogin . ']. Error message: ' . $voracity_i);
+                    }
                 }
             }
         }
@@ -1637,14 +1684,7 @@ class Banksta2 {
             $dreamkasEnabled = $this->ubConfig->getAlterParam('DREAMKAS_ENABLED');
             $fiscalRecsIDsList = array();
             $addFiscalizePaymentCtrlsJS = false;
-
-            if ($dreamkasEnabled) {
-                $DreamKas = new DreamKas();
-            }
-
-            $dreamkasEnabled = $this->ubConfig->getAlterParam('DREAMKAS_ENABLED');
-            $fiscalRecsIDsList = array();
-            $addFiscalizePaymentCtrlsJS = false;
+            $refiscalize = false;
 
             if ($dreamkasEnabled) {
                 $DreamKas = new DreamKas();
@@ -1812,17 +1852,24 @@ class Banksta2 {
 
                     // dreamkas fiscalizing controls
                     if ($dreamkasEnabled) {
+                        $dreamkasCtrls = '';
+
                         if ($recProcessed) {
                             if ($recCanceled) {
-                                $rows.= wf_TableRow('');
+                                $dreamkasCtrls = wf_TableRow('');
                             } else {
                                 // geting fiscalized data
-                                $rows.= $DreamKas->web_ReceiptDetailsTableRow($eachRec['id']);
+                                $dreamkasCtrls = $DreamKas->web_ReceiptDetailsTableRow($eachRec['id']);
+                                $refiscalize = empty($dreamkasCtrls);
                             }
-                        } else {
-                            $addFiscalizePaymentCtrlsJS = true;
-                            $rows.= $DreamKas->web_FiscalizePaymentCtrls($serviceType, true, $eachRec['id']);
                         }
+
+                        if (empty($dreamkasCtrls)) {
+                            $addFiscalizePaymentCtrlsJS = true;
+                            $dreamkasCtrls = $DreamKas->web_FiscalizePaymentCtrls($serviceType, true, $eachRec['id']);
+                        }
+
+                        $rows.= $dreamkasCtrls;
                     }
                 }
             }
@@ -1830,14 +1877,25 @@ class Banksta2 {
             $result = wf_TableBody($rows, '100%', '0', '');
             $result.= ($addFiscalizePaymentCtrlsJS) ? $DreamKas->get_BS2FiscalizePaymentCtrlsJS() : '';
 
-            if (!empty($cashPairs)) {
+            if (!empty($cashPairs) or $refiscalize) {
+                $cashInputs = '';
+
+                if ($refiscalize) {
+                    $submitCaption = __('Re-fiscalize payments');
+                    $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush',base64_encode(serialize('refiscalize')));
+                    $cashInputs.= wf_HiddenInput('bankstaneedrefiscalize', 'true');
+                } else {
+                    $cashPairs = serialize($cashPairs);
+                    $cashPairs = base64_encode($cashPairs);
+                    $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
+                    $cashInputs.= wf_HiddenInput('bankstaneedrefiscalize', 'false');
+                    $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstafiscalrecsidslist', base64_encode(json_encode($fiscalRecsIDsList))) : '';
+                    $submitCaption = __('Process current bank statement');
+                }
+
                 $formID = wf_InputId();
-                $cashPairs = serialize($cashPairs);
-                $cashPairs = base64_encode($cashPairs);
-                $cashInputs = wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
-                $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstafiscalrecsidslist', base64_encode(json_encode($fiscalRecsIDsList))) : '';
                 $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstapaymentsfiscalize', '') : '';
-                $cashInputs.= wf_Submit(__('Process current bank statement'));
+                $cashInputs.= wf_Submit($submitCaption);
                 $result.= wf_Form('', 'POST', $cashInputs, 'glamour', '', $formID);
 
                 if ($dreamkasEnabled) {
@@ -1845,21 +1903,23 @@ class Banksta2 {
                     $result.= '
                                 $(\'#' . $formID . '\').submit(function(evt) {
                                     fiscalizationArr = {};
-                                    fiscalRecsIDsList = JSON.parse(atob($(\'[name="bankstafiscalrecsidslist"]\').val()));
-                                    
-                                    $(\'[name^="fiscalizepayment_"]\').each(function(chkindex, chkelement) { 
+                              ';
+                    $result.= ($refiscalize) ? '' : 'fiscalRecsIDsList = JSON.parse(atob($(\'[name="bankstafiscalrecsidslist"]\').val()));';
+                    $result.= '         $(\'[name^="fiscalizepayment_"]\').each(function(chkindex, chkelement) {
+                     
                                         if ($(chkelement).is(\':checked\')) {
                                             checkCtrlID = $(chkelement).attr("id").substring($(chkelement).attr("id").indexOf(\'_\') + 1);
-                                            
-                                            if ($.inArray(checkCtrlID, fiscalRecsIDsList) != -1) {		
-                                                fiscalizationArr[checkCtrlID] = {};
+                                        ';
+                    $result.= ($refiscalize) ? '' : 'if ($.inArray(checkCtrlID, fiscalRecsIDsList) != -1) {';
+                    $result.= '                 fiscalizationArr[checkCtrlID] = {};
                                                 
                                                 fiscalizationArr[checkCtrlID][\'drscashmachineid\'] = $(\'[name=drscashmachines_\'+checkCtrlID+\']\').val();
                                                 fiscalizationArr[checkCtrlID][\'drstaxtype\'] = $(\'[name=drstaxtypes_\'+checkCtrlID+\']\').val();
                                                 fiscalizationArr[checkCtrlID][\'drspaymtype\'] = $(\'[name=drspaymtypes_\'+checkCtrlID+\']\').val();
                                                 fiscalizationArr[checkCtrlID][\'drssellingpos\'] = $(\'[name=drssellpos_\'+checkCtrlID+\']\').val();
-                                            }
-                                        }
+                                            ';
+                    $result.= ($refiscalize) ? '' : '}';
+                    $result.= '         }
                                     });
                                     
                                     $(\'[name="bankstapaymentsfiscalize"]\').val(btoa(JSON.stringify(fiscalizationArr)));

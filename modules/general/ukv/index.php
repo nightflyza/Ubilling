@@ -121,21 +121,39 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                         $ukv->userAddCash($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
 
                         if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED') and wf_CheckPost(array('dofiscalizepayment'))) {
-                            $cahsMachineID = $_POST['drscashmachines'];
-                            $taxType = $_POST['drstaxtypes'];
-                            $paymentType = $_POST['drspaymtypes'];
-                            $userData = $ukv->getUserData($_POST['manualpaymentprocessing']);
+                            $greed = new Avarice();
+                            $insatiability = $greed->runtime('DREAMKAS');
 
-                            $userMobile = (empty($userData)) ? '' : $userData['mobile'];
-                            $userEmail = '';
+                            if (!empty($insatiability)) {
+                                $DreamKas = new DreamKas();
 
-                            $sellPosIDsPrices = array($_POST['drssellpos'] => array('price' => ($_POST['paymentsumm'] * 100)));
-                            $userContacts = array('email' => $userEmail, 'phone' => $userMobile);
+                                $rapacity_a = $insatiability['M']['KICKUP'];
+                                $rapacity_b = $insatiability['M']['PICKUP'];
+                                $rapacity_c = $insatiability['M']['PUSHCASHLO'];
+                                $rapacity_d = $insatiability['M']['ONONOKI'];
 
-                            $DreamKas = new DreamKas();
-                            $preparedCheckJSON = $DreamKas->prepareCheckFiscalData($cahsMachineID, $taxType, $paymentType, $sellPosIDsPrices, $userContacts);
-                            $DreamKas->fiscalizeCheck($preparedCheckJSON);
-                            $lastDKError = $DreamKas->getLastErrorMessage();
+                                $voracity_a = $_POST[$insatiability['PG']['SHINOBU']];
+                                $voracity_b = $_POST[$insatiability['PG']['KOYOMI']];
+                                $voracity_c = $_POST[$insatiability['PG']['HITAGI']];
+                                $voracity_d = $DreamKas->$rapacity_d($_POST['manualpaymentprocessing'], $ukv);
+
+                                $voracity_d = (empty($voracity_d)) ? '' : $voracity_d[$insatiability['AK']['ARARAGI']];
+                                $voracity_e = '';
+
+                                $voracity_f = array($_POST[$insatiability['PG']['NADEKO']] => array($insatiability['AK']['TSUKIHI'] => ($_POST['paymentsumm'] * 100)));
+                                $voracity_g = array($insatiability['AK']['MAYOI'] => $voracity_e, $insatiability['AK']['OUGI'] => $voracity_d);
+
+                                $voracity_h = $DreamKas->$rapacity_a($voracity_a, $voracity_b, $voracity_c, $voracity_f, $voracity_g);
+                                $DreamKas->$rapacity_c($voracity_h);
+                                $voracity_i = $DreamKas->$rapacity_b();
+
+                                if ($ubillingConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED')) {
+                                    $DreamKas->putNotificationData2Cache($voracity_i);
+                                    $voracity_i = '';
+                                }
+                            } else {
+                                $voracity_i = 'Dreamkas: ' . __('No license key available');
+                            }
                         }
                     } else {
                         $ukv->logPayment($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
@@ -143,8 +161,8 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
 
                     $lastDKErrorParam = '';
 
-                    if (isset($lastDKError) and !empty($lastDKError)) {
-                        $lastDKErrorParam = '&lastdkerror=' . urlencode($lastDKError);
+                    if (isset($voracity_i) and !empty($voracity_i)) {
+                        $lastDKErrorParam = '&lastdkerror=' . urlencode($voracity_i);
                     }
 
                     rcms_redirect(UkvSystem::URL_USERS_PROFILE . $_POST['manualpaymentprocessing'] . $lastDKErrorParam);
@@ -159,19 +177,6 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
             if (wf_CheckGet(array('lastdkerror'))) {
                 $errorMessage = $ukv->getUbMessagesInstance()->getStyledMessage(urldecode($_GET['lastdkerror']), 'error');
                 $errorWindow = wf_modalAutoForm(__('Fiscalization error'), $errorMessage, '', '', true, 'true', '700');
-                /*$errorWindow.= wf_tag('script', false, '', 'type="text/javascript"');
-                $errorWindow.= '
-                                 $(document).ready(function() {
-                                    var curURL = window.location;
-
-                                    if (~curURL.indexOf("&lastdkerror")) {
-	                                    var newURL = curURL.substr(0, curURL.indexOf("&lastdkerror"));
-	                                    alert(newURL);
-	                                    window.location.href = newURL;
-                                    }
-                                 });
-                               ';
-                $errorWindow.= wf_tag('script', true);*/
             }
 
             //payments deletion

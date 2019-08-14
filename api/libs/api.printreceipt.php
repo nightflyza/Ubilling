@@ -357,7 +357,7 @@ class PrintReceipt {
                             
                             if (search_keyword.length > 0 && search_keyword.trim() !== "-") {
                                 for (var key in search_array) {
-                                    if ( key.toLowerCase() == search_keyword.toLowerCase() + search_array[key] && key.trim() !== "" ) {                                       
+                                    if ( key.trim() !== "" && key.toLowerCase() == search_keyword.toLowerCase() + search_array[key].toLowerCase() ) {                                       
                                         $("<option />", {value: key, text: search_array[key]}).appendTo(newselect);
                                     }  
                                 }

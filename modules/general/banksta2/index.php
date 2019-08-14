@@ -46,7 +46,7 @@ if (cfr('BANKSTA2')) {
             }
 
             if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
-                $Banksta->pushStatementPayments($_POST['bankstaneedpaymentspush']);
+                $Banksta->pushStatementPayments($_POST['bankstaneedpaymentspush'], wf_getBoolFromVar($_POST['bankstaneedrefiscalize'], true));
             }
 
             show_window(__('Bank statement processing'), $Banksta->web_BSProcessingForm($_GET['showhash']));

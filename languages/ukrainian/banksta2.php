@@ -87,5 +87,6 @@ $lang['def']['min length'] = 'мінімальна довжина';
 $lang['def']['max length'] = 'максимальна довжина';
 $lang['def']['right to import bank statements with Banksta2'] = 'Право імпортувати банківські виписки з допомогою Banksta2';
 $lang['def']['ONLY, if mapped contract field for some row will be empty or if contract field will be not specified'] = 'ТІЛЬКИ якщо вказане поле в будь-якому рядку буде пустим або номер поля договору не буде вказано';
+$lang['def']['Record processed'] = 'Запис оброблено';
 $lang['def'][''] = '';
 ?>
