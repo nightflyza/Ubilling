@@ -924,19 +924,29 @@ class OnuRegister {
             $rawSn = trim($rawValue[1]);
             $tmpSn = explode(" ", $rawSn);
             $check = trim($tmpSn[0]);
+            $tmpStr = '';
             if ($check == 'STRING:') {
-                $tmpSn = bin2hex($tmpSn[1]);                
+                $tmpSn = bin2hex($tmpSn[1]);
                 if (strlen($tmpSn) == 20) {
                     $tmp[0] = $tmpSn[2] . $tmpSn[3];
                     $tmp[1] = $tmpSn[4] . $tmpSn[5];
                     $tmp[2] = $tmpSn[6] . $tmpSn[7];
                     $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                    $tmpStr = '';
                     for ($i = 10; $i <= 17; $i++) {
                         $tmpStr .= $tmpSn[$i];
                     }
                     $tmp[4] = $tmpStr;
+                } elseif (strlen($tmpSn) == 22) {
+                    $tmp[0] = $tmpSn[2] . $tmpSn[3];
+                    $tmp[1] = $tmpSn[4] . $tmpSn[5];
+                    $tmp[2] = $tmpSn[6] . $tmpSn[7];
+                    $tmp[3] = $tmpSn[8] . $tmpSn[9];
+                    for ($i = 10; $i <= 19; $i++) {
+                        $tmpStr .= $tmpSn[$i];
+                    }
+                    $tmp[4] = $tmpStr;
                 } else {
+                    print_r($tmpSn);
                     $tmp[0] = $tmpSn[0] . $tmpSn[1];
                     $tmp[1] = $tmpSn[2] . $tmpSn[3];
                     $tmp[2] = $tmpSn[4] . $tmpSn[5];
