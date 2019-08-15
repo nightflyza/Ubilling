@@ -139,10 +139,13 @@ if (cfr('TRINITYTV')) {
                     show_error($errorMsg);
                 }
             }
-
+            //user profile render
             show_window(__('Profile'), $interface->renderUserInfo($_GET['subscriberid']));
-
             show_window(__('Devices'), $interface->renderDevices($_GET['subscriberid']));
+            if ($altCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('TRINITYTVSUBS');
+                show_window(__('Additional comments'), $adcomments->renderComments($_GET['subscriberid']));
+            }
             show_window('', wf_BackLink($interface::URL_ME . '&subscriptions=true'));
         }
 
