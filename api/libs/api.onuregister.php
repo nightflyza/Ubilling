@@ -941,7 +941,10 @@ class OnuRegister {
                     $tmp[1] = $tmpSn[4] . $tmpSn[5];
                     $tmp[2] = $tmpSn[6] . $tmpSn[7];
                     $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                    for ($i = 10; $i <= 19; $i++) {
+                    for ($i = 10; $i <= 11; $i++) {
+                        $tmpStr .= $tmpSn[$i];
+                    }
+                    for ($i = 14; $i <= 19; $i++) {
                         $tmpStr .= $tmpSn[$i];
                     }
                     $tmp[4] = $tmpStr;
