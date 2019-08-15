@@ -74,5 +74,7 @@ $lang['def']['Fiscalization request sent to server'] = 'Запрос на фис
 $lang['def']['Operation repeat try'] = 'Попытка повтора операции';
 $lang['def']['Re-fiscalize payments'] = 'Фискализировать повторно';
 $lang['def']['right to control Dreamkas cash operations'] = 'Право управлять финансовыми операциями Dreamkas';
+$lang['def']['Last edit date'] = 'Последний раз редактировалось';
+$lang['def']['Mapped to service'] = 'Привязано к услуге';
 $lang['def'][''] = '';
 
