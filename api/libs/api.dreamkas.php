@@ -290,7 +290,7 @@ class DreamKas {
      *
      * @return array
      */
-    protected function getDataForCache() {
+    public function getDataForCache() {
         $cacheArray = array();
 
         $cashiers4Cache = $this->getCashiers();

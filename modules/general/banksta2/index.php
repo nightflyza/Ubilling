@@ -49,7 +49,16 @@ if (cfr('BANKSTA2')) {
                 $Banksta->pushStatementPayments($_POST['bankstaneedpaymentspush'], wf_getBoolFromVar($_POST['bankstaneedrefiscalize'], true));
             }
 
-            show_window(__('Bank statement processing'), $Banksta->web_BSProcessingForm($_GET['showhash']));
+            $fileInfoArray = $Banksta->getFileInfoByHash($_GET['showhash']);
+            $fileInfo = __('Date') . ': ' . $fileInfoArray['date'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
+                        __('Filename') . ': ' . $fileInfoArray['filename'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
+                        __('Total rows') . ': ' . $fileInfoArray['rowcount'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
+                        __('Admin') . ': ' . $fileInfoArray['admin'];
+
+            /*            __('Processed rows') . ': ' . $fileInfoArray['processed_cnt'] . wf_nbsp(2) . '|' . wf_nbsp(2) .
+                        __('Canceled rows') . ': ' . $fileInfoArray['canceled_cnt'] . wf_nbsp(2) . '|' . wf_nbsp(2) .*/
+
+            show_window($fileInfo, $Banksta->web_BSProcessingForm($_GET['showhash']));
         }
 
         if (wf_CheckGet(array('showdetailed'))) {

@@ -309,6 +309,32 @@ class Banksta2 {
     }
 
     /**
+     * Returns file info for a certain filehash
+     *
+     * @param $hash
+     * @return array
+     */
+    public function getFileInfoByHash($hash) {
+        $data = array();
+        $tQuery = "SELECT `filename`, `hash`, `date`, `admin`, COUNT(`id`) AS `rowcount`, COUNT(if(`processed` > 0, 1, null)) AS processed_cnt, COUNT(if(`canceled` > 0, 1, null)) AS canceled_cnt 
+                        FROM `" . self::BANKSTA2_TABLE . "` WHERE `hash`='" . $hash . "' LIMIT 1";
+        $tQueryResult = simple_queryall($tQuery);
+
+        if (!empty($tQueryResult)) {
+            foreach ($tQueryResult as $io => $eachRec) {
+                $data['date'] = $eachRec['date'];
+                $data['filename'] = $eachRec['filename'];
+                $data['rowcount'] = $eachRec['rowcount'];
+                $data['processed_cnt'] = $eachRec['processed_cnt'];
+                $data['canceled_cnt'] = $eachRec['canceled_cnt'];
+                $data['admin'] = $eachRec['admin'];
+            }
+        }
+
+        return ($data);
+    }
+
+    /**
      * Returns fields mapping presets in JSON representation
      *
      * @param $fmpID
