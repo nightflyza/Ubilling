@@ -65,21 +65,21 @@ function em_EmployeeShowForm() {
             $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions .= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
             $cells .= wf_TableCell($actions);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
     //new employee create form inputs  
     $inputs = wf_HiddenInput('addemployee', 'true');
     $inputs .= wf_TableCell('');
-    $inputs .= wf_TableCell(wf_TextInput('employeename', '', '', false, 30));
+    $inputs .= wf_TableCell(wf_TextInput('employeename', '', '', false, 15));
     $inputs .= wf_TableCell('');
-    $inputs .= wf_TableCell(wf_TextInput('employeejob', '', '', false, 20));
-    $inputs .= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
-    $inputs .= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 15));
-    $inputs .= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
+    $inputs .= wf_TableCell(wf_TextInput('employeejob', '', '', false, 10));
+    $inputs .= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 10,'mobile'));
+    $inputs .= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 10));
+    $inputs .= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 8));
     $inputs .= wf_TableCell(em_TagSelector('editadtagid'));
-    $inputs .= wf_TableCell(wf_TextInput('amountLimit', '', '', false, 10, 'finance'));
+    $inputs .= wf_TableCell(wf_TextInput('amountLimit', '', '', false, 5, 'finance'));
     $inputs .= wf_TableCell(wf_Submit(__('Create')));
     $inputs = wf_TableRow($inputs, 'row2');
     $addForm = wf_Form("", 'POST', $inputs, '');

@@ -27,7 +27,7 @@ if (cfr('EMPLOYEEDIR')) {
 
     if (!wf_CheckGet(array('edit'))) {
         if (!wf_CheckGet(array('editjob'))) {
-            //display normal tasks
+            //render employee and jobtypes lists/creation forms
             em_EmployeeShowForm();
             em_JobTypeForm();
         } else {
