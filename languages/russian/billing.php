@@ -3093,6 +3093,7 @@ $lang['def']['Account activity is different'] = 'Состояние активн
 $lang['def']['This user account is not associated with any existing TrinityTV subscriber'] = 'Эта учетная запись не связана ни с одним из существующих подписчиков TrinityTV';
 $lang['def']['This user account is not associated with any existing Megogo subscriber'] = 'Эта учетная запись не связана ни с одним из существующих подписчиков Megogo';
 $lang['def']['SNMP data'] = 'SNMP данные';
+$lang['def']['Cancel'] = 'Отмена';
 $lang['def'][''] = '';
 
 ?>

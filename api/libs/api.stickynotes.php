@@ -228,8 +228,13 @@ class StickyNotes {
                 $cells .= wf_TableCell(web_bool_led($each['active']), '', '', 'sorttable_customkey="' . $each['active'] . '"');
                 $viewLink = wf_Link(self::URL_ME . '&shownote=' . $each['id'], $this->cutString($each['text'], 100), false, '');
                 $cells .= wf_TableCell($viewLink);
-                $deletingPreview = $this->cutString(strip_tags($each['text']), 25);
-                $actLinks = wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert() . ' (' . $deletingPreview . ')') . ' ';
+                $deletingPreview = nl2br($this->cutString(strip_tags($each['text']), 50));
+                $deletingPreview .= wf_delimiter();
+                $deletingPreview .= wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), '', 'ubButton') . ' ';
+                $deletingPreview .= wf_Link(self::URL_ME, wf_img('skins/back.png') . ' ' . __('Cancel'), false, 'ubButton');
+                $deletingDialog = wf_modalAuto(web_delete_icon(), __('Delete'), $deletingPreview);
+                //$actLinks = wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert() . ' (' . $deletingPreview . ')') . ' ';
+                $actLinks = $deletingDialog;
                 $actLinks .= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
                 $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
                 $actLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
