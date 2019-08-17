@@ -206,13 +206,14 @@ class StickyNotes {
      * @return string
      */
     public function renderListGrid() {
+        $messages = new UbillingMessageHelper();
         $result = '';
         $cells = wf_TableCell(__('Creation date'));
-        $cells.= wf_TableCell(__('Remind date'));
-        $cells.= wf_TableCell(__('Time'));
-        $cells.= wf_TableCell(__('Status'));
-        $cells.= wf_TableCell(__('Text'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Remind date'));
+        $cells .= wf_TableCell(__('Time'));
+        $cells .= wf_TableCell(__('Status'));
+        $cells .= wf_TableCell(__('Text'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
         /**
          * Amadare wa chi no shizuku to natte hoho wo
@@ -222,21 +223,22 @@ class StickyNotes {
         if (!empty($this->allnotes)) {
             foreach ($this->allnotes as $io => $each) {
                 $cells = wf_TableCell($each['createdate']);
-                $cells.= wf_TableCell($each['reminddate']);
-                $cells.= wf_TableCell($each['remindtime']);
-                $cells.= wf_TableCell(web_bool_led($each['active']), '', '', 'sorttable_customkey="' . $each['active'] . '"');
+                $cells .= wf_TableCell($each['reminddate']);
+                $cells .= wf_TableCell($each['remindtime']);
+                $cells .= wf_TableCell(web_bool_led($each['active']), '', '', 'sorttable_customkey="' . $each['active'] . '"');
                 $viewLink = wf_Link(self::URL_ME . '&shownote=' . $each['id'], $this->cutString($each['text'], 100), false, '');
-                $cells.= wf_TableCell($viewLink);
-                $actLinks = wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
-                $actLinks.= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
+                $cells .= wf_TableCell($viewLink);
+                $deletingPreview = $this->cutString(strip_tags($each['text']), 25);
+                $actLinks = wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert() . ' (' . $deletingPreview . ')') . ' ';
+                $actLinks .= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
                 $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
-                $actLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $actLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
 
-        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         return ($result);
     }
 
@@ -275,7 +277,7 @@ class StickyNotes {
                 $shortText = strip_tags($shortText);
                 $shortText = $this->cutString($shortText, $textLenght);
 
-                $calendarData.="
+                $calendarData .= "
                       {
                         title: '" . $rawTime . " " . $shortText . " ',
                         url: '" . self::URL_ME . "&shownote=" . $each['id'] . "',
@@ -301,29 +303,29 @@ class StickyNotes {
         $messages = new UbillingMessageHelper();
         if (!empty($this->allRevelations)) {
             $cells = wf_TableCell(__('Creation date'));
-            $cells.= wf_TableCell(__('Day') . ' ' . __('From'));
-            $cells.= wf_TableCell(__('Day') . ' ' . __('To'));
-            $cells.= wf_TableCell(__('Status'));
-            $cells.= wf_TableCell(__('Text'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Day') . ' ' . __('From'));
+            $cells .= wf_TableCell(__('Day') . ' ' . __('To'));
+            $cells .= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('Text'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allRevelations as $io => $each) {
                 $cells = wf_TableCell($each['createdate']);
                 $dayFrom = (!empty($each['dayfrom'])) ? $each['dayfrom'] : '';
                 $dayTo = (!empty($each['dayto'])) ? $each['dayto'] : '';
-                $cells.= wf_TableCell($dayFrom);
-                $cells.= wf_TableCell($dayTo);
-                $cells.= wf_TableCell(web_bool_led($each['active']));
+                $cells .= wf_TableCell($dayFrom);
+                $cells .= wf_TableCell($dayTo);
+                $cells .= wf_TableCell(web_bool_led($each['active']));
                 $previewContent = nl2br($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN));
-                $cells.= wf_TableCell($previewContent);
+                $cells .= wf_TableCell($previewContent);
                 $actiLinks = wf_JSAlert(self::URL_REVELATIONS . '&deleterev=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                $actiLinks.= wf_Link(self::URL_REVELATIONS . '&editrev=' . $each['id'], web_edit_icon());
-                $cells.= wf_TableCell($actiLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $actiLinks .= wf_Link(self::URL_REVELATIONS . '&editrev=' . $each['id'], web_edit_icon());
+                $cells .= wf_TableCell($actiLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.=$messages->getStyledMessage(__('Nothing to show'), 'info');
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return ($result);
     }
@@ -415,16 +417,16 @@ class StickyNotes {
                 $offsetTop = '30px';
             }
 
-            $result.= wf_tag('div', false, 'stickynote', 'style="margin:' . $offsetTop . ' ' . $offsetLeft . ' 20px 20px;"');
+            $result .= wf_tag('div', false, 'stickynote', 'style="margin:' . $offsetTop . ' ' . $offsetLeft . ' 20px 20px;"');
             if ($isRevelation) {
-                $result.= wf_img('skins/pigeon_icon.png') . wf_tag('br');
+                $result .= wf_img('skins/pigeon_icon.png') . wf_tag('br');
             } else {
-                $result.= wf_Link(self::URL_ME, wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
+                $result .= wf_Link(self::URL_ME, wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
             }
-            $result.=wf_tag('div', false, 'stickynotetext');
-            $result.= $text;
-            $result.=wf_tag('div', true);
-            $result.= wf_tag('div', true);
+            $result .= wf_tag('div', false, 'stickynotetext');
+            $result .= $text;
+            $result .= wf_tag('div', true);
+            $result .= wf_tag('div', true);
         }
         return ($result);
     }
@@ -437,26 +439,26 @@ class StickyNotes {
     public function panel() {
         $result = '';
         if (!wf_CheckGet(array('revelations'))) {
-            $result.= wf_modalAuto(wf_img('skins/pushpin.png') . ' ' . __('Create new personal note'), __('Create new personal note'), $this->createForm(), 'ubButton');
+            $result .= wf_modalAuto(wf_img('skins/pushpin.png') . ' ' . __('Create new personal note'), __('Create new personal note'), $this->createForm(), 'ubButton');
             if (wf_CheckGet(array('calendarview'))) {
-                $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
             } else {
-                $result.= wf_Link(self::URL_ME . '&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
             }
 
             if ($this->revelationsFlag) {
                 if (cfr('REVELATIONS')) {
-                    $result.=wf_link(self::URL_REVELATIONS, wf_img('skins/pigeon_icon.png') . ' ' . __('Revelations'), false, 'ubButton');
+                    $result .= wf_link(self::URL_REVELATIONS, wf_img('skins/pigeon_icon.png') . ' ' . __('Revelations'), false, 'ubButton');
                 }
             }
         } else {
             if (!wf_CheckGet(array('editrev'))) {
-                $result.=wf_BackLink(self::URL_ME);
+                $result .= wf_BackLink(self::URL_ME);
             } else {
-                $result.=wf_BackLink(self::URL_REVELATIONS);
+                $result .= wf_BackLink(self::URL_REVELATIONS);
             }
             if (cfr('REVELATIONS')) {
-                $result.= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->revelationCreateForm(), 'ubButton');
+                $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->revelationCreateForm(), 'ubButton');
             }
         }
 
@@ -471,15 +473,15 @@ class StickyNotes {
      */
     protected function createForm() {
         $inputs = wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
-        $inputs.= wf_TextArea('newtext', '', '', true, '50x15');
-        $inputs.= wf_CheckInput('newactive', __('Create note as active'), true, true);
-        $inputs.= wf_DatePickerPreset('newreminddate', '');
-        $inputs.= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
-        $inputs.=wf_tag('br');
-        $inputs.= wf_TimePickerPreset('newremindtime', '', __('Remind time'), false);
-        $inputs.= wf_tag('br');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextArea('newtext', '', '', true, '50x15');
+        $inputs .= wf_CheckInput('newactive', __('Create note as active'), true, true);
+        $inputs .= wf_DatePickerPreset('newreminddate', '');
+        $inputs .= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TimePickerPreset('newremindtime', '', __('Remind time'), false);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Create'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -502,20 +504,20 @@ class StickyNotes {
         $adminNames = unserialize($adminNames);
 
         $inputs = wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
-        $inputs.= wf_TextArea('newrevelationtext', '', '', true, '50x15');
-        $inputs.= wf_CheckInput('newrevelationactive', __('Active'), true, true);
-        $inputs.= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
-        $inputs.= wf_Selector('newrevelationdayfrom', $days, __('From'), '', false) . ' ';
-        $inputs.= wf_Selector('newrevelationdayto', $days, __('To'), '', false) . ' ';
-        $inputs.= wf_tag('br');
+        $inputs .= wf_TextArea('newrevelationtext', '', '', true, '50x15');
+        $inputs .= wf_CheckInput('newrevelationactive', __('Active'), true, true);
+        $inputs .= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
+        $inputs .= wf_Selector('newrevelationdayfrom', $days, __('From'), '', false) . ' ';
+        $inputs .= wf_Selector('newrevelationdayto', $days, __('To'), '', false) . ' ';
+        $inputs .= wf_tag('br');
         if (!empty($alladmins)) {
             foreach ($alladmins as $io => $eachAdmin) {
                 $eachAdminName = (isset($adminNames[$eachAdmin])) ? $adminNames[$eachAdmin] : $eachAdmin;
-                $inputs.=wf_CheckInput('newrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, false) . ' '.  wf_tag('br');
+                $inputs .= wf_CheckInput('newrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, false) . ' ' . wf_tag('br');
             }
         }
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Create'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -544,27 +546,27 @@ class StickyNotes {
             $adminNames = unserialize($adminNames);
 
             $inputs = wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
-            $inputs.= wf_HiddenInput('editrevelationid', $id);
-            $inputs.= wf_TextArea('editrevelationtext', '', $revData['text'], true, '50x15');
-            $inputs.= wf_CheckInput('editrevelationactive', __('Active'), true, $revData['active']);
-            $inputs.= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
-            $inputs.= wf_Selector('editrevelationdayfrom', $days, __('From'), $revData['dayfrom'], false) . ' ';
-            $inputs.= wf_Selector('editrevelationdayto', $days, __('To'), $revData['dayto'], false) . ' ';
-            $inputs.= wf_tag('br');
+            $inputs .= wf_HiddenInput('editrevelationid', $id);
+            $inputs .= wf_TextArea('editrevelationtext', '', $revData['text'], true, '50x15');
+            $inputs .= wf_CheckInput('editrevelationactive', __('Active'), true, $revData['active']);
+            $inputs .= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
+            $inputs .= wf_Selector('editrevelationdayfrom', $days, __('From'), $revData['dayfrom'], false) . ' ';
+            $inputs .= wf_Selector('editrevelationdayto', $days, __('To'), $revData['dayto'], false) . ' ';
+            $inputs .= wf_tag('br');
             if (!empty($alladmins)) {
                 foreach ($alladmins as $io => $eachAdmin) {
                     $stateFlag = (ispos($revData['showto'], ' ' . $eachAdmin . ' ')) ? true : false;
                     $eachAdminName = (isset($adminNames[$eachAdmin])) ? $adminNames[$eachAdmin] : $eachAdmin;
-                    $inputs.=wf_CheckInput('editrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, $stateFlag) . ' ';
+                    $inputs .= wf_CheckInput('editrevelationshowto[' . $eachAdmin . ']', $eachAdminName, false, $stateFlag) . ' ';
                 }
             }
-            $inputs.= wf_tag('br');
-            $inputs.= wf_tag('br');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_tag('br');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
 
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
-            $result.=$messages->getStyledMessage(__('Something went wrong') . ': EX_ID_NOT_EXISTS', 'error');
+            $result .= $messages->getStyledMessage(__('Something went wrong') . ': EX_ID_NOT_EXISTS', 'error');
         }
         return ($result);
     }
@@ -615,7 +617,7 @@ class StickyNotes {
                 $oldsShowTo = $revelationData['showto'];
                 if (!empty($_POST['editrevelationshowto'])) {
                     foreach ($_POST['editrevelationshowto'] as $io => $each) {
-                        $showTo.=' ' . $io . ' ';
+                        $showTo .= ' ' . $io . ' ';
                     }
                 }
                 if ($showTo != $oldsShowTo) {
@@ -639,7 +641,7 @@ class StickyNotes {
             $showTo = '';
             if (!empty($_POST['newrevelationshowto'])) {
                 foreach ($_POST['newrevelationshowto'] as $io => $each) {
-                    $showTo.=' ' . $io . ' ';
+                    $showTo .= ' ' . $io . ' ';
                 }
             }
             $activity = (isset($_POST['newrevelationactive'])) ? 1 : 0;
@@ -664,17 +666,17 @@ class StickyNotes {
         if (!empty($noteData)) {
             $textAreaDimensions = ($wideForm) ? '80x25' : '50x15';
             $inputs = wf_HiddenInput('editnoteid', $noteId);
-            $inputs.= wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
-            $inputs.= wf_TextArea('edittext', '', $noteData['text'], true, $textAreaDimensions);
+            $inputs .= wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
+            $inputs .= wf_TextArea('edittext', '', $noteData['text'], true, $textAreaDimensions);
             $checkState = ($noteData['active'] == 1) ? true : false;
-            $inputs.= wf_CheckInput('editactive', __('Personal note active'), true, $checkState);
-            $inputs.= wf_DatePickerPreset('editreminddate', $noteData['reminddate']);
-            $inputs.= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
-            $inputs.= wf_tag('br');
-            $inputs.= wf_TimePickerPreset('editremindtime', $noteData['remindtime'], __('Remind time'), true);
-            $inputs.= wf_tag('br');
-            $inputs.= wf_tag('br');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_CheckInput('editactive', __('Personal note active'), true, $checkState);
+            $inputs .= wf_DatePickerPreset('editreminddate', $noteData['reminddate']);
+            $inputs .= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TimePickerPreset('editremindtime', $noteData['remindtime'], __('Remind time'), true);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -806,9 +808,9 @@ class StickyNotes {
             if ($noteData['owner'] == $this->myLogin) {
                 $result = strip_tags($noteData['text']);
                 $result = nl2br($result);
-                $result.= wf_delimiter(2);
-                $result.= wf_BackLink(self::URL_ME);
-                $result.= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton') . ' ';
+                $result .= wf_delimiter(2);
+                $result .= wf_BackLink(self::URL_ME);
+                $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton') . ' ';
             } else {
                 $result = __('Access denied');
             }
@@ -866,7 +868,7 @@ class StickyNotes {
                     $tmpText = $each['text'];
                     $tmpText = strip_tags($tmpText);
                     $output = $tmpText;
-                    $output.=$delimiterId;
+                    $output .= $delimiterId;
 
                     $output = str_replace($delimiterId, $delimiterCode, $output);
                     $output = $this->cutString($output, self::PREVIEW_LEN);
@@ -874,7 +876,7 @@ class StickyNotes {
                     $output = nl2br($output);
 
 
-                    $result.=$this->renderStickyNote($output, $offsetLeft);
+                    $result .= $this->renderStickyNote($output, $offsetLeft);
                     $offsetLeft = $offsetLeft + 10;
                 }
             }
@@ -911,23 +913,23 @@ class StickyNotes {
                     $tmpText = $each['text'];
                     $tmpText = strip_tags($tmpText);
                     $output = $tmpText;
-                    $output.=$delimiterId;
+                    $output .= $delimiterId;
 
                     $output = str_replace($delimiterId, $delimiterCode, $output);
                     $output = $this->cutString($output, self::PREVIEW_LEN);
                     $output = nl2br($output);
 
 
-                    $result.=$this->renderStickyNote($output, $offsetLeft, true);
+                    $result .= $this->renderStickyNote($output, $offsetLeft, true);
                     $offsetLeft = $offsetLeft + 10;
                 }
             }
         }
 
         if (!empty($result)) {
-            $result.=wf_tag('script');
-            $result.='$( function() { $( ".stickynote" ).draggable({ scroll: false, cancel: ".stickynotetext" }); } );';
-            $result.=wf_tag('script', true);
+            $result .= wf_tag('script');
+            $result .= '$( function() { $( ".stickynote" ).draggable({ scroll: false, cancel: ".stickynotetext" }); } );';
+            $result .= wf_tag('script', true);
         }
         return ($result);
     }
