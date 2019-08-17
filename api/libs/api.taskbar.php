@@ -219,7 +219,7 @@ class UbillingTaskbar {
                         }
                     } else {
                         if (!isset($elementData['UNIMPORTANT'])) {
-                            $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption . ' ' . __('required by') . ' ' . $elementId, 'error');
+                            $this->currentAlerts .= $this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption . ' ' . __('required by') . ' ' . $elementId, 'error');
                         }
                     }
                 } else {
@@ -230,7 +230,7 @@ class UbillingTaskbar {
                     $elementName = (!empty($elementData['NAME'])) ? $elementData['NAME'] : '';
                     $elementUrl = (!empty($elementData['URL'])) ? $elementData['URL'] : '';
                     $elementIcon = (!empty($elementData['ICON'])) ? $elementData['ICON'] : '';
-                    $result.=$this->renderIconElement($elementUrl, $elementName, $elementIcon);
+                    $result .= $this->renderIconElement($elementUrl, $elementName, $elementIcon);
                 }
             }
         }
@@ -257,7 +257,7 @@ class UbillingTaskbar {
                         }
                     } else {
                         if (!isset($elementData['UNIMPORTANT'])) {
-                            $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption . ' ' . __('required by') . ' ' . $elementId, 'error');
+                            $this->currentAlerts .= $this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption . ' ' . __('required by') . ' ' . $elementId, 'error');
                         }
                     }
                 } else {
@@ -277,15 +277,15 @@ class UbillingTaskbar {
                             require_once (self::WIDGETS_CODEPATH . $elementData['CODEFILE']);
                             if (class_exists($elementData['ID'])) {
                                 $widget = new $elementData['ID']();
-                                $result.=$widget->render();
+                                $result .= $widget->render();
                             } else {
-                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Widget class not exists') . ': ' . $elementData['ID'], 'error');
+                                $this->currentAlerts .= $this->messages->getStyledMessage(__('Widget class not exists') . ': ' . $elementData['ID'], 'error');
                             }
                         } else {
-                            $this->currentAlerts.=$this->messages->getStyledMessage(__('File not exist') . ': ' . self::WIDGETS_CODEPATH . $elementData['CODEFILE'], 'warning');
+                            $this->currentAlerts .= $this->messages->getStyledMessage(__('File not exist') . ': ' . self::WIDGETS_CODEPATH . $elementData['CODEFILE'], 'warning');
                         }
                     } else {
-                        $this->currentAlerts.=$this->messages->getStyledMessage(__('Wrong element format') . ': ' . $elementData['ID'], 'warning');
+                        $this->currentAlerts .= $this->messages->getStyledMessage(__('Wrong element format') . ': ' . $elementData['ID'], 'warning');
                     }
                 }
             }
@@ -313,21 +313,21 @@ class UbillingTaskbar {
                 if ((isset($elementData['TYPE'])) AND ( isset($elementData['ID']))) {
                     if (!isset($this->loadedElements[$elementData['ID']])) {
                         $this->loadedElements[$elementData['ID']] = $elementData;
-                        $categoryContent.=$this->buildElement($elementData);
+                        $categoryContent .= $this->buildElement($elementData);
                     } else {
-                        $this->currentAlerts.=$this->messages->getStyledMessage(__('Duplicate element ID') . ': ' . $elementData['ID'] . ' -> ' . $eachfilename, 'warning');
+                        $this->currentAlerts .= $this->messages->getStyledMessage(__('Duplicate element ID') . ': ' . $elementData['ID'] . ' -> ' . $eachfilename, 'warning');
                     }
                 } else {
-                    $this->currentAlerts.=$this->messages->getStyledMessage(__('Wrong element format') . ': ' . $eachfilename, 'warning');
+                    $this->currentAlerts .= $this->messages->getStyledMessage(__('Wrong element format') . ': ' . $eachfilename, 'warning');
                 }
             }
 
             if (!empty($categoryContent)) {
-                $result.=wf_tag('p') . wf_tag('h3') . wf_tag('u') . $categoryName . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
-                $result.= wf_tag('div', false, 'dashboard');
-                $result.=$categoryContent;
-                $result.= wf_tag('div', true);
-                $result.= wf_CleanDiv();
+                $result .= wf_tag('p') . wf_tag('h3') . wf_tag('u') . $categoryName . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
+                $result .= wf_tag('div', false, 'dashboard');
+                $result .= $categoryContent;
+                $result .= wf_tag('div', true);
+                $result .= wf_CleanDiv();
             }
         }
         return ($result);
@@ -342,7 +342,7 @@ class UbillingTaskbar {
         $result = '';
         if (!empty($this->categories)) {
             foreach ($this->categories as $category => $categoryname) {
-                $result.=$this->loadCategoryElements($category);
+                $result .= $this->loadCategoryElements($category);
             }
         }
         return ($result);
@@ -363,8 +363,8 @@ class UbillingTaskbar {
             }
             $resizeinputs = wf_SelectorAC('iconsize', $this->iconSizes, '', $currentsize, false);
 
-            $result.= wf_tag('br');
-            $result.= wf_Form('', 'POST', $resizeinputs);
+            $result .= wf_tag('br');
+            $result .= wf_Form('', 'POST', $resizeinputs);
         }
 
         return ($result);
@@ -429,7 +429,7 @@ class UbillingTaskbar {
                     $admAnnouncements->setAcquainted($_GET['setacquainted']);
                     rcms_redirect(self::URL_ME);
                 }
-                $result.= $admAnnouncements->showAnnouncements();
+                $result .= $admAnnouncements->showAnnouncements();
             }
         }
         return ($result);
@@ -448,10 +448,25 @@ class UbillingTaskbar {
                 if (wf_CheckPost(array('vote', 'poll_id'))) {
                     $poll->createAdminVoteOnDB(vf($_POST['vote'], 3), vf($_POST['poll_id'], 3));
                 }
-                $result.= $poll->renderVotingForm();
+                $result .= $poll->renderVotingForm();
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns touch devices hotfix for draggable and other JQuery UI things
+     * 
+     * @return string
+     */
+    protected function loadTouchFix() {
+        $result = '';
+        if (@$this->altCfg['TOUCH_FIX']) {
+            $result .= '<!-- jQuery UI Touch Punch -->';
+            $result .= wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/jquery.ui.touch-punch.min.js"');
+            $result .= wf_tag('script', true);
+        }
+        return($result);
     }
 
     /**
@@ -464,13 +479,14 @@ class UbillingTaskbar {
         $this->catchIconsizeChange();
         $this->taskbarContent = $this->loadAllCategories();
         if (!empty($this->currentAlerts)) {
-            $result.=$this->currentAlerts;
+            $result .= $this->currentAlerts;
         }
-        $result.=$this->taskbarContent;
-        $result.=$this->renderResizeForm();
-        $result.=$this->loadStickyNotes();
-        $result.=$this->loadAnnouncements();
-        $result.=$this->loadPollVoteAdmin();
+        $result .= $this->taskbarContent;
+        $result .= $this->renderResizeForm();
+        $result .= $this->loadStickyNotes();
+        $result .= $this->loadAnnouncements();
+        $result .= $this->loadPollVoteAdmin();
+        $result .= $this->loadTouchFix();
         $this->loadUbim();
         return ($result);
     }
@@ -499,8 +515,8 @@ class TaskbarWidget {
      */
     protected function widgetContainer($content, $options = '') {
         $result = wf_tag('div', false, 'dashtask', $options);
-        $result.= $content;
-        $result.=wf_tag('div', true);
+        $result .= $content;
+        $result .= wf_tag('div', true);
         return ($result);
     }
 
