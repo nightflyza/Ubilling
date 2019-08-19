@@ -1457,6 +1457,7 @@ class Warehouse {
         if (cfr('WAREHOUSEREPORTS')) {
             $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
@@ -2252,19 +2253,30 @@ class Warehouse {
     /**
      * Returns outcoming operation creation form
      * 
+     * @param bool $noOutControls not render storages outcoming controls
+     * 
      * @return string
      */
-    public function outcomingStoragesList() {
+    public function outcomingStoragesList($noOutControls = false) {
         $result = '';
         if (!empty($this->allStorages)) {
 
             $cells = wf_TableCell(__('Warehouse storage'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allStorages as $io => $each) {
-                $conrolLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $io, $each, false, '');
+                $storageId = $io;
+                if ($noOutControls) {
+                    $conrolLink = $each;
+                } else {
+                    $conrolLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId, $each, false, '');
+                }
+                $remainsLabel = wf_img('skins/icon_print.png', __('The remains in the warehouse storage') . ': ' . $each);
+                $remainsPrintControls = ' ' . wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&printremainsstorage=' . $storageId, $remainsLabel);
                 $cells = wf_TableCell($conrolLink);
-                $rows .= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($remainsPrintControls);
+                $rows .= wf_TableRow($cells, 'row5');
             }
 
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -3418,6 +3430,17 @@ class Warehouse {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Renders report with list of controls to view some storages remains
+     * 
+     * @return string
+     */
+    public function reportStoragesRemains() {
+        $result = '';
+        $result .= $this->outcomingStoragesList(true);
+        return($result);
     }
 
     /**

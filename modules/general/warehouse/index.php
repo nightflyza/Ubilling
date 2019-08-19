@@ -227,7 +227,7 @@ if (cfr('WAREHOUSE')) {
                     }
 
                     $reserveControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
-                    $reserveControls.= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false);
+                    $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false);
 
                     if (!wf_CheckGet(array('mass'))) {
                         show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
@@ -303,6 +303,16 @@ if (cfr('WAREHOUSE')) {
                     }
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                }
+
+                if (wf_CheckGet(array('storagesremains'))) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('The remains in the warehouse storage'), $warehouse->reportStoragesRemains());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    } else {
+                        show_error(__('Access denied'));
+                    }
                 }
             }
 
