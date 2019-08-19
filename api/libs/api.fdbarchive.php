@@ -366,8 +366,10 @@ class FDBArchive {
         if (ubRouting::checkGet('switchidfilter')) {
             $macFilter .= '&switchidfilter=' . ubRouting::get('switchidfilter');
         }
+
         $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $macFilter . $switchIdFilter, false, 'Objects', 100);
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $macFilter . $switchIdFilter, false, 'Objects', 100, $opts);
         return($result);
     }
 
