@@ -3111,5 +3111,6 @@ $lang['def']['This user account is not associated with any existing TrinityTV su
 $lang['def']['This user account is not associated with any existing Megogo subscriber'] = 'Цей обліковий запис не пов`язано з жодним підписником Megogo';
 $lang['def']['SNMP data'] = 'SNMP дані';
 $lang['def']['Cancel'] = 'Відміна';
+$lang['def']['It looks like this device can be polled using SNMP if you specify SWPOLL in the notes'] = 'Виглядає так, ніби цей пристрій може бути опитано за допомогою SNMP якщо вказати в примітках SWPOLL';
 
 ?>

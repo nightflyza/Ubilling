@@ -497,7 +497,7 @@ function web_SwitchEditForm($switchid) {
         $fdbCacheName = 'exports/' . $switchdata['ip'] . '_fdb';
         if (file_exists($fdbCacheName)) {
             $result .= wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
-            $result .= wf_Link('?module=fdbarchive&switchidfilter=' . $switchid, wf_img('skins/fdbarchive.png') . ' ' . __('FDB').' '.__('Archive'), false, 'ubButton');
+            $result .= wf_Link('?module=fdbarchive&switchidfilter=' . $switchid, wf_img('skins/fdbarchive.png') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton');
         }
 
         if ((!empty($switchdata['snmp'])) AND ( ispos($switchdata['desc'], 'SWPOLL'))) {
@@ -529,6 +529,27 @@ function web_SwitchEditForm($switchid) {
 
     if (cfr('SWITCHESEDIT')) {
         $result .= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
+    }
+
+    //SWPOLL proposal
+    if (!empty($switchdata['ip'])) {
+        if (!ispos($switchdata['desc'], 'SWPOLL') AND ( !ispos($switchdata['desc'], 'NP')) AND ( !ispos($switchdata['desc'], 'OLT'))) {
+            //this is not OLT
+            if (!ispos($switchdata['desc'], 'AP') AND ( !ispos($switchdata['desc'], 'MTSIGMON'))) {
+                //Or some wireless access point
+                if (!empty($switchdata['snmp'])) {
+                    //with some non empty snmp read comunity
+                    if (!empty($switchdata['modelid'])) {
+                        $allModelsSnmpTemplates = sp_SnmpGetModelTemplatesAssoc();
+                        if (isset($allModelsSnmpTemplates[$switchdata['modelid']])) {
+                            //device model have some SNMP template assigned
+                            $messages = new UbillingMessageHelper();
+                            $result .= $messages->getStyledMessage(__('It looks like this device can be polled using SNMP if you specify SWPOLL in the notes'), 'info');
+                        }
+                    }
+                }
+            }
+        }
     }
 
     return ($result);
