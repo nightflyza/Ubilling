@@ -233,7 +233,6 @@ class StickyNotes {
                 $deletingPreview .= wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), '', 'ubButton') . ' ';
                 $deletingPreview .= wf_Link(self::URL_ME, wf_img('skins/back.png') . ' ' . __('Cancel'), false, 'ubButton');
                 $deletingDialog = wf_modalAuto(web_delete_icon(), __('Delete'), $deletingPreview);
-                //$actLinks = wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert() . ' (' . $deletingPreview . ')') . ' ';
                 $actLinks = $deletingDialog;
                 $actLinks .= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
                 $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
