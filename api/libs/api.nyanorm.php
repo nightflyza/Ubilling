@@ -569,7 +569,10 @@ class NyanORM {
      * @return int
      */
     public function getLastId() {
-        return(simple_get_lastid($this->tableName));
+        $tablename = $this->tableName;
+        $query = "SELECT `" . $this->defaultPk . "` from `" . $this->tableName . "` ORDER BY `" . $this->defaultPk . "` DESC LIMIT 1";
+        $result = simple_query($query);
+        return ($result[$this->defaultPk]);
     }
 
     /**
