@@ -204,6 +204,14 @@ class WhyDoYouCall {
                                 //call was answered after this
                                 if (isset($unansweredCalls[$incomingNumber])) {
                                     unset($unansweredCalls[$incomingNumber]);
+                                } else {
+                                    //some country code issues fix
+                                    if (ispos($incomingNumber, '380')) {
+                                        $uglyIncoming = str_replace('38', '', $incomingNumber);
+                                        if (isset($unansweredCalls[$uglyIncoming])) {
+                                            unset($unansweredCalls[$uglyIncoming]);
+                                        }
+                                    }
                                 }
                             }
 
@@ -226,7 +234,7 @@ class WhyDoYouCall {
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         unset($unansweredCalls[$destinationNumber]);
                                         if (isset($recalledCalls[$destinationNumber])) {
-                                            $recalledCalls[$destinationNumber]['time']+= $each[13];
+                                            $recalledCalls[$destinationNumber]['time'] += $each[13];
                                             $recalledCalls[$destinationNumber]['count'] ++;
                                         } else {
                                             $recalledCalls[$destinationNumber]['time'] = $each[13];
@@ -241,7 +249,7 @@ class WhyDoYouCall {
                                     if (isset($unansweredCalls[$uglyHack])) {
                                         unset($unansweredCalls[$uglyHack]);
                                         if (isset($recalledCalls[$uglyHack])) {
-                                            $recalledCalls[$uglyHack]['time']+= $each[13];
+                                            $recalledCalls[$uglyHack]['time'] += $each[13];
                                             $recalledCalls[$uglyHack]['count'] ++;
                                         } else {
                                             $recalledCalls[$uglyHack]['time'] = $each[13];
@@ -256,7 +264,7 @@ class WhyDoYouCall {
                                     //unsuccessful recall try
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         if (isset($recalledCalls[$destinationNumber])) {
-                                            $recalledCalls[$destinationNumber]['time']+= $each[13];
+                                            $recalledCalls[$destinationNumber]['time'] += $each[13];
                                             $recalledCalls[$destinationNumber]['count'] ++;
                                         } else {
                                             $recalledCalls[$destinationNumber]['time'] = $each[13];
@@ -270,7 +278,7 @@ class WhyDoYouCall {
                                     $uglyHack = '38' . $destinationNumber;
                                     if (isset($unansweredCalls[$uglyHack])) {
                                         if (isset($recalledCalls[$uglyHack])) {
-                                            $recalledCalls[$uglyHack]['time']+= $each[13];
+                                            $recalledCalls[$uglyHack]['time'] += $each[13];
                                             $recalledCalls[$uglyHack]['count'] ++;
                                         } else {
                                             $recalledCalls[$uglyHack]['time'] = $each[13];
@@ -297,7 +305,7 @@ class WhyDoYouCall {
                 }
             }
         }
-
+        debarr($unansweredCalls);
         //filling recalled calls cache
         file_put_contents(self::CACHE_RECALLED, serialize($recalledCalls));
         return ($unansweredCalls);
@@ -334,10 +342,10 @@ class WhyDoYouCall {
     public function panel() {
         $result = '';
         if (!wf_CheckGet(array('renderstats'))) {
-            $result.= wf_Link(self::URL_ME, wf_img_sized('skins/icon_phone.gif', '', '16', '16') . ' ' . __('Calls'), false, 'ubButton') . ' ';
-            $result.= wf_Link(self::URL_ME . '&renderstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME, wf_img_sized('skins/icon_phone.gif', '', '16', '16') . ' ' . __('Calls'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&renderstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
         } else {
-            $result.=wf_BackLink(self::URL_ME);
+            $result .= wf_BackLink(self::URL_ME);
         }
         return ($result);
     }
@@ -359,9 +367,9 @@ class WhyDoYouCall {
                 if (!empty($rawData)) {
                     $totalCount = 0;
                     $cells = wf_TableCell(__('Number'));
-                    $cells.= wf_TableCell(__('Last call time'));
-                    $cells.= wf_TableCell(__('Number of attempts to call'));
-                    $cells.= wf_TableCell(__('User'));
+                    $cells .= wf_TableCell(__('Last call time'));
+                    $cells .= wf_TableCell(__('Number of attempts to call'));
+                    $cells .= wf_TableCell(__('User'));
 
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($rawData as $number => $callData) {
@@ -375,15 +383,15 @@ class WhyDoYouCall {
                             $profileLink = '';
                         }
                         $cells = wf_TableCell(wf_tag('strong') . $number . wf_tag('strong', true));
-                        $cells.= wf_TableCell($callData[9]);
-                        $cells.= wf_TableCell($callData['misscount']);
-                        $cells.= wf_TableCell($profileLink);
+                        $cells .= wf_TableCell($callData[9]);
+                        $cells .= wf_TableCell($callData['misscount']);
+                        $cells .= wf_TableCell($profileLink);
 
-                        $rows.= wf_TableRow($cells, 'row5');
+                        $rows .= wf_TableRow($cells, 'row5');
                         $totalCount++;
                     }
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-                    $result.= __('Total') . ': ' . $totalCount;
+                    $result .= __('Total') . ': ' . $totalCount;
                 } else {
                     $result = $this->messages->getStyledMessage(__('No missed calls at this time'), 'success');
                 }
@@ -408,11 +416,11 @@ class WhyDoYouCall {
                 if (!empty($rawData)) {
                     $totalCount = 0;
                     $cells = wf_TableCell(__('Number'));
-                    $cells.= wf_TableCell(__('Number of attempts to call'));
-                    $cells.= wf_TableCell(__('Reaction time'));
-                    $cells.= wf_TableCell(__('Talk time'));
-                    $cells.= wf_TableCell(__('Status'));
-                    $cells.= wf_TableCell(__('User'));
+                    $cells .= wf_TableCell(__('Number of attempts to call'));
+                    $cells .= wf_TableCell(__('Reaction time'));
+                    $cells .= wf_TableCell(__('Talk time'));
+                    $cells .= wf_TableCell(__('Status'));
+                    $cells .= wf_TableCell(__('User'));
 
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($rawData as $number => $callData) {
@@ -430,16 +438,16 @@ class WhyDoYouCall {
                         $callStatus = ($callTime > 0) ? wf_img('skins/calls/phone_green.png') . ' ' . __('Answered') : wf_img('skins/calls/phone_red.png') . ' ' . __('No answer');
                         $callStatusFlag = ($callTime > 0) ? 1 : 0;
                         $cells = wf_TableCell(wf_tag('strong') . $number . wf_tag('strong', true));
-                        $cells.= wf_TableCell($callData['count']);
-                        $cells.= wf_TableCell(zb_formatTime($callData['trytime']));
-                        $cells.= wf_TableCell($callTimeFormated, '', '', 'sorttable_customkey="' . $callTime . '"');
-                        $cells.= wf_TableCell($callStatus, '', '', 'sorttable_customkey="' . $callStatusFlag . '"');
-                        $cells.= wf_TableCell($profileLink);
-                        $rows.= wf_TableRow($cells, 'row5');
+                        $cells .= wf_TableCell($callData['count']);
+                        $cells .= wf_TableCell(zb_formatTime($callData['trytime']));
+                        $cells .= wf_TableCell($callTimeFormated, '', '', 'sorttable_customkey="' . $callTime . '"');
+                        $cells .= wf_TableCell($callStatus, '', '', 'sorttable_customkey="' . $callStatusFlag . '"');
+                        $cells .= wf_TableCell($profileLink);
+                        $rows .= wf_TableRow($cells, 'row5');
                         $totalCount++;
                     }
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-                    $result.= __('Total') . ': ' . $totalCount;
+                    $result .= __('Total') . ': ' . $totalCount;
                 } else {
                     $result = $this->messages->getStyledMessage(__('No recalled calls at this time'), 'info');
                 }
@@ -470,7 +478,7 @@ class WhyDoYouCall {
                 if (!empty($rawData)) {
                     foreach ($rawData as $missedNumber => $callData) {
                         if (!ispos($missedNumber, 'anonymous')) {
-                            $missedCallsNumbers.= $missedNumber . ' ';
+                            $missedCallsNumbers .= $missedNumber . ' ';
                             $missedCallsCount++;
                         }
                     }
@@ -518,10 +526,10 @@ class WhyDoYouCall {
         $monthArr = months_array_localized();
 
         $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $curYear) . ' ';
-        $inputs.= wf_Selector('monthsel', $monthArr, __('Month'), $curMonth, false) . ' ';
-        $inputs.= wf_Submit(__('Show'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-        $result.=wf_CleanDiv();
+        $inputs .= wf_Selector('monthsel', $monthArr, __('Month'), $curMonth, false) . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_CleanDiv();
 
         return ($result);
     }
@@ -541,7 +549,7 @@ class WhyDoYouCall {
         $totalCalls = 0;
         $totalReactTime = 0;
 
-        $result.= $this->statsDateForm($year, $month);
+        $result .= $this->statsDateForm($year, $month);
 
         $gchartsData = array();
         $gchartsData[] = array(__('Date'), __('Missed calls'), __('Recalled calls'), __('Unsuccessful recalls'));
@@ -572,23 +580,23 @@ class WhyDoYouCall {
                 $totalMissed += $each['missedcount'];
                 $totalRecalls += $each['recallscount'];
                 $totalUnsucc += $each['unsucccount'];
-                $totalReactTime+=$each['totaltrytime'];
+                $totalReactTime += $each['totaltrytime'];
             }
 
-            $totalCalls+=$totalMissed + $totalRecalls;
-            $result.=wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
-            $result.= wf_tag('strong') . __('Total') . ': ' . wf_tag('strong', true) . wf_tag('br');
-            $result.= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
-            $result.= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
-            $result.= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
-            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%' . wf_tag('br');
+            $totalCalls += $totalMissed + $totalRecalls;
+            $result .= wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
+            $result .= wf_tag('strong') . __('Total') . ': ' . wf_tag('strong', true) . wf_tag('br');
+            $result .= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
+            $result .= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
+            $result .= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
+            $result .= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%' . wf_tag('br');
             $reactTimeStat = (!empty($totalReactTime)) ? zb_formatTime($totalReactTime / ($totalRecalls + $totalUnsucc)) : __('No');
-            $result.= __('Reaction time') . ' - ' . $reactTimeStat;
-            $result.= wf_tag('br');
-            $result.= wf_tag('br');
-            $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
+            $result .= __('Reaction time') . ' - ' . $reactTimeStat;
+            $result .= wf_tag('br');
+            $result .= wf_tag('br');
+            $result .= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
         } else {
-            $result.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
         return ($result);
     }
