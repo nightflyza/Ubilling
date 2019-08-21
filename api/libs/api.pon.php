@@ -184,6 +184,13 @@ class PONizer {
      */
     protected $ubConfig = null;
 
+    /**
+     * Array of MAC address of ONU devices which will be hidden from unknown ONU list
+     *
+     * @var array
+     */
+    protected $hideOnuMac = array();
+
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
     const DISTCACHE_PATH = 'exports/';
@@ -229,6 +236,13 @@ class PONizer {
         $this->onuUknownUserByMACSearchShowAlways = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_SHOW_ALWAYS');
         $this->onuUknownUserByMACSearchTelepathy = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_TELEPATHY');
         $this->ponizerUseTabUI = $this->ubConfig->getAlterParam('PON_UI_USE_TABS');
+
+        //optional ONU MAC hiding
+        if (@$this->altCfg['PON_ONU_HIDE']) {
+            $tmpHideOnuList = explode(',', $this->altCfg['PON_ONU_HIDE']);
+            $tmpHideOnuList = array_flip($tmpHideOnuList);
+            $this->hideOnuMac = $tmpHideOnuList;
+        }
     }
 
     /**
@@ -1003,7 +1017,7 @@ class PONizer {
      *
      * @return void
      */
-        protected function FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId) {
+    protected function FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId) {
         $oltid = vf($oltid, 3);
         $FDBTmp = array();
         $macTmp = array();
@@ -1046,7 +1060,7 @@ class PONizer {
                     $devIndex = trim($line[0]); //device index
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw; 
+                    $macTmp[$devIndex] = $macRaw;
                 }
             }
 
@@ -2108,11 +2122,11 @@ class PONizer {
                                 if (isset($this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'])) {
                                     $onu_id_start = 805830912;
                                     $intIndex = array();
-                                    for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'];$card <= 20;$card++) {
+                                    for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']; $card <= 20; $card++) {
                                         $onu_id = $onu_id_start + (524288 * ($card - 1));
-                                        for ($port = 1;$port <= 16;$port++) {
+                                        for ($port = 1; $port <= 16; $port++) {
                                             $tmp_id = $onu_id;
-                                            for ($onu_num = 1;$onu_num <= 64;$onu_num++) {
+                                            for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
                                                 $intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
                                                 $tmp_id += 256;
                                             }
@@ -2157,7 +2171,7 @@ class PONizer {
                                                 $tmp[2] = $tmpSn[6] . $tmpSn[7];
                                                 $tmp[3] = $tmpSn[8] . $tmpSn[9];
                                                 $tmpStr = '';
-                                                for ($i = 10;$i <= 17;$i++) {
+                                                for ($i = 10; $i <= 17; $i++) {
                                                     $tmpStr .= $tmpSn[$i];
                                                 }
                                                 $tmp[4] = $tmpStr;
@@ -2503,7 +2517,7 @@ class PONizer {
         $result = 0;
         $modelid = @$this->allOltSnmp[$oltid]['modelid'];
         if (!empty($mac)) {
-            if (check_mac_format($mac) or @$this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
+            if (check_mac_format($mac) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($mac)) {
                     $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
                             . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
@@ -3745,17 +3759,19 @@ class PONizer {
 
                     $oltData = @$this->allOltDevices[$oltId];
 
-                    $data[] = $oltData;
-                    $data[] = $userLink;
-                    $data[] = @$allUserData[$login]['fulladress'];
-                    $data[] = $userRealnames;
-                    $data[] = $userTariff;
-                    $data[] = $userIP;
-                    $data[] = $onuMac;
-                    $data[] = $actControls;
+                    if (!isset($this->hideOnuMac[$onuMac])) {
+                        $data[] = $oltData;
+                        $data[] = $userLink;
+                        $data[] = @$allUserData[$login]['fulladress'];
+                        $data[] = $userRealnames;
+                        $data[] = $userTariff;
+                        $data[] = $userIP;
+                        $data[] = $onuMac;
+                        $data[] = $actControls;
 
-                    $json->addRow($data);
-                    unset($data);
+                        $json->addRow($data);
+                        unset($data);
+                    }
                 }
             }
         }
