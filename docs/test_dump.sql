@@ -2562,3 +2562,12 @@ CREATE TABLE IF NOT EXISTS `dreamkas_banksta2_relations` (
   UNIQUE KEY (bs2_rec_id),
   UNIQUE KEY (`operation_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `callmeback` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `number` varchar(250) DEFAULT NULL,
+  `state` varchar(40) DEFAULT NULL,
+   PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
