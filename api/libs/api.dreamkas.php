@@ -143,18 +143,25 @@ class DreamKas {
     protected $dataCahched = array();
 
     /**
-     * Dreamkas to Banksta2 relations data
+     * Dreamkas to Banksta2 processed relations data with receipts IDs already
      *
      * @var array
      */
-    protected $bs2Relations = array();
+    protected $bs2RelationsProcessed = array();
 
     /**
-     * Dreamkas to Banksta2 relations data with fiscal operation ID as a key
+     * Dreamkas to Banksta2 unprocessed relations data without receipts IDs yet
      *
      * @var array
      */
-    protected $bs2RelationsFiscOpKey = array();
+    protected $bs2RelationsUnProcessed = array();
+
+    /**
+     * Dreamkas to Banksta2 relations data with fiscal operation ID as a key and without receipts IDs yet
+     *
+     * @var array
+     */
+    protected $bs2RelationsUnProcFiscOpKey = array();
 
     /**
      * Placeholder for payment types supported by Dreamkas API
@@ -308,6 +315,8 @@ class DreamKas {
         if (!empty($sellPos4Cache)) {
             $cacheArray['cashmachines'] = $cashMachines4Cache;
         }
+
+        //$this->updateFiscalOperationsLocalStorage();
 
         return ($cacheArray);
     }
@@ -704,16 +713,30 @@ class DreamKas {
     }
 
     /**
-     * Fills $this->bs2Relations placeholder with data
+     * Fills $this->bs2RelationsProcessed placeholder with data
      */
-    protected function getBS2Relations() {
-        $tQuery = "SELECT * FROM `dreamkas_banksta2_relations`";
+    protected function getBS2RelationsProcessed() {
+        $tQuery = "SELECT * FROM `dreamkas_banksta2_relations` WHERE `receipt_id` IS NOT NULL AND `receipt_id` != ''";
         $tQueryResult = simple_queryall($tQuery);
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $eachRow) {
-                $this->bs2Relations[$eachRow['bs2_rec_id']] = $eachRow;
-                $this->bs2RelationsFiscOpKey[$eachRow['operation_id']] = $eachRow;
+                $this->bs2RelationsProcessed[$eachRow['bs2_rec_id']] = $eachRow;
+            }
+        }
+    }
+
+    /**
+     * Fills $this->bs2RelationsUnProcessed placeholder with data
+     */
+    protected function getBS2RelationsUnProcessed() {
+        $tQuery = "SELECT * FROM `dreamkas_banksta2_relations` WHERE `receipt_id` IS NULL OR `receipt_id` = ''";
+        $tQueryResult = simple_queryall($tQuery);
+
+        if (!empty($tQueryResult)) {
+            foreach ($tQueryResult as $eachRow) {
+                //$this->bs2RelationsUnProcessed[$eachRow['bs2_rec_id']] = $eachRow;
+                $this->bs2RelationsUnProcFiscOpKey[$eachRow['operation_id']] = $eachRow;
             }
         }
     }
@@ -724,9 +747,9 @@ class DreamKas {
      * @param $bs2RecID
      * @param $fiscopID
      */
-    protected function setBS2Relations($bs2RecID, $fiscopID) {
-        $tQuery = "INSERT INTO `dreamkas_banksta2_relations` (`bs2_rec_id`, `operation_id`) 
-                                                       VALUES(" . $bs2RecID . ", '" . $fiscopID . "')";
+    protected function setBS2Relations($bs2RecID, $fiscopID, $fiscopReceiptID = '') {
+        $tQuery = "INSERT INTO `dreamkas_banksta2_relations` (`bs2_rec_id`, `operation_id`, `receipt_id`) 
+                                                       VALUES(" . $bs2RecID . ", '" . $fiscopID . "', '" . $fiscopReceiptID . "')";
         nr_query($tQuery);
     }
 
@@ -1022,12 +1045,14 @@ class DreamKas {
             if (substr($httpCode, 0, 1) == '2') {
                 if (isset($result['id']) and isset($result['createdAt']) and strtolower($result['status']) != 'error') {
                     $operationDate = date('Y-m-d H:i:s', strtotime($result['createdAt']));
-                    $tQuery = "INSERT INTO `dreamkas_operations` (`operation_id`, `date_create`, `status`, `operation_body`)
-                                                      VALUES ('" . $result['id'] . "', '" . $operationDate . "', '" . $result['status'] . "', '" . base64_encode($preparedCheckDataJSON) . "') ";
+                    $fiscopReceiptID = (isset($result['data']['receiptId'])) ? $result['data']['receiptId'] : '';
+
+                    $tQuery = "INSERT INTO `dreamkas_operations` (`operation_id`, `date_create`, `status`, `receipt_id`, `operation_body`)
+                                                          VALUES ('" . $result['id'] . "', '" . $operationDate . "', '" . $result['status'] . "', '" . $fiscopReceiptID . "', '" . base64_encode($preparedCheckDataJSON) . "') ";
                     nr_query($tQuery);
 
                     if (!empty($banksta2RecID)) {
-                        $this->setBS2Relations($banksta2RecID, $result['id']);
+                        $this->setBS2Relations($banksta2RecID, $result['id'], $fiscopReceiptID);
                     }
 
                     $tmpMessageType = 'info';
@@ -1053,14 +1078,15 @@ class DreamKas {
 
 
     protected function updateFiscalOperationsLocalStorage($fopsData = array()) {
-        $this->getBS2Relations();
+        $this->getBS2RelationsUnProcessed();
 
         if (empty($fopsData)) {
             $fopsData = $this->getFiscalOperations();
         }
 
-        $fopsDataLocal = $this->getFiscalOperationsLocal("`status` != 'SUCCESS' and `status` != 'ERROR'");
-        $fopsBS2Data = $this->bs2RelationsFiscOpKey;
+        $fopsDataLocal = $this->getFiscalOperationsLocal("(`status` != 'SUCCESS' and `status` != 'ERROR') or (`status` = 'SUCCESS' and (`receipt_id` IS NULL or `receipt_id` = ''))");
+        //$fopsDataLocal = $this->getFiscalOperationsLocal("`status` != 'ERROR'");
+        $fopsBS2Data = $this->bs2RelationsUnProcFiscOpKey;
 
         if (!empty($fopsData)) {
             if (!empty($fopsDataLocal)) {
@@ -1242,18 +1268,18 @@ class DreamKas {
 //        $row = wf_TableRow('');
         $row = '';
 
-        if (empty($this->bs2Relations)) {
-            $this->getBS2Relations();
+        if (empty($this->bs2RelationsProcessed)) {
+            $this->getBS2RelationsProcessed();
         }
 
-        if (isset($this->bs2Relations[$bs2RecID]) and !empty($this->bs2Relations[$bs2RecID]['receipt_id'])) {
+        if (isset($this->bs2RelationsProcessed[$bs2RecID]) and !empty($this->bs2RelationsProcessed[$bs2RecID]['receipt_id'])) {
             $lnkID = wf_InputId();
-            $ajaxInfoParams = array('showdetailedrcpt' => $this->bs2Relations[$bs2RecID]['receipt_id']);
+            $ajaxInfoParams = array('showdetailedrcpt' => $this->bs2RelationsProcessed[$bs2RecID]['receipt_id']);
             $actions = wf_Link('#', wf_img('skins/icon_search_small.gif', __('Show details'), 'vertical-align: middle'), false, '', ' id="' . $lnkID . '" ');
             $actions.= wf_JSAjaxModalOpener(self::URL_ME, $ajaxInfoParams, $lnkID, true);
 
-            $cells = wf_TableCell(__('Fiscal operation ID') . ':' . wf_nbsp(2) . $this->bs2Relations[$bs2RecID]['operation_id'], '', '', 'style="border: solid #008a77; border-width: 1px 0 1px 1px; padding: 4px;"', '5');
-            $cells.= wf_TableCell(__('Check ID') . ':' . wf_nbsp(2) . $this->bs2Relations[$bs2RecID]['receipt_id'] . wf_nbsp(4) . $actions, '', '', 'style="border: solid #008a77; border-width: 1px 1px 1px 0; padding: 4px;"', '4');
+            $cells = wf_TableCell(__('Fiscal operation ID') . ':' . wf_nbsp(2) . $this->bs2RelationsProcessed[$bs2RecID]['operation_id'], '', '', 'style="border: solid #008a77; border-width: 1px 0 1px 1px; padding: 4px;"', '5');
+            $cells.= wf_TableCell(__('Check ID') . ':' . wf_nbsp(2) . $this->bs2RelationsProcessed[$bs2RecID]['receipt_id'] . wf_nbsp(4) . $actions, '', '', 'style="border: solid #008a77; border-width: 1px 1px 1px 0; padding: 4px;"', '5');
 
             $row = wf_TableRow($cells);
         }
@@ -2235,6 +2261,8 @@ class DreamKas {
                 break;
 
             case 'RECEIPT':
+                $this->updateFiscalOperationsLocalStorage();
+
                 $receiptPositions = $whData['positions'];
                 $receiptPayments = $whData['payments'];
 
