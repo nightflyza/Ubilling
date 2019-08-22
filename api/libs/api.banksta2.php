@@ -1886,7 +1886,10 @@ class Banksta2 {
                             } else {
                                 // geting fiscalized data
                                 $dreamkasCtrls = $DreamKas->web_ReceiptDetailsTableRow($eachRec['id']);
-                                $refiscalize = empty($dreamkasCtrls);
+
+                                if (empty($dreamkasCtrls)) {
+                                    $refiscalize = true;
+                                }
                             }
                         }
 
