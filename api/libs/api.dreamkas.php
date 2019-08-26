@@ -253,6 +253,8 @@ class DreamKas {
         $this->getCashMachines4Selector();
         $this->getSellPosIDsNames();
         $this->getSellPos2SrvTypeMapping();
+        $this->getBS2RelationsProcessed();
+        $this->getBS2RelationsUnProcessed();
 
         //$curISOTime = date('Y-m-d\TH:i:s.Z\Z', time());
         //$customISOTime = date('Y-m-d\TH:i:s.Z\Z', strtotime('2017-01-25 14:40:46'));
@@ -713,6 +715,27 @@ class DreamKas {
     }
 
     /**
+     * Returns Banksta2 record ID from `dreamkas_banksta2_relations` table, if exists
+     *
+     * @param $fiscopID
+     *
+     * @return int|mixed
+     */
+    public function getBS2RecIDbyFiscOpID($fiscopID) {
+        $result = 0;
+
+        if (empty($this->bs2RelationsUnProcFiscOpKey)) {
+            $this->getBS2RelationsUnProcessed();
+        }
+
+        if (!empty($this->bs2RelationsUnProcFiscOpKey) and isset($this->bs2RelationsUnProcFiscOpKey[$fiscopID])) {
+            $result = $this->bs2RelationsUnProcFiscOpKey[$fiscopID]['bs2_rec_id'];
+        }
+
+        return($result);
+    }
+
+    /**
      * Fills $this->bs2RelationsProcessed placeholder with data
      */
     protected function getBS2RelationsProcessed() {
@@ -735,7 +758,7 @@ class DreamKas {
 
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $eachRow) {
-                //$this->bs2RelationsUnProcessed[$eachRow['bs2_rec_id']] = $eachRow;
+                $this->bs2RelationsUnProcessed[$eachRow['bs2_rec_id']] = $eachRow;
                 $this->bs2RelationsUnProcFiscOpKey[$eachRow['operation_id']] = $eachRow;
             }
         }
@@ -748,8 +771,18 @@ class DreamKas {
      * @param $fiscopID
      */
     protected function setBS2Relations($bs2RecID, $fiscopID, $fiscopReceiptID = '') {
-        $tQuery = "INSERT INTO `dreamkas_banksta2_relations` (`bs2_rec_id`, `operation_id`, `receipt_id`) 
+        $this->getBS2RelationsUnProcessed();
+
+        if (!empty($this->bs2RelationsUnProcessed) and isset($this->bs2RelationsUnProcessed[$bs2RecID])) {
+            $tQuery = "UPDATE `dreamkas_banksta2_relations` SET 
+                                `operation_id` = '" . $fiscopID . "',
+                                `receipt_id` = '" . $fiscopReceiptID . "'
+                            WHERE `bs2_rec_id` = " . $bs2RecID;
+        } else {
+            $tQuery = "INSERT INTO `dreamkas_banksta2_relations` (`bs2_rec_id`, `operation_id`, `receipt_id`) 
                                                        VALUES(" . $bs2RecID . ", '" . $fiscopID . "', '" . $fiscopReceiptID . "')";
+        }
+
         nr_query($tQuery);
     }
 

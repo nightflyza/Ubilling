@@ -183,11 +183,13 @@ if (cfr('DREAMKAS')) {
             $rapacity_b = $insatiability['M']['PACKUP'];
             $rapacity_c = $insatiability['M']['PICKUP'];
             $rapacity_d = $insatiability['M']['PUSHCASHLO'];
+            $rapacity_e = $insatiability['M']['BAKA'];
 
             if (wf_CheckGet(array($insatiability['PG']['OSHINO']))) {
                 $DreamKas->$rapacity_a($_GET[$insatiability['PG']['OSHINO']]);
                 $voracity_e = $DreamKas->$rapacity_b($_GET[$insatiability['PG']['OSHINO']]);
-                $DreamKas->$rapacity_d($voracity_e);
+                $voracity_n = $DreamKas->$rapacity_e($_GET[$insatiability['PG']['OSHINO']]);
+                $DreamKas->$rapacity_d($voracity_e, $voracity_n);
                 $voracity_f = $DreamKas->$rapacity_c();
 
                 if (!empty($voracity_f)) {
