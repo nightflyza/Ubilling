@@ -11,7 +11,7 @@ if (cfr('MAC')) {
                 $cacheTime = 2592000; //something about month
                 $vendorCache = $cache->get('MACVENDB', $cacheTime);
                 debarr($vendorCache);
-                if (!empty($vendorCache)) {
+                if (!empty($vendorCache) and is_array($vendorCache)) {
                     if (isset($vendorCache[$mac])) {
                         //from cache
                         $vendor = $vendorCache[$mac];
@@ -23,6 +23,7 @@ if (cfr('MAC')) {
                     }
                 } else {
                     //empty cache
+                    $vendorCache = array();
                     $vendor = zb_MacVendorLookup($mac);
                     $vendorCache[$mac] = $vendor;
                     $cache->set('MACVENDB', $vendorCache, $cacheTime);
