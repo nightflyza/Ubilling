@@ -404,7 +404,7 @@ class Salary {
             $inputs = wf_HiddenInput('editjobtypepriceid', $jobtypeid);
             $inputs .= wf_Selector('editjobtypepriceunit', $this->unitTypes, __('Units'), $this->allJobUnits[$jobtypeid], true);
             $inputs .= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5);
-            $inputs .= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 2) . ' ';
+            $inputs .= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 5) . ' ';
             $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -425,6 +425,7 @@ class Salary {
         $jobtypeid = vf($jobtypeid, 3);
         $price = str_replace(',', '.', $price);
         $time = vf($time);
+        $time = str_replace(',', '.', $time);
         if (!isset($this->allJobPrices[$jobtypeid])) {
             $priceF = mysql_real_escape_string($price);
             $unit = mysql_real_escape_string($unit);
@@ -606,7 +607,8 @@ class Salary {
     public function jobPriceEdit($jobtypeid) {
         $jobtypeid = vf($jobtypeid, 3);
         $price = str_replace(',', '.', $_POST['editjobtypeprice']);
-        $time = vf($_POST['editjobtypepricetime'], 3);
+        $time = ubRouting::filters($_POST['editjobtypepricetime'], 'mres');
+        $time = str_replace(',', '.', $time);
         $where = " WHERE `jobtypeid`='" . $jobtypeid . "';";
         simple_update_field('salary_jobprices', 'price', $price, $where);
         simple_update_field('salary_jobprices', 'unit', $_POST['editjobtypepriceunit'], $where);

@@ -45,3 +45,5 @@ CREATE TABLE IF NOT EXISTS `callmeback` (
   `state` varchar(40) DEFAULT NULL,
    PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `salary_jobprices` CHANGE `time` `time` FLOAT NULL DEFAULT NULL; 
