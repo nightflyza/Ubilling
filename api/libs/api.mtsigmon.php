@@ -393,15 +393,16 @@ class MTsigmon {
 
             $LastPollDate = $LastLineArray[0];
             $SignalRX = $LastLineArray[1];
+            $SignalCheck = ((empty($LastLineArray[2])) ? $SignalRX : (($SignalRX > $LastLineArray[2]) ? $LastLineArray[2] : $SignalRX));
             $SignalTX = (empty($LastLineArray[2])) ? '' : ' / ' . $LastLineArray[2];
             $SignalLevel = $SignalRX . $SignalTX;
 
-            if ($SignalLevel < -79) {
-                $SignalLevel = wf_tag('font', false, '', 'color="#900000" style="font-weight: 700"') . $SignalLevel. wf_tag('font', true);
-            } elseif ($SignalLevel > -80 and $SignalLevel < -74) {
-                $SignalLevel = wf_tag('font', false, '', 'color="#FF5500" style="font-weight: 700"') . $SignalLevel. wf_tag('font', true);
+            if ($SignalCheck < -79) {
+                $SignalLevel = wf_tag('font', false, '', 'color="ab0000" style="font-weight: 700"') . $SignalLevel . wf_tag('font', true);
+            } elseif ($SignalCheck > -80 and $SignalCheck < -74) {
+                $SignalLevel = wf_tag('font', false, '', 'color="#FF5500" style="font-weight: 700"') . $SignalLevel . wf_tag('font', true);
             } else {
-                $SignalLevel = wf_tag('font', false, '', 'color="#006600" style="font-weight: 700"') . $SignalLevel. wf_tag('font', true);
+                $SignalLevel = wf_tag('font', false, '', 'color="#005502" style="font-weight: 700"') . $SignalLevel . wf_tag('font', true);
             }
 
             //return ( wf_CheckGet(array('cpeMAC')) ) ? array("LastPollDate" => $LastPollDate, "SignalLevel" => $SignalLevel) : array($LastPollDate, $SignalLevel);
@@ -1385,17 +1386,29 @@ class MTsigmon {
             $data = array();
 
             foreach ($MTsigmonData as $eachmac => $eachsig) {
+                $signalArr = explode(' / ', $eachsig);
+
+                // if RX/TX signal presents - lets take the lowest value
+                if (isset($signalArr[1])) {
+                    $signal = ($signalArr[0] > $signalArr[1]) ? $signalArr[1] : $signalArr[0];
+                } else {
+                    $signal = $signalArr[0];
+                }
+
                 //signal coloring
-                if ($eachsig < -79) {
-                    $displaysig = wf_tag('font', false, '', 'color="#900000"') . $eachsig . wf_tag('font', true);
-                } elseif ($eachsig > -80 and $eachsig < -74) {
+                if ($signal < -79) {
+                    $displaysig = wf_tag('font', false, '', 'color="#ab0000"') . $eachsig . wf_tag('font', true);
+                } elseif ($signal > -80 and $signal < -74) {
                     $displaysig = wf_tag('font', false, '', 'color="#FF5500"') . $eachsig . wf_tag('font', true);
                 } else {
-                    $displaysig = wf_tag('font', false, '', 'color="#006600"') . $eachsig . wf_tag('font', true);
+                    $displaysig = wf_tag('font', false, '', 'color="#005502"') . $eachsig . wf_tag('font', true);
                 }
 
                 $allMacs = $this->allUserCpeMacs + $this->allUsermacs;
-                $login = in_array($eachmac, array_map('strtolower', $allMacs)) ? array_search($eachmac, array_map('strtolower', $allMacs)) : '';
+                $allMacs = array_flip($allMacs);
+                //$login = in_array($eachmac, array_map('strtolower', $allMacs)) ? array_search($eachmac, array_map('strtolower', $allMacs)) : '';
+                $login = (isset($allMacs[$eachmac])) ? $allMacs[$eachmac] : '';
+
                 //user search highlight
                 if ((!empty($this->userLogin)) AND ( $this->userLogin == $login)) {
                     $hlStart = wf_tag('font', false, '', 'color="#0045ac"');
@@ -1485,6 +1498,37 @@ class MTsigmon {
 
     public function useSwtichGroupsAndTabs() {
         return ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs);
+    }
+
+    public function getAllWiFiSignals() {
+        $allSignals = array();
+
+        if (!empty($this->allMTDevices)) {
+            foreach ($this->allMTDevices as $MTId => $eachMT) {
+                $MTsigmonData[] = $this->cache->get(self::CACHE_PREFIX . $MTId, $this->cacheTime);
+            }
+        }
+
+        if (!empty($MTsigmonData)) {
+            $allMacs = $this->allUserCpeMacs + $this->allUsermacs;
+            $allMacs = array_flip($allMacs);
+
+            foreach ($MTsigmonData as $eachMTid ) {
+                if (is_array($eachMTid) and !empty($eachMTid)) {
+                    foreach ($eachMTid as $eachmac => $eachsig) {
+                        //$login = in_array($eachmac, array_map('strtolower', $allMacs)) ? array_search($eachmac, array_map('strtolower', $allMacs)) : '';
+                        $login = (isset($allMacs[$eachmac])) ? $allMacs[$eachmac] : '';
+
+                        if (!empty($login)) {
+                            //$signal = explode('/', $eachsig);
+                            $allSignals[$login] = $eachsig;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ($allSignals);
     }
 }
 

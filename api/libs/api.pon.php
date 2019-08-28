@@ -4138,6 +4138,39 @@ class PONizer {
         return ($result);
     }
 
+
+    /**
+     * Returns array like: $userLogin => $onuSignal
+     *
+     * @return array
+     */
+    public static function getAllONUSignals() {
+        $allOnuSignals = array();
+        $signalCache = array();
+        $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
+
+        $query = "SELECT * from `pononu`";
+        $allOnuRecs = simple_queryall($query);
+
+        if (!empty($allOnuRecs) and !empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::SIGCACHE_PATH . $each);
+                $raw = unserialize($raw);
+
+                foreach ($raw as $mac => $signal) {
+                    $signalCache[$mac] = $signal;
+                }
+            }
+
+            foreach ($allOnuRecs as $io => $each) {
+                if (isset($signalCache[$each['mac']])) {
+                    $allOnuSignals[$each['login']] = $signalCache[$each['mac']];
+                }
+            }
+        }
+
+        return ($allOnuSignals);
+    }
 }
 
 class PONizerLegacy extends PONizer {
