@@ -27,6 +27,66 @@ if ($system->checkForRight('ONLINE')) {
             $ShowContractField = true;
         }
 
+        $columnDefs = '';
+        $showONUSignals = false;
+        $showWIFISignals = false;
+
+        if (isset($alter_conf['PON_ENABLED']) && $alter_conf['PON_ENABLED'] &&
+            isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
+            $showONUSignals = true;
+            $colNum1 = ($ShowContractField) ? '4' : '3';
+
+            $columnDefs.= '{"targets": ' . $colNum1 . ',
+                                "render": function ( data, type, row ) {                                          
+                                            var sigColor = \'#000\';
+                                                                                                    
+                                            if (data > 0 || data < -27) {
+                                                sigColor = \'#ab0000\';
+                                            } else if (data > -27 && data < -25) {
+                                                sigColor = \'#FF5500\';
+                                            } else {
+                                                sigColor = \'#005502\';
+                                            }
+                                                                                                    
+                                            return \'<span style="color:\' + sigColor + \'">\' + data + \'</span>\';
+                                        }
+                            } ';
+        }
+
+        if (isset($alter_conf['MTSIGMON_ENABLED']) && $alter_conf['MTSIGMON_ENABLED'] &&
+            isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
+            $showWIFISignals = true;
+            $colNum2 = (($ShowContractField and $showONUSignals) ? '5' : ((!$ShowContractField and !$showONUSignals) ? '3' : '4'));
+
+            $columnDefs.= (empty($columnDefs) ? '' : ', ');
+            $columnDefs.= '{"targets": ' . $colNum2 . ',
+                                "render": function ( data, type, row ) {
+                                            var signalArr = data.split(\' / \');
+                                            var signal = \'\';
+                                            
+                                            if (1 in signalArr) {                                                
+                                                signal = (parseInt(signalArr[0]) > parseInt(signalArr[1])) ? signalArr[1] : signalArr[0]; 
+                                            } else {
+                                                signal = signalArr[0];
+                                            }
+                                            
+                                            var sigColor = \'#000\';
+                                                                                                    
+                                            if (signal < -79) {
+                                                sigColor = \'#ab0000\';
+                                            } else if (signal > -80 && signal < -74) {
+                                                sigColor = \'#FF5500\';
+                                            } else {
+                                                sigColor = \'#005502\';
+                                            }
+                                                                                                    
+                                            return \'<span style="color:\' + sigColor + \'">\' + data + \'</span>\';
+                                        }
+                            }, ';
+        }
+
+        $columnDefs = '"columnDefs": [ ' . $columnDefs . '], ';
+
         //alternate center styling
         $alternateStyle = '';
         if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
@@ -40,8 +100,10 @@ if ($system->checkForRight('ONLINE')) {
              null, ' .
                     ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
                     ' null,
-                { "sType": "ip-address" },
-                null,
+                { "sType": "ip-address" }, ' .
+                ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
+                ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
+                ' null,
                 null,
                 null,
                 { "sType": "file-size" },
@@ -53,8 +115,10 @@ if ($system->checkForRight('ONLINE')) {
              null, ' .
                     ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
                     ' null,
-                { "sType": "ip-address" },
-                null,
+                { "sType": "ip-address" }, ' .
+                ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
+                ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
+                ' null,
                 null,
                 { "sType": "file-size" },
                 null,
@@ -150,7 +214,8 @@ if ($system->checkForRight('ONLINE')) {
 
 
 		$(document).ready(function() {
-		$(\'#onlineusershp\').dataTable( {
+		$(\'#onlineusershp\').dataTable( { 
+ 	       ' . $columnDefs . '
  	       "oLanguage": {
 			"sLengthMenu": "' . __('Show') . ' _MENU_",
 			"sZeroRecords": "' . __('Nothing found') . '",
@@ -164,8 +229,8 @@ if ($system->checkForRight('ONLINE')) {
                         "sPrevious": "' . __('Previous') . '",
                         "sNext": "' . __('Next') . '",
                         "sLast": "' . __('Last') . '"
-                    },
-		},
+                        },
+            },
             "aoColumns": [
                   ' . $columnFilters . '
             ],
@@ -205,6 +270,8 @@ if ($system->checkForRight('ONLINE')) {
         $result.= ( ($hp_mode == 1 && $ShowContractField) ? wf_TableCell(__('Contract')) : '' );
         $result.= wf_TableCell(__('Real Name'));
         $result.= wf_TableCell(__('IP'));
+        $result.= ( ($hp_mode == 1 && $showONUSignals) ? wf_TableCell(__("ONU Signal")) : '' );
+        $result.= ( ($hp_mode == 1 && $showWIFISignals) ? wf_TableCell(__("Signal") . ' WiFi') : '' );
         $result.= wf_TableCell(__('Tariff'));
         $result.= wf_TableCell(__('Active'));
         $result.= $onlineCells;
@@ -306,6 +373,26 @@ if ($system->checkForRight('ONLINE')) {
             }
         }
 
+        // get users's ONU and WIFI signal level
+        $allONUSignals = array();
+        $allWiFiSignals = array();
+        $showONUSignals = false;
+        $showWIFISignals = false;
+
+        if (isset($alter_conf['PON_ENABLED']) && $alter_conf['PON_ENABLED'] &&
+            isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
+            $showONUSignals = true;
+            $allONUSignals = PONizer::getAllONUSignals();
+        }
+
+        if (isset($alter_conf['MTSIGMON_ENABLED']) && $alter_conf['MTSIGMON_ENABLED'] &&
+            isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
+            $showWIFISignals = true;
+
+            $WiFiSigmon = new MTsigmon();
+            $allWiFiSignals = $WiFiSigmon->getAllWiFiSignals();
+        }
+
         $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
@@ -336,6 +423,12 @@ if ($system->checkForRight('ONLINE')) {
                 }
             }
         }
+
+        $hidePictTitles = false;
+        if (isset($alter_conf['ONLINE_HIDE_PICT_TITLES']) && $alter_conf['ONLINE_HIDE_PICT_TITLES']) {
+            $hidePictTitles = true;
+        }
+
         $jsonAAData = array();
 
         if (!empty($allusers)) {
@@ -354,23 +447,23 @@ if ($system->checkForRight('ONLINE')) {
                 $currentAdditionalTraff = (isset($additionalTraffic[$eachuser['login']])) ? $additionalTraffic[$eachuser['login']] : 0;
                 $tinet = $tinet + $currentAdditionalTraff;
 
-                $act = '<img src=skins/icon_active.gif>' . __('Yes');
+                $act = '<img src=skins/icon_active.gif>' . (($hidePictTitles) ? '' : __('Yes'));
                 //finance check
                 if ($cash < '-' . $credit) {
-                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
+                    $act = '<img src=skins/icon_inactive.gif>' . (($hidePictTitles) ? '' : __('No'));
                 }
                 if ($displayFreezeFlag) {
                     if (@$alter_conf['ONLINE_SHOW_FREEZE_LAT']) {
                         $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . date('Y-m-d', $eachuser['LastActivityTime']) : '';
                     } else {
-                        $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                        $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . (($hidePictTitles) ? '' : __('Freezed')) : '';
                     }
                 }
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
-                    $onlineFlag = '<img src=skins/icon_nostar.gif> ' . __('No');
+                    $onlineFlag = '<img src=skins/icon_nostar.gif> ' . (($hidePictTitles) ? '' : __('No'));
                     if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
-                        $onlineFlag = '<img src=skins/icon_star.gif> ' . __('Yes');
+                        $onlineFlag = '<img src=skins/icon_star.gif> ' . (($hidePictTitles) ? '' : __('Yes'));
                     }
                 } else {
                     $onlineFlag = '';
@@ -384,6 +477,17 @@ if ($system->checkForRight('ONLINE')) {
                     $fastcashlink = '';
                 }
 
+                $onuSignal = '';
+                $wifiSignal = '';
+
+                if ($showONUSignals and isset($allONUSignals[$eachuser['login']])) {
+                    $onuSignal = $allONUSignals[$eachuser['login']];
+                }
+
+                if ($showWIFISignals and isset($allWiFiSignals[$eachuser['login']])) {
+                    $wifiSignal = $allWiFiSignals[$eachuser['login']];
+                }
+
                 if (!$alter_conf['DEAD_HIDE']) {
                     $jsonItem = array();
                     $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
@@ -394,6 +498,15 @@ if ($system->checkForRight('ONLINE')) {
 
                     $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
                     $jsonItem[] = $eachuser['IP'];
+
+                    if ($showONUSignals) {
+                        $jsonItem[] = $onuSignal;
+                    }
+
+                    if ($showWIFISignals) {
+                        $jsonItem[] = $wifiSignal;
+                    }
+
                     $jsonItem[] = $eachuser['Tariff'];
                     $jsonItem[] = $act;
                     if (!empty($onlineFlag)) {
@@ -414,6 +527,15 @@ if ($system->checkForRight('ONLINE')) {
 
                         $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
                         $jsonItem[] = $eachuser['IP'];
+
+                        if ($showONUSignals) {
+                            $jsonItem[] = $onuSignal;
+                        }
+
+                        if ($showWIFISignals) {
+                            $jsonItem[] = $wifiSignal;
+                        }
+
                         $jsonItem[] = $eachuser['Tariff'];
                         $jsonItem[] = $act;
                         if (!empty($onlineFlag)) {

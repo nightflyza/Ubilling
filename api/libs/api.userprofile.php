@@ -903,11 +903,14 @@ class UserProfile {
                         $raw = unserialize($raw);
                         foreach ($raw as $mac => $signal) {
                             if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
-                                if (($signal > 0) OR ( $signal < -25)) {
+                                if (($signal > 0) OR ( $signal < -27)) {
                                     $sigColor = '#ab0000';
+                                } elseif ($signal > -27 AND $signal < -25) {
+                                    $sigColor = '#FF5500';
                                 } else {
                                     $sigColor = '#005502';
                                 }
+
                                 $searched = $signal;
                             }
                         }
