@@ -10,6 +10,13 @@ class UserProfile {
     protected $alterCfg = array();
 
     /**
+     * UbillingConfig object placeholder
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
+    /**
      * Current login stargazer user data
      *
      * @var array
@@ -184,6 +191,7 @@ class UserProfile {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->alterCfg = $ubillingConfig->getAlter();
+        $this->ubConfig = $ubillingConfig;
     }
 
     /**
@@ -890,12 +898,76 @@ class UserProfile {
      */
     protected function getPonSignalControl() {
         $result = '';
+        $rows = '';
         $searched = __('No');
         $sigColor = '#000000';
+
         if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
-            $query = "SELECT `id`,`mac`,`oltid`,`serial` FROM `pononu` WHERE `login`='" . $this->login . "'";
+            $onuAdditionalData = '';
+            $query = "SELECT `pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, `switchmodels`.`modelname` 
+                        FROM `pononu`
+                        LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id`  
+                        WHERE `login`='" . $this->login . "'";
             $onu_data = simple_query($query);
+
             if (!empty($onu_data)) {
+                if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW') and isset($onu_data['oltid'])) {
+                    $onuAdditionalData.= wf_TableCell(__("OLT"), '30%', 'row2');
+
+                    $query = "SELECT `switches`.`id`, `switches`.`ip`, `switches`.`location`, `switchmodels`.`modelname` 
+                                FROM `switches` 
+                                LEFT JOIN `switchmodels` ON `switches`.`modelid` = `switchmodels`.`id`  
+                                WHERE `switches`.`id` = " . $onu_data['oltid'];
+                    $queryResult = simple_queryall($query);
+
+                    if (isset($queryResult[0]) and !empty($queryResult[0])) {
+                        $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $queryResult[0]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                        $webIfaceLink.= wf_img('skins/ymaps/network.png');
+                        $webIfaceLink.= wf_tag('a', true);
+
+                        $onuAdditionalData.= wf_TableCell($queryResult[0]['ip'] . ' - ' . $queryResult[0]['modelname'] . ' - ' . $queryResult[0]['location'] . wf_nbsp(2) . $webIfaceLink );
+                    } else {
+                        $onuAdditionalData.= wf_TableCell(__('No data'));
+                    }
+
+                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $onu_data['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                    $webIfaceLink.= wf_img('skins/ymaps/network.png');
+                    $webIfaceLink.= wf_tag('a', true);
+
+                    $onuAdditionalData = wf_TableCell(__("ONU IP"), '30%', 'row2');
+                    $onuAdditionalData.= wf_TableCell($onu_data['ip'] . ' - ' . $onu_data['modelname'] . wf_nbsp(2) . $webIfaceLink);
+                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__("ONU MAC"), '30%', 'row2');
+                    $onuAdditionalData.= wf_TableCell($onu_data['mac']);
+                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__("ONU Serial"), '30%', 'row2');
+                    $onuAdditionalData.= wf_TableCell($onu_data['serial']);
+                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuInterface = '';
+                    $availCacheData = rcms_scandir(PONizer::INTCACHE_PATH, '*_' . PONizer::INTCACHE_EXT);
+                    if (!empty($availCacheData)) {
+                        foreach ($availCacheData as $io => $each) {
+                            $raw = file_get_contents(PONizer::INTCACHE_PATH . $each);
+                            $raw = unserialize($raw);
+                            foreach ($raw as $mac => $interface) {
+                                if ($mac == $onu_data['mac']) {
+                                    $onuInterface = $interface;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    $onuAdditionalData = wf_TableCell(__("ONU LLID (" . __('interface') . ")"), '30%', 'row2');
+                    $onuAdditionalData.= wf_TableCell($onuInterface);
+                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+                }
+
                 $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
                 if (!empty($availCacheData)) {
                     foreach ($availCacheData as $io => $each) {
@@ -916,10 +988,11 @@ class UserProfile {
                         }
                     }
                 }
+
                 $cells = wf_TableCell(__("ONU Signal"), '30%', 'row2');
                 $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true) .
                         wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
-                $rows = wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }
         }
@@ -974,7 +1047,6 @@ class UserProfile {
      * @return string
      */
     protected function getMobileControls() {
-        global $ubillingConfig;
         $result = '';
 
         if (isset($this->alterCfg['EASY_SMS'])) {
@@ -1012,7 +1084,7 @@ class UserProfile {
                             $sendInputs .= wf_tag('br');
                             $sendInputs .= wf_Submit(__('Send SMS'));
 
-                            if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+                            if ($this->ubConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
                                 $smsDirections = new SMSDirections();
                                 $smsServiceId = $smsDirections->getDirection('user_login', $this->login);
                                 $sendInputs .= wf_HiddenInput('preferredsmssrvid', $smsServiceId);
@@ -1352,10 +1424,9 @@ class UserProfile {
      * @return string
      */
     protected function getSMSserviceSelectorControls() {
-        global $ubillingConfig;
         $row = '';
 
-        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+        if ($this->ubConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
             if (wf_CheckPost(array('ajax')) and wf_CheckPost(array('action')) == 'BindSMSSrv') {
                 if (wf_CheckPost(array('createrec'))) {
                     $query = "INSERT INTO `sms_services_relations` (`sms_srv_id`, `user_login`)
@@ -1483,9 +1554,7 @@ class UserProfile {
     }
 
     protected function getReceiptControls() {
-        global $ubillingConfig;
-
-        if ($ubillingConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $ubillingConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
+        if ($this->ubConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $this->ubConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
             $receiptsPrinter = new PrintReceipt();
 
             $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
@@ -1508,7 +1577,6 @@ class UserProfile {
      * @return string
      */
     public function render() {
-        global $ubillingConfig;
 //all configurable features must be received via getters
         $profile = '';
 
@@ -1665,7 +1733,7 @@ class UserProfile {
 //Custom filelds display
         $profile .= cf_FieldShower($this->login);
 //Tags add control and exiting tags listing
-        if ($ubillingConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
+        if ($this->ubConfig->getAlterParam('USERPROFILE_TAG_SECTION_HIGHLIGHT')) {
             if (cfr('TAGS')) {
                 $profile .= wf_tag('h2', false) . __('Tags');
                 $profile .= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Add tag')), false);
