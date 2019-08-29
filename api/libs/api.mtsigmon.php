@@ -393,8 +393,15 @@ class MTsigmon {
 
             $LastPollDate = $LastLineArray[0];
             $SignalRX = $LastLineArray[1];
-            $SignalCheck = ((empty($LastLineArray[2])) ? $SignalRX : (($SignalRX > $LastLineArray[2]) ? $LastLineArray[2] : $SignalRX));
-            $SignalTX = (empty($LastLineArray[2])) ? '' : ' / ' . $LastLineArray[2];
+
+            if (isset($LastLineArray[2]) and !empty($LastLineArray[2])) {
+                $SignalCheck = (($SignalRX > $LastLineArray[2]) ? $LastLineArray[2] : $SignalRX);
+                $SignalTX = ' / ' . $LastLineArray[2];
+            } else {
+                $SignalCheck = $SignalRX;
+                $SignalTX = '';
+            }
+
             $SignalLevel = $SignalRX . $SignalTX;
 
             if ($SignalCheck < -79) {
@@ -1496,10 +1503,16 @@ class MTsigmon {
         $json->getJson();
     }
 
+
     public function useSwtichGroupsAndTabs() {
         return ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs);
     }
 
+    /**
+     * Returns array like: $userLogin => $wifiSignal
+     *
+     * @return array
+     */
     public function getAllWiFiSignals() {
         $allSignals = array();
 
