@@ -189,7 +189,7 @@ if (cfr('DREAMKAS')) {
                 $DreamKas->$rapacity_a($_GET[$insatiability['PG']['OSHINO']]);
                 $voracity_e = $DreamKas->$rapacity_b($_GET[$insatiability['PG']['OSHINO']]);
                 $voracity_n = $DreamKas->$rapacity_e($_GET[$insatiability['PG']['OSHINO']]);
-                $DreamKas->$rapacity_d($voracity_e, $voracity_n);
+                $DreamKas->$rapacity_d($voracity_e, $voracity_n, $_GET[$insatiability['PG']['OSHINO']]);
                 $voracity_f = $DreamKas->$rapacity_c();
 
                 if (!empty($voracity_f)) {

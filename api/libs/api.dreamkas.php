@@ -1050,7 +1050,7 @@ class DreamKas {
      *
      * @param $preparedCheckDataJSON
      */
-    public function fiscalizeCheck($preparedCheckDataJSON, $banksta2RecID = 0) {
+    public function fiscalizeCheck($preparedCheckDataJSON, $banksta2RecID = 0, $repeatedFiscopID = '') {
         $tmpMessageStr = '';
         $tmpMessageType = '';
 
@@ -1080,8 +1080,8 @@ class DreamKas {
                     $operationDate = date('Y-m-d H:i:s', strtotime($result['createdAt']));
                     $fiscopReceiptID = (isset($result['data']['receiptId'])) ? $result['data']['receiptId'] : '';
 
-                    $tQuery = "INSERT INTO `dreamkas_operations` (`operation_id`, `date_create`, `status`, `receipt_id`, `operation_body`)
-                                                          VALUES ('" . $result['id'] . "', '" . $operationDate . "', '" . $result['status'] . "', '" . $fiscopReceiptID . "', '" . base64_encode($preparedCheckDataJSON) . "') ";
+                    $tQuery = "INSERT INTO `dreamkas_operations` (`operation_id`, `date_create`, `status`, `receipt_id`, `operation_body`, `repeated_fiscop_id`)
+                                                          VALUES ('" . $result['id'] . "', '" . $operationDate . "', '" . $result['status'] . "', '" . $fiscopReceiptID . "', '" . base64_encode($preparedCheckDataJSON) . "', '" . $repeatedFiscopID . "') ";
                     nr_query($tQuery);
 
                     if (!empty($banksta2RecID)) {
@@ -1712,6 +1712,7 @@ class DreamKas {
                 $data[] = $eachFOperation['error_code'];
                 $data[] = $eachFOperation['error_message'];
                 $data[] = $eachFOperation['receipt_id'];
+                $data[] = $eachFOperation['repeated_fiscop_id'];
                 $data[] = $eachFOperation['repeat_count'];
 
                 $disableLink = (strtolower($eachFOperation['status']) == 'error') ? '' : 'style="opacity: 0.35; pointer-events: none"';
@@ -1760,6 +1761,7 @@ class DreamKas {
         $columns[] = __('Error code');
         $columns[] = __('Error message');
         $columns[] = __('Check ID');
+        $columns[] = __('Repeated operation ID');
         $columns[] = __('Repeated tries count');
         $columns[] = __('Actions');
 
