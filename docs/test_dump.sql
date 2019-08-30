@@ -2572,4 +2572,6 @@ CREATE TABLE IF NOT EXISTS `callmeback` (
    PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-ALTER TABLE `salary_jobprices` CHANGE `time` `time` FLOAT NULL DEFAULT NULL; 
+ALTER TABLE `salary_jobprices` CHANGE `time` `time` FLOAT NULL DEFAULT NULL;
+
+ALTER TABLE `dreamkas_operations` ADD `repeated_fiscop_id` varchar(255) NOT NULL AFTER `operation_body`;

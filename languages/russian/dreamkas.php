@@ -76,5 +76,6 @@ $lang['def']['Re-fiscalize payments'] = 'Фискализировать повт
 $lang['def']['right to control Dreamkas cash operations'] = 'Право управлять финансовыми операциями Dreamkas';
 $lang['def']['Last edit date'] = 'Последний раз редактировалось';
 $lang['def']['Mapped to service'] = 'Привязано к услуге';
+$lang['def']['Repeated operation ID'] = 'ID повторённой операции';
 $lang['def'][''] = '';
 
