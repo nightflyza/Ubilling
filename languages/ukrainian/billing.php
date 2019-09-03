@@ -3117,5 +3117,7 @@ $lang['def']['Recalled'] = 'Перетелефонували';
 $lang['def']['Wrong number'] = 'Невірний номер';
 $lang['def']['Undone calls'] = 'Необроблені дзвінки';
 $lang['def']['Processed calls'] = 'Опрацьовані дзвінки';
+$lang['def']['Call me back'] = 'Перетелефонуйте мені будь ласка';
+$lang['def']['right to manage callmeback module '] = 'Право керувати модулем коллбеку';
 
 ?>

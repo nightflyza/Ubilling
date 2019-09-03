@@ -3100,7 +3100,8 @@ $lang['def']['Recalled'] = 'Перезвонили';
 $lang['def']['Wrong number'] = 'Неверный номер';
 $lang['def']['Undone calls'] = 'Необработанные звонки';
 $lang['def']['Processed calls'] = 'Обработанные звонки';
-$lang['def'][''] = '';
+$lang['def']['Call me back'] = 'Перезвоните мне пожалуйста';
+$lang['def']['right to manage callmeback module '] = 'Право управлять модулем коллбэка';
 $lang['def'][''] = '';
 
 
