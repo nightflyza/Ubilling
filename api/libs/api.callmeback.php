@@ -201,7 +201,6 @@ class CallMeBack {
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = $each['number'];
-
                 $data[] = $this->getStateLabel($each['state']);
                 $json->addRow($data);
                 unset($data);
