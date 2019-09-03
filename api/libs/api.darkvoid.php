@@ -222,6 +222,16 @@ class DarkVoid {
             }
         }
 
+        //callback services
+        if (@$this->altCfg['CALLMEBACK_ENABLED']) {
+            $callMeBack = new CallMeBack();
+            $undoneCallsCount = $callMeBack->getUndoneCount();
+            if ($undoneCallsCount > 0) {
+                $callmeBackAlert = $undoneCallsCount . ' ' . __('Users are waiting for your call');
+                $this->alerts .= wf_Link('?module=callmeback', wf_img("skins/cmbnotify.png", $callmeBackAlert), false, '');
+            }
+        }
+
         //NAS servers monitoring
         if (isset($this->altCfg['NASMON_ENABLED'])) {
             if ($this->altCfg['NASMON_ENABLED']) {
@@ -312,7 +322,7 @@ class DarkVoid {
             $this->alerts .= $dsNotifyFront->renderWidget();
         }
 
-            //appending some debug string to validate cache expire
+        //appending some debug string to validate cache expire
         $this->alerts .= '<!-- DarkVoid saved: ' . curdatetime() . ' -->';
 
         //saving per-admin cache data

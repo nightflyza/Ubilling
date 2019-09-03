@@ -3112,5 +3112,10 @@ $lang['def']['This user account is not associated with any existing Megogo subsc
 $lang['def']['SNMP data'] = 'SNMP дані';
 $lang['def']['Cancel'] = 'Відміна';
 $lang['def']['It looks like this device can be polled using SNMP if you specify SWPOLL in the notes'] = 'Виглядає так, ніби цей пристрій може бути опитано за допомогою SNMP якщо вказати в примітках SWPOLL';
+$lang['def']['Users are waiting for your call'] = 'Користувачів очікують вашого дзвінка';
+$lang['def']['Recalled'] = 'Перетелефонували';
+$lang['def']['Wrong number'] = 'Невірний номер';
+$lang['def']['Undone calls'] = 'Необроблені дзвінки';
+$lang['def']['Processed calls'] = 'Опрацьовані дзвінки';
 
 ?>

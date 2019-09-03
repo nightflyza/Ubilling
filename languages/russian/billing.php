@@ -3095,5 +3095,14 @@ $lang['def']['This user account is not associated with any existing Megogo subsc
 $lang['def']['SNMP data'] = 'SNMP данные';
 $lang['def']['Cancel'] = 'Отмена';
 $lang['def']['It looks like this device can be polled using SNMP if you specify SWPOLL in the notes'] = 'Выглядит будто это устройство может быть опрошено при помощи SNMP если указать в примечаниях SWPOLL';
+$lang['def']['Users are waiting for your call'] = 'Пользователей ждут вашего звонка';
+$lang['def']['Recalled'] = 'Перезвонили';
+$lang['def']['Wrong number'] = 'Неверный номер';
+$lang['def']['Undone calls'] = 'Необработанные звонки';
+$lang['def']['Processed calls'] = 'Обработанные звонки';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+
+
+
 ?>
