@@ -88,14 +88,16 @@ if (!$tc_extended_matrix) {
 function zbs_TariffSelector($tc_tariffsallowed, $user_tariff) {
     global $us_config;
     if ($us_config['SHOW_SPEED']) {
-        $allSpeeds = zbs_TariffGetAllSpeeds();
+        $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
+        $allSpeeds = zbs_TariffGetAllSpeeds($rawSpeedMbits);
     }
     $params = array();
     if (!empty($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $io => $eachtariff) {
             if ($eachtariff != $user_tariff) {
                 if ($us_config['SHOW_SPEED']) {
-                    $params[trim($eachtariff)] = __($eachtariff).' - '.@$allSpeeds[$eachtariff];
+                    $tariffSpeed = @$allSpeeds[$eachtariff];
+                    $params[trim($eachtariff)] = __($eachtariff) . ' - ' . $tariffSpeed;
                 } else {
                     $params[trim($eachtariff)] = __($eachtariff);
                 }
@@ -154,26 +156,27 @@ function zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup,
 function zbs_TariffGetShowPrices($tc_tariffsallowed, $us_currency, $user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar) {
     global $us_config;
     $allprices = zbs_TariffGetAllPrices();
-    $allSpeeds = zbs_TariffGetAllSpeeds();
+    $rawSpeedMbits = (@$us_config['SHOW_SPEED_MB']) ? true : false;
+    $allSpeeds = zbs_TariffGetAllSpeeds($rawSpeedMbits);
     $allcosts = zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar);
 
     $cells = la_TableCell(__('Tariff'));
     if ($us_config['SHOW_SPEED']) {
-        $cells.= la_TableCell(__('Tariff speed'));
+        $cells .= la_TableCell(__('Tariff speed'));
     }
-    $cells.= la_TableCell(__('Monthly fee'));
-    $cells.= la_TableCell(__('Cost of change'));
+    $cells .= la_TableCell(__('Monthly fee'));
+    $cells .= la_TableCell(__('Cost of change'));
     $rows = la_TableRow($cells, 'row1');
 
     if (!empty($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $eachtariff) {
             $cells = la_TableCell(__($eachtariff));
             if ($us_config['SHOW_SPEED']) {
-                $cells.= la_TableCell(@$allSpeeds[$eachtariff]);
+                $cells .= la_TableCell(@$allSpeeds[$eachtariff]);
             }
-            $cells.= la_TableCell(@$allprices[$eachtariff] . ' ' . $us_currency);
-            $cells.= la_TableCell(@$allcosts[$eachtariff] . ' ' . $us_currency);
-            $rows.= la_TableRow($cells, 'row2');
+            $cells .= la_TableCell(@$allprices[$eachtariff] . ' ' . $us_currency);
+            $cells .= la_TableCell(@$allcosts[$eachtariff] . ' ' . $us_currency);
+            $rows .= la_TableRow($cells, 'row2');
         }
     }
     $result = la_TableBody($rows, '100%', 0);
@@ -207,8 +210,8 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_price
 
 
     $inputs = __('New tariff') . ' ' . zbs_TariffSelector($tc_tariffsallowed, $user_tariff) . la_delimiter();
-    $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
-    $inputs.= la_delimiter();
+    $inputs .= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
+    $inputs .= la_delimiter();
 
     $nmChangeFlag = true;
     if (isset($us_config['TC_RIGHTNOW'])) {
@@ -219,10 +222,10 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_price
 
     $sumbitLabel = ($nmChangeFlag) ? __('I want this tariff next month') : __('I want this tariff right now');
 
-    $inputs.= la_Submit($sumbitLabel);
+    $inputs .= la_Submit($sumbitLabel);
 
 
-    $form.= la_Form('', 'POST', $inputs, '');
+    $form .= la_Form('', 'POST', $inputs, '');
 
     return ($form);
 }

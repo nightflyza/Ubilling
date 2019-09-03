@@ -818,10 +818,11 @@ function zbs_TariffGetSpeed($tariff, $raw = false) {
 /**
  * Returns all tariff speeds
  * 
- * @param string $tariff
+ * @param bool $rawMbitSpeeds
+ * 
  * @return array
  */
-function zbs_TariffGetAllSpeeds() {
+function zbs_TariffGetAllSpeeds($rawMbitSpeeds = false) {
     $offset = 1024;
     $query = "SELECT * from `speeds`";
     $speedData = simple_queryall($query);
@@ -829,10 +830,14 @@ function zbs_TariffGetAllSpeeds() {
     if (!empty($speedData)) {
         foreach ($speedData as $io => $each) {
             if ($each['speeddown'] != 0) {
-                if ($each['speeddown'] < $offset) {
-                    $speed = $each['speeddown'] . ' ' . __('Kbit/s');
+                if (!$rawMbitSpeeds) {
+                    if ($each['speeddown'] < $offset) {
+                        $speed = $each['speeddown'] . ' ' . __('Kbit/s');
+                    } else {
+                        $speed = ($each['speeddown'] / $offset) . ' ' . __('Mbit/s');
+                    }
                 } else {
-                    $speed = ($each['speeddown'] / $offset) . ' ' . __('Mbit/s');
+                    $speed = $each['speeddown'] . ' ' . __('Mbit/s');
                 }
             } else {
                 $speed = __('Unlimited');
