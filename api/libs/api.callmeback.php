@@ -7,8 +7,14 @@ class CallMeBack {
      */
     protected $calls = '';
 
+    /**
+     * Basic control module URL
+     */
     const URL_ME = '?module=callmeback';
 
+    /**
+     * Creates new callmeback instance
+     */
     public function __construct() {
         $this->initCalls();
     }
@@ -157,6 +163,32 @@ class CallMeBack {
     }
 
     /**
+     * Performs formatting/localizing call state
+     * 
+     * @param strings $state
+     * 
+     * @return string
+     */
+    protected function getStateLabel($state) {
+        $result = '';
+        switch ($state) {
+            case 'done':
+                $result = wf_img('skins/calls/phone_green.png') . ' ' . __('Done');
+                break;
+            case 'noanswer':
+                $result = wf_img('skins/calls/phone_red.png') . ' ' . __('No answer');
+                break;
+            case 'wrongnum':
+                $result = wf_img('skins/calls/phone_fail.png') . ' ' . __('Wrong number');
+                break;
+            default :
+                $result = $state;
+                break;
+        }
+        return($result);
+    }
+
+    /**
      * Renders processed calls JSON data
      * 
      * @return void
@@ -169,21 +201,8 @@ class CallMeBack {
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = $each['number'];
-                switch ($each['state']) {
-                    case 'done':
-                        $stateLabel = wf_img('skins/calls/phone_green.png') . ' ' . __('Done');
-                        break;
-                    case 'noanswer':
-                        $stateLabel = wf_img('skins/calls/phone_red.png') . ' ' . __('No answer');
-                        break;
-                    case 'wrongnum':
-                        $stateLabel = wf_img('skins/calls/phone_fail.png') . ' ' . __('Wrong number');
-                        break;
-                    default :
-                        $stateLabel = $each['state'];
-                        break;
-                }
-                $data[] = $stateLabel;
+
+                $data[] = $this->getStateLabel($each['state']);
                 $json->addRow($data);
                 unset($data);
             }
