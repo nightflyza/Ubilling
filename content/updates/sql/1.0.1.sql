@@ -51,10 +51,10 @@ ALTER TABLE `salary_jobprices` CHANGE `time` `time` FLOAT NULL DEFAULT NULL;
 ALTER TABLE `dreamkas_operations` ADD `repeated_fiscop_id` varchar(255) NOT NULL AFTER `operation_body`;
 
 CREATE TABLE IF NOT EXISTS `qinq` (
-    `id` INT IDENTITY(1,1) NOT NULL AUTO_INCREMENT, 
+    `id` INT NOT NULL AUTO_INCREMENT, 
     `login` VARCHAR(45) NULL, 
     `svlan` INT(4) NULL,
     `cvlan` INT(4) NULL,
     PRIMARY KEY (`id`), 
     UNIQUE KEY (`login`)
-) ENGINE = MyISAM DEFAULT CHARSET=UTF8 AUTO_INCREMENT=1;
+) ENGINE = MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=UTF8;
