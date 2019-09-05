@@ -612,215 +612,6 @@ class PONizer {
     }
 
     /**
-     * Parses & stores in cache ZTE OLT ONU interfaces
-     *
-     * @param int $oltid
-     * @param array $intIndex
-     * @param array $macIndex
-     *
-     * @return void
-     */
-    protected function interfaceParseZTE($oltid, $intIndex, $macIndex) {
-        $result = array();
-        $macTmp = array();
-
-//storing results
-
-        foreach ($macIndex as $ioIndex => $eachMac) {
-            if (isset($intIndex[$ioIndex])) {
-                $eachMac = strtolower($eachMac);
-                $eachMac = explode(" ", $eachMac);
-                $eachMac = implode(":", $eachMac);
-                $interface = $intIndex[$ioIndex];
-                $result[$eachMac] = $interface;
-                $macTmp[$ioIndex] = $eachMac;
-            } else {
-                if ($this->interfaceDecodeZTE($ioIndex)) {
-                    $eachMac = strtolower($eachMac);
-                    $eachMac = explode(" ", $eachMac);
-                    $eachMac = implode(":", $eachMac);
-                    $result[$eachMac] = $this->interfaceDecodeZTE($ioIndex);
-                    $macTmp[$ioIndex] = $eachMac;
-                }
-            }
-        }
-        $result = serialize($result);
-        file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
-    }
-
-    /**
-     * 
-     * Function for fixing fucking zte interfaces snmp id.
-     * 
-     * @param type $uuid
-     * @param type $ponType
-     * @param type $interfaceType
-     * @return string
-     */
-    protected function interfaceDecodeZTE($uuid, $cardOffset = 0) {
-        $binary = decbin($uuid);
-        $typeName = array(1 => 'epon_olt_virtualIfBER', 3 => 'epon-onu', 8 => 'epon-onu', 9 => 'epon-onu', 10 => 'epon-onu', 12 => 'epon-onu');
-        $match = array();
-        $result = '';
-
-        switch (strlen($binary)) {
-            case 30:
-                preg_match("/(\d{4})(\d{3})(\d{4})(\d{3})(\d{8})(\d{8})/", $binary, $match);
-                break;
-            case 31:
-                preg_match("/(\d{4})(\d{4})(\d{4})(\d{3})(\d{8})(\d{8})/", $binary, $match);
-                break;
-            case 32:
-                preg_match("/(\d{4})(\d{4})(\d{5})(\d{3})(\d{8})(\d{8})/", $binary, $match);
-                break;
-        }
-
-        foreach ($match as &$each) {
-            $each = bindec($each);
-        }
-
-        if (!empty($match)) {
-            $type = $match[1];
-            $shelf = $match[2];
-            $slot = $match[3];
-            $olt = $match[4] + 1;
-            $onu = $match[5];
-
-            switch ($type) {
-                case 1:
-                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt);
-                case 3:
-                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
-                case 6:
-                    return($shelf . '/' . $slot . '/');
-                case 8:
-                    $slot += $cardOffset;
-                    $onu += 1;
-                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
-                case 9:
-                    preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match);
-                    foreach ($match as &$each) {
-                        $each = bindec($each);
-                    }
-                    if (isset($match[1])) {
-                        $type = $match[1];
-                        $shelf = $match[2];
-                        $slot = $match[3];
-                        $olt = $match[4] + 1;
-                        $onu = $match[5];
-                        return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
-                    }
-                    break;
-                case 10:
-                    preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match);
-                    foreach ($match as &$each) {
-                        $each = bindec($each);
-                    }
-                    if (isset($match[1])) {
-                        $type = $match[1];
-                        $shelf = $match[2];
-                        $slot = $match[3] + 1;
-                        $olt = $match[4] + 1;
-                        $onu = $match[5] + 1;
-                        return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
-                    }
-                    break;
-                case 12:
-                    return($typeName[$type] . '_' . $shelf . '/' . $slot . '/' . $olt . ':' . $onu);
-            }
-        }
-        return FALSE;
-    }
-
-    /**
-     * Parses & stores in cache ZTE OLT ONU ID
-     *
-     * @param int $oltid
-     * @param array $macIndex
-     *
-     * @return void
-     */
-    protected function onuidParseZTE($oltid, $macIndex) {
-        $macTmp = array();
-
-        foreach ($macIndex as $ioIndex => $eachMac) {
-            $eachMac = strtolower($eachMac);
-            $eachMac = explode(" ", $eachMac);
-            $eachMac = implode(":", $eachMac);
-            $macTmp[$ioIndex] = $eachMac;
-        }
-        $macTmp = serialize($macTmp);
-        file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macTmp);
-    }
-
-    /**
-     * Parses & stores in cache OLT ONU interfaces
-     *
-     * @param int $oltid
-     * @param array $FDBIndex
-     * @param array $macIndex
-     * @param array $oltModelId
-     * @param array $bridgeIndxe
-     *
-     * @return void
-     */
-    protected function FDBParseZTE($oltid, $FDBIndex, $macIndex, $cardOffset = 0) {
-        $counter = 1;
-        $FDBTmp = array();
-        $macTmp = array();
-        $result = array();
-//fdb index preprocessing
-        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
-            foreach ($FDBIndex as $io => $eachfdb) {
-                $macPart = array();
-                $line = explode('=', $eachfdb);
-                $devOID = trim($line[0]);
-                $devline = explode('.', $devOID);
-                $devIndex = trim($devline[0]);
-                if ($this->interfaceDecodeZTE($devIndex, $cardOffset)) {
-                    if (isset($devline[1])) {
-                        $FDBvlan = trim($devline[1]);
-                        $macPart[] = dechex($devline[2]);
-                        $macPart[] = dechex($devline[3]);
-                        $macPart[] = dechex($devline[4]);
-                        $macPart[] = dechex($devline[5]);
-                        $macPart[] = dechex($devline[6]);
-                        $macPart[] = dechex($devline[7]);
-                        foreach ($macPart as &$eachPart) {
-                            if (strlen($eachPart) < 2) {
-                                $eachPart = '0' . $eachPart;
-                            }
-                        }
-                        $FDBmac = implode(':', $macPart);
-                        $FDBTmp[$this->interfaceDecodeZTE($devIndex, $cardOffset)][$counter]['mac'] = $FDBmac;
-                        $FDBTmp[$this->interfaceDecodeZTE($devIndex, $cardOffset)][$counter]['vlan'] = $FDBvlan;
-                        $counter++;
-                    }
-                }
-            }
-//mac index preprocessing
-            foreach ($macIndex as $ioIndex => $eachMac) {
-                $eachMac = strtolower(str_replace(" ", ":", $eachMac));
-                if ($this->interfaceDecodeZTE($ioIndex, $cardOffset)) {
-                    $macTmp[$this->interfaceDecodeZTE($ioIndex, $cardOffset)] = $eachMac;
-                }
-            }
-
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($FDBTmp[$devId])) {
-                        $fdb = $FDBTmp[$devId];
-                        $result[$eachMac] = $fdb;
-                    }
-                }
-            }
-        }
-        $result = serialize($result);
-        file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
-    }
-
-    /**
      * Parses & stores in cache OLT ONU interfaces
      *
      * @param int $oltid
@@ -1632,154 +1423,6 @@ class PONizer {
     }
 
     /**
-     * Performs signal preprocessing for sig/mac index arrays and stores it into cache for ZTE OLT
-     *
-     * @param int   $oltid
-     * @param array $sigIndex
-     * @param array $macIndex
-     * @param array $snmpTemplate
-     *
-     * @return void
-     */
-    protected function signalParseZte($oltid, $sigIndex, $macIndex, $snmpTemplate) {
-        $sigTmp = array();
-        $macTmp = array();
-        $result = array();
-        $curDate = curdatetime();
-
-//signal index preprocessing
-        if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
-            foreach ($sigIndex as $devIndex => $eachsig) {
-                $signalRaw = $eachsig; // signal level
-
-                if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
-                    $signalRaw = 'Offline';
-                } else {
-                    if ($snmpTemplate['OFFSETMODE'] == 'div') {
-                        if ($snmpTemplate['OFFSET']) {
-                            $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
-                        }
-                    }
-                }
-                $signalRaw = str_replace('"', '', $signalRaw);
-                $sigTmp[$devIndex] = $signalRaw;
-            }
-
-//mac index preprocessing
-            foreach ($macIndex as $devIndex => $eachmac) {
-                $macRaw = $eachmac; //mac address
-                $macRaw = str_replace(' ', ':', $macRaw);
-                $macRaw = strtolower($macRaw);
-                $macTmp[$devIndex] = $macRaw;
-            }
-
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($sigTmp[$devId])) {
-                        $signal = $sigTmp[$devId];
-                        $result[$eachMac] = $signal;
-//signal history filling
-                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
-                        if ($signal == 'Offline') {
-                            $signal = -9000; //over 9000 offline signal level :P
-                        }
-
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
-                    }
-                }
-
-                $result = serialize($result);
-                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
-            }
-        }
-    }
-
-    /**
-     * Performs signal preprocessing for sig/sn index arrays and stores it into cache for ZTE OLT
-     *
-     * @param int   $oltid
-     * @param array $sigIndex
-     * @param array $macIndex
-     * @param array $snmpTemplate
-     *
-     * @return void
-     */
-    protected function signalParseGpon($oltid, $sigIndex, $snIndex, $snmpTemplate) {
-        $oltid = vf($oltid, 3);
-        $sigTmp = array();
-        $result = array();
-        $curDate = curdatetime();
-
-//signal index preprocessing
-        if ((!empty($sigIndex)) AND ( !empty($snIndex))) {
-            foreach ($sigIndex as $devIndex => $eachsig) {
-                $signalRaw = $eachsig; // signal level
-                $signalRaw = str_replace('"', '', $signalRaw);
-
-                if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
-                    $signalRaw = 'Offline';
-                } else {
-                    if ($snmpTemplate['OFFSETMODE'] == 'div') {
-                        if ($snmpTemplate['OFFSET']) {
-                            $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
-                        }
-                    }
-                }
-                $sigTmp[$devIndex] = $signalRaw;
-            }
-
-//mac index preprocessing
-            foreach ($snIndex as $devIndex => $eachSn) {
-                $snRaw = $eachSn; //serial
-                $snRaw = str_replace(' ', ':', $snRaw);
-                $snRaw = strtoupper($snRaw);
-                $snTmp[$devIndex] = $snRaw;
-            }
-
-//storing results
-            if (!empty($snTmp)) {
-                foreach ($snTmp as $devId => $eachSn) {
-                    if (isset($sigTmp[$devId])) {
-                        $signal = $sigTmp[$devId];
-                        $result[$eachSn] = $signal;
-//signal history filling
-                        $historyFile = self::ONUSIG_PATH . md5($eachSn);
-                        if ($signal == 'Offline') {
-                            $signal = -9000; //over 9000 offline signal level :P
-                        }
-
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
-                    }
-                }
-
-                $result = serialize($result);
-                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
-            }
-        }
-    }
-
-    protected function distanceParseGpon($oltid, $distIndex, $snIndex) {
-        $oltid = vf($oltid, 3);
-        $distTmp = array();
-        $onuTmp = array();
-        $result = array();
-        $curDate = curdatetime();
-
-//distance index preprocessing
-        if (!empty($distIndex) AND ! empty($snIndex)) {
-            foreach ($snIndex as $io => $eachsn) {
-                if (isset($distIndex[$io])) {
-                    $distance = $distIndex[$io];
-                    $result[$eachsn] = $distance;
-                }
-            }
-            $result = serialize($result);
-            file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
-        }
-    }
-
-    /**
      * Performs  OLT device polling with snmp
      *
      * @param int $oltid
@@ -2080,182 +1723,25 @@ class PONizer {
 
 //ZTE devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE') {
-                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
-                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
-                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
-                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
-                            $macIndex = trim($macIndex);
-                            $macIndex = explodeRows($macIndex);
-                            $macIndexTmp = array();
-                            if (!empty($macIndex)) {
-                                foreach ($macIndex as $rawIo => $rawEach) {
-                                    $rawEach = trim($rawEach);
-                                    $explodeIndex = explode('=', $rawEach);
-                                    if (!empty($explodeIndex)) {
-                                        $naturalIndex = trim($explodeIndex[0]);
-                                        $naturalMac = trim($explodeIndex[1]);
-                                        $macIndexTmp[$naturalIndex] = $naturalMac;
-                                    }
-                                }
-                            }
-
-
-                            $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
-                            $sigIndexTmp = array();
-                            if (!empty($macIndexTmp)) {
-                                foreach ($macIndexTmp as $ioIndex => $eachMac) {
-                                    $tmpSig = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID . $ioIndex, self::SNMPCACHE);
-                                    $sigIndex = str_replace($sigIndexOID . '.', '', $tmpSig);
-                                    $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
-                                    $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'], '', $sigIndex);
-                                    $explodeSig = explode('=', $sigIndex);
-                                    $naturalIndex = trim($explodeSig[0]);
-                                    if (isset($explodeSig[1])) {
-                                        $naturalSig = trim($explodeSig[1]);
-                                        $sigIndexTmp[$naturalIndex] = $naturalSig;
-                                    }
-                                }
-                            }
-                            $this->signalParseZte($oltid, $sigIndexTmp, $macIndexTmp, $this->snmpTemplates[$oltModelId]['signal']);
-
-                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
-                                if (isset($this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'])) {
-                                    $onu_id_start = 805830912;
-                                    $intIndex = array();
-                                    for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']; $card <= 20; $card++) {
-                                        $onu_id = $onu_id_start + (524288 * ($card - 1));
-                                        for ($port = 1; $port <= 16; $port++) {
-                                            $tmp_id = $onu_id;
-                                            for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
-                                                $intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
-                                                $tmp_id += 256;
-                                            }
-                                            $onu_id += 65536;
-                                        }
-                                    }
-                                    $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
-                                    $FDBIndexTmp = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
-                                    $FDBIndexTmp = str_replace($FDBIndexOid . '.', '', $FDBIndexTmp);
-                                    $FDBIndex = explodeRows($FDBIndexTmp);
-
-                                    $this->FDBParseZTE($oltid, $FDBIndex, $macIndexTmp, $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']);
-                                    $this->interfaceParseZTE($oltid, $intIndex, $macIndexTmp);
-                                    $this->onuidParseZTE($oltid, $macIndexTmp);
-                                }
-                            }
+                            $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
+                            $ztePoller->ponType = 'EPON';
+                            $ztePoller->pollEpon();
                         }
 
-                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE_GPON' or $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'HUAWEI_GPON') {
-                            $template = $this->snmpTemplates[$oltModelId]['signal'];
-                            $snIndexOID = $template['SNINDEX'];
-                            $snIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $snIndexOID, self::SNMPCACHE);
-                            $snIndex = str_replace($template['SNVALUE'], '', $snIndex);
-                            $snIndex = str_replace($snIndexOID . '.', '', $snIndex);
-                            $snIndex = trim($snIndex);
-                            $snIndex = explodeRows($snIndex);
-                            $snIndexTmp = array();
-                            if (!empty($snIndex)) {
-                                foreach ($snIndex as $rawIo => $rawEach) {
-                                    $rawEach = trim($rawEach);
-                                    $explodeIndex = explode('=', $rawEach);
-                                    if (!empty($explodeIndex)) {
-                                        $naturalIndex = trim($explodeIndex[0]);
-                                        $tmpSn = trim($explodeIndex[1]);
-                                        $tmpSn = explode(" ", $tmpSn);
-                                        $check = trim($tmpSn[0]);
-                                        if ($check == 'STRING:') {
-                                            $tmpSn = bin2hex($tmpSn[1]);
-                                            if (strlen($tmpSn) == 20) {
-                                                $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                                                $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                                                $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                                                $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                                                $tmpStr = '';
-                                                for ($i = 10; $i <= 17; $i++) {
-                                                    $tmpStr .= $tmpSn[$i];
-                                                }
-                                                $tmp[4] = $tmpStr;
-                                            } else {
-                                                $tmp[0] = $tmpSn[0] . $tmpSn[1];
-                                                $tmp[1] = $tmpSn[2] . $tmpSn[3];
-                                                $tmp[2] = $tmpSn[4] . $tmpSn[5];
-                                                $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                                                $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
-                                            }
-                                            if (!isset($tmpSn[12])) {
-//                                                print_r($tmpSn);
-//                                                echo '<br />';
-                                            }
-                                            $tmpSn = $tmp;
-                                        } else {
-                                            $tmp[0] = $tmpSn[0];
-                                            $tmp[1] = $tmpSn[1];
-                                            $tmp[2] = $tmpSn[2];
-                                            $tmp[3] = $tmpSn[3];
-                                            $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
-                                            $tmpSn = $tmp;
-                                        }
-                                        if ($template['SNMODE'] == 'STRING') {
-                                            $naturalSn = $this->HexToString($tmpSn[0]);
-                                            $naturalSn .= $this->HexToString($tmpSn[1]);
-                                            $naturalSn .= $this->HexToString($tmpSn[2]);
-                                            $naturalSn .= $this->HexToString($tmpSn[3]);
-                                            $naturalSn .= $tmpSn[4];
-                                        }
-                                        if ($template['SNMODE'] == 'PURE') {
-                                            $naturalSn = implode('', $tmpSn);
-                                        }
-
-                                        $snIndexTmp[$naturalIndex] = $naturalSn;
-                                    }
-                                }
-                            }
-
-                            $sigIndexOID = $template['SIGINDEX'];
-                            $sigIndexTmp = array();
-                            if (!empty($snIndexTmp)) {
-                                foreach ($snIndexTmp as $ioIndex => $eachSn) {
-                                    $tmpSig = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID . $ioIndex, self::SNMPCACHE);
-                                    $sigIndex = str_replace($sigIndexOID, '', $tmpSig);
-                                    $sigIndex = str_replace($template['SIGVALUE'], '', $sigIndex);
-                                    $explodeSig = explode('=', $sigIndex);
-                                    $naturalIndex = trim($explodeSig[0]);
-                                    if (isset($explodeSig[1])) {
-                                        $naturalSig = trim($explodeSig[1]);
-                                        $sigIndexTmp[$naturalIndex] = $naturalSig;
-                                    }
-                                    if (isset($template['DISTANCE'])) {
-                                        $tmpDist = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $template['DISTANCE'] . $ioIndex, self::SNMPCACHE);
-                                        $distIndex = str_replace($template['DISTANCE'], '', $tmpDist);
-                                        $distIndex = str_replace($template['DISTVALUE'], '', $distIndex);
-                                        $explodeDist = explode('=', $distIndex);
-                                        $naturalIndex = trim($explodeDist[0]);
-                                        if (isset($explodeDist[1])) {
-                                            $naturalDist = trim($explodeDist[1]);
-                                            $distIndexTmp[$naturalIndex] = $naturalDist;
-                                        }
-                                    }
-                                }
-                            }
-                            $this->signalParseGpon($oltid, $sigIndexTmp, $snIndexTmp, $template);
-                            if (isset($template['DISTANCE'])) {
-                                $this->distanceParseGpon($oltid, $distIndexTmp, $snIndexTmp);
-                            }
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE_GPON') {
+                            $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
+                            $ztePoller->ponType = 'GPON';
+                            $ztePoller->pollGpon();
+                        }
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'HUAWEI_GPON') {
+                            $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
+                            $ztePoller->ponType = 'GPON';
+                            $ztePoller->hauweiPollGpon();
                         }
                     }
                 }
             }
         }
-    }
-
-    /**
-     * Converts hex to string value
-     *
-     * @param string $hex
-     * @return string
-     */
-    protected function HexToString($hex) {
-        return pack('H*', $hex);
     }
 
     /**
@@ -4138,7 +3624,6 @@ class PONizer {
         return ($result);
     }
 
-
     /**
      * Returns array like: $userLogin => $onuSignal
      *
@@ -4152,7 +3637,7 @@ class PONizer {
         $query = "SELECT * from `pononu`";
         $allOnuRecs = simple_queryall($query);
 
-        if (!empty($allOnuRecs) and !empty($availCacheData)) {
+        if (!empty($allOnuRecs) and ! empty($availCacheData)) {
             foreach ($availCacheData as $io => $each) {
                 $raw = file_get_contents(self::SIGCACHE_PATH . $each);
                 $raw = unserialize($raw);
@@ -4171,6 +3656,7 @@ class PONizer {
 
         return ($allOnuSignals);
     }
+
 }
 
 class PONizerLegacy extends PONizer {

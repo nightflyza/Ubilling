@@ -144,7 +144,7 @@ class OnuRegister {
      * 
      * @var array
      */
-    protected $eponCards = array(
+    public $eponCards = array(
         'EPFC' => 4,
         'EPFCB' => 4,
         'ETGO' => 8,
@@ -159,7 +159,7 @@ class OnuRegister {
      * 
      * @var array
      */
-    protected $gponCards = array(
+    public $gponCards = array(
         'GPFA' => 4,
         'GPFAE' => 4,
         'GTGO' => 8,
