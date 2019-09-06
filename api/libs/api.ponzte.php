@@ -9,6 +9,39 @@ class PonZte {
     CONST ONU = 5;
 
     /**
+     * Array for checking ports count for EPON cards
+     * 
+     * @var array
+     */
+    protected $eponCards = array(
+        'EPFC' => 4,
+        'EPFCB' => 4,
+        'ETGO' => 8,
+        'ETGOD' => 8,
+        'ETGH' => 16,
+        'ETGHG' => 16,
+        'ETGHK' => 16
+    );
+
+    /**
+     * Array for checking ports count for GPON cards
+     * 
+     * @var array
+     */
+    protected $gponCards = array(
+        'GPFA' => 4,
+        'GPFAE' => 4,
+        'GTGO' => 8,
+        'GTGH' => 16,
+        'GTGHG' => 16,
+        'GTGHK' => 16,
+        'GPBD' => 8,
+        'GPFD' => 16,
+        'GPBH' => 8,
+        'GPMD' => 8
+    );
+
+    /**
      * Contains snmp helper object
      * 
      * @var object
@@ -450,7 +483,7 @@ class PonZte {
      *
      * @return void
      */
-    protected function signalParseZte() {
+    protected function signalParseEpon() {
         $snmpTemplate = $this->currentSnmpTemplate['signal'];
         $sigTmp = array();
         $macTmp = array();
@@ -565,10 +598,7 @@ class PonZte {
      * @return void
      */
     protected function distanceParseGpon($distIndex, $snIndex) {
-        $distTmp = array();
-        $onuTmp = array();
         $result = array();
-        $curDate = curdatetime();
 
 //distance index preprocessing
         if (!empty($distIndex) AND ! empty($snIndex)) {
@@ -614,15 +644,15 @@ class PonZte {
     protected function cardsEponCalc() {
         $cards = array();
         if (isset($this->currentSnmpTemplate['misc']['ALLCARDS'])) {
-            $onuRegister = new OnuRegister();
             $allCards = $this->snmpwalk($this->currentSnmpTemplate['misc']['ALLCARDS']);
             if (!empty($allCards)) {
-                foreach ($allCards as $oid => $value) {
-                    $oid = str_reaplce($this->currentSnmpTemplate['misc']['ALLCARDS'] . '.', '', $oid);
+                foreach ($allCards as $io => $value) {
+                    $split = explode("=", $value);
+                    $oid = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['ALLCARDS'], $split[0]);
                     $oidParts = explode(".", $oid);
                     $cardNumber = last($oidParts);
-                    $value = trim(str_replace("STRING:", '', $value));
-                    if (isset($onuRegister->eponCards[$value])) {
+                    $card = trim(str_replace("STRING:", '', $split[1]));
+                    if (isset($this->eponCards[$card])) {
                         $cards[] = $cardNumber;
                     }
                 }
@@ -682,9 +712,9 @@ class PonZte {
         if (!empty($this->macIndex)) {
             foreach ($this->macIndex as $ioIndex => $eachMac) {
                 $tmpSig = $this->snmpwalk($this->currentSnmpTemplate['signal']['SIGINDEX'] . $ioIndex);
-                $sigIndex = $this->strRemoveOid($this->currentSnmpTemplate['signal']['SIGINDEX'], $tmpSig);
-                $sigIndex = str_replace($this->currentSnmpTemplate['signal']['SIGVALUE'], '', $sigIndex);
-                $sigIndex = str_replace($this->currentSnmpTemplate['signal']['SIGINDEX'], '', $sigIndex);
+                $sigIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SIGINDEX'], $tmpSig);
+                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], '', $sigIndex);
+                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGINDEX'], '', $sigIndex);
                 $explodeSig = explode('=', $sigIndex);
                 $naturalIndex = trim($explodeSig[0]);
                 if (isset($explodeSig[1])) {
@@ -694,7 +724,6 @@ class PonZte {
             }
         }
         $this->sigIndex = $sigIndexTmp;
-        return($sigIndexTmp);
     }
 
     /**
@@ -704,8 +733,10 @@ class PonZte {
      */
     protected function fdbCalcEpon() {
         $FDBIndexTmp = $this->snmpwalk($this->currentSnmpTemplate['misc']['FDBINDEX']);
-        $FDBIndexTmp = $this->strRemoveOid($this->currentSnmpTemplate['misc']['FDBINDEX'], $FDBIndexTmp);
-        $this->fdbIndex = explodeRows($FDBIndexTmp);
+        foreach ($FDBIndexTmp as $id => &$value) {
+            $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['FDBINDEX'], $value);
+        }
+        $this->fdbIndex = $FDBIndexTmp;
     }
 
     /**
@@ -751,7 +782,7 @@ class PonZte {
         $this->macIndexCalc();
         $this->sigIndexCalc();
 
-        $this->signalParseZte();
+        $this->signalParseEpon();
 
         if (isset($this->currentSnmpTemplate['misc'])) {
             if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
