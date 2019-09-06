@@ -592,12 +592,9 @@ class PonZte {
     protected function macPartParse($decParts) {
         $macPart = array();
         if (isset($decParts[1])) {
-            $macPart[] = dechex($decParts[2]);
-            $macPart[] = dechex($decParts[3]);
-            $macPart[] = dechex($decParts[4]);
-            $macPart[] = dechex($decParts[5]);
-            $macPart[] = dechex($decParts[6]);
-            $macPart[] = dechex($decParts[7]);
+            for ($i = 2; $i <= 7; $i++) {
+                $macPart[] = dechex($decParts[$i]);
+            }
             foreach ($macPart as &$eachPart) {
                 if (strlen($eachPart) < 2) {
                     $eachPart = '0' . $eachPart;
@@ -769,17 +766,16 @@ class PonZte {
     /**
      * Parsing distance for ZTE/Huawei GPON 
      * 
-     * @param array $distIndex
-     * @param array $snIndex
+     * @param array $distIndex     
      * 
      * @return void
      */
-    protected function distanceParseGpon($distIndex, $snIndex) {
+    protected function distanceParseGpon($distIndex) {
         $result = array();
 
 //distance index preprocessing
-        if (!empty($distIndex) AND ! empty($snIndex)) {
-            foreach ($snIndex as $io => $eachsn) {
+        if (!empty($distIndex) AND ! empty($this->snIndex)) {
+            foreach ($this->snIndex as $io => $eachsn) {
                 if (isset($distIndex[$io])) {
                     $distance = $distIndex[$io];
                     $result[$eachsn] = $distance;
@@ -820,6 +816,7 @@ class PonZte {
      * @return void
      */
     public function pollGpon() {
+        $this->snIndexProcess();
         $snIndexTmp = array();
         foreach ($this->snIndex as $rawIo => $rawEach) {
             $explodeIndex = explode('=', $rawEach);
