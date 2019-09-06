@@ -708,8 +708,8 @@ class PonZte {
             foreach ($this->macIndex as $ioIndex => $eachMac) {
                 $tmpSig = $this->snmpwalk($this->currentSnmpTemplate['signal']['SIGINDEX'] . $ioIndex);
                 $sigIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SIGINDEX'], $tmpSig);
-                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], '', $sigIndex);
-                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGINDEX'], '', $sigIndex);
+                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $sigIndex);
+                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGINDEX'], $sigIndex);
                 $explodeSig = explode('=', $sigIndex);
                 $naturalIndex = trim($explodeSig[0]);
                 if (isset($explodeSig[1])) {
@@ -797,10 +797,11 @@ class PonZte {
      */
     public function pollGpon() {
         $snIndex = $this->snmpwalk($this->currentSnmpTemplate['signal']['SNINDEX']);
-        $snIndex = str_replace($this->currentSnmpTemplate['signal']['SNVALUE'], '', $snIndex);
-        $snIndex = str_replace($this->currentSnmpTemplate['signal']['SNINDEX'] . '.', '', $snIndex);
-        $snIndex = trim($snIndex);
-        $snIndex = explodeRows($snIndex);
+        foreach ($snIndex as $io => $value) {
+            $snIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SNVALUE'], $value);
+            $snIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SNINDEX'], $snIndex);
+            $snIndex = trim($snIndex);
+        }
         $snIndexTmp = array();
         if (!empty($snIndex)) {
             foreach ($snIndex as $rawIo => $rawEach) {
