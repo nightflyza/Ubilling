@@ -554,7 +554,12 @@ class PonZte {
     }
 
     protected function snIndexProcess() {
-        
+        $this->snIndex = $this->snmpwalk($this->currentSnmpTemplate['signal']['SNINDEX']);
+        foreach ($this->snIndex as $io => &$value) {
+            $value = $this->strRemove($this->currentSnmpTemplate['signal']['SNVALUE'], $value);
+            $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SNINDEX'], $value);
+            $value = trim($value);
+        }
     }
 
     //parser functions
@@ -815,14 +820,8 @@ class PonZte {
      * @return void
      */
     public function pollGpon() {
-        $snIndex = $this->snmpwalk($this->currentSnmpTemplate['signal']['SNINDEX']);
-        foreach ($snIndex as $io => &$value) {
-            $value = $this->strRemove($this->currentSnmpTemplate['signal']['SNVALUE'], $value);
-            $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SNINDEX'], $value);
-            $value = trim($snIndex);
-        }
         $snIndexTmp = array();
-        foreach ($snIndex as $rawIo => $rawEach) {
+        foreach ($this->snIndex as $rawIo => $rawEach) {
             $explodeIndex = explode('=', $rawEach);
             if (!empty($explodeIndex)) {
                 $naturalIndex = trim($explodeIndex[0]);
@@ -847,10 +846,6 @@ class PonZte {
                         $tmp[2] = $tmpSn[4] . $tmpSn[5];
                         $tmp[3] = $tmpSn[6] . $tmpSn[7];
                         $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
-                    }
-                    if (!isset($tmpSn[12])) {
-//                                                print_r($tmpSn);
-//                                                echo '<br />';
                     }
                     $tmpSn = $tmp;
                 } else {
