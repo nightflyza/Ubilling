@@ -286,47 +286,41 @@ class PonZte {
     protected function fdbParseEpon() {
         $cardOffset = $this->currentSnmpTemplate['misc']['CARDOFFSET'];
         $counter = 1;
-        $FDBTmp = array();
+        $fdbTmp = array();
         $macTmp = array();
         $result = array();
 //fdb index preprocessing
         if ((!empty($this->FDBIndex)) AND ( !empty($this->macIndex))) {
             foreach ($this->FDBIndex as $io => $eachfdb) {
-                $macPart = array();
                 $line = explode('=', $eachfdb);
                 $devOID = trim($line[0]);
                 $decParts = explode('.', $devOID);
                 $devIndex = trim($decParts[0]);
-                if ($this->interfaceDecode($devIndex, $cardOffset)) {
+                $interfaceName = $this->interfaceDecode($devIndex, $cardOffset);
+                if ($interfaceName) {
                     if (isset($decParts[1])) {
                         $FDBvlan = trim($decParts[1]);
-                        $FDBmac = implode(':', $this->macPartParse($devline));
-                        $FDBTmp[$this->interfaceDecode($devIndex, $cardOffset)][$counter]['mac'] = $FDBmac;
-                        $FDBTmp[$this->interfaceDecode($devIndex, $cardOffset)][$counter]['vlan'] = $FDBvlan;
+                        $FDBmac = implode(':', $this->macPartParse($decParts));
+                        $fdbTmp[$interfaceName][$counter]['mac'] = $FDBmac;
+                        $fdbTmp[$interfaceName][$counter]['vlan'] = $FDBvlan;
                         $counter++;
                     }
                 }
             }
-//mac index preprocessing
-            foreach ($this->macIndex as $ioIndex => $eachMac) {
-                $eachMac = strtolower(str_replace(" ", ":", $eachMac));
-                if ($this->interfaceDecode($ioIndex, $cardOffset)) {
-                    $macTmp[$this->interfaceDecode($ioIndex, $cardOffset)] = $eachMac;
+//mac index preprocessing            
+            foreach ($this->macIndex as $devIndex => $eachMac) {
+                if ($this->interfaceDecode($devIndex, $cardOffset)) {
+                    $macTmp[$this->interfaceDecode($devIndex, $cardOffset)] = $eachMac;
                 }
             }
 
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($FDBTmp[$devId])) {
-                        $fdb = $FDBTmp[$devId];
-                        $result[$eachMac] = $fdb;
-                    }
-                }
+            $realData = array_intersect_key($macTmp, $fdbTmp);
+//storing results            
+            foreach ($realData as $devId => $eachMac) {
+                $result[$macTmp[$devId]] = $fdbTmp[$devId];
             }
         }
-        $result = serialize($result);
-        file_put_contents(PONizer::FDBCACHE_PATH . $this->oltid . '_' . PONizer::FDBCACHE_EXT, $result);
+        file_put_contents(PONizer::FDBCACHE_PATH . $this->oltid . '_' . PONizer::FDBCACHE_EXT, serialize($result));
     }
 
     protected function getDecodeType($binary) {
@@ -479,53 +473,54 @@ class PonZte {
     }
 
     /**
+     * Epon signals preprocessing
+     * 
+     * @return array
+     */
+    protected function signalIndexEponProcessing() {
+        foreach ($this->sigIndex as $devIndex => &$eachsig) {
+            $signalRaw = $eachsig; // signal level
+
+            if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE']) {
+                $eachsig = -9000;
+            } else {
+                $eachsig = str_replace('"', '', $signalRaw);
+            }
+        }
+    }
+
+    /**
+     * Epon mac indexes preprocessing
+     * 
+     * @return array
+     */
+    protected function macIndexEponProcessing() {
+        foreach ($this->macIndex as $devIndex => &$eachmac) {
+            $eachmac = str_replace(' ', ':', $eachmac);
+            $eachmac = strtolower($eachmac);
+        }
+    }
+
+    /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache for ZTE OLT
      *
      * @return void
      */
     protected function signalParseEpon() {
-        $snmpTemplate = $this->currentSnmpTemplate['signal'];
-        $sigTmp = array();
-        $macTmp = array();
         $result = array();
-        $curDate = curdatetime();
-
-//signal index preprocessing
         if ((!empty($this->sigIndex)) AND ( !empty($this->macIndex))) {
-            foreach ($this->sigIndex as $devIndex => $eachsig) {
-                $signalRaw = $eachsig; // signal level
+            $this->signalIndexEponProcessing();
+            $this->macIndexEponProcessing();
+            $realData = array_intersect_key($this->macIndex, $this->sigIndex);
 
-                if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
-                    $signalRaw = -9000;
-                }
-                $signalRaw = str_replace('"', '', $signalRaw);
-                $sigTmp[$devIndex] = $signalRaw;
-            }
+            foreach ($realData as $devId => $io) {
+                $result[$this->macIndex[$devId]] = $this->sigIndex[$devId];
 
-//mac index preprocessing
-            foreach ($this->macIndex as $devIndex => $eachmac) {
-                $macRaw = $eachmac; //mac address
-                $macRaw = str_replace(' ', ':', $macRaw);
-                $macRaw = strtolower($macRaw);
-                $macTmp[$devIndex] = $macRaw;
-            }
-
-//storing results
-            if (!empty($macTmp)) {
-                foreach ($macTmp as $devId => $eachMac) {
-                    if (isset($sigTmp[$devId])) {
-                        $signal = $sigTmp[$devId];
-                        $result[$eachMac] = $signal;
-//signal history filling
-                        $historyFile = PONizer::ONUSIG_PATH . md5($eachMac);
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
-                    }
-                }
-
-                $result = serialize($result);
-                file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, $result);
+                $historyFile = PONizer::ONUSIG_PATH . md5($this->macIndex[$devId]);
+                file_put_contents($historyFile, curdatetime() . ',' . $this->sigIndex[$devId] . "\n", FILE_APPEND);
             }
         }
+        file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, serialize($result));
     }
 
     /**
