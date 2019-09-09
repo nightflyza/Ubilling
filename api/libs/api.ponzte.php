@@ -426,6 +426,27 @@ class PonZte {
     }
 
     /**
+     * Converts dec number to gpon interface name. Looks dirty but seems working.
+     * 
+     * @param int $dec
+     * 
+     * @return string
+     */
+    protected function gponOltInterfaceDecode($dec) {
+        $result = '';
+        $match = array();
+        $binary = decbin($dec);
+        if (strlen(($binary) == 29)) {
+            preg_match("/(\d{4})(\d{6})(\d{3})(\d{8})(\d{8})/", $binary, $match);
+            foreach ($match as &$each) {
+                $each = bindec($each);
+            }
+            $result = 'gpon-onu_' . $match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/' . $match[self::DESC_OLT] . ':';
+        }
+        return($result);
+    }
+
+    /**
      * Calculation ZTE epon interfaces indexes.
      * 
      * @return void
@@ -547,7 +568,7 @@ class PonZte {
      * 
      * @return void
      */
-    protected function fdbCalcEpon() {
+    protected function fdbCalc() {
         $FDBIndexTmp = $this->snmpwalk($this->currentSnmpTemplate['misc']['FDBINDEX']);
         foreach ($FDBIndexTmp as $id => &$value) {
             $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['FDBINDEX'], $value);
@@ -560,10 +581,10 @@ class PonZte {
      * Function for fixing fucking zte interfaces snmp id.
      * 
      * @param int $uuid
-     * @param int $cardOffset     
+     *        
      * @return string
      */
-    protected function interfaceDecode($uuid, $cardOffset = 0) {
+    protected function interfaceDecode($uuid) {
         $binary = decbin($uuid);
         $match = $this->getDecodeType($binary);
 
@@ -576,7 +597,7 @@ class PonZte {
                 case 6:
                     return($match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/');
                 case 8:
-                    $match[self::DESC_SLOT] += $cardOffset;
+                    $match[self::DESC_SLOT] += $this->currentSnmpTemplate['misc']['CARDOFFSET'];
                     $match[self::DESC_ONU] += 1;
                     return($this->stdDecodeOutput($match));
                 case 9:
@@ -672,7 +693,6 @@ class PonZte {
      * @return void
      */
     protected function fdbParseEpon() {
-        $cardOffset = $this->currentSnmpTemplate['misc']['CARDOFFSET'];
         $counter = 1;
         $fdbTmp = array();
         $macTmp = array();
@@ -681,24 +701,24 @@ class PonZte {
         if ((!empty($this->fdbIndex)) AND ( !empty($this->macIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
-                $devOID = trim($line[0]);
-                $decParts = explode('.', $devOID);
+                $devOid = trim($line[0]);
+                $decParts = explode('.', $devOid);
                 $devIndex = trim($decParts[0]);
-                $interfaceName = $this->interfaceDecode($devIndex, $cardOffset);
+                $interfaceName = $this->interfaceDecode($devIndex);
                 if ($interfaceName) {
                     if (isset($decParts[1])) {
-                        $FDBvlan = trim($decParts[1]);
-                        $FDBmac = implode(':', $this->macPartParse($decParts));
-                        $fdbTmp[$interfaceName][$counter]['mac'] = $FDBmac;
-                        $fdbTmp[$interfaceName][$counter]['vlan'] = $FDBvlan;
+                        $fdbVlan = trim($decParts[1]);
+                        $fdbMac = implode(':', $this->macPartParse($decParts));
+                        $fdbTmp[$interfaceName][$counter]['mac'] = $fdbMac;
+                        $fdbTmp[$interfaceName][$counter]['vlan'] = $fdbVlan;
                         $counter++;
                     }
                 }
             }
             //mac index preprocessing            
             foreach ($this->macIndex as $devIndex => $eachMac) {
-                if ($this->interfaceDecode($devIndex, $cardOffset)) {
-                    $macTmp[$this->interfaceDecode($devIndex, $cardOffset)] = $eachMac;
+                if ($this->interfaceDecode($devIndex)) {
+                    $macTmp[$this->interfaceDecode($devIndex)] = $eachMac;
                 }
             }
 
@@ -822,6 +842,54 @@ class PonZte {
     }
 
     /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @return void
+     */
+    protected function fdbParseGpon() {
+        $counter = 1;
+        $fdbTmp = array();
+        $snTmp = array();
+        $result = array();
+        //fdb index preprocessing
+        if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
+            foreach ($this->fdbIndex as $io => $eachfdb) {
+                $line = explode('=', $eachfdb);
+                $devOid = trim($line[0]);
+                $decParts = explode('.', $devOid);
+                $devIndex = trim($decParts[0]);
+                $interfaceName = $this->interfaceDecode($devIndex);
+                if ($interfaceName) {
+                    if (isset($decParts[1])) {
+                        $fdbVlan = trim($decParts[1]);
+                        $fdbMac = implode(':', $this->macPartParse($decParts));
+                        $fdbTmp[$interfaceName][$counter]['mac'] = $fdbMac;
+                        $fdbTmp[$interfaceName][$counter]['vlan'] = $fdbVlan;
+                        $counter++;
+                    }
+                }
+            }
+            //mac index preprocessing            
+            foreach ($this->snIndex as $devIndex => $eachSn) {
+                $devIndexParts = explode(".", $devIndex);
+                $onuNumber = $devIndexParts[1];
+                $interfaceName = $this->gponOltInterfaceDecode($devIndexParts[0]) . $onuNumber;
+                if ($interfaceName) {
+                    $snTmp[$interfaceName] = $eachSn;
+                }
+            }
+
+            $realData = array_intersect_key($snTmp, $fdbTmp);
+
+            //storing results            
+            foreach ($realData as $devId => $eachSn) {
+                $result[$snTmp[$devId]] = $fdbTmp[$devId];
+            }
+        }
+        file_put_contents(PONizer::FDBCACHE_PATH . $this->oltid . '_' . PONizer::FDBCACHE_EXT, serialize($result));
+    }
+
+    /**
      * Parsing serial numbers;
      * 
      * @return void
@@ -930,7 +998,7 @@ class PonZte {
         if (isset($this->currentSnmpTemplate['misc'])) {
             if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
                 $this->intIndexCalcEpon();
-                $this->fdbCalcEpon();
+                $this->fdbCalc();
                 $this->fdbParseEpon();
                 $this->interfaceParseEpon();
                 $this->onuidParseEpon();
@@ -952,6 +1020,11 @@ class PonZte {
         if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
             $this->distanceIndexProcess();
             $this->distanceParseGpon();
+        }
+        if (isset($this->currentSnmpTemplate['misc'])) {
+            if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
+                $this->fdbCalc();
+            }
         }
     }
 
