@@ -2,11 +2,11 @@
 
 class PonZte {
 
-    CONST PONTYPE = 1;
-    CONST SHELF = 2;
-    CONST SLOT = 3;
-    CONST OLT = 4;
-    CONST ONU = 5;
+    CONST DESC_PONTYPE = 1;
+    CONST DESC_SHELF = 2;
+    CONST DESC_SLOT = 3;
+    CONST DESC_OLT = 4;
+    CONST DESC_ONU = 5;
 
     /**
      * Array for checking ports count for EPON cards
@@ -355,9 +355,9 @@ class PonZte {
         foreach ($match as &$each) {
             $each = bindec($each);
         }
-        $match[self::OLT] += 1;
+        $match[self::DESC_OLT] += 1;
         if (!empty($match)) {
-            switch ($match[self::PONTYPE]) {
+            switch ($match[self::DESC_PONTYPE]) {
                 case 9:
                     preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match2);
                     break;
@@ -365,11 +365,11 @@ class PonZte {
                     preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match2);
                     break;
             }
-            if (isset($match2[self::PONTYPE])) {
+            if (isset($match2[self::DESC_PONTYPE])) {
                 foreach ($match2 as &$each) {
                     $each = bindec($each);
                 }
-                $match2[self::OLT] += 1;
+                $match2[self::DESC_OLT] += 1;
                 $match = $match2;
             } else {
                 return array();
@@ -405,24 +405,24 @@ class PonZte {
         }
 
         if ($default) {
-            return($typeName[$match[self::PONTYPE]]
+            return($typeName[$match[self::DESC_PONTYPE]]
                     . '_'
-                    . $match[self::SHELF]
+                    . $match[self::DESC_SHELF]
                     . '/'
-                    . $match[self::SLOT]
+                    . $match[self::DESC_SLOT]
                     . '/'
-                    . $match[self::OLT]
+                    . $match[self::DESC_OLT]
                     . ':'
-                    . $match[self::ONU]
+                    . $match[self::DESC_ONU]
                     );
         } else {
-            return($typeName[$match[self::PONTYPE]]
+            return($typeName[$match[self::DESC_PONTYPE]]
                     . '_'
-                    . $match[self::SHELF]
+                    . $match[self::DESC_SHELF]
                     . '/'
-                    . $match[self::SLOT]
+                    . $match[self::DESC_SLOT]
                     . '/'
-                    . $match[self::OLT]
+                    . $match[self::DESC_OLT]
                     );
         }
     }
@@ -565,23 +565,23 @@ class PonZte {
         $binary = decbin($uuid);
         $match = $this->getDecodeType($binary);
 
-        if (!empty($match) and isset($match[self::PONTYPE])) {
-            switch ($match[self::PONTYPE]) {
+        if (!empty($match) and isset($match[self::DESC_PONTYPE])) {
+            switch ($match[self::DESC_PONTYPE]) {
                 case 1:
                     return($this->stdDecodeOutput($match, false));
                 case 3:
                     return($this->stdDecodeOutput($match));
                 case 6:
-                    return($match[self::SHELF] . '/' . $match[self::SLOT] . '/');
+                    return($match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/');
                 case 8:
-                    $match[self::SLOT] += $cardOffset;
-                    $match[self::ONU] += 1;
+                    $match[self::DESC_SLOT] += $cardOffset;
+                    $match[self::DESC_ONU] += 1;
                     return($this->stdDecodeOutput($match));
                 case 9:
                     return($this->stdDecodeOutput($match));
                 case 10:
-                    $match[self::SLOT] += 1;
-                    $match[self::ONU] += 1;
+                    $match[self::DESC_SLOT] += 1;
+                    $match[self::DESC_ONU] += 1;
                     return($this->stdDecodeOutput($match));
                 case 12:
                     return($this->stdDecodeOutput($match));
