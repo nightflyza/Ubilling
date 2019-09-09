@@ -457,8 +457,6 @@ class PonZte {
         $cards = array();
         if (isset($this->currentSnmpTemplate['misc']['ALLCARDS'])) {
             $allCards = $this->snmpwalk($this->currentSnmpTemplate['misc']['ALLCARDS']);
-            echo 'printing raw values';
-            echo '<br />';
             foreach ($allCards as $io => $value) {
                 $split = explode("=", $value);
                 if (isset($split[1])) {
@@ -470,33 +468,21 @@ class PonZte {
                     if (isset($this->eponCards[$card])) {
                         $cards[] = $cardNumber;
                     }
-                    var_dump($oid);
-                    echo '<br />';
-                    var_dump($card);
-                    echo '<br />';
                 }
             }
         }
-        echo 'print cards array <br />';
-        echo '<br />';
-        var_dump($cards);
-        echo '<br />';
-        /*
 
-          if (empty($cards)) {
-          if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
-          $start = $this->currentSnmpTemplate['misc']['CARDOFFSET'];
-          } else {
-          $start = 1;
-          }
-          for ($card = $start; $card <= 20; $card++) {
-          $cards[] = $card;
-          }
-          }
-         * 
-         */
-
-        return($card);
+        if (empty($cards)) {
+            if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
+                $start = $this->currentSnmpTemplate['misc']['CARDOFFSET'];
+            } else {
+                $start = 1;
+            }
+            for ($card = $start; $card <= 20; $card++) {
+                $cards[] = $card;
+            }
+        }
+        return($cards);
     }
 
     /**
