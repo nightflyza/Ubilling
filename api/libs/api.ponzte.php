@@ -824,7 +824,7 @@ class PonZte {
         foreach ($this->snIndex as $rawIo => $rawEach) {
             $result = array();
             $explodeIndex = explode('=', $rawEach);
-            if (!empty($explodeIndex)) {
+            if (isset($explodeIndex[1])) {
                 $naturalIndex = trim($explodeIndex[0]);
                 $tmpSn = trim($explodeIndex[1]);
                 $tmpSn = explode(" ", $tmpSn);
