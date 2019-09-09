@@ -464,7 +464,7 @@ class PonZte {
                     $split = explode("=", $value);
                     $oid = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['ALLCARDS'], $split[0]);
                     $oidParts = explode(".", $oid);
-                    $cardNumber = last($oidParts);
+                    $cardNumber = end($oidParts);
                     $card = trim(str_replace("STRING:", '', $split[1]));
                     if (isset($this->eponCards[$card])) {
                         $cards[] = $cardNumber;
