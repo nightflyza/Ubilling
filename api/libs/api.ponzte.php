@@ -436,7 +436,7 @@ class PonZte {
         $result = '';
         $match = array();
         $binary = decbin($dec);
-        if (strlen(($binary) == 29)) {
+        if (strlen($binary) == 29) {
             preg_match("/(\d{4})(\d{6})(\d{3})(\d{8})(\d{8})/", $binary, $match);
             foreach ($match as &$each) {
                 $each = bindec($each);
@@ -633,8 +633,8 @@ class PonZte {
      */
     protected function distanceIndexProcess() {
         foreach ($this->snIndex as $ioIndex => $eachSn) {
-            $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . $ioIndex);
-            $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
+            $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . '.' . $ioIndex);
+            $distIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
             $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
             $explodeDist = explode('=', $distIndex);
             $naturalIndex = trim($explodeDist[0]);
@@ -844,7 +844,7 @@ class PonZte {
         $counter = 1;
         $fdbTmp = array();
         $snTmp = array();
-        $result = array();        
+        $result = array();
         //fdb index preprocessing
         if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
