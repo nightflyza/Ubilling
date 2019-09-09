@@ -355,8 +355,8 @@ class PonZte {
         foreach ($match as &$each) {
             $each = bindec($each);
         }
-        $match[self::DESC_OLT] += 1;
         if (!empty($match)) {
+            $match[self::DESC_OLT] += 1;
             switch ($match[self::DESC_PONTYPE]) {
                 case 9:
                     preg_match("/(\d{4})(\d{4})(\d{4})(\d{4})(\d{8})(\d{8})/", $binary, $match2);
@@ -371,8 +371,6 @@ class PonZte {
                 }
                 $match2[self::DESC_OLT] += 1;
                 $match = $match2;
-            } else {
-                return array();
             }
         }
         return($match);
