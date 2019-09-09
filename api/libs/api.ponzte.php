@@ -569,11 +569,10 @@ class PonZte {
      * @return void
      */
     protected function fdbCalc() {
-        $FDBIndexTmp = $this->snmpwalk($this->currentSnmpTemplate['misc']['FDBINDEX']);
-        foreach ($FDBIndexTmp as $id => &$value) {
+        $this->fdbIndex = $this->snmpwalk($this->currentSnmpTemplate['misc']['FDBINDEX']);
+        foreach ($this->fdbIndex as $id => &$value) {
             $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['FDBINDEX'], $value);
         }
-        $this->fdbIndex = $FDBIndexTmp;
     }
 
     /**
@@ -845,7 +844,7 @@ class PonZte {
         $counter = 1;
         $fdbTmp = array();
         $snTmp = array();
-        $result = array();
+        $result = array();        
         //fdb index preprocessing
         if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
@@ -895,7 +894,6 @@ class PonZte {
         //storing results
 
         foreach ($this->snIndex as $ioIndex => $eachSn) {
-            $eachSn = str_replace(" ", ":", $eachMac);
             $result[$eachSn] = $this->interfaceDecode($ioIndex);
         }
         $result = serialize($result);
