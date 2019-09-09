@@ -137,7 +137,7 @@ class PonZte {
      * 
      * @var string
      */
-    protected $ponType = '';
+    public $ponType = '';
 
     /**
      * Contains all serial numbers => index
