@@ -457,9 +457,11 @@ class PonZte {
         $cards = array();
         if (isset($this->currentSnmpTemplate['misc']['ALLCARDS'])) {
             $allCards = $this->snmpwalk($this->currentSnmpTemplate['misc']['ALLCARDS']);
+            echo '<br />';
             foreach ($allCards as $io => $value) {
                 $split = explode("=", $value);
-                var_dump($value);
+                var_dump($split);
+                echo '<br />';
                 if (isset($split[1])) {
                     $oid = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['ALLCARDS'], $split[0]);
                     $oidParts = explode(".", $oid);
@@ -472,6 +474,9 @@ class PonZte {
                 }
             }
         }
+        echo '<br />';
+        var_dump($cards);
+        echo '<br />';
         /*
 
           if (empty($cards)) {
