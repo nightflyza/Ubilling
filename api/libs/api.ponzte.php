@@ -146,6 +146,13 @@ class PonZte {
      */
     protected $snIndex = array();
 
+    /**
+     * Contains distances for ONTs
+     * 
+     * @var array
+     */
+    protected $distanceIndex = array();
+
     public function __construct($oltModelId, $oltid, $oltIp, $oltCommunity) {
         $this->oltid = $oltid;
         $this->oltCommunity = $oltCommunity;
@@ -592,6 +599,25 @@ class PonZte {
         }
     }
 
+    /**
+     * Preproccess distances indexes.
+     * 
+     * @return void
+     */
+    protected function distanceIndexProcess() {
+        foreach ($this->snIndex as $ioIndex => $eachSn) {
+            $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . $ioIndex);
+            $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
+            $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
+            $explodeDist = explode('=', $distIndex);
+            $naturalIndex = trim($explodeDist[0]);
+            if (isset($explodeDist[1])) {
+                $naturalDist = trim($explodeDist[1]);
+                $$this->distanceIndex[$naturalIndex] = $naturalDist;
+            }
+        }
+    }
+
     //parser functions
 
     /**
@@ -765,20 +791,18 @@ class PonZte {
      * 
      * @return void
      */
-    protected function distanceParseGpon($distIndex) {
+    protected function distanceParseGpon() {
         $result = array();
 
         //distance index preprocessing
-        if (!empty($distIndex) AND ! empty($this->snIndex)) {
-            foreach ($this->snIndex as $io => $eachsn) {
-                if (isset($distIndex[$io])) {
-                    $distance = $distIndex[$io];
-                    $result[$eachsn] = $distance;
-                }
+        if (!empty($this->distanceIndex) AND ! empty($this->snIndex)) {
+            $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
+            foreach ($this->$realData as $io => $eachsn) {
+                $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
             }
-            $result = serialize($result);
-            file_put_contents(PONizer::DISTCACHE_PATH . $this->oltid . '_' . PONizer::DISTCACHE_EXT, $result);
         }
+        $result = serialize($result);
+        file_put_contents(PONizer::DISTCACHE_PATH . $this->oltid . '_' . PONizer::DISTCACHE_EXT, $result);
     }
 
     protected function serialNumberParse() {
@@ -800,6 +824,7 @@ class PonZte {
                 $result[$naturalIndex] = $naturalSn;
             }
         }
+        unset($this->snIndex);
         $this->snIndex = $result;
     }
 
@@ -869,10 +894,6 @@ class PonZte {
         }
     }
 
-    protected function zxc() {
-        
-    }
-
 //Main section
 
     /**
@@ -907,25 +928,10 @@ class PonZte {
         $this->serialNumberParse();
         $this->sigIndexCalc($this->snIndex);
         $this->signalParseGpon();
-        if (!empty($snIndex)) {
-            foreach ($snIndex as $ioIndex => $eachSn) {
-
-                if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
-                    $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . $ioIndex);
-                    $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
-                    $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
-                    $explodeDist = explode('=', $distIndex);
-                    $naturalIndex = trim($explodeDist[0]);
-                    if (isset($explodeDist[1])) {
-                        $naturalDist = trim($explodeDist[1]);
-                        $distIndexTmp[$naturalIndex] = $naturalDist;
-                    }
-                }
-            }
-        }
 
         if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
-            $this->distanceParseGpon($distIndexTmp, $snIndex);
+            $this->distanceIndexProcess();
+            $this->distanceParseGpon();
         }
     }
 
@@ -935,97 +941,14 @@ class PonZte {
      * @return void
      */
     public function huaweiPollGpon() {
-        $snIndex = $this->snmpwalk($this->currentSnmpTemplate['signal']['SNINDEX']);
-        foreach ($snIndex as $io => &$value) {
-            $value = $this->strRemove($this->currentSnmpTemplate['signal']['SNVALUE'], $value);
-            $value = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SNINDEX'], $value);
-            $value = trim($snIndex);
-        }
-        $snIndexTmp = array();
-        foreach ($snIndex as $rawIo => $rawEach) {
-            $rawEach = trim($rawEach);
-            $explodeIndex = explode('=', $rawEach);
-            if (!empty($explodeIndex)) {
-                $naturalIndex = trim($explodeIndex[0]);
-                $tmpSn = trim($explodeIndex[1]);
-                $tmpSn = explode(" ", $tmpSn);
-                $check = trim($tmpSn[0]);
-                if ($check == 'STRING:') {
-                    $tmpSn = bin2hex($tmpSn[1]);
-                    if (strlen($tmpSn) == 20) {
-                        $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                        $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                        $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                        $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                        $tmpStr = '';
-                        for ($i = 10; $i <= 17; $i++) {
-                            $tmpStr .= $tmpSn[$i];
-                        }
-                        $tmp[4] = $tmpStr;
-                    } else {
-                        $tmp[0] = $tmpSn[0] . $tmpSn[1];
-                        $tmp[1] = $tmpSn[2] . $tmpSn[3];
-                        $tmp[2] = $tmpSn[4] . $tmpSn[5];
-                        $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                        $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
-                    }
-                    if (!isset($tmpSn[12])) {
-//                                                print_r($tmpSn);
-//                                                echo '<br />';
-                    }
-                    $tmpSn = $tmp;
-                } else {
-                    $tmp[0] = $tmpSn[0];
-                    $tmp[1] = $tmpSn[1];
-                    $tmp[2] = $tmpSn[2];
-                    $tmp[3] = $tmpSn[3];
-                    $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
-                    $tmpSn = $tmp;
-                }
-                if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'STRING') {
-                    $naturalSn = $this->hexToString($tmpSn[0]);
-                    $naturalSn .= $this->hexToString($tmpSn[1]);
-                    $naturalSn .= $this->hexToString($tmpSn[2]);
-                    $naturalSn .= $this->hexToString($tmpSn[3]);
-                    $naturalSn .= $tmpSn[4];
-                }
-                if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'PURE') {
-                    $naturalSn = implode('', $tmpSn);
-                }
+        $this->snIndexProcess();
+        $this->serialNumberParse();
+        $this->sigIndexCalc($this->snIndex);
+        $this->signalParseGpon();
 
-                $snIndexTmp[$naturalIndex] = $naturalSn;
-            }
-        }
-
-
-        $sigIndexTmp = array();
-        if (!empty($snIndexTmp)) {
-            foreach ($snIndexTmp as $ioIndex => $eachSn) {
-                $tmpSig = $this->snmpwalk($this->currentSnmpTemplate['signal']['SIGINDEX'] . $ioIndex);
-                $sigIndex = str_replace($this->currentSnmpTemplate['signal']['SIGINDEX'], '', $tmpSig);
-                $sigIndex = str_replace($this->currentSnmpTemplate['signal']['SIGVALUE'], '', $sigIndex);
-                $explodeSig = explode('=', $sigIndex);
-                $naturalIndex = trim($explodeSig[0]);
-                if (isset($explodeSig[1])) {
-                    $naturalSig = trim($explodeSig[1]);
-                    $sigIndexTmp[$naturalIndex] = $naturalSig;
-                }
-                if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
-                    $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . $ioIndex);
-                    $distIndex = str_replace($this->currentSnmpTemplate['signal']['DISTANCE'], '', $tmpDist);
-                    $distIndex = str_replace($this->currentSnmpTemplate['signal']['DISTVALUE'], '', $distIndex);
-                    $explodeDist = explode('=', $distIndex);
-                    $naturalIndex = trim($explodeDist[0]);
-                    if (isset($explodeDist[1])) {
-                        $naturalDist = trim($explodeDist[1]);
-                        $distIndexTmp[$naturalIndex] = $naturalDist;
-                    }
-                }
-            }
-        }
-        $this->signalParseGpon($sigIndexTmp, $snIndexTmp, $this->currentSnmpTemplate['signal']);
         if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
-            $this->distanceParseGpon($distIndexTmp, $snIndexTmp);
+            $this->distanceIndexProcess();
+            $this->distanceParseGpon();
         }
     }
 
