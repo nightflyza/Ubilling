@@ -434,20 +434,18 @@ class PonZte {
      */
     protected function intIndexCalcEpon() {
         $cards = $this->cardsEponCalc();
-        $intIndex = array();
         $onu_id_start = 805830912;
         foreach ($cards as $card) {
             $onu_id = $onu_id_start + (524288 * ($card - 1));
             for ($port = 1; $port <= 16; $port++) {
                 $tmp_id = $onu_id;
                 for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
-                    $intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
+                    $this->intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
                     $tmp_id += 256;
                 }
                 $onu_id += 65536;
             }
         }
-        $this->intIndex = $intIndex;
     }
 
     /**
@@ -461,21 +459,34 @@ class PonZte {
             $allCards = $this->snmpwalk($this->currentSnmpTemplate['misc']['ALLCARDS']);
             foreach ($allCards as $io => $value) {
                 $split = explode("=", $value);
+                var_dump($value);
                 if (isset($split[1])) {
                     $oid = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['ALLCARDS'], $split[0]);
                     $oidParts = explode(".", $oid);
                     $cardNumber = end($oidParts);
                     $card = trim(str_replace("STRING:", '', $split[1]));
+                    $card = str_replace('"', '', $card);
                     if (isset($this->eponCards[$card])) {
                         $cards[] = $cardNumber;
                     }
                 }
             }
-        } else {
-            for ($card = $this->currentSnmpTemplate['misc']['CARDOFFSET']; $card <= 20; $card++) {
-                $cards[] = $card;
-            }
         }
+        /*
+
+          if (empty($cards)) {
+          if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
+          $start = $this->currentSnmpTemplate['misc']['CARDOFFSET'];
+          } else {
+          $start = 1;
+          }
+          for ($card = $start; $card <= 20; $card++) {
+          $cards[] = $card;
+          }
+          }
+         * 
+         */
+
         return($card);
     }
 
@@ -502,7 +513,6 @@ class PonZte {
      */
     protected function macIndexCalc() {
         $macIndexRaw = $this->macIndexRawCalc();
-        $macIndex = array();
         if (!empty($macIndexRaw)) {
             foreach ($macIndexRaw as $rawIo => $rawEach) {
                 $explodeIndex = explode('=', $rawEach);
