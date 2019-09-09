@@ -1024,6 +1024,7 @@ class PonZte {
         if (isset($this->currentSnmpTemplate['misc'])) {
             if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
                 $this->fdbCalc();
+                $this->fdbParseGpon();
             }
         }
     }
