@@ -125,14 +125,14 @@ class AskoziaNum {
      * 
      * @return int
      */
-    protected function getReply() {
+    protected function getReply($ignoreCache = false) {
         $detectedLogin = $this->telepathy->getByPhone($this->number, true, true);
         $askReply = '0';
 
         if (!empty($detectedLogin)) {
 
             $userData = $this->cache->get('ASKUSERDATA', self::CACHE_TIME);
-            if (empty($userData)) {
+            if (empty($userData) or $ignoreCache) {
                 $userData = array();
                 $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline` from `users`");
                 if (!empty($userDataRaw)) {
@@ -191,11 +191,11 @@ class AskoziaNum {
      * 
      * @return void
      */
-    public function renderReply($asteriskGet = false) {
+    public function renderReply($asteriskGet = false, $ignoreCache = false) {
         if (!$asteriskGet) {
-            die($this->getReply());
+            die($this->getReply($ignoreCache));
         } else {
-            $this->getReply();
+            $this->getReply($ignoreCache);
         }
     }
 
