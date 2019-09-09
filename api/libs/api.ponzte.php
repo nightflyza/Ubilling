@@ -248,7 +248,7 @@ class PonZte {
      */
     protected function snmpwalk($oid) {
         $data = $this->snmp->walk($this->oltFullAddress, $this->oltCommunity, $oid, PONizer::SNMPCACHE);
-        return(explodeRows($data));
+        return(explodeRows(trim($data)));
     }
 
     /**
