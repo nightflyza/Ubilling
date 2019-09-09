@@ -506,7 +506,7 @@ class PonZte {
         if (!empty($macIndexRaw)) {
             foreach ($macIndexRaw as $rawIo => $rawEach) {
                 $explodeIndex = explode('=', $rawEach);
-                if (!isset($explodeIndex[1])) {
+                if (isset($explodeIndex[1])) {
                     $naturalIndex = trim($explodeIndex[0]);
                     $naturalMac = trim($explodeIndex[1]);
                     $this->macIndex[$naturalIndex] = $naturalMac;
