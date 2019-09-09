@@ -829,16 +829,21 @@ class PonZte {
      */
     protected function serialNumberParse() {
         $result = array();
-        foreach ($this->snIndex as $rawIndex => $rawEach) {
-            $tmpSn = explode(" ", $rawEach);
-            $check = trim($tmpSn[0]);
-            if ($check == 'STRING:') {
-                $naturalSn = $this->serialNumberBinaryParse($tmpSn[1]);
-            } else {
-                $naturalSn = $this->serialNumberHexParse($tmpSn);
-            }
+        foreach ($this->snIndex as $rawIo => $rawEach) {
+            $split = explode("=", $rawEach);
+            if (isset($split[1])) {
+                $naturalIndex = trim($split[0]);
+                $rawSn = trim($split[1]);
+                $tmpSn = explode(" ", $rawSn);
+                $check = trim($tmpSn[0]);
+                if ($check == 'STRING:') {
+                    $naturalSn = $this->serialNumberBinaryParse($tmpSn[1]);
+                } else {
+                    $naturalSn = $this->serialNumberHexParse($tmpSn);
+                }
 
-            $result[$rawIndex] = $naturalSn;
+                $result[$naturalIndex] = $naturalSn;
+            }
         }
         unset($this->snIndex);
         $this->snIndex = $result;
