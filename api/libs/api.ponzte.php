@@ -459,9 +459,9 @@ class PonZte {
         $cards = array();
         if (isset($this->currentSnmpTemplate['misc']['ALLCARDS'])) {
             $allCards = $this->snmpwalk($this->currentSnmpTemplate['misc']['ALLCARDS']);
-            if (!empty($allCards)) {
-                foreach ($allCards as $io => $value) {
-                    $split = explode("=", $value);
+            foreach ($allCards as $io => $value) {
+                $split = explode("=", $value);
+                if (isset($split[1])) {
                     $oid = $this->strRemoveOidWithDot($this->currentSnmpTemplate['misc']['ALLCARDS'], $split[0]);
                     $oidParts = explode(".", $oid);
                     $cardNumber = end($oidParts);
@@ -506,14 +506,13 @@ class PonZte {
         if (!empty($macIndexRaw)) {
             foreach ($macIndexRaw as $rawIo => $rawEach) {
                 $explodeIndex = explode('=', $rawEach);
-                if (!empty($explodeIndex)) {
+                if (!isset($explodeIndex[1])) {
                     $naturalIndex = trim($explodeIndex[0]);
                     $naturalMac = trim($explodeIndex[1]);
-                    $macIndex[$naturalIndex] = $naturalMac;
+                    $this->macIndex[$naturalIndex] = $naturalMac;
                 }
             }
         }
-        $this->macIndex = $macIndex;
     }
 
     /**
@@ -729,7 +728,7 @@ class PonZte {
                 $macTmp[$ioIndex] = $eachMac;
             } elseif ($this->interfaceDecode($ioIndex)) {
                 $eachMac = strtolower($eachMac);
-                $eachMac = str_replaace(" ", ":", $eachMac);
+                $eachMac = str_replace(" ", ":", $eachMac);
                 $result[$eachMac] = $this->interfaceDecode($ioIndex);
                 $macTmp[$ioIndex] = $eachMac;
             }
