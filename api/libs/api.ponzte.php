@@ -641,7 +641,7 @@ class PonZte {
             $naturalIndex = trim($explodeDist[0]);
             if (isset($explodeDist[1])) {
                 $naturalDist = trim($explodeDist[1]);
-                $$this->distanceIndex[$naturalIndex] = $naturalDist;
+                $this->distanceIndex[$naturalIndex] = $naturalDist;
             }
         }
     }
@@ -739,9 +739,6 @@ class PonZte {
      */
     protected function interfaceParseEpon() {
         $result = array();
-        $macTmp = array();
-
-        //storing results
 
         foreach ($this->macIndex as $ioIndex => $eachMac) {
             if (isset($this->intIndex[$ioIndex])) {
@@ -749,12 +746,10 @@ class PonZte {
                 $eachMac = str_replace(" ", ":", $eachMac);
                 $interface = $this->intIndex[$ioIndex];
                 $result[$eachMac] = $interface;
-                $macTmp[$ioIndex] = $eachMac;
             } elseif ($this->interfaceDecode($ioIndex)) {
                 $eachMac = strtolower($eachMac);
                 $eachMac = str_replace(" ", ":", $eachMac);
                 $result[$eachMac] = $this->interfaceDecode($ioIndex);
-                $macTmp[$ioIndex] = $eachMac;
             }
         }
         $result = serialize($result);
@@ -833,7 +828,7 @@ class PonZte {
         //distance index preprocessing
         if (!empty($this->distanceIndex) AND ! empty($this->snIndex)) {
             $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
-            foreach ($this->$realData as $io => $eachsn) {
+            foreach ($realData as $io => $eachsn) {
                 $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
             }
         }
@@ -887,6 +882,39 @@ class PonZte {
             }
         }
         file_put_contents(PONizer::FDBCACHE_PATH . $this->oltid . '_' . PONizer::FDBCACHE_EXT, serialize($result));
+    }
+
+    /**
+     * Parses & stores in cache ZTE OLT ONU interfaces
+     *
+     * @return void
+     */
+    protected function interfaceParseGpon() {
+        $result = array();
+
+        //storing results
+
+        foreach ($this->snIndex as $ioIndex => $eachSn) {
+            $eachSn = str_replace(" ", ":", $eachMac);
+            $result[$eachSn] = $this->interfaceDecode($ioIndex);
+        }
+        $result = serialize($result);
+        file_put_contents(PONizer::INTCACHE_PATH . $this->oltid . '_' . PONizer::INTCACHE_EXT, $result);
+    }
+
+    /**
+     * Parses & stores in cache ZTE OLT ONU ID
+     *
+     * @return void
+     */
+    protected function onuidParseGpon() {
+        $snTmp = array();
+
+        foreach ($this->snIndex as $ioIndex => $eachSn) {
+            $snTmp[$this->interfaceDecode($ioIndex)] = $eachSn;
+        }
+        $snTmp = serialize($snTmp);
+        file_put_contents(PONizer::ONUCACHE_PATH . $this->oltid . '_' . PONizer::ONUCACHE_EXT, $snTmp);
     }
 
     /**
@@ -1025,6 +1053,8 @@ class PonZte {
             if (isset($this->currentSnmpTemplate['misc']['CARDOFFSET'])) {
                 $this->fdbCalc();
                 $this->fdbParseGpon();
+                $this->interfaceParseGpon();
+                $this->onuidParseGpon();
             }
         }
     }
