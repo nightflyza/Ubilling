@@ -285,14 +285,17 @@ class PonZte {
      * 
      * @return array
      */
-    protected function signalIndexEponProcessing() {
+    protected function signalIndexProcessing() {
         foreach ($this->sigIndex as $devIndex => &$eachsig) {
-            $signalRaw = $eachsig; // signal level
-
             if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE']) {
                 $eachsig = -9000;
             } else {
-                $eachsig = str_replace('"', '', $signalRaw);
+                $eachsig = str_replace('"', '', $eachsig);
+                if ($this->currentSnmpTemplate['signal']['OFFSETMODE'] == 'div') {
+                    if ($this->currentSnmpTemplate['signal']['OFFSET']) {
+                        $eachsig = $eachsig / $this->currentSnmpTemplate['signal']['OFFSET'];
+                    }
+                }
             }
         }
     }
@@ -309,6 +312,20 @@ class PonZte {
         }
     }
 
+    protected function serialIndexGponProcessing() {
+        foreach ($this->snIndex as $devIndex => &$eachSn) {
+            $eachSn = str_replace(' ', ':', $eachSn);
+            $eachSn = strtoupper($eachSn);
+        }
+    }
+
+    /**
+     * Coverts dec value to binary with byte offset.
+     * 
+     * @param int $binary
+     * 
+     * @return array()
+     */
     protected function getDecodeType($binary) {
         $match = array();
         $match2 = array();
@@ -349,6 +366,14 @@ class PonZte {
         return($match);
     }
 
+    /**
+     * Converts binary string to human readable format like epon-olt_1/1/10:16
+     * 
+     * @param array $match
+     * @param boolg $default
+     * 
+     * @return string
+     */
     protected function stdDecodeOutput($match, $default = true) {
         $typeName = array(
             1 => 'type_olt_virtualIfBER',
@@ -484,13 +509,12 @@ class PonZte {
      * 
      * @return array
      */
-    protected function sigIndexCalc() {
+    protected function sigIndexCalc($data) {
         $sigIndexTmp = array();
-        if (!empty($this->macIndex)) {
-            foreach ($this->macIndex as $ioIndex => $eachMac) {
+        if (!empty($data)) {
+            foreach ($data as $ioIndex => $eachVal) {
                 $tmpSig = $this->snmpwalk($this->currentSnmpTemplate['signal']['SIGINDEX'] . $ioIndex);
-                $sigIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['SIGINDEX'], $tmpSig);
-                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $sigIndex);
+                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $tmpSig[0]);
                 $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGINDEX'], $sigIndex);
                 $explodeSig = explode('=', $sigIndex);
                 $naturalIndex = trim($explodeSig[0]);
@@ -500,6 +524,7 @@ class PonZte {
                 }
             }
         }
+        unset($this->sigIndex);
         $this->sigIndex = $sigIndexTmp;
     }
 
@@ -553,6 +578,11 @@ class PonZte {
         return FALSE;
     }
 
+    /**
+     * Preprocessing serial index array with removing unneded substrings.
+     * 
+     * @return void
+     */
     protected function snIndexProcess() {
         $this->snIndex = $this->snmpwalk($this->currentSnmpTemplate['signal']['SNINDEX']);
         foreach ($this->snIndex as $io => &$value) {
@@ -685,7 +715,7 @@ class PonZte {
     protected function signalParseEpon() {
         $result = array();
         if ((!empty($this->sigIndex)) AND ( !empty($this->macIndex))) {
-            $this->signalIndexEponProcessing();
+            $this->signalIndexProcessing();
             $this->macIndexEponProcessing();
             $realData = array_intersect_key($this->macIndex, $this->sigIndex);
 
@@ -700,64 +730,32 @@ class PonZte {
     }
 
     /**
-     * Performs signal preprocessing for sig/sn index arrays and stores it into cache for ZTE OLT
-     *     
-     * @param array $sigIndex     
-     * @param array $snIndex
+     * Performs signal preprocessing for sig/sn index arrays and stores it into cache for ZTE OLT          
      *
      * @return void
      */
-    protected function signalParseGpon($sigIndex, $snIndex, $snmpTemplate) {
-        $sigTmp = array();
+    protected function signalParseGpon() {
+
         $result = array();
         $curDate = curdatetime();
 
-//signal index preprocessing
-        if ((!empty($sigIndex)) AND ( !empty($snIndex))) {
-            foreach ($sigIndex as $devIndex => $eachsig) {
-                $signalRaw = $eachsig; // signal level
-                $signalRaw = str_replace('"', '', $signalRaw);
+        //signal index preprocessing
+        if ((!empty($this->sigIndex)) AND ( !empty($this->snIndex))) {
+            $this->signalIndexProcessing();
+            $this->serialIndexGponProcessing();
+            $realData = array_intersect_key($this->snIndex, $this->sigIndex);
 
-                if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
-                    $signalRaw = 'Offline';
-                } else {
-                    if ($snmpTemplate['OFFSETMODE'] == 'div') {
-                        if ($snmpTemplate['OFFSET']) {
-                            $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
-                        }
-                    }
-                }
-                $sigTmp[$devIndex] = $signalRaw;
-            }
+            //storing results            
+            foreach ($realData as $devId => $eachSn) {
+                $result[$this->snIndex[$devId]] = $this->sigIndex[$devId];
+                //signal history filling
+                $historyFile = PONizer::ONUSIG_PATH . md5($this->snIndex[$devId]);
 
-//mac index preprocessing
-            foreach ($snIndex as $devIndex => $eachSn) {
-                $snRaw = $eachSn; //serial
-                $snRaw = str_replace(' ', ':', $snRaw);
-                $snRaw = strtoupper($snRaw);
-                $snTmp[$devIndex] = $snRaw;
-            }
-
-//storing results
-            if (!empty($snTmp)) {
-                foreach ($snTmp as $devId => $eachSn) {
-                    if (isset($sigTmp[$devId])) {
-                        $signal = $sigTmp[$devId];
-                        $result[$eachSn] = $signal;
-//signal history filling
-                        $historyFile = PONizer::ONUSIG_PATH . md5($eachSn);
-                        if ($signal == 'Offline') {
-                            $signal = -9000; //over 9000 offline signal level :P
-                        }
-
-                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
-                    }
-                }
-
-                $result = serialize($result);
-                file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, $result);
+                file_put_contents($historyFile, $curDate . ',' . $this->sigIndex[$devId] . "\n", FILE_APPEND);
             }
         }
+        $result = serialize($result);
+        file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, $result);
     }
 
     /**
@@ -770,7 +768,7 @@ class PonZte {
     protected function distanceParseGpon($distIndex) {
         $result = array();
 
-//distance index preprocessing
+        //distance index preprocessing
         if (!empty($distIndex) AND ! empty($this->snIndex)) {
             foreach ($this->snIndex as $io => $eachsn) {
                 if (isset($distIndex[$io])) {
@@ -783,7 +781,99 @@ class PonZte {
         }
     }
 
-    //Main section
+    protected function serialNumberParse() {
+        $result = array();
+        foreach ($this->snIndex as $rawIo => $rawEach) {
+            $result = array();
+            $explodeIndex = explode('=', $rawEach);
+            if (!empty($explodeIndex)) {
+                $naturalIndex = trim($explodeIndex[0]);
+                $tmpSn = trim($explodeIndex[1]);
+                $tmpSn = explode(" ", $tmpSn);
+                $check = trim($tmpSn[0]);
+                if ($check == 'STRING:') {
+                    $naturalSn = $this->serialNumberBinaryParse($tmpSn[1]);
+                } else {
+                    $naturalSn = $this->serialNumberHexParse($tmpSn);
+                }
+
+                $result[$naturalIndex] = $naturalSn;
+            }
+        }
+        $this->snIndex = $result;
+    }
+
+    /**
+     * Parsing serial number in binary format and coverting it to needed format.
+     * 
+     * @param array $rawSn
+     * 
+     * @return string
+     */
+    protected function serialNumberBinaryParse($rawSn) {
+        $parts = array();
+        $hexSn = bin2hex($rawSn);
+        if (strlen($hexSn) == 20) {
+            $parts[0] = $this->serialNumberPartsTranslate($hexSn[2] . $hexSn[3]);
+            $parts[1] = $this->serialNumberPartsTranslate($hexSn[4] . $hexSn[5]);
+            $parts[2] = $this->serialNumberPartsTranslate($hexSn[6] . $hexSn[7]);
+            $parts[3] = $this->serialNumberPartsTranslate($hexSn[8] . $hexSn[9]);
+            $parts[4] = '';
+            for ($i = 10; $i <= 17; $i++) {
+                $parts[4] .= $hexSn[$i];
+            }
+        } else {
+            $parts[0] = $this->serialNumberPartsTranslate($hexSn[0] . $hexSn[1]);
+            $parts[1] = $this->serialNumberPartsTranslate($hexSn[2] . $hexSn[3]);
+            $parts[2] = $this->serialNumberPartsTranslate($hexSn[4] . $hexSn[5]);
+            $parts[3] = $this->serialNumberPartsTranslate($hexSn[6] . $hexSn[7]);
+            $parts[4] = '';
+            for ($i = 8; $i <= 15; $i++) {
+                $parts[4] .= $hexSn[$i];
+            }
+        }
+        $result = implode("", $parts);
+        return($result);
+    }
+
+    /**
+     * Parsing serial number in hex format and coverting it to needed format.
+     * 
+     * @param array $rawSn
+     * 
+     * @return string
+     */
+    protected function serialNumberHexParse($rawSn) {
+        $parts[0] = $this->serialNumberPartsTranslate($rawSn[0]);
+        $parts[1] = $this->serialNumberPartsTranslate($rawSn[1]);
+        $parts[2] = $this->serialNumberPartsTranslate($rawSn[2]);
+        $parts[3] = $this->serialNumberPartsTranslate($rawSn[3]);
+        $parts[4] = $rawSn[4] . $rawSn[5] . $rawSn[6] . $rawSn[7];
+        $result = implode("", $parts);
+        return($result);
+    }
+
+    /**
+     * Check mode to convert serial number string vs raw.
+     * 
+     * @param string $part
+     * 
+     * @return string
+     */
+    protected function serialNumberPartsTranslate($part) {
+        if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'STRING') {
+            return($this->hexToString($part));
+        }
+        if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'PURE') {
+            return($part);
+        }
+    }
+
+    protected function zxc() {
+        
+    }
+
+//Main section
 
     /**
      * Polling EPON device
@@ -792,7 +882,7 @@ class PonZte {
      */
     public function pollEpon() {
         $this->macIndexCalc();
-        $this->sigIndexCalc();
+        $this->sigIndexCalc($this->macIndex);
 
         $this->signalParseEpon();
 
@@ -814,74 +904,16 @@ class PonZte {
      */
     public function pollGpon() {
         $this->snIndexProcess();
-        $snIndexTmp = array();
-        foreach ($this->snIndex as $rawIo => $rawEach) {
-            $explodeIndex = explode('=', $rawEach);
-            if (!empty($explodeIndex)) {
-                $naturalIndex = trim($explodeIndex[0]);
-                $tmpSn = trim($explodeIndex[1]);
-                $tmpSn = explode(" ", $tmpSn);
-                $check = trim($tmpSn[0]);
-                if ($check == 'STRING:') {
-                    $tmpSn = bin2hex($tmpSn[1]);
-                    if (strlen($tmpSn) == 20) {
-                        $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                        $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                        $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                        $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                        $tmpStr = '';
-                        for ($i = 10; $i <= 17; $i++) {
-                            $tmpStr .= $tmpSn[$i];
-                        }
-                        $tmp[4] = $tmpStr;
-                    } else {
-                        $tmp[0] = $tmpSn[0] . $tmpSn[1];
-                        $tmp[1] = $tmpSn[2] . $tmpSn[3];
-                        $tmp[2] = $tmpSn[4] . $tmpSn[5];
-                        $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                        $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
-                    }
-                    $tmpSn = $tmp;
-                } else {
-                    $tmp[0] = $tmpSn[0];
-                    $tmp[1] = $tmpSn[1];
-                    $tmp[2] = $tmpSn[2];
-                    $tmp[3] = $tmpSn[3];
-                    $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
-                    $tmpSn = $tmp;
-                }
-                if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'STRING') {
-                    $naturalSn = $this->hexToString($tmpSn[0]);
-                    $naturalSn .= $this->hexToString($tmpSn[1]);
-                    $naturalSn .= $this->hexToString($tmpSn[2]);
-                    $naturalSn .= $this->hexToString($tmpSn[3]);
-                    $naturalSn .= $tmpSn[4];
-                }
-                if ($this->currentSnmpTemplate['signal']['SNMODE'] == 'PURE') {
-                    $naturalSn = implode('', $tmpSn);
-                }
+        $this->serialNumberParse();
+        $this->sigIndexCalc($this->snIndex);
+        $this->signalParseGpon();
+        if (!empty($snIndex)) {
+            foreach ($snIndex as $ioIndex => $eachSn) {
 
-                $snIndexTmp[$naturalIndex] = $naturalSn;
-            }
-        }
-
-
-        $sigIndexTmp = array();
-        if (!empty($snIndexTmp)) {
-            foreach ($snIndexTmp as $ioIndex => $eachSn) {
-                $tmpSig = $this->snmpwalk($this->currentSnmpTemplate['signal']['SIGINDEX'] . $ioIndex);
-                $sigIndex = str_replace($this->currentSnmpTemplate['signal']['SIGINDEX'], '', $tmpSig);
-                $sigIndex = str_replace($this->currentSnmpTemplate['signal']['SIGVALUE'], '', $sigIndex);
-                $explodeSig = explode('=', $sigIndex);
-                $naturalIndex = trim($explodeSig[0]);
-                if (isset($explodeSig[1])) {
-                    $naturalSig = trim($explodeSig[1]);
-                    $sigIndexTmp[$naturalIndex] = $naturalSig;
-                }
                 if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
                     $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . $ioIndex);
-                    $distIndex = str_replace($this->currentSnmpTemplate['signal']['DISTANCE'], '', $tmpDist);
-                    $distIndex = str_replace($this->currentSnmpTemplate['signal']['DISTVALUE'], '', $distIndex);
+                    $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
+                    $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
                     $explodeDist = explode('=', $distIndex);
                     $naturalIndex = trim($explodeDist[0]);
                     if (isset($explodeDist[1])) {
@@ -891,9 +923,9 @@ class PonZte {
                 }
             }
         }
-        $this->signalParseGpon($sigIndexTmp, $snIndexTmp, $this->currentSnmpTemplate['signal']);
+
         if (isset($this->currentSnmpTemplate['signal']['DISTANCE'])) {
-            $this->distanceParseGpon($distIndexTmp, $snIndexTmp);
+            $this->distanceParseGpon($distIndexTmp, $snIndex);
         }
     }
 
