@@ -295,7 +295,7 @@ class PonZte {
     protected function signalIndexProcessing() {
         foreach ($this->sigIndex as $devIndex => &$eachsig) {
             if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE']) {
-                $eachsig = -9000;
+                $eachsig = 'Offline';
             } else {
                 $eachsig = str_replace('"', '', $eachsig);
                 if ($this->currentSnmpTemplate['signal']['OFFSETMODE'] == 'div') {
@@ -756,9 +756,13 @@ class PonZte {
 
             foreach ($realData as $devId => $io) {
                 $result[$this->macIndex[$devId]] = $this->sigIndex[$devId];
+                $tmpSig = $this->sigIndex[$devId];
+                if ($this->sigIndex[$devId] == 'Offline') {
+                    $tmpSig = -9000;
+                }
 
                 $historyFile = PONizer::ONUSIG_PATH . md5($this->macIndex[$devId]);
-                file_put_contents($historyFile, curdatetime() . ',' . $this->sigIndex[$devId] . "\n", FILE_APPEND);
+                file_put_contents($historyFile, curdatetime() . ',' . $tmpSig . "\n", FILE_APPEND);
             }
         }
         file_put_contents(PONizer::SIGCACHE_PATH . $this->oltid . '_' . PONizer::SIGCACHE_EXT, serialize($result));
@@ -783,10 +787,14 @@ class PonZte {
             //storing results            
             foreach ($realData as $devId => $eachSn) {
                 $result[$this->snIndex[$devId]] = $this->sigIndex[$devId];
+                $tmpSig = $this->sigIndex[$devId];
+                if ($tmpSig == 'Offline') {
+                    $tmpSig = -9000;
+                }
                 //signal history filling
                 $historyFile = PONizer::ONUSIG_PATH . md5($this->snIndex[$devId]);
 
-                file_put_contents($historyFile, $curDate . ',' . $this->sigIndex[$devId] . "\n", FILE_APPEND);
+                file_put_contents($historyFile, $curDate . ',' . $tmpSig . "\n", FILE_APPEND);
             }
         }
         $result = serialize($result);
