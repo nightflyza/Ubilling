@@ -574,8 +574,7 @@ class PonZte {
 
         foreach ($this->macIndex as $ioIndex => $eachMac) {
             $eachMac = strtolower($eachMac);
-            $eachMac = explode(" ", $eachMac);
-            $eachMac = implode(":", $eachMac);
+            $eachMac = str_replace(" ", ":", $eachMac);
             $macTmp[$ioIndex] = $eachMac;
         }
         $macTmp = serialize($macTmp);
@@ -663,15 +662,13 @@ class PonZte {
         foreach ($this->macIndex as $ioIndex => $eachMac) {
             if (isset($this->intIndex[$ioIndex])) {
                 $eachMac = strtolower($eachMac);
-                $eachMac = explode(" ", $eachMac);
-                $eachMac = implode(":", $eachMac);
+                $eachMac = str_replace(" ", ":", $eachMac);
                 $interface = $this->intIndex[$ioIndex];
                 $result[$eachMac] = $interface;
                 $macTmp[$ioIndex] = $eachMac;
             } elseif ($this->interfaceDecode($ioIndex)) {
                 $eachMac = strtolower($eachMac);
-                $eachMac = explode(" ", $eachMac);
-                $eachMac = implode(":", $eachMac);
+                $eachMac = str_replaace(" ", ":", $eachMac);
                 $result[$eachMac] = $this->interfaceDecode($ioIndex);
                 $macTmp[$ioIndex] = $eachMac;
             }
