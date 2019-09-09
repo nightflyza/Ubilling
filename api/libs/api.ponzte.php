@@ -680,8 +680,8 @@ class PonZte {
         $macTmp = array();
         $result = array();
         //fdb index preprocessing
-        if ((!empty($this->FDBIndex)) AND ( !empty($this->macIndex))) {
-            foreach ($this->FDBIndex as $io => $eachfdb) {
+        if ((!empty($this->fdbIndex)) AND ( !empty($this->macIndex))) {
+            foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOID = trim($line[0]);
                 $decParts = explode('.', $devOID);
@@ -705,6 +705,7 @@ class PonZte {
             }
 
             $realData = array_intersect_key($macTmp, $fdbTmp);
+
             //storing results            
             foreach ($realData as $devId => $eachMac) {
                 $result[$macTmp[$devId]] = $fdbTmp[$devId];
