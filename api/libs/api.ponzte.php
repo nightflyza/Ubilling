@@ -319,6 +319,11 @@ class PonZte {
         }
     }
 
+    /**
+     * Serial number indexes preprocessing.
+     * 
+     * @return void
+     */
     protected function serialIndexGponProcessing() {
         foreach ($this->snIndex as $devIndex => &$eachSn) {
             $eachSn = str_replace(' ', ':', $eachSn);
