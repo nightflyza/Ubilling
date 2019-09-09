@@ -805,6 +805,11 @@ class PonZte {
         file_put_contents(PONizer::DISTCACHE_PATH . $this->oltid . '_' . PONizer::DISTCACHE_EXT, $result);
     }
 
+    /**
+     * Parsing serial numbers;
+     * 
+     * @return void
+     */
     protected function serialNumberParse() {
         $result = array();
         foreach ($this->snIndex as $rawIo => $rawEach) {
