@@ -449,7 +449,7 @@ class Asterisk {
      * 
      * @param int $number, $param
      * 
-     * @return void
+     * @return mixed
      */
     public function AsteriskGetInfoApi($number, $param) {
         $this->AsteriskGetLoginByNumberQuery();
