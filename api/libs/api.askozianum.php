@@ -117,17 +117,23 @@ class AskoziaNum {
 
     /**
      * Returns some state int for some user if he is detected by mobile phone
-     * 
+     * Can return cash balance also. In that case a serialized and base64 encoded array
+     * with user acc state and acc cash balance is returned
+     *
+     * @param $ignoreCache
+     * @param $getMoney
+     *
      * 0 - user not found
      * 1 - user found and have positive balance
      * 2 - user found and have negative balance
      * 3 - user found and accoun is frozen or something like that
      * 
-     * @return int
+     * @return mixed
      */
-    protected function getReply($ignoreCache = false) {
+    protected function getReply($ignoreCache = false, $getMoney = false) {
         $detectedLogin = $this->telepathy->getByPhone($this->number, true, true);
         $askReply = '0';
+        $askReplyArr = array();
 
         if (!empty($detectedLogin)) {
 
@@ -152,9 +158,15 @@ class AskoziaNum {
                 if (($userData['Passive'] == 1) OR ( $userData['Down'] == 1) OR ( $userData['AlwaysOnline'] == 0)) {
                     $askReply = '3';
                 }
+
+                if ($getMoney) {
+                    $askReplyArr[] = $askReply;
+                    $askReplyArr[] = round($userData['Cash'], 2);
+                    $askReply = base64_encode(serialize($askReplyArr));
+                }
             }
         }
-        $this->log($askReply, $detectedLogin);
+        $this->log((($getMoney) ? print_r($askReplyArr, true) : $askReply), $detectedLogin);
         return ($askReply);
     }
 
@@ -191,11 +203,11 @@ class AskoziaNum {
      * 
      * @return void
      */
-    public function renderReply($asteriskGet = false, $ignoreCache = false) {
+    public function renderReply($asteriskGet = false, $ignoreCache = false, $getMoney = false) {
         if (!$asteriskGet) {
-            die($this->getReply($ignoreCache));
+            die($this->getReply($ignoreCache, $getMoney));
         } else {
-            $this->getReply($ignoreCache);
+            $this->getReply($ignoreCache, $getMoney);
         }
     }
 
