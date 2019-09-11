@@ -14,14 +14,15 @@ if ($_GET['action'] == 'asterisk') {
         if (wf_CheckGet(array('number'))) {
             if (wf_CheckGet(array('param'))) {
                 $ignoreCache = wf_CheckGet(array('ignorecache'));
+                $getMoney = wf_CheckGet(array('getmoney'));
                 $number = trim($_GET['number']);
                 $askNum = new AskoziaNum();
                 $askNum->setNumber($number);
 
                 if ($_GET['param'] == 'userstatus') {
-                    $askNum->renderReply(false, $ignoreCache);
+                    $askNum->renderReply(false, $ignoreCache, $getMoney);
                 } else {
-                    $askNum->renderReply(true, $ignoreCache);
+                    $askNum->renderReply(true, $ignoreCache, $getMoney);
 
                     $asterisk = new Asterisk();
                     $result = $asterisk->AsteriskGetInfoApi($number, $_GET['param']);
