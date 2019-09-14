@@ -579,16 +579,16 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
 
     if ($ubillingConfig->getAlterParam('DREAMKAS_ENABLED')) {
         $DreamKas = new DreamKas();
-        $table.= $DreamKas->web_FiscalizePaymentCtrls('internet');
-        $table.= wf_tag('script', false, '', 'type="text/javascript"');
-        $table.= '$(document).ready(function() {
+        $table .= $DreamKas->web_FiscalizePaymentCtrls('internet');
+        $table .= wf_tag('script', false, '', 'type="text/javascript"');
+        $table .= '$(document).ready(function() {
                     // dirty hack with setTimeout() to work in Chrome 
                     setTimeout(function(){
                             $(\'#cashfield\').focus();
                     }, 100);
                   });   
                  ';
-        $table.= wf_tag('script', true);
+        $table .= wf_tag('script', true);
     }
 
     $table .= wf_Submit(__('Payment'));
@@ -4853,10 +4853,21 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
  * @return bool
  */
 function zb_TariffProtected($tariffname) {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $tariffname = mysql_real_escape_string($tariffname);
     $query = "SELECT `login` from `users` WHERE `Tariff`='" . $tariffname . "' OR `TariffChange`='" . $tariffname . "' LIMIT 1;";
     $raw = simple_query($query);
     $result = (empty($raw)) ? false : true;
+    if (!$result) {
+        if (@$altCfg['DEALWITHIT_ENABLED']) {
+            $dwi=new nya_dealwithit();
+            $dwi->where('action','=','tariffchange');
+            $dwi->where('param','=', ubRouting::filters($tariffname, 'mres'));
+            $moveCount=$dwi->getAll();
+            $result=(empty($moveCount)) ? false : true;
+        }
+    }
     return ($result);
 }
 
