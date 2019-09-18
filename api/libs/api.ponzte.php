@@ -894,7 +894,8 @@ class PonZte {
         //storing results
 
         foreach ($this->snIndex as $ioIndex => $eachSn) {
-            $result[$eachSn] = $this->interfaceDecode($ioIndex);
+            $ioIndexSplit = explode(".", $ioIndex);
+            $result[$eachSn] = $this->gponOltInterfaceDecode($ioIndexSplit[0]) . $ioIndexSplit[1];
         }
         $result = serialize($result);
         file_put_contents(PONizer::INTCACHE_PATH . $this->oltid . '_' . PONizer::INTCACHE_EXT, $result);

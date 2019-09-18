@@ -1855,6 +1855,7 @@ class PONizer {
 
     /**
      * Returns ONU ID by ONU MAC or 0 if not found
+     * Now also checks serial number
      *
      * @param string $mac
      *
@@ -1867,6 +1868,9 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if ($each['mac'] == $mac) {
+                    $ONUID = $each['id'];
+                }
+                if ($each['serial'] == strtoupper($mac)) {
                     $ONUID = $each['id'];
                 }
             }
@@ -3366,7 +3370,12 @@ class PONizer {
 
                 $data[] = $each['id'];
                 if ($intCacheAvail) {
-                    $data[] = @$this->interfaceCache[$each['mac']];
+                    if (isset($this->interfaceCache[$each['mac']])) {
+                        $data[] = @$this->interfaceCache[$each['mac']];
+                    }
+                    if (isset($this->interfaceCache[$each['serial']])) {
+                        $data[] = @$this->interfaceCache[$each['serial']];
+                    }
                 }
                 $data[] = $this->getModelName($each['onumodelid']);
                 $data[] = $each['ip'];
@@ -3376,7 +3385,8 @@ class PONizer {
                 if ($distCacheAvail) {
                     if (isset($this->distanceCache[$each['mac']])) {
                         $data[] = @$this->distanceCache[$each['mac']];
-                    } else {
+                    }
+                    if (isset($this->distanceCache[$each['serial']])) {
                         $data[] = @$this->distanceCache[$each['serial']];
                     }
                 }
@@ -3410,9 +3420,11 @@ class PONizer {
      */
     public function ajaxOltFdbData($OnuId) {
         $json = new wf_JqDtHelper();
+        $fdbPointer = '';
         if (!empty($OnuId)) {
             $allUserTariffs = zb_TariffsGetAllUsers();
             $onuMacId = $this->allOnu[$OnuId]['mac'];
+            $onuSerialId = $this->allOnu[$OnuId]['serial'];
             $fdbCacheAvail = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
             if (!empty($fdbCacheAvail)) {
                 $fdbCacheAvail = true;
@@ -3420,12 +3432,18 @@ class PONizer {
             } else {
                 $fdbCacheAvail = false;
             }
-            if ($fdbCacheAvail and isset($this->FDBCache[$onuMacId])) {
+            if (isset($this->FDBCache[$onuMacId])) {
+                $fdbPointer = $this->FDBCache[$onuMacId];
+            }
+            if (isset($this->FDBCache[$onuSerialId])) {
+                $fdbPointer = $this->FDBCache[$onuSerialId];
+            }
+            if ($fdbCacheAvail and $fdbPointer) {
                 $GetLoginMac = zb_UserGetAllMACs();
                 $allAddress = zb_AddressGetFulladdresslistCached();
                 $allRealnames = zb_UserGetAllRealnames();
 
-                foreach ($this->FDBCache[$onuMacId] as $id => $FDBdata) {
+                foreach ($fdbPointer as $id => $FDBdata) {
                     $login = in_array($FDBdata['mac'], array_map('strtolower', $GetLoginMac)) ? array_search($FDBdata['mac'], array_map('strtolower', $GetLoginMac)) : '';
                     $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allAddress[$login], false) : '';
                     $userRealnames = $login ? @$allRealnames[$login] : '';
