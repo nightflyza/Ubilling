@@ -3372,9 +3372,10 @@ class PONizer {
                 if ($intCacheAvail) {
                     if (isset($this->interfaceCache[$each['mac']])) {
                         $data[] = @$this->interfaceCache[$each['mac']];
-                    }
-                    if (isset($this->interfaceCache[$each['serial']])) {
+                    } else if (isset($this->interfaceCache[$each['serial']])) {
                         $data[] = @$this->interfaceCache[$each['serial']];
+                    } else {
+                        $data[] = '';
                     }
                 }
                 $data[] = $this->getModelName($each['onumodelid']);
@@ -3385,9 +3386,10 @@ class PONizer {
                 if ($distCacheAvail) {
                     if (isset($this->distanceCache[$each['mac']])) {
                         $data[] = @$this->distanceCache[$each['mac']];
-                    }
-                    if (isset($this->distanceCache[$each['serial']])) {
+                    } else if (isset($this->distanceCache[$each['serial']])) {
                         $data[] = @$this->distanceCache[$each['serial']];
+                    } else {
+                        $data[] = '';
                     }
                 }
 
