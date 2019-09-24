@@ -181,7 +181,7 @@ $lang['def']['Also you promise to pay for the current month, in accordance with 
 $lang['def']['Additional services are not subject to credit'] = 'Az extra szolgáltatásokra a hitel nem alkalmazható';
 $lang['def']['You already used credit feature in current month. Only one usage per month is allowed.'] = 'A folyó hónapban már igénybe vette a hitel szolgáltatást. Ez a szolgáltatás csak havonta egyszer érhető el.';
 $lang['def']['Announcements'] = 'Hirdetések';
-$lang['def']['There are not any announcements.'] = 'На даний момент немає жодних оголошень.';
+$lang['def']['There are not any announcements.'] = 'Jelenleg nincs hirdetés.';
 $lang['def']['Some announcements are available'] = 'Jelenleg nincsenek hirdetések';
 $lang['def']['This module is disabled'] = 'Ez a modul le van tiltva';
 
