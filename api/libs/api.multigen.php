@@ -2044,24 +2044,26 @@ class MultiGen {
                                     if ($nasOptions['service'] != 'none') {
                                         $nasServices = @$this->services[$eachNasId];
                                         if (!empty($nasServices)) {
+                                            $this->allUserData[$userLogin]['ip'] = $userData['ip'];
+                                            $this->allUserData[$userLogin]['mac'] = $userData['mac'];
                                             if (strpos($nasOptions['service'], 'pod') !== false) {
-                                                $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
-                                                $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
+                                                $podCommand = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['pod']) . "\n";
                                                 $this->savePodQueue($podCommand);
                                                 if (!empty($newUserData)) {
                                                     $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
                                                     $this->replaceSingleUser($newUserName, $userName);
+                                                    $this->changeFramedIp($newUserData['ip'], $userData['ip'], $newUserName);
                                                 }
 
                                                 //adding else to avoid user double kill when use pod + coa services
                                             } else {
                                                 if (strpos($nasOptions['service'], 'coa') !== false) {
-                                                    $podCommand = '{PRINTF} "User-Name= ' . $userName . '" | {SUDO} {RADCLIENT} {NASIP}:{NASPORT} disconnect {NASSECRET}' . "\n";
-                                                    $podCommand = $this->getAttributeValue($userName, $userData, $eachNasId, $podCommand);
+                                                    $podCommand = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['pod']) . "\n";
                                                     $this->saveCoaQueue($podCommand);
                                                     if (!empty($newUserData)) {
                                                         $newUserName = $this->getLoginUsername($userLogin, $newUserData, $userNameType);
                                                         $this->replaceSingleUser($newUserName, $userName);
+                                                        $this->changeFramedIp($newUserData['ip'], $userData['ip'], $newUserName);
                                                     }
                                                 }
                                             }
@@ -2088,7 +2090,8 @@ class MultiGen {
     /**
      * Replaces old username in mlg_* tables
      * 
-     * @param string $userLogin
+     * @param string $newUserName
+     * @param striing $oldUserName
      * 
      * @return void
      */
@@ -2098,6 +2101,22 @@ class MultiGen {
                 $query = 'UPDATE `' . self::SCENARIO_PREFIX . $eachScenario . '` SET `username`="' . $newUserName . '" WHERE `username`="' . $oldUserName . '"';
                 nr_query($query);
             }
+        }
+    }
+
+    /**
+     * Replaces old Framed-IP-Address in mlg_reply table
+     * 
+     * @param string $newIp
+     * @param string $oldIp
+     * @param string $userName
+     * 
+     * @return void
+     */
+    protected function changeFramedIp($newIp, $oldIp, $userName) {
+        if (!empty($newIp) and ! empty($oldIp)) {
+            $query = 'UPDATE `' . self::SCENARIO_PREFIX . 'reply' . '` SET `Value`="' . $newIp . '" WHERE `attribute`="Framed-IP-Address" AND `value`="' . $oldIp . '" AND `username`="' . $userName . '"';
+            nr_query($query);
         }
     }
 
