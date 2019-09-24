@@ -101,7 +101,7 @@ class ubRouting {
                 return($rawData);
                 break;
             case 'int':
-                return(vf($rawData, 3));
+                return(preg_replace("#[^0-9]#Uis", '', $rawData));
                 break;
             case 'mres':
                 return(mysql_real_escape_string($rawData));
