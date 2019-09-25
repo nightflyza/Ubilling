@@ -581,6 +581,7 @@ class MultiGen {
             'login' => __('Login'),
             'ip' => __('IP'),
             'mac' => __('MAC') . ' ' . __('default'),
+            'macup' => __('MAC') . ' ' . __('upper case'),
             'macju' => __('MAC') . ' ' . __('JunOS like')
         );
 
@@ -1961,6 +1962,9 @@ class MultiGen {
             case 'mac':
                 $result = @$userData['mac'];
                 break;
+            case 'macup':
+                $result = @strtoupper($userData['mac']);
+                break;
             case 'macju':
                 $result = @$this->transformMacDotted($userData['mac']);
                 break;
@@ -2037,7 +2041,7 @@ class MultiGen {
                     foreach ($userNases as $eachNasId) {
                         @$nasOptions = $this->nasOptions[$eachNasId];
                         $userNameType = $nasOptions['usernametype'];
-                        if ($userNameType == 'mac' or $userNameType == 'macju' or $userNameType == 'ip') {
+                        if ($userNameType == 'mac' or $userNameType == 'macju' or $userNameType == 'ip' or $userNameType == 'macup') {
                             $userName = $this->getLoginUsername($userLogin, $userData, $userNameType);
                             if (!empty($userName)) {
                                 if (!empty($nasOptions)) {
