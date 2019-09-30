@@ -194,7 +194,7 @@ class WatchDog {
      */
     protected function sendEmail($email, $message) {
         $subj = 'Ubilling ' . __('Watchdog');
-        $message.=' ' . date("Y-m-d H:i:s");
+        $message .= ' ' . date("Y-m-d H:i:s");
         $this->email->sendEmail($email, $subj, $message, 'WATCHDOG');
     }
 
@@ -265,6 +265,18 @@ class WatchDog {
                         $this->setCurValue($taskID, $storeValue);
                     } else {
                         throw new Exception(self::PARAM_EX . "HOPEPING");
+                    }
+                    break;
+                //get raw http result    
+                case 'httpget':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        $httpUrl = $this->taskData[$taskID]['param'];
+                        $result = @file_get_contents($httpUrl);
+                        $result = trim($result);
+                        $this->setOldValue($taskID, $result);
+                        $this->setCurValue($taskID, $result);
+                    } else {
+                        throw new Exception(self::PARAM_EX . "HTTPGET");
                     }
                     break;
                 //run some script    
@@ -536,14 +548,14 @@ class WatchDog {
                         $notifyLogMessage = 'WATCHDOG NOTIFY THAT `' . $alertTaskName;
                         //attach old result to log message if needed
                         if (ispos($taskActions, 'oldresult')) {
-                            $notifyLogMessage.=' ' . $this->taskData[$taskID]['oldresult'];
+                            $notifyLogMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
                         }
 
                         //attach current results to log message
                         if (ispos($taskActions, 'andresult')) {
-                            $notifyLogMessage.=' ' . $this->curResults[$taskID];
+                            $notifyLogMessage .= ' ' . $this->curResults[$taskID];
                         }
-                        $notifyLogMessage.='`';
+                        $notifyLogMessage .= '`';
                         log_register($notifyLogMessage);
                     }
                     //send emails with alerts
@@ -554,12 +566,12 @@ class WatchDog {
                                 $notifyMessageMail = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
                                 //attach old result to email if needed
                                 if (ispos($taskActions, 'oldresult')) {
-                                    $notifyMessageMail.=' ' . $this->taskData[$taskID]['oldresult'];
+                                    $notifyMessageMail .= ' ' . $this->taskData[$taskID]['oldresult'];
                                 }
 
                                 //attach current results
                                 if (ispos($taskActions, 'andresult')) {
-                                    $notifyMessageMail.=' ' . $this->curResults[$taskID];
+                                    $notifyMessageMail .= ' ' . $this->curResults[$taskID];
                                 }
 
                                 foreach ($allNotifyEmails as $im => $eachmail) {
@@ -592,12 +604,12 @@ class WatchDog {
                                 $notifyMessageTlg = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
                                 //attach old result to email if needed
                                 if (ispos($taskActions, 'oldresult')) {
-                                    $notifyMessageTlg.=' ' . $this->taskData[$taskID]['oldresult'];
+                                    $notifyMessageTlg .= ' ' . $this->taskData[$taskID]['oldresult'];
                                 }
 
                                 //attach current results
                                 if (ispos($taskActions, 'andresult')) {
-                                    $notifyMessageTlg.=' ' . $this->curResults[$taskID];
+                                    $notifyMessageTlg .= ' ' . $this->curResults[$taskID];
                                 }
 
                                 foreach ($allNotifyTelegramChats as $tlgm => $eachtlgchat) {
@@ -644,12 +656,12 @@ class WatchDog {
                                 $notifyMessage = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
                                 //attach old result to sms if needed
                                 if (ispos($taskActions, 'oldresult')) {
-                                    $notifyMessage.=' ' . $this->taskData[$taskID]['oldresult'];
+                                    $notifyMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
                                 }
 
                                 //attach current result to sms if needed
                                 if (ispos($taskActions, 'andresult')) {
-                                    $notifyMessage.=' ' . $this->curResults[$taskID];
+                                    $notifyMessage .= ' ' . $this->curResults[$taskID];
                                 }
 
                                 foreach ($allNotifyPhones as $iu => $eachmobile) {
@@ -803,6 +815,7 @@ class WatchDogInterface {
             'tcpping' => 'tcpping',
             'hopeping' => 'hopeping',
             'script' => 'script',
+            'httpget' => 'httpget',
             'getusertraff' => 'getusertraff',
             'fileexists' => 'fileexists',
             'opentickets' => 'opentickets'
@@ -843,14 +856,14 @@ class WatchDogInterface {
      */
     public function listAllTasks() {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Active'));
-        $cells.= wf_TableCell(__('Name'));
-        $cells.= wf_TableCell(__('Check type'));
-        $cells.= wf_TableCell(__('Parameter'));
-        $cells.= wf_TableCell(__('Operator'));
-        $cells.= wf_TableCell(__('Condition'));
-        $cells.= wf_TableCell(__('Actions'));
-        $cells.= wf_TableCell(__('Manage'));
+        $cells .= wf_TableCell(__('Active'));
+        $cells .= wf_TableCell(__('Name'));
+        $cells .= wf_TableCell(__('Check type'));
+        $cells .= wf_TableCell(__('Parameter'));
+        $cells .= wf_TableCell(__('Operator'));
+        $cells .= wf_TableCell(__('Condition'));
+        $cells .= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Manage'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allTasks)) {
@@ -858,21 +871,21 @@ class WatchDogInterface {
                 $details = wf_tag('pre') . print_r($eachtask, true) . wf_tag('pre', true);
                 $detailLink = wf_modal($eachtask['id'], $eachtask['name'], $details, '', '600', '400');
                 $cells = wf_TableCell($detailLink, '', '', 'sorttable_customkey="' . $eachtask['id'] . '"');
-                $cells.= wf_TableCell(web_bool_led($eachtask['active']), '', '', 'sorttable_customkey="' . $eachtask['active'] . '"');
-                $cells.= wf_TableCell($eachtask['name']);
-                $cells.= wf_TableCell($eachtask['checktype']);
-                $cells.= wf_TableCell($eachtask['param']);
-                $cells.= wf_TableCell($eachtask['operator']);
-                $cells.= wf_TableCell($eachtask['condition']);
-                $cells.= wf_TableCell($eachtask['action']);
+                $cells .= wf_TableCell(web_bool_led($eachtask['active']), '', '', 'sorttable_customkey="' . $eachtask['active'] . '"');
+                $cells .= wf_TableCell($eachtask['name']);
+                $cells .= wf_TableCell($eachtask['checktype']);
+                $cells .= wf_TableCell($eachtask['param']);
+                $cells .= wf_TableCell($eachtask['operator']);
+                $cells .= wf_TableCell($eachtask['condition']);
+                $cells .= wf_TableCell($eachtask['action']);
 
                 $controls = wf_JSAlert('?module=watchdog&delete=' . $eachtask['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                $controls.= wf_JSAlert('?module=watchdog&edit=' . $eachtask['id'], web_edit_icon(), __('Are you serious'));
+                $controls .= wf_JSAlert('?module=watchdog&edit=' . $eachtask['id'], web_edit_icon(), __('Are you serious'));
 
-                $cells.= wf_TableCell($controls);
-                $rows.=wf_tag('tr', false, 'row5');
-                $rows.=$cells;
-                $rows.=wf_tag('tr', true);
+                $cells .= wf_TableCell($controls);
+                $rows .= wf_tag('tr', false, 'row5');
+                $rows .= $cells;
+                $rows .= wf_tag('tr', true);
             }
         }
 
@@ -887,13 +900,13 @@ class WatchDogInterface {
      */
     public function newTaskForm() {
         $inputs = wf_TextInput('newname', __('Name'), '', true);
-        $inputs.= wf_Selector('newchecktype', $this->checktypes, __('Check type'), '', true);
-        $inputs.= wf_TextInput('newparam', __('Parameter'), '', true);
-        $inputs.= wf_Selector('newoperator', $this->operators, __('Operator'), '', true);
-        $inputs.= wf_TextInput('newcondition', __('Condition'), '', true);
-        $inputs.= wf_TextInput('newaction', __('Actions'), '', true);
-        $inputs.=wf_CheckInput('newactive', __('Active'), true, true);
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_Selector('newchecktype', $this->checktypes, __('Check type'), '', true);
+        $inputs .= wf_TextInput('newparam', __('Parameter'), '', true);
+        $inputs .= wf_Selector('newoperator', $this->operators, __('Operator'), '', true);
+        $inputs .= wf_TextInput('newcondition', __('Condition'), '', true);
+        $inputs .= wf_TextInput('newaction', __('Actions'), '', true);
+        $inputs .= wf_CheckInput('newactive', __('Active'), true, true);
+        $inputs .= wf_Submit(__('Create'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
         return ($form);
@@ -914,16 +927,16 @@ class WatchDogInterface {
         }
 
         $inputs = wf_TextInput('editname', __('Name'), $this->allTasks[$taskID]['name'], true);
-        $inputs.= wf_Selector('editchecktype', $this->checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
-        $inputs.= wf_TextInput('editparam', __('Parameter'), $this->allTasks[$taskID]['param'], true);
-        $inputs.= wf_Selector('editoperator', $this->operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
-        $inputs.= wf_TextInput('editcondition', __('Condition'), $this->allTasks[$taskID]['condition'], true);
-        $inputs.= wf_TextInput('editaction', __('Actions'), $this->allTasks[$taskID]['action'], true);
-        $inputs.= wf_CheckInput('editactive', __('Active'), true, $this->allTasks[$taskID]['active']);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_Selector('editchecktype', $this->checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
+        $inputs .= wf_TextInput('editparam', __('Parameter'), $this->allTasks[$taskID]['param'], true);
+        $inputs .= wf_Selector('editoperator', $this->operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
+        $inputs .= wf_TextInput('editcondition', __('Condition'), $this->allTasks[$taskID]['condition'], true);
+        $inputs .= wf_TextInput('editaction', __('Actions'), $this->allTasks[$taskID]['action'], true);
+        $inputs .= wf_CheckInput('editactive', __('Active'), true, $this->allTasks[$taskID]['active']);
+        $inputs .= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
-        $form.= wf_BackLink("?module=watchdog");
+        $form .= wf_BackLink("?module=watchdog");
         return ($form);
     }
 
@@ -1016,10 +1029,10 @@ class WatchDogInterface {
         $createWindow = $this->newTaskForm();
         $settingsWindow = $this->settingsForm();
         $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton');
-        $result.= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif') . ' ' . __('Show all tasks'), false, 'ubButton');
-        $result.= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif') . ' ' . __('Manual run'), false, 'ubButton');
-        $result.= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png') . ' ' . __('Previous alerts'), false, 'ubButton');
-        $result.= wf_modalAuto(wf_img('skins/settings.png') . ' ' . __('Settings'), __('Settings'), $settingsWindow, 'ubButton');
+        $result .= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif') . ' ' . __('Show all tasks'), false, 'ubButton');
+        $result .= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif') . ' ' . __('Manual run'), false, 'ubButton');
+        $result .= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png') . ' ' . __('Previous alerts'), false, 'ubButton');
+        $result .= wf_modalAuto(wf_img('skins/settings.png') . ' ' . __('Settings'), __('Settings'), $settingsWindow, 'ubButton');
 
         return ($result);
     }
@@ -1032,10 +1045,10 @@ class WatchDogInterface {
     public function settingsForm() {
 
         $inputs = wf_TextInput('changealert', __('Watchdog alert text'), $this->settings['WATCHDOG_ALERT'], true, '30');
-        $inputs.= wf_TextInput('changephones', __('Phone numbers to send alerts'), $this->settings['WATCHDOG_PHONES'], true, '30');
-        $inputs.= wf_TextInput('changeemails', __('Emails to send alerts'), $this->settings['WATCHDOG_EMAILS'], true, '30');
-        $inputs.= wf_TextInput('changetelegram', __('Telegram chat ids to send alerts'), $this->settings['WATCHDOG_TELEGRAM'], true, '30');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('changephones', __('Phone numbers to send alerts'), $this->settings['WATCHDOG_PHONES'], true, '30');
+        $inputs .= wf_TextInput('changeemails', __('Emails to send alerts'), $this->settings['WATCHDOG_EMAILS'], true, '30');
+        $inputs .= wf_TextInput('changetelegram', __('Telegram chat ids to send alerts'), $this->settings['WATCHDOG_TELEGRAM'], true, '30');
+        $inputs .= wf_Submit(__('Save'));
         $form = wf_Form("", 'POST', $inputs, 'glamour');
         return ($form);
     }
@@ -1062,9 +1075,9 @@ class WatchDogInterface {
      */
     public function yearSelectorAlerts() {
         $inputs = wf_YearSelector('alertsyearsel', __('Year') . ' ', false);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
-        $result.= wf_tag('br');
+        $result .= wf_tag('br');
         return ($result);
     }
 
@@ -1076,7 +1089,7 @@ class WatchDogInterface {
     public function renderAlertsCalendar() {
         $result = '';
         $controls = wf_TableCell($this->yearSelectorAlerts());
-        $controls.= wf_TableCell($this->alertsSearchForm());
+        $controls .= wf_TableCell($this->alertsSearchForm());
         $controls = wf_TableRow($controls);
         $result = wf_TableBody($controls, '60%', 0, '');
 
@@ -1086,7 +1099,7 @@ class WatchDogInterface {
                 $timestamp = strtotime($each['date']);
                 $date = date("Y, n-1, j", $timestamp);
                 $rawTime = date("H:i:s", $timestamp);
-                $calendarData.="
+                $calendarData .= "
                       {
                         title: '" . $rawTime . ' ' . $each['event'] . "',
                         start: new Date(" . $date . "),
@@ -1095,9 +1108,9 @@ class WatchDogInterface {
 		      },
                     ";
             }
-            $result.= wf_FullCalendar($calendarData);
+            $result .= wf_FullCalendar($calendarData);
         } else {
-            $result.=__('Nothing found');
+            $result .= __('Nothing found');
         }
 
 
@@ -1119,7 +1132,7 @@ class WatchDogInterface {
         }
 
         $inputs = wf_Selector('previousalertsearch', $availTaskNames, __('Name'), '', false);
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
 
         return ($result);
@@ -1134,21 +1147,21 @@ class WatchDogInterface {
     public function alertSearchResults($request) {
         $result = $this->alertsSearchForm();
         $cells = wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Event'));
+        $cells .= wf_TableCell(__('Event'));
         $rows = wf_TableRow($cells, 'row1');
         $counter = 0;
         if (!empty($this->previousAlerts)) {
             foreach ($this->previousAlerts as $io => $each) {
                 if (ispos($each['event'], $request)) {
                     $cells = wf_TableCell($each['date']);
-                    $cells.= wf_TableCell($each['event']);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($each['event']);
+                    $rows .= wf_TableRow($cells, 'row3');
                     $counter++;
                 }
             }
         }
-        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.= __('Total') . ': ' . $counter;
+        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result .= __('Total') . ': ' . $counter;
 
         return ($result);
     }
