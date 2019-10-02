@@ -146,7 +146,7 @@ class MapOn {
                             $result[$unitId]['lng'] = $each->lng;
                             $result[$unitId]['last_update'] = $each->last_update;
                             $result[$unitId]['state'] = $each->state->name;
-                            $result[$unitId]['driver'] = $each->drivers->driver1->name;
+                            $result[$unitId]['driver'] = @$each->drivers->driver1->name;
                         }
                     }
                 }
