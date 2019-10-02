@@ -3103,8 +3103,9 @@ $lang['def']['Processed calls'] = 'Обработанные звонки';
 $lang['def']['Call me back'] = 'Перезвоните мне пожалуйста';
 $lang['def']['right to manage callmeback module '] = 'Право управлять модулем коллбэка';
 $lang['def']['upper case'] = 'верхний регистр';
+$lang['def']['Wrong value'] = 'Неверное значение';
+$lang['def']['User does not exist'] = 'Пользователь не существует';
+$lang['def']['There is entry for this login'] = 'Уже существует запись для этого пользователя';
+$lang['def']['Create new entry'] = 'Создать новую запись';
 $lang['def'][''] = '';
-
-
-
 ?>

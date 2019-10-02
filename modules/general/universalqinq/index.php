@@ -8,6 +8,17 @@ if (cfr('UNIVERSALQINQCONFIG')) {
         if ($qinq->routing->checkGet('ajax')) {
             $qinq->ajaxData();
         }
+        switch ($qinq->routing->get('action')) {
+            case 'delete':
+                $qinq->delete();
+                break;
+            case 'edit':
+                $qinq->edit();
+                break;
+            case 'add':
+                $qinq->add();
+                break;
+        }
 
         $qinq->addForm();
         $qinq->showAll();

@@ -3120,5 +3120,10 @@ $lang['def']['Processed calls'] = 'Опрацьовані дзвінки';
 $lang['def']['Call me back'] = 'Перетелефонуйте мені будь ласка';
 $lang['def']['right to manage callmeback module '] = 'Право керувати модулем коллбеку';
 $lang['def']['upper case'] = 'верхній регістр';
+$lang['def']['Wrong value'] = 'Невірне значення';
+$lang['def']['User does not exist'] = 'Користувач не існує';
+$lang['def']['There is entry for this login'] = 'Вже є запис для користувача';
+$lang['def']['Create new entry'] = 'Створити новий запис';
+
 
 ?>
