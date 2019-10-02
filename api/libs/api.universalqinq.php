@@ -275,6 +275,29 @@ class UniversalQINQ {
     }
 
     /**
+     * Forming edit form
+     * 
+     * @param array $each
+     * 
+     * @return string
+     */
+    protected function editFormGenerator($each) {
+        $addControls = wf_HiddenInput('module', 'universalqinq');
+        $addControls .= wf_HiddenInput('action', 'edit');
+        $addControls .= wf_HiddenInput('id', $each['id']);
+        $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
+        $addControls .= wf_TextInput('svlan', 'S-VLAN', $each['svlan'], true, '', 'digits');
+        $addControls .= wf_TextInput('cvlan', 'C-VLAN', $each['cvlan'], true, '', 'digits');
+        $addControls .= wf_HiddenInput('old_login', $each['login']);
+        $addControls .= wf_HiddenInput('old_svlan', $each['svlan']);
+        $addControls .= wf_HiddenInput('old_cvlan', $each['cvlan']);
+        $addControls .= wf_Submit('Save');
+        $form = wf_Form('', 'GET', $addControls, 'glamour');
+
+        return($form);
+    }
+
+    /**
      * If we have any errors show all of them
      * 
      * @return void
@@ -302,21 +325,8 @@ class UniversalQINQ {
             $allRealnames = zb_UserGetAllRealnames();
             $allAddress = zb_AddressGetFulladdresslistCached();
             foreach ($this->allData as $io => $each) {
-
-                $addControls = wf_HiddenInput('module', 'universalqinq');
-                $addControls .= wf_HiddenInput('action', 'edit');
-                $addControls .= wf_HiddenInput('id', $each['id']);
-                $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
-                $addControls .= wf_TextInput('svlan', 'S-VLAN', $each['svlan'], true, '', 'digits');
-                $addControls .= wf_TextInput('cvlan', 'C-VLAN', $each['cvlan'], true, '', 'digits');
-                $addControls .= wf_HiddenInput('old_login', $each['login']);
-                $addControls .= wf_HiddenInput('old_svlan', $each['svlan']);
-                $addControls .= wf_HiddenInput('old_cvlan', $each['cvlan']);
-                $addControls .= wf_Submit('Save');
-                $form = wf_Form('', 'GET', $addControls, 'glamour');
-
                 $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
-                $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $form, '');
+                $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editFormGenerator($each), '');
                 $actLinks .= wf_Link(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), false);
                 $data[] = $each['id'];
                 $data[] = $each['svlan'];
