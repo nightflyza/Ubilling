@@ -83,7 +83,7 @@ class UniversalQINQ {
      * 
      * @return void
      */
-    protected function goToStart() {
+    protected function goToStartOrError() {
         if (empty($this->error)) {
             rcms_redirect(self::MODULE);
         } else {
@@ -196,10 +196,10 @@ class UniversalQINQ {
                 $this->qinqdb->create();
                 $this->logAdd();
             }
-            $this->goToStart();
+            $this->goToStartOrError();
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStart();
+            $this->goToStartOrError();
         }
     }
 
@@ -213,10 +213,10 @@ class UniversalQINQ {
             $this->qinqdb->where('id', '=', trim($this->routing->get('id', 'int')));
             $this->qinqdb->delete();
             $this->logDelete();
-            $this->goToStart();
+            $this->goToStartOrError();
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStart();
+            $this->goToStartOrError();
         }
     }
 
@@ -235,10 +235,10 @@ class UniversalQINQ {
                 $this->qinqdb->save();
                 $this->logEdit();
             }
-            $this->goToStart();
+            $this->goToStartOrError();
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStart();
+            $this->goToStartOrError();
         }
     }
 
@@ -264,7 +264,7 @@ class UniversalQINQ {
     public function addForm() {
         $addControls = wf_HiddenInput('module', 'universalqinq');
         $addControls .= wf_HiddenInput('action', 'add');
-        $addControls .= wf_TextInput('login', __('Login'), '', true, '');
+        $addControls .= wf_TextInput('login', __('Login'), '', true, '', 'alphanumeric');
         $addControls .= wf_TextInput('svlan', 'S-VLAN', '', true, '', 'digits');
         $addControls .= wf_TextInput('cvlan', 'C-VLAN', '', true, '', 'digits');
         $addControls .= wf_Submit('Save');
@@ -362,7 +362,7 @@ class UniversalQINQ {
      * @return void
      */
     protected function logDelete() {
-        log_register('DELETE universalqinq: (' .
+        log_register('DELETE universalqinq (' .
                 trim($this->routing->get('login', 'mres')) .
                 ') s' .
                 trim($this->routing->get('svlan', 'int')) .
