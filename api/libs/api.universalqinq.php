@@ -47,12 +47,10 @@ class UniversalQINQ {
     public $routing;
 
     public function __construct() {
-        $this->qinqdb = new nya_qinq;
+        $this->qinqdb = new nya_qinq_bindings;
         $this->loadAlter();
         $this->initRouting();
         $this->loadData();
-
-        //$this->tmp = new nyan_qinq();
     }
 
     /**
@@ -271,7 +269,9 @@ class UniversalQINQ {
         $addControls .= wf_TextInput('cvlan', 'C-VLAN', '', true, '', 'digits');
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
-        show_window('', wf_modalAuto(web_icon_extended() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
+        show_window('', wf_modalAuto(web_icon_extended() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton')
+                . wf_Link('?module=vlanmanagement', web_icon_extended() . ' ' . __('VLAN Management'), false, 'ubButton')
+        );
     }
 
     /**

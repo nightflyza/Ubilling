@@ -20,7 +20,7 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                 break;
         }
 
-        $qinq->addForm();
+        $qinq->addForm();        
         $qinq->showAll();
     }
 }
