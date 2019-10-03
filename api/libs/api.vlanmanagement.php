@@ -101,4 +101,16 @@ class VlanManagement {
         );
     }
 
+    public function linksMain() {
+        
+    }
+    
+    public function realmAndSvlanSelectors() {
+        
+    }
+    
+    public function cvlanMatrix() {
+        
+    }
+
 }

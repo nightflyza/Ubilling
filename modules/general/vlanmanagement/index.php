@@ -44,7 +44,7 @@ if (cfr('UNIVERSALQINQCONFIG')) {
             $vlan->showSvlanAll();
         } else {
             $vlan->linksMain();
-            $vlan->realAndSvlanSelectors();
+            $vlan->realmAndSvlanSelectors();
             $vlan->cvlanMatrix();
         }
     }
