@@ -504,6 +504,8 @@ class Salary {
             if ($this->altCfg['SENDDOG_ENABLED']) {
                 $curdate = curdate();
                 $sendTmp = array(); //employeeid => text aggregated
+                $employeeSumm = array(); //employeeid => summ 
+
                 foreach ($this->allJobs as $io => $eachJob) {
                     if (ispos($eachJob['date'], $curdate)) {
                         $employeeId = $eachJob['employeeid'];
@@ -530,6 +532,13 @@ class Salary {
                                 $jobPrice = $overprice . ' (' . __('Price override') . ')';
                             }
 
+                            //per day summary
+                            if (isset($employeeSumm[$employeeId])) {
+                                $employeeSumm[$employeeId] += $jobPrice;
+                            } else {
+                                $employeeSumm[$employeeId] = $jobPrice;
+                            }
+
 
                             $unitType = @$this->allJobUnits[$jobtypeid];
 
@@ -537,12 +546,25 @@ class Salary {
                             $message .= __('Job type') . ': ' . $jobName . '\r\n ';
                             $message .= __('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
                             $message .= __('Job price') . ': ' . $jobPrice . '\r\n ';
-                            $message .= '💰💰💰💰' . '\r\n '; // vsrate emoji
+                            $message .= '💵💵💵' . '\r\n '; // vsrate emoji
+
+                            $message .= '' . '\r\n ';
                             $sendTmp[$employeeId] .= $message;
                         }
                     }
                 }
 
+                //appending daily summ to each employee message
+                if (!empty($employeeSumm)) {
+                    foreach ($employeeSumm as $io => $eachDaySumm) {
+                        if (isset($sendTmp[$io])) {
+                            $sendTmp[$io] .= __('Total money') . ': ' . $eachDaySumm . '\r\n ';
+                            $sendTmp[$io] .= '💰💰💰💰💰💰' . '\r\n '; //very vsrate emoji
+                        }
+                    }
+                }
+                
+                //sending prepared messages for all employee with jobs today
                 if (!empty($sendTmp)) {
                     foreach ($sendTmp as $io => $eachMessage) {
                         $this->sendTelegram($io, $eachMessage);
