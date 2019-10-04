@@ -1377,9 +1377,41 @@ function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '', 
  * @return string
  *  
  */
-function wf_FullCalendar($data, $options = '') {
-
+function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTMLListViewOnly = false) {
     $elementid = wf_InputId();
+
+    if ($useHTMLInTitle) {
+        if ($useHTMLListViewOnly) {
+            $htmlInTitle = " eventRender: function(event, element, view) {
+                                if (view.type.indexOf('list') >= 0) {
+                                    var link = element.find('[class*=-title] a');
+                                    var title = element.find('[class*=-title]');
+                                    link.html(title.text());
+                                    title.html( link );
+                                } else {                                    
+                                    var title = element.find('[class*=-title]');
+                                    // some hack to remove HTML from text
+                                    var doc = new DOMParser().parseFromString(title.text(), 'text/html');
+                                    var titleText = (doc.body.textContent || \"\");
+                                    title.html( titleText );
+                                }
+                            }, ";
+        } else {
+            $htmlInTitle = " eventRender: function(event, element, view) {
+                                if (view.type.indexOf('list') >= 0) {
+                                    var link = element.find('[class*=-title] a');
+                                    var title = element.find('[class*=-title]');
+                                    link.html(title.text());
+                                    title.html( link );
+                                } else {
+                                    var title = element.find('[class*=-title]');
+                                    title.html( title.text() );
+                                }
+                            }, ";
+        }
+    } else {
+        $htmlInTitle = '';
+    }
 
     $calendar = "<script type='text/javascript'>
 
@@ -1398,6 +1430,7 @@ function wf_FullCalendar($data, $options = '') {
 			},
                         
 			editable: false,
+                        " . $htmlInTitle . "                         
                         theme: true,
                         weekends: true,
                         timeFormat: 'H(:mm)',

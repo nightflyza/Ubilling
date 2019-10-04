@@ -174,6 +174,9 @@ function zb_UserGetAllData($login = '') {
     } else {
         $query.= "concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
     }
+
+    if ($altCfg['MOBILES_EXT']) { $query.= " `mobext`.`mobiles`, "; }
+
     $query.= "
                     `phones`.`phone`,`mobile`,`contract`,`emails`.`email`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
@@ -185,9 +188,17 @@ function zb_UserGetAllData($login = '') {
                     LEFT JOIN `city` ON (`street`.`cityid`=`city`.`id`)
                     LEFT JOIN `phones` ON (`users`.`login`=`phones`.`login`)
                     LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
-                    LEFT JOIN `emails` ON (`users`.`login`=`emails`.`login`)
-                    " . $query_wh;
+                    LEFT JOIN `emails` ON (`users`.`login`=`emails`.`login`) ";
+
+    if ($altCfg['MOBILES_EXT']) {
+        $query.= "LEFT JOIN (SELECT `mobileext`.`login`, GROUP_CONCAT(`mobile` SEPARATOR ' ') as `mobiles` FROM `mobileext` GROUP BY `login`) `mobext` 
+                    ON (`users`.`login` = `mobext`.`login`) ";
+    }
+
+    $query.= $query_wh;
+
     $Alldata = (!empty($login)) ? simple_query($query) : simple_queryall($query);
+
     if (empty($login) and ! empty($Alldata)) {
         foreach ($Alldata as $data) {
             $result[$data['login']] = $data;

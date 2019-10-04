@@ -1126,7 +1126,7 @@ class DreamKas {
                 foreach ($fopsData as $eachFiscOp) {
                     $fiscopID = $eachFiscOp['id'];
                     $fiscopStatus = $eachFiscOp['status'];
-                    $fiscopDateFinish = $eachFiscOp['completedAt'];
+                    $fiscopDateFinish = (empty($eachFiscOp['completedAt'])) ? '0000-00-00 00:00:00' : date('Y-m-d H:i:s', strtotime($eachFiscOp['completedAt']));
                     $fiscopErrorCode = (isset($eachFiscOp['data']['error']['code'])) ? $eachFiscOp['data']['error']['code'] : '';
                     $fiscopErrorMsg = (isset($eachFiscOp['data']['error']['message'])) ? $eachFiscOp['data']['error']['message'] : '';
                     $fiscopReceiptID = (isset($eachFiscOp['data']['receiptId'])) ? $eachFiscOp['data']['receiptId'] : '';
@@ -1134,7 +1134,7 @@ class DreamKas {
                     if (isset($fopsDataLocal[$fiscopID])) {
                         $tQuery = "UPDATE `dreamkas_operations` SET 
                                       `status` = '" . $fiscopStatus . "', 
-                                      `date_finish` = '" . date('Y-m-d H:i:s', strtotime($fiscopDateFinish)) . "',
+                                      `date_finish` = '" . $fiscopDateFinish . "',
                                       `error_code` = '" . $fiscopErrorCode . "',
                                       `error_message` = '" . $fiscopErrorMsg . "',
                                       `receipt_id` = '" . $fiscopReceiptID . "'
