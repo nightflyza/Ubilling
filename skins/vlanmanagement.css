@@ -1,0 +1,9 @@
+.cvlanMatrixContainer {
+    padding: 5px;
+    border: solid 1px black;
+    min-width: 30px;
+    text-align: center;
+    display: inline-block;
+    margin-right: 10px; 
+    margin-bottom: 10px;
+}

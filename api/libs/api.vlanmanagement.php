@@ -57,11 +57,11 @@ class VlanManagement {
 
     protected function validateSvlan() {
         if (!$this->checkSvlan()) {
-            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan', 'int');
+            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
         }
 
         if (!$this->uniqueSvlan()) {
-            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan', 'int') . ' ' . __('already exists');
+            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
         }
 
         if (!empty($this->error)) {
@@ -78,10 +78,12 @@ class VlanManagement {
     }
 
     protected function uniqueSvlan() {
-        $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
-        $allSvlan = $this->svlanDb->getAll('svlan');
-        if (isset($allSvlan[$this->routing->get('svlan')])) {
-            return(false);
+        if ($this->routing->get('action') == 'add') {
+            $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
+            $allSvlan = $this->svlanDb->getAll('svlan');
+            if (isset($allSvlan[$this->routing->get('svlan_num')])) {
+                return(false);
+            }
         }
         return(true);
     }
@@ -158,6 +160,10 @@ class VlanManagement {
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
         return($form);
+    }
+
+    public function chooseType() {
+        $result = wf_modalAuto(web_icon_extended() . ' ' . __('QINQ for switches'), __('QINQ for switches'), $form, 'ubButton');
     }
 
     protected function realmMainSelector() {
@@ -259,8 +265,34 @@ class VlanManagement {
         return($result);
     }
 
+    public function ajaxChooseForm() {
+        $inputs = wf_HiddenInput('module', 'vlanmanager');
+        $inputs .= wf_HiddenInput('realm_id', $this->routing->get('realm_id', 'int'));
+        $inputs .= wf_HiddenInput('svlan_id', $this->routing->get('svlan_id', 'int'));
+        $inputs .= wf_HiddenInput('cvlan_num', $this->routing->get('cvlan_num', 'int'));
+        $inputs .= wf_RadioInput('qinq_type', __('QINQ for switches'), 'switches', true, true);
+        $inputs .= wf_RadioInput('qinq_type', __('Universal QINQ'), 'universal', true, false);
+        $inputs .= wf_Submit(__('Save'));
+        $form = wf_Form('', "GET", $inputs);
+        return($form);
+    }
+
     public function cvlanMatrix() {
-        
+        $result = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $result .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="Choose" style="display:none; width:1px; height:1px;"');
+        $result .= wf_tag('p', false, '', 'id="content-cvmodal"');
+        $result .= wf_tag('p', true);
+        $result .= wf_tag('div', true);
+
+        for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
+            $result .= wf_tag('div', false, 'cvlanMatrixContainer', 'id="container_' . $this->routing->get('realm_id', 'int') .
+                    '/' . $this->routing->get('svlan_id', 'int') .
+                    '/' . $cvlan . '" onclick="vlanAcquire(this)"');
+            $result .= $cvlan;
+            $result .= wf_tag('div', true);
+        }
+        $result .= '<script src="./skins/vlanmanagement.js" type="text/javascript"></script>';
+        show_window('', $result);
     }
 
     /**

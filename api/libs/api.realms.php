@@ -86,11 +86,16 @@ class Realms {
      */
     protected function unique() {
         try {
-            $allRealms = $this->db->getAll('realm');
-            if (isset($allRealms[$this->routing->get('realm', 'mres')])) {
-                return(false);
-            } else {
+            if ($this->routing->get('action') == 'edit') {
+                //skip if edit
                 return(true);
+            } else {
+                $allRealms = $this->db->getAll('realm');
+                if (isset($allRealms[$this->routing->get('realm', 'mres')])) {
+                    return(false);
+                } else {
+                    return(true);
+                }
             }
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
