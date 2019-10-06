@@ -43,18 +43,22 @@ if (cfr('UNIVERSALQINQCONFIG')) {
             $vlan->linksSvlan();
             $vlan->showSvlanAll();
         } else {
-            if (!$vlan->routing->get('realm_id', 'int') and ! $vlan->routing->get('svlan_id')) {
-                rcms_redirect($vlan::MODULE . '&realm_id=' . $vlan->defaultRealm . '&svlan_id=' . $vlan->defaultSvlan);
+            if ($vlan->routing->get('action')) {
+                switch ($vlan->routing->get('action')) {
+                    case 'realm_id_select':
+                        die($vlan->svlanSelector($vlan->routing->get('ajrealmid')));
+                        break;
+                    case 'ajax':
+                        die($vlan->ajaxChooseForm());
+                        break;
+                }
+            } else {
+                if (!$vlan->routing->get('realm_id', 'int') and ! $vlan->routing->get('svlan_id')) {
+                    rcms_redirect($vlan::MODULE . '&realm_id=' . $vlan->defaultRealm . '&svlan_id=' . $vlan->defaultSvlan);
+                }
             }
 
-            switch ($vlan->routing->get('action')) {
-                case 'realm_id_select':
-                    die($vlan->svlanSelector($vlan->routing->get('ajrealmid')));
-                    break;
-                case 'ajax':
-                    die($vlan->ajaxChooseForm());
-                    break;
-            }
+
             $vlan->linksMain();
             $vlan->realmAndSvlanSelectors();
             $vlan->cvlanMatrix();

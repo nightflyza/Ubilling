@@ -169,7 +169,7 @@ class VlanManagement {
     protected function realmMainSelector() {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
-                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = '(' . $each['realm'] . ') ' . $each['description'];
+                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = $each['realm'] . ' | ' . $each['description'];
             }
 
             reset($this->allRealms);
@@ -182,7 +182,7 @@ class VlanManagement {
     protected function realmSvlanSelector() {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
-                $params[$id] = '(' . $each['realm'] . ') ' . $each['description'];
+                $params[$id] = $each['realm'] . ' | ' . $each['description'];
             }
         }
         $inputs = wf_HiddenInput('module', 'vlanmanagement');
@@ -202,8 +202,8 @@ class VlanManagement {
             }
         }
         $result = wf_HiddenInput('module', 'vlanmanagement');
-        $result .= wf_SelectorAC('svlan_id', $allSvlanSelector, '', $this->routing->get('svlan_id'), true);
         $result .= wf_HiddenInput('realm_id', $realmId);
+        $result .= wf_SelectorAC('svlan_id', $allSvlanSelector, '', $this->routing->get('svlan_id'), true);
 
         return ($result);
     }
