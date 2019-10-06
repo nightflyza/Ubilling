@@ -2611,5 +2611,5 @@ CREATE TABLE IF NOT EXISTS `qinq_svlan` (
     KEY (`svlan`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
-INSERT INTO `qinq_svlan` (`id`, `realm_id`, `svlan`, `description`) VALUES (NULL, 0, 0, 'Use it for untagged VLAN');
+INSERT INTO `qinq_svlan` (`id`, `realm_id`, `svlan`, `description`) VALUES (NULL, 1, 0, 'Use it for untagged VLAN');
 

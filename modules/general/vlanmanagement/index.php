@@ -43,6 +43,13 @@ if (cfr('UNIVERSALQINQCONFIG')) {
             $vlan->linksSvlan();
             $vlan->showSvlanAll();
         } else {
+            switch ($vlan->routing->get('action')) {
+                case 'realm_id_select':
+                    die($vlan->svlanSelector($vlan->routing->get('ajrealmid')));
+                    break;
+                case 'add':
+                    break;
+            }
             $vlan->linksMain();
             $vlan->realmAndSvlanSelectors();
             $vlan->cvlanMatrix();

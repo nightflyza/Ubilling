@@ -59,10 +59,24 @@ class Realms {
     protected function validate() {
         if (!$this->unique()) {
             $this->error[] = __('Realm exists') . ' :' . $this->routing->get('realm', 'mres');
+        }
+
+        if ($this->emptyVar()) {
+            $this->error[] = __('Realm cannot be empty');
+        }
+
+        if (!empty($this->error)) {
             return(false);
         }
 
         return(true);
+    }
+
+    protected function emptyVar() {
+        if (empty($this->routing->get('realm', 'mres'))) {
+            return(true);
+        }
+        return(false);
     }
 
     /**
@@ -90,10 +104,10 @@ class Realms {
      */
     public function add() {
         try {
-            if (!empty($this->routing->get('realm', 'mres')) and $this->validate()) {
-                $this->db->data($this->routing->get('realm', 'mres'));
-                $this->db->data($this->routing->get('description', 'mres'));
-                $this->db->save();
+            if ($this->validate()) {
+                $this->db->data('realm', $this->routing->get('realm', 'mres'));
+                $this->db->data('description', $this->routing->get('description', 'mres'));
+                $this->db->create();
                 $this->logAdd();
             }
             $this->goToStartOrError();
@@ -110,10 +124,10 @@ class Realms {
      */
     public function edit() {
         try {
-            if (!empty($this->routing->get('id', 'int')) and $this->validate()) {
+            if ($this->validate()) {
                 $this->db->where('id', '=', $this->routing->get('id', 'int'));
-                $this->db->data($this->routing->get('realm', 'mres'));
-                $this->db->data($this->routing->get('description', 'mres'));
+                $this->db->data('realm', $this->routing->get('realm', 'mres'));
+                $this->db->data('description', $this->routing->get('description', 'mres'));
                 $this->db->save();
                 $this->logEdit();
             }
@@ -166,8 +180,8 @@ class Realms {
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('realms', 'true');
         $addControls .= wf_HiddenInput('action', 'add');
-        $addControls .= wf_TextInput('realm', __('Realm'), '', true, '', 'alphanumeric');
-        $addControls .= wf_TextInput('description', __('Description'), '', true, '', 'alphanumeric');
+        $addControls .= wf_TextInput('realm', __('Realm'), '', true, '', '');
+        $addControls .= wf_TextInput('description', __('Description'), '', true, '', '');
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
         return(wf_modalAuto(web_icon_extended() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
@@ -185,8 +199,8 @@ class Realms {
         $addControls .= wf_HiddenInput('realms', 'true');
         $addControls .= wf_HiddenInput('action', 'edit');
         $addControls .= wf_HiddenInput('id', $each['id']);
-        $addControls .= wf_TextInput('realm', __('Realm'), $each['realm'], true, '', 'alphanumeric');
-        $addControls .= wf_TextInput('description', __('Description'), $each['description'], true, '', 'alphanumeric');
+        $addControls .= wf_TextInput('realm', __('Realm'), $each['realm'], true, '');
+        $addControls .= wf_TextInput('description', __('Description'), $each['description'], true, '');
         $addControls .= wf_HiddenInput('old_realm', $each['realm']);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');

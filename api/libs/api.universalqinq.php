@@ -155,11 +155,9 @@ class UniversalQINQ {
     /**
      * Check all validation function and return error if something didn't pass
      * 
-     * @param string $action
-     * 
      * @return bool
      */
-    protected function validator($action = '') {
+    protected function validator() {
         if (!$this->validateSvlan()) {
             $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan', 'int');
         }
