@@ -175,8 +175,6 @@ function zb_UserGetAllData($login = '') {
         $query.= "concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
     }
 
-    if ($altCfg['MOBILES_EXT']) { $query.= " `mobext`.`mobiles`, "; }
-
     $query.= "
                     `phones`.`phone`,`mobile`,`contract`,`emails`.`email`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
@@ -189,11 +187,6 @@ function zb_UserGetAllData($login = '') {
                     LEFT JOIN `phones` ON (`users`.`login`=`phones`.`login`)
                     LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
                     LEFT JOIN `emails` ON (`users`.`login`=`emails`.`login`) ";
-
-    if ($altCfg['MOBILES_EXT']) {
-        $query.= "LEFT JOIN (SELECT `mobileext`.`login`, GROUP_CONCAT(`mobile` SEPARATOR ' ') as `mobiles` FROM `mobileext` GROUP BY `login`) `mobext` 
-                    ON (`users`.`login` = `mobext`.`login`) ";
-    }
 
     $query.= $query_wh;
 
@@ -249,6 +242,7 @@ function zb_UserCreatePhone($login, $phone, $mobile) {
     nr_query($query);
     log_register('CREATE UserPhone (' . $login . ') `' . $phone . '` `' . $mobile . '`');
     zb_UserGetAllDataCacheClean();
+    zb_GetAllAllPhonesCacheClean();
 }
 
 /**
@@ -262,6 +256,7 @@ function zb_UserDeletePhone($login) {
     nr_query($query);
     log_register('DELETE UserPhone (' . $login . ')');
     zb_UserGetAllDataCacheClean();
+    zb_GetAllAllPhonesCacheClean();
 }
 
 /**
@@ -301,6 +296,7 @@ function zb_UserChangePhone($login, $phone) {
     nr_query($query);
     log_register('CHANGE UserPhone (' . $login . ') `' . $phone . '`');
     zb_UserGetAllDataCacheClean();
+    zb_GetAllAllPhonesCacheClean();
 }
 
 /**
@@ -316,6 +312,7 @@ function zb_UserChangeMobile($login, $mobile) {
     nr_query($query);
     log_register('CHANGE UserMobile (' . $login . ') `' . $mobile . '`');
     zb_UserGetAllDataCacheClean();
+    zb_GetAllAllPhonesCacheClean();
 }
 
 /**
@@ -333,6 +330,88 @@ function zb_UserGetAllPhoneData() {
             $phones[$phone['login']]['mobile'] = $phone['mobile'];
         }
     }
+    return ($phones);
+}
+
+/**
+ * Flushes USER_ALL_PHONES_DATA cache
+ */
+function zb_GetAllAllPhonesCacheClean() {
+    $cache = new UbillingCache();
+    $cache->delete('USER_ALL_PHONES_DATA');
+}
+
+/**
+ * Returns all users phones data from cache
+ *
+ * @return string
+ */
+function zb_GetAllAllPhonesCache() {
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = 86400;
+    $result = $cache->getCallback('USER_ALL_PHONES_DATA', function () {
+                                       return (zb_GetAllAllPhones());
+                                    }, $cacheTime
+                                 );
+
+    return ($result);
+}
+
+/**
+ * Returns all users phones data, including external mobiles
+ *
+ * @param string $login
+ * @return array
+ */
+function zb_GetAllAllPhones($login = '') {
+    global $ubillingConfig;
+    $useExtMobiles = $ubillingConfig->getAlterParam('MOBILES_EXT');
+    $phones = array();
+    $allExt = array();
+
+    if (!empty($login)) {
+        $where1 = " WHERE `phones`.`login` = '" . $login . "'";
+        $where2 = " WHERE `mobileext`.`login` = '" . $login . "'";
+    } else {
+        $where1 = '';
+        $where2 = '';
+    }
+
+    $queryPhones = "SELECT `login`, `phone`,`mobile` FROM `phones`" . $where1;
+    $resultPhones = simple_queryall($queryPhones);
+
+    if ($useExtMobiles) {
+        $queryLogin = "SELECT DISTINCT `login` FROM `mobileext` "  . $where2 . " ORDER BY `login`";
+        $qlResult = simple_queryall($queryLogin);
+
+        if (!empty($qlResult)) {
+            foreach ($qlResult as $io => $each) {
+                $allExt[$each['login']] = array();
+            }
+
+            $query = "SELECT `login`, `mobile` FROM `mobileext` "  . $where2 . "  ORDER BY `login`";
+            $all = simple_queryall($query);
+
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $allExt[$each['login']][] = $each['mobile'];
+                }
+            }
+        }
+    }
+
+    if (!empty($resultPhones)) {
+        foreach ($resultPhones as $phone) {
+            $phones[$phone['login']]['phone'] = $phone['phone'];
+            $phones[$phone['login']]['mobile'] = $phone['mobile'];
+
+            if (!empty($allExt) and isset($allExt[$phone['login']])) {
+                $phones[$phone['login']]['mobiles'] = $allExt[$phone['login']];
+            }
+        }
+    }
+
     return ($phones);
 }
 

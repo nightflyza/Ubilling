@@ -423,13 +423,20 @@ if ($system->checkForRight('ONLINE')) {
         $allUserPhones = array();
         if (isset($alter_conf['ONLINE_SHOW_PHONES']) && $alter_conf['ONLINE_SHOW_PHONES']) {
             $showUserPhones = true;
-            $allUserDataCached = zb_UserGetAllDataCache();
+            $allUserDataCached = zb_GetAllAllPhonesCache();
 
             if (!empty($allUserDataCached)) {
                 foreach ($allUserDataCached as $eachLogin => $eachData) {
                     $userPhones = (empty($eachData['phone'])) ? '' : str_ireplace(array('+', "-"), '', $eachData['phone']) . ' ';
                     $userPhones.= (empty($eachData['mobile'])) ? '' : str_ireplace(array('+', "-"), '', $eachData['mobile']);
-                    $userPhones.= (empty($eachData['mobiles'])) ? '' : '<br />' . str_ireplace(array('+', "-"), '', $eachData['mobiles']);
+
+                    if (!empty($eachData['mobiles'])) {
+                        $userPhones .= '<br />' ;
+
+                        foreach ($eachData['mobiles'] as $extmobile) {
+                            $userPhones .= (empty($extmobile)) ? '' : str_ireplace(array('+', "-"), '', $extmobile) . ' ';
+                        }
+                    }
 
                     if (!empty($userPhones)) {
                         $allUserPhones[$eachLogin] = $userPhones;
