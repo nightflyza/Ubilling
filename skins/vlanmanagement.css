@@ -9,3 +9,11 @@
     font-size: 20px;
     font-weight: 600;
 }
+
+.free {
+    background-color: #00B945;
+}
+
+.not_free {
+    background-color: #FF2C00;
+}

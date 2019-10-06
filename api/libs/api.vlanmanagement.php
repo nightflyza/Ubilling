@@ -279,6 +279,8 @@ class VlanManagement {
     }
 
     public function cvlanMatrix() {
+        $this->cvlanDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $allVlans = $this->cvlanDb->getAll('cvlan');
         $result = '';
         if ($this->routing->checkGet(array('realm_id', 'svlan_id'))) {
             $result .= '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
@@ -288,7 +290,12 @@ class VlanManagement {
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
-                $result .= wf_tag('div', false, 'cvlanMatrixContainer', 'id="container_' . $this->routing->get('realm_id', 'int') .
+                if(isset($allVlans[$cvlan])) {
+                    $color = 'not_free';
+                } else {
+                    $color = 'free';
+                }
+                $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
                         '/' . $this->routing->get('svlan_id', 'int') .
                         '/' . $cvlan . '" onclick="vlanAcquire(this)"');
                 $result .= $cvlan;
