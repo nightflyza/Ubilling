@@ -265,7 +265,7 @@ class UniversalQINQ {
      * @return string
      */
     public function showAll() {
-        $columns = array(__('ID'), 'S-VLAN', 'C-VLAN', 'Address', 'Real Name', 'Actions');
+        $columns = array(__('ID'), 'Realm', 'S-VLAN', 'C-VLAN', 'Address', 'Real Name', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = '';
         $ajaxURL = '' . self::MODULE . '&ajax=true';
@@ -349,6 +349,7 @@ class UniversalQINQ {
                 $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editFormGenerator($each), '');
                 $actLinks .= wf_Link(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), false);
                 $data[] = $each['id'];
+                $data[] = $this->allRealms[$this->allSvlan[$each['svlan_id']]['realm_id']]['description'];
                 $data[] = $this->allSvlan[$each['svlan_id']]['svlan'];
                 $data[] = $each['cvlan'];
                 $data[] = $userLink;
