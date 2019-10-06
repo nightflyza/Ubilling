@@ -50,6 +50,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                 case 'add':
                     break;
             }
+            if (!$vlan->routing->get('realm_id', 'int') and ! $vlan->routing->get('svlan_id')) {
+                rcms_redirect($vlan::MODULE . '&realm_id=' . $vlan->defaultRealm . '&svlan_id=' . $vlan->defaultSvlan);
+            }
             $vlan->linksMain();
             $vlan->realmAndSvlanSelectors();
             $vlan->cvlanMatrix();

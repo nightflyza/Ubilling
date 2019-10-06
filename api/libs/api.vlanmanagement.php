@@ -17,7 +17,8 @@ class VlanManagement {
     protected $allSvlan = array();
     protected $error = array();
     protected $exceptions = array();
-    protected $defaultRealm;
+    public $defaultRealm = 1;
+    public $defaultSvlan = 1;
     protected $realmSelector = array();
     public $routing;
 
@@ -169,7 +170,7 @@ class VlanManagement {
             $this->defaultRealm = key($this->allRealms);
         }
 
-        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), '', false));
+        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
     }
 
     protected function realmSvlanSelector() {
@@ -188,15 +189,14 @@ class VlanManagement {
         $realmId = vf($realmId, 3);
         $this->svlanDb->where('realm_id', '=', $realmId);
         $allSvlan = $this->svlanDb->getAll('id');
+        $allSvlanSelector = array('' => '---');
         if (!empty($allSvlan)) {
-            $allSvlanSelector = array();
             foreach ($allSvlan as $id => $each) {
                 $allSvlanSelector[$id] = $each['svlan'] . ' | ' . $each['description'];
             }
-        } else {
-            $allSvlanSelector = array('' => '');
         }
-        $result = wf_Selector('svlan_id', $allSvlanSelector, '', '', true);
+        $result = wf_HiddenInput('module', 'vlanmanagement');
+        $result .= wf_SelectorAC('svlan_id', $allSvlanSelector, '', $this->routing->get('svlan_id'), true);
         $result .= wf_HiddenInput('realm_id', $realmId);
 
         return ($result);
@@ -253,9 +253,9 @@ class VlanManagement {
         $result = wf_AjaxLoader();
         $inputs = $this->realmMainSelector();
         $inputs .= wf_delimiter();
-        $inputs .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->defaultRealm));
-        $inputs .= wf_delimiter();
-        $result .= wf_Form("", 'GET', $inputs);
+        $inputs2 = wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->routing->get('realm_id', 'int') ? $this->routing->get('realm_id', 'int') : $this->defaultRealm));
+        $inputs2 .= wf_delimiter();
+        $result .= $inputs . wf_Form("", 'GET', $inputs2);
         return($result);
     }
 
