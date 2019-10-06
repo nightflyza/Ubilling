@@ -31,6 +31,8 @@ class UniversalQINQ {
      * @var array
      */
     protected $allData;
+    protected $allRealms;
+    protected $allSvlan;
 
     /**
      * Contains system alter config as key=>value
@@ -38,6 +40,8 @@ class UniversalQINQ {
      * @var array
      */
     protected $altCfg;
+    protected $realmsdb;
+    protected $svlandb;
 
     /**
      * Placeholder for ubRouting object
@@ -48,6 +52,8 @@ class UniversalQINQ {
 
     public function __construct() {
         $this->qinqdb = new nya_qinq_bindings;
+        $this->realmsdb = new NyanORM('realms');
+        $this->svlandb = new NyanORM('qinq_svlan');
         $this->loadAlter();
         $this->initRouting();
         $this->loadData();
@@ -76,6 +82,8 @@ class UniversalQINQ {
 
     protected function loadData() {
         $this->allData = $this->qinqdb->getAll('id');
+        $this->allRealms = $this->realmsdb->getAll('id');
+        $this->allSvlan = $this->svlandb->getAll('id');
     }
 
     /**
@@ -92,6 +100,36 @@ class UniversalQINQ {
                 $this->showExceptions();
             }
         }
+    }
+
+    protected function realmsSelector() {
+        if (!empty($this->allRealms)) {
+            foreach ($this->allRealms as $id => $each) {
+                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = $each['realm'] . ' | ' . $each['description'];
+            }
+
+            reset($this->allRealms);
+            $this->defaultRealm = key($this->allRealms);
+        }
+
+        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
+    }
+
+    public function svlanSelector($realmId) {
+        $realmId = vf($realmId, 3);
+        $this->svlandb->where('realm_id', '=', $realmId);
+        $allSvlan = $this->svlandb->getAll('id');
+        $allSvlanSelector = array('' => '---');
+        if (!empty($allSvlan)) {
+            foreach ($allSvlan as $id => $each) {
+                $allSvlanSelector[$id] = $each['svlan'] . ' | ' . $each['description'];
+            }
+        }
+        $result = wf_HiddenInput('module', 'vlanmanagement');
+        $result .= wf_HiddenInput('realm_id', $realmId);
+        $result .= wf_Selector('svlan_id', $allSvlanSelector, 'SVLAN', $this->routing->get('svlan_id'), false);
+
+        return ($result);
     }
 
     /**
@@ -260,14 +298,17 @@ class UniversalQINQ {
      * @return void
      */
     public function addForm() {
-        $addControls = wf_HiddenInput('module', 'universalqinq');
-        $addControls .= wf_HiddenInput('action', 'add');
-        $addControls .= wf_TextInput('login', __('Login'), '', true, '', 'alphanumeric');
-        $addControls .= wf_TextInput('svlan', 'S-VLAN', '', true, '', 'digits');
-        $addControls .= wf_TextInput('cvlan', 'C-VLAN', '', true, '', 'digits');
-        $addControls .= wf_Submit('Save');
-        $form = wf_Form('', 'GET', $addControls, 'glamour');
-        show_window('', wf_modalAuto(web_icon_extended() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton')
+        $inputs = '';
+        $result = wf_AjaxLoader();
+        $inputs2 = wf_HiddenInput('module', 'universalqinq');
+        $inputs2 .= wf_HiddenInput('action', 'add');
+        $inputs2 .= $this->realmsSelector();
+        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->routing->get('realm_id', 'int') ? $this->routing->get('realm_id', 'int') : $this->defaultRealm));
+        $inputs2 .= wf_TextInput('cvlan', 'C-VLAN', '', true, '', 'digits');
+        $inputs2 .= wf_TextInput('login', __('Login'), '', true, '', '');
+        $inputs2 .= wf_Submit('Save');
+        $result .= $inputs . wf_Form('', 'GET', $inputs2, 'glamour');
+        show_window('', wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $result, 'ubButton')
                 . wf_Link('?module=vlanmanagement', web_icon_extended() . ' ' . __('VLAN Management'), false, 'ubButton')
         );
     }

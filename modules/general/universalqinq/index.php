@@ -18,9 +18,12 @@ if (cfr('UNIVERSALQINQCONFIG')) {
             case 'add':
                 $qinq->add();
                 break;
+            case'realm_id_select':
+                die($qinq->svlanSelector($qinq->routing->get('ajrealmid')));
+                break;
         }
 
-        $qinq->addForm();        
+        $qinq->addForm();
         $qinq->showAll();
     }
 }

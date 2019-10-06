@@ -189,7 +189,7 @@ class Realms {
         $addControls .= wf_TextInput('description', __('Description'), '', true, '', '');
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
-        return(wf_modalAuto(web_icon_extended() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
+        return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));        
     }
 
     /**
@@ -213,7 +213,7 @@ class Realms {
     }
 
     protected function back() {
-        return(wf_link(VlanManagement::MODULE, __('Back'), false, 'ubButton'));
+        return(wf_BackLink(VlanManagement::MODULE, __('Back'), false, 'ubButton'));
     }
 
     public function links() {
