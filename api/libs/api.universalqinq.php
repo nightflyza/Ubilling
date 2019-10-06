@@ -125,24 +125,11 @@ class UniversalQINQ {
                 $allSvlanSelector[$id] = $each['svlan'] . ' | ' . $each['description'];
             }
         }
-        $result = wf_HiddenInput('module', 'vlanmanagement');
+        $result = wf_HiddenInput('module', 'universalqinq');
         $result .= wf_HiddenInput('realm_id', $realmId);
         $result .= wf_Selector('svlan_id', $allSvlanSelector, 'SVLAN', $this->routing->get('svlan_id'), false);
 
         return ($result);
-    }
-
-    /**
-     * Check if svlan is int and has value from 0 to 4096
-     * 
-     * @return bool
-     */
-    protected function validateSvlan() {
-        if (($this->routing->get('svlan', 'int') >= 0) and ( $this->routing->get('svlan', 'int') <= 4096)) {
-            return(true);
-        } else {
-            return(false);
-        }
     }
 
     /**
@@ -196,26 +183,20 @@ class UniversalQINQ {
      * @return bool
      */
     protected function validator() {
-        if (!$this->validateSvlan()) {
-            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan', 'int');
-        }
-
         if (!$this->validateCvlan()) {
             $this->error[] = __('Wrong value') . ': CVLAN ' . $this->routing->get('cvlan', 'int');
         }
         if (!$this->isUserExists()) {
             $this->error[] = __('User does not exist') . ' : ' . $this->routing->get('login', 'mres');
         }
-
         if (!$this->isUserUnique()) {
             $this->error[] = __('There is entry for this login') . ' : ' . $this->routing->get('login', 'mres');
         }
 
         if (!empty($this->error)) {
             return(false);
-        } else {
-            return(true);
         }
+        return(true);
     }
 
     /**
@@ -227,7 +208,7 @@ class UniversalQINQ {
         try {
             if ($this->validator('add')) {
                 $this->qinqdb->data('login', trim($this->routing->get('login', 'mres')));
-                $this->qinqdb->data('svlan', trim($this->routing->get('svlan', 'int')));
+                $this->qinqdb->data('svlan_id', trim($this->routing->get('svlan_id', 'int')));
                 $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan', 'int')));
                 $this->qinqdb->create();
                 $this->logAdd();
@@ -325,10 +306,10 @@ class UniversalQINQ {
         $addControls .= wf_HiddenInput('action', 'edit');
         $addControls .= wf_HiddenInput('id', $each['id']);
         $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
-        $addControls .= wf_TextInput('svlan', 'S-VLAN', $each['svlan'], true, '', 'digits');
+        $addControls .= wf_TextInput('svlan', 'S-VLAN', $each['svlan_id'], true, '', 'digits');
         $addControls .= wf_TextInput('cvlan', 'C-VLAN', $each['cvlan'], true, '', 'digits');
         $addControls .= wf_HiddenInput('old_login', $each['login']);
-        $addControls .= wf_HiddenInput('old_svlan', $each['svlan']);
+        $addControls .= wf_HiddenInput('old_svlan', $each['svlan_id']);
         $addControls .= wf_HiddenInput('old_cvlan', $each['cvlan']);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
@@ -368,7 +349,7 @@ class UniversalQINQ {
                 $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editFormGenerator($each), '');
                 $actLinks .= wf_Link(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), false);
                 $data[] = $each['id'];
-                $data[] = $each['svlan'];
+                $data[] = $this->allSvlan[$each['svlan_id']]['svlan'];
                 $data[] = $each['cvlan'];
                 $data[] = $userLink;
                 $data[] = @$allRealnames[$each['login']];
