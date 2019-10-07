@@ -204,7 +204,7 @@ class UbillingDHCP {
             }
 
             //main config
-            $result['dhcpd.conf'] = $dhcpdconf;
+            $result['dhcpd.conf']['content'] = $dhcpdconf;
 
             foreach ($this->allDhcpNets as $io => $eachnet) {
                 $subconfname = trim($eachnet['confname']);
@@ -214,7 +214,7 @@ class UbillingDHCP {
                     $subconfdata = '#' . $subconfname . '_NOT_EXISTS';
                 }
 
-                $result[$subconfname] = $subconfdata;
+                $result[$subconfname]['content'] = $subconfdata;
             }
         }
 
