@@ -277,12 +277,12 @@ class DreamKas {
      */
     protected function loadOptions() {
         $this->authToken = $this->ubConfig->getAlterParam('DREAMKAS_AUTH_TOKEN');
-        $this->cacheLifeTime = $this->ubConfig->getAlterParam('DREAMKAS_DATA_LIFETIME');
-        $this->defaultCashMachineID = $this->ubConfig->getAlterParam('DREAMKAS_DEFAULT_CASH_MACHINE_ID');
-        $this->defaultTaxType = $this->ubConfig->getAlterParam('DREAMKAS_DEFAULT_TAX_TYPE');
+        $this->cacheLifeTime = ($this->ubConfig->getAlterParam('DREAMKAS_CACHE_LIFETIME')) ? $this->ubConfig->getAlterParam('DREAMKAS_CACHE_LIFETIME') : 1800;
+        $this->defaultCashMachineID = ($this->ubConfig->getAlterParam('DREAMKAS_DEFAULT_CASH_MACHINE_ID')) ? $this->ubConfig->getAlterParam('DREAMKAS_DEFAULT_CASH_MACHINE_ID') : '';
+        $this->defaultTaxType = ($this->ubConfig->getAlterParam('DREAMKAS_DEFAULT_TAX_TYPE')) ? $this->ubConfig->getAlterParam('DREAMKAS_DEFAULT_TAX_TYPE') : '';
         $this->alwaysFiscalizeAll = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_ALWAYS_FISCALIZE_ALL'));
         $this->notysEnabled = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED'));
-        $this->notysCachingTimeout = $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL');
+        $this->notysCachingTimeout = ($this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL')) ? $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL') : 8;
     }
 
     /**
@@ -2427,9 +2427,9 @@ class DreamKasNotifications {
      */
     protected function loadOptions() {
         $this->notysEnabled = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED'));
-        $this->notysPollingInterval = $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL') * 1000;
-        $this->cachingTimeout = $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL');
-        $this->notysPopupTimeout = $this->ubConfig->getAlterParam('DREAMKAS_POPUP_TIMEOUT') * 1000;
+        $this->notysPollingInterval = ($this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL')) ? $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL') * 1000 : 8000;
+        $this->cachingTimeout = ($this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL')) ? $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL') : 8;
+        $this->notysPopupTimeout = ($this->ubConfig->getAlterParam('DREAMKAS_POPUP_TIMEOUT')) ? $this->ubConfig->getAlterParam('DREAMKAS_POPUP_TIMEOUT') * 1000 : 10000;
         $this->notysEverywhere = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_NOTIFY_ANYWHERE'));
         $this->notysOnDesktop = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_DESKTOP_NOTIFICATIONS'));
         $this->notysAdminsAllowed = explode(',', str_replace(' ', '', $this->ubConfig->getAlterParam('DREAMKAS_ADMINS_ALLOWED')));

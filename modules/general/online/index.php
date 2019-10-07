@@ -63,6 +63,14 @@ if ($system->checkForRight('ONLINE')) {
             $showWIFISignals = true;
 
             // fuckin' XOR magic goes below this line. don't touch it(especially the parentheses) or you'll be cursed with hours of debugging
+            // But to be serious - here we're trying to avoid a huge amount of "IFs" while checking the "ON" status of 3 optional columns:
+            // $ShowContractField, $showUserPhones and $showONUSignals. And that's all is not just to show off with XOR or something.
+            // Just because they go after each other in Online table and we need to apply some JQDT renderer function
+            // for coloring only to $showWIFISignals - we need to determine certainly the number of $showWIFISignals column.
+            // 1. We check, if all of 3 optional columns are "ON" - then $column2 will equal to "6". If not all of 3 optional columns are "ON" - we need to check further:
+            // 2. If any 2 of 3 optional columns are "ON" and only one of those 3 is "OFF" - then $column2 will equal to "5"
+            // 3. If only one of 3 optional columns is "ON" - then $column2 will equal to "4"
+            // 4. Finally, if none of 3 optional columns are "ON" - then $column2 will equal to "3"
             $colNum2 = (($ShowContractField and $showUserPhones and $showONUSignals) ? '6' :
                         ((($ShowContractField and $showUserPhones) xor ($showUserPhones and $showONUSignals) xor ($ShowContractField and $showONUSignals)) ? '5' :
                         (($ShowContractField xor $showUserPhones xor $showONUSignals) ? '4' : '3')));
@@ -423,28 +431,7 @@ if ($system->checkForRight('ONLINE')) {
         $allUserPhones = array();
         if (isset($alter_conf['ONLINE_SHOW_PHONES']) && $alter_conf['ONLINE_SHOW_PHONES']) {
             $showUserPhones = true;
-            $allUserDataCached = zb_GetAllAllPhonesCache();
-
-            if (!empty($allUserDataCached)) {
-                foreach ($allUserDataCached as $eachLogin => $eachData) {
-                    $userPhones = (empty($eachData['phone'])) ? '' : str_ireplace(array('+', "-"), '', $eachData['phone']) . ' ';
-                    $userPhones.= (empty($eachData['mobile'])) ? '' : str_ireplace(array('+', "-"), '', $eachData['mobile']);
-
-                    if (!empty($eachData['mobiles'])) {
-                        $userPhones .= '<br />' ;
-
-                        foreach ($eachData['mobiles'] as $extmobile) {
-                            $userPhones .= (empty($extmobile)) ? '' : str_ireplace(array('+', "-"), '', $extmobile) . ' ';
-                        }
-                    }
-
-                    if (!empty($userPhones)) {
-                        $allUserPhones[$eachLogin] = $userPhones;
-                    }
-                }
-            }
-
-            unset($allUserDataCached);
+            $allUserPhones = zb_GetAllOnlineTabPhones();
         }
 
         $query = "SELECT * FROM `users`";
