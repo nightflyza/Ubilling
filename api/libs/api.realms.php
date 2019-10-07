@@ -32,6 +32,8 @@ class Realms {
      * @var object
      */
     protected $db;
+    protected $svlanDb;
+    protected $qinqBindingsDb;
 
     /**
      * Contains all realms
@@ -48,6 +50,8 @@ class Realms {
      */
     public function __construct() {
         $this->db = new NyanORM(self::TABLE_NAME);
+        $this->svlanDb = new NyanORM('qinq_svlan');
+        $this->qinqBindingsDb = new NyanORM('qinq_bindings');
         $this->routing = new ubRouting();
         $this->messages = new UbillingMessageHelper();
         $this->allRealms = $this->db->getAll('id');
@@ -171,6 +175,17 @@ class Realms {
             if ($this->validate()) {
                 $this->db->where('id', '=', $this->routing->get('id', 'int'));
                 $this->db->delete();
+
+                //deleting all the c-vlan and s-vlan which belong to this realm
+                $this->svlanDb->where('realm_id', '=', $this->routing->get('id', 'int'));
+                $allVlanId = $this->svlanDb->getAll('id');
+                foreach ($allVlanId as $id => $data) {
+                    $this->qinqBindingsDb->where("svlan_id", '=', $id);
+                }
+                $this->qinqBindingsDb->delete();
+                $this->svlanDb->where('realm_id', '=', $this->routing->get('id', 'int'));
+                $this->svlanDb->delete();
+
                 $this->logDelete();
             }
             $this->goToStartOrError();

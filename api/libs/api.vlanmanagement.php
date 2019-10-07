@@ -17,6 +17,7 @@ class VlanManagement {
     protected $allSvlan = array();
     protected $error = array();
     protected $exceptions = array();
+    protected $messages;
     public $defaultRealm = 1;
     public $defaultSvlan = 1;
     protected $realmSelector = array();
@@ -26,6 +27,7 @@ class VlanManagement {
         $this->dbInit();
         $this->loadData();
         $this->routing = new ubRouting();
+        $this->messages = new UbillingMessageHelper();
     }
 
     protected function dbInit() {
@@ -149,6 +151,11 @@ class VlanManagement {
                 $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
                 $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
                 $this->svlanDb->delete();
+
+                //delete all the qinq bindings for this svlan
+                $this->cvlanDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
+                $this->cvlanDb->delete();
+
                 $this->logSvlanDelete();
             }
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
@@ -269,7 +276,7 @@ class VlanManagement {
             foreach ($this->allSvlan as $io => $each) {
                 $eachId = base64_encode('container_' . $each['id'] . '/' . $each['realm_id'] . '/' . $each['svlan'] . '/' . $each['description']);
                 $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="svlanEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
-                $actLinks .= wf_Link(self::MODULE_SVLAN . '&action=delete&id=' . $each['id'] . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_num=' . $each['svlan'], web_delete_icon(), false);
+                $actLinks .= wf_JSAlert(self::MODULE_SVLAN . '&action=delete&id=' . $each['id'] . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_num=' . $each['svlan'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];
                 $data[] = $each['svlan'];
                 $data[] = $each['description'];
