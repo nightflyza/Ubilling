@@ -119,7 +119,6 @@ class MobilesExt {
             $newId = simple_get_lastid('mobileext');
             $result = $newId;
             log_register('MOBILEEXT CREATE (' . $login . ') MOBILE `' . $mobile . '` [' . $newId . ']');
-            zb_GetAllAllPhonesCacheClean();
         }
         return ($result);
     }
@@ -138,7 +137,6 @@ class MobilesExt {
             $query = "DELETE from `mobileext` WHERE `id`='" . $mobileId . "';";
             nr_query($query);
             log_register('MOBILEEXT DELETE (' . $mobileData['login'] . ') MOBILE `' . $mobileData['mobile'] . '` [' . $mobileId . ']');
-            zb_GetAllAllPhonesCacheClean();
         }
     }
 
@@ -159,7 +157,6 @@ class MobilesExt {
             if ((!empty($mobile)) AND ( $mobileData['mobile'] != $mobile)) {
                 simple_update_field('mobileext', 'mobile', $mobile, $where);
                 log_register('MOBILEEXT CHANGE (' . $mobileData['login'] . ') MOBILE ON `' . $mobile . '` [' . $mobileId . ']');
-                zb_GetAllAllPhonesCacheClean();
             }
 
             if ($mobileData['notes'] != $notes) {
@@ -307,5 +304,4 @@ class MobilesExt {
             }
         }
     }
-
 }
