@@ -64,10 +64,24 @@ class VlanManagement {
             $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
         }
 
+        if ($this->protectDefault()) {
+            $this->error[] = __('Default SVLAN is protected');
+        }
+
+
         if (!empty($this->error)) {
             return(false);
         }
         return(true);
+    }
+
+    protected function protectDefault() {
+        if (($this->routing->get('action') == 'edit') or ( ($this->routing->get('action') == 'delete'))) {
+            if (($this->routing->get('old_svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
+                return(true);
+            }
+        }
+        return false;
     }
 
     protected function checkSvlan() {
@@ -80,6 +94,14 @@ class VlanManagement {
     protected function uniqueSvlan() {
         if ($this->routing->get('action') == 'add') {
             $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
+            $allSvlan = $this->svlanDb->getAll('svlan');
+            if (isset($allSvlan[$this->routing->get('svlan_num')])) {
+                return(false);
+            }
+        }
+        if ($this->routing->get('action') == 'edit') {
+            $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
+            $this->svlanDb->where('svlan', '!=', $this->routing->get('old_svlan_num', 'int'));
             $allSvlan = $this->svlanDb->getAll('svlan');
             if (isset($allSvlan[$this->routing->get('svlan_num')])) {
                 return(false);
@@ -148,15 +170,18 @@ class VlanManagement {
         return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
     }
 
-    protected function editSvlanForm($each) {
+    public function ajaxEditSvlan($encode) {
+        $decode = base64_decode($encode);
+        $split = explode("_", $decode);
+        $each = explode('/', $split[1]);
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('svlan', 'true');
         $addControls .= wf_HiddenInput('action', 'edit');
-        $addControls .= wf_HiddenInput('id', $each['id']);
-        $addControls .= wf_HiddenInput('realm_id', $each['realm_id']);
-        $addControls .= wf_TextInput('svlan_num', 'SVLAN', $each['svlan'], true, '');
-        $addControls .= wf_TextInput('description', __('Description'), $each['description'], true, '');
-        $addControls .= wf_HiddenInput('old_svlan_num', $each['svlan']);
+        $addControls .= wf_HiddenInput('id', $each[0]);
+        $addControls .= wf_HiddenInput('realm_id', $each[1]);
+        $addControls .= wf_TextInput('svlan_num', 'SVLAN', $each[2], true, '');
+        $addControls .= wf_TextInput('description', __('Description'), $each[3], true, '');
+        $addControls .= wf_HiddenInput('old_svlan_num', $each[2]);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
         return($form);
@@ -221,11 +246,18 @@ class VlanManagement {
     }
 
     public function showSvlanAll() {
+        $modal = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $modal .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="Choose" style="display:none; width:1px; height:1px;"');
+        $modal .= wf_tag('p', false, '', 'id="content-cvmodal"');
+        $modal .= wf_tag('p', true);
+        $modal .= wf_tag('div', true);
+        $modal .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+
         $columns = array('ID', 'SVLAN', 'Description', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = '';
         $ajaxURL = '' . self::MODULE_SVLAN . '&action=ajax&realm_id=' . $this->routing->get('realm_id', 'int');
-        $result .= show_window('', wf_JqDtLoader($columns, $ajaxURL, false, __('Realms'), 100, $opts));
+        $result .= show_window('', $modal . wf_JqDtLoader($columns, $ajaxURL, false, __('Realms'), 100, $opts));
         return ($result);
     }
 
@@ -235,7 +267,8 @@ class VlanManagement {
         $json = new wf_JqDtHelper();
         if (!empty($this->allSvlan)) {
             foreach ($this->allSvlan as $io => $each) {
-                $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editSvlanForm($each), '');
+                $eachId = base64_encode('container_' . $each['id'] . '/' . $each['realm_id'] . '/' . $each['svlan'] . '/' . $each['description']);
+                $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="svlanEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
                 $actLinks .= wf_Link(self::MODULE_SVLAN . '&action=delete&id=' . $each['id'] . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_num=' . $each['svlan'], web_delete_icon(), false);
                 $data[] = $each['id'];
                 $data[] = $each['svlan'];
@@ -290,7 +323,7 @@ class VlanManagement {
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
-                if(isset($allVlans[$cvlan])) {
+                if (isset($allVlans[$cvlan])) {
                     $color = 'not_free';
                 } else {
                     $color = 'free';

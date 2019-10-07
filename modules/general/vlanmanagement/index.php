@@ -41,6 +41,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                 case 'ajax':
                     $vlan->ajaxSvlanData();
                     break;
+                case 'ajaxedit':
+                    die($vlan->ajaxEditSvlan($vlan->routing->post('svlan_encode')));
+                    break;
             }
 
             $vlan->linksSvlan();

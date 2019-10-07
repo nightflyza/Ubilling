@@ -262,7 +262,6 @@ class Realms {
             foreach ($this->allRealms as $io => $each) {
                 $eachId = base64_encode('container_' . $each['id'] . '/' . $each['realm'] . '/' . $each['description']);
                 $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="realmEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
-                //$actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($each), '');
                 $actLinks .= wf_JSAlert(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];
                 $data[] = $each['realm'];

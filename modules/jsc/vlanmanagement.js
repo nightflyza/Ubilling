@@ -36,6 +36,23 @@ function realmEdit(element) {
     }
 }
 
+function svlanEdit(element) {
+    let modalContent = document.getElementById("content-cvmodal");
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "?module=vlanmanagement&svlan=true&action=ajaxedit", true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.send("svlan_encode=" + element.id);
+
+    xhr.onload = function () {
+        let response = xhr.response;
+        modalContent.innerHTML = response;
+        modalOpen();
+    }
+
+}
+
 function modalOpen() {
     $("#dialog-modal_cvmodal").dialog({
         autoOpen: true,
