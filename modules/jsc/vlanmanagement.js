@@ -1,6 +1,6 @@
 function vlanAcquire(element) {
     id = element.id;
-    var modalContent = document.getElementById("content-cvmodal");
+    let modalContent = document.getElementById("content-cvmodal");
 
     let splited = id.split("_");
     let data = splited[1].split("/");
@@ -9,6 +9,7 @@ function vlanAcquire(element) {
     let cvlan = data[2];
     let xhr = new XMLHttpRequest();
     xhr.open("GET", "?module=vlanmanagement&action=ajax&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
     xhr.send();
 
@@ -17,8 +18,22 @@ function vlanAcquire(element) {
         modalContent.innerHTML = response;
         modalOpen();
     };
+}
 
+function realmEdit(element) {
+    let modalContent = document.getElementById("content-cvmodal");
 
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "?module=vlanmanagement&realms=true&action=ajaxedit", true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.send("realm_encode=" + element.id);
+
+    xhr.onload = function () {
+        let response = xhr.response;
+        modalContent.innerHTML = response;
+        modalOpen();
+    }
 }
 
 function modalOpen() {
@@ -35,5 +50,6 @@ function modalOpen() {
         return false;
     });
 }
-;
+
+
 

@@ -108,7 +108,7 @@ class Realms {
      */
     protected function unique() {
         if (($this->routing->get('action') == 'edit') or ( $this->routing->get('action') == 'delete')) {
-            //skip if edit
+//skip if edit
             return(true);
         } else {
             $allRealms = $this->db->getAll('realm');
@@ -186,11 +186,18 @@ class Realms {
      * @return string
      */
     public function showAll() {
+        $modal = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $modal .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="Choose" style="display:none; width:1px; height:1px;"');
+        $modal .= wf_tag('p', false, '', 'id="content-cvmodal"');
+        $modal .= wf_tag('p', true);
+        $modal .= wf_tag('div', true);
+        $modal .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+
         $columns = array('ID', 'Realm', 'Description', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = '';
         $ajaxURL = '' . self::MODULE . '&action=ajax';
-        $result .= show_window('', wf_JqDtLoader($columns, $ajaxURL, false, __('Realms'), 100, $opts));
+        $result .= show_window('', $modal . wf_JqDtLoader($columns, $ajaxURL, false, __('Realms'), 100, $opts));
         return ($result);
     }
 
@@ -213,18 +220,21 @@ class Realms {
     /**
      * Forming edit form
      * 
-     * @param array $each
+     * @param string $encoded
      * 
      * @return string
      */
-    protected function editForm($each) {
+    public function ajaxEdit($encoded) {
+        $decoded = base64_decode($encoded);
+        $split = explode("_", $decoded);
+        $each = explode("/", $split[1]);
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('realms', 'true');
         $addControls .= wf_HiddenInput('action', 'edit');
-        $addControls .= wf_HiddenInput('id', $each['id']);
-        $addControls .= wf_TextInput('realm', __('Realm'), $each['realm'], true, '');
-        $addControls .= wf_TextInput('description', __('Description'), $each['description'], true, '');
-        $addControls .= wf_HiddenInput('old_realm', $each['realm']);
+        $addControls .= wf_HiddenInput('id', $each[0]);
+        $addControls .= wf_TextInput('realm', __('Realm'), $each[1], true, '');
+        $addControls .= wf_TextInput('description', __('Description'), $each[2], true, '');
+        $addControls .= wf_HiddenInput('old_realm', $each[1]);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
         return($form);
@@ -250,7 +260,9 @@ class Realms {
         $json = new wf_JqDtHelper();
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $io => $each) {
-                $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($each), '');
+                $eachId = base64_encode('container_' . $each['id'] . '/' . $each['realm'] . '/' . $each['description']);
+                $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="realmEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
+                //$actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($each), '');
                 $actLinks .= wf_JSAlert(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];
                 $data[] = $each['realm'];

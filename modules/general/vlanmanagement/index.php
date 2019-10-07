@@ -20,6 +20,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                 case 'ajax':
                     $realms->ajaxData();
                     break;
+                case 'ajaxedit':
+                    die($realms->ajaxEdit($realms->routing->post('realm_encode')));
+                    break;
             }
 
             $realms->links();

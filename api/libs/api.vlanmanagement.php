@@ -301,7 +301,7 @@ class VlanManagement {
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
             }
-            $result .= '<script src="./skins/vlanmanagement.js" type="text/javascript"></script>';
+            $result .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
         }
         show_window('', $result);
     }
