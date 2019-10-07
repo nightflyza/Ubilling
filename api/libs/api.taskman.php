@@ -679,6 +679,8 @@ function ts_JGetDoneTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+    $showExtendedDone = $ubillingConfig->getAlterParam('TASKMAN_SHOW_DONE_EXTENDED');
+    $extendedDoneAlterStyling = $ubillingConfig->getAlterParam('TASKMAN_DONE_EXTENDED_ALTERSTYLING');
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -688,7 +690,9 @@ function ts_JGetDoneTasks() {
         $adcFlag = false;
     }
     $allemployee = ts_GetAllEmployee();
-    $alljobtypes = ts_GetAllJobtypes();
+
+    // unnecessary call - isn't it?
+    //$alljobtypes = ts_GetAllJobtypes();
 
     $curyear = curyear();
     $curmonth = date("m");
@@ -753,9 +757,30 @@ function ts_JGetDoneTasks() {
                 $adcText = '';
             }
 
+            $doneemploee = (!empty($allemployee[$eachtask['employeedone']])) ? $allemployee[$eachtask['employeedone']] : '';
+
+            if ($showExtendedDone) {
+                if ($extendedDoneAlterStyling) {
+                    $jobtype = (!empty($eachtask['jobname'])) ? ' - <span style="color: #1d1ab2;"><b>' . __('Job type') . ': </b></span>' . $eachtask['jobname'] : '';
+                    $jobnote = (!empty($eachtask['jobnote'])) ? ' - <span style="color: #1d1ab2;"><b>' . __('Job note') . ': </b></span>' . $eachtask['jobnote'] : '';
+                    $donenote = (!empty($eachtask['donenote'])) ? ' - <span style="color: #1d1ab2;"><b>' . __('Finish note') . ': </b></span>' . $eachtask['donenote'] : '';
+                    $donedate = (!empty($eachtask['enddate'])) ? ' - <span style="color: #1d1ab2;"><b>' . __('Finish date') . ': </b></span>' . $eachtask['enddate'] : '';
+
+                    $doneemploee = (!empty($allemployee[$eachtask['employeedone']])) ? '<b>' . $allemployee[$eachtask['employeedone']] . '</b>'  : '';
+                } else {
+                    $jobtype = (!empty($eachtask['jobname'])) ? ' - ' . __('Job type') . ': ' . $eachtask['jobname'] : '';
+                    $jobnote = (!empty($eachtask['jobnote'])) ? ' - ' . __('Job note') . ': ' . $eachtask['jobnote'] : '';
+                    $donenote = (!empty($eachtask['donenote'])) ? ' - ' . __('Finish note') . ': ' . $eachtask['donenote'] : '';
+                    $donedate = (!empty($eachtask['enddate'])) ? ' - ' . __('Finish date') . ': ' . $eachtask['enddate'] : '';
+                }
+                $extendInfo = $jobtype . $jobnote . $donenote . $donedate;
+            } else {
+                $extendInfo = '';
+            }
+
             $result .= "
                       {
-                        title: '" . $eachtask['address'] . " - " . @$allemployee[$eachtask['employeedone']] . $adcText . "',
+                        title: '" . $eachtask['address'] . " - " . $doneemploee . $adcText . mysql_real_escape_string($extendInfo) . "',
                         start: new Date(" . $startdate . "),
                         end: new Date(" . $enddate . "),
                         url: '?module=taskman&edittask=" . $eachtask['id'] . "'
