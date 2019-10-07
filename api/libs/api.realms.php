@@ -72,7 +72,7 @@ class Realms {
         }
 
         if ($this->protectDefault()) {
-            $this->error[] = __('Default realm is protected');
+            $this->error[] = __('Default realm is protected and cannot be deleted or edited');
         }
 
         if (!empty($this->error)) {

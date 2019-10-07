@@ -67,7 +67,7 @@ class VlanManagement {
         }
 
         if ($this->protectDefault()) {
-            $this->error[] = __('Default SVLAN is protected');
+            $this->error[] = __('Default SVLAN is protected and cannot be deleted or edited');
         }
 
 
