@@ -134,7 +134,7 @@ class NyanORM {
      * 
      * @return void
      */
-    public function selectable($fieldSet) {
+    public function selectable($fieldSet = '') {
         if (!empty($fieldSet)) {
             if (is_array($fieldSet)) {
                 $this->selectable = $fieldSet;
