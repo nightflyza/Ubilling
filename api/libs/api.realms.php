@@ -65,6 +65,10 @@ class Realms {
             $this->error[] = __('Realm cannot be empty');
         }
 
+        if ($this->protectDefault()) {
+            $this->error[] = __('Default realm is protected');
+        }
+
         if (!empty($this->error)) {
             return(false);
         }
@@ -72,9 +76,25 @@ class Realms {
         return(true);
     }
 
+    protected function protectDefault() {
+        if (( $this->routing->get('action') == 'edit') or ( $this->routing->get('action') == 'delete')) {
+            if ($this->routing->get('id') == 1) {
+                return(true);
+            }
+        }
+        return(false);
+    }
+
     protected function emptyVar() {
-        if (empty($this->routing->get('realm', 'mres'))) {
-            return(true);
+        if (($this->routing->get('action') == 'add') or ( $this->routing->get('action') == 'edit')) {
+            if (empty($this->routing->get('realm', 'mres'))) {
+                return(true);
+            }
+        }
+        if ($this->routing->get('action') == 'delete') {
+            if (empty($this->routing->get('id', 'int'))) {
+                return(true);
+            }
         }
         return(false);
     }
@@ -85,20 +105,16 @@ class Realms {
      * @return bool
      */
     protected function unique() {
-        try {
-            if ($this->routing->get('action') == 'edit') {
-                //skip if edit
-                return(true);
+        if (($this->routing->get('action') == 'edit') or ( $this->routing->get('action') == 'delete')) {
+            //skip if edit
+            return(true);
+        } else {
+            $allRealms = $this->db->getAll('realm');
+            if (isset($allRealms[$this->routing->get('realm', 'mres')])) {
+                return(false);
             } else {
-                $allRealms = $this->db->getAll('realm');
-                if (isset($allRealms[$this->routing->get('realm', 'mres')])) {
-                    return(false);
-                } else {
-                    return(true);
-                }
+                return(true);
             }
-        } catch (Exception $ex) {
-            $this->exceptions[] = $ex;
         }
     }
 
@@ -150,7 +166,7 @@ class Realms {
      */
     public function delete() {
         try {
-            if (!empty($this->routing->get('id', 'int'))) {
+            if ($this->validate()) {
                 $this->db->where('id', '=', $this->routing->get('id', 'int'));
                 $this->db->delete();
                 $this->logDelete();
@@ -189,7 +205,7 @@ class Realms {
         $addControls .= wf_TextInput('description', __('Description'), '', true, '', '');
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
-        return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));        
+        return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
     }
 
     /**
