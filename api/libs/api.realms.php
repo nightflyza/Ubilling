@@ -39,6 +39,7 @@ class Realms {
      * @var array
      */
     protected $allRealms = array();
+    protected $messages;
 
     /**
      * Realms object
@@ -48,6 +49,7 @@ class Realms {
     public function __construct() {
         $this->db = new NyanORM(self::TABLE_NAME);
         $this->routing = new ubRouting();
+        $this->messages = new UbillingMessageHelper();
         $this->allRealms = $this->db->getAll('id');
     }
 
@@ -249,7 +251,7 @@ class Realms {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $io => $each) {
                 $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($each), '');
-                $actLinks .= wf_Link(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), false);
+                $actLinks .= wf_JSAlert(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];
                 $data[] = $each['realm'];
                 $data[] = $each['description'];
