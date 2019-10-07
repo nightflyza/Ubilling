@@ -13,14 +13,17 @@ class VlanManagement {
     protected $svlanDb;
     protected $cvlanDb;
     protected $switchesqinqDb;
+    protected $switchesDb;
+    protected $switchModelsDb;
     protected $allRealms = array();
     protected $allSvlan = array();
     protected $error = array();
     protected $exceptions = array();
     protected $messages;
+    protected $defaultType;
+    protected $realmSelector = array();
     public $defaultRealm = 1;
     public $defaultSvlan = 1;
-    protected $realmSelector = array();
     public $routing;
 
     public function __construct() {
@@ -35,6 +38,8 @@ class VlanManagement {
         $this->svlanDb = new NyanORM('qinq_svlan');
         $this->cvlanDb = new NyanORM('qinq_bindings');
         $this->switchesqinqDb = new NyanORM('switches_qinq');
+        $this->switchesDb = new NyanORM('switches');
+        $this->switchModelsDb = new NyanORM('switchmodels');
     }
 
     protected function loadData() {
@@ -198,19 +203,6 @@ class VlanManagement {
         $result = wf_modalAuto(web_icon_extended() . ' ' . __('QINQ for switches'), __('QINQ for switches'), $form, 'ubButton');
     }
 
-    protected function realmMainSelector() {
-        if (!empty($this->allRealms)) {
-            foreach ($this->allRealms as $id => $each) {
-                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = $each['realm'] . ' | ' . $each['description'];
-            }
-
-            reset($this->allRealms);
-            $this->defaultRealm = key($this->allRealms);
-        }
-
-        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
-    }
-
     protected function realmSvlanSelector() {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
@@ -306,15 +298,63 @@ class VlanManagement {
         return($result);
     }
 
+    protected function realmMainSelector() {
+        if (!empty($this->allRealms)) {
+            foreach ($this->allRealms as $id => $each) {
+                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = $each['realm'] . ' | ' . $each['description'];
+            }
+
+            reset($this->allRealms);
+            $this->defaultRealm = key($this->allRealms);
+        }
+
+        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
+    }
+
+    protected function typeSelector() {
+        $switches = self::MODULE
+                . '&action=choosetype&type=qinqswitches&'
+                . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
+        $universal = self::MODULE
+                . '&action=choosetype&type=universalqinq&'
+                . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
+
+        $selector[$switches] = __('QINQ for switches');
+        $selector[$universal] = __('Universal QINQ');
+
+        $this->defaultType = $switches;
+
+        return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->routing->get('type') ? $this->routing->get('type') : $this->defaultType, false));
+    }
+
+    public function types() {
+        $result = '';
+        switch ($this->routing->get('type')) {
+            case 'universalqinq':
+                $result .= wf_HiddenInput('type', 'universalqinq');
+                $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                $result .= wf_TextInput('login', __('Login'), '', true);
+                break;
+            default :
+                $result .= wf_HiddenInput('type', 'qinqswitches');
+                $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                $result .= 'choose switch';
+                break;
+        }
+
+        return($result);
+    }
+
     public function ajaxChooseForm() {
         $inputs = wf_HiddenInput('module', 'vlanmanager');
         $inputs .= wf_HiddenInput('realm_id', $this->routing->get('realm_id', 'int'));
         $inputs .= wf_HiddenInput('svlan_id', $this->routing->get('svlan_id', 'int'));
         $inputs .= wf_HiddenInput('cvlan_num', $this->routing->get('cvlan_num', 'int'));
-        $inputs .= wf_RadioInput('qinq_type', __('QINQ for switches'), 'switches', true, true);
-        $inputs .= wf_RadioInput('qinq_type', __('Universal QINQ'), 'universal', true, false);
+        $inputs .= wf_AjaxLoader();
+        $inputs .= $this->typeSelector();
+        $inputs .= wf_AjaxContainer('ajtypecontainer', '', $this->types(), $this->defaultType, false);
         $inputs .= wf_Submit(__('Save'));
-        $form = wf_Form('', "GET", $inputs);
+        $form = wf_Form('', "GET", $inputs, 'glamour');
         return($form);
     }
 

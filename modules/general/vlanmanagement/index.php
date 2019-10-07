@@ -57,6 +57,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                     case 'ajax':
                         die($vlan->ajaxChooseForm());
                         break;
+                    case 'choosetype':
+                        die($vlan->types());
+                        break;
                 }
             } else {
                 if (!$vlan->routing->get('realm_id', 'int') and ! $vlan->routing->get('svlan_id')) {
