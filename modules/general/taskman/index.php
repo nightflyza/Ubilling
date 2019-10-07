@@ -138,10 +138,17 @@ if (cfr('TASKMAN')) {
                         // Task logs
                         show_window(__('View log'), ts_renderLogsListAjax());
                     } else {
+                        $showExtendedDone = $ubillingConfig->getAlterParam('TASKMAN_SHOW_DONE_EXTENDED');
+                        $extendedDoneAlterStyling = $ubillingConfig->getAlterParam('TASKMAN_DONE_EXTENDED_ALTERSTYLING');
+                        $extendedDoneAlterStylingBool = ($extendedDoneAlterStyling > 0);
+                        $extendedDoneAlterListOnly = ($extendedDoneAlterStylingBool and $extendedDoneAlterStyling == 2);
+
                         //custom jobtypes color styling
                         $customJobColorStyle = ts_GetAllJobtypesColorStyles();
                         //show full calendar view
-                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts));
+                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts,
+                                                                               $extendedDoneAlterStylingBool,
+                                                                               $extendedDoneAlterListOnly));
                     }
                 } else {
                     show_window(__('Show late'), ts_ShowLate());

@@ -90,10 +90,10 @@ class UbillingDHCP {
         $result = '';
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Network/CIDR'));
-        $cells.= wf_TableCell(__('DHCP custom subnet template'));
-        $cells.= wf_TableCell(__('DHCP config name'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Network/CIDR'));
+        $cells .= wf_TableCell(__('DHCP custom subnet template'));
+        $cells .= wf_TableCell(__('DHCP config name'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allDhcpNets)) {
@@ -105,13 +105,13 @@ class UbillingDHCP {
                     $cidr = __('Deleted');
                 }
                 $cells = wf_TableCell($eachnet['id']);
-                $cells.= wf_TableCell($cidr);
-                $cells.= wf_TableCell(web_bool_led($eachnet['dhcpconfig']));
-                $cells.= wf_TableCell($eachnet['confname']);
+                $cells .= wf_TableCell($cidr);
+                $cells .= wf_TableCell(web_bool_led($eachnet['dhcpconfig']));
+                $cells .= wf_TableCell($eachnet['confname']);
                 $actLinks = wf_JSAlert('?module=dhcp&delete=' . $eachnet['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-                $actLinks.= wf_Link('?module=dhcp&edit=' . $eachnet['id'], web_edit_icon(), false);
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $actLinks .= wf_Link('?module=dhcp&edit=' . $eachnet['id'], web_edit_icon(), false);
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
@@ -127,9 +127,9 @@ class UbillingDHCP {
      */
     public function renderPanel() {
         $result = '';
-        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add DHCP network'), __('Add DHCP network'), $this->addForm(), 'ubButton') . ' ';
-        $result.= wf_Link('?module=dhcplog', wf_img('skins/log_icon_small.png') . ' ' . __('View log'), false, 'ubButton') . ' ';
-        $result.= wf_Link(self::URL_ME . '&restartserver=true', wf_img('skins/refresh.gif') . ' ' . __('Restart DHCP server'), false, 'ubButton');
+        $result .= wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add DHCP network'), __('Add DHCP network'), $this->addForm(), 'ubButton') . ' ';
+        $result .= wf_Link('?module=dhcplog', wf_img('skins/log_icon_small.png') . ' ' . __('View log'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&restartserver=true', wf_img('skins/refresh.gif') . ' ' . __('Restart DHCP server'), false, 'ubButton');
 
         return ($result);
     }
@@ -143,9 +143,9 @@ class UbillingDHCP {
         $result = '';
         if (!empty($this->allDhcpNets)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Network/CIDR'));
-            $cells.= wf_TableCell(__('DHCP config name'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Network/CIDR'));
+            $cells .= wf_TableCell(__('DHCP config name'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (file_exists(self::MULTINET_PATH . 'dhcpd.conf')) {
@@ -155,13 +155,13 @@ class UbillingDHCP {
             }
 
             $actLinks = wf_Link(self::URL_ME . '&downloadconfig=dhcpd.conf', web_icon_download(), false) . ' ';
-            $actLinks.= wf_modal(web_icon_search(__('Preview') . ' dhcpd.conf'), 'dhcpd.conf', $dhcpdconf, '', 800, 600);
+            $actLinks .= wf_modal(web_icon_search(__('Preview') . ' dhcpd.conf'), 'dhcpd.conf', $dhcpdconf, '', 800, 600);
 
             $cells = wf_TableCell('-');
-            $cells.= wf_TableCell('-');
-            $cells.= wf_TableCell('dhcpd.conf');
-            $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row5');
+            $cells .= wf_TableCell('-');
+            $cells .= wf_TableCell('dhcpd.conf');
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row5');
 
             foreach ($this->allDhcpNets as $io => $eachnet) {
                 $subconfname = trim($eachnet['confname']);
@@ -172,13 +172,13 @@ class UbillingDHCP {
                 }
 
                 $actLinks = wf_Link(self::URL_ME . '&downloadconfig=' . $subconfname, web_icon_download(), false);
-                $actLinks.= wf_modal(web_icon_search(__('Preview') . ' ' . $subconfname), $subconfname, $subconfdata, '', 800, 600);
+                $actLinks .= wf_modal(web_icon_search(__('Preview') . ' ' . $subconfname), $subconfname, $subconfdata, '', 800, 600);
 
                 $cells = wf_TableCell($eachnet['id']);
-                $cells.= wf_TableCell(@$this->allMultinetNets[$eachnet['netid']]['desc']);
-                $cells.= wf_TableCell($subconfname);
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell(@$this->allMultinetNets[$eachnet['netid']]['desc']);
+                $cells .= wf_TableCell($subconfname);
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
 
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -186,6 +186,40 @@ class UbillingDHCP {
             $result = $this->messages->getStyledMessage(__('No available DHCP configs found'), 'info');
         }
         return ($result);
+    }
+
+    /**
+     * Returns json array of all available DHCP configs for remote deploy
+     * 
+     * @return string
+     */
+    public function getConfigsRemote() {
+        $result = array();
+        if (!empty($this->allDhcpNets)) {
+
+            if (file_exists(self::MULTINET_PATH . 'dhcpd.conf')) {
+                $dhcpdconf = file_get_contents(self::MULTINET_PATH . 'dhcpd.conf');
+            } else {
+                $dhcpdconf = '#EX_DHCPDCONF_NOT_EXISTS';
+            }
+
+            //main config
+            $result['dhcpd.conf'] = $dhcpdconf;
+
+            foreach ($this->allDhcpNets as $io => $eachnet) {
+                $subconfname = trim($eachnet['confname']);
+                if (file_exists(self::MULTINET_PATH . $subconfname)) {
+                    $subconfdata = file_get_contents(self::MULTINET_PATH . $subconfname);
+                } else {
+                    $subconfdata = '#' . $subconfname . '_NOT_EXISTS';
+                }
+
+                $result[$subconfname] = $subconfdata;
+            }
+        }
+
+        $result = json_encode($result);
+        return($result);
     }
 
     /**
@@ -230,18 +264,18 @@ class UbillingDHCP {
         $result = '';
         if (!empty($allTemplates)) {
             $cells = wf_TableCell(__('Filename'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($allTemplates as $eachfilename) {
                 $templateData = file_get_contents(self::TEMPLATES_PATH . $eachfilename);
                 $templateData = nl2br($templateData);
                 $actLinks = wf_Link(self::URL_ME . '&downloadtemplate=' . $eachfilename, web_icon_download(), false) . ' ';
-                $actLinks.= wf_modal(web_icon_search(__('Preview') . ' ' . $eachfilename), $eachfilename, $templateData, '', 800, 600) . ' ';
+                $actLinks .= wf_modal(web_icon_search(__('Preview') . ' ' . $eachfilename), $eachfilename, $templateData, '', 800, 600) . ' ';
 
                 $cells = wf_TableCell($eachfilename);
-                $cells.= wf_TableCell(__($actLinks));
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell(__($actLinks));
+                $rows .= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
@@ -349,9 +383,9 @@ class UbillingDHCP {
             //some of it have no DHCP handlers
             if (!empty($networkSelector)) {
                 $inputs = $networkSelector;
-                $inputs.= wf_HiddenInput('adddhcp', 'true');
-                $inputs.= wf_TextInput('dhcpconfname', __('DHCP config name'), '', true, '20');
-                $inputs.= wf_Submit(__('Create'));
+                $inputs .= wf_HiddenInput('adddhcp', 'true');
+                $inputs .= wf_TextInput('dhcpconfname', __('DHCP config name'), '', true, '20');
+                $inputs .= wf_Submit(__('Create'));
                 $result = wf_Form('', 'POST', $inputs, 'glamour');
             } else {
                 $result = $this->messages->getStyledMessage(__('All networks already has DHCP configured'), 'info');
@@ -376,12 +410,12 @@ class UbillingDHCP {
         if (isset($this->allDhcpNets[$dhcpid])) {
             $dhcpnetdata = $this->getNetworkData($dhcpid);
             $inputs = wf_TextInput('editdhcpconfname', __('DHCP config name'), $dhcpnetdata['confname'], true, 20);
-            $inputs.= __('DHCP custom subnet template') . wf_tag('br');
-            $inputs.= wf_TextArea('editdhcpconfig', '', $dhcpnetdata['dhcpconfig'], true, '60x10');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= __('DHCP custom subnet template') . wf_tag('br');
+            $inputs .= wf_TextArea('editdhcpconfig', '', $dhcpnetdata['dhcpconfig'], true, '60x10');
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=wf_CleanDiv();
-            $result.=wf_BackLink(self::URL_ME);
+            $result .= wf_CleanDiv();
+            $result .= wf_BackLink(self::URL_ME);
         } else {
             $result = $this->messages->getStyledMessage(__('Something went wrong'), 'errors');
         }
