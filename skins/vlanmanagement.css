@@ -8,18 +8,19 @@
     margin-bottom: 10px;
     font-size: 20px;
     font-weight: 600;
+    
 }
 
-.free {
-    background-color: #00CC00;    
+.free_vlan {
+    background-color: #9dd3a8;    
 }
 
-.occupied_customer {
-    background-color: #FF7400;
-    color: white;
+.occupied_customer {    
+    border-color: #FF7400;      
+    background-color: #f4f0e6;    
 }
 
 .occupied_switch {
-    background-color: #1240AB;
-    color: white;
+    border-color: #1240AB;       
+    background-color: #d9d9f3;    
 }

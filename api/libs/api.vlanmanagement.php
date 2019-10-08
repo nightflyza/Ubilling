@@ -423,7 +423,7 @@ class VlanManagement {
                 } elseif (isset($this->occupiedSwitches[$cvlan])) {
                     $color = 'occupied_switch';
                 } else {
-                    $color = 'free';
+                    $color = 'free_vlan';
                     $free = true;
                 }
 
