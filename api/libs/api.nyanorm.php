@@ -611,4 +611,15 @@ class NyanORM {
         }
     }
 
+    /**
+     * Sets default primary key for model instance
+     * 
+     * @param string $fieldName
+     * 
+     * @return void
+     */
+    public function setDefaultPk($fieldName = 'id') {
+        $this->defaultPk = $fieldName;
+    }
+
 }
