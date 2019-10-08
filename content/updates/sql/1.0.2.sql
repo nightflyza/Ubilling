@@ -26,3 +26,13 @@ CREATE TABLE IF NOT EXISTS `qinq_svlan` (
 
 INSERT INTO `qinq_svlan` (`id`, `realm_id`, `svlan`, `description`) VALUES (NULL, 1, 0, 'Use it for untagged VLAN');
 
+INSERT INTO `qinq_svlan` (`id`, `realm_id`, `svlan`) SELECT NULL, 1, `svlan` FROM `switches_qinq`;
+
+ALTER TABLE `switches_qinq` ADD `svlan_id` int(11) NOT NULL AFTER `switchid`;
+
+ALTER TABLE `switches_qinq` ADD KEY (`svlan_id`);
+
+UPDATE `switches_qinq` AS `swq`, `qinq_svlan` AS `qsv` SET `swq`.`svlan_id` = `qsv`.`id` WHERE `swq`.`svlan` = `qsv`.`svlan` AND `qsv`.`realm_id` =1;
+
+ALTER TABLE `switches_qinq` DROP `svlan`;
+

@@ -2613,3 +2613,8 @@ CREATE TABLE IF NOT EXISTS `qinq_svlan` (
 
 INSERT INTO `qinq_svlan` (`id`, `realm_id`, `svlan`, `description`) VALUES (NULL, 1, 0, 'Use it for untagged VLAN');
 
+ALTER TABLE `switches_qinq` ADD `svlan_id` int(11) NOT NULL AFTER `switchid`;
+
+ALTER TABLE `switches_qinq` ADD KEY (`svlan_id`);
+
+ALTER TABLE `switches_qinq` DROP `svlan`;
