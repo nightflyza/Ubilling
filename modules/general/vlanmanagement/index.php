@@ -60,6 +60,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                     case 'choosetype':
                         die($vlan->types());
                         break;
+                    case 'add':
+                        $vlan->addNewBinding();
+                        break;
                 }
             } else {
                 if (!$vlan->routing->get('realm_id', 'int') and ! $vlan->routing->get('svlan_id')) {

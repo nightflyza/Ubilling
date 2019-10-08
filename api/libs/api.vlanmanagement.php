@@ -22,6 +22,8 @@ class VlanManagement {
     protected $messages;
     protected $defaultType;
     protected $realmSelector = array();
+    protected $occupiedUniversal = array();
+    protected $occupiedSwitches = array();
     public $defaultRealm = 1;
     public $defaultSvlan = 1;
     public $routing;
@@ -199,10 +201,6 @@ class VlanManagement {
         return($form);
     }
 
-    public function chooseType() {
-        $result = wf_modalAuto(web_icon_extended() . ' ' . __('QINQ for switches'), __('QINQ for switches'), $form, 'ubButton');
-    }
-
     protected function realmSvlanSelector() {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
@@ -280,6 +278,10 @@ class VlanManagement {
         $json->getJson();
     }
 
+    public function chooseType() {
+        $result = wf_modalAuto(web_icon_extended() . ' ' . __('QINQ for switches'), __('QINQ for switches'), $form, 'ubButton');
+    }
+
     public function linksMain() {
         $urls = wf_BackLink(UniversalQINQ::MODULE, __('Back'), false, 'ubButton');
         $urls .= wf_Link(self::MODULE_SVLAN . '&realm_id=1', web_icon_extended() . 'SVLAN', false, 'ubButton');
@@ -327,40 +329,85 @@ class VlanManagement {
         return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->routing->get('type') ? $this->routing->get('type') : $this->defaultType, false));
     }
 
+    protected function switchSelector() {
+        $query = "SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location` FROM `switches` LEFT JOIN `switches_qinq` ON `switches`.`id` = `switches_qinq`.`switchid` WHERE `switches_qinq`.`switchid` IS NULL";
+        $switches = simple_queryall($query);
+
+        foreach ($switches as $io => $each) {
+            $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
+        }
+
+        return(wf_Selector('switchid', $options, __('Select switch')));
+    }
+
     public function types() {
         $result = '';
         switch ($this->routing->get('type')) {
             case 'universalqinq':
                 $result .= wf_HiddenInput('type', 'universalqinq');
                 $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
-                $result .= wf_TextInput('login', __('Login'), '', true);
+                $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
                 break;
             default :
                 $result .= wf_HiddenInput('type', 'qinqswitches');
                 $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
-                $result .= 'choose switch';
+                $result .= $this->switchSelector();
                 break;
         }
 
         return($result);
     }
 
+    public function addNewBinding() {
+        try {
+            switch ($this->routing->get('type')) {
+                case 'universalqinq':
+                    break;
+                case 'qinqswitches':
+                    break;
+            }
+            $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+        } catch (Exception $ex) {
+            $this->exceptions[] = $ex;
+            $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+        }
+    }
+
     public function ajaxChooseForm() {
-        $inputs = wf_HiddenInput('module', 'vlanmanager');
+        $inputs = wf_HiddenInput('module', 'vlanmanagement');
+        $inputs .= wf_HiddenInput('action', 'add');
         $inputs .= wf_HiddenInput('realm_id', $this->routing->get('realm_id', 'int'));
         $inputs .= wf_HiddenInput('svlan_id', $this->routing->get('svlan_id', 'int'));
         $inputs .= wf_HiddenInput('cvlan_num', $this->routing->get('cvlan_num', 'int'));
         $inputs .= wf_AjaxLoader();
-        $inputs .= $this->typeSelector();
+        $inputs2 = $this->typeSelector() . wf_delimiter(1);
         $inputs .= wf_AjaxContainer('ajtypecontainer', '', $this->types(), $this->defaultType, false);
         $inputs .= wf_Submit(__('Save'));
-        $form = wf_Form('', "GET", $inputs, 'glamour');
+        $form = $inputs2 . wf_Form('', "GET", $inputs, 'glamour');
         return($form);
     }
 
-    public function cvlanMatrix() {
+    protected function occupiedCvlans() {
         $this->cvlanDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
-        $allVlans = $this->cvlanDb->getAll('cvlan');
+        $this->occupiedUniversal = $this->cvlanDb->getAll('cvlan');
+    }
+
+    protected function occupiedSwitches() {
+        $allSwitches = $this->switchesDb->getAll('id');
+        $allModels = $this->switchModelsDb->getAll('id');
+        $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
+            $modelid = $allSwitches[$each['switchid']]['modelid'];
+            $port_number = $allModels[$modelid]['ports'];
+            for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
+                $this->occupiedSwitches[$i] = $i;
+            }
+        }
+    }
+
+    public function cvlanMatrix() {
+        $this->occupiedCvlans();
+        $this->occupiedSwitches();
         $result = '';
         if ($this->routing->checkGet(array('realm_id', 'svlan_id'))) {
             $result .= '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
@@ -370,14 +417,25 @@ class VlanManagement {
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
-                if (isset($allVlans[$cvlan])) {
-                    $color = 'not_free';
+                $free = false;
+                if (isset($this->occupiedUniversal[$cvlan])) {
+                    $color = 'occupied_customer';
+                } elseif (isset($this->occupiedSwitches[$cvlan])) {
+                    $color = 'occupied_switch';
                 } else {
                     $color = 'free';
+                    $free = true;
                 }
-                $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
-                        '/' . $this->routing->get('svlan_id', 'int') .
-                        '/' . $cvlan . '" onclick="vlanAcquire(this)"');
+
+                if ($free) {
+                    $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
+                            '/' . $this->routing->get('svlan_id', 'int') .
+                            '/' . $cvlan . '" onclick="vlanAcquire(this)"');
+                } else {
+                    $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
+                            '/' . $this->routing->get('svlan_id', 'int') .
+                            '/' . $cvlan . '"');
+                }
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
             }

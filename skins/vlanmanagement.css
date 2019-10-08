@@ -1,6 +1,6 @@
 .cvlanMatrixContainer {
     padding: 8px;
-    border: solid 1px black;
+    border: solid 2px black;
     min-width: 45px;
     text-align: center;
     display: inline-block;
@@ -11,9 +11,15 @@
 }
 
 .free {
-    background-color: #37DC74;
+    background-color: #00CC00;    
 }
 
-.not_free {
-    background-color: #FF6140;
+.occupied_customer {
+    background-color: #FF7400;
+    color: white;
+}
+
+.occupied_switch {
+    background-color: #1240AB;
+    color: white;
 }
