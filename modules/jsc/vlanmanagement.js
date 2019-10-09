@@ -94,7 +94,22 @@ function svlanEdit(element) {
         modalContent.innerHTML = response;
         modalOpen();
     }
+}
 
+function qinqEdit(element) {
+    let modalContent = document.getElementById("content-cvmodal");
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "?module=universalqinq&action=ajaxedit", true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.send("universal_encode=" + element.id);
+
+    xhr.onload = function () {
+        let response = xhr.response;
+        modalContent.innerHTML = response;
+        modalOpen();
+    }
 }
 
 function modalOpen() {

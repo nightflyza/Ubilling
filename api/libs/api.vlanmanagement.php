@@ -204,17 +204,15 @@ class VlanManagement {
     }
 
     public function ajaxEditSvlan($encode) {
-        $decode = base64_decode($encode);
-        $split = explode("_", $decode);
-        $each = explode('/', $split[1]);
+        $decode = unserialize(base64_decode($encode));
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('svlan', 'true');
         $addControls .= wf_HiddenInput('action', 'edit');
-        $addControls .= wf_HiddenInput('id', $each[0]);
-        $addControls .= wf_HiddenInput('realm_id', $each[1]);
-        $addControls .= wf_TextInput('svlan_num', 'SVLAN', $each[2], true, '');
-        $addControls .= wf_TextInput('description', __('Description'), $each[3], true, '');
-        $addControls .= wf_HiddenInput('old_svlan_num', $each[2]);
+        $addControls .= wf_HiddenInput('id', $decode['id']);
+        $addControls .= wf_HiddenInput('realm_id', $decode['realm_id']);
+        $addControls .= wf_TextInput('svlan_num', 'SVLAN', $decode['svlan'], true, '');
+        $addControls .= wf_TextInput('description', __('Description'), $decode['description'], true, '');
+        $addControls .= wf_HiddenInput('old_svlan_num', $decode['svlan']);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
         return($form);
@@ -236,7 +234,7 @@ class VlanManagement {
         $realmId = vf($realmId, 3);
         $this->svlanDb->where('realm_id', '=', $realmId);
         $allSvlan = $this->svlanDb->getAll('id');
-        $allSvlanSelector = array('' => '---');
+        $allSvlanSelector[''] = '---';
         if (!empty($allSvlan)) {
             foreach ($allSvlan as $id => $each) {
                 $allSvlanSelector[$id] = $each['svlan'] . ' | ' . $each['description'];
@@ -283,7 +281,12 @@ class VlanManagement {
         $json = new wf_JqDtHelper();
         if (!empty($this->allSvlan)) {
             foreach ($this->allSvlan as $io => $each) {
-                $eachId = base64_encode('container_' . $each['id'] . '/' . $each['realm_id'] . '/' . $each['svlan'] . '/' . $each['description']);
+                $eachId = base64_encode(serialize(array(
+                    'id' => $each['id'],
+                    'realm_id' => $each['realm_id'],
+                    'svlan' => $each['svlan'],
+                    'description' => $each['description']
+                )));
                 $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="svlanEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
                 $actLinks .= wf_JSAlert(self::MODULE_SVLAN . '&action=delete&id=' . $each['id'] . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_num=' . $each['svlan'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];

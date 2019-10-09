@@ -51,6 +51,7 @@ class UniversalQINQ {
     protected $realmsdb;
     protected $svlandb;
     protected $defaultRealm;
+    protected $messages;
 
     /**
      * Placeholder for ubRouting object
@@ -69,6 +70,7 @@ class UniversalQINQ {
         $this->loadAlter();
         $this->initRouting();
         $this->loadData();
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -118,7 +120,7 @@ class UniversalQINQ {
         }
     }
 
-    protected function realmsSelector($container) {
+    protected function realmsSelector($container = '', $realmid = '', $svlan = '') {
         $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=0'] = '---';
 
         if (!empty($this->allRealms)) {
@@ -127,7 +129,11 @@ class UniversalQINQ {
             }
 
             reset($this->allRealms);
-            $this->defaultRealm[self::MODULE . '&action=realm_id_select&ajrealmid=1'] = 'default | default realm';
+            if ($realmid) {
+                $this->defaultRealm = self::MODULE . '&action=realm_id_select&ajrealmid=' . $realmid;
+            } else {
+                $this->defaultRealm = self::MODULE . '&action=realm_id_select&ajrealmid=1';
+            }
         }
 
         return(wf_AjaxSelectorAC($container, $this->realmSelector, __('Select realm'), $this->defaultRealm, false));
@@ -331,11 +337,18 @@ class UniversalQINQ {
      * @return string
      */
     public function showAll() {
+        $modal = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $modal .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="Choose" style="display:none; width:1px; height:1px;"');
+        $modal .= wf_tag('p', false, '', 'id="content-cvmodal"');
+        $modal .= wf_tag('p', true);
+        $modal .= wf_tag('div', true);
+        $modal .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+
         $columns = array(__('ID'), 'Realm', 'S-VLAN', 'C-VLAN', 'Address', 'Real Name', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = '';
         $ajaxURL = '' . self::MODULE . '&ajax=true';
-        $result .= show_window('', wf_JqDtLoader($columns, $ajaxURL, false, 'UniversalQINQ', 100, $opts));
+        $result .= show_window('', $modal . wf_JqDtLoader($columns, $ajaxURL, false, 'UniversalQINQ', 100, $opts));
         return ($result);
     }
 
@@ -354,7 +367,7 @@ class UniversalQINQ {
         $inputs2 = wf_HiddenInput('module', 'universalqinq');
         $inputs2 .= wf_HiddenInput('action', 'add');
         $inputs2 .= $this->realmsSelector('ajcontainer');
-        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->defaultRealm));
+        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector(1));
         $inputs2 .= wf_TextInput('cvlan_num', 'C-VLAN', '', true, '', 'digits');
         $inputs2 .= wf_TextInput('login', __('Login'), '', true, '', '');
         $inputs2 .= wf_Submit('Save');
@@ -369,18 +382,19 @@ class UniversalQINQ {
      * 
      * @return string
      */
-    protected function editFormGenerator($each) {
+    public function editFormGenerator($encode) {        
+        $decode = unserialize(base64_decode($encode));
         $result = wf_AjaxLoader();
         $addControls = wf_HiddenInput('module', 'universalqinq');
         $addControls .= wf_HiddenInput('action', 'edit');
-        $addControls .= wf_HiddenInput('id', $each['id']);
-        $addControls .= $this->realmsSelector('ajcontainer2');
-        $addControls .= wf_AjaxContainer('ajcontainer2', '', $this->svlanSelector($this->defaultRealm));
-        $addControls .= wf_TextInput('cvlan_num', 'C-VLAN', $each['cvlan'], true, '', 'digits');
-        $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
-        $addControls .= wf_HiddenInput('old_login', $each['login']);
-        $addControls .= wf_HiddenInput('old_svlan', $each['svlan_id']);
-        $addControls .= wf_HiddenInput('old_cvlan', $each['cvlan']);
+        $addControls .= wf_HiddenInput('id', $decode['id']);
+        $addControls .= $this->realmsSelector('ajcontainer2', $this->allSvlan[$decode['svlan_id']]['realm_id']);
+        $addControls .= wf_AjaxContainer('ajcontainer2', '', $this->svlanSelector($this->allSvlan[$decode['svlan_id']]['realm_id']), $decode['svlan_id']);
+        $addControls .= wf_TextInput('cvlan_num', 'C-VLAN', $decode['cvlan'], true, '', 'digits');
+        $addControls .= wf_TextInput('login', __('Login'), $decode['login'], true, '');
+        $addControls .= wf_HiddenInput('old_login', $decode['login']);
+        $addControls .= wf_HiddenInput('old_svlan', $decode['svlan_id']);
+        $addControls .= wf_HiddenInput('old_cvlan', $decode['cvlan']);
         $addControls .= wf_Submit('Save');
         $result .= wf_Form('', 'GET', $addControls, 'glamour');
 
@@ -415,9 +429,15 @@ class UniversalQINQ {
             $allRealnames = zb_UserGetAllRealnames();
             $allAddress = zb_AddressGetFulladdresslistCached();
             foreach ($this->allData as $io => $each) {
+                $eachId = base64_encode(serialize(array(
+                    'id' => $each['id'],
+                    'svlan_id' => $each['svlan_id'],
+                    'cvlan' => $each['cvlan'],
+                    'login' => $each['login']
+                )));
                 $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
-                $actLinks = wf_modalAuto(web_edit_icon(), __('Edit'), $this->editFormGenerator($each), '');
-                $actLinks .= wf_Link(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), false);
+                $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="qinqEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
+                $actLinks .= wf_JSAlert(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];
                 $data[] = $this->allRealms[$this->allSvlan[$each['svlan_id']]['realm_id']]['description'];
                 $data[] = $this->allSvlan[$each['svlan_id']]['svlan'];

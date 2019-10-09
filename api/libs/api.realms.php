@@ -240,16 +240,14 @@ class Realms {
      * @return string
      */
     public function ajaxEdit($encoded) {
-        $decoded = base64_decode($encoded);
-        $split = explode("_", $decoded);
-        $each = explode("/", $split[1]);
+        $decoded = unserialize(base64_decode($encoded));
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('realms', 'true');
         $addControls .= wf_HiddenInput('action', 'edit');
-        $addControls .= wf_HiddenInput('id', $each[0]);
-        $addControls .= wf_TextInput('realm', __('Realm'), $each[1], true, '');
-        $addControls .= wf_TextInput('description', __('Description'), $each[2], true, '');
-        $addControls .= wf_HiddenInput('old_realm', $each[1]);
+        $addControls .= wf_HiddenInput('id', $decoded['id']);
+        $addControls .= wf_TextInput('realm', __('Realm'), $decoded['realm'], true, '');
+        $addControls .= wf_TextInput('description', __('Description'), $decoded['description'], true, '');
+        $addControls .= wf_HiddenInput('old_realm', $decoded['realm']);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
         return($form);
@@ -275,7 +273,11 @@ class Realms {
         $json = new wf_JqDtHelper();
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $io => $each) {
-                $eachId = base64_encode('container_' . $each['id'] . '/' . $each['realm'] . '/' . $each['description']);
+                $eachId = base64_encode(serialize(array(
+                    'id' => $each['id'],
+                    'realm' => $each['realm'],
+                    'description' => $each['description']
+                )));
                 $actLinks = wf_tag('div', false, '', 'id="' . $eachId . '" onclick="realmEdit(this)" style="display:inline-block;"') . web_edit_icon() . wf_tag('div', true);
                 $actLinks .= wf_JSAlert(self::MODULE . '&action=delete&id=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['id'];
