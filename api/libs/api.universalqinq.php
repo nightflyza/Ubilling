@@ -423,6 +423,10 @@ class UniversalQINQ {
         }
     }
 
+    public function getAll() {
+        return($this->qinqdb->getAll('login'));
+    }
+
     /**
      * Form all the entries to ajax array
      * 

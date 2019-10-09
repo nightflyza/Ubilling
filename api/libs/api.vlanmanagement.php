@@ -632,6 +632,14 @@ class VlanManagement {
         show_window('', $result);
     }
 
+    public function getAllSvlan() {
+        return($this->svlanDb->getAll('id'));
+    }
+
+    public function getAllRealms() {
+        return($this->allRealms);
+    }
+
     /**
      * If we have any errors show all of them
      * 
