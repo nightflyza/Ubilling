@@ -70,6 +70,7 @@ if (cfr('VLANMANAGEMENT')) {
                         $vlan->addNewBinding();
                         break;
                     case 'deletebinding':
+                        $vlan->deleteBinding();
                         break;
                 }
             } else {

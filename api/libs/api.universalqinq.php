@@ -105,7 +105,7 @@ class UniversalQINQ {
     protected function goToStartOrError() {
         if (empty($this->error)) {
             if ($this->routing->checkGet('type')) {
-                rcms_redirect(VlanManagement::MODULE);
+                rcms_redirect(VlanManagement::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
             } else {
                 rcms_redirect(self::MODULE);
             }

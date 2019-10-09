@@ -488,16 +488,30 @@ class VlanManagement {
         $result .= __('Customer') . ': ';
         $result .= wf_Link("?module=userprofile&username=" . $login, $userData['fulladress'] . ' ' . $userData['realname'], true);
         $result .= wf_delimiter(2);
-        $result .= wf_Link(self::MODULE_UNIVERSALQINQ . '&action=delete&id=' . $data[$this->routing->get('cvlan_num', 'int')]['id'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
+        $result .= wf_Link(self::MODULE_UNIVERSALQINQ . '&action=delete&type=universal&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id') . '&id=' . $data[$this->routing->get('cvlan_num', 'int')]['id'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
 
         return($result);
     }
 
     public function ajaxSwitch() {
         $result = '';
+        $this->allSwitches = $this->switchesDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         $data = $this->switchesqinqDb->getAll('svlan_id');
         $data = $data[$this->routing->get('svlan_id', 'int')];
+        $switch = $this->allSwitches[$data['switchid']];
+        $result .= __("Switch") . ': ';
+        $result .= wf_Link("?module=switches&edit=" . $data['switchid'], $switch['ip'] . ' ' . $switch['location']);
+        $result .= wf_delimiter(3);
+        $result .= wf_Link(self::MODULE . '&action=deletebinding&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int') . '&switchid=' . $data['switchid'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
+
+        return($result);
+    }
+
+    public function deleteBinding() {
+        $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
+        $this->switchesqinqDb->delete();
+        $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
     }
 
     public function ajaxChooseForm() {
