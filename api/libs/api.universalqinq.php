@@ -120,27 +120,32 @@ class UniversalQINQ {
         }
     }
 
-    protected function realmsSelector($container = '', $realmid = '', $svlan = '') {
+    protected function realmsSelector($container = '', $realm = '', $svlan = '') {
         $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=0'] = '---';
 
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
-                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = $each['realm'] . ' | ' . $each['description'];
+                $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id . '&svlan_id=' . $svlan] = $each['realm'] . ' | ' . $each['description'];
             }
 
-            reset($this->allRealms);
-            if ($realmid) {
-                $this->defaultRealm = self::MODULE . '&action=realm_id_select&ajrealmid=' . $realmid;
-            } else {
-                $this->defaultRealm = self::MODULE . '&action=realm_id_select&ajrealmid=1';
-            }
+            $this->defaultRealm = self::MODULE . '&action=realm_id_select&ajrealmid=' . $realm . '&svlan_id=' . $svlan;
         }
 
         return(wf_AjaxSelectorAC($container, $this->realmSelector, __('Select realm'), $this->defaultRealm, false));
     }
 
-    public function svlanSelector($realmId) {
-        $this->svlandb->where('realm_id', '=', $realmId);
+    public function svlanSelector($altRealm = '', $altSvlan = '') {
+        if ($this->routing->get('ajrealmid', 'int')) {
+            $realm = $this->routing->get('ajrealmid', 'int');
+        } else {
+            $realm = $altRealm;
+        }
+        if ($this->routing->get('svlan_id')) {
+            $svlan = $this->routing->get('svlan_id');
+        } else {
+            $svlan = $altSvlan;
+        }
+        $this->svlandb->where('realm_id', '=', $realm);
         $allSvlan = $this->svlandb->getAll('id');
         $allSvlanSelector = array('' => '---');
         if (!empty($allSvlan)) {
@@ -149,8 +154,8 @@ class UniversalQINQ {
             }
         }
         $result = wf_HiddenInput('module', 'universalqinq');
-        $result .= wf_HiddenInput('realm_id', $realmId);
-        $result .= wf_Selector('svlan_id', $allSvlanSelector, 'SVLAN', $this->routing->get('svlan_id'), false);
+        $result .= wf_HiddenInput('realm_id', $realm);
+        $result .= wf_Selector('svlan_id', $allSvlanSelector, 'SVLAN', $svlan, false);
 
         return ($result);
     }
@@ -367,7 +372,7 @@ class UniversalQINQ {
         $inputs2 = wf_HiddenInput('module', 'universalqinq');
         $inputs2 .= wf_HiddenInput('action', 'add');
         $inputs2 .= $this->realmsSelector('ajcontainer');
-        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector(1));
+        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector());
         $inputs2 .= wf_TextInput('cvlan_num', 'C-VLAN', '', true, '', 'digits');
         $inputs2 .= wf_TextInput('login', __('Login'), '', true, '', '');
         $inputs2 .= wf_Submit('Save');
@@ -382,14 +387,14 @@ class UniversalQINQ {
      * 
      * @return string
      */
-    public function editFormGenerator($encode) {        
+    public function editFormGenerator($encode) {
         $decode = unserialize(base64_decode($encode));
         $result = wf_AjaxLoader();
         $addControls = wf_HiddenInput('module', 'universalqinq');
         $addControls .= wf_HiddenInput('action', 'edit');
         $addControls .= wf_HiddenInput('id', $decode['id']);
-        $addControls .= $this->realmsSelector('ajcontainer2', $this->allSvlan[$decode['svlan_id']]['realm_id']);
-        $addControls .= wf_AjaxContainer('ajcontainer2', '', $this->svlanSelector($this->allSvlan[$decode['svlan_id']]['realm_id']), $decode['svlan_id']);
+        $addControls .= $this->realmsSelector('ajcontainer2', $this->allSvlan[$decode['svlan_id']]['realm_id'], $decode['svlan_id']);
+        $addControls .= wf_AjaxContainer('ajcontainer2', '', $this->svlanSelector($this->allSvlan[$decode['svlan_id']]['realm_id'], $decode['svlan_id']));
         $addControls .= wf_TextInput('cvlan_num', 'C-VLAN', $decode['cvlan'], true, '', 'digits');
         $addControls .= wf_TextInput('login', __('Login'), $decode['login'], true, '');
         $addControls .= wf_HiddenInput('old_login', $decode['login']);

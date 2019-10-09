@@ -19,7 +19,7 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                 $qinq->add();
                 break;
             case 'realm_id_select':
-                die($qinq->svlanSelector($qinq->routing->get('ajrealmid', 'int')));
+                die($qinq->svlanSelector());
                 break;
             case 'ajaxedit':
                 die($qinq->editFormGenerator($qinq->routing->post('universal_encode')));
