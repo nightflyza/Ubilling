@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('UNIVERSALQINQCONFIG')) {
+if (cfr('VLANMANAGEMENT')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
         $vlan = new VlanManagement();
@@ -76,4 +76,6 @@ if (cfr('UNIVERSALQINQCONFIG')) {
             $vlan->cvlanMatrix();
         }
     }
+} else {
+    show_error(__('Permission denied'));
 }

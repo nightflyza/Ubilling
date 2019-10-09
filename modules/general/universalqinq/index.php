@@ -23,7 +23,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
                 break;
         }
 
-        $qinq->addForm();
+        $qinq->links();
         $qinq->showAll();
     }
+} else {
+    show_error(__('Permission denied'));
 }

@@ -464,6 +464,7 @@ function web_SwitchEditForm($switchid) {
     $mainForm .= wf_Form('', 'POST', $editinputs, 'glamour');
 
     //some qinq interface here
+    /*
     if (@$altCfg['QINQ_ENABLED']) {
         $switchesQinQ = new SwitchesQinQ();
         if (wf_CheckPost(array('qinqswitchid'))) {
@@ -477,6 +478,8 @@ function web_SwitchEditForm($switchid) {
 
         $mainForm .= $switchesQinQ->renderEditForm($switchid);
     }
+     * 
+     */
 
     //main interface grid
     if (!empty($switchdata['ip'])) {

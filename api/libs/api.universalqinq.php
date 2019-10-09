@@ -3,6 +3,7 @@
 class UniversalQINQ {
 
     CONST MODULE = '?module=universalqinq';
+    CONST MODULE_VLANMANAGEMENT = '?module=vlanmanagement';
 
     /**
      * Placeholder for nyan orm (`qinq` table)
@@ -31,8 +32,15 @@ class UniversalQINQ {
      * @var array
      */
     protected $allData;
+    protected $allCvlans = array();
     protected $allRealms;
     protected $allSvlan;
+    protected $switchesqinqDb;
+    protected $switchesDb;
+    protected $switchModelsDb;
+    protected $allSwitches = array();
+    protected $allSwitchModels = array();
+    protected $occupiedSwitches = array();
 
     /**
      * Contains system alter config as key=>value
@@ -54,6 +62,9 @@ class UniversalQINQ {
         $this->qinqdb = new nya_qinq_bindings;
         $this->realmsdb = new NyanORM('realms');
         $this->svlandb = new NyanORM('qinq_svlan');
+        $this->switchesqinqDb = new NyanORM('switches_qinq');
+        $this->switchesDb = new NyanORM('switches');
+        $this->switchModelsDb = new NyanORM('switchmodels');
         $this->loadAlter();
         $this->initRouting();
         $this->loadData();
@@ -93,7 +104,11 @@ class UniversalQINQ {
      */
     protected function goToStartOrError() {
         if (empty($this->error)) {
-            rcms_redirect(self::MODULE);
+            if ($this->routing->checkGet('type')) {
+                rcms_redirect(VlanManagement::MODULE);
+            } else {
+                rcms_redirect(self::MODULE);
+            }
         } else {
             $this->showError();
             if (!empty($this->exceptions)) {
@@ -138,11 +153,27 @@ class UniversalQINQ {
      * @return bool
      */
     protected function validateCvlan() {
-        if (($this->routing->get('cvlan', 'int') >= 1) and ( $this->routing->get('cvlan', 'int') <= 4096)) {
+        if (($this->routing->get('cvlan_num', 'int') >= 1) and ( $this->routing->get('cvlan_num', 'int') <= 4096)) {
             return(true);
         } else {
             return(false);
         }
+    }
+
+    protected function isSwitchCvlanUnique() {
+        if (isset($this->occupiedSwitches[$this->routing->get('cvlan_num', 'int')])) {
+            return(false);
+        }
+
+        return(true);
+    }
+
+    protected function isUniversalCvlanUnique() {
+        if (isset($this->allCvlans[$this->routing->get('cvlan_num', 'int')])) {
+            return(false);
+        }
+
+        return(true);
     }
 
     /**
@@ -177,6 +208,24 @@ class UniversalQINQ {
         }
     }
 
+    protected function occupiedUniversal() {
+        $this->qinqdb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $this->allCvlans = $this->qinqdb->getAll('cvlan');
+    }
+
+    protected function occupiedSwitches() {
+        $this->allSwitches = $this->switchesDb->getAll('id');
+        $this->allSwitchModels = $this->switchModelsDb->getAll('id');
+        $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
+            $modelid = $this->allSwitches[$each['switchid']]['modelid'];
+            $port_number = $this->allSwitchModels[$modelid]['ports'];
+            for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
+                $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
+            }
+        }
+    }
+
     /**
      * Check all validation function and return error if something didn't pass
      * 
@@ -184,7 +233,19 @@ class UniversalQINQ {
      */
     protected function validator() {
         if (!$this->validateCvlan()) {
-            $this->error[] = __('Wrong value') . ': CVLAN ' . $this->routing->get('cvlan', 'int');
+            $this->error[] = __('Wrong value') . ' CVLAN ' . $this->routing->get('cvlan_num', 'int');
+        }
+        if (!$this->isUniversalCvlanUnique()) {
+            $this->error[] = "CVLAN " . $this->routing->get('cvlan_num', 'int')
+                    . ' ' . __('occcupied by login: ')
+                    . wf_link("?module=userprofile&username="
+                            . $this->occupiedUniversal[$this->routing->get('cvlan_num', 'int')]['login'], $this->occupiedUniversal[$this->routing->get('cvlan_num', 'int')]['login']
+            );
+        }
+        if (!$this->isSwitchCvlanUnique()) {
+            $this->error[] = "CVLAN " . $this->routing->get('cvlan_num', 'int')
+                    . ' ' . __('occcupied by switch: ')
+                    . $this->occupiedSwitches[$this->routing->get('cvlan_num', 'int')];
         }
         if (!$this->isUserExists()) {
             $this->error[] = __('User does not exist') . ' : ' . $this->routing->get('login', 'mres');
@@ -209,7 +270,7 @@ class UniversalQINQ {
             if ($this->validator('add')) {
                 $this->qinqdb->data('login', trim($this->routing->get('login', 'mres')));
                 $this->qinqdb->data('svlan_id', trim($this->routing->get('svlan_id', 'int')));
-                $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan', 'int')));
+                $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan_num', 'int')));
                 $this->qinqdb->create();
                 $this->logAdd();
             }
@@ -248,7 +309,7 @@ class UniversalQINQ {
                 $this->qinqdb->where('id', '=', trim($this->routing->get('id', 'int')));
                 $this->qinqdb->data('login', trim($this->routing->get('login', 'mres')));
                 $this->qinqdb->data('svlan', trim($this->routing->get('svlan', 'int')));
-                $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan', 'int')));
+                $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan_num', 'int')));
                 $this->qinqdb->save();
                 $this->logEdit();
             }
@@ -273,25 +334,28 @@ class UniversalQINQ {
         return ($result);
     }
 
+    public function links() {
+        $urls = wf_BackLink(UniversalQINQ::MODULE_VLANMANAGEMENT, __('Back'), false, 'ubButton');
+        show_window('', $urls . $this->addForm());
+    }
+
     /**
      * Form to create new entry
      * 
      * @return void
      */
-    public function addForm() {
+    protected function addForm() {
         $inputs = '';
         $result = wf_AjaxLoader();
         $inputs2 = wf_HiddenInput('module', 'universalqinq');
         $inputs2 .= wf_HiddenInput('action', 'add');
         $inputs2 .= $this->realmsSelector();
         $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->routing->get('realm_id', 'int') ? $this->routing->get('realm_id', 'int') : $this->defaultRealm));
-        $inputs2 .= wf_TextInput('cvlan', 'C-VLAN', '', true, '', 'digits');
+        $inputs2 .= wf_TextInput('cvlan_num', 'C-VLAN', '', true, '', 'digits');
         $inputs2 .= wf_TextInput('login', __('Login'), '', true, '', '');
         $inputs2 .= wf_Submit('Save');
         $result .= $inputs . wf_Form('', 'GET', $inputs2, 'glamour');
-        show_window('', wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $result, 'ubButton')
-                . wf_Link('?module=vlanmanagement', web_icon_extended() . ' ' . __('VLAN Management'), false, 'ubButton')
-        );
+        return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $result, 'ubButton'));
     }
 
     /**
@@ -307,7 +371,7 @@ class UniversalQINQ {
         $addControls .= wf_HiddenInput('id', $each['id']);
         $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
         $addControls .= wf_TextInput('svlan', 'S-VLAN', $each['svlan_id'], true, '', 'digits');
-        $addControls .= wf_TextInput('cvlan', 'C-VLAN', $each['cvlan'], true, '', 'digits');
+        $addControls .= wf_TextInput('cvlan_num', 'C-VLAN', $each['cvlan'], true, '', 'digits');
         $addControls .= wf_HiddenInput('old_login', $each['login']);
         $addControls .= wf_HiddenInput('old_svlan', $each['svlan_id']);
         $addControls .= wf_HiddenInput('old_cvlan', $each['cvlan']);
@@ -373,7 +437,7 @@ class UniversalQINQ {
                 . ') s'
                 . trim($this->routing->get('svlan', 'int'))
                 . '/c'
-                . trim($this->routing->get('cvlan', 'int'))
+                . trim($this->routing->get('cvlan_num', 'int'))
         );
     }
 
@@ -388,7 +452,7 @@ class UniversalQINQ {
                 ') s' .
                 trim($this->routing->get('svlan', 'int')) .
                 '/c' .
-                trim($this->routing->get('cvlan', 'int'))
+                trim($this->routing->get('cvlan_num', 'int'))
         );
     }
 
@@ -409,7 +473,7 @@ class UniversalQINQ {
                 . ') s'
                 . trim($this->routing->get('svlan', 'int'))
                 . '/c'
-                . trim($this->routing->get('cvlan', 'int'))
+                . trim($this->routing->get('cvlan_num', 'int'))
         );
     }
 

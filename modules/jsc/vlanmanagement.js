@@ -20,6 +20,14 @@ function vlanAcquire(element) {
     };
 }
 
+function occupiedBySwitch(element) {
+
+}
+
+function occupiedByCustomer(element) {
+
+}
+
 function realmEdit(element) {
     let modalContent = document.getElementById("content-cvmodal");
 

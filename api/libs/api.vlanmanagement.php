@@ -8,6 +8,7 @@ class VlanManagement {
     const MODULE = '?module=vlanmanagement';
     const MODULE_SVLAN = '?module=vlanmanagement&svlan=true';
     const MODULE_REALMS = '?module=vlanmanagement&realms=true';
+    const MODULE_UNIVERSALQINQ = '?module=universalqinq';
 
     protected $realmDb;
     protected $svlanDb;
@@ -22,6 +23,8 @@ class VlanManagement {
     protected $messages;
     protected $defaultType;
     protected $realmSelector = array();
+    protected $allSwitches = array();
+    protected $allSwitchModels = array();
     protected $occupiedUniversal = array();
     protected $occupiedSwitches = array();
     public $defaultRealm = 1;
@@ -159,7 +162,7 @@ class VlanManagement {
                 $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
                 $this->svlanDb->delete();
 
-                //delete all the qinq bindings for this svlan
+//delete all the qinq bindings for this svlan
                 $this->cvlanDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
                 $this->cvlanDb->delete();
 
@@ -283,7 +286,7 @@ class VlanManagement {
     }
 
     public function linksMain() {
-        $urls = wf_BackLink(UniversalQINQ::MODULE, __('Back'), false, 'ubButton');
+        $urls = wf_Link(self::MODULE_UNIVERSALQINQ, web_icon_extended() . 'UniversalQINQ', false, 'ubButton');
         $urls .= wf_Link(self::MODULE_SVLAN . '&realm_id=1', web_icon_extended() . 'SVLAN', false, 'ubButton');
         $urls .= wf_link(self::MODULE_REALMS, web_icon_extended() . __('Realms'), false, 'ubButton');
         show_window('', $urls);
@@ -337,16 +340,20 @@ class VlanManagement {
             $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
         }
 
-        return(wf_Selector('switchid', $options, __('Select switch')));
+        return(wf_Selector('qinqswitchid', $options, __('Select switch')));
     }
 
     public function types() {
         $result = '';
         switch ($this->routing->get('type')) {
             case 'universalqinq':
-                $result .= wf_HiddenInput('type', 'universalqinq');
-                $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
-                $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
+                if (cfr('UNIVERSALQINQCONFIG')) {
+                    $result .= wf_HiddenInput('type', 'universalqinq');
+                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                    $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
+                } else {
+                    show_error(__('Permission denied'));
+                }
                 break;
             default :
                 $result .= wf_HiddenInput('type', 'qinqswitches');
@@ -358,12 +365,64 @@ class VlanManagement {
         return($result);
     }
 
+    protected function addNewSwitchBinding() {
+        $this->occupiedSwitches();
+        $this->occupiedCvlans();
+        $used = false;
+        $type = '';
+        $modelid = $this->allSwitches[$this->routing->get('qinqswitchid')]['modelid'];
+        $port_number = $this->allSwitchModels[$modelid]['ports'];
+        $lastCvlan = $this->routing->get('cvlan_num', 'int') + $port_number;
+        for ($i = $this->routing->get('cvlan_num', 'int'); $i <= $lastCvlan; $i++) {
+            if (isset($this->occupiedSwitches[$i])) {
+                $used = $this->occupiedSwitches[$i];
+                $type = 'switch';
+                break;
+            }
+            if (isset($this->occupiedUniversal[$i])) {
+                $used = $this->occupiedUniversal[$i];
+                $type = 'universal';
+                break;
+            }
+        }
+        if (!$used) {
+            $switchesQinQ = new SwitchesQinQ();
+            $qinqSaveResult = $switchesQinQ->saveQinQ();
+            if (!empty(($qinqSaveResult))) {
+                $this->error[] = $qinqSaveResult;
+            }
+        } else {
+            switch ($type) {
+                case'switch':
+                    $this->error[] = __('Error') . ': ' . __('trying allocate')
+                            . ' ' . "CVLAN " . _("from") . ' ' . $this->routing->get('cvlan_num', 'int')
+                            . ' ' . __('to') . $lastCvlan
+                            . '. CVLAN ' . $i
+                            . ' ' . __('occcupied by switch: ') . $used;
+                    break;
+
+                case 'universal':
+                    $this->error[] = __("Error") . ': ' . __('trying allocate') . ' '
+                            . "CVLAN " . __("from") . ' ' . $this->routing->get('cvlan_num', 'int')
+                            . ' ' . __('to') . ' ' . $lastCvlan
+                            . '. CVLAN ' . $i . ' ' . __('occcupied by login: ')
+                            . wf_link("?module=userprofile&username="
+                                    . $used['login'], $used['login']
+                    );
+                    break;
+            }
+        }
+    }
+
     public function addNewBinding() {
         try {
             switch ($this->routing->get('type')) {
                 case 'universalqinq':
+                    $universalqinq = new UniversalQINQ();
+                    $universalqinq->add();
                     break;
                 case 'qinqswitches':
+                    $this->addNewSwitchBinding();
                     break;
             }
             $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
@@ -393,14 +452,14 @@ class VlanManagement {
     }
 
     protected function occupiedSwitches() {
-        $allSwitches = $this->switchesDb->getAll('id');
-        $allModels = $this->switchModelsDb->getAll('id');
+        $this->allSwitches = $this->switchesDb->getAll('id');
+        $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
-            $modelid = $allSwitches[$each['switchid']]['modelid'];
-            $port_number = $allModels[$modelid]['ports'];
+            $modelid = $this->allSwitches[$each['switchid']]['modelid'];
+            $port_number = $this->allSwitchModels[$modelid]['ports'];
             for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
-                $this->occupiedSwitches[$i] = $i;
+                $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
             }
         }
     }
