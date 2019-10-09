@@ -537,15 +537,17 @@ class VlanManagement {
             $switchPorts = $this->switchPortDb->getAll('login');
             if (isset($switchPorts[$login])) {
                 $switchId = $switchPorts[$login]['switchid'];
-                $port = $switchPorts[$login]['port'] - 1;
-                $this->switchesqinqDb->where('switchid', '=', $switchId);
                 $allSwitchQinq = $this->switchesqinqDb->getAll('switchid');
-                $startCvlan = $allSwitchQinq[$switchId]['cvlan'];
-                $svlan_id = $allSwitchQinq[$switchId]['svlan_id'];
-                $this->svlanDb->where('id', '=', $svlan_id);
-                $svlans = $this->svlanDb->getAll('id');
-                $svlan = $svlans[$svlan_id]['svlan'];
-                $cvlan = $startCvlan + $port;
+                if (isset($allSwitchQinq[$switchId])) {
+                    $port = $switchPorts[$login]['port'] - 1;
+                    $this->switchesqinqDb->where('switchid', '=', $switchId);
+                    $startCvlan = $allSwitchQinq[$switchId]['cvlan'];
+                    $svlan_id = $allSwitchQinq[$switchId]['svlan_id'];
+                    $this->svlanDb->where('id', '=', $svlan_id);
+                    $svlans = $this->svlanDb->getAll('id');
+                    $svlan = $svlans[$svlan_id]['svlan'];
+                    $cvlan = $startCvlan + $port;
+                }
             }
         }
         if ($svlan !== '' and $cvlan !== '') {
