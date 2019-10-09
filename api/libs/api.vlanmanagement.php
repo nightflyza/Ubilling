@@ -16,6 +16,7 @@ class VlanManagement {
     protected $switchesqinqDb;
     protected $switchesDb;
     protected $switchModelsDb;
+    protected $switchPortDb;
     protected $altCfg = array();
     protected $allRealms = array();
     protected $allSvlan = array();
@@ -47,6 +48,7 @@ class VlanManagement {
         $this->switchesqinqDb = new NyanORM('switches_qinq');
         $this->switchesDb = new NyanORM('switches');
         $this->switchModelsDb = new NyanORM('switchmodels');
+        $this->switchPortDb = new NyanORM('switchportassign');
     }
 
     protected function loadData() {
@@ -512,6 +514,44 @@ class VlanManagement {
         $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $this->switchesqinqDb->delete();
         $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+    }
+
+    public function showUsersVlanPair($login) {
+        $login = mysql_real_escape_string($login);
+        $result = '';
+        $svlan = '';
+        $cvlan = '';
+        $this->cvlanDb->where('login', '=', $login);
+        $bind = $this->cvlanDb->getAll('login');
+        if (isset($bind[$login])) {
+            $cvlan = $bind[$login]['cvlan'];
+            $svlan_id = $bind[$login]['svlan_id'];
+            $this->svlanDb->where('id', '=', $svlan_id);
+            $svlans = $this->svlanDb->getAll('id');
+            $svlan = $svlans[$svlan_id]['svlan'];
+        } else {
+            $this->switchPortDb->where('login', '=', $login);
+            $switchPorts = $this->switchPortDb->getAll('login');
+            if (isset($switchPorts[$login])) {
+                $switchId = $switchPorts[$login]['switchid'];
+                $port = $switchPorts[$login]['port'] - 1;
+                $this->switchesqinqDb->where('switchid', '=', $switchId);
+                $allSwitchQinq = $this->switchesqinqDb->getAll('switchid');
+                $startCvlan = $allSwitchQinq[$switchId]['cvlan'];
+                $svlan_id = $allSwitchQinq[$switchId]['svlan_id'];
+                $this->svlanDb->where('id', '=', $svlan_id);
+                $svlans = $this->svlanDb->getAll('id');
+                $svlan = $svlans[$svlan_id]['svlan'];
+                $cvlan = $startCvlan + $port;
+            }
+        }
+        if ($svlan !== '' and $cvlan !== '') {
+            $cells = wf_TableCell('SVLAN/CVLAN', '30%', 'row2');
+            $cells .= wf_TableCell(wf_tag('b') . $svlan . '/' . $cvlan . wf_tag('b', true));
+            $rows = wf_TableRow($cells, 'row3');
+            $result .= wf_TableBody($rows, '100%', '0');
+        }
+        return($result);
     }
 
     public function ajaxChooseForm() {
