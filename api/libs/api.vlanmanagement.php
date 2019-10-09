@@ -325,7 +325,9 @@ class VlanManagement {
                 . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
 
         $selector[$switches] = __('QINQ for switches');
-        $selector[$universal] = __('Universal QINQ');
+        if (cfr('UNIVERSALQINQCONFIG')) {
+            $selector[$universal] = __('Universal QINQ');
+        }
 
         $this->defaultType = $switches;
 
@@ -347,13 +349,9 @@ class VlanManagement {
         $result = '';
         switch ($this->routing->get('type')) {
             case 'universalqinq':
-                if (cfr('UNIVERSALQINQCONFIG')) {
-                    $result .= wf_HiddenInput('type', 'universalqinq');
-                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
-                    $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
-                } else {
-                    show_error(__('Permission denied'));
-                }
+                $result .= wf_HiddenInput('type', 'universalqinq');
+                $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
                 break;
             default :
                 $result .= wf_HiddenInput('type', 'qinqswitches');
