@@ -57,11 +57,19 @@ if (cfr('VLANMANAGEMENT')) {
                     case 'ajax':
                         die($vlan->ajaxChooseForm());
                         break;
+                    case 'ajaxcustomer':
+                        die($vlan->ajaxCustomer());
+                        break;
+                    case 'ajaxswitch':
+                        die($vlan->ajaxSwitch());
+                        break;
                     case 'choosetype':
                         die($vlan->types());
                         break;
                     case 'add':
                         $vlan->addNewBinding();
+                        break;
+                    case 'deletebinding':
                         break;
                 }
             } else {

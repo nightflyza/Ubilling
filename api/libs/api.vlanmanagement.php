@@ -477,6 +477,29 @@ class VlanManagement {
         }
     }
 
+    public function ajaxCustomer() {
+        $result = '';
+        $this->cvlanDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $this->cvlanDb->where('cvlan', '=', $this->routing->get('cvlan_num', 'int'));
+        $data = $this->cvlanDb->getAll('cvlan');
+        $login = $data[$this->routing->get('cvlan_num', 'int')]['login'];
+        $userData = zb_UserGetAllData($login);
+        $userData = $userData[$login];
+        $result .= __('Customer') . ': ';
+        $result .= wf_Link("?module=userprofile&username=" . $login, $userData['fulladress'] . ' ' . $userData['realname'], true);
+        $result .= wf_delimiter(2);
+        $result .= wf_Link(self::MODULE_UNIVERSALQINQ . '&action=delete&id=' . $data[$this->routing->get('cvlan_num', 'int')]['id'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
+
+        return($result);
+    }
+
+    public function ajaxSwitch() {
+        $result = '';
+        $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $data = $this->switchesqinqDb->getAll('svlan_id');
+        $data = $data[$this->routing->get('svlan_id', 'int')];
+    }
+
     public function ajaxChooseForm() {
         $inputs = wf_HiddenInput('module', 'vlanmanagement');
         $inputs .= wf_HiddenInput('action', 'add');
@@ -521,25 +544,29 @@ class VlanManagement {
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
-                $free = false;
                 if (isset($this->occupiedUniversal[$cvlan])) {
                     $color = 'occupied_customer';
                 } elseif (isset($this->occupiedSwitches[$cvlan])) {
                     $color = 'occupied_switch';
                 } else {
                     $color = 'free_vlan';
-                    $free = true;
                 }
 
-                if ($free) {
-                    $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
-                            '/' . $this->routing->get('svlan_id', 'int') .
-                            '/' . $cvlan . '" onclick="vlanAcquire(this)"');
-                } else {
-                    $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
-                            '/' . $this->routing->get('svlan_id', 'int') .
-                            '/' . $cvlan . '"');
+                switch ($color) {
+                    case 'free_vlan':
+                        $onclick = 'onclick="vlanAcquire(this)"';
+                        break;
+                    case 'occupied_customer':
+                        $onclick = 'onclick="occupiedByCustomer(this)"';
+                        break;
+                    case 'occupied_switch':
+                        $onclick = 'onclick="occupiedBySwitch(this)"';
+                        break;
                 }
+                $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
+                        '/' . $this->routing->get('svlan_id', 'int') .
+                        '/' . $cvlan . '" ' . $onclick . '');
+
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
             }
