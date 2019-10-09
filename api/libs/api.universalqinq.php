@@ -50,6 +50,7 @@ class UniversalQINQ {
     protected $altCfg;
     protected $realmsdb;
     protected $svlandb;
+    protected $defaultRealm;
 
     /**
      * Placeholder for ubRouting object
@@ -117,21 +118,22 @@ class UniversalQINQ {
         }
     }
 
-    protected function realmsSelector() {
+    protected function realmsSelector($container) {
+        $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=0'] = '---';
+
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
                 $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=' . $id] = $each['realm'] . ' | ' . $each['description'];
             }
 
             reset($this->allRealms);
-            $this->defaultRealm = key($this->allRealms);
+            $this->defaultRealm[self::MODULE . '&action=realm_id_select&ajrealmid=1'] = 'default | default realm';
         }
 
-        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
+        return(wf_AjaxSelectorAC($container, $this->realmSelector, __('Select realm'), $this->defaultRealm, false));
     }
 
     public function svlanSelector($realmId) {
-        $realmId = vf($realmId, 3);
         $this->svlandb->where('realm_id', '=', $realmId);
         $allSvlan = $this->svlandb->getAll('id');
         $allSvlanSelector = array('' => '---');
@@ -200,6 +202,9 @@ class UniversalQINQ {
      * @return bool
      */
     protected function isUserUnique() {
+        if ($this->routing->get('action') == 'edit') {
+            $this->qinqdb->where('login', '<>', $this->routing->get('login', 'mres'));
+        }
         $data = $this->qinqdb->getAll('login');
         if (isset($data[$this->routing->get('login', 'mres')])) {
             return(false);
@@ -308,7 +313,7 @@ class UniversalQINQ {
             if ($this->validator()) {
                 $this->qinqdb->where('id', '=', trim($this->routing->get('id', 'int')));
                 $this->qinqdb->data('login', trim($this->routing->get('login', 'mres')));
-                $this->qinqdb->data('svlan', trim($this->routing->get('svlan', 'int')));
+                $this->qinqdb->data('svlan_id', trim($this->routing->get('svlan_id', 'int')));
                 $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan_num', 'int')));
                 $this->qinqdb->save();
                 $this->logEdit();
@@ -345,16 +350,15 @@ class UniversalQINQ {
      * @return void
      */
     protected function addForm() {
-        $inputs = '';
         $result = wf_AjaxLoader();
         $inputs2 = wf_HiddenInput('module', 'universalqinq');
         $inputs2 .= wf_HiddenInput('action', 'add');
-        $inputs2 .= $this->realmsSelector();
-        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->routing->get('realm_id', 'int') ? $this->routing->get('realm_id', 'int') : $this->defaultRealm));
+        $inputs2 .= $this->realmsSelector('ajcontainer');
+        $inputs2 .= wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->defaultRealm));
         $inputs2 .= wf_TextInput('cvlan_num', 'C-VLAN', '', true, '', 'digits');
         $inputs2 .= wf_TextInput('login', __('Login'), '', true, '', '');
         $inputs2 .= wf_Submit('Save');
-        $result .= $inputs . wf_Form('', 'GET', $inputs2, 'glamour');
+        $result .= wf_Form('', 'GET', $inputs2, 'glamour');
         return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $result, 'ubButton'));
     }
 
@@ -366,19 +370,21 @@ class UniversalQINQ {
      * @return string
      */
     protected function editFormGenerator($each) {
+        $result = wf_AjaxLoader();
         $addControls = wf_HiddenInput('module', 'universalqinq');
         $addControls .= wf_HiddenInput('action', 'edit');
         $addControls .= wf_HiddenInput('id', $each['id']);
-        $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
-        $addControls .= wf_TextInput('svlan', 'S-VLAN', $each['svlan_id'], true, '', 'digits');
+        $addControls .= $this->realmsSelector('ajcontainer2');
+        $addControls .= wf_AjaxContainer('ajcontainer2', '', $this->svlanSelector($this->defaultRealm));
         $addControls .= wf_TextInput('cvlan_num', 'C-VLAN', $each['cvlan'], true, '', 'digits');
+        $addControls .= wf_TextInput('login', __('Login'), $each['login'], true, '');
         $addControls .= wf_HiddenInput('old_login', $each['login']);
         $addControls .= wf_HiddenInput('old_svlan', $each['svlan_id']);
         $addControls .= wf_HiddenInput('old_cvlan', $each['cvlan']);
         $addControls .= wf_Submit('Save');
-        $form = wf_Form('', 'GET', $addControls, 'glamour');
+        $result .= wf_Form('', 'GET', $addControls, 'glamour');
 
-        return($form);
+        return($result);
     }
 
     /**
