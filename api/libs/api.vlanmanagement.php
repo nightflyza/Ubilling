@@ -16,6 +16,7 @@ class VlanManagement {
     protected $switchesqinqDb;
     protected $switchesDb;
     protected $switchModelsDb;
+    protected $altCfg = array();
     protected $allRealms = array();
     protected $allSvlan = array();
     protected $error = array();
@@ -34,6 +35,7 @@ class VlanManagement {
     public function __construct() {
         $this->dbInit();
         $this->loadData();
+        $this->loadAlter();
         $this->routing = new ubRouting();
         $this->messages = new UbillingMessageHelper();
     }
@@ -49,6 +51,18 @@ class VlanManagement {
 
     protected function loadData() {
         $this->allRealms = $this->realmDb->getAll('id');
+    }
+
+    /**
+     * Loads system alter.ini config for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -317,6 +331,8 @@ class VlanManagement {
     }
 
     protected function typeSelector() {
+        $selector = array(self::MODULE . '&action=choosetype&type=none' => '---');
+
         $switches = self::MODULE
                 . '&action=choosetype&type=qinqswitches&'
                 . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
@@ -324,14 +340,22 @@ class VlanManagement {
                 . '&action=choosetype&type=universalqinq&'
                 . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
 
-        $selector[$switches] = __('QINQ for switches');
-        if (cfr('UNIVERSALQINQCONFIG')) {
-            $selector[$universal] = __('Universal QINQ');
+        if ($this->altCfg['QINQ_ENABLED']) {
+            $selector[$switches] = __('QINQ for switches');
+            $this->defaultType = $switches;
+            if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
+                $selector[$universal] = __('Universal QINQ');
+            }
+        } else {
+            if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
+                $selector[$universal] = __('Universal QINQ');
+                $this->defaultType = $universal;
+            } else {
+                $this->defaultType = '---';
+            }
         }
 
-        $this->defaultType = $switches;
-
-        return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->routing->get('type') ? $this->routing->get('type') : $this->defaultType, false));
+        return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->defaultType, false));
     }
 
     protected function switchSelector() {
@@ -347,17 +371,40 @@ class VlanManagement {
 
     public function types() {
         $result = '';
-        switch ($this->routing->get('type')) {
-            case 'universalqinq':
-                $result .= wf_HiddenInput('type', 'universalqinq');
-                $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
-                $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
-                break;
-            default :
-                $result .= wf_HiddenInput('type', 'qinqswitches');
-                $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
-                $result .= $this->switchSelector();
-                break;
+        if ($this->routing->checkGet('type')) {
+            switch ($this->routing->get('type')) {
+                case 'universalqinq':
+                    $result .= wf_HiddenInput('type', 'universalqinq');
+                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                    $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
+                    break;
+                case 'qinqswitches':
+                    $result .= wf_HiddenInput('type', 'qinqswitches');
+                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                    $result .= $this->switchSelector();
+                    break;
+            }
+        } else {
+            $switches = self::MODULE
+                    . '&action=choosetype&type=qinqswitches&'
+                    . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
+            $universal = self::MODULE
+                    . '&action=choosetype&type=universalqinq&'
+                    . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
+
+
+            switch ($this->defaultType) {
+                case $universal:
+                    $result .= wf_HiddenInput('type', 'universalqinq');
+                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                    $result .= wf_TextInput('login', __('Login'), $this->routing->get('login'), true);
+                    break;
+                case $switches:
+                    $result .= wf_HiddenInput('type', 'qinqswitches');
+                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                    $result .= $this->switchSelector();
+                    break;
+            }
         }
 
         return($result);
@@ -438,7 +485,7 @@ class VlanManagement {
         $inputs .= wf_HiddenInput('cvlan_num', $this->routing->get('cvlan_num', 'int'));
         $inputs .= wf_AjaxLoader();
         $inputs2 = $this->typeSelector() . wf_delimiter(1);
-        $inputs .= wf_AjaxContainer('ajtypecontainer', '', $this->types(), $this->defaultType, false);
+        $inputs .= wf_AjaxContainer('ajtypecontainer', '', $this->types($this->defaultType));
         $inputs .= wf_Submit(__('Save'));
         $form = $inputs2 . wf_Form('', "GET", $inputs, 'glamour');
         return($form);
