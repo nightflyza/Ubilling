@@ -105,8 +105,13 @@ class VlanManagement {
     }
 
     protected function protectDefault() {
-        if (($this->routing->get('action') == 'edit') or ( ($this->routing->get('action') == 'delete'))) {
+        if (($this->routing->get('action') == 'edit')) {
             if (($this->routing->get('old_svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
+                return(true);
+            }
+        }
+        if ($this->routing->get('action') == 'delete') {
+            if (($this->routing->get('svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
                 return(true);
             }
         }
@@ -585,10 +590,10 @@ class VlanManagement {
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
-            if (isset($this->allSwitches[$each['switchid']]['modelid'])) {
+            if (isset($this->allSwitches[$each['switchid']])) {
                 $modelid = $this->allSwitches[$each['switchid']]['modelid'];
                 $port_number = $this->allSwitchModels[$modelid]['ports'];
-                for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
+                for ($i = $each['cvlan']; $i <= ($each['cvlan'] + $port_number - 1); $i++) {
                     $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
                     $this->switchVlans[$i] = $each['switchid'];
                 }
