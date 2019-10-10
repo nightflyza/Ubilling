@@ -3126,4 +3126,6 @@ $lang['def']['There is entry for this login'] = 'Вже є запис для к�
 $lang['def']['Create new entry'] = 'Створити новий запис';
 $lang['def']['Call recording'] = 'Запис размови';
 $lang['def']['Last fee charge'] = 'Останнє списання коштів';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 ?>

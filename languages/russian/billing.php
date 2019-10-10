@@ -3110,4 +3110,6 @@ $lang['def']['Create new entry'] = 'Создать новую запись';
 $lang['def']['Call recording'] = 'Запись разговора';
 $lang['def']['Last fee charge'] = 'Последнее списание средств';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 ?>
