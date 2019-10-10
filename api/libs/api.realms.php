@@ -93,12 +93,12 @@ class Realms {
 
     protected function emptyVar() {
         if (($this->routing->get('action') == 'add') or ( $this->routing->get('action') == 'edit')) {
-            if (empty($this->routing->get('realm', 'mres'))) {
+            if (!$this->routing->get('realm', 'mres')) {
                 return(true);
             }
         }
         if ($this->routing->get('action') == 'delete') {
-            if (empty($this->routing->get('id', 'int'))) {
+            if ($this->routing->get('id', 'int')) {
                 return(true);
             }
         }
