@@ -503,6 +503,7 @@ class VlanManagement {
         $result = '';
         $this->allSwitches = $this->switchesDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $data = $this->switchesqinqDb->getAll('svlan_id');
         $data = $data[$this->routing->get('svlan_id', 'int')];
         $switch = $this->allSwitches[$data['switchid']];
@@ -612,7 +613,9 @@ class VlanManagement {
                     $color = 'occupied_customer';
                 } elseif (isset($this->occupiedSwitches[$cvlan])) {
                     $color = 'occupied_switch';
-                    $switchid = $this->switchVlans[$cvlan];
+                    if (isset($this->switchVlans[$cvlan])) {
+                        $switchid = $this->switchVlans[$cvlan];
+                    }
                 } else {
                     $color = 'free_vlan';
                 }
@@ -630,7 +633,7 @@ class VlanManagement {
                 }
                 $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
                         '/' . $this->routing->get('svlan_id', 'int') .
-                        '/' . $cvlan . '/' . $this->switchVlans[$cvlan] . '" ' . $onclick . '');
+                        '/' . $cvlan . '/' . $switchid . '" ' . $onclick . '');
 
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
