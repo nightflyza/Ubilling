@@ -52,8 +52,9 @@ function occupiedByCustomer(element) {
     let realm = data[0];
     let svlan = data[1];
     let cvlan = data[2];
+    let switchid = data[3];
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "?module=vlanmanagement&action=ajaxcustomer&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan, true);
+    xhr.open("GET", "?module=vlanmanagement&action=ajaxcustomer&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan + "&switchid=" + switchid, true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
     xhr.send();
