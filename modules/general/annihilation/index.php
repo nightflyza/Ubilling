@@ -62,6 +62,10 @@ if (cfr('ANNIHILATION')) {
         multinet_rebuild_all_handlers();
         //destroy stargazer user
         $billing->deleteuser($login);
+
+        $query = "DELETE FROM `qinq_bindings` WHERE `login`='" . $login . '"';
+        nr_query($query);
+
         log_register("StgUser DELETE (" . $login . ")");
     }
 
@@ -76,13 +80,13 @@ if (cfr('ANNIHILATION')) {
         $alladdress = zb_AddressGetFulladdresslist();
 
         $inputs = __('Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.');
-        $inputs.= wf_tag('br');
-        $inputs.=__('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
-        $inputs.= wf_tag('br');
-        $inputs.=wf_tag('input', false, '', 'type="text" name="confirmation" autocomplete="off"');
-        $inputs.= wf_HiddenInput('anihilation', 'true');
-        $inputs.=wf_delimiter();
-        $inputs.= wf_Submit(__('I really want to stop suffering User'));
+        $inputs .= wf_tag('br');
+        $inputs .= __('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_tag('input', false, '', 'type="text" name="confirmation" autocomplete="off"');
+        $inputs .= wf_HiddenInput('anihilation', 'true');
+        $inputs .= wf_delimiter();
+        $inputs .= wf_Submit(__('I really want to stop suffering User'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
 
         show_window(__('Deleting user') . ' ' . @$alladdress[$login] . ' (' . $login . ')', $form);

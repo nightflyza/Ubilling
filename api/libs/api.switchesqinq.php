@@ -75,24 +75,26 @@ class SwitchesQinQ {
      * @param int $switchId
      * 
      * @return bool
+
+      protected function isValid($svlan, $cvlan, $switchId) {
+      $result = true;
+      if ((!empty($svlan)) AND ( !empty($cvlan))) {
+      if (!empty($this->allQinQ)) {
+      foreach ($this->allQinQ as $io => $each) {
+      if (($each['cvlan'] == $cvlan) AND ( $each['svlan'] == $svlan)) {
+      if ($io != $switchId) {
+      $result = false;
+      }
+      }
+      }
+      }
+      } else {
+      $result = true;
+      }
+      return ($result);
+      }
+     * 
      */
-    protected function isValid($svlan, $cvlan, $switchId) {
-        $result = true;
-        if ((!empty($svlan)) AND ( !empty($cvlan))) {
-            if (!empty($this->allQinQ)) {
-                foreach ($this->allQinQ as $io => $each) {
-                    if (($each['cvlan'] == $cvlan) AND ( $each['svlan'] == $svlan)) {
-                        if ($io != $switchId) {
-                            $result = false;
-                        }
-                    }
-                }
-            }
-        } else {
-            $result = true;
-        }
-        return ($result);
-    }
 
     /**
      * Catches qinq data and saves it if required
@@ -101,35 +103,38 @@ class SwitchesQinQ {
      */
     public function saveQinQ() {
         $result = '';
-        if (wf_CheckPost(array('qinqswitchid', 'qinqsvlan', 'qinqcvlan'))) {
-            $switchId = vf($_POST['qinqswitchid'], 3);
-            $svlan = vf($_POST['qinqsvlan'], 3);
-            $cvlan = vf($_POST['qinqcvlan'], 3);
+        if (wf_CheckGet(array('qinqswitchid', 'svlan_id', 'cvlan_num'))) {
+            $switchId = vf($_GET['qinqswitchid'], 3);
+            $svlan = vf($_GET['svlan_id'], 3);
+            $cvlan = vf($_GET['cvlan_num'], 3);
             //check is pair unique and not empty?
-            if ($this->isValid($svlan, $cvlan, $switchId)) {
-                if (!isset($this->allQinQ[$switchId])) {
-                    //creating new QinQ record
-                    $query = "INSERT INTO `" . self::QINQ_TABLE . "` (`switchid`,`svlan`,`cvlan`) "
-                            . "VALUES ('" . $switchId . "','" . $svlan . "','" . $cvlan . "');";
-                    nr_query($query);
-                    log_register('SWITCH CHANGE [' . $switchId . '] QINQ CREATE SVLAN `' . $svlan . '` CVLAN `' . $cvlan . '`');
-                } else {
-                    //update mapping data if required
-                    $currentData = $this->allQinQ[$switchId];
-                    $where = "WHERE `switchid`='" . $switchId . "'";
-                    if ($currentData['svlan'] != $svlan) {
-                        simple_update_field(self::QINQ_TABLE, 'svlan', $svlan, $where);
-                        log_register('SWITCH CHANGE [' . $switchId . '] QINQ SET SVLAN `' . $svlan . '`');
-                    }
-
-                    if ($currentData['cvlan'] != $cvlan) {
-                        simple_update_field(self::QINQ_TABLE, 'cvlan', $cvlan, $where);
-                        log_register('SWITCH CHANGE [' . $switchId . '] QINQ SET CVLAN `' . $cvlan . '`');
-                    }
-                }
+            //if ($this->isValid($svlan, $cvlan, $switchId)) {
+            if (!isset($this->allQinQ[$switchId])) {
+                //creating new QinQ record
+                $query = "INSERT INTO `" . self::QINQ_TABLE . "` (`switchid`,`svlan_id`,`cvlan`) "
+                        . "VALUES ('" . $switchId . "','" . $svlan . "','" . $cvlan . "');";
+                nr_query($query);
+                log_register('SWITCH CHANGE [' . $switchId . '] QINQ CREATE SVLAN ID `' . $svlan . '` CVLAN `' . $cvlan . '`');
             } else {
-                $result .= __('SVLAN + CVLAN pair is not valid');
+                //update mapping data if required
+                $currentData = $this->allQinQ[$switchId];
+                $where = "WHERE `switchid`='" . $switchId . "'";
+                if ($currentData['svlan'] != $svlan) {
+                    simple_update_field(self::QINQ_TABLE, 'svlan_id', $svlan, $where);
+                    log_register('SWITCH CHANGE [' . $switchId . '] QINQ SET SVLAN `' . $svlan . '`');
+                }
+
+                if ($currentData['cvlan'] != $cvlan) {
+                    simple_update_field(self::QINQ_TABLE, 'cvlan', $cvlan, $where);
+                    log_register('SWITCH CHANGE [' . $switchId . '] QINQ SET CVLAN `' . $cvlan . '`');
+                }
             }
+            /*
+              } else {
+              $result .= __('SVLAN + CVLAN pair is not valid');
+              }
+             * 
+             */
         }
         return ($result);
     }

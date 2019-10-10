@@ -862,12 +862,24 @@ class UserProfile {
      * @return string
      */
     protected function getVlanAssignControls() {
-        if ($this->alterCfg['VLAN_IN_PROFILE']) {
+        if ($this->alterCfg['VLAN_IN_PROFILE'] AND $this->alterCfg['VLANGEN_SUPPORT']) {
             $result = web_ProfileVlanControlForm($this->login);
+        } elseif ($this->alterCfg['VLAN_IN_PROFILE'] AND $this->alterCfg['VLAN_MANAGEMENT_ENABLED']) {
+            $vlanManagement = new VlanManagement();
+            $result = $vlanManagement->showUsersVlanPair($this->login);
         } else {
             $result = '';
         }
         return ($result);
+    }
+
+    protected function getQinqPairControls() {
+        $result = '';
+        if ($this->alterCfg['QINQ_IN_PROFILE'] AND $this->alterCfg['VLAN_MANAGEMENT_ENABLED']) {
+            $vlanManagement = new VlanManagement();
+            $result .= $vlanManagement->showUsersVlanPair($this->login);
+        }
+        return($result);
     }
 
     /**
@@ -912,7 +924,7 @@ class UserProfile {
 
             if (!empty($onu_data)) {
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW') and isset($onu_data['oltid'])) {
-                    $onuAdditionalData.= wf_TableCell(__("OLT"), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell(__("OLT"), '30%', 'row2');
 
                     $query = "SELECT `switches`.`id`, `switches`.`ip`, `switches`.`location`, `switchmodels`.`modelname` 
                                 FROM `switches` 
@@ -920,33 +932,33 @@ class UserProfile {
                                 WHERE `switches`.`id` = " . $onu_data['oltid'];
                     $queryResult = simple_queryall($query);
 
-                    if (isset($queryResult[0]) and !empty($queryResult[0])) {
+                    if (isset($queryResult[0]) and ! empty($queryResult[0])) {
                         $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $queryResult[0]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
-                        $webIfaceLink.= wf_img('skins/ymaps/network.png');
-                        $webIfaceLink.= wf_tag('a', true);
+                        $webIfaceLink .= wf_img('skins/ymaps/network.png');
+                        $webIfaceLink .= wf_tag('a', true);
 
-                        $onuAdditionalData.= wf_TableCell($queryResult[0]['ip'] . ' - ' . $queryResult[0]['modelname'] . ' - ' . $queryResult[0]['location'] . wf_nbsp(2) . $webIfaceLink );
+                        $onuAdditionalData .= wf_TableCell($queryResult[0]['ip'] . ' - ' . $queryResult[0]['modelname'] . ' - ' . $queryResult[0]['location'] . wf_nbsp(2) . $webIfaceLink);
                     } else {
-                        $onuAdditionalData.= wf_TableCell(__('No data'));
+                        $onuAdditionalData .= wf_TableCell(__('No data'));
                     }
 
-                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $onu_data['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
-                    $webIfaceLink.= wf_img('skins/ymaps/network.png');
-                    $webIfaceLink.= wf_tag('a', true);
+                    $webIfaceLink .= wf_img('skins/ymaps/network.png');
+                    $webIfaceLink .= wf_tag('a', true);
 
                     $onuAdditionalData = wf_TableCell(__("ONU IP"), '30%', 'row2');
-                    $onuAdditionalData.= wf_TableCell($onu_data['ip'] . ' - ' . $onu_data['modelname'] . wf_nbsp(2) . $webIfaceLink);
-                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+                    $onuAdditionalData .= wf_TableCell($onu_data['ip'] . ' - ' . $onu_data['modelname'] . wf_nbsp(2) . $webIfaceLink);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuAdditionalData = wf_TableCell(__("ONU MAC"), '30%', 'row2');
-                    $onuAdditionalData.= wf_TableCell($onu_data['mac']);
-                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+                    $onuAdditionalData .= wf_TableCell($onu_data['mac']);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuAdditionalData = wf_TableCell(__("ONU Serial"), '30%', 'row2');
-                    $onuAdditionalData.= wf_TableCell($onu_data['serial']);
-                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+                    $onuAdditionalData .= wf_TableCell($onu_data['serial']);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuInterface = '';
                     $availCacheData = rcms_scandir(PONizer::INTCACHE_PATH, '*_' . PONizer::INTCACHE_EXT);
@@ -964,8 +976,8 @@ class UserProfile {
                     }
 
                     $onuAdditionalData = wf_TableCell(__("ONU LLID (" . __('interface') . ")"), '30%', 'row2');
-                    $onuAdditionalData.= wf_TableCell($onuInterface);
-                    $rows.= wf_TableRow($onuAdditionalData, 'row3');
+                    $onuAdditionalData .= wf_TableCell($onuInterface);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
                 }
 
                 $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
@@ -992,7 +1004,7 @@ class UserProfile {
                 $cells = wf_TableCell(__("ONU Signal"), '30%', 'row2');
                 $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true) .
                         wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }
         }
@@ -1727,6 +1739,8 @@ class UserProfile {
         $profile .= $this->getVlanAssignControls();
 //profile vlan online
         $profile .= $this->getVlanOnline();
+//profile qinq controls        
+        $profile .= $this->getQinqPairControls();
 //profile CPE controls
         $profile .= $this->getUserCpeControls();
 

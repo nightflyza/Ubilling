@@ -464,19 +464,22 @@ function web_SwitchEditForm($switchid) {
     $mainForm .= wf_Form('', 'POST', $editinputs, 'glamour');
 
     //some qinq interface here
-    if (@$altCfg['QINQ_ENABLED']) {
-        $switchesQinQ = new SwitchesQinQ();
-        if (wf_CheckPost(array('qinqswitchid'))) {
-            $qinqSaveResult = $switchesQinQ->saveQinQ();
-            if (empty($qinqSaveResult)) {
-                rcms_redirect('?module=switches&edit=' . $switchid);
-            } else {
-                show_error($qinqSaveResult);
-            }
-        }
+    /*
+      if (@$altCfg['QINQ_ENABLED']) {
+      $switchesQinQ = new SwitchesQinQ();
+      if (wf_CheckPost(array('qinqswitchid'))) {
+      $qinqSaveResult = $switchesQinQ->saveQinQ();
+      if (empty($qinqSaveResult)) {
+      rcms_redirect('?module=switches&edit=' . $switchid);
+      } else {
+      show_error($qinqSaveResult);
+      }
+      }
 
-        $mainForm .= $switchesQinQ->renderEditForm($switchid);
-    }
+      $mainForm .= $switchesQinQ->renderEditForm($switchid);
+      }
+     * 
+     */
 
     //main interface grid
     if (!empty($switchdata['ip'])) {
@@ -1395,6 +1398,9 @@ function ub_SwitchDelete($switchid) {
         $switchGroups = new SwitchGroups();
         $switchGroups->removeSwitchFromGroup($switchid);
     }
+
+    $query = 'DELETE FROM `switches_qinq` WHERE `switchid` = "' . $switchid . '"';
+    nr_query($query);
 
     log_register('SWITCH DELETE [' . $switchid . '] IP ' . $switchdata['ip'] . ' LOC ' . $switchdata['location']);
 }

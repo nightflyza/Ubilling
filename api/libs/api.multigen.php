@@ -52,6 +52,20 @@ class MultiGen {
     protected $switchesQinQ = array();
 
     /**
+     * Contains available users qinq bindings
+     * 
+     * @var array
+     */
+    protected $usersQinQ = array();
+
+    /**
+     * Contains available s-vlans
+     * 
+     * @var array
+     */
+    protected $allSvlan = array();
+
+    /**
      * Contains array of available switches as id=>switchdata
      *
      * @var array
@@ -438,6 +452,11 @@ class MultiGen {
     const OPTION_SWASSIGN = 'SWITCHPORT_IN_PROFILE';
 
     /**
+     * Default universal QinQ management option name
+     */
+    const OPTION_UNIVERSALQINQ = 'UNIVERSAL_QINQ_ENABLED';
+
+    /**
      * Default additional fields option
      */
     const OPTION_FIELDS = 'MULTIGEN_FIELDSACCT';
@@ -507,7 +526,7 @@ class MultiGen {
         $this->preprocessUserData();
         $this->loadSwitches();
         $this->loadSwithchAssigns();
-        $this->loadSwitchesQinQ();
+        $this->loadAllQinQ();
         $this->loadScenarios();
         $this->loadUserStates();
     }
@@ -730,10 +749,16 @@ class MultiGen {
      * 
      * @return void
      */
-    protected function loadSwitchesQinQ() {
+    protected function loadAllQinQ() {
         if ((@$this->altCfg[self::OPTION_QINQ]) AND ( @$this->altCfg[self::OPTION_SWASSIGN])) {
             $qinq = new SwitchesQinQ();
             $this->switchesQinQ = $qinq->getAllQinQ();
+        }
+        if (@$this->altCfg[self::OPTION_UNIVERSALQINQ]) {
+            $universalqinq = new UniversalQINQ();
+            $this->usersQinQ = $universalqinq->getAll();
+            $svlanObj = new VlanManagement();
+            $this->allSvlan = $svlanObj->getAllSvlan();
         }
     }
 
@@ -1926,7 +1951,13 @@ class MultiGen {
                 if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
                     $this->loadSwitches();
                     $this->loadSwithchAssigns();
-                    $this->loadSwitchesQinQ();
+                    $this->loadAllQinQ();
+                }
+            } else {
+                if (isset($this->altCfg[self::OPTION_UNIVERSALQINQ])) {
+                    if ($this->altCfg[self::OPTION_UNIVERSALQINQ]) {
+                        $this->loadAllQinQ();
+                    }
                 }
             }
         }
@@ -1969,10 +2000,10 @@ class MultiGen {
                 $result = @$this->transformMacDotted($userData['mac']);
                 break;
             case 'qinq':
-                $result = $this->getSwitchesQinQUsername($userLogin, '.');
+                $result = $this->getQinQUsername($userLogin, '.');
                 break;
             case 'qinqju':
-                $result = $this->getSwitchesQinQUsername($userLogin, '-');
+                $result = $this->getQinQUsername($userLogin, '-');
                 break;
         }
         return ($result);
@@ -1986,16 +2017,19 @@ class MultiGen {
      * 
      * @return string/void
      */
-    protected function getSwitchesQinQUsername($userLogin, $delimiter = '.') {
+    protected function getQinQUsername($userLogin, $delimiter = '.') {
         $result = '';
-        if (isset($this->userSwitchAssigns[$userLogin])) {
+        if (isset($this->usersQinQ[$userLogin])) {
+            $qinq = $this->usersQinQ[$userLogin];
+            $result .= $this->allSvlan[$qinq['svlan_id']]['svlan'] . $delimiter . $qinq['cvlan'];
+        } elseif (isset($this->userSwitchAssigns[$userLogin])) {
             $assignData = $this->userSwitchAssigns[$userLogin];
             $assignedSwitchId = $assignData['switchid'];
             $assignedPort = $assignData['port'];
             if (isset($this->switchesQinQ[$assignedSwitchId])) {
                 $qinqData = $this->switchesQinQ[$assignedSwitchId];
                 if (!empty($assignedPort)) {
-                    $result .= $qinqData['svlan'] . $delimiter . ($qinqData['cvlan'] + ($assignedPort - 1));
+                    $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . ($qinqData['cvlan'] + ($assignedPort - 1));
                 }
             }
         }
@@ -2918,7 +2952,7 @@ class MultiGen {
                         if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
                             $this->loadSwitches();
                             $this->loadSwithchAssigns();
-                            $this->loadSwitchesQinQ();
+                            $this->loadAllQinQ();
                         }
                     }
                 }
@@ -3138,7 +3172,7 @@ class MultiGen {
                     if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
                         $this->loadSwitches();
                         $this->loadSwithchAssigns();
-                        $this->loadSwitchesQinQ();
+                        $this->loadAllQinQ();
                     }
                 }
             }
