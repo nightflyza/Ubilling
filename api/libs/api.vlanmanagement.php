@@ -583,10 +583,12 @@ class VlanManagement {
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
-            $modelid = $this->allSwitches[$each['switchid']]['modelid'];
-            $port_number = $this->allSwitchModels[$modelid]['ports'];
-            for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
-                $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
+            if (isset($this->allSwitches[$each['switchid']]['modelid'])) {
+                $modelid = $this->allSwitches[$each['switchid']]['modelid'];
+                $port_number = $this->allSwitchModels[$modelid]['ports'];
+                for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
+                    $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
+                }
             }
         }
     }
