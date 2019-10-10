@@ -29,6 +29,7 @@ class VlanManagement {
     protected $allSwitchModels = array();
     protected $occupiedUniversal = array();
     protected $occupiedSwitches = array();
+    protected $switchVlans = array();
     public $defaultRealm = 1;
     public $defaultSvlan = 1;
     public $routing;
@@ -104,8 +105,13 @@ class VlanManagement {
     }
 
     protected function protectDefault() {
-        if (($this->routing->get('action') == 'edit') or ( ($this->routing->get('action') == 'delete'))) {
+        if (($this->routing->get('action') == 'edit')) {
             if (($this->routing->get('old_svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
+                return(true);
+            }
+        }
+        if ($this->routing->get('action') == 'delete') {
+            if (($this->routing->get('svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
                 return(true);
             }
         }
@@ -502,6 +508,7 @@ class VlanManagement {
         $result = '';
         $this->allSwitches = $this->switchesDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $data = $this->switchesqinqDb->getAll('svlan_id');
         $data = $data[$this->routing->get('svlan_id', 'int')];
         $switch = $this->allSwitches[$data['switchid']];
@@ -583,10 +590,13 @@ class VlanManagement {
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
-            $modelid = $this->allSwitches[$each['switchid']]['modelid'];
-            $port_number = $this->allSwitchModels[$modelid]['ports'];
-            for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
-                $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
+            if (isset($this->allSwitches[$each['switchid']])) {
+                $modelid = $this->allSwitches[$each['switchid']]['modelid'];
+                $port_number = $this->allSwitchModels[$modelid]['ports'];
+                for ($i = $each['cvlan']; $i <= ($each['cvlan'] + $port_number - 1); $i++) {
+                    $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
+                    $this->switchVlans[$i] = $each['switchid'];
+                }
             }
         }
     }
@@ -603,10 +613,14 @@ class VlanManagement {
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
+                $switchid = '';
                 if (isset($this->occupiedUniversal[$cvlan])) {
                     $color = 'occupied_customer';
                 } elseif (isset($this->occupiedSwitches[$cvlan])) {
                     $color = 'occupied_switch';
+                    if (isset($this->switchVlans[$cvlan])) {
+                        $switchid = $this->switchVlans[$cvlan];
+                    }
                 } else {
                     $color = 'free_vlan';
                 }
@@ -624,7 +638,7 @@ class VlanManagement {
                 }
                 $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
                         '/' . $this->routing->get('svlan_id', 'int') .
-                        '/' . $cvlan . '" ' . $onclick . '');
+                        '/' . $cvlan . '/' . $switchid . '" ' . $onclick . '');
 
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
