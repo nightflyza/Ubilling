@@ -453,7 +453,7 @@ class VlanManagement {
             switch ($type) {
                 case'switch':
                     $this->error[] = __('Error') . ': ' . __('trying allocate')
-                            . ' ' . "CVLAN " . _("from") . ' ' . $this->routing->get('cvlan_num', 'int')
+                            . ' ' . "CVLAN " . __("from") . ' ' . $this->routing->get('cvlan_num', 'int')
                             . ' ' . __('to') . $lastCvlan
                             . '. CVLAN ' . $i
                             . ' ' . __('occcupied by switch: ') . $used;
