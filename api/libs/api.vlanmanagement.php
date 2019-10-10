@@ -185,6 +185,8 @@ class VlanManagement {
                 $this->svlanDb->delete();
 
 //delete all the qinq bindings for this svlan
+                $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
+                $this->switchesqinqDb->delete();
                 $this->cvlanDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
                 $this->cvlanDb->delete();
 
@@ -552,8 +554,10 @@ class VlanManagement {
                     $svlan_id = $allSwitchQinq[$switchId]['svlan_id'];
                     $this->svlanDb->where('id', '=', $svlan_id);
                     $svlans = $this->svlanDb->getAll('id');
-                    $svlan = $svlans[$svlan_id]['svlan'];
-                    $cvlan = $startCvlan + $port;
+                    if (isset($svlan[$svlan_id])) {
+                        $svlan = $svlans[$svlan_id]['svlan'];
+                        $cvlan = $startCvlan + $port;
+                    }
                 }
             }
         }
