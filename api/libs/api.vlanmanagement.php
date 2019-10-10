@@ -438,7 +438,7 @@ class VlanManagement {
         if (!$used) {
             $switchesQinQ = new SwitchesQinQ();
             $qinqSaveResult = $switchesQinQ->saveQinQ();
-            if (!empty(($qinqSaveResult))) {
+            if (!empty($qinqSaveResult)) {
                 $this->error[] = $qinqSaveResult;
             }
         } else {
