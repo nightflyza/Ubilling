@@ -98,7 +98,7 @@ class Realms {
             }
         }
         if ($this->routing->get('action') == 'delete') {
-            if ($this->routing->get('id', 'int')) {
+            if (!$this->routing->get('id', 'int')) {
                 return(true);
             }
         }
