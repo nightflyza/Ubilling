@@ -29,6 +29,7 @@ class VlanManagement {
     protected $allSwitchModels = array();
     protected $occupiedUniversal = array();
     protected $occupiedSwitches = array();
+    protected $switchVlans = array();
     public $defaultRealm = 1;
     public $defaultSvlan = 1;
     public $routing;
@@ -588,6 +589,7 @@ class VlanManagement {
                 $port_number = $this->allSwitchModels[$modelid]['ports'];
                 for ($i = $each['cvlan']; $i <= $each['cvlan'] + $port_number; $i++) {
                     $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
+                    $this->switchVlans[$i] = $each['switchid'];
                 }
             }
         }
@@ -605,10 +607,12 @@ class VlanManagement {
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
+                $switchid = '';
                 if (isset($this->occupiedUniversal[$cvlan])) {
                     $color = 'occupied_customer';
                 } elseif (isset($this->occupiedSwitches[$cvlan])) {
                     $color = 'occupied_switch';
+                    $switchid = $this->switchVlans[$cvlan];
                 } else {
                     $color = 'free_vlan';
                 }
@@ -626,7 +630,7 @@ class VlanManagement {
                 }
                 $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
                         '/' . $this->routing->get('svlan_id', 'int') .
-                        '/' . $cvlan . '" ' . $onclick . '');
+                        '/' . $cvlan . '/' . $this->switchVlans[$cvlan] . '" ' . $onclick . '');
 
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
