@@ -130,14 +130,18 @@ class NyanORM {
     /**
      * Setter of filels list which will be optional used in getAll
      * 
-     * @param  array $fieldSet
+     * @param  array/string $fieldSet fields names to be selectable from model in array or as comma separated string
      * 
      * @return void
      */
-    public function selectable($fieldSet = array()) {
+    public function selectable($fieldSet = '') {
         if (!empty($fieldSet)) {
             if (is_array($fieldSet)) {
                 $this->selectable = $fieldSet;
+            } else {
+                if (is_string($fieldSet)) {
+                    $this->selectable = explode(',', $fieldSet);
+                }
             }
         } else {
             $this->flushSelectable();
@@ -187,7 +191,6 @@ class NyanORM {
         $this->flushWhere();
         $this->flushOrder();
         $this->flushLimit();
-        $this->flushSelectable();
     }
 
     /**
@@ -606,6 +609,17 @@ class NyanORM {
         if ($deep) {
             $this->deepDebug = true;
         }
+    }
+
+    /**
+     * Sets default primary key for model instance
+     * 
+     * @param string $fieldName
+     * 
+     * @return void
+     */
+    public function setDefaultPk($fieldName = 'id') {
+        $this->defaultPk = $fieldName;
     }
 
 }

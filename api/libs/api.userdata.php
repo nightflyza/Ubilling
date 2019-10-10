@@ -174,6 +174,7 @@ function zb_UserGetAllData($login = '') {
     } else {
         $query.= "concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
     }
+
     $query.= "
                     `phones`.`phone`,`mobile`,`contract`,`emails`.`email`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
@@ -187,7 +188,9 @@ function zb_UserGetAllData($login = '') {
                     LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
                     LEFT JOIN `emails` ON (`users`.`login`=`emails`.`login`)
                     " . $query_wh;
+
     $Alldata = (!empty($login)) ? simple_query($query) : simple_queryall($query);
+
     if (empty($login) and ! empty($Alldata)) {
         foreach ($Alldata as $data) {
             $result[$data['login']] = $data;
@@ -875,6 +878,119 @@ function zb_getUserLoginByPhone($Phone) {
     $LoginData = simple_queryall($tQuery);
 
     return ( (isset($LoginData[0]['login'])) ? $LoginData[0]['login'] : '');
+}
+
+/**
+ * Returns all users phones data from cache
+ *
+ * @return string
+ */
+function zb_GetAllAllPhonesCache() {
+    global $ubillingConfig;
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = ($ubillingConfig->getAlterParam('ALL_PHONES_CACHE_TIMEOUT')) ? $ubillingConfig->getAlterParam('ALL_PHONES_CACHE_TIMEOUT') : 1800;
+    $result = $cache->getCallback('USER_ALL_PHONES_DATA', function () {
+                                        return (zb_GetAllAllPhones());
+                                    }, $cacheTime
+                                 );
+
+    return ($result);
+}
+
+/**
+ * Returns all users phones data, including external mobiles
+ *
+ * @param string $login
+ * @return array
+ */
+function zb_GetAllAllPhones($login = '') {
+    global $ubillingConfig;
+    $useExtMobiles = $ubillingConfig->getAlterParam('MOBILES_EXT');
+    $phones = array();
+    $allExt = array();
+
+    if (!empty($login)) {
+        $where1 = " WHERE `phones`.`login` = '" . $login . "'";
+        $where2 = " WHERE `mobileext`.`login` = '" . $login . "'";
+    } else {
+        $where1 = '';
+        $where2 = '';
+    }
+
+    $queryPhones = "SELECT `login`, `phone`,`mobile` FROM `phones`" . $where1;
+    $resultPhones = simple_queryall($queryPhones);
+
+    if ($useExtMobiles) {
+        $queryLogin = "SELECT DISTINCT `login` FROM `mobileext` "  . $where2 . " ORDER BY `login`";
+        $qlResult = simple_queryall($queryLogin);
+
+        if (!empty($qlResult)) {
+            foreach ($qlResult as $io => $each) {
+                $allExt[$each['login']] = array();
+            }
+
+            $query = "SELECT `login`, `mobile` FROM `mobileext` "  . $where2 . "  ORDER BY `login`";
+            $all = simple_queryall($query);
+
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $allExt[$each['login']][] = $each['mobile'];
+                }
+            }
+        }
+    }
+
+    if (!empty($resultPhones)) {
+        foreach ($resultPhones as $phone) {
+            $phones[$phone['login']]['phone'] = $phone['phone'];
+            $phones[$phone['login']]['mobile'] = $phone['mobile'];
+            $phones[$phone['login']]['mobiles'] = (!empty($allExt) and isset($allExt[$phone['login']])) ? $allExt[$phone['login']] : array();
+        }
+    }
+
+    return ($phones);
+}
+
+/**
+ * Returns all users phones as a "login" => "phones string" for Online table
+ *
+ * @return array
+ */
+function zb_GetAllOnlineTabPhones() {
+    $allOnlineTabPhones = array();
+    $allUsersPhones = zb_GetAllAllPhonesCache();
+
+    if (!empty($allUsersPhones)) {
+        foreach ($allUsersPhones as $eachLogin => $eachItem) {
+            $allOnlineTabPhones[$eachLogin] = zb_GetOnlineTabPhonesStr($eachItem['phone'], $eachItem['mobile'], $eachItem['mobiles']);
+        }
+    }
+
+    return ($allOnlineTabPhones);
+}
+
+/**
+ * Creates a "phones string"  suitable for Online tab from given $phone, $mobile and $extMobiles
+ *
+ * @param string $phone
+ * @param string $mobile
+ * @param array $extMobiles
+ * @return string
+ */
+function zb_GetOnlineTabPhonesStr($phone = '', $mobile = '', $extMobiles = array()) {
+    $phonesStr = (empty($phone)) ? '' : str_ireplace(array('+', "-"), '', $phone) . ' ';
+    $phonesStr.= (empty($mobile)) ? '' : str_ireplace(array('+', "-"), '', $mobile);
+
+    if (!empty($extMobiles)) {
+        $phonesStr.= '<br />' ;
+
+        foreach ($extMobiles as $io => $eachmobile) {
+            $phonesStr.= (empty($eachmobile)) ? '' : str_ireplace(array('+', "-"), '', $eachmobile) . ' ';
+        }
+    }
+
+    return ($phonesStr);
 }
 
 ?>

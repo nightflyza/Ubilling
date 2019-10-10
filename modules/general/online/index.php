@@ -27,6 +27,11 @@ if ($system->checkForRight('ONLINE')) {
             $ShowContractField = true;
         }
 
+        $showUserPhones = false;
+        if (isset($alter_conf['ONLINE_SHOW_PHONES']) && $alter_conf['ONLINE_SHOW_PHONES']) {
+            $showUserPhones = true;
+        }
+
         $columnDefs = '';
         $showONUSignals = false;
         $showWIFISignals = false;
@@ -34,7 +39,7 @@ if ($system->checkForRight('ONLINE')) {
         if (isset($alter_conf['PON_ENABLED']) && $alter_conf['PON_ENABLED'] &&
             isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
             $showONUSignals = true;
-            $colNum1 = ($ShowContractField) ? '4' : '3';
+            $colNum1 = (($ShowContractField and $showUserPhones) ? '5' : (($ShowContractField xor $showUserPhones) ? '4' : '3'));
 
             $columnDefs.= '{"targets": ' . $colNum1 . ',
                                 "render": function ( data, type, row ) {                                          
@@ -56,7 +61,19 @@ if ($system->checkForRight('ONLINE')) {
         if (isset($alter_conf['MTSIGMON_ENABLED']) && $alter_conf['MTSIGMON_ENABLED'] &&
             isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
             $showWIFISignals = true;
-            $colNum2 = (($ShowContractField and $showONUSignals) ? '5' : ((!$ShowContractField and !$showONUSignals) ? '3' : '4'));
+
+            // fuckin' XOR magic goes below this line. don't touch it(especially the parentheses) or you'll be cursed with hours of debugging
+            // But to be serious - here we're trying to avoid a huge amount of "IFs" while checking the "ON" status of 3 optional columns:
+            // $ShowContractField, $showUserPhones and $showONUSignals. And that's all is not just to show off with XOR or something.
+            // Just because they go after each other in Online table and we need to apply some JQDT renderer function
+            // for coloring only to $showWIFISignals - we need to determine certainly the number of $showWIFISignals column.
+            // 1. We check, if all of 3 optional columns are "ON" - then $column2 will equal to "6". If not all of 3 optional columns are "ON" - we need to check further:
+            // 2. If any 2 of 3 optional columns are "ON" and only one of those 3 is "OFF" - then $column2 will equal to "5"
+            // 3. If only one of 3 optional columns is "ON" - then $column2 will equal to "4"
+            // 4. Finally, if none of 3 optional columns are "ON" - then $column2 will equal to "3"
+            $colNum2 = (($ShowContractField and $showUserPhones and $showONUSignals) ? '6' :
+                        ((($ShowContractField and $showUserPhones) xor ($showUserPhones and $showONUSignals) xor ($ShowContractField and $showONUSignals)) ? '5' :
+                        (($ShowContractField xor $showUserPhones xor $showONUSignals) ? '4' : '3')));
 
             $columnDefs.= (empty($columnDefs) ? '' : ', ');
             $columnDefs.= '{"targets": ' . $colNum2 . ',
@@ -85,6 +102,11 @@ if ($system->checkForRight('ONLINE')) {
                             }, ';
         }
 
+        $showLastFeeCharge = false;
+        if (isset($alter_conf['ONLINE_SHOW_LAST_FEECHARGE']) && $alter_conf['ONLINE_SHOW_LAST_FEECHARGE']) {
+            $showLastFeeCharge = true;
+        }
+
         $columnDefs = '"columnDefs": [ ' . $columnDefs . '], ';
 
         //alternate center styling
@@ -99,8 +121,9 @@ if ($system->checkForRight('ONLINE')) {
             $columnFilters = '
              null, ' .
                     ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
-                    ' null,
-                { "sType": "ip-address" }, ' .
+                    ' null, ' .
+                ( ($hp_mode == 1 && $showUserPhones) ? 'null,' : '' ) .
+                ' { "sType": "ip-address" }, ' .
                 ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
                 ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
                 ' null,
@@ -108,22 +131,23 @@ if ($system->checkForRight('ONLINE')) {
                 null,
                 { "sType": "file-size" },
                 null,
-                null
-            ';
+                null ' .
+                ( ($hp_mode == 1 && $showLastFeeCharge) ? ', null' : '' );
         } else {
             $columnFilters = '
              null, ' .
                     ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
-                    ' null,
-                { "sType": "ip-address" }, ' .
+                    ' null, ' .
+                ( ($hp_mode == 1 && $showUserPhones) ? 'null,' : '' ) .
+                ' { "sType": "ip-address" }, ' .
                 ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
                 ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
                 ' null,
                 null,
                 { "sType": "file-size" },
-                null,
-                null
-            ';
+                null,                
+                null ' .
+                ( ($hp_mode == 1 && $showLastFeeCharge) ? ', null' : '' );
         }
 
         $dtcode = '
@@ -269,6 +293,7 @@ if ($system->checkForRight('ONLINE')) {
         $result.= wf_TableCell(__('Full address'));
         $result.= ( ($hp_mode == 1 && $ShowContractField) ? wf_TableCell(__('Contract')) : '' );
         $result.= wf_TableCell(__('Real Name'));
+        $result.= ( ($hp_mode == 1 && $showUserPhones) ? wf_TableCell(__("Phones")) : '' );
         $result.= wf_TableCell(__('IP'));
         $result.= ( ($hp_mode == 1 && $showONUSignals) ? wf_TableCell(__("ONU Signal")) : '' );
         $result.= ( ($hp_mode == 1 && $showWIFISignals) ? wf_TableCell(__("Signal") . ' WiFi') : '' );
@@ -278,6 +303,7 @@ if ($system->checkForRight('ONLINE')) {
         $result.= wf_TableCell(__('Traffic'));
         $result.= wf_TableCell(__('Balance'));
         $result.= wf_TableCell(__('Credit'));
+        $result.= ( ($hp_mode == 1 && $showLastFeeCharge) ? wf_TableCell(__("Last fee charge")) : '' );
         $result.= wf_tag('tr', true);
         $result.= wf_tag('thead', true);
         $result.= wf_tag('table', true);
@@ -296,6 +322,7 @@ if ($system->checkForRight('ONLINE')) {
      */
     function zb_AjaxOnlineDataSourceSafe() {
         global $alter_conf;
+        $ubCache = new UbillingCache();
         $ishimuraOption = MultiGen::OPTION_ISHIMURA;
         $ishimuraTable = MultiGen::NAS_ISHIMURA;
         $additionalTraffic = array();
@@ -393,6 +420,20 @@ if ($system->checkForRight('ONLINE')) {
             $allWiFiSignals = $WiFiSigmon->getAllWiFiSignals();
         }
 
+        $allFees = array();
+        $showLastFeeCharge = false;
+        if (isset($alter_conf['ONLINE_SHOW_LAST_FEECHARGE']) && $alter_conf['ONLINE_SHOW_LAST_FEECHARGE']) {
+            $showLastFeeCharge = true;
+            $allFees = $ubCache->get('STG_FEE_CHARGE');
+        }
+
+        $showUserPhones = false;
+        $allUserPhones = array();
+        if (isset($alter_conf['ONLINE_SHOW_PHONES']) && $alter_conf['ONLINE_SHOW_PHONES']) {
+            $showUserPhones = true;
+            $allUserPhones = zb_GetAllOnlineTabPhones();
+        }
+
         $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
@@ -479,6 +520,8 @@ if ($system->checkForRight('ONLINE')) {
 
                 $onuSignal = '';
                 $wifiSignal = '';
+                $feeCharge = '';
+                $userPhones = '';
 
                 if ($showONUSignals and isset($allONUSignals[$eachuser['login']])) {
                     $onuSignal = $allONUSignals[$eachuser['login']];
@@ -488,15 +531,28 @@ if ($system->checkForRight('ONLINE')) {
                     $wifiSignal = $allWiFiSignals[$eachuser['login']];
                 }
 
+                if ($showLastFeeCharge and isset($allFees[$eachuser['login']])) {
+                    $feeCharge = $allFees[$eachuser['login']]['max_date'] . '<br />' . ($allFees[$eachuser['login']]['balance_to'] - $allFees[$eachuser['login']]['balance_from']);
+                }
+
+                if ($showUserPhones and isset($allUserPhones[$eachuser['login']])) {
+                    $userPhones = $allUserPhones[$eachuser['login']];
+                }
+
                 if (!$alter_conf['DEAD_HIDE']) {
                     $jsonItem = array();
                     $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
 
                     if ($ShowContractField) {
-                        $jsonItem[] = @$allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '' );
+                        $jsonItem[] = @$allcontracts[$eachuser['login']] . (($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '');
                     }
 
                     $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+
+                    if ($showUserPhones) {
+                        $jsonItem[] = $userPhones;
+                    }
+
                     $jsonItem[] = $eachuser['IP'];
 
                     if ($showONUSignals) {
@@ -515,6 +571,11 @@ if ($system->checkForRight('ONLINE')) {
                     $jsonItem[] = zb_TraffToGb($tinet);
                     $jsonItem[] = "" . round($eachuser['Cash'], 2);
                     $jsonItem[] = "" . round($eachuser['Credit'], 2);
+
+                    if ($showLastFeeCharge) {
+                        $jsonItem[] = $feeCharge;
+                    }
+
                     $jsonAAData[] = $jsonItem;
                 } else {
                     if (!isset($deadUsers[$eachuser['login']])) {
@@ -526,6 +587,11 @@ if ($system->checkForRight('ONLINE')) {
                         }
 
                         $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+
+                        if ($showUserPhones) {
+                            $jsonItem[] = $userPhones;
+                        }
+
                         $jsonItem[] = $eachuser['IP'];
 
                         if ($showONUSignals) {
@@ -544,6 +610,11 @@ if ($system->checkForRight('ONLINE')) {
                         $jsonItem[] = zb_TraffToGb($tinet);
                         $jsonItem[] = "" . round($eachuser['Cash'], 2);
                         $jsonItem[] = "" . round($eachuser['Credit'], 2);
+
+                        if ($showLastFeeCharge) {
+                            $jsonItem[] = $feeCharge;
+                        }
+
                         $jsonAAData[] = $jsonItem;
                     }
                 }
