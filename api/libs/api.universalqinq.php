@@ -347,7 +347,7 @@ class UniversalQINQ {
         $modal .= wf_tag('p', false, '', 'id="content-cvmodal"');
         $modal .= wf_tag('p', true);
         $modal .= wf_tag('div', true);
-        $modal .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+        $modal .= '<script src="./modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
 
         $columns = array(__('ID'), 'Realm', 'S-VLAN', 'C-VLAN', 'Address', 'Real Name', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';

@@ -265,7 +265,7 @@ class VlanManagement {
         $modal .= wf_tag('p', false, '', 'id="content-cvmodal"');
         $modal .= wf_tag('p', true);
         $modal .= wf_tag('div', true);
-        $modal .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+        $modal .= '<script src="./modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
 
         $columns = array('ID', 'SVLAN', 'Description', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
@@ -629,7 +629,7 @@ class VlanManagement {
                 $result .= $cvlan;
                 $result .= wf_tag('div', true);
             }
-            $result .= '<script src="/modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+            $result .= '<script src="./modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
         }
         show_window('', $result);
     }
