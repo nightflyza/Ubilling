@@ -1,5 +1,5 @@
 <?php
-$lang['def']['right to print receipts'] = 'Право печатать квитанции';
+$lang['def']['right to print receipts'] = 'derecho a imprimir recibos';
 $lang['def']['Print receipt'] = 'Imprimir recibo';
 $lang['def']['Print receipts'] = 'Imprimir recibos';
 $lang['def']['Subscriber\'s account status'] = 'Estado de la cuenta del suscriptor';
