@@ -3109,6 +3109,7 @@ $lang['def']['Wrong value'] = 'Неверное значение';
 $lang['def']['User does not exist'] = 'Пользователь не существует';
 $lang['def']['There is entry for this login'] = 'Уже существует запись для этого пользователя';
 $lang['def']['Create new entry'] = 'Создать новую запись';
+$lang['def']['No NAS servers assigned for this user network'] = 'Подсети пользователя не назначено никаких NAS серверов';
 $lang['def'][''] = '';
 
 

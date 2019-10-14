@@ -19,25 +19,23 @@ if (cfr('USERPROFILE')) {
             $period = (isset($tariffPeriods[$tariffName])) ? __($tariffPeriods[$tariffName]) : __('No');
 
             $cells = wf_TableCell(__('Fee'), '', 'row1');
-            $cells.= wf_TableCell($tariffPrice);
+            $cells .= wf_TableCell($tariffPrice);
             $rows = wf_TableRow($cells, 'row2');
 
             $cells = wf_TableCell(__('Download speed'), '', 'row1');
-            $cells.= wf_TableCell($speedDown);
-            $rows.= wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell($speedDown);
+            $rows .= wf_TableRow($cells, 'row2');
 
             $cells = wf_TableCell(__('Upload speed'), '', 'row1');
-            $cells.= wf_TableCell($speedUp);
-            $rows.= wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell($speedUp);
+            $rows .= wf_TableRow($cells, 'row2');
 
             $cells = wf_TableCell(__('Period'), '', 'row1');
-            $cells.= wf_TableCell($period);
-            $rows.= wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell($period);
+            $rows .= wf_TableRow($cells, 'row2');
 
             $tariffInfo = wf_TableBody($rows, '40%', 0, '');
         }
-
-//         $result=  wf_modalOpened(__('Tariff info'), $tariffInfo, '300', '200');
         $result = $tariffInfo;
     } else {
         $result = __('Strange exeption');

@@ -1565,6 +1565,11 @@ class UserProfile {
         return ($result);
     }
 
+    /**
+     * Returns receipt controls (BOBER GDE COMMENT????)
+     * 
+     * @return string
+     */
     protected function getReceiptControls() {
         if ($this->ubConfig->getAlterParam('PRINT_RECEIPTS_ENABLED') and $this->ubConfig->getAlterParam('PRINT_RECEIPTS_IN_PROFILE') and cfr('PRINTRECEIPTS')) {
             $receiptsPrinter = new PrintReceipt();
@@ -1577,6 +1582,40 @@ class UserProfile {
 
             return($result);
         }
+    }
+
+    /**
+     * Returns user NAS info ajax controls
+     * 
+     * @param string $userIp
+     * 
+     * @return string 
+     */
+    protected function getNasInfoControls($userIp) {
+        $result = '';
+        if (@$this->alterCfg['USERNAS_IN_PROFILE']) {
+            $containerId = 'NASINFO_CONTAINER';
+            if (!empty($userIp)) {
+                $result .= wf_AjaxLoader();
+                $result .= wf_AjaxLink('?module=nasinfo&ip=' . $userIp, wf_img('skins/nasinfo.gif', __('Network Access Servers')), $containerId, false, '');
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns user NAS info container for data display
+     * 
+     * 
+     * @return string
+     */
+    protected function getNasInfoContrainer() {
+        $result = '';
+        if (@$this->alterCfg['USERNAS_IN_PROFILE']) {
+            $containerId = 'NASINFO_CONTAINER';
+            $result = wf_tag('div', false, '', 'id="' . $containerId . '" style="display:block;"') . wf_tag('div');
+        }
+        return ($result);
     }
 
     /**
@@ -1649,7 +1688,7 @@ class UserProfile {
 //password row
         $profile .= $this->getUserPassword();
 //User IP data and extended networks controls if available
-        $profile .= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
+        $profile .= $this->addRow(__('IP') . ' ' . $this->getNasInfoControls($this->userdata['IP']), $this->userdata['IP'] . $this->getExtNetsControls() . $this->getNasInfoContrainer(), true);
 //MAC address row
         $profile .= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl() . ' ' . $this->getProfileFdbSearchControl(), $this->mac);
 //User tariff row
