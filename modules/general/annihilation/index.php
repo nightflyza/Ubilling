@@ -63,7 +63,7 @@ if (cfr('ANNIHILATION')) {
         //destroy stargazer user
         $billing->deleteuser($login);
 
-        $query = "DELETE FROM `qinq_bindings` WHERE `login`='" . $login . '"';
+        $query = "DELETE FROM `qinq_bindings` WHERE `login`='" . $login . "'";
         nr_query($query);
 
         log_register("StgUser DELETE (" . $login . ")");
