@@ -10,25 +10,144 @@ class VlanManagement {
     const MODULE_REALMS = '?module=vlanmanagement&realms=true';
     const MODULE_UNIVERSALQINQ = '?module=universalqinq';
 
+    /**
+     * Placeholder for nyan_orm instance for realms table.
+     * 
+     * @var object
+     */
     protected $realmDb;
+
+    /**
+     * Placeholder for nyan_orm instance for qinq_svlan table.
+     * 
+     * @var object
+     */
     protected $svlanDb;
+
+    /**
+     * Placeholder for nyan_orm instance for qinq_bindings table.
+     * 
+     * @var object
+     */
     protected $cvlanDb;
+
+    /**
+     * Placeholder for nyan_orm instance for switches_qinq table.
+     * 
+     * @var object
+     */
     protected $switchesqinqDb;
+
+    /**
+     * Placeholder for nyan_orm instance for switches table.
+     * 
+     * @var object
+     */
     protected $switchesDb;
+
+    /**
+     * Placeholder for nyan_orm instance for switchmodels table.
+     * 
+     * @var object
+     */
     protected $switchModelsDb;
+
+    /**
+     * Placeholder for nyan_orm instance for switchport table.
+     * 
+     * @var object
+     */
     protected $switchPortDb;
+
+    /**
+     * Contains main configuration file alter.ini
+     * 
+     * @var array
+     */
     protected $altCfg = array();
+
+    /**
+     * Contains all realms
+     * 
+     * @var array
+     */
     protected $allRealms = array();
+
+    /**
+     * Contains all svlans
+     * 
+     * @var array
+     */
     protected $allSvlan = array();
+
+    /**
+     * Contains all errors
+     * 
+     * @var array
+     */
     protected $error = array();
+
+    /**
+     * Contains all exceptions.
+     * 
+     * @var array
+     */
     protected $exceptions = array();
+
+    /**
+     * Placeholder for UbillingMessageHelper instance.
+     * 
+     * @var object
+     */
     protected $messages;
+
+    /**
+     * Contains default type of vlan allocation.
+     * 
+     * @var string
+     */
     protected $defaultType;
+
+    /**
+     * Contains all realms to select
+     * 
+     * @var array
+     */
     protected $realmSelector = array();
+
+    /**
+     * Contains all switches
+     * 
+     * @var array
+     */
     protected $allSwitches = array();
+
+    /**
+     * Contains all switch models.
+     * 
+     * @var array
+     */
     protected $allSwitchModels = array();
+
+    /**
+     * Contains all occupied cvlans by customers.
+     * 
+     * @var array
+     */
     protected $occupiedUniversal = array();
+
+    /**
+     * Contains all occupied cvlans by switches.
+     * 
+     * @var array
+     */
     protected $occupiedSwitches = array();
+
+    /**
+     * Dictionary for pairing cvlan number with switch which occupies this cvlan.
+     * 
+     * @var array
+     */
     protected $switchVlans = array();
     public $defaultRealm = 1;
     public $defaultSvlan = 1;
@@ -42,16 +161,26 @@ class VlanManagement {
         $this->messages = new UbillingMessageHelper();
     }
 
+    /**
+     * Create all nyan_orm instances.
+     * 
+     * @return void
+     */
     protected function dbInit() {
-        $this->realmDb = new NyanORM('realms');
-        $this->svlanDb = new NyanORM('qinq_svlan');
-        $this->cvlanDb = new NyanORM('qinq_bindings');
-        $this->switchesqinqDb = new NyanORM('switches_qinq');
-        $this->switchesDb = new NyanORM('switches');
-        $this->switchModelsDb = new NyanORM('switchmodels');
-        $this->switchPortDb = new NyanORM('switchportassign');
+        $this->realmDb = new nya_realms();
+        $this->svlanDb = new nya_qinq_svlan();
+        $this->cvlanDb = new nya_qinq_bindings();
+        $this->switchesqinqDb = new nya_switches_qinq();
+        $this->switchesDb = new nya_switches();
+        $this->switchModelsDb = new nya_switchmodels();
+        $this->switchPortDb = new nya_switchportassign();
     }
 
+    /**
+     * Load all realms
+     * 
+     * @return void
+     */
     protected function loadData() {
         $this->allRealms = $this->realmDb->getAll('id');
     }
@@ -84,6 +213,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Validator function with subchecks.
+     * 
+     * @return bool
+     */
     protected function validateSvlan() {
         if (!$this->checkSvlan()) {
             $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
@@ -104,6 +238,11 @@ class VlanManagement {
         return(true);
     }
 
+    /**
+     * Check if we do not touch protected entries.
+     * 
+     * @return bool
+     */
     protected function protectDefault() {
         if (($this->routing->get('action') == 'edit')) {
             if (($this->routing->get('old_svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
@@ -118,6 +257,11 @@ class VlanManagement {
         return false;
     }
 
+    /**
+     * Check if SVLAN has correct format from 0 to 4096.
+     * 
+     * @return bool
+     */
     protected function checkSvlan() {
         if (($this->routing->get('svlan', 'int') >= 0) and ( $this->routing->get('svlan', 'int') <= 4096)) {
             return(true);
@@ -125,6 +269,11 @@ class VlanManagement {
         return (false);
     }
 
+    /**
+     * Check if SVLAN is unique.
+     * 
+     * @return bool
+     */
     protected function uniqueSvlan() {
         if ($this->routing->get('action') == 'add') {
             $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
@@ -144,6 +293,11 @@ class VlanManagement {
         return(true);
     }
 
+    /**
+     * Creating new svlan
+     * 
+     * @return void
+     */
     public function addSvlan() {
         try {
             if ($this->validateSvlan()) {
@@ -160,6 +314,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Editing svlan
+     * 
+     * @return void
+     */
     public function editSvlan() {
         try {
             if ($this->validateSvlan()) {
@@ -177,6 +336,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Delete svlan
+     * 
+     * @return void
+     */
     public function deleteSvlan() {
         try {
             if ($this->validateSvlan()) {
@@ -199,6 +363,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Modal form to create new svlan.
+     * 
+     * @return string
+     */
     protected function addSvlanForm() {
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
         $addControls .= wf_HiddenInput('svlan', 'true');
@@ -211,6 +380,13 @@ class VlanManagement {
         return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
     }
 
+    /**
+     * Little hack for creating dynamic form only on demand.
+     * 
+     * @param string $encode
+     * 
+     * @return string
+     */
     public function ajaxEditSvlan($encode) {
         $decode = unserialize(base64_decode($encode));
         $addControls = wf_HiddenInput('module', 'vlanmanagement');
@@ -226,6 +402,11 @@ class VlanManagement {
         return($form);
     }
 
+    /**
+     * Selector of realms for svlan submodule.
+     * 
+     * @return string
+     */
     protected function realmSvlanSelector() {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
@@ -238,6 +419,13 @@ class VlanManagement {
         return(wf_Form("", "GET", $inputs));
     }
 
+    /**
+     * Main svlan selector.
+     * 
+     * @param int $realmId
+     * 
+     * @return string
+     */
     public function svlanSelector($realmId) {
         $realmId = vf($realmId, 3);
         $this->svlanDb->where('realm_id', '=', $realmId);
@@ -255,10 +443,20 @@ class VlanManagement {
         return ($result);
     }
 
+    /**
+     * Link to go back from svlan submodule to main vlanmanagement module.
+     * 
+     * @return string
+     */
     protected function backSvlan() {
         return(wf_BackLink(self::MODULE, __('Back'), false, 'ubButton'));
     }
 
+    /**
+     * Render all buttons for svlan submodule.
+     * 
+     * @return void
+     */
     public function linksSvlan() {
         show_window('', '' .
                 $this->backSvlan() .
@@ -267,6 +465,11 @@ class VlanManagement {
         show_window('', $this->realmSvlanSelector());
     }
 
+    /**
+     * Show all available svlans.
+     * 
+     * @return string
+     */
     public function showSvlanAll() {
         $modal = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
         $modal .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="Choose" style="display:none; width:1px; height:1px;"');
@@ -283,6 +486,11 @@ class VlanManagement {
         return ($result);
     }
 
+    /**
+     * Data to render qhuery datatables.
+     * 
+     * @return json
+     */
     public function ajaxSvlanData() {
         $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
         $this->allSvlan = $this->svlanDb->getAll('id');
@@ -308,10 +516,11 @@ class VlanManagement {
         $json->getJson();
     }
 
-    public function chooseType() {
-        $result = wf_modalAuto(web_icon_extended() . ' ' . __('QINQ for switches'), __('QINQ for switches'), $form, 'ubButton');
-    }
-
+    /**
+     * All available buttons and links on main module.
+     * 
+     * @return void
+     */
     public function linksMain() {
         $urls = wf_Link(self::MODULE_UNIVERSALQINQ, web_icon_extended() . 'UniversalQINQ', false, 'ubButton');
         $urls .= wf_Link(self::MODULE_SVLAN . '&realm_id=1', web_icon_extended() . 'SVLAN', false, 'ubButton');
@@ -320,6 +529,11 @@ class VlanManagement {
         show_window('', $this->realmAndSvlanSelectors());
     }
 
+    /**
+     * Selector for realm and svlan in main module
+     * 
+     * @return string
+     */
     public function realmAndSvlanSelectors() {
         $result = wf_AjaxLoader();
         $inputs = $this->realmMainSelector();
@@ -330,6 +544,11 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Creating selector for realm in main module.
+     * 
+     * @return striing
+     */
     protected function realmMainSelector() {
         if (!empty($this->allRealms)) {
             foreach ($this->allRealms as $id => $each) {
@@ -343,6 +562,11 @@ class VlanManagement {
         return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
     }
 
+    /**
+     * Choose assign type switch or customer.
+     * 
+     * @return string
+     */
     protected function typeSelector() {
         $selector = array(self::MODULE . '&action=choosetype&type=none' => '---');
 
@@ -371,6 +595,11 @@ class VlanManagement {
         return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->defaultType, false));
     }
 
+    /**
+     * Generate selector for switches.
+     * 
+     * @return string
+     */
     protected function switchSelector() {
         $query = "SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location` FROM `switches` LEFT JOIN `switches_qinq` ON `switches`.`id` = `switches_qinq`.`switchid` WHERE `switches_qinq`.`switchid` IS NULL";
         $switches = simple_queryall($query);
@@ -382,6 +611,11 @@ class VlanManagement {
         return(wf_Selector('qinqswitchid', $options, __('Select switch')));
     }
 
+    /**
+     * Generating all available types for qinq assign.
+     * 
+     * @return type
+     */
     public function types() {
         $result = '';
         if ($this->routing->checkGet('type')) {
@@ -423,6 +657,11 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Create new switch binding
+     * 
+     * @return void
+     */
     protected function addNewSwitchBinding() {
         $this->occupiedSwitches();
         $this->occupiedCvlans();
@@ -456,14 +695,14 @@ class VlanManagement {
                             . ' ' . "CVLAN " . __("from") . ' ' . $this->routing->get('cvlan_num', 'int')
                             . ' ' . __('to') . $lastCvlan
                             . '. CVLAN ' . $i
-                            . ' ' . __('occcupied by switch: ') . $used;
+                            . ' ' . __('occcupied by switch') . ': ' . $used;
                     break;
 
                 case 'universal':
                     $this->error[] = __("Error") . ': ' . __('trying allocate') . ' '
                             . "CVLAN " . __("from") . ' ' . $this->routing->get('cvlan_num', 'int')
                             . ' ' . __('to') . ' ' . $lastCvlan
-                            . '. CVLAN ' . $i . ' ' . __('occcupied by login: ')
+                            . '. CVLAN ' . $i . ' ' . __('occcupied by login') . ': '
                             . wf_link("?module=userprofile&username="
                                     . $used['login'], $used['login']
                     );
@@ -472,6 +711,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Create new binding based on chosen type.
+     * 
+     * @return void
+     */
     public function addNewBinding() {
         try {
             switch ($this->routing->get('type')) {
@@ -490,6 +734,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Little trick with generation ajax edit form only on demand.
+     * 
+     * @return string
+     */
     public function ajaxCustomer() {
         $result = '';
         $this->cvlanDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
@@ -506,6 +755,11 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Little trick with generation ajax edit form only on demand.
+     * 
+     * @return string
+     */
     public function ajaxSwitch() {
         $result = '';
         $this->allSwitches = $this->switchesDb->getAll('id');
@@ -522,12 +776,24 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Delete binding for switch
+     * 
+     * @return void
+     */
     public function deleteBinding() {
         $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $this->switchesqinqDb->delete();
         $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
     }
 
+    /**
+     * Generate table to render qinq pair in user profile.
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
     public function showUsersVlanPair($login) {
         $login = mysql_real_escape_string($login);
         $result = '';
@@ -570,6 +836,11 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * generate form for new binding.
+     * 
+     * @return stinrg
+     */
     public function ajaxChooseForm() {
         $inputs = wf_HiddenInput('module', 'vlanmanagement');
         $inputs .= wf_HiddenInput('action', 'add');
@@ -584,11 +855,21 @@ class VlanManagement {
         return($form);
     }
 
+    /**
+     * Contains all cvlans occupied by customers.
+     * 
+     * @return void
+     */
     protected function occupiedCvlans() {
         $this->cvlanDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         $this->occupiedUniversal = $this->cvlanDb->getAll('cvlan');
     }
 
+    /**
+     * Contains all cvlans occupied by switches.
+     * 
+     * @return void
+     */
     protected function occupiedSwitches() {
         $this->allSwitches = $this->switchesDb->getAll('id');
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
@@ -605,6 +886,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Render main cvlan matrix.
+     * 
+     * @return void
+     */
     public function cvlanMatrix() {
         $this->occupiedCvlans();
         $this->occupiedSwitches();
@@ -652,10 +938,20 @@ class VlanManagement {
         show_window('', $result);
     }
 
+    /**
+     * Get all svlan by id as primary key
+     * 
+     * @return array
+     */
     public function getAllSvlan() {
         return($this->svlanDb->getAll('id'));
     }
 
+    /**
+     * Get all realms with id as primary key
+     * 
+     * @return array
+     */
     public function getAllRealms() {
         return($this->allRealms);
     }
@@ -671,6 +967,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Show exceptions if any.
+     * 
+     * @return void
+     */
     protected function showExceptions() {
         foreach ($this->exceptions as $io => $each) {
             show_error($each);

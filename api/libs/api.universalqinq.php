@@ -32,14 +32,68 @@ class UniversalQINQ {
      * @var array
      */
     protected $allData;
+
+    /**
+     * Containts all C-vlans
+     * 
+     * @var array
+     */
     protected $allCvlans = array();
-    protected $allRealms;
-    protected $allSvlan;
+
+    /**
+     * Contains all realms
+     * 
+     * @var array
+     */
+    protected $allRealms = array();
+
+    /**
+     * Contains all S-vlans
+     * 
+     * @var array
+     */
+    protected $allSvlan = array();
+
+    /**
+     * Placeholder for nyan_orm instance for switches_qinq table.
+     * 
+     * @var object
+     */
     protected $switchesqinqDb;
+
+    /**
+     * Placeholder for nyan_orm isntance for switches table.
+     * 
+     * @var object
+     */
     protected $switchesDb;
+
+    /**
+     * Placeholder for nyan_orm instance for switchmodels table.
+     * 
+     * @var object
+     */
     protected $switchModelsDb;
+
+    /**
+     * Contains all switches
+     * 
+     * @var array
+     */
     protected $allSwitches = array();
+
+    /**
+     * Contains all switch models.
+     * 
+     * @var array
+     */
     protected $allSwitchModels = array();
+
+    /**
+     * Contains all c-vlans occupied by switches.
+     * 
+     * @var array
+     */
     protected $occupiedSwitches = array();
 
     /**
@@ -48,9 +102,33 @@ class UniversalQINQ {
      * @var array
      */
     protected $altCfg;
+
+    /**
+     * Placeholder for nyan_orm instance for realms table.
+     * 
+     * @var object
+     */
     protected $realmsdb;
+
+    /**
+     * Placeholder for nyan_orm instance for svlan_qinq table.
+     * 
+     * @var object
+     */
     protected $svlandb;
+
+    /**
+     * Default realm selector
+     * 
+     * @var string
+     */
     protected $defaultRealm;
+
+    /**
+     * Placeholder for ubilling messages instance.
+     * 
+     * @var object
+     */
     protected $messages;
 
     /**
@@ -62,11 +140,11 @@ class UniversalQINQ {
 
     public function __construct() {
         $this->qinqdb = new nya_qinq_bindings;
-        $this->realmsdb = new NyanORM('realms');
-        $this->svlandb = new NyanORM('qinq_svlan');
-        $this->switchesqinqDb = new NyanORM('switches_qinq');
-        $this->switchesDb = new NyanORM('switches');
-        $this->switchModelsDb = new NyanORM('switchmodels');
+        $this->realmsdb = new nya_realms();
+        $this->svlandb = new nya_qinq_svlan();
+        $this->switchesqinqDb = new nya_switches_qinq();
+        $this->switchesDb = new nya_switches();
+        $this->switchModelsDb = new nya_switchmodels();
         $this->loadAlter();
         $this->initRouting();
         $this->loadData();
@@ -94,6 +172,11 @@ class UniversalQINQ {
         $this->routing = new ubRouting();
     }
 
+    /**
+     * Function to preload data from qinq_bindings, realms and qinq_svlan tables.
+     * 
+     * @return void
+     */
     protected function loadData() {
         $this->allData = $this->qinqdb->getAll('id');
         $this->allRealms = $this->realmsdb->getAll('id');
@@ -120,6 +203,15 @@ class UniversalQINQ {
         }
     }
 
+    /**
+     * Generate dynamic selector for realms.
+     * 
+     * @param string $container
+     * @param int $realm
+     * @param int $svlan
+     * 
+     * @return string
+     */
     protected function realmsSelector($container = '', $realm = '', $svlan = '') {
         $this->realmSelector[self::MODULE . '&action=realm_id_select&ajrealmid=0'] = '---';
 
@@ -134,6 +226,14 @@ class UniversalQINQ {
         return(wf_AjaxSelectorAC($container, $this->realmSelector, __('Select realm'), $this->defaultRealm, false));
     }
 
+    /**
+     * Generates dynamic svlan selector.
+     * 
+     * @param int $altRealm
+     * @param int $altSvlan
+     * 
+     * @return string
+     */
     public function svlanSelector($altRealm = '', $altSvlan = '') {
         if ($this->routing->get('ajrealmid', 'int')) {
             $realm = $this->routing->get('ajrealmid', 'int');
@@ -173,6 +273,11 @@ class UniversalQINQ {
         }
     }
 
+    /**
+     * Check if qinq pair is not occupied by switch.
+     * 
+     * @return bool
+     */
     protected function isSwitchCvlanUnique() {
         if (isset($this->occupiedSwitches[$this->routing->get('cvlan_num', 'int')])) {
             return(false);
@@ -181,6 +286,11 @@ class UniversalQINQ {
         return(true);
     }
 
+    /**
+     * Check if qinq pair is not occupied by customer.
+     * 
+     * @return bool
+     */
     protected function isUniversalCvlanUnique() {
         if (isset($this->allCvlans[$this->routing->get('cvlan_num', 'int')])) {
             return(false);
@@ -224,11 +334,21 @@ class UniversalQINQ {
         }
     }
 
+    /**
+     * Get all occupied c-vlans in current svlan.
+     * 
+     * @return void
+     */
     protected function occupiedUniversal() {
         $this->qinqdb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         $this->allCvlans = $this->qinqdb->getAll('cvlan');
     }
 
+    /**
+     * Get all c-vlans occupied by switches.
+     * 
+     * @return void
+     */
     protected function occupiedSwitches() {
         $this->allSwitches = $this->switchesDb->getAll('id');
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
@@ -245,7 +365,6 @@ class UniversalQINQ {
         }
     }
 
-
     /**
      * Check all validation function and return error if something didn't pass
      * 
@@ -257,14 +376,14 @@ class UniversalQINQ {
         }
         if (!$this->isUniversalCvlanUnique()) {
             $this->error[] = "CVLAN " . $this->routing->get('cvlan_num', 'int')
-                    . ' ' . __('occcupied by login: ')
+                    . ' ' . __('occcupied by login') . ': '
                     . wf_link("?module=userprofile&username="
                             . $this->occupiedUniversal[$this->routing->get('cvlan_num', 'int')]['login'], $this->occupiedUniversal[$this->routing->get('cvlan_num', 'int')]['login']
             );
         }
         if (!$this->isSwitchCvlanUnique()) {
             $this->error[] = "CVLAN " . $this->routing->get('cvlan_num', 'int')
-                    . ' ' . __('occcupied by switch: ')
+                    . ' ' . __('occcupied by switch') . ': '
                     . $this->occupiedSwitches[$this->routing->get('cvlan_num', 'int')];
         }
         if (!$this->isUserExists()) {

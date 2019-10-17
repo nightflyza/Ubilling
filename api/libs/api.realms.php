@@ -32,7 +32,19 @@ class Realms {
      * @var object
      */
     protected $db;
+
+    /**
+     * Placeholder for nyan_orm object for qinq_svlan table.
+     * 
+     * @var object
+     */
     protected $svlanDb;
+
+    /**
+     * Placeholder for nyan_orm object for qinq_bindings table.
+     * 
+     * @var object
+     */
     protected $qinqBindingsDb;
 
     /**
@@ -41,6 +53,12 @@ class Realms {
      * @var array
      */
     protected $allRealms = array();
+
+    /**
+     * Placeholder for UbillingMessageHelper instance.
+     * 
+     * @var object
+     */
     protected $messages;
 
     /**
@@ -82,6 +100,11 @@ class Realms {
         return(true);
     }
 
+    /**
+     * Check if delete or edit not default entry
+     * 
+     * @return bool
+     */
     protected function protectDefault() {
         if (( $this->routing->get('action') == 'edit') or ( $this->routing->get('action') == 'delete')) {
             if ($this->routing->get('id') == 1) {
@@ -91,6 +114,11 @@ class Realms {
         return(false);
     }
 
+    /**
+     * Check if occasionally we do not receive empty vars like realm or id.
+     * 
+     * @return bool
+     */
     protected function emptyVar() {
         if (($this->routing->get('action') == 'add') or ( $this->routing->get('action') == 'edit')) {
             if (!$this->routing->get('realm', 'mres')) {
@@ -318,6 +346,11 @@ class Realms {
         }
     }
 
+    /**
+     * Show all exceptions if any.
+     * 
+     * @return void
+     */
     protected function showExceptions() {
         foreach ($this->exceptions as $io => $each) {
             show_error($each);

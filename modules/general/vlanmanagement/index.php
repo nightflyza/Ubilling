@@ -1,8 +1,8 @@
 <?php
 
-if (cfr('VLANMANAGEMENT')) {
-    $altCfg = $ubillingConfig->getAlter();
-    if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
+$altCfg = $ubillingConfig->getAlter();
+if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
+    if (cfr('VLANMANAGEMENT')) {
         $vlan = new VlanManagement();
         $realms = new Realms();
 
@@ -84,7 +84,9 @@ if (cfr('VLANMANAGEMENT')) {
             $vlan->realmAndSvlanSelectors();
             $vlan->cvlanMatrix();
         }
+    } else {
+        show_error(__('Permission denied'));
     }
 } else {
-    show_error(__('Permission denied'));
+    show_error(__('This module is disabled'));
 }
