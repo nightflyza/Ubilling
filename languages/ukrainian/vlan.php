@@ -51,4 +51,8 @@ $lang['def']['Delete binding'] = "Видалити прив'язку";
 $lang['def']['Realm exists'] = 'Область існує';
 $lang['def']['Realm cannot be empty'] = 'Область не може бути пустою';
 $lang['def']['Default realm is protected and cannot be deleted or edited'] = 'Стандартна область захищена від видалення або редагування';
+$lang['def']['Choose'] = 'Оберіть';
+$lang['def']['Right for UniversalQINQ configuration'] = 'Право керувати конфігурацією UniversalQINQ';
+$lang['def']['Right to edit and assign VLANs'] = 'Право редагувати та назначати VLAN-и';
+
 ?>
