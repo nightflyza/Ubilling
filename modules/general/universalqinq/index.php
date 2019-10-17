@@ -1,8 +1,8 @@
 <?php
 
-if (cfr('UNIVERSALQINQCONFIG')) {
-    $altCfg = $ubillingConfig->getAlter();
-    if ($altCfg['UNIVERSAL_QINQ_ENABLED']) {
+$altCfg = $ubillingConfig->getAlter();
+if ($altCfg['UNIVERSAL_QINQ_ENABLED']) {
+    if (cfr('UNIVERSALQINQCONFIG')) {
         $qinq = new UniversalQINQ();
 
         if ($qinq->routing->checkGet('ajax')) {
@@ -28,7 +28,9 @@ if (cfr('UNIVERSALQINQCONFIG')) {
 
         $qinq->links();
         $qinq->showAll();
+    } else {
+        show_error(__('Permission denied'));
     }
 } else {
-    show_error(__('Permission denied'));
+    show_error(__('This module is disabled'));
 }
