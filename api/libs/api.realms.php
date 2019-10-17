@@ -230,7 +230,7 @@ class Realms {
      */
     public function showAll() {
         $modal = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
-        $modal .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="Choose" style="display:none; width:1px; height:1px;"');
+        $modal .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="' . __('Choose') . '" style="display:none; width:1px; height:1px;"');
         $modal .= wf_tag('p', false, '', 'id="content-cvmodal"');
         $modal .= wf_tag('p', true);
         $modal .= wf_tag('div', true);
