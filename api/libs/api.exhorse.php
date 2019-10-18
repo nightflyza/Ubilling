@@ -1054,6 +1054,20 @@ class ExistentialHorse {
         $riseOfTheNorthStar['total'] = 0;
         $riseOfTheNorthStar['active'] = 0;
         $riseOfTheNorthStar['signups'] = 0;
+
+        //first year month hack
+        if (!$allTimeFlag) {
+            $horseBase = new NyanORM('exhorse');
+            $previousDecember = (($this->showYear - 1) . '-12-%'); // december of previous year
+            $horseBase->where('date', 'LIKE', $previousDecember);
+            $horseBase->selectable(array('u_totalusers', 'u_activeusers', 'u_signups'));
+            $prevYearStats = $horseBase->getAll();
+            if (!empty($prevYearStats)) {
+                $riseOfTheNorthStar['total'] = $prevYearStats[0]['u_totalusers'];
+                $riseOfTheNorthStar['active'] = $prevYearStats[0]['u_activeusers'];
+                $riseOfTheNorthStar['signups'] = $prevYearStats[0]['u_signups'];
+            }
+        }
         //data loading
         $yearData = $this->loadStoredData($allTimeFlag);
 
