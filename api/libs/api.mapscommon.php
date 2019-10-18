@@ -318,7 +318,7 @@ function um_MapDrawBuilds() {
     $allstreets = zb_AddressGetStreetAllData();
     $streetData = array();
     $cacheDir = 'exports/';
-    $cacheTime = 10;
+    $cacheTime = 60;
     $cacheTime = time() - ($cacheTime * 60);
     //street id => streetname
     if (!empty($allstreets)) {
