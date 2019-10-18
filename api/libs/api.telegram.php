@@ -10,6 +10,13 @@ class UbillingTelegram {
     protected $botToken = '';
 
     /**
+     * Default debug flag wich enables telegram replies display
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
      * Contains base Telegram API URL 
      */
     const URL_API = 'https://api.telegram.org/bot';
@@ -42,6 +49,17 @@ class UbillingTelegram {
     }
 
     /**
+     * Object instance debug state setter
+     * 
+     * @param bool $state
+     * 
+     * @return void
+     */
+    public function setDebug($state) {
+        $this->debug = $state;
+    }
+
+    /**
      * Stores message in telegram sending queue. Use this method in your modules.
      * 
      * @param int $chatid
@@ -63,7 +81,7 @@ class UbillingTelegram {
             $message = trim($message);
             $filename = self::QUEUE_PATH . 'tlg_' . zb_rand_string(8);
             $storedata = 'CHATID="' . $chatid . '"' . "\n";
-            $storedata.='MESSAGE="' . $message . '"' . "\n";
+            $storedata .= 'MESSAGE="' . $message . '"' . "\n";
             file_put_contents($filename, $storedata);
             log_register('UTLG SEND MESSAGE `' . $chatid . '`' . $module);
             $result = true;
@@ -312,17 +330,38 @@ class UbillingTelegram {
     public function directPushMessage($chatid, $message) {
         $data['chat_id'] = $chatid;
         $data['text'] = $message;
+        if ($this->debug) {
+            debarr($data);
+        }
         $data_json = json_encode($data);
+        //default sending method
+        $method = 'sendMessage';
+        //location sending
+        if (ispos($message, 'sendLocation:')) {
+            $cleanGeo = str_replace('sendLocation:', '', $message);
+            $cleanGeo = explode(',', $cleanGeo);
+            $geoLat = trim($cleanGeo[0]);
+            $geoLon = trim($cleanGeo[1]);
+            $locationParams = '?chat_id=' . $chatid . '&latitude=' . $geoLat . '&longitude=' . $geoLon;
+            $method = 'sendLocation' . $locationParams;
+        }
 
         if (!empty($this->botToken)) {
-            $url = self::URL_API . $this->botToken . '/sendMessage';
+            $url = self::URL_API . $this->botToken . '/' . $method;
+            if ($this->debug) {
+                deb($url);
+            }
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
-            curl_exec($ch);
+            if ($this->debug) {
+                deb(curl_exec($ch));
+            } else {
+                curl_exec($ch);
+            }
             curl_close($ch);
         } else {
             throw new Exception('EX_TOKEN_EMPTY');
