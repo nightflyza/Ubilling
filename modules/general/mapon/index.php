@@ -13,16 +13,32 @@ if ($altCfg['MAPON_ENABLED']) {
             if (!empty($units)) {
                 $placemarks = '';
                 foreach ($units as $io => $each) {
-                    switch ($each['state']) {
-                        case 'standing':
-                            $icon = 'twirl#redIcon';
-                            break;
-                        case'driving':
-                            $icon = 'twirl#greenIcon';
-                            break;
-                        default :
-                            $icon = 'twirl#yellowIcon';
-                            break;
+                    if ($mapsConfig['MAPS_SERVICE'] != 'yandex') {
+                        //extended iconset
+                        switch ($each['state']) {
+                            case 'standing':
+                                $icon = 'redCar';
+                                break;
+                            case'driving':
+                                $icon = 'greenCar';
+                                break;
+                            default :
+                                $icon = 'yellowCar';
+                                break;
+                        }
+                    } else {
+                        //old school yandex icons
+                        switch ($each['state']) {
+                            case 'standing':
+                                $icon = 'twirl#redIcon';
+                                break;
+                            case'driving':
+                                $icon = 'twirl#greenIcon';
+                                break;
+                            default :
+                                $icon = 'twirl#yellowIcon';
+                                break;
+                        }
                     }
 
                     if (!isset($unitDrivers[$each['unitid']])) {

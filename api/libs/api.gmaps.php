@@ -4,7 +4,6 @@
  * Google maps API implementation
  */
 
-
 /**
  * Returns google maps empty container
  * 
@@ -19,7 +18,7 @@ function generic_MapContainer($width = '', $height = '', $id = '') {
     $height = (!empty($height)) ? $height : '800px;';
     $id = (!empty($id)) ? $id : 'ubmap';
     $result = wf_tag('div', false, '', 'id="' . $id . '" style="width: 100%; height:800px;"');
-    $result.=wf_tag('div', true);
+    $result .= wf_tag('div', true);
     return ($result);
 }
 
@@ -74,7 +73,18 @@ function gm_GetIconUrl($icon) {
         case 'twirl#campingIcon':
             $result = 'skins/mapmarks/camping.png';
             break;
+        //extended icon pack
+        case 'redCar':
+            $result = 'skins/mapmarks/redcar.png';
+            break;
+        case 'greenCar':
+            $result = 'skins/mapmarks/greencar.png';
+            break;
+        case 'yellowCar':
+            $result = 'skins/mapmarks/yellowcar.png';
+            break;
 
+        //unknown icon fallback
         default :
             $result = 'skins/mapmarks/blue.png';
             show_warning('Unknown icon received: ' . $icon);
@@ -133,8 +143,8 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
             $centerLng = '30.0350';
             $centerCode = 'center: uluru';
         }
-        $result.= wf_tag('script', false, '', 'type = "text/javascript"');
-        $result.=' function initMap() {
+        $result .= wf_tag('script', false, '', 'type = "text/javascript"');
+        $result .= ' function initMap() {
 var uluru = {lat: ' . $centerLat . ', lng: ' . $centerLng . '};
 var map = new google.maps.Map(document.getElementById(\'' . $container . '\'), {
           zoom: ' . $zoom . ',
@@ -148,9 +158,9 @@ var map = new google.maps.Map(document.getElementById(\'' . $container . '\'), {
       }
  
 ';
-        $result.=wf_tag('script', true);
-        $result.=wf_tag('script', false, '', 'async defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=' . $apikey . '&language=' . $lang . '&callback=initMap"');
-        $result.=wf_tag('script', true);
+        $result .= wf_tag('script', true);
+        $result .= wf_tag('script', false, '', 'async defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=' . $apikey . '&language=' . $lang . '&callback=initMap"');
+        $result .= wf_tag('script', true);
     } else {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('No valid GMAPS_APIKEY set in ymaps.ini'), 'error');

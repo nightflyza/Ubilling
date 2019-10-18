@@ -73,7 +73,18 @@ function lm_GetIconUrl($icon) {
         case 'twirl#campingIcon':
             $result = 'skins/mapmarks/camping.png';
             break;
-
+        //extended icon pack
+        case 'redCar':
+            $result = 'skins/mapmarks/redcar.png';
+            break;
+        case 'greenCar':
+            $result = 'skins/mapmarks/greencar.png';
+            break;
+        case 'yellowCar':
+            $result = 'skins/mapmarks/yellowcar.png';
+            break;
+        
+        //unknown icon fallback
         default :
             $result = 'skins/mapmarks/blue.png';
             show_warning('Unknown icon received: ' . $icon);
@@ -235,7 +246,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
                 ' . $tileLayerCustoms . '
 	}).addTo(map);
         
-        var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "'.__('Search').'"});
+        var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
         geoControl.addTo(map);
 
 	' . $placemarks . '
