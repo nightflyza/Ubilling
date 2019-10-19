@@ -75,7 +75,7 @@ function em_EmployeeShowForm() {
     $inputs .= wf_TableCell(wf_TextInput('employeename', '', '', false, 15));
     $inputs .= wf_TableCell('');
     $inputs .= wf_TableCell(wf_TextInput('employeejob', '', '', false, 10));
-    $inputs .= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 10,'mobile'));
+    $inputs .= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 10, 'mobile'));
     $inputs .= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 10));
     $inputs .= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 8));
     $inputs .= wf_TableCell(em_TagSelector('editadtagid'));
@@ -766,7 +766,7 @@ function ts_JGetDoneTasks() {
                     $donenote = (!empty($eachtask['donenote'])) ? ' - <span style="color: #1d1ab2;"><b>' . __('Finish note') . ': </b></span>' . $eachtask['donenote'] : '';
                     $donedate = (!empty($eachtask['enddate'])) ? ' - <span style="color: #1d1ab2;"><b>' . __('Finish date') . ': </b></span>' . $eachtask['enddate'] : '';
 
-                    $doneemploee = (!empty($allemployee[$eachtask['employeedone']])) ? '<b>' . $allemployee[$eachtask['employeedone']] . '</b>'  : '';
+                    $doneemploee = (!empty($allemployee[$eachtask['employeedone']])) ? '<b>' . $allemployee[$eachtask['employeedone']] . '</b>' : '';
                 } else {
                     $jobtype = (!empty($eachtask['jobname'])) ? ' - ' . __('Job type') . ': ' . $eachtask['jobname'] : '';
                     $jobnote = (!empty($eachtask['jobnote'])) ? ' - ' . __('Job note') . ': ' . $eachtask['jobnote'] : '';
@@ -1443,10 +1443,11 @@ function ts_TaskIsDone() {
  * 
  * @param int $employeeid
  * @param string $message
+ * @param array $taskdata
  * 
  * @return array
  */
-function ts_SendTelegram($employeeid, $message) {
+function ts_SendTelegram($employeeid, $message, $taskdata = array()) {
     $employeeid = vf($employeeid, 3);
     $query = "SELECT `telegram`,`name` from `employee` WHERE `id`='" . $employeeid . "'";
     $empData = simple_query($query);
@@ -1457,8 +1458,33 @@ function ts_SendTelegram($employeeid, $message) {
         $telegram->sendMessage($chatId, $message, false, 'TASKMAN');
         $result['chatid'] = $chatId;
         $result['message'] = $message;
+        //optional geo sending
+        if (!empty($taskdata)) {
+            if (isset($taskdata['geo'])) {
+                ts_SendTelegramVenue($chatId, @$taskdata['jobtype'], @$taskdata['address'], $taskdata['geo']);
+            }
+        }
     }
     return ($result);
+}
+
+/**
+ * Sends task location to some chatid
+ * 
+ * @param string $chatId
+ * @param string $title
+ * @param string $address
+ * @param string $geo
+ * 
+ * @return void
+ */
+function ts_SendTelegramVenue($chatId, $title, $address, $geo) {
+    global $ubillingConfig;
+    if ($ubillingConfig->getAlterParam('TASKMAN_SEND_LOCATION')) {
+        $telegram = new UbillingTelegram();
+        $message = 'title:{' . $title . '}address:(' . $address . ')sendVenue:[' . $geo . ']';
+        $telegram->sendMessage($chatId, $message, false, 'TASKMAN');
+    }
 }
 
 /**
@@ -1506,6 +1532,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $phone = mysql_real_escape_string($phone);
     $startdate = mysql_real_escape_string($startdate);
     $jobSendTime = date("H:i", strtotime($curdate));
+    $taskDataGeo = array();
 
     if (!empty($starttime)) {
         $starttimeRaw = $starttime;
@@ -1570,6 +1597,15 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $newTelegramText .= __('MAC') . ': ' . @$userData[$login]['mac'] . '\r\n';
                 $newTelegramText .= __('Tariff') . ': ' . @$userData[$login]['Tariff'] . '\r\n';
 
+                //data preprocessing for geo sending
+                if (@isset($userData[$login]['geo'])) {
+                    if (!empty($userData[$login]['geo'])) {
+                        $taskDataGeo['jobtype'] = @$jobtype[$jobtypeid];
+                        $taskDataGeo['address'] = $address;
+                        $taskDataGeo['geo'] = $userData[$login]['geo'];
+                    }
+                }
+
                 if ($ubillingConfig->getAlterParam('SWITCHPORT_IN_PROFILE')) {
                     $allAssigns = zb_SwitchesGetAssignsAll();
                     if (isset($allAssigns[$login])) {
@@ -1586,9 +1622,10 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             if (wf_CheckPost(array('unifiedformtelegramappend'))) {
                 $newTelegramText .= $_POST['unifiedformtelegramappend'];
             }
-            ts_SendTelegram($employeeid, $newTelegramText);
-            //optional task location sending
-            
+
+
+            //telegram messages sending
+            ts_SendTelegram($employeeid, $newTelegramText, $taskDataGeo);
         }
     }
 
