@@ -330,10 +330,12 @@ class UbillingTelegram {
     public function directPushMessage($chatid, $message) {
         $data['chat_id'] = $chatid;
         $data['text'] = $message;
+
         if ($this->debug) {
             debarr($data);
         }
-        $data_json = json_encode($data);
+
+
         //default sending method
         $method = 'sendMessage';
         //location sending
@@ -345,6 +347,34 @@ class UbillingTelegram {
             $locationParams = '?chat_id=' . $chatid . '&latitude=' . $geoLat . '&longitude=' . $geoLon;
             $method = 'sendLocation' . $locationParams;
         }
+
+        //venue sending
+        if (ispos($message, 'sendVenue:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpGeo)) {
+                $cleanGeo = $tmpGeo[1];
+            }
+
+            if (preg_match('!\((.*?)\)!si', $message, $tmpAddr)) {
+                $cleanAddr = $tmpAddr[1];
+            }
+
+            if (preg_match('!\{(.*?)\}!si', $message, $tmpTitle)) {
+                $cleanTitle = $tmpTitle[1];
+            }
+
+            $data['title'] = $cleanTitle;
+            $data['address'] = $cleanAddr;
+
+
+            $cleanGeo = explode(',', $cleanGeo);
+            $geoLat = trim($cleanGeo[0]);
+            $geoLon = trim($cleanGeo[1]);
+            $locationParams = '?chat_id=' . $chatid . '&latitude=' . $geoLat . '&longitude=' . $geoLon;
+            $method = 'sendVenue' . $locationParams;
+        }
+
+        //POST data encoding
+        $data_json = json_encode($data);
 
         if (!empty($this->botToken)) {
             $url = self::URL_API . $this->botToken . '/' . $method;

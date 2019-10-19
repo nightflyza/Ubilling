@@ -1587,6 +1587,8 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $newTelegramText .= $_POST['unifiedformtelegramappend'];
             }
             ts_SendTelegram($employeeid, $newTelegramText);
+            //optional task location sending
+            
         }
     }
 
