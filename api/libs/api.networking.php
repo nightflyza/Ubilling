@@ -1566,47 +1566,63 @@ function zb_BandwidthdGetUrl($ip) {
  * @return  array       Graph links
  */
 function zb_BandwidthdGenLinks($ip) {
+    global $ubillingConfig;
+    $zbxGraphsEnabled = $ubillingConfig->getAlterParam('ZABBIX_USER_TRAFFIC_GRAPHS');
+    $zbxGraphsSearchIdnetify = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHIDENTIFY')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHIDENTIFY') : 'MAC';
+    $zbxGraphsSearchField = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHFIELD')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHFIELD') : 'name';
+    $zbxGraphsExtended = wf_getBoolFromVar($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_EXTENDED'));
+
     $bandwidthd_url = zb_BandwidthdGetUrl($ip);
     $netid = zb_NetworkGetByIp($ip);
     $nasid = zb_NasGetByNet($netid);
     $nasdata = zb_NasGetData($nasid);
     $nastype = $nasdata['nastype'];
+    $zbxAllGraphs = array();
 
-// RouterOS graph model:
-    if ($nastype == 'mikrotik') {
-        // Get user's IP array:
-        $alluserips = zb_UserGetAllIPs();
-        $alluserips = array_flip($alluserips);
-        if (!ispos($bandwidthd_url, 'pppoe')) {
-// Generate graphs paths:
-            $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
-            $urls['days'] = null;
-            $urls['weekr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/weekly.gif';
-            $urls['weeks'] = null;
-            $urls['monthr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/monthly.gif';
-            $urls['months'] = null;
-            $urls['yearr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/yearly.gif';
-            $urls['years'] = null;
-        } else {
-            $urls['dayr'] = $bandwidthd_url . $alluserips[$ip] . '>/daily.gif';
-            $urls['days'] = null;
-            $urls['weekr'] = $bandwidthd_url . $alluserips[$ip] . '>/weekly.gif';
-            $urls['weeks'] = null;
-            $urls['monthr'] = $bandwidthd_url . $alluserips[$ip] . '>/monthly.gif';
-            $urls['months'] = null;
-            $urls['yearr'] = $bandwidthd_url . $alluserips[$ip] . '>/yearly.gif';
-            $urls['years'] = null;
-        }
+    if ($zbxGraphsEnabled) {
+        $zbxAllGraphs = getCachedZabbixNASGraphIDs();
+    }
+
+    if (!empty($zbxAllGraphs) and isset($zbxAllGraphs[$nasdata['nasip']])) {
+        $userSearchIdentify = ($zbxGraphsSearchIdnetify == 'MAC') ? zb_MultinetGetMAC($ip) : $ip;
+        $urls = getZabbixUserGraphLinks($ip, $zbxGraphsSearchField, $userSearchIdentify, $zbxAllGraphs, $zbxGraphsExtended);
     } else {
+// RouterOS graph model:
+        if ($nastype == 'mikrotik') {
+            // Get user's IP array:
+            $alluserips = zb_UserGetAllIPs();
+            $alluserips = array_flip($alluserips);
+            if (!ispos($bandwidthd_url, 'pppoe')) {
+// Generate graphs paths:
+                $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
+                $urls['days'] = null;
+                $urls['weekr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/weekly.gif';
+                $urls['weeks'] = null;
+                $urls['monthr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/monthly.gif';
+                $urls['months'] = null;
+                $urls['yearr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/yearly.gif';
+                $urls['years'] = null;
+            } else {
+                $urls['dayr'] = $bandwidthd_url . $alluserips[$ip] . '>/daily.gif';
+                $urls['days'] = null;
+                $urls['weekr'] = $bandwidthd_url . $alluserips[$ip] . '>/weekly.gif';
+                $urls['weeks'] = null;
+                $urls['monthr'] = $bandwidthd_url . $alluserips[$ip] . '>/monthly.gif';
+                $urls['months'] = null;
+                $urls['yearr'] = $bandwidthd_url . $alluserips[$ip] . '>/yearly.gif';
+                $urls['years'] = null;
+            }
+        } else {
 // Banwidthd graphs model:
-        $urls['dayr'] = $bandwidthd_url . '/' . $ip . '-1-R.png';
-        $urls['days'] = $bandwidthd_url . '/' . $ip . '-1-S.png';
-        $urls['weekr'] = $bandwidthd_url . '/' . $ip . '-2-R.png';
-        $urls['weeks'] = $bandwidthd_url . '/' . $ip . '-2-S.png';
-        $urls['monthr'] = $bandwidthd_url . '/' . $ip . '-3-R.png';
-        $urls['months'] = $bandwidthd_url . '/' . $ip . '-3-S.png';
-        $urls['yearr'] = $bandwidthd_url . '/' . $ip . '-4-R.png';
-        $urls['years'] = $bandwidthd_url . '/' . $ip . '-4-S.png';
+            $urls['dayr'] = $bandwidthd_url . '/' . $ip . '-1-R.png';
+            $urls['days'] = $bandwidthd_url . '/' . $ip . '-1-S.png';
+            $urls['weekr'] = $bandwidthd_url . '/' . $ip . '-2-R.png';
+            $urls['weeks'] = $bandwidthd_url . '/' . $ip . '-2-S.png';
+            $urls['monthr'] = $bandwidthd_url . '/' . $ip . '-3-R.png';
+            $urls['months'] = $bandwidthd_url . '/' . $ip . '-3-S.png';
+            $urls['yearr'] = $bandwidthd_url . '/' . $ip . '-4-R.png';
+            $urls['years'] = $bandwidthd_url . '/' . $ip . '-4-S.png';
+        }
     }
 
     return($urls);
@@ -1921,6 +1937,106 @@ function IsMacValid($mac) {
 function IsMacAddressValid($mac) {
     $validator = new Zend_Validate_Regex('/([a-fA-F0-9]{2}[:|\-]?){6}/');
     return $validator->isValid($mac);
+}
+
+/**
+ * Gets Zabbix graphs data for NASes from cache
+ *
+ * @return string
+ */
+function getCachedZabbixNASGraphIDs() {
+    global $ubillingConfig;
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHSIDS_CACHE_LIFETIME')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHSIDS_CACHE_LIFETIME') : 1800;
+    $result = $cache->getCallback('ZABBIX_GRAPHS_IDS', function () {
+                                        return (getZabbixNASGraphIDs());
+                                    }, $cacheTime
+                                 );
+
+    return ($result);
+}
+
+/**
+ * Gets Zabbix graphs data for NASes
+ *
+ * @return array
+ */
+function getZabbixNASGraphIDs() {
+    $zbx = new ZabbixAPI();
+    $allNAS = zb_NasGetAllData();
+    $allNASGraphs = array();
+
+    if (!empty($allNAS) and !empty($zbx->getAuthToken())) {
+        foreach ($allNAS as $eachNAS) {
+            $reqParams = array('filter' => array('ip' => $eachNAS['nasip']));
+            $zbxNASData = json_decode($zbx->runQuery('host.get', $reqParams), true);
+
+            if (!empty($zbxNASData['result'])) {
+                $zbxNASHostID = $zbxNASData['result'][0]['hostid'];
+
+                $reqParams = array('filter' => array('hostid' => $zbxNASHostID));
+                $zbxNASGraphs = json_decode($zbx->runQuery('graph.get', $reqParams), true);
+
+                if (!empty($zbxNASGraphs['result'])) {
+                    $allNASGraphs[$eachNAS['nasip']] = $zbxNASGraphs['result'];
+                }
+            }
+        }
+    }
+
+    return ($allNASGraphs);
+}
+
+/**
+ * Generates array with links to user's traffic graphs
+ *
+ * @param $userIP
+ * @param $fieldToSearch
+ * @param $dataToSearch
+ * @param array $zbxAllGraphs
+ * @return array
+ */
+function getZabbixUserGraphLinks($userIP, $fieldToSearch, $dataToSearch, $zbxAllGraphs = array(), $zbxExtended = false) {
+    if (empty($zbxAllGraphs)) {
+        $allGraphs = getCachedZabbixNASGraphIDs();
+    } else {
+        $allGraphs = $zbxAllGraphs;
+    }
+
+    $bandwidthd_url = rtrim(zb_BandwidthdGetUrl($userIP), '/') . '/';
+    $netid = zb_NetworkGetByIp($userIP);
+    $nasid = zb_NasGetByNet($netid);
+    $nasdata = zb_NasGetData($nasid);
+    $graphURL = array();
+    $graphID = '';
+
+    if (!empty($allGraphs) and isset($allGraphs[$nasdata['nasip']])) {
+        $allNASGraphs = $allGraphs[$nasdata['nasip']];
+
+        foreach ($allNASGraphs as $eachGraph) {
+            $searchStr = $eachGraph[$fieldToSearch];
+
+            if (stripos($searchStr, $dataToSearch) !== false) {
+                $graphID = $eachGraph['graphid'];
+                break;
+            }
+        }
+    }
+
+    $graphURL['dayr'] = $bandwidthd_url . 'chart2.php?graphid=' . $graphID . '&period=86400';
+    $graphURL['days'] = null;
+    $graphURL['weekr'] = $bandwidthd_url . 'chart2.php?graphid=' . $graphID . '&period=604800';
+    $graphURL['weeks'] = null;
+    $graphURL['monthr'] = $bandwidthd_url . 'chart2.php?graphid=' . $graphID . '&period=2592000';
+    $graphURL['months'] = null;
+    $graphURL['yearr'] = $bandwidthd_url . 'chart2.php?graphid=' . $graphID . '&period=31536000';
+    $graphURL['years'] = null;
+    $graphURL['5mins'] = $bandwidthd_url . 'chart2.php?graphid=' . $graphID . '&period=300';
+    $graphURL['zbxlink'] = $bandwidthd_url . 'charts.php?graphid=' . $graphID . '&fullscreen=0';
+    $graphURL['zbxexten'] = $zbxExtended;
+
+    return ($graphURL);
 }
 
 ?>
