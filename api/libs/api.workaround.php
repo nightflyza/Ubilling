@@ -2379,7 +2379,18 @@ function web_UserTraffStats($login) {
         $result .= wf_delimiter();
         $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
-        $bwcells = wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton'));
+        $bwcells = '';
+        $zbxExtended = (isset($bwd['zbxexten']) and $bwd['zbxexten'] == true);
+
+        if ($zbxExtended) {
+            $fiveminsbw = wf_img($bwd['5mins'], __('Downloaded'));
+            $zbxLink = $bwd['zbxlink'];
+
+            $bwcells .= wf_TableCell(wf_link($zbxLink, wf_img_sized('skins/zabbix_ico.png', '', '16', '16') . ' ' . __('Go to graph on Zabbix server'), false, 'ubButton', 'target="__blank"'));
+            $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by 5 minutes'), __('Graph by 5 minutes'), $fiveminsbw, 'ubButton'));
+        }
+
+        $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton'));
         $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton'));
         $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton'));
         $bwcells .= wf_TableCell(wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton'));
