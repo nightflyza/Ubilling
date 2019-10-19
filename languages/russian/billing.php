@@ -3106,6 +3106,8 @@ $lang['def']['upper case'] = 'верхний регистр';
 $lang['def']['Call recording'] = 'Запись разговора';
 $lang['def']['Last fee charge'] = 'Последнее списание средств';
 $lang['def']['No NAS servers assigned for this user network'] = 'Подсети пользователя не назначено никаких NAS серверов';
+$lang['def']['Graph by 5 minutes'] = 'За 5 минут';
+$lang['def']['Go to graph on Zabbix server'] = 'На Zabbix сервер';
 $lang['def'][''] = '';
 
 
