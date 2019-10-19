@@ -1966,8 +1966,9 @@ function getZabbixNASGraphIDs() {
     $zbx = new ZabbixAPI();
     $allNAS = zb_NasGetAllData();
     $allNASGraphs = array();
+    $zbxAuthToken = $zbx->getAuthToken();
 
-    if (!empty($allNAS) and !empty($zbx->getAuthToken())) {
+    if (!empty($allNAS) and !empty($zbxAuthToken)) {
         foreach ($allNAS as $eachNAS) {
             $reqParams = array('filter' => array('ip' => $eachNAS['nasip']));
             $zbxNASData = json_decode($zbx->runQuery('host.get', $reqParams), true);
