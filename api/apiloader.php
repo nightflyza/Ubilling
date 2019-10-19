@@ -125,7 +125,7 @@ include('api/libs/api.sphinxsearch.php');
 include('api/libs/api.switchlogin.php');
 include('api/libs/api.ubrouting.php');
 include('api/libs/api.nyanorm.php');
-
+include('api/libs/api.zabbix.php');
 
 /*
  * Initial class creation
