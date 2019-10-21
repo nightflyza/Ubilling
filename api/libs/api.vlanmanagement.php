@@ -631,7 +631,7 @@ class VlanManagement {
         }
 
         if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and $this->altCfg['ONUREG_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
-            $selector[$olt] = 'QINQ ' . __('for') . ' OLT';
+            $selector[$olt] = 'QINQ ' . __('pool') . ' ' . __('for') . ' OLT';
         }
 
 
@@ -651,7 +651,15 @@ class VlanManagement {
             $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
         }
 
-        return(wf_Selector('qinqswitchid', $options, __('Select switch')));
+        return(wf_Selector('qinqoltid', $options, __('Select switch')));
+    }
+
+    protected function cardSelector() {
+        
+    }
+
+    protected function portCardSelector() {
+        
     }
 
     /**
