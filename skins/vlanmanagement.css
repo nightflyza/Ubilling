@@ -1,14 +1,23 @@
 .cvlanMatrixContainer {
-    padding: 6px 2px 6px 2px;
+    position: relative;
+    padding: 10px 2px 10px 2px;
     border: solid 2px black;
     min-width: 35px;
     text-align: center;
     display: inline-block;
     margin-right: 8px; 
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-size: 15px;
     font-weight: 600;
-    
+
+}
+
+.port_caption {
+    display: inline-block;
+    position: absolute;
+    font-size: 9px;
+    top: 1px;
+    left: 2px;
 }
 
 .free_vlan {
@@ -16,7 +25,7 @@
 }
 
 .free_vlan:hover {
-   background-color: #61b872;     
+    background-color: #61b872;     
 }
 
 .occupied_customer {    
@@ -35,4 +44,13 @@
 
 .occupied_switch:hover {
     background-color: #8b8bda;    
+}
+
+.occupied_switch_with_customer {
+    border-color: #1240AB;       
+    background-color: #ceefe4;    
+}
+
+.occupied_switch_with_customer:hover {
+    background-color: #8bdac0;    
 }
