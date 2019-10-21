@@ -1483,7 +1483,7 @@ function ts_SendTelegramVenue($chatId, $title, $address, $geo) {
     if ($ubillingConfig->getAlterParam('TASKMAN_SEND_LOCATION')) {
         $telegram = new UbillingTelegram();
         $message = 'title:{' . $title . '}address:(' . $address . ')sendVenue:[' . $geo . ']';
-        $telegram->sendMessage($chatId, $message, false, 'TASKMAN');
+        $telegram->sendMessage($chatId, $message, false, 'TASKMANGEO');
     }
 }
 
