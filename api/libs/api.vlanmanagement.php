@@ -630,8 +630,8 @@ class VlanManagement {
             $this->defaultType = '---';
         }
 
-        if (cfr('UNIVERSALQINQCONFIG') and $this->altCfg['ONUREG_QINQ_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED']) {
-            $selector[$olt] = 'OLT QINQ';
+        if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and $this->altCfg['ONUREG_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
+            $selector[$olt] = 'QINQ ' . __('for') . ' OLT';
         }
 
 
