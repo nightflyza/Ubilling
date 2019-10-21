@@ -40,6 +40,8 @@ class OnuRegister {
     CONST GET_UNIVERSALQINQ_NONE = 'none';
     CONST GET_UNIVERSALQINQ_CVLAN = 'cvlan';
     CONST GET_UNIVERSALQINQ_PAIR = 'pair';
+    CONST GET_UNIVERSALQINQ_CVLAN_POOL = 'cvlan_pool';
+    CONST GET_UNIVERSALQINQ_PAIR_POOL = 'pair_pool';
     CONST GET_UNIVERSALQINQ = 'use_qinq';
     CONST NO_ERROR_CONNECTION = 'OK';
     CONST ERROR_NO_LOGIN_AVAILABLE = 'No connection data found. Switchlogin is empty or not set.';
@@ -1965,8 +1967,18 @@ $(".changeType").change(function () {
             $cell .= wf_delimiter();
             $cell .= __('UniversalQINQ') . wf_delimiter();
             $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Do not use QINQ'), self::GET_UNIVERSALQINQ_NONE, true, true);
-            $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Use') . ' QINQ CVLAN', self::GET_UNIVERSALQINQ_CVLAN, true, false);
-            $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Use') . ' ' . __('QINQ pair'), self::GET_UNIVERSALQINQ_PAIR, true, false);
+            if (cfr('UNIVERSALQINQCONFIG')) {
+                $labels = array(
+                    'cvlan' => __('Use') . ' QINQ CVLAN',
+                    'pain' => __('Use') . ' ' . __('QINQ pair'),
+                    'cvlan_pool' => __('Use') . ' QINQ CVLAN ' . __('pool'),
+                    'pair_pool' => __('Use') . ' ' . __('QINQ pair') . ' ' . __('pool')
+                );
+                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['cvlan'], self::GET_UNIVERSALQINQ_CVLAN, true, false);
+                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['cvlan_pool'], self::GET_UNIVERSALQINQ_CVLAN_POOL, true, false);
+                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['pair'], self::GET_UNIVERSALQINQ_PAIR, true, false);
+                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['pair_pool'], self::GET_UNIVERSALQINQ_PAIR_POOL, true, false);
+            }
         }
 
         $cell .= wf_delimiter();

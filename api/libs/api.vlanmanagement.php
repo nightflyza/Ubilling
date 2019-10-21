@@ -149,8 +149,40 @@ class VlanManagement {
      * @var array
      */
     protected $switchVlans = array();
+
+    /**
+     * Contains all assigned ports by users.
+     * 
+     * @var array
+     */
+    protected $switchPortCustomer = array();
+
+    /**
+     * Contains all not assigned ports.
+     * 
+     * @var array
+     */
+    protected $switchPortFree = array();
+
+    /**
+     * Default realm selection
+     * 
+     * @var mixed
+     */
     public $defaultRealm = 1;
+
+    /**
+     * Default svlan selection.
+     * 
+     * @var mixed
+     */
     public $defaultSvlan = 1;
+
+    /**
+     * Instance of UbRouting class.
+     * 
+     * @var object
+     */
     public $routing;
 
     public function __construct() {
@@ -576,23 +608,50 @@ class VlanManagement {
         $universal = self::MODULE
                 . '&action=choosetype&type=universalqinq&'
                 . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
+        $olt = self::MODULE
+                . '&action=choosetype&type=qinqolt&'
+                . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
 
+        //if qinq switches enabled
         if ($this->altCfg['QINQ_ENABLED']) {
             $selector[$switches] = __('QINQ for switches');
             $this->defaultType = $switches;
-            if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
-                $selector[$universal] = __('Universal QINQ');
-            }
-        } else {
-            if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
-                $selector[$universal] = __('Universal QINQ');
-                $this->defaultType = $universal;
-            } else {
-                $this->defaultType = '---';
-            }
         }
 
+        if ($this->altCfg['QINQ_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
+            $selector[$universal] = __('Universal QINQ');
+        }
+
+        //if qinq switches disabled
+        if (!$this->altCfg['QINQ_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
+            $selector[$universal] = __('Universal QINQ');
+            $this->defaultType = $universal;
+        } else {
+            $this->defaultType = '---';
+        }
+
+        if (cfr('UNIVERSALQINQCONFIG') and $this->altCfg['ONUREG_QINQ_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED']) {
+            $selector[$olt] = 'OLT QINQ';
+        }
+
+
         return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->defaultType, false));
+    }
+
+    /**
+     * Generate selector for OLTs.
+     * 
+     * @return string
+     */
+    protected function oltSelector() {
+        $query = 'SELECT `sw`.`id`,`sw`.`ip`,`sw`.`location`,`model`.`snmptemplate` FROM `switches` AS `sw` JOIN `switchmodels` AS `model` ON (`sw`.`modelid` = `model`.`id`) WHERE `sw`.`desc` LIKE "%OLT%" AND `model`.`snmptemplate` LIKE "ZTE%"';
+        $switches = simple_queryall($query);
+
+        foreach ($switches as $io => $each) {
+            $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
+        }
+
+        return(wf_Selector('qinqswitchid', $options, __('Select switch')));
     }
 
     /**
@@ -629,6 +688,11 @@ class VlanManagement {
                     $result .= wf_HiddenInput('type', 'qinqswitches');
                     $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
                     $result .= $this->switchSelector();
+                    break;
+                case 'qinqolt':
+                    $result .= wf_HiddenInput('type', 'qinqolt');
+                    $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
+                    $result .= $this->oltSelector();
                     break;
             }
         } else {
@@ -768,9 +832,20 @@ class VlanManagement {
         $data = $this->switchesqinqDb->getAll('svlan_id');
         $data = $data[$this->routing->get('svlan_id', 'int')];
         $switch = $this->allSwitches[$data['switchid']];
+        $port = $this->routing->get('cvlan_num', 'int') - $data['cvlan'] + 1;
+        $this->switchPortDb->where('switchid', '=', $data['switchid']);
+        $this->switchPortDb->where('port', '=', $port);
+        $swPorts = $this->switchPortDb->getAll('switchid');
         $result .= __("Switch") . ': ';
         $result .= wf_Link("?module=switches&edit=" . $data['switchid'], $switch['ip'] . ' ' . $switch['location']);
-        $result .= wf_delimiter(3);
+        if (!empty($swPorts)) {
+            $user = $swPorts[$data['switchid']];
+            $userData = zb_UserGetAllData($user['login']);
+            $userData = $userData[$user['login']];
+            $result .= wf_delimiter();
+            $result .= __('Port') . ': ' . $port . '. CVLAN: ' . $this->routing->get('cvlan_num', 'int') . wf_delimiter() . __('Customer') . ': ' . wf_Link("?module=userprofile&username=" . $user['login'], $userData['fulladress'] . ' ' . $userData['realname'], true);
+        }
+        $result .= wf_delimiter(2);
         $result .= wf_Link(self::MODULE . '&action=deletebinding&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int') . '&switchid=' . $data['switchid'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
 
         return($result);
@@ -874,13 +949,31 @@ class VlanManagement {
         $this->allSwitches = $this->switchesDb->getAll('id');
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
+        $query = "SELECT `switchid`,`port`,`login` FROM `switchportassign`";
+        $allPortsRaw = simple_queryall($query);
+        $allPorts = array();
+        foreach ($allPortsRaw as $io => $each) {
+            $allPorts[$each['switchid']][$each['port']] = $each['login'];
+        }
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
+            $portCounter = 1;
             if (isset($this->allSwitches[$each['switchid']])) {
                 $modelid = $this->allSwitches[$each['switchid']]['modelid'];
                 $port_number = $this->allSwitchModels[$modelid]['ports'];
                 for ($i = $each['cvlan']; $i <= ($each['cvlan'] + $port_number - 1); $i++) {
                     $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
                     $this->switchVlans[$i] = $each['switchid'];
+                    if (isset($allPorts[$each['switchid']])) {
+                        $curPorts = $allPorts[$each['switchid']];
+                        foreach ($curPorts as $eachPort => $eachLogin) {
+                            if ($eachPort == $portCounter) {
+                                $this->switchPortCustomer[$i] = array('port' => $eachPort, 'login' => $eachLogin);
+                            }
+                        }
+                    }
+                    $this->switchPortFree[$i] = $portCounter;
+
+                    $portCounter++;
                 }
             }
         }
@@ -907,7 +1000,11 @@ class VlanManagement {
                 if (isset($this->occupiedUniversal[$cvlan])) {
                     $color = 'occupied_customer';
                 } elseif (isset($this->occupiedSwitches[$cvlan])) {
-                    $color = 'occupied_switch';
+                    if (isset($this->switchPortCustomer[$cvlan])) {
+                        $color = 'occupied_switch_with_customer';
+                    } else {
+                        $color = 'occupied_switch';
+                    }
                     if (isset($this->switchVlans[$cvlan])) {
                         $switchid = $this->switchVlans[$cvlan];
                     }
@@ -922,6 +1019,7 @@ class VlanManagement {
                     case 'occupied_customer':
                         $onclick = 'onclick="occupiedByCustomer(this)"';
                         break;
+                    case 'occupied_switch_with_customer':
                     case 'occupied_switch':
                         $onclick = 'onclick="occupiedBySwitch(this)"';
                         break;
@@ -931,6 +1029,11 @@ class VlanManagement {
                         '/' . $cvlan . '/' . $switchid . '" ' . $onclick . '');
 
                 $result .= $cvlan;
+                if (isset($this->switchPortCustomer[$cvlan])) {
+                    $result .= wf_tag('div', false, 'port_caption') . $this->switchPortCustomer[$cvlan]['port'] . wf_tag('div', true);
+                } elseif (isset($this->switchPortFree[$cvlan])) {
+                    $result .= wf_tag('div', false, 'port_caption') . $this->switchPortFree[$cvlan] . wf_tag('div', true);
+                }
                 $result .= wf_tag('div', true);
             }
             $result .= '<script src="./modules/jsc/vlanmanagement.js" type="text/javascript"></script>';

@@ -57,5 +57,6 @@ $lang['def']['Right to edit and assign VLANs'] = 'Право редагуват�
 $lang['def']['Do not use QINQ'] = 'Не використовувати QINQ';
 $lang['def']['QINQ pair'] = 'QINQ пара';
 $lang['def']['UniversalQINQ'] = 'Універсальный QINQ';
+$lang['def']['pool'] = 'пул';
 
 ?>
