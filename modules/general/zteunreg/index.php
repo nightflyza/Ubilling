@@ -1,5 +1,6 @@
 <?php
 
+global $ubillingConfig;
 $altcfg = $ubillingConfig->getAlter();
 
 if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
@@ -70,6 +71,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     $register->router = $router;
                     $register->vlan = $_POST[OnuRegister::VLAN_FIELD];
                     $register->onuModel = $_POST[OnuRegister::MODELID_FIELD];
+                    $register->useUniversalQINQ = $_POST[OnuRegister::GET_UNIVERSALQINQ];
                     $loginCheck = $register->checkOltParams();
                     if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
                         show_error(__($loginCheck));
