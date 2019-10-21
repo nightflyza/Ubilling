@@ -37,6 +37,10 @@ class OnuRegister {
     CONST ROUTER_FIELD = 'router';
     CONST SAVE_FIELD = 'save';
     CONST PONIZER_ADD_FIELD = 'ponizer_add';
+    CONST GET_UNIVERSALQINQ_NONE = 'none';
+    CONST GET_UNIVERSALQINQ_CVLAN = 'cvlan';
+    CONST GET_UNIVERSALQINQ_PAIR = 'pair';
+    CONST GET_UNIVERSALQINQ = 'use_qinq';
     CONST NO_ERROR_CONNECTION = 'OK';
     CONST ERROR_NO_LOGIN_AVAILABLE = 'No connection data found. Switchlogin is empty or not set.';
     CONST ERROR_SNMP_CONNECTION_SET = 'SNMP connection type has set for this OLT. Use telnet/ssh instead.';
@@ -149,6 +153,8 @@ class OnuRegister {
         'EPFCB' => 4,
         'ETGO' => 8,
         'ETGOD' => 8,
+        'ETTO' => 8,
+        'ETTOK' => 8,
         'ETGH' => 16,
         'ETGHG' => 16,
         'ETGHK' => 16
@@ -285,11 +291,32 @@ class OnuRegister {
     public $result = '';
 
     /**
+     * Placeholder for ONU SVLAN.
+     * 
+     * @var string
+     */
+    public $svlan = '';
+
+    /**
      * Placeholder for ONU VLAN.
      * 
      * @var string
      */
     public $vlan = '';
+
+    /**
+     * Contains all svlans
+     * 
+     * @var array
+     */
+    protected $allSvlan = array();
+
+    /**
+     * Contains all universal qinq bindings.
+     * 
+     * @var array
+     */
+    protected $usersQinQ = array();
 
     /**
      * Placeholder for ONU interface name.
@@ -341,6 +368,34 @@ class OnuRegister {
     public $ponizerAdd = false;
 
     /**
+     * Should we use universal qinq and which type if yes?
+     * 
+     * @var string
+     */
+    public $useUniversalQINQ = '';
+
+    /**
+     * Contains all alter.ini options
+     * 
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Instance of UniversalQINQ class.
+     * 
+     * @var object
+     */
+    protected $universalQinq;
+
+    /**
+     * Instance of VlanManagement class.
+     * 
+     * @var object
+     */
+    protected $vlanManagement;
+
+    /**
      * Base class construction.
      * 
      * @return void
@@ -357,6 +412,12 @@ class OnuRegister {
         $this->initSNMP();
         $this->loadOnu();
         snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+        $this->universalQinq = new UniversalQINQ();
+        $this->usersQinQ = $this->universalQinq->getAll();
+        $this->vlanManagement = new VlanManagement();
+        $this->allSvlan = $this->vlanManagement->getAllSvlan();
     }
 
 //Load and init section.
@@ -798,7 +859,7 @@ class OnuRegister {
             foreach ($this->allZteOlt as $this->currentOltSwId => $eachOlt) {
                 if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
                     $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'], true);
-                    $this->currentPonType = $this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'];
+                    $this->currentPonType = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['TYPE'];
                     $this->currentOltIp = $eachOlt['ip'];
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
@@ -826,7 +887,7 @@ class OnuRegister {
             foreach ($this->allHuaweiOlt as $this->currentOltSwId => $eachOlt) {
                 if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
                     $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'], true);
-                    $this->currentPonType = $this->currentSnmpTemplate [self::SNMP_TEMPLATE_SECTION]['TYPE'];
+                    $this->currentPonType = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['TYPE'];
                     $this->currentOltIp = $eachOlt['ip'];
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
@@ -1156,9 +1217,31 @@ class OnuRegister {
                 }
 
 //Exit if onu number is 65+ for epon and 128+ for gpon.
-                if (($this->currentPonType == 'EPON' and count($this->existId) >= 64) or ( $this->currentPonType == 'GPON' and count($this->existId) >= 128)) {
-                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                    return('');
+                if ($this->currentPonType == 'EPON') {
+                    $intParts = explode("/", $this->currentOltInterface);
+                    $slot = $intParts[1];
+                    foreach ($this->allCards[$this->currentOltSwId] as $each => $io) {
+                        if ($io['slot_number'] == $slot) {
+                            if ($io['card_name'] == "ETTO" or $io['card_name'] == "ETTOK") {
+                                if (count($this->existId) >= 128) {
+                                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                                    return('');
+                                }
+                            } else {
+                                if (count($this->existId) >= 64) {
+                                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                                    return('');
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ($this->currentPonType == 'GPON') {
+                    if (count($this->existId) >= 128) {
+                        $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                        return('');
+                    }
                 }
 
                 $this->result .= shell_exec($this->getRegisterOnuCommand());
@@ -1198,7 +1281,30 @@ class OnuRegister {
         if ($this->router) {
             $scriptPath .= '_R';
         }
+        if ($this->useUniversalQINQ == 'cvlan') {
+            $scriptPath .= '_CVLAN';
+        }
+        if ($this->useUniversalQINQ == 'pair') {
+            $scriptPath .= '_QINQ';
+        }
+
         return ($scriptPath);
+    }
+
+    /**
+     * Check if user has assiigned qinq pair and which mode was set for registration.
+     */
+    protected function checkQinq() {
+        if ($this->useUniversalQINQ != 'none') {
+            if (isset($this->usersQinQ[$this->login])) {
+                $user = $this->usersQinQ[$this->login];
+                $this->vlan = $user['cvlan'];
+                if ($this->useUniversalQINQ == 'pair') {
+                    $this->svlan = $this->allSvlan[$user['svlan_id']]['svlan'];
+                    $this->vlan .= ' ' . $this->svlan;
+                }
+            }
+        }
     }
 
     /**
@@ -1207,6 +1313,7 @@ class OnuRegister {
      * @return string $command
      */
     protected function getRegisterOnuCommand() {
+        $this->checkQinq();
         $scriptPath = $this->getRegisterOnuScriptPath();
         if (file_exists($scriptPath)) {
             $command = $this->billingCfg['EXPECT_PATH'];
@@ -1854,6 +1961,14 @@ $(".changeType").change(function () {
 
                 break;
         }
+        if ($this->altCfg['VLAN_MANAGEMENT_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED'] and $this->altCfg['ONUREG_QINQ_ENABLED']) {
+            $cell .= wf_delimiter();
+            $cell .= __('UniversalQINQ') . wf_delimiter();
+            $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Do not use QINQ'), self::GET_UNIVERSALQINQ_NONE, true, true);
+            $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Use') . ' QINQ CVLAN', self::GET_UNIVERSALQINQ_CVLAN, true, false);
+            $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Use') . ' ' . __('QINQ pair'), self::GET_UNIVERSALQINQ_PAIR, true, false);
+        }
+
         $cell .= wf_delimiter();
         $cell .= wf_Submit(__('Register'));
         $Row = wf_TableRow($cell, 'row1');

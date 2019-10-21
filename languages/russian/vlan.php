@@ -54,6 +54,9 @@ $lang['def']['Default realm is protected and cannot be deleted or edited'] = 'С
 $lang['def']['Choose'] = 'Выбирите';
 $lang['def']['Right for UniversalQINQ configuration'] = 'Право управлять конфигурацией UniversalQINQ';
 $lang['def']['Right to edit and assign VLANs'] = 'Право редактировать и назначать VLAN-ы';
+$lang['def']['Do not use QINQ'] = 'Не использовать QINQ';
+$lang['def']['QINQ pair'] = 'QINQ пара';
+$lang['def']['UniversalQINQ'] = 'Универсальный QINQ';
 $lang['def'][''] = '';
 
 ?>
