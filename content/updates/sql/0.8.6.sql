@@ -45,3 +45,24 @@ CREATE TABLE IF NOT EXISTS `zbsannhist` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 ALTER TABLE `vservices` ADD `fee_charge_always` TINYINT(1) NOT NULL DEFAULT 1;
+
+CREATE TABLE IF NOT EXISTS `zte_cards` (
+`id` INT NOT NULL AUTO_INCREMENT, 
+`swid` INT NOT NULL, 
+`slot_number` INT NOT NULL, 
+`card_name` VARCHAR(5) NOT NULL, 
+PRIMARY KEY (`id`), 
+KEY (`swid`) )
+ENGINE = MyISAM DEFAULT CHARSET=UTF8;
+ 
+CREATE TABLE IF NOT EXISTS `zte_vlan_bind` (
+`id` INT NOT NULL AUTO_INCREMENT,
+`swid` INT NOT NULL,
+`slot_number` INT NOT NULL,
+`port_number` INT(2) NOT NULL,
+`vlan` INT(4) NOT NULL,
+PRIMARY KEY (`id`),
+KEY (`swid`) )
+ENGINE = MyISAM DEFAULT CHARSET=UTF8;
+ 
+ALTER TABLE `zte_cards` ADD COLUMN `chasis_number` INT (1) NOT NULL;
