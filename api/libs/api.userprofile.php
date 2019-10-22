@@ -864,9 +864,6 @@ class UserProfile {
     protected function getVlanAssignControls() {
         if ($this->alterCfg['VLAN_IN_PROFILE'] AND $this->alterCfg['VLANGEN_SUPPORT']) {
             $result = web_ProfileVlanControlForm($this->login);
-        } elseif ($this->alterCfg['VLAN_IN_PROFILE'] AND $this->alterCfg['VLAN_MANAGEMENT_ENABLED']) {
-            $vlanManagement = new VlanManagement();
-            $result = $vlanManagement->showUsersVlanPair($this->login);
         } else {
             $result = '';
         }

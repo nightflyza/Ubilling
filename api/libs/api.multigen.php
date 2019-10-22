@@ -2954,6 +2954,12 @@ class MultiGen {
                             $this->loadSwithchAssigns();
                             $this->loadAllQinQ();
                         }
+                    } else {
+                        if (isset($this->altCfg[self::OPTION_UNIVERSALQINQ])) {
+                            if ($this->altCfg[self::OPTION_UNIVERSALQINQ]) {
+                                $this->loadAllQinQ();
+                            }
+                        }
                     }
                 }
             }
