@@ -72,29 +72,29 @@ if (cfr('REPORTSIGNUP')) {
         $totalcount = 0;
 
         $tablecells = wf_TableCell('');
-        $tablecells.=wf_TableCell(__('Month'));
-        $tablecells.=wf_TableCell(__('Signups'));
+        $tablecells .= wf_TableCell(__('Month'));
+        $tablecells .= wf_TableCell(__('Signups'));
         if ($cemeteryEnabled) {
-            $tablecells.=wf_TableCell(__('Dead souls'));
-            $tablecells.=wf_TableCell('', '10%');
+            $tablecells .= wf_TableCell(__('Dead souls'));
+            $tablecells .= wf_TableCell('', '10%');
         }
-        $tablecells.=wf_TableCell(__('Visual'), '50%');
+        $tablecells .= wf_TableCell(__('Visual'), '50%');
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         foreach ($yearcount as $eachmonth => $count) {
             $totalcount = $totalcount + $count;
             $tablecells = wf_TableCell($eachmonth);
-            $tablecells.=wf_TableCell(wf_Link('?module=report_signup&month=' . $year . '-' . $eachmonth, rcms_date_localise($allmonths[$eachmonth])));
-            $tablecells.=wf_TableCell($count);
+            $tablecells .= wf_TableCell(wf_Link('?module=report_signup&month=' . $year . '-' . $eachmonth, rcms_date_localise($allmonths[$eachmonth])));
+            $tablecells .= wf_TableCell($count);
             if ($cemeteryEnabled) {
                 $deadDateMask = $year . '-' . $eachmonth . '-';
                 $deadCount = $cemetery->getDeadDateCount($deadDateMask);
                 $deadBar = web_barTariffs($count, $deadCount);
-                $tablecells.=wf_TableCell($deadCount);
-                $tablecells.=wf_TableCell($deadBar);
+                $tablecells .= wf_TableCell($deadCount);
+                $tablecells .= wf_TableCell($deadBar);
             }
-            $tablecells.=wf_TableCell(web_bar($count, $maxsignups), '', '', 'sorttable_customkey="' . $count . '"');
-            $tablerows.=wf_TableRow($tablecells, 'row3');
+            $tablecells .= wf_TableCell(web_bar($count, $maxsignups), '', '', 'sorttable_customkey="' . $count . '"');
+            $tablerows .= wf_TableRow($tablecells, 'row3');
         }
 
 
@@ -104,18 +104,18 @@ if (cfr('REPORTSIGNUP')) {
         }, 86400); //cached for 1 day
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.= wf_tag('b', false) . __('Total users registered') . ': ' . $totalcount . wf_tag('b', true);
+        $result .= wf_tag('b', false) . __('Total users registered') . ': ' . $totalcount . wf_tag('b', true);
         if ($totalcount > 0) {
-            $result.=wf_tag('br');
-            $result.= ' ' . $aliveStats['alive'] . ' ' . __('of them remain active');
-            $result.= ' ' . __('and') . ' ' . $aliveStats['dead'] . ' ' . wf_Link('?module=report_signup&showdeadusers=' . $year, __('now is dead')) . ' (' . zb_PercentValue($aliveStats['total'], $aliveStats['dead']) . '%)';
+            $result .= wf_tag('br');
+            $result .= ' ' . $aliveStats['alive'] . ' ' . __('of them remain active');
+            $result .= ' ' . __('and') . ' ' . $aliveStats['dead'] . ' ' . wf_Link('?module=report_signup&showdeadusers=' . $year, __('now is dead')) . ' (' . zb_PercentValue($aliveStats['total'], $aliveStats['dead']) . '%)';
         }
 
         $sigMapLinkControls = '';
         if (cfr('REPORTSIGNUP') AND cfr('USERSMAP')) {
-            $sigMapLinkControls.=wf_tag('div', false, '', 'style="float:right; padding-top: 0px;"');
-            $sigMapLinkControls.=wf_Link('?module=report_sigmap', wf_img_sized('skins/swmapsmall.png', '', '12') . ' ' . __('Signups map'), false, 'ubButton');
-            $sigMapLinkControls.=wf_tag('div', true);
+            $sigMapLinkControls .= wf_tag('div', false, '', 'style="float:right; padding-top: 0px;"');
+            $sigMapLinkControls .= wf_Link('?module=report_sigmap', wf_img_sized('skins/swmapsmall.png', '', '12') . ' ' . __('Signups map'), false, 'ubButton');
+            $sigMapLinkControls .= wf_tag('div', true);
         }
 
         show_window(__('User signups by year') . ' ' . $year, $result . $sigMapLinkControls);
@@ -143,22 +143,22 @@ if (cfr('REPORTSIGNUP')) {
         $deadCount = 0;
         $frozenCount = 0;
         $result = '';
-        $result.=wf_BackLink('?module=report_signup');
-        $result.=wf_delimiter();
+        $result .= wf_BackLink('?module=report_signup');
+        $result .= wf_delimiter();
 
         if (!empty($aliveStats)) {
             if (!empty($aliveStats['deadlogins'])) {
 
 
                 $cells = wf_TableCell(__('Login'));
-                $cells.= wf_TableCell(__('Address'));
-                $cells.= wf_TableCell(__('Real Name'));
-                $cells.= wf_TableCell(__('IP'));
-                $cells.= wf_TableCell(__('Tariff'));
-                $cells.= wf_TableCell(__('Active'));
-                $cells.= wf_TableCell(__('Balance'));
-                $cells.= wf_TableCell(__('Credit'));
-                $cells.= wf_TableCell(__('Phones'));
+                $cells .= wf_TableCell(__('Address'));
+                $cells .= wf_TableCell(__('Real Name'));
+                $cells .= wf_TableCell(__('IP'));
+                $cells .= wf_TableCell(__('Tariff'));
+                $cells .= wf_TableCell(__('Active'));
+                $cells .= wf_TableCell(__('Balance'));
+                $cells .= wf_TableCell(__('Credit'));
+                $cells .= wf_TableCell(__('Phones'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($aliveStats['deadlogins'] as $io => $login) {
@@ -177,10 +177,10 @@ if (cfr('REPORTSIGNUP')) {
                         }
                     }
                     $cells = wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login));
-                    $cells.= wf_TableCell(@$userData['fulladress']);
-                    $cells.= wf_TableCell(@$userData['realname']);
-                    $cells.= wf_TableCell(@$userData['ip']);
-                    $cells.= wf_TableCell(@$userData['Tariff']);
+                    $cells .= wf_TableCell(@$userData['fulladress']);
+                    $cells .= wf_TableCell(@$userData['realname']);
+                    $cells .= wf_TableCell(@$userData['ip']);
+                    $cells .= wf_TableCell(@$userData['Tariff']);
                     $actFlag = ($userData['Cash'] >= -$userData['Credit']) ? web_bool_led(true) : web_bool_led(false);
                     if ($userData['Passive']) {
                         $freezeFlag = ' ' . wf_img('skins/icon_passive.gif', __('User is frozen'));
@@ -188,17 +188,17 @@ if (cfr('REPORTSIGNUP')) {
                     } else {
                         $freezeFlag = '';
                     }
-                    $cells.= wf_TableCell($actFlag . $freezeFlag);
-                    $cells.= wf_TableCell($userData['Cash']);
-                    $cells.= wf_TableCell($userData['Credit']);
-                    $cells.= wf_TableCell($userData['mobile'] . ' ' . $userData['phone'] . ' ' . $userExtMobiles);
-                    $rows.= wf_TableRow($cells, 'row5');
+                    $cells .= wf_TableCell($actFlag . $freezeFlag);
+                    $cells .= wf_TableCell($userData['Cash']);
+                    $cells .= wf_TableCell($userData['Credit']);
+                    $cells .= wf_TableCell($userData['mobile'] . ' ' . $userData['phone'] . ' ' . $userExtMobiles);
+                    $rows .= wf_TableRow($cells, 'row5');
                     $deadCount++;
                 }
 
-                $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-                $result.= __('Total') . ': ' . $deadCount . wf_tag('br');
-                $result.=__('Frozen') . ': ' . $frozenCount;
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= __('Total') . ': ' . $deadCount . wf_tag('br');
+                $result .= __('Frozen') . ': ' . $frozenCount;
             }
         }
 
@@ -215,6 +215,8 @@ if (cfr('REPORTSIGNUP')) {
     function web_SignupsShowCurrentMonth() {
         global $altercfg;
         $alltariffs = zb_TariffsGetAllUsers();
+        $deleatableFlag = @$altercfg['SIGREP_DELETABLE'] ? true : false;
+        $messages = new UbillingMessageHelper();
         $cmonth = curmonth();
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
@@ -230,34 +232,39 @@ if (cfr('REPORTSIGNUP')) {
         }
 
         $tablecells = wf_TableCell(__('ID'));
-        $tablecells.=wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Administrator'));
+        $tablecells .= wf_TableCell(__('Date'));
+        $tablecells .= wf_TableCell(__('Administrator'));
         if ($altercfg['SIGREP_CONTRACT']) {
-            $tablecells.=wf_TableCell(__('Contract'));
+            $tablecells .= wf_TableCell(__('Contract'));
             $allcontracts = array_flip(zb_UserGetAllContracts());
         }
-        $tablecells.=wf_TableCell(__('Login'));
-        $tablecells.=wf_TableCell(__('Tariff'));
-        $tablecells.=wf_TableCell(__('Full address'));
+        $tablecells .= wf_TableCell(__('Login'));
+        $tablecells .= wf_TableCell(__('Tariff'));
+        $tablecells .= wf_TableCell(__('Full address'));
+        if ($deleatableFlag) {
+            if (cfr('ROOT')) {
+                $tablecells .= wf_TableCell(''); //just column placeholder
+            }
+        }
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($signups)) {
             @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
             foreach ($signups as $io => $eachsignup) {
                 $tablecells = wf_TableCell($eachsignup['id']);
-                $tablecells.=wf_TableCell($eachsignup['date']);
+                $tablecells .= wf_TableCell($eachsignup['date']);
 
                 $administratorName = (isset($employeeLogins[$eachsignup['admin']])) ? $employeeLogins[$eachsignup['admin']] : $eachsignup['admin'];
-                $tablecells.=wf_TableCell($administratorName);
+                $tablecells .= wf_TableCell($administratorName);
 
                 if ($altercfg['SIGREP_CONTRACT']) {
-                    $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);
+                    $tablecells .= wf_TableCell(@$allcontracts[$eachsignup['login']]);
                 }
                 @$sigTariff = $alltariffs[$eachsignup['login']];
-                $tablecells.=wf_TableCell($eachsignup['login']);
-                $tablecells.=wf_TableCell($sigTariff);
+                $tablecells .= wf_TableCell($eachsignup['login']);
+                $tablecells .= wf_TableCell($sigTariff);
                 $profilelink = wf_Link('?module=userprofile&username=' . trim($eachsignup['login']), web_profile_icon() . ' ' . $eachsignup['address']);
-                $tablecells.=wf_TableCell($profilelink);
+                $tablecells .= wf_TableCell($profilelink);
                 if (ispos($eachsignup['date'], $curdate)) {
                     $rowClass = 'todaysig';
                     //today chart data
@@ -285,12 +292,25 @@ if (cfr('REPORTSIGNUP')) {
                     $chartDataMonth[$administratorName] = 1;
                 }
 
-                $tablerows.=wf_TableRow($tablecells, $rowClass);
+                //record deletion control
+                if ($deleatableFlag) {
+                    if (cfr('ROOT')) {
+                        if (empty($sigTariff)) {
+                            $deletionLink = wf_JSAlert('?module=report_signup&deleterecord=' . $eachsignup['id'], __('Delete'), $messages->getDeleteAlert());
+                        } else {
+                            $deletionLink = '';
+                        }
+
+                        $tablecells .= wf_TableCell($deletionLink);
+                    }
+                }
+
+                $tablerows .= wf_TableRow($tablecells, $rowClass);
             }
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.= web_SignupsRenderChart($chartDataMonth, $chartDataDay);
+        $result .= web_SignupsRenderChart($chartDataMonth, $chartDataDay);
         show_window(__('Current month user signups'), $result);
     }
 
@@ -317,11 +337,11 @@ if (cfr('REPORTSIGNUP')) {
         }
 
         $cells = wf_TableCell($chartMonth);
-        $cells.= wf_TableCell($chartDay);
+        $cells .= wf_TableCell($chartDay);
         $rows = wf_TableRow($cells);
 
-        $result.=wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
-        $result.= wf_TableBody($rows, '100%', '0', '');
+        $result .= wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
+        $result .= wf_TableBody($rows, '100%', '0', '');
         return ($result);
     }
 
@@ -336,6 +356,8 @@ if (cfr('REPORTSIGNUP')) {
     function web_SignupsShowAnotherYearMonth($cmonth) {
         global $altercfg;
         $alltariffs = zb_TariffsGetAllUsers();
+        $deleatableFlag = @$altercfg['SIGREP_DELETABLE'] ? true : false;
+        $messages = new UbillingMessageHelper();
         $cmonth = mysql_real_escape_string($cmonth);
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
@@ -352,34 +374,39 @@ if (cfr('REPORTSIGNUP')) {
 
 
         $tablecells = wf_TableCell(__('ID'));
-        $tablecells.=wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Administrator'));
+        $tablecells .= wf_TableCell(__('Date'));
+        $tablecells .= wf_TableCell(__('Administrator'));
         if ($altercfg['SIGREP_CONTRACT']) {
-            $tablecells.=wf_TableCell(__('Contract'));
+            $tablecells .= wf_TableCell(__('Contract'));
             $allcontracts = array_flip(zb_UserGetAllContracts());
         }
-        $tablecells.=wf_TableCell(__('Login'));
-        $tablecells.=wf_TableCell(__('Tariff'));
-        $tablecells.=wf_TableCell(__('Full address'));
+        $tablecells .= wf_TableCell(__('Login'));
+        $tablecells .= wf_TableCell(__('Tariff'));
+        $tablecells .= wf_TableCell(__('Full address'));
+        if ($deleatableFlag) {
+            if (cfr('ROOT')) {
+                $tablecells .= wf_TableCell(''); //just column placeholder
+            }
+        }
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($signups)) {
             @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
             foreach ($signups as $io => $eachsignup) {
                 $tablecells = wf_TableCell($eachsignup['id']);
-                $tablecells.=wf_TableCell($eachsignup['date']);
+                $tablecells .= wf_TableCell($eachsignup['date']);
 
                 $administratorName = (isset($employeeLogins[$eachsignup['admin']])) ? $employeeLogins[$eachsignup['admin']] : $eachsignup['admin'];
-                $tablecells.=wf_TableCell($administratorName);
+                $tablecells .= wf_TableCell($administratorName);
 
                 if ($altercfg['SIGREP_CONTRACT']) {
-                    $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);
+                    $tablecells .= wf_TableCell(@$allcontracts[$eachsignup['login']]);
                 }
-                $tablecells.=wf_TableCell($eachsignup['login']);
+                $tablecells .= wf_TableCell($eachsignup['login']);
                 @$sigTariff = $alltariffs[$eachsignup['login']];
-                $tablecells.=wf_TableCell($sigTariff);
+                $tablecells .= wf_TableCell($sigTariff);
                 $profilelink = wf_Link('?module=userprofile&username=' . $eachsignup['login'], web_profile_icon() . ' ' . $eachsignup['address']);
-                $tablecells.=wf_TableCell($profilelink);
+                $tablecells .= wf_TableCell($profilelink);
                 if (ispos($eachsignup['date'], $curdate)) {
                     $rowClass = 'todaysig';
                     //today chart data
@@ -407,13 +434,26 @@ if (cfr('REPORTSIGNUP')) {
                     $chartDataMonth[$administratorName] = 1;
                 }
 
-                $tablerows.=wf_TableRow($tablecells, $rowClass);
+                //record deletion control
+                if ($deleatableFlag) {
+                    if (cfr('ROOT')) {
+                        if (empty($sigTariff)) {
+                            $deletionLink = wf_JSAlert('?module=report_signup&deleterecord=' . $eachsignup['id'], __('Delete'), $messages->getDeleteAlert());
+                        } else {
+                            $deletionLink = '';
+                        }
+
+                        $tablecells .= wf_TableCell($deletionLink);
+                    }
+                }
+
+                $tablerows .= wf_TableRow($tablecells, $rowClass);
             }
         }
 
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.= web_SignupsRenderChart($chartDataMonth, $chartDataDay);
+        $result .= web_SignupsRenderChart($chartDataMonth, $chartDataDay);
         show_window(__('User signups by month') . ' ' . $cmonth, $result);
     }
 
@@ -458,17 +498,17 @@ if (cfr('REPORTSIGNUP')) {
         }
 
         $tablecells = wf_TableCell(__('Tariff'));
-        $tablecells.=wf_TableCell(__('Count'));
-        $tablecells.=wf_TableCell(__('Visual'));
+        $tablecells .= wf_TableCell(__('Count'));
+        $tablecells .= wf_TableCell(__('Visual'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($tcount)) {
             foreach ($tcount as $sigtariff => $eachcount) {
 
                 $tablecells = wf_TableCell($sigtariff);
-                $tablecells.=wf_TableCell($eachcount);
-                $tablecells.=wf_TableCell(web_bar($eachcount, sizeof($allsignups)), '', '', 'sorttable_customkey="' . $eachcount . '"');
-                $tablerows.=wf_TableRow($tablecells, 'row3');
+                $tablecells .= wf_TableCell($eachcount);
+                $tablecells .= wf_TableCell(web_bar($eachcount, sizeof($allsignups)), '', '', 'sorttable_customkey="' . $eachcount . '"');
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
         }
 
@@ -538,8 +578,33 @@ if (cfr('REPORTSIGNUP')) {
         return ($result);
     }
 
-    //controller part
+    /**
+     * Deletes record from signups report database
+     * 
+     * @param int $sigrepid
+     * 
+     * @return void
+     */
+    function zb_SignupsDeleteRecord($sigrepid) {
+        if (!empty($sigrepid)) {
+            $signups = new NyanORM('userreg');
+            $signups->where('id', '=', $sigrepid);
+            $recordToDelete = $signups->getAll('', false); //dont flush where struct
+            if (!empty($recordToDelete)) {
+                $signups->delete();
+                log_register('SIGREP DELETE [' . $sigrepid . '] FOR (' . $recordToDelete[0]['login'] . ') DATE `' . $recordToDelete[0]['date'] . '`');
+            }
+        }
+    }
 
+    //controller part
+    //record deletion
+    if (ubRouting::checkGet('deleterecord')) {
+        zb_SignupsDeleteRecord(ubRouting::get('deleterecord', 'int'));
+        ubRouting::nav('?module=report_signup');
+    }
+
+    //other report routines
     if (!wf_CheckGet(array('showdeadusers'))) {
         if (!isset($_POST['yearsel'])) {
             $year = curyear();
@@ -548,9 +613,9 @@ if (cfr('REPORTSIGNUP')) {
         }
 
         $yearinputs = wf_YearSelectorPreset('yearsel', '', false, $year);
-        $yearinputs.=wf_Submit(__('Show'));
+        $yearinputs .= wf_Submit(__('Show'));
         $yearform = wf_Form('?module=report_signup', 'POST', $yearinputs, 'glamour');
-        $yearform.= wf_CleanDiv();
+        $yearform .= wf_CleanDiv();
 
         web_SignupsShowToday();
         show_window(__('Year'), $yearform);
