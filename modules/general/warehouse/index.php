@@ -162,7 +162,12 @@ if (cfr('WAREHOUSE')) {
                 }
                 if (!wf_CheckGet(array('storageid'))) {
                     show_window(__('Warehouse storages'), $warehouse->outcomingStoragesList());
-                    show_window(__('Available outcoming operations'), $warehouse->outcomingOperationsList());
+                    if (!ubRouting::checkGet('withnotes')) {
+                        $notesControl = ' ' . wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_OUT . '&withnotes=true', wf_img_sized('skins/icon_note.gif', __('Show notes'), '12', '12'));
+                    } else {
+                        $notesControl = ' ' . wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_OUT, wf_img_sized('skins/icon_note.gif', __('Hide notes'), '12', '12'));
+                    }
+                    show_window(__('Available outcoming operations') . $notesControl, $warehouse->outcomingOperationsList());
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m();
                 } else {

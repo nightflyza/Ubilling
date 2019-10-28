@@ -3129,5 +3129,8 @@ $lang['def']['There is entry for this login'] = 'Вже є запис для к�
 $lang['def']['Create new entry'] = 'Створити новий запис';
 $lang['def']['Graph by 5 minutes'] = 'За 5 хвилин';
 $lang['def']['Go to graph on Zabbix server'] = 'На Zabbix сервер';
+$lang['def']['Show notes'] = 'Показати примітки';
+$lang['def']['Hide notes'] = 'Приховати примітки';
+
 
 ?>

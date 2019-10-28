@@ -3108,6 +3108,8 @@ $lang['def']['Last fee charge'] = 'Последнее списание сред�
 $lang['def']['No NAS servers assigned for this user network'] = 'Подсети пользователя не назначено никаких NAS серверов';
 $lang['def']['Graph by 5 minutes'] = 'За 5 минут';
 $lang['def']['Go to graph on Zabbix server'] = 'На Zabbix сервер';
+$lang['def']['Show notes'] = 'Показать примечания';
+$lang['def']['Hide notes'] = 'Скрыть примечания';
 $lang['def'][''] = '';
 
 

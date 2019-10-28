@@ -2417,9 +2417,15 @@ class Warehouse {
     public function outcomingOperationsList() {
         $result = '';
         if (!empty($this->allOutcoming)) {
+            $notesFlag = ubRouting::checkGet('withnotes') ? true : false;
+            $urlParams = '';
             $opts = '"order": [[ 0, "desc" ]]';
             $columns = array('ID', 'Date', 'Destination', 'Warehouse storage', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Actions');
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_OUTAJLIST, false, 'Outcoming operations', 50, $opts);
+            if ($notesFlag) {
+                $columns = array('ID', 'Date', 'Destination', 'Warehouse storage', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Notes', 'Actions');
+                $urlParams = '&withnotes=true';
+            }
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_OUTAJLIST . $urlParams, false, 'Outcoming operations', 50, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
@@ -2477,7 +2483,7 @@ class Warehouse {
      */
     public function outcomingListAjaxReply() {
         $json = new wf_JqDtHelper();
-
+        $notesFlag = ubRouting::checkGet('withnotes') ? true : false;
         if (!empty($this->allOutcoming)) {
             foreach ($this->allOutcoming as $io => $each) {
                 $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'], wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Show'));
@@ -2490,6 +2496,9 @@ class Warehouse {
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
                 $data[] = ($each['price'] * $each['count']);
+                if ($notesFlag) {
+                    $data[] = $each['notes'];
+                }
                 $data[] = $actLink;
                 $json->addRow($data);
                 unset($data);
