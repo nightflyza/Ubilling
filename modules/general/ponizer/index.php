@@ -27,7 +27,7 @@ if ($altCfg['PON_ENABLED']) {
         }
 
         if (wf_CheckGet(array('searchunknownonu', 'searchunknownmac'))) {
-            die ($pon->getUserByONUMAC($_GET['searchunknownmac'], $_GET['searchunknownincrement'], $_GET['searchunknownserialize']));
+            die($pon->getUserByONUMAC($_GET['searchunknownmac'], $_GET['searchunknownincrement'], $_GET['searchunknownserialize']));
         }
 
         //getting unregistered ONU list
@@ -129,6 +129,7 @@ if ($altCfg['PON_ENABLED']) {
                             show_window(__('ONU directory'), $pon->controls());
                             if (!$legacy) {
                                 $pon->renderOnuList();
+                                zb_BillingStats(true);
                             } else {
                                 $pon2->renderOnuList();
                             }
