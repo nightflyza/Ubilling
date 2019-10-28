@@ -3110,6 +3110,7 @@ $lang['def']['Graph by 5 minutes'] = 'За 5 минут';
 $lang['def']['Go to graph on Zabbix server'] = 'На Zabbix сервер';
 $lang['def']['Show notes'] = 'Показать примечания';
 $lang['def']['Hide notes'] = 'Скрыть примечания';
+$lang['def']['right to manage callmeback module'] = 'Право управлять модулем "Перезвоните мне"';
 $lang['def'][''] = '';
 
 
