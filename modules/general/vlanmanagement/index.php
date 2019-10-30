@@ -63,6 +63,11 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
                     case 'ajaxswitch':
                         die($vlan->ajaxSwitch());
                         break;
+                    case 'chooseoltcard':
+                        die($vlan->cardSelector());
+                    case 'choosecardport':
+                        die($vlan->portCardSelector());
+                        break;
                     case 'choosetype':
                         die($vlan->types());
                         break;

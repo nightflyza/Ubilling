@@ -9,6 +9,15 @@ class VlanManagement {
     const MODULE_SVLAN = '?module=vlanmanagement&svlan=true';
     const MODULE_REALMS = '?module=vlanmanagement&realms=true';
     const MODULE_UNIVERSALQINQ = '?module=universalqinq';
+    const EMPTY_SELECTOR_OPTION = '---';
+    const ARRAY_RANGE_STEP = 1;
+    const ARRAY_RANGE_START = 1;
+    const QINQ_OPTION = 'QINQ_ENABLED';
+    const QINQ_LABEL = 'QINQ for switches';
+    const ONUREG_QINQ_OPTION = 'ONUREG_QINQ_ENABLED';
+    const UNIVERSAL_QINQ_OPTION = 'UNIVERSAL_QINQ_ENABLED';
+    const UNIVERSAL_QINQ_RGHT = 'UNIVERSALQINQCONFIG';
+    const UNIVERSAL_QINQ_LABEL = 'Universal QINQ';
 
     /**
      * Placeholder for nyan_orm instance for realms table.
@@ -58,6 +67,13 @@ class VlanManagement {
      * @var object
      */
     protected $switchPortDb;
+
+    /**
+     * Placeholder for nyan_orm instance for zte_qinq table.
+     * 
+     * @var object
+     */
+    protected $zteqinqDb;
 
     /**
      * Contains main configuration file alter.ini
@@ -144,6 +160,13 @@ class VlanManagement {
     protected $occupiedSwitches = array();
 
     /**
+     * Contains all occupied cvlans by OLTs
+     * 
+     * @var array
+     */
+    protected $occupiedOlt = array();
+
+    /**
      * Dictionary for pairing cvlan number with switch which occupies this cvlan.
      * 
      * @var array
@@ -186,11 +209,11 @@ class VlanManagement {
     public $routing;
 
     public function __construct() {
+        $this->routing = new ubRouting();
+        $this->messages = new UbillingMessageHelper();
         $this->dbInit();
         $this->loadData();
         $this->loadAlter();
-        $this->routing = new ubRouting();
-        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -206,6 +229,7 @@ class VlanManagement {
         $this->switchesDb = new nya_switches();
         $this->switchModelsDb = new nya_switchmodels();
         $this->switchPortDb = new nya_switchportassign();
+        $this->zteqinqDb = new NyanORM('zte_qinq');
     }
 
     /**
@@ -215,6 +239,8 @@ class VlanManagement {
      */
     protected function loadData() {
         $this->allRealms = $this->realmDb->getAll('id');
+        $this->occupiedCvlans();
+        $this->occupiedSwitches();
     }
 
     /**
@@ -462,7 +488,7 @@ class VlanManagement {
         $realmId = vf($realmId, 3);
         $this->svlanDb->where('realm_id', '=', $realmId);
         $allSvlan = $this->svlanDb->getAll('id');
-        $allSvlanSelector[''] = '---';
+        $allSvlanSelector[''] = self::EMPTY_SELECTOR_OPTION;
         if (!empty($allSvlan)) {
             foreach ($allSvlan as $id => $each) {
                 $allSvlanSelector[$id] = $each['svlan'] . ' | ' . $each['description'];
@@ -600,7 +626,7 @@ class VlanManagement {
      * @return string
      */
     protected function typeSelector() {
-        $selector = array(self::MODULE . '&action=choosetype&type=none' => '---');
+        $selector = array(self::MODULE . '&action=choosetype&type=none' => self::EMPTY_SELECTOR_OPTION);
 
         $switches = self::MODULE
                 . '&action=choosetype&type=qinqswitches&'
@@ -612,25 +638,25 @@ class VlanManagement {
                 . '&action=choosetype&type=qinqolt&'
                 . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
 
-        //if qinq switches enabled
-        if ($this->altCfg['QINQ_ENABLED']) {
-            $selector[$switches] = __('QINQ for switches');
+//if qinq switches enabled
+        if ($this->altCfg[self::QINQ_OPTION]) {
+            $selector[$switches] = __(self::QINQ_LABEL);
             $this->defaultType = $switches;
         }
 
-        if ($this->altCfg['QINQ_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
-            $selector[$universal] = __('Universal QINQ');
+        if ($this->altCfg[self::QINQ_OPTION] and $this->altCfg[self::UNIVERSAL_QINQ_OPTION] and cfr(self::UNIVERSAL_QINQ_RGHT)) {
+            $selector[$universal] = __(self::UNIVERSAL_QINQ_LABEL);
         }
 
-        //if qinq switches disabled
-        if (!$this->altCfg['QINQ_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
-            $selector[$universal] = __('Universal QINQ');
+//if qinq switches disabled
+        if (!$this->altCfg[self::QINQ_OPTION] and $this->altCfg[self::UNIVERSAL_QINQ_OPTION] and cfr(self::UNIVERSAL_QINQ_RGHT)) {
+            $selector[$universal] = __(self::UNIVERSAL_QINQ_LABEL);
             $this->defaultType = $universal;
         } else {
-            $this->defaultType = '---';
+            $this->defaultType = self::EMPTY_SELECTOR_OPTION;
         }
 
-        if ($this->altCfg['UNIVERSAL_QINQ_ENABLED'] and $this->altCfg['ONUREG_QINQ_ENABLED'] and cfr('UNIVERSALQINQCONFIG')) {
+        if ($this->altCfg[self::UNIVERSAL_QINQ_OPTION] and $this->altCfg[self::ONUREG_QINQ_OPTION] and cfr(self::UNIVERSAL_QINQ_RGHT)) {
             $selector[$olt] = 'QINQ ' . __('pool') . ' ' . __('for') . ' OLT';
         }
 
@@ -644,22 +670,93 @@ class VlanManagement {
      * @return string
      */
     protected function oltSelector() {
+//still can't use nyan_orm for joins :(
         $query = 'SELECT `sw`.`id`,`sw`.`ip`,`sw`.`location`,`model`.`snmptemplate` FROM `switches` AS `sw` JOIN `switchmodels` AS `model` ON (`sw`.`modelid` = `model`.`id`) WHERE `sw`.`desc` LIKE "%OLT%" AND `model`.`snmptemplate` LIKE "ZTE%"';
         $switches = simple_queryall($query);
 
+        $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
+
         foreach ($switches as $io => $each) {
-            $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
+            $options[self::MODULE . '&action=chooseoltcard&id=' . $each['id'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['ip'] . ' ' . $each['location'];
         }
 
-        return(wf_Selector('qinqoltid', $options, __('Select switch')));
+        reset($options);
+        $default = current($options);
+
+        $result = wf_AjaxLoader();
+        $result .= wf_AjaxSelectorAC('ajoltcontainer', $options, __('Select switch'), $default);
+        $result .= wf_AjaxContainer('ajoltcontainer', '');
+        return($result);
     }
 
-    protected function cardSelector() {
-        
+    /**
+     * Generate card selector for choosen OLT.
+     * 
+     * @return type
+     */
+    public function cardSelector() {
+        $result = '';
+        $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
+        if ($this->routing->get('id', 'int')) {
+//still can't use nyan_orm for joins :(
+            $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `zte_qinq`.`slot_number` IS NULL AND `swid`=' . $this->routing->get('id', 'int') . ' ORDER BY `slot_number`';
+            $allCards = simple_queryall($query);
+            foreach ($allCards as $io => $each) {
+                $options[self::MODULE . '&action=choosecardport&id=' . $this->routing->get('id', 'int') . '&slot_number=' . $each['slot_number'] . '&card_name=' . $each['card_name'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['slot_number'] . ' | ' . $each['card_name'];
+            }
+        }
+
+        reset($options);
+        $default = current($options);
+
+        $result .= wf_AjaxSelectorAC('ajoltcardcontainer', $options, __('Select card'), $default);
+        $result .= wf_AjaxContainer('ajoltcardcontainer', '');
+
+        return($result);
     }
 
-    protected function portCardSelector() {
-        
+    /**
+     * Generate port selector for choosen card.
+     * 
+     * @return type
+     */
+    public function portCardSelector() {
+        $form = '';
+        $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
+        $portsCount = 0;
+        $onuregister = new OnuRegister();
+        $maxOnuCount = 128;
+        if ($this->routing->get('id', 'int') and $this->routing->get('slot_number', 'int')) {
+            if (isset($onuregister->eponCards[$this->routing->get('card_name')])) {
+                $portsCount = $onuregister->eponCards[$this->routing->get('card_name')];
+                if ($this->routing->get('card_name') != 'ETTO' and $this->routing->get('card_name') != 'ETTOK') {
+                    $maxOnuCount = 64;
+                }
+            } else if (isset($onuregister->gponCards[$this->routing->get('card_name')])) {
+                $portsCount = $onuregister->gponCards[$this->routing->get('card_name')];
+            }
+        }
+        if ($portsCount) {
+            $possiblePorts = range(self::ARRAY_RANGE_START, $portsCount, self::ARRAY_RANGE_STEP);
+            $this->zteqinqDb->where('swid', '=', $this->routing->get('id', 'int'));
+            $this->zteqinqDb->where('slot_number', '=', $this->routing->get('slot_number', 'int'));
+            $usedPortsRaw = $this->zteqinqDb->getAll('port');
+            $usedPorts = array();
+            foreach ($usedPortsRaw as $port => $each) {
+                $usedPorts[] = $port;
+            }
+            $freePorts = array_diff($possiblePorts, $usedPorts);
+            foreach ($freePorts as $each) {
+                $options[$each] = $each;
+            }
+        }
+        $form .= wf_HiddenInput('action', 'add');
+        $form .= wf_HiddenInput('type', 'qinqolt');
+        $form .= wf_HiddenInput('swid', $this->routing->get('id', 'int'));
+        $form .= wf_HiddenInput('slot_number', $this->routing->get('slot_number', 'int'));
+        $form .= wf_HiddenInput('cvlan_num', $this->routing->get('cvlan_num', 'int'));
+        $form .= wf_Selector('port', $options, __('Select port'), self::EMPTY_SELECTOR_OPTION, true);
+        return($form);
     }
 
     /**
@@ -701,6 +798,7 @@ class VlanManagement {
                     $result .= wf_HiddenInput('type', 'qinqolt');
                     $result .= wf_tag('div', false) . $this->routing->get('cvlan_num', 'int') . " CVLAN" . wf_tag('div', true);
                     $result .= $this->oltSelector();
+
                     break;
             }
         } else {
@@ -729,45 +827,54 @@ class VlanManagement {
         return($result);
     }
 
+    protected function addNewOltBinding() {
+        
+    }
+
+    protected function checkCvlanFree($cvlan) {
+        $result['used'] = false;
+        $result['type'] = 'none';
+
+        if (isset($this->occupiedSwitches[$cvlan])) {
+            $result['used'] = $this->occupiedSwitches[$cvlan];
+            $result['type'] = 'switch';
+        }
+        if (isset($this->occupiedUniversal[$cvlan])) {
+            $result['used'] = $this->occupiedUniversal[$cvlan];
+            $result['type'] = 'universal';
+        }
+        return($result);
+    }
+
     /**
      * Create new switch binding
      * 
      * @return void
      */
     protected function addNewSwitchBinding() {
-        $this->occupiedSwitches();
-        $this->occupiedCvlans();
-        $used = false;
-        $type = '';
         $modelid = $this->allSwitches[$this->routing->get('qinqswitchid')]['modelid'];
         $port_number = $this->allSwitchModels[$modelid]['ports'];
         $lastCvlan = $this->routing->get('cvlan_num', 'int') + $port_number;
         for ($i = $this->routing->get('cvlan_num', 'int'); $i <= $lastCvlan; $i++) {
-            if (isset($this->occupiedSwitches[$i])) {
-                $used = $this->occupiedSwitches[$i];
-                $type = 'switch';
-                break;
-            }
-            if (isset($this->occupiedUniversal[$i])) {
-                $used = $this->occupiedUniversal[$i];
-                $type = 'universal';
+            $check = $this->checkCvlanFree($i);
+            if ($check['used']) {
                 break;
             }
         }
-        if (!$used) {
+        if (!$check['used']) {
             $switchesQinQ = new SwitchesQinQ();
             $qinqSaveResult = $switchesQinQ->saveQinQ();
             if (!empty($qinqSaveResult)) {
                 $this->error[] = $qinqSaveResult;
             }
         } else {
-            switch ($type) {
+            switch ($check['type']) {
                 case'switch':
                     $this->error[] = __('Error') . ': ' . __('trying allocate')
                             . ' ' . "CVLAN " . __("from") . ' ' . $this->routing->get('cvlan_num', 'int')
                             . ' ' . __('to') . $lastCvlan
                             . '. CVLAN ' . $i
-                            . ' ' . __('occcupied by switch') . ': ' . $used;
+                            . ' ' . __('occcupied by switch') . ': ' . $check['used'];
                     break;
 
                 case 'universal':
@@ -776,7 +883,7 @@ class VlanManagement {
                             . ' ' . __('to') . ' ' . $lastCvlan
                             . '. CVLAN ' . $i . ' ' . __('occcupied by login') . ': '
                             . wf_link("?module=userprofile&username="
-                                    . $used['login'], $used['login']
+                                    . $check['used']['login'], $check['used']['login']
                     );
                     break;
             }
@@ -797,6 +904,8 @@ class VlanManagement {
                     break;
                 case 'qinqswitches':
                     $this->addNewSwitchBinding();
+                    break;
+                case 'qinqolt':
                     break;
             }
             $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
@@ -987,27 +1096,41 @@ class VlanManagement {
         }
     }
 
+    protected function occupiedOlts() {
+        $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name`,`zte_qinq`.`port`,`zte_qinq`.`cvlan` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `zte_qinq`.`slot_number` IS NOT NULL AND `swid`=' . $this->routing->get('id', 'int') . ' AND `zte_qinq`.`svlan_id`=' . $this->routing->get('svlan_id', 'int');
+        $allZteBinding = simple_queryall($query);
+        $onuregister = new OnuRegister();
+        $portsCount = 0;
+        $maxOnuCount = 128;
+        foreach ($allZteBinding as $io => $each) {
+            if (isset($onuregister->eponCards[$each['card_name']])) {
+                if ($each['card_name'] != 'ETTO' AND $each['card_name'] != 'ETTOK') {
+                    $maxOnuCount = 64;
+                }
+            }
+        }
+    }
+
     /**
      * Render main cvlan matrix.
      * 
      * @return void
      */
     public function cvlanMatrix() {
-        $this->occupiedCvlans();
-        $this->occupiedSwitches();
         $result = '';
         if ($this->routing->checkGet(array('realm_id', 'svlan_id'))) {
-            $result .= '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
-            $result .= wf_tag('div', false, 'cvmodal', 'id="dialog-modal_cvmodal" title="' . __('Choose') . '" style="display:none; width:1px; height:1px;"');
-            $result .= wf_tag('p', false, '', 'id="content-cvmodal"');
+            $result .= '<link rel = "stylesheet" href = "./skins/vlanmanagement.css" type = "text/css" media = "screen" />';
+            $result .= wf_tag('div', false, 'cvmodal', 'id = "dialog-modal_cvmodal" title = "' . __('Choose') . '" style = "display:none; width:1px; height:1px;"');
+            $result .= wf_tag('p', false, '', 'id = "content-cvmodal"');
             $result .= wf_tag('p', true);
             $result .= wf_tag('div', true);
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
                 $switchid = '';
-                if (isset($this->occupiedUniversal[$cvlan])) {
+                $check = $this->checkCvlanFree($cvlan);
+                if ($check['type'] == 'universal') {
                     $color = 'occupied_customer';
-                } elseif (isset($this->occupiedSwitches[$cvlan])) {
+                } elseif ($check['type'] == 'switch') {
                     if (isset($this->switchPortCustomer[$cvlan])) {
                         $color = 'occupied_switch_with_customer';
                     } else {
@@ -1022,17 +1145,17 @@ class VlanManagement {
 
                 switch ($color) {
                     case 'free_vlan':
-                        $onclick = 'onclick="vlanAcquire(this)"';
+                        $onclick = 'onclick = "vlanAcquire(this)"';
                         break;
                     case 'occupied_customer':
-                        $onclick = 'onclick="occupiedByCustomer(this)"';
+                        $onclick = 'onclick = "occupiedByCustomer(this)"';
                         break;
                     case 'occupied_switch_with_customer':
                     case 'occupied_switch':
-                        $onclick = 'onclick="occupiedBySwitch(this)"';
+                        $onclick = 'onclick = "occupiedBySwitch(this)"';
                         break;
                 }
-                $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id="container_' . $this->routing->get('realm_id', 'int') .
+                $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id = "container_' . $this->routing->get('realm_id', 'int') .
                         '/' . $this->routing->get('svlan_id', 'int') .
                         '/' . $cvlan . '/' . $switchid . '" ' . $onclick . '');
 
@@ -1044,7 +1167,7 @@ class VlanManagement {
                 }
                 $result .= wf_tag('div', true);
             }
-            $result .= '<script src="./modules/jsc/vlanmanagement.js" type="text/javascript"></script>';
+            $result .= '<script src = "./modules/jsc/vlanmanagement.js" type = "text/javascript"></script>';
         }
         show_window('', $result);
     }

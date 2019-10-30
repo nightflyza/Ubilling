@@ -150,7 +150,7 @@ class OnuRegister {
      * 
      * @var array
      */
-    protected $eponCards = array(
+    public $eponCards = array(
         'EPFC' => 4,
         'EPFCB' => 4,
         'ETGO' => 8,
@@ -167,7 +167,7 @@ class OnuRegister {
      * 
      * @var array
      */
-    protected $gponCards = array(
+    public $gponCards = array(
         'GPFA' => 4,
         'GPFAE' => 4,
         'GTGO' => 8,
@@ -1970,7 +1970,7 @@ $(".changeType").change(function () {
             if (cfr('UNIVERSALQINQCONFIG')) {
                 $labels = array(
                     'cvlan' => __('Use') . ' QINQ CVLAN',
-                    'pain' => __('Use') . ' ' . __('QINQ pair'),
+                    'pair' => __('Use') . ' ' . __('QINQ pair'),
                     'cvlan_pool' => __('Use') . ' QINQ CVLAN ' . __('pool'),
                     'pair_pool' => __('Use') . ' ' . __('QINQ pair') . ' ' . __('pool')
                 );
