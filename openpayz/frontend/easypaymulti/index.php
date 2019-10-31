@@ -28,6 +28,8 @@ define('EP_USE_PAY_PURPOSES_INI', 0);
 define('EP_DEFAULT_PAY_PURPOSE', '');
 // формат текущей даты приемлемый для функции date()
 define('EP_FORMAT_DATES', 'd.m.Y');
+// передавать ПС доплнительные поля адрес и баланс
+define('EP_ADDITIONAL_ACC_INFO', 0);
 //URL вашего работающего Ubilling
 define('EP_API_URL', 'http://localhost/billing/');
 //И его серийный номер
@@ -55,6 +57,41 @@ function ep_getAgentData($userlogin) {
     $action = EP_API_URL . '?module=remoteapi&key=' . EP_API_KEY . '&action=getagentdata&param=' . $userlogin;
     @$result = file_get_contents($action);
     return ($result);
+}
+
+/**
+ * Returns array of availble user address as login=>address
+ *
+ * @return array
+ */
+function ep_AddressGetFulladdresslist() {
+//наглая заглушка
+    $alterconf['ZERO_TOLERANCE'] = 0;
+    $alterconf['CITY_DISPLAY'] = 0;
+    $result = array();
+    $query_full = "
+        SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address`
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id`
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id`
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id`
+        INNER JOIN `city` ON `street`.`cityid`=`city`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
+            // zero apt handle
+            if ($alterconf['ZERO_TOLERANCE']) {
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' . $ArrayData['apt'];
+            } else {
+                $apartment_filtered = '/' . $ArrayData['apt'];
+            }
+            if ($alterconf['CITY_DISPLAY']) {
+                $result[$ArrayData['login']] = $ArrayData['cityname'] . ' ' . $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
+            } else {
+                $result[$ArrayData['login']] = $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
+            }
+        }
+    }
+    return($result);
 }
 
 /**
@@ -249,6 +286,17 @@ if (!empty($rawXml)) {
                     $companyData = '';
                 }
 
+                if (EP_ADDITIONAL_ACC_INFO) {
+                    $allAddress = ep_AddressGetFulladdresslist();
+                    $userData = simple_query("SELECT * from `users` WHERE `login`='" . $userlogin . "'");
+                    $addtionalAccInfo = '
+                                        <Address>' . @$allAddress[$userlogin] . '</Address>
+                                        <Balance>' . @$userData['Cash'] . '</Balance>    
+                                        ';
+                } else {
+                    $addtionalAccInfo = '';
+                }
+
 
                 $reply = '
                 <Response>
@@ -256,7 +304,7 @@ if (!empty($rawXml)) {
                 <StatusDetail>Ok</StatusDetail>
                 <DateTime>' . date("Y-m-d\TH:i:s") . '</DateTime>
                  <AccountInfo>
-                    <Name>' . @$allrealnames[$userlogin] . '</Name>
+                    <Name>' . @$allrealnames[$userlogin] . '</Name>' . $addtionalAccInfo . '
                  </AccountInfo>
                  ' . $companyData . '
                 </Response>
