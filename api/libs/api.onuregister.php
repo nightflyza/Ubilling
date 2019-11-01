@@ -150,35 +150,14 @@ class OnuRegister {
      * 
      * @var array
      */
-    public $eponCards = array(
-        'EPFC' => 4,
-        'EPFCB' => 4,
-        'ETGO' => 8,
-        'ETGOD' => 8,
-        'ETTO' => 8,
-        'ETTOK' => 8,
-        'ETGH' => 16,
-        'ETGHG' => 16,
-        'ETGHK' => 16
-    );
+    protected $eponCards = array();
 
     /**
      * Array for checking ports count for GPON cards
      * 
      * @var array
      */
-    public $gponCards = array(
-        'GPFA' => 4,
-        'GPFAE' => 4,
-        'GTGO' => 8,
-        'GTGH' => 16,
-        'GTGHG' => 16,
-        'GTGHK' => 16,
-        'GPBD' => 8,
-        'GPFD' => 16,
-        'GPBH' => 8,
-        'GPMD' => 8
-    );
+    protected $gponCards = array();
 
     /**
      * Greed placeholder
@@ -416,6 +395,8 @@ class OnuRegister {
         snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        $this->eponCards = self::allEponCards();
+        $this->gponCards = self::allGponCards();
         $this->universalQinq = new UniversalQINQ();
         $this->usersQinQ = $this->universalQinq->getAll();
         $this->vlanManagement = new VlanManagement();
@@ -465,6 +446,48 @@ class OnuRegister {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Setter for epon cards
+     * 
+     * @return array
+     */
+    public static function allEponCards() {
+        return(array(
+            'EPFC' => 4,
+            'EPFCB' => 4,
+            'ETGO' => 8,
+            'ETGOD' => 8,
+            'ETTO' => 8,
+            'ETTOK' => 8,
+            'ETGH' => 16,
+            'ETGHG' => 16,
+            'ETGHK' => 16
+        ));
+    }
+
+    /**
+     * Setter for gpon cards.
+     * 
+     * @return array
+     */
+    public static function allGponCards() {
+        return(array(
+            'GPFA' => 4,
+            'GPFAE' => 4,
+            'GTGO' => 8,
+            'GTGH' => 16,
+            'GTGHG' => 16,
+            'GTGHK' => 16,
+            'GPBD' => 8,
+            'GPFD' => 16,
+            'GPBH' => 8,
+            'GPMD' => 8,
+            'H806G' => 8,
+            'H803G' => 16,
+            'H805G' => 16
+        ));
     }
 
     /**

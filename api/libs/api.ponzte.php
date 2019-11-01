@@ -13,33 +13,14 @@ class PonZte {
      * 
      * @var array
      */
-    protected $eponCards = array(
-        'EPFC' => 4,
-        'EPFCB' => 4,
-        'ETGO' => 8,
-        'ETGOD' => 8,
-        'ETGH' => 16,
-        'ETGHG' => 16,
-        'ETGHK' => 16
-    );
+    protected $eponCards = array();
 
     /**
      * Array for checking ports count for GPON cards
      * 
      * @var array
      */
-    protected $gponCards = array(
-        'GPFA' => 4,
-        'GPFAE' => 4,
-        'GTGO' => 8,
-        'GTGH' => 16,
-        'GTGHG' => 16,
-        'GTGHK' => 16,
-        'GPBD' => 8,
-        'GPFD' => 16,
-        'GPBH' => 8,
-        'GPMD' => 8
-    );
+    protected $gponCards = array();
 
     /**
      * Contains snmp helper object
@@ -163,6 +144,8 @@ class PonZte {
         $this->loadOltModels();
         $this->loadSnmpTemplates();
         $this->currentSnmpTemplate = $this->snmpTemplates[$oltModelId];
+        $this->eponCards = OnuRegister::allEponCards();
+        $this->gponCards = OnuRegister::allGponCards();
     }
 
     /**
@@ -237,7 +220,7 @@ class PonZte {
         }
     }
 
-    //wrappers
+//wrappers
 
     /**
      * Wrapper around $this->snmp->walk method and explodeRows function to get less string length.
@@ -285,7 +268,7 @@ class PonZte {
         return(trim(str_replace($search, '', $str)));
     }
 
-    //processing functions
+//processing functions
 
     /**
      * Epon signals preprocessing
@@ -393,7 +376,7 @@ class PonZte {
             10 => 'type-onu',
             12 => 'type-onu'
         );
-        //rename interface to epon (or gpon if needed)
+//rename interface to epon (or gpon if needed)
         foreach ($typeName as &$name) {
             if ($this->ponType == 'EPON') {
                 $name = str_replace('type', 'epon', $name);
@@ -645,7 +628,7 @@ class PonZte {
         }
     }
 
-    //parser functions
+//parser functions
 
     /**
      * Parses & stores in cache ZTE OLT ONU ID
@@ -696,7 +679,7 @@ class PonZte {
         $fdbTmp = array();
         $macTmp = array();
         $result = array();
-        //fdb index preprocessing
+//fdb index preprocessing
         if ((!empty($this->fdbIndex)) AND ( !empty($this->macIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
@@ -714,7 +697,7 @@ class PonZte {
                     }
                 }
             }
-            //mac index preprocessing            
+//mac index preprocessing            
             foreach ($this->macIndex as $devIndex => $eachMac) {
                 if ($this->interfaceDecode($devIndex)) {
                     $macTmp[$this->interfaceDecode($devIndex)] = $eachMac;
@@ -723,7 +706,7 @@ class PonZte {
 
             $realData = array_intersect_key($macTmp, $fdbTmp);
 
-            //storing results            
+//storing results            
             foreach ($realData as $devId => $eachMac) {
                 $result[$macTmp[$devId]] = $fdbTmp[$devId];
             }
@@ -791,20 +774,20 @@ class PonZte {
         $result = array();
         $curDate = curdatetime();
 
-        //signal index preprocessing
+//signal index preprocessing
         if ((!empty($this->sigIndex)) AND ( !empty($this->snIndex))) {
             $this->signalIndexProcessing();
             $this->serialIndexGponProcessing();
             $realData = array_intersect_key($this->snIndex, $this->sigIndex);
 
-            //storing results            
+//storing results            
             foreach ($realData as $devId => $eachSn) {
                 $result[$this->snIndex[$devId]] = $this->sigIndex[$devId];
                 $tmpSig = $this->sigIndex[$devId];
                 if ($tmpSig == 'Offline') {
                     $tmpSig = -9000;
                 }
-                //signal history filling
+//signal history filling
                 $historyFile = PONizer::ONUSIG_PATH . md5($this->snIndex[$devId]);
 
                 file_put_contents($historyFile, $curDate . ',' . $tmpSig . "\n", FILE_APPEND);
@@ -824,7 +807,7 @@ class PonZte {
     protected function distanceParseGpon() {
         $result = array();
 
-        //distance index preprocessing
+//distance index preprocessing
         if (!empty($this->distanceIndex) AND ! empty($this->snIndex)) {
             $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
             foreach ($realData as $io => $eachsn) {
@@ -845,7 +828,7 @@ class PonZte {
         $fdbTmp = array();
         $snTmp = array();
         $result = array();
-        //fdb index preprocessing
+//fdb index preprocessing
         if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
@@ -863,7 +846,7 @@ class PonZte {
                     }
                 }
             }
-            //mac index preprocessing            
+//mac index preprocessing            
             foreach ($this->snIndex as $devIndex => $eachSn) {
                 $devIndexParts = explode(".", $devIndex);
                 $onuNumber = $devIndexParts[1];
@@ -875,7 +858,7 @@ class PonZte {
 
             $realData = array_intersect_key($snTmp, $fdbTmp);
 
-            //storing results            
+//storing results            
             foreach ($realData as $devId => $eachSn) {
                 $result[$snTmp[$devId]] = $fdbTmp[$devId];
             }
@@ -891,7 +874,7 @@ class PonZte {
     protected function interfaceParseGpon() {
         $result = array();
 
-        //storing results
+//storing results
 
         foreach ($this->snIndex as $ioIndex => $eachSn) {
             $ioIndexSplit = explode(".", $ioIndex);

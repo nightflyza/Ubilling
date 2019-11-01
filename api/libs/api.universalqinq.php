@@ -97,6 +97,20 @@ class UniversalQINQ {
     protected $occupiedSwitches = array();
 
     /**
+     * All cvlans occupied by olts
+     * 
+     * @var array
+     */
+    protected $occupiedOlt = array();
+
+    /**
+     * All cvlans => olt id
+     * 
+     * @var array
+     */
+    protected $occupiedOltId = array();
+
+    /**
      * Contains system alter config as key=>value
      * 
      * @var array
@@ -287,6 +301,19 @@ class UniversalQINQ {
     }
 
     /**
+     * Check if qinq pair is not occupied by switch.
+     * 
+     * @return bool
+     */
+    protected function isOltCvlanUnique() {
+        if (isset($this->occupiedOlt[$this->routing->get('cvlan_num', 'int')])) {
+            return(false);
+        }
+
+        return(true);
+    }
+
+    /**
      * Check if qinq pair is not occupied by customer.
      * 
      * @return bool
@@ -366,6 +393,29 @@ class UniversalQINQ {
     }
 
     /**
+     * Get all c-vlans occupied by olts.
+     * 
+     * @return void
+     */
+    protected function occupiedOlts() {
+        $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name`,`zte_qinq`.`port`,`zte_qinq`.`cvlan` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `zte_qinq`.`slot_number` IS NOT NULL AND `qte_qinq`.`svlan_id`=' . $this->routing->get('svlan_id', 'int');
+        $allZteBinding = simple_queryall($query);
+        foreach ($allZteBinding as $io => $each) {
+            $maxOnuCount = 128;
+            if (isset($this->eponCards[$each['card_name']])) {
+                if ($each['card_name'] != 'ETTO' AND $each['card_name'] != 'ETTOK') {
+                    $maxOnuCount = 64;
+                }
+            }
+            for ($cvlan = $each['cvlan']; $cvlan <= $each['cvlan'] + $maxOnuCount - 1; $cvlan++) {
+                $currentOlt = $this->allSwitches[$each['swid']];
+                $this->occupiedOlt[$cvlan] = $currentOlt['ip'] . ' | ' . $currentOlt['desc'] . ' ' . $each['card_name'] . ' | ' . $each['port'];
+                $this->occupiedOltId[$cvlan] = $each['swid'];
+            }
+        }
+    }
+
+    /**
      * Check all validation function and return error if something didn't pass
      * 
      * @return bool
@@ -386,6 +436,7 @@ class UniversalQINQ {
                     . ' ' . __('occcupied by switch') . ': '
                     . $this->occupiedSwitches[$this->routing->get('cvlan_num', 'int')];
         }
+
         if (!$this->isUserExists()) {
             $this->error[] = __('User does not exist') . ' : ' . $this->routing->get('login', 'mres');
         }
