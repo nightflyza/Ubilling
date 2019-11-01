@@ -1736,7 +1736,7 @@ class PONizer {
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'HUAWEI_GPON') {
                             $ztePoller = new PonZte($oltModelId, $oltid, $oltIp, $oltCommunity);
                             $ztePoller->ponType = 'GPON';
-                            $ztePoller->hauweiPollGpon();
+                            $ztePoller->huaweiPollGpon();
                         }
                     }
                 }
