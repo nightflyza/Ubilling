@@ -53,29 +53,28 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
                 switch ($vlan->routing->get('action')) {
                     case 'realm_id_select':
                         die($vlan->svlanSelector($vlan->routing->get('ajrealmid')));
-                        break;
                     case 'ajax':
                         die($vlan->ajaxChooseForm());
-                        break;
                     case 'ajaxcustomer':
                         die($vlan->ajaxCustomer());
-                        break;
                     case 'ajaxswitch':
                         die($vlan->ajaxSwitch());
-                        break;
+                    case 'ajaxolt':
+                        die($vlan->ajaxOlt());
                     case 'chooseoltcard':
                         die($vlan->cardSelector());
                     case 'choosecardport':
                         die($vlan->portCardSelector());
-                        break;
                     case 'choosetype':
                         die($vlan->types());
-                        break;
                     case 'add':
                         $vlan->addNewBinding();
                         break;
-                    case 'deletebinding':
-                        $vlan->deleteBinding();
+                    case 'deleteswitchbinding':
+                        $vlan->deleteSwitchBinding();
+                        break;
+                    case 'deleteoltbinding':
+                        $vlan->deleteOltBinding();
                         break;
                 }
             } else {
