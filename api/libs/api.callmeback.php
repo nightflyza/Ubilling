@@ -154,7 +154,7 @@ class CallMeBack {
         if ($doneCalls > 0) {
             $columns = array('ID', 'Date', 'Number', 'Status');
             $opts = '"order": [[ 0, "desc" ]]';
-            $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajaxdonecalls=true', false, 'calls', 100, $opts);
+            $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajaxdonecalls=true', false, 'Calls', 100, $opts);
         } else {
             $messages = new UbillingMessageHelper();
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
