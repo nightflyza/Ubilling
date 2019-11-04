@@ -26,14 +26,14 @@ class VlanManagement {
      * 
      * @var string
      */
-    protected $goToStartSvlan = '';
+    protected $startSvlanUrl = '';
 
     /**
      * Routing URL.
      * 
      * @var string
      */
-    protected $gotoStartManagement = '';
+    protected $startManagementUrl = '';
 
     /**
      * Placeholder for nyan_orm instance for realms table.
@@ -309,8 +309,8 @@ class VlanManagement {
      * @return void
      */
     protected function initEnv() {
-        $this->setGoToStartManagement();
-        $this->setGoToStartSvlan();
+        $this->setManagementUrl();
+        $this->setSvlanUrl();
     }
 
     /**
@@ -318,8 +318,8 @@ class VlanManagement {
      * 
      * @return void
      */
-    protected function setGoToStartSvlan() {
-        $this->goToStartSvlan = self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int');
+    protected function setSvlanUrl() {
+        $this->startSvlanUrl = self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int');
     }
 
     /**
@@ -327,8 +327,8 @@ class VlanManagement {
      * 
      * @return void
      */
-    protected function setGoToStartManagement() {
-        $this->gotoStartManagement = self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int');
+    protected function setManagementUrl() {
+        $this->startManagementUrl = self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int');
     }
 
     /**
@@ -357,7 +357,7 @@ class VlanManagement {
     protected function validateSvlan() {
         $this->checkSvlanRange();
         $this->uniqueSvlan();
-        $this->protectedDefaultSvlan();
+        $this->protectedSvlan();
 
         if (!empty($this->error)) {
             return (false);
@@ -370,7 +370,7 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function protectedDefaultSvlan() {
+    protected function protectedSvlan() {
         if ($this->notDefaultSvlanEdit()) {
             return (true);
         }
@@ -544,10 +544,10 @@ class VlanManagement {
                 $this->addSvlanDb();
                 $this->logSvlanAdd();
             }
-            $this->goToStartOrError($this->goToStartSvlan);
+            $this->goToStartOrError($this->startSvlanUrl);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError($this->goToStartSvlan);
+            $this->goToStartOrError($this->startSvlanUrl);
         }
     }
 
@@ -574,10 +574,10 @@ class VlanManagement {
                 $this->editSvlanDb();
                 $this->logSvlanEdit();
             }
-            $this->goToStartOrError($this->goToStartSvlan);
+            $this->goToStartOrError($this->startSvlanUrl);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError($this->goToStartSvlan);
+            $this->goToStartOrError($this->startSvlanUrl);
         }
     }
 
@@ -605,10 +605,10 @@ class VlanManagement {
                 $this->deleteSvlanRelated();
                 $this->logSvlanDelete();
             }
-            $this->goToStartOrError($this->goToStartSvlan);
+            $this->goToStartOrError($this->startSvlanUrl);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError($this->goToStartSvlan);
+            $this->goToStartOrError($this->startSvlanUrl);
         }
     }
 
@@ -1273,10 +1273,10 @@ class VlanManagement {
                     $this->addNewOltBinding();
                     break;
             }
-            $this->goToStartOrError($this->gotoStartManagement);
+            $this->goToStartOrError($this->startManagementUrl);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError($this->gotoStartManagement);
+            $this->goToStartOrError($this->startManagementUrl);
         }
     }
 
@@ -1373,7 +1373,7 @@ class VlanManagement {
     public function deleteSwitchBinding() {
         $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $this->switchesqinqDb->delete();
-        $this->goToStartOrError($this->gotoStartManagement);
+        $this->goToStartOrError($this->startManagementUrl);
     }
 
     /**
@@ -1386,7 +1386,7 @@ class VlanManagement {
         $this->zteqinqDb->where('slot_number', '=', $this->routing->get('slot_number', 'int'));
         $this->zteqinqDb->where('port', '=', $this->routing->get('port', 'int'));
         $this->zteqinqDb->delete();
-        $this->goToStartOrError($this->gotoStartManagement);
+        $this->goToStartOrError($this->startManagementUrl);
     }
 
     /**
