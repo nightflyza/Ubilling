@@ -660,7 +660,7 @@ class VlanManagement {
                 . '&action=choosetype&type=qinqolt&'
                 . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int');
 
-//if qinq switches enabled
+        //if qinq switches enabled
         if ($this->altCfg[self::QINQ_OPTION]) {
             $selector[$switches] = __(self::QINQ_LABEL);
             $this->defaultType = $switches;
@@ -670,7 +670,7 @@ class VlanManagement {
             $selector[$universal] = __(self::UNIVERSAL_QINQ_LABEL);
         }
 
-//if qinq switches disabled
+        //if qinq switches disabled
         if (!$this->altCfg[self::QINQ_OPTION] and $this->altCfg[self::UNIVERSAL_QINQ_OPTION] and cfr(self::UNIVERSAL_QINQ_RGHT)) {
             $selector[$universal] = __(self::UNIVERSAL_QINQ_LABEL);
             $this->defaultType = $universal;
@@ -692,7 +692,7 @@ class VlanManagement {
      * @return string
      */
     protected function oltSelector() {
-//still can't use nyan_orm for joins :(
+        //still can't use nyan_orm for joins :(
         $query = 'SELECT `sw`.`id`,`sw`.`ip`,`sw`.`location`,`model`.`snmptemplate` FROM `switches` AS `sw` JOIN `switchmodels` AS `model` ON (`sw`.`modelid` = `model`.`id`) WHERE `sw`.`desc` LIKE "%OLT%" AND `model`.`snmptemplate` LIKE "ZTE%"';
         $switches = simple_queryall($query);
 
@@ -722,7 +722,7 @@ class VlanManagement {
         $result = '';
         $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
         if ($this->routing->get('id', 'int')) {
-//still can't use nyan_orm for joins :(
+            //still can't use nyan_orm for joins :(
             $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `swid`=' . $this->routing->get('id', 'int') . ' ORDER BY `slot_number`';
             $allCards = simple_queryall($query);
             if (!empty($allCards)) {
@@ -854,6 +854,13 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Check if CVLAN not occupied by any switch.
+     * 
+     * @param int $cvlan
+     * 
+     * @return array or bool
+     */
     protected function checkCvlanSwitches($cvlan) {
         if (isset($this->occupiedSwitches[$cvlan])) {
             $result['used'] = $this->occupiedSwitches[$cvlan];
@@ -863,6 +870,13 @@ class VlanManagement {
         return(false);
     }
 
+    /**
+     * Check if CVLAN not occupied by any customer.
+     * 
+     * @param int $cvlan
+     * 
+     * @return array or bool
+     */
     protected function checkCvlanUniversal($cvlan) {
         if (isset($this->occupiedUniversal[$cvlan])) {
             $result['used'] = $this->occupiedUniversal[$cvlan];
@@ -872,6 +886,13 @@ class VlanManagement {
         return(false);
     }
 
+    /**
+     * Check if CVLAN not occupied by any OLT.
+     * 
+     * @param int $cvlan
+     * 
+     * @return array or bool
+     */
     protected function checkCvlanOlt($cvlan) {
         if (isset($this->occupiedOlt[$cvlan])) {
             $result['used'] = $this->occupiedOlt[$cvlan];
@@ -881,6 +902,14 @@ class VlanManagement {
         return(false);
     }
 
+    /**
+     * Check if CVLAN is free.
+     * Multiple return is mandatory to check only in needed order.
+     * 
+     * @param int $cvlan
+     * 
+     * @return array
+     */
     protected function checkCvlanFree($cvlan) {
         $result['used'] = false;
         $result['type'] = 'none';
@@ -903,6 +932,15 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Return error upon occupied CVLAN.
+     * 
+     * @param array $check
+     * @param int $cvlan
+     * @param int $lastCvlan
+     * 
+     * @return void
+     */
     protected function errorOccupied($check, $cvlan, $lastCvlan) {
         switch ($check['type']) {
             case'switch':
@@ -932,6 +970,11 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Add new CVLAN range binding for olt.
+     * 
+     * @return void
+     */
     protected function addNewOltBinding() {
         $maxOnuCount = 128;
         $cardName = $this->routing->get('card_name');
@@ -1201,7 +1244,9 @@ class VlanManagement {
     protected function loadOccupiedCvlans() {
         $this->loadUniversalCvlans();
         $this->loadSwitchesCvlans();
-        $this->loadOltsCvlans();
+        if ($this->altCfg['ONUREG_QINQ_ENABLED']) {
+            $this->loadOltsCvlans();
+        }
     }
 
     /**
@@ -1285,6 +1330,13 @@ class VlanManagement {
         }
     }
 
+    /**
+     * Adding html properties based on type.
+     * 
+     * @param int $cvlan
+     * 
+     * @return array
+     */
     protected function setMatricContainerColor($cvlan) {
         $switchid = '';
         $check = $this->checkCvlanFree($cvlan);
@@ -1319,6 +1371,13 @@ class VlanManagement {
         return($result);
     }
 
+    /**
+     * Set onclick property based on class.
+     * 
+     * @param string $color
+     * 
+     * @return string
+     */
     protected function setMatrixOnlick($color) {
         $onclick = '';
         switch ($color) {
