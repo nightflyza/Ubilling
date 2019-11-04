@@ -245,6 +245,13 @@ class VlanManagement {
      */
     protected $gponCards = array();
 
+    /**
+     * Contains all occupied switchports
+     * 
+     * @var array
+     */
+    protected $allPorts = array();
+
     public function __construct() {
         $this->routing = new ubRouting();
         $this->messages = new UbillingMessageHelper();
@@ -277,6 +284,8 @@ class VlanManagement {
      */
     protected function loadData() {
         $this->allRealms = $this->realmDb->getAll('id');
+        $this->allSwitches = $this->switchesDb->getAll('id');
+        $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->loadOccupiedCvlans();
         $this->eponCards = OnuRegister::allEponCards();
         $this->gponCards = OnuRegister::allGponCards();
@@ -481,13 +490,14 @@ class VlanManagement {
      * @return bool
      */
     protected function uniqueSvlan() {
-        if (!$this->uniqueSvlanAdd()) {
-            return (false);
+        if ($this->uniqueSvlanAdd()) {
+            return (true);
         }
-        if (!$this->uniqueSvlanEdit()) {
-            return (false);
+        if ($this->uniqueSvlanEdit()) {
+            return (true);
         }
-        return (true);
+        $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
+        return (false);
     }
 
     /**
@@ -500,7 +510,6 @@ class VlanManagement {
             $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
             $allSvlan = $this->svlanDb->getAll('svlan');
             if (isset($allSvlan[$this->routing->get('svlan_num')])) {
-                $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
                 return (false);
             }
         }
@@ -518,7 +527,6 @@ class VlanManagement {
             $this->svlanDb->where('svlan', '!=', $this->routing->get('old_svlan_num', 'int'));
             $allSvlan = $this->svlanDb->getAll('svlan');
             if (isset($allSvlan[$this->routing->get('svlan_num')])) {
-                $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
                 return (false);
             }
         }
@@ -534,6 +542,7 @@ class VlanManagement {
         try {
             if ($this->validateSvlan()) {
                 $this->addSvlanDb();
+                $this->logSvlanAdd();
             }
             $this->goToStartOrError($this->goToStartSvlan);
         } catch (Exception $ex) {
@@ -552,7 +561,6 @@ class VlanManagement {
         $this->svlanDb->data('svlan', $this->routing->get('svlan_num', 'int'));
         $this->svlanDb->data('description', $this->routing->get('description', 'mres'));
         $this->svlanDb->create();
-        $this->logSvlanAdd();
     }
 
     /**
@@ -564,6 +572,7 @@ class VlanManagement {
         try {
             if ($this->validateSvlan()) {
                 $this->editSvlanDb();
+                $this->logSvlanEdit();
             }
             $this->goToStartOrError($this->goToStartSvlan);
         } catch (Exception $ex) {
@@ -583,7 +592,6 @@ class VlanManagement {
         $this->svlanDb->data('svlan', $this->routing->get('svlan_num', 'int'));
         $this->svlanDb->data('description', $this->routing->get('description', 'mres'));
         $this->svlanDb->save();
-        $this->logSvlanDelete();
     }
 
     /**
@@ -595,6 +603,7 @@ class VlanManagement {
         try {
             if ($this->validateSvlan()) {
                 $this->deleteSvlanRelated();
+                $this->logSvlanDelete();
             }
             $this->goToStartOrError($this->goToStartSvlan);
         } catch (Exception $ex) {
@@ -624,7 +633,6 @@ class VlanManagement {
         $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
         $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
         $this->svlanDb->delete();
-        $this->logSvlanDelete();
     }
 
     /**
@@ -1300,7 +1308,6 @@ class VlanManagement {
      */
     public function ajaxSwitch() {
         $result = '';
-        $this->allSwitches = $this->switchesDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $data = $this->switchesqinqDb->getAll('svlan_id');
@@ -1457,6 +1464,7 @@ class VlanManagement {
      */
     protected function loadOccupiedCvlans() {
         $this->loadUniversalCvlans();
+        $this->loadOccupiedPorts();
         $this->loadSwitchesCvlans();
         if ($this->altCfg['ONUREG_QINQ_ENABLED']) {
             $this->loadOltsCvlans();
@@ -1479,27 +1487,17 @@ class VlanManagement {
      * @return void
      */
     protected function loadSwitchesCvlans() {
-        $this->allSwitches = $this->switchesDb->getAll('id');
-        $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
-        $query = "SELECT `switchid`,`port`,`login` FROM `switchportassign`";
-        $allPorts = array();
-        $allPortsRaw = simple_queryall($query);
-        if (!empty($allPortsRaw)) {
-            foreach ($allPortsRaw as $io => $each) {
-                $allPorts[$each['switchid']][$each['port']] = $each['login'];
-            }
-        }
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
             $portCounter = 1;
             if (isset($this->allSwitches[$each['switchid']])) {
                 $modelid = $this->allSwitches[$each['switchid']]['modelid'];
-                $port_number = $this->allSwitchModels[$modelid]['ports'];
-                for ($i = $each['cvlan']; $i <= ($each['cvlan'] + $port_number - 1); $i++) {
+                $portNumber = $this->allSwitchModels[$modelid]['ports'];
+                for ($i = $each['cvlan']; $i <= ($each['cvlan'] + $portNumber - 1); $i++) {
                     $this->occupiedSwitches[$i] = $this->allSwitches[$each['switchid']]['ip'] . ' | ' . $this->allSwitches[$each['switchid']]['location'];
                     $this->switchVlans[$i] = $each['switchid'];
-                    if (isset($allPorts[$each['switchid']])) {
-                        $curPorts = $allPorts[$each['switchid']];
+                    if (isset($this->allPorts[$each['switchid']])) {
+                        $curPorts = $this->allPorts[$each['switchid']];
                         foreach ($curPorts as $eachPort => $eachLogin) {
                             if ($eachPort == $portCounter) {
                                 $this->switchPortCustomer[$i] = array('port' => $eachPort, 'login' => $eachLogin);
@@ -1540,6 +1538,21 @@ class VlanManagement {
                     $this->occupiedOlt[$cvlan] = $currentOlt['ip'] . ' ' . $currentOlt['location'] . ' (' . __('Slot') . ': ' . $each['slot_number'] . '/' . $each['card_name'] . ' ' . __('Port') . ': ' . $each['port'] . ')';
                     $this->occupiedOltId[$cvlan] = $each['swid'];
                 }
+            }
+        }
+    }
+
+    /**
+     * Load all switchports
+     * 
+     * @return void
+     */
+    protected function loadOccupiedPorts() {
+        $query = "SELECT `switchid`,`port`,`login` FROM `switchportassign`";
+        $allPortsRaw = simple_queryall($query);
+        if (!empty($allPortsRaw)) {
+            foreach ($allPortsRaw as $io => $each) {
+                $this->allPorts[$each['switchid']][$each['port']] = $each['login'];
             }
         }
     }
@@ -1695,7 +1708,7 @@ class VlanManagement {
     protected function loadMatrixJs() {
         $result = '<script src = "./modules/jsc/vlanmanagement.js" type = "text/javascript"></script>';
 
-        return($result);
+        return ($result);
     }
 
     /**
