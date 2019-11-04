@@ -255,10 +255,9 @@ class VlanManagement {
     public function __construct() {
         $this->routing = new ubRouting();
         $this->messages = new UbillingMessageHelper();
-        $this->dbInit();
-        $this->loadData();
-        $this->loadAlter();
         $this->initEnv();
+        $this->dbInit();
+        $this->loadData();        
     }
 
     /**
@@ -311,6 +310,7 @@ class VlanManagement {
     protected function initEnv() {
         $this->setManagementUrl();
         $this->setSvlanUrl();
+        $this->loadAlter();
     }
 
     /**
@@ -1466,8 +1466,8 @@ class VlanManagement {
         $this->loadUniversalCvlans();
         $this->loadOccupiedPorts();
         $this->loadSwitchesCvlans();
-        if ($this->altCfg['ONUREG_QINQ_ENABLED']) {
-            $this->loadOltsCvlans();
+        if ($this->altCfg[self::ONUREG_QINQ_OPTION]) {
+        $this->loadOltsCvlans();
         }
     }
 
