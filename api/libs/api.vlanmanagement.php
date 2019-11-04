@@ -22,6 +22,20 @@ class VlanManagement {
     const DEFAULT_REALM = 1;
 
     /**
+     * Routing URL.
+     * 
+     * @var string
+     */
+    protected $goToStartSvlan = '';
+
+    /**
+     * Routing URL.
+     * 
+     * @var string
+     */
+    protected $gotoStartManagement = '';
+
+    /**
      * Placeholder for nyan_orm instance for realms table.
      * 
      * @var object
@@ -237,6 +251,7 @@ class VlanManagement {
         $this->dbInit();
         $this->loadData();
         $this->loadAlter();
+        $this->initEnv();
     }
 
     /**
@@ -277,6 +292,34 @@ class VlanManagement {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Init urls
+     * 
+     * @return void
+     */
+    protected function initEnv() {
+        $this->setGoToStartManagement();
+        $this->setGoToStartSvlan();
+    }
+
+    /**
+     * Set svlan url
+     * 
+     * @return void
+     */
+    protected function setGoToStartSvlan() {
+        $this->goToStartSvlan = self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int');
+    }
+
+    /**
+     * Set main module url.
+     * 
+     * @return void
+     */
+    protected function setGoToStartManagement() {
+        $this->gotoStartManagement = self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int');
     }
 
     /**
@@ -492,10 +535,10 @@ class VlanManagement {
             if ($this->validateSvlan()) {
                 $this->addSvlanDb();
             }
-            $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
+            $this->goToStartOrError($this->goToStartSvlan);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
+            $this->goToStartOrError($this->goToStartSvlan);
         }
     }
 
@@ -522,10 +565,10 @@ class VlanManagement {
             if ($this->validateSvlan()) {
                 $this->editSvlanDb();
             }
-            $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
+            $this->goToStartOrError($this->goToStartSvlan);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
+            $this->goToStartOrError($this->goToStartSvlan);
         }
     }
 
@@ -551,16 +594,25 @@ class VlanManagement {
     public function deleteSvlan() {
         try {
             if ($this->validateSvlan()) {
-                $this->deleteSvlanDb();
-                $this->deleteSvlanSwitchesDb();
-                $this->deleteSvlanUniversalDb();
-                $this->deleteSvlanOltDb();
+                $this->deleteSvlanRelated();
             }
-            $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
+            $this->goToStartOrError($this->goToStartSvlan);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
+            $this->goToStartOrError($this->goToStartSvlan);
         }
+    }
+
+    /**
+     * Delete all related to svlan data.
+     * 
+     * @return void
+     */
+    protected function deleteSvlanRelated() {
+        $this->deleteSvlanDb();
+        $this->deleteSvlanSwitchesDb();
+        $this->deleteSvlanUniversalDb();
+        $this->deleteSvlanOltDb();
     }
 
     /**
@@ -1213,10 +1265,10 @@ class VlanManagement {
                     $this->addNewOltBinding();
                     break;
             }
-            $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+            $this->goToStartOrError($this->gotoStartManagement);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
-            $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+            $this->goToStartOrError($this->gotoStartManagement);
         }
     }
 
@@ -1314,7 +1366,7 @@ class VlanManagement {
     public function deleteSwitchBinding() {
         $this->switchesqinqDb->where('switchid', '=', $this->routing->get('switchid', 'int'));
         $this->switchesqinqDb->delete();
-        $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+        $this->goToStartOrError($this->gotoStartManagement);
     }
 
     /**
@@ -1327,7 +1379,7 @@ class VlanManagement {
         $this->zteqinqDb->where('slot_number', '=', $this->routing->get('slot_number', 'int'));
         $this->zteqinqDb->where('port', '=', $this->routing->get('port', 'int'));
         $this->zteqinqDb->delete();
-        $this->goToStartOrError(self::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
+        $this->goToStartOrError($this->gotoStartManagement);
     }
 
     /**
@@ -1569,33 +1621,81 @@ class VlanManagement {
     public function cvlanMatrix() {
         $result = '';
         if ($this->routing->checkGet(array('realm_id', 'svlan_id'))) {
-            $result .= '<link rel = "stylesheet" href = "./skins/vlanmanagement.css" type = "text/css" media = "screen" />';
-            $result .= wf_tag('div', false, 'cvmodal', 'id = "dialog-modal_cvmodal" title = "' . __('Choose') . '" style = "display:none; width:1px; height:1px;"');
-            $result .= wf_tag('p', false, '', 'id = "content-cvmodal"');
-            $result .= wf_tag('p', true);
-            $result .= wf_tag('div', true);
+            $result .= $this->createMatrixMainContainer();
 
             for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
-                $matrixColorData = $this->setMatricContainerColor($cvlan);
-                $switchid = $matrixColorData['switchid'];
-                $color = $matrixColorData['color'];
-                $onclick = $matrixColorData['onclick'];
-
-                $result .= wf_tag('div', false, 'cvlanMatrixContainer ' . $color, 'id = "container_' . $this->routing->get('realm_id', 'int') .
-                        '/' . $this->routing->get('svlan_id', 'int') .
-                        '/' . $cvlan . '/' . $switchid . '" ' . $onclick . '');
-
-                $result .= $cvlan;
-                if (isset($this->switchPortCustomer[$cvlan])) {
-                    $result .= wf_tag('div', false, 'port_caption') . $this->switchPortCustomer[$cvlan]['port'] . wf_tag('div', true);
-                } elseif (isset($this->switchPortFree[$cvlan])) {
-                    $result .= wf_tag('div', false, 'port_caption') . $this->switchPortFree[$cvlan] . wf_tag('div', true);
-                }
-                $result .= wf_tag('div', true);
+                $result .= $this->createMatrixDataContainer($cvlan);
             }
-            $result .= '<script src = "./modules/jsc/vlanmanagement.js" type = "text/javascript"></script>';
+
+            $result .= $this->loadMatrixJs();
         }
+
         show_window('', $result);
+    }
+
+    /**
+     * Create main container and load stylesheets.
+     * 
+     * @return string
+     */
+    protected function createMatrixMainContainer() {
+        $result = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $result .= wf_tag('div', false, 'cvmodal', 'id = "dialog-modal_cvmodal" title = "' . __('Choose') . '" style = "display:none; width:1px; height:1px;"');
+        $result .= wf_tag('p', false, '', 'id = "content-cvmodal"');
+        $result .= wf_tag('p', true);
+        $result .= wf_tag('div', true);
+
+        return ($result);
+    }
+
+    /**
+     * Generate div container with data for cvlan.
+     * 
+     * @param int $cvlan
+     * 
+     * @return string
+     */
+    protected function createMatrixDataContainer($cvlan) {
+        $matrixColorData = $this->setMatricContainerColor($cvlan);
+
+        $result = wf_tag('div', false, 'cvlanMatrixContainer ' . $matrixColorData['color'], 'id = "container_' . $this->routing->get('realm_id', 'int') .
+                '/' . $this->routing->get('svlan_id', 'int') .
+                '/' . $cvlan . '/' . $matrixColorData['switchid'] . '" ' . $matrixColorData['onclick'] . '');
+
+        $result .= $cvlan;
+        $result .= $this->createMatrixPortCaption($cvlan);
+        $result .= wf_tag('div', true);
+
+        return ($result);
+    }
+
+    /**
+     * Add div with port caption if exists.
+     * 
+     * @param int $cvlan
+     * 
+     * @return string
+     */
+    protected function createMatrixPortCaption($cvlan) {
+        $result = '';
+        if (isset($this->switchPortCustomer[$cvlan])) {
+            $result = wf_tag('div', false, 'port_caption') . $this->switchPortCustomer[$cvlan]['port'] . wf_tag('div', true);
+        } elseif (isset($this->switchPortFree[$cvlan])) {
+            $result = wf_tag('div', false, 'port_caption') . $this->switchPortFree[$cvlan] . wf_tag('div', true);
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns html string to load JS file.
+     * 
+     * @return string
+     */
+    protected function loadMatrixJs() {
+        $result = '<script src = "./modules/jsc/vlanmanagement.js" type = "text/javascript"></script>';
+
+        return($result);
     }
 
     /**
