@@ -12,6 +12,7 @@ if (cfr('REPORTFINANCE')) {
         protected $totalsum = 0;
         protected $year = '';
         protected $month = '';
+        protected $dopWhere = '';
 
         public function __construct() {
             //loads module config
@@ -22,6 +23,9 @@ if (cfr('REPORTFINANCE')) {
 
             //get all login=>tariffs pairs
             $this->loadUserTariffs();
+
+            //Exclude Cash types ID from
+            $this->excludePayments();
 
             //loads current month data
             $this->loadPayments();
@@ -47,12 +51,30 @@ if (cfr('REPORTFINANCE')) {
         }
 
         /**
+         * Exclude some Cash types ID from query
+         * 
+         * @return void
+         */
+        protected function excludePayments() {
+            global $ubillingConfig;
+            if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
+                $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
+                $exIdArr = array_filter($exIdArr);
+                // Create and WHERE to query
+                if (!empty($exIdArr)) {
+                        $this->dopWhere = ' AND ';
+                        $this->dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+                }
+            }
+        }
+
+        /**
          * gets all user payments by current month and stores it into payments prop
          * 
          * @return void
          */
         protected function loadPayments() {
-            $query = "SELECT * from `payments` WHERE `date` LIKE '" . $this->year . '-' . $this->month . "-%' AND `summ`>0;";
+            $query = "SELECT * from `payments` WHERE `date` LIKE '" . $this->year . '-' . $this->month . "-%' AND `summ`>0 " . $this->dopWhere;
             $all = simple_queryall($query);
             if (!empty($all)) {
                 $this->payments = $all;

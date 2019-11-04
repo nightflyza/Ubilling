@@ -1791,6 +1791,7 @@ function months_array_localized() {
  * @param int $year
  */
 function web_PaymentsShowGraph($year) {
+    global $ubillingConfig;
     $months = months_array();
     $year_summ = zb_PaymentsGetYearSumm($year);
     $curtime = time();
@@ -1851,8 +1852,18 @@ function web_PaymentsShowGraph($year) {
     }
 
     if ($updateCache) {
+        $dopWhere = '';
+        if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
+            $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
+            $exIdArr = array_filter($exIdArr);
+            // Create and WHERE to query
+            if (!empty($exIdArr)) {
+                    $dopWhere = ' AND ';
+                    $dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+            }
+        }
         //extracting all of needed payments in one query
-        $allYearPayments_q = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ`>'0';";
+        $allYearPayments_q = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ`>'0' " . $dopWhere;
         $allYearPayments = simple_queryall($allYearPayments_q);
         if (!empty($allYearPayments)) {
             foreach ($allYearPayments as $idx => $eachYearPayment) {
@@ -4108,6 +4119,7 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
  * @return string
  */
 function web_AnalyticsArpuMonthGraph($year) {
+    global $ubillingConfig;
     $year = vf($year, 3);
     $months = months_array();
     $tmpArr = array();
@@ -4128,7 +4140,19 @@ function web_AnalyticsArpuMonthGraph($year) {
                         trigger: 'none'
                     },";
 
-    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0;";
+    // Exclude some Cash types ID from query
+    $dopWhere = '';
+    if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
+        $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
+        $exIdArr = array_filter($exIdArr);
+        // Create and WHERE to query
+        if (!empty($exIdArr)) {
+                $dopWhere = ' AND ';
+                $dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+        }
+    }
+
+    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0 " . $dopWhere;
     $allPayments = simple_queryall($query);
 
     if (!empty($allPayments)) {
@@ -4168,6 +4192,7 @@ function web_AnalyticsArpuMonthGraph($year) {
  * @return string
  */
 function web_AnalyticsPaymentsMonthGraph($year) {
+    global $ubillingConfig;
     $year = vf($year, 3);
     $months = months_array();
     $tmpArr = array();
@@ -4189,8 +4214,19 @@ function web_AnalyticsPaymentsMonthGraph($year) {
                         trigger: 'none'
                     },";
 
+    // Exclude some Cash types ID from query
+    $dopWhere = '';
+    if ($ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')) {
+        $exIdArr = array_map('trim', explode(',', $ubillingConfig->getAlterParam('REPORT_FINANCE_IGNORE_ID')));
+        $exIdArr = array_filter($exIdArr);
+        // Create and WHERE to query
+        if (!empty($exIdArr)) {
+                $dopWhere = ' AND ';
+                $dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+        }
+    }
 
-    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0;";
+    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0 " . $dopWhere;
     $allPayments = simple_queryall($query);
 
     if (!empty($allPayments)) {
