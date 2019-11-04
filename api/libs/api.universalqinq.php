@@ -400,17 +400,19 @@ class UniversalQINQ {
     protected function occupiedOlts() {
         $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name`,`zte_qinq`.`port`,`zte_qinq`.`cvlan` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `zte_qinq`.`slot_number` IS NOT NULL AND `qte_qinq`.`svlan_id`=' . $this->routing->get('svlan_id', 'int');
         $allZteBinding = simple_queryall($query);
-        foreach ($allZteBinding as $io => $each) {
-            $maxOnuCount = 128;
-            if (isset($this->eponCards[$each['card_name']])) {
-                if ($each['card_name'] != 'ETTO' AND $each['card_name'] != 'ETTOK') {
-                    $maxOnuCount = 64;
+        if (!empty($allZteBinding)) {
+            foreach ($allZteBinding as $io => $each) {
+                $maxOnuCount = 128;
+                if (isset($this->eponCards[$each['card_name']])) {
+                    if ($each['card_name'] != 'ETTO' AND $each['card_name'] != 'ETTOK') {
+                        $maxOnuCount = 64;
+                    }
                 }
-            }
-            for ($cvlan = $each['cvlan']; $cvlan <= $each['cvlan'] + $maxOnuCount - 1; $cvlan++) {
-                $currentOlt = $this->allSwitches[$each['swid']];
-                $this->occupiedOlt[$cvlan] = $currentOlt['ip'] . ' | ' . $currentOlt['desc'] . ' ' . $each['card_name'] . ' | ' . $each['port'];
-                $this->occupiedOltId[$cvlan] = $each['swid'];
+                for ($cvlan = $each['cvlan']; $cvlan <= $each['cvlan'] + $maxOnuCount - 1; $cvlan++) {
+                    $currentOlt = $this->allSwitches[$each['swid']];
+                    $this->occupiedOlt[$cvlan] = $currentOlt['ip'] . ' | ' . $currentOlt['desc'] . ' ' . $each['card_name'] . ' | ' . $each['port'];
+                    $this->occupiedOltId[$cvlan] = $each['swid'];
+                }
             }
         }
     }
