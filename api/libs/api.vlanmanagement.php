@@ -698,8 +698,10 @@ class VlanManagement {
 
         $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
 
-        foreach ($switches as $io => $each) {
-            $options[self::MODULE . '&action=chooseoltcard&id=' . $each['id'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['ip'] . ' ' . $each['location'];
+        if (!empty($switches)) {
+            foreach ($switches as $io => $each) {
+                $options[self::MODULE . '&action=chooseoltcard&id=' . $each['id'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['ip'] . ' ' . $each['location'];
+            }
         }
 
         reset($options);
@@ -723,8 +725,10 @@ class VlanManagement {
 //still can't use nyan_orm for joins :(
             $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `swid`=' . $this->routing->get('id', 'int') . ' ORDER BY `slot_number`';
             $allCards = simple_queryall($query);
-            foreach ($allCards as $io => $each) {
-                $options[self::MODULE . '&action=choosecardport&id=' . $this->routing->get('id', 'int') . '&slot_number=' . $each['slot_number'] . '&card_name=' . $each['card_name'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['slot_number'] . ' | ' . $each['card_name'];
+            if (!empty($allCards)) {
+                foreach ($allCards as $io => $each) {
+                    $options[self::MODULE . '&action=choosecardport&id=' . $this->routing->get('id', 'int') . '&slot_number=' . $each['slot_number'] . '&card_name=' . $each['card_name'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['slot_number'] . ' | ' . $each['card_name'];
+                }
             }
         }
 
@@ -789,8 +793,10 @@ class VlanManagement {
         $query = "SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location` FROM `switches` LEFT JOIN `switches_qinq` ON `switches`.`id` = `switches_qinq`.`switchid` WHERE `switches_qinq`.`switchid` IS NULL";
         $switches = simple_queryall($query);
 
-        foreach ($switches as $io => $each) {
-            $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
+        if (!empty($switches)) {
+            foreach ($switches as $io => $each) {
+                $options[$each['id']] = $each['ip'] . ' ' . $each['location'];
+            }
         }
 
         return(wf_Selector('qinqswitchid', $options, __('Select switch')));
@@ -1069,11 +1075,11 @@ class VlanManagement {
      */
     public function ajaxOlt() {
         $result = '';
-        
+
         $this->cvlanDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         $this->cvlanDb->where('cvlan', '=', $this->routing->get('cvlan_num', 'int'));
         $data = $this->cvlanDb->getAll('cvlan');
-        if (!empty($data)) {            
+        if (!empty($data)) {
             $login = $data[$this->routing->get('cvlan_num', 'int')]['login'];
             $userData = zb_UserGetAllData($login);
             $userData = $userData[$login];
@@ -1218,10 +1224,12 @@ class VlanManagement {
         $this->allSwitchModels = $this->switchModelsDb->getAll('id');
         $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('svlan_id', 'int'));
         $query = "SELECT `switchid`,`port`,`login` FROM `switchportassign`";
-        $allPortsRaw = simple_queryall($query);
         $allPorts = array();
-        foreach ($allPortsRaw as $io => $each) {
-            $allPorts[$each['switchid']][$each['port']] = $each['login'];
+        $allPortsRaw = simple_queryall($query);
+        if (!empty($allPortsRaw)) {
+            foreach ($allPortsRaw as $io => $each) {
+                $allPorts[$each['switchid']][$each['port']] = $each['login'];
+            }
         }
         foreach ($this->switchesqinqDb->getAll('switchid') as $io => $each) {
             $portCounter = 1;
@@ -1260,17 +1268,19 @@ class VlanManagement {
         }
         $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name`,`zte_qinq`.`port`,`zte_qinq`.`cvlan` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `zte_qinq`.`slot_number` IS NOT NULL AND `zte_qinq`.`svlan_id`=' . $svlan_id;
         $allZteBinding = simple_queryall($query);
-        foreach ($allZteBinding as $io => $each) {
-            $maxOnuCount = 128;
-            if (isset($this->eponCards[$each['card_name']])) {
-                if ($each['card_name'] != 'ETTO' AND $each['card_name'] != 'ETTOK') {
-                    $maxOnuCount = 64;
+        if (!empty($allZteBinding)) {
+            foreach ($allZteBinding as $io => $each) {
+                $maxOnuCount = 128;
+                if (isset($this->eponCards[$each['card_name']])) {
+                    if ($each['card_name'] != 'ETTO' AND $each['card_name'] != 'ETTOK') {
+                        $maxOnuCount = 64;
+                    }
                 }
-            }
-            for ($cvlan = $each['cvlan']; $cvlan <= $each['cvlan'] + $maxOnuCount - 1; $cvlan++) {
-                $currentOlt = $this->allSwitches[$each['swid']];
-                $this->occupiedOlt[$cvlan] = $currentOlt['ip'] . ' ' . $currentOlt['location'] . ' (' . __('Slot') . ': ' . $each['slot_number'] . '/' . $each['card_name'] . ' ' . __('Port') . ': ' . $each['port'] . ')';
-                $this->occupiedOltId[$cvlan] = $each['swid'];
+                for ($cvlan = $each['cvlan']; $cvlan <= $each['cvlan'] + $maxOnuCount - 1; $cvlan++) {
+                    $currentOlt = $this->allSwitches[$each['swid']];
+                    $this->occupiedOlt[$cvlan] = $currentOlt['ip'] . ' ' . $currentOlt['location'] . ' (' . __('Slot') . ': ' . $each['slot_number'] . '/' . $each['card_name'] . ' ' . __('Port') . ': ' . $each['port'] . ')';
+                    $this->occupiedOltId[$cvlan] = $each['swid'];
+                }
             }
         }
     }
