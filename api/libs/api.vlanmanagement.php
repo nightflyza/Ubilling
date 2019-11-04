@@ -18,6 +18,8 @@ class VlanManagement {
     const UNIVERSAL_QINQ_OPTION = 'UNIVERSAL_QINQ_ENABLED';
     const UNIVERSAL_QINQ_RGHT = 'UNIVERSALQINQCONFIG';
     const UNIVERSAL_QINQ_LABEL = 'Universal QINQ';
+    const DEFAULT_SVLAN = 0;
+    const DEFAULT_REALM = 1;
 
     /**
      * Placeholder for nyan_orm instance for realms table.
@@ -283,13 +285,15 @@ class VlanManagement {
      * @return void
      */
     protected function goToStartOrError($url) {
+        if (!empty($this->error)) {
+            $this->showError();
+        }
+        if (!empty($this->exceptions)) {
+            $this->showExceptions();
+        }
+        //redirect on success
         if (empty($this->error) and empty($this->exceptions)) {
             rcms_redirect($url);
-        } else {
-            $this->showError();
-            if (!empty($this->exceptions)) {
-                $this->showExceptions();
-            }
         }
     }
 
@@ -299,23 +303,14 @@ class VlanManagement {
      * @return bool
      */
     protected function validateSvlan() {
-        if (!$this->checkSvlan()) {
-            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
-        }
-
-        if (!$this->uniqueSvlan()) {
-            $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
-        }
-
-        if ($this->protectDefault()) {
-            $this->error[] = __('Default SVLAN is protected and cannot be deleted or edited');
-        }
-
+        $this->checkSvlanRange();
+        $this->uniqueSvlan();
+        $this->protectedDefaultSvlan();
 
         if (!empty($this->error)) {
-            return(false);
+            return (false);
         }
-        return(true);
+        return (true);
     }
 
     /**
@@ -323,18 +318,104 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function protectDefault() {
-        if (($this->routing->get('action') == 'edit')) {
-            if (($this->routing->get('old_svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
-                return(true);
-            }
+    protected function protectedDefaultSvlan() {
+        if (!$this->protectedDefaultSvlanEdit()) {
+            return (true);
         }
-        if ($this->routing->get('action') == 'delete') {
-            if (($this->routing->get('svlan_num', 'int') == 0 ) and ( $this->routing->get('realm_id', 'int') == 1)) {
-                return(true);
-            }
+        if (!$this->protectedDefaultSvlanDelete()) {
+            return (true);
         }
+        //add error if check not passed
+        $this->error[] = __('Default SVLAN is protected and cannot be deleted or edited');
         return false;
+    }
+
+    /**
+     * Check if svlan number equal to default one.
+     * 
+     * @return bool
+     */
+    protected function defaultSvlanNum() {
+        if ($this->routing->get('svlan_num', 'int') == self::DEFAULT_SVLAN) {
+            return (true);
+        }
+        return (false);
+    }
+
+    /**
+     * Check if realm id is equal to default one.
+     * 
+     * @return bool
+     */
+    protected function defaultRealmId() {
+        if ($this->routing->get('realm_id', 'int') == self::DEFAULT_REALM) {
+            return (true);
+        }
+        return (false);
+    }
+
+    /**
+     * Check if old svlan num is equal to default one.
+     * 
+     * @return bool
+     */
+    protected function defaultSvlanOldNum() {
+        if ($this->routing->get('old_svlan_num', 'int') == self::DEFAULT_SVLAN) {
+            return (true);
+        }
+        return (false);
+    }
+
+    /**
+     * Check if editing not protected entity.
+     * 
+     * @return bool
+     */
+    protected function protectedDefaultSvlanEdit() {
+        if (($this->routing->get('action') == 'edit')) {
+            if ($this->defaultSvlanOldNum() and $this->defaultRealmId()) {
+                return (true);
+            }
+        }
+        return (false);
+    }
+
+    /**
+     * Check if deleting not protected entity.
+     * 
+     * @return bool
+     */
+    protected function protectedDefaultSvlanDelete() {
+        if ($this->routing->get('action') == 'delete') {
+            if ($this->defaultSvlanNum() and $this->defaultRealmId()) {
+                return (true);
+            }
+        }
+        return (false);
+    }
+
+    /**
+     * Check if value too low.
+     * 
+     * @return bool
+     */
+    protected function vlanNumTooLow() {
+        if ($this->routing->get('svlan', 'int') < 0) {
+            return (true);
+        }
+        return (false);
+    }
+
+    /**
+     * Check if value too high.
+     * 
+     * @return bool
+     */
+    protected function vlanNumTooHigh() {
+        if ($this->routing->get('svlan', 'int') > 4096) {
+            return (true);
+        }
+        return (false);
     }
 
     /**
@@ -342,10 +423,12 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function checkSvlan() {
-        if (($this->routing->get('svlan', 'int') >= 0) and ( $this->routing->get('svlan', 'int') <= 4096)) {
-            return(true);
+    protected function checkSvlanRange() {
+        if (!$this->vlanNumTooLow() and ! $this->vlanNumTooHigh()) {
+            return (true);
         }
+        //add error if not exited previously
+        $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
         return (false);
     }
 
@@ -355,22 +438,48 @@ class VlanManagement {
      * @return bool
      */
     protected function uniqueSvlan() {
+        if (!$this->uniqueSvlanAdd()) {
+            return (false);
+        }
+        if (!$this->uniqueSvlanEdit()) {
+            return (false);
+        }
+        return (true);
+    }
+
+    /**
+     * Check if SVLAN is unique when adding new SVLAN.
+     * 
+     * @return bool
+     */
+    protected function uniqueSvlanAdd() {
         if ($this->routing->get('action') == 'add') {
             $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
             $allSvlan = $this->svlanDb->getAll('svlan');
             if (isset($allSvlan[$this->routing->get('svlan_num')])) {
-                return(false);
+                $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
+                return (false);
             }
         }
+        return (true);
+    }
+
+    /**
+     * Check if SVLAN is unique when editing SVLAN.
+     * 
+     * @return bool
+     */
+    protected function uniqueSvlanEdit() {
         if ($this->routing->get('action') == 'edit') {
             $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
             $this->svlanDb->where('svlan', '!=', $this->routing->get('old_svlan_num', 'int'));
             $allSvlan = $this->svlanDb->getAll('svlan');
             if (isset($allSvlan[$this->routing->get('svlan_num')])) {
-                return(false);
+                $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int') . ' ' . __('already exists');
+                return (false);
             }
         }
-        return(true);
+        return (true);
     }
 
     /**
@@ -381,17 +490,26 @@ class VlanManagement {
     public function addSvlan() {
         try {
             if ($this->validateSvlan()) {
-                $this->svlanDb->data('realm_id', $this->routing->get('realm_id', 'int'));
-                $this->svlanDb->data('svlan', $this->routing->get('svlan_num', 'int'));
-                $this->svlanDb->data('description', $this->routing->get('description', 'mres'));
-                $this->svlanDb->create();
-                $this->logSvlanAdd();
+                $this->addSvlanDb();
             }
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
         }
+    }
+
+    /**
+     * Adding entry to DB and log.
+     * 
+     * @return void 
+     */
+    protected function addSvlanDb() {
+        $this->svlanDb->data('realm_id', $this->routing->get('realm_id', 'int'));
+        $this->svlanDb->data('svlan', $this->routing->get('svlan_num', 'int'));
+        $this->svlanDb->data('description', $this->routing->get('description', 'mres'));
+        $this->svlanDb->create();
+        $this->logSvlanAdd();
     }
 
     /**
@@ -402,18 +520,27 @@ class VlanManagement {
     public function editSvlan() {
         try {
             if ($this->validateSvlan()) {
-                $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
-                $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
-                $this->svlanDb->data('svlan', $this->routing->get('svlan_num', 'int'));
-                $this->svlanDb->data('description', $this->routing->get('description', 'mres'));
-                $this->svlanDb->save();
-                $this->logSvlanDelete();
+                $this->editSvlanDb();
             }
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
         }
+    }
+
+    /**
+     * Saving changes to DB.
+     * 
+     * @return void
+     */
+    protected function editSvlanDb() {
+        $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
+        $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
+        $this->svlanDb->data('svlan', $this->routing->get('svlan_num', 'int'));
+        $this->svlanDb->data('description', $this->routing->get('description', 'mres'));
+        $this->svlanDb->save();
+        $this->logSvlanDelete();
     }
 
     /**
@@ -424,23 +551,58 @@ class VlanManagement {
     public function deleteSvlan() {
         try {
             if ($this->validateSvlan()) {
-                $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
-                $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
-                $this->svlanDb->delete();
-
-//delete all the qinq bindings for this svlan
-                $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
-                $this->switchesqinqDb->delete();
-                $this->cvlanDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
-                $this->cvlanDb->delete();
-
-                $this->logSvlanDelete();
+                $this->deleteSvlanDb();
+                $this->deleteSvlanSwitchesDb();
+                $this->deleteSvlanUniversalDb();
+                $this->deleteSvlanOltDb();
             }
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
             $this->goToStartOrError(self::MODULE_SVLAN . '&realm_id=' . $this->routing->get('realm_id', 'int'));
         }
+    }
+
+    /**
+     * Delete svlan from qinq_svlan table.
+     * 
+     * @return void
+     */
+    protected function deleteSvlanDb() {
+        $this->svlanDb->where('realm_id', '=', $this->routing->get('realm_id', 'int'));
+        $this->svlanDb->where('id', '=', $this->routing->get('id', 'int'));
+        $this->svlanDb->delete();
+        $this->logSvlanDelete();
+    }
+
+    /**
+     * Delete svlan from switches_qinq table.
+     * 
+     * @return void
+     */
+    protected function deleteSvlanSwitchesDb() {
+        $this->switchesqinqDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
+        $this->switchesqinqDb->delete();
+    }
+
+    /**
+     * Delete svlan from qinq_bindings table.
+     * 
+     * @return void
+     */
+    protected function deleteSvlanUniversalDb() {
+        $this->cvlanDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
+        $this->cvlanDb->delete();
+    }
+
+    /**
+     * Delete svlan from zte_qinq table.
+     * 
+     * @return void.
+     */
+    protected function deleteSvlanOltDb() {
+        $this->zteqinqDb->where('svlan_id', '=', $this->routing->get('id', 'int'));
+        $this->zteqinqDb->delete();
     }
 
     /**
@@ -457,7 +619,7 @@ class VlanManagement {
         $addControls .= wf_TextInput('description', __('Description'), '', true, '', '');
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
-        return(wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
+        return (wf_modalAuto(web_icon_create() . ' ' . __('Create new entry'), __('Create new entry'), $form, 'ubButton'));
     }
 
     /**
@@ -479,7 +641,7 @@ class VlanManagement {
         $addControls .= wf_HiddenInput('old_svlan_num', $decode['svlan']);
         $addControls .= wf_Submit('Save');
         $form = wf_Form('', 'GET', $addControls, 'glamour');
-        return($form);
+        return ($form);
     }
 
     /**
@@ -496,7 +658,7 @@ class VlanManagement {
         $inputs = wf_HiddenInput('module', 'vlanmanagement');
         $inputs .= wf_HiddenInput('svlan', 'true');
         $inputs .= wf_SelectorAC('realm_id', $params, __('Realm'), $this->routing->get('realm_id', 'int'));
-        return(wf_Form("", "GET", $inputs));
+        return (wf_Form("", "GET", $inputs));
     }
 
     /**
@@ -529,7 +691,7 @@ class VlanManagement {
      * @return string
      */
     protected function backSvlan() {
-        return(wf_BackLink(self::MODULE, __('Back'), false, 'ubButton'));
+        return (wf_BackLink(self::MODULE, __('Back'), false, 'ubButton'));
     }
 
     /**
@@ -621,7 +783,7 @@ class VlanManagement {
         $inputs2 = wf_AjaxContainer('ajcontainer', '', $this->svlanSelector($this->routing->get('realm_id', 'int') ? $this->routing->get('realm_id', 'int') : $this->defaultRealm));
         $inputs2 .= wf_delimiter();
         $result .= $inputs . wf_Form("", 'GET', $inputs2);
-        return($result);
+        return ($result);
     }
 
     /**
@@ -639,7 +801,7 @@ class VlanManagement {
             $this->defaultRealm = key($this->allRealms);
         }
 
-        return(wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
+        return (wf_AjaxSelectorAC('ajcontainer', $this->realmSelector, __('Select realm'), self::MODULE . '&action=realm_id_select&ajrealmid=' . $this->routing->get('realm_id', 'int'), false));
     }
 
     /**
@@ -683,7 +845,7 @@ class VlanManagement {
         }
 
 
-        return(wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->defaultType, false));
+        return (wf_AjaxSelectorAC('ajtypecontainer', $selector, __('Choose type'), $this->defaultType, false));
     }
 
     /**
@@ -710,7 +872,7 @@ class VlanManagement {
         $result = wf_AjaxLoader();
         $result .= wf_AjaxSelectorAC('ajoltcontainer', $options, __('Select switch'), $default);
         $result .= wf_AjaxContainer('ajoltcontainer', '');
-        return($result);
+        return ($result);
     }
 
     /**
@@ -738,7 +900,7 @@ class VlanManagement {
         $result .= wf_AjaxSelectorAC('ajoltcardcontainer', $options, __('Select card'), $default);
         $result .= wf_AjaxContainer('ajoltcardcontainer', '');
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -781,7 +943,7 @@ class VlanManagement {
         $form .= wf_HiddenInput('slot_number', $this->routing->get('slot_number', 'int'));
         $form .= wf_HiddenInput('card_name', $this->routing->get('card_name', 'mres'));
         $form .= wf_Selector('port', $options, __('Select port'), self::EMPTY_SELECTOR_OPTION, true);
-        return($form);
+        return ($form);
     }
 
     /**
@@ -799,7 +961,7 @@ class VlanManagement {
             }
         }
 
-        return(wf_Selector('qinqswitchid', $options, __('Select switch')));
+        return (wf_Selector('qinqswitchid', $options, __('Select switch')));
     }
 
     /**
@@ -851,7 +1013,7 @@ class VlanManagement {
             }
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -865,9 +1027,9 @@ class VlanManagement {
         if (isset($this->occupiedSwitches[$cvlan])) {
             $result['used'] = $this->occupiedSwitches[$cvlan];
             $result['type'] = 'switch';
-            return($result);
+            return ($result);
         }
-        return(false);
+        return (false);
     }
 
     /**
@@ -881,9 +1043,9 @@ class VlanManagement {
         if (isset($this->occupiedUniversal[$cvlan])) {
             $result['used'] = $this->occupiedUniversal[$cvlan];
             $result['type'] = 'universal';
-            return($result);
+            return ($result);
         }
-        return(false);
+        return (false);
     }
 
     /**
@@ -897,9 +1059,9 @@ class VlanManagement {
         if (isset($this->occupiedOlt[$cvlan])) {
             $result['used'] = $this->occupiedOlt[$cvlan];
             $result['type'] = 'olt';
-            return($result);
+            return ($result);
         }
-        return(false);
+        return (false);
     }
 
     /**
@@ -916,20 +1078,20 @@ class VlanManagement {
 
         if ($this->checkCvlanOlt($cvlan)) {
             $result = $this->checkCvlanOlt($cvlan);
-            return($result);
+            return ($result);
         }
 
         if ($this->checkCvlanSwitches($cvlan)) {
             $result = $this->checkCvlanSwitches($cvlan);
-            return($result);
+            return ($result);
         }
 
         if ($this->checkCvlanUniversal($cvlan)) {
             $result = $this->checkCvlanUniversal($cvlan);
-            return($result);
+            return ($result);
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1076,7 +1238,7 @@ class VlanManagement {
         $result .= wf_delimiter(2);
         $result .= wf_Link(self::MODULE_UNIVERSALQINQ . '&action=delete&type=universal&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id') . '&id=' . $data[$this->routing->get('cvlan_num', 'int')]['id'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1108,7 +1270,7 @@ class VlanManagement {
         $result .= wf_delimiter(2);
         $result .= wf_Link(self::MODULE . '&action=deleteswitchbinding&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int') . '&switchid=' . $data['switchid'], web_delete_icon() . __('Delete binding'), false, 'ubButton');
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1141,7 +1303,7 @@ class VlanManagement {
         $result .= wf_Link(self::MODULE . '&action=deleteoltbinding&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int') . '&switchid=' . $this->routing->get('switchid', 'int'), web_delete_icon() . __('Delete binding') . ' ' . __('for') . ' OLT', false, 'ubButton');
 
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1214,7 +1376,7 @@ class VlanManagement {
             $rows = wf_TableRow($cells, 'row3');
             $result .= wf_TableBody($rows, '100%', '0');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1233,7 +1395,7 @@ class VlanManagement {
         $inputs .= wf_AjaxContainer('ajtypecontainer', '', $this->types($this->defaultType));
         $inputs .= wf_Submit(__('Save'));
         $form = $inputs2 . wf_Form('', "GET", $inputs, 'glamour');
-        return($form);
+        return ($form);
     }
 
     /**
@@ -1368,7 +1530,7 @@ class VlanManagement {
         $result['color'] = $color;
         $result['onclick'] = $onclick;
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1396,7 +1558,7 @@ class VlanManagement {
                 $onclick = 'onclick = "occupiedBySwitch(this)"';
                 break;
         }
-        return($onclick);
+        return ($onclick);
     }
 
     /**
@@ -1442,7 +1604,7 @@ class VlanManagement {
      * @return array
      */
     public function getAllSvlan() {
-        return($this->svlanDb->getAll('id'));
+        return ($this->svlanDb->getAll('id'));
     }
 
     /**
@@ -1451,7 +1613,7 @@ class VlanManagement {
      * @return array
      */
     public function getAllRealms() {
-        return($this->allRealms);
+        return ($this->allRealms);
     }
 
     /**
