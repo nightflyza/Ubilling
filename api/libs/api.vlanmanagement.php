@@ -371,10 +371,10 @@ class VlanManagement {
      * @return bool
      */
     protected function protectedDefaultSvlan() {
-        if (!$this->protectedDefaultSvlanEdit()) {
+        if ($this->notDefaultSvlanEdit()) {
             return (true);
         }
-        if (!$this->protectedDefaultSvlanDelete()) {
+        if ($this->notDefaultSvlanDelete()) {
             return (true);
         }
         //add error if check not passed
@@ -423,13 +423,13 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function protectedDefaultSvlanEdit() {
+    protected function notDefaultSvlanEdit() {
         if (($this->routing->get('action') == 'edit')) {
             if ($this->defaultSvlanOldNum() and $this->defaultRealmId()) {
-                return (true);
+                return (false);
             }
         }
-        return (false);
+        return (true);
     }
 
     /**
@@ -437,13 +437,13 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function protectedDefaultSvlanDelete() {
+    protected function notDefaultSvlanDelete() {
         if ($this->routing->get('action') == 'delete') {
             if ($this->defaultSvlanNum() and $this->defaultRealmId()) {
-                return (true);
+                return (false);
             }
         }
-        return (false);
+        return (true);
     }
 
     /**
