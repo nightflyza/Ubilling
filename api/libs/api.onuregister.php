@@ -1944,6 +1944,65 @@ $(".changeType").change(function () {
         return ($result);
     }
 
+    protected function getAllUniversalCvlans($svlanId) {
+        $query = "SELECT * FROM `qinq_bindings` WHERE `svlan_id`=" . $svlanId;
+        $data = simple_queryall($query);
+        if (!empty($data)) {
+            foreach ($data as $io => $each) {
+                $result[] = $each['cvlan'];
+            }
+            return($result);
+        }
+        return(array());
+    }
+
+    protected function getCardName() {
+        $intParts = explode("/", $_GET['interface']);
+        $slot = mysql_real_escape_string($intParts[1]);
+        $swid = vf($_GET['swid'], 3);
+
+        $query = "SELECT * FROM `zte_cards` WHERE `swid`=" . $swid . ' AND slot_number=' . $slot;
+        $cardData = simple_query($query);
+        return($cardData['card_name']);
+    }
+
+    protected function getQinqPairPool() {
+        $result = array();
+        $intParts = explode("/", $_GET['interface']);
+        $slot = mysql_real_escape_string($intParts[1]);
+        $port = mysql_real_escape_string($intParts[2]);
+        $swid = vf($_GET['swid'], 3);
+        $cardName = $this->getCardName();
+        $query = "SELECT * FROM `zte_qinq` WHERE `swid`=" . $swid . ' AND `slot_number`=' . $slot . ' AND `port`=' . $port;
+        $qinqBind = simple_query($query);
+        if (!empty($qinqBind)) {
+            $cvlan = $qinqBind['cvlan'];
+            $svlanId = $qinqBind['svlan_id'];
+            $query = "SELECT * FROM `qinq_svlan` WHERE `id`=" . $svlanId;
+            $vlanData = simple_query($query);
+            if (!empty($vlanData)) {
+                $maxOnuCount = 128;
+                if ($this->currentPonType == 'EPON') {
+                    if ($cardName != 'ETTO' and $cardName != 'ETTOK') {
+                        $maxOnuCount = 64;
+                    }
+                }
+                $lastCvlan = $cvlan + $maxOnuCount - 1;
+                $allUniversal = $this->getAllUniversalCvlans($svlanId);
+                for ($cvlanCounter = $cvlan; $cvlanCounter <= $lastCvlan; $cvlanCounter++) {
+                    $possibleCvlans[] = $cvlanCounter;
+                }
+                $freeCvlans = array_diff($possibleCvlans, $allUniversal);
+                reset($freeCvlans);
+                $firstFree = current($freeCvlans);
+
+                $result['cvlan'] = $firstFree;
+                $result['svlan'] = $vlanData['svlan'];
+            }
+        }
+        return($result);
+    }
+
     /**
      * Web form for register onu.
      * 
@@ -1986,21 +2045,34 @@ $(".changeType").change(function () {
 
                 break;
         }
-        if ($this->altCfg['VLAN_MANAGEMENT_ENABLED'] and $this->altCfg['UNIVERSAL_QINQ_ENABLED'] and $this->altCfg['ONUREG_QINQ_ENABLED']) {
+        if ($this->altCfg[VlanManagement::VLANMANAGEMENT_OPTION] and $this->altCfg[VlanManagement::UNIVERSAL_QINQ_OPTION] and $this->altCfg[VlanManagement::ONUREG_QINQ_OPTION]) {
             $cell .= wf_delimiter();
-            $cell .= __('UniversalQINQ') . wf_delimiter();
-            $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, __('Do not use QINQ'), self::GET_UNIVERSALQINQ_NONE, true, true);
+            $cell .= __('Universal QINQ') . wf_delimiter();
             if (cfr('UNIVERSALQINQCONFIG')) {
                 $labels = array(
-                    'cvlan' => __('Use') . ' QINQ CVLAN',
-                    'pair' => __('Use') . ' ' . __('QINQ pair'),
+                    'cvlan' => __('Use') . ' ' . __('Universal QINQ') . ' CVLAN',
+                    'pair' => __('Use') . ' ' . __('Universal QINQ pair'),
                     'cvlan_pool' => __('Use') . ' QINQ CVLAN ' . __('pool'),
                     'pair_pool' => __('Use') . ' ' . __('QINQ pair') . ' ' . __('pool')
                 );
-                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['cvlan'], self::GET_UNIVERSALQINQ_CVLAN, true, false);
-                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['cvlan_pool'], self::GET_UNIVERSALQINQ_CVLAN_POOL, true, false);
-                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['pair'], self::GET_UNIVERSALQINQ_PAIR, true, false);
-                $cell .= wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['pair_pool'], self::GET_UNIVERSALQINQ_PAIR_POOL, true, false);
+                $vlans = $this->getQinqPairPool();
+                $cells = wf_TableCell(wf_RadioInput(self::GET_UNIVERSALQINQ, __('Do not use QINQ'), self::GET_UNIVERSALQINQ_NONE, true, true));
+                $row = wf_TableRow($cells);
+                $cells = wf_TableCell(wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['cvlan'], self::GET_UNIVERSALQINQ_CVLAN, true, false));
+                $cells .= wf_TableCell('');
+                $row .= wf_TableRow($cells);
+                $cells = wf_TableCell(wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['pair'], self::GET_UNIVERSALQINQ_PAIR, true, false));
+                $cells .= wf_TableCell('');
+                $row .= wf_TableRow($cells);
+                if (!empty($vlans)) {
+                    $cells = wf_TableCell(wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['cvlan_pool'], self::GET_UNIVERSALQINQ_CVLAN_POOL, false, false));
+                    $cells .= wf_TableCell('VLAN: (' . $vlans['cvlan'] . ')');
+                    $row .= wf_TableRow($cells);
+                    $cells = wf_TableCell(wf_RadioInput(self::GET_UNIVERSALQINQ, $labels['pair_pool'], self::GET_UNIVERSALQINQ_PAIR_POOL, false, false));
+                    $cells .= wf_TableCell('VLAN: (' . $vlans['svlan'] . '/' . $vlans['cvlan'] . ')');
+                    $row .= wf_TableRow($cells);
+                }
+                $cell .= wf_TableBody($row);
             }
         }
 
