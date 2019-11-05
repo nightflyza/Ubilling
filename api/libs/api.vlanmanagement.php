@@ -984,8 +984,6 @@ class VlanManagement {
             $this->zteCardsDb->orderBy('slot_number', 'ASC');
             $allCards = $this->zteCardsDb->getAll('id');
             $this->zteCardsDb->selectable();
-//            $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name` FROM `zte_cards` LEFT JOIN `zte_qinq` USING (`swid`) WHERE `swid`=' . $this->routing->get('id', 'int') . ' ORDER BY `slot_number`';
-//            $allCards = simple_queryall($query);
             if (!empty($allCards)) {
                 foreach ($allCards as $io => $each) {
                     $options[self::MODULE . '&action=choosecardport&id=' . $this->routing->get('id', 'int') . '&slot_number=' . $each['slot_number'] . '&card_name=' . $each['card_name'] . '&cvlan_num=' . $this->routing->get('cvlan_num', 'int')] = $each['slot_number'] . ' | ' . $each['card_name'];
@@ -1630,8 +1628,6 @@ class VlanManagement {
             $this->zteqinqDb->where('zte_qinq.svlan_id', '=', $this->svlanId);
             $allZteBinding = $this->zteqinqDb->getAll('id');
             $this->zteqinqDb->selectable();
-//            $query = 'SELECT `zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name`,`zte_qinq`.`port`,`zte_qinq`.`cvlan` FROM `zte_qinq` RIGHT JOIN `zte_cards` USING (`swid`,`slot_number`) WHERE `zte_qinq`.`port` IS NOT NULL AND `zte_qinq`.`svlan_id`=' . $svlan_id;
-//            $allZteBinding = simple_queryall($query);
             if (!empty($allZteBinding)) {
                 foreach ($allZteBinding as $io => $each) {
                     $maxOnuCount = 128;
