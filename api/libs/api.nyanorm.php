@@ -169,14 +169,16 @@ class NyanORM {
             $joinExpression = trim($joinExpression);
             switch ($joinExpression) {
                 case 'INNER':
+                    break;
                 case 'LEFT':
+                    break;
                 case 'RIGHT':
                     break;
                 default :
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (`" . $using . "`)";
+                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
             }
         } else {
             $this->flushJoin();
@@ -195,7 +197,7 @@ class NyanORM {
     public function where($field = '', $expression = '', $value = '') {
         if (!empty($field) AND ! empty($expression)) {
             $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
-            $this->where[] = "`" . $field . "` " . $expression . " " . $value;
+            $this->where[] = $this->escapeField($field) . " " . $expression . " " . $value;
         } else {
             $this->flushWhere();
         }
@@ -241,7 +243,7 @@ class NyanORM {
     public function orWhere($field = '', $expression = '', $value = '') {
         if (!empty($field) AND ! empty($expression)) {
             $value = ($value == 'NULL' OR $value == 'null') ? $value : "'" . $value . "'";
-            $this->orWhere[] = "`" . $field . "` " . $expression . " " . $value;
+            $this->orWhere[] = $this->escapeField($field) . " " . $expression . " " . $value;
         } else {
             $this->flushWhere();
         }
@@ -282,7 +284,7 @@ class NyanORM {
      */
     public function orderBy($field = '', $order = '') {
         if (!empty($field) AND ! empty($order)) {
-            $this->order[] = "`" . $field . "` " . $order;
+            $this->order[] = $this->escapeField($field) . " " . $order;
         } else {
             $this->flushOrder();
         }
@@ -571,7 +573,7 @@ class NyanORM {
                 if (!empty($whereString)) {
                     //double check, yeah.
                     foreach ($this->data as $field => $value) {
-                        $query = "UPDATE `" . $this->tableName . "` SET `" . $field . "`='" . $value . "'" . $whereString;
+                        $query = "UPDATE `" . $this->tableName . "` SET " . $this->escapeField($field) . "='" . $value . "'" . $whereString;
                         $this->debugLog($query);
                         nr_query($query);
                     }
@@ -608,7 +610,7 @@ class NyanORM {
                 $dataValues .= 'NULL,';
             }
             foreach ($this->data as $field => $value) {
-                $dataStruct .= '`' . $field . '`,';
+                $dataStruct .= $this->escapeField($field) . ',';
                 $dataValues .= "'" . $value . "',";
             }
             $dataStruct = zb_CutEnd($dataStruct);
@@ -633,8 +635,7 @@ class NyanORM {
      * @return int
      */
     public function getLastId() {
-        $tablename = $this->tableName;
-        $query = "SELECT `" . $this->defaultPk . "` from `" . $this->tableName . "` ORDER BY `" . $this->defaultPk . "` DESC LIMIT 1";
+        $query = "SELECT " . $this->escapeField($this->defaultPk) . " from `" . $this->tableName . "` ORDER BY " . $this->escapeField($this->defaultPk) . " DESC LIMIT 1";
         $result = simple_query($query);
         return ($result[$this->defaultPk]);
     }
@@ -649,12 +650,12 @@ class NyanORM {
      */
     public function getFieldsCount($fieldsToCount = 'id', $flushParams = true) {
         $whereString = $this->buildWhereString();
-        $raw = simple_query("SELECT COUNT(`" . $fieldsToCount . "`) from `" . $this->tableName . "`" . $whereString);
+        $raw = simple_query("SELECT COUNT(" . $this->escapeField($fieldsToCount) . ") AS `result` from `" . $this->tableName . "`" . $whereString);
         if ($flushParams) {
             //flush instance parameters for further queries
             $this->destroyAllStructs();
         }
-        return($raw['COUNT(`' . $fieldsToCount . '`)']);
+        return($raw['result']);
     }
 
     /**
@@ -681,6 +682,25 @@ class NyanORM {
      */
     public function setDefaultPk($fieldName = 'id') {
         $this->defaultPk = $fieldName;
+    }
+
+    /**
+     * Trying to correctly escape fields when using table_name.field_name.
+     * 
+     * @param string $field
+     * 
+     * @return string
+     */
+    protected function escapeField($field) {
+        if (strpos($field, '.') !== false) {
+            $parts = explode(".", $field);
+            $field = "`" . $parts[0] . "`.`" . $parts[1] . "`";
+        } else {
+            if (trim($field != "*")) {
+                $field = "`" . $field . "`";
+            }
+        }
+        return ($field);
     }
 
 }
