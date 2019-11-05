@@ -71,6 +71,13 @@ class NyanORM {
     protected $order = array();
 
     /**
+     * Contains JOIN expression.
+     * 
+     * @var array
+     */
+    protected $join = array();
+
+    /**
      * Contains default query results limit
      *
      * @var int
@@ -149,6 +156,24 @@ class NyanORM {
     }
 
     /**
+     * Setter for join list which used in getAll.
+     * 
+     * @param type $joinExpression
+     * @param type $using
+     * 
+     * @return void
+     */
+    public function join($joinExpression = '', $using = '') {
+        if (!empty($joinExpression) and ! empty($using)) {
+            if (is_string($joinExpression) and is_string($using)) {
+                $this->join[] = $joinExpression . ' USING (`' . $using . '`)';
+            }
+        } else {
+            $this->flushJoin();
+        }
+    }
+
+    /**
      * Appends some where expression to protected prop for further database queries. Cleans it if all params empty.
      * 
      * @param string $field field name to apply expression
@@ -191,6 +216,7 @@ class NyanORM {
         $this->flushWhere();
         $this->flushOrder();
         $this->flushLimit();
+        $this->flushJoin();
     }
 
     /**
@@ -271,6 +297,15 @@ class NyanORM {
     }
 
     /**
+     * Flushed join cumullative struct
+     * 
+     * @return void
+     */
+    protected function flushJoin() {
+        $this->join = array();
+    }
+
+    /**
      * Process some debugging data if required
      * 
      * @param string $data now it just string that will be displayed in debug output
@@ -293,6 +328,21 @@ class NyanORM {
 
             file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
         }
+    }
+
+    /**
+     * Build join expression from protected join expressions array.
+     * 
+     * @return string
+     */
+    protected function buildJoinString() {
+        $result = '';
+        if (!empty($this->join)) {
+            if (is_array($this->join)) {
+                $result .= implode(' ', $this->join);
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -410,13 +460,14 @@ class NyanORM {
      * @return array
      */
     public function getAll($assocByField = '', $flushParams = true) {
+        $joinString = $this->buildJoinString();
         $whereString = $this->buildWhereString();
         $orderString = $this->buildOrderString();
         $limitString = $this->buildLimitString();
         $selectableString = $this->buildSelectableString();
         //building some dummy query
         $query = "SELECT " . $selectableString . " from `" . $this->tableName . "` "; //base query
-        $query .= $whereString . $orderString . $limitString; //optional parameters
+        $query .= $joinString . $whereString . $orderString . $limitString; //optional parameters
         $this->debugLog($query);
         $result = simple_queryall($query);
 
