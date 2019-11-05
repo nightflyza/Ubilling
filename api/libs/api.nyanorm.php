@@ -158,15 +158,16 @@ class NyanORM {
     /**
      * Setter for join list which used in getAll.
      * 
-     * @param type $joinExpression
-     * @param type $using
+     * @param string $joinExpression LEFT JOIN or RIGHT JOIN or whatever you need type of JOIN
+     * @param string $tableName table name (for example switches)
+     * @param string $using field to use for USING expression
      * 
      * @return void
      */
-    public function join($joinExpression = '', $using = '') {
-        if (!empty($joinExpression) and ! empty($using)) {
-            if (is_string($joinExpression) and is_string($using)) {
-                $this->join[] = $joinExpression . ' USING (`' . $using . '`)';
+    public function join($joinExpression = '', $tableName = '', $using = '') {
+        if (!empty($joinExpression) and ! empty($tableName) and ! empty($using)) {
+            if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
+                $this->join[] = $joinExpression . ' `' . $tableName . '`' . ' USING (`' . $using . '`)';
             }
         } else {
             $this->flushJoin();
