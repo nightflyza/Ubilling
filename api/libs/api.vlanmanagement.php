@@ -257,7 +257,7 @@ class VlanManagement {
         $this->messages = new UbillingMessageHelper();
         $this->initEnv();
         $this->dbInit();
-        $this->loadData();        
+        $this->loadData();
     }
 
     /**
@@ -1467,7 +1467,7 @@ class VlanManagement {
         $this->loadOccupiedPorts();
         $this->loadSwitchesCvlans();
         if ($this->altCfg[self::ONUREG_QINQ_OPTION]) {
-        $this->loadOltsCvlans();
+            $this->loadOltsCvlans();
         }
     }
 
