@@ -56,9 +56,18 @@
 }
 
 .occupied_olt {
-
+    border-color: #1240AB;       
+    background-color: #b1b1e7;    
 }
 
 .occupied_olt:hover {
+    background-color: #8b8bda;    
+}
 
+.occupied_olt_with_customer {
+    border-color: #1240AB;       
+    background-color: #c5ecdf;    
+}
+.occupied_olt_with_customer:hover {
+    background-color: #77d4b5;    
 }

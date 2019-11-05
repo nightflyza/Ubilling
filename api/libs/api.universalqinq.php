@@ -203,14 +203,17 @@ class UniversalQINQ {
      * @return void
      */
     protected function goToStartOrError() {
-        if (empty($this->error)) {
+        if (empty($this->error) and empty($this->exceptions)) {
             if ($this->routing->checkGet('type')) {
                 rcms_redirect(VlanManagement::MODULE . '&realm_id=' . $this->routing->get('realm_id', 'int') . '&svlan_id=' . $this->routing->get('svlan_id', 'int'));
             } else {
                 rcms_redirect(self::MODULE);
             }
-        } else {
-            $this->showError();
+        }
+        if (!$this->routing->checkGet('type')) {
+            if (!empty($this->error)) {
+                $this->showError();
+            }
             if (!empty($this->exceptions)) {
                 $this->showExceptions();
             }
@@ -439,7 +442,9 @@ class UniversalQINQ {
                     . $this->occupiedSwitches[$this->routing->get('cvlan_num', 'int')];
         }
 
-        if (!$this->isUserExists()) {
+        if (!$this->routing->get('login')) {
+            $this->error[] = __('Login cannot be empty');
+        } else if (!$this->isUserExists()) {
             $this->error[] = __('User does not exist') . ' : ' . $this->routing->get('login', 'mres');
         }
         if (!$this->isUserUnique()) {
@@ -459,7 +464,7 @@ class UniversalQINQ {
      */
     public function add() {
         try {
-            if ($this->validator('add')) {
+            if ($this->validator()) {
                 $this->qinqdb->data('login', trim($this->routing->get('login', 'mres')));
                 $this->qinqdb->data('svlan_id', trim($this->routing->get('svlan_id', 'int')));
                 $this->qinqdb->data('cvlan', trim($this->routing->get('cvlan_num', 'int')));
@@ -467,6 +472,7 @@ class UniversalQINQ {
                 $this->logAdd();
             }
             $this->goToStartOrError();
+            return($this->error);
         } catch (Exception $ex) {
             $this->exceptions[] = $ex;
             $this->goToStartOrError();
