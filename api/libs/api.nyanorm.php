@@ -165,19 +165,18 @@ class NyanORM {
      * @return void
      */
     public function join($joinExpression = '', $tableName = '', $using = '') {
-        switch ($joinExpression) {
-            case 'INNER':
-            case 'LEFT':
-            case 'RIGHT':
-                break;
-            default :
-                throw new Exception('MEOW_JOIN_WRONG_TYPE');
-        }
         if (!empty($joinExpression) and ! empty($tableName) and ! empty($using)) {
-            if (!empty($tableName)) {
-                if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
-                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (`" . $using . "`)";
-                }
+            $joinExpression = trim($joinExpression);
+            switch ($joinExpression) {
+                case 'INNER':
+                case 'LEFT':
+                case 'RIGHT':
+                    break;
+                default :
+                    throw new Exception('MEOW_JOIN_WRONG_TYPE');
+            }
+            if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
+                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (`" . $using . "`)";
             }
         } else {
             $this->flushJoin();
