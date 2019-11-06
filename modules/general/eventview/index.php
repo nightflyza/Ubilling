@@ -257,8 +257,8 @@ if (cfr('EVENTVIEW')) {
                         @$loginExtracted = $tmpLoginMatches[1];
                         if (!empty($loginExtracted)) {
                             if (!ispos($event, '((')) { // ignore UKV user id-s 
-                            $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
-                            $event = str_replace($loginExtracted, $userProfileLink, $event);
+                                $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
+                                $event = str_replace($loginExtracted, $userProfileLink, $event);
                             }
                         }
                     }
