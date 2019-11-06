@@ -114,63 +114,63 @@ if (cfr('EVENTVIEW')) {
         }
 
         $tablecells = wf_TableCell(__('What done') . '?');
-        $tablecells.=wf_TableCell(__('Current month'));
-        $tablecells.=wf_TableCell(__('Average per day'));
+        $tablecells .= wf_TableCell(__('Current month'));
+        $tablecells .= wf_TableCell(__('Average per day'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         $tablecells = wf_TableCell(__('Current month signups'));
-        $tablecells.=wf_TableCell($regc);
-        $tablecells.=wf_TableCell(round($regc / $cday, 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($regc);
+        $tablecells .= wf_TableCell(round($regc / $cday, 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('MAC changes'));
-        $tablecells.=wf_TableCell(($macc - $regc));
-        $tablecells.=wf_TableCell(round((($macc - $regc) / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell(($macc - $regc));
+        $tablecells .= wf_TableCell(round((($macc - $regc) / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Switches added'));
-        $tablecells.=wf_TableCell(($switchc));
-        $tablecells.=wf_TableCell(round(($switchc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell(($switchc));
+        $tablecells .= wf_TableCell(round(($switchc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Credits set'));
-        $tablecells.=wf_TableCell($creditc);
-        $tablecells.=wf_TableCell(round(($creditc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($creditc);
+        $tablecells .= wf_TableCell(round(($creditc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
 
         $tablecells = wf_TableCell(__('Payments processed'));
-        $tablecells.=wf_TableCell($payc);
-        $tablecells.=wf_TableCell(round(($payc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($payc);
+        $tablecells .= wf_TableCell(round(($payc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Planned changes to tariffs'));
-        $tablecells.=wf_TableCell($tarchc);
-        $tablecells.=wf_TableCell(round(($tarchc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($tarchc);
+        $tablecells .= wf_TableCell(round(($tarchc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('SMS sended'));
-        $tablecells.=wf_TableCell($smsc);
-        $tablecells.=wf_TableCell(round(($smsc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($smsc);
+        $tablecells .= wf_TableCell(round(($smsc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
 
         $tablecells = wf_TableCell(__('External billing events'));
-        $tablecells.=wf_TableCell($eventsc);
-        $tablecells.=wf_TableCell(round(($eventsc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($eventsc);
+        $tablecells .= wf_TableCell(round(($eventsc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Internal billing events'));
-        $tablecells.=wf_TableCell($stgc);
-        $tablecells.=wf_TableCell(round(($stgc / $cday), 2));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($stgc);
+        $tablecells .= wf_TableCell(round(($stgc / $cday), 2));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $result = wf_TableBody($tablerows, '50%', '0');
         return ($result);
     }
 
     /**
-     * Shows 
+     * Shows cached events stats with caching
      * 
      * @return void
      */
@@ -180,7 +180,7 @@ if (cfr('EVENTVIEW')) {
         $data = $cache->getCallback('EVENTVIEW_STATS', function() {
             return(zb_GetEventStats());
         }, $cacheTime);
-        $data.= __('From cache') . ' ' . wf_Link('?module=eventview&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')));
+        $data .= __('From cache') . ' ' . wf_Link('?module=eventview&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')));
         //cache cleanup subroutine
         if (wf_CheckGet(array('forcecache'))) {
             $cache->delete('EVENTVIEW_STATS');
@@ -219,43 +219,57 @@ if (cfr('EVENTVIEW')) {
           ' . wf_tag('br');
 
         $dateinputs = __('By date') . ': ';
-        $dateinputs.=wf_DatePicker('eventdate');
-        $dateinputs.=wf_Submit(__('Show'));
+        $dateinputs .= wf_DatePicker('eventdate');
+        $dateinputs .= wf_Submit(__('Show'));
         $dateform = wf_Form('', 'POST', $dateinputs, 'glamour');
 
 
         $eventsearchinputs = web_EventsAdminSelector('eventadmin', __('Administrator'));
+        $profileLinksFlag = (ubRouting::checkPost('profilelinks')) ? true : false;
+        $eventsearchinputs .= wf_CheckInput('profilelinks', __('Highlight profiles'), false, $profileLinksFlag) . ' ';
+
         $currentPattern = wf_CheckPost(array('eventsearch')) ? $_POST['eventsearch'] : '';
-        $eventsearchinputs.= wf_TextInput('eventsearch', 'Event', $currentPattern, false, '30');
-        $eventsearchinputs.=wf_Submit('Find');
+        $eventsearchinputs .= wf_TextInput('eventsearch', 'Event', $currentPattern, false, '30');
+
+        $eventsearchinputs .= wf_Submit('Find');
         $eventsearchform = wf_Form('', 'POST', $eventsearchinputs, 'glamour');
 
 
         $searchcells = wf_TableCell($dateform);
-        $searchcells.=wf_TableCell($eventsearchform);
+        $searchcells .= wf_TableCell($eventsearchform);
         $searchrow = wf_TableRow($searchcells);
         $searchtable = wf_TableBody($searchrow, '100%', '0');
-        $result.=$searchtable;
+        $result .= $searchtable;
 
         $tablecells = wf_TableCell(__('ID'));
-        $tablecells.=wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Admin'));
-        $tablecells.=wf_TableCell(__('IP'));
-        $tablecells.=wf_TableCell(__('Event'));
+        $tablecells .= wf_TableCell(__('Date'));
+        $tablecells .= wf_TableCell(__('Admin'));
+        $tablecells .= wf_TableCell(__('IP'));
+        $tablecells .= wf_TableCell(__('Event'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($allevents)) {
             foreach ($allevents as $io => $eachevent) {
                 $event = htmlspecialchars($eachevent['event']);
+                if ($profileLinksFlag) {
+
+                    if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
+                        @$loginExtracted = $tmpLoginMatches[1];
+                        if (!empty($loginExtracted)) {
+                            $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
+                            $event = str_replace($loginExtracted, $userProfileLink, $event);
+                        }
+                    }
+                }
                 $tablecells = wf_TableCell($eachevent['id']);
-                $tablecells.=wf_TableCell($eachevent['date']);
-                $tablecells.=wf_TableCell($eachevent['admin']);
-                $tablecells.=wf_TableCell($eachevent['ip']);
-                $tablecells.=wf_TableCell($event);
-                $tablerows.=wf_TableRow($tablecells, 'row3');
+                $tablecells .= wf_TableCell($eachevent['date']);
+                $tablecells .= wf_TableCell($eachevent['admin']);
+                $tablecells .= wf_TableCell($eachevent['ip']);
+                $tablecells .= wf_TableCell($event);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
         }
-        $result.=wf_TableBody($tablerows, '100%', 0, 'sortable');
+        $result .= wf_TableBody($tablerows, '100%', 0, 'sortable');
         return($result);
     }
 

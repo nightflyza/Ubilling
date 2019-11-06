@@ -3134,5 +3134,6 @@ $lang['def']['Hide notes'] = 'Приховати примітки';
 $lang['def']['right to manage callmeback module'] = 'Право керувати модулем "Перетелефонуйте мені"';
 $lang['def']['Fan usage'] = 'Використання вентиляторів';
 $lang['def']['PSU usage'] = 'Задіяно БЖ';
+$lang['def']['Highlight profiles'] = 'Підсвічувати профілі';
 
 ?>

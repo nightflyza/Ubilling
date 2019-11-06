@@ -3113,6 +3113,7 @@ $lang['def']['Hide notes'] = 'Скрыть примечания';
 $lang['def']['right to manage callmeback module'] = 'Право управлять модулем "Перезвоните мне"';
 $lang['def']['Fan usage'] = 'Использование вентиляторов';
 $lang['def']['PSU usage'] = 'Задействовано БП';
+$lang['def']['Highlight profiles'] = 'Подсвечивать профили';
 $lang['def'][''] = '';
 
 
