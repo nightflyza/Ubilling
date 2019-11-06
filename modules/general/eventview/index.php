@@ -176,7 +176,7 @@ if (cfr('EVENTVIEW')) {
      */
     function web_EventsShowStats() {
         $cache = new UbillingCache();
-        $cacheTime = 3600; // 1 hour
+        $cacheTime = 86400; // 1 day
         $data = $cache->getCallback('EVENTVIEW_STATS', function() {
             return(zb_GetEventStats());
         }, $cacheTime);
