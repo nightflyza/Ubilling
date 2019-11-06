@@ -55,6 +55,7 @@ class OnuRegister {
     CONST ERROR_NO_OLTIP_SET = 'No OLT IP address value found.';
     CONST ERROR_NO_VLAN_SET = 'No VLAN value found.';
     CONST ERROR_TOO_MANY_REGISTERED_ONU = 'Registered ONU count is';
+    CONST HUAWEI_NATIVE_VLAN_OPTION = 'ONUREG_HUAWEI_NATIVE_VLAN';
 
     /**
      * Contains all data from billing.ini
@@ -375,6 +376,13 @@ class OnuRegister {
      * @var object
      */
     protected $vlanManagement;
+
+    /**
+     * Workaround for HUAWEI OLT gpon native vlan.
+     * 
+     * @var int
+     */
+    protected $nativeVlan = 0;
 
     /**
      * Base class construction.
@@ -1299,6 +1307,7 @@ class OnuRegister {
             $splitInterface = explode('/', $splitName[1]);
             $this->currentOltInterface = $splitInterface[0] . '/' . $splitInterface[1];
             $this->onuInterface = $splitInterface[2];
+            $this->nativeVlan = $this->altCfg[self::HUAWEI_NATIVE_VLAN_OPTION];
         } else {
             $this->onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
         }
@@ -1352,6 +1361,10 @@ class OnuRegister {
             $command .= ' ' . $this->lastOnuId;
             $command .= ' ' . $this->vlan;
             $command .= ' ' . $this->onuIdentifier;
+            if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
+                $command .= ' ' . $this->nativeVlan;
+                $command .= ' ' . $this->servicePort;
+            }
         }
         return($command);
     }
