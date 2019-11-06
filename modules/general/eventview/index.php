@@ -256,8 +256,10 @@ if (cfr('EVENTVIEW')) {
                     if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
                         @$loginExtracted = $tmpLoginMatches[1];
                         if (!empty($loginExtracted)) {
+                            if (!ispos($event, '((')) { // ignore UKV user id-s 
                             $userProfileLink = wf_Link('?module=userprofile&username=' . $loginExtracted, web_profile_icon() . ' ' . $loginExtracted);
                             $event = str_replace($loginExtracted, $userProfileLink, $event);
+                            }
                         }
                     }
                 }
