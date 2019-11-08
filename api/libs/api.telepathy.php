@@ -56,6 +56,27 @@ class Telepathy {
     protected $allPhones = array();
 
     /**
+     * Contains all available user mobiles with doubles
+     *
+     * @var array
+     */
+    protected $allMobilesFull = array();
+
+    /**
+     * Contains all available additional user mobiles with doubles
+     *
+     * @var array
+     */
+    protected $allExtMobilesFull = array();
+
+    /**
+     * Contains all available user phones with doubles
+     *
+     * @var array
+     */
+    protected $allPhonesFull = array();
+
+    /**
      * Case sensitivity flag
      *
      * @var bool
@@ -236,11 +257,13 @@ class Telepathy {
                 $cleanMobile = vf($each['mobile'], 3);
                 if (!empty($cleanMobile)) {
                     $this->allMobiles[$cleanMobile] = $login;
+                    $this->allMobilesFull[$cleanMobile][] = $login;
                 }
 
                 $cleanPhone = vf($each['phone'], 3);
                 if (!empty($cleanPhone)) {
                     $this->allPhones[$cleanPhone] = $login;
+                    $this->allPhonesFull[$cleanPhone][] = $login;
                 }
             }
         }
@@ -263,6 +286,7 @@ class Telepathy {
                 foreach ($allExtTmp as $eachExtMobile => $login) {
                     $cleanExtMobile = vf($eachExtMobile, 3);
                     $this->allExtMobiles[$cleanExtMobile] = $login;
+                    $this->allExtMobilesFull[$cleanExtMobile][] = $login;
                 }
             }
         }
@@ -405,20 +429,22 @@ class Telepathy {
      * 
      * @return string
      */
-    public function getByPhone($phoneNumber, $onlyMobile = false, $normalizeMobile = false) {
+    public function getByPhone($phoneNumber, $onlyMobile = false, $normalizeMobile = false, $uniqLogin = false) {
         $result = '';
+        $resultTempUniq = array();
         /**
          * Come with us speeding through the night
          * As fast as any bird in flight
          * Silhouettes against the Mother Moon
          * We will be there
+         * I think it's a bad idea to normalize the phone by code, since this piece of code works current for Ukraine
          */
         $phoneNumber = ($normalizeMobile) ? $this->normalizePhoneFormat($phoneNumber) : $phoneNumber;
         if (!empty($phoneNumber)) {
             if (!$onlyMobile) {
                 if (!empty($this->allPhones)) {
                     foreach ($this->allPhones as $baseNumber => $userLogin) {
-                        if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                        if (ispos((string) $phoneNumber, (string) $baseNumber) and !$uniqLogin) {
                             $result = $userLogin;
                         }
                     }
@@ -427,7 +453,7 @@ class Telepathy {
 
             if (!empty($this->allExtMobiles)) {
                 foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
-                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber) and !$uniqLogin) {
                         $result = $userLogin;
                     }
                 }
@@ -435,13 +461,26 @@ class Telepathy {
 
             if (!empty($this->allMobiles)) {
                 foreach ($this->allMobiles as $baseNumber => $userLogin) {
-                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber) and !$uniqLogin) {
                         $result = $userLogin;
                         return ($result);
                     }
                 }
             }
+
+            if ($uniqLogin) {
+                $resultTempUniq = array_merge_recursive($this->allPhonesFull, $this->allExtMobilesFull, $this->allMobilesFull);
+                // Try remove duplicate phone and mobile from one users
+                foreach ($resultTempUniq as $phone => $dataArr) {
+                    $rawArr = array_unique($dataArr);
+                    if (count($rawArr) == 1 and substr($phone, -10) == substr($phoneNumber, -10)) {
+                        $result = $rawArr[0];
+                        return ($result);
+                    }
+                }
+            }
         }
+
         return ($result);
     }
 

@@ -31,6 +31,13 @@ class Asterisk {
     protected $result_NumberLogin;
 
     /**
+     * Contains only unniq mobiles and Login from MySQL Databases as Number=>Login
+     *
+     * @var array
+     */
+    protected $result_NumberLoginUniq;
+
+    /**
      *
      *
      * @var array
@@ -482,6 +489,9 @@ class Asterisk {
         if (!empty($login)) {
             if ($param == "login") {
                 $result = $login;
+            } elseif ($param == "loginuniq") {
+//              print_r($this->result_NumberLogin);
+                $result = isset($this->result_NumberLoginUniq[$number_cut]) ? $this->result_NumberLoginUniq[$number_cut] : 'ERROR: USER HAVE MANY LOGINS';
             } elseif ($param == "swstatus") {
                 $result = $this->AsteriskGetSWStatus($login);
             } elseif ($param == "realname") {
@@ -537,19 +547,28 @@ class Asterisk {
         if (!isset($this->result_LoginByNumber) and empty($this->result_LoginByNumber)) {
             $result = array();
             $result_a = array();
-            $query_phone = "SELECT `phones`.`login`,`phone` FROM `phones`";
-            $query_mobile = "SELECT `phones`.`login`,`mobile` FROM `phones`";
-            $result_p = simple_queryall($query_phone);
-            $result_m = simple_queryall($query_mobile);
+            $resultUniq = array();
+            $resultTempUniq = array();
+            $resultNotUniq = array(); // It's need for future
+            $queryPhone = "SELECT `phones`.`login`,`phone`,`mobile` FROM `phones`";
+            $resultPhone = simple_queryall($queryPhone);
 
-            foreach ($result_p as $data) {
+            foreach ($resultPhone as $data) {
                 $result[$data['login']]['phone'] = substr($data['phone'], -10);
                 $result_a[substr($data['phone'], -10)] = $data['login'];
-            }
-            foreach ($result_m as $data) {
+
                 $result[$data['login']]['mobile'] = substr($data['mobile'], -10);
                 $result_a[substr($data['mobile'], -10)] = $data['login'];
+
+                if (!empty($result[$data['login']]['phone'])) {
+                    $resultTempUniq[substr($data['phone'], -10)][] = $data['login'];
+                }
+                if (!empty($result[$data['login']]['mobile'])) {
+                    $resultTempUniq[substr($data['mobile'], -10)][] = $data['login'];
+                }
+
             }
+
             if ($this->config['dopmobile']) {
                 $query_mobile_dop = "SELECT `login`,`content` FROM `cfitems` WHERE `typeid`='" . $this->config['dopmobile'] . "'";
                 $result_md = simple_queryall($query_mobile_dop);
@@ -557,6 +576,7 @@ class Asterisk {
                 foreach ($result_md as $data) {
                     $result[$data['login']]['dop_mob'] = substr($data['content'], -10);
                     $result_a[substr($data['content'], -10)] = $data['login'];
+                    $resultTempUniq[substr($data['content'], -10)][] = $data['login'];
                 }
             }
             if ($this->altCfg['MOBILES_EXT']) {
@@ -565,11 +585,31 @@ class Asterisk {
                 foreach ($result_me as $data) {
                     $result[$data['login']]['mobileext'][] = substr($data['mobileext'], -10);
                     $result_a[substr($data['mobileext'], -10)] = $data['login'];
+                    if (!empty( $result[$data['login']]['mobileext'])) {
+                        $resultTempUniq[substr($data['mobileext'], -10)][] = $data['login'];
+                    }
                 }
             }
         }
+
+        // Try remove duplicate phone and mobile from one users
+        foreach ($resultTempUniq as $phone => $dataArr) {
+            $rawArr = array_unique($dataArr);
+            if (count($rawArr) == 1) {
+                 $resultUniq[$phone] = $rawArr[0];
+            } else {
+                $resultNotUniq[$phone] =  $rawArr;
+            }
+        }
+        /*
+        print "<pre>";
+        print_r ($resultUniq);
+        print "</pre>";
+        */
+
         $this->result_LoginByNumber = $result;
         $this->result_NumberLogin = $result_a;
+        $this->result_NumberLoginUniq = $resultUniq;
     }
 
     /**
