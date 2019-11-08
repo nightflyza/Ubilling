@@ -3114,6 +3114,11 @@ $lang['def']['right to manage callmeback module'] = 'Право управлят
 $lang['def']['Fan usage'] = 'Использование вентиляторов';
 $lang['def']['PSU usage'] = 'Задействовано БП';
 $lang['def']['Highlight profiles'] = 'Подсвечивать профили';
+$lang['def']['ONU Map'] = 'Карта ONU';
+$lang['def']['No signal'] = 'Нет сигнала';
+$lang['def']['ONU rendered on map'] = 'ONU отрендерено на карте';
+$lang['def']['User builds not placed on map'] = 'Пользовательских домов не размещены на карте';
+$lang['def']['ONU without assigned user'] = 'ONU с неприсвоенными пользователями';
 $lang['def'][''] = '';
 
 

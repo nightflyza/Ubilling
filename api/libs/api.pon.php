@@ -2555,6 +2555,10 @@ class PONizer {
             if (@$this->altCfg['PON_ONU_PORT_MAX']) {
                 $result .= wf_Link(self::URL_ME . '&oltstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
             }
+
+            if (@$this->altCfg['PONMAP_ENABLED']) {
+                $result .= wf_Link('?module=ponmap', wf_img_sized('skins/ponmap_icon.png', '', '16', '16') . ' ' . __('ONU Map'), false, 'ubButton');
+            }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
                 if (cfr('ONUREGZTE')) {
