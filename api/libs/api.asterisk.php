@@ -490,7 +490,6 @@ class Asterisk {
             if ($param == "login") {
                 $result = $login;
             } elseif ($param == "loginuniq") {
-//              print_r($this->result_NumberLogin);
                 $result = isset($this->result_NumberLoginUniq[$number_cut]) ? $this->result_NumberLoginUniq[$number_cut] : 'ERROR: USER HAVE MANY LOGINS';
             } elseif ($param == "swstatus") {
                 $result = $this->AsteriskGetSWStatus($login);

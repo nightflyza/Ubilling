@@ -70,7 +70,7 @@ class AskoziaNum {
      * @return void
      */
     protected function initTelepathy() {
-        $this->telepathy = new Telepathy(false, true, false, true);
+        $this->telepathy = new Telepathy(false, true, false, true, true);
         $this->telepathy->usePhones();
     }
 
