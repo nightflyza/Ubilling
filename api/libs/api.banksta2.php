@@ -108,6 +108,13 @@ class Banksta2 {
     protected $bankstaFoundUsers = array();
 
     /**
+     * Placeholder for BANKSTA2_REGEX_KEYWORDS_DELIM option
+     *
+     * @var string
+     */
+    protected $regexKeywordsDelimiter = ',';
+
+    /**
      * Placeholder for file data preprocessed during filePreprocessing()
      *
      * @var array
@@ -140,8 +147,16 @@ class Banksta2 {
                                                 'ukv_srv_end_delim'     => 'bsukvdelimend',
                                                 'ukv_srv_keywords'      => 'bsukvkeywords',
                                                 'skip_row'              => 'bsskiprow',
-                                                'col_skiprow'          => 'bsskiprow_col',
-                                                'skip_row_keywords'     => 'bsskiprowkeywords'
+                                                'col_skiprow'           => 'bsskiprow_col',
+                                                'skip_row_keywords'     => 'bsskiprowkeywords',
+                                                'replace_strs'          => 'bsreplacestrs',
+                                                'col_replace_strs'      => 'bscolsreplacestrs',
+                                                'strs_to_replace'       => 'bsstrstoreplace',
+                                                'strs_to_replace_with'  => 'bsstrstoreplacewith',
+                                                'replacements_cnt'      => 'bsreplacementscnt',
+                                                'remove_strs'           => 'bsremovestrs',
+                                                'col_remove_strs'       => 'bscolremovestrs',
+                                                'strs_to_remove'        => 'bsstrstoremove'
                                              );
 
 
@@ -215,6 +230,7 @@ class Banksta2 {
     protected function loadOptions() {
         $this->inetPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_INET');
         $this->ukvPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_UKV');
+        $this->regexKeywordsDelimiter = (wf_getBoolFromVar($this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM'))) ? ',' : $this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM');
     }
 
 
@@ -623,7 +639,7 @@ class Banksta2 {
      * @param int $fmpGuessContract
      * @param string $fmpContractDelimStart
      * @param string $fmpContractDelimEnd
-     * @param int $fmpSrvType
+     * @param string $fmpSrvType
      * @param string $fmpInetStartDelim
      * @param string $fmpInetEndDelim
      * @param string $fmpInetKeywords
@@ -636,20 +652,26 @@ class Banksta2 {
                                            $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0,
                                            $fmpSrvType = '', $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '',
                                            $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
-                                           $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = ''
+                                           $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
+                                           $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
+                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = ''
                                           ) {
         $tQuery = "INSERT INTO `" . self::BANKSTA2_PRESETS_TABLE .
-                        "` (`presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, `col_paydate`, 
+                  "` (`presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, `col_paydate`, 
                             `col_paytime`, `col_contract`, `guess_contract`, `contract_delim_start`, `contract_delim_end`, 
                             `contract_min_len`, `contract_max_len`, `service_type`, `inet_srv_start_delim`, `inet_srv_end_delim`, `inet_srv_keywords`, 
-                            `ukv_srv_start_delim`, `ukv_srv_end_delim`, `ukv_srv_keywords`, `skip_row`, `col_skiprow`, `skip_row_keywords`) 
+                            `ukv_srv_start_delim`, `ukv_srv_end_delim`, `ukv_srv_keywords`, `skip_row`, `col_skiprow`, `skip_row_keywords`,
+                            `replace_strs`, `col_replace_strs`, `strs_to_replace`, `strs_to_replace_with`, `replacements_cnt`,
+                            `remove_strs`, `col_remove_strs`, `strs_to_remove`) 
                         VALUES ('" . $fmpName . "', '" . $fmpColRealName . "', '" . $fmpColAddr . "', '" . $fmpColPaySum . "', '" .
-                                $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', " .
-                                $fmpGuessContract . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
-                                $fmpContractMinLen . ", " . $fmpContractMaxLen . ", '" . $fmpSrvType . "', '" .
-                                $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', '" .
-                                $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', '" .
-                                $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "')";
+                  $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', " .
+                  $fmpGuessContract . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
+                  $fmpContractMinLen . ", " . $fmpContractMaxLen . ", '" . $fmpSrvType . "', '" .
+                  $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', '" .
+                  $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', '" .
+                  $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "', '" .
+                  $fmpReplaceStrs . "', '" . $fmpColReplaceStrs . "', '" . $fmpStrsToReplace . "', '" . $fmpStrsToReplaceWith . "', '" . $fmpReplacementsCount . "', '" .
+                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "')";
 
         nr_query($tQuery);
         log_register('CREATE banksta2 fields mapping preset [' . $fmpName . ']');
@@ -661,8 +683,10 @@ class Banksta2 {
                                             $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0,
                                             $fmpSrvType = '', $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '',
                                             $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
-                                            $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = ''
-                                            ) {
+                                            $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
+                                            $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
+                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = ''
+                                           ) {
         $tQuery = "UPDATE `" . self::BANKSTA2_PRESETS_TABLE . "` SET 
                             `presetname`            = '" . $fmpName . "', 
                             `col_realname`          = '" . $fmpColRealName . "',  
@@ -685,8 +709,16 @@ class Banksta2 {
                             `ukv_srv_end_delim`     = '" . $fmpUKVDelimEnd . "', 
                             `ukv_srv_keywords`      = '" . $fmpUKVKeywords . "',
                             `skip_row`              = '" . $fmpSkipRow . "',
-                            `col_skiprow`          = '" . $fmpColSkipRow . "',                            
-                            `skip_row_keywords`     = '" . $fmpSkipRowKeywords . "'
+                            `col_skiprow`           = '" . $fmpColSkipRow . "',                            
+                            `skip_row_keywords`     = '" . $fmpSkipRowKeywords . "',
+                            `replace_strs`          = '" . $fmpReplaceStrs . "',
+                            `col_replace_strs`      = '" . $fmpColReplaceStrs . "',
+                            `strs_to_replace`       = '" . $fmpStrsToReplace . "',
+                            `strs_to_replace_with`  = '" . $fmpStrsToReplaceWith . "',
+                            `replacements_cnt`      = '" . $fmpReplacementsCount . "',
+                            `remove_strs`           = '" . $fmpRemoveStrs . "',
+                            `col_remove_strs`       = '" . $fmpColRemoveStrs . "',
+                            `strs_to_remove`        = '" . $fmpStrsToRemove . "'
                         WHERE `id` = " . $fmpID;
 
         nr_query($tQuery);
@@ -833,6 +865,26 @@ class Banksta2 {
     }
 
     /**
+     * Creates essential regex body-strings for preprocessBStatement() processing
+     *
+     * @param $keyWordStr
+     * @param string $delimiter
+     * @return string
+     */
+    public function prepareRegexStrings($keyWordStr, $delimiter = ',') {
+        $keywordsStr = '';
+        $keywordsArray = explode($delimiter, $keyWordStr);
+
+        foreach ($keywordsArray as $keyWord) {
+            $keywordsStr .= trim($keyWord) . '|';
+        }
+
+        $keywordsStr = rtrim($keywordsStr, '|');
+
+        return ($keywordsStr);
+    }
+
+    /**
      * Bank statement preprocessing and last checks form building
      *
      * @param $statementRawData
@@ -857,7 +909,48 @@ class Banksta2 {
         $ukvSrvDelimE    = (empty($importOpts['ukv_srv_end_delim'])) ? '' : preg_quote($importOpts['ukv_srv_end_delim'], '/');
         $ukvSrvKeywords  = (empty($importOpts['ukv_srv_keywords'])) ? '' : preg_quote($importOpts['ukv_srv_keywords'], '/');
         $skipRow         = $importOpts['skip_row'];
+        $skipRowCols     = ($importOpts['col_skiprow'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_skiprow'])) : array();
         $skipRowKeywords = (empty($importOpts['skip_row_keywords'])) ? '' : preg_quote($importOpts['skip_row_keywords'], '/');
+        $strsReplace     = $importOpts['replace_strs'];
+        $strsReplaceCols = ($importOpts['col_replace_strs'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_replace_strs'])) : array();
+        $strsReplaceChars     = (empty($importOpts['strs_to_replace'])) ? '' : preg_quote($importOpts['strs_to_replace']);
+        $strsReplaceCharsWith = (empty($importOpts['strs_to_replace_with'])) ? '' : $importOpts['strs_to_replace_with'];
+        $strsReplacementsCnt  = (empty($importOpts['replacements_cnt'])) ? -1 : $importOpts['replacements_cnt'];
+        $strsRemove      = $importOpts['remove_strs'];
+        $strsRemoveCols  = ($importOpts['col_remove_strs'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_remove_strs'])) : array();
+        $strsRemoveChars = (empty($importOpts['strs_to_remove'])) ? '' : preg_quote($importOpts['strs_to_remove']);
+
+        // creating essential regex bodies
+        $keywordsStrInet         = '';
+        $keywordsStrUKV          = '';
+        $keywordsStrSkipRow      = '';
+        $keywordsStrReplaceChars = '';
+        $keywordsStrRemoveChars  = '';
+
+        // trying to get Inet service keywords
+        if (!empty($inetSrvKeywords)) {
+            $keywordsStrInet = $this->prepareRegexStrings($inetSrvKeywords, $this->regexKeywordsDelimiter);
+        }
+
+        // trying to get UKV service keywords
+        if (!empty($ukvSrvKeywords)) {
+            $keywordsStrUKV = $this->prepareRegexStrings($ukvSrvKeywords, $this->regexKeywordsDelimiter);
+        }
+
+        // trying to get skipping row keywords
+        if ($skipRow and !empty($skipRowCols)) {
+            $keywordsStrSkipRow = $this->prepareRegexStrings($skipRowKeywords, $this->regexKeywordsDelimiter);
+        }
+
+        // trying to get replacement keywords
+        if ($strsReplace and !empty($strsReplaceCols)) {
+            $keywordsStrReplaceChars = $this->prepareRegexStrings($strsReplaceChars, $this->regexKeywordsDelimiter);
+        }
+
+        // trying to get removing keywords
+        if ($strsRemove and !empty($strsRemoveCols)) {
+            $keywordsStrRemoveChars = $this->prepareRegexStrings($strsRemoveChars, $this->regexKeywordsDelimiter);
+        }
 
         $i = 0;
         $rows = '';
@@ -870,6 +963,25 @@ class Banksta2 {
             $cells = wf_TableCell($i);
             $cancelRow = 0;
 
+            // replacing characters/strings in specified fields
+            if ($strsReplace and !empty($strsReplaceCols) and !empty($strsReplaceChars)) {
+                foreach ($strsReplaceCols as $strsReplaceCol) {
+                    if (isset($eachRow[$strsReplaceCol])) {
+                        $eachRow[$strsReplaceCol] = preg_replace('/(' . $keywordsStrReplaceChars . ')/msiu', $strsReplaceCharsWith, $eachRow[$strsReplaceCol], $strsReplacementsCnt);
+                    }
+                }
+            }
+
+            // removing characters/strings from specified fields
+            if ($strsRemove and !empty($strsRemoveCols) and !empty($keywordsStrRemoveChars)) {
+                foreach ($strsReplaceCols as $strsReplaceCol) {
+                    if (isset($eachRow[$strsReplaceCol])) {
+                        //$eachRow[$strsReplaceCol] = str_replace($strsReplaceChars, '', $eachRow[$strsReplaceCol]);
+                        $eachRow[$strsReplaceCol] = preg_replace('/(' . $keywordsStrRemoveChars . ')/msiu', '', $eachRow[$strsReplaceCol]);
+                    }
+                }
+            }
+
             $realname = ($importOpts['col_realname'] !== 'NONE' and isset($eachRow[$importOpts['col_realname']])) ? $eachRow[$importOpts['col_realname']] : '';
             $address  = ($importOpts['col_address'] !== 'NONE' and isset($eachRow[$importOpts['col_address']])) ? $eachRow[$importOpts['col_address']] : '';
             $notes    = ($importOpts['col_paypurpose'] !== 'NONE' and isset($eachRow[$importOpts['col_paypurpose']])) ? $eachRow[$importOpts['col_paypurpose']] : '';
@@ -877,7 +989,6 @@ class Banksta2 {
             $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? $eachRow[$importOpts['col_paysum']] : '';
             $pdate    = (isset($eachRow[$importOpts['col_paydate']])) ? $eachRow[$importOpts['col_paydate']] : '';
             $contract = ($importOpts['col_contract'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_contract']] : '';
-            $skipRowContent = ($importOpts['col_skiprow'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_skiprow']] : '';
             $service_type   = $serviceType;
             $srvTypeMatched = false;
 
@@ -900,7 +1011,7 @@ class Banksta2 {
                                 $contract = 'unknown_' . $i;
                             }
                         } else {
-                            preg_match('/(\D)(\d{' . $contactMinLen . ',' . $contactMaxLen . '})(\D)/msu', $notes, $matchResult);
+                            preg_match('/(\D)?(\d{' . $contactMinLen . ',' . $contactMaxLen . '})(\D)?/msu', $notes, $matchResult);
 
                             if (isset($matchResult[2])) {
                                 $contract = trim($matchResult[2]);
@@ -914,19 +1025,8 @@ class Banksta2 {
                 }
 
                 if (strtolower($serviceType) == 'telepathy') {
-                    $keywordsArray = array();
-                    $keywordsStr = '';
-
                     // trying to check for Inet service keywords
-                    if (!empty($inetSrvKeywords)) {
-                        $keywordsArray = explode(',', $inetSrvKeywords);
-
-                        foreach ($keywordsArray as $keyWord) {
-                            $keywordsStr .= trim($keyWord) . '|';
-                        }
-
-                        $keywordsStr = rtrim($keywordsStr, '|');
-
+                    if (!empty($keywordsStrInet)) {
                         if ($inetSrvDelimS == '' and $inetSrvDelimE == '') {
                             $betweenDelimStr = $notes;
                         } else {
@@ -939,29 +1039,16 @@ class Banksta2 {
                             }
                         }
 
-                        if (!empty($keywordsStr)) {
-                            preg_match('/(' . $keywordsStr . ')/msiu', $betweenDelimStr, $matchResult);
+                        preg_match('/(' . $keywordsStrInet . ')/msiu', $betweenDelimStr, $matchResult);
 
-                            if (isset($matchResult[1])) {
-                                $service_type = 'Internet';
-                                $srvTypeMatched = true;
-                            }
+                        if (isset($matchResult[1])) {
+                            $service_type = 'Internet';
+                            $srvTypeMatched = true;
                         }
                     }
 
-                    $keywordsArray = array();
-                    $keywordsStr = '';
-
                     // trying to check for UKV service keywords
-                    if (!$srvTypeMatched and !empty($ukvSrvKeywords)) {
-                        $keywordsArray = explode(',', $ukvSrvKeywords);
-
-                        foreach ($keywordsArray as $keyWord) {
-                            $keywordsStr .= trim($keyWord) . '|';
-                        }
-
-                        $keywordsStr = rtrim($keywordsStr, '|');
-
+                    if (!$srvTypeMatched and !empty($keywordsStrUKV)) {
                         if ($ukvSrvDelimS == '' and $ukvSrvDelimE == '') {
                             $betweenDelimStr = $notes;
                         } else {
@@ -974,12 +1061,10 @@ class Banksta2 {
                             }
                         }
 
-                        if (!empty($keywordsStr)) {
-                            preg_match('/(' . $keywordsStr . ')/msiu', $betweenDelimStr, $matchResult);
+                        preg_match('/(' . $keywordsStrUKV . ')/msiu', $betweenDelimStr, $matchResult);
 
-                            if (isset($matchResult[1])) {
-                                $service_type = 'UKV';
-                            }
+                        if (isset($matchResult[1])) {
+                            $service_type = 'UKV';
                         }
                     }
                 }
@@ -987,24 +1072,18 @@ class Banksta2 {
                 if (empty($contract)) { $contract = 'unknown_' . $i; }
             }
 
-            $keywordsArray = array();
-            $keywordsStr = '';
-
             // skipping rows
-            if ($skipRow and !empty($skipRowContent)) {
-                $keywordsArray = explode(',', $skipRowKeywords);
+            if ($skipRow and !empty($skipRowCols) and !empty($keywordsStrSkipRow)) {
+                foreach ($skipRowCols as $skipRowCol) {
+                    if (!empty($eachRow[$skipRowCol])) {
 
-                foreach ($keywordsArray as $keyWord) {
-                    $keywordsStr .= trim($keyWord) . '|';
-                }
+                        $skipRowContent = $eachRow[$skipRowCol];
+                        preg_match('/(' . $keywordsStrSkipRow . ')/msiu', $skipRowContent, $matchResult);
 
-                $keywordsStr = rtrim($keywordsStr, '|');
-
-                if (!empty($keywordsStr)) {
-                    preg_match('/(' . $keywordsStr . ')/msiu', $skipRowContent, $matchResult);
-
-                    if (isset($matchResult[1])) {
-                        $cancelRow = 1;
+                        if (isset($matchResult[1])) {
+                            $cancelRow = 1;
+                            break;
+                        }
                     }
                 }
             }
@@ -1457,19 +1536,38 @@ class Banksta2 {
             $inputs.= wf_Selector('bssrvtype', $this->bankstaServiceType, __('Service type'), '21', true, false, 'BankstaSrvType');
             $inputs.= wf_tag('div', false, '', 'id="BankstaServiceGuessingBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
             $inputs.= wf_TextInput('bsinetdelimstart', __('Internet service before keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimStart');
-            $inputs.= wf_TextInput('bsinetkeywords', __('Internet service determination keywords divided with comas'), '', true, '40', '', '', 'BankstaInetKeyWords');
+            $inputs.= wf_TextInput('bsinetkeywords', __('Internet service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaInetKeyWords');
             $inputs.= wf_TextInput('bsinetdelimend', __('Internet service after keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimEnd');
             $inputs.= wf_delimiter(0);
             $inputs.= wf_TextInput('bsukvdelimstart', __('UKV service before keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimStart');
-            $inputs.= wf_TextInput('bsukvkeywords', __('UKV service determination keywords divided with comas'), '', true, '40', '', '', 'BankstaUKVKeyWords');
+            $inputs.= wf_TextInput('bsukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
             $inputs.= wf_TextInput('bsukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
-            $inputs.= wf_CheckInput('bsskiprow', __('Skip row processing if selected field contains keywords below'), true, false, 'BankstaSkipRow');
+            $inputs.= wf_CheckInput('bsskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
             $inputs.= wf_tag('div', false, '', 'id="BankstaSkipRowBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
-            $inputs.= wf_Selector('bsskiprow_col', $bsrealname_arr, __('Column to check row skipping'), 'NONE', true);
-            $inputs.= wf_TextInput('bsskiprowkeywords', __('Row skipping determination keywords divided with comas'), '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+            //$inputs.= wf_Selector('bsskiprow_col', $bsrealname_arr, __('Fields to check row skipping(multiple fields must be separated with comas)'), 'NONE', true);
+            $inputs.= wf_TextInput('bsskiprow_col', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaSkipRowKeyWordsCols');
+            $inputs.= wf_TextInput('bsskiprowkeywords', __('Row skipping determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+            $inputs.= wf_tag('div', true);
+            $inputs.= wf_delimiter(0);
+
+            $inputs.= wf_CheckInput('bsreplacestrs', __('Replace characters specified below in specified fields'), true, false, 'BankstaReplaceStrs');
+            $inputs.= wf_tag('div', false, '', 'id="BankstaReplaceStrsBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
+            //$inputs.= wf_Selector('bscolsreplacestrs', $bsrealname_arr, __('Fields to perform replacing(multiple fields must be separated with comas)'), 'NONE', true);
+            $inputs.= wf_TextInput('bscolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaReplaceStrsCols');
+            $inputs.= wf_TextInput('bsstrstoreplace', __('Replaced characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaReplaceStrsChars');
+            $inputs.= wf_TextInput('bsstrstoreplacewith', __('Replacing characters or string'), '', true, '40', '', '', 'BankstaReplaceStrsWith');
+            $inputs.= wf_TextInput('bsreplacementscnt', __('Replacements count'), '', true, '40', '', '', 'BankstaReplaceStrsCnt');
+            $inputs.= wf_tag('div', true);
+            $inputs.= wf_delimiter(0);
+
+            $inputs.= wf_CheckInput('bsremovestrs', __('Remove characters specified below in specified fields'), true, false, 'BankstaRemoveStrs');
+            $inputs.= wf_tag('div', false, '', 'id="BankstaRemoveStrsBlock" style="border: 1px solid #ddd; border-radius: 4px; padding: 4px"');
+            //$inputs.= wf_Selector('bscolremovestrs', $bsrealname_arr, __('Fields to perform replacing(multiple fields must be separated with comas)'), 'NONE', true);
+            $inputs.= wf_TextInput('bscolremovestrs', __('Fields to perform removing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaRemoveStrsCols');
+            $inputs.= wf_TextInput('bsstrstoremove', __('Removed characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaRemoveStrsChars');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
@@ -1512,15 +1610,21 @@ class Banksta2 {
                                                     
                                                     if ( $(\'[name=\'+fieldNam+\']\').length ) {
                                                         var ctrl = $(\'[name=\'+fieldNam+\']\');
+                                                                                    
+                                                        console.log(fieldNam);                            
+                                                        console.log(fieldVal);
+                                                        console.log(ctrl);
                                                                                                         
                                                         switch(ctrl.prop("type")) { 
                                                             case "radio":
                                                             case "checkbox":   
                                                                 ctrl.each(function() {
                                                                     if (fieldVal == true || fieldVal > 0) {
-                                                                        $(this).attr("checked", true);
+                                                                        //$(this).attr("checked", true);
+                                                                        $(this).prop("checked", true).change();
                                                                     } else {
-                                                                        $(this).attr("checked", false);
+                                                                        //$(this).attr("checked", false);
+                                                                        $(this).prop("checked", false).change();
                                                                     }
                                                                 });   
                                                                 break;  
@@ -1623,11 +1727,29 @@ class Banksta2 {
                                 $(\'#BankstaSkipRowBlock\').hide();
                             }    
                         });
-                       
+                        
+                        $(\'#BankstaReplaceStrs\').change(function () {
+                            if ( $(\'#BankstaReplaceStrs\').is(\':checked\') ) {
+                                $(\'#BankstaReplaceStrsBlock\').show();
+                            } else {
+                                $(\'#BankstaReplaceStrsBlock\').hide();
+                            }    
+                        });
+                        
+                        $(\'#BankstaRemoveStrs\').change(function () {
+                            if ( $(\'#BankstaRemoveStrs\').is(\':checked\') ) {
+                                $(\'#BankstaRemoveStrsBlock\').show();
+                            } else {
+                                $(\'#BankstaRemoveStrsBlock\').hide();
+                            }    
+                        });
+                                                                      
                         $(document).ready(function() {
                             $(\'#BankstaContractGuessingBlock\').hide();    
                             $(\'#BankstaServiceGuessingBlock\').hide(); 
                             $(\'#BankstaSkipRowBlock\').hide();
+                            $(\'#BankstaReplaceStrsBlock\').hide();
+                            $(\'#BankstaRemoveStrsBlock\').hide();
                         });                     
                       ';
             $inputs.= wf_tag('script', true);
@@ -2231,18 +2353,28 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpcontractminlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('min length'), '0', true, '', '', '', 'BankstaContractMinLen');
         $inputs.= wf_TextInput('fmpcontractmaxlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('max length'), '0', true, '', '', '', 'BankstaContractMaxLen');
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_Selector('fmpsrvtype', $this->bankstaServiceType, __('Service type'), '', true, false, 'BankstaSrvType');
+        $inputs.= wf_Selector('fmpsrvtype', $this->bankstaServiceType, __('Service type') . ' (' . __('select "Telepathy" to try to get service type from payment purpose field') . ')', '', true, false, 'BankstaSrvType');
         $inputs.= wf_TextInput('fmpinetdelimstart', __('Internet service before keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimStart');
-        $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords divided with comas'), '', true, '40', '', '', 'BankstaInetKeyWords');
+        $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaInetKeyWords');
         $inputs.= wf_TextInput('fmpinetdelimend', __('Internet service after keywords delimiter string'), '', true, '', '', '', 'BankstaInetDelimEnd');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimStart');
-        $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords divided with comas'), '', true, '40', '', '', 'BankstaUKVKeyWords');
+        $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if selected field contains keywords below'), true, false, 'BankstaSkipRow');
-        $inputs.= wf_TextInput('fmpcolskiprow', __('Column to check row skipping'), '', true, '4', '', '', 'BankstaSkipRowKeyWordsCol');
-        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords divided with comas'), '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
+        $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaSkipRowKeyWordsCol');
+        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords  ') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_CheckInput('fmpreplacestrs', __('Replace characters specified below in specified fields'), true, false, 'BankstaReplaceStrs');
+        $inputs.= wf_TextInput('fmpcolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaReplaceStrsCols');
+        $inputs.= wf_TextInput('fmpstrstoreplace', __('Replaced characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaReplaceStrsChars');
+        $inputs.= wf_TextInput('fmpstrstoreplacewith', __('Replacing characters or string'), '', true, '40', '', '', 'BankstaReplaceStrsWith');
+        $inputs.= wf_TextInput('fmpstrsreplacecount', __('Replacements count'), '', true, '40', '', '', 'BankstaReplaceStrsCount');
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_CheckInput('fmpremovestrs', __('Remove characters specified below in specified fields'), true, false, 'BankstaRemoveStrs');
+        $inputs.= wf_TextInput('fmpcolsremovestrs', __('Fields to perform removing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaRemoveStrsCols');
+        $inputs.= wf_TextInput('fmpstrstoremove', __('Removed characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaRemoveStrsChars');
         $inputs.= wf_delimiter(0);
 
         $inputs.= wf_CheckInput('formclose', __('Close form after operation'), false, true, $closeFormChkId, '__CloseFrmOnSubmitChk');
@@ -2268,6 +2400,8 @@ class Banksta2 {
         $fmpData = $this->fieldsMappingPresets[$fmpID];
         $contractGuessing = (empty($fmpData['guess_contract'])) ? false : true;
         $rowSkipping = (empty($fmpData['skip_row'])) ? false : true;
+        $strReplacing = (empty($fmpData['replace_strs'])) ? false : true;
+        $strRemoving = (empty($fmpData['remove_strs'])) ? false : true;
 
         $inputs = wf_TextInput('fmpname', __('Preset name'), $fmpData['presetname'], true, '', '', '__FMPEmptyCheck');
 
@@ -2296,18 +2430,28 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpcontractminlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('min length'), $fmpData['contract_min_len'], true, '', '', '', 'BankstaContractMinLen');
         $inputs.= wf_TextInput('fmpcontractmaxlen', __('Contract') . ' (' . __('Payment ID') . '): ' . __('max length'), $fmpData['contract_max_len'], true, '', '', '', 'BankstaContractMaxLen');
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_Selector('fmpsrvtype', $this->bankstaServiceType, __('Service type'), $fmpData['service_type'], true, false, 'BankstaSrvType');
+        $inputs.= wf_Selector('fmpsrvtype', $this->bankstaServiceType, __('Service type') . ' (' . __('select "Telepathy" to try to get service type from payment purpose field') . ')', $fmpData['service_type'], true, false, 'BankstaSrvType');
         $inputs.= wf_TextInput('fmpinetdelimstart', __('Internet service before keywords delimiter string'), $fmpData['inet_srv_start_delim'], true, '', '', '', 'BankstaInetDelimStart');
-        $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords divided with comas'), $fmpData['inet_srv_keywords'], true, '40', '', '', 'BankstaInetKeyWords');
+        $inputs.= wf_TextInput('fmpinetkeywords', __('Internet service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['inet_srv_keywords'], true, '40', '', '', 'BankstaInetKeyWords');
         $inputs.= wf_TextInput('fmpinetdelimend', __('Internet service after keywords delimiter string'), $fmpData['inet_srv_end_delim'], true, '', '', '', 'BankstaInetDelimEnd');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), $fmpData['ukv_srv_start_delim'], true, '', '', '', 'BankstaUKVDelimStart');
-        $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords divided with comas'), $fmpData['ukv_srv_keywords'], true, '40', '', '', 'BankstaUKVKeyWords');
+        $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['ukv_srv_keywords'], true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), $fmpData['ukv_srv_end_delim'], true, '', '', '', 'BankstaUKVDelimEnd');
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if selected field contains keywords below'), true, $rowSkipping, 'BankstaSkipRow');
-        $inputs.= wf_TextInput('fmpcolskiprow', __('Column to check row skipping'), $fmpData['col_skiprow'], true, '4', '', '', 'BankstaSkipRowKeyWordsCol');
-        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords divided with comas'), $fmpData['skip_row_keywords'], true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, $rowSkipping, 'BankstaSkipRow');
+        $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_skiprow'], true, '', '', '', 'BankstaSkipRowKeyWordsCol');
+        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords  ') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['skip_row_keywords'], true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_CheckInput('fmpreplacestrs', __('Replace characters specified below in specified fields'), true, $strReplacing, 'BankstaReplaceStrs');
+        $inputs.= wf_TextInput('fmpcolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_replace_strs'], true, '', '', '', 'BankstaReplaceStrsCols');
+        $inputs.= wf_TextInput('fmpstrstoreplace', __('Replaced characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['strs_to_replace'], true, '40', '', '', 'BankstaReplaceStrsChars');
+        $inputs.= wf_TextInput('fmpstrstoreplacewith', __('Replacing characters or string'), $fmpData['strs_to_replace_with'], true, '40', '', '', 'BankstaReplaceStrsWith');
+        $inputs.= wf_TextInput('fmpstrsreplacecount', __('Replacements count'), $fmpData['replacements_cnt'], true, '40', '', '', 'BankstaReplaceStrsCount');
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_CheckInput('fmpremovestrs', __('Remove characters specified below in specified fields'), true, $strRemoving, 'BankstaRemoveStrs');
+        $inputs.= wf_TextInput('fmpcolsremovestrs', __('Fields to perform removing') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_remove_strs'], true, '', '', '', 'BankstaRemoveStrsCols');
+        $inputs.= wf_TextInput('fmpstrstoremove', __('Removed characters or strings') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['strs_to_remove'], true, '40', '', '', 'BankstaRemoveStrsChars');
         $inputs.= wf_delimiter(0);
 
         $inputs.= wf_CheckInput('formclose', __('Close form after operation'), false, true, $closeFormChkId, '__CloseFrmOnSubmitChk');
