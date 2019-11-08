@@ -103,6 +103,28 @@ class PONONUMAP {
     }
 
     /**
+     * Returns ONU controls
+     * 
+     * @param int $onuId
+     * @param string $login
+     * @param string $buildGeo
+     * 
+     * @return string
+     */
+    protected function getONUControls($onuId, $login, $buildGeo) {
+        $result = '';
+        if (!empty($onuId)) {
+            $result .= wf_Link(PONizer::URL_ME . '&editonu=' . $onuId, wf_img('skins/switch_models.png', __('Edit') . ' ' . __('ONU')));
+            $result = trim($result) . wf_nbsp();
+            $result .= wf_Link('?module=userprofile&username=' . $login, wf_img('skins/icons/userprofile.png', __('User profile')));
+            $result = trim($result) . wf_nbsp();
+            $result .= wf_Link('?module=usersmap&findbuild=' . $buildGeo, wf_img('skins/icon_build.gif',__('Build')));
+            $result = trim($result) . wf_nbsp();
+        }
+        return($result);
+    }
+
+    /**
      * Renders ONU signals Map 
      * 
      * @return string
@@ -126,8 +148,10 @@ class PONONUMAP {
                         if (!empty($userData['geo'])) {
                             $onuSignal = (isset($allOnuSignals[$eachOnu['login']])) ? $allOnuSignals[$eachOnu['login']] : 'NO';
                             $onuIcon = $this->getIcon($onuSignal);
+                            $onuControls = $this->getONUControls($eachOnu['id'], $eachOnu['login'], $userData['geo']);
+                            $onuTitle = $userData['fulladress'];
                             $signalLabel = ($onuSignal != 'NO') ? $onuSignal : __('No signal');
-                            $placemarks .= generic_mapAddMark($userData['geo'], 'title', $signalLabel, 'footer', $onuIcon, '', true);
+                            $placemarks .= generic_mapAddMark($userData['geo'], $onuTitle, $signalLabel, $onuControls, $onuIcon, '', true);
                             $marksRendered++;
                         } else {
                             $marksNoGeo++;
@@ -144,9 +168,14 @@ class PONONUMAP {
         $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ponmap');
         $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . sizeof($allOnu), 'info');
         $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
-        $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
-        $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
-        
+        if ($marksNoGeo > 0) {
+            $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
+        }
+
+        if ($marksNoUser > 0) {
+            $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
+        }
+
 
         return($result);
     }
