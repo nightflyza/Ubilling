@@ -118,7 +118,7 @@ class PONONUMAP {
             $result = trim($result) . wf_nbsp();
             $result .= wf_Link('?module=userprofile&username=' . $login, wf_img('skins/icons/userprofile.png', __('User profile')));
             $result = trim($result) . wf_nbsp();
-            $result .= wf_Link('?module=usersmap&findbuild=' . $buildGeo, wf_img('skins/icon_build.gif',__('Build')));
+            $result .= wf_Link('?module=usersmap&findbuild=' . $buildGeo, wf_img('skins/icon_build.gif', __('Build')));
             $result = trim($result) . wf_nbsp();
         }
         return($result);
