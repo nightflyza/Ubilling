@@ -98,6 +98,13 @@ class Telepathy {
     protected $cachedPhones = false;
 
     /**
+     * Return only uniq login when telepaty by phones
+     *
+     * @var bool
+     */
+    protected $uniqLogin = false;
+
+    /**
      * City display flag
      *
      * @var array
@@ -130,14 +137,16 @@ class Telepathy {
      * @param bool $cachedAddress
      * @param bool $citiesAddress
      * @param bool $cachedPhones
+     * @param bool $uniqLogin
      * 
      * @return void
      */
-    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false, $cachedPhones = false) {
+    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false, $cachedPhones = false, $uniqLogin = false) {
         $this->caseSensitive = $caseSensitive;
         $this->cachedAddress = $cachedAddress;
         $this->citiesAddress = $citiesAddress;
         $this->cachedPhones = $cachedPhones;
+        $this->uniqLogin = $uniqLogin;
         $this->loadConfig();
         $this->initCache();
         $this->loadAddress();
@@ -256,14 +265,20 @@ class Telepathy {
             foreach ($allPhoneData as $login => $each) {
                 $cleanMobile = vf($each['mobile'], 3);
                 if (!empty($cleanMobile)) {
-                    $this->allMobiles[$cleanMobile] = $login;
-                    $this->allMobilesFull[$cleanMobile][] = $login;
+                    if ($this->uniqLogin) {
+                        $this->allMobilesFull[$cleanMobile][] = $login;
+                    } else {
+                        $this->allMobiles[$cleanMobile] = $login;
+                    }
                 }
 
                 $cleanPhone = vf($each['phone'], 3);
                 if (!empty($cleanPhone)) {
-                    $this->allPhones[$cleanPhone] = $login;
-                    $this->allPhonesFull[$cleanPhone][] = $login;
+                    if ($this->uniqLogin) {
+                        $this->allMobilesFull[$cleanPhone][] = $login;
+                    } else {
+                        $this->allMobiles[$cleanPhone] = $login;
+                    }
                 }
             }
         }
@@ -285,8 +300,11 @@ class Telepathy {
             if (!empty($allExtTmp)) {
                 foreach ($allExtTmp as $eachExtMobile => $login) {
                     $cleanExtMobile = vf($eachExtMobile, 3);
-                    $this->allExtMobiles[$cleanExtMobile] = $login;
-                    $this->allExtMobilesFull[$cleanExtMobile][] = $login;
+                    if ($this->uniqLogin) {
+                        $this->allMobilesFull[$cleanExtMobile][] = $login;
+                    } else {
+                        $this->allMobiles[$cleanExtMobile] = $login;
+                    }
                 }
             }
         }
@@ -429,9 +447,8 @@ class Telepathy {
      * 
      * @return string
      */
-    public function getByPhone($phoneNumber, $onlyMobile = false, $normalizeMobile = false, $uniqLogin = false) {
+    public function getByPhone($phoneNumber, $onlyMobile = false, $normalizeMobile = false) {
         $result = '';
-        $resultTempUniq = array();
         /**
          * Come with us speeding through the night
          * As fast as any bird in flight
@@ -442,33 +459,32 @@ class Telepathy {
         $phoneNumber = ($normalizeMobile) ? $this->normalizePhoneFormat($phoneNumber) : $phoneNumber;
         if (!empty($phoneNumber)) {
             if (!$onlyMobile) {
-                if (!empty($this->allPhones)) {
+                if (!empty($this->allPhones) and !$this->uniqLogin) {
                     foreach ($this->allPhones as $baseNumber => $userLogin) {
-                        if (ispos((string) $phoneNumber, (string) $baseNumber) and !$uniqLogin) {
+                        if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                             $result = $userLogin;
                         }
                     }
                 }
             }
 
-            if (!empty($this->allExtMobiles)) {
+            if (!empty($this->allExtMobiles) and !$this->uniqLogin) {
                 foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
-                    if (ispos((string) $phoneNumber, (string) $baseNumber) and !$uniqLogin) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                         $result = $userLogin;
                     }
                 }
             }
 
-            if (!empty($this->allMobiles)) {
+            if (!empty($this->allMobiles) and !$this->uniqLogin) {
                 foreach ($this->allMobiles as $baseNumber => $userLogin) {
-                    if (ispos((string) $phoneNumber, (string) $baseNumber) and !$uniqLogin) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                         $result = $userLogin;
-                        return ($result);
                     }
                 }
             }
 
-            if ($uniqLogin) {
+            if ($this->uniqLogin) {
                 $resultTempUniq = array_merge_recursive($this->allPhonesFull, $this->allExtMobilesFull, $this->allMobilesFull);
                 // Try remove duplicate phone and mobile from one users
                 foreach ($resultTempUniq as $phone => $dataArr) {
