@@ -8,6 +8,14 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
         $register = new OnuRegister();
         $avidity = $register->getAvidity();
         $onuIdentifier = OnuRegister::EMPTY_FIELD;
+        if (wf_CheckGet(array('action'))) {
+            if (isset($_GET['login'])) {
+                $tmpLogin = $_GET['login'];
+            } else {
+                $tmpLogin = '';
+            }
+            die($register->getQinqByLogin($tmpLogin));
+        }
         if (!empty($avidity)) {
             $avidity_z = $avidity['M']['LUCIO'];
             $avidity_w = $avidity['M']['REAPER'];
@@ -71,7 +79,9 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     $register->router = $router;
                     $register->vlan = $_POST[OnuRegister::VLAN_FIELD];
                     $register->onuModel = $_POST[OnuRegister::MODELID_FIELD];
-                    $register->useUniversalQINQ = $_POST[OnuRegister::GET_UNIVERSALQINQ];
+                    if (isset($_POST[OnuRegister::GET_UNIVERSALQINQ])) {
+                        $register->useUniversalQINQ = $_POST[OnuRegister::GET_UNIVERSALQINQ];
+                    }
                     $loginCheck = $register->checkOltParams();
                     if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
                         show_error(__($loginCheck));

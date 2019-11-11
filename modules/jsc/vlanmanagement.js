@@ -152,5 +152,50 @@ function modalOpen() {
     });
 }
 
+function loadQinqOptions(interface, swid) {
+    let container = document.getElementById('qinqcontainer');
+    let xhr = new XMLHttpRequest();
+    let url2 = "?module=zteunreg&action=ajaxlogin&swid=" + swid + "&interface=" + interface;
+    xhr.open("GET", url2, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
+    xhr.send();
+
+    xhr.onload = function () {
+        let response = xhr.response;
+        let decoded = JSON.parse(response);
+        container.innerHTML = decoded.result;
+    };
+}
+
+function getQinqByLogin(login, interface, swid) {
+    let container = document.getElementById('qinqcontainer');
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "?module=zteunreg&action=ajaxlogin&login=" + login + "&interface=" + interface + "&swid=" + swid, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.send();
+
+    xhr.onload = function () {
+        let response = xhr.response;
+        console.log(response);
+        let decoded = JSON.parse(response);
+        container.innerHTML = decoded.main;
+        if (decoded.svlan != 'none') {
+            let table = document.getElementById("qinqoptions");
+            let newRow1 = table.insertRow(-1);
+            let newCell1 = newRow1.insertCell(-1);
+            newCell1.innerHTML = decoded.cell1;
+            let newCell2 = newRow1.insertCell(-1);
+            newCell2.innerHTML = decoded.cell2;
+            let newRow2 = table.insertRow(-1);
+            let newCell3 = newRow2.insertCell(-1);
+            newCell3.innerHTML = decoded.cell3;
+            let newCell4 = newRow2.insertCell(-1);
+            newCell4.innerHTML = decoded.cell4;
+        }
+    };
+
+}
 
