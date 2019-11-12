@@ -1283,14 +1283,18 @@ class OnuRegister {
                     }
                 }
 
-                $this->result .= shell_exec($this->getRegisterOnuCommand());
-                $this->result .= shell_exec($this->getSaveConfigCommand());
-                $this->result = nl2br($this->result);
-                if ($this->useUniversalQINQ == self::GET_UNIVERSALQINQ_CVLAN_POOL or $this->useUniversalQINQ == self::GET_UNIVERSALQINQ_PAIR_POOL) {
+                if ($this->useUniversalQINQ != 'none') {
                     if ($this->login) {
+                        $this->result .= shell_exec($this->getRegisterOnuCommand());
+                        $this->result .= shell_exec($this->getSaveConfigCommand());
+                        $this->result = nl2br($this->result);
                         $universalQuery = "INSERT INTO `qinq_bindings` (`id`,`login`,`svlan_id`,`cvlan`) VALUES (NULL,'" . $this->login . "'," . $this->svlanId . ',' . $this->cvlan . ')';
                         nr_query($universalQuery);
                     }
+                } else {
+                    $this->result .= shell_exec($this->getRegisterOnuCommand());
+                    $this->result .= shell_exec($this->getSaveConfigCommand());
+                    $this->result = nl2br($this->result);
                 }
 
                 log_register('ONUREG REGISTER ONU. ONU ID: ' . $this->onuIdentifier . ' OLT IP: ' . $this->currentOltIp . 'OLT INTERFACE: ' . $this->currentOltInterface . ' ONU NUMBER: ' . $this->lastOnuId);
