@@ -1363,7 +1363,7 @@ class OnuRegister {
                 $this->vlan = $vlans['cvlan'];
                 $this->cvlan = $vlans['cvlan'];
                 if ($this->useUniversalQINQ == self::GET_UNIVERSALQINQ_PAIR_POOL) {
-                    $this->vlan = ' ' . $vlans['svlan'];
+                    $this->vlan .= ' ' . $vlans['svlan'];
                 }
             }
         }
