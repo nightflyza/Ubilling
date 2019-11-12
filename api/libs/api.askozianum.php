@@ -32,11 +32,11 @@ class AskoziaNum {
      * Log path
      */
     const LOG_PATH = 'content/documents/askozianum.log';
-    
+
     /**
      * Default calls logging table
      */
-    const LOG_TABLE='callshist';
+    const LOG_TABLE = 'callshist';
 
     /**
      * Debug/Log flag
@@ -70,7 +70,7 @@ class AskoziaNum {
      * @return void
      */
     protected function initTelepathy() {
-        $this->telepathy = new Telepathy(false, true, false, true, true);
+        $this->telepathy = new Telepathy(false, true, false, true, false);
         $this->telepathy->usePhones();
     }
 
@@ -91,9 +91,9 @@ class AskoziaNum {
     protected function saveCallsHist($date, $number, $login = '') {
         $login = mysql_real_escape_string($login);
         $number = mysql_real_escape_string($number);
-        $number=trim($number);
-        $login=trim($login);
-        $query = "INSERT INTO `".self::LOG_TABLE."` (`id`,`date`,`number`,`login`) VALUES "
+        $number = trim($number);
+        $login = trim($login);
+        $query = "INSERT INTO `" . self::LOG_TABLE . "` (`id`,`date`,`number`,`login`) VALUES "
                 . "(NULL, '" . $date . "', '" . $number . "','" . $login . "');";
         nr_query($query);
     }
