@@ -230,7 +230,7 @@ class Banksta2 {
     protected function loadOptions() {
         $this->inetPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_INET');
         $this->ukvPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_UKV');
-        $this->regexKeywordsDelimiter = (wf_getBoolFromVar($this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM'))) ? ',' : $this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM');
+        $this->regexKeywordsDelimiter = (wf_getBoolFromVar($this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM'))) ? $this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM') : ',';
     }
 
 
