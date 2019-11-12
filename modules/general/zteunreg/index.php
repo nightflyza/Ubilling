@@ -41,7 +41,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
             }
             if (wf_CheckPost(array(OnuRegister::TYPE_FIELD, OnuRegister::INTERFACE_FIELD, OnuRegister::OLTIP_FIELD, OnuRegister::MODELID_FIELD, OnuRegister::OLTID_FIELD))) {
                 if ($_POST[OnuRegister::MODELID_FIELD] != OnuRegister::MODELID_PLACEHOLDER) {
-                    if (wf_CheckPost(array(OnuRegister::VLAN_FIELD) OR $_POST[OnuRegister::GET_UNIVERSALQINQ] != 'none')) {
+                    if (wf_CheckPost(array(OnuRegister::VLAN_FIELD)) OR $_POST[OnuRegister::GET_UNIVERSALQINQ] != 'none') {
 
                         $register->addMac = OnuRegister::EMPTY_FIELD;
                         $save = false;
