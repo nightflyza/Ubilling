@@ -98,5 +98,8 @@ $lang['def']['Remove characters specified below in specified fields'] = 'Уда�
 $lang['def']['Fields to perform removing'] = 'Поля в которых производить удаление';
 $lang['def']['Removed characters or strings'] = 'Удаляемые символы или строки';
 $lang['def']['select "Telepathy" to try to get service type from payment purpose field'] = 'выберите "Телепатию", чтобы попытаться извлечь тип услуги из назначения платежа';
+$lang['def']['Payment type ID'] = 'ID типа оплат';
+$lang['def']['Char replacing'] = 'Замена символов';
+$lang['def']['Char removing'] = 'Удаление символов';
 $lang['def'][''] = '';
 ?>
