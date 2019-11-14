@@ -1844,7 +1844,7 @@ class Banksta2 {
             $cells .= wf_TableCell(__('Statement Contract'));
             $cells .= wf_TableCell(__('Service type'));
             $cells .= wf_TableCell(__('Edit record'));
-            $cells .= wf_TableCell(__('Payment ID'));
+            $cells .= wf_TableCell(__('Payment type ID'));
             $cells .= wf_TableCell(__('Cash'));
             $cells .= wf_TableCell(__('Processed'));
             $cells .= wf_TableCell(__('Canceled'));
@@ -1859,6 +1859,9 @@ class Banksta2 {
                     $recProcessed = ($eachRec['processed']) ? true : false;
                     $recCanceled = ($eachRec['canceled']) ? true : false;
                     $serviceType = trim($eachRec['service_type']);
+                    $addrIsEmpty = empty($eachRec['address']);
+                    $nameIsEmpty = empty($eachRec['realname']);
+                    $contractUnknown = (empty($eachRec['contract']) or ispos($eachRec['contract'], 'unknown_'));
                     $detailsWinID = wf_InputId();
                     $lnkID = wf_InputId();
 
@@ -1885,8 +1888,19 @@ class Banksta2 {
                     $addInfoControl .= wf_tag('script', true);
 
                     $cells = wf_TableCell($addInfoControl, '', '', '', '', (($dreamkasEnabled) ? '2' : ''));
-                    $cells .= wf_TableCell($eachRec['address']);
-                    $cells .= wf_TableCell($eachRec['realname']);
+
+                    if (($addrIsEmpty or $nameIsEmpty or $contractUnknown) and !empty($eachRec['notes'])) {
+                        if ($addrIsEmpty or $contractUnknown) {
+                            $cells .= wf_TableCell($eachRec['notes']);
+                            $cells .= wf_TableCell('');
+                        } else {
+                            $cells .= wf_TableCell('');
+                            $cells .= wf_TableCell($eachRec['notes']);
+                        }
+                    } else {
+                        $cells .= wf_TableCell($eachRec['address']);
+                        $cells .= wf_TableCell($eachRec['realname']);
+                    }
 
                     if ($recProcessed) {
                         if ($recCanceled) {
@@ -2091,7 +2105,7 @@ class Banksta2 {
      */
     function renderBStatementsListJSON() {
         $tQuery = "SELECT `filename`, `hash`, `date`, `admin`, 
-                          COUNT(`id`) AS `rowcount`, COUNT(if(`processed` > 0, 1, null)) AS processed_cnt, COUNT(if(`canceled` > 0, 1, null)) AS canceled_cnt
+                          COUNT(`id`) AS `rowcount`, COUNT(if(`processed` > 0 and `canceled` <= 0, 1, null)) AS processed_cnt, COUNT(if(`canceled` > 0, 1, null)) AS canceled_cnt
                        FROM `" . self::BANKSTA2_TABLE . "` GROUP BY `hash` ORDER BY `date` DESC;";
         $tQueryResult = simple_queryall($tQuery);
 
@@ -2169,7 +2183,8 @@ class Banksta2 {
      */
     public function renderFMPListJSON() {
         $tQuery = "SELECT `id`, `presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, 
-                          `col_paydate`, `col_paytime`, `col_contract`, `guess_contract`, `skip_row`, `service_type`  
+                          `col_paydate`, `col_paytime`, `col_contract`, `guess_contract`, `skip_row`, 
+                          `replace_strs`, `remove_strs`, `service_type`  
                       FROM `" . self::BANKSTA2_PRESETS_TABLE . "`";
         $tQueryResult = simple_queryall($tQuery);
 
@@ -2189,6 +2204,8 @@ class Banksta2 {
 
                         case 'guess_contract':
                         case 'skip_row':
+                        case 'replace_strs':
+                        case 'remove_strs':
                             $data[] = ($fieldVal == 1) ? web_green_led() : web_red_led();
                             break;
 
@@ -2237,6 +2254,8 @@ class Banksta2 {
         $columns[] = __('Contract column');
         $columns[] = __('Contract guessing');
         $columns[] = __('Row skipping');
+        $columns[] = __('Char replacing');
+        $columns[] = __('Char removing');
         $columns[] = __('Service type');
         $columns[] = __('Actions');
 
@@ -2340,7 +2359,7 @@ class Banksta2 {
         $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
 
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number'), '0', true, '4');
+        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number') . ' (' . __('Payment ID') . ')', '0', true, '4');
         $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field'), true, false, 'BankstaTryGuessContract');
         $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
@@ -2417,7 +2436,7 @@ class Banksta2 {
         $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
 
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number'), $fmpData['col_contract'], true, '4');
+        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number') . ' (' . __('Payment ID') . ')', $fmpData['col_contract'], true, '4');
         $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field'), true, $contractGuessing, 'BankstaTryGuessContract');
         $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
