@@ -265,6 +265,19 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             }
         }
 
+        //use four digits increment with zero prefix
+        if ($type == 'INCREMENTFOUR') {
+            $busylogins = zb_AllBusyLogins();
+            $prefixSize = 4;
+            for ($i = 1; $i < 100000; $i++) {
+                $nextIncrementFiveProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                if (!isset($busylogins[$nextIncrementFiveProposal])) {
+                    $result = $nextIncrementFiveProposal;
+                    break;
+                }
+            }
+        }
+
         //use five five digits increment with zero prefix
         if ($type == 'INCREMENTFIVE') {
             $busylogins = zb_AllBusyLogins();
@@ -278,7 +291,7 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             }
         }
 
-        //use five six digits increment with zero prefix
+        //use six digits increment with zero prefix
         if ($type == 'INCREMENTSIX') {
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 6;
@@ -306,10 +319,25 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             }
         }
 
-        //use five five digits increment
+        //use five digits increment
         if ($type == 'INCREMENTFIVEREV') {
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 5;
+            for ($i = 1; $i < 100000; $i++) {
+
+                $nextIncrementFiveRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                $nextIncrementFiveRevProposal = strrev($nextIncrementFiveRevProposal);
+                if (!isset($busylogins[$nextIncrementFiveRevProposal])) {
+                    $result = $nextIncrementFiveRevProposal;
+                    break;
+                }
+            }
+        }
+
+        //use six digits increment
+        if ($type == 'INCREMENTSIXREV') {
+            $busylogins = zb_AllBusyLogins();
+            $prefixSize = 6;
             for ($i = 1; $i < 100000; $i++) {
 
                 $nextIncrementFiveRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
