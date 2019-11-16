@@ -291,6 +291,21 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             }
         }
 
+        //use four digits increment
+        if ($type == 'INCREMENTFOURREV') {
+            $busylogins = zb_AllBusyLogins();
+            $prefixSize = 4;
+            for ($i = 1; $i < 100000; $i++) {
+
+                $nextIncrementFiveRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                $nextIncrementFiveRevProposal = strrev($nextIncrementFiveRevProposal);
+                if (!isset($busylogins[$nextIncrementFiveRevProposal])) {
+                    $result = $nextIncrementFiveRevProposal;
+                    break;
+                }
+            }
+        }
+
         //use five five digits increment
         if ($type == 'INCREMENTFIVEREV') {
             $busylogins = zb_AllBusyLogins();
