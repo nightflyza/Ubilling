@@ -66,6 +66,13 @@ class MultiGen {
     protected $allSvlan = array();
 
     /**
+     * Contains all realms
+     * 
+     * @var array
+     */
+    protected $allRealms = array();
+
+    /**
      * Contains array of available switches as id=>switchdata
      *
      * @var array
@@ -759,6 +766,7 @@ class MultiGen {
             $this->usersQinQ = $universalqinq->getAll();
             $svlanObj = new VlanManagement();
             $this->allSvlan = $svlanObj->getAllSvlan();
+            $this->allRealms = $svlanObj->getAllRealms();
         }
     }
 
@@ -2020,8 +2028,8 @@ class MultiGen {
     protected function getQinQUsername($userLogin, $delimiter = '.') {
         $result = '';
         if (isset($this->usersQinQ[$userLogin])) {
-            $qinq = $this->usersQinQ[$userLogin];
-            $result .= $this->allSvlan[$qinq['svlan_id']]['svlan'] . $delimiter . $qinq['cvlan'];
+            $qinqData = $this->usersQinQ[$userLogin];
+            $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . $qinqData['cvlan'];
         } elseif (isset($this->userSwitchAssigns[$userLogin])) {
             $assignData = $this->userSwitchAssigns[$userLogin];
             $assignedSwitchId = $assignData['switchid'];
@@ -2030,6 +2038,14 @@ class MultiGen {
                 $qinqData = $this->switchesQinQ[$assignedSwitchId];
                 if (!empty($assignedPort)) {
                     $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . ($qinqData['cvlan'] + ($assignedPort - 1));
+                }
+            }
+        }
+        if (!empty($result)) {
+            if (isset($$this->allSvlan[$qinqData['svlan_id']])) {
+                $realmId = $this->allSvlan[$qinqData['svlan_id']]['realm_id'];
+                if ($realmId != 1) {
+                    $result .= '@' . $this->allRealms[$realmId]['realm'];
                 }
             }
         }
