@@ -55,6 +55,7 @@ class OnuRegister {
     CONST ERROR_NO_OLTIP_SET = 'No OLT IP address value found.';
     CONST ERROR_NO_VLAN_SET = 'No VLAN value found.';
     CONST ERROR_TOO_MANY_REGISTERED_ONU = 'Registered ONU count is';
+    CONST ERROR_NEED_LICENSE_REISSUE_02 = 'Ask for new license. ETTO cards not supported for 64+ ONT installation in this license version.';
     CONST HUAWEI_NATIVE_VLAN_OPTION = 'ONUREG_HUAWEI_NATIVE_VLAN';
 
     /**
@@ -1262,9 +1263,16 @@ class OnuRegister {
                     foreach ($this->allCards[$this->currentOltSwId] as $each => $io) {
                         if ($io['slot_number'] == $slot) {
                             if ($io['card_name'] == "ETTO" or $io['card_name'] == "ETTOK") {
-                                if (count($this->existId) >= 128) {
-                                    $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
-                                    return('');
+                                if ($this->avidity['VERSION'] != '0.0.1') {
+                                    if (count($this->existId) >= 128) {
+                                        $this->error = self::ERROR_TOO_MANY_REGISTERED_ONU;
+                                        return('');
+                                    }
+                                } else {
+                                    if (count($this->existId) >= 64) {
+                                        $this->error = self::ERROR_NEED_LICENSE_REISSUE_02;
+                                        return('');
+                                    }
                                 }
                             } else {
                                 if (count($this->existId) >= 64) {

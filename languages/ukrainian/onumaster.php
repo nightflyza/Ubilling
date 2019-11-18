@@ -35,3 +35,4 @@ $lang['def']['No interface value found.'] = 'Значення interface не з�
 $lang['def']['No OLT IP address value found.'] = 'IP адресу OLT не знайдено.';
 $lang['def']['No VLAN value found.'] = 'VLAN не знайдено.';
 $lang['def']['Registered ONU count is'] = 'Кількість зареєстрованих ONU';
+$lang['def']['Ask for new license. ETTO cards not supported for 64+ ONT installation in this license version.'] = 'Зробіть запит на нову ліцензію. ETTO карта для 64+ ONU не підтримується у поточної версії ліцензії.';
