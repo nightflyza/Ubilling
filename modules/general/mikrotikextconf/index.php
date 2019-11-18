@@ -74,6 +74,13 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
                     $this->form->addrow(__($input), $contents);
                 }
 
+                if (!isset($this->options['apiport'])) {
+                    $this->options['apiport'] = '8728';
+                }
+
+                $contents = $this->form->text_box(self::FORM_NAME . '[apiport]', $this->options['apiport'], 0, 0, false, null);
+                $this->form->addrow(__('API port'), $contents);
+
                 $TelepathySup = '';
                 $ConnTypeCheckBox = 'use_new_conn_mode';
                 $ConnTypeCheckBoxDisabled = '';
@@ -107,7 +114,7 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
                 // Connection-sensetive options:
                 if ( isset($this->options['username'])
                      && isset($this->options['password'])
-                     && $this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode) ) {
+                     && $this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode, $this->options['apiport']) ) {
                     // Block 2: Interface settings
                     $this->form->addmessage(__('Interface settings'));
                     $this->get_ifaces();

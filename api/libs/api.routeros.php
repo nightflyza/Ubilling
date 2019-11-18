@@ -3,6 +3,7 @@
 class RouterOS {
     // Socket resource:
     private $socket;
+    private $port;
     
     // Public variables:
     public $connected = false;
@@ -11,7 +12,7 @@ class RouterOS {
     public $error_num = null;
     
     // Constatns of class:
-    const PORT     = 8728;
+    //const PORT     = 8728;
     const DEBUG    = false;
     const ATTEMPTS = 3;
     const TIMEOUT  = 5;
@@ -35,14 +36,19 @@ class RouterOS {
      * @param   string  $hostname   Device`s IP or hostname
      * @param   string  $username   Username
      * @param   string  $password   Password
+     * @param   bool    $UseNewConnMode
+     * @param   string  $apiPort
+     *
      * @return  boolean $this->connected
      */
-    public function connect($hostname, $username, $password, $UseNewConnMode = false) {
+    public function connect($hostname, $username, $password, $UseNewConnMode = false, $apiPort = '8728') {
         // Connect to device:
         for ( $attempt = 1; $attempt <= self::ATTEMPTS; $attempt++ ) {
             $this->connected = false;
-            $this->debug('Connection attempt #' . $attempt . ' to ' . $hostname . ':' . self::PORT);
-            $this->socket = @fsockopen($hostname, self::PORT, $this->error_num, $this->error_str, self::TIMEOUT);
+            $this->port = $apiPort;
+            $this->debug('Connection attempt #' . $attempt . ' to ' . $hostname . ':' . $this->port);
+            $this->socket = @fsockopen($hostname, $this->port, $this->error_num, $this->error_str, self::TIMEOUT);
+
             if ( $this->socket ) {
                 socket_set_timeout($this->socket, self::TIMEOUT);
 
@@ -303,7 +309,7 @@ class RouterOS {
         $SNMP->setMode('native');
         $OID = '.1.3.6.1.4.1.14988.1.1.4.4.0';
         $tmpSNMP = $SNMP->walk($Hostname, $SNMPCommunity, $OID, false);
-        $Version = ( empty($tmpSNMP) && $tmpSNMP === "$OID = " ) ? '' : str_replace('"', '', trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) ));
+        $Version = ( empty($tmpSNMP) || $tmpSNMP === "$OID = " ) ? '' : str_replace('"', '', trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) ));
 
         // if first option failed - trying to parse login WEB page
         if ( empty($Version) ) {
