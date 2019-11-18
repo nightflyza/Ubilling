@@ -3140,5 +3140,5 @@ $lang['def']['No signal'] = 'Немає сигналу';
 $lang['def']['ONU rendered on map'] = 'ONU відрендерено на мапі';
 $lang['def']['User builds not placed on map'] = 'Користувацьких будинків не розміщено на мапі';
 $lang['def']['ONU without assigned user'] = 'ONU з неприсвоєними користувачами';
-
+$lang['def']['API port'] = 'Порт API';
 ?>
