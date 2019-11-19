@@ -2042,7 +2042,7 @@ class MultiGen {
             }
         }
         if (!empty($result)) {
-            if (isset($$this->allSvlan[$qinqData['svlan_id']])) {
+            if (isset($this->allSvlan[$qinqData['svlan_id']])) {
                 $realmId = $this->allSvlan[$qinqData['svlan_id']]['realm_id'];
                 if ($realmId != 1) {
                     $result .= '@' . $this->allRealms[$realmId]['realm'];
