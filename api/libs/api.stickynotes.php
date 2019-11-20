@@ -257,7 +257,6 @@ class StickyNotes {
             foreach ($this->allnotes as $io => $each) {
                 $timestamp = strtotime($each['createdate']);
                 $date = date("Y, n-1, j", $timestamp);
-                $rawTime = date("H:i:s", $timestamp);
 
                 if ($each['active'] == 1) {
                     $coloring = "className : 'undone',";
@@ -268,6 +267,7 @@ class StickyNotes {
                 if (!empty($each['reminddate'])) {
                     $remindtimestamp = strtotime($each['reminddate']);
                     $reminddate = date("Y, n-1, j", $remindtimestamp);
+                    $remindTime = (!empty($each['remindtime'])) ? date("H:i", strtotime($each['remindtime'])) : '';
                     $textLenght = 48;
                 } else {
                     $reminddate = $date;
@@ -283,7 +283,7 @@ class StickyNotes {
 
                 $calendarData .= "
                       {
-                        title: '" . $rawTime . " " . $shortText . " ',
+                        title: '" . $remindTime . " " . $shortText . " ',
                         url: '" . self::URL_ME . "&shownote=" . $each['id'] . "',
                         start: new Date(" . $reminddate . "),
                         end: new Date(" . $reminddate . "),
