@@ -285,7 +285,7 @@ class StickyNotes {
                       {
                         title: '" . $rawTime . " " . $shortText . " ',
                         url: '" . self::URL_ME . "&shownote=" . $each['id'] . "',
-                        start: new Date(" . $date . "),
+                        start: new Date(" . $reminddate . "),
                         end: new Date(" . $reminddate . "),
                        " . $coloring . "     
                    },
