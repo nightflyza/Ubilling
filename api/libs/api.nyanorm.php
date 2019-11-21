@@ -641,7 +641,7 @@ class NyanORM {
     }
 
     /**
-     * Returns ids count in datatabase instance
+     * Returns fields count in datatabase instance
      * 
      * @param string $fieldsToCount field name to count results
      * @param bool  $flushParams flush all query parameters like where, order, limit and other after execution?
@@ -651,6 +651,24 @@ class NyanORM {
     public function getFieldsCount($fieldsToCount = 'id', $flushParams = true) {
         $whereString = $this->buildWhereString();
         $raw = simple_query("SELECT COUNT(" . $this->escapeField($fieldsToCount) . ") AS `result` from `" . $this->tableName . "`" . $whereString);
+        if ($flushParams) {
+            //flush instance parameters for further queries
+            $this->destroyAllStructs();
+        }
+        return($raw['result']);
+    }
+
+    /**
+     * Returns fields sum in datatabase instance
+     * 
+     * @param string $fieldsToSum field name to retrive its sum
+     * @param bool  $flushParams flush all query parameters like where, order, limit and other after execution?
+     * 
+     * @return int
+     */
+    public function getFieldsSum($fieldsToSum, $flushParams = true) {
+        $whereString = $this->buildWhereString();
+        $raw = simple_query("SELECT SUM(" . $this->escapeField($fieldsToSum) . ") AS `result` from `" . $this->tableName . "`" . $whereString);
         if ($flushParams) {
             //flush instance parameters for further queries
             $this->destroyAllStructs();
