@@ -667,13 +667,17 @@ class NyanORM {
      * @return int
      */
     public function getFieldsSum($fieldsToSum, $flushParams = true) {
-        $whereString = $this->buildWhereString();
-        $raw = simple_query("SELECT SUM(" . $this->escapeField($fieldsToSum) . ") AS `result` from `" . $this->tableName . "`" . $whereString);
-        if ($flushParams) {
-            //flush instance parameters for further queries
-            $this->destroyAllStructs();
+        if (!empty($fieldsToSum)) {
+            $whereString = $this->buildWhereString();
+            $raw = simple_query("SELECT SUM(" . $this->escapeField($fieldsToSum) . ") AS `result` from `" . $this->tableName . "`" . $whereString);
+            if ($flushParams) {
+                //flush instance parameters for further queries
+                $this->destroyAllStructs();
+            }
+            return($raw['result']);
+        } else {
+            throw new Exception('MEOW_NO_FIELD_NAME');
         }
-        return($raw['result']);
     }
 
     /**
