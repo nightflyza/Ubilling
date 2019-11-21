@@ -2,8 +2,8 @@
 
 $liqConf = parse_ini_file('config/liqpay.ini');
 
-// подключаем API MySQL
-include ("../../libs/api.mysql.php");
+// подключаем API OpenPayz
+include ("../../libs/api.openpayz.php");
 
 //вытаскиваем из конфига все что нам нужно в будущем
 $ispUrl = $liqConf['TEMPLATE_ISP_URL'];
