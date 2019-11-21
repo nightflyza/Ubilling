@@ -94,7 +94,11 @@ if (lq_CheckPost(array('data', 'signature'))) {
                     if (isset($allcustomers[$customerid])) {
                         $customerLogin = $allcustomers[$customer_id];
                         $agentData = getAgentData($customerLogin);
-                        $private_key = $liqConf['SIGNATURE'][$agentData['id']];
+                        if (isset($liqConf['SIGNATURE'][$agentData['id']])) {
+                            $private_key = $liqConf['SIGNATURE'][$agentData['id']];
+                        } else {
+                            $private_key = $liqConf['SIGNATURE']['default'];
+                        }
                         $signature = base64_encode(sha1($private_key . $data . $private_key, 1));
                         if ($reqSig == $signature) {
                             //регистрируем новую транзакцию

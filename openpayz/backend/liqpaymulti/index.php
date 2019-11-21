@@ -109,6 +109,7 @@ function lq_PricesForm() {
  */
 
 function lq_PaymentForm($customer_id) {
+    $result = '';
     global $liqConf;
     include('LiqPay.php');
 
@@ -122,24 +123,32 @@ function lq_PaymentForm($customer_id) {
     if (isset($allcustomers[$customer_id])) {
         $customerLogin = $allcustomers[$customer_id];
         $agentData = getAgentData($customerLogin);
-        $merchant_id = $liqConf['MERCHANT_ID'][$agentData['id']];
-        $signature = $liqConf['SIGNATURE'][$agentData['id']];
-        $serverUrl = $liqConf['SERVER_URL'];
-    }
+        if (!empty($agentData)) {
+            if (isset($liqConf['MERCHANT_ID'][$agentData['id']])) {
+                $merchant_id = $liqConf['MERCHANT_ID'][$agentData['id']];
+                $signature = $liqConf['SIGNATURE'][$agentData['id']];
+                $serverUrl = $liqConf['SERVER_URL'];
+            } else {
+                $merchant_id = $liqConf['MERCHANT_ID']['default'];
+                $signature = $liqConf['SIGNATURE']['default'];
+                $serverUrl = $liqConf['SERVER_URL'];
+            }
 
-    $result = "<h2>" . $liqConf['TEMPLATE_ISP_SERVICE'] . " " . $customer_id . "</h2>";
-    $liqpay = new LiqPay($merchant_id, $signature);
-    $result .= $liqpay->cnb_form(array(
-        'action' => 'pay',
-        'amount' => $summ,
-        'currency' => $currency,
-        'description' => $customer_id,
-        'order_id' => $session,
-        'result_url' => $resultUrl,
-        'server_url' => $serverUrl,
-        'paytypes' => $method,
-        'version' => '3'
-    ));
+            $result .= "<h2>" . $liqConf['TEMPLATE_ISP_SERVICE'] . " " . $customer_id . "</h2>";
+            $liqpay = new LiqPay($merchant_id, $signature);
+            $result .= $liqpay->cnb_form(array(
+                'action' => 'pay',
+                'amount' => $summ,
+                'currency' => $currency,
+                'description' => $customer_id,
+                'order_id' => $session,
+                'result_url' => $resultUrl,
+                'server_url' => $serverUrl,
+                'paytypes' => $method,
+                'version' => '3'
+            ));
+        }
+    }
 
     return ($result);
 }
