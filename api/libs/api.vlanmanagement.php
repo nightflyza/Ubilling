@@ -307,8 +307,8 @@ class VlanManagement {
         $this->switchesDb = new nya_switches();
         $this->switchModelsDb = new nya_switchmodels();
         $this->switchPortDb = new nya_switchportassign();
-        $this->zteqinqDb = new NyanORM('zte_qinq');
-        $this->zteCardsDb = new NyanOrm('zte_cards');
+        $this->zteqinqDb = new nya_zte_qinq();
+        $this->zteCardsDb = new nya_zte_cards();
     }
 
     /**
@@ -948,8 +948,7 @@ class VlanManagement {
      * @return string
      */
     protected function oltSelector() {
-        //still can't use nyan_orm for joins :(
-        $query = 'SELECT `sw`.`id`,`sw`.`ip`,`sw`.`location`,`model`.`snmptemplate` FROM `switches` AS `sw` JOIN `switchmodels` AS `model` ON (`sw`.`modelid` = `model`.`id`) WHERE `sw`.`desc` LIKE "%OLT%" AND `model`.`snmptemplate` LIKE "ZTE%"';
+        $query = 'SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location`,`switchmodels`.`snmptemplate` FROM `switches` AS `sw` JOIN `switchmodels` AS `model` ON (`sw`.`modelid` = `model`.`id`) WHERE `sw`.`desc` LIKE "%OLT%" AND `model`.`snmptemplate` LIKE "ZTE%"';
         $switches = simple_queryall($query);
 
         $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
@@ -978,7 +977,6 @@ class VlanManagement {
         $result = '';
         $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
         if ($this->routing->get('id', 'int')) {
-            //still can't use nyan_orm for joins :(
             $this->zteCardsDb->selectable('`zte_cards`.`id`,`zte_cards`.`swid`,`zte_cards`.`slot_number`,`zte_cards`.`card_name`');
             $this->zteCardsDb->join('LEFT', 'zte_qinq', 'swid');
             $this->zteCardsDb->where('swid', '=', $this->routing->get('id', 'int'));
