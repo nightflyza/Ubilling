@@ -92,7 +92,7 @@ if (lq_CheckPost(array('data', 'signature'))) {
                 if (lq_CheckTransaction($hash)) {
                     $allcustomers = op_CustomersGetAll();
                     if (isset($allcustomers[$customerid])) {
-                        $customerLogin = $allcustomers[$customer_id];
+                        $customerLogin = $allcustomers[$customerid];
                         $agentData = getAgentData($customerLogin);
                         if (isset($liqConf['SIGNATURE'][$agentData['id']])) {
                             $private_key = $liqConf['SIGNATURE'][$agentData['id']];
