@@ -19,9 +19,13 @@ include ("../../libs/api.openpayz.php");
  * @return string
  */
 function getAgentData($userlogin) {
+    $result = '';
     global $liqConf;
     $action = $liqConf['API_URL'] . '?module=remoteapi&key=' . $liqConf['API_KEY'] . '&action=getagentdata&param=' . $userlogin;
     @$result = file_get_contents($action);
+    if (!empty($result)) {
+        $result = json_decode($result, true);
+    }
     return ($result);
 }
 
