@@ -948,7 +948,7 @@ class VlanManagement {
      * @return string
      */
     protected function oltSelector() {
-        $query = 'SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location`,`switchmodels`.`snmptemplate` FROM `switches` AS `sw` JOIN `switchmodels` AS `model` ON (`sw`.`modelid` = `model`.`id`) WHERE `sw`.`desc` LIKE "%OLT%" AND `model`.`snmptemplate` LIKE "ZTE%"';
+        $query = 'SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location`,`switchmodels`.`snmptemplate` FROM `switches` JOIN `switchmodels` ON (`switches`.`modelid` = `switchmodels`.`id`) WHERE `switches`.`desc` LIKE "%OLT%" AND `switchmodels`.`snmptemplate` LIKE "ZTE%"';
         $switches = simple_queryall($query);
 
         $options[self::EMPTY_SELECTOR_OPTION] = self::EMPTY_SELECTOR_OPTION;
