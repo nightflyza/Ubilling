@@ -156,11 +156,13 @@ class NyanORM {
     }
 
     /**
-     * Setter for join list which used in getAll.
+     * Setter for join (with USING) list which used in getAll.
      * 
      * @param string $joinExpression LEFT or RIGHT or whatever you need type of JOIN
      * @param string $tableName table name (for example switches)
      * @param string $using field to use for USING expression
+     * 
+     * @throws MEOW_JOIN_WRONG_TYPE 
      * 
      * @return void
      */
@@ -179,6 +181,38 @@ class NyanORM {
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
                 $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
+            }
+        } else {
+            $this->flushJoin();
+        }
+    }
+
+    /**
+     * Setter for join (with ON) list which used in getAll.
+     * 
+     * @param string $joinExpression
+     * @param string $tableName
+     * @param string $on
+     * 
+     * @throws MEOW_JOIN_WRONG_TYPE
+     * 
+     * @return void
+     */
+    public function joinOn($joinExpression = '', $tableName = '', $on = '') {
+        if (!empty($joinExpression) and ! empty($tableName) and ! empty($on)) {
+            $joinExpression = trim($joinExpression);
+            switch ($joinExpression) {
+                case 'INNER':
+                    break;
+                case 'LEFT':
+                    break;
+                case 'RIGHT':
+                    break;
+                default :
+                    throw new Exception('MEOW_JOIN_WRONG_TYPE');
+            }
+            if (is_string($joinExpression) and is_string($tableName) and is_string($on)) {
+                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
             }
         } else {
             $this->flushJoin();
