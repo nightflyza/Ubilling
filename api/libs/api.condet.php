@@ -134,10 +134,13 @@ class ConnectionDetails {
     public function editForm($login) {
         $login = mysql_real_escape_string($login);
         $currentData = $this->getByLogin($login);
+        $currentData['seal'] = isset($currentData['seal']) ? $currentData['seal'] : null;
+        $currentData['length'] = isset($currentData['length']) ? $currentData['length'] : null;
+        $currentData['price'] = isset($currentData['price']) ? $currentData['price'] : null;
 
-        $inputs = wf_TextInput('newseal', __('Cable seal'), @$currentData['seal'], true, '40');
-        $inputs.= wf_TextInput('newlength', __('Cable length') . ', ' . __('m'), @$currentData['length'], true, '5');
-        $inputs.= wf_TextInput('newprice', __('Signup price'), @$currentData['price'], true, '5');
+        $inputs = wf_TextInput('newseal', __('Cable seal'), $currentData['seal'], true, '40');
+        $inputs.= wf_TextInput('newlength', __('Cable length') . ', ' . __('m'), $currentData['length'], true, '5');
+        $inputs.= wf_TextInput('newprice', __('Signup price'), $currentData['price'], true, '5');
         $inputs.= wf_HiddenInput('editcondet', 'true');
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Save'));

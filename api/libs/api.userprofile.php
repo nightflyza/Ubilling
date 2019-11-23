@@ -374,7 +374,7 @@ class UserProfile {
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
                 if (isset($eachplugin['need_option'])) {
-                    if (@$this->alterCfg[$eachplugin['need_option']]) {
+                    if (!empty($this->alterCfg[$eachplugin['need_option']])) {
                         $result .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
                         $result .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
                         $result .= wf_tag('br') . __($eachplugin['name']);

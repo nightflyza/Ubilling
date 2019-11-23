@@ -621,8 +621,8 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $finalResult.= wf_tag('div', false, 'dashboard', '');
                     }
 
-                    @$sectionName = $eachpoll['NAME'];
-                    @$sectionOids = explode(',', $eachpoll['OIDS']);
+                    $sectionName = empty($eachpoll['NAME']) ? '' : $eachpoll['NAME'];
+                    $sectionOids = explode(',', empty($eachpoll['OIDS']) ? '' : $eachpoll['OIDS']);
 
                     if (isset($eachpoll['SETOIDS'])) {
                         $sectionSetOids = explode(',', $eachpoll['SETOIDS']);
@@ -630,7 +630,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $sectionSetOids = array();
                     }
 
-                    @$sectionParser = $eachpoll['PARSER'];
+                    $sectionParser = empty($eachpoll['PARSER']) ? '' : $eachpoll['PARSER'];
                     $sectionResult = '';
 
                     //yeah, lets set some oids to this shit

@@ -28,12 +28,14 @@ class InputForm {
     }
 
     function addrow($title, $contents = '', $valign = 'middle', $align = 'left') {
-        @list( $talign, $calign ) = explode(",", $align);
-        if (empty($calign))
+        list($talign, $calign) = array_pad(explode(',', $align, 2), -2, null);
+        if (empty($calign)) {
             $calign = $talign;
-        @list( $tvalign, $cvalign ) = explode(",", $valign);
-        if (empty($cvalign))
+        }
+        list($tvalign, $cvalign) = array_pad(explode(',', $valign, 2), -2, null);
+        if (empty($cvalign)) {
             $cvalign = $tvalign;
+        }
         $this->_rows[] = array(
             'title' => $title,
             'contents' => $contents,

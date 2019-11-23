@@ -150,13 +150,12 @@ function rcms_get_time() {
 function rcms_format_time($format, $gmepoch, $tz = '') {
     global $lang, $system;
 
-    if (empty($tz))
+    if (empty($tz)) {
         $tz = $system->user['tz'];
-
-    if ($system->language != 'english') {
-        @reset($lang['datetime']);
-        while (list($match, $replace) = @each($lang['datetime'])) {
-            $translate[$match] = $replace;
+    }
+    if ($system->language !== 'english') {
+        foreach ((array)$lang['datetime'] as $day => $dayTranslate ) {
+            $translate[$day] = $dayTranslate;
         }
     }
     return (!empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
@@ -171,13 +170,14 @@ function rcms_format_time($format, $gmepoch, $tz = '') {
 function rcms_date_localise($string) {
     global $lang, $system;
 
-    if ($system->language != 'english') {
-        @reset($lang['datetime']);
-        while (list($match, $replace) = @each($lang['datetime'])) {
-            $translate[$match] = $replace;
+    if ($system->language !== 'english') {
+        $translate = [];
+        foreach ((array)$lang['datetime'] as $day => $dayTranslate ) {
+            $translate[$day] = $dayTranslate;
         }
+        return strtr($string, $translate);
     }
-    return (!empty($translate) ) ? strtr($string, $translate) : $string;
+    return $string;
 }
 
 function rcms_parse_text_by_mode($str, $mode) {

@@ -174,7 +174,7 @@ class MobilesExt {
     public function renderCreateForm($login) {
         $result = '';
         if (!empty($login)) {
-            $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
+            $formFilter = !empty($this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $inputs = wf_HiddenInput('newmobileextlogin', $login);
             $inputs.= wf_TextInput('newmobileextnumber', __('New mobile'), '', false, '20', $formFilter);
             $inputs.= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
@@ -196,7 +196,7 @@ class MobilesExt {
         $result = '';
         $mobileId = vf($mobileId, 3);
         if (isset($this->allMobiles[$mobileId])) {
-            $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
+            $formFilter = !empty($this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $mobileData = $this->allMobiles[$mobileId];
             $inputs = wf_HiddenInput('editmobileextid', $mobileId);
             $inputs.= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', $formFilter);

@@ -60,8 +60,8 @@ if (cfr('REPORTDSTAT')) {
                 foreach ($this->data as $io=>$each) {
                    $loginLink=  wf_Link("?module=userprofile&username=".$each['login'], web_profile_icon().' '.$each['login'], false, '');
                    $cells=   wf_TableCell($loginLink);
-                   $cells.=  wf_TableCell(@$alladdress[$each['login']]);
-                   $cells.=  wf_TableCell(@$allrealnames[$each['login']]);
+                   $cells.=  wf_TableCell(empty($alladdress[$each['login']]) ? '' : $alladdress[$each['login']]);
+                   $cells.=  wf_TableCell(empty($allrealnames[$each['login']]) ? '' : $allrealnames[$each['login']]);
                    $cells.=  wf_TableCell($each['IP']);
                    $cells.=  wf_TableCell($each['Tariff']);
                    $cells.=  wf_TableCell(stg_convert_size($each['traffic']), '', '', 'sorttable_customkey="'.$each['traffic'].'"');

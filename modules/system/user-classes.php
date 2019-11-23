@@ -211,14 +211,22 @@ class rcms_user extends rcms_access {
         }
         $this->profile_defaults = array('hideemail' => 0, 'admin' => ' ', 'tz' => 0, 'accesslevel' => 0, 'blocked' => 0, 'last_prr' => 0);
 
+        if(empty($_COOKIE[$this->cookie_user])) {
+            $userdata = array('accesslevel' => 0);
+        } else {
+            // So we have a cookie, let's extract data from it
+            $cookie_data = explode(':', $_COOKIE[$this->cookie_user], 2);
+            $userdata = $this->getUserData(reset($cookie_data));
+        }
         // Load default guest userdata
         $this->user = array('nickname' => __('Guest'), 'username' => 'guest', 'admin' => '', 'tz' => (int) @$this->config['default_tz'], 'accesslevel' => 0);
-        $this->initialiseAccess($this->user['admin'], (int) @$userdata['accesslevel']);
+        $this->initialiseAccess($this->user['admin'], (int)$userdata['accesslevel']);
 
         // Ability for guests to enter nick
-        $_POST['gst_nick'] = substr(trim(@$_POST['gst_nick']), 0, 32);
-        if (!empty($_POST['gst_nick']) && !$this->logged_in) {
-            $this->user['nickname'] = $_POST['gst_nick'];
+        $gstNick = empty($_POST['gst_nick']) ? '' : $_POST['gst_nick'];
+        $gstNick= substr(trim($gstNick), 0, 32);
+        if (!empty($gstNick) && !$this->logged_in) {
+            $this->user['nickname'] = $gstNick;
             setcookie('reloadcms_nick', $this->user['nickname']);
             $_COOKIE['reloadcms_nick'] = $this->user['nickname'];
         } elseif (!$this->logged_in && !empty($_COOKIE['reloadcms_nick'])) {
@@ -312,7 +320,7 @@ class rcms_user extends rcms_access {
             return false;
         }
         // If user is blocked - exit with error
-        if (@$result['blocked']) {
+        if (!empty($result['blocked'])) {
             $this->results[$report_to] = __('This account has been blocked by administrator');
             return false;
         }

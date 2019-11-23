@@ -215,7 +215,7 @@ if (cfr('REPORTSIGNUP')) {
     function web_SignupsShowCurrentMonth() {
         global $altercfg;
         $alltariffs = zb_TariffsGetAllUsers();
-        $deleatableFlag = @$altercfg['SIGREP_DELETABLE'] ? true : false;
+        $deleatableFlag = !empty($altercfg['SIGREP_DELETABLE']);
         $messages = new UbillingMessageHelper();
         $cmonth = curmonth();
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
@@ -403,7 +403,7 @@ if (cfr('REPORTSIGNUP')) {
                     $tablecells .= wf_TableCell(@$allcontracts[$eachsignup['login']]);
                 }
                 $tablecells .= wf_TableCell($eachsignup['login']);
-                @$sigTariff = $alltariffs[$eachsignup['login']];
+                $sigTariff = isset($alltariffs[$eachsignup['login']]) ? $alltariffs[$eachsignup['login']] : null;
                 $tablecells .= wf_TableCell($sigTariff);
                 $profilelink = wf_Link('?module=userprofile&username=' . $eachsignup['login'], web_profile_icon() . ' ' . $eachsignup['address']);
                 $tablecells .= wf_TableCell($profilelink);
@@ -490,8 +490,12 @@ if (cfr('REPORTSIGNUP')) {
         if (!empty($allsignups)) {
             foreach ($alltariffnames as $io => $eachtariff) {
                 foreach ($allsignups as $ii => $eachsignup) {
-                    if (@$tariffusers[$eachsignup['login']] == $eachtariff['name']) {
-                        @$tcount[$eachtariff['name']] = $tcount[$eachtariff['name']] + 1;
+                    $tariff = empty($tariffusers[$eachsignup['login']]) ? null : $tariffusers[$eachsignup['login']];
+                    if ($tariff == $eachtariff['name']) {
+                        if (empty($tcount[$eachtariff['name']])) {
+                            $tcount[$eachtariff['name']] = 0;
+                        }
+                        $tcount[$eachtariff['name']] = $tcount[$eachtariff['name']] + 1;
                     }
                 }
             }

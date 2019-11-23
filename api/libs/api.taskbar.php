@@ -461,7 +461,7 @@ class UbillingTaskbar {
      */
     protected function loadTouchFix() {
         $result = '';
-        if (@$this->altCfg['TOUCH_FIX']) {
+        if (!empty($this->altCfg['TOUCH_FIX'])) {
             $result .= '<!-- jQuery UI Touch Punch -->';
             $result .= wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/jquery.ui.touch-punch.min.js"');
             $result .= wf_tag('script', true);

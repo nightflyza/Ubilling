@@ -1883,10 +1883,8 @@ function web_PaymentsShowGraph($year) {
         foreach ($months as $eachmonth => $monthname) {
             $month_summ = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['summ'] : 0;
             $paycount = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['count'] : 0;
-            $monthArpu = @round($month_summ / $paycount, 2);
-            if (is_nan($monthArpu)) {
-                $monthArpu = 0;
-            }
+            $paycount = $paycount * 1;
+            $monthArpu = $paycount === 0 ? 0 : round($month_summ / $paycount, 2);
             $cells = wf_TableCell($eachmonth);
             $cells .= wf_TableCell(wf_Link('?module=report_finance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
             $cells .= wf_TableCell($paycount);
@@ -4803,10 +4801,15 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
     $repeated_tag_index = array(); //Multiple tags with same name will be turned into an array
     foreach ($xml_values as $data) {
         unset($attributes, $value); //Remove existing values, or there will be trouble
-        //This command will extract these variables into the foreach scope
-        // tag(string), type(string), level(int), attributes(array).
+        /**
+         * This command will extract these variables into the foreach scope
+         * 
+         * @var string $tag
+         * @var string $type
+         * @var int $level
+         * @var array $attributes
+         */
         extract($data); //We could use the array by itself, but this cooler.
-
         $result = array();
         $attributes_data = array();
 

@@ -108,7 +108,7 @@ class UbillingCache {
             $this->storage = 'fake';
         }
 
-        if (@$this->altCfg['UBCACHE_DEBUG']) {
+        if (!empty($this->altCfg['UBCACHE_DEBUG'])) {
             $this->debug = true;
         }
 

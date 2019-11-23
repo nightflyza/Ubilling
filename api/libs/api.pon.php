@@ -238,7 +238,7 @@ class PONizer {
         $this->ponizerUseTabUI = $this->ubConfig->getAlterParam('PON_UI_USE_TABS');
 
         //optional ONU MAC hiding
-        if (@$this->altCfg['PON_ONU_HIDE']) {
+        if (!empty($this->altCfg['PON_ONU_HIDE'])) {
             $tmpHideOnuList = explode(',', $this->altCfg['PON_ONU_HIDE']);
             $tmpHideOnuList = array_flip($tmpHideOnuList);
             $this->hideOnuMac = $tmpHideOnuList;
@@ -2400,7 +2400,7 @@ class PONizer {
             $inputs = wf_HiddenInput('editonu', $onuId);
             $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
             $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
-            if (@$this->altCfg['PON_ONUIPASIF']) {
+            if (!empty($this->altCfg['PON_ONUIPASIF'])) { 
                 $ipFieldLabel = __('Interface');
             } else {
                 $ipFieldLabel = __('IP');
@@ -2552,11 +2552,11 @@ class PONizer {
                 $result .= wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img_sized('skins/icon_fdb.png', '', '16', '16') . ' ' . __('Current FDB cache'), false, 'ubButton');
             }
 
-            if (@$this->altCfg['PON_ONU_PORT_MAX']) {
+            if (!empty($this->altCfg['PON_ONU_PORT_MAX'])) {
                 $result .= wf_Link(self::URL_ME . '&oltstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
             }
 
-            if (@$this->altCfg['PONMAP_ENABLED']) {
+            if (!empty($this->altCfg['PONMAP_ENABLED'])) {
                 $result .= wf_Link('?module=ponmap', wf_img_sized('skins/ponmap_icon.png', '', '16', '16') . ' ' . __('ONU Map'), false, 'ubButton');
             }
             if ($this->altCfg['ONUREG_ZTE']) {
@@ -2730,7 +2730,7 @@ class PONizer {
         }
 
         $columns[] = 'Model';
-        if (@$this->altCfg['PON_ONUIPASIF']) {
+        if (!empty($this->altCfg['PON_ONUIPASIF'])) {
             $columns[] = 'Interface';
         } else {
             $columns[] = 'IP';
@@ -3399,7 +3399,7 @@ class PONizer {
 
                 if ($lastDeregCacheAvail) {
                     if ($ONUIsOffline) {
-                        $data[] = @$this->lastDeregCache[$each['mac']];
+                        $data[] = isset($this->lastDeregCache[$each['mac']]) ? $this->lastDeregCache[$each['mac']] : null;
                     } else {
                         $data[] = '';
                     }

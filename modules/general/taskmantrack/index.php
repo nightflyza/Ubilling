@@ -180,12 +180,15 @@ if (cfr('TASKMANTRACK')) {
                             $rowStyle = 'undone';
                         }
 
+                        $jobtype = isset($this->allJobtypes[$taskData['jobtype']]) ? $this->allJobtypes[$taskData['jobtype']] : '';
+                        $employee = isset($this->allEmployee[$taskData['employee']]) ? $this->allEmployee[$taskData['employee']] : '';
+                        $employeedone = isset($this->allEmployee[$taskData['employeedone']]) ? $this->allEmployee[$taskData['employeedone']] : null;
                         $cells = wf_TableCell($taskid);
                         $cells.= wf_TableCell($taskData['address']);
-                        $cells.= wf_TableCell(@$this->allJobtypes[$taskData['jobtype']]);
+                        $cells.= wf_TableCell($jobtype);
                         $cells.= wf_TableCell($taskData['phone']);
-                        $cells.= wf_TableCell(@$this->allEmployee[$taskData['employee']]);
-                        $cells.= wf_TableCell(@$this->allEmployee[$taskData['employeedone']]);
+                        $cells.= wf_TableCell($employee);
+                        $cells.= wf_TableCell($employeedone);
                         $cells.= wf_TableCell($taskData['startdate']);
                         $cells.= wf_TableCell($taskData['enddate']);
                         $actLinks = wf_Link('?module=taskman&edittask=' . $taskid, web_edit_icon()) . ' ';

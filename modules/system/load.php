@@ -52,7 +52,9 @@ include_once(SYSTEM_MODULES_PATH . 'formsgen.php');
 ////////////////////////////////////////////////////////////////////////////////
 // Initializing session                                                       //
 ////////////////////////////////////////////////////////////////////////////////
-$system = new rcms_system(@$_POST['lang_form'], @$_POST['user_selected_skin']);
+$language = empty($_POST['lang_form']) ? '' : $_POST['lang_form'];
+$skin = empty($_POST['user_selected_skin']) ? [] : $_POST['user_selected_skin'];
+$system = new rcms_system($language, $skin);
 if (!empty($_POST['login_form'])) {
     $system->logInUser(@$_POST['username'], @$_POST['password'], !empty($_POST['remember']) ? true : false);
 }

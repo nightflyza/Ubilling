@@ -543,7 +543,7 @@ function ts_JGetJobsReport() {
 function ts_JGetUndoneTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
-    if (@$altCfg['TASKMAN_ANYONE_COLORING']) {
+    if (!empty($altCfg['TASKMAN_ANYONE_COLORING'])) {
         $anyoneId = $altCfg['TASKMAN_ANYONE_COLORING'];
     } else {
         $anyoneId = false;
@@ -997,7 +997,7 @@ function ts_TaskCreateForm() {
         if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $inputs .= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
         } else {
-            if (!@$altercfg['TASKMAN_SHORT_AUTOCOMPLETE']) {
+            if (empty($altercfg['TASKMAN_SHORT_AUTOCOMPLETE'])) {
                 $allAddress = zb_AddressGetFulladdresslistCached();
             } else {
                 $allAddress = zb_AddressGetStreetsWithBuilds();
@@ -2025,7 +2025,7 @@ function ts_TaskChangeForm($taskid) {
             $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
             $tablerows .= wf_TableRow($tablecells, 'row3');
 
-            if (@$altercfg['SWITCHPORT_IN_PROFILE']) {
+            if (!empty($altercfg['SWITCHPORT_IN_PROFILE'])) {
                 $allAssigns = zb_SwitchesGetAssignsAll();
                 if (isset($allAssigns[$taskLogin])) {
                     $tablecells = wf_TableCell(__('Switch'));
@@ -2040,11 +2040,14 @@ function ts_TaskChangeForm($taskid) {
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Job type'));
-        $tablecells .= wf_TableCell(@$alljobtypes[$taskdata['jobtype']]);
+        $jobtype = isset($alljobtypes[$taskdata['jobtype']]) ? $alljobtypes[$taskdata['jobtype']] : '';
+        $tablecells .= wf_TableCell($jobtype);
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Who should do'));
-        $tablecells .= wf_TableCell(@$allemployee[$taskdata['employee']] . ' ' . $smsData);
+        $employee = isset($allemployee[$taskdata['employee']]) ? $allemployee[$taskdata['employee']] : '';
+        $tablecells .= wf_TableCell($employee . ' ' . $smsData);
+
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Job note'));
@@ -2297,8 +2300,8 @@ function ts_renderLogsDataAjax($taskid = '') {
                 if (isset($logDataArr['employee'])) {
                     $employeeIdOld = $logDataArr['employee']['old'];
                     $employeeIdNew = $logDataArr['employee']['new'];
-                    $employeeOld = @$allemployee[$employeeIdOld];
-                    $employeeNew = @$allemployee[$employeeIdNew];
+                    $employeeOld = isset($allemployee[$employeeIdOld]) ? $allemployee[$employeeIdOld] : null;
+                    $employeeNew = isset($allemployee[$employeeIdNew]) ? $allemployee[$employeeIdNew] : null;
 
                     $data_event .= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
                     $data_event .= wf_tag('font', false, '', 'color="green"') . $employeeOld . wf_tag('font', true);

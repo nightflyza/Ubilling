@@ -454,7 +454,7 @@ function rcms_show_element($element, $parameters = ''){
     global $system;
     switch($element){
         case 'title':
-            if(!@$system->config['hide_title']) {
+            if(empty($system->config['hide_title'])) {
                 echo $system->config['title'];
                 if(!empty($system->config['pagename'])) echo ' - ';
             }

@@ -58,7 +58,7 @@
                 <p>
                     <a href="?forceLogout=true" title="<?= __('Log out'); ?>" class="logout_user"><img src="skins/ubng/images/poweroff.png"></a>
                     <?= whoami(); ?> 
-                    <?php if (@$_COOKIE['ghost_user']) { print(' <img src="skins/ghost.png" width="10" title="'.__('in ghost mode').'">'); } ?>
+                    <?php if (!empty($_COOKIE['ghost_user'])) { print(' <img src="skins/ghost.png" width="10" title="'.__('in ghost mode').'">'); } ?>
                 </p>
                 <a class="menu_toggle" href="javascript:showhideGlobalMenu();" title="<?= __('Toggle menu'); ?>"><?= __('Toggle menu'); ?></a> 
             </div>
