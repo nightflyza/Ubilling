@@ -257,7 +257,8 @@ class StickyNotes {
             foreach ($this->allnotes as $io => $each) {
                 $timestamp = strtotime($each['createdate']);
                 $date = date("Y, n-1, j", $timestamp);
-
+                $remindTime = '';
+                
                 if ($each['active'] == 1) {
                     $coloring = "className : 'undone',";
                 } else {
