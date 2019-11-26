@@ -1571,12 +1571,13 @@ function zb_BandwidthdGenLinks($ip) {
     $zbxGraphsSearchIdnetify = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHIDENTIFY')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHIDENTIFY') : 'MAC';
     $zbxGraphsSearchField = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHFIELD')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHS_SEARCHFIELD') : 'name';
     $zbxGraphsExtended = wf_getBoolFromVar($ubillingConfig->getAlterParam('ZABBIX_GRAPHS_EXTENDED'));
+    $mlgUseMikrotikGraphs = wf_getBoolFromVar($ubillingConfig->getAlterParam('MULTIGEN_USE_ROS_TRAFFIC_GRAPHS'));
 
     $bandwidthd_url = zb_BandwidthdGetUrl($ip);
     $netid = zb_NetworkGetByIp($ip);
     $nasid = zb_NasGetByNet($netid);
     $nasdata = zb_NasGetData($nasid);
-    $nastype = $nasdata['nastype'];
+    $nastype = ($mlgUseMikrotikGraphs) ? 'mikrotik' : $nasdata['nastype'];
     $zbxAllGraphs = array();
 
     if ($zbxGraphsEnabled) {
@@ -1592,7 +1593,7 @@ function zb_BandwidthdGenLinks($ip) {
             // Get user's IP array:
             $alluserips = zb_UserGetAllIPs();
             $alluserips = array_flip($alluserips);
-            if (!ispos($bandwidthd_url, 'pppoe')) {
+            if (!ispos($bandwidthd_url, 'pppoe') and !$mlgUseMikrotikGraphs) {
 // Generate graphs paths:
                 $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
                 $urls['days'] = null;
@@ -1602,6 +1603,14 @@ function zb_BandwidthdGenLinks($ip) {
                 $urls['months'] = null;
                 $urls['yearr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/yearly.gif';
                 $urls['years'] = null;
+            } elseif ($mlgUseMikrotikGraphs) {
+                $urls['dayr'] = $bandwidthd_url . '/' . 'mlg_' . $ip . '/daily.gif';
+                $urls['days'] = null;
+                $urls['weekr'] = $bandwidthd_url . '/' . 'mlg_' . $ip . '/weekly.gif';
+                $urls['weeks'] = null;
+                $urls['monthr'] = $bandwidthd_url . '/' . 'mlg_' . $ip . '/monthly.gif';
+                $urls['months'] = null;
+                $urls['yearr'] = $bandwidthd_url . '/' . 'mlg_' . $ip . '/yearly.gif';
             } else {
                 $urls['dayr'] = $bandwidthd_url . $alluserips[$ip] . '>/daily.gif';
                 $urls['days'] = null;
