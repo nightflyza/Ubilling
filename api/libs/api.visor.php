@@ -218,7 +218,7 @@ class UbillingVisor {
     public function renderUsers() {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Name', 'Phone', 'Charge', 'Cams', 'Actions');
+        $columns = array('ID', 'Date', 'Name', 'Phone', 'Primary account', 'Charge', 'Cams', 'Actions');
         $result .= wf_JqDtLoader($columns, self::URL_ME . self::URL_AJUSERS, false, 'Users', 50, $opts);
         return ($result);
     }
@@ -238,6 +238,16 @@ class UbillingVisor {
                 $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], $visorUserLabel);
                 $data[] = $visorUserLink;
                 $data[] = $each['phone'];
+                if (!empty($each['primarylogin'])) {
+                    $primaryAccount = $each['primarylogin'];
+                    $userAddress = @$this->allUserData[$primaryAccount]['fulladress'];
+                    $primAccLink = wf_Link(self::URL_CAMPROFILE . $each['primarylogin'], web_profile_icon() . ' ' . $userAddress);
+                } else {
+                    $primAccLink = '';
+                }
+
+
+                $data[] = $primAccLink;
                 $chargeFlag = ($each['chargecams']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
                 $data[] = $chargeFlag;
                 $data[] = $this->getUserCamerasCount($each['id']);
