@@ -3120,6 +3120,7 @@ $lang['def']['ONU rendered on map'] = 'ONU отрендерено на карт�
 $lang['def']['User builds not placed on map'] = 'Пользовательских домов не размещены на карте';
 $lang['def']['ONU without assigned user'] = 'ONU с неприсвоенными пользователями';
 $lang['def']['API port'] = 'Порт API';
+$lang['def']['Group'] = 'Группа';
 $lang['def'][''] = '';
 
 

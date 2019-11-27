@@ -210,7 +210,7 @@ if (cfr('SWITCHES')) {
                         if (empty($switchAlreadyInGroup) and !empty($_POST['editswgroup'])) {
                             $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . $_POST['editswgroup'] . ")";
                             nr_query($query);
-                        } else {
+                        } elseif (isset($_POST['editswgroup'])) {
                             if ($_POST['editswgroup'] == '0') {
                                 $switchGroups->removeSwitchFromGroup($switchid);
                             } else {
