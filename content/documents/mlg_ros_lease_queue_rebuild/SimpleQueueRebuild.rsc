@@ -8,11 +8,6 @@
 :local speed "";
 :local alreadyExists false;
 
-:global leaseBound;
-:global leaseActIP;
-:local speed "";
-:local alreadyExists false;
-
 :if ($leaseBound = 1) do={
     /queue simple
     :foreach tQueue in=[/queue simple find target="$leaseActIP/32"] do={
