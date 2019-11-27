@@ -282,6 +282,15 @@ class TrassirServer {
         debarr($responseJson_str);
     }
 
+    public function createUser($login, $password) {
+        $url = 'https://' . trim($this->ip) . ':8080/settings/users/user_add/new_user_name=' . $login . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $url = 'https://' . trim($this->ip) . ':8080/settings/users/user_add/new_user_password=' . $password . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $url = 'https://' . trim($this->ip) . ':8080/settings/users/user_add/create_now=1?&sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+    }
+
     public function getUserNames() {
         $UserNames = array();
         foreach ($this->trassirUsers as $user) {
