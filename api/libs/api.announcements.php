@@ -718,7 +718,7 @@ class AdminAnnouncements extends Announcements {
             if (!empty($this->myLogin)) {
                 foreach ($AnnouncementsForAcquainted as $io => $each) {
                     $result.= $this->preview($each['id']);
-                    $result.= wf_Link('?module=taskbar&setacquainted=' . $each['id'], __('Acquainted'), true, 'ubButton');
+                    $result.= wf_Link('?module=taskbar&setacquainted=' . $each['id'], wf_img('skins/icon_ok.gif').' '.__('Acquainted'), true, 'ubButton');
                 }
             }
         }
