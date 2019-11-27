@@ -1858,8 +1858,8 @@ function web_PaymentsShowGraph($year) {
             $exIdArr = array_filter($exIdArr);
             // Create and WHERE to query
             if (!empty($exIdArr)) {
-                    $dopWhere = ' AND ';
-                    $dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+                $dopWhere = ' AND ';
+                $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
             }
         }
         //extracting all of needed payments in one query
@@ -1962,7 +1962,7 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
             }
 
             $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
@@ -2100,7 +2100,7 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
             }
 
             $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
@@ -4147,8 +4147,8 @@ function web_AnalyticsArpuMonthGraph($year) {
         $exIdArr = array_filter($exIdArr);
         // Create and WHERE to query
         if (!empty($exIdArr)) {
-                $dopWhere = ' AND ';
-                $dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+            $dopWhere = ' AND ';
+            $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
         }
     }
 
@@ -4221,8 +4221,8 @@ function web_AnalyticsPaymentsMonthGraph($year) {
         $exIdArr = array_filter($exIdArr);
         // Create and WHERE to query
         if (!empty($exIdArr)) {
-                $dopWhere = ' AND ';
-                $dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+            $dopWhere = ' AND ';
+            $dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
         }
     }
 
@@ -4908,11 +4908,11 @@ function zb_TariffProtected($tariffname) {
     $result = (empty($raw)) ? false : true;
     if (!$result) {
         if (@$altCfg['DEALWITHIT_ENABLED']) {
-            $dwi=new nya_dealwithit();
-            $dwi->where('action','=','tariffchange');
-            $dwi->where('param','=', ubRouting::filters($tariffname, 'mres'));
-            $moveCount=$dwi->getAll();
-            $result=(empty($moveCount)) ? false : true;
+            $dwi = new nya_dealwithit();
+            $dwi->where('action', '=', 'tariffchange');
+            $dwi->where('param', '=', ubRouting::filters($tariffname, 'mres'));
+            $moveCount = $dwi->getAll();
+            $result = (empty($moveCount)) ? false : true;
         }
     }
     return ($result);
