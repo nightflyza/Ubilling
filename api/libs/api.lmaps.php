@@ -232,7 +232,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
 
     //Geocoder libs init
     $result .= wf_tag('link', false, '', 'rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.css"');
-    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.js"') . wf_tag('script', true);
+    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.min.js"') . wf_tag('script', true);
 
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
