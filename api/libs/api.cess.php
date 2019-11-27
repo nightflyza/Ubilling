@@ -2,7 +2,7 @@
 
 /**
  * Creates new contrahent in database
- * 
+ *
  * @param string $bankacc
  * @param string $bankname
  * @param string $bankcode
@@ -13,7 +13,7 @@
  * @param string $phisaddr
  * @param string $phone
  * @param string $contrname
- * 
+ *
  * @return void
  */
 function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
@@ -35,7 +35,7 @@ function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $license
 
 /**
  * Changes existing contrahent record in database
- * 
+ *
  * @param int $ahentid
  * @param string $bankacc
  * @param string $bankname
@@ -47,7 +47,7 @@ function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $license
  * @param string $phisaddr
  * @param string $phone
  * @param string $contrname
- * 
+ *
  * @return void
  */
 function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
@@ -62,7 +62,7 @@ function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $
     $phisaddr = mysql_real_escape_string($phisaddr);
     $phone = mysql_real_escape_string($phone);
     $contrname = mysql_real_escape_string($contrname);
-    $query = "UPDATE `contrahens` SET 
+    $query = "UPDATE `contrahens` SET
         `bankacc` = '" . $bankacc . "',
         `bankname` = '" . $bankname . "',
         `bankcode` = '" . $bankcode . "',
@@ -80,9 +80,9 @@ function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $
 
 /**
  * Deletes existing contrahent from database
- * 
+ *
  * @param int $id
- * 
+ *
  * @return void
  */
 function zb_ContrAhentDelete($id) {
@@ -94,9 +94,9 @@ function zb_ContrAhentDelete($id) {
 
 /**
  * Returns contrahent data as array
- * 
+ *
  * @param int $id
- * 
+ *
  * @return array
  */
 function zb_ContrAhentGetData($id) {
@@ -108,7 +108,7 @@ function zb_ContrAhentGetData($id) {
 
 /**
  * Returns full contrahent data array
- * 
+ *
  * @return array
  */
 function zb_ContrAhentGetAllData() {
@@ -119,7 +119,7 @@ function zb_ContrAhentGetAllData() {
 
 /**
  * Renders contrahents list with required controls
- * 
+ *
  * @return string
  */
 function zb_ContrAhentShow() {
@@ -158,7 +158,7 @@ function zb_ContrAhentShow() {
 
 /**
  * Renders contrahent creation form
- * 
+ *
  * @return string
  */
 function zb_ContrAhentAddForm() {
@@ -184,9 +184,9 @@ function zb_ContrAhentAddForm() {
 
 /**
  * Renders existing ahent editing form
- * 
+ *
  * @param int $ahentid
- * 
+ *
  * @return string
  */
 function zb_ContrAhentEditForm($ahentid) {
@@ -214,7 +214,7 @@ function zb_ContrAhentEditForm($ahentid) {
 
 /**
  * Returns ahent selector widget
- * 
+ *
  * @return string
  */
 function zb_ContrAhentSelect() {
@@ -232,7 +232,7 @@ function zb_ContrAhentSelect() {
 
 /**
  * Returns agent selector with preset agent ID
- * 
+ *
  * @param int $currentId
  * @return string
  */
@@ -249,8 +249,8 @@ function zb_ContrAhentSelectPreset($currentId = '') {
 }
 
 /**
- * Returns array of all agent=>street assigns 
- * 
+ * Returns array of all agent=>street assigns
+ *
  * @return array
  */
 function zb_AgentAssignGetAllData() {
@@ -261,7 +261,7 @@ function zb_AgentAssignGetAllData() {
 
 /**
  * Returns array of existing agent strict assigns as login=>agentid
- * 
+ *
  * @return array
  */
 function zb_AgentAssignStrictGetAllData() {
@@ -278,9 +278,9 @@ function zb_AgentAssignStrictGetAllData() {
 
 /**
  * Deletes existing agent assign database record
- * 
+ *
  * @param int $id
- * 
+ *
  * @return void
  */
 function zb_AgentAssignDelete($id) {
@@ -292,10 +292,10 @@ function zb_AgentAssignDelete($id) {
 
 /**
  * Creates new agent=>street assign in database
- * 
+ *
  * @param int $ahenid
  * @param string $streetname
- * 
+ *
  * @return void
  */
 function zb_AgentAssignAdd($ahenid, $streetname) {
@@ -308,7 +308,7 @@ function zb_AgentAssignAdd($ahenid, $streetname) {
 
 /**
  * Renders ahent assign form
- * 
+ *
  * @return string
  */
 function web_AgentAssignForm() {
@@ -324,7 +324,7 @@ function web_AgentAssignForm() {
 
 /**
  * Renders list of available ahent assigns with required controls
- * 
+ *
  * @return string
  */
 function web_AgentAssignShow() {
@@ -360,7 +360,7 @@ function web_AgentAssignShow() {
 
 /**
  * Renders list of strict login=>agent assigns with some controls
- * 
+ *
  * @return string
  */
 function web_AgentAssignStrictShow() {
@@ -405,7 +405,7 @@ function web_AgentAssignStrictShow() {
 
 /**
  * Returns agent id or false for user ahent assign check
- * 
+ *
  * @param string $login
  * @param array $allassigns
  * @param array $alladdress
@@ -442,7 +442,7 @@ function zb_AgentAssignCheckLogin($login, $allassigns, $alladdress) {
 
 /**
  * Performs fast agent assing check for some user login
- * 
+ *
  * @global object $ubillingConfig
  * @param string $login
  * @param array $allassigns
@@ -495,7 +495,7 @@ function zb_AgentAssignCheckLoginFast($login, $allassigns, $address, $allassigns
 
 /**
  * Returns content of export template
- * 
+ *
  * @param string $filename
  * @return string
  */
@@ -506,7 +506,7 @@ function zb_ExportLoadTemplate($filename) {
 
 /**
  * Returns array of all users tariffs array as login=>tariff
- * 
+ *
  * @return array
  */
 function zb_ExportTariffsLoadAll() {
@@ -521,8 +521,8 @@ function zb_ExportTariffsLoadAll() {
 }
 
 /**
- * Returns array of all users contract data 
- * 
+ * Returns array of all users contract data
+ *
  * @return array
  */
 function zb_ExportContractsLoadAll() {
@@ -557,10 +557,10 @@ function zb_ExportContractsLoadAll() {
 
 /**
  * Performs export template processing with some userdata
- * 
+ *
  * @param string $templatebody
  * @param array $templatedata
- * 
+ *
  * @return string
  */
 function zb_ExportParseTemplate($templatebody, $templatedata) {
@@ -572,7 +572,7 @@ function zb_ExportParseTemplate($templatebody, $templatedata) {
 
 /**
  * Returns array of all ahent data for exports processing
- * 
+ *
  * @return array
  */
 function zb_ExportAgentsLoadAll() {
@@ -590,7 +590,7 @@ function zb_ExportAgentsLoadAll() {
 
 /**
  * Renders export form body
- * 
+ *
  * @return string
  */
 function zb_ExportForm() {
@@ -608,10 +608,10 @@ function zb_ExportForm() {
 
 /**
  * Performs payments export between two dates
- * 
+ *
  * @param string $from_date
  * @param string $to_date
- * 
+ *
  * @return string
  */
 function zb_ExportPayments($from_date, $to_date) {
@@ -730,7 +730,7 @@ function zb_ExportPayments($from_date, $to_date) {
 
 /**
  * Returns array of ahent data by the users login
- * 
+ *
  * @param string $login
  * @return array
  */
@@ -745,7 +745,7 @@ function zb_AgentAssignedGetData($login) {
 
 /**
  * Returns array of ahent data associated with some user by login/address pair
- * 
+ *
  * @param string $login
  * @param string $address
  * @return array
@@ -760,7 +760,7 @@ function zb_AgentAssignedGetDataFast($login, $address) {
 
 /**
  * Returns array of payment data by its ID
- * 
+ *
  * @param int $paymentid
  * @return array
  */
@@ -774,7 +774,7 @@ function zb_PaymentGetData($paymentid) {
 
 /**
  * Returns content of sales slip HTML template
- * 
+ *
  * @return string
  */
 function zb_PrintCheckLoadTemplate() {
@@ -784,9 +784,9 @@ function zb_PrintCheckLoadTemplate() {
 
 /**
  * Returns some cashiers data (deprecated)
- * 
+ *
  * @param string $whoami
- * 
+ *
  * @return array/string
  */
 function zb_PrintCheckLoadCassNames($whoami = false) {
@@ -801,10 +801,10 @@ function zb_PrintCheckLoadCassNames($whoami = false) {
 
 /**
  * Returns payment number per day
- * 
+ *
  * @param int $payid
  * @param string $paymentdate
- * 
+ *
  * @return string
  */
 function zb_PrintCheckGetDayNum($payid, $paymentdate) {
@@ -827,8 +827,34 @@ function zb_PrintCheckGetDayNum($payid, $paymentdate) {
 }
 
 /**
+ * Get admin data
+ *
+ * @param int $admlogin
+ * @return string
+ */
+function zb_GetEmployee($admlogin) {
+$admlogin = mysql_real_escape_string($admlogin);
+$query = "SELECT * from `employee` WHERE `admlogin`='" . $admlogin . "'";
+$result = simple_query($query);
+return ($result);
+}
+
+/**
+* Returns user current tariff data array
+*
+* @param string $login
+* @return array
+*/
+function zbs_UserGetTariffData($tariff) {
+ $login = mysql_real_escape_string($tariff);
+ $query = "SELECT * from `tariffs` WHERE `name`='" . $tariff . "'";
+ $res = simple_query($query);
+ return($res);
+}
+
+/**
  * Renders printable HTML sales slip
- * 
+ *
  * @param int $paymentid
  * @return string
  */
@@ -854,17 +880,70 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
     $cmonth_name = $month_array[$cmonth];
     $cyear = curyear();
     $morph = new UBMorph();
+    $balance = $paymentdata['balance'];
+    $paysumm = $paymentdata['summ'];
+    $summ = ($balance + $paysumm);
+    //Notes
+    $Note = $paymentdata['note'];
+    if(!$Note) $Note = 'Payment for services';
+    $Explode = explode(':', $Note);
+    if($Explode[0]==='MOCK') $summ = $balance;
+    if($Explode[0]==='MOCK' and $Explode[1]!=='') $Note = $Explode[1];
+    $userBalance = $summ;
+    //Tariff and Price
+    $alltariffs = zb_ExportTariffsLoadAll();
+    $tariff = $alltariffs[$login];
+    $tariffData = zbs_UserGetTariffData($tariff);
+    $tariffprice = $tariffData['Fee'];
+    //Returns user online left days
+    $daysOnLine = -1;
+    if ($userBalance >= 0) {
+        if ($tariffData['period'] === 'month') {
+            //monthly non spread fee
+            while ($userBalance >= 0) {
+                $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                $userBalance = $userBalance - $tariffprice;
+            }
+        } else {
+            //daily non spread fee
+            while ($userBalance >= 0) {
+                $daysOnLine++;
+                $userBalance = $userBalance - $tariffprice;
+            }
+        }
+        $datatime = strtotime($paymentdata['date']);
+        $balanceExpire = date("d.m.Y", $datatime + ($daysOnLine * 24 * 60 * 60));
+    } else { $balanceExpire = __('indebtedness'); }
+    //Paid login Admin
+    $LogiN = $paymentdata['admin'];
+    $UserData = load_user_info($LogiN);
+    $UserEmployee = zb_GetEmployee($LogiN);
+    $UserDataAdm = $UserEmployee['name'];
+    $UserDataTel = $UserEmployee['mobile'];
+	  $UserDataEmail = $UserData['email'];
+    //QR
+    $qr = 'NAME='.$UserDataAdm.'xPID='.$userPaymentId.'xCASH='.$paysumm.'xID='.$paymentdata['id'].'xIDENC='.zb_NumEncode($paymentdata['id']).'xDATA='.$paymentdata['date'].'xTEL='.$UserDataTel;
+    $QR = '<p><img src="https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl='.$qr.'&choe=UTF-8" title="QR" /></p>';
     //forming template data
+    @$templatedata['{QR}'] = $QR;
+    @$templatedata['{SUMM}'] = $summ;
+    @$templatedata['{BALANCE}'] = $balance;
+    @$templatedata['{TARIFF}'] = $tariff;
+    @$templatedata['{TARIFFPRICE}'] = $tariffprice;
+    @$templatedata['{BALANCEEXPIRE}'] = $balanceExpire;
+    @$templatedata['{COMPADM}'] = $UserDataAdm;
+    @$templatedata['{COMPTEL}'] = $UserDataTel;
+    @$templatedata['{COMPEMAIL}'] = $UserDataEmail;
     @$templatedata['{PAYID}'] = $paymentdata['id'];
     @$templatedata['{PAYIDENC}'] = zb_NumEncode($paymentdata['id']);
     @$templatedata['{PAYMENTID}'] = $userPaymentId;
     @$templatedata['{PAYDATE}'] = $paymentdata['date'];
-    @$templatedata['{PAYSUMM}'] = $paymentdata['summ'];
-    @$templatedata['{PAYSUMM_LIT}'] = $morph->sum2str($paymentdata['summ']); // omg omg omg 
+    @$templatedata['{PAYSUMM}'] = $paysumm;
+    @$templatedata['{PAYSUMM_LIT}'] = $morph->sum2str($paymentdata['summ']); // omg omg omg
     @$templatedata['{REALNAME}'] = $userData['realname'];
     @$templatedata['{BUHNAME}'] = 'а відки я знаю?';
     @$templatedata['{CASNAME}'] = $cassnames[whoami()];
-    @$templatedata['{PAYTARGET}'] = 'Оплата за послуги / ' . $paymentdata['date'];
+    @$templatedata['{PAYTARGET}'] = __($Note) . ' / ' . $paymentdata['date'];
     @$templatedata['{FULLADDRESS}'] = $useraddress;
     @$templatedata['{CDAY}'] = $cday;
     @$templatedata['{CMONTH}'] = rcms_date_localise($cmonth_name);
@@ -891,7 +970,7 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
 
 /**
  * Returns all users with set NDS tag
- * 
+ *
  * @return array
  */
 function zb_NdsGetAllUsers() {
@@ -910,7 +989,7 @@ function zb_NdsGetAllUsers() {
 
 /**
  * Performs fast check is user NDS payer?
- * 
+ *
  * @param string $login
  * @param array $allndsusers
  * @return bool
@@ -925,7 +1004,7 @@ function zb_NdsCheckUser($login, $allndsusers) {
 
 /**
  * Returns tax rate for NDS user
- * 
+ *
  * @return string
  */
 function zb_NdsGetPercent() {
@@ -936,7 +1015,7 @@ function zb_NdsGetPercent() {
 
 /**
  * Returns calculated NDS rate for summ
- * 
+ *
  * @param float $summ
  * @param int $ndspercent
  * @return float
@@ -948,7 +1027,7 @@ function zb_NdsCalc($summ, $ndspercent) {
 
 /**
  * Renders NDS users payments list
- * 
+ *
  * @param string $query
  * @return string
  */
@@ -1055,9 +1134,9 @@ function web_NdsPaymentsShow($query) {
 
 /**
  * Shows list of NDS users payments per year
- * 
+ *
  * @param int $year
- * 
+ *
  * @return void
  */
 function web_NdsPaymentsShowYear($year) {
@@ -1081,7 +1160,7 @@ function web_NdsPaymentsShowYear($year) {
 
 /**
  * Returns ahent selector for registration form
- * 
+ *
  * @param string $name
  * @param int $selected
  * @return string
@@ -1100,7 +1179,7 @@ function zb_RegContrAhentSelect($name, $selected = '') {
 
 /**
  * Renders agent strict assign form
- * 
+ *
  * @return string
  */
 function web_AgentAssignStrictForm($login, $currentassign) {
@@ -1133,9 +1212,9 @@ function web_AgentAssignStrictForm($login, $currentassign) {
 
 /**
  * Deletes existing ahent strict assign from database
- * 
+ *
  * @param string $login
- * 
+ *
  * @return void
  */
 function zb_AgentAssignStrictDelete($login) {
@@ -1147,10 +1226,10 @@ function zb_AgentAssignStrictDelete($login) {
 
 /**
  * Creates ahent strict assign record in database
- * 
+ *
  * @param string $login
  * @param int $agentid
- * 
+ *
  * @return void
  */
 function zb_AgentAssignStrictCreate($login, $agentid) {

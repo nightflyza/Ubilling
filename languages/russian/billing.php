@@ -265,7 +265,7 @@ $lang['def']['Cash type'] = 'Тип оплаты';
 $lang['def']['Payment note'] = 'Примечания к оплате';
 $lang['def']['Edit payment types'] = 'Редактирование типов оплат';
 
-//permissions 
+//permissions
 $lang['def']['right to control user balance'] = 'Право управлять счетом пользователя';
 $lang['def']['right to register admins'] = 'Право на регистрацию новых админов';
 $lang['def']['right to control user AlwaysOnline'] = 'Право устанавливать состояние ВсегдаОнлайн';
@@ -492,7 +492,7 @@ $lang['def']['Admin'] = 'Админ';
 $lang['def']['Administrator registered'] = 'Администратор зарегистрирован';
 $lang['def']['His permissions you can setup via corresponding module'] = 'Его права вы можете назначить при помощи соответствующего модуля';
 
-//rev 432  Profile plugins loader 
+//rev 432  Profile plugins loader
 $lang['def']['Default agent assign'] = 'Агент по умолчанию';
 $lang['def']['Profile plugins loader'] = 'Загружать аддоны профиля';
 $lang['def']['User integrity checker'] = 'Проверка целостности пользователя';
@@ -1351,7 +1351,7 @@ $lang['def']['Current FDB cache'] = 'Текущий кеш FDB';
 $lang['def']['Select NAS'] = 'Выберите сервер доступа';
 
 /*
- * 
+ *
  * MODULE - Extended configuration of MikroTik:
  *
  */
@@ -1552,7 +1552,7 @@ $lang['def']['Self credit report'] = 'Отчет по услуге кредит�
 $lang['def']['right to view self credit report'] = 'Право просматривать отчет по услуге кредитования';
 $lang['def']['Self credit dynamic over the year'] = 'Динамика услуги кредитования в разрезе года';
 
-//rev 3120 
+//rev 3120
 $lang['def']['Service active'] = 'Услуга предоставляется';
 $lang['def']['AntiDebtors'] = 'АнтиДолжники';
 $lang['def']['Users with complex services'] = 'Пользователи с комплексной услугой';
@@ -1980,7 +1980,7 @@ $lang['def']['ONU signal history'] = 'История сигнала ONU';
 $lang['def']['Wrong date format'] = 'Неверный формат даты';
 $lang['def']['ONU assign'] = 'Привязка ONU';
 
-//rev 4583 
+//rev 4583
 $lang['def']['Free'] = 'Свободно';
 $lang['def']['IP usage stats'] = 'Статистика использования IP';
 $lang['def']['Units'] = 'Единицы измерения';
@@ -2144,7 +2144,7 @@ $lang['def']['Percent accured on the balance by friendly user payments'] = 'Пр
 $lang['def']['Payment type ID for friendship payments'] = 'Тип платежей для дружественных платежей';
 $lang['def']['Additionally spent materials'] = 'Дополнительно использованы материалы';
 
-//rev 4799 
+//rev 4799
 $lang['def']['ct.'] = 'г.';
 $lang['def']['st.'] = 'ул.';
 $lang['def']['UserSide API requests enabled'] = 'Запросы API UserSide включены';
@@ -2205,7 +2205,7 @@ $lang['def']['Activate subscription'] = 'Активировать подписк
 $lang['def']['Deactivate subscription'] = 'Деактивировать подписку';
 $lang['def']['Delete subscription'] = 'Удалить подписку';
 
-//rev 4914 
+//rev 4914
 $lang['def']['Speed is not set'] = 'Скорость не установлена';
 $lang['def']['Date remains'] = 'Остатки по датам';
 $lang['def']['Remains at the beginning of the month'] = 'Остаток на начало месяца';
@@ -2215,7 +2215,7 @@ $lang['def']['packing'] = 'упаковка';
 $lang['def']['You can use the * character as a symbol of lax compliance line.'] = 'Вы можете использовать символ * как обозначение нестрогого соответствия строке.';
 $lang['def']['The threshold at which the money considered user debtor'] = 'Порог денег при котором считать пользователя должником';
 
-//rev 4986 
+//rev 4986
 $lang['def']['right to delete photostorage images'] = 'Право удалять изображения из хранилища';
 $lang['def']['full'] = 'полный';
 $lang['def']['short'] = 'короткий';
@@ -2679,7 +2679,7 @@ $lang['def']['No network detected'] = 'Сеть не определена';
 $lang['def']['Cache mac address vendors'] = 'Кэшировать производителей оборудования';
 $lang['def']['Hard reset is enabled'] = 'Жесткий ресет включен';
 
-//rev 5773 
+//rev 5773
 $lang['def']['Returns device type'] = 'Возвращает типы устройств';
 $lang['def']['Returns device model'] = 'Возвращает существующие модели устройств';
 $lang['def']['Returns devices list'] = 'Возвращает список существующих устройств';
@@ -3120,6 +3120,9 @@ $lang['def']['ONU rendered on map'] = 'ONU отрендерено на карт�
 $lang['def']['User builds not placed on map'] = 'Пользовательских домов не размещены на карте';
 $lang['def']['ONU without assigned user'] = 'ONU с неприсвоенными пользователями';
 $lang['def']['API port'] = 'Порт API';
+$lang['def']['Payment for services'] = 'Оплата услуг';
+$lang['def']['MOCK:'] = 'Фиктивный платеж';
+$lang['def']['AFFEE'] = 'Заморозка счета';
 $lang['def'][''] = '';
 
 
