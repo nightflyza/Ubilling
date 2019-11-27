@@ -3,7 +3,6 @@
 /**
  * Agent assigns report class
  */
-
 class agentAssignReport {
 
     protected $allassigns = array();
@@ -206,11 +205,11 @@ class agentAssignReport {
         $cashTypesArr['any'] = __('Any');
 
         $inputs = __('Date');
-        $inputs.= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
-        $inputs.= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To') . ' ';
-        $inputs.= wf_Selector('cashtypeid', $cashTypesArr, __('Cash type'), $currentCashtypeId, false);
-        $inputs.= wf_HiddenInput('dosearch', 'true');
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
+        $inputs .= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To') . ' ';
+        $inputs .= wf_Selector('cashtypeid', $cashTypesArr, __('Cash type'), $currentCashtypeId, false);
+        $inputs .= wf_HiddenInput('dosearch', 'true');
+        $inputs .= wf_Submit(__('Search'));
 
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
@@ -356,57 +355,57 @@ class agentAssignReport {
                 if (isset($tmpArr[$agentid])) {
                     if (!empty($tmpArr[$agentid])) {
                         //table header
-                        $result.=wf_tag('h2') . @$this->agentsNamed[$agentid] . wf_tag('h2', true);
+                        $result .= wf_tag('h2') . @$this->agentsNamed[$agentid] . wf_tag('h2', true);
                         $cells = wf_TableCell(__('ID'));
-                        $cells.= wf_TableCell(__('Date'));
-                        $cells.= wf_TableCell(__('Cash'));
-                        $cells.= wf_TableCell(__('Login'));
+                        $cells .= wf_TableCell(__('Date'));
+                        $cells .= wf_TableCell(__('Cash'));
+                        $cells .= wf_TableCell(__('Login'));
                         if ($altercfg['FINREP_CONTRACT']) {
                             $this->loadUserContracts();
-                            $cells.= wf_TableCell(__('Contract'));
+                            $cells .= wf_TableCell(__('Contract'));
                         }
-                        $cells.= wf_TableCell(__('Full address'));
-                        $cells.= wf_TableCell(__('Real Name'));
+                        $cells .= wf_TableCell(__('Full address'));
+                        $cells .= wf_TableCell(__('Real Name'));
                         if ($altercfg['FINREP_TARIFF']) {
                             $this->loadUserTariffs();
-                            $cells.= wf_TableCell(__('Tariff'));
+                            $cells .= wf_TableCell(__('Tariff'));
                         }
-                        $cells.= wf_TableCell(__('Contrahent name'));
-                        $cells.= wf_TableCell(__('Payment type'));
-                        $cells.= wf_TableCell(__('Notes'));
-                        $cells.= wf_TableCell(__('Admin'));
+                        $cells .= wf_TableCell(__('Contrahent name'));
+                        $cells .= wf_TableCell(__('Payment type'));
+                        $cells .= wf_TableCell(__('Notes'));
+                        $cells .= wf_TableCell(__('Admin'));
                         $rows = wf_TableRow($cells, 'row1');
 
                         foreach ($tmpArr[$agentid] as $io => $each) {
                             $cells = wf_TableCell($each['id']);
-                            $cells.= wf_TableCell($each['date']);
-                            $cells.= wf_TableCell($each['summ']);
-                            $cells.= wf_TableCell($each['login']);
+                            $cells .= wf_TableCell($each['date']);
+                            $cells .= wf_TableCell($each['summ']);
+                            $cells .= wf_TableCell($each['login']);
                             if ($altercfg['FINREP_CONTRACT']) {
-                                $cells.= wf_TableCell($this->userContracts[$each['login']]);
+                                $cells .= wf_TableCell($this->userContracts[$each['login']]);
                             }
-                            $cells.= wf_TableCell(@$this->alladdress[$each['login']]);
-                            $cells.= wf_TableCell(@$this->userRealnames[$each['login']]);
+                            $cells .= wf_TableCell(@$this->alladdress[$each['login']]);
+                            $cells .= wf_TableCell(@$this->userRealnames[$each['login']]);
                             if ($altercfg['FINREP_TARIFF']) {
-                                $cells.= wf_TableCell(@$this->userTariffs[$each['login']]);
+                                $cells .= wf_TableCell(@$this->userTariffs[$each['login']]);
                             }
-                            $cells.= wf_TableCell(@$this->agentsNamed[$this->assigns[$each['login']]]);
-                            $cells.= wf_TableCell(__(@$this->cashtypes[$each['cashtypeid']]));
+                            $cells .= wf_TableCell(@$this->agentsNamed[$this->assigns[$each['login']]]);
+                            $cells .= wf_TableCell(__(@$this->cashtypes[$each['cashtypeid']]));
                             //payment notes translation
                             if ($altercfg['TRANSLATE_PAYMENTS_NOTES']) {
                                 $paynote = zb_TranslatePaymentNote($each['note'], $allservicenames);
                             } else {
                                 $paynote = $each['note'];
                             }
-                            $cells.= wf_TableCell($paynote);
-                            $cells.= wf_TableCell($each['admin']);
-                            $rows.= wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell($paynote);
+                            $cells .= wf_TableCell($each['admin']);
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
 
-                        $result.=wf_TableBody($rows, '100%', 1, 'printable');
+                        $result .= wf_TableBody($rows, '100%', 1, 'printable');
                         //adds ending for templating
-                        $result.=wf_tag('body', true);
-                        $result.=wf_tag('html', true);
+                        $result .= wf_tag('body', true);
+                        $result .= wf_tag('html', true);
                     }
                 }
             }
@@ -445,11 +444,11 @@ class agentAssignReport {
                 if (isset($tmpArr[$agentid])) {
                     if (!empty($tmpArr[$agentid])) {
                         //CSV header
-                        $result.=__('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('Login') . ';' . __('Full address') . ';' . __('Real Name') . ';' . __('Contrahent name') . ';' . __('Payment type') . ';' . __('Notes') . ';' . __('Admin') . "\n";
+                        $result .= __('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('Login') . ';' . __('Full address') . ';' . __('Real Name') . ';' . __('Contrahent name') . ';' . __('Payment type') . ';' . __('Notes') . ';' . __('Admin') . "\n";
                         //CSV data
                         foreach ($tmpArr[$agentid] as $io => $each) {
                             $summ = str_replace('.', ',', $each['summ']); //need for normal summ in excel
-                            $result.=$each['id'] . ';' . $each['date'] . ';' . $summ . ';' . $each['login'] . ';' . @$this->alladdress[$each['login']] . ';' . @$this->userRealnames[$each['login']] . ';' . @$this->agentsNamed[$this->assigns[$each['login']]] . ';' . __(@$this->cashtypes[$each['cashtypeid']]) . ';' . zb_TranslatePaymentNote($each['note'], $allservicenames) . ';' . $each['admin'] . "\n";
+                            $result .= $each['id'] . ';' . $each['date'] . ';' . $summ . ';' . $each['login'] . ';' . @$this->alladdress[$each['login']] . ';' . @$this->userRealnames[$each['login']] . ';' . @$this->agentsNamed[$this->assigns[$each['login']]] . ';' . __(@$this->cashtypes[$each['cashtypeid']]) . ';' . zb_TranslatePaymentNote($each['note'], $allservicenames) . ';' . $each['admin'] . "\n";
                         }
                     }
                 }
@@ -493,13 +492,13 @@ class agentAssignReport {
                 if (isset($tmpArr[$agentid])) {
                     if (!empty($tmpArr[$agentid])) {
                         //CSV header
-                        $result.= __('Date') . ';' . __('Cash') . ';' . __('Full address') . ';' . __('Real Name') . ';' . __('Notes') . "\n";
+                        $result .= __('Date') . ';' . __('Cash') . ';' . __('Full address') . ';' . __('Real Name') . ';' . __('Notes') . "\n";
                         //CSV data
                         foreach ($tmpArr[$agentid] as $io => $each) {
                             $summ = str_replace('.', ',', $each['summ']); //need for normal summ in excel
                             $timeStamp = strtotime($each['date']);
                             $newDate = date("Y-m-d", $timeStamp);
-                            $result.=$newDate . ';' . $summ . ';' . @$shortAddres[$each['login']] . ';' . @$this->userRealnames[$each['login']] . ';' . zb_TranslatePaymentNote($each['note'], $allservicenames) . "\n";
+                            $result .= $newDate . ';' . $summ . ';' . @$shortAddres[$each['login']] . ';' . @$this->userRealnames[$each['login']] . ';' . zb_TranslatePaymentNote($each['note'], $allservicenames) . "\n";
                         }
                     }
                 }
@@ -546,51 +545,51 @@ class agentAssignReport {
         $totalSumm = 0;
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('Login'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Login'));
         if ($altercfg['FINREP_CONTRACT']) {
             $this->loadUserContracts();
-            $cells.= wf_TableCell(__('Contract'));
+            $cells .= wf_TableCell(__('Contract'));
         }
-        $cells.= wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Full address'));
+        $cells .= wf_TableCell(__('Real Name'));
         if ($altercfg['FINREP_TARIFF']) {
             $this->loadUserTariffs();
-            $cells.= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Tariff'));
         }
-        $cells.= wf_TableCell(__('Contrahent name'));
-        $cells.= wf_TableCell(__('Payment type'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Admin'));
+        $cells .= wf_TableCell(__('Contrahent name'));
+        $cells .= wf_TableCell(__('Payment type'));
+        $cells .= wf_TableCell(__('Notes'));
+        $cells .= wf_TableCell(__('Admin'));
         $rows = wf_TableRow($cells, 'row1');
 
 
         if (!empty($allPayments)) {
             foreach ($allPayments as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['summ']);
-                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
+                $cells .= wf_TableCell($each['date']);
+                $cells .= wf_TableCell($each['summ']);
+                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
                 if ($altercfg['FINREP_CONTRACT']) {
-                    $cells.= wf_TableCell($this->userContracts[$each['login']]);
+                    $cells .= wf_TableCell($this->userContracts[$each['login']]);
                 }
-                $cells.= wf_TableCell(@$this->alladdress[$each['login']]);
-                $cells.= wf_TableCell(@$this->userRealnames[$each['login']]);
+                $cells .= wf_TableCell(@$this->alladdress[$each['login']]);
+                $cells .= wf_TableCell(@$this->userRealnames[$each['login']]);
                 if ($altercfg['FINREP_TARIFF']) {
-                    $cells.= wf_TableCell(@$this->userTariffs[$each['login']]);
+                    $cells .= wf_TableCell(@$this->userTariffs[$each['login']]);
                 }
-                $cells.= wf_TableCell(@$this->agentsNamed[$this->assigns[$each['login']]]);
-                $cells.= wf_TableCell(__(@$this->cashtypes[$each['cashtypeid']]));
+                $cells .= wf_TableCell(@$this->agentsNamed[$this->assigns[$each['login']]]);
+                $cells .= wf_TableCell(__(@$this->cashtypes[$each['cashtypeid']]));
                 //payment notes translation
                 if ($altercfg['TRANSLATE_PAYMENTS_NOTES']) {
                     $paynote = zb_TranslatePaymentNote($each['note'], $allservicenames);
                 } else {
                     $paynote = $each['note'];
                 }
-                $cells.= wf_TableCell($paynote);
-                $cells.= wf_TableCell($each['admin']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($paynote);
+                $cells .= wf_TableCell($each['admin']);
+                $rows .= wf_TableRow($cells, 'row3');
 
                 //fill stats
                 $this->fillAgentStats($each['login'], $each['summ']);
@@ -603,35 +602,35 @@ class agentAssignReport {
         //show per agent stats
         if (!empty($this->agentsumm)) {
             $agCells = wf_TableCell(__('Contrahent name'));
-            $agCells.= wf_TableCell(__('Count'));
-            $agCells.= wf_TableCell(__('Sum'));
-            $agCells.= wf_TableCell(__('Actions'));
+            $agCells .= wf_TableCell(__('Count'));
+            $agCells .= wf_TableCell(__('Sum'));
+            $agCells .= wf_TableCell(__('Actions'));
             $agRows = wf_TableRow($agCells, 'row1');
 
             foreach ($this->agentsumm as $eachAgentId => $eachAgentStat) {
                 $exportControls = wf_Link("?module=report_agentfinance&exportcsvagentid=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('full')), false, '') . ' ';
-                $exportControls.= wf_Link("?module=report_agentfinance&exportcsvagentidshort=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('short')), false, '') . ' ';
-                $exportControls.= wf_Link("?module=report_agentfinance&exporthtmlagentid=" . $eachAgentId, wf_img('skins/icon_print.png', __('Print')), false, '');
+                $exportControls .= wf_Link("?module=report_agentfinance&exportcsvagentidshort=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('short')), false, '') . ' ';
+                $exportControls .= wf_Link("?module=report_agentfinance&exporthtmlagentid=" . $eachAgentId, wf_img('skins/icon_print.png', __('Print')), false, '');
                 $agCells = wf_TableCell($this->agentsNamed[$eachAgentId]);
-                $agCells.= wf_TableCell($eachAgentStat['count']);
-                $agCells.= wf_TableCell($eachAgentStat['summ']);
-                $agCells.= wf_TableCell($exportControls);
-                $agRows.= wf_TableRow($agCells, 'row3');
+                $agCells .= wf_TableCell($eachAgentStat['count']);
+                $agCells .= wf_TableCell(zb_CashBigValueFormat($eachAgentStat['summ']), '', '', 'align="right"');
+                $agCells .= wf_TableCell($exportControls);
+                $agRows .= wf_TableRow($agCells, 'row3');
             }
 
-            $result.=wf_TableBody($agRows, '50%', 0, 'sortable');
-            $result.=wf_tag('span', false, 'glamour') . __('Excluded payments count') . ': ' . $this->excludeCount . wf_tag('span', true);
-            $result.=wf_tag('span', false, 'glamour') . __('Excluded cash') . ': ' . $this->excludeSumm . wf_tag('span', true);
-            $result.=wf_CleanDiv();
+            $result .= wf_TableBody($agRows, '50%', 0, 'sortable');
+            $result .= wf_tag('span', false, 'glamour') . __('Excluded payments count') . ': ' . $this->excludeCount . wf_tag('span', true);
+            $result .= wf_tag('span', false, 'glamour') . __('Excluded cash') . ': ' . $this->excludeSumm . wf_tag('span', true);
+            $result .= wf_CleanDiv();
 
             //save per agent printing data for future usage
             $this->savePrintData();
         }
 
-        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.=wf_tag('span', false, 'glamour') . __('Count') . ': ' . $totalCount . wf_tag('span', true);
-        $result.=wf_tag('span', false, 'glamour') . __('Total payments') . ': ' . $totalSumm . wf_tag('span', true);
-        $result.=wf_CleanDiv();
+        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result .= wf_tag('span', false, 'glamour') . __('Count') . ': ' . $totalCount . wf_tag('span', true);
+        $result .= wf_tag('span', false, 'glamour') . __('Total payments') . ': ' . $totalSumm . wf_tag('span', true);
+        $result .= wf_CleanDiv();
         return ($result);
     }
 
