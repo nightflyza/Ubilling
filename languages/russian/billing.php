@@ -3121,6 +3121,7 @@ $lang['def']['User builds not placed on map'] = 'Пользовательски�
 $lang['def']['ONU without assigned user'] = 'ONU с неприсвоенными пользователями';
 $lang['def']['API port'] = 'Порт API';
 $lang['def']['Group'] = 'Группа';
+$lang['def']['Payment for services'] = 'Оплата услуг';
 $lang['def'][''] = '';
 
 
