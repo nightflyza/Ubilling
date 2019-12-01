@@ -827,6 +827,19 @@ function zb_PrintCheckGetDayNum($payid, $paymentdate) {
 }
 
 /**
+ * Returns an employee data array
+ *
+ * @param string $admlogin
+ * @return array
+ */
+function zb_GetEmployee($admlogin) {
+    $admlogin = mysql_real_escape_string($admlogin);
+    $query = "SELECT * from `employee` WHERE `admlogin`='" . $admlogin . "'";
+    $result = simple_query($query);
+    return ($result);
+}
+
+/**
  * Renders printable HTML sales slip
  * 
  * @param int $paymentid
@@ -854,7 +867,44 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
     $cmonth_name = $month_array[$cmonth];
     $cyear = curyear();
     $morph = new UBMorph();
+    $balanceTotal = (ispos($paymentdata['note'], 'MOCK:')) ? $paymentdata['balance'] : ($paymentdata['balance'] + $paymentdata['summ']);
+    $paynote = (empty($paymentdata['note'])) ? __('Payment for services') : zb_TranslatePaymentNote($paymentdata['note'], zb_VservicesGetAllNamesLabeled());
+    //Returns user online left days
+    $tariffData = billing_gettariff(zb_ExportTariffsLoadAll()[$login]);
+    $daysOnLine = -1;
+    $userBalance = $balanceTotal;
+    if ($userBalance >= 0) {
+        if ($tariffData['period'] === 'month') {
+            //monthly non spread fee
+            while ($userBalance >= 0) {
+                $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                $userBalance = $userBalance - $tariffData['Fee'];
+            }
+        } else {
+            //daily non spread fee
+            while ($userBalance >= 0) {
+                $daysOnLine++;
+                $userBalance = $userBalance - $tariffData['Fee'];
+            }
+        }
+        $paydate = strtotime($paymentdata['date']);
+        $balanceExpire = date("d.m.Y", $paydate + ($daysOnLine * 24 * 60 * 60));
+    } else {
+        $balanceExpire = __('indebtedness');
+    }
+    $employee = zb_GetEmployee($paymentdata['admin']);
+    $qrtext = 'NAME='.$employee['name'].'xPID='.$userPaymentId.'xCASH='.$paymentdata['summ'].'xID='.$paymentdata['id'].'xIDENC='.zb_NumEncode($paymentdata['id']).'xDATA='.$paymentdata['date'];
+    $qr = wf_img('./qrgen.php?data='.$qrtext,'','width:100');
     //forming template data
+    @$templatedata['{QR}'] = $qr;
+    @$templatedata['{TARIFF}'] = zb_ExportTariffsLoadAll()[$login];
+    @$templatedata['{TARIFFFEE}'] = $tariffData['Fee'];
+    @$templatedata['{BALANCE}'] = $paymentdata['balance'];
+    @$templatedata['{BALANCETOTAL}'] = $balanceTotal;
+    @$templatedata['{BALANCEEXPIRE}'] = $balanceExpire;
+    @$templatedata['{EMPLOYEENAME}'] = $employee['name'];
+    @$templatedata['{EMPLOYEETEL}'] = $employee['mobile'];
+    @$templatedata['{EMPLOYEEEMAIL}'] = load_user_info($paymentdata['admin'])['email'];
     @$templatedata['{PAYID}'] = $paymentdata['id'];
     @$templatedata['{PAYIDENC}'] = zb_NumEncode($paymentdata['id']);
     @$templatedata['{PAYMENTID}'] = $userPaymentId;
@@ -864,7 +914,7 @@ function zb_PrintCheck($paymentid, $realpaymentId = false) {
     @$templatedata['{REALNAME}'] = $userData['realname'];
     @$templatedata['{BUHNAME}'] = 'а відки я знаю?';
     @$templatedata['{CASNAME}'] = $cassnames[whoami()];
-    @$templatedata['{PAYTARGET}'] = 'Оплата за послуги / ' . $paymentdata['date'];
+    @$templatedata['{PAYTARGET}'] = $paynote . ' / ' . $paymentdata['date'];
     @$templatedata['{FULLADDRESS}'] = $useraddress;
     @$templatedata['{CDAY}'] = $cday;
     @$templatedata['{CMONTH}'] = rcms_date_localise($cmonth_name);
