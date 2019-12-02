@@ -178,6 +178,28 @@ class PONizer {
     protected $ponizerUseTabUI = false;
 
     /**
+     * Placeholder for onu MAC validation regex
+     *
+     * @var string
+     */
+    protected $onuMACValidateRegex = '/(([0-9A-Fa-f]{2})|([0-9A-Fa-f]{4}))(?=([\.:-]))((?:\4(?2)){5}|(?:\4(?3)){2})$/';
+
+
+    /**
+     * Perform ONU MAC validation against $onuMACValidateRegex?
+     *
+     * @var bool
+     */
+    protected $validateONUMACEnabled = false;
+
+    /**
+     * Replace ONU's MAC if invalid with a random one?
+     *
+     * @var string
+     */
+    protected $replaceInvalidONUMACWithRandom = false;
+
+    /**
      * Placeholder for UbillingConfig object
      *
      * @var null
@@ -236,6 +258,8 @@ class PONizer {
         $this->onuUknownUserByMACSearchShowAlways = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_SHOW_ALWAYS');
         $this->onuUknownUserByMACSearchTelepathy = $this->ubConfig->getAlterParam('PON_UONU_USER_BY_MAC_SEARCH_TELEPATHY');
         $this->ponizerUseTabUI = $this->ubConfig->getAlterParam('PON_UI_USE_TABS');
+        $this->validateONUMACEnabled = $this->ubConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
+        $this->replaceInvalidONUMACWithRandom = $this->ubConfig->getAlterParam('PON_ONU_MAC_MAKE_RANDOM_IF_INVALID');
 
         //optional ONU MAC hiding
         if (@$this->altCfg['PON_ONU_HIDE']) {
@@ -3118,6 +3142,15 @@ class PONizer {
                 $raw = file_get_contents(self::SIGCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $signal) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = 'FF:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $this->signalCache[$macRandom] = $signal;
+                        }
+
+                        continue;
+                    }
+
                     $this->signalCache[$mac] = $signal;
                 }
             }
@@ -3136,6 +3169,15 @@ class PONizer {
                 $raw = file_get_contents(self::DISTCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $distance) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = 'FF:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $this->distanceCache[$macRandom] = $distance;
+                        }
+
+                        continue;
+                    }
+
                     $this->distanceCache[$mac] = $distance;
                 }
             }
@@ -3154,6 +3196,15 @@ class PONizer {
                 $raw = file_get_contents(self::DEREGCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $dereg) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = 'FF:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $this->lastDeregCache[$macRandom] = $dereg;
+                        }
+
+                        continue;
+                    }
+
                     $this->lastDeregCache[$mac] = $dereg;
                 }
             }
@@ -3172,6 +3223,15 @@ class PONizer {
                 $raw = file_get_contents(self::INTCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $interface) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = 'FF:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $this->interfaceCache[$macRandom] = $interface;
+                        }
+
+                        continue;
+                    }
+
                     $this->interfaceCache[$mac] = $interface;
                 }
             }
@@ -3190,6 +3250,15 @@ class PONizer {
                 $raw = file_get_contents(self::FDBCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $oidMac => $FDB) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($oidMac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = 'FF:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $this->FDBCache[$macRandom] = $FDB;
+                        }
+
+                        continue;
+                    }
+
                     $this->FDBCache[$oidMac] = $FDB;
                 }
             }
@@ -3211,6 +3280,15 @@ class PONizer {
                 $oltId = explode('_', $each);
                 $oltId = @vf($oltId[0], 3);
                 foreach ($raw as $index => $mac) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = 'FF:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $this->onuIndexCache[$macRandom] = $oltId;
+                        }
+
+                        continue;
+                    }
+
                     $this->onuIndexCache[$mac] = $oltId;
                 }
             }
@@ -3714,8 +3792,11 @@ class PONizer {
      * @return array
      */
     public static function getAllONUSignals() {
+        global $ubillingConfig;
         $allOnuSignals = array();
         $signalCache = array();
+        $onuMACValidateRegex = '/(([0-9A-Fa-f]{2})|([0-9A-Fa-f]{4}))(?=([\.:-]))((?:\4(?2)){5}|(?:\4(?3)){2})$/';
+        $validateONUMACEnabled = $ubillingConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
         $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
 
         $query = "SELECT * from `pononu`";
@@ -3727,6 +3808,13 @@ class PONizer {
                 $raw = unserialize($raw);
 
                 foreach ($raw as $mac => $signal) {
+                    if ($validateONUMACEnabled) {
+                        $matches = array();
+                        preg_match($onuMACValidateRegex, $mac, $matches);
+
+                        if (empty($matches[0])) { continue; }
+                    }
+
                     $signalCache[$mac] = $signal;
                 }
             }
@@ -3739,6 +3827,13 @@ class PONizer {
         }
 
         return ($allOnuSignals);
+    }
+
+    public function validateONUMAC($onuMAC) {
+        $matches = array();
+        preg_match($this->onuMACValidateRegex, $onuMAC, $matches);
+
+        return (!empty($matches[0]));
     }
 
 }
