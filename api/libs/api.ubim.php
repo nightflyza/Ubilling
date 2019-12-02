@@ -62,14 +62,14 @@ function im_AvatarControlForm() {
     $cells = wf_TableCell(wf_tag('h1') . $me . wf_tag('h1', true), '', '', 'align="center"');
     $rows = wf_TableRow($cells);
     $cells = wf_TableCell(gravatar_ShowAdminAvatar($me, '256'), '', '', 'align="center"');
-    $rows.= wf_TableRow($cells);
+    $rows .= wf_TableRow($cells);
     $cells = wf_TableCell(wf_tag('h3') . __('Your email') . ': ' . $mail . wf_tag('h3', true), '', '', 'align="center"');
-    $rows.= wf_TableRow($cells);
+    $rows .= wf_TableRow($cells);
 
     $cells = wf_TableCell(wf_Link("http://gravatar.com/emails/", __('Change my avatar at gravatar.com')), '', '', 'align="center"');
-    $rows.= wf_TableRow($cells);
+    $rows .= wf_TableRow($cells);
     $result = wf_TableBody($rows, '100%', '0', 'glamour');
-    $result.=wf_BackLink("?module=ubim&checknew=true", __('Back'), false, 'ubButton');
+    $result .= wf_BackLink("?module=ubim&checknew=true", __('Back'), false, 'ubButton');
     return ($result);
 }
 
@@ -145,15 +145,12 @@ function im_ContactList() {
         foreach ($alladmins as $eachadmin) {
             if ($eachadmin != $me) {
                 //need checks for unread messages for each user
+                $contactClass = 'ubimcontact';
                 if (wf_CheckGet(array('checknew'))) {
                     $unreadCounter = im_CheckForUnreadMessagesByUser($eachadmin);
                     if ($unreadCounter != 0) {
-                        $blinker = wf_img('skins/icon_mail.gif');
-                    } else {
-                        $blinker = '';
+                        $contactClass = 'ubimcontactincome';
                     }
-                } else {
-                    $blinker = '';
                 }
 
                 if (isset($activeAdmins[$eachadmin])) {
@@ -161,19 +158,20 @@ function im_ContactList() {
                 } else {
                     $aliveFlag = web_bool_led(false);
                 }
+
                 $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '32') . ' ';
                 $adminName = (isset($employeeNames[$eachadmin])) ? $employeeNames[$eachadmin] : $eachadmin;
-                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $adminName . ' ' . $blinker, 'threadContainer', false, 'ubimcontact');
+                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $adminName, 'threadContainer', false, $contactClass);
                 //$threadLink.=$blinker;
 
                 $cells = wf_TableCell($aliveFlag, '', '', 'valign="center" align="center"');
-                $cells.= wf_TableCell($conatactAvatar, '35', '', 'valign="center" align="left"');
-                $cells.= wf_TableCell($threadLink, '', '', 'valign="center" align="left"');
-                $rows.=wf_TableRow($cells, '');
+                $cells .= wf_TableCell($conatactAvatar, '35', '', 'valign="center" align="left"');
+                $cells .= wf_TableCell($threadLink, '', '', 'valign="center" align="left"');
+                $rows .= wf_TableRow($cells, '');
             }
         }
         $result = wf_TableBody($rows, '100%', '0', 'glamour');
-        $result.=wf_delimiter() . wf_Link("?module=ubim&avatarcontrol=true", __('Avatar control'), false, 'ubButton');
+        $result .= wf_delimiter() . wf_Link("?module=ubim&avatarcontrol=true", __('Avatar control'), false, 'ubButton');
     }
     return ($result);
 }
@@ -185,12 +183,12 @@ function im_ContactList() {
  */
 function im_MainWindow() {
     $contactList = wf_AjaxLoader();
-    $contactList.= im_ContactList();
+    $contactList .= im_ContactList();
 
     $gridcells = wf_TableCell($contactList, '25%', '', 'valign="top"');
     $threadContainer = wf_tag('div', false, 'ubimchat', 'id="threadContainer"');
-    $threadContainer.=wf_tag('div', true);
-    $gridcells.=wf_TableCell($threadContainer, '75%', '', 'valign="top"');
+    $threadContainer .= wf_tag('div', true);
+    $gridcells .= wf_TableCell($threadContainer, '75%', '', 'valign="top"');
     $gridrows = wf_TableRow($gridcells);
     $result = wf_TableBody($gridrows, '100%', '0');
     return ($result);
@@ -205,8 +203,8 @@ function im_MainWindow() {
  */
 function im_ConversationForm($to) {
     $inputs = wf_HiddenInput('im_message_to', $to);
-    $inputs.=wf_TextArea('im_message_text', '', '', true, '60x4');
-    $inputs.=wf_Submit('Send message');
+    $inputs .= wf_TextArea('im_message_text', '', '', true, '60x4');
+    $inputs .= wf_Submit('Send message');
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     return ($result);
 }
@@ -235,8 +233,8 @@ function im_ThreadShow($threadUser) {
             $readIcon = ($each['read'] == '0') ? wf_img("skins/icon_inactive.gif", __('Unread message')) : '';
             $fromName = (isset($employeeNames[$each['from']])) ? $employeeNames[$each['from']] : $each['from'];
             $cells = wf_TableCell(wf_tag('b') . $fromName . wf_tag('b', true), '20%', '', 'align="center"');
-            $cells.= wf_TableCell($each['date'] . ' ' . $readIcon, '80%');
-            $rows.= wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell($each['date'] . ' ' . $readIcon, '80%');
+            $rows .= wf_TableRow($cells, 'row2');
 
             $messageText = nl2br($each['text']);
             if (!isset($altCfg['UBIM_NO_LINKIFY'])) {
@@ -247,8 +245,8 @@ function im_ThreadShow($threadUser) {
                 }
             }
             $cells = wf_TableCell(gravatar_ShowAdminAvatar($each['from'], '64'), '', 'row3', 'align="center"');
-            $cells.= wf_TableCell($messageText, '', 'row3');
-            $rows.= wf_TableRow($cells);
+            $cells .= wf_TableCell($messageText, '', 'row3');
+            $rows .= wf_TableRow($cells);
         }
         $result = wf_TableBody($rows, '100%', '0');
 
@@ -266,8 +264,8 @@ function im_ThreadShow($threadUser) {
  */
 function im_ThreadLoad($threadUser) {
     $result = wf_tag('script', false, '', 'type="text/javascript"');
-    $result.= 'goajax(\'?module=ubim&showthread=' . $threadUser . '\',\'threadContainer\');';
-    $result.= wf_tag('script', true);
+    $result .= 'goajax(\'?module=ubim&showthread=' . $threadUser . '\',\'threadContainer\');';
+    $result .= wf_tag('script', true);
     return ($result);
 }
 
@@ -331,8 +329,8 @@ function im_RefreshContainer($timeout) {
         </script>
         ";
     $container = wf_tag('span', false, '', 'id="refreshcontainer"');
-    $container.=wf_tag('span', true);
-    $container.=$jstimer;
+    $container .= wf_tag('span', true);
+    $container .= $jstimer;
 
     show_window('', $container);
 }
@@ -385,7 +383,7 @@ function im_linkify($value, $protocols = array('http', 'mail'), array $attribute
             case 'https': $value = preg_replace_callback($mode != 'all' ? '~(?:(https?)://([^\s<]+)|(www\.[^\s<]+?\.[^\s<]+))(?<![\.,:])~i' : '~([^\s<]+\.[^\s<]+)(?<![\.,:])~i', function ($match) use ($protocol, &$links, $attr) {
                     if ($match[1])
                         $protocol = $match[1];
-                    $link = $match[2] ? : $match[3];
+                    $link = $match[2] ?: $match[3];
                     return '<' . array_push($links, '<a' . $attr . ' href="' . $protocol . '://' . $link . '">' . $link . '</a>') . '>';
                 }, $value);
                 break;
