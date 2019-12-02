@@ -983,58 +983,71 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 .ubbackedit {
-	-moz-box-shadow:inset 0px 1px 0px 0px #fce2c1;
-	-webkit-box-shadow:inset 0px 1px 0px 0px #fce2c1;
-	box-shadow:inset 0px 1px 0px 0px #fce2c1;
-	/* background-color:#ffc477; */
-	-moz-border-radius:6px;
-	-webkit-border-radius:6px;
-	border-radius:6px;
-	border:1px solid #eeb44f;
-	display:inline-block;
-	cursor:pointer;
-	color:#777777 !important;
-	font-family:Arial;
-	font-size:16px;
-	font-weight:bold;
-	padding:11px 26px;
-	text-decoration:none !important;
-	
+    -moz-box-shadow:inset 0px 1px 0px 0px #fce2c1;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #fce2c1;
+    box-shadow:inset 0px 1px 0px 0px #fce2c1;
+    /* background-color:#ffc477; */
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #eeb44f;
+    display:inline-block;
+    cursor:pointer;
+    color:#777777 !important;
+    font-family:Arial;
+    font-size:16px;
+    font-weight:bold;
+    padding:11px 26px;
+    text-decoration:none !important;
+
 }
 .ubbackedit:hover {
-	background-color:#fb9e25;
-        color:#ffffff !important;
+    background-color:#fb9e25;
+    color:#ffffff !important;
 }
 .ubbackedit:active {
-         box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .ubbackprofile {
-	-moz-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-	-webkit-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-	box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-	/* background-color:#79bbff; */
-	-moz-border-radius:6px;
-	-webkit-border-radius:6px;
-	border-radius:6px;
-	border:1px solid #84bbf3;
-	display:inline-block;
-	cursor:pointer;
-	color:#777777 !important;
-	font-family:Arial;
-	font-size:16px;
-	font-weight:bold;
-	padding:11px 26px;
-	text-decoration:none !important;
+    -moz-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+    box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+    /* background-color:#79bbff; */
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #84bbf3;
+    display:inline-block;
+    cursor:pointer;
+    color:#777777 !important;
+    font-family:Arial;
+    font-size:16px;
+    font-weight:bold;
+    padding:11px 26px;
+    text-decoration:none !important;
 }
 .ubbackprofile:hover {
-	background-color:#378de5;
-        color:#ffffff !important;
+    background-color:#378de5;
+    color:#ffffff !important;
 }
 .ubbackprofile:active {
-         box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .monospace {
     font-family: monospace; 
+}
+
+.onusignalbig {
+    float: left;
+    font-size: x-large;
+    text-align:center; 
+    border-style: solid;
+    border-color: #ededed;
+    border-width: 1px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    padding:10px;
+    width: 90%;
+    height: 200px;
 }

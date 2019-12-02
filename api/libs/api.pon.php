@@ -2367,6 +2367,61 @@ class PONizer {
     }
 
     /**
+     * Returns styled current ONU signal 
+     * 
+     * @param int $onuId
+     * 
+     * @return string
+     */
+    protected function renderOnuSignalBig($onuId) {
+        $result = '';
+        if (isset($this->allOnu[$onuId])) {
+            $this->loadSignalsCache();
+            $onuData = $this->allOnu[$onuId];
+
+            if (isset($this->signalCache[$onuData['mac']])) {
+                $signal = $this->signalCache[$onuData['mac']];
+                if (($signal > 0) OR ( $signal < -27)) {
+                    $sigColor = '#ab0000';
+                    $sigLabel = 'Bad signal';
+                } elseif ($signal > -27 AND $signal < -25) {
+                    $sigColor = '#FF5500';
+                    $sigLabel = 'Mediocre signal';
+                } else {
+                    $sigColor = '#005502';
+                    $sigLabel = 'Normal';
+                }
+            } elseif (isset($this->signalCache[$onuData['serial']])) {
+                $signal = $this->signalCache[$onuData['serial']];
+                if (($signal > 0) OR ( $signal < -27)) {
+                    $sigColor = '#ab0000';
+                    $sigLabel = 'Bad signal';
+                } elseif ($signal > -27 AND $signal < -25) {
+                    $sigColor = '#FF5500';
+                    $sigLabel = 'Mediocre signal';
+                } else {
+                    $sigColor = '#005502';
+                    $sigLabel = 'Normal';
+                }
+            } else {
+                $ONUIsOffline = true;
+                $signal = __('No');
+                $sigColor = '#000000';
+                $sigLabel = '';
+            }
+
+            $result .= wf_tag('div', false, 'onusignalbig');
+            $result .= __('Current') . ' ' . __('Signal') . ' ' . __('ONU');
+            $result .= wf_delimiter();
+            $result .= wf_tag('font', false, '', 'color="' . $sigColor . '" size="16pt"') . $signal . wf_tag('font', true);
+            $result .= wf_delimiter();
+            $result .= __($sigLabel);
+            $result .= wf_tag('div', true);
+        }
+        return($result);
+    }
+
+    /**
      * Returns ONU edit form
      *
      * @param int $onuId
@@ -2419,9 +2474,14 @@ class PONizer {
                     $inputs .= wf_tag('br');
                 }
             }
-
             $inputs .= wf_Submit(__('Save'));
-            $result = wf_Form('', 'POST', $inputs, 'glamour');
+
+            $onuEditForm = wf_Form('', 'POST', $inputs, 'glamour');
+            $gridCells = wf_TableCell($onuEditForm . wf_CleanDiv(), '50%', '');
+            $gridCells .= wf_TableCell($this->renderOnuSignalBig($onuId));
+            $gridRows = wf_TableRow($gridCells);
+
+            $result = wf_TableBody($gridRows, '100%', 0, '');
             $result .= wf_CleanDiv();
 
             $result .= wf_delimiter();

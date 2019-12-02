@@ -1194,3 +1194,16 @@ div.dhtml_menu div.vert_menu a.active:hover
 .ubimcontactincome:link {
     color: #b10808;
 }
+
+.onusignalbig {
+    float: left;
+    font-size: x-large;
+    text-align:center; 
+    border-style: solid;
+    border-color: #ededed;
+    border-width: 1px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    padding:10px;
+    width: 90%;
+    height: 200px;
+}

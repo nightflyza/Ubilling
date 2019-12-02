@@ -149,7 +149,7 @@ if ($altCfg['PON_ENABLED']) {
                 $pon->createOnuExtUser($_POST['newpononuextid'], $_POST['newpononuextlogin']);
                 rcms_redirect($pon::URL_ME . '&editonu=' . $_GET['editonu']);
             }
-            //show ONU editing interface
+            //show ONU editing interface aka ONU profile
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));
             show_window(__('ONU FDB'), $pon->renderOltFdbList($_GET['editonu']));
             $pon->loadonuSignalHistory($_GET['editonu'], true);
