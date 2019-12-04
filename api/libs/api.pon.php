@@ -182,7 +182,7 @@ class PONizer {
      *
      * @var string
      */
-    protected $onuMACValidateRegex = '/(([0-9A-Fa-f]{2})|([0-9A-Fa-f]{4}))(?=([\.:-]))((?:\4(?2)){5}|(?:\4(?3)){2})$/';
+    protected $onuMACValidateRegex = '/^([[:xdigit:]]{2}[\s:.-]?){5}[[:xdigit:]]{2}$/';
 
 
     /**
@@ -3795,7 +3795,7 @@ class PONizer {
         global $ubillingConfig;
         $allOnuSignals = array();
         $signalCache = array();
-        $onuMACValidateRegex = '/(([0-9A-Fa-f]{2})|([0-9A-Fa-f]{4}))(?=([\.:-]))((?:\4(?2)){5}|(?:\4(?3)){2})$/';
+        $onuMACValidateRegex = '/^([[:xdigit:]]{2}[\s:.-]?){5}[[:xdigit:]]{2}$/';
         $validateONUMACEnabled = $ubillingConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
         $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
 
