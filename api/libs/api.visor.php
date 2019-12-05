@@ -1005,7 +1005,11 @@ class UbillingVisor {
 
             if (!empty($this->allDvrs)) {
                 foreach ($this->allDvrs as $io => $each) {
-                    $dvrTmp[$each['id']] = $each['ip'];
+                    $dvrLabel = $each['ip'];
+                    if (!empty($each['name'])) {
+                        $dvrLabel .= ' - ' . $each['name'];
+                    }
+                    $dvrTmp[$each['id']] = $dvrLabel;
                 }
             }
 
