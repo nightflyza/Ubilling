@@ -1267,6 +1267,10 @@ class UbillingVisor {
                 $newPort = ubRouting::post('editdvrport', 'int');
                 $newLogin = ubRouting::post('editdvrlogin', 'mres');
                 $newPassword = ubRouting::post('editdvrpassword', 'mres');
+                $newName = ubRouting::post('editdvrname', 'mres');
+                $newType = ubRouting::post('editdvrtype', 'mres');
+                $newApikey = ubRouting::post('editdvrapikey', 'mres');
+
                 if ($dvrData['ip'] != $newIp) {
                     simple_update_field(self::TABLE_DVRS, 'ip', $newIp, $where);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE IP `' . $newIp . '`');
@@ -1285,6 +1289,21 @@ class UbillingVisor {
                 if ($dvrData['password'] != $newPassword) {
                     simple_update_field(self::TABLE_DVRS, 'password', $newPassword, $where);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE PASSWORD `' . $newPassword . '`');
+                }
+
+                if ($dvrData['name'] != $newName) {
+                    simple_update_field(self::TABLE_DVRS, 'name', $newName, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE NAME `' . $newName . '`');
+                }
+
+                if ($dvrData['type'] != $newType) {
+                    simple_update_field(self::TABLE_DVRS, 'type', $newType, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE TYPE `' . $newType . '`');
+                }
+
+                if ($dvrData['apikey'] != $newApikey) {
+                    simple_update_field(self::TABLE_DVRS, 'apikey', $newApikey, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE APIKEY `' . $newApikey . '`');
                 }
             }
         }
