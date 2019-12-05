@@ -349,7 +349,7 @@ function zb_FlushAllUserTags($login) {
  */
 function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways) {
     $tagid = vf($tagid, 3);
-    $price = vf($price);
+    $price = mysql_real_escape_string($price);
     $cashtype = vf($cashtype);
     $priority = vf($priority, 3);
     $query = "INSERT INTO `vservices` (`id` , `tagid` , `price` , `cashtype` , `priority`, `fee_charge_always`)
