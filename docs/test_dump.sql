@@ -2642,3 +2642,7 @@ ALTER TABLE `banksta2_presets` ADD `replacements_cnt` tinyint(3) DEFAULT 1;
 ALTER TABLE `banksta2_presets` ADD `remove_strs` tinyint(3) DEFAULT 0;
 ALTER TABLE `banksta2_presets` ADD `col_remove_strs` varchar(100) DEFAULT '';
 ALTER TABLE `banksta2_presets` ADD `strs_to_remove` varchar(200) DEFAULT '';
+
+ALTER TABLE `visor_dvrs` ADD `apikey` VARCHAR(255) NULL DEFAULT NULL AFTER `password`; 
+ALTER TABLE `visor_dvrs` ADD `name` VARCHAR(255) NULL DEFAULT NULL AFTER `apikey`;
+ALTER TABLE `visor_dvrs` ADD `type` VARCHAR(40) NULL DEFAULT NULL AFTER `name`;

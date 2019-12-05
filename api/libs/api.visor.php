@@ -45,6 +45,13 @@ class UbillingVisor {
     protected $allPaymentIDs = array();
 
     /**
+     * Contains available DVR handler types
+     *
+     * @var array
+     */
+    protected $dvrTypes = array();
+
+    /**
      * Visor charge mode from VISOR_CHARGE_MODE config option.
      *
      * @var int
@@ -83,6 +90,7 @@ class UbillingVisor {
 
     public function __construct() {
         $this->loadConfigs();
+        $this->loadDvrTypes();
         $this->initMessages();
         $this->loadUserData();
         $this->loadUsers();
@@ -104,6 +112,18 @@ class UbillingVisor {
         if (@$this->altCfg['VISOR_CHARGE_MODE']) {
             $this->chargeMode = $this->altCfg['VISOR_CHARGE_MODE'];
         }
+    }
+
+    /**
+     * Sets available DVR types
+     * 
+     * @return void
+     */
+    protected function loadDvrTypes() {
+        $this->dvrTypes = array(
+            'generic' => __('No'),
+            'trassir' => __('Trassir Server')
+        );
     }
 
     /**
@@ -1155,10 +1175,13 @@ class UbillingVisor {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
         $inputs = wf_HiddenInput('newdvr', 'true');
+        $inputs .= wf_TextInput('newdvrname', __('Name'), '', true, 15);
+        $inputs .= wf_Selector('newdvrtype', $this->dvrTypes, __('Type'), '', true);
         $inputs .= wf_TextInput('newdvrip', __('IP') . $sup, '', true, 15, 'ip');
         $inputs .= wf_TextInput('newdvrport', __('Port'), '', true, 5, 'digits');
         $inputs .= wf_TextInput('newdvrlogin', __('Login'), '', true, 20);
         $inputs .= wf_TextInput('newdvrpassword', __('Password'), '', true, 20);
+        $inputs .= wf_TextInput('newdvrapikey', __('API key'), '', true, 20);
         $inputs .= wf_Submit(__('Create'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1171,17 +1194,28 @@ class UbillingVisor {
      * @return void
      */
     public function createDVR() {
-        if (wf_CheckPost(array('newdvr', 'newdvrip'))) {
-            $ip = $_POST['newdvrip'];
-            $ip_f = mysql_real_escape_string($ip);
-            $port = vf($_POST['newdvrport'], 3);
-            $login = mysql_real_escape_string($_POST['newdvrlogin']);
-            $password = mysql_real_escape_string($_POST['newdvrpassword']);
+        if (ubRouting::checkPost(array('newdvr', 'newdvrip'))) {
+            $ip = ubRouting::post('newdvrip');
+            $ip_f = ubRouting::filters($ip, 'mres');
+            $port = ubRouting::post('newdvrport', 'int');
+            $login = ubRouting::post('newdvrlogin', 'mres');
+            $password = ubRouting::post('newdvrpassword', 'mres');
+            $name = ubRouting::post('newdvrname', 'mres');
+            $type = ubRouting::post('newdvrtype', 'mres');
+            $apikey = ubRouting::post('newdvrapikey', 'mres');
 
-            $query = "INSERT INTO `" . self::TABLE_DVRS . "` (`id`,`ip`,`port`,`login`,`password`) VALUES "
-                    . "(NULL,'" . $ip_f . "','" . $port . "','" . $login . "','" . $password . "');";
-            nr_query($query);
-            $newId = simple_get_lastid(self::TABLE_DVRS);
+            $dvrs = new NyanORM(self::TABLE_DVRS);
+            $dvrs->data('ip', $ip_f);
+            $dvrs->data('port', $port);
+            $dvrs->data('login', $login);
+            $dvrs->data('password', $password);
+            $dvrs->data('apikey', $apikey);
+            $dvrs->data('name', $name);
+            $dvrs->data('type', $type);
+            $dvrs->create();
+
+            $newId = $dvrs->getLastId();
+
             log_register('VISOR DVR CREATE [' . $newId . '] IP `' . $ip . '`');
         }
     }
@@ -1201,10 +1235,13 @@ class UbillingVisor {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
             $inputs = wf_HiddenInput('editdvrid', $dvrId);
+            $inputs .= wf_TextInput('editdvrname', __('Name'), $dvrData['name'], true, 15);
+            $inputs .= wf_Selector('editdvrtype', $this->dvrTypes, __('Type'), $dvrData['type'], true);
             $inputs .= wf_TextInput('editdvrip', __('IP') . $sup, $dvrData['ip'], true, 15, 'ip');
             $inputs .= wf_TextInput('editdvrport', __('Port'), $dvrData['port'], true, 5, 'digits');
             $inputs .= wf_TextInput('editdvrlogin', __('Login'), $dvrData['login'], true, 12);
             $inputs .= wf_TextInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
+            $inputs .= wf_TextInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
             $inputs .= wf_tag('br');
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1262,6 +1299,7 @@ class UbillingVisor {
         $result = '';
         if (!empty($this->allDvrs)) {
             $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Name'));
             $cells .= wf_TableCell(__('IP'));
             $cells .= wf_TableCell(__('Port'));
             $cells .= wf_TableCell(__('Actions'));
@@ -1269,6 +1307,7 @@ class UbillingVisor {
 
             foreach ($this->allDvrs as $io => $each) {
                 $cells = wf_TableCell($each['id']);
+                $cells .= wf_TableCell($each['name']);
                 $cells .= wf_TableCell($each['ip']);
                 $cells .= wf_TableCell($each['port']);
                 $actLinks = wf_JSAlert(self::URL_ME . self::URL_DELDVR . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
