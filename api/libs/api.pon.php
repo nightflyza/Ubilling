@@ -184,7 +184,6 @@ class PONizer {
      */
     protected $onuMACValidateRegex = '/^([[:xdigit:]]{2}[\s:.-]?){5}[[:xdigit:]]{2}$/';
 
-
     /**
      * Perform ONU MAC validation against $onuMACValidateRegex?
      *
@@ -3131,6 +3130,16 @@ class PONizer {
     }
 
     /**
+     * Just generates random MAC address to replace invalid ONU MAC
+     * 
+     * @return string
+     */
+    protected function getRandomMac() {
+        $result = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+        return($result);
+    }
+
+    /**
      * Loads existing signal cache from FS
      *
      * @return void
@@ -3142,9 +3151,9 @@ class PONizer {
                 $raw = file_get_contents(self::SIGCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $signal) {
-                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $macRandom = $this->getRandomMac();
                             $this->signalCache[$macRandom] = $signal;
                         }
 
@@ -3169,9 +3178,9 @@ class PONizer {
                 $raw = file_get_contents(self::DISTCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $distance) {
-                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $macRandom = $this->getRandomMac();
                             $this->distanceCache[$macRandom] = $distance;
                         }
 
@@ -3196,9 +3205,9 @@ class PONizer {
                 $raw = file_get_contents(self::DEREGCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $dereg) {
-                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $macRandom = $this->getRandomMac();
                             $this->lastDeregCache[$macRandom] = $dereg;
                         }
 
@@ -3223,9 +3232,9 @@ class PONizer {
                 $raw = file_get_contents(self::INTCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $interface) {
-                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $macRandom = $this->getRandomMac();
                             $this->interfaceCache[$macRandom] = $interface;
                         }
 
@@ -3250,9 +3259,9 @@ class PONizer {
                 $raw = file_get_contents(self::FDBCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $oidMac => $FDB) {
-                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($oidMac)) {
+                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($oidMac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $macRandom = $this->getRandomMac();
                             $this->FDBCache[$macRandom] = $FDB;
                         }
 
@@ -3280,9 +3289,9 @@ class PONizer {
                 $oltId = explode('_', $each);
                 $oltId = @vf($oltId[0], 3);
                 foreach ($raw as $index => $mac) {
-                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
-                            $macRandom = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
+                            $macRandom = $this->getRandomMac();
                             $this->onuIndexCache[$macRandom] = $oltId;
                         }
 
@@ -3812,7 +3821,9 @@ class PONizer {
                         $matches = array();
                         preg_match($onuMACValidateRegex, $mac, $matches);
 
-                        if (empty($matches[0])) { continue; }
+                        if (empty($matches[0])) {
+                            continue;
+                        }
                     }
 
                     $signalCache[$mac] = $signal;
