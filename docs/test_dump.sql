@@ -2646,3 +2646,11 @@ ALTER TABLE `banksta2_presets` ADD `strs_to_remove` varchar(200) DEFAULT '';
 ALTER TABLE `visor_dvrs` ADD `apikey` VARCHAR(255) NULL DEFAULT NULL AFTER `password`; 
 ALTER TABLE `visor_dvrs` ADD `name` VARCHAR(255) NULL DEFAULT NULL AFTER `apikey`;
 ALTER TABLE `visor_dvrs` ADD `type` VARCHAR(40) NULL DEFAULT NULL AFTER `name`;
+
+CREATE TABLE IF NOT EXISTS `traptypes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `match` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `color` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

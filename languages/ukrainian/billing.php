@@ -3144,5 +3144,6 @@ $lang['def']['API port'] = 'Порт API';
 $lang['def']['Group'] = 'Група';
 $lang['def']['Data source file path or URL'] = 'Шлях до файлу або URL джерела даних';
 $lang['def']['Lines limit for processing'] = 'Ліміт рядків для обробки';
+$lang['def']['Available SNMP trap types'] = 'Існуючі типи SNMP трап';
 
 ?>
