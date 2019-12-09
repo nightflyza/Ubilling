@@ -3142,4 +3142,7 @@ $lang['def']['User builds not placed on map'] = 'Користувацьких б
 $lang['def']['ONU without assigned user'] = 'ONU з неприсвоєними користувачами';
 $lang['def']['API port'] = 'Порт API';
 $lang['def']['Group'] = 'Група';
+$lang['def']['Data source file path or URL'] = 'Шлях до файлу або URL джерела даних';
+$lang['def']['Lines limit for processing'] = 'Ліміт рядків для обробки';
+
 ?>
