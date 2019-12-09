@@ -14,7 +14,7 @@ class ItSaTrap {
      *
      * @var array
      */
-    protected $billingCfg = '';
+    protected $billingCfg = array();
 
     /**
      * Contains default limit of lines received from local data source
@@ -73,6 +73,11 @@ class ItSaTrap {
      * Contains processed data controller URL
      */
     const URL_AJTRAPS = '&ajaxtrapslist=true';
+
+    /**
+     * Contains siwtch by IP search URL
+     */
+    const URL_SWITCHSRCH = '?module=switches&gotoswitchbyip=';
 
     /**
      * Contains database table name of available trap types settings
@@ -385,7 +390,7 @@ class ItSaTrap {
     public function renderTrapEventsList() {
         $result = '';
         if (!empty($this->dataSource)) {
-            $columns = array('Date', 'IP', 'Event');
+            $columns = array('Date', 'IP', 'Event', 'Actions');
             $opts = '"order": [[ 0, "desc" ]]';
             $result .= wf_JqDtLoader($columns, self::URL_ME . self::URL_AJTRAPS, false, __('Events'), 100, $opts);
         } else {
@@ -419,8 +424,12 @@ class ItSaTrap {
                                     foreach ($this->allTrapTypes as $ia => $eachTrapType) {
                                         if (ispos($eachLine, $eachTrapType['match'])) {
                                             $data[] = $dateF;
+                                            $ipControls = '';
+                                            $ipControls .= wf_Link(self::URL_SWITCHSRCH . $ip, web_edit_icon(__('Go to switch')));
+                                            $ipControls .= wf_Link('http://' . $ip, wf_img('skins/ymaps/globe.png', __('Go to the web interface')), false, '', 'target="_BLANK"') . ' ';
                                             $data[] = $ip;
                                             $data[] = $this->colorize($eachTrapType['name'], $eachTrapType['color']);
+                                            $data[] = $ipControls;
                                             $json->addRow($data);
                                             unset($data);
                                         }
