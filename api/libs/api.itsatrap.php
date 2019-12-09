@@ -444,4 +444,59 @@ class ItSaTrap {
         $json->getJson();
     }
 
+    /**
+     * Returns preprocessed last traps of some type acceptable for watchdog monitoring / telegram sending
+     * 
+     * @return string
+     */
+    public function getLastTraps($trapId, $count) {
+        $rawData = $this->getRawData();
+        $trapsTmp = array();
+        $result = '' . '\r\n';
+
+        if (!empty($rawData)) {
+            $rawData = explodeRows($rawData);
+            if (!empty($rawData)) {
+                foreach ($rawData as $io => $eachLine) {
+                    if (!empty($eachLine)) {
+                        $ip = zb_ExtractIpAddress($eachLine);
+                        if (!empty($ip)) {
+                            $line = explode(' ', $eachLine);
+                            $dateF = $line[0] . ' ' . $line[1];
+                            $dateF = trim($dateF);
+                            if (@zb_checkDate($line[0])) {
+                                //ok seems it normal log trap record
+                                if (!empty($this->allTrapTypes)) {
+                                    foreach ($this->allTrapTypes as $ia => $eachTrapType) {
+                                        if (ispos($eachLine, $eachTrapType['match'])) {
+                                            if ($eachTrapType['id'] == $trapId) {
+                                                //only required types
+                                                $trapsTmp[] = $dateF . ' ' . $eachTrapType['name'] . ' ' . $ip . '\r\n' . "\n";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+
+            if (!empty($trapsTmp)) {
+                $trapsCount = sizeof($trapsTmp);
+                $i = 0;
+                $showLast = $trapsCount - $count;
+                foreach ($trapsTmp as $io => $each) {
+                    if ($i >= $showLast) {
+                        $result .= $each;
+                    }
+                    $i++;
+                }
+            }
+        }
+
+        return($result);
+    }
+
 }
