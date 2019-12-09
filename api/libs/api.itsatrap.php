@@ -65,6 +65,16 @@ class ItSaTrap {
     const URL_CONFIG = '&config=true';
 
     /**
+     * Contains raw data controller URL
+     */
+    const URL_RAW = '&rawdata=true';
+
+    /**
+     * Contains processed data controller URL
+     */
+    const URL_AJTRAPS = '&ajaxtrapslist=true';
+
+    /**
      * Contains database table name of available trap types settings
      */
     const TABLE_TYPES = 'traptypes';
@@ -144,7 +154,7 @@ class ItSaTrap {
     public function renderConfigForm() {
         $result = '';
         $inputs = wf_TextInput('newdatasource', __('Data source file path or URL'), $this->dataSource, true, 40);
-        $inputs .= wf_TextInput('newlineslimit', __('Lines limit for processing'), $this->lineLimit, true, 4);
+        $inputs .= wf_TextInput('newlineslimit', __('Lines limit for processing'), $this->lineLimit, true, 4, 'digits');
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Save'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -320,6 +330,109 @@ class ItSaTrap {
             $result .= __('Something went wrong') . ': EX_TRAPID_NOT_EXISTS';
         }
         return($result);
+    }
+
+    /**
+     * Renders module control panel
+     * 
+     * @return string
+     */
+    public function renderControls() {
+        $result = '';
+        $result .= wf_Link(self::URL_ME, web_icon_search() . ' ' . __('Events'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . self::URL_RAW, wf_img('skins/icon_raw.gif') . ' ' . __('RAW') . ' ' . __('Data'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . self::URL_CONFIG, web_icon_extended() . ' ' . __('Settings'), false, 'ubButton') . ' ';
+        return($result);
+    }
+
+    /**
+     * Renders raw data received from data source
+     * 
+     * @return string
+     */
+    public function renderRawData() {
+        $result = '';
+        $lineCount = 0;
+        if (!empty($this->dataSource)) {
+            $rawData = $this->getRawData();
+            if (!empty($rawData)) {
+                $rawData = explodeRows($rawData);
+
+                $cells = wf_TableCell(__('Number'));
+                $cells .= wf_TableCell(__('Data'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($rawData as $io => $eachLine) {
+                    $cells = wf_TableCell($lineCount);
+                    $cells .= wf_TableCell($eachLine);
+                    $rows .= wf_TableRow($cells, 'row5');
+                    $lineCount++;
+                }
+
+                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Data source file path or URL') . ' ' . __('is empty'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders preprocessed trap events container
+     * 
+     * @return string
+     */
+    public function renderTrapEventsList() {
+        $result = '';
+        if (!empty($this->dataSource)) {
+            $columns = array('Date', 'IP', 'Event');
+            $opts = '"order": [[ 0, "desc" ]]';
+            $result .= wf_JqDtLoader($columns, self::URL_ME . self::URL_AJTRAPS, false, __('Events'), 100, $opts);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Data source file path or URL') . ' ' . __('is empty'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns preprocessed current trap events data
+     * 
+     * @return void
+     */
+    public function ajTrapList() {
+        $json = new wf_JqDtHelper();
+        $rawData = $this->getRawData();
+        $data = array();
+        if (!empty($rawData)) {
+            $rawData = explodeRows($rawData);
+            if (!empty($rawData)) {
+                foreach ($rawData as $io => $eachLine) {
+                    if (!empty($eachLine)) {
+                        $ip = zb_ExtractIpAddress($eachLine);
+                        if (!empty($ip)) {
+                            $line = explode(' ', $eachLine);
+                            $dateF = $line[0] . ' ' . $line[1];
+                            $dateF = trim($dateF);
+                            if (@zb_checkDate($line[0])) {
+                                //ok seems it normal log trap record
+                                if (!empty($this->allTrapTypes)) {
+                                    foreach ($this->allTrapTypes as $ia => $eachTrapType) {
+                                        if (ispos($eachLine, $eachTrapType['match'])) {
+                                            $data[] = $dateF;
+                                            $data[] = $ip;
+                                            $data[] = $this->colorize($eachTrapType['name'], $eachTrapType['color']);
+                                            $json->addRow($data);
+                                            unset($data);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $json->getJson();
     }
 
 }

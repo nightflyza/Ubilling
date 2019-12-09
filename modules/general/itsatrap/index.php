@@ -33,9 +33,29 @@ if ($altCfg['ITSATRAP_ENABLED']) {
             }
         }
 
-        show_window(__('Configuration'), $itsatrap->renderConfigForm());
-        show_window(__('Available SNMP trap types'), $itsatrap->renderTrapTypesList());
-        show_window('', $itsatrap->renderTrapCreateForm());
+        //current trap events background data
+        if (ubRouting::checkGet('ajaxtrapslist')) {
+            $itsatrap->ajTrapList();
+        }
+
+
+        //some interface here
+        show_window('', $itsatrap->renderControls());
+
+        //render some configuration forms and controls
+        if (ubRouting::get('config')) {
+            show_window(__('Configuration'), $itsatrap->renderConfigForm());
+            show_window(__('Available SNMP trap types'), $itsatrap->renderTrapTypesList());
+            show_window('', $itsatrap->renderTrapCreateForm());
+        } else {
+            //rendering raw results
+            if (ubRouting::get('rawdata')) {
+                show_window(__('RAW') . ' ' . __('Data'), $itsatrap->renderRawData());
+            } else {
+                //normal trap events display
+                show_window(__('Events'), $itsatrap->renderTrapEventsList());
+            }
+        }
     } else {
         show_error(__('Access denied'));
     }
