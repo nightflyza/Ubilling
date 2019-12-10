@@ -7,31 +7,48 @@ if ($altCfg['ITSATRAP_ENABLED']) {
 
         //saving new data source and lines limit
         if (ubRouting::checkPost('newdatasource', false)) {
-            $itsatrap->saveBasicConfig();
-            ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            if (cfr('ITSATRAPCFG')) {
+                $itsatrap->saveBasicConfig();
+                ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         //new trap type creation
         if (ubRouting::checkPost(array('newname', 'newmatch', 'newcolor'))) {
-            $itsatrap->createTrapType();
-            ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            if (cfr('ITSATRAPCFG')) {
+                $itsatrap->createTrapType();
+                ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         //existing trap editing
         if (ubRouting::checkPost(array('edittraptypeid', 'editname', 'editmatch', 'editcolor'))) {
-            $itsatrap->saveTrapType();
-            ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            if (cfr('ITSATRAPCFG')) {
+                $itsatrap->saveTrapType();
+                ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         //trap type deletion
         if (ubRouting::checkGet('deletetrapid')) {
-            $deletionResult = $itsatrap->deleteTrapType(ubRouting::get('deletetrapid', 'int'));
-            if (empty($deletionResult)) {
-                ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+            if (cfr('ITSATRAPCFG')) {
+                $deletionResult = $itsatrap->deleteTrapType(ubRouting::get('deletetrapid', 'int'));
+                if (empty($deletionResult)) {
+                    ubRouting::nav($itsatrap::URL_ME . $itsatrap::URL_CONFIG);
+                } else {
+                    show_error($deletionResult);
+                }
             } else {
-                show_error($deletionResult);
+                show_error(__('Access denied'));
             }
         }
+
 
         //current trap events background data
         if (ubRouting::checkGet('ajaxtrapslist')) {
@@ -40,7 +57,10 @@ if ($altCfg['ITSATRAP_ENABLED']) {
 
 
         //some interface here
-        show_window('', $itsatrap->renderControls());
+        if (cfr('ITSATRAPCFG')) {
+            // we dont need control panel if no CFG rights.
+            show_window('', $itsatrap->renderControls());
+        }
 
         //render some configuration forms and controls
         if (ubRouting::get('config')) {

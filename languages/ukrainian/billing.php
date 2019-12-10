@@ -3147,6 +3147,6 @@ $lang['def']['Data source file path or URL'] = 'Шлях до файлу або 
 $lang['def']['Lines limit for processing'] = 'Ліміт рядків для обробки';
 $lang['def']['Available SNMP trap types'] = 'Існуючі типи SNMP трап';
 $lang['def']['right to manage SNMP traps viewer'] = 'Право керувати переглядачем SNMP пасток';
-
+$lang['def']['right to use SNMP traps viewer'] = 'Право використовувати переглядач SNMP пасток';
 
 ?>

@@ -3125,8 +3125,8 @@ $lang['def']['Its a trap!'] = 'Это ловушка!';
 $lang['def']['Data source file path or URL'] = 'Путь к файлу или URL источника данных';
 $lang['def']['Lines limit for processing'] = 'Лимит строк для обработки';
 $lang['def']['Available SNMP trap types'] = 'Существующие типы SNMP трап';
-$lang['def']['right to manage SNMP traps viewer'] = 'Управлять просмотрщиком SNMP ловушек';
-$lang['def'][''] = '';
+$lang['def']['right to manage SNMP traps viewer'] = 'Право управлять просмотрщиком SNMP ловушек';
+$lang['def']['right to use SNMP traps viewer'] = 'Право использовать просмотрщик SNMP ловушек';
 $lang['def'][''] = '';
 
 ?>

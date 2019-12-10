@@ -344,9 +344,12 @@ class ItSaTrap {
      */
     public function renderControls() {
         $result = '';
+
         $result .= wf_Link(self::URL_ME, web_icon_search() . ' ' . __('Events'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . self::URL_RAW, wf_img('skins/icon_raw.gif') . ' ' . __('RAW') . ' ' . __('Data'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . self::URL_CONFIG, web_icon_extended() . ' ' . __('Settings'), false, 'ubButton') . ' ';
+        if (cfr('ITSATRAPCFG')) {
+            $result .= wf_Link(self::URL_ME . self::URL_RAW, wf_img('skins/icon_raw.gif') . ' ' . __('RAW') . ' ' . __('Data'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . self::URL_CONFIG, web_icon_extended() . ' ' . __('Settings'), false, 'ubButton') . ' ';
+        }
         return($result);
     }
 
@@ -481,7 +484,7 @@ class ItSaTrap {
                     }
                 }
             }
-            
+
 
             if (!empty($trapsTmp)) {
                 $trapsCount = sizeof($trapsTmp);
