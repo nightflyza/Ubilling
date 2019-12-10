@@ -22,6 +22,16 @@ class CrontabEditor {
     const TMP_FILE_PATH = 'exports/crontab_tmp';
 
     /**
+     * Contains basic module routing URL
+     */
+    const URL_ME = '?module=crontabeditor';
+
+    /**
+     * Contains default back URL
+     */
+    const URL_BACK = '?module=sysconf';
+
+    /**
      * Creates new crontab editor instance
      */
     public function __construct() {
@@ -93,7 +103,12 @@ class CrontabEditor {
     public function saveTempCrontab() {
         if (ubRouting::checkPost(array('editfilepath'))) {
             if (ubRouting::post('editfilepath') == self::TMP_FILE_PATH) {
-                file_put_contents(self::TMP_FILE_PATH, ubRouting::post('editfilecontent'));
+                $newCrontab = ubRouting::post('editfilecontent');
+                if (ispos($newCrontab, "\r\n")) {
+                    //cleanup to unix EOL
+                    $newCrontab = str_replace("\r\n", "\n", $newCrontab);
+                }
+                file_put_contents(self::TMP_FILE_PATH, $newCrontab);
             }
         }
     }
@@ -111,9 +126,9 @@ class CrontabEditor {
             if ($tempFileContants != $this->currentCrontab) {
                 $command = $this->billingCfg['SUDO'] . ' crontab ' . self::TMP_FILE_PATH;
                 //TODO: here is some issue with ^M line endings in temp file(?)
-                  $installResult = shell_exec($command);
+                $installResult = shell_exec($command);
             } else {
-                $result.=__('Nothing changed');
+                $result .= __('Nothing changed');
             }
         } else {
             $result .= __('File') . ' ' . self::TMP_FILE_PATH . ' ' . __('Not exists');

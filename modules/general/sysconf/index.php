@@ -14,23 +14,23 @@ if (cfr('SYSCONF')) {
         $messages = new UbillingMessageHelper();
         if (!empty($editableConfigs)) {
             $cells = wf_TableCell(__('Path'));
-            $cells.= wf_TableCell(__('Name'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($editableConfigs as $eachPath => $eachName) {
                 $cells = wf_TableCell($eachPath);
-                $cells.= wf_TableCell($eachName);
+                $cells .= wf_TableCell($eachName);
                 $actLinks = wf_JSAlert('?module=sysconf&delconfpath=' . base64_encode($eachPath), web_delete_icon(), $messages->getDeleteAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, '');
         }
 
         $inputs = wf_TextInput('newconfpath', __('Path'), '', false, 10) . ' ';
-        $inputs.= wf_TextInput('newconfname', __('Name'), '', false, 10) . ' ';
-        $inputs.= wf_Submit(__('Create'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs .= wf_TextInput('newconfname', __('Name'), '', false, 10) . ' ';
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -81,13 +81,15 @@ if (cfr('SYSCONF')) {
     $configsList = '';
     if (!empty($editableConfigs)) {
         foreach ($editableConfigs as $eachConfigPath => $eachConfigName) {
-            $configsList.=wf_Link('?module=sysconf&editconfig=' . base64_encode($eachConfigPath), web_edit_icon() . ' ' . $eachConfigName, false, 'ubButton') . ' ';
+            $configsList .= wf_Link('?module=sysconf&editconfig=' . base64_encode($eachConfigPath), web_edit_icon() . ' ' . $eachConfigName, false, 'ubButton') . ' ';
         }
     }
-    //appending presets controls
-    $configsList.=wf_modalAuto(web_icon_extended() . ' ' . __('Settings'), __('Settings'), web_RenderEditableConfigPresetsForm($editableConfigs), 'ubButton');
 
-    show_window(__('Edit'), $configsList);
+    //appending presets controls
+    $configsList .= wf_modalAuto(web_icon_extended() . ' ' . __('Settings'), __('Settings'), web_RenderEditableConfigPresetsForm($editableConfigs), 'ubButton');
+    //appending crontab editor link
+    $crontabEditor = wf_Link(CrontabEditor::URL_ME, wf_img('skins/clock.png') . ' ' . __('Crontab editor'), true, 'ubButton');
+    show_window(__('Edit'), $configsList . $crontabEditor);
 
     if (wf_CheckGet(array('editconfig'))) {
         $editingConfigPath = base64_decode($_GET['editconfig']);
@@ -162,21 +164,21 @@ if (cfr('SYSCONF')) {
         $photocells = web_ConfigEditorShow('photostorage', $photoconf, $photoopts);
 
         $grid = wf_tag('script');
-        $grid.='$(function() {
+        $grid .= '$(function() {
     $( "#tabs" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
     $( "#tabs li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
   });';
-        $grid.=wf_tag('script', true);
-        $grid.=wf_tag('style');
-        $grid.=file_get_contents('skins/tabs_v.css');
-        $grid.=wf_tag('style', true);
-        $grid.=wf_tag('div', false, '', 'id="tabs"');
-        $grid.=wf_tag('ul');
-        $grid.=web_ConfigGetTabsControls($dbopts) . web_ConfigGetTabsControls($billopts) . web_ConfigGetTabsControls($alteropts);
-        $grid.=web_ConfigGetTabsControls($catvopts) . web_ConfigGetTabsControls($ymopts) . web_ConfigGetTabsControls($photoopts);
-        $grid.=wf_tag('ul', true);
-        $grid.= $dbcell . $billcell . $catvcell . $ymcells . $photocells . $altercell;
-        $grid.=wf_tag('div', true) . wf_CleanDiv();
+        $grid .= wf_tag('script', true);
+        $grid .= wf_tag('style');
+        $grid .= file_get_contents('skins/tabs_v.css');
+        $grid .= wf_tag('style', true);
+        $grid .= wf_tag('div', false, '', 'id="tabs"');
+        $grid .= wf_tag('ul');
+        $grid .= web_ConfigGetTabsControls($dbopts) . web_ConfigGetTabsControls($billopts) . web_ConfigGetTabsControls($alteropts);
+        $grid .= web_ConfigGetTabsControls($catvopts) . web_ConfigGetTabsControls($ymopts) . web_ConfigGetTabsControls($photoopts);
+        $grid .= wf_tag('ul', true);
+        $grid .= $dbcell . $billcell . $catvcell . $ymcells . $photocells . $altercell;
+        $grid .= wf_tag('div', true) . wf_CleanDiv();
 
         if (!empty($configOptionsMissed)) {
             show_window('', $configOptionsMissed);

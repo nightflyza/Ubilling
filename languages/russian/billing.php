@@ -3127,6 +3127,9 @@ $lang['def']['Lines limit for processing'] = 'Лимит строк для об�
 $lang['def']['Available SNMP trap types'] = 'Существующие типы SNMP трап';
 $lang['def']['right to manage SNMP traps viewer'] = 'Право управлять просмотрщиком SNMP ловушек';
 $lang['def']['right to use SNMP traps viewer'] = 'Право использовать просмотрщик SNMP ловушек';
+$lang['def']['Nothing changed'] = 'Ничего не изменилось';
+$lang['def']['Sorry your system is currently unsupported'] = 'Неподдерживаемая система';
+$lang['def']['Crontab editor'] = 'Редактор crontab';
 $lang['def'][''] = '';
 
 ?>
