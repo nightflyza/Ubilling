@@ -8,9 +8,28 @@ class CallMeBack {
     protected $calls = '';
 
     /**
+     * System telepathy object placeholder
+     *
+     * @var object
+     */
+    protected $telepathy = '';
+
+    /**
+     * Contains available user address data as login=>address
+     *
+     * @var array
+     */
+    protected $allAddress = array();
+
+    /**
      * Basic control module URL
      */
     const URL_ME = '?module=callmeback';
+
+    /**
+     * Contains user navigation URL
+     */
+    const URL_USERPROFILE = '?module=userprofile&username=';
 
     /**
      * Creates new callmeback instance
@@ -24,6 +43,24 @@ class CallMeBack {
      */
     protected function initCalls() {
         $this->calls = new NyanORM('callmeback');
+    }
+
+    /**
+     * Inits system telepaty class
+     */
+    protected function initTelepathy() {
+        $this->loadAddressData();
+        $this->telepathy = new Telepathy(false, true, false, true);
+        $this->telepathy->usePhones();
+    }
+
+    /**
+     * Loads address data required for user telepathy into protected property
+     * 
+     * @return void
+     */
+    protected function loadAddressData() {
+        $this->allAddress = zb_AddressGetFulladdresslistCached();
     }
 
     /**
@@ -100,22 +137,41 @@ class CallMeBack {
     }
 
     /**
+     * Try to detect user by its mobile and returns its navigation control
+     * 
+     * @param string $number
+     * 
+     * @return string
+     */
+    protected function getUserLinkByPhone($number) {
+        $result = '';
+        $detectedLogin = $this->telepathy->getByPhoneFast($number, true, true);
+        if (!empty($detectedLogin)) {
+            $result .= wf_Link(self::URL_USERPROFILE . $detectedLogin, web_profile_icon() . ' ' . @$this->allAddress[$detectedLogin]);
+        }
+        return($result);
+    }
+
+    /**
      * Renders undone calls with some controls
      * 
      * @return string
      */
     public function renderUndoneCalls() {
         $result = '';
+        $this->initTelepathy();
         $undoneCalls = $this->getUndoneCalls();
         if (!empty($undoneCalls)) {
             $cells = wf_TableCell(__('Date'));
             $cells .= wf_TableCell(__('Number'));
+            $cells .= wf_TableCell(__('User'));
             $cells .= wf_TableCell(__('Actions'), '50%');
             $rows = wf_TableRow($cells, 'row1');
             foreach ($undoneCalls as $io => $each) {
                 $callTimestamp = strtotime($each['date']);
                 $cells = wf_TableCell($each['date']);
                 $cells .= wf_TableCell($each['number']);
+                $cells .= wf_TableCell($this->getUserLinkByPhone($each['number']));
                 $callControls = wf_Link(self::URL_ME . '&setcall=' . $each['id'] . '&state=done', wf_img('skins/calls/phone_green.png') . ' ' . __('Recalled'), false, 'ubButton') . ' ';
                 $callControls .= wf_Link(self::URL_ME . '&setcall=' . $each['id'] . '&state=noanswer', wf_img('skins/calls/phone_red.png') . ' ' . __('No answer'), false, 'ubButton') . ' ';
                 $callControls .= wf_Link(self::URL_ME . '&setcall=' . $each['id'] . '&state=wrongnum', wf_img('skins/calls/phone_fail.png') . ' ' . __('Wrong number'), false, 'ubButton') . ' ';
@@ -152,7 +208,7 @@ class CallMeBack {
         $result = '';
         $doneCalls = $this->getDoneCallsCount();
         if ($doneCalls > 0) {
-            $columns = array('ID', 'Date', 'Number', 'Status');
+            $columns = array('ID', 'Date', 'Number', 'User', 'Status');
             $opts = '"order": [[ 0, "desc" ]]';
             $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajaxdonecalls=true', false, 'Calls', 100, $opts);
         } else {
@@ -196,11 +252,13 @@ class CallMeBack {
     public function getAjProcessedList() {
         $allCalls = $this->getDoneCalls();
         if (!empty($allCalls)) {
+            $this->initTelepathy();
             $json = new wf_JqDtHelper();
             foreach ($allCalls as $io => $each) {
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = $each['number'];
+                $data[] = $this->getUserLinkByPhone($each['number']);
                 $data[] = $this->getStateLabel($each['state']);
                 $json->addRow($data);
                 unset($data);
