@@ -49,6 +49,17 @@ class TrassirServer {
     private $serviceAccountNames = array('Admin', 'Operator', 'Script', 'Demo', 'user_add', 'Monitoring');
     private $stream_context; //тут храним контекст который нужен CURL или file_get_content для работы с неподписанными сертификатами
 
+    /**
+     * 
+     * @param string $ip
+     * @param string $userName
+     * @param string $password
+     * @param string $sdkPassword
+     * @throws \InvalidArgumentException
+     * 
+     * @return void
+     */
+
     public function __construct($ip, $userName = null, $password = null, $sdkPassword = null) {
         if (filter_var($ip, FILTER_VALIDATE_IP)) {
             $this->ip = $ip;
@@ -274,7 +285,7 @@ class TrassirServer {
 
     public function getArchive() {
         /**
-         * Some auth issue
+         * Some auth issues here. TODO.
          */
         $url = 'https://' . trim($this->ip) . ':8080/objects/operatorgui_efXwC0I5/archive_export?channel_name_or_guid=Elqs3W6I&start_time_YYYYMMDD_HHMMSS=2019-11-27 13:00:00&end_time_YYYYMMDD_HHMMSS=2019-11-27 13:55:00&filename=export.avi&archive_on_device=0&sid=' . trim($this->sid);
         deb($url);
@@ -369,6 +380,7 @@ class TrassirServer {
     public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg') {
 
         $tokenUrl = 'https://' . trim($this->ip) . ':8080/get_video?channel=' . $channel['guid'] . '&container=' . $container . '&stream=' . $stream . '&sid=' . $this->sid;
+        //die($tokenUrl);
         $responseJson_str = file_get_contents($tokenUrl, null, $this->stream_context);
         $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
         if ($comment_position) {
