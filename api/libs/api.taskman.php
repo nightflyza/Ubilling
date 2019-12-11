@@ -572,7 +572,12 @@ function ts_JGetUndoneTasks() {
         $curempid = ts_GetEmployeeByLogin($whoami);
         $appendQuery = " AND `employee`='" . $curempid . "'";
     } else {
-        $appendQuery = '';
+        if (ispos($displaytype, 'displayempid')) {
+            $displayEmployeeId = ubRouting::filters($displaytype, 'int');
+            $appendQuery = " AND `employee`='" . $displayEmployeeId . "'";
+        } else {
+            $appendQuery = '';
+        }
     }
 
     if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
@@ -704,7 +709,12 @@ function ts_JGetDoneTasks() {
         $curempid = ts_GetEmployeeByLogin($whoami);
         $appendQuery = " AND `employee`='" . $curempid . "'";
     } else {
-        $appendQuery = '';
+        if (ispos($displaytype, 'displayempid')) {
+            $displayEmployeeId = ubRouting::filters($displaytype, 'int');
+            $appendQuery = " AND `employee`='" . $displayEmployeeId . "'";
+        } else {
+            $appendQuery = '';
+        }
     }
 
     if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
@@ -823,7 +833,12 @@ function ts_JGetAllTasks() {
         $curempid = ts_GetEmployeeByLogin($whoami);
         $appendQuery = " AND `employee`='" . $curempid . "'";
     } else {
-        $appendQuery = '';
+        if (ispos($displaytype, 'displayempid')) {
+            $displayEmployeeId = ubRouting::filters($displaytype, 'int');
+            $appendQuery = " AND `employee`='" . $displayEmployeeId . "'";
+        } else {
+            $appendQuery = '';
+        }
     }
 
     if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
@@ -1372,7 +1387,17 @@ function ts_ShowPanel() {
 
         if ($employeeid) {
             $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
-            $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
+            $displayTypes = array(
+                'all' => __('Show tasks for all users'),
+                'onlyme' => __('Show only mine tasks')
+            );
+            //some other employee
+            $activeEmployeeTmp = ts_GetActiveEmployee();
+            if (!empty($activeEmployeeTmp)) {
+                foreach ($activeEmployeeTmp as $actId => $empName) {
+                    $displayTypes['displayempid' . $actId] = $empName;
+                }
+            }
             $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
