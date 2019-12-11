@@ -409,6 +409,19 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
                 }
             }
         }
+        
+        //Like DEFAULT but increment in the end. Increment counter unique per every alias.
+        //So it can be unique for city, or for city + every street if alias for street was set.
+        if ($type == 'VSRAT_INCREMENT') {
+            $busylogins = zb_AllBusyLogins();
+            for ($i = 1; $i < 100000; $i++) {
+                $proposal = $cityalias . $streetalias . '_' . $i;
+                if (!isset($busylogins[$proposal])) {
+                    $result = $proposal;
+                    break;
+                }
+            }
+        }
 
 
         /////  if wrong option - use DEFAULT
