@@ -3043,6 +3043,18 @@ function zb_BillingCheckUpdates($return = false) {
 }
 
 /**
+ * Installs newly generated Ubilling serial into database
+ * 
+ * @return string
+ */
+function zb_InstallBillingSerial() {
+    $randomid = 'UB' . md5(curdatetime() . zb_rand_string(8));
+    $newhostid_q = "INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubid', '" . $randomid . "');";
+    nr_query($newhostid_q);
+    return($randomid);
+}
+
+/**
  * Collects billing stats
  * 
  * @param bool $quiet
@@ -3056,11 +3068,8 @@ function zb_BillingStats($quiet = false) {
     $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
     $hostid = simple_query($hostid_q);
     if (empty($hostid)) {
-        //register new ubilling
-        $randomid = 'UB' . md5(curdatetime() . zb_rand_string(8));
-        $newhostid_q = "INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubid', '" . $randomid . "');";
-        nr_query($newhostid_q);
-        $thisubid = $randomid;
+        //register new Ubilling
+        $thisubid = zb_InstallBillingSerial();
     } else {
         $thisubid = $hostid['value'];
     }

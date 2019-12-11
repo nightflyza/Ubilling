@@ -62,10 +62,17 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                 $idhostid = simple_query($idhostid_q);
                 if (!empty($idhostid)) {
                     $idserial = $idhostid['value'];
-                    die(substr($idserial, -4));
                 } else {
-                    die('ERROR:NO_UB_SERIAL_GENERATED');
+                    $idserial = zb_InstallBillingSerial();
                 }
+
+                //saving serial into temp file required for initial crontab setup
+                if (@$_GET['param'] == 'save') {
+                    file_put_contents('exports/ubserial', $idserial);
+                }
+
+                //render result
+                die(substr($idserial, -4));
             }
         } else {
             die('ERROR:GET_NO_KEY');

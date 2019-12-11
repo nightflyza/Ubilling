@@ -125,8 +125,8 @@ class CrontabEditor {
             //is something changed?
             if ($tempFileContants != $this->currentCrontab) {
                 $command = $this->billingCfg['SUDO'] . ' crontab ' . self::TMP_FILE_PATH;
-                //TODO: here is some issue with ^M line endings in temp file(?)
                 $installResult = shell_exec($command);
+                log_register('CRONTABEDITOR NEW CRONTAB INSTALLED');
             } else {
                 $result .= __('Nothing changed');
             }
