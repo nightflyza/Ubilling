@@ -48,6 +48,13 @@ class WatchDog {
     protected $email = '';
 
     /**
+     * One-Punch object placeholder
+     *
+     * @var object
+     */
+    protected $onePunch = '';
+
+    /**
      * System Telegram object placeholder
      *
      * @var object
@@ -76,6 +83,9 @@ class WatchDog {
 
         //init telegram class
         $this->initTelegram();
+
+        //inits onepunch scripts
+        $this->initOnePunch();
     }
 
     /**
@@ -161,6 +171,15 @@ class WatchDog {
      */
     protected function initEmail() {
         $this->email = new UbillingMail();
+    }
+
+    /**
+     * Inits onepunch object
+     * 
+     * @return void
+     */
+    protected function initOnePunch() {
+        $this->onePunch = new OnePunch();
     }
 
     /**
@@ -289,6 +308,18 @@ class WatchDog {
                         $this->setCurValue($taskID, $result);
                     } else {
                         throw new Exception(self::PARAM_EX . "SCRIPT");
+                    }
+                    break;
+                //run one-punch script
+                case 'onepunch':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        $onePunchScriptData = $this->onePunch->getScriptContent($this->taskData[$taskID]['param']);
+                        eval($onePunchScriptData);
+                        $result = @$watchdogCallbackResult;
+                        $this->setOldValue($taskID, $result);
+                        $this->setCurValue($taskID, $result);
+                    } else {
+                        throw new Exception(self::PARAM_EX . "ONEPUNCH");
                     }
                     break;
                 //do the tcp ping via some port    
@@ -818,7 +849,8 @@ class WatchDogInterface {
             'httpget' => 'httpget',
             'getusertraff' => 'getusertraff',
             'fileexists' => 'fileexists',
-            'opentickets' => 'opentickets'
+            'opentickets' => 'opentickets',
+            'onepunch' => 'onepunch'
         );
 
         $this->operators = array(

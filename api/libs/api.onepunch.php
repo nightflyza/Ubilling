@@ -25,6 +25,8 @@ class OnePunch {
      * Creates new object instance
      * 
      * @param string alias only one alias to load
+     * 
+     * @return void
      */
     public function __construct($alias = '') {
         $this->initMessages();
