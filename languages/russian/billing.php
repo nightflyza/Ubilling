@@ -3130,6 +3130,7 @@ $lang['def']['right to use SNMP traps viewer'] = 'Право использов�
 $lang['def']['Nothing changed'] = 'Ничего не изменилось';
 $lang['def']['Sorry your system is currently unsupported'] = 'Неподдерживаемая система';
 $lang['def']['Crontab editor'] = 'Редактор crontab';
+$lang['def']['Power outages'] = 'Отключения электричества';
 $lang['def'][''] = '';
 
 ?>
