@@ -57,7 +57,7 @@ class CrontabEditor {
      * @return void
      */
     protected function loadCrontab() {
-        $command = $this->billingCfg['SUDO'] . ' crontab -l';
+        $command = $this->billingCfg['SUDO'] . ' crontab -l ';
         $this->currentCrontab = shell_exec($command);
         file_put_contents(self::TMP_FILE_PATH, $this->currentCrontab);
     }
@@ -91,7 +91,7 @@ class CrontabEditor {
      */
     public function renderEditForm() {
         $result = '';
-        $result .= web_FileEditorForm(self::TMP_FILE_PATH, $this->currentCrontab);
+        $result .= web_FileEditorForm(self::TMP_FILE_PATH, htmlentities($this->currentCrontab, ENT_COMPAT, "UTF-8")); // OMG OMG OMG!!!!!
         return($result);
     }
 
