@@ -5,7 +5,7 @@ if (cfr('OEFAILS')) {
     if (@$altCfg['OEFAILS_ENABLED']) {
         $oeFails = new OeFails();
         if (ubRouting::get('ajaxlist')) {
-            $oeFails->ajGetData();
+            $oeFails->ajGetData(ubRouting::get('datefilter'), ubRouting::get('alltime'));
         }
         show_window(__('Power outages'), $oeFails->renderList());
     } else {
