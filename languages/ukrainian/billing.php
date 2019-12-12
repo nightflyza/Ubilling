@@ -3152,5 +3152,7 @@ $lang['def']['Nothing changed'] = 'Ніц не змінилось';
 $lang['def']['Sorry your system is currently unsupported'] = 'Ваша система наразі не підтримується. Журбинка.';
 $lang['def']['Crontab editor'] = 'Редактор crontab';
 $lang['def']['Power outages'] = 'Вимкнення електропостачання';
+$lang['def']['right to view power outages'] = 'Право переглядати відключення електроенергії';
+$lang['def']['right to control Dreamkas cash operations'] = 'Право керувати грошовими операціями Dreamkas';
 
 ?>
