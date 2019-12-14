@@ -2616,7 +2616,7 @@ class MultiGen {
      * 
      * @param int $nasId
      * 
-     * @return string
+     * @return array/string if empty
      */
     protected function getNasCopyString($nasId) {
         $result = array();
