@@ -2626,6 +2626,8 @@ class MultiGen {
             $result['services'] = $this->getNasServices($nasId);
             $result = json_encode($result);
             $result = base64_encode($result);
+        } else {
+            $result='';
         }
         return ($result);
     }
