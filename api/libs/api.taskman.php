@@ -1173,7 +1173,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
                 } else {
                     $guessedLogin = $telepathy->getLogin($each['address']);
                     if ($guessedLogin) {
-                        $addressLoginsCache[$each['address']] = $guessedLogin;
+                        @$addressLoginsCache[$each['address']] = $guessedLogin;
                     }
                 }
 
