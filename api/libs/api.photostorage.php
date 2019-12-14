@@ -345,7 +345,8 @@ class PhotoStorage {
                 $fileAccepted = true;
                 foreach ($_FILES as $file) {
                     if ($file['tmp_name'] > '') {
-                        if (!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
+                        //TODO: in PHP 7.1 following string generates notice
+                        if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
                             $fileAccepted = false;
                         }
                     }
