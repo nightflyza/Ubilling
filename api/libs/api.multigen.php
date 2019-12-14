@@ -2619,7 +2619,7 @@ class MultiGen {
      * @return string
      */
     protected function getNasCopyString($nasId) {
-        $result = '';
+        $result = array();
         if (isset($this->nasOptions[$nasId])) {
             $result['options'] = $this->nasOptions[$nasId];
             $result['attributes'] = $this->getNasAttributes($nasId);
