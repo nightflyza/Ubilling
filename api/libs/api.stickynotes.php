@@ -416,7 +416,9 @@ class StickyNotes {
         if (!empty($text)) {
             if ($offsetLeft) {
                 $offsetLeft = 35 + $offsetLeft . 'px';
-                $offsetTop = 25 + round($offsetLeft / 5) . 'px';
+                $dividedLeftOffset=vf($offsetLeft,3)/5;
+                $roundedLeftOffset = round($dividedLeftOffset);
+                $offsetTop = 25 + $roundedLeftOffset . 'px';
             } else {
                 $offsetLeft = '35px';
                 $offsetTop = '30px';
