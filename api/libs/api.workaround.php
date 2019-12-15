@@ -5285,7 +5285,11 @@ function zb_ListCacheInform($param = '') {
             $cells = wf_TableCell($id);
             if ($param == 'data') {
                 $cells .= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
-                $dataCount = sizeof($key['value']);
+                if (is_array($key['value'])) { // needed to prevent e_warnings on PHP 7.3
+                    $dataCount = sizeof($key['value']);
+                } else {
+                    $dataCount = strlen($key['value']);
+                }
                 $readableData = print_r($key['value'], true);
                 $dataSize = stg_convert_size(strlen($readableData));
                 $value = wf_tag('pre') . $readableData . wf_tag('pre', true);
