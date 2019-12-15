@@ -2654,3 +2654,9 @@ CREATE TABLE IF NOT EXISTS `traptypes` (
   `color` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `cardbank` ADD KEY `serial` (`serial`);
+ 
+ALTER TABLE `cardbank` ADD KEY `part` (`part`);
+ 
+ALTER TABLE `cardbank` ADD KEY `serial_part` (`serial`,`part`);
