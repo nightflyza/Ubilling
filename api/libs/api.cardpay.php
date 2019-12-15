@@ -36,8 +36,8 @@ function zb_CardGenerate(array $cardCreate) {
     $reported = '';
     $message_warn = '';
 
-    $message_warn.= (empty($count)) ? $messages->getStyledMessage(__('Count of cards cannot be empty'), 'warning') : '';
-    $message_warn.= (empty($price)) ? $messages->getStyledMessage(__('Price of cards cannot be empty'), 'warning') : '';
+    $message_warn .= (empty($count)) ? $messages->getStyledMessage(__('Count of cards cannot be empty'), 'warning') : '';
+    $message_warn .= (empty($price)) ? $messages->getStyledMessage(__('Price of cards cannot be empty'), 'warning') : '';
 
     // Check that we dont have warning
     if (empty($message_warn)) {
@@ -55,11 +55,11 @@ function zb_CardGenerate(array $cardCreate) {
         $count = count($reported_arr);
 
         foreach ($reported_arr as $serial) {
-            $reported.= $serial . "\n";
+            $reported .= $serial . "\n";
             zb_CardCreate($serial, $price, $part, $selling);
         }
 
-        $result.= wf_tag('pre', false) . $reported . wf_tag('pre', true);
+        $result .= wf_tag('pre', false) . $reported . wf_tag('pre', true);
         log_register("CARDS CREATED `" . $count . "` PART `" . $part . "` SERIAL `" . $serial . "` PRICE `" . $price . "` SELLING_ID [" . $selling . "]");
     } else {
         $result = $message_warn;
@@ -111,19 +111,19 @@ function web_CardsShow() {
     $allcards = simple_queryall($query);
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Serial part'));
-    $cells.= wf_TableCell(__('Serial number'));
-    $cells.= wf_TableCell(__('Price'));
-    $cells.= wf_TableCell(__('Admin'));
-    $cells.= wf_TableCell(__('Date'));
-    $cells.= wf_TableCell(__('Active'));
-    $cells.= wf_TableCell(__('Used'));
-    $cells.= wf_TableCell(__('Usage date'));
-    $cells.= wf_TableCell(__('Used login'));
-    $cells.= wf_TableCell(__('Used IP'));
-    $cells.= wf_TableCell(__('Receipt date'));
-    $cells.= wf_TableCell(__('Selling'));
-    $cells.= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
+    $cells .= wf_TableCell(__('Serial part'));
+    $cells .= wf_TableCell(__('Serial number'));
+    $cells .= wf_TableCell(__('Price'));
+    $cells .= wf_TableCell(__('Admin'));
+    $cells .= wf_TableCell(__('Date'));
+    $cells .= wf_TableCell(__('Active'));
+    $cells .= wf_TableCell(__('Used'));
+    $cells .= wf_TableCell(__('Usage date'));
+    $cells .= wf_TableCell(__('Used login'));
+    $cells .= wf_TableCell(__('Used IP'));
+    $cells .= wf_TableCell(__('Receipt date'));
+    $cells .= wf_TableCell(__('Selling'));
+    $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allcards)) {
@@ -131,30 +131,30 @@ function web_CardsShow() {
             $nameSelling = array_key_exists($eachcard['selling_id'], $selling) ? $selling[$eachcard['selling_id']] : '';
 
             $cells = wf_TableCell($eachcard['id']);
-            $cells.= wf_TableCell($eachcard['part']);
-            $cells.= wf_TableCell($eachcard['serial']);
-            $cells.= wf_TableCell($eachcard['cash']);
-            $cells.= wf_TableCell($eachcard['admin']);
-            $cells.= wf_TableCell($eachcard['date']);
-            $cells.= wf_TableCell(web_bool_led($eachcard['active']));
-            $cells.= wf_TableCell(web_bool_led($eachcard['used']));
-            $cells.= wf_TableCell($eachcard['usedate']);
+            $cells .= wf_TableCell($eachcard['part']);
+            $cells .= wf_TableCell($eachcard['serial']);
+            $cells .= wf_TableCell($eachcard['cash']);
+            $cells .= wf_TableCell($eachcard['admin']);
+            $cells .= wf_TableCell($eachcard['date']);
+            $cells .= wf_TableCell(web_bool_led($eachcard['active']));
+            $cells .= wf_TableCell(web_bool_led($eachcard['used']));
+            $cells .= wf_TableCell($eachcard['usedate']);
             if (!empty($eachcard['usedlogin'])) {
                 $userLink = wf_Link('?module=userprofile&username=' . $eachcard['usedlogin'], web_profile_icon() . ' ' . $eachcard['usedlogin']);
             } else {
                 $userLink = '';
             }
-            $cells.= wf_TableCell($userLink);
-            $cells.= wf_TableCell($eachcard['usedip']);
-            $cells.= wf_TableCell($eachcard['receipt_date']);
-            $cells.= wf_TableCell($nameSelling);
-            $cells.= wf_TableCell(wf_CheckInput('_cards[' . $eachcard['id'] . ']', '', false, false));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($userLink);
+            $cells .= wf_TableCell($eachcard['usedip']);
+            $cells .= wf_TableCell($eachcard['receipt_date']);
+            $cells .= wf_TableCell($nameSelling);
+            $cells .= wf_TableCell(wf_CheckInput('_cards[' . $eachcard['id'] . ']', '', false, false));
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    $result.= $paginator . wf_delimiter();
+    $result .= $paginator . wf_delimiter();
     $result = web_CardActions($result);
 
     return ($result);
@@ -168,20 +168,20 @@ function web_CardsShow() {
 function web_CardsGenerateForm() {
 
     $cells = wf_TableCell(__('Selling'));
-    $cells.= wf_TableCell(__('Serial part'));
-    $cells.= wf_TableCell(__('Count'));
-    $cells.= wf_TableCell(__('Price'));
-    $cells.= wf_TableCell(__('Serial number length'));
+    $cells .= wf_TableCell(__('Serial part'));
+    $cells .= wf_TableCell(__('Count'));
+    $cells .= wf_TableCell(__('Price'));
+    $cells .= wf_TableCell(__('Serial number length'));
     $rows = wf_TableRow($cells, 'row1');
 
     $cells = wf_TableCell(wf_Selector('card_create[selling]', zb_BuilderSelectSellingData(), '', '', false));
-    $cells.= wf_TableCell(wf_TextInput('card_create[part]', '', '', false, '5'));
-    $cells.= wf_TableCell(wf_TextInput('card_create[count]', '', '', false, '5'));
-    $cells.= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5', 'finance'));
-    $cells.= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '8' => 8), '', ''));
-    $rows.= wf_TableRow($cells, 'row1');
+    $cells .= wf_TableCell(wf_TextInput('card_create[part]', '', '', false, '5'));
+    $cells .= wf_TableCell(wf_TextInput('card_create[count]', '', '', false, '5'));
+    $cells .= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5', 'finance'));
+    $cells .= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '8' => 8), '', ''));
+    $rows .= wf_TableRow($cells, 'row1');
 
-    $rows.= wf_TableRow(wf_TableCell(wf_Submit('Create')));
+    $rows .= wf_TableRow(wf_TableCell(wf_Submit('Create')));
 
     $table = wf_TableBody($rows, '100%', 0);
     $result = wf_Form("", "POST", $table, 'glamour');
@@ -197,30 +197,30 @@ function web_CardsGenerateForm() {
 function web_CardsSearchForm() {
 
     $cells = wf_TableCell(__('Selling'));
-    $cells.= wf_TableCell(wf_Selector('card_search[selling]', zb_BuilderSelectSellingData(), '', '', false));
+    $cells .= wf_TableCell(wf_Selector('card_search[selling]', zb_BuilderSelectSellingData(), '', '', false));
     $rows = wf_TableRow($cells, 'row2');
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(wf_TextInput('card_search[idfrom]', __('From'), '', false, '7') . wf_TextInput('card_search[idto]', __('To'), '', true, '7'));
-    $rows.= wf_TableRow($cells, 'row2');
+    $cells .= wf_TableCell(wf_TextInput('card_search[idfrom]', __('From'), '', false, '7') . wf_TextInput('card_search[idto]', __('To'), '', true, '7'));
+    $rows .= wf_TableRow($cells, 'row2');
 
     $cells = wf_TableCell(__('Date'));
-    $cells.= wf_TableCell(wf_DatePickerPreset('card_search[datefrom]', '') . ' ' . __('From') . wf_DatePickerPreset('card_search[dateto]', '') . ' ' . __('To'));
-    $rows.= wf_TableRow($cells, 'row2');
+    $cells .= wf_TableCell(wf_DatePickerPreset('card_search[datefrom]', '') . ' ' . __('From') . wf_DatePickerPreset('card_search[dateto]', '') . ' ' . __('To'));
+    $rows .= wf_TableRow($cells, 'row2');
 
     $cells = wf_TableCell(__('Not used'));
-    $cells.= wf_TableCell(wf_CheckInput('card_search[used]', '', true));
-    $rows.= wf_TableRow($cells, 'row2');
+    $cells .= wf_TableCell(wf_CheckInput('card_search[used]', '', true));
+    $rows .= wf_TableRow($cells, 'row2');
 
     $cells = wf_TableCell(__('Serial part'));
-    $cells.= wf_TableCell(wf_TextInput('card_search[part]', '', '', false, '5'));
-    $rows.= wf_TableRow($cells, 'row2');
+    $cells .= wf_TableCell(wf_TextInput('card_search[part]', '', '', false, '5'));
+    $rows .= wf_TableRow($cells, 'row2');
 
     $cells = wf_TableCell(__('Serial number'));
-    $cells.= wf_TableCell(wf_TextInput('card_search[serial]', '', '', true, '17'));
-    $rows.= wf_TableRow($cells, 'row2');
+    $cells .= wf_TableCell(wf_TextInput('card_search[serial]', '', '', true, '17'));
+    $rows .= wf_TableRow($cells, 'row2');
 
-    $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
+    $rows .= wf_TableRow(wf_TableCell(wf_Submit('Search')));
 
     $result = wf_TableBody($rows, '', 0);
     $result = wf_Form("", "POST", $result, 'glamour');
@@ -236,11 +236,11 @@ function web_CardsSearchForm() {
  */
 function web_CardsChangeForm(array $ids) {
     $inputs = wf_Selector('card_edit[selling]', zb_BuilderSelectSellingData(), __('Selling'), '', false);
-    $inputs.= wf_TextInput('card_edit[part]', __('Serial part'), '', false, '17');
+    $inputs .= wf_TextInput('card_edit[part]', __('Serial part'), '', false, '17');
     foreach ($ids as $key => $id) {
         $inputs .= wf_HiddenInput(sprintf('card_edit[id][%s]', $key), $id);
     }
-    $inputs.= wf_Submit('Update');
+    $inputs .= wf_Submit('Update');
     $result = wf_Form('', 'POST', $inputs, 'glamour');
 
     return ($result);
@@ -303,38 +303,38 @@ function web_CardsSearch(array $search) {
 
     if (!empty($allcards)) {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Serial part'));
-        $cells.= wf_TableCell(__('Serial number'));
-        $cells.= wf_TableCell(__('Price'));
-        $cells.= wf_TableCell(__('Admin'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Active'));
-        $cells.= wf_TableCell(__('Used'));
-        $cells.= wf_TableCell(__('Usage date'));
-        $cells.= wf_TableCell(__('Used login'));
-        $cells.= wf_TableCell(__('Used IP'));
-        $cells.= wf_TableCell(__('Receipt date'));
-        $cells.= wf_TableCell(__('Selling'));
-        $cells.= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
+        $cells .= wf_TableCell(__('Serial part'));
+        $cells .= wf_TableCell(__('Serial number'));
+        $cells .= wf_TableCell(__('Price'));
+        $cells .= wf_TableCell(__('Admin'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Active'));
+        $cells .= wf_TableCell(__('Used'));
+        $cells .= wf_TableCell(__('Usage date'));
+        $cells .= wf_TableCell(__('Used login'));
+        $cells .= wf_TableCell(__('Used IP'));
+        $cells .= wf_TableCell(__('Receipt date'));
+        $cells .= wf_TableCell(__('Selling'));
+        $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($allcards as $io => $eachcard) {
             $nameSelling = array_key_exists($eachcard['selling_id'], $selling) ? $selling[$eachcard['selling_id']] : '';
             $cells = wf_TableCell($eachcard['id']);
-            $cells.= wf_TableCell($eachcard['part']);
-            $cells.= wf_TableCell($eachcard['serial']);
-            $cells.= wf_TableCell($eachcard['cash']);
-            $cells.= wf_TableCell($eachcard['admin']);
-            $cells.= wf_TableCell($eachcard['date']);
-            $cells.= wf_TableCell(web_bool_led($eachcard['active']));
-            $cells.= wf_TableCell(web_bool_led($eachcard['used']));
-            $cells.= wf_TableCell($eachcard['usedate']);
-            $cells.= wf_TableCell($eachcard['usedlogin']);
-            $cells.= wf_TableCell($eachcard['usedip']);
-            $cells.= wf_TableCell($eachcard['receipt_date']);
-            $cells.= wf_TableCell($nameSelling);
-            $cells.= wf_TableCell(wf_CheckInput('_cards[' . $eachcard['id'] . ']', '', false, false));
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($eachcard['part']);
+            $cells .= wf_TableCell($eachcard['serial']);
+            $cells .= wf_TableCell($eachcard['cash']);
+            $cells .= wf_TableCell($eachcard['admin']);
+            $cells .= wf_TableCell($eachcard['date']);
+            $cells .= wf_TableCell(web_bool_led($eachcard['active']));
+            $cells .= wf_TableCell(web_bool_led($eachcard['used']));
+            $cells .= wf_TableCell($eachcard['usedate']);
+            $cells .= wf_TableCell($eachcard['usedlogin']);
+            $cells .= wf_TableCell($eachcard['usedip']);
+            $cells .= wf_TableCell($eachcard['receipt_date']);
+            $cells .= wf_TableCell($nameSelling);
+            $cells .= wf_TableCell(wf_CheckInput('_cards[' . $eachcard['id'] . ']', '', false, false));
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -361,8 +361,8 @@ function web_CardActions($result) {
     );
 
     $actionSelect = wf_Selector('cardactions', $cardActions, '', '', false);
-    $actionSelect.= wf_Submit(__('With selected'));
-    $result.= $actionSelect . wf_delimiter();
+    $actionSelect .= wf_Submit(__('With selected'));
+    $result .= $actionSelect . wf_delimiter();
     $result = wf_Form('', 'POST', $result, '');
 
     return ($result);
@@ -446,7 +446,7 @@ function zb_CardsMassactions() {
             if ($_POST['cardactions'] == 'caexport') {
                 $exportdata = '';
                 foreach ($cardsArr as $cardid => $on) {
-                    $exportdata.= zb_CardsExport($cardid) . "\n";
+                    $exportdata .= zb_CardsExport($cardid) . "\n";
                 }
 
                 $exportresult = wf_TextArea($exportdata, '', $exportdata, true, '80x20');
@@ -488,13 +488,13 @@ function web_CardShowBrutes() {
     $allbrutes = simple_queryall($query);
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Serial part'));
-    $cells.= wf_TableCell(__('Serial number'));
-    $cells.= wf_TableCell(__('Date'));
-    $cells.= wf_TableCell(__('Login'));
-    $cells.= wf_TableCell(__('IP'));
-    $cells.= wf_TableCell(__('Full address'));
-    $cells.= wf_TableCell(__('Real Name'));
+    $cells .= wf_TableCell(__('Serial part'));
+    $cells .= wf_TableCell(__('Serial number'));
+    $cells .= wf_TableCell(__('Date'));
+    $cells .= wf_TableCell(__('Login'));
+    $cells .= wf_TableCell(__('IP'));
+    $cells .= wf_TableCell(__('Full address'));
+    $cells .= wf_TableCell(__('Real Name'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allbrutes)) {
@@ -504,14 +504,14 @@ function web_CardShowBrutes() {
             $cleaniplink = wf_JSAlert('?module=cards&cleanip=' . $eachbrute['ip'], web_delete_icon(__('Clean this IP')), __('Removing this may lead to irreparable results'));
 
             $cells = wf_TableCell($eachbrute['id']);
-            $cells.= wf_TableCell(array_key_exists('part', $eachbrute) ? $eachbrute['part'] : '');
-            $cells.= wf_TableCell($eachbrute['serial']);
-            $cells.= wf_TableCell($eachbrute['date']);
-            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachbrute['login'], web_profile_icon() . ' ' . $eachbrute['login']));
-            $cells.= wf_TableCell($eachbrute['ip'] . ' ' . $cleaniplink);
-            $cells.= wf_TableCell(@$alladdress[$eachbrute['login']]);
-            $cells.= wf_TableCell(@$allrealnames[$eachbrute['login']]);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(array_key_exists('part', $eachbrute) ? $eachbrute['part'] : '');
+            $cells .= wf_TableCell($eachbrute['serial']);
+            $cells .= wf_TableCell($eachbrute['date']);
+            $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachbrute['login'], web_profile_icon() . ' ' . $eachbrute['login']));
+            $cells .= wf_TableCell($eachbrute['ip'] . ' ' . $cleaniplink);
+            $cells .= wf_TableCell(@$alladdress[$eachbrute['login']]);
+            $cells .= wf_TableCell(@$allrealnames[$eachbrute['login']]);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -620,13 +620,22 @@ function zb_GetCardByIds(array $ids) {
  * @return void
  */
 function zb_GetCardDublicate() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $result = '';
-    $query = "SELECT `serial` FROM `cardbank` GROUP BY `serial` having count(*)>1";
+    switch ($altCfg['PAYMENTCARDS_UNIQUE_MODE']) {
+        case 2:
+            $query = "SELECT `serial` FROM `cardbank` GROUP BY `serial`,`part` having count(*)>1";
+            break;
+        default :
+            $query = "SELECT `serial` FROM `cardbank` GROUP BY `serial`,`part` having count(*)>1";
+            break;
+    }
     $selectCards = simple_queryall($query);
     if ($selectCards) {
         $messages = new UbillingMessageHelper();
         foreach ($selectCards as $card) {
-            $result.= $messages->getStyledMessage(__('Serial number of the card with duplicates') . __(': <b>' . $card['serial'] . '</b>'), 'error');
+            $result .= $messages->getStyledMessage(__('Serial number of the card with duplicates') . __(': <b>' . $card['serial'] . '</b>'), 'error');
         }
     }
     return ($result);
