@@ -934,7 +934,7 @@ function multinet_rebuild_all_handlers() {
         foreach ($allnets as $io => $eachnet) {
             if ($eachnet['nettype'] == 'dhcpstatic') {
                 $dhcpdata = dhcp_get_data_by_netid($eachnet['id']);
-                handle_dhcp_rebuild_static($eachnet['id'], $dhcpdata['confname']);
+                handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname']);
 //deb('REBUILD NETWORK:'.$eachnet['id'].'|'.$dhcpdata['confname']);
             }
             if ($eachnet['nettype'] == 'dhcp82') {

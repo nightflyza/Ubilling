@@ -2327,8 +2327,8 @@ function web_UserTraffStats($login) {
                     $query_hideki = "SELECT `D0`,`U0` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' AND `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
                     $dataHideki = simple_query($query_hideki);
                     if (isset($downup['D0'])) {
-                        $downup['D0'] += $dataHideki['D0'];
-                        $downup['U0'] += $dataHideki['U0'];
+                        @$downup['D0'] += $dataHideki['D0'];
+                        @$downup['U0'] += $dataHideki['U0'];
                     } else {
                         $downup['D0'] = $dataHideki['D0'];
                         $downup['U0'] = $dataHideki['U0'];
