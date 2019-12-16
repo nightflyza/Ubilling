@@ -39,7 +39,7 @@ class rcms_system extends rcms_user {
         } else {
             $this->url = $this->config['site_url'];
         }
-        if ($this->url{strlen($this->url) - 1} != '/') {
+        if (substr($this->url, -1) != '/') {
             $this->url .= '/';
         }
         $this->language = $this->config['default_lang'];
