@@ -30,7 +30,7 @@ if (cfr('TARIFFS')) {
             $availOpts = array('month' => __('Month'), 'day' => __('Day'));
 
             $periodCells = wf_TableCell(__('Period'));
-            $periodCells.= wf_TableCell(wf_Selector("options[Period]", $availOpts, '', $tariffdata['period']));
+            $periodCells .= wf_TableCell(wf_Selector("options[Period]", $availOpts, '', $tariffdata['period']));
             $periodRows = wf_TableRow($periodCells);
             $periodControls = $periodRows;
         } else {
@@ -38,7 +38,7 @@ if (cfr('TARIFFS')) {
         }
 
         $form = wf_BackLink("?module=tariffs", '', true);
-        $form.= '<form id="tariff_add" method="POST" action="">
+        $form .= '<form id="tariff_add" method="POST" action="">
     <table>
         <tr>
             <td>' . __('Tariff name') . '</td><td><input  type="text" name="options[TARIFF]" value=""></td>
@@ -63,7 +63,7 @@ if (cfr('TARIFFS')) {
 
         foreach ($dirs as $dir) {
 
-            $form.='<fieldset><legend><b>' . $dir['rulename'] . '</b></legend>
+            $form .= '<fieldset><legend><b>' . $dir['rulename'] . '</b></legend>
 
         <table>
             <tr>
@@ -73,16 +73,16 @@ if (cfr('TARIFFS')) {
                 <td>
                     <select id="dhour' . $dir['rulenumber'] . '"  name="options[dhour][' . $dir['rulenumber'] . ']">
                         <option SELECTED>00</option>';
-            $form.=tariff_time(24);
+            $form .= tariff_time(24);
 
-            $form.='</select>
+            $form .= '</select>
                         </td>
                         <td>
                             <select id="dmin' . $dir['rulenumber'] . '"  name="options[dmin][' . $dir['rulenumber'] . ']">
                                 <option SELECTED>00</option>';
-            $form.=tariff_time(60);
+            $form .= tariff_time(60);
 
-            $form.='                                    </select>
+            $form .= '                                    </select>
 
                                     <br>
 
@@ -99,15 +99,15 @@ if (cfr('TARIFFS')) {
                                 <td>
                                     <select id="nhour' . $dir['rulenumber'] . '"  name="options[nhour][' . $dir['rulenumber'] . ']">
                                         <option  SELECTED>00</option>';
-            $form.=tariff_time(24);
-            $form.='</select>
+            $form .= tariff_time(24);
+            $form .= '</select>
                                         </td>
                                         <td>
                                             <select id="nmin' . $dir['rulenumber'] . '"  name="options[nmin][' . $dir['rulenumber'] . ']">
                                                 <option SELECTED>00</option>';
-            $form.=tariff_time(60);
+            $form .= tariff_time(60);
 
-            $form.='                    </select>
+            $form .= '                    </select>
 
                 </td>
                 <td>' . __('Night') . '</td>
@@ -120,7 +120,7 @@ if (cfr('TARIFFS')) {
     </fieldset>';
         }
 
-        $form.='<input type="submit" id="save" name="save" value="' . __('Create') . '">
+        $form .= '<input type="submit" id="save" name="save" value="' . __('Create') . '">
 </form>';
         return($form);
     }
@@ -136,7 +136,7 @@ if (cfr('TARIFFS')) {
 
                 $b = "SELECTED";
             }
-            $form.= '<option ' . @$b . '>' . $a . $i . '</option>';
+            $form .= '<option ' . @$b . '>' . $a . $i . '</option>';
 
             unset($b);
         }
@@ -161,12 +161,12 @@ if (cfr('TARIFFS')) {
         $tariffSpeeds = zb_TariffGetAllSpeeds();
 
         $cells = wf_TableCell(__('Tariff name'));
-        $cells.= wf_TableCell(__('Tariff Fee'));
+        $cells .= wf_TableCell(__('Tariff Fee'));
         if ($dbSchema > 0) {
-            $cells.= wf_TableCell(__('Period'));
+            $cells .= wf_TableCell(__('Period'));
         }
-        $cells.= wf_TableCell(__('Speed'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Speed'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         $result = wf_Link("?module=tariffs&action=new", web_icon_create() . ' ' . __('Create new tariff'), true, 'ubButton');
@@ -174,9 +174,9 @@ if (cfr('TARIFFS')) {
         if (!empty($alltariffs)) {
             foreach ($alltariffs as $io => $eachtariff) {
                 $cells = wf_TableCell($eachtariff['name']);
-                $cells.= wf_TableCell($eachtariff['Fee']);
+                $cells .= wf_TableCell($eachtariff['Fee']);
                 if ($dbSchema > 0) {
-                    $cells.= wf_TableCell(__($eachtariff['period']));
+                    $cells .= wf_TableCell(__($eachtariff['period']));
                 }
 
                 if (isset($tariffSpeeds[$eachtariff['name']])) {
@@ -184,18 +184,18 @@ if (cfr('TARIFFS')) {
                 } else {
                     $speedData = wf_tag('font', false, '', 'color="#bc0000"') . __('Speed is not set') . wf_tag('font', true);
                 }
-                $cells.= wf_TableCell($speedData);
+                $cells .= wf_TableCell($speedData);
 
                 $actions = wf_JSAlert("?module=tariffs&action=delete&tariffname=" . $eachtariff['name'], web_delete_icon(), __('Delete') . ' ' . $eachtariff['name'] . '? ' . __('Removing this may lead to irreparable results'));
                 $actions .= wf_JSAlert("?module=tariffs&action=edit&tariffname=" . $eachtariff['name'], web_edit_icon(), __('Edit') . ' ' . $eachtariff['name'] . '? ' . __('Are you serious'));
                 $actions .= wf_Link('?module=tariffspeeds&tariff=' . $eachtariff['name'], wf_img('skins/icon_speed.gif', __('Edit speed')), false, '');
                 $actions .= ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
-                $cells.= wf_TableCell($actions);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell($actions);
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
 
-        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
         return($result);
     }
@@ -224,14 +224,14 @@ if (cfr('TARIFFS')) {
             $availOpts = array('month' => __('Month'), 'day' => __('Day'));
 
             $periodCells = wf_TableCell(__('Period'));
-            $periodCells.= wf_TableCell(wf_Selector("options[Period]", $availOpts, '', $tariffdata['period']));
+            $periodCells .= wf_TableCell(wf_Selector("options[Period]", $availOpts, '', $tariffdata['period']));
             $periodRows = wf_TableRow($periodCells);
             $periodControls = $periodRows;
         } else {
             $periodControls = '';
         }
         $form = wf_BackLink("?module=tariffs", '', true);
-        $form.= '<form method="POST" action="">
+        $form .= '<form method="POST" action="">
     <table>
         <tr>
             <td>' . __('Tariff name') . '</td><td><input  type="text" name="options[TARIFF]" DISABLED value="' . $tariffdata['name'] . '"></td>
@@ -260,26 +260,26 @@ if (cfr('TARIFFS')) {
     </table>';
 
         foreach ($dirs as $dir) {
-
-            $arrTime = explode('-', $tariffdata ["Time$dir[rulenumber]"]);
+            $rulenumber = $dir['rulenumber'];
+            $arrTime = explode('-', $tariffdata ["Time" . $rulenumber]);
             $day = explode(':', $arrTime [0]);
             $night = explode(':', $arrTime [1]);
 
-            $tariffdata ['Time'] [$dir[rulenumber]] ['Dmin'] = $day [1];
-            $tariffdata ['Time'] [$dir[rulenumber]] ['Dhour'] = $day [0];
-            $tariffdata ['Time'] [$dir[rulenumber]] ['Nmin'] = $night [1];
-            $tariffdata ['Time'] [$dir[rulenumber]] ['Nhour'] = $night [0];
+            $tariffdata ['Time'] [$rulenumber] ['Dmin'] = $day [1];
+            $tariffdata ['Time'] [$rulenumber] ['Dhour'] = $day [0];
+            $tariffdata ['Time'] [$rulenumber] ['Nmin'] = $night [1];
+            $tariffdata ['Time'] [$rulenumber] ['Nhour'] = $night [0];
 
-            if ($tariffdata["NoDiscount$dir[rulenumber]"] == 1) {
+            if ($tariffdata["NoDiscount" . $rulenumber] == 1) {
 
-                $ns[$dir[rulenumber]] = "CHECKED";
+                $ns[$rulenumber] = "CHECKED";
             }
-            if ($tariffdata["SinglePrice$dir[rulenumber]"] == 1) {
+            if ($tariffdata["SinglePrice" . $rulenumber] == 1) {
 
-                $sp[$dir[rulenumber]] = "CHECKED";
+                $sp[$rulenumber] = "CHECKED";
             }
 
-            $form.='<fieldset><legend><b>' . $dir['rulename'] . '</b></legend>
+            $form .= '<fieldset><legend><b>' . $dir['rulename'] . '</b></legend>
 
         <table>
             <tr>
@@ -289,16 +289,16 @@ if (cfr('TARIFFS')) {
                 <td>
                     <select id="dhour' . $dir['rulenumber'] . '"  name="options[dhour][' . $dir['rulenumber'] . ']">
                         <option>00</option>';
-            $form.=tariff_time(24, $tariffdata['Time'][$dir[rulenumber]] ['Dhour']);
+            $form .= tariff_time(24, $tariffdata['Time'][$dir['rulenumber']] ['Dhour']);
 
-            $form.='</select>
+            $form .= '</select>
                         </td>
                         <td>
                             <select id="dmin' . $dir['rulenumber'] . '"  name="options[dmin][' . $dir['rulenumber'] . ']">
                                 <option>00</option>';
-            $form.=tariff_time(60, $tariffdata['Time'][$dir[rulenumber]] ['Dmin']);
+            $form .= tariff_time(60, $tariffdata['Time'][$dir['rulenumber']] ['Dmin']);
 
-            $form.='</select>
+            $form .= '</select>
 
                                     <br>
 
@@ -306,37 +306,37 @@ if (cfr('TARIFFS')) {
                                 <td>' . __('Day') . '</td>
 
 
-                                <td><input size="3" type="text" name="options[PriceDay][' . $dir['rulenumber'] . ']" value="' . tariff_price($tariffdata ["PriceDayA$dir[rulenumber]"], $tariffdata ["PriceDayB$dir[rulenumber]"]) . '"></td>
+                                <td><input size="3" type="text" name="options[PriceDay][' . $dir['rulenumber'] . ']" value="' . tariff_price($tariffdata ["PriceDayA" . $dir['rulenumber']], $tariffdata ["PriceDayB" . $dir['rulenumber']]) . '"></td>
                                 <td>' . __('Price day') . '</td>
 
-                                <td><input id="thr' . $dir['rulenumber'] . '"  size="3" type="text" name="options[Threshold][' . $dir['rulenumber'] . ']" value="' . $tariffdata ["Threshold$dir[rulenumber]"] . '"> ' . __('Threshold') . ' (' . __('Mb') . ')</td>
+                                                                <td><input id="thr' . $dir['rulenumber'] . '"  size="3" type="text" name="options[Threshold][' . $dir['rulenumber'] . ']" value="' . $tariffdata ["Threshold.$dir[rulenumber]"] . '"> ' . __('Threshold') . ' (' . __('Mb') . ')</td>
                             </tr>
                             <tr>
                                 <td>
                                     <select id="nhour' . $dir['rulenumber'] . '"  name="options[nhour][' . $dir['rulenumber'] . ']">
                                         <option  SELECTED>00</option>';
-            $form.=tariff_time(24, $tariffdata['Time'][$dir[rulenumber]] ['Nhour']);
-            $form.='</select>
+            $form .= tariff_time(24, $tariffdata['Time'][$dir['rulenumber']] ['Nhour']);
+            $form .= '</select>
                                         </td>
                                         <td>
                                             <select id="nmin' . $dir['rulenumber'] . '"  name="options[nmin][' . $dir['rulenumber'] . ']">
                                                 <option SELECTED>00</option>';
-            $form.=tariff_time(60, $tariffdata['Time'][$dir[rulenumber]] ['Nmin']);
+            $form .= tariff_time(60, $tariffdata['Time'][$dir['rulenumber']] ['Nmin']);
 
-            $form.='                    </select>
+            $form .= '                    </select>
 
                 </td>
                 <td>' . __('Night') . '</td>
                 <td><input  id="pricenight' . $dir['rulenumber'] . '"  size="3" type="text" name="options[PriceNight][' . $dir['rulenumber'] . ']" value="' . tariff_price($tariffdata ["PriceNightA$dir[rulenumber]"], $tariffdata ["PriceNightB$dir[rulenumber]"]) . '"></td>
                 <td>' . __('Price night') . '</td>
-                <td><input id="no0" OnClick="hide(0,\'no\')" name="options[NoDiscount][' . $dir['rulenumber'] . ']" value="1" ' . $ns[$dir[rulenumber]] . ' type="checkbox" > ' . __('Without threshold') . '</td>
+                <td><input id="no0" OnClick="hide(0,\'no\')" name="options[NoDiscount][' . $dir['rulenumber'] . ']" value="1" ' . $ns[$dir[$rulenumber]] . ' type="checkbox" > ' . __('Without threshold') . '</td>
             </tr>
         </table>
-        <input id="single' . $dir['rulenumber'] . '" OnClick="hide(0,\'si\')" name="options[SinglePrice][' . $dir['rulenumber'] . ']" type="checkbox" ' . $sp[$dir[rulenumber]] . ' value="1" > ' . __('Price does not depend on time') . '
+        <input id="single' . $dir['rulenumber'] . '" OnClick="hide(0,\'si\')" name="options[SinglePrice][' . $dir['rulenumber'] . ']" type="checkbox" ' . $sp[$dir['rulenumber']] . ' value="1" > ' . __('Price does not depend on time') . '
     </fieldset>';
         }
 
-        $form.='<input type="submit" id="save" name="save" value="' . __('Edit') . '">
+        $form .= '<input type="submit" id="save" name="save" value="' . __('Edit') . '">
 </form>';
         return($form);
     }

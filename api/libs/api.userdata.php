@@ -646,7 +646,7 @@ function zb_UserGetNotes($login) {
     $login = vf($login);
     $query = "SELECT `note` from `notes` WHERE `login`='" . $login . "'";
     $result = simple_query($query);
-    $result = $result['note'];
+    $result = @$result['note'];
     return($result);
 }
 
