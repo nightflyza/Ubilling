@@ -1115,7 +1115,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $inputs .= wf_tag('br');
         $inputs .= wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
         $inputs .= wf_tag('br');
-        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, $employeeSorting);
+        $inputs .= wf_Selector('newtaskemployee', $allemployee, __('Who should do'), @$telepat_who_should_do['id'], true, $employeeSorting);
         $inputs .= wf_tag('br');
         $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
         $inputs .= ts_TaskTypicalNotesSelector();
