@@ -12,4 +12,4 @@
 */30 * * * *    /bin/ubapi "mtsigmonpoll"
 10 10 1 * *     /bin/ubapi "autocleandb"
 10 */1 * * *    /bin/ubapi "fdbarchive"
-
+*/10 * * * *    /bin/ubapi "oltpoll"
