@@ -663,7 +663,7 @@ function zb_ExportPayments($from_date, $to_date) {
             $paylogin = $eachpayment['login'];
             @$payrealname = $allrealnames[$eachpayment['login']];
             $payid = $eachpayment['id'];
-            $paytariff = $alltariffs[$paylogin];
+            $paytariff = @$alltariffs[$paylogin];
             $paycontractdata = $allcontracts[$paylogin];
             $paycontract = $paycontractdata['contractnum'];
             $paycontractdate = $paycontractdata['contractdate'];
