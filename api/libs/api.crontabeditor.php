@@ -108,6 +108,8 @@ class CrontabEditor {
                     //cleanup to unix EOL
                     $newCrontab = str_replace("\r\n", "\n", $newCrontab);
                 }
+                //appending some log data
+                $newCrontab .= '# updated with crontabeditor by ' . whoami() . ' on ' . curdatetime() . "\n";
                 file_put_contents(self::TMP_FILE_PATH, $newCrontab);
             }
         }
