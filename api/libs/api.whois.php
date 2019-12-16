@@ -135,13 +135,13 @@ class UbillingWhois {
             } else {
                 $request = self::URL_GEO . $this->ip;
                 $this->geoDataRaw = file_get_contents($request);
-                $this->cachedGeoData[$this->ip] = $this->geoDataRaw;
+                @$this->cachedGeoData[$this->ip] = $this->geoDataRaw;
                 $this->cache->set('WHOIS_GEO', $this->cachedGeoData, self::CACHE_TIMEOUT);
             }
         } else {
             $request = self::URL_GEO . $this->ip;
             $this->geoDataRaw = file_get_contents($request);
-            $this->cachedGeoData[$this->ip] = $this->geoDataRaw;
+            @$this->cachedGeoData[$this->ip] = $this->geoDataRaw;
             $this->cache->set('WHOIS_GEO', $this->cachedGeoData, self::CACHE_TIMEOUT);
         }
     }
@@ -159,13 +159,13 @@ class UbillingWhois {
             } else {
                 $request = self::URL_ISP . $this->ip;
                 $this->ispDataRaw = file_get_contents($request);
-                $this->cachedIspData[$this->ip] = $this->ispDataRaw;
+                @$this->cachedIspData[$this->ip] = $this->ispDataRaw;
                 $this->cache->set('WHOIS_ISP', $this->cachedIspData, self::CACHE_TIMEOUT);
             }
         } else {
             $request = self::URL_ISP . $this->ip;
             $this->ispDataRaw = file_get_contents($request);
-            $this->cachedIspData[$this->ip] = $this->ispDataRaw;
+            @$this->cachedIspData[$this->ip] = $this->ispDataRaw;
             $this->cache->set('WHOIS_ISP', $this->cachedIspData, self::CACHE_TIMEOUT);
         }
     }
@@ -182,12 +182,12 @@ class UbillingWhois {
                 $this->resolveData = $this->cachedResolveData[$this->ip];
             } else {
                 $this->resolveData = gethostbyaddr($this->ip);
-                $this->cachedResolveData[$this->ip] = $this->resolveData;
+                @$this->cachedResolveData[$this->ip] = $this->resolveData;
                 $this->cache->set('RESOLVE', $this->cachedResolveData, self::CACHE_TIMEOUT);
             }
         } else {
             $this->resolveData = gethostbyaddr($this->ip);
-            $this->cachedResolveData[$this->ip] = $this->resolveData;
+            @$this->cachedResolveData[$this->ip] = $this->resolveData;
             $this->cache->set('RESOLVE', $this->cachedResolveData, self::CACHE_TIMEOUT);
         }
     }
