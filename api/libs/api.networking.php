@@ -1511,7 +1511,7 @@ function zb_NasGetByNet($netid) {
     $netid = vf($netid, 3);
     $query = "SELECT `id` from `nas` WHERE `netid`='" . $netid . "'";
     $nasid = simple_query($query);
-    $nasid = $nasid['id'];
+    $nasid = @$nasid['id'];
     return($nasid);
 }
 
@@ -1550,7 +1550,7 @@ function zb_BandwidthdGetUrl($ip) {
     $netid = zb_NetworkGetByIp($ip);
     $nasid = zb_NasGetByNet($netid);
     $nasdata = zb_NasGetData($nasid);
-    $bandwidthd_url = $nasdata['bandw'];
+    $bandwidthd_url = @$nasdata['bandw'];
 
     if (!empty($bandwidthd_url)) {
         return $bandwidthd_url;
