@@ -628,7 +628,7 @@ function zb_GetCardDublicate() {
             $query = "SELECT `serial` FROM `cardbank` GROUP BY `serial`,`part` having count(*)>1";
             break;
         default :
-            $query = "SELECT `serial` FROM `cardbank` GROUP BY `serial`,`part` having count(*)>1";
+            $query = "SELECT `serial` FROM `cardbank` GROUP BY `serial` having count(*)>1";
             break;
     }
     $selectCards = simple_queryall($query);
