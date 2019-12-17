@@ -138,7 +138,7 @@ class SmartUP {
         } else {
             //no user with such IP assigned
             $result = array(
-                'error' => __('User not exists')
+                'error' => 'user not exists'
             );
         }
         return($result);
