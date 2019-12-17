@@ -302,21 +302,23 @@ class UserProfile {
      * 
      * @return string
      */
-    protected function getVisorBaclinks() {
+    protected function getVisorBacklinks() {
         $result = '';
-        if (@$this->alterCfg['VISOR_IN_PROFILE']) {
-            $visorUsers = new NyanORM('visor_users');
-            $visorUsers->selectable(array('id', 'realname'));
-            $visorUsers->where('primarylogin', '=', $this->login);
-            $visorUserData = $visorUsers->getAll();
-            if (!empty($visorUserData)) {
-                $visorUserId = $visorUserData[0]['id'];
-                $visorUserName = $visorUserData[0]['realname'];
-                $visorIcon = wf_img_sized('skins/icon_camera_small.png', '', '12', '12');
-                $visorLinkControl = wf_Link(UbillingVisor::URL_ME . UbillingVisor::URL_USERVIEW . $visorUserId, $visorIcon . ' ' . $visorUserName);
-                $result = $this->addRow(__('Video surveillance'), $visorLinkControl);
-            } else {
-                $result = $this->addRow(__('Video surveillance'), __('No'));
+        if (@$this->alterCfg['VISOR_ENABLED']) {
+            if (@$this->alterCfg['VISOR_IN_PROFILE']) {
+                $visorUsers = new NyanORM('visor_users');
+                $visorUsers->selectable(array('id', 'realname'));
+                $visorUsers->where('primarylogin', '=', $this->login);
+                $visorUserData = $visorUsers->getAll();
+                if (!empty($visorUserData)) {
+                    $visorUserId = $visorUserData[0]['id'];
+                    $visorUserName = $visorUserData[0]['realname'];
+                    $visorIcon = wf_img_sized('skins/icon_camera_small.png', '', '12', '12');
+                    $visorLinkControl = wf_Link(UbillingVisor::URL_ME . UbillingVisor::URL_USERVIEW . $visorUserId, $visorIcon . ' ' . $visorUserName);
+                    $result = $this->addRow(__('Video surveillance'), $visorLinkControl);
+                } else {
+                    $result = $this->addRow(__('Video surveillance'), __('No'));
+                }
             }
         }
         return($result);
@@ -1720,7 +1722,7 @@ class UserProfile {
 //CaTv backlink if needed
         $profile .= $this->getCatvBacklinks();
 //Visor user backlink if user is primary
-        $profile .= $this->getVisorBaclinks();
+        $profile .= $this->getVisorBacklinks();
 //Speed override row
         $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
 // signup pricing row
