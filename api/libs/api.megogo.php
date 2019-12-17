@@ -1172,7 +1172,7 @@ class MegogoInterface {
                 } else {
 
                     if ($this->altCfg['MG_SPREAD']) {
-                        $freePeriodStart = strtotime($each['date']);
+                        $freePeriodStart = strtotime($each['actdate']);
                         //delete subscribtion if 30 days past
                         if (time() > ($freePeriodStart + 86400 * 30)) {
                             $this->deleteSubscribtion($each['login'], $each['tariffid']);
