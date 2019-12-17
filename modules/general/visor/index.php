@@ -104,7 +104,7 @@ if (cfr('VISOR')) {
 
         //user profile rendering
         if (ubRouting::checkGet(array('showuser'))) {
-            show_window(__('User profile'), $visor->renderUserProfile(ubRouting::get('showuser')));
+            show_window(__('Video surveillance user profile'), $visor->renderUserProfile(ubRouting::get('showuser')));
         }
 
         //camera profile/editing interface

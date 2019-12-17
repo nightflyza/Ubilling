@@ -23,3 +23,5 @@ $lang['def']['Delete camera'] = 'Видалити камеру';
 $lang['def']['right to manage visor module'] = 'Право керування модулем Visor';
 $lang['def']['This user account is not associated with any existing Visor user or any camera account'] = 'Цей обліковий запис не пов`язаний ні з одним з існуючих користувачів Visor чи обліковим записом камери';
 $lang['def']['Contact your system administrator to fix this issue'] = 'Зверніться до вашого системного адміністратора, щоб вирішити цю проблему';
+$lang['def']['Video surveillance user profile'] = 'Профіль користувача відеоспостереження';
+$lang['def']['Total surveillance price'] = 'Загальна вартість відеоспостереження';

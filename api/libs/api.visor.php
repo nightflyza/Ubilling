@@ -17,6 +17,13 @@ class UbillingVisor {
     protected $allUserData = array();
 
     /**
+     * Contains all available tariffs fees as tariff=>fee
+     *
+     * @var array
+     */
+    protected $allTariffPrices = array();
+
+    /**
      * Contains all visor users data as id=>data
      *
      * @var array
@@ -94,6 +101,7 @@ class UbillingVisor {
         $this->initMessages();
         $this->loadUserData();
         $this->loadUsers();
+        $this->loadTariffPricing();
         $this->loadPaymentIds();
         $this->loadCams();
         $this->loadDvrs();
@@ -142,6 +150,15 @@ class UbillingVisor {
      */
     protected function loadUserData() {
         $this->allUserData = zb_UserGetAllDataCache();
+    }
+
+    /**
+     * Loads tariffs pricing data from database into protected prop
+     * 
+     * @return void
+     */
+    protected function loadTariffPricing() {
+        $this->allTariffPrices = zb_TariffGetPricesAll();
     }
 
     /**
@@ -530,6 +547,12 @@ class UbillingVisor {
 
                 //primary user account inline
                 $rows .= $this->renderUserPrimaryAccount($userId);
+                //additional cameras fee
+                if ($userCamsCount > 0) {
+                    $cells = wf_TableCell(__('Total surveillance price'), '', 'row2');
+                    $cells .= wf_TableCell($this->getUserCamerasPricing($userId));
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
 
                 $result .= wf_TableBody($rows, '100%', 0, '');
 
@@ -545,6 +568,30 @@ class UbillingVisor {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' [' . $userId . ']', 'error');
         }
         return ($result);
+    }
+
+    /**
+     * Returns user assigned cameras fee
+     * 
+     * @param int $userId
+     * 
+     * @return float
+     */
+    protected function getUserCamerasPricing($userId) {
+        $result = 0;
+        $allCameras = $this->getUserCameras($userId);
+        if (!empty($allCameras)) {
+            foreach ($allCameras as $io => $each) {
+                $cameraLogin = $each['login'];
+                if (isset($this->allUserData[$cameraLogin])) {
+                    $cameraTariff = $this->allUserData[$cameraLogin]['Tariff'];
+                    if (isset($this->allTariffPrices[$cameraTariff])) {
+                        $result += $this->allTariffPrices[$cameraTariff];
+                    }
+                }
+            }
+        }
+        return($result);
     }
 
     /**
