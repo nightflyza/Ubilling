@@ -298,6 +298,31 @@ class UserProfile {
     }
 
     /**
+     * Returns backlink to surveilance user primary profile
+     * 
+     * @return string
+     */
+    protected function getVisorBaclinks() {
+        $result = '';
+        if (@$this->alterCfg['VISOR_IN_PROFILE']) {
+            $visorUsers = new NyanORM('visor_users');
+            $visorUsers->selectable(array('id', 'realname'));
+            $visorUsers->where('primarylogin', '=', $this->login);
+            $visorUserData = $visorUsers->getAll();
+            if (!empty($visorUserData)) {
+                $visorUserId = $visorUserData[0]['id'];
+                $visorUserName = $visorUserData[0]['realname'];
+                $visorIcon = wf_img_sized('skins/icon_camera_small.png', '', '12', '12');
+                $visorLinkControl = wf_Link(UbillingVisor::URL_ME . UbillingVisor::URL_USERVIEW . $visorUserId, $visorIcon . ' ' . $visorUserName);
+                $result = $this->addRow(__('Video surveillance'), $visorLinkControl);
+            } else {
+                $result = $this->addRow(__('Video surveillance'), __('No'));
+            }
+        }
+        return($result);
+    }
+
+    /**
      * returns catv backlinks if enabled 
      * 
      * @return string
@@ -1692,8 +1717,10 @@ class UserProfile {
         $profile .= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
 //Tariff change row
         $profile .= $this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange'], true), $this->userdata['TariffChange'] . $this->getTariffInfoContrainer(true));
-//old CaTv backlink if needed
+//CaTv backlink if needed
         $profile .= $this->getCatvBacklinks();
+//Visor user backlink if user is primary
+        $profile .= $this->getVisorBaclinks();
 //Speed override row
         $profile .= $this->addRow(__('Speed override'), $this->speedoverride);
 // signup pricing row

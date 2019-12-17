@@ -360,7 +360,7 @@ class NyanORM {
      */
     protected function debugLog($data) {
         if ($this->debug) {
-            show_window(__('NyaORM Debug'), $data);
+            show_window(__('NyanORM Debug'), $data);
             $curDate = curdatetime();
             $logData = '';
             if ($this->deepDebug) {

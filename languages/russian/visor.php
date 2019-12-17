@@ -25,3 +25,4 @@ $lang['def']['This user account is not associated with any existing Visor user o
 $lang['def']['Contact your system administrator to fix this issue'] = 'Обратитесь к вашему системному администратору, чтобы решить эту проблему';
 $lang['def']['Video surveillance user profile'] = 'Профиль пользователя видеонаблюдения';
 $lang['def']['Total surveillance price'] = 'Общая стоимость видеонаблюдения';
+$lang['def']['Video surveillance'] = 'Видеонаблюдение';
