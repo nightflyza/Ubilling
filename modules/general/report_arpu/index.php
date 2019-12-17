@@ -62,8 +62,8 @@ if (cfr('REPORTFINANCE')) {
                 $exIdArr = array_filter($exIdArr);
                 // Create and WHERE to query
                 if (!empty($exIdArr)) {
-                        $this->dopWhere = ' AND ';
-                        $this->dopWhere.= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
+                    $this->dopWhere = ' AND ';
+                    $this->dopWhere .= ' `cashtypeid` != ' . implode(' AND `cashtypeid` != ', $exIdArr);
                 }
             }
         }
@@ -125,11 +125,13 @@ if (cfr('REPORTFINANCE')) {
                         foreach ($this->payments as $ia => $eachpayment) {
                             $userTariff = @$this->userTariffs[$eachpayment['login']];
                             if (ispos($eachline, '*')) {
-                                $searchLine = str_replace('*', '', $eachline);
-                                if (ispos($userTariff, $searchLine)) {
-                                    $this->data[$eachline]['summ'] = $this->data[$eachline]['summ'] + $eachpayment['summ'];
-                                    $this->data[$eachline]['count'] ++;
-                                    $this->totalsum = $this->totalsum + $eachpayment['summ'];
+                                if ($eachline != '*') {
+                                    $searchLine = str_replace('*', '', $eachline);
+                                    if (ispos($userTariff, $searchLine)) {
+                                        $this->data[$eachline]['summ'] = $this->data[$eachline]['summ'] + $eachpayment['summ'];
+                                        $this->data[$eachline]['count'] ++;
+                                        $this->totalsum = $this->totalsum + $eachpayment['summ'];
+                                    }
                                 }
                             } else {
                                 if ($userTariff == $eachline) {
@@ -155,7 +157,7 @@ if (cfr('REPORTFINANCE')) {
          */
         protected function configForm() {
             $inputs = wf_TextInput('newtarifflines', __('Tariff lines masks, comma separated') . '. ' . __('You can use the * character as a symbol of lax compliance line.'), $this->config, true, '40');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form("", 'POST', $inputs, 'glamour');
             return ($result);
         }
@@ -179,14 +181,14 @@ if (cfr('REPORTFINANCE')) {
          */
         protected function panel() {
             $result = wf_BackLink('?module=report_finance');
-            $result.= wf_modal(web_icon_settings() . ' ' . __('Settings'), __('Settings'), $this->configForm(), 'ubButton', '700', '200');
-            $result.=wf_delimiter();
+            $result .= wf_modal(web_icon_settings() . ' ' . __('Settings'), __('Settings'), $this->configForm(), 'ubButton', '700', '200');
+            $result .= wf_delimiter();
             $monthArr = months_array_localized();
             $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->year);
-            $inputs.= wf_Selector('monthsel', $monthArr, __('Month'), $this->month, false);
-            $inputs.= wf_Submit(__('Show'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=wf_CleanDiv();
+            $inputs .= wf_Selector('monthsel', $monthArr, __('Month'), $this->month, false);
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_CleanDiv();
 
 
             return ($result);
@@ -199,10 +201,10 @@ if (cfr('REPORTFINANCE')) {
          */
         public function render() {
             $cells = wf_TableCell(__('Tariff line'));
-            $cells.= wf_TableCell(__('Payments count'));
-            $cells.= wf_TableCell(__('ARPU'));
-            $cells.= wf_TableCell(__('Cash'));
-            $cells.= wf_TableCell(__('Visual'));
+            $cells .= wf_TableCell(__('Payments count'));
+            $cells .= wf_TableCell(__('ARPU'));
+            $cells .= wf_TableCell(__('Cash'));
+            $cells .= wf_TableCell(__('Visual'));
             $rows = wf_TableRow($cells, 'row1');
 
             $result = $this->panel();
@@ -211,15 +213,15 @@ if (cfr('REPORTFINANCE')) {
                 foreach ($this->data as $line => $data) {
                     $monthArpu = ($data['count'] != 0) ? $mountArpu = round(($data['summ'] / $data['count']), 2) : 0;
                     $cells = wf_TableCell($line);
-                    $cells.= wf_TableCell($data['count']);
-                    $cells.= wf_TableCell($monthArpu);
-                    $cells.= wf_TableCell($data['summ']);
-                    $cells.= wf_TableCell(web_bar($data['summ'], $this->totalsum), '', '', 'sorttable_customkey="' . $data['summ'] . '"');
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($data['count']);
+                    $cells .= wf_TableCell($monthArpu);
+                    $cells .= wf_TableCell($data['summ']);
+                    $cells .= wf_TableCell(web_bar($data['summ'], $this->totalsum), '', '', 'sorttable_customkey="' . $data['summ'] . '"');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
 
-            $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+            $result .= wf_TableBody($rows, '100%', '0', 'sortable');
 
             return ($result);
         }
