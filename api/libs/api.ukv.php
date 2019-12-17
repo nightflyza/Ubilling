@@ -2597,6 +2597,10 @@ class UkvSystem {
             $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldbeComplex', 'shouldbecomplex.png', __('Users which should be complex in UKV'));
             $reports .= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldNotbeComplex', 'shouldbecomplex.png', __('Users which should not be complex in UKV'));
         }
+
+        if ($this->altCfg['CONDET_ENABLED']) {
+            $reports .= $this->buildReportTask('?module=report_condet&ukv=true', 'report_condet.png', __('Connection details report'));
+        }
         $reports .= wf_CleanDiv();
         show_window(__('Reports'), $reports);
     }
