@@ -30,8 +30,9 @@ if ($_GET['action'] == 'mikrotikdnshaper') {
                 $MTikNasOpts = base64_decode($eachlogin['options']);
                 $MTikNasOpts = unserialize($MTikNasOpts);
                 $UseNewConnType = ( isset($MTikNasOpts['use_new_conn_mode']) && $MTikNasOpts['use_new_conn_mode'] ) ? true : false;
+                $apiPort = ( !empty($MTikNasOpts['apiport']) ) ? $MTikNasOpts['apiport'] : 8728;
 
-                $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password'], $UseNewConnType);
+                $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password'], $UseNewConnType, $apiPort);
 
                 if ($RouterOSAPI->connected) {
                     if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {

@@ -66,8 +66,10 @@
         private function connect() {
             for ($ATTEMPT = 1; $ATTEMPT <= $this->config['attempts']; $ATTEMPT++) {
                 $this->connected = FALSE;
-                $this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->parameters['ip'] . ':' . $this->config['api_port'] . '...', "api");
-                if ( $this->socket = @fsockopen($this->parameters['ip'], $this->config['api_port'], $this->error_no, $this->error_str, $this->config['timeout']) ) {
+                $portAPI = (empty($this->options['apiport'])) ? $this->config['api_port'] : $this->options['apiport'];
+
+                $this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->parameters['ip'] . ':' . $portAPI . '...', "debug");
+                if ( $this->socket = @fsockopen($this->parameters['ip'], $portAPI, $this->error_no, $this->error_str, $this->config['timeout']) ) {
                     socket_set_timeout($this->socket, $this->config['timeout']);
 
                     if ( isset($this->options['use_new_conn_mode']) && $this->options['use_new_conn_mode'] ) {
