@@ -142,7 +142,12 @@ function zbs_GetCurrentSkinPath($usConfig = array()) {
  */
 function zbs_ShowTemplate() {
     global $ContentContainer;
-    include (zbs_GetCurrentSkinPath() . 'template.html');
+    $skinPath = zbs_GetCurrentSkinPath();
+    if (file_exists($skinPath)) {
+        include ($skinPath . 'template.html');
+    } else {
+        print('Skin path not exists: ' . $skinPath);
+    }
 }
 
 /**
@@ -255,7 +260,7 @@ function zbs_rand_string($size = 4) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $string = "";
     for ($p = 0; $p < $size; $p++) {
-        $string.= $characters[mt_rand(0, (strlen($characters) - 1))];
+        $string .= $characters[mt_rand(0, (strlen($characters) - 1))];
     }
 
     return ($string);
