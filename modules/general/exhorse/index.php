@@ -12,7 +12,7 @@ if ($altCfg['EXHORSE_ENABLED']) {
         }
         
         show_window(__('Existential horse'),$exhorse->renderReport());
-        
+        zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
     }

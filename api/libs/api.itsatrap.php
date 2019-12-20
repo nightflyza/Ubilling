@@ -144,11 +144,36 @@ class ItSaTrap {
             if (ispos($this->dataSource, 'http')) {
                 $result = file_get_contents($this->dataSource);
             } else {
-                $command = $this->billingCfg['SUDO'] . ' ' . $this->billingCfg['TAIL'] . ' -n ' . $this->lineLimit . ' ' . $this->dataSource;
-                $result = shell_exec($command);
+                if (file_exists($this->dataSource)) {
+                    $command = $this->billingCfg['SUDO'] . ' ' . $this->billingCfg['TAIL'] . ' -n ' . $this->lineLimit . ' ' . $this->dataSource;
+                    $result = shell_exec($command);
+                }
             }
         }
         return($result);
+    }
+
+    /**
+     * Checks availability of datasource and display some error notices on error
+     * 
+     * @return
+     */
+    public function renderDataSourceCheck() {
+        if (!empty($this->dataSource)) {
+            if (ispos($this->dataSource, 'http')) {
+                //remote source
+                @$remoteResult = file_get_contents($this->dataSource);
+                if (empty($remoteResult)) {
+                    show_warning(__('Result') . ' ' . __('from') . ' ' . $this->dataSource . ' ' . __('is empty'));
+                }
+            } else {
+                if (!file_exists($this->dataSource)) {
+                    show_error(__('File not exist') . ': ' . $this->dataSource);
+                }
+            }
+        } else {
+            show_warning(__('Data source file path or URL') . ' ' . __('is empty'));
+        }
     }
 
     /**

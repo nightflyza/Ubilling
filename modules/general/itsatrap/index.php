@@ -65,6 +65,7 @@ if ($altCfg['ITSATRAP_ENABLED']) {
         //render some configuration forms and controls
         if (ubRouting::get('config')) {
             show_window(__('Configuration'), $itsatrap->renderConfigForm());
+            $itsatrap->renderDataSourceCheck();
             show_window(__('Available SNMP trap types'), $itsatrap->renderTrapTypesList());
             show_window('', $itsatrap->renderTrapCreateForm());
         } else {
