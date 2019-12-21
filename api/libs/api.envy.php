@@ -210,4 +210,19 @@ class Envy {
         return($result);
     }
 
+    /**
+     * Renders available envy scripts and some controls
+     * 
+     * @return string
+     */
+    public function renderScriptsList() {
+        $result = '';
+        if (!empty($this->allScripts)) {
+            //TODO: finish this
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
 }

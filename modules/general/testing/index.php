@@ -16,3 +16,4 @@ if (ubRouting::checkPost(array('newscriptmodel'))) {
 }
 
 deb($envy->renderScriptCreateForm());
+deb($envy->renderScriptsList());
