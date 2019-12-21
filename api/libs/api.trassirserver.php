@@ -191,7 +191,6 @@ class TrassirServer {
         $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
         $responseJson_str = substr($responseJson_str, 0, $comment_position);
         $objects = json_decode($responseJson_str, true);
-
         foreach ($objects as $obj) {
             if ($obj['class'] == 'Server') {
                 $this->name = $obj['name'];
@@ -287,7 +286,7 @@ class TrassirServer {
         /**
          * Some auth issues here. TODO.
          */
-        $url = 'https://' . trim($this->ip) . ':8080/objects/operatorgui_efXwC0I5/archive_export?channel_name_or_guid=Elqs3W6I&start_time_YYYYMMDD_HHMMSS=2019-11-27 13:00:00&end_time_YYYYMMDD_HHMMSS=2019-11-27 13:55:00&filename=export.avi&archive_on_device=0&sid=' . trim($this->sid);
+        $url = 'https://' . trim($this->ip) . ':8080/objects/operatorgui_efXwC0I5/archive_export?channel_name_or_guid=LL0c1qK0&start_time_YYYYMMDD_HHMMSS=2019-12-19 13:00:00&end_time_YYYYMMDD_HHMMSS=2019-12-19 13:55:00&filename=export.avi&archive_on_device=0&sid=' . trim($this->sid);
         deb($url);
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
         debarr($responseJson_str);
@@ -322,14 +321,43 @@ class TrassirServer {
         return $UserNames;
     }
 
-    private function getUserSettings($guid) {
-        $UserSettings = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/name?password=' . trim($this->sdkPassword);
+    /**
+     * 
+     * @param string $guid
+     * 
+     * @return array
+     */
+    public function getUserSettings($guid) {
+        $result = array();
+        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/?sid=' . trim($this->sid);
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
         $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
         $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $UserSettings = json_decode($responseJson_str, true);
-        return $UserSettings;
+        $userSettingsTmp = json_decode($responseJson_str, true);
+        if (!empty($userSettingsTmp)) {
+            $result = $userSettingsTmp;
+            if (isset($userSettingsTmp['values'])) {
+                foreach ($userSettingsTmp['values'] as $io => $each) {
+                    $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/' . $each . '?sid=' . trim($this->sid);
+                    $responseJson_str = file_get_contents($url, null, $this->stream_context);
+                    $comment_position = strripos($responseJson_str, '/*');
+                    $responseJson_str = substr($responseJson_str, 0, $comment_position);
+                    $optionData = json_decode($responseJson_str, true);
+                    $result['fulldata'][$each] = $optionData;
+                }
+            }
+        }
+        return($result);
+    }
+
+    public function setUserSettings($guid, $setting, $value) {
+        $result = array();
+        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/' . $setting.'='.$value . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $comment_position = strripos($responseJson_str, '/*');
+        $responseJson_str = substr($responseJson_str, 0, $comment_position);
+        $optionData = json_decode($responseJson_str, true);
+        $result = $optionData;
     }
 
     /**
@@ -378,8 +406,14 @@ class TrassirServer {
      * @return bool|string return url to live video stream or false if failure
      */
     public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg') {
+        if (!$this->checkConnection()) {
+            return false;
+        }
+        if (!$this->login()) {
+            return false;
+        }
 
-        $tokenUrl = 'https://' . trim($this->ip) . ':8080/get_video?channel=' . $channel['guid'] . '&container=' . $container . '&stream=' . $stream . '&sid=' . $this->sid;
+        $tokenUrl = 'https://' . trim($this->ip) . ':8080/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream . '&sid=' . $this->sid;
         //die($tokenUrl);
         $responseJson_str = file_get_contents($tokenUrl, null, $this->stream_context);
         $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
@@ -387,11 +421,12 @@ class TrassirServer {
             $responseJson_str = substr($responseJson_str, 0, $comment_position);
         }
         $token = json_decode($responseJson_str, true);
+        //die($token);
 
         if ($token['success'] == 1) {
             $videoToken = $token['token'];
         } else {
-            throw new \InvalidArgumentException('Cann not get vieotoken');
+            throw new \InvalidArgumentException('Cannot get video token');
         }
 
         $result = 'http://' . trim($this->ip) . ':555/' . $videoToken;
