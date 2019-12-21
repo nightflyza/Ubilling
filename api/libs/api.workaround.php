@@ -4605,6 +4605,59 @@ function zb_TariffGetPeriodsAll() {
 }
 
 /**
+ * logs succeful self credit fact into database
+ *
+ * @param  string $login existing users login
+ *
+ * @return void
+ */
+function zb_CreditLogPush($login) {
+    $login = mysql_real_escape_string($login);
+    $date = curdatetime();
+    $query = "INSERT INTO `zbssclog` (`id` , `date` , `login` ) VALUES ( NULL , '" . $date . "', '" . $login . "');";
+    nr_query($query);
+}
+
+/**
+ * Checks if user use SC module without previous payment and returns false if used or true if feature available
+ *
+ * @param  string $login existing users login
+ *
+ * @return bool
+ */
+function zb_CreditLogCheckHack($login) {
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT `note` FROM `payments` WHERE `login` = '" . $login . "' AND (`summ` > 0 OR `note` = 'SCFEE') ORDER BY `payments`.`date` DESC LIMIT 1";
+    $data = simple_query($query);
+    if (empty($data)) {
+        return (true);
+    } elseif (!empty($data) AND $data['note'] != 'SCFEE') {
+        return (true);
+    } else {
+        return (false);
+    }
+}
+
+/**
+ * Checks is user tariff allowed for use of credit feature
+ *
+ * @param array  $sc_allowed
+ * @param string $usertariff
+ * @return bool
+ */
+function zb_CreditCheckAllowed($sc_allowed, $usertariff) {
+    $result = true;
+    if (!empty($sc_allowed)) {
+        if (isset($sc_allowed[$usertariff])) {
+            $result = true;
+        } else {
+            $result = false;
+        }
+    }
+    return ($result);
+}
+
+/**
  * checks is user current month use SC module and returns false if used or true if feature available
  * 
  * @param  string $login existing users login
