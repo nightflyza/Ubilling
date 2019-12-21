@@ -93,6 +93,14 @@ class Asterisk {
      */
     protected $recordingsFormat = '';
 
+    /**
+     * Placeholder for ASTERISK_GET_FULL_CDR_CEL_DATA alter.ini option
+     *
+     * @var bool
+     */
+    protected $getFullCDRCELData = false;
+
+
     // Database's vars:
     private $connected;
     private $AsteriskDB;
@@ -121,6 +129,7 @@ class Asterisk {
         $this->recordingsPath = ($ubillingConfig->getAlterParam('ASTERISK_CALLRECS_PATH')) ? $ubillingConfig->getAlterParam('ASTERISK_CALLRECS_PATH') : '';
         $this->recordingsCELTab = ($ubillingConfig->getAlterParam('ASTERISK_CALLRECS_CEL_TAB_NAME')) ? $ubillingConfig->getAlterParam('ASTERISK_CALLRECS_CEL_TAB_NAME') : '';
         $this->recordingsFormat = ($ubillingConfig->getAlterParam('ASTERISK_CALLRECS_FORMAT')) ? $ubillingConfig->getAlterParam('ASTERISK_CALLRECS_FORMAT') : '';
+        $this->getFullCDRCELData = $ubillingConfig->getAlterParam('ASTERISK_GET_FULL_CDR_CEL_DATA');
     }
 
     /**
@@ -708,7 +717,7 @@ class Asterisk {
         if (!empty($this->recordingsPath) and !empty($this->recordingsCELTab)) {
             $cel = $this->recordingsCELTab;
             $query_flds = $asteriskTable . ".*, " . $cel .  ".id, " . $cel . ".appname, SUBSTRING_INDEX(" . $cel . ".appdata, ',', 1) AS app_data ";
-            $query_voice_join = " INNER JOIN " . $cel . " ON " . $asteriskTable . ".calldate = " . $cel . ".eventtime " .
+            $query_voice_join = " LEFT JOIN " . $cel . " ON " . $asteriskTable . ".calldate = " . $cel . ".eventtime " .
                                             " AND " . $asteriskTable . ".cnum = " . $cel . ".cid_num " .
                                             " AND (lower(" . $cel . ".appname) = 'monitor' OR lower(" . $cel . ".appname) = 'mixmonitor') ";
         } else {
@@ -834,7 +843,7 @@ class Asterisk {
             $allVoiceFiles = (empty($this->recordingsPath)) ? array() : $this->getCallsDir();
 
             foreach ($cdrData as $io => $each) {
-                if (isset($cdrData[$io - 1]['src'])) {
+                if (!$this->getFullCDRCELData and isset($cdrData[$io - 1]['src'])) {
                     if ($cdrData[$io]['src'] == $cdrData[$io - 1]['src'] and $cdrData[$io - 1]['disposition'] == 'NO ANSWER' and $cdrData[$io]['disposition'] != 'ANSWERED')
                         continue;
                     if ($cdrData[$io]['src'] == $cdrData[$io - 1]['src'] and $cdrData[$io - 1]['dst'] == 'hangup')
@@ -842,14 +851,17 @@ class Asterisk {
                     if ($cdrData[$io]['src'] == $cdrData[$io - 1]['src'] and $cdrData[$io - 1]['dst'] == 'musiconhold')
                         continue;
                 }
+
                 $callsCounter++;
                 $AsteriskGetLoginByNumberAraySrc = array($this->AsteriskGetLoginByNumber($each['src']));
+
                 foreach ($AsteriskGetLoginByNumberAraySrc as $tempDataSrc) {
                     $link_src = $tempDataSrc['link'];
                     $login = $tempDataSrc['login'];
                     $name_src = $tempDataSrc['name'];
                     $adres_src = $tempDataSrc['adres'];
                 }
+
                 $AsteriskGetLoginByNumberArayDst = array($this->AsteriskGetLoginByNumber($each['dst']));
                 foreach ($AsteriskGetLoginByNumberArayDst as $tempDataDst) {
                     $link_dst = $tempDataDst['link'];
@@ -884,6 +896,7 @@ class Asterisk {
                     $callStatus = __('Answered');
                     $statusIcon = wf_img('skins/calls/phone_green.png');
                 }
+
                 if (ispos($each['disposition'], 'NO ANSWER')) {
                     $callStatus = __('No answer');
                     $statusIcon = wf_img('skins/calls/phone_red.png');

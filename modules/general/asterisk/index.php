@@ -7,6 +7,8 @@ if ($ubillingConfig->getAlterParam('ASTERISK_ENABLED')) {
 		$asterisk->ajaxAvaibleCDR();
 	}
 
+    $asterisk->catchFileDownload();
+
     if (isset($_GET['username'])) {
         $user_login = vf($_GET['username']);
         // Profile:
