@@ -2221,10 +2221,40 @@ function GetAllUserOnu() {
     $data = simple_queryall($query);
     if (!empty($data)) {
         foreach ($data as $each) {
-            $result[$each['login']] = $each['mac'];
+            $result[$each['login']] = $each;
         }
     }
     return($result);
+}
+
+function loadOltDevices() {
+    $allOlts = array();
+    $query = "SELECT `switches`.`id`,`switches`.`modelid`,`switchmodels`.`snmptemplate` from `switches` LEFT JOIN `switchmodels` ON (`switches`.`modelid` = `switchmodels`.`id`) WHERE `switches`.`desc` LIKE '%OLT%';";
+    $raw = simple_queryall($query);
+    if (!empty($raw)) {
+        foreach ($raw as $io => $each) {
+            $allOlts[$each['id']] = $each;
+        }
+    }
+    return($allOlts);
+}
+
+function loadOltSnmpTemplates() {
+    $allOlts = loadOltDevices();
+    $allOltSnmpTemplates = array();
+    if (!empty($allOlts)) {
+        foreach ($allOlts as $oltId => $eachOltData) {
+            $templateFile = 'config/snmptemplates/' . $eachOltData['snmptemplate'];
+            $privateTemplateFile = DATA_PATH . 'documents/mysnmptemplates/' . $eachOltData['snmptemplate'];
+            if (file_exists($templateFile)) {
+                $allOltSnmpTemplates[$eachOltData['id']] = rcms_parse_ini_file($templateFile, true);
+                if (file_exists($privateTemplateFile)) {
+                    $allOltSnmpTemplates[$eachOltData['id']] = rcms_parse_ini_file($privateTemplateFile, true);
+                }
+            }
+        }
+    }
+    return($allOltSnmpTemplates);
 }
 
 /**
