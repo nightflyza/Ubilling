@@ -690,7 +690,7 @@ function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
                 $login = $allIps[$eachhost['ip']];
                 $mac = '';
                 if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
-                    $macFull = explode(":", $allOnu[$login]);
+                    $macFull = explode(":", $allOnu[$login]['mac']);
                     foreach ($macFull as $eachOctet) {
                         $validOctet = preg_replace('/^0/', '', $eachOctet);
                         $mac .= $validOctet . ':';
@@ -737,33 +737,47 @@ function handle_dhcp_rebuild_option82_zte($netid, $confname) {
         $allhosts = simple_queryall($query);
         $allOnu = GetAllUserOnu();
         $allIps = GetAllUserIp();
+        $allOltSnmpTemplates = loadOltSnmpTemplates();
         $result = '';
         if (!empty($allhosts)) {
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
-                $mac = '';
+                $onuId = '';
+                $onuIdentifier = '';
                 if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
-                    $macFull = explode(":", $allOnu[$login]);
-                    foreach ($macFull as $eachOctet) {
-                        $validOctet = preg_replace('/^0/', '', $eachOctet);
-                        $mac .= strtoupper($eachOctet);
+                    $oltId = $allOnu[$login]['oltid'];
+
+                    if (isset($allOltSnmpTemplates[$oltId])) {
+                        if ($allOltSnmpTemplates[$oltId]['signal']['SIGNALMODE'] == 'ZTE') {
+                            $onuIdentifier = explode(":", $allOnu[$login]['mac']);
+                        } elseif ($allOltSnmpTemplates[$oltId]['signal']['SIGNALMODE'] == 'ZTE_GPON') {
+                            if (!empty($allOnu[$login]['serial'])) {
+                                $onuIdentifier = explode(":", $allOnu[$login]['serial']);
+                            }
+                        }
                     }
-                    $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                    $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
-                    if (empty($customTemplate)) {
-                        $customTemplate = '
+
+                    if (!empty($onuIdentifier)) {
+                        foreach ($onuIdentifier as $eachOctet) {
+                            $onuId .= strtoupper($eachOctet);
+                        }
+                        $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
+                        $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
+                        if (empty($customTemplate)) {
+                            $customTemplate = '
 class "{HOSTNAME}" { match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}"; }
 pool {
 range {IP};
 allow members of "{HOSTNAME}";
 }
 ' . "\n";
+                        }
+                        $parseTemplate = $customTemplate;
+                        $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+                        $parseTemplate = str_ireplace('{CIRCUITID}', $onuId, $parseTemplate);
+                        $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+                        $result .= $parseTemplate;
                     }
-                    $parseTemplate = $customTemplate;
-                    $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
-                    $parseTemplate = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
-                    $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-                    $result .= $parseTemplate;
                 }
             }
             file_put_contents($confpath, $result);
@@ -1593,7 +1607,7 @@ function zb_BandwidthdGenLinks($ip) {
             // Get user's IP array:
             $alluserips = zb_UserGetAllIPs();
             $alluserips = array_flip($alluserips);
-            if (!ispos($bandwidthd_url, 'pppoe') and !$mlgUseMikrotikGraphs) {
+            if (!ispos($bandwidthd_url, 'pppoe') and ! $mlgUseMikrotikGraphs) {
 // Generate graphs paths:
                 $urls['dayr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
                 $urls['days'] = null;
@@ -1959,9 +1973,9 @@ function getCachedZabbixNASGraphIDs() {
     $cache = new UbillingCache();
     $cacheTime = ($ubillingConfig->getAlterParam('ZABBIX_GRAPHSIDS_CACHE_LIFETIME')) ? $ubillingConfig->getAlterParam('ZABBIX_GRAPHSIDS_CACHE_LIFETIME') : 1800;
     $result = $cache->getCallback('ZABBIX_GRAPHS_IDS', function () {
-                                        return (getZabbixNASGraphIDs());
-                                    }, $cacheTime
-                                 );
+        return (getZabbixNASGraphIDs());
+    }, $cacheTime
+    );
 
     return ($result);
 }
@@ -1977,7 +1991,7 @@ function getZabbixNASGraphIDs() {
     $allNASGraphs = array();
     $zbxAuthToken = $zbx->getAuthToken();
 
-    if (!empty($allNAS) and !empty($zbxAuthToken)) {
+    if (!empty($allNAS) and ! empty($zbxAuthToken)) {
         foreach ($allNAS as $eachNAS) {
             $reqParams = array('filter' => array('ip' => $eachNAS['nasip']));
             $zbxNASData = json_decode($zbx->runQuery('host.get', $reqParams), true);
