@@ -380,7 +380,7 @@ $lang['def']['Delete'] = 'Видалити';
 $lang['def']['Only one base tariff allowed'] = 'Доступний тільки один базовий тариф';
 $lang['def']['Available only in addition to base tariff'] = 'Доступний тільки в доповнення до базового тарифу';
 $lang['def']['You subscribed'] = 'Ви підписані'; 
-$lang['def']['On unsubscription will be charged fee the equivalent value of the subscription.'] = 'При відписці від передплати з рахунку буде одразу стягнуто суму еквіваленту вартості цієї передплати.';
+$lang['def']['On unsubscription will be charged fee the equivalent value of the subscription.'] = 'При відписці від передплати з рахунку буде одразу стягнуто суму еквіваленту вартості цієї передплати. Якщо ви бажаєте відписатися без списання коштів зверніться до техпідтримки.';
 $lang['def']['Balance before'] = 'Баланс до';
 $lang['def']['Base'] = 'Базовий';
 
