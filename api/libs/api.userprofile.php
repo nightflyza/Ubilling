@@ -1366,8 +1366,10 @@ class UserProfile {
         $result = '';
         if (isset($this->alterCfg['MOBILES_EXT'])) {
             if ($this->alterCfg['MOBILES_EXT']) {
-                $extMob = new MobilesExt();
-                $allExtRaw = $extMob->getUserMobiles($this->login);
+                //$extMob = new MobilesExt();
+                //$allExtRaw = $extMob->getUserMobiles($this->login);
+                //commented due performance issues. Using raw query below
+                $allExtRaw = simple_queryall("SELECT `id`,`mobile` from `mobileext` WHERE `login`='" . $this->login . "'");
                 $allExt = array();
                 if (!empty($allExtRaw)) {
                     foreach ($allExtRaw as $io => $each) {
