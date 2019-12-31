@@ -167,8 +167,9 @@ class Envy {
                     $modelsTmp[$each['id']] = $each['modelname'];
                 }
             }
-
-
+            /**
+             * I am the way and the truth and the life. No one comes to the Father except through me
+             */
             $inputs .= wf_Selector('newscriptmodel', $modelsTmp, __('Model'), '', true);
             $inputs .= __('Script') . wf_tag('br');
             $inputs .= wf_TextArea('newscriptdata', '', '', true, '60x20');
@@ -217,8 +218,20 @@ class Envy {
      */
     public function renderScriptsList() {
         $result = '';
+
         if (!empty($this->allScripts)) {
-            //TODO: finish this
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Equipment models'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allScripts as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells .= wf_TableCell($each['modelid']);
+                $cells .= wf_TableCell('TODO');
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
