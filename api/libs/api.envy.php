@@ -64,6 +64,8 @@ class Envy {
     const URL_ME = '?module=envy';
     const TMP_PATH = 'exports/';
     const SCRIPT_PREFIX = 'ENVYSCRIPT_';
+    const ROUTE_SCRIPTS = 'scriptsmgr';
+    const ROUTE_DEVICES = 'devicesmgr';
 
     /**
      * Creates new envy sin instance
@@ -330,8 +332,22 @@ class Envy {
      */
     public function renderControls() {
         $result = '';
-        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new script'), __('Create new script'), $this->renderScriptCreateForm(), 'ubButton');
-        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new device'), __('Create new device'), $this->renderDeviceCreateForm(), 'ubButton');
+        if (ubRouting::checkGet(self::ROUTE_SCRIPTS) OR ubRouting::checkGet(self::ROUTE_DEVICES)) {
+            $result .= wf_BackLink(self::URL_ME) . ' ';
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_SCRIPTS)) {
+            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new script'), __('Create new script'), $this->renderScriptCreateForm(), 'ubButton') . ' ';
+        } else {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
+        }
+
+        if (ubRouting::checkGet(self::ROUTE_DEVICES)) {
+            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new device'), __('Create new device'), $this->renderDeviceCreateForm(), 'ubButton') . ' ';
+        } else {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
+        }
+
         return($result);
     }
 
@@ -443,7 +459,7 @@ class Envy {
                 $cells .= wf_TableCell($each['custom1']);
                 $devControls = wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview'));
                 $cells .= wf_TableCell($devControls);
-                
+
                 $rows .= wf_TableRow($cells, 'row5');
             }
 
@@ -495,6 +511,26 @@ class Envy {
                 file_put_contents($filePath, $scriptData);
                 $result .= shell_exec($this->billCfg['EXPECT_PATH'] . ' ' . $filePath);
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders script results preview
+     * 
+     * @param string $data
+     * 
+     * @return string
+     */
+    public function previewScriptsResult($data) {
+        $result = '';
+        if (!empty($data)) {
+            $inputs = wf_tag('textarea', false, 'fileeditorarea', 'name="envypreview" cols="145" rows="30"');
+            $inputs .= $data;
+            $inputs .= wf_tag('textarea', true);
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Empty reply received'), 'warning');
         }
         return($result);
     }

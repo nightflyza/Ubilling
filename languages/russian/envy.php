@@ -7,3 +7,5 @@ $lang['def']['Create new device'] = 'Создать новое устройст�
 $lang['def']['Enable password'] = 'enable пароль';
 $lang['def']['Custom field'] = 'Дополнительное поле';
 $lang['def']['No envy devices available'] = 'Нету завистливых устройст в наличии';
+$lang['def']['Available envy devices'] = 'Завистливые устройства в наличии';
+$lang['def']['Scripts'] = 'Скрипты';
