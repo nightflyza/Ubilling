@@ -7,7 +7,7 @@ class PaymentFixer {
     protected $altCfg = array();
     protected $billCfg = array();
     protected $payments = '';
-    protected $opTransactions = '';
+    
     protected $checkDate = '';
 
     public function __construct() {
@@ -23,7 +23,6 @@ class PaymentFixer {
 
     protected function initDataModels() {
         $this->payments = new NyanORM('payments');
-        $this->opTransactions = new NyanORM('op_transactions');
     }
 
     public function setDate($date = '') {
