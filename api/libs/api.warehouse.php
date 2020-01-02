@@ -2377,9 +2377,14 @@ class Warehouse {
                         $actLink .= wf_Link(self::URL_ME . '&' . self::URL_RESERVE . '&storageid=' . $storageId . '&itemtypeid=' . $itemtypeid, wf_img_sized('skins/whreservation.png', '', '10', '10') . ' ' . __('Reservation'));
                     }
 
+                    $reservedCount = $this->reserveGet($storageId, $itemtypeid);
+
                     $data[] = @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']];
                     $data[] = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeid, @$this->allItemTypeNames[$itemtypeid]);
-                    $data[] = $count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']];
+                    $itemtypeUnit = @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']];
+                    $data[] = ($count - $reservedCount ) . ' ' . $itemtypeUnit;
+                    $data[] = $reservedCount . ' ' . $itemtypeUnit;
+                    $data[] = $count;
                     $data[] = $actLink;
                     $json->addRow($data);
                     unset($data);
@@ -2400,7 +2405,7 @@ class Warehouse {
         $storageId = vf($storageId, 3);
         $result = '';
         if (!empty($this->allIncoming)) {
-            $columns = array('Category', 'Warehouse item types', 'Count', 'Actions');
+            $columns = array('Category', 'Warehouse item types', 'Count', 'Reserved', 'Total', 'Actions');
             $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&' . self::URL_OUTAJREMAINS, true, 'Warehouse item types', 50);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
@@ -3265,15 +3270,18 @@ class Warehouse {
 
             $cells = wf_TableCell(__('Category'));
             $cells .= wf_TableCell(__('Warehouse item types'));
-            $cells .= wf_TableCell(__('Count'));
+            $cells .= wf_TableCell(__('Count') . ' ' . __('On') . ' ' . $storageName);
+            $cells .= wf_TableCell(__('Reserved'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($allRemains)) {
                 foreach ($allRemains as $itemtypeId => $count) {
+                    $reservedCount = $this->reserveGet($storageId, $itemtypeId);
                     $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']]);
                     $cells .= wf_TableCell(@$this->allItemTypeNames[$itemtypeId]);
                     $itemUnit = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
-                    $cells .= wf_TableCell($count . ' ' . $itemUnit);
+                    $cells .= wf_TableCell(($count - $reservedCount) . ' ' . $itemUnit);
+                    $cells .= wf_TableCell($reservedCount . ' ' . $itemUnit);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
             }
