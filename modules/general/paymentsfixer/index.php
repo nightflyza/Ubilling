@@ -79,6 +79,8 @@ $fixer = new PaymentFixer();
 $fixer->setDate('2020-01-03');
 $fixer->checkPayments();
 
+//TODO: some interface, fixing payments, grouping by summ, deleting duplicates.
+
 } else {
     show_error(__('Access denied'));
 }
