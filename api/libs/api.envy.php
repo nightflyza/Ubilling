@@ -61,7 +61,7 @@ class Envy {
     /**
      * Some other required consts for routing etc
      */
-    const URL_ME = '?module=testing';
+    const URL_ME = '?module=envy';
 
     /**
      * Creates new envy sin instance
@@ -157,7 +157,7 @@ class Envy {
      * 
      * @return string
      */
-    public function renderScriptCreateForm() {
+    protected function renderScriptCreateForm() {
         $result = '';
         if (!empty($this->allModels)) {
             $inputs = '';
@@ -178,6 +178,28 @@ class Envy {
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
             show_error(__('Available switch models') . ': ' . __('No'));
+        }
+        return($result);
+    }
+
+    /**
+     * Renders envy-script editing form 
+     * 
+     * @return string
+     */
+    protected function renderScriptEditForm($modelId) {
+        $result = '';
+        $modelId = ubRouting::filters($modelId, 'int');
+        if (isset($this->allScripts[$modelId])) {
+            $scriptData = $this->allScripts[$modelId];
+            $inputs = '';
+            $inputs .= wf_HiddenInput('editscriptid', $scriptData['id']);
+            $inputs .= wf_HiddenInput('editscriptmodel', $scriptData['modelid'], __('Model'), '', true);
+            $inputs .= __('Script') . wf_tag('br');
+            $inputs .= wf_TextArea('editscriptdata', '', $scriptData['data'], true, '60x20');
+            $inputs .= wf_Submit(__('Save'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return($result);
     }
@@ -212,13 +234,43 @@ class Envy {
     }
 
     /**
+     * Deletes existing envy script from database
+     * 
+     * @param int $modelId
+     * 
+     * @return void/string on result
+     */
+    public function deleteScript($modelId) {
+        $result = '';
+        $modelId = ubRouting::filters($modelId, 'int');
+        if (!empty($modelId)) {
+            if (isset($this->allScripts[$modelId])) {
+                $scriptData = $this->allScripts[$modelId];
+                $this->scripts->where('modelid', '=', $modelId);
+                $this->scripts->delete();
+                log_register('ENVY DELETE SCRIPT [' . $scriptData['id'] . '] MODEL [' . $modelId . ']');
+            } else {
+                $result .= __('Something went wrong') . ': EX_WRONGMODELID';
+            }
+        } else {
+            $result .= __('Something went wrong') . ': EX_NOMODELID';
+        }
+        return($result);
+    }
+
+    /**
      * Renders available envy scripts and some controls
      * 
      * @return string
      */
     public function renderScriptsList() {
         $result = '';
-
+        $allModelNames = array();
+        if (!empty($this->allModels)) {
+            foreach ($this->allModels as $io => $each) {
+                $allModelNames[$each['id']] = $each['modelname'];
+            }
+        }
         if (!empty($this->allScripts)) {
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Equipment models'));
@@ -226,8 +278,11 @@ class Envy {
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allScripts as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells .= wf_TableCell($each['modelid']);
-                $cells .= wf_TableCell('TODO');
+                $cells .= wf_TableCell(@$allModelNames[$each['modelid']]);
+                $scriptControls = '';
+                $scriptControls .= wf_JSAlert(self::URL_ME . '&deletescript=' . $each['modelid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $scriptControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . @$allModelNames[$each['modelid']], $this->renderScriptEditForm($each['modelid']));
+                $cells .= wf_TableCell($scriptControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
 
@@ -235,6 +290,29 @@ class Envy {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
+        return($result);
+    }
+
+    /**
+     * Renders default controls panel for module
+     * 
+     * @return string
+     */
+    public function renderControls() {
+        $result = '';
+        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new script'), __('Create new script'), $this->renderScriptCreateForm(), 'ubButton');
+        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new device'), __('Create new device'), $this->renderDeviceCreateForm(), 'ubButton');
+        return($result);
+    }
+
+    /**
+     * Renders new device creation form
+     * 
+     * @return string
+     */
+    public function renderDeviceCreateForm() {
+        $result = '';
+        //TODO
         return($result);
     }
 
