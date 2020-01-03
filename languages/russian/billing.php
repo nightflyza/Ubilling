@@ -3133,6 +3133,8 @@ $lang['def']['Crontab editor'] = 'Редактор crontab';
 $lang['def']['Power outages'] = 'Отключения электричества';
 $lang['def']['right to view power outages'] = 'Право просматривать отключения электричества';
 $lang['def']['right to control Dreamkas cash operations'] = 'Право управлять денежными операциями Dreamkas';
+$lang['def']['Money transactions that may was not processed'] = 'Денежные транзакции которые могли быть не обработаны';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>
