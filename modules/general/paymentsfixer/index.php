@@ -305,9 +305,11 @@ if (cfr('ROOT')) {
         }
         ubRouting::nav($fixer::URL_ME);
     }
+
     show_window('', $fixer->renderDateSelectorForm($checkDate));
     $fixer->setDate($checkDate);
     show_window(__('Money transactions that may was not processed'), $fixer->renderFailedPayments());
+    show_window('', wf_BackLink('?module=report_finance'));
 } else {
     show_error(__('Access denied'));
 }

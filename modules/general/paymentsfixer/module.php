@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Unprocessed payments fixer'), 'Nightfly');
+$this->registerModule($module, 'main', __('Unprocessed payments repair'), 'Nightfly');
 ?>
