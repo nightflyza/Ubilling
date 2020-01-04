@@ -52,6 +52,13 @@ class Envy {
     protected $scripts = '';
 
     /**
+     * Envy archive data model placeholder
+     *
+     * @var object
+     */
+    protected $archive = '';
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -66,6 +73,7 @@ class Envy {
     const SCRIPT_PREFIX = 'ENVYSCRIPT_';
     const ROUTE_SCRIPTS = 'scriptsmgr';
     const ROUTE_DEVICES = 'devicesmgr';
+    const ROUTE_ARCHIVE_AJ = 'ajarchive';
 
     /**
      * Creates new envy sin instance
@@ -79,6 +87,7 @@ class Envy {
         $this->loadScripts();
         $this->initDevices();
         $this->loadDevices();
+        $this->initArchive();
     }
 
     /**
@@ -118,6 +127,15 @@ class Envy {
      */
     protected function initScrips() {
         $this->scripts = new NyanORM('envyscripts');
+    }
+
+    /**
+     * Creates new archive data model instance
+     * 
+     * @return void
+     */
+    protected function initArchive() {
+        $this->archive = new NyanORM('envydata');
     }
 
     /**
@@ -334,20 +352,18 @@ class Envy {
         $result = '';
         if (ubRouting::checkGet(self::ROUTE_SCRIPTS) OR ubRouting::checkGet(self::ROUTE_DEVICES)) {
             $result .= wf_BackLink(self::URL_ME) . ' ';
+        } else {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
         }
 
         if (ubRouting::checkGet(self::ROUTE_SCRIPTS)) {
             $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new script'), __('Create new script'), $this->renderScriptCreateForm(), 'ubButton') . ' ';
-        } else {
-            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
         }
 
         if (ubRouting::checkGet(self::ROUTE_DEVICES)) {
             $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new device'), __('Create new device'), $this->renderDeviceCreateForm(), 'ubButton') . ' ';
-        } else {
-            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
         }
-
         return($result);
     }
 
@@ -411,7 +427,6 @@ class Envy {
                         log_register('ENVY CREATE DEVICE [' . $newId . '] SWITCHID [' . $switchId . ']');
                     } else {
                         $result .= __('Something went wrong') . ': EX_WRONGSWITCHID [' . $switchId . ']';
-                        debarr($this->allSwitches);
                     }
                 } else {
                     $result .= __('Something went wrong') . ': EX_DEVICEALREADYEXISTS';
@@ -419,6 +434,31 @@ class Envy {
             } else {
                 $result .= __('Something went wrong') . ': EX_EMPTYSWITCHID';
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing envy device from database
+     * 
+     * @param int $switchId
+     * 
+     * @return void/string on error
+     */
+    public function deleteDevice($switchId) {
+        $result = '';
+        $switchId = ubRouting::filters($switchId, 'int');
+        if (!empty($switchId)) {
+            if (isset($this->allDevices[$switchId])) {
+                $devData = $this->allDevices[$switchId];
+                $this->devices->where('switchid', '=', $switchId);
+                $this->devices->delete();
+                log_register('ENVY DELETE DEVICE [' . $devData['id'] . '] SWITCHID [' . $switchId . ']');
+            } else {
+                $result .= __('Something went wrong') . ': EX_WRONGSWITCHID [' . $switchId . ']';
+            }
+        } else {
+            $result .= __('Something went wrong') . ': EX_EMPTYSWITCHID';
         }
         return($result);
     }
@@ -457,7 +497,9 @@ class Envy {
                 $cells .= wf_TableCell($each['password']);
                 $cells .= wf_TableCell($each['enablepassword']);
                 $cells .= wf_TableCell($each['custom1']);
-                $devControls = wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview'));
+                $devControls = '';
+                $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $devControls .= wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview')) . ' ';
                 $cells .= wf_TableCell($devControls);
 
                 $rows .= wf_TableRow($cells, 'row5');
@@ -533,6 +575,30 @@ class Envy {
             $result .= $this->messages->getStyledMessage(__('Empty reply received'), 'warning');
         }
         return($result);
+    }
+
+    /**
+     * Renders previously envy data arhive container
+     * 
+     * @return string
+     */
+    public function renderArchive() {
+        $result = '';
+        $columns = array('Date', 'Device', 'Actions');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_ARCHIVE_AJ . '=true', false, __('Records'), 100, $opts);
+        return($result);
+    }
+
+    /**
+     * Renders background JSON data for existing configs archive
+     * 
+     * @return void
+     */
+    public function getAjArchive() {
+        $json = new wf_JqDtHelper();
+
+        $json->getJson();
     }
 
 }

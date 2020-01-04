@@ -4,7 +4,7 @@ if (cfr('ENVY')) {
     $altCfg = $ubillingConfig->getAlter();
 
     if (@$altCfg['ENVY_ENABLED']) {
-        set_time_limit(0);
+        set_time_limit(0); // may be so slow
 
         $envy = new Envy();
         //new script creation
@@ -47,6 +47,21 @@ if (cfr('ENVY')) {
             }
         }
 
+        //device deletion
+        if (ubRouting::checkGet('deletedevice')) {
+            $devDeletionResult = $envy->deleteDevice(ubRouting::get('deletedevice'));
+            if (empty($devDeletionResult)) {
+                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
+            } else {
+                show_error($devDeletionResult);
+            }
+        }
+
+        //background archive JSON rendering
+        if (ubRouting::checkGet($envy::ROUTE_ARCHIVE_AJ)) {
+            $envy->getAjArchive();
+        }
+
         if (ubRouting::checkGet('previewdevice')) {
             show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
             show_window(__('Preview'), $envy->previewScriptsResult($envy->runDeviceScript(ubRouting::get('previewdevice'))));
@@ -65,7 +80,10 @@ if (cfr('ENVY')) {
                 show_window(__('Available envy scripts'), $envy->renderScriptsList());
             }
 
-            //here previous data archive: TODO
+            //here previous data archive
+            if (!ubRouting::checkGet($envy::ROUTE_DEVICES) AND ! ubRouting::checkGet($envy::ROUTE_SCRIPTS)) {
+                show_window(__('Previously collected devices configs'), $envy->renderArchive());
+            }
         }
     } else {
         show_error(__('This module is disabled'));

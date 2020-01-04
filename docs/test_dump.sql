@@ -2680,3 +2680,12 @@ CREATE TABLE IF NOT EXISTS `envydevices` (
   `custom1` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `envydata` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `switchid` int(11) NOT NULL,
+  `date` datetime NOT NULL,
+  `config` mediumtext,
+  PRIMARY KEY (`id`),
+  KEY `switchid` (`switchid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

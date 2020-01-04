@@ -9,4 +9,5 @@ $lang['def']['Custom field'] = 'Додаткове поле';
 $lang['def']['No envy devices available'] = 'Немає наявних заздрісних пристроїв';
 $lang['def']['Available envy devices'] = 'Наявні заздрісні пристрої';
 $lang['def']['Scripts'] = 'Скрипти';
+$lang['def']['Previously collected devices configs'] = 'Раніше зібрані конфігурації пристроїв';
 $lang['def'][''] = '';
