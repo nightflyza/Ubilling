@@ -27,7 +27,7 @@ if (cfr('ENVY')) {
             }
         }
 
-        //existing script editin
+        //existing script editing
         if (ubRouting::checkPost('editscriptid')) {
             $savingResult = $envy->saveScript();
             if (empty($savingResult)) {
@@ -55,6 +55,12 @@ if (cfr('ENVY')) {
             } else {
                 show_error($storeResult);
             }
+        }
+
+        //all existing devices config backup
+        if (ubRouting::checkGet($envy::ROUTE_ARCHALL)) {
+            $envy->storeArchiveAllDevices();
+            ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
         }
 
         //device deletion

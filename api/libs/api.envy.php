@@ -82,6 +82,7 @@ class Envy {
     const ROUTE_SCRIPTS = 'scriptsmgr';
     const ROUTE_DEVICES = 'devicesmgr';
     const ROUTE_ARCHVIEW = 'viewarchiveid';
+    const ROUTE_ARCHALL = 'archiveall';
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
 
     /**
@@ -383,6 +384,8 @@ class Envy {
 
         if (ubRouting::checkGet(self::ROUTE_DEVICES)) {
             $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create new device'), __('Create new device'), $this->renderDeviceCreateForm(), 'ubButton') . ' ';
+            $saveAllNotice = $this->messages->getEditAlert() . ' ' . __('Store all devices configs into archive') . '?';
+            $result .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_ARCHALL . '=true', wf_img('skins/icon_restoredb.png') . ' ' . __('Store all'), $saveAllNotice, '', 'ubButton');
         }
         return($result);
     }
@@ -731,6 +734,21 @@ class Envy {
             $tmpFilePath = self::TMP_PATH . self::DL_PREFIX . $recordData['date'] . '_' . $switchId . '_' . $switchIp . '.txt';
             file_put_contents($tmpFilePath, $configContent);
             zb_DownloadFile($tmpFilePath);
+        }
+    }
+
+    /**
+     * Stores all available envy-devices configs into archive
+     * 
+     * @return void
+     */
+    public function storeArchiveAllDevices() {
+        if (!empty($this->allScripts)) {
+            if (!empty($this->allDevices)) {
+                foreach ($this->allDevices as $io => $each) {
+                    $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+                }
+            }
         }
     }
 

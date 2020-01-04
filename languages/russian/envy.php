@@ -11,3 +11,5 @@ $lang['def']['Available envy devices'] = 'Завистливые устройс�
 $lang['def']['Scripts'] = 'Скрипты';
 $lang['def']['Previously collected devices configs'] = 'Ранее собранные конфиги устройств';
 $lang['def']['Backup device configuration to archive'] = 'Забекапить конфигурацию устройства в архив';
+$lang['def']['Store all devices configs into archive'] = 'Забекапить конфиги всех устройств в архив';
+$lang['def']['Store all'] = 'Сохранить все';

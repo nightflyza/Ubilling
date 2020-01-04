@@ -11,7 +11,8 @@ $lang['def']['Available envy devices'] = 'Наявні заздрісні при
 $lang['def']['Scripts'] = 'Скрипти';
 $lang['def']['Previously collected devices configs'] = 'Раніше зібрані конфігурації пристроїв';
 $lang['def']['Backup device configuration to archive'] = 'Зарезервувати конфігурацію пристрою до архіву';
-$lang['def'][''] = '';
+$lang['def']['Store all devices configs into archive'] = 'Зберегти конфігурацію усіх пристроїв до архіву';
+$lang['def']['Store all'] = 'Зберегти все';
 $lang['def'][''] = '';
 
 
