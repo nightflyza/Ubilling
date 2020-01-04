@@ -123,6 +123,7 @@ if (cfr('ENVY')) {
             //here previous data archive
             if (!ubRouting::checkGet($envy::ROUTE_DEVICES) AND ! ubRouting::checkGet($envy::ROUTE_SCRIPTS)) {
                 show_window(__('Previously collected devices configs'), $envy->renderArchive());
+                zb_BillingStats(true);
             }
         }
     } else {
