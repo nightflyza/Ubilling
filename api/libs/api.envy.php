@@ -551,12 +551,17 @@ class Envy {
             if (isset($this->allSwitches[$switchId])) {
                 if (isset($this->allScripts[$this->allSwitches[$switchId]['modelid']])) {
                     $result = $this->allScripts[$this->allSwitches[$switchId]['modelid']]['data'];
+                    $deviceData = $this->allDevices[$switchId];
+                    $macroLogin = (!empty($deviceData['login'])) ? $deviceData['login'] : 'empty_login';
+                    $macroPass = (!empty($deviceData['password'])) ? $deviceData['password'] : 'empty_password';
+                    $macroEnPass = (!empty($deviceData['enablepassword'])) ? $deviceData['enablepassword'] : 'empty_enablepassword';
+                    $macroCust1 = (!empty($deviceData['custom1'])) ? $deviceData['custom1'] : 'empty_custom1';
                     //some macro replacing here
                     $result = str_replace('{IP}', $this->allSwitches[$switchId]['ip'], $result);
-                    $result = str_replace('{LOGIN}', $this->allDevices[$switchId]['login'], $result);
-                    $result = str_replace('{PASSWORD}', $this->allDevices[$switchId]['password'], $result);
-                    $result = str_replace('{ENABLEPASSWORD}', $this->allDevices[$switchId]['enablepassword'], $result);
-                    $result = str_replace('{CUSTOM1}', $this->allDevices[$switchId]['custom1'], $result);
+                    $result = str_replace('{LOGIN}', $macroLogin, $result);
+                    $result = str_replace('{PASSWORD}', $macroPass, $result);
+                    $result = str_replace('{ENABLEPASSWORD}', $macroEnPass, $result);
+                    $result = str_replace('{CUSTOM1}', $macroCust1, $result);
                 }
             }
         }
