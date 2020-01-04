@@ -47,6 +47,16 @@ if (cfr('ENVY')) {
             }
         }
 
+        //device config storing to archive
+        if (ubRouting::checkGet('storedevice')) {
+            $storeResult = $envy->storeArchiveData(ubRouting::get('storedevice'), $envy->runDeviceScript(ubRouting::get('storedevice')));
+            if (empty($storeResult)) {
+                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
+            } else {
+                show_error($storeResult);
+            }
+        }
+
         //device deletion
         if (ubRouting::checkGet('deletedevice')) {
             $devDeletionResult = $envy->deleteDevice(ubRouting::get('deletedevice'));
@@ -57,14 +67,38 @@ if (cfr('ENVY')) {
             }
         }
 
+        //archive record deletion
+        if (ubRouting::checkGet('deletearchiveid')) {
+            $archDeletionResult = $envy->deleteArchiveRecord(ubRouting::get('deletearchiveid'));
+            if (empty($archDeletionResult)) {
+                ubRouting::nav($envy::URL_ME);
+            } else {
+                show_error($archDeletionResult);
+            }
+        }
+
+        //archive record download
+        if (ubRouting::checkGet('downloadarchiveid')) {
+            $envy->downloadArchiveRecordConfig(ubRouting::get('downloadarchiveid'));
+        }
+
         //background archive JSON rendering
         if (ubRouting::checkGet($envy::ROUTE_ARCHIVE_AJ)) {
             $envy->getAjArchive();
         }
 
-        if (ubRouting::checkGet('previewdevice')) {
-            show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
-            show_window(__('Preview'), $envy->previewScriptsResult($envy->runDeviceScript(ubRouting::get('previewdevice'))));
+        if (ubRouting::checkGet('previewdevice') OR ubRouting::checkGet('viewarchiveid')) {
+            //device preview
+            if (ubRouting::checkGet('previewdevice')) {
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
+                show_window(__('Preview'), $envy->previewScriptsResult($envy->runDeviceScript(ubRouting::get('previewdevice'))));
+            }
+
+            //archive record view
+            if (ubRouting::checkGet('viewarchiveid')) {
+                show_window('', wf_BackLink($envy::URL_ME));
+                show_window(__('Preview'), $envy->previewScriptsResult($envy->renderArchiveRecordConfig(ubRouting::get('viewarchiveid'))));
+            }
         } else {
 
             //showing some module controls here

@@ -10,4 +10,9 @@ $lang['def']['No envy devices available'] = 'Немає наявних зазд�
 $lang['def']['Available envy devices'] = 'Наявні заздрісні пристрої';
 $lang['def']['Scripts'] = 'Скрипти';
 $lang['def']['Previously collected devices configs'] = 'Раніше зібрані конфігурації пристроїв';
+$lang['def']['Backup device configuration to archive'] = 'Зарезервувати конфігурацію пристрою до архіву';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+
+
+

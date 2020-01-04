@@ -17,7 +17,7 @@ class Envy {
     protected $allModels = array();
 
     /**
-     * Contains filtered devices which need to be provisioned as switchid=>data
+     * Contains filtered devices which need to be backuped as switchid=>data
      *
      * @var array
      */
@@ -36,6 +36,13 @@ class Envy {
      * @var arrays
      */
     protected $allSwitches = array();
+
+    /**
+     * Contains all available previously stored device configs from db as id=>recordData
+     *
+     * @var array
+     */
+    protected $allConfigs = array();
 
     /**
      * Envy devices data model placeholder
@@ -71,8 +78,10 @@ class Envy {
     const URL_ME = '?module=envy';
     const TMP_PATH = 'exports/';
     const SCRIPT_PREFIX = 'ENVYSCRIPT_';
+    const DL_PREFIX = 'ENVYCONFIG_';
     const ROUTE_SCRIPTS = 'scriptsmgr';
     const ROUTE_DEVICES = 'devicesmgr';
+    const ROUTE_ARCHVIEW = 'viewarchiveid';
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
 
     /**
@@ -88,6 +97,7 @@ class Envy {
         $this->initDevices();
         $this->loadDevices();
         $this->initArchive();
+        $this->loadArchive();
     }
 
     /**
@@ -177,6 +187,16 @@ class Envy {
                 $this->allSwitches[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Loads existing archive records from database
+     * 
+     * @return void
+     */
+    protected function loadArchive() {
+        $this->archive->selectable(array('id', 'date', 'switchid'));
+        $this->allConfigs = $this->archive->getAll('id');
     }
 
     /**
@@ -478,8 +498,9 @@ class Envy {
                 }
             }
 
-            $cells = wf_TableCell(__('Switch'));
-            $cells .= wf_TableCell(__('IP'));
+
+            $cells = wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Switch'));
             $cells .= wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Login'));
             $cells .= wf_TableCell(__('Password'));
@@ -490,8 +511,8 @@ class Envy {
 
             foreach ($this->allDevices as $io => $each) {
                 $switchData = $this->allSwitches[$each['switchid']];
-                $cells = wf_TableCell($switchData['location']);
-                $cells .= wf_TableCell($switchData['ip']);
+                $cells = wf_TableCell($switchData['ip']);
+                $cells .= wf_TableCell($switchData['location']);
                 $cells .= wf_TableCell($allModelNames[$switchData['modelid']]);
                 $cells .= wf_TableCell($each['login']);
                 $cells .= wf_TableCell($each['password']);
@@ -500,6 +521,8 @@ class Envy {
                 $devControls = '';
                 $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $devControls .= wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview')) . ' ';
+                $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
+                $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert);
                 $cells .= wf_TableCell($devControls);
 
                 $rows .= wf_TableRow($cells, 'row5');
@@ -584,9 +607,9 @@ class Envy {
      */
     public function renderArchive() {
         $result = '';
-        $columns = array('Date', 'Device', 'Actions');
+        $columns = array('Date', 'IP', 'Device', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_ARCHIVE_AJ . '=true', false, __('Records'), 100, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_ARCHIVE_AJ . '=true', false, __('Config'), 100, $opts);
         return($result);
     }
 
@@ -598,7 +621,117 @@ class Envy {
     public function getAjArchive() {
         $json = new wf_JqDtHelper();
 
+        if (!empty($this->allConfigs)) {
+            foreach ($this->allConfigs as $io => $each) {
+                @$switchData = $this->allSwitches[$each['switchid']];
+                $data[] = $each['date'];
+                $data[] = @$switchData['ip'];
+                $data[] = @$switchData['location'];
+                $archControls = '';
+                $archControls .= wf_JSAlert(self::URL_ME . '&deletearchiveid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert() . ' ' . $each['date']) . ' ';
+                $archControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_ARCHVIEW . '=' . $each['id'], web_icon_search('Config')) . ' ';
+                $archControls .= wf_Link(self::URL_ME . '&downloadarchiveid=' . $each['id'], web_icon_download());
+
+                $data[] = $archControls;
+                $json->addRow($data);
+                unset($data);
+            }
+        }
         $json->getJson();
+    }
+
+    /**
+     * Saves device config data into archive
+     * 
+     * @param int $switchId
+     * @param string $data
+     * 
+     * @return void/string on error
+     */
+    public function storeArchiveData($switchId, $data) {
+        $result = '';
+        $switchId = ubRouting::filters($switchId, 'int');
+        if (!empty($switchId)) {
+            if (isset($this->allDevices[$switchId])) {
+                $curdate = curdatetime();
+                $data = ubRouting::filters($data, 'mres');
+                $this->archive->data('switchid', $switchId);
+                $this->archive->data('date', $curdate);
+                $this->archive->data('config', $data);
+                $this->archive->create();
+                log_register('ENVY STORE ARCHIVE SWITCHID [' . $switchId . ']');
+            } else {
+                $result .= __('Something went wrong') . ': EX_WRONGSWITCHID [' . $switchId . ']';
+            }
+        } else {
+            $result .= __('Something went wrong') . ': EX_EMPTYSWITCHID';
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing archive record from daabase
+     * 
+     * @param int $recordId
+     * 
+     * @return void/string on error
+     */
+    public function deleteArchiveRecord($recordId) {
+        $result = '';
+        $recordId = ubRouting::filters($recordId, 'int');
+        if (!empty($recordId)) {
+            if (isset($this->allConfigs[$recordId])) {
+                $recordData = $this->allConfigs[$recordId];
+                $this->archive->where('id', '=', $recordId);
+                $this->archive->delete();
+                log_register('ENVY DELETE ARCHIVE RECORD [' . $recordId . '] SWITCHID [' . $recordData['switchid'] . '] DATE `' . $recordData['date'] . '`');
+            } else {
+                $result .= __('Something went wrong') . ': EX_WRONGRECORDID [' . $recordId . ']';
+            }
+        } else {
+            $result .= __('Something went wrong') . ': EX_EMPTYRECORDID';
+        }
+        return($result);
+    }
+
+    /**
+     * Returns device config saved in some archive record
+     * 
+     * @param int $recordId
+     * 
+     * @return string
+     */
+    public function renderArchiveRecordConfig($recordId) {
+        $result = '';
+        if (isset($this->allConfigs[$recordId])) {
+            $this->archive->selectable('config');
+            $this->archive->where('id', '=', $recordId);
+            $rawConfig = $this->archive->getAll();
+            $result = $rawConfig[0]['config'];
+        }
+        return($result);
+    }
+
+    /**
+     * Downloads record file
+     * 
+     * @param int $recordId
+     * 
+     * @return void
+     */
+    public function downloadArchiveRecordConfig($recordId) {
+        if (isset($this->allConfigs[$recordId])) {
+            $recordData = $this->allConfigs[$recordId];
+            $switchId = $recordData['switchid'];
+            $switchIp = (isset($this->allSwitches[$switchId])) ? $this->allSwitches[$switchId]['ip'] : '';
+            $this->archive->selectable('config');
+            $this->archive->where('id', '=', $recordId);
+            $rawConfig = $this->archive->getAll();
+            $configContent = $rawConfig[0]['config'];
+            $tmpFilePath = self::TMP_PATH . self::DL_PREFIX . $recordData['date'] . '_' . $switchId . '_' . $switchIp . '.txt';
+            file_put_contents($tmpFilePath, $configContent);
+            zb_DownloadFile($tmpFilePath);
+        }
     }
 
 }

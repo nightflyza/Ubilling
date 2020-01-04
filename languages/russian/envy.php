@@ -10,3 +10,4 @@ $lang['def']['No envy devices available'] = 'Нету завистливых у�
 $lang['def']['Available envy devices'] = 'Завистливые устройства в наличии';
 $lang['def']['Scripts'] = 'Скрипты';
 $lang['def']['Previously collected devices configs'] = 'Ранее собранные конфиги устройств';
+$lang['def']['Backup device configuration to archive'] = 'Забекапить конфигурацию устройства в архив';
