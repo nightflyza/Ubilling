@@ -47,24 +47,24 @@ function stg_show_tagtypes() {
     $alltypes = simple_queryall($query);
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Color'));
-    $cells.= wf_TableCell(__('Priority'));
-    $cells.= wf_TableCell(__('Text'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Color'));
+    $cells .= wf_TableCell(__('Priority'));
+    $cells .= wf_TableCell(__('Text'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alltypes)) {
         foreach ($alltypes as $io => $eachtype) {
             $eachtagcolor = $eachtype['tagcolor'];
             $actions = wf_JSAlert('?module=usertags&delete=' . $eachtype['id'], web_delete_icon(), $messages->getDeleteAlert());
-            $actions.= wf_JSAlert('?module=usertags&edit=' . $eachtype['id'], web_edit_icon(), $messages->getEditAlert());
+            $actions .= wf_JSAlert('?module=usertags&edit=' . $eachtype['id'], web_edit_icon(), $messages->getEditAlert());
 
             $cells = wf_TableCell($eachtype['id']);
-            $cells.= wf_TableCell(wf_tag('font', false, '', 'color="' . $eachtagcolor . '"') . $eachtagcolor . wf_tag('font', true));
-            $cells.= wf_TableCell($eachtype['tagsize']);
-            $cells.= wf_TableCell(wf_Link('?module=tagcloud&tagid=' . $eachtype['id'], $eachtype['tagname']));
-            $cells.= wf_TableCell($actions);
-            $rows.= wf_TableRow($cells, 'row5');
+            $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $eachtagcolor . '"') . $eachtagcolor . wf_tag('font', true));
+            $cells .= wf_TableCell($eachtype['tagsize']);
+            $cells .= wf_TableCell(wf_Link('?module=tagcloud&tagid=' . $eachtype['id'], $eachtype['tagname']));
+            $cells .= wf_TableCell($actions);
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
 
@@ -72,12 +72,12 @@ function stg_show_tagtypes() {
 
     //construct adding form
     $inputs = wf_ColPicker('newcolor', __('Color'), '#' . rand(11, 99) . rand(11, 99) . rand(11, 99), false, '10');
-    $inputs.= wf_TextInput('newtext', __('Text'), '', false, '15');
-    $inputs.= web_priority_selector() . ' ';
-    $inputs.= wf_HiddenInput('addnewtag', 'true');
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_TextInput('newtext', __('Text'), '', false, '15');
+    $inputs .= web_priority_selector() . ' ';
+    $inputs .= wf_HiddenInput('addnewtag', 'true');
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
-    $result.= $form;
+    $result .= $form;
 
 
     return ($result);
@@ -170,10 +170,10 @@ function stg_show_user_tags($login) {
         foreach ($alltags as $io => $eachtag) {
             if (isset($tagTypesData[$eachtag['tagid']])) {
                 $tagbody = $tagTypesData[$eachtag['tagid']];
-                $result.= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
-                $result.= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . wf_tag('a', true);
-                $result.= wf_tag('font', true);
-                $result.='&nbsp;';
+                $result .= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
+                $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . wf_tag('a', true);
+                $result .= wf_tag('font', true);
+                $result .= '&nbsp;';
             }
         }
     }
@@ -196,7 +196,7 @@ function stg_tagadd_selector() {
     }
 
     $inputs = wf_Selector('tagselector', $tagArr, '', '', false);
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_Submit(__('Save'));
     $result = wf_Form('', 'POST', $inputs, '');
 
     show_window(__('Add tag'), $result);
@@ -235,7 +235,7 @@ function stg_tagdel_selector($login) {
     $result = '';
     if (!empty($usertags)) {
         foreach ($usertags as $io => $eachtag) {
-            $result.=stg_get_tag_body_deleter($eachtag['tagid'], $login, $eachtag['id']);
+            $result .= stg_get_tag_body_deleter($eachtag['tagid'], $login, $eachtag['id']);
         }
     }
     show_window(__('Delete tag'), $result);
@@ -250,11 +250,15 @@ function stg_tagdel_selector($login) {
  * @return void
  */
 function stg_add_user_tag($login, $tagid) {
-    $login = mysql_real_escape_string($login);
-    $tagid = vf($tagid, 3);
-    $query = "INSERT INTO `tags` (`id` ,`login` ,`tagid`) VALUES (NULL , '" . $login . "', '" . $tagid . "'); ";
-    nr_query($query);
-    stg_putlogevent('TAGADD (' . $login . ') TAGID [' . $tagid . ']');
+    $login = ubRouting::filters($login, 'mres');
+    $tagid = ubRouting::filters($tagid, 'int');
+    $tagsDb = new nya_tags();
+
+    $tagsDb->data('login', $login);
+    $tagsDb->data('tagid', $tagid);
+    $tagsDb->create();
+
+    log_register('TAGADD (' . $login . ') TAGID [' . $tagid . ']');
 }
 
 /**
@@ -265,10 +269,19 @@ function stg_add_user_tag($login, $tagid) {
  * @return void
  */
 function stg_del_user_tag($tagid) {
-    $tagid = vf($tagid, 3);
-    $query = "DELETE from `tags` WHERE `id`='" . $tagid . "'";
-    nr_query($query);
-    stg_putlogevent('TAGDEL TAGID [' . $tagid . ']');
+    $tagid = ubRouting::filters($tagid, 'int');
+    $tagsDb = new nya_tags();
+    $tagsDb->where('id', '=', $tagid);
+    $tagData = $tagsDb->getAll();
+    if (!empty($tagData)) {
+        $tagLogin = $tagData[0]['login'];
+        $tagType = $tagData[0]['tagid'];
+        $tagsDb->where('id', '=', $tagid);
+        $tagsDb->delete();
+        log_register('TAGDEL (' . $tagLogin . ') TAGID [' . $tagType . ']');
+    } else {
+        log_register('TAGDEL (' . $tagLogin . ') TAGID [' . $tagType . '] FAIL_NOT_EXISTS');
+    }
 }
 
 /**
@@ -314,13 +327,13 @@ function stg_get_tag_body_deleter($id, $login, $tagid) {
     $tagbody = simple_query($query);
     $result = '';
 
-    $result.= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
-    $result.= $tagbody['tagname'];
-    $result.= wf_tag('sup');
-    $result.= wf_tag('a', false, '', 'href="?module=usertags&username=' . $login . '&deletetag=' . $tagid . '"') . web_delete_icon() . wf_tag('a', true);
-    $result.= wf_tag('sup', true);
-    $result.= wf_tag('font', true);
-    $result.='&nbsp;';
+    $result .= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
+    $result .= $tagbody['tagname'];
+    $result .= wf_tag('sup');
+    $result .= wf_tag('a', false, '', 'href="?module=usertags&username=' . $login . '&deletetag=' . $tagid . '"') . web_delete_icon() . wf_tag('a', true);
+    $result .= wf_tag('sup', true);
+    $result .= wf_tag('font', true);
+    $result .= '&nbsp;';
 
     return($result);
 }
@@ -425,11 +438,11 @@ function web_VserviceAddForm() {
     //$FeeIsChargedAlways = false;
     $serviceFeeTypes = array('stargazer' => __('stargazer user cash'), 'virtual' => __('virtual services cash'));
     $inputs = stg_tagid_selector() . wf_tag('br');
-    $inputs.= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
-    $inputs.= web_priority_selector() . wf_tag('br');
-    $inputs.= wf_TextInput('newfee', __('Fee'), '', true, '5');
-    $inputs.= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), true, false);
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
+    $inputs .= web_priority_selector() . wf_tag('br');
+    $inputs .= wf_TextInput('newfee', __('Fee'), '', true, '5');
+    $inputs .= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), true, false);
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
     return($form);
 }
@@ -463,14 +476,14 @@ function web_VserviceEditForm($vserviceid) {
         $FeeIsChargedAlways = ($serviceData['fee_charge_always'] == 1) ? true : false;
 
         $inputs = wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'], true);
-        $inputs.= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
-        $inputs.= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
-        $inputs.= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
-        $inputs.= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $FeeIsChargedAlways);
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
+        $inputs .= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
+        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
+        $inputs .= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $FeeIsChargedAlways);
+        $inputs .= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
-        $form.= wf_BackLink('?module=vservices');
+        $form .= wf_BackLink('?module=vservices');
         return($form);
     } else {
         throw new Exception('NOT_EXISTING_VSERVICE_ID');
@@ -727,11 +740,11 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
                             }
                             if ($charge_frozen) {
                                 zb_CashAdd($eachuser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachservice['id']);
-                                $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
+                                $allUserData[$eachuser['login']]['Cash'] += $fee; //updating preloaded cash values
                             } else {
                                 if (!isset($frozenUsers[$eachuser['login']])) {
                                     zb_CashAdd($eachuser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachservice['id']);
-                                    $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
+                                    $allUserData[$eachuser['login']]['Cash'] += $fee; //updating preloaded cash values
                                 }
                             }
                         }
@@ -775,7 +788,7 @@ function zb_VservicesGetUserPrice($login) {
             $vservicePrices = zb_VservicesGetAllPrices();
             foreach ($allUserTags[$login] as $tagId => $tagName) {
                 if (isset($vservicePrices[$tagId])) {
-                    $result+=$vservicePrices[$tagId];
+                    $result += $vservicePrices[$tagId];
                 }
             }
         }
