@@ -3272,6 +3272,7 @@ class Warehouse {
             $cells .= wf_TableCell(__('Warehouse item types'));
             $cells .= wf_TableCell(__('Count') . ' ' . __('On') . ' ' . $storageName);
             $cells .= wf_TableCell(__('Reserved'));
+            $cells .= wf_TableCell(__('Total'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($allRemains)) {
@@ -3282,6 +3283,7 @@ class Warehouse {
                     $itemUnit = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
                     $cells .= wf_TableCell(($count - $reservedCount) . ' ' . $itemUnit);
                     $cells .= wf_TableCell($reservedCount . ' ' . $itemUnit);
+                    $cells .= wf_TableCell($count . ' ' . $itemUnit);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
             }
