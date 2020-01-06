@@ -595,10 +595,11 @@ class Envy {
                 $cells .= wf_TableCell($each['custom1']);
                 $devControls = '';
                 $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $devControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $switchData['ip'], $this->renderDeviceEditForm($each['switchid']));
+                $devControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $switchData['ip'], $this->renderDeviceEditForm($each['switchid'])) . ' ';
                 $devControls .= wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview')) . ' ';
                 $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
-                $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert);
+                $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
+                $devControls .= wf_Link('?module=switches&edit=' . $each['switchid'], wf_img('skins/menuicons/switches.png', __('Go to switch')));
                 $cells .= wf_TableCell($devControls);
 
                 $rows .= wf_TableRow($cells, 'row5');
