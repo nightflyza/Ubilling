@@ -563,7 +563,10 @@ class Envy {
      */
     public function renderDevicesList() {
         $result = '';
+
         if (!empty($this->allDevices)) {
+            $countActive = 0;
+            $countInactive = 0;
             $allModelNames = array();
             if (!empty($this->allModels)) {
                 foreach ($this->allModels as $io => $each) {
@@ -603,9 +606,17 @@ class Envy {
                 $cells .= wf_TableCell($devControls);
 
                 $rows .= wf_TableRow($cells, 'row5');
+
+                if ($each['active']) {
+                    $countActive++;
+                } else {
+                    $countInactive++;
+                }
             }
 
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $countersLabel = __('Total') . ': ' . ($countActive + $countInactive) . ' ' . __('Active') . ': ' . $countActive . ' ' . __('Inactive') . ': ' . $countInactive;
+            $result .= wf_tag('br') . wf_tag('b', false) . $countersLabel . wf_tag('b', true);
         } else {
             $result .= $this->messages->getStyledMessage(__('No envy devices available'), 'warning');
         }
