@@ -624,7 +624,7 @@ function wf_MonthSelector($name, $label, $selected = '', $br = false, $allTime =
 function wf_YearSelector($name, $label = '', $br = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
-    $count = 12;
+    $count = 13;
     if ($br) {
         $newline = '<br>';
     } else {
@@ -657,7 +657,7 @@ function wf_YearSelector($name, $label = '', $br = false) {
 function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '', $allTime = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
-    $count = 12;
+    $count = 13;
     $selected = '';
 
     if ($br) {
