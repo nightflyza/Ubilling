@@ -2689,3 +2689,5 @@ CREATE TABLE IF NOT EXISTS `envydata` (
   PRIMARY KEY (`id`),
   KEY `switchid` (`switchid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `envydevices` ADD `active` TINYINT NULL DEFAULT '1' AFTER `switchid`; 

@@ -47,6 +47,17 @@ if (cfr('ENVY')) {
             }
         }
 
+
+        //editing existing device
+        if (ubRouting::checkPost(array('editdeviceid', 'editdeviceswitchid'))) {
+            $devSaveResult = $envy->saveDevice();
+            if (empty($devSaveResult)) {
+                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
+            } else {
+                show_error($devSaveResult);
+            }
+        }
+
         //device config storing to archive
         if (ubRouting::checkGet('storedevice')) {
             $storeResult = $envy->storeArchiveData(ubRouting::get('storedevice'), $envy->runDeviceScript(ubRouting::get('storedevice')));

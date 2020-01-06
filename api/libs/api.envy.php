@@ -413,6 +413,8 @@ class Envy {
                 $inputs .= wf_TextInput('newdevicepassword', __('Password'), '', true, '');
                 $inputs .= wf_TextInput('newdeviceenablepassword', __('Enable password'), '', true, '');
                 $inputs .= wf_TextInput('newdevicecustom1', __('Custom field'), '', true, '');
+                $inputs .= wf_CheckInput('newdeviceactive', __('Active'), true, true);
+                $inputs .= wf_delimiter(0);
                 $inputs .= wf_Submit(__('Create'));
                 $result .= wf_Form('', 'POST', $inputs, 'glamour');
             } else {
@@ -420,6 +422,35 @@ class Envy {
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Available switches') . ': ' . __('No'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders device editing form for existing envy-device
+     * 
+     * @param int $switchId
+     * 
+     * @return string
+     */
+    protected function renderDeviceEditForm($switchId) {
+        $result = '';
+        $deviceId = ubRouting::filters($switchId, 'int');
+        if (isset($this->allDevices[$switchId])) {
+            $deviceData = $this->allDevices[$switchId];
+            $inputs = '';
+            $inputs .= wf_HiddenInput('editdeviceid', $deviceData['id']);
+            $inputs .= wf_HiddenInput('editdeviceswitchid', $deviceData['switchid']);
+            $inputs .= wf_TextInput('editdevicelogin', __('Login'), $deviceData['login'], true, '');
+            $inputs .= wf_TextInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
+            $inputs .= wf_TextInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
+            $inputs .= wf_TextInput('editdevicecustom1', __('Custom field'), $deviceData['custom1'], true, '');
+            $inputs .= wf_CheckInput('editdeviceactive', __('Active'), true, $deviceData['active']);
+            $inputs .= wf_delimiter(0);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NODEVICE', 'error');
         }
         return($result);
     }
@@ -433,6 +464,7 @@ class Envy {
         $result = '';
         if (ubRouting::checkPost(array('newdeviceswitchid'))) {
             $switchId = ubRouting::post('newdeviceswitchid', 'int');
+            $active = (ubRouting::post('newdeviceactive')) ? 1 : 0;
             $login = ubRouting::post('newdevicelogin', 'mres');
             $password = ubRouting::post('newdevicepassword', 'mres');
             $enablepassword = ubRouting::post('newdeviceenablepassword', 'mres');
@@ -441,6 +473,7 @@ class Envy {
                 if (!isset($this->allDevices[$switchId])) {
                     if (isset($this->allSwitches[$switchId])) {
                         $this->devices->data('switchid', $switchId);
+                        $this->devices->data('active', $active);
                         $this->devices->data('login', $login);
                         $this->devices->data('password', $password);
                         $this->devices->data('enablepassword', $enablepassword);
@@ -459,6 +492,43 @@ class Envy {
             }
         }
         return($result);
+    }
+
+    /**
+     * Catches device editing request and saves changes in database
+     * 
+     * @return void/string on error
+     */
+    public function saveDevice() {
+        if (ubRouting::checkPost(array('editdeviceswitchid', 'editdeviceid'))) {
+            $deviceId = ubRouting::post('editdeviceid', 'int');
+            $switchId = ubRouting::post('editdeviceswitchid', 'int');
+            $active = (ubRouting::post('editdeviceactive')) ? 1 : 0;
+            $login = ubRouting::post('editdevicelogin', 'mres');
+            $password = ubRouting::post('editdevicepassword', 'mres');
+            $enablepassword = ubRouting::post('editdeviceenablepassword', 'mres');
+            $custom1 = ubRouting::post('editdevicecustom1', 'mres');
+            if (!empty($switchId)) {
+                if (isset($this->allDevices[$switchId])) {
+                    if (isset($this->allSwitches[$switchId])) {
+                        $this->devices->where('id', '=', $deviceId);
+                        $this->devices->data('active', $active);
+                        $this->devices->data('login', $login);
+                        $this->devices->data('password', $password);
+                        $this->devices->data('enablepassword', $enablepassword);
+                        $this->devices->data('custom1', $custom1);
+                        $this->devices->save();
+                        log_register('ENVY EDIT DEVICE [' . $deviceId . '] SWITCHID [' . $switchId . ']');
+                    } else {
+                        $result .= __('Something went wrong') . ': EX_WRONGSWITCHID [' . $switchId . ']';
+                    }
+                } else {
+                    $result .= __('Something went wrong') . ': EX_DEVICENOTEXISTS';
+                }
+            } else {
+                $result .= __('Something went wrong') . ': EX_EMPTYSWITCHID';
+            }
+        }
     }
 
     /**
@@ -505,6 +575,7 @@ class Envy {
             $cells = wf_TableCell(__('IP'));
             $cells .= wf_TableCell(__('Switch'));
             $cells .= wf_TableCell(__('Model'));
+            $cells .= wf_TableCell(__('Active'));
             $cells .= wf_TableCell(__('Login'));
             $cells .= wf_TableCell(__('Password'));
             $cells .= wf_TableCell(__('Enable password'));
@@ -517,12 +588,14 @@ class Envy {
                 $cells = wf_TableCell($switchData['ip']);
                 $cells .= wf_TableCell($switchData['location']);
                 $cells .= wf_TableCell($allModelNames[$switchData['modelid']]);
+                $cells .= wf_TableCell(web_bool_led($each['active']));
                 $cells .= wf_TableCell($each['login']);
                 $cells .= wf_TableCell($each['password']);
                 $cells .= wf_TableCell($each['enablepassword']);
                 $cells .= wf_TableCell($each['custom1']);
                 $devControls = '';
                 $devControls .= wf_JSAlert(self::URL_ME . '&deletedevice=' . $each['switchid'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $devControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $switchData['ip'], $this->renderDeviceEditForm($each['switchid']));
                 $devControls .= wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview')) . ' ';
                 $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
                 $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert);
@@ -751,7 +824,9 @@ class Envy {
         if (!empty($this->allScripts)) {
             if (!empty($this->allDevices)) {
                 foreach ($this->allDevices as $io => $each) {
-                    $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+                    if ($each['active']) {
+                        $this->storeArchiveData($each['switchid'], $this->runDeviceScript($each['switchid']));
+                    }
                 }
             }
         }
