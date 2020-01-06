@@ -223,7 +223,7 @@ class DealWithIt {
             $query = "UPDATE `dealwithithist` SET `done` = '1', `datetimedone` = '" . $mtime . "' WHERE `dealwithithist`.`originalid` = '" . $id . "'";
         } else {
             $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`,`login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
-            $query.= "(NULL,'" . $id . "','" . $mtime . "','" . $date . "', '" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0')";
+            $query .= "(NULL,'" . $id . "','" . $mtime . "','" . $date . "', '" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0')";
         }
         nr_query($query);
     }
@@ -246,7 +246,7 @@ class DealWithIt {
         $paramF = mysql_real_escape_string($param);
         $noteF = mysql_real_escape_string($note);
         $query = "INSERT INTO `dealwithit` (`id`,`date`,`login`,`action`,`param`,`note`) VALUES";
-        $query.= "(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
+        $query .= "(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
         nr_query($query);
         $newId = simple_get_lastid('dealwithit');
         $this->logTask($newId, $dateF, $loginF, $actionF, $paramF, $noteF, false);
@@ -278,13 +278,13 @@ class DealWithIt {
      */
     public function renderCreateForm($login) {
         $result = '';
-        $result.= wf_AjaxLoader();
+        $result .= wf_AjaxLoader();
         $inputs = wf_HiddenInput('newschedlogin', $login);
-        $inputs.= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
-        $inputs.= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
-        $inputs.= wf_AjaxContainer('ajparamcontainer');
+        $inputs .= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
+        $inputs .= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
+        $inputs .= wf_AjaxContainer('ajparamcontainer');
 
-        $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -299,33 +299,33 @@ class DealWithIt {
             $request = vf($_GET['ajinput']);
             switch ($request) {
                 case 'addcash':
-                    $result.= wf_HiddenInput('newschedaction', 'addcash');
-                    $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
+                    $result .= wf_HiddenInput('newschedaction', 'addcash');
+                    $result .= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
                     $allCashTypes = zb_CashGetTypesNamed();
-                    $result.=wf_Selector('newschedcashtype', $allCashTypes, __('Cash type'), '', true);
+                    $result .= wf_Selector('newschedcashtype', $allCashTypes, __('Cash type'), '', true);
                     break;
                 case 'corrcash':
-                    $result.= wf_HiddenInput('newschedaction', 'corrcash');
-                    $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
+                    $result .= wf_HiddenInput('newschedaction', 'corrcash');
+                    $result .= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
                     break;
                 case 'setcash':
-                    $result.= wf_HiddenInput('newschedaction', 'setcash');
-                    $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
+                    $result .= wf_HiddenInput('newschedaction', 'setcash');
+                    $result .= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
                     break;
                 case 'credit':
-                    $result.= wf_HiddenInput('newschedaction', 'credit');
-                    $result.= wf_TextInput('newschedparam', __('New credit'), '', true, 5);
+                    $result .= wf_HiddenInput('newschedaction', 'credit');
+                    $result .= wf_TextInput('newschedparam', __('New credit'), '', true, 5);
                     break;
                 case 'creditexpire':
-                    $result.= wf_HiddenInput('newschedaction', 'creditexpire');
-                    $result.= wf_DatePickerPreset('newschedparam', curdate()) . ' ' . __('New credit expire') . wf_tag('br');
+                    $result .= wf_HiddenInput('newschedaction', 'creditexpire');
+                    $result .= wf_DatePickerPreset('newschedparam', curdate()) . ' ' . __('New credit expire') . wf_tag('br');
                     break;
                 case 'tariffchange':
-                    $result.= wf_HiddenInput('newschedaction', 'tariffchange');
-                    $result.= web_tariffselector('newschedparam') . ' ' . __('Tariff name') . wf_tag('br');
+                    $result .= wf_HiddenInput('newschedaction', 'tariffchange');
+                    $result .= web_tariffselector('newschedparam') . ' ' . __('Tariff name') . wf_tag('br');
                     break;
                 case 'tagadd':
-                    $result.= wf_HiddenInput('newschedaction', 'tagadd');
+                    $result .= wf_HiddenInput('newschedaction', 'tagadd');
                     $allTags = array();
                     $allTagsRaw = simple_queryall("SELECT * from `tagtypes`");
                     if (!empty($allTagsRaw)) {
@@ -333,10 +333,10 @@ class DealWithIt {
                             $allTags[$each['id']] = $each['tagname'];
                         }
                     }
-                    $result.= wf_Selector('newschedparam', $allTags, __('Tag'), '', true);
+                    $result .= wf_Selector('newschedparam', $allTags, __('Tag'), '', true);
                     break;
                 case 'tagdel':
-                    $result.= wf_HiddenInput('newschedaction', 'tagdel');
+                    $result .= wf_HiddenInput('newschedaction', 'tagdel');
                     $allTags = array();
                     $allTagsRaw = simple_queryall("SELECT * from `tagtypes`");
                     if (!empty($allTagsRaw)) {
@@ -344,44 +344,44 @@ class DealWithIt {
                             $allTags[$each['id']] = $each['tagname'];
                         }
                     }
-                    $result.= wf_Selector('newschedparam', $allTags, __('Tag'), '', true);
+                    $result .= wf_Selector('newschedparam', $allTags, __('Tag'), '', true);
                     break;
                 case 'freeze':
-                    $result.= wf_HiddenInput('newschedaction', 'freeze');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'freeze');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
                 case 'unfreeze':
-                    $result.= wf_HiddenInput('newschedaction', 'unfreeze');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'unfreeze');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
                 case 'reset':
-                    $result.= wf_HiddenInput('newschedaction', 'reset');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'reset');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
                 case 'setspeed':
-                    $result.= wf_HiddenInput('newschedaction', 'setspeed');
-                    $result.= wf_TextInput('newschedparam', __('New speed override'), '', true, 5);
+                    $result .= wf_HiddenInput('newschedaction', 'setspeed');
+                    $result .= wf_TextInput('newschedparam', __('New speed override'), '', true, 5);
                     break;
                 case 'down':
-                    $result.= wf_HiddenInput('newschedaction', 'down');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'down');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
                 case 'undown':
-                    $result.= wf_HiddenInput('newschedaction', 'undown');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'undown');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
                 case 'ao':
-                    $result.= wf_HiddenInput('newschedaction', 'ao');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'ao');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
                 case 'unao':
-                    $result.= wf_HiddenInput('newschedaction', 'unao');
-                    $result.= wf_HiddenInput('newschedparam', '');
+                    $result .= wf_HiddenInput('newschedaction', 'unao');
+                    $result .= wf_HiddenInput('newschedparam', '');
                     break;
             }
 
-            $result.= wf_TextInput('newschednote', __('Notes'), '', true, 30);
-            $result.= wf_Submit(__('Create'));
+            $result .= wf_TextInput('newschednote', __('Notes'), '', true, 30);
+            $result .= wf_Submit(__('Create'));
 
             if ($request == 'noaction') {
                 $result = __('Please select action');
@@ -411,7 +411,7 @@ class DealWithIt {
                             if (zb_checkMoney($param)) {
                                 $cashType = (wf_CheckPost(array('newschedcashtype'))) ? vf($_POST['newschedcashtype']) : 1;
                                 if ($cashType != 1) {
-                                    $param.='|' . $cashType;
+                                    $param .= '|' . $cashType;
                                 }
                                 $this->createTask($date, $login, $action, $param, $note);
                             } else {
@@ -542,7 +542,7 @@ class DealWithIt {
                                 if (zb_checkMoney($param)) {
                                     $cashType = (wf_CheckPost(array('newschedcashtype'))) ? vf($_POST['newschedcashtype']) : 1;
                                     if ($cashType != 1) {
-                                        $param.='|' . $cashType;
+                                        $param .= '|' . $cashType;
                                     }
                                     foreach ($logins as $login) {
                                         $this->createTask($date, $login, $action, $param, $note);
@@ -715,7 +715,7 @@ class DealWithIt {
         }
 
         if (!empty($tmpArr)) {
-
+            $curDate = curdate();
             foreach ($tmpArr as $io => $each) {
                 $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
                 $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
@@ -726,11 +726,11 @@ class DealWithIt {
                     $paramFiltered = $each['param'];
                 }
                 $data[] = $each['id'];
-                $data[] = $each['date'];
+                $data[] = $this->colorizeData($each['date'], $curDate, $each['date']);
                 $data[] = $profileLink;
                 $data[] = @$allAddress[$each['login']];
                 $data[] = @$allRealNames[$each['login']];
-                $data[] = $actionIcon . $this->actionNames[$each['action']];
+                $data[] = $actionIcon . $this->colorizeData($each['date'], $curDate, $this->actionNames[$each['action']]);
                 $data[] = $paramFiltered;
                 $data[] = $each['note'];
                 $data[] = $taskControls;
@@ -740,6 +740,30 @@ class DealWithIt {
         }
 
         $json->getJson();
+    }
+
+    /**
+     * Returns colorized string field based on planning date
+     * 
+     * @param string $date
+     * @param string $curDate
+     * @param string $string
+     * 
+     * @return string
+     */
+    protected function colorizeData($date, $curDate, $string) {
+        $result = '';
+        if ($date > $curDate) {
+            $result = wf_tag('font', false, '', '') . $string . wf_tag('font', true);
+        }
+        if ($date == $curDate) {
+            $result = wf_tag('font', false, '', 'color="#d45f00"') . $string . wf_tag('font', true);
+        }
+
+        if ($date < $curDate) {
+            $result = wf_tag('font', false, '', 'color="#b71e00"') . $string . wf_tag('font', true);
+        }
+        return($result);
     }
 
     /**
@@ -954,10 +978,10 @@ class DealWithIt {
     public function renderDealWithItControl() {
         $messages = new UbillingMessageHelper();
         $controls = wf_Link('?module=report_dealwithit', wf_img('skins/dealwithitsmall.png') . ' ' . __('Available Held jobs for all users'), false, 'ubButton');
-        $controls.= wf_Link('?module=report_dealwithit&history=true', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
+        $controls .= wf_Link('?module=report_dealwithit&history=true', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
 
         $result = show_window('', $controls);
-        $result.= show_window(__('User search'), $this->renderUsersSearchForm());
+        $result .= show_window(__('User search'), $this->renderUsersSearchForm());
         if (wf_CheckPost(array('dealwithit_search')) and isset($_POST['dealwithit_search']['search_by'])) {
 
             $logins = $this->SearchUsers($_POST['dealwithit_search']);
@@ -986,17 +1010,17 @@ class DealWithIt {
         if (!empty($logins)) {
 
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Address'));
-            $cells.= wf_TableCell(__('Real name'));
-            $cells.= wf_TableCell(__('IP'));
-            $cells.= wf_TableCell(__('Tariff'));
-            $cells.= wf_TableCell(__('Active'));
-            $cells.= wf_TableCell(__('Balance'));
-            $cells.= wf_TableCell(__('Credit'));
-            $cells.= wf_TableCell(__('Held jobs for this user'));
+            $cells .= wf_TableCell(__('Login'));
+            $cells .= wf_TableCell(__('Address'));
+            $cells .= wf_TableCell(__('Real name'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Active'));
+            $cells .= wf_TableCell(__('Balance'));
+            $cells .= wf_TableCell(__('Credit'));
+            $cells .= wf_TableCell(__('Held jobs for this user'));
 
-            $cells.= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
+            $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
             $rows = wf_TableRow($cells, 'row1');
 
             $id = '1';
@@ -1036,42 +1060,42 @@ class DealWithIt {
                 if ($cash < '-' . $credit) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
-                $act.= $passive ? '<br> <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                $act .= $passive ? '<br> <img src=skins/icon_passive.gif>' . __('Freezed') : '';
 
                 $cells = wf_TableCell($id);
-                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
-                $cells.= wf_TableCell(@$allAddress[$login]);
-                $cells.= wf_TableCell(@$allRealNames[$login]);
-                $cells.= wf_TableCell($ip);
-                $cells.= wf_TableCell($tariff);
-                $cells.= wf_TableCell($act);
-                $cells.= wf_TableCell($cash);
-                $cells.= wf_TableCell($credit);
+                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
+                $cells .= wf_TableCell(@$allAddress[$login]);
+                $cells .= wf_TableCell(@$allRealNames[$login]);
+                $cells .= wf_TableCell($ip);
+                $cells .= wf_TableCell($tariff);
+                $cells .= wf_TableCell($act);
+                $cells .= wf_TableCell($cash);
+                $cells .= wf_TableCell($credit);
                 if (isset($tmpArr[$login])) {
                     $cells_temp = '';
                     foreach ($tmpArr[$login] as $task) {
                         $actionIcon = (isset($this->actionIcons[$task])) ? wf_img_sized($this->actionIcons[$task], $this->actionNames[$task], '12', '12') . ' ' : '';
-                        $cells_temp.= $actionIcon . $this->actionNames[$task] . wf_tag('br');
+                        $cells_temp .= $actionIcon . $this->actionNames[$task] . wf_tag('br');
                     }
-                    $cells.= wf_TableCell($cells_temp);
+                    $cells .= wf_TableCell($cells_temp);
                 } else {
-                    $cells.= wf_TableCell('');
+                    $cells .= wf_TableCell('');
                 }
-                $cells.= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
+                $rows .= wf_TableRow($cells, 'row3');
                 $id++;
             }
 
-            $result.= wf_AjaxLoader();
+            $result .= wf_AjaxLoader();
 
             $inputs = wf_HiddenInput('newschedloginsarr', true);
-            $inputs.= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
-            $inputs.= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
-            $inputs.= wf_AjaxContainer('ajparamcontainer');
-            $inputs.= wf_tag('br');
-            $inputs.= wf_TableBody($rows, '100%', 0, 'sortable');
+            $inputs .= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
+            $inputs .= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
+            $inputs .= wf_AjaxContainer('ajparamcontainer');
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TableBody($rows, '100%', 0, 'sortable');
 
-            $result.= wf_Form('', 'POST', $inputs, '');
+            $result .= wf_Form('', 'POST', $inputs, '');
         }
 
         return ($result);
@@ -1143,83 +1167,83 @@ class DealWithIt {
         $rows = wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('All fields'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][all_fields]', '', false));
-        $cells.= wf_TableCell(wf_TextInput('dealwithit_search[all_fields]', '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][all_fields]', '', false));
+        $cells .= wf_TableCell(wf_TextInput('dealwithit_search[all_fields]', '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('City'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][city_id]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[city_id]', $allcity, '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][city_id]', '', false));
+        $cells .= wf_TableCell(wf_Selector('dealwithit_search[city_id]', $allcity, '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Tariff'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tariff]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tariff]', '', false));
+        $cells .= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Status'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
+        $cells .= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Services'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][services]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[services]', $services_options, '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][services]', '', false));
+        $cells .= wf_TableCell(wf_Selector('dealwithit_search[services]', $services_options, '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Tags'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tags]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tags]', '', false));
+        $cells .= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Switch'));
-        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][switch]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[switch]', $switches_options, '', '', false));
-        $rows.= wf_TableRow($cells, 'row2');
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][switch]', '', false));
+        $cells .= wf_TableCell(wf_Selector('dealwithit_search[switch]', $switches_options, '', '', false));
+        $rows .= wf_TableRow($cells, 'row2');
 
         // Рисуем форму, которая исключает из запроса пользователей
         $cells_ex = wf_TableCell(wf_tag('b') . __('Exclude from search query') . wf_tag('/b'), '', '', 'colspan="3"');
         $rows_ex = wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('All fields'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_all_fields]', '', false));
-        $cells_ex.= wf_TableCell(wf_TextInput('dealwithit_search[ex_all_fields]', '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_all_fields]', '', false));
+        $cells_ex .= wf_TableCell(wf_TextInput('dealwithit_search[ex_all_fields]', '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('City'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_city_id]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_city_id]', $allcity, '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_city_id]', '', false));
+        $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_city_id]', $allcity, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Tariff'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tariff]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tariff]', $tariffs_options, '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tariff]', '', false));
+        $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_tariff]', $tariffs_options, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Status'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_user_status]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_user_status]', $param_selector_status, '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_user_status]', '', false));
+        $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_user_status]', $param_selector_status, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Services'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_services]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_services]', $services_options, '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_services]', '', false));
+        $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_services]', $services_options, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Tags'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tags]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tags]', $tags_options, '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tags]', '', false));
+        $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_tags]', $tags_options, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Switch'));
-        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_switch]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_switch]', $switches_options, '', '', false));
-        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_switch]', '', false));
+        $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_switch]', $switches_options, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
-        $rows_ex.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
+        $rows_ex .= wf_TableRow(wf_TableCell(wf_Submit('Search')));
 
         $form = wf_TableBody($rows, '', 0, '', 'style="float: left; padding-right: 20px;"');
-        $form.= wf_TableBody($rows_ex, '', 0, '', 'style="float: left;"');
+        $form .= wf_TableBody($rows_ex, '', 0, '', 'style="float: left;"');
         $result = wf_Form("", "POST", $form, 'glamour');
 
         return ($result);
