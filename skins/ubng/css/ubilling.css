@@ -1051,3 +1051,20 @@ div.dhtml_menu div.vert_menu a.active:hover
     width: 90%;
     height: 200px;
 }
+
+#ui-datepicker-div .ui-state-highlight {
+    background: #de844e !important; 
+    color: #000000 !important;
+
+}
+
+#ui-datepicker-div .ui-state-active {
+    background: #c30000 !important; 
+    color: #FFFFFF !important;
+
+}
+
+#ui-datepicker-div .ui-state-hover {
+    background: #ef9898 !important; 
+    color: #000000 !important;
+}
