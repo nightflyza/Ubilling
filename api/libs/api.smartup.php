@@ -6,6 +6,13 @@
 class SmartUP {
 
     /**
+     * Contains system alter.ini config as key=>value
+     *
+     * @var arrays
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available users data as login=>data
      *
      * @var array
@@ -49,9 +56,23 @@ class SmartUP {
      * Creates some magic instance
      */
     public function __construct() {
+        $this->loadConfig();
         $this->initCache();
         $this->loadUserData();
         $this->loadPaymenIds();
+    }
+
+    /**
+     * Loads required configs and sets some options
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+        $this->useCaching = (@$this->altCfg['SMARTUP_NOCACHE']) ? false : true;
     }
 
     /**
