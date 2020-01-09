@@ -210,4 +210,105 @@ class ubRouting {
         return($_POST);
     }
 
+    /**
+     * Checks is all of options array present in CLI command line options as --optionname=
+     * 
+     * @global array $argv
+     * 
+     * @param array/string $params array of variable names to check or single variable name as string
+     * @param bool  $ignoreEmpty ignore or not existing variables with empty values 
+     * 
+     * @return bool
+     */
+    public static function optionCliCheck($params, $ignoreEmpty = true) {
+        global $argv;
+        $result = false;
+        if (!empty($params)) {
+            if (!is_array($params)) {
+                //single param check
+                $params = array($params);
+            }
+
+            foreach ($params as $eachparam) {
+                if (!empty($argv)) {
+                    foreach ($argv as $io => $eachArg) {
+                        $result = false; //each new arg drops to false
+                        $fullOptMask = '--' . $eachparam . '='; //yeah, opts like --optioname=value
+                        if (ispos($eachArg, $fullOptMask)) {
+                            if ($ignoreEmpty) {
+                                $optValue = str_replace($fullOptMask, '', $eachArg);
+                                if (!empty($optValue)) {
+                                    $result = true;
+                                } else {
+                                    $result = false;
+                                }
+                            } else {
+                                $result = true;
+                            }
+                        }
+                    }
+                }
+            }
+            return ($result);
+        } else {
+            throw new Exception('EX_PARAMS_EMPTY');
+        }
+    }
+
+    /**
+     * Returns some variable value with optional filtering from CLI option
+     * 
+     * @global array $argv
+     * 
+     * @param string $name name of variable to extract from CLI options
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback
+     * @param string $callback callback function name to filter variable value
+     * 
+     * @return mixed/false
+     */
+    public static function optionCli($name, $filtering = 'raw', $callback = '') {
+        global $argv;
+        $result = false;
+        if (!empty($argv)) {
+            foreach ($argv as $io => $eachArg) {
+                $fullOptMask = '--' . $name . '=';
+                if (ispos($eachArg, $fullOptMask)) {
+                    $optValue = str_replace($fullOptMask, '', $eachArg);
+                    return(self::filters($optValue, $filtering, $callback));
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns current CLI application name
+     * 
+     * @global array $argv
+     * 
+     * @return string/false
+     */
+    public static function optionCliMe() {
+        global $argv;
+        $result = false;
+        if (!empty($argv)) {
+            if (isset($argv[0])) {
+                $result = $argv[0];
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns count of available CLI options
+     * 
+     * @global array $argc
+     * 
+     * @return int
+     */
+    public static function optionCliCount() {
+        global $argc;
+        return($argc);
+    }
+
 }
