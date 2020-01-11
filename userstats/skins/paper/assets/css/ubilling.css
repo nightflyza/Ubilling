@@ -283,13 +283,15 @@ dirty magic class ;)
 .trinity-button {
     text-decoration: none !important;
     border-radius: 5px;
+    display: block;
+    float: left;
     color: white;
     background: #6cb121;
-    margin: 0 auto;
+    margin: 10px auto;
+    margin-left: 10px;
     left: 0;
     bottom: 35px;
     right: 0;
-    width: 65%;
     padding: 10px 10px 10px 10px;
 }
 
