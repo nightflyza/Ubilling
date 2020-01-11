@@ -987,7 +987,7 @@ class TrinityTv {
      */
     protected function renderDeviceByCodeAddForm($subscriberId) {
         $result = '';
-        $inputs = wf_HiddenInput('device', 'true');
+        $inputs = wf_HiddenInput('manualassigndevice', 'true');
         $inputs .= wf_HiddenInput('subscriberid', $subscriberId);
         $userlogin = $this->getSubscriberLogin($subscriberId);
         $inputs .= wf_HiddenInput('userlogin', $userlogin);
