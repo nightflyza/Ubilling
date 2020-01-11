@@ -1627,6 +1627,26 @@ class TrinityTv {
     }
 
     /**
+     * Returns array of devices assigned for subscribers as subscriberId=>devcount
+     * 
+     * @return array
+     */
+    protected function getUserDevicesCount() {
+        $result = array();
+        $allDevices = $this->getDevices();
+        if (!empty($allDevices)) {
+            foreach ($allDevices as $io => $each) {
+                if (isset($result[$each['subscriber_id']])) {
+                    $result[$each['subscriber_id']] ++;
+                } else {
+                    $result[$each['subscriber_id']] = 1;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders ajax data subscriptions
      *
      * @return void
@@ -1637,13 +1657,7 @@ class TrinityTv {
 
         if (!empty($this->allSubscribers)) {
             if ($this->renderDevices) {
-                $remoteUserData = $this->api->listUsers();
-                $remoteUserData = json_decode(json_encode($remoteUserData), true);
-                if (!empty($remoteUserData)) {
-                    if (isset($remoteUserData['subscribers'])) {
-                        $remoteUserData = $remoteUserData['subscribers'];
-                    }
-                }
+                $devCounters = $this->getUserDevicesCount();
             }
             foreach ($this->allSubscribers as $subscriber) {
 
@@ -1660,10 +1674,10 @@ class TrinityTv {
                 $data[] = $subscriber['actdate'];
                 if ($this->renderDevices) {
                     $devicesCount = 0;
-                    if (isset($remoteUserData[$subscriber['id']])) {
-                        $devicesCount = $remoteUserData[$subscriber['id']]['devicescount'];
+                    if (isset($devCounters[$subscriber['id']])) {
+                        $devicesCount = $devCounters[$subscriber['id']];
                     } else {
-                        $devicesCount = __('Fail');
+                        $devicesCount = 0;
                     }
                     $data[] = $devicesCount;
                 }
@@ -1687,7 +1701,7 @@ class TrinityTv {
         $result = '';
         $columns = array('ID', 'MAC', 'Date', 'Real Name', 'Full address', 'Subscriptions');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_DEVICES . '&' . self::URL_AJDEVS, false, __('devices'), 100, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_DEVICES . '&' . self::URL_AJDEVS, false, __('Devices'), 100, $opts);
         return($result);
     }
 
