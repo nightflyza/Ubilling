@@ -1341,7 +1341,7 @@ class TrinityTv {
 
             $query = "DELETE from `" . self::TABLE_DEVICES . "` WHERE `id`='" . $deviceId . "';";
             nr_query($query);
-            log_register('TRINITYTV DEVICE DELETE [' . $allDevices[$deviceId]['mac'] . ']');
+            log_register('TRINITYTV DEVICE DELETE `' . $allDevices[$deviceId]['mac'] . '` FOR (' . $userLogin . ')');
 
             if (isset($response->result) AND $response->result == 'success') {
                 
@@ -1369,13 +1369,13 @@ class TrinityTv {
 
         $allDevices = $this->getDevices();
         if (isset($allDevices[$deviceId])) {
-
+            $deviceData = $allDevices[$deviceId];
             // Delete a subscription on the Trinity
             $response = $this->api->deleteMacDevice($allDevices[$deviceId]['subscriber_id'], $allDevices[$deviceId]['mac']);
 
             $query = "DELETE from `" . self::TABLE_DEVICES . "` WHERE `id`='" . $deviceId . "';";
             nr_query($query);
-            log_register('TRINITYTV DEVICE DELETE [' . $allDevices[$deviceId]['mac'] . ']');
+            log_register('TRINITYTV DEVICE DELETE `' . $allDevices[$deviceId]['mac'] . '` FOR (' . $deviceData['login'] . ')');
 
             if (isset($response->result) AND $response->result == 'success') {
                 
