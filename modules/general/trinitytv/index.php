@@ -191,6 +191,16 @@ if (cfr('TRINITYTV')) {
             //montly accounting report
             show_window(__('Subscriptions report'), $interface->renderSubscribtionsReportMonthly());
         }
+
+        //rendering devices report
+        if (ubRouting::checkGet('devices')) {
+            //background json data with devices info
+            if (ubRouting::checkGet('ajdevices')) {
+                $interface->devicesListAjax();
+            }
+
+            show_window(__('Devices'), $interface->renderDevicesList());
+        }
     } else {
         show_error(__('This module is disabled'));
     }

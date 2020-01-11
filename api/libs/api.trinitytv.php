@@ -365,8 +365,10 @@ class TrinityTv {
     const URL_SUBSCRIBER = '?module=trinitytv&subscriberid=';
     const URL_SUBS = 'subscriptions=true';
     const URL_AJSUBS = 'ajsubs=true';
+    const URL_AJDEVS = 'ajdevices=true';
     const URL_SUBVIEW = 'subview=true';
     const URL_REPORTS = 'reports=true';
+    const URL_DEVICES = 'devices=true';
     const TABLE_SUBS = 'trinitytv_subscribers';
     const TABLE_TARIFFS = 'trinitytv_tariffs';
     const TABLE_DEVICES = 'trinitytv_devices';
@@ -1225,9 +1227,11 @@ class TrinityTv {
      */
     public function renderPanel() {
         $result = '';
-        $result .= wf_Link(self::URL_ME . '&subscriptions=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . '&tariffs=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . '&reports=true', wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_SUBS, wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_TARIFFS, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_DEVICES, wf_img('skins/switch_models.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
+
         return ($result);
     }
 
@@ -1590,7 +1594,7 @@ class TrinityTv {
 
         // Кнопка создать подписку
         $result .= wf_modalAuto(wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), __('Registration'), $this->renderUserRegisterForm(), 'ubButton');
-        $result .= " <br><br>";
+        $result .= wf_delimiter();
 
         if ($this->renderDevices) {
             $columns = array(
@@ -1671,6 +1675,45 @@ class TrinityTv {
             }
         }
 
+        $json->getJson();
+    }
+
+    /**
+     * Renders devices report container
+     * 
+     * @return string
+     */
+    public function renderDevicesList() {
+        $result = '';
+        $columns = array('ID', 'MAC', 'Date', 'Real Name', 'Full address', 'Subscriptions');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_DEVICES . '&' . self::URL_AJDEVS, false, __('devices'), 100, $opts);
+        return($result);
+    }
+
+    /**
+     * Returns JSON data with available devices info
+     * 
+     * @return void
+     */
+    public function devicesListAjax() {
+        $json = new wf_JqDtHelper();
+        $allDevices = $this->getDevices();
+        if (!empty($allDevices)) {
+            foreach ($allDevices as $io => $each) {
+
+                $data[] = $each['id'];
+                $data[] = $each['mac'];
+                $data[] = $each['created_at'];
+                $data[] = @$this->allUsers[$each['login']]['realname'];
+                $userLink = wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . @$this->allUsers[$each['login']]['fulladress']);
+                $data[] = $userLink;
+                $subLink = wf_Link(self::URL_SUBSCRIBER . $each['subscriber_id'], web_edit_icon());
+                $data[] = $subLink;
+                $json->addRow($data);
+                unset($data);
+            }
+        }
         $json->getJson();
     }
 
