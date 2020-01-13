@@ -1068,3 +1068,7 @@ div.dhtml_menu div.vert_menu a.active:hover
     background: #ef9898 !important; 
     color: #000000 !important;
 }
+
+.fc-today {
+    background: #ffefdd !important;
+}
