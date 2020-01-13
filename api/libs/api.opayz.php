@@ -188,12 +188,12 @@ class OpenPayz {
          * Alone, hurt and cold, she‘s shackled to the pipes
          */
         $paySysSelector['ANY'] = __('All');
-        $paySysSelector+= $this->allPaySys;
+        $paySysSelector += $this->allPaySys;
 
         $inputs = wf_YearSelectorPreset('searchyear', __('Year'), false, $curYear) . ' ';
-        $inputs.= wf_MonthSelector('searchmonth', __('Month'), $curMonth, false) . ' ';
-        $inputs.= wf_Selector('searchpaysys', $paySysSelector, __('Payment system'), $curPaysys, false) . ' ';
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= wf_MonthSelector('searchmonth', __('Month'), $curMonth, false) . ' ';
+        $inputs .= wf_Selector('searchpaysys', $paySysSelector, __('Payment system'), $curPaysys, false) . ' ';
+        $inputs .= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -218,14 +218,14 @@ class OpenPayz {
         $totalcount = 0;
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('Payment ID'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Payment system'));
-        $cells.= wf_TableCell(__('Processed'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Payment ID'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Full address'));
+        $cells .= wf_TableCell(__('Payment system'));
+        $cells .= wf_TableCell(__('Processed'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
 
@@ -239,29 +239,29 @@ class OpenPayz {
                         @$user_address = $this->allAddress[$user_login];
 
                         $cells = wf_TableCell($eachtransaction['id']);
-                        $cells.= wf_TableCell($eachtransaction['date']);
-                        $cells.= wf_TableCell($eachtransaction['summ']);
-                        $cells.= wf_TableCell($eachtransaction['customerid']);
-                        $cells.= wf_TableCell($user_realname);
-                        $cells.= wf_TableCell($user_address);
-                        $cells.= wf_TableCell($eachtransaction['paysys']);
-                        $cells.= wf_TableCell(web_bool_led($eachtransaction['processed']));
-                        $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon()));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($eachtransaction['date']);
+                        $cells .= wf_TableCell($eachtransaction['summ']);
+                        $cells .= wf_TableCell($eachtransaction['customerid']);
+                        $cells .= wf_TableCell($user_realname);
+                        $cells .= wf_TableCell($user_address);
+                        $cells .= wf_TableCell($eachtransaction['paysys']);
+                        $cells .= wf_TableCell(web_bool_led($eachtransaction['processed']));
+                        $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon()));
+                        $rows .= wf_TableRow($cells, 'row3');
                         if ($eachtransaction['summ'] > 0) {
                             $totalsumm = $totalsumm + $eachtransaction['summ'];
                             $totalcount = $totalcount + 1;
                         }
 
                         $csvSumm = str_replace('.', ',', $eachtransaction['summ']);
-                        $csvdata.=$eachtransaction['id'] . ';' . $eachtransaction['date'] . ';' . $csvSumm . ';' . $eachtransaction['customerid'] . ';' . $user_realname . ';' . $user_address . ';' . $eachtransaction['paysys'] . "\n";
+                        $csvdata .= $eachtransaction['id'] . ';' . $eachtransaction['date'] . ';' . $csvSumm . ';' . $eachtransaction['customerid'] . ';' . $user_realname . ';' . $user_address . ';' . $eachtransaction['paysys'] . "\n";
                     }
                 }
             }
         }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= __('Total') . ': ' . $totalcount . ' ' . __('payments') . ' ' . __('with total amount') . ' ' . $totalsumm;
+        $result .= __('Total') . ': ' . $totalcount . ' ' . __('payments') . ' ' . __('with total amount') . ' ' . $totalsumm;
 
         if (!empty($csvdata)) {
             $exportFilename = 'exports/opsearch_' . $paysys . '_' . $year . '-' . $month . '.csv';
@@ -367,10 +367,10 @@ class OpenPayz {
         }
 
         $gcells = wf_TableCell($gcAllPie);
-        $gcells.= wf_TableCell($gcYearPie);
-        $gcells.= wf_TableCell($gcMonthPie);
+        $gcells .= wf_TableCell($gcYearPie);
+        $gcells .= wf_TableCell($gcMonthPie);
         $grows = wf_TableRow($gcells);
-        $result.=wf_TableBody($grows, '100%', 0, '');
+        $result .= wf_TableBody($grows, '100%', 0, '');
 
 
         if (!empty($psysdata)) {
@@ -380,7 +380,7 @@ class OpenPayz {
                     $gchartsData[] = array($datestamp, $optrans['count'], $optrans['summ']);
                 }
 
-                $result.=wf_gchartsLine($gchartsData, $psys, '100%', '300px;', $chartsOptions);
+                $result .= wf_gchartsLine($gchartsData, $psys, '100%', '300px;', $chartsOptions);
                 $gchartsData = array();
             }
         }
@@ -457,7 +457,7 @@ class OpenPayz {
 
                 if ($manual_mode) {
                     if ($eachtransaction['processed'] == 0) {
-                        $control.= ' ' . wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
+                        $control .= ' ' . wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
                     }
                 }
 
@@ -466,7 +466,7 @@ class OpenPayz {
                 @$user_address = $this->allAddress[$user_login];
 
                 if (!empty($user_login)) {
-                    $profileLink = wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon());
+                    $profileLink = wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon() . ' ' . @$user_address);
                 } else {
                     $profileLink = '';
                 }
@@ -478,7 +478,7 @@ class OpenPayz {
                 $data[] = $eachtransaction['summ'];
                 $data[] = $eachtransaction['customerid'];
                 $data[] = $user_realname;
-                $data[] = $profileLink . ' ' . $user_address;
+                $data[] = $profileLink;
                 $data[] = $eachtransaction['paysys'];
                 $data[] = $stateIcon . $control;
 
@@ -514,12 +514,12 @@ class OpenPayz {
         $this->loadTransactions();
         $transactionId = vf($transactionId, 3);
         $result = '';
-        $result.=wf_BackLink('?module=openpayz', '', true);
+        $result .= wf_BackLink('?module=openpayz', '', true);
         if (isset($this->allTransactions[$transactionId])) {
-            $result.= wf_tag('pre', false, 'floatpanelswide', '') . print_r($this->allTransactions[$transactionId], true) . wf_tag('pre', true);
-            $result.=wf_CleanDiv();
+            $result .= wf_tag('pre', false, 'floatpanelswide', '') . print_r($this->allTransactions[$transactionId], true) . wf_tag('pre', true);
+            $result .= wf_CleanDiv();
         } else {
-            $result.=$this->messages->getStyledMessage(__('Non existent transaction ID'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Non existent transaction ID'), 'error');
         }
 
         show_window(__('Transaction') . ': ' . $transactionId, $result);
