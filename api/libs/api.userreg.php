@@ -944,7 +944,9 @@ function zb_UserRegister($user_data, $goprofile = true) {
     if (isset($alterconf['CONTRACT_SAME_AS_LOGIN'])) {
         if ($alterconf['CONTRACT_SAME_AS_LOGIN']) {
             $newUserContract = $login;
+            $contractDate = date("Y-m-d");
             zb_UserChangeContract($login, $newUserContract);
+            zb_UserContractDateCreate($newUserContract, $contractDate);
         }
     }
 
@@ -959,7 +961,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
     //contract autogeneration
-    if (isset($alterconf['CONTRACT_AUTOGEN'])) {
+    if (isset($alterconf['CONTRACT_AUTOGEN']) and empty($alterconf['CONTRACT_SAME_AS_LOGIN'])) {
         if ($alterconf['CONTRACT_AUTOGEN']) {
             $contract_proposal = '';
             $allcontracts = zb_UserGetAllContracts();
