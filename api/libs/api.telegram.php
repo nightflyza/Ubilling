@@ -348,6 +348,17 @@ class UbillingTelegram {
             $method = 'sendLocation' . $locationParams;
         }
 
+        //custom markdown
+        if (ispos($message, 'parseMode:{')) {
+            if (preg_match('!\{(.*?)\}!si', $message, $tmpMode)) {
+                $cleanParseMode = $tmpMode[1];
+                $parseModeMask = 'parseMode:{' . $cleanParseMode . '}';
+                $cleanMessage = str_replace($parseModeMask, '', $message);
+                $data['text'] = $cleanMessage;
+                $method = 'sendMessage?parse_mode=' . $cleanParseMode;
+            }
+        }
+
         //venue sending
         if (ispos($message, 'sendVenue:')) {
             if (preg_match('!\[(.*?)\]!si', $message, $tmpGeo)) {
