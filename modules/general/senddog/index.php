@@ -13,6 +13,11 @@ if (cfr('SENDDOG')) {
                 $sendDog->renderJSON($smsServicesData);
             }
 
+            if (isset($_POST['edittelegrambottoken'])) {
+                $sendDog->editTelegramBotToken($_POST['edittelegrambottoken']);
+                rcms_redirect($sendDog->getBaseUrl());
+            }
+
             if ( wf_CheckPost(array('smssrvcreate')) ) {
                 if ( wf_CheckPost(array('smssrvname')) ) {
                     $newServiceName = $_POST['smssrvname'];
