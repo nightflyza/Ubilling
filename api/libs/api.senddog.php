@@ -1549,6 +1549,19 @@ class SendDogAdvanced extends SendDog {
     }
 
     /**
+     * Changes telegram bot token if differs from already stored
+     *
+     * @param $token
+     */
+    public function editTelegramBotToken ($token) {
+        //telegram bot token configuration
+        if ($token != $this->settings['TELEGRAM_BOTTOKEN']) {
+            zb_StorageSet('SENDDOG_TELEGRAM_BOTTOKEN', $token);
+            log_register('SENDDOG CONFIG SET TELEGRAMBOTTOKEN');
+        }
+    }
+
+    /**
      * Returns set of inputs, required for Telegram service configuration
      *
      * @return string

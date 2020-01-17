@@ -88,7 +88,7 @@ if ($_GET['action'] == 'asterisk') {
                                     die('ASTERISK CREDIT NOT AVAILABLE: BALANCE LOWER THAN CREDIT LIMIT');
                                 }
                             } else {
-                                log_register('ASTERISK CREDIT NOT SET: CASH > 0 OR NOT SET');
+                                log_register('ASTERISK CREDIT NOT SET (' . $userLogin . '): CASH > 0 OR NOT SET');
                                 die('ASTERISK CREDIT NOT SET: CASH > 0 OR NOT SET');
                             }
                         } else {
