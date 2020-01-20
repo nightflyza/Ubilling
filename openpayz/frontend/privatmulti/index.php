@@ -21,6 +21,9 @@ define('PBX_DEBUG_MODE', 0);
 //Использовать ли внешний кодификатор контрагентов из agentcodes.ini?
 define('PBX_USE_AGENTCODES', 0);
 
+//Указывает дефолтный ID контрагента для случаев, если пользователь не привязан к контрагенту
+define('PBX_DEFAULT_AGENTCODE_ID', 0);
+
 //URL вашего работающего Ubilling
 define('API_URL', 'http://localhost/billing/');
 //И его серийный номер
@@ -56,6 +59,20 @@ function getAgentData($userlogin) {
     $action = API_URL . '?module=remoteapi&key=' . API_KEY . '&action=getagentdata&param=' . $userlogin;
     @$result = file_get_contents($action);
     return ($result);
+}
+
+/**
+ * Gets agent(contragent) data from DB
+ *
+ * @param $id
+ *
+ * @return array
+ */
+function pbx_getAgentDataByID($id) {
+    $id = vf($id);
+    $query = "SELECT * from `contrahens` WHERE `id`='" . $id . "'";
+    $result = simple_query($query);
+    return($result);
 }
 
 /**
@@ -240,12 +257,19 @@ function pbx_AddressGetFulladdresslist() {
 function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
     $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
+        $defaultAgentID = PBX_DEFAULT_AGENTCODE_ID;
         $customerLogin = $allcustomers[$customerid];
         $allrealnames = pbx_UserGetAllRealnames();
         $alladdress = pbx_AddressGetFulladdresslist();
         $allmobiles = pbx_UserGetAllMobiles();
         $userdata = pbx_UserGetStargazerData($customerLogin);
         $agentData = getAgentData($customerLogin);
+
+        //если абонент не имеет привязки к контрагенту, но указан дефолтный контрагент
+        if (empty($agentData) and !empty($defaultAgentID)) {
+            $agentData = json_encode(pbx_getAgentDataByID($defaultAgentID));
+        }
+
         if (!empty($agentData)) {
             $agentData = json_decode($agentData, true);
             if (!empty($agentData)) {
@@ -269,7 +293,7 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
             } else {
                 die('ERROR:WRONG_API_CONNECTION');
             }
-        } else {
+        }  else {
             $companyData = '';
         }
         $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : ($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
