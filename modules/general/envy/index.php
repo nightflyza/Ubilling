@@ -131,8 +131,17 @@ if (cfr('ENVY')) {
                 show_window(__('Available envy scripts'), $envy->renderScriptsList());
             }
 
+            //diff viewer
+            if (ubRouting::checkGet($envy::ROUTE_DIFF)) {
+                show_window('', $envy->renderDiffForm());
+                //diff display between existing configs
+                if (ubRouting::checkPost('rundiff', 'diffone', 'difftwo')) {
+                    show_window(__('Changes'), $envy->renderDiff(ubRouting::post('diffone'), ubRouting::post('difftwo')));
+                }
+            }
+
             //here previous data archive
-            if (!ubRouting::checkGet($envy::ROUTE_DEVICES) AND ! ubRouting::checkGet($envy::ROUTE_SCRIPTS)) {
+            if (!ubRouting::checkGet($envy::ROUTE_DEVICES) AND ! ubRouting::checkGet($envy::ROUTE_SCRIPTS) AND ! ubRouting::checkGet($envy::ROUTE_DIFF)) {
                 show_window(__('Previously collected devices configs'), $envy->renderArchive());
                 zb_BillingStats(true);
             }

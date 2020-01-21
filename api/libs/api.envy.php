@@ -81,6 +81,7 @@ class Envy {
     const DL_PREFIX = 'ENVYCONFIG_';
     const ROUTE_SCRIPTS = 'scriptsmgr';
     const ROUTE_DEVICES = 'devicesmgr';
+    const ROUTE_DIFF = 'diff';
     const ROUTE_ARCHVIEW = 'viewarchiveid';
     const ROUTE_ARCHALL = 'archiveall';
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
@@ -371,11 +372,12 @@ class Envy {
      */
     public function renderControls() {
         $result = '';
-        if (ubRouting::checkGet(self::ROUTE_SCRIPTS) OR ubRouting::checkGet(self::ROUTE_DEVICES)) {
+        if (ubRouting::checkGet(self::ROUTE_SCRIPTS) OR ubRouting::checkGet(self::ROUTE_DEVICES) OR ubRouting::checkGet(self::ROUTE_DIFF)) {
             $result .= wf_BackLink(self::URL_ME) . ' ';
         } else {
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DIFF . '=true', wf_img('skins/diff_icon.png') . ' ' . __('Changes'), false, 'ubButton') . ' ';
         }
 
         if (ubRouting::checkGet(self::ROUTE_SCRIPTS)) {
@@ -387,6 +389,7 @@ class Envy {
             $saveAllNotice = $this->messages->getEditAlert() . ' ' . __('Store all devices configs into archive') . '?';
             $result .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_ARCHALL . '=true', wf_img('skins/icon_restoredb.png') . ' ' . __('Store all'), $saveAllNotice, '', 'ubButton');
         }
+
         return($result);
     }
 
@@ -842,6 +845,70 @@ class Envy {
                 }
             }
         }
+    }
+
+    /**
+     * Renders diff search form
+     * 
+     * @return string
+     */
+    public function renderDiffForm() {
+        $result = '';
+        if (!empty($this->allConfigs)) {
+            $confTmp = array();
+            foreach ($this->allConfigs as $io => $each) {
+                if (isset($this->allSwitches[$each['switchid']])) {
+                    $switchData = $this->allSwitches[$each['switchid']];
+                    $swichLabel = $switchData['ip'] . ' - ' . $switchData['location'];
+                } else {
+                    $swichLabel = $each['switchid'] . ' - ' . __('Unknown');
+                }
+
+                $confTmp[$each['id']] = $each['date'] . ' ' . $swichLabel;
+            }
+
+            $currDiffOne = (ubRouting::checkPost('diffone')) ? ubRouting::post('diffone') : '';
+            $currDiffTwo = (ubRouting::checkPost('difftwo')) ? ubRouting::post('difftwo') : '';
+
+            $inputs = wf_HiddenInput('rundiff', 'true');
+            $inputs .= __('Compare') . ' ';
+            $inputs .= wf_Selector('diffone', $confTmp, '', $currDiffOne, false) . ' ';
+            $inputs .= __('and') . ' ';
+            $inputs .= wf_Selector('difftwo', $confTmp, '', $currDiffTwo, false) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        return($result);
+    }
+
+    /**
+     * Compares some two existing configs from archive and displays diff results
+     * 
+     * @param int $configIdOne
+     * @param int $configIdTwo
+     * 
+     * @return string
+     */
+    public function renderDiff($configIdOne, $configIdTwo) {
+        $result = '';
+        $configIdOne = ubRouting::filters($configIdOne, 'int');
+        $configIdTwo = ubRouting::filters($configIdTwo, 'int');
+        if (!empty($configIdOne) AND ! empty($configIdTwo)) {
+            //same config check
+            if ($configIdOne != $configIdTwo) {
+                if (isset($this->allConfigs[$configIdOne]) AND isset($this->allConfigs[$configIdTwo])) {
+                    //TODO
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NO_ARCHIVEID', 'error');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Same configs selected'), 'success');
+            }
+        }
+        return($result);
     }
 
 }

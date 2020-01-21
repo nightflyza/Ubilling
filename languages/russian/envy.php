@@ -14,3 +14,7 @@ $lang['def']['Backup device configuration to archive'] = 'Забекапить �
 $lang['def']['Store all devices configs into archive'] = 'Забекапить конфиги всех устройств в архив';
 $lang['def']['Store all'] = 'Сохранить все';
 $lang['def']['right to control envy'] = 'Право управлять завистью';
+$lang['def']['Changes'] = 'Изменения';
+$lang['def']['Unknown'] = 'Неизвестный';
+$lang['def']['Compare'] = 'Сравнить';
+$lang['def']['Same configs selected'] = 'Выбран один и тот же конфиг';
