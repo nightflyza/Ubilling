@@ -352,7 +352,7 @@ class TrassirServer {
 
     public function setUserSettings($guid, $setting, $value) {
         $result = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/' . $setting.'='.$value . '?sid=' . trim($this->sid);
+        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/' . $setting . '=' . $value . '?sid=' . trim($this->sid);
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
         $comment_position = strripos($responseJson_str, '/*');
         $responseJson_str = substr($responseJson_str, 0, $comment_position);
@@ -431,6 +431,83 @@ class TrassirServer {
 
         $result = 'http://' . trim($this->ip) . ':555/' . $videoToken;
         return $result;
+    }
+
+    public function getCameras() {
+        $result = array();
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/' . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $comment_position = strripos($responseJson_str, '/*');
+        $responseJson_str = substr($responseJson_str, 0, $comment_position);
+        $tmp = json_decode($responseJson_str, true);
+        if (isset($tmp['subdirs'])) {
+            if (!empty($tmp['subdirs'])) {
+                foreach ($tmp['subdirs'] as $io => $each) {
+                    if ($each != 'ip_camera_add') {
+                        $result[$each] = $each;
+                    }
+                }
+            }
+        }
+
+        return($result);
+    }
+
+    public function getCameraIp($guid) {
+        $result = array();
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/' . $guid . '/connection_ip' . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $comment_position = strripos($responseJson_str, '/*');
+        $responseJson_str = substr($responseJson_str, 0, $comment_position);
+        $result = json_decode($responseJson_str, true);
+        $result = $result['value'];
+        return($result);
+    }
+
+    public function getCameraProtocols() {
+        $result = array();
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $comment_position = strripos($responseJson_str, '/*');
+        $responseJson_str = substr($responseJson_str, 0, $comment_position);
+        $result = json_decode($responseJson_str, true);
+        $result = $result['subdirs'];
+        return($result);
+    }
+
+    public function createCamera($protocol, $model, $ip, $port, $username, $password) {
+        $result = array();
+
+
+        //IP
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        //Port
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+
+        //login
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+
+        //password
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+
+        //Model
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+
+
+        //create now
+        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1' . '?sid=' . trim($this->sid);
+        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        debarr($responseJson_str);
+
+        $comment_position = strripos($responseJson_str, '/*');
+        $responseJson_str = substr($responseJson_str, 0, $comment_position);
+        $result = json_decode($responseJson_str, true);
+        return($result);
     }
 
 }

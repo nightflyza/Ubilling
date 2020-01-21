@@ -6,8 +6,27 @@ $us_config = zbs_LoadConfig();
 
 if (@$us_config['OM_ENABLED']) {
     $userData = zbs_UserGetStargazerData($user_login);
+    //Denied tariffs checks if option set
+    $tariffAllowed = true;
+    if (isset($us_config['OM_TARIFFSDENIED'])) {
+        if (!empty($us_config['OM_TARIFFSDENIED'])) {
+            $tariffsDenyList = array();
+            $denyTariffsTmp = explode(',', $us_config['OM_TARIFFSDENIED']);
+            if (!empty($denyTariffsTmp)) {
+                foreach ($denyTariffsTmp as $optionIndex => $eachDeniedTariffName) {
+                    $cleanTariffName = trim($eachDeniedTariffName);
+                    $tariffsDenyList[$cleanTariffName] = $eachDeniedTariffName;
+                }
+            }
+            //strict tariff name check
+            if (isset($tariffsDenyList[$userData['Tariff']])) {
+                $tariffAllowed = false;
+            }
+        }
+    }
+
     //Check for user active state
-    if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 ) AND ( $userData['Cash'] >= '-' . $userData['Credit'])) {
+    if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 ) AND ( $userData['Cash'] >= '-' . $userData['Credit']) AND ( $tariffAllowed)) {
         $omegaFront = new OmegaTvFrontend();
         $omegaFront->setLogin($user_login);
 
