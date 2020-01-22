@@ -603,7 +603,7 @@ function zb_SwitchesGetAllGeo() {
 }
 
 /**
- * Return geo data in ip->geo format
+ * Return geo data in id->geo format
  * 
  * @return array
  */
