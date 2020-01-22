@@ -939,7 +939,7 @@ class UbillingBranches {
                         $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
                         $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon()) . ' ';
                         if ($this->altCfg['FAST_CASH_LINK']) {
-                            $userLinks.=wf_Link(self::URL_ADDCASH . $login . '#profileending', web_cash_icon()) . ' ';
+                            $userLinks.=wf_Link(self::URL_ADDCASH . $login . '#cashfield', web_cash_icon()) . ' ';
                         }
                         @$userAddress = $allAddress[$login];
                         @$userRealName = $allRealNames[$login];

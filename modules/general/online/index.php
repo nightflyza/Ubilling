@@ -513,7 +513,7 @@ if ($system->checkForRight('ONLINE')) {
 
                 //additional finance links
                 if ($alter_conf['FAST_CASH_LINK']) {
-                    $fastcashlink = ' <a href=?module=addcash&username=' . $eachuser['login'] . '#profileending><img src=skins/icon_dollar.gif border=0></a> ';
+                    $fastcashlink = ' <a href=?module=addcash&username=' . $eachuser['login'] . '#cashfield><img src=skins/icon_dollar.gif border=0></a> ';
                 } else {
                     $fastcashlink = '';
                 }

@@ -134,7 +134,7 @@ if (cfr('CASH')) {
                 $queryDeletion = "DELETE from `payments` WHERE `id`='" . $deletePaymentId . "' ;";
                 nr_query($queryDeletion);
                 log_register("PAYMENT DELETE [" . $deletePaymentId . "] (" . $login . ")");
-                rcms_redirect('?module=addcash&username=' . $login . '#profileending');
+                rcms_redirect('?module=addcash&username=' . $login . '#cashfield');
             } else {
                 log_register("PAYMENT UNAUTH DELETION ATTEMPT [" . $deletePaymentId . "] (" . $login . ")");
             }

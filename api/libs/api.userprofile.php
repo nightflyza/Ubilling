@@ -561,7 +561,7 @@ class UserProfile {
 
         $result .= $this->getControl('?module=lifestory&username=' . $this->login, 'skins/icon_orb_big.png', 'User lifestory', 'Details', 'LIFESTORY');
         $result .= $this->getControl('?module=traffstats&username=' . $this->login, 'skins/icon_stats_big.png', 'Traffic stats', 'Traffic stats', 'TRAFFSTATS');
-        $result .= $this->getControl('?module=addcash&username=' . $this->login . '#profileending', 'skins/icon_cash_big.png', 'Finance operations', 'Cash', 'CASH');
+        $result .= $this->getControl('?module=addcash&username=' . $this->login . '#cashfield', 'skins/icon_cash_big.png', 'Finance operations', 'Cash', 'CASH');
         $result .= $this->getControl('?module=macedit&username=' . $this->login, 'skins/icon_ether_big.png', 'Change MAC', 'Change MAC', 'MAC');
         $result .= $this->getControl('?module=binder&username=' . $this->login, 'skins/icon_build_big.png', 'Address', 'Address', 'BINDER');
         $result .= $this->getControl('?module=tariffedit&username=' . $this->login, 'skins/icon_money_time.png', 'Tariff', 'Tariff', 'TARIFFEDIT');
@@ -1574,7 +1574,7 @@ class UserProfile {
                             }
 
                             if ($currentModule == 'addcash') {
-                                $redirectUrl = '?module=addcash&username=' . $this->login . '#profileending';
+                                $redirectUrl = '?module=addcash&username=' . $this->login . '#cashfield';
                             }
 
                             if (!empty($redirectUrl)) {
