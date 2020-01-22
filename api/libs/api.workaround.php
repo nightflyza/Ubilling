@@ -540,7 +540,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $radio .= $setCashControl;
 
     //cash input widget
-    $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '"autofocus size="5" id="cashfield" ' . $cashfieldanchor . '');
+    $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '" size="5" id="cashfield" ' . $cashfieldanchor . ' autofocus');
     $cashInputControl .= ' ' . __('The expected payment') . ': ' . $tariff_price;
 
 
