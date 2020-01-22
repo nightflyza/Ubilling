@@ -18,3 +18,5 @@ $lang['def']['Changes'] = 'Изменения';
 $lang['def']['Unknown'] = 'Неизвестный';
 $lang['def']['Compare'] = 'Сравнить';
 $lang['def']['Same configs selected'] = 'Выбран один и тот же конфиг';
+$lang['def']['No difference between this two configurations'] = 'Нету различий между этими двумя конфигурациями';
+$lang['def']['Something is different in this two configurations'] = 'Что-то различается в этих двух конфигурациях';

@@ -908,12 +908,18 @@ class Envy {
                     $this->archive->where('id', '=', $configIdTwo);
                     $rawConfig = $this->archive->getAll();
                     $configTwo = $rawConfig[0]['config'];
+                    if ($configOne == $configTwo) {
+                        $result .= $this->messages->getStyledMessage(__('No difference between this two configurations'), 'success');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Something is different in this two configurations'), 'warning');
+                    }
+                    $result .= wf_delimiter(0);
                     $result .= Diff::toTable(Diff::compare($configOne, $configTwo, false));
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NO_ARCHIVEID', 'error');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Same configs selected'), 'success');
+                $result .= $this->messages->getStyledMessage(__('Same configs selected'), 'info');
             }
         }
         return($result);
