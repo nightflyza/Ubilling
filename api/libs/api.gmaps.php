@@ -354,8 +354,8 @@ function generic_MapEditor($name, $title = '', $data = '') {
     $result = '
             google.maps.event.addListener(map, \'click\', function(event) {
             var myLatLng = event.latLng;
-            var lat = myLatLng.lat().toPrecision(6);
-            var lng = myLatLng.lng().toPrecision(6);
+            var lat = myLatLng.lat().toPrecision(7);
+            var lng = myLatLng.lng().toPrecision(7);
             ' . $windowCode . '
                infowindow_' . $windowId . '.setPosition(event.latLng);
                infowindow_' . $windowId . '.open(map);

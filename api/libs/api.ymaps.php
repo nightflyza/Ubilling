@@ -202,9 +202,9 @@ function generic_MapEditor($name, $title = '', $data = '') {
                         contentHeader: \'' . $title . '\',
                         contentBody: \' \' +
                             \'<p>\' + [
-                            coords[0].toPrecision(6),
-                            coords[1].toPrecision(6)
-                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="' . $name . '" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">' . $data . '</form> \'
+                            coords[0].toPrecision(7),
+                            coords[1].toPrecision(7)
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="' . $name . '" value="\'+coords[0].toPrecision(7)+\', \'+coords[1].toPrecision(7)+\'">' . $data . '</form> \'
                  
                     });
                 } else {

@@ -270,7 +270,7 @@ function generic_MapEditor($name, $title = '', $data = '') {
     $data = str_replace("'", '`', $data);
     $data = str_replace("\n", '', $data);
     $data = str_replace('"', '\"', $data);
-    $content = '<form action=\"\" method=\"POST\"><input type=\"hidden\" name=' . $name . ' value=\'"+e.latlng.lat+\', \'+e.latlng.lng+"\'>' . $data . '</form>';
+    $content = '<form action=\"\" method=\"POST\"><input type=\"hidden\" name=' . $name . ' value=\'"+e.latlng.lat.toPrecision(7)+\',\'+e.latlng.lng.toPrecision(7)+"\'>' . $data . '</form>';
 
 
     //$content = str_replace('"', '\"', $content);
@@ -280,7 +280,7 @@ function generic_MapEditor($name, $title = '', $data = '') {
                 function onMapClick(e) {
                         popup
                                 .setLatLng(e.latlng)
-                                .setContent("' . $windowCode . '<br>" + e.latlng.lat + ", " + e.latlng.lng)
+                                .setContent("' . $windowCode . '<br>" + e.latlng.lat.toPrecision(7) + "," + e.latlng.lng.toPrecision(7))
                                 .openOn(map);
                 }
 
