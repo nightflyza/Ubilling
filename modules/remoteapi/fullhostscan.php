@@ -3,21 +3,26 @@
 /*
  * networks fast scan with nmap
  */
-if ($_GET['action'] == 'fullhostscan') {
+if (ubRouting::get('action') == 'fullhostscan') {
     $fullScanResult = '';
-    $nmapPath = $alterconf['NMAP_PATH'];
-    $allMultinetNetworks_q = "select * from `networks`";
-    $allMultinetNetworks = simple_queryall($allMultinetNetworks_q);
-    if (!empty($allMultinetNetworks)) {
-        foreach ($allMultinetNetworks as $ig => $eachsubnet) {
-            $nmapCommand = $nmapPath . ' -sP -n ' . $eachsubnet['desc'];
-            $fullScanResult .= shell_exec($nmapCommand);
-            print($eachsubnet['desc'] . ' :' . date("Y-m-d H:i:s") . ':SCANNED' . "\n");
+
+    if (!ubRouting::checkGet('nn')) {
+        $nmapPath = $alterconf['NMAP_PATH'];
+        $allMultinetNetworks_q = "select * from `networks`";
+        $allMultinetNetworks = simple_queryall($allMultinetNetworks_q);
+        if (!empty($allMultinetNetworks)) {
+            foreach ($allMultinetNetworks as $ig => $eachsubnet) {
+                $nmapCommand = $nmapPath . ' -sP -n ' . $eachsubnet['desc'];
+                $fullScanResult .= shell_exec($nmapCommand);
+                print($eachsubnet['desc'] . ' :' . date("Y-m-d H:i:s") . ':SCANNED' . "\n");
+            }
         }
     }
+
+
     //additional parameters
-    if (isset($_GET['param'])) {
-        if ($_GET['param'] == 'traffdiff') {
+    if (ubRouting::checkGet('param')) {
+        if (ubRouting::get('param') == 'traffdiff') {
             $fullScanResult .= '== Traffic analysis diff here ==' . "\n";
             $traff_q = "SELECT `login`,`IP`, (`U0`+`U1`+`U2`+`U3`+`U4`+`U5`+`U6`+`U7`+`U8`+`U9`) as `traff`  from `users`";
             $curTraff = simple_queryall($traff_q);
