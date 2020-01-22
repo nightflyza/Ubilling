@@ -222,8 +222,7 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_price
 
     $sumbitLabel = ($nmChangeFlag) ? __('I want this tariff next month') : __('I want this tariff right now');
 
-    $inputs .= la_Submit($sumbitLabel);
-
+    $inputs.= la_tag('input',false,'','type="submit" style="word-wrap: break-word; white-space: normal;" value="'.$sumbitLabel.'"');
 
     $form .= la_Form('', 'POST', $inputs, '');
 
