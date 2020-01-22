@@ -900,7 +900,15 @@ class Envy {
             //same config check
             if ($configIdOne != $configIdTwo) {
                 if (isset($this->allConfigs[$configIdOne]) AND isset($this->allConfigs[$configIdTwo])) {
-                    //TODO
+                    //gettin both configs from database
+                    $this->archive->selectable('config');
+                    $this->archive->where('id', '=', $configIdOne);
+                    $rawConfig = $this->archive->getAll();
+                    $configOne = $rawConfig[0]['config'];
+                    $this->archive->where('id', '=', $configIdTwo);
+                    $rawConfig = $this->archive->getAll();
+                    $configTwo = $rawConfig[0]['config'];
+                    $result .= Diff::toTable(Diff::compare($configOne, $configTwo, false));
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NO_ARCHIVEID', 'error');
                 }

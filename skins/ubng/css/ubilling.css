@@ -1072,3 +1072,28 @@ div.dhtml_menu div.vert_menu a.active:hover
 .fc-today {
     background: #ffefdd !important;
 }
+
+.diff td{
+    vertical-align:top;
+    white-space:pre;
+    white-space:pre-wrap;
+    font-family:monospace;
+    border-left: 1px dotted;
+}
+
+.diff span{
+    display:block;
+    min-height:1.333em;
+    margin-top:-1px;
+    padding:0 3px;
+}
+
+.diffDeleted span{
+    border:1px solid rgb(255,192,192);
+    background:rgb(255,224,224);
+}
+
+.diffInserted span{
+    border:1px solid rgb(192,255,192);
+    background:rgb(224,255,224);
+}
