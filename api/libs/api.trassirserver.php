@@ -191,6 +191,7 @@ class TrassirServer {
         $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
         $responseJson_str = substr($responseJson_str, 0, $comment_position);
         $objects = json_decode($responseJson_str, true);
+        
         foreach ($objects as $obj) {
             if ($obj['class'] == 'Server') {
                 $this->name = $obj['name'];

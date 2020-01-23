@@ -577,8 +577,8 @@ class Envy {
                 }
             }
 
-
-            $cells = wf_TableCell(__('IP'));
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('IP'));
             $cells .= wf_TableCell(__('Switch'));
             $cells .= wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Active'));
@@ -591,7 +591,8 @@ class Envy {
 
             foreach ($this->allDevices as $io => $each) {
                 $switchData = $this->allSwitches[$each['switchid']];
-                $cells = wf_TableCell($switchData['ip']);
+                $cells = wf_TableCell($each['switchid']);
+                $cells .= wf_TableCell($switchData['ip']);
                 $cells .= wf_TableCell($switchData['location']);
                 $cells .= wf_TableCell($allModelNames[$switchData['modelid']]);
                 $cells .= wf_TableCell(web_bool_led($each['active']));
