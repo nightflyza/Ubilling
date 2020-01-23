@@ -162,7 +162,6 @@ function im_ContactList() {
                 $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '32') . ' ';
                 $adminName = (isset($employeeNames[$eachadmin])) ? $employeeNames[$eachadmin] : $eachadmin;
                 $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $adminName, 'threadContainer', false, $contactClass);
-                //$threadLink.=$blinker;
 
                 $cells = wf_TableCell($aliveFlag, '', '', 'valign="center" align="center"');
                 $cells .= wf_TableCell($conatactAvatar, '35', '', 'valign="center" align="left"');
@@ -171,7 +170,10 @@ function im_ContactList() {
             }
         }
         $result = wf_TableBody($rows, '100%', '0', 'glamour');
-        $result .= wf_delimiter() . wf_Link("?module=ubim&avatarcontrol=true", __('Avatar control'), false, 'ubButton');
+        
+        $myAva = gravatar_ShowAdminAvatar($me, '16');
+        $result.= wf_CleanDiv();
+        $result .= wf_delimiter() . wf_Link("?module=ubim&avatarcontrol=true", $myAva . ' ' . __('Avatar control'), false, 'ubButton');
     }
     return ($result);
 }
