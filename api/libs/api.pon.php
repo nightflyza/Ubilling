@@ -2416,31 +2416,31 @@ class PONizer {
             if (isset($this->signalCache[$onuData['mac']])) {
                 $signal = $this->signalCache[$onuData['mac']];
                 if (($signal > 0) OR ( $signal < -27)) {
-                    $sigColor = '#ab0000';
+                    $sigColor = self::COLOR_BAD;
                     $sigLabel = 'Bad signal';
                 } elseif ($signal > -27 AND $signal < -25) {
-                    $sigColor = '#FF5500';
+                    $sigColor = self::COLOR_AVG;
                     $sigLabel = 'Mediocre signal';
                 } else {
-                    $sigColor = '#005502';
+                    $sigColor = self::COLOR_OK;
                     $sigLabel = 'Normal';
                 }
             } elseif (isset($this->signalCache[$onuData['serial']])) {
                 $signal = $this->signalCache[$onuData['serial']];
                 if (($signal > 0) OR ( $signal < -27)) {
                     $sigColor = '#ab0000';
-                    $sigLabel = 'Bad signal';
+                    $sigLabel = self::COLOR_BAD;
                 } elseif ($signal > -27 AND $signal < -25) {
-                    $sigColor = '#FF5500';
+                    $sigColor = self::COLOR_AVG;
                     $sigLabel = 'Mediocre signal';
                 } else {
-                    $sigColor = '#005502';
+                    $sigColor = self::COLOR_OK;
                     $sigLabel = 'Normal';
                 }
             } else {
                 $ONUIsOffline = true;
                 $signal = __('No');
-                $sigColor = '#000000';
+                $sigColor = self::COLOR_NOSIG;
                 $sigLabel = '';
             }
 
