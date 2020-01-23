@@ -212,6 +212,9 @@ class PONizer {
      */
     protected $hideOnuMac = array();
 
+    /**
+     * Some predefined routes, paths, etc
+     */
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
     const DISTCACHE_PATH = 'exports/';
@@ -229,6 +232,14 @@ class PONizer {
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
+
+    /**
+     * Views/stats coloring
+     */
+    const COLOR_OK = '#005502';
+    const COLOR_AVG = '#FF5500';
+    const COLOR_BAD = '#AB0000';
+    const COLOR_NOSIG = '#000000';
 
     /**
      * Creates new PONizer object instance
@@ -3034,8 +3045,7 @@ class PONizer {
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
-                        $cells = wf_TableCell($eachInterface);
-                        $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+
 
                         $avgSignalCount = @$avgSignals[$oltId][$eachInterface];
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
@@ -3045,10 +3055,27 @@ class PONizer {
                         $badSignalColor = '';
                         $badSignalColorEnd = '';
                         $badSignalPercent = '';
+                        $interfaceFillColor = '';
+                        $interfaceFillColorEnd = '';
+
+                        if ($eachInterfacePercent > 80) {
+                            $interfaceFillColor = wf_tag('font', false, '', 'color="' . self::COLOR_AVG . '"') . wf_tag('b', false);
+                            $interfaceFillColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                        }
+
+                        if ($eachInterfacePercent > 90) {
+                            $interfaceFillColor = wf_tag('font', false, '', 'color="' . self::COLOR_BAD . '"') . wf_tag('b', false);
+                            $interfaceFillColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                        }
+
+
+                        $cells = wf_TableCell($eachInterface);
+                        $interfaceFillLabel = $interfaceFillColor . $eachInterfaceCount . ' (' . $eachInterfacePercent . '%)' . $interfaceFillColorEnd;
+                        $cells .= wf_TableCell($interfaceFillLabel, '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
 
                         if (!empty($avgSignalCount)) {
                             if ($avgSignalCount >= 3) {
-                                $avgSignalColor = wf_tag('font', false, '', 'color="#FF5500"') . wf_tag('b', false);
+                                $avgSignalColor = wf_tag('font', false, '', 'color="' . self::COLOR_AVG . '"') . wf_tag('b', false);
                                 $avgSignalColorEnd = wf_tag('b', true) . wf_tag('font', true);
                             } else {
                                 $avgSignalColor = '';
@@ -3061,7 +3088,7 @@ class PONizer {
 
                         if (!empty($badSignalCount)) {
                             if ($badSignalCount >= 3) {
-                                $badSignalColor = wf_tag('font', false, '', 'color="#FF0000"') . wf_tag('b', false);
+                                $badSignalColor = wf_tag('font', false, '', 'color="' . self::COLOR_BAD . '"') . wf_tag('b', false);
                                 $badSignalColorEnd = wf_tag('b', true) . wf_tag('font', true);
                             } else {
                                 $badSignalColor = '';
@@ -3498,25 +3525,25 @@ class PONizer {
                 if (isset($this->signalCache[$each['mac']])) {
                     $signal = $this->signalCache[$each['mac']];
                     if (($signal > 0) OR ( $signal < -27)) {
-                        $sigColor = '#ab0000';
+                        $sigColor = self::COLOR_BAD;
                     } elseif ($signal > -27 AND $signal < -25) {
-                        $sigColor = '#FF5500';
+                        $sigColor = self::COLOR_AVG;
                     } else {
-                        $sigColor = '#005502';
+                        $sigColor = self::COLOR_OK;
                     }
                 } elseif (isset($this->signalCache[$each['serial']])) {
                     $signal = $this->signalCache[$each['serial']];
                     if (($signal > 0) OR ( $signal < -27)) {
-                        $sigColor = '#ab0000';
+                        $sigColor = self::COLOR_BAD;
                     } elseif ($signal > -27 AND $signal < -25) {
-                        $sigColor = '#FF5500';
+                        $sigColor = self::COLOR_AVG;
                     } else {
-                        $sigColor = '#005502';
+                        $sigColor = self::COLOR_OK;
                     }
                 } else {
                     $ONUIsOffline = true;
                     $signal = __('No');
-                    $sigColor = '#000000';
+                    $sigColor = self::COLOR_NOSIG;
                 }
 
                 $data[] = $each['id'];
