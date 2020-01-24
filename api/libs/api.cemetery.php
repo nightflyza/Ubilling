@@ -164,8 +164,8 @@ class Cemetery {
             stg_add_user_tag($login, $this->tagId);
         }
 
-        //set cash to zero flag (2)
-        if (@$this->altCfg['CEMETERY_ENABLED'] == '2') {
+        //set cash to zero flag (3)
+        if (@$this->altCfg['CEMETERY_ENABLED'] == '3') {
             zb_CashAdd($login, 0, 'set', 1, 'CEMETERY');
         }
         $this->logFuneral($login, 1);
