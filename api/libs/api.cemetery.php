@@ -30,13 +30,54 @@ class Cemetery {
      */
     protected $altCfg = array();
 
+    /**
+     * Cemetery database model placeholder
+     *
+     * @var object
+     */
+    protected $cemetery = '';
+
+    /**
+     * Tags database model placeholder
+     *
+     * @var object
+     */
+    protected $tags = '';
+
+    /**
+     * Creates new cemetery instance
+     * 
+     * @param bool $loadDead
+     */
     public function __construct($loadDead = true) {
         $this->loadAlter();
         $this->setTagId();
         if ($loadDead) {
+            //initalizing some database models
+            $this->initCemetery();
+            $this->initTags();
+            //loading required data
             $this->loadDead();
             $this->loadTagged();
         }
+    }
+
+    /**
+     * Inits cemetery database model
+     * 
+     * @return void
+     */
+    protected function initCemetery() {
+        $this->cemetery = new NyanORM('cemetery');
+    }
+
+    /**
+     * Inits tags database model
+     * 
+     * @return void
+     */
+    protected function initTags() {
+        $this->tags = new NyanORM('tags');
     }
 
     /**
@@ -70,13 +111,7 @@ class Cemetery {
      * @return void
      */
     protected function loadDead() {
-        $query = "SELECT * from `cemetery`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allDead[$each['id']] = $each;
-            }
-        }
+        $this->allDead = $this->cemetery->getAll('id');
     }
 
     /**
@@ -86,14 +121,11 @@ class Cemetery {
      */
     protected function loadTagged() {
         if ($this->tagId) {
-            $tagId = vf($this->tagId, 3);
-            $query = "SELECT `login` from `tags` WHERE `tagid`='" . $tagId . "';";
-            $all = simple_queryall($query);
-            if (!empty($all)) {
-                foreach ($all as $io => $each) {
-                    $this->allTagged[$each['login']] = $each;
-                }
-            }
+            $tagId = ubRouting::filters($this->tagId, 'int');
+            $this->tags->where('tagid', '=', $tagId);
+            $this->tags->selectable('login');
+            $this->allTagged = $this->tags->getAll('login');
+            $this->tags->selectable();
         }
     }
 
@@ -106,11 +138,14 @@ class Cemetery {
      * @return void
      */
     protected function logFuneral($login, $state) {
-        $state = vf($state, 3);
+        $state = ubRouting::filters($state, 'int');
+        $loginF = ubRouting::filters($login, 'mres');
         $date = curdatetime();
-        $loginF = mysql_real_escape_string($login);
-        $query = "INSERT INTO `cemetery` (`id`,`login`,`state`,`date`) VALUES (NULL,'" . $loginF . "','" . $state . "','" . $date . "'); ";
-        nr_query($query);
+
+        $this->cemetery->data('login', $loginF);
+        $this->cemetery->data('state', $state);
+        $this->cemetery->data('date', $date);
+        $this->cemetery->create();
         log_register('CEMETERY (' . $login . ') SET `' . $state . '`');
     }
 
@@ -174,14 +209,14 @@ class Cemetery {
         $result = '';
         if (!empty($this->allDead)) {
             $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('Status'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allDead as $io => $each) {
                 if ($each['login'] == $login) {
                     $led = ($each['state']) ? web_bool_led(0) : web_bool_led(1);
                     $cells = wf_TableCell($each['date']);
-                    $cells.= wf_TableCell($led);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($led);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -194,16 +229,15 @@ class Cemetery {
           Sowie affengeil Teil drei, die auf'm Affenfelsen rammeln
           Ich komm auf deine Party und ich kotze auf's Buffet
          */
-        
         if (cfr('USERREG')) {
             if ($this->isUserDead($login)) {
                 $inputs = wf_HiddenInput('cemeterysetasundead', $login);
-                $inputs.= wf_Submit(__('Set user connected'));
-                $result.= wf_Form('', 'POST', $inputs, 'glamour');
+                $inputs .= wf_Submit(__('Set user connected'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
             } else {
                 $inputs = wf_HiddenInput('cemeterysetasdead', $login);
-                $inputs.= wf_Submit(__('Set user disconnected'));
-                $result.= wf_Form('', 'POST', $inputs, 'glamour');
+                $inputs .= wf_Submit(__('Set user disconnected'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
             }
         }
 
@@ -225,9 +259,13 @@ class Cemetery {
      * @return string
      */
     public function renderChart() {
+        $result = '';
         $data = __('Month') . ',' . __('Subscriber is connected') . ',' . __('Subscriber is not connected') . "\n";
         $tmpArr = array();
         $totalCount = 0;
+
+        $chartData = array();
+        $chartData[] = array(__('Month'), __('Subscriber is connected'), __('Subscriber is not connected'));
 
         if (!empty($this->allDead)) {
             foreach ($this->allDead as $io => $each) {
@@ -256,12 +294,28 @@ class Cemetery {
 
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $ia => $each) {
-                $data.= $ia . ',' . ($totalCount - $each['active']) . ',' . ($totalCount - $each['inactive']) . "\n";
+
+                $chartData[] = array($ia, ($totalCount - $each['active']), ($totalCount - $each['inactive']));
             }
         }
 
-        $result = wf_tag('div', false, '', '');
-        $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+        $chartsOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
+        $result .= wf_gchartsLine($chartData, '', '100%', '300px', $chartsOptions);
         return ($result);
     }
 
