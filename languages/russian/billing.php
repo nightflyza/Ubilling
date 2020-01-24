@@ -3135,6 +3135,7 @@ $lang['def']['right to view power outages'] = 'Право просматрива
 $lang['def']['right to control Dreamkas cash operations'] = 'Право управлять денежными операциями Dreamkas';
 $lang['def']['Money transactions that may was not processed'] = 'Денежные транзакции которые могли быть не обработаны';
 $lang['def']['Unprocessed payments repair'] = 'Исправление необработанных платежей';
+$lang['def']['Bearing'] = 'Азимут';
 $lang['def'][''] = '';
 
 ?>

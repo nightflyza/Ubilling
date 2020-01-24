@@ -83,7 +83,7 @@ function lm_GetIconUrl($icon) {
         case 'yellowCar':
             $result = 'skins/mapmarks/yellowcar.png';
             break;
-        
+
         //unknown icon fallback
         default :
             $result = 'skins/mapmarks/blue.png';
@@ -234,6 +234,10 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     $result .= wf_tag('link', false, '', 'rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.css"');
     $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.min.js"') . wf_tag('script', true);
 
+    //Ruler libs init
+    $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-ruler/src/leaflet-ruler.css"');
+    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-ruler/src/leaflet-ruler.js"') . wf_tag('script', true);
+
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
     $result .= '
@@ -248,6 +252,24 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         
         var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
         geoControl.addTo(map);
+        
+        var options = {
+          position: \'topright\',
+             lengthUnit: {        
+        display: \''.__('meters').'\',          
+        decimal: 2,               
+        factor: 1000,    
+        label: \''.__('Distance').':\'           
+      },
+      angleUnit: {
+        display: \'&deg;\',
+        decimal: 2,        
+        factor: null, 
+        label: \''.__('Bearing').':\'
+      }
+        };
+        L.control.ruler(options).addTo(map);
+
 
 	' . $placemarks . '
         ' . $editor . '
