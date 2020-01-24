@@ -4,7 +4,7 @@
 error_reporting(E_ALL);
 
 
-//
+
 //
 //
 //$dvrs = new nya_visor_dvrs();
@@ -15,7 +15,7 @@ error_reporting(E_ALL);
 //
 //$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
 //$allServerObjects = $trassir->getServerObjects();
-//debarr($allServerObjects);
+////debarr($allServerObjects);
 //
 ////debarr($allServerObjects);
 ////debarr($trassir->getHealth());
@@ -41,16 +41,49 @@ error_reporting(E_ALL);
 ////////////
 //
 //
-//debarr($trassir->createCamera('TRASSIR', 'TR-D8141IR2', '192.168.0.160', '80', 'admin', 'admin'));
+////debarr($trassir->createCamera('TRASSIR', 'TR-D8141IR2', '192.168.0.153', '80', 'admin', 'admin'));
 //
 //
 //
 //$allChannels = $trassir->getChannels();
+///**
+// * Array
+//(
+//    [0] => Array
+//        (
+//            [name] => TR-D8141IR2 5
+//            [guid] => iF99SsWk
+//            [parent] => efXwC0I5C
+//        )
+//
+//    [1] => Array
+//        (
+//            [name] => TR-D8141IR2 3
+//            [guid] => qp5yOGoQ
+//            [parent] => efXwC0I5C
+//        )
+//
+//)
+// */
+//
+///**
+// * Array
+//(
+//    [UvG8g30z] => UvG8g30z
+//    [e9xRpBRQ] => e9xRpBRQ
+//)
+// */
+//
+//
+//$allCamerasIp=$trassir->getAllCameraIps();
+//debarr($allCamerasIp);
+//
+//
 //
 //if (!empty($allChannels)) {
 //    foreach ($allChannels as $io => $eachChan) {
 //        $streamUrl = $trassir->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg');
 //        deb(wf_img_sized($streamUrl, $eachChan['guid'], '40%'));
-//        deb($eachChan['guid']);
+//        //deb($eachChan['guid']);
 //    }
 //}

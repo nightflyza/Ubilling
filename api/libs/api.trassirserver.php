@@ -288,9 +288,7 @@ class TrassirServer {
          * Some auth issues here. TODO.
          */
         $url = 'https://' . trim($this->ip) . ':8080/objects/operatorgui_efXwC0I5/archive_export?channel_name_or_guid=LL0c1qK0&start_time_YYYYMMDD_HHMMSS=2019-12-19 13:00:00&end_time_YYYYMMDD_HHMMSS=2019-12-19 13:55:00&filename=export.avi&archive_on_device=0&sid=' . trim($this->sid);
-        deb($url);
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        debarr($responseJson_str);
     }
 
     public function createUser($login, $password) {
@@ -479,7 +477,6 @@ class TrassirServer {
     public function createCamera($protocol, $model, $ip, $port, $username, $password) {
         $result = array();
 
-
         //IP
         $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip . '?sid=' . trim($this->sid);
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
@@ -508,6 +505,18 @@ class TrassirServer {
         $comment_position = strripos($responseJson_str, '/*');
         $responseJson_str = substr($responseJson_str, 0, $comment_position);
         $result = json_decode($responseJson_str, true);
+        return($result);
+    }
+    
+    public function getAllCameraIps() {
+        $result=array();
+        $allCameras= $this->getCameras();
+        if (!empty($allCameras)) {
+            foreach ($allCameras as $io=>$eachGuid) {
+                $cameraIp= $this->getCameraIp($eachGuid);
+                $result[$cameraIp]=$eachGuid;
+            }
+        }
         return($result);
     }
 
