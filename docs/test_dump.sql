@@ -2691,3 +2691,13 @@ CREATE TABLE IF NOT EXISTS `envydata` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 ALTER TABLE `envydevices` ADD `active` TINYINT NULL DEFAULT '1' AFTER `switchid`; 
+
+-- 1.0.5 update
+
+CREATE TABLE IF NOT EXISTS `visor_chans` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `visorid` int(11) NOT NULL,
+  `dvrid` int(11) NOT NULL,
+  `chan` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

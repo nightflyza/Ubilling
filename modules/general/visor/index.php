@@ -151,6 +151,12 @@ if (cfr('VISOR')) {
         if (ubRouting::checkGet(array('dvrs'))) {
             show_window(__('DVRs'), $visor->renderDVRsList());
         }
+        
+        //existing DVR channels preview & management
+        if (ubRouting::checkGet('channels')) {
+            show_window(__('Channels'), $visor->renderChannelsPreview());
+        }
+        
     } else {
         show_error(__('This module is disabled'));
     }

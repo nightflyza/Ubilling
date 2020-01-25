@@ -80,6 +80,13 @@ class UbillingVisor {
     protected $messages = '';
 
     /**
+     * Default channel preview size
+     *
+     * @var string
+     */
+    protected $chanPreviewSize = '30%';
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -88,6 +95,7 @@ class UbillingVisor {
     const URL_USERCAMS = '&ajaxusercams=';
     const URL_ALLCAMS = '&ajaxallcams=true';
     const URL_DVRS = '&dvrs=true';
+    const URL_CHANS = '&channels=true';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
     const URL_DELDVR = '&deletedvrid=';
@@ -101,6 +109,7 @@ class UbillingVisor {
     const TABLE_USERS = 'visor_users';
     const TABLE_CAMS = 'visor_cams';
     const TABLE_DVRS = 'visor_dvrs';
+    const TABLE_CHANS = 'visor_chans';
 
     public function __construct() {
         $this->loadConfigs();
@@ -257,6 +266,9 @@ class UbillingVisor {
         $result .= wf_Link(self::URL_ME . self::URL_CAMS, wf_img('skins/photostorage.png') . ' ' . __('Cams'), false, 'ubButton') . ' ';
         if (cfr('VISOREDIT')) {
             $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
+            if ($this->trassirEnabled) {
+                $result .= wf_Link(self::URL_ME . self::URL_CHANS, wf_img('skins/play.png') . ' ' . __('Channels'), false, 'ubButton') . ' ';
+            }
         }
         return ($result);
     }
@@ -1222,7 +1234,7 @@ class UbillingVisor {
                         } else {
                             //or just push that camera to DVR
                             $trassir->createCamera(ubRouting::post('newtrassircameraprotocol'), ubRouting::post('newtrassircameramodel'), $cameraIp, $cameraData['port'], $cameraData['camlogin'], $cameraData['campassword']);
-                            log_register('VISOR CAMERA [' . $cameraId . '] CONNECTED DVR [' . $cameraDvrId . '] AS `'.$cameraIp.'`');
+                            log_register('VISOR CAMERA [' . $cameraId . '] CONNECTED DVR [' . $cameraDvrId . '] AS `' . $cameraIp . '`');
                             ubRouting::nav(self::URL_ME . '&' . self::URL_CAMVIEW . $cameraId); //preventing form data duplication
                         }
                     }
@@ -1573,6 +1585,50 @@ class UbillingVisor {
             }
         } else {
             $result .= __('Something went wrong') . ': ' . __('No such DVR exists') . ' [' . $dvrId . ']';
+        }
+        return($result);
+    }
+
+    /**
+     * Renders preview of channels from all Trassir based DVRs
+     * 
+     * @return string
+     */
+    public function renderChannelsPreview() {
+        $result = '';
+
+        if (!empty($this->allDvrs)) {
+            $result .= wf_tag('div', false, '');
+            foreach ($this->allDvrs as $io => $eachDvr) {
+                if ($eachDvr['type'] == 'trassir') {
+                    $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey']);
+                    $serverHealth = $dvrGate->getHealth();
+                    if (!empty($serverHealth)) {
+                        if (isset($serverHealth['channels_health'])) {
+                            $dvrChannels = $serverHealth['channels_health'];
+                            if (!empty($dvrChannels)) {
+                                foreach ($dvrChannels as $ia => $eachChan) {
+                                    $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg');
+                                    $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                                    $result .= $eachChan['name'] . ' / ' . $eachChan['guid'];
+                                    $result .= wf_tag('br');
+                                    $result .= wf_img_sized($streamUrl, '', '90%');
+                                    $result .= __('Signal') . ' ' . web_bool_led($eachChan['signal']);
+                                    $result .= wf_CleanDiv();
+                                    $result .= wf_tag('div', true);
+                                }
+                            }
+                        } else {
+                            //TODO: no channels notification
+                        }
+                    }
+                }
+            }
+
+            $result .= wf_CleanDiv();
+            $result .= wf_tag('div', true);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('DVRs') . ' ' . __('Not exists'), 'warning');
         }
         return($result);
     }
