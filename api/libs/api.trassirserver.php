@@ -500,7 +500,6 @@ class TrassirServer {
         //create now
         $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1' . '?sid=' . trim($this->sid);
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        debarr($responseJson_str);
 
         $comment_position = strripos($responseJson_str, '/*');
         $responseJson_str = substr($responseJson_str, 0, $comment_position);

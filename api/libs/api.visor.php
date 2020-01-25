@@ -66,6 +66,13 @@ class UbillingVisor {
     protected $chargeMode = 1;
 
     /**
+     * Trassir Server integration flag
+     *
+     * @var bool
+     */
+    protected $trassirEnabled = false;
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
@@ -120,6 +127,10 @@ class UbillingVisor {
         if (@$this->altCfg['VISOR_CHARGE_MODE']) {
             $this->chargeMode = $this->altCfg['VISOR_CHARGE_MODE'];
         }
+
+        if (@$this->altCfg['TRASSIRMGR_ENABLED']) {
+            $this->trassirEnabled = true;
+        }
     }
 
     /**
@@ -129,9 +140,12 @@ class UbillingVisor {
      */
     protected function loadDvrTypes() {
         $this->dvrTypes = array(
-            'generic' => __('No'),
-            'trassir' => __('Trassir Server')
+            'generic' => __('No')
         );
+
+        if ($this->trassirEnabled) {
+            $this->dvrTypes += array('trassir' => __('Trassir Server'));
+        }
     }
 
     /**
@@ -791,7 +805,7 @@ class UbillingVisor {
                     }
                     $data[] = $cameraCash;
                     $data[] = $cameraCredit;
-                    $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon());
+                    $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon() . ' ' . __('Edit') . ' ' . __('camera'));
                     $data[] = $actLinks;
                     $json->addRow($data);
                     unset($data);
@@ -1144,6 +1158,9 @@ class UbillingVisor {
                 if (cfr('VISOREDIT')) {
                     $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $cameraEditForm, 'ubButton');
                     $result .= wf_modalAuto(web_delete_icon() . ' ' . __('Delete'), __('Delete'), $this->renderCameraDeletionForm($cameraId), 'ubButton');
+                    if ($this->trassirEnabled) {
+                        $result .= $this->renderTrassirCameraControls($cameraId);
+                    }
                 }
             } else {
                 $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' (' . $cameraData['login'] . ')', 'error');
@@ -1151,6 +1168,123 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such camera exists') . ' [' . $cameraId . ']', 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Rders camera DVR registering form if its not registered yet
+     * 
+     * @param int $cameraId
+     * 
+     * @return string
+     */
+    protected function renderTrassirCameraCreateForm($cameraId) {
+        $result = '';
+        $cameraId = ubRouting::filters($cameraId, 'int');
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $cameraDvrId = $cameraData['dvrid'];
+            $dvrData = $this->allDvrs[$cameraDvrId];
+            $cameraUserData = $this->allUserData[$cameraData['login']];
+            $cameraIp = $cameraUserData['ip'];
+
+            $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
+            $serverHealth = $trassir->getHealth();
+            //dummy connection check
+            if (!empty($serverHealth)) {
+                $result .= $this->messages->getStyledMessage(__('DVR') . ' ' . $dvrData['name'] . ': ' . __('Connected'), 'success');
+                $allCameraIps = $trassir->getAllCameraIps();
+                if (isset($allCameraIps[$cameraIp])) {
+                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR');
+                    $result .= $this->messages->getStyledMessage($successLabel, 'success');
+                } else {
+                    //here registering form.. MB...
+                    $result .= $this->messages->getStyledMessage(__('Camera is not registered at') . ' ' . $dvrData['name'], 'warning');
+                    $protoTmp = $trassir->getCameraProtocols();
+                    if (!empty($protoTmp)) {
+                        $supportedCameraProtocols = array('TRASSIR' => 'TRASSIR');
+                        //Protocols received from DVR
+                        foreach ($protoTmp as $io => $each) {
+                            $supportedCameraProtocols[$each] = $each;
+                        }
+
+                        //Camera models temporary is here
+                        $supportedCameraModels = array('TR-D8141IR2' => 'TR-D8141IR2');
+
+                        //render registration form
+                        if (!ubRouting::checkPost(array('newtrassircamera', 'newtrassircameraprotocol', 'newtrassircameramodel'))) {
+                            $inputs = wf_HiddenInput('newtrassircamera', 'true');
+                            $inputs .= wf_Selector('newtrassircameraprotocol', $supportedCameraProtocols, __('Device vendor'), '', false) . ' ';
+                            $inputs .= wf_Selector('newtrassircameramodel', $supportedCameraModels, __('Model'), '', false) . ' ';
+                            $inputs .= wf_Submit(__('Create camera') . ' ' . __('on') . ' ' . __('DVR') . ' ' . $dvrData['name']);
+                            $result .= wf_delimiter();
+                            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+                        } else {
+                            //or just push that camera to DVR
+                            $trassir->createCamera(ubRouting::post('newtrassircameraprotocol'), ubRouting::post('newtrassircameramodel'), $cameraIp, $cameraData['port'], $cameraData['camlogin'], $cameraData['campassword']);
+                            log_register('VISOR CAMERA [' . $cameraId . '] CONNECTED DVR [' . $cameraDvrId . '] AS `'.$cameraIp.'`');
+                            ubRouting::nav(self::URL_ME . '&' . self::URL_CAMVIEW . $cameraId); //preventing form data duplication
+                        }
+                    }
+                }
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders IP device controls if camera is served by trassir based DVR
+     * 
+     * @param int $cameraId
+     * 
+     * @return string
+     */
+    protected function renderTrassirCameraControls($cameraId) {
+        $result = '';
+        $cameraId = ubRouting::filters($cameraId, 'int');
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $cameraDvrId = $cameraData['dvrid'];
+            //DVR assigned
+            if ($cameraDvrId) {
+                if (isset($this->allDvrs[$cameraDvrId])) {
+                    $dvrData = $this->allDvrs[$cameraDvrId];
+                    //Here we go! That DVR can be managable
+                    if ($dvrData['type'] == 'trassir') {
+                        if (!empty($cameraData['camlogin'])) {
+                            if (!empty($cameraData['campassword'])) {
+                                if (!empty($cameraData['port'])) {
+                                    if (isset($this->allUserData[$cameraData['login']])) {
+                                        //DVD configuration is acceptable?
+                                        if (!empty($dvrData['login']) AND ! empty($dvrData['password']) AND ! empty($dvrData['port']) AND ! empty($dvrData['apikey'])) {
+                                            //Camera looks like it may be registgered on DVR
+                                            $result .= $this->renderTrassirCameraCreateForm($cameraId);
+                                        } else {
+                                            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('DVR') . ' ' . __('Configuration') . ' ' . __('is empty'), 'error');
+                                        }
+                                    } else {
+                                        $result .= $this->messages->getStyledMessage(__('Camera') . ' ' . __('User') . ' ' . __('Not exists') . ' (' . $cameraData['login'] . ')', 'error');
+                                    }
+                                } else {
+                                    $result .= $this->messages->getStyledMessage(__('Camera') . ' ' . __('Port') . ' ' . __('is empty'), 'error');
+                                }
+                            } else {
+                                $result .= $this->messages->getStyledMessage(__('Camera password') . ' ' . __('is empty'), 'error');
+                            }
+                        } else {
+                            $result .= $this->messages->getStyledMessage(__('Camera login') . ' ' . __('is empty'), 'error');
+                        }
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('DVR') . ' ' . __('Not exists') . ' [' . $cameraDvrId . ']', 'error');
+                }
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
+        }
+
         return($result);
     }
 

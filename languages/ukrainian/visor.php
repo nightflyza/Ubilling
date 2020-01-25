@@ -26,3 +26,6 @@ $lang['def']['Contact your system administrator to fix this issue'] = 'Звер�
 $lang['def']['Video surveillance user profile'] = 'Профіль користувача відеоспостереження';
 $lang['def']['Total surveillance price'] = 'Загальна вартість відеоспостереження';
 $lang['def']['Video surveillance'] = 'Відеоспостереження';
+$lang['def']['camera'] = 'камера';
+$lang['def']['on'] = 'на';
+$lang['def']['Camera is not registered at'] = 'Камеру не зареєстровано на';

@@ -26,3 +26,6 @@ $lang['def']['Contact your system administrator to fix this issue'] = 'Обра�
 $lang['def']['Video surveillance user profile'] = 'Профиль пользователя видеонаблюдения';
 $lang['def']['Total surveillance price'] = 'Общая стоимость видеонаблюдения';
 $lang['def']['Video surveillance'] = 'Видеонаблюдение';
+$lang['def']['camera'] = 'камера';
+$lang['def']['on'] = 'на';
+$lang['def']['Camera is not registered at'] = 'Камера не зарегистрирована на';

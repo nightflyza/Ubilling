@@ -4,7 +4,7 @@
 error_reporting(E_ALL);
 
 
-
+//
 //
 //
 //$dvrs = new nya_visor_dvrs();
@@ -75,14 +75,12 @@ error_reporting(E_ALL);
 // */
 //
 //
-//$allCamerasIp=$trassir->getAllCameraIps();
-//debarr($allCamerasIp);
-//
 //
 //
 //if (!empty($allChannels)) {
 //    foreach ($allChannels as $io => $eachChan) {
 //        $streamUrl = $trassir->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg');
+//        
 //        deb(wf_img_sized($streamUrl, $eachChan['guid'], '40%'));
 //        //deb($eachChan['guid']);
 //    }
