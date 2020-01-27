@@ -1092,7 +1092,8 @@ class ExistentialHorse {
         $usersChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Frozen')));
         $usersSignupsChartData = array(0 => array(__('Month'), __('Signups')));
         $complexChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive')));
-        $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU')));
+        $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count')));
+        $arpuChartsData = array(0 => array(__('Month'), __('ARPU'), __('ARPAU')));
         $ukvChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Illegal'), __('Complex'), __('Social'), __('Signups')));
         $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU'), __('Debt')));
         $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
@@ -1264,12 +1265,14 @@ class ExistentialHorse {
                     $rows .= wf_TableRow($cells, 'row3');
                     //chart data
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                    $financeChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount'], $each['f_arpu'], $each['f_arpau']);
+                    $financeChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount']);
+                    $arpuChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_arpu'], $each['f_arpau']);
                 }
             }
             $result .= wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
                 $result .= wf_gchartsLine($financeChartsData, __('Financial highlights'), '100%', '300px', $chartsOptions);
+                $result .= wf_gchartsLine($arpuChartsData, __('ARPU'), '100%', '300px', $chartsOptions);
             }
 
             // UKV cable users
