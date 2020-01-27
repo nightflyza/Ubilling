@@ -140,23 +140,33 @@ if (cfr('VISOR')) {
                 }
             }
         }
-        
+
+        //channel user assign/delete assign
+        if (ubRouting::checkPost(array('editchannelguid', 'editchanneldvrid'))) {
+            $visor->saveChannelAssign();
+            ubRouting::nav($visor::URL_ME . $visor::URL_CHANEDIT . ubRouting::post('editchannelguid') . '&dvrid=' . ubRouting::post('editchanneldvrid'));
+        }
+
         //DVR editing
         if (ubRouting::checkPost(array('editdvrid', 'editdvrip'))) {
             $visor->saveDVR();
-            ubRouting::nav($visor::URL_ME.$visor::URL_DVRS);
+            ubRouting::nav($visor::URL_ME . $visor::URL_DVRS);
         }
 
         //existing DVR listing
         if (ubRouting::checkGet(array('dvrs'))) {
             show_window(__('DVRs'), $visor->renderDVRsList());
         }
-        
+
         //existing DVR channels preview & management
         if (ubRouting::checkGet('channels')) {
             show_window(__('Channels'), $visor->renderChannelsPreview());
         }
-        
+
+        //channel editing form
+        if (ubRouting::checkGet(array('editchannel', 'dvrid'))) {
+            show_window(__('Edit') . ' ' . __('channel'), $visor->renderChannelEditForm(ubRouting::get('editchannel'), ubRouting::get('dvrid')));
+        }
     } else {
         show_error(__('This module is disabled'));
     }

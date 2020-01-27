@@ -56,6 +56,7 @@ if (@$us_config['VISOR_ENABLED']) {
         const TABLE_USERS = 'visor_users';
         const TABLE_CAMS = 'visor_cams';
         const TABLE_DVRS = 'visor_dvrs';
+        const TABLE_CHANS = 'visor_chans';
 
         public function __construct($login) {
             $this->loadConfigs();
@@ -169,6 +170,59 @@ if (@$us_config['VISOR_ENABLED']) {
         }
 
         /**
+         * Gets channels preview as JSON from remote API call
+         * 
+         * @return string
+         */
+        protected function getMyChannelsPreview() {
+            $result = '';
+            if (@$this->userstatsCfg['API_URL'] AND @ $this->userstatsCfg['API_KEY']) {
+                if (!empty($this->myUserData)) {
+                    if (isset($this->myUserData['id'])) {
+                        $myVisorId = $this->myUserData['id'];
+                        $apiBase = $this->userstatsCfg['API_URL'] . '/?module=remoteapi&key=' . $this->userstatsCfg['API_KEY'];
+                        $requestUrl = $apiBase . '&action=visorchans&userid=' . $myVisorId . '&param=preview';
+                        @$channels = file_get_contents($requestUrl);
+                        if (!empty($channels)) {
+                            @$channels = json_decode($channels);
+                            if (!empty($channels)) {
+                                foreach ($channels as $index => $eachUrl) {
+                                    if (!empty($eachUrl)) {
+                                        $result .= la_tag('div', false, '', 'style="float:left; width:30%; margin:5px;"');
+                                        $result .= la_img($eachUrl);
+                                        $result .= la_tag('br');
+                                        $result .= la_tag('br');
+                                        $result .= la_tag(a, false, 'anreadbutton', 'href="' . $eachUrl . '" target="_BLANK"') . __('View') . la_tag('a', true);
+                                        $result .= la_tag('div', true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return($result);
+        }
+
+        /**
+         * Returns count of channels assigned for current instance user
+         * 
+         * @return string
+         */
+        protected function getChansCount() {
+            $result = 0;
+            if (!empty($this->myUserData)) {
+                if (isset($this->myUserData['id'])) {
+                    $query = "SELECT COUNT(`id`) FROM `" . self::TABLE_CHANS . "` WHERE `visorid`='" . $this->myUserData['id'] . "'";
+                    $count = simple_query($query);
+                    $result = $count['COUNT(`id`)'];
+                }
+            }
+            return($result);
+        }
+
+        /**
          * Renders basic user profile data
          * 
          * @return string
@@ -210,6 +264,12 @@ if (@$us_config['VISOR_ENABLED']) {
                         }
 
                         $result .= la_TableBody($rows, '100%', 0, '');
+                        //TODO: make preview as separate route
+                        $myChansCount = $this->getChansCount();
+                        //user have some channels assigned
+                        if ($myChansCount > 0) {
+                            $result .= $this->getMyChannelsPreview();
+                        }
                     } else {
                         $result .= __('You have no cameras assigned for this user profile');
                     }

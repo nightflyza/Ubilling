@@ -4,10 +4,6 @@
 error_reporting(E_ALL);
 
 
-
-//
-//
-//
 //$dvrs = new nya_visor_dvrs();
 //$dvrs->where('id', '=', '10');
 //$dvrData = $dvrs->getAll();

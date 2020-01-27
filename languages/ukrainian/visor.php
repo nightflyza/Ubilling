@@ -29,3 +29,5 @@ $lang['def']['Video surveillance'] = 'Відеоспостереження';
 $lang['def']['camera'] = 'камера';
 $lang['def']['on'] = 'на';
 $lang['def']['Camera is not registered at'] = 'Камеру не зареєстровано на';
+$lang['def']['channel'] = 'канал';
+$lang['def']['DVR connection error'] = 'Помилка з`єднання з DVR';

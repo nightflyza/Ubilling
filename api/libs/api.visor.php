@@ -117,6 +117,7 @@ class UbillingVisor {
     const URL_ALLCAMS = '&ajaxallcams=true';
     const URL_DVRS = '&dvrs=true';
     const URL_CHANS = '&channels=true';
+    const URL_CHANEDIT = '&editchannel=';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
     const URL_DELDVR = '&deletedvrid=';
@@ -1019,6 +1020,26 @@ class UbillingVisor {
     }
 
     /**
+     * Deletes channel to user binding in database
+     * 
+     * @param int $visorId
+     * @param int $dvrId
+     * @param string $channelGuid
+     * 
+     * @return void
+     */
+    public function unassignChannel($visorId, $dvrId, $channelGuid) {
+        $visorId = ubRouting::filters($visorId, 'int');
+        $dvrId = ubRouting::filters($dvrId, 'int');
+        $channelGuid = ubRouting::filters($channelGuid, 'mres');
+        $this->chans->where('visorid', '=', $visorId);
+        $this->chans->where('dvrid', '=', $dvrId);
+        $this->chans->where('chan', '=', $channelGuid);
+        $this->chans->delete();
+        log_register('VISOR USER [' . $visorId . '] UNASSIGN CHAN `' . $channelGuid . '` ON DVR [' . $dvrId . ']');
+    }
+
+    /**
      * Renders users editing interface
      * 
      * @param int $userId
@@ -1306,6 +1327,8 @@ class UbillingVisor {
                         }
                     }
                 }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('DVR connection error') . ' [' . $dvrData['id'] . ']', 'error');
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
@@ -1677,6 +1700,7 @@ class UbillingVisor {
                                 foreach ($dvrChannels as $ia => $eachChan) {
                                     $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg');
                                     $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                                    $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
                                     $result .= $eachChan['name'] . ' / ' . $eachChan['guid'];
                                     $result .= wf_tag('br');
                                     $result .= wf_img_sized($streamUrl, '', '90%');
@@ -1685,7 +1709,7 @@ class UbillingVisor {
                                     $userAssignedLink = ($assignedUserId) ? wf_Link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $assignedUserLabel) : __('No');
                                     $userLinkClass = ($assignedUserId) ? 'todaysig' : 'undone';
                                     $result .= wf_tag('div', false, $userLinkClass);
-                                    $result .= __('User') . ': ' . $userAssignedLink;
+                                    $result .= $channelEditControl . ' ' . __('User') . ': ' . $userAssignedLink;
                                     $result .= wf_tag('div', true);
                                     $result .= __('Signal') . ' ' . web_bool_led($eachChan['signal']);
                                     $result .= wf_CleanDiv();
@@ -1695,6 +1719,8 @@ class UbillingVisor {
                                 $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
                             }
                         }
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('DVR connection error') . ': [' . $eachDvr['id'] . ']', 'error');
                     }
                 }
             }
@@ -1704,6 +1730,107 @@ class UbillingVisor {
         } else {
             $result .= $this->messages->getStyledMessage(__('DVRs') . ' ' . __('Not exists'), 'warning');
         }
+        return($result);
+    }
+
+    /**
+     * Renders channel editing form
+     * 
+     * @param string $channelGuid
+     * @param int $dvrId
+     * 
+     * @return string
+     */
+    public function renderChannelEditForm($channelGuid, $dvrId) {
+        $result = '';
+        $channelGuid = ubRouting::filters($channelGuid, 'mres');
+        $dvrId = ubRouting::filters($dvrId, 'int');
+        if (isset($this->allDvrs[$dvrId])) {
+            //some users preparing
+            $usersTmp = array('' => '-');
+            if (!empty($this->allUsers)) {
+                foreach ($this->allUsers as $io => $each) {
+                    $usersTmp[$each['id']] = $each['realname'];
+                }
+            }
+
+            $inputs = wf_HiddenInput('editchannelguid', $channelGuid);
+            $inputs .= wf_HiddenInput('editchanneldvrid', $dvrId);
+            $inputs .= wf_Selector('editchannelvisorid', $usersTmp, __('User'), @$this->channelUsers[$channelGuid], false) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+
+            $result .= wf_tag('br');
+            $dvrData = $this->allDvrs[$dvrId];
+            if ($dvrData['type'] == 'trassir') {
+                $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
+                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg');
+                $result .= wf_img_sized($channelUrl, '', '60%');
+                $result .= wf_delimiter();
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such DVR exists') . ' [' . $dvrId . ']', 'error');
+        }
+        $result .= wf_BackLink(self::URL_ME . self::URL_CHANS);
+        return($result);
+    }
+
+    /**
+     * Catches channel to user assign request and do required actions (update/delete)
+     * 
+     * @return void
+     */
+    public function saveChannelAssign() {
+        if (ubRouting::checkPost(array('editchannelguid', 'editchanneldvrid'))) {
+            $channelGuid = ubRouting::post('editchannelguid', 'mres');
+            $dvrId = ubRouting::post('editchanneldvrid', 'int');
+            if (ubRouting::checkPost('editchannelvisorid')) {
+                //create/update of assign
+                $visorId = ubRouting::post('editchannelvisorid', 'int');
+                if (isset($this->channelUsers[$channelGuid])) {
+                    if ($visorId != $this->channelUsers[$channelGuid]) {
+                        $this->unassignChannel($this->channelUsers[$channelGuid], $dvrId, $channelGuid);
+                        $this->assignChannel($visorId, $dvrId, $channelGuid);
+                    }
+                } else {
+                    $this->assignChannel($visorId, $dvrId, $channelGuid);
+                }
+            } else {
+                //existing assign deletion
+                if (isset($this->channelUsers[$channelGuid])) {
+                    $currentUserAssignId = $this->channelUsers[$channelGuid];
+                    if (!empty($currentUserAssignId)) {
+                        $this->unassignChannel($currentUserAssignId, $dvrId, $channelGuid);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns JSON list of mjpeg URLs of channels assigned for user
+     * 
+     * @param int $visorId
+     * 
+     * @return string
+     */
+    public function getUserChannelsPreviewJson($visorId) {
+        $result = '';
+        $visorId = ubRouting::filters($visorId, 'int');
+        $urlTmp = array();
+        if (isset($this->allChannels[$visorId])) {
+            foreach ($this->allChannels[$visorId] as $io => $each) {
+                if (isset($this->allDvrs[$each['dvrid']])) {
+                    $dvrData = $this->allDvrs[$each['dvrid']];
+                    if ($dvrData['type'] = 'trassir') {
+                        $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
+                        $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg');
+                        $urlTmp[] = $url;
+                    }
+                }
+            }
+        }
+        $result = json_encode($urlTmp);
         return($result);
     }
 
