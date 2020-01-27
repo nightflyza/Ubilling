@@ -166,6 +166,7 @@ class TrassirServer {
             $this->sidExpiresAt = new \DateTime();
             $this->sidExpiresAt->modify('+15 minutes');
         } else {
+            show_error('SDK: ' . print_r($server_auth, true));
             $this->sid = false;
         }
         return $this->sid;
@@ -191,7 +192,7 @@ class TrassirServer {
         $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
         $responseJson_str = substr($responseJson_str, 0, $comment_position);
         $objects = json_decode($responseJson_str, true);
-        
+
         foreach ($objects as $obj) {
             if ($obj['class'] == 'Server') {
                 $this->name = $obj['name'];
@@ -506,14 +507,14 @@ class TrassirServer {
         $result = json_decode($responseJson_str, true);
         return($result);
     }
-    
+
     public function getAllCameraIps() {
-        $result=array();
-        $allCameras= $this->getCameras();
+        $result = array();
+        $allCameras = $this->getCameras();
         if (!empty($allCameras)) {
-            foreach ($allCameras as $io=>$eachGuid) {
-                $cameraIp= $this->getCameraIp($eachGuid);
-                $result[$cameraIp]=$eachGuid;
+            foreach ($allCameras as $io => $eachGuid) {
+                $cameraIp = $this->getCameraIp($eachGuid);
+                $result[$cameraIp] = $eachGuid;
             }
         }
         return($result);

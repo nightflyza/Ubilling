@@ -538,6 +538,27 @@ function la_img($url, $title = '') {
 }
 
 /**
+ * Returns image body with some dimensions
+ * 
+ * @param string $url image url
+ * @param string $title title attribure for image
+ * @param string $width image width
+ * @param string $height image height
+ * 
+ * @return string
+ *  
+ */
+function la_img_sized($url, $title = '', $width = '', $height = '', $style = '') {
+    $imgtitle = ($title != '') ? 'title="' . $title . '"' : '';
+    $imgwidth = ($width != '') ? 'width="' . $width . '"' : '';
+    $imgheight = ($height != '') ? 'height="' . $height . '"' : '';
+    $imgstyle = (empty($style)) ? '' : ' style="' . $style . '" ';
+
+    $result = '<img src="' . $url . '" ' . $imgtitle . ' ' . $imgwidth . ' ' . $imgheight . $imgstyle . ' border="0">';
+    return ($result);
+}
+
+/**
  * Returns some count of delimiters
  * 
  * @param int $count count of delimited rows

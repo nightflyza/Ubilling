@@ -186,16 +186,19 @@ if (@$us_config['VISOR_ENABLED']) {
                         if (!empty($channels)) {
                             @$channels = json_decode($channels);
                             if (!empty($channels)) {
+                                
                                 foreach ($channels as $index => $eachUrl) {
                                     if (!empty($eachUrl)) {
                                         $result .= la_tag('div', false, '', 'style="float:left; width:30%; margin:5px;"');
-                                        $result .= la_img($eachUrl);
+                                        $result .= la_img_sized($eachUrl,'','90%');
                                         $result .= la_tag('br');
                                         $result .= la_tag('br');
-                                        $result .= la_tag(a, false, 'anreadbutton', 'href="' . $eachUrl . '" target="_BLANK"') . __('View') . la_tag('a', true);
+                                        $result .= la_tag('a', false, 'anreadbutton', 'href="' . $eachUrl . '" target="_BLANK"') . __('View') . la_tag('a', true);
                                         $result .= la_tag('div', true);
                                     }
                                 }
+                                
+                                
                             }
                         }
                     }
