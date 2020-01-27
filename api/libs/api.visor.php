@@ -80,6 +80,27 @@ class UbillingVisor {
     protected $messages = '';
 
     /**
+     * Contains preloaded channels to visor user bindings as visorId=>data
+     *
+     * @var array
+     */
+    protected $allChannels = array();
+
+    /**
+     * Contains channel to users bindings as channelGuid=>visorId
+     *
+     * @var array
+     */
+    protected $channelUsers = array();
+
+    /**
+     * Channels binginds database model
+     *
+     * @var object
+     */
+    protected $chans = '';
+
+    /**
      * Default channel preview size
      *
      * @var string
@@ -115,12 +136,14 @@ class UbillingVisor {
         $this->loadConfigs();
         $this->loadDvrTypes();
         $this->initMessages();
+        $this->initChans();
         $this->loadUserData();
         $this->loadUsers();
         $this->loadTariffPricing();
         $this->loadPaymentIds();
         $this->loadCams();
         $this->loadDvrs();
+        $this->loadChans();
     }
 
     /**
@@ -182,6 +205,30 @@ class UbillingVisor {
      */
     protected function loadTariffPricing() {
         $this->allTariffPrices = zb_TariffGetPricesAll();
+    }
+
+    /**
+     * Inits channels bindings database model
+     * 
+     * @return void
+     */
+    protected function initChans() {
+        $this->chans = new NyanORM(self::TABLE_CHANS);
+    }
+
+    /**
+     * Loads available channels bindings from database
+     * 
+     * @return void
+     */
+    protected function loadChans() {
+        $chansTmp = $this->chans->getAll();
+        if (!empty($chansTmp)) {
+            foreach ($chansTmp as $io => $each) {
+                $this->allChannels[$each['visorid']][] = $each;
+                $this->channelUsers[$each['chan']] = $each['visorid'];
+            }
+        }
     }
 
     /**
@@ -952,6 +999,26 @@ class UbillingVisor {
     }
 
     /**
+     * Creates channel to user binding in database
+     * 
+     * @param int $visorId
+     * @param int $dvrId
+     * @param string $channelGuid
+     * 
+     * @return void
+     */
+    public function assignChannel($visorId, $dvrId, $channelGuid) {
+        $visorId = ubRouting::filters($visorId, 'int');
+        $dvrId = ubRouting::filters($dvrId, 'int');
+        $channelGuid = ubRouting::filters($channelGuid, 'mres');
+        $this->chans->data('visorid', $visorId);
+        $this->chans->data('dvrid', $dvrId);
+        $this->chans->data('chan', $channelGuid);
+        $this->chans->create();
+        log_register('VISOR USER [' . $visorId . '] ASSIGN CHAN `' . $channelGuid . '` ON DVR [' . $dvrId . ']');
+    }
+
+    /**
      * Renders users editing interface
      * 
      * @param int $userId
@@ -1613,13 +1680,20 @@ class UbillingVisor {
                                     $result .= $eachChan['name'] . ' / ' . $eachChan['guid'];
                                     $result .= wf_tag('br');
                                     $result .= wf_img_sized($streamUrl, '', '90%');
+                                    $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
+                                    $assignedUserLabel = (isset($this->allUsers[$assignedUserId])) ? $this->iconVisorUser() . ' ' . $this->allUsers[$assignedUserId]['realname'] : '';
+                                    $userAssignedLink = ($assignedUserId) ? wf_Link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $assignedUserLabel) : __('No');
+                                    $userLinkClass = ($assignedUserId) ? 'todaysig' : 'undone';
+                                    $result .= wf_tag('div', false, $userLinkClass);
+                                    $result .= __('User') . ': ' . $userAssignedLink;
+                                    $result .= wf_tag('div', true);
                                     $result .= __('Signal') . ' ' . web_bool_led($eachChan['signal']);
                                     $result .= wf_CleanDiv();
                                     $result .= wf_tag('div', true);
                                 }
+                            } else {
+                                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
                             }
-                        } else {
-                            //TODO: no channels notification
                         }
                     }
                 }
