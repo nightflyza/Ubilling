@@ -345,8 +345,13 @@ class TrassirServer {
         $responseJson_str = file_get_contents($url, null, $this->stream_context);
     }
 
+    /**
+     * Returns registered non system users as login=>guid
+     * 
+     * @return array
+     */
     public function getUserNames() {
-        $UserNames = array();
+        $userNames = array();
         foreach ($this->trassirUsers as $user) {
             $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $user . '/name?password=' . trim($this->sdkPassword);
             $responseJson_str = file_get_contents($url, null, $this->stream_context);
@@ -355,14 +360,18 @@ class TrassirServer {
             $res[] = json_decode($responseJson_str, true);
         }
 
+
+
         if (!empty($res)) {
             foreach ($res as $userDetails) {
                 if (isset($userDetails['value']) && (!in_array($userDetails['value'], $this->serviceAccountNames))) {
-                    $UserNames[] = $userDetails['value'];
+                    $userGuid = str_replace('users/', '', $userDetails['directory']);
+                    $userGuid = str_replace('/', '', $userGuid);
+                    $userNames[$userDetails['value']] = $userGuid;
                 }
             }
         }
-        return $UserNames;
+        return ($userNames);
     }
 
     /**

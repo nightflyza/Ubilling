@@ -602,7 +602,7 @@ class UbillingVisor {
      */
     public function renderUserProfile($userId) {
         $result = '';
-        $userId = vf($userId, 3);
+        $userId = ubRouting::filters($userId, 'int');
         if (isset($this->allUsers[$userId])) {
             $userData = $this->allUsers[$userId];
             if (!empty($userData)) {
@@ -637,11 +637,63 @@ class UbillingVisor {
                 } else {
                     $result .= $this->messages->getStyledMessage(__('User have no cameras assigned'), 'warning');
                 }
+
+                //assigned channels preview
+                $result .= $this->renderUserAssignedChannels($userId);
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' [' . $userId . ']', 'error');
         }
         return ($result);
+    }
+
+    /**
+     * Renders list of user assigned channels with their preview and optional assign form
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserAssignedChannels($userId) {
+        $result = '';
+        $userId = ubRouting::filters($userId, 'int');
+        if ($this->trassirEnabled) {
+            $result .= wf_tag('h2', false) . __('Channels') . wf_tag('h2', true);
+            $result .= wf_tag('div', false);
+
+            //assigned channels list
+            if (isset($this->allChannels[$userId])) {
+                if (!empty($this->allChannels[$userId])) {
+                    foreach ($this->allChannels[$userId] as $io => $eachChan) {
+                        $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
+                        if ($chanDvrData['type'] == 'trassir') {
+                            $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey']);
+
+                            $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', 'mjpeg');
+                            $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                            $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
+                            $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
+                            $result .= $eachChan['chan'];
+                            $result .= wf_tag('br');
+                            $result .= wf_img_sized($streamUrl, '', '90%');
+
+                            $result .= wf_tag('div', false, 'todaysig');
+                            $result .= $channelEditControl;
+                            $result .= wf_tag('div', true);
+
+                            $result .= wf_CleanDiv();
+                            $result .= wf_tag('div', true);
+                        }
+                    }
+                }
+            }
+            
+            
+
+            $result .= wf_CleanDiv();
+            $result .= wf_tag('div', true, '');
+        }
+        return($result);
     }
 
     /**
@@ -1295,7 +1347,7 @@ class UbillingVisor {
                 $result .= $this->messages->getStyledMessage(__('DVR') . ' ' . $dvrData['name'] . ': ' . __('Connected'), 'success');
                 $allCameraIps = $trassir->getAllCameraIps();
                 if (isset($allCameraIps[$cameraIp])) {
-                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR').' '.$dvrData['name'];
+                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR') . ' ' . $dvrData['name'];
                     $result .= $this->messages->getStyledMessage($successLabel, 'success');
                 } else {
                     //here registering form.. MB...
