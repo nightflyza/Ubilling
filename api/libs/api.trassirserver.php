@@ -2,52 +2,56 @@
 
 class TrassirServer {
 
+    protected $debug = false;
+
     /**
      * @var string $name
      */
-    private $name;
+    protected $name;
 
     /**
      * @var string|null $ip
      */
-    private $ip;
+    protected $ip;
 
     /**
      * @var string $guid
      */
-    private $guid;
+    protected $guid;
 
     /**
      * array for handle list of channels from NMR
      * @var array $channels
      */
-    private $channels = array();
+    protected $channels = array();
 
     /**
      * Variable for storage session id
      * @var string|false $sid
      */
-    private $sid;
-    private $sidExpiresAt;
+    protected $sid;
+    protected $sidExpiresAt;
 
     /**
      * @var string $userName
      */
-    private $userName;
+    protected $userName;
 
     /**
      * @var string $password
      */
-    private $password;
+    protected $password;
+    protected $cache = '';
+    protected $cacheTimeout = 900; //15 mins
 
     /**
      * @var string $sdkPassword
      */
-    private $sdkPassword;
-    private $serverObjects;
-    private $trassirUsers;
-    private $serviceAccountNames = array('Admin', 'Operator', 'Script', 'Demo', 'user_add', 'Monitoring');
-    private $stream_context; //тут храним контекст который нужен CURL или file_get_content для работы с неподписанными сертификатами
+    protected $sdkPassword;
+    protected $serverObjects;
+    protected $trassirUsers;
+    protected $serviceAccountNames = array('Admin', 'Operator', 'Script', 'Demo', 'user_add', 'Monitoring');
+    protected $stream_context; //тут храним контекст который нужен CURL или file_get_content для работы с неподписанными сертификатами
 
     /**
      * 
@@ -61,6 +65,7 @@ class TrassirServer {
      */
 
     public function __construct($ip, $userName = null, $password = null, $sdkPassword = null) {
+        $this->initCache();
         if (filter_var($ip, FILTER_VALIDATE_IP)) {
             $this->ip = $ip;
             $this->userName = $userName;
@@ -76,8 +81,16 @@ class TrassirServer {
         }
     }
 
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
     public function setUserName($userName) {
         $this->userName = $userName;
+    }
+
+    public function setDebug($state) {
+        $this->debug = $state;
     }
 
     public function getUserName() {
@@ -132,7 +145,7 @@ class TrassirServer {
      * Checking is NVR online or not to prevent errors
      * @return bool
      */
-    private function checkConnection() {
+    protected function checkConnection() {
         $status = false;
         $url = 'http://' . trim($this->ip) . ':80/';
         $curlInit = curl_init($url);
@@ -152,21 +165,41 @@ class TrassirServer {
      * Get sessionId (sid) using login and password
      * @return bool|string
      */
-    private function login() {
-        if (isset($this->sid) && ($this->sid !== false) && isset($this->sidExpiresAt) && ($this->sidExpiresAt > new \DateTime())) {
+    protected function login() {
+        ///trying get from cache
+        $cacheKey = 'TRASSIRSID_' . $this->ip;
+        $cachedSid = $this->cache->get($cacheKey, $this->cacheTimeout);
+
+        if (!empty($cachedSid)) {
+            if ($this->debug) {
+                show_success('SID from cache' . ': ' . $cachedSid . ' ON KEY ' . $cacheKey);
+            }
+            $this->sid = $cachedSid;
+        }
+
+        if (isset($this->sid) AND ( $this->sid !== false)) {
+            //updating SID in cache
+            $this->cache->set($cacheKey, $this->sid, $this->cacheTimeout);
             return $this->sid;
         }
+
         $url = 'https://' . trim($this->ip) . ':8080/login?username=' . trim($this->userName) . '&password=' . trim($this->password);
         if (false === ($responseJson_str = @file_get_contents($url, NULL, $this->stream_context))) {
             return false;
         }
+
         $server_auth = json_decode($responseJson_str, true); //переводим JSON в массив
         if ($server_auth['success'] == 1) {
             $this->sid = $server_auth['sid'];
-            $this->sidExpiresAt = new \DateTime();
-            $this->sidExpiresAt->modify('+15 minutes');
+            if ($this->debug) {
+                show_success('New SID: ' . $this->sid);
+            }
+
+            //setting new SID to cache
+            $this->cache->set($cacheKey, $this->sid, $this->cacheTimeout);
         } else {
             show_error('SDK: ' . print_r($server_auth, true));
+            show_warning('SID: ' . $this->sid);
             $this->sid = false;
         }
         return $this->sid;
@@ -361,7 +394,7 @@ class TrassirServer {
     }
 
     /**
-     * @param array $channel One of private $channels
+     * @param array $channel One of protected $channels
      * @param string $folder folder to save shots
      * @param \DateTime|null $timestamp take last available shot if timestamp is null
      * @return string url to image

@@ -1692,6 +1692,7 @@ class UbillingVisor {
             foreach ($this->allDvrs as $io => $eachDvr) {
                 if ($eachDvr['type'] == 'trassir') {
                     $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey']);
+                    
                     $serverHealth = $dvrGate->getHealth();
                     if (!empty($serverHealth)) {
                         if (isset($serverHealth['channels_health'])) {
