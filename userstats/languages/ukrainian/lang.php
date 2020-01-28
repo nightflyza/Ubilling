@@ -400,11 +400,12 @@ $lang['def']['How to configure your devices and use service'] = 'Як налаш
 
 $lang['def']['Surveillance'] = 'Відеоспостереження';
 $lang['def']['You have no cameras assigned for this user profile'] = 'У вас немає камер відеоспостереження присвоєних цьому обліковому запису';
-$lang['def']['Surveillance service is not enabled for you account'] = 'Послугу відеоспостереження ';
+$lang['def']['Surveillance service is not enabled for you account'] = 'Послугу відеоспостереження не підключено для вашого облікового запису';
 $lang['def']['Your cameras'] = 'Ваші камери';
 $lang['def']['Money for cameras will be charged from your primary account'] = 'Кошти будуть стягнуті з вашого основного облікового запису';
 $lang['def']['if no funds for further cameras functioning'] = 'у випадку, якщо їх буде не достатньо для подальшої роботи камер';
 $lang['def']['Your primary account balance now is'] = 'Поточний баланс вашого основного облікового запису';
 $lang['def']['You can recharge it with following Payment ID'] = 'Ви можете поповнити його за допомогою цього платіжного ID';
+$lang['def']['Back'] = 'Назад';
 
 ?>

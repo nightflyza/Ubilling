@@ -1295,7 +1295,7 @@ class UbillingVisor {
                 $result .= $this->messages->getStyledMessage(__('DVR') . ' ' . $dvrData['name'] . ': ' . __('Connected'), 'success');
                 $allCameraIps = $trassir->getAllCameraIps();
                 if (isset($allCameraIps[$cameraIp])) {
-                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR');
+                    $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR').' '.$dvrData['name'];
                     $result .= $this->messages->getStyledMessage($successLabel, 'success');
                 } else {
                     //here registering form.. MB...
@@ -1692,7 +1692,7 @@ class UbillingVisor {
             foreach ($this->allDvrs as $io => $eachDvr) {
                 if ($eachDvr['type'] == 'trassir') {
                     $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey']);
-                    
+                    //$dvrGate->setDebug(true);
                     $serverHealth = $dvrGate->getHealth();
                     if (!empty($serverHealth)) {
                         if (isset($serverHealth['channels_health'])) {

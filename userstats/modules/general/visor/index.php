@@ -174,7 +174,7 @@ if (@$us_config['VISOR_ENABLED']) {
          * 
          * @return string
          */
-        protected function getMyChannelsPreview() {
+        public function getMyChannelsPreview() {
             $result = '';
             if (@$this->userstatsCfg['API_URL'] AND @ $this->userstatsCfg['API_KEY']) {
                 if (!empty($this->myUserData)) {
@@ -186,19 +186,18 @@ if (@$us_config['VISOR_ENABLED']) {
                         if (!empty($channels)) {
                             @$channels = json_decode($channels);
                             if (!empty($channels)) {
-                                
+
                                 foreach ($channels as $index => $eachUrl) {
                                     if (!empty($eachUrl)) {
                                         $result .= la_tag('div', false, '', 'style="float:left; width:30%; margin:5px;"');
-                                        $result .= la_img_sized($eachUrl,'','90%');
+                                        $result .= la_img_sized($eachUrl, '', '90%');
                                         $result .= la_tag('br');
                                         $result .= la_tag('br');
                                         $result .= la_tag('a', false, 'anreadbutton', 'href="' . $eachUrl . '" target="_BLANK"') . __('View') . la_tag('a', true);
                                         $result .= la_tag('div', true);
+                                        
                                     }
                                 }
-                                
-                                
                             }
                         }
                     }
@@ -271,7 +270,12 @@ if (@$us_config['VISOR_ENABLED']) {
                         $myChansCount = $this->getChansCount();
                         //user have some channels assigned
                         if ($myChansCount > 0) {
-                            $result .= $this->getMyChannelsPreview();
+                            $result.= la_tag('br');
+                            if (!la_CheckGet(array('previewchannels'))) {
+                                $result .= la_Link('?module=visor&previewchannels=true', __('View'), false, 'anreadbutton');
+                            } else {
+                                $result .= la_Link('?module=visor', __('Back'), false, 'anunreadbutton');
+                            }
                         }
                     } else {
                         $result .= __('You have no cameras assigned for this user profile');
@@ -289,6 +293,9 @@ if (@$us_config['VISOR_ENABLED']) {
 
     $visor = new ZBSVisorInterface($user_login);
     show_window(__('Surveillance'), $visor->renderProfile());
+    if (la_CheckGet(array('previewchannels'))) {
+        show_window(__('View'), $visor->getMyChannelsPreview());
+    }
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }

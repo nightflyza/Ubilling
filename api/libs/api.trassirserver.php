@@ -30,7 +30,6 @@ class TrassirServer {
      * @var string|false $sid
      */
     protected $sid;
-    protected $sidExpiresAt;
 
     /**
      * @var string $userName
@@ -41,7 +40,19 @@ class TrassirServer {
      * @var string $password
      */
     protected $password;
+
+    /**
+     * Caching object placeholder
+     *
+     * @var object
+     */
     protected $cache = '';
+
+    /**
+     * Session caching interval in seconds
+     *
+     * @var int
+     */
     protected $cacheTimeout = 900; //15 mins
 
     /**
@@ -149,7 +160,7 @@ class TrassirServer {
         $status = false;
         $url = 'http://' . trim($this->ip) . ':80/';
         $curlInit = curl_init($url);
-        curl_setopt($curlInit, CURLOPT_CONNECTTIMEOUT, 2); //третий параметр - время ожидания ответа сервера в секундах
+        curl_setopt($curlInit, CURLOPT_CONNECTTIMEOUT, 2);
         curl_setopt($curlInit, CURLOPT_HEADER, true);
         curl_setopt($curlInit, CURLOPT_NOBODY, true);
         curl_setopt($curlInit, CURLOPT_RETURNTRANSFER, true);
