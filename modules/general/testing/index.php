@@ -2,14 +2,17 @@
 
 //just dummy module for testing purposes
 error_reporting(E_ALL);
-
-
+//
+//
 //$dvrs = new nya_visor_dvrs();
 //$dvrs->where('id', '=', '10');
 //$dvrData = $dvrs->getAll();
 //$dvrData = $dvrData[0];
 //
-//$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'],8080,true);
+//$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], 8080, true);
+////deb(wf_img_sized($trassir->getLiveVideoStream('YpqJfqNq', 'main', 'mjpeg'),'','40%'));
+//
+//debarr($trassir->getCameraProtocols());
 
 
 //$allUsers=$trassir->getUserNames();
@@ -29,7 +32,7 @@ error_reporting(E_ALL);
 //debarr($allServerObjects);
 //
 ////debarr($allServerObjects);
-////debarr($trassir->getHealth());
+//debarr($trassir->getHealth());
 ////debarr($trassir->getChannels());
 ////debarr($trassir->getUserSettings('lOF9R0ul')); //test user
 //

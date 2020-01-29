@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Basic low-level Trassir Server NVRs interraction class.
+ * Based on: https://github.com/dglushakov/TrassirNVR
+ */
 class TrassirServer {
 
     /**
@@ -36,6 +40,20 @@ class TrassirServer {
      * @var int
      */
     protected $port = 8080;
+
+    /**
+     * HTTP Video Streaming port
+     *
+     * @var int
+     */
+    protected $httpVideoPort = 555;
+
+    /**
+     * Default http video streaming protocol
+     *
+     * @var string
+     */
+    protected $httpVideoProtocol = 'http';
 
     /**
      * Contains current instance GUID
@@ -128,6 +146,8 @@ class TrassirServer {
      * @param string $userName
      * @param string $password
      * @param string $sdkPassword
+     * @param int $port 
+     * @param bool/int debug: false/true/2
      * 
      * @return void
      */
@@ -372,7 +392,9 @@ class TrassirServer {
      */
     protected function clearReply($data) {
         $commentPosition = strripos($data, '/*');
-        $data = substr($data, 0, $commentPosition);
+        if ($commentPosition !== false) {
+            $data = substr($data, 0, $commentPosition);
+        }
         return($data);
     }
 
@@ -380,7 +402,7 @@ class TrassirServer {
      * Performs SDK API request to connected Trassir Server
      * 
      * @param string $request request string
-     * @param string $authType possible: apikey, sid
+     * @param string $authType possible: apikey, sid, sidamp
      * 
      * @return array
      */
@@ -395,13 +417,21 @@ class TrassirServer {
             case 'sid':
                 $authString = '?sid=' . $this->sid;
                 break;
+            case 'sidamp':
+                $authString = '&sid=' . $this->sid;
+                break;
         }
 
         $url = $host . $request . $authString;
+        if ($this->debug === 2) {
+            $this->logDebug($url, 'info');
+        }
 
         $rawResponse = file_get_contents($url, null, $this->stream_context);
         $rawResponse = $this->clearReply($rawResponse);
+
         $result = json_decode($rawResponse, true);
+
         return($result);
     }
 
@@ -571,7 +601,6 @@ class TrassirServer {
      * Saves channel screenshot to local file system
      * 
      * @param string $channel One of channel guids
-     * 
      * @param string $folder folder to save shots
      * @param DateTime|null $timestamp take last available shot if timestamp is null
      * 
@@ -610,52 +639,34 @@ class TrassirServer {
         }
         return ($path);
     }
-    
-    /**
-     * TODO: refactor that at morning
-     */
 
     /**
-     * @param array $channel
+     * Returns URL to some channel video stream
+     * 
+     * @param string $channel
      * @param string $stream should be main or sub
      * @param string $container should be mjpeg|flv|jpeg
-     * @return bool|string return url to live video stream or false if failure
+     * 
+     * @return bool|string return url to live video stream or false on failure
      */
     public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg') {
-        if (!$this->checkConnection()) {
-            return false;
-        }
-        if (!$this->login()) {
-            return false;
-        }
-
-        $tokenUrl = 'https://' . trim($this->ip) . ':8080/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream . '&sid=' . $this->sid;
-        //die($tokenUrl);
-        $responseJson_str = file_get_contents($tokenUrl, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-        if ($comment_position) {
-            $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        }
-        $token = json_decode($responseJson_str, true);
-        //die($token);
-
+        $result = false;
+        $token = $this->apiRequest('/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream, 'sidamp');
         if ($token['success'] == 1) {
             $videoToken = $token['token'];
-        } else {
-            throw new \InvalidArgumentException('Cannot get video token');
+            $result = $this->httpVideoProtocol . '://' . trim($this->ip) . ':' . $this->httpVideoPort . '/' . $videoToken;
         }
-
-        $result = 'http://' . trim($this->ip) . ':555/' . $videoToken;
-        return $result;
+        return ($result);
     }
 
-    public function getCameras() {
+    /**
+     * Returns array of all available IP cameras GUIDs
+     * 
+     * @return array
+     */
+    protected function getCameras() {
         $result = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/' . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $tmp = json_decode($responseJson_str, true);
+        $tmp = $this->apiRequest('/settings/ip_cameras/', 'sid');
         if (isset($tmp['subdirs'])) {
             if (!empty($tmp['subdirs'])) {
                 foreach ($tmp['subdirs'] as $io => $each) {
@@ -665,65 +676,68 @@ class TrassirServer {
                 }
             }
         }
-
         return($result);
     }
 
+    /**
+     * Returns camera IP by its GUID
+     * 
+     * @param string $guid
+     * 
+     * @return string
+     */
     public function getCameraIp($guid) {
-        $result = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/' . $guid . '/connection_ip' . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $result = json_decode($responseJson_str, true);
+        $result = $this->apiRequest('/settings/ip_cameras/' . $guid . '/connection_ip', 'sid');
         $result = $result['value'];
         return($result);
     }
 
+    /**
+     * Returns array of available supported camera protocols (vendors)
+     * 
+     * @return array
+     */
     public function getCameraProtocols() {
-        $result = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $result = json_decode($responseJson_str, true);
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/', 'sid');
         $result = $result['subdirs'];
         return($result);
     }
 
+    /**
+     * Creates new camera device on remote Trassir Server NVR
+     * 
+     * @param string $protocol
+     * @param string $model
+     * @param string $ip
+     * @param string $port
+     * @param string $username
+     * @param string $password
+     * 
+     * @return array
+     */
     public function createCamera($protocol, $model, $ip, $port, $username, $password) {
-        $result = array();
+        //Setting camera IP
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip, 'sid');
+        //Setting camera port
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port, 'sid');
+        //Setting camera login
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username, 'sid');
+        //Setting camera password
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password, 'sid');
+        //Setting camera model
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid');
 
-        //IP
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        //Port
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        //Camera creation
+        $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
 
-        //login
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-
-        //password
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-
-        //Model
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-
-
-        //create now
-        $url = 'https://' . trim($this->ip) . ':8080/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1' . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-
-        $comment_position = strripos($responseJson_str, '/*');
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $result = json_decode($responseJson_str, true);
-        return($result);
+        return($cameraCreateResult);
     }
 
+    /**
+     * Returns array of all registered cameras as IP=>guid
+     * 
+     * @return array
+     */
     public function getAllCameraIps() {
         $result = array();
         $allCameras = $this->getCameras();
