@@ -11,8 +11,7 @@ error_reporting(E_ALL);
 //
 //$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], 8080, true);
 //
-////debarr($trassir->getChannels());
-//
-//$userCreationResult = $trassir->createUser('view666', 'view777');
-////$trassir->assignUserChannels('view666', array('f083kSzE','YpqJfqNq'));
-////$trassir->assignUserChannels('view666', array());
+//debarr($trassir->getHealth());
+
+//$visor=new UbillingVisor();
+//$visor->regenerateDvrChannelAcl(13, 10);

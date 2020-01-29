@@ -558,6 +558,7 @@ class TrassirServer {
             $this->logDebug('New user registered: ' . $login, 'info');
             //restricting new user rights
             $this->restrictUserRighs($login);
+            
         } else {
             $this->logDebug('User already registered and found in server objects tree: ' . $login, 'warning');
         }

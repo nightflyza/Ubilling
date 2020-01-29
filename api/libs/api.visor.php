@@ -94,11 +94,25 @@ class UbillingVisor {
     protected $channelUsers = array();
 
     /**
+     * Contains available secrets bindings with auth data as visorId=>secretsData
+     *
+     * @var array
+     */
+    protected $allSecrets = array();
+
+    /**
      * Channels binginds database model
      *
      * @var object
      */
     protected $chans = '';
+
+    /**
+     * NVR secrets data model placeholder
+     *
+     * @var object
+     */
+    protected $secrets = '';
 
     /**
      * Default channel preview size
@@ -132,12 +146,14 @@ class UbillingVisor {
     const TABLE_CAMS = 'visor_cams';
     const TABLE_DVRS = 'visor_dvrs';
     const TABLE_CHANS = 'visor_chans';
+    const TABLE_SECRETS = 'visor_secrets';
 
     public function __construct() {
         $this->loadConfigs();
         $this->loadDvrTypes();
         $this->initMessages();
         $this->initChans();
+        $this->initSecrets();
         $this->loadUserData();
         $this->loadUsers();
         $this->loadTariffPricing();
@@ -145,6 +161,7 @@ class UbillingVisor {
         $this->loadCams();
         $this->loadDvrs();
         $this->loadChans();
+        $this->loadSecrets();
     }
 
     /**
@@ -218,6 +235,15 @@ class UbillingVisor {
     }
 
     /**
+     * Inits secrets database model
+     * 
+     * @return void
+     */
+    protected function initSecrets() {
+        $this->secrets = new NyanORM(self::TABLE_SECRETS);
+    }
+
+    /**
      * Loads available channels bindings from database
      * 
      * @return void
@@ -230,6 +256,15 @@ class UbillingVisor {
                 $this->channelUsers[$each['chan']] = $each['visorid'];
             }
         }
+    }
+
+    /**
+     * Loads available secrets bindings from database
+     * 
+     * @return void
+     */
+    protected function loadSecrets() {
+        $this->allSecrets = $this->secrets->getAll('visorid');
     }
 
     /**
@@ -594,6 +629,66 @@ class UbillingVisor {
     }
 
     /**
+     * 
+     * @param int $userId
+     * 
+     * @return array
+     */
+    protected function createUserSecret($userId) {
+        $result = array();
+        $userId = ubRouting::filters($userId, 'int');
+        if (isset($this->allUsers[$userId])) {
+            if (!isset($this->allSecrets[$userId])) {
+                $loginProposal = 'view' . $userId;
+                $passwordProposal = zb_rand_digits(8);
+
+                $this->secrets->data('visorid', $userId);
+                $this->secrets->data('login', $loginProposal);
+                $this->secrets->data('password', $passwordProposal);
+                $this->secrets->create();
+
+                log_register('VISOR USER [' . $userId . '] CREATE SECRET');
+            } else {
+                $result = $this->allSecrets[$userId];
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders visor user global NVR secrets data
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserSecrets($userId) {
+        $result = '';
+        $userId = ubRouting::filters($userId, 'int');
+        if (isset($this->allUsers[$userId])) {
+            if (isset($this->allSecrets[$userId])) {
+                $secretData = $this->allSecrets[$userId];
+            } else {
+                $this->createUserSecret($userId);
+                //update current instance data
+                $this->loadSecrets();
+                $secretData = $this->allSecrets[$userId];
+            }
+
+            $rows = '';
+            $cells = wf_TableCell(__('DVR login'), '', 'row2');
+            $cells .= wf_TableCell($secretData['login']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('DVR password'), '', 'row2');
+            $cells .= wf_TableCell($secretData['password']);
+            $rows .= wf_TableRow($cells, 'row3');
+            $result .= $rows;
+        }
+        return($result);
+    }
+
+    /**
      * Renders visor users profile with associated cameras and some controls
      * 
      * @param int $userId
@@ -618,6 +713,8 @@ class UbillingVisor {
                 $chargeFlag = ($userData['chargecams']) ? wf_img_sized('skins/icon_active.gif', '', '12', '12') . ' ' . __('Yes') : wf_img_sized('skins/icon_inactive.gif', '', '12', '12') . ' ' . __('No');
                 $cells .= wf_TableCell($chargeFlag);
                 $rows .= wf_TableRow($cells, 'row3');
+                //global NVR secrets
+                $rows .= $this->renderUserSecrets($userId);
 
                 //primary user account inline
                 $rows .= $this->renderUserPrimaryAccount($userId);
@@ -667,7 +764,7 @@ class UbillingVisor {
                     foreach ($this->allChannels[$userId] as $io => $eachChan) {
                         $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
                         if ($chanDvrData['type'] == 'trassir') {
-                            $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey']);
+                            $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port']);
 
                             $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', 'mjpeg');
                             $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
@@ -687,8 +784,8 @@ class UbillingVisor {
                     }
                 }
             }
-            
-            
+
+
 
             $result .= wf_CleanDiv();
             $result .= wf_tag('div', true, '');
@@ -1743,7 +1840,7 @@ class UbillingVisor {
             $result .= wf_tag('div', false, '');
             foreach ($this->allDvrs as $io => $eachDvr) {
                 if ($eachDvr['type'] == 'trassir') {
-                    $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey']);
+                    $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port']);
                     //$dvrGate->setDebug(true);
                     $serverHealth = $dvrGate->getHealth();
                     if (!empty($serverHealth)) {
@@ -1858,6 +1955,59 @@ class UbillingVisor {
                 }
             }
         }
+    }
+
+    /**
+     * Regenerates all ACL for some visor user on Some DVR
+     * 
+     * @param int $visorId
+     * @param int $dvrId
+     * 
+     * @return string
+     */
+    public function regenerateDvrChannelAcl($visorId, $dvrId) {
+        $result = '';
+        $visorId = ubRouting::filters($visorId, 'int');
+        $dvrId = ubRouting::filters($dvrId, 'int');
+
+        if (!empty($dvrId) AND ! empty($visorId)) {
+            if (isset($this->allSecrets[$visorId])) {
+                if (isset($this->allDvrs[$dvrId])) {
+                    if (isset($this->allUsers[$visorId])) {
+                        $dvrData = $this->allDvrs[$dvrId];
+                        if ($dvrData['type'] == 'trassir') {
+                            $dvrGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], true);
+                            $this->chans->where('visorid', '=', $visorId);
+                            $this->chans->where('dvrid', '=', $dvrId);
+                            $userChans = $this->chans->getAll();
+                            $userRegistered = $dvrGate->getUserGuid($result);
+
+                            /**
+                             * TODO: second user registering attempts
+                             */
+                            if (!$userRegistered) {
+                                //perform creating user on DVR
+                                $dvrGate->createUser($this->allSecrets[$visorId]['login'], $this->allSecrets[$visorId]['password']);
+                            }
+                            //setting valid ACL for this DVR
+                            $dvrChans = array();
+                            if (!empty($userChans)) {
+                                foreach ($userChans as $io => $eachChan) {
+                                    $dvrChans[] = $eachChan['chan'];
+                                }
+                            }
+
+                            /**
+                             * TODO: fails on internal structs loop
+                             */
+                            $aclGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], true);
+                            $aclGate->assignUserChannels($this->allSecrets[$visorId]['login'], $dvrChans);
+                        }
+                    }
+                }
+            }
+        }
+        return($result);
     }
 
     /**
