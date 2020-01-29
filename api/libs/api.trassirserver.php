@@ -119,6 +119,13 @@ class TrassirServer {
     protected $channels = array();
 
     /**
+     * Contains array of available channel names as guid=>name
+     *
+     * @var array
+     */
+    protected $channelNames = array();
+
+    /**
      * Contains available users array as index=>username or guid
      *
      * @var array
@@ -456,6 +463,8 @@ class TrassirServer {
                     'guid' => $obj ['guid'],
                     'parent' => $obj ['parent'],
                 );
+
+                $this->channelNames[$obj['guid']] = $obj['name'];
             }
         }
 
@@ -518,7 +527,7 @@ class TrassirServer {
     }
 
     /**
-     * Creates user on Trassir Server. Be careful: user will be with full rights set!
+     * Creates user on Trassir Server.
      * 
      * @param string $login
      * @param string $password
@@ -535,6 +544,8 @@ class TrassirServer {
             $result = true;
             $this->getServerObjects(); //update object instance for preloading of some new users
             $this->logDebug('New user registered: ' . $login, 'info');
+            //restricting new user rights
+            $this->restrictUserRighs($login);
         } else {
             $this->logDebug('User already registered and found in server objects tree: ' . $login, 'warning');
         }
@@ -547,7 +558,7 @@ class TrassirServer {
      * 
      * @return bool
      */
-    public function restrictUserRighs($userLogin) {
+    protected function restrictUserRighs($userLogin) {
         $result = false;
         $guid = $this->getUserGuid($userLogin);
         if ($guid) {
@@ -564,6 +575,39 @@ class TrassirServer {
             $this->logDebug('User rights restricted on login: ' . $userLogin, 'info');
         } else {
             $this->logDebug('User not found in server objects tree: ' . $userLogin, 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Set some user ACL to allow him basic usage of his cameras
+     * 
+     * @param string $login
+     * @param array $channels
+     * 
+     * @return bool
+     */
+    public function assignUserChannels($login, $channels = array()) {
+        $result = false;
+        $userGuid = $this->getUserGuid($login);
+        if ($userGuid) {
+            $rightsMask = '1539'; // Oo
+            $aclString = '';
+            if (!empty($channels)) {
+                foreach ($channels as $io => $eachChan) {
+                    if (isset($this->channelNames[$eachChan])) {
+                        $aclString .= '/' . $this->guid . '/channels/' . $eachChan . ',' . $rightsMask . ',';
+                    } else {
+                        $this->logDebug('Channel assign failed: ' . $eachChan . ' not found on server', 'error');
+                    }
+                }
+            }
+            $aclString = zb_CutEnd($aclString);
+            deb($aclString);
+            $aclChangeResult=$this->setUserSettings($userGuid, 'acl', $aclString); //push that to user
+            debarr($aclChangeResult);
+        } else {
+            $this->logDebug('User not found in server objects tree: ' . $login, 'error');
         }
         return($result);
     }
@@ -650,7 +694,7 @@ class TrassirServer {
      * 
      * @return array
      */
-    public function setUserSettings($guid, $setting, $value) {
+    protected function setUserSettings($guid, $setting, $value) {
         $result = $this->apiRequest('/settings/users/' . $guid . '/' . $setting . '=' . $value, 'sid');
         return($result);
     }
