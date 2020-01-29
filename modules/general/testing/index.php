@@ -8,16 +8,10 @@ error_reporting(E_ALL);
 //$dvrs->where('id', '=', '10');
 //$dvrData = $dvrs->getAll();
 //$dvrData = $dvrData[0];
-////
-////
-//$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-////$trassir->setDebug(true);
-//$trassir->getHealth();
-//// efXwC0I5/boards,4294967296,/efXwC0I5/channels/VxPmGjBc,6605659701248,/efXwC0I5/channels/YpqJfqNq,6609954668544,/efXwC0I5/ip_cameras,4294967296
 //
-//
-//
-//
+//$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'],8080,true);
+
+
 //$allUsers=$trassir->getUserNames();
 //debarr($allUsers);
 //
@@ -30,9 +24,9 @@ error_reporting(E_ALL);
 //    }
 //    
 //}
-//
-////$allServerObjects = $trassir->getServerObjects();
-////debarr($allServerObjects);
+
+//$allServerObjects = $trassir->getServerObjects();
+//debarr($allServerObjects);
 //
 ////debarr($allServerObjects);
 ////debarr($trassir->getHealth());

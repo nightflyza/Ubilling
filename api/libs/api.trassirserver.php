@@ -2,44 +2,75 @@
 
 class TrassirServer {
 
+    /**
+     * Object instance debug flag
+     *
+     * @var bool
+     */
     protected $debug = false;
 
     /**
+     * Contains current instance Trassir Server hostname
+     * 
      * @var string $name
      */
-    protected $name;
+    protected $name = '';
 
     /**
+     * Contains IP address of Trassir server host
+     * 
      * @var string|null $ip
      */
-    protected $ip;
+    protected $ip = null;
 
     /**
+     * Basic transport protocol for Trassir SDK interraction
+     *
+     * @var string
+     */
+    protected $sdkProtocol = 'https';
+
+    /**
+     * Contains Trassir server HTTPS port for further API requests
+     *
+     * @var int
+     */
+    protected $port = 8080;
+
+    /**
+     * Contains current instance GUID
+     * 
      * @var string $guid
      */
-    protected $guid;
+    protected $guid = '';
 
     /**
-     * array for handle list of channels from NMR
-     * @var array $channels
-     */
-    protected $channels = array();
-
-    /**
-     * Variable for storage session id
+     * Current instance session ID
+     * 
      * @var string|false $sid
      */
-    protected $sid;
+    protected $sid = false;
 
     /**
+     * Username for connecting Trassir Server NVR
+     * 
      * @var string $userName
      */
-    protected $userName;
+    protected $userName = '';
 
     /**
+     * Password for connecting Trassir Server NVR
+     * 
      * @var string $password
      */
-    protected $password;
+    protected $password = '';
+
+    /**
+     * Trassir SDK API key
+     * 
+     * @var string $sdkPassword
+     */
+    protected $sdkPassword;
 
     /**
      * Caching object placeholder
@@ -56,96 +87,180 @@ class TrassirServer {
     protected $cacheTimeout = 900; //15 mins
 
     /**
-     * @var string $sdkPassword
+     * Current instance server objects tree
+     *
+     * @var array
      */
-    protected $sdkPassword;
-    protected $serverObjects;
-    protected $trassirUsers;
-    protected $serviceAccountNames = array('Admin', 'Operator', 'Script', 'Demo', 'user_add', 'Monitoring');
-    protected $stream_context; //тут храним контекст который нужен CURL или file_get_content для работы с неподписанными сертификатами
+    protected $serverObjects = array();
 
     /**
+     * Available Trassir Server channels as index=>chandata
+     * 
+     * @var array $channels
+     */
+    protected $channels = array();
+
+    /**
+     * Contains available users array as index=>username or guid
+     *
+     * @var array
+     */
+    protected $trassirUsers = array();
+
+    /**
+     * Contains default service users account names which will be ignored by some safe methods
+     *
+     * @var array
+     */
+    protected $serviceAccountNames = array('Admin', 'Operator', 'Script', 'Demo', 'user_add', 'Monitoring');
+
+    /**
+     * Stream context for working with self-signed certs
+     *
+     * @var resource
+     */
+    protected $stream_context;
+
+    /**
+     * Creates new instance of TrassirServer object
      * 
      * @param string $ip
      * @param string $userName
      * @param string $password
      * @param string $sdkPassword
-     * @throws \InvalidArgumentException
      * 
      * @return void
      */
-
-    public function __construct($ip, $userName = null, $password = null, $sdkPassword = null) {
+    public function __construct($ip, $userName = null, $password = null, $sdkPassword = null, $port = 8080, $debug = false) {
+        $this->setDebug($debug);
         $this->initCache();
-        if (filter_var($ip, FILTER_VALIDATE_IP)) {
-            $this->ip = $ip;
-            $this->userName = $userName;
-            $this->password = $password;
-            $this->sdkPassword = $sdkPassword;
-            $this->stream_context = stream_context_create(array('ssl' => array(//разрешаем принимать самоподписанные сертификаты от NVR
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true,
-                    'verify_depth' => 0)));
-        } else {
-            throw new \InvalidArgumentException('Please enter valid IP address.');
-        }
+        $this->setIp($ip);
+        $this->setUserName($userName);
+        $this->setPassword($password);
+        $this->setSdkPassword($sdkPassword);
+        $this->setPort($port);
+        $this->stream_context = stream_context_create(array('ssl' => array(//allowing self-signed certs for NVR
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+                'verify_depth' => 0)));
+
+        $this->initialConnect(); // initalizing connection to server, setting some SIDs and other stuff
     }
 
+    /**
+     * Performs initial Server object connection
+     * 
+     * @return bool
+     */
+    protected function initialConnect() {
+        $result = true;
+        $connnectCheck = $this->checkConnection();
+
+        if ($connnectCheck) {
+            $this->logDebug('HTTP connection to IP ' . $this->ip . ' OK', 'success');
+        } else {
+            $this->logDebug('HTTP connection to IP ' . $this->ip . ' Failed', 'error');
+        }
+
+        $loginCheck = $this->login();
+
+        if ($loginCheck) {
+            $this->logDebug('NVR login seems to be OK', 'success');
+        } else {
+            $this->logDebug('NVR login failed', 'error');
+        }
+
+        return($result);
+    }
+
+    /**
+     * Inits system caching object for further usage and storing SID
+     * 
+     * @return void
+     */
     protected function initCache() {
         $this->cache = new UbillingCache();
     }
 
-    public function setUserName($userName) {
+    /**
+     * Sets current instance IP
+     * 
+     * @param string $ip
+     * 
+     * @return void
+     */
+    protected function setIp($ip) {
+        $this->ip = $ip;
+    }
+
+    /**
+     * Sets current instance HTTPS port
+     * 
+     * @param int $port
+     * 
+     * @return void
+     */
+    protected function setPort($port) {
+        $this->port = $port;
+    }
+
+    /**
+     * Sets current instance username
+     * 
+     * @param string $userName
+     * 
+     * @return void
+     */
+    protected function setUserName($userName) {
         $this->userName = $userName;
     }
 
-    public function setDebug($state) {
+    /**
+     * Modify current instance debug flag
+     * 
+     * @param bool $state
+     * 
+     * @return void
+     */
+    protected function setDebug($state) {
         $this->debug = $state;
     }
 
-    public function getUserName() {
-        return $this->userName;
-    }
-
-    public function setPassword($password) {
+    /**
+     * Sets current instance password
+     * 
+     * @param string $password
+     * 
+     * @return void
+     */
+    protected function setPassword($password) {
         $this->password = $password;
     }
 
-    public function getPassword() {
-        return $this->password;
-    }
-
-    public function setSdkPassword($sdkpassword) {
+    /**
+     * Sets Trassir SDK API key into current instance
+     * 
+     * @param string $sdkpassword
+     * 
+     * @return void
+     */
+    protected function setSdkPassword($sdkpassword) {
         $this->sdkPassword = $sdkpassword;
     }
 
-    public function getSdkPassword() {
-        return $this->sdkPassword;
-    }
-
     /**
-     * @return array
-     */
-    public function getChannels() {
-        return $this->channels;
-    }
-
-    /**
+     * Returns current instance server hostname
+     * 
      * @return string|null
      */
     public function getName() {
-        return $this->name;
+        return ($this->name);
     }
 
     /**
-     * @return null|string
-     */
-    public function getIp() {
-        return $this->ip;
-    }
-
-    /**
+     * Returns curren instance GUID
+     * 
      * @return string
      */
     public function getGuid() {
@@ -153,7 +268,9 @@ class TrassirServer {
     }
 
     /**
-     * Checking is NVR online or not to prevent errors
+     * Checking is NVR online or not to prevent further errors
+     * 
+     * 
      * @return bool
      */
     protected function checkConnection() {
@@ -169,73 +286,134 @@ class TrassirServer {
         if ($response) {
             $status = true;
         }
-        return $status;
+        return ($status);
     }
 
     /**
-     * Get sessionId (sid) using login and password
+     * Do some debug output and logging in the future
+     * 
+     * @param string $data
+     * @param string $type success/info/warning/error
+     * 
+     * @return void
+     */
+    protected function logDebug($data, $type) {
+        if ($this->debug) {
+            $curDate = curdatetime();
+            $data = $curDate . ' ' . $data;
+            switch ($type) {
+                case 'success':
+                    show_success($data);
+                    break;
+                case 'info':
+                    show_info($data);
+                    break;
+                case 'warning':
+                    show_warning($data);
+                    break;
+                case 'error':
+                    show_error($data);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Get current NVR session ID (sid) using login and password
+     * 
      * @return bool|string
      */
     protected function login() {
-        ///trying get from cache
+        ///trying get it from cache
         $cacheKey = 'TRASSIRSID_' . $this->ip;
         $cachedSid = $this->cache->get($cacheKey, $this->cacheTimeout);
 
+        //SID found in cache and seems it may be ok
         if (!empty($cachedSid)) {
-            if ($this->debug) {
-                show_success('SID from cache' . ': ' . $cachedSid . ' ON KEY ' . $cacheKey);
-            }
+            $this->logDebug('SID from cache: ' . $cachedSid . ' from cache key ' . $cacheKey, 'success');
             $this->sid = $cachedSid;
+        } else {
+            $this->logDebug('No cached SID available. Trying to receive new one', 'warning');
         }
 
         if (isset($this->sid) AND ( $this->sid !== false)) {
             //updating SID in cache
             $this->cache->set($cacheKey, $this->sid, $this->cacheTimeout);
-            return $this->sid;
+            $this->logDebug('Updating SID ' . $this->sid . ' in cache key', 'info');
+            return ($this->sid);
         }
 
-        $url = 'https://' . trim($this->ip) . ':8080/login?username=' . trim($this->userName) . '&password=' . trim($this->password);
+        //New SID receiving
+        $url = 'https://' . trim($this->ip) . ':' . trim($this->port) . '/login?username=' . trim($this->userName) . '&password=' . trim($this->password);
         if (false === ($responseJson_str = @file_get_contents($url, NULL, $this->stream_context))) {
-            return false;
+            return (false); //connection failed
         }
 
-        $server_auth = json_decode($responseJson_str, true); //переводим JSON в массив
+        $server_auth = json_decode($responseJson_str, true);
         if ($server_auth['success'] == 1) {
             $this->sid = $server_auth['sid'];
-            if ($this->debug) {
-                show_success('New SID: ' . $this->sid);
-            }
+            $this->logDebug('New SID received: ' . $this->sid, 'success');
 
             //setting new SID to cache
             $this->cache->set($cacheKey, $this->sid, $this->cacheTimeout);
         } else {
-            show_error('SDK: ' . print_r($server_auth, true));
-            show_warning('SID: ' . $this->sid);
+            show_error(__('SDK reply') . ': ' . $responseJson_str);
             $this->sid = false;
         }
-        return $this->sid;
+        return ($this->sid);
     }
 
     /**
-     * function to get all server objects (channels, IP-devices etc.) Also it set up servers Name and Guid
+     * Returns clean JSON data without shitty comments at the end
+     * 
+     * @param string $data
+     * 
+     * @return string
+     */
+    protected function clearReply($data) {
+        $commentPosition = strripos($data, '/*');
+        $data = substr($data, 0, $commentPosition);
+        return($data);
+    }
+
+    /**
+     * Performs SDK API request to connected Trassir Server
+     * 
+     * @param string $request request string
+     * @param string $authType possible: apikey, sid
+     * 
+     * @return array
+     */
+    protected function apiRequest($request, $authType) {
+        $result = array();
+        $authString = '';
+        $host = $this->sdkProtocol . '://' . $this->ip . ':' . $this->port;
+        switch ($authType) {
+            case 'apikey':
+                $authString = '?password=' . $this->sdkPassword;
+                break;
+            case 'sid':
+                $authString = '?sid=' . $this->sid;
+                break;
+        }
+
+        $url = $host . $request . $authString;
+
+        $rawResponse = file_get_contents($url, null, $this->stream_context);
+        $rawResponse = $this->clearReply($rawResponse);
+        $result = json_decode($rawResponse, true);
+        return($result);
+    }
+
+    /**
+     * Returns all of server objects (channels, IP-devices etc.)
+     * 
      * also fills $this->channels array
      *
-     * @return array|bool
+     * @return array
      */
     public function getServerObjects() {
-        if (!$this->checkConnection()) {
-            return false;
-        }
-
-        if (!$this->login()) {
-            return false;
-        }
-
-        $url = 'https://' . trim($this->ip) . ':8080/objects/?password=' . trim($this->sdkPassword); //получения объектов сервера
-        $responseJson_str = file_get_contents($url, NULL, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $objects = json_decode($responseJson_str, true);
+        $objects = $this->apiRequest('/objects/', 'apikey');
 
         foreach ($objects as $obj) {
             if ($obj['class'] == 'Server') {
@@ -255,94 +433,72 @@ class TrassirServer {
         $objects['UserNames'] = $this->getUserNames();
         $this->serverObjects = $objects;
 
-        return $objects;
+        return ($objects);
     }
 
     /**
-     * return array of indicators
-     * @return array|mixed
+     * Returns array of system health indicators. Also fills channels_health
+     * 
+     * @return array
      */
     public function getHealth() {
-        if (!$this->checkConnection()) {
-            return false;
+        if (empty($this->channels)) {
+            $this->getServerObjects();
         }
-
-        if (!$this->login()) {
-            return false;
-        }
-
-        if (!$this->getServerObjects()) {
-            return false;
-        }
-        $url = 'https://' . trim($this->ip) . ':8080/health?sid=' . trim($this->sid);
-
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $server_health = json_decode($responseJson_str, true);
-
+        $server_health = $this->apiRequest('/health', 'sid');
         $channelsHealth = array();
         $result = $server_health;
+
         if (!empty($this->channels)) {
             foreach ($this->channels as $channel) {
-                $url = 'https://' . trim($this->ip) . ':8080/settings/channels/' . $channel['guid'] . '/flags/signal?sid=' . trim($this->sid); //получения статуса канала
-                $responseJson_str = file_get_contents($url, NULL, $this->stream_context);
-                $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-                $responseJson_str = substr($responseJson_str, 0, $comment_position);
-                $channelHealth = json_decode($responseJson_str, true);
-
+                $chanHealth = $this->apiRequest('/settings/channels/' . $channel['guid'] . '/flags/signal', 'sid');
                 $channelsHealth[] = array(
                     'name' => $channel['name'],
                     'guid' => $channel['guid'],
-                    'signal' => $channelHealth['value']
+                    'signal' => $chanHealth['value']
                 );
             }
-            if (isset($channelsHealth) && !empty($channelsHealth) && is_array($channelsHealth)) {
-                //$result = array_merge($server_health, $channelsHealth);
+            if (isset($channelsHealth) AND ! empty($channelsHealth) AND is_array($channelsHealth)) {
                 $result['channels_health'] = $channelsHealth;
             }
         }
 
-        return $result;
+        return ($result);
     }
 
+    /**
+     * Returns server settings main tree
+     * 
+     * @return array
+     */
     public function getServerSettings() {
-        $serverSettings = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $serverSettings = json_decode($responseJson_str, true);
-
-        return $serverSettings;
+        $result = $this->apiRequest('/settings/', 'sid');
+        return($result);
     }
 
-    public function getUsers() {
-        $Users = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $Users = json_decode($responseJson_str, true);
-        $this->trassirUsers = $Users['subdirs'];
-        return $this->trassirUsers;
+    /**
+     * Returns array of server users/their guids
+     * 
+     * @return array
+     */
+    protected function getUsers() {
+        $rawUsers = $this->apiRequest('/settings/users/', 'sid');
+        $this->trassirUsers = $rawUsers['subdirs'];
+        return ($this->trassirUsers);
     }
 
-    public function getArchive() {
-        /**
-         * Some auth issues here. TODO.
-         */
-        $url = 'https://' . trim($this->ip) . ':8080/objects/operatorgui_efXwC0I5/archive_export?channel_name_or_guid=LL0c1qK0&start_time_YYYYMMDD_HHMMSS=2019-12-19 13:00:00&end_time_YYYYMMDD_HHMMSS=2019-12-19 13:55:00&filename=export.avi&archive_on_device=0&sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-    }
-
+    /**
+     * Creates user on Trassir Server. Be careful: user will be with full rights set!
+     * 
+     * @param string $login
+     * @param string $password
+     * 
+     * @return void
+     */
     public function createUser($login, $password) {
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/user_add/new_user_name=' . $login . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/user_add/new_user_password=' . $password . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/user_add/create_now=1?&sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
+        $this->apiRequest('/settings/users/user_add/new_user_name=' . $login, 'sid');
+        $this->apiRequest('/settings/users/user_add/new_user_password=' . $password, 'sid');
+        $this->apiRequest('/settings/users/user_add/create_now=1', 'sid');
     }
 
     /**
@@ -352,18 +508,19 @@ class TrassirServer {
      */
     public function getUserNames() {
         $userNames = array();
-        foreach ($this->trassirUsers as $user) {
-            $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $user . '/name?password=' . trim($this->sdkPassword);
-            $responseJson_str = file_get_contents($url, null, $this->stream_context);
-            $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-            $responseJson_str = substr($responseJson_str, 0, $comment_position);
-            $res[] = json_decode($responseJson_str, true);
+        $tmp = array();
+        if (empty($this->trassirUsers)) {
+            $this->getServerObjects();
         }
 
+        if (!empty($this->trassirUsers)) {
+            foreach ($this->trassirUsers as $user) {
+                $tmp[] = $this->apiRequest('/settings/users/' . $user . '/name', 'apikey');
+            }
+        }
 
-
-        if (!empty($res)) {
-            foreach ($res as $userDetails) {
+        if (!empty($tmp)) {
+            foreach ($tmp as $userDetails) {
                 if (isset($userDetails['value']) && (!in_array($userDetails['value'], $this->serviceAccountNames))) {
                     $userGuid = str_replace('users/', '', $userDetails['directory']);
                     $userGuid = str_replace('/', '', $userGuid);
@@ -375,6 +532,7 @@ class TrassirServer {
     }
 
     /**
+     * Returns full array of some user settings by its guid
      * 
      * @param string $guid
      * 
@@ -382,20 +540,12 @@ class TrassirServer {
      */
     public function getUserSettings($guid) {
         $result = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');    //отрезаем комментарий в конце ответа сервера
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $userSettingsTmp = json_decode($responseJson_str, true);
+        $userSettingsTmp = $this->apiRequest('/settings/users/' . $guid . '/', 'sid');
         if (!empty($userSettingsTmp)) {
             $result = $userSettingsTmp;
             if (isset($userSettingsTmp['values'])) {
                 foreach ($userSettingsTmp['values'] as $io => $each) {
-                    $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/' . $each . '?sid=' . trim($this->sid);
-                    $responseJson_str = file_get_contents($url, null, $this->stream_context);
-                    $comment_position = strripos($responseJson_str, '/*');
-                    $responseJson_str = substr($responseJson_str, 0, $comment_position);
-                    $optionData = json_decode($responseJson_str, true);
+                    $optionData = $this->apiRequest('/settings/users/' . $guid . '/' . $each, 'sid');
                     $result['fulldata'][$each] = $optionData;
                 }
             }
@@ -403,31 +553,40 @@ class TrassirServer {
         return($result);
     }
 
+    /**
+     * Sets some user setting on Trassir Server by its guid
+     * 
+     * @param string $guid
+     * @param string $setting
+     * @param string $value
+     * 
+     * @return array
+     */
     public function setUserSettings($guid, $setting, $value) {
-        $result = array();
-        $url = 'https://' . trim($this->ip) . ':8080/settings/users/' . $guid . '/' . $setting . '=' . $value . '?sid=' . trim($this->sid);
-        $responseJson_str = file_get_contents($url, null, $this->stream_context);
-        $comment_position = strripos($responseJson_str, '/*');
-        $responseJson_str = substr($responseJson_str, 0, $comment_position);
-        $optionData = json_decode($responseJson_str, true);
-        $result = $optionData;
+        $result = $this->apiRequest('/settings/users/' . $guid . '/' . $setting . '=' . $value, 'sid');
+        return($result);
     }
 
     /**
-     * @param array $channel One of protected $channels
+     * Saves channel screenshot to local file system
+     * 
+     * @param string $channel One of channel guids
+     * 
      * @param string $folder folder to save shots
-     * @param \DateTime|null $timestamp take last available shot if timestamp is null
+     * @param DateTime|null $timestamp take last available shot if timestamp is null
+     * 
      * @return string url to image
      */
-    public function saveScreenshot(array $channel, $folder = 'shots', \DateTime $timestamp = null) {
+    public function saveScreenshot($channel, $folder = 'exports', $timestamp = null) {
+        $path = '';
         if ($timestamp) {
             $time = $timestamp->format('Ymd-His');
         } else {
             $time = '0';
         }
 
-        $img = 'https://' . trim($this->ip) . ':8080/screenshot/' . $channel['guid'] . '?timestamp=' . $time . '&sid=' . trim($this->sid);
-        $path = $folder . '/shot_' . $channel['name'] . rand(1, 1000) . $time . '.jpg';
+        $img = $this->sdkProtocol . '://' . $this->ip . ':' . $this->port . '/screenshot/' . $channel . '?timestamp=' . $time . '&sid=' . $this->sid;
+        $path = $folder . '/shot_' . $channel . '_' . zb_rand_string(8) . $time . '.jpg';
         $curl = curl_init($img);
         curl_setopt($curl, CURLOPT_HEADER, 0);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -437,7 +596,7 @@ class TrassirServer {
         $content = curl_exec($curl);
         $response = json_decode($content, true);
         if ($response['success'] === 0) {
-            return $response['error_code'];
+            //return ($response['error_code']);
         } else {
             curl_close($curl);
             if (file_exists($path)) {
@@ -448,9 +607,13 @@ class TrassirServer {
                 fwrite($fp, $content);
                 fclose($fp);
             }
-            return $path;
         }
+        return ($path);
     }
+    
+    /**
+     * TODO: refactor that at morning
+     */
 
     /**
      * @param array $channel
