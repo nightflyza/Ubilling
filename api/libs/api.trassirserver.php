@@ -523,12 +523,49 @@ class TrassirServer {
      * @param string $login
      * @param string $password
      * 
-     * @return void
+     * @return bool
      */
     public function createUser($login, $password) {
-        $this->apiRequest('/settings/users/user_add/new_user_name=' . $login, 'sid');
-        $this->apiRequest('/settings/users/user_add/new_user_password=' . $password, 'sid');
-        $this->apiRequest('/settings/users/user_add/create_now=1', 'sid');
+        $result = false;
+        $userExists = $this->getUserGuid($login);
+        if (!$userExists) {
+            $this->apiRequest('/settings/users/user_add/new_user_name=' . $login, 'sid');
+            $this->apiRequest('/settings/users/user_add/new_user_password=' . $password, 'sid');
+            $this->apiRequest('/settings/users/user_add/create_now=1', 'sid');
+            $result = true;
+            $this->getServerObjects(); //update object instance for preloading of some new users
+            $this->logDebug('New user registered: ' . $login, 'info');
+        } else {
+            $this->logDebug('User already registered and found in server objects tree: ' . $login, 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * 
+     * @param type $userLogin
+     * 
+     * @return bool
+     */
+    public function restrictUserRighs($userLogin) {
+        $result = false;
+        $guid = $this->getUserGuid($userLogin);
+        if ($guid) {
+            $this->setUserSettings($guid, 'base_rights', 0); //no rights at all
+            $this->setUserSettings($guid, 'templates_managing', 0);
+            $this->setUserSettings($guid, 'enable_web', 1);
+            $this->setUserSettings($guid, 'enable_remote', 1);
+            $this->setUserSettings($guid, 'view_button', 1);
+            $this->setUserSettings($guid, 'settings_button', 0);
+            $this->setUserSettings($guid, 'shutdown_button', 0);
+            $this->setUserSettings($guid, 'enable_local', 0);
+            $this->setUserSettings($guid, 'base_rights', 256); //no rights at all
+            $result = true;
+            $this->logDebug('User rights restricted on login: ' . $userLogin, 'info');
+        } else {
+            $this->logDebug('User not found in server objects tree: ' . $userLogin, 'error');
+        }
+        return($result);
     }
 
     /**
@@ -559,6 +596,27 @@ class TrassirServer {
             }
         }
         return ($userNames);
+    }
+
+    /**
+     * Returns existing user GUID by its login
+     * 
+     * @param string $userLogin
+     * 
+     * @return string/bool
+     */
+    public function getUserGuid($userLogin) {
+        $result = false;
+        if (empty($this->trassirUsers)) {
+            $this->getServerObjects();
+        }
+
+        if (isset($this->serverObjects['UserNames'])) {
+            if (isset($this->serverObjects['UserNames'][$userLogin])) {
+                $result = $this->serverObjects['UserNames'][$userLogin];
+            }
+        }
+        return($result);
     }
 
     /**

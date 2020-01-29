@@ -2,17 +2,22 @@
 
 //just dummy module for testing purposes
 error_reporting(E_ALL);
-//
-//
-//$dvrs = new nya_visor_dvrs();
-//$dvrs->where('id', '=', '10');
-//$dvrData = $dvrs->getAll();
-//$dvrData = $dvrData[0];
-//
-//$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], 8080, true);
-////deb(wf_img_sized($trassir->getLiveVideoStream('YpqJfqNq', 'main', 'mjpeg'),'','40%'));
-//
-//debarr($trassir->getCameraProtocols());
+
+
+$dvrs = new nya_visor_dvrs();
+$dvrs->where('id', '=', '10');
+$dvrData = $dvrs->getAll();
+$dvrData = $dvrData[0];
+
+$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], 8080, true);
+debarr($trassir->getUserGuid('view666'));
+
+
+
+$userCreationResult = $trassir->createUser('view666', 'view777');
+
+$trassir->restrictUserRighs('view6668');
+
 
 
 //$allUsers=$trassir->getUserNames();
@@ -40,7 +45,7 @@ error_reporting(E_ALL);
 //
 //function trassir_setBasicRights($guid) {
 //    global $trassir;
-//    $trassir->setUserSettings($guid, 'base_rights', 0);
+//    $trassir->setUserSettings($guid, 'base_rights', 256);
 //    $trassir->setUserSettings($guid, 'templates_managing', 0);
 //    $trassir->setUserSettings($guid, 'enable_web', 1);
 //    $trassir->setUserSettings($guid, 'enable_remote', 1);
