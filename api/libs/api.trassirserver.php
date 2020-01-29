@@ -506,6 +506,18 @@ class TrassirServer {
     }
 
     /**
+     * Returns array of available channels as guid=>name
+     * 
+     * @return array
+     */
+    public function getChannels() {
+        if (empty($this->serverObjects)) {
+            $this->getServerObjects();
+        }
+        return($this->channelNames);
+    }
+
+    /**
      * Returns server settings main tree
      * 
      * @return array
@@ -580,6 +592,38 @@ class TrassirServer {
     }
 
     /**
+     * Sets user ACL for some channels permissions. 
+     * Use manual POST because of "cannot find 'acl=" issue.
+     * 
+     * @param string $userGuid
+     * @param string $acl
+     * 
+     * @return bool/string
+     */
+    protected function setUserACL($userGuid, $acl = '') {
+        $result = false;
+        $post = 'acl=' . $acl;
+
+        $url = $this->sdkProtocol . '://' . $this->ip . ':' . $this->port . '/settings/users/' . $userGuid . '/?sid=' . $this->sid;
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_HEADER, 0);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_BINARYTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $response = $this->clearReply($response);
+        if (!empty($response)) {
+            $result = json_decode($response, true);
+            $this->logDebug('Setting user ' . $userGuid . ' ACL to ' . $acl, 'info');
+        }
+        return($result);
+    }
+
+    /**
      * Set some user ACL to allow him basic usage of his cameras
      * 
      * @param string $login
@@ -603,9 +647,7 @@ class TrassirServer {
                 }
             }
             $aclString = zb_CutEnd($aclString);
-            deb($aclString);
-            $aclChangeResult=$this->setUserSettings($userGuid, 'acl', $aclString); //push that to user
-            debarr($aclChangeResult);
+            $aclChangeResult = $this->setUserACL($userGuid, $aclString); //push that to user
         } else {
             $this->logDebug('User not found in server objects tree: ' . $login, 'error');
         }
