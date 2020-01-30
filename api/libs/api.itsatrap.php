@@ -515,12 +515,25 @@ class ItSaTrap {
     /**
      * Returns preprocessed last traps of some type acceptable for watchdog monitoring / telegram sending
      * 
+     * @param string/array $trapId
+     * @param int $count
+     * 
      * @return string
      */
     public function getLastTraps($trapId, $count) {
         $rawData = $this->getRawData();
         $trapsTmp = array();
+        $trapFilters = array();
         $result = '' . '\r\n';
+
+        //trapId may be integer/string or array
+        if (is_array($trapId)) {
+            $trapFilters = array_flip($trapId);
+        } else {
+            $trapFilters = array($trapId => 'onlyou');
+        }
+
+        debarr($trapFilters);
 
         if (!empty($rawData)) {
             $rawData = explodeRows($rawData);
@@ -537,7 +550,7 @@ class ItSaTrap {
                                 if (!empty($this->allTrapTypes)) {
                                     foreach ($this->allTrapTypes as $ia => $eachTrapType) {
                                         if (ispos($eachLine, $eachTrapType['match'])) {
-                                            if ($eachTrapType['id'] == $trapId) {
+                                            if (isset($trapFilters[$eachTrapType['id']])) {
                                                 //only required types
                                                 $trapsTmp[] = $dateF . ' ' . $eachTrapType['name'] . ' ' . $ip . '\r\n' . "\n";
                                             }
