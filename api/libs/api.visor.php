@@ -783,6 +783,8 @@ class UbillingVisor {
                         }
                     }
                 }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('User have no channels assigned'), 'warning');
             }
 
 
@@ -1936,14 +1938,20 @@ class UbillingVisor {
             $dvrId = ubRouting::post('editchanneldvrid', 'int');
             if (ubRouting::checkPost('editchannelvisorid')) {
                 //create/update of assign
-                $visorId = ubRouting::post('editchannelvisorid', 'int');
+                $visorId = ubRouting::post('editchannelvisorid', 'int'); //new channel owner ID
                 if (isset($this->channelUsers[$channelGuid])) {
+                    $oldChannelOwnerId = $this->channelUsers[$channelGuid];
+                    //change existing assign
                     if ($visorId != $this->channelUsers[$channelGuid]) {
                         $this->unassignChannel($this->channelUsers[$channelGuid], $dvrId, $channelGuid);
+                        $this->regenerateDvrChannelAcl($oldChannelOwnerId, $dvrId); //NVR sync on channel owner change for old owner
                         $this->assignChannel($visorId, $dvrId, $channelGuid);
+                        $this->regenerateDvrChannelAcl($visorId, $dvrId); //NVR sync on channel owner change for new owner
                     }
                 } else {
+                    //create new channel assign
                     $this->assignChannel($visorId, $dvrId, $channelGuid);
+                    $this->regenerateDvrChannelAcl($visorId, $dvrId); //NVR sync on new channel assign
                 }
             } else {
                 //existing assign deletion
@@ -1951,6 +1959,7 @@ class UbillingVisor {
                     $currentUserAssignId = $this->channelUsers[$channelGuid];
                     if (!empty($currentUserAssignId)) {
                         $this->unassignChannel($currentUserAssignId, $dvrId, $channelGuid);
+                        $this->regenerateDvrChannelAcl($currentUserAssignId, $dvrId); //NVR sync on assign deletion
                     }
                 }
             }
@@ -1976,18 +1985,17 @@ class UbillingVisor {
                     if (isset($this->allUsers[$visorId])) {
                         $dvrData = $this->allDvrs[$dvrId];
                         if ($dvrData['type'] == 'trassir') {
+                            $secretData = $this->allSecrets[$visorId];
                             $dvrGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], true);
                             $this->chans->where('visorid', '=', $visorId);
                             $this->chans->where('dvrid', '=', $dvrId);
                             $userChans = $this->chans->getAll();
-                            $userRegistered = $dvrGate->getUserGuid($result);
+                            $userRegistered = $dvrGate->getUserGuid($secretData['login']);
 
-                            /**
-                             * TODO: second user registering attempts
-                             */
                             if (!$userRegistered) {
                                 //perform creating user on DVR
-                                $dvrGate->createUser($this->allSecrets[$visorId]['login'], $this->allSecrets[$visorId]['password']);
+                                $dvrGate->createUser($secretData['login'], $secretData['password']);
+                                log_register('VISOR USER [' . $visorId . '] REGISTERED ON DVR [' . $dvrId . '] AS `' . $secretData['login'] . '` SYNC');
                             }
                             //setting valid ACL for this DVR
                             $dvrChans = array();
@@ -1998,10 +2006,11 @@ class UbillingVisor {
                             }
 
                             /**
-                             * TODO: fails on internal structs loop
+                             * TODO: check channels availability
                              */
                             $aclGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], true);
-                            $aclGate->assignUserChannels($this->allSecrets[$visorId]['login'], $dvrChans);
+                            $aclGate->assignUserChannels($secretData['login'], $dvrChans);
+                            log_register('VISOR USER [' . $visorId . '] REGEN ACL ON DVR [' . $dvrId . '] AS `' . $secretData['login'] . '` SYNC');
                         }
                     }
                 }
