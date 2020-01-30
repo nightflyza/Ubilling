@@ -546,7 +546,7 @@ class ItSaTrap {
                                         if (ispos($eachLine, $eachTrapType['match'])) {
                                             if (isset($trapFilters[$eachTrapType['id']])) {
                                                 //only required types
-                                                $trapsTmp[] = $dateF . ' ' . $eachTrapType['name'] . ' ' . $ip . '\r\n' . "\n";
+                                                $trapsTmp[] = $dateF . ' ' . $eachTrapType['name'] . ' ' . $ip . '\r\n';
                                             }
                                         }
                                     }
