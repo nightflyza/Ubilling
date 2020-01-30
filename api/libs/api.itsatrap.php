@@ -527,7 +527,7 @@ class ItSaTrap {
         $result = '' . '\r\n';
 
         //trapId may be integer/string or array
-        $trapFilters(is_array($trapId)) ? array_flip($trapId) : array($trapId => 'onlyou');
+        $trapFilters=(is_array($trapId)) ? array_flip($trapId) : array($trapId => 'onlyou');
 
         if (!empty($rawData)) {
             $rawData = explodeRows($rawData);
