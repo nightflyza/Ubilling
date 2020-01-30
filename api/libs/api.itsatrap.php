@@ -218,8 +218,8 @@ class ItSaTrap {
         $result = '';
         if (!empty($this->allTrapTypes)) {
             $cells = wf_TableCell('ID');
-            $cells .= wf_TableCell(__('Filter'));
             $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Filter'));
             $cells .= wf_TableCell(__('Color'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
