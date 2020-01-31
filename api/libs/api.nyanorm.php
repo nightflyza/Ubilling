@@ -585,6 +585,31 @@ class NyanORM {
     }
 
     /**
+     * Same as data() method, but works not with separate $field and $value data but with array of $fields => $values
+     * Useful if some "third-party" code returns an already prepared array of $fields => $values
+     *
+     * @param array $field_value array with $field => $value structure
+     *
+     * @return void
+     */
+    public function dataArr($field_value = array()) {
+        $dataInsCnt = 0;
+
+        if (!empty($field_value)) {
+            foreach ($field_value as $field => $value) {
+                if (!empty($field)) {
+                    $this->data[$field] = $value;
+                    $dataInsCnt++;
+                }
+            }
+        }
+
+        if ($dataInsCnt == 0) {
+            $this->flushData();
+        }
+    }
+
+    /**
      * Flushes current instance data set
      * 
      * @return void
@@ -597,19 +622,34 @@ class NyanORM {
      * Saves current model data fields changes to database.
      * 
      * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
-     * 
+     * @param bool $fieldsBatch gather all the fields together in a single query from $this->data structure
+     *             before actually running the query to reduce the amount of subsequential DB queries for every table field
+     *
      * @return void
      */
-    public function save($flushParams = true) {
+    public function save($flushParams = true, $fieldsBatch = false) {
         if (!empty($this->data)) {
             if (!empty($this->where)) {
                 $whereString = $this->buildWhereString();
                 if (!empty($whereString)) {
                     //double check, yeah.
-                    foreach ($this->data as $field => $value) {
-                        $query = "UPDATE `" . $this->tableName . "` SET " . $this->escapeField($field) . "='" . $value . "'" . $whereString;
+                    if ($fieldsBatch) {
+                        $query = "UPDATE `" . $this->tableName . "` SET " ;
+
+                        foreach ($this->data as $field => $value) {
+                            $query.= $this->escapeField($field) . "='" . $value . "', ";
+                        }
+
+                        $query = rtrim($query, ', ');
+                        $query.= $whereString;
                         $this->debugLog($query);
                         nr_query($query);
+                    } else {
+                        foreach ($this->data as $field => $value) {
+                            $query = "UPDATE `" . $this->tableName . "` SET " . $this->escapeField($field) . "='" . $value . "'" . $whereString;
+                            $this->debugLog($query);
+                            nr_query($query);
+                        }
                     }
                 } else {
                     throw new Exception('MEOW_WHERE_STRUCT_EMPTY');
