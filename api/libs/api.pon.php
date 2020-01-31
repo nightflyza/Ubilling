@@ -199,6 +199,27 @@ class PONizer {
     protected $replaceInvalidONUMACWithRandom = false;
 
     /**
+     * Show PON interfaces descriptions in main ONU list tab if present?
+     *
+     * @var bool
+     */
+    protected $showPONIfaceDescrMainTab = false;
+
+    /**
+     * Show PON interfaces descriptions in OLT stats tab if present?
+     *
+     * @var bool
+     */
+    protected $showPONIfaceDescrStatsTab = false;
+
+    /**
+     * Contains OLT PON interfaces description as $oltID => array($cleanIfaceName => $ifaceDescr)
+     *
+     * @var array
+     */
+    protected $ponIfaceDescrCache = array();
+
+    /**
      * Placeholder for UbillingConfig object
      *
      * @var null
@@ -223,6 +244,7 @@ class PONizer {
     const ONUCACHE_EXT = 'ONUINDEX';
     const INTCACHE_PATH = 'exports/';
     const INTCACHE_EXT = 'ONUINTERFACE';
+    const INTDESCRCACHE_EXT = 'OLTINTERFACEDESCR';
     const FDBCACHE_PATH = 'exports/';
     const FDBCACHE_EXT = 'OLTFDB';
     const DEREGCACHE_PATH = 'exports/';
@@ -270,6 +292,8 @@ class PONizer {
         $this->ponizerUseTabUI = $this->ubConfig->getAlterParam('PON_UI_USE_TABS');
         $this->validateONUMACEnabled = $this->ubConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
         $this->replaceInvalidONUMACWithRandom = $this->ubConfig->getAlterParam('PON_ONU_MAC_MAKE_RANDOM_IF_INVALID');
+        $this->showPONIfaceDescrMainTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_MAINTAB');
+        $this->showPONIfaceDescrStatsTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_STATSTAB');
 
         //optional ONU MAC hiding
         if (@$this->altCfg['PON_ONU_HIDE']) {
@@ -719,11 +743,28 @@ class PONizer {
      *
      * @return void
      */
-    protected function interfaceParseBd($oltid, $intIndex, $macIndex) {
+    protected function interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrRaw = array()) {
         $oltid = vf($oltid, 3);
         $intTmp = array();
         $macTmp = array();
         $result = array();
+        $processIfaceCustDescr = !empty($ifaceCustDescrRaw);
+        $ifaceCustDescrIdx = array();
+        $ifaceCustDescrArr = array();
+
+// olt iface descr extraction
+        if ($processIfaceCustDescr) {
+            foreach ($ifaceCustDescrRaw as $io => $each) {
+                if (empty($each)) { continue; }
+
+                $ifDescr = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $each));
+
+                if ((empty($ifDescr[0]) && empty($ifDescr[1])) || intval($ifDescr[0]) < 7) { continue; }
+                if ($ifDescr[0] > 10) { break; }
+
+                $ifaceCustDescrIdx[$ifDescr[0] - 6] = $ifDescr[1];
+            }
+        }
 
 //interface index preprocessing
         if ((!empty($intIndex)) AND ( !empty($macIndex))) {
@@ -756,10 +797,19 @@ class PONizer {
                     if (isset($intTmp[$devId])) {
                         $interface = $intTmp[$devId];
                         $result[$eachMac] = $interface;
+                        $cleanIface = strstr($interface, ':', true);
+                        $tPONIfaceNum = substr($cleanIface, -1, 1);
+
+                        if ($processIfaceCustDescr && !isset($ifaceCustDescrArr[$cleanIface]) && array_key_exists($tPONIfaceNum, $ifaceCustDescrIdx)) {
+                            $ifaceCustDescrArr[$cleanIface] = $ifaceCustDescrIdx[$tPONIfaceNum];
+                        }
                     }
                 }
+
                 $result = serialize($result);
+                $ifaceCustDescrArr = serialize($ifaceCustDescrArr);
                 file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTDESCRCACHE_EXT, $ifaceCustDescrArr);
             }
         }
     }
@@ -1291,7 +1341,10 @@ class PONizer {
 //signal history filling
                     $historyFile = self::ONUSIG_PATH . md5($eachMac);
                     $signal = $ONUsSignals[$devId]['SignalRXdBm'];
-                    $result[$eachMac] = $signal;
+
+                    if (!empty($signal)) {
+                        $result[$eachMac] = $signal;
+                    }
 
                     if (empty($signal) OR $signal == 'Offline') {
                         $signal = -9000; //over 9000 offline signal level :P
@@ -1352,13 +1405,30 @@ class PONizer {
      * @param $oltid
      * @param $IfaceIndex
      * @param $macIndexProcessed
+     * @param $ifaceCustDescrRaw
      */
-    protected function interfaceParseVSOL($oltid, $IfaceIndex, $macIndexProcessed) {
+    protected function interfaceParseVSOL($oltid, $IfaceIndex, $macIndexProcessed, $ifaceCustDescrRaw = array()) {
         $ONUIfaces = array();
         $result = array();
+        $processIfaceCustDescr = !empty($ifaceCustDescrRaw);
+        $ifaceCustDescrIdx = array();
+        $ifaceCustDescrArr = array();
+
+// olt iface descr extraction
+        if ($processIfaceCustDescr) {
+            foreach ($ifaceCustDescrRaw as $io => $each) {
+                if (empty($each)) { continue; }
+
+                $ifDescr = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $each));
+
+                if (empty($ifDescr[0]) && empty($ifDescr[1])) { continue; }
+
+                $ifaceCustDescrIdx[$ifDescr[0]] = $ifDescr[1];
+            }
+        }
 
         if (!empty($macIndexProcessed) AND ! empty($IfaceIndex)) {
-//last dereg index preprocessing
+//OLT iface index preprocessing
             foreach ($IfaceIndex as $io => $eachRow) {
                 if (empty($eachRow)) {
                     continue;
@@ -1381,7 +1451,13 @@ class PONizer {
                 $tPONIfaceNum = substr($devId, 0, 1);
 
                 if (array_key_exists($tPONIfaceNum, $ONUIfaces)) {
-                    $tPONIfaceStr = $ONUIfaces[$tPONIfaceNum] . ' / ' . str_replace('.', ':', $devId);
+                    $tPONIfaceName = $ONUIfaces[$tPONIfaceNum];
+                    $tPONIfaceStr = $tPONIfaceName . ' / ' . str_replace('.', ':', $devId);
+                    $cleanIface = strstr($tPONIfaceStr, ':', true);
+
+                    if ($processIfaceCustDescr && !isset($ifaceCustDescrArr[$cleanIface]) && array_key_exists($tPONIfaceNum, $ifaceCustDescrIdx)) {
+                        $ifaceCustDescrArr[$cleanIface] = $ifaceCustDescrIdx[$tPONIfaceNum];
+                    }
                 } else {
                     $tPONIfaceStr = str_replace('.', ':', $devId);
                 }
@@ -1390,7 +1466,9 @@ class PONizer {
             }
 
             $result = serialize($result);
+            $ifaceCustDescrArr = serialize($ifaceCustDescrArr);
             file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+            file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTDESCRCACHE_EXT, $ifaceCustDescrArr);
         }
     }
 
@@ -1482,6 +1560,7 @@ class PONizer {
                             $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
                             $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
                             $sigIndex = explodeRows($sigIndex);
+                            $ifaceCustDescrIndex = array();
 
 //ONU distance polling for bdcom devices
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
@@ -1498,8 +1577,6 @@ class PONizer {
                                         $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
                                         $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                         $onuIndex = explodeRows($onuIndex);
-
-
 
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
                                             $deregIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
@@ -1522,6 +1599,14 @@ class PONizer {
                                         $FDBIndex = explodeRows($FDBIndex);
                                     }
                                 }
+
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['IFACECUSTOMDESCR'])) {
+                                    $ifaceCustDescrIndexOID = $this->snmpTemplates[$oltModelId]['misc']['IFACECUSTOMDESCR'];
+                                    $ifaceCustDescrIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $ifaceCustDescrIndexOID, self::SNMPCACHE);
+                                    $ifaceCustDescrIndex = str_replace($ifaceCustDescrIndexOID . '.', '', $ifaceCustDescrIndex);
+                                    $ifaceCustDescrIndex = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '"'), '', $ifaceCustDescrIndex);
+                                    $ifaceCustDescrIndex = explodeRows($ifaceCustDescrIndex);
+                                }
                             }
 
 //getting MAC index. 
@@ -1538,7 +1623,8 @@ class PONizer {
 // processing distance data
                                         $this->distanceParseBd($oltid, $distIndex, $onuIndex);
 //processing interfaces data
-                                        $this->interfaceParseBd($oltid, $intIndex, $macIndex);
+//and interface description data
+                                        $this->interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrIndex);
 //processing FDB data
                                         $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
@@ -1734,15 +1820,22 @@ class PONizer {
 
                                     $this->distanceParseVSOL($oltid, $distIndex, $VSOLMACsProcessed);
 
-
                                     $ifaceIndexOID = $this->snmpTemplates[$oltModelId]['misc']['IFACEDESCR'];
                                     $ifaceIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $ifaceIndexOID, self::SNMPCACHE);
                                     $ifaceIndex = str_replace($ifaceIndexOID . '.', '', $ifaceIndex);
                                     $ifaceIndex = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['IFACEVALUE'], '"'), '', $ifaceIndex);
                                     $ifaceIndex = explodeRows($ifaceIndex);
 
-                                    $this->interfaceParseVSOL($oltid, $ifaceIndex, $VSOLMACsProcessed);
+                                    $ifaceCustDescrIndex = array();
+                                    if (isset($this->snmpTemplates[$oltModelId]['misc']['IFACECUSTOMDESCR'])) {
+                                        $ifaceCustDescrIndexOID = $this->snmpTemplates[$oltModelId]['misc']['IFACECUSTOMDESCR'];
+                                        $ifaceCustDescrIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $ifaceCustDescrIndexOID, self::SNMPCACHE);
+                                        $ifaceCustDescrIndex = str_replace($ifaceCustDescrIndexOID . '.', '', $ifaceCustDescrIndex);
+                                        $ifaceCustDescrIndex = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['IFACEVALUE'], '"'), '', $ifaceCustDescrIndex);
+                                        $ifaceCustDescrIndex = explodeRows($ifaceCustDescrIndex);
+                                    }
 
+                                    $this->interfaceParseVSOL($oltid, $ifaceIndex, $VSOLMACsProcessed, $ifaceCustDescrIndex);
 
                                     $lastDeregIndexOID = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
                                     $lastDeregIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastDeregIndexOID, self::SNMPCACHE);
@@ -2970,6 +3063,7 @@ class PONizer {
         $onuMaxCount = @$this->altCfg['PON_ONU_PORT_MAX'];
         $oltOnuFilled = array();
         $oltInterfacesFilled = array();
+        $oltInterfaceDescrs = array();
         $signals = array();
         $badSignals = array();
         $avgSignals = array();
@@ -2987,6 +3081,8 @@ class PONizer {
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
                     $onuInterfacesCache = self::INTCACHE_PATH . $oltId . '_' . self::INTCACHE_EXT;
                     $onuSignalsCache = self::SIGCACHE_PATH . $oltId . '_' . self::SIGCACHE_EXT;
+                    $oltInterfaceDescrsCache = self::INTCACHE_PATH . $oltId . '_' . self::INTDESCRCACHE_EXT;
+
                     if (file_exists($onuInterfacesCache)) {
                         $interfaces = file_get_contents($onuInterfacesCache);
                         $interfaces = unserialize($interfaces);
@@ -2996,8 +3092,15 @@ class PONizer {
                         }
 
                         if (!empty($interfaces)) {
+                            $ifaceDescrs = array();
+                            if (file_exists($oltInterfaceDescrsCache)) {
+                                $ifaceDescrs = file_get_contents($oltInterfaceDescrsCache);
+                                $ifaceDescrs = unserialize($ifaceDescrs);
+                            }
+
                             foreach ($interfaces as $eachMac => $eachInterface) {
                                 $cleanInterface = strstr($eachInterface, ':', true);
+
                                 if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
                                     $oltInterfacesFilled[$oltId][$cleanInterface] ++;
                                 } else {
@@ -3020,6 +3123,13 @@ class PONizer {
                                             $badSignals[$oltId][$cleanInterface] = 1;
                                         }
                                     }
+                                }
+
+                                //storing PON ifaces descriptions, if not stored yet
+                                if(!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
+                                   and !empty($ifaceDescrs) and !empty($ifaceDescrs[$cleanInterface])) {
+
+                                    $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                                 }
                             }
                         }
@@ -3045,7 +3155,9 @@ class PONizer {
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
-
+                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and !empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
+                        $cells = wf_TableCell($eachInterface . $oltIfaceDescr);
+                        $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
 
                         $avgSignalCount = @$avgSignals[$oltId][$eachInterface];
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
@@ -3275,6 +3387,31 @@ class PONizer {
     }
 
     /**
+     * Loads available OLTs PON interfaces descriptions
+     *
+     * @return void
+     */
+    protected function loadPONIfaceDescrCache() {
+        $availCacheData = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTDESCRCACHE_EXT);
+
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $tmpArr = array();
+                $oltID = strstr($each, '_', true);
+                $raw = file_get_contents(self::INTCACHE_PATH . $each);
+                $raw = unserialize($raw);
+
+                foreach ($raw as $interface => $ifDescr) {
+                    $tmpArr[$interface] = $ifDescr;
+                }
+
+                $this->ponIfaceDescrCache[$oltID] =  $tmpArr;
+            }
+        }
+
+    }
+
+    /**
      * Loads OLT FDB cache
      *
      * @return void
@@ -3485,6 +3622,21 @@ class PONizer {
             $intCacheAvail = false;
         }
 
+        $intDescrCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTDESCRCACHE_EXT);
+        $curOLTIfaceDescrs = array();
+        if (!empty($intDescrCacheAvail)) {
+            $this->loadPONIfaceDescrCache();
+
+            if (!empty($this->ponIfaceDescrCache[$OltId])) {
+                $intDescrCacheAvail = true;
+                $curOLTIfaceDescrs = $this->ponIfaceDescrCache[$OltId];
+            } else {
+                $intDescrCacheAvail = false;
+            }
+        } else {
+            $intDescrCacheAvail = false;
+        }
+
         $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
         if (!empty($lastDeregCacheAvail)) {
             $lastDeregCacheAvail = true;
@@ -3547,15 +3699,23 @@ class PONizer {
                 }
 
                 $data[] = $each['id'];
+
                 if ($intCacheAvail) {
                     if (isset($this->interfaceCache[$each['mac']])) {
-                        $data[] = $this->interfaceCache[$each['mac']];
+                        $ponInterface = $this->interfaceCache[$each['mac']];
                     } else if (isset($this->interfaceCache[$each['serial']])) {
-                        $data[] = $this->interfaceCache[$each['serial']];
+                        $ponInterface = $this->interfaceCache[$each['serial']];
                     } else {
-                        $data[] = '';
+                        $ponInterface = '';
                     }
+
+                    $cleanInterface = strstr($ponInterface, ':', true);
+                    $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and !empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                    $data[] = $oltIfaceDescr . $ponInterface;
+                } else {
+                    $data[] = '';
                 }
+
                 $data[] = $this->getModelName($each['onumodelid']);
                 $data[] = $each['ip'];
                 $data[] = $each['mac'];
@@ -3835,7 +3995,7 @@ class PONizer {
         $validateONUMACEnabled = $ubillingConfig->getAlterParam('PON_ONU_MAC_VALIDATE');
         $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
 
-        $query = "SELECT * from `pononu`";
+        $query = "SELECT * from `pononu` WHERE `login` != '' and NOT ISNULL(`login`)";
         $allOnuRecs = simple_queryall($query);
 
         if (!empty($allOnuRecs) and ! empty($availCacheData)) {
@@ -3880,7 +4040,6 @@ class PONizer {
 
         return (!empty($matches[0]));
     }
-
 }
 
 class PONizerLegacy extends PONizer {

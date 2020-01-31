@@ -525,10 +525,12 @@ if ($system->checkForRight('ONLINE')) {
 
                 if ($showONUSignals and isset($allONUSignals[$eachuser['login']])) {
                     $onuSignal = $allONUSignals[$eachuser['login']];
+                    $onuSignal = preg_replace("#[^a-z0-9A-Z\-_\.\/]#Uis", '', $onuSignal);
                 }
 
                 if ($showWIFISignals and isset($allWiFiSignals[$eachuser['login']])) {
                     $wifiSignal = $allWiFiSignals[$eachuser['login']];
+                    $wifiSignal = preg_replace("#[^a-z0-9A-Z\-_\.\/]#Uis", '', $wifiSignal);
                 }
 
                 if ($showLastFeeCharge and isset($allFees[$eachuser['login']])) {

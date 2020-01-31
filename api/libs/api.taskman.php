@@ -942,6 +942,8 @@ function ts_JGetAllTasks() {
  * @return string
  */
 function ts_TaskTypicalNotesSelector($settings = true) {
+    global $ubillingConfig;
+    $noLengthCut = $ubillingConfig->getAlterParam('TASKMAN_NO_TYPICALNOTES_CUT');
 
     $rawNotes = zb_StorageGet('PROBLEMS');
     if ($settings) {
@@ -964,16 +966,18 @@ function ts_TaskTypicalNotesSelector($settings = true) {
 
     if (!empty($rawNotes)) {
         foreach ($rawNotes as $eachnote) {
-            if (mb_strlen($eachnote, 'utf-8') > 20) {
+            if (!$noLengthCut and mb_strlen($eachnote, 'utf-8') > 20) {
                 $shortNote = mb_substr($eachnote, 0, 20, 'utf-8') . '...';
             } else {
                 $shortNote = $eachnote;
             }
+
             $typycalNotes[$eachnote] = $shortNote;
         }
     }
 
-    $selector = wf_Selector('typicalnote', $typycalNotes, __('Problem') . ' ' . $settingsControl, '', true);
+    $selectorAlterWidth = ($noLengthCut) ? 'style="width: 70%"' : '';
+    $selector = wf_Selector('typicalnote', $typycalNotes, __('Problem') . ' ' . $settingsControl, '', true, false, '', '', $selectorAlterWidth);
     return ($selector);
 }
 
