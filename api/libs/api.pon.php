@@ -740,6 +740,7 @@ class PONizer {
      * @param int $oltid
      * @param array $intIndex
      * @param array $macIndex
+     * @param array $ifaceCustDescrRaw
      *
      * @return void
      */
@@ -4247,7 +4248,6 @@ class PONizerLegacy extends PONizer {
         $result .= show_window('', wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
         return ($result);
     }
-
 }
 
 ?>
