@@ -3157,5 +3157,7 @@ $lang['def']['right to control Dreamkas cash operations'] = 'Право керу
 $lang['def']['Money transactions that may was not processed'] = 'Грошові транзакції, котрі могло бути не опрацьовано';
 $lang['def']['Unprocessed payments repair'] = 'Виправлення неопрацьованих оплат';
 $lang['def']['Bearing'] = 'Азимут';
+$lang['def']['History of switch life'] = 'Історія життя та смерті комутатора';
+
 
 ?>

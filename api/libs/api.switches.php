@@ -531,6 +531,10 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('SWITCHESEDIT')) {
+        $result .= wf_Link('?module=switchhistory&switchid=' . $switchid, wf_img('skins/log_icon_small.png').' '.__('History'), false, 'ubButton') . ' ';
+    }
+
+    if (cfr('SWITCHESEDIT')) {
         $result .= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
     }
 
