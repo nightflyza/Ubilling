@@ -101,8 +101,8 @@ class SwitchHistory {
                 foreach ($allEvents as $io => $each) {
                     $cells = wf_TableCell($each['id']);
                     $cells .= wf_TableCell($each['date']);
-                    $cells .= wf_TableCell($each['ip']);
                     $cells .= wf_TableCell($each['admin']);
+                    $cells .= wf_TableCell($each['ip']);
                     $cells .= wf_TableCell($each['event']);
                     $rows .= wf_TableRow($cells, 'row5');
                 }
