@@ -499,7 +499,7 @@ function web_SwitchEditForm($switchid) {
     if (cfr('SWITCHPOLL')) {
         $fdbCacheName = 'exports/' . $switchdata['ip'] . '_fdb';
         if (file_exists($fdbCacheName)) {
-            $result .= wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
+            $result .= wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB cache'), false, 'ubButton');
             $result .= wf_Link('?module=fdbarchive&switchidfilter=' . $switchid, wf_img('skins/fdbarchive.png') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton');
         }
 
@@ -531,7 +531,7 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('SWITCHESEDIT')) {
-        $result .= wf_Link('?module=switchhistory&switchid=' . $switchid, wf_img('skins/log_icon_small.png').' '.__('History'), false, 'ubButton') . ' ';
+        $result .= wf_AjaxLink('?module=switchhistory&ajax=true&&switchid=' . $switchid, wf_img('skins/log_icon_small.png') . ' ' . __('History'), 'icmppingcontainer', false, 'ubButton') . ' ';
     }
 
     if (cfr('SWITCHESEDIT')) {

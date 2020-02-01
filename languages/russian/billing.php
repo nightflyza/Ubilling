@@ -3137,6 +3137,8 @@ $lang['def']['Money transactions that may was not processed'] = 'Денежны�
 $lang['def']['Unprocessed payments repair'] = 'Исправление необработанных платежей';
 $lang['def']['Bearing'] = 'Азимут';
 $lang['def']['History of switch life'] = 'История жизни свитча';
+$lang['def']['FDB cache'] = 'Кеш FDB';
+$lang['def']['View full'] = 'Просмотреть полностью';
 $lang['def'][''] = '';
 
 ?>

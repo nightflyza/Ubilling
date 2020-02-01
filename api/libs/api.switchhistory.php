@@ -24,9 +24,21 @@ class SwitchHistory {
     protected $messages = '';
 
     /**
+     * Contains current instance render type
+     *
+     * @var bool
+     */
+    protected $ajaxFlag = false;
+
+    /**
      * Switch profile back URL
      */
     const URL_SWPROFILE = '?module=switches&edit=';
+
+    /**
+     * Default controller module URL
+     */
+    const URL_ME = '?module=switchhistory';
 
     /**
      * Creates new report instance
@@ -37,9 +49,20 @@ class SwitchHistory {
      */
     public function __construct($switchId = '') {
         $this->setSwitchId($switchId);
-
+        $this->setRenderType();
         $this->initMessages();
         $this->initWeblogs();
+    }
+
+    /**
+     * Sets current instance render type
+     * 
+     * @return void
+     */
+    protected function setRenderType() {
+        if (ubRouting::checkGet('ajax')) {
+            $this->ajaxFlag = true;
+        }
     }
 
     /**
@@ -81,6 +104,12 @@ class SwitchHistory {
      */
     public function renderReport() {
         $result = '';
+        if ($this->ajaxFlag) {
+            $result .= wf_tag('div', false, '', 'style="height:200px; overflow:auto;"');
+            $result .= wf_tag('strong') . __('History of switch life') . wf_tag('strong', true).' ';
+            $result .= wf_Link(self::URL_ME.'&switchid='.$this->switchId, wf_img('skins/arrow_right_green.png',__('View full')));
+        }
+
         if (!empty($this->switchId)) {
             $eventMask = '%SWITCH%';
             $switchMask = '%[' . $this->switchId . ']%';
@@ -112,6 +141,12 @@ class SwitchHistory {
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NO_SWITCHID', 'error');
+        }
+
+        //no additional formatting required
+        if ($this->ajaxFlag) {
+            $result .= wf_tag('div', true);
+            die($result);
         }
 
         $result .= wf_delimiter();
