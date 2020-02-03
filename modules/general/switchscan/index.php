@@ -94,9 +94,9 @@ if (cfr('SWITCHESEDIT')) {
             $curNet = (wf_CheckPost(array('searchnetdevs'))) ? $_POST['searchnetdevs'] : '';
             $curCidr = (wf_CheckPost(array('searchnetcidr'))) ? $_POST['searchnetcidr'] : '';
             $inputs = wf_TextInput('searchnetdevs', __('Network') . ' /', $curNet, false, 20);
-            $inputs.= wf_Selector('searchnetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
-            $inputs.= wf_Submit(__('Search'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('searchnetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
+            $inputs .= wf_Submit(__('Search'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
             return ($result);
         }
 
@@ -110,9 +110,9 @@ if (cfr('SWITCHESEDIT')) {
             $curNet = (wf_CheckPost(array('freenetdevs'))) ? $_POST['freenetdevs'] : '';
             $curCidr = (wf_CheckPost(array('freecidr'))) ? $_POST['freenetcidr'] : '';
             $inputs = wf_TextInput('freenetdevs', __('Network') . ' /', $curNet, false, 20);
-            $inputs.= wf_Selector('freenetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
-            $inputs.= wf_Submit(__('Show'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('freenetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
             return ($result);
         }
 
@@ -186,14 +186,14 @@ if (cfr('SWITCHESEDIT')) {
                 foreach ($this->scanIps as $io => $eachIp) {
                     if (!isset($this->allSwitchesIp[$eachIp])) {
                         if (zb_PingICMP($eachIp)) {
-                            $result.=$this->messages->getStyledMessage(__('Unknown device') . ' ' . $eachIp, 'warning');
+                            $result .= $this->messages->getStyledMessage(__('Unknown device') . ' ' . $eachIp, 'warning');
                         }
                     }
                 }
             }
 
             if (empty($result)) {
-                $result.=$this->messages->getStyledMessage(__('Nothing found'), 'success');
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'success');
             }
             return ($result);
         }
@@ -219,13 +219,16 @@ if (cfr('SWITCHESEDIT')) {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($tmpArr as $io => $each) {
-                    $cells = wf_TableCell($each, '', '', 'sorttable_customkey="' . ip2int($each) . '"');
-                    $rows.= wf_TableRow($cells, 'row5');
+                    //ignoring some broadcasts and network addrs
+                    if (!preg_match("#\.(0|1|255)$#", $each)) {
+                        $cells = wf_TableCell($each, '', '', 'sorttable_customkey="' . ip2int($each) . '"');
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
                 }
 
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('Nothing found'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
             }
             return ($result);
         }
