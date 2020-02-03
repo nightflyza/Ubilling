@@ -12,6 +12,8 @@ if (cfr('TARIFFEDIT')) {
             if (!isset($_POST['nextmonth'])) {
                 $billing->settariff($login, $tariff);
                 log_register('CHANGE Tariff (' . $login . ') ON `' . $tariff . '`');
+                //cache cleanup
+                zb_UserGetAllDataCacheClean();
                 //optional user reset
                 if ($alter_conf['TARIFFCHGRESET']) {
                     $billing->resetuser($login);
@@ -80,39 +82,39 @@ if (cfr('TARIFFEDIT')) {
 //DDT locks
         $form = '';
         $formAccessible = true;
-        $additionalDelimiter='';
+        $additionalDelimiter = '';
         if (@$alter_conf['DDT_ENABLED']) {
             $ddt = new DoomsDayTariffs(true);
             $messages = new UbillingMessageHelper();
             $currentDDTTariffs = $ddt->getCurrentTariffsDDT();
             if (isset($currentDDTTariffs[$current_tariff])) {
                 $ddtOptions = $currentDDTTariffs[$current_tariff];
-                $form.=$messages->getStyledMessage(__('Current tariff') . ' ' . $current_tariff . ' ' . __('will be changed to') . ' ' . $ddtOptions['tariffmove'] . ' ' . __('automatically'), 'info');
-                $additionalDelimiter.=wf_delimiter(0);
+                $form .= $messages->getStyledMessage(__('Current tariff') . ' ' . $current_tariff . ' ' . __('will be changed to') . ' ' . $ddtOptions['tariffmove'] . ' ' . __('automatically'), 'info');
+                $additionalDelimiter .= wf_delimiter(0);
                 //form lock
                 $dwiTaskData = $ddt->getTaskCreated($login);
                 if ($dwiTaskData) {
-                    $form.=$messages->getStyledMessage(__('On') . ' ' . $dwiTaskData['date'] . ' ' . __('is already planned tariff change to') . ' ' . $dwiTaskData['param'], 'warning');
+                    $form .= $messages->getStyledMessage(__('On') . ' ' . $dwiTaskData['date'] . ' ' . __('is already planned tariff change to') . ' ' . $dwiTaskData['param'], 'warning');
                     $formAccessible = false;
                 }
             }
         }
 //old style tariff selector
         if ($formAccessible) {
-            $form.=$additionalDelimiter;
+            $form .= $additionalDelimiter;
             if (!isset($_GET['oldform'])) {
-                $form.= web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $current_tariff);
+                $form .= web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $current_tariff);
             } else {
-                $form.= web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $current_tariff);
+                $form .= web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $current_tariff);
             }
 
 
-            $form.=wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
-            $form.=wf_Link('?module=tariffedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
+            $form .= wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
+            $form .= wf_Link('?module=tariffedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
         }
-        $form.=wf_delimiter();
+        $form .= wf_delimiter();
 
-        $form.=web_UserControls($login);
+        $form .= web_UserControls($login);
 // show form
         show_window(__('Edit tariff'), $form);
     }
