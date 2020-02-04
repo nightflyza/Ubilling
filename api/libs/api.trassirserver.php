@@ -811,6 +811,18 @@ class TrassirServer {
     }
 
     /**
+     * TODO: receive channel recording type here
+     * 
+     * @param type $channel
+     * @return type
+     */
+    public function getChannelSettings($channel) {
+        $result = array();
+        $result = $this->apiRequest('/settings/channels/' . $channel . '/', 'apikey');
+        return($result);
+    }
+
+    /**
      * Returns array of all available IP cameras GUIDs
      * 
      * @return array
