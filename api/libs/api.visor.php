@@ -122,8 +122,23 @@ class UbillingVisor {
     protected $chanPreviewSize = '30%';
 
     /**
+     * Quality percent for channels small preview
+     *
+     * @var int
+     */
+    protected $chanPreviewQuality = 1;
+
+    /**
+     * Channels preview 
+     *
+     * @var int
+     */
+    protected $chanPreviewFramerate = 1000; // 1 fps
+
+    /**
      * Basic module URLs
      */
+
     const URL_ME = '?module=visor';
     const URL_USERS = '&users=true';
     const URL_CAMS = '&cams=true';
@@ -735,13 +750,53 @@ class UbillingVisor {
                     $result .= $this->messages->getStyledMessage(__('User have no cameras assigned'), 'warning');
                 }
 
-                //assigned channels preview
+                //assigned channels preview & assign forms
                 $result .= $this->renderUserAssignedChannels($userId);
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists') . ' [' . $userId . ']', 'error');
         }
         return ($result);
+    }
+
+    /**
+     * Renders channels available on all of DVRs that can be assigned to this user
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUnassignedChannels($userId) {
+        $result = '';
+        $userId = ubRouting::filters($userId, 'int');
+        $unassignedCount = 0;
+        $chanControlLinks = '';
+        if ($this->trassirEnabled) {
+            if (!empty($this->allDvrs)) {
+                foreach ($this->allDvrs as $io => $eachDvr) {
+                    if ($eachDvr['type'] == 'trassir') {
+                        $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port']);
+                        $dvrChannels = $dvrGate->getChannels();
+                        if (!empty($dvrChannels)) {
+                            foreach ($dvrChannels as $eachChanGuid => $eachChanName) {
+                                //not assigned to anyone
+                                if (!isset($this->channelUsers[$eachChanGuid])) {
+                                    $chanEditLink = self::URL_ME . self::URL_CHANEDIT . $eachChanGuid . '&dvrid=' . $eachDvr['id'] . '&useridpreset=' . $userId;
+                                    $chanControlLinks .= wf_Link($chanEditLink, web_edit_icon() . ' ' . $eachChanGuid . ' (' . $eachChanName . ')', false, 'ubButton') . ' ';
+                                    $unassignedCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($unassignedCount > 0) {
+            $result .= wf_tag('h2') . __('No user assigned') . wf_tag('h2', true);
+            $result .= $chanControlLinks;
+        }
+        return($result);
     }
 
     /**
@@ -755,42 +810,51 @@ class UbillingVisor {
         $result = '';
         $userId = ubRouting::filters($userId, 'int');
         if ($this->trassirEnabled) {
-            $result .= wf_tag('h2', false) . __('Channels') . wf_tag('h2', true);
-            $result .= wf_tag('div', false);
+            if (ubRouting::checkGet('chanspreview')) {
+                $result .= wf_tag('h2', false) . __('Channels') . wf_tag('h2', true);
+                $result .= wf_tag('div', false);
 
-            //assigned channels list
-            if (isset($this->allChannels[$userId])) {
-                if (!empty($this->allChannels[$userId])) {
-                    foreach ($this->allChannels[$userId] as $io => $eachChan) {
-                        $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
-                        if ($chanDvrData['type'] == 'trassir') {
-                            $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port']);
+                //assigned channels list
+                if (isset($this->allChannels[$userId])) {
+                    if (!empty($this->allChannels[$userId])) {
+                        foreach ($this->allChannels[$userId] as $io => $eachChan) {
+                            $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
+                            if ($chanDvrData['type'] == 'trassir') {
+                                $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port']);
 
-                            $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', 'mjpeg');
-                            $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
-                            $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
-                            $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
-                            $result .= $eachChan['chan'];
-                            $result .= wf_tag('br');
-                            $result .= wf_img_sized($streamUrl, '', '90%');
+                                $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                                $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                                $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
+                                $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
+                                $result .= $eachChan['chan'];
+                                $result .= wf_tag('br');
+                                $result .= wf_img_sized($streamUrl, '', '90%');
 
-                            $result .= wf_tag('div', false, 'todaysig');
-                            $result .= $channelEditControl;
-                            $result .= wf_tag('div', true);
+                                $result .= wf_tag('div', false, 'todaysig');
+                                $result .= $channelEditControl;
+                                $result .= wf_tag('div', true);
 
-                            $result .= wf_CleanDiv();
-                            $result .= wf_tag('div', true);
+                                $result .= wf_CleanDiv();
+                                $result .= wf_tag('div', true);
+                            }
                         }
                     }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('User have no channels assigned'), 'warning');
                 }
+
+                $result .= wf_CleanDiv();
+                $result .= wf_tag('div', true, '');
+
+                //unassigned channels list
+                $result .= $this->renderUnassignedChannels($userId);
+
+                $result .= wf_delimiter();
+                $result .= wf_BackLink(self::URL_ME . self::URL_USERVIEW . $userId);
             } else {
-                $result .= $this->messages->getStyledMessage(__('User have no channels assigned'), 'warning');
+                $result .= wf_delimiter();
+                $result .= wf_Link(self::URL_ME . self::URL_USERVIEW . $userId . '&chanspreview=true', web_green_led() . ' ' . __('Channels'), false, 'ubButton');
             }
-
-
-
-            $result .= wf_CleanDiv();
-            $result .= wf_tag('div', true, '');
         }
         return($result);
     }
@@ -1837,35 +1901,53 @@ class UbillingVisor {
      */
     public function renderChannelsPreview() {
         $result = '';
+        //chan controls here
+        $result .= wf_Link(self::URL_ME . self::URL_CHANS, web_yellow_led() . ' ' . __('No user assigned'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . self::URL_CHANS . '&allchannels=true', web_green_led() . ' ' . __('All channels'), false, 'ubButton') . ' ';
+        $result .= wf_delimiter();
+        $allFlag = (ubRouting::checkGet('allchannels')) ? true : false;
+
 
         if (!empty($this->allDvrs)) {
             $result .= wf_tag('div', false, '');
             foreach ($this->allDvrs as $io => $eachDvr) {
                 if ($eachDvr['type'] == 'trassir') {
                     $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port']);
-                    //$dvrGate->setDebug(true);
                     $serverHealth = $dvrGate->getHealth();
                     if (!empty($serverHealth)) {
                         if (isset($serverHealth['channels_health'])) {
                             $dvrChannels = $serverHealth['channels_health'];
                             if (!empty($dvrChannels)) {
                                 foreach ($dvrChannels as $ia => $eachChan) {
-                                    $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg');
-                                    $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
-                                    $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
-                                    $result .= $eachChan['name'] . ' / ' . $eachChan['guid'];
-                                    $result .= wf_tag('br');
-                                    $result .= wf_img_sized($streamUrl, '', '90%');
-                                    $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
-                                    $assignedUserLabel = (isset($this->allUsers[$assignedUserId])) ? $this->iconVisorUser() . ' ' . $this->allUsers[$assignedUserId]['realname'] : '';
-                                    $userAssignedLink = ($assignedUserId) ? wf_Link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $assignedUserLabel) : __('No');
-                                    $userLinkClass = ($assignedUserId) ? 'todaysig' : 'undone';
-                                    $result .= wf_tag('div', false, $userLinkClass);
-                                    $result .= $channelEditControl . ' ' . __('User') . ': ' . $userAssignedLink;
-                                    $result .= wf_tag('div', true);
-                                    $result .= __('Signal') . ' ' . web_bool_led($eachChan['signal']);
-                                    $result .= wf_CleanDiv();
-                                    $result .= wf_tag('div', true);
+
+
+                                    $renderChannel = false;
+                                    if ($allFlag) {
+                                        $renderChannel = true;
+                                    } else {
+                                        if (!isset($this->channelUsers[$eachChan['guid']])) {
+                                            $renderChannel = true;
+                                        }
+                                    }
+
+                                    if ($renderChannel) {
+                                        $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                                        $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
+                                        $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
+                                        $result .= $eachChan['name'] . ' / ' . $eachChan['guid'];
+                                        $result .= wf_tag('br');
+                                        $result .= wf_img_sized($streamUrl, '', '90%');
+                                        $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
+                                        $assignedUserLabel = (isset($this->allUsers[$assignedUserId])) ? $this->iconVisorUser() . ' ' . $this->allUsers[$assignedUserId]['realname'] : '';
+                                        $userAssignedLink = ($assignedUserId) ? wf_Link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $assignedUserLabel) : __('No');
+                                        $userLinkClass = ($assignedUserId) ? 'todaysig' : 'undone';
+                                        $result .= wf_tag('div', false, $userLinkClass);
+                                        $result .= $channelEditControl . ' ' . __('User') . ': ' . $userAssignedLink;
+                                        $result .= wf_tag('div', true);
+                                        $result .= __('Signal') . ' ' . web_bool_led($eachChan['signal']);
+                                        $result .= wf_CleanDiv();
+                                        $result .= wf_tag('div', true);
+                                    }
                                 }
                             } else {
                                 $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
@@ -1898,6 +1980,13 @@ class UbillingVisor {
         $channelGuid = ubRouting::filters($channelGuid, 'mres');
         $dvrId = ubRouting::filters($dvrId, 'int');
         if (isset($this->allDvrs[$dvrId])) {
+            $curUserId = '';
+            if (isset($this->channelUsers[$channelGuid])) {
+                //already assigned to someone
+                $curUserId = $this->channelUsers[$channelGuid];
+            } else {
+                $curUserId = (ubRouting::checkGet('useridpreset')) ? ubRouting::get('useridpreset', 'int') : '';
+            }
             //some users preparing
             $usersTmp = array('' => '-');
             if (!empty($this->allUsers)) {
@@ -1908,7 +1997,7 @@ class UbillingVisor {
 
             $inputs = wf_HiddenInput('editchannelguid', $channelGuid);
             $inputs .= wf_HiddenInput('editchanneldvrid', $dvrId);
-            $inputs .= wf_Selector('editchannelvisorid', $usersTmp, __('User'), @$this->channelUsers[$channelGuid], false) . ' ';
+            $inputs .= wf_Selector('editchannelvisorid', $usersTmp, __('User'), $curUserId, false) . ' ';
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -1920,10 +2009,26 @@ class UbillingVisor {
                 $result .= wf_img_sized($channelUrl, '', '60%');
                 $result .= wf_delimiter();
             }
+
+            if (!isset($this->channelUsers[$channelGuid])) {
+                $result .= $this->messages->getStyledMessage(__('Channel without assigned user'), 'warning');
+                $result .= wf_delimiter();
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Channel have user assigned') . ': ' . @$this->allUsers[$this->channelUsers[$channelGuid]]['realname'], 'success');
+                $result .= wf_delimiter();
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No such DVR exists') . ' [' . $dvrId . ']', 'error');
         }
-        $result .= wf_BackLink(self::URL_ME . self::URL_CHANS);
+        $result .= wf_link(self::URL_ME . self::URL_CHANS, wf_img('skins/play.png') . ' ' . __('Channels'), false, 'ubButton');
+        if (isset($this->channelUsers[$channelGuid])) {
+            $assignedUserId = $this->channelUsers[$channelGuid];
+            $result .= wf_link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $this->iconVisorUser() . ' ' . @$this->allUsers[$assignedUserId]['realname'], false, 'ubButton');
+        } else {
+            if (!empty($curUserId)) {
+                $result .= wf_link(self::URL_ME . self::URL_USERVIEW . $curUserId, $this->iconVisorUser() . ' ' . @$this->allUsers[$curUserId]['realname'], false, 'ubButton');
+            }
+        }
         return($result);
     }
 
@@ -2036,7 +2141,7 @@ class UbillingVisor {
                     $dvrData = $this->allDvrs[$each['dvrid']];
                     if ($dvrData['type'] = 'trassir') {
                         $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-                        $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg');
+                        $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
                         $urlTmp[] = $url;
                     }
                 }

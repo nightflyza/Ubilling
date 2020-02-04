@@ -558,7 +558,6 @@ class TrassirServer {
             $this->logDebug('New user registered: ' . $login, 'info');
             //restricting new user rights
             $this->restrictUserRighs($login);
-            
         } else {
             $this->logDebug('User already registered and found in server objects tree: ' . $login, 'warning');
         }
@@ -791,12 +790,19 @@ class TrassirServer {
      * @param string $channel
      * @param string $stream should be main or sub
      * @param string $container should be mjpeg|flv|jpeg
+     * @param int $quality jpg container type quality between 0-100 (percents) 
+     * @param int $framerate 0 - realtime / 60000 - 1 frame per minute
      * 
      * @return bool|string return url to live video stream or false on failure
      */
-    public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg') {
+    public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg', $quality = 100, $framerate = 0) {
         $result = false;
-        $token = $this->apiRequest('/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream, 'sidamp');
+        if ($container == 'mjpeg' OR $container == 'jpeg') {
+            $requestUrl = '/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream . '&quality=' . $quality . '%&framerate=' . $framerate;
+        } else {
+            $requestUrl = '/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream . '&framerate=' . $framerate;
+        }
+        $token = $this->apiRequest($requestUrl, 'sidamp');
         if ($token['success'] == 1) {
             $videoToken = $token['token'];
             $result = $this->httpVideoProtocol . '://' . trim($this->ip) . ':' . $this->httpVideoPort . '/' . $videoToken;

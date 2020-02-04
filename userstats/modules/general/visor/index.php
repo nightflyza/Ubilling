@@ -180,13 +180,11 @@ if (@$us_config['VISOR_ENABLED']) {
                 if (!empty($this->myUserData)) {
                     if (isset($this->myUserData['id'])) {
                         $myVisorId = $this->myUserData['id'];
-                        $apiBase = $this->userstatsCfg['API_URL'] . '/?module=remoteapi&key=' . $this->userstatsCfg['API_KEY'];
-                        $requestUrl = $apiBase . '&action=visorchans&userid=' . $myVisorId . '&param=preview';
-                        @$channels = file_get_contents($requestUrl);
+                        $requestUrl = '&action=visorchans&userid=' . $myVisorId . '&param=preview';
+                        $channels = zbs_remoteApiRequest($requestUrl);
                         if (!empty($channels)) {
                             @$channels = json_decode($channels);
                             if (!empty($channels)) {
-
                                 foreach ($channels as $index => $eachUrl) {
                                     if (!empty($eachUrl)) {
                                         $result .= la_tag('div', false, '', 'style="float:left; width:30%; margin:5px;"');
@@ -195,7 +193,6 @@ if (@$us_config['VISOR_ENABLED']) {
                                         $result .= la_tag('br');
                                         $result .= la_tag('a', false, 'anreadbutton', 'href="' . $eachUrl . '" target="_BLANK"') . __('View') . la_tag('a', true);
                                         $result .= la_tag('div', true);
-                                        
                                     }
                                 }
                             }
@@ -270,7 +267,7 @@ if (@$us_config['VISOR_ENABLED']) {
                         $myChansCount = $this->getChansCount();
                         //user have some channels assigned
                         if ($myChansCount > 0) {
-                            $result.= la_tag('br');
+                            $result .= la_tag('br');
                             if (!la_CheckGet(array('previewchannels'))) {
                                 $result .= la_Link('?module=visor&previewchannels=true', __('View'), false, 'anreadbutton');
                             } else {

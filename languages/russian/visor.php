@@ -32,3 +32,7 @@ $lang['def']['Camera is not registered at'] = 'Камера не зарегис�
 $lang['def']['channel'] = 'канал';
 $lang['def']['DVR connection error'] = 'Ошибка соединения с DVR';
 $lang['def']['User have no channels assigned'] = 'Пользователю не присвоено никаких каналов';
+$lang['def']['No user assigned'] = 'Не присвоенные пользователю';
+$lang['def']['All channels'] = 'Все каналы';
+$lang['def']['Channel without assigned user'] = 'Канал не присвоенный пользователю';
+$lang['def']['Channel have user assigned'] = 'Каналу присвоен пользователю';

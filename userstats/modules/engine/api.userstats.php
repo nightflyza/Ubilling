@@ -1993,4 +1993,27 @@ function zbs_getFreezeDaysChargeData($login) {
     return $FrozenAll;
 }
 
+/**
+ * Performs RemoteAPI request to preconfigured billing instance
+ * 
+ * @param string $requestUrl
+ * 
+ * @return string
+ */
+function zbs_remoteApiRequest($requestUrl) {
+    $usConfig = zbs_LoadConfig();
+    $result = '';
+    if (isset($usConfig['API_URL']) AND isset($usConfig['API_KEY'])) {
+        if (!empty($usConfig['API_URL']) AND ! empty($usConfig['API_KEY'])) {
+            $apiBase = $usConfig['API_URL'] . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
+            @$result .= file_get_contents($apiBase . $requestUrl);
+        } else {
+            die('ERROR: API_KEY/API_URL is empty!'); /// TODO: by some reason this didnt work
+        }
+    } else {
+        die('ERROR: API_KEY/API_URL not set!');
+    }
+    return($result);
+}
+
 ?>
