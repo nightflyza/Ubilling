@@ -334,7 +334,7 @@ class UbillingTelegram {
     public function getBotContacts() {
         $result = array();
         $updatesRaw = $this->getUpdatesRaw();
-        //debarr($updatesRaw);
+
         if (!empty($updatesRaw)) {
             if (isset($updatesRaw['result'])) {
                 if (!empty($updatesRaw['result'])) {
@@ -346,7 +346,8 @@ class UbillingTelegram {
                                     if ($each['message']['chat']['type'] = 'supergroup') {
                                         $groupData = $each['message']['chat'];
                                         $result[$groupData['id']]['chatid'] = $groupData['id'];
-                                        $result[$groupData['id']]['name'] = @$groupData['username'];
+                                        $groupName = (!empty($groupData['username'])) ? $groupData['username'] : $groupData['title']; //only title for private groups
+                                        $result[$groupData['id']]['name'] = $groupName;
                                         $result[$groupData['id']]['type'] = 'supergroup';
                                         $result[$groupData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
                                     }
