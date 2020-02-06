@@ -499,22 +499,47 @@ class SendDog {
         $result .= wf_BackLink(self::URL_ME, '', true);
 
         if (!empty($rawContacts)) {
-            $cells = wf_TableCell(__('Chat ID'));
+            $cells = wf_TableCell('');
+            $cells .= wf_TableCell(__('Chat ID'));
             $cells .= wf_TableCell(__('Type'));
             $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Message'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($rawContacts as $io => $each) {
-                $cells = wf_TableCell($each['chatid']);
+                $cells = wf_TableCell($this->newContact($each['lastmessage']));
+                $cells .= wf_TableCell($each['chatid']);
                 $cells .= wf_TableCell($each['type']);
                 $cells .= wf_TableCell($each['name']);
-                $rows .= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($each['lastmessage']);
+                $rows .= wf_TableRow($cells, 'row5');
             }
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
         return ($result);
+    }
+
+    /**
+     * Returns new contact marker
+     * 
+     * @param string $message
+     * 
+     * @return string
+     */
+    protected function newContact($message) {
+        $result = '';
+        $markers = array('go', 'start', 'хуй'); //default new contact markers array
+
+        if (!empty($markers)) {
+            foreach ($markers as $io => $eachMarker) {
+                if (ispos($message, $eachMarker)) {
+                    $result = wf_img_sized('skins/icon_telegram_small.png', '', '10');
+                }
+            }
+        }
+        return($result);
     }
 
     /**
@@ -1084,7 +1109,7 @@ class SendDog {
                     }
                 }
             }
-      }
+        }
     }
 
     /**
@@ -1553,7 +1578,7 @@ class SendDogAdvanced extends SendDog {
      *
      * @param $token
      */
-    public function editTelegramBotToken ($token) {
+    public function editTelegramBotToken($token) {
         //telegram bot token configuration
         if ($token != $this->settings['TELEGRAM_BOTTOKEN']) {
             zb_StorageSet('SENDDOG_TELEGRAM_BOTTOKEN', $token);

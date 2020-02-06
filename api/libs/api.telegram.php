@@ -339,6 +339,20 @@ class UbillingTelegram {
             if (isset($updatesRaw['result'])) {
                 if (!empty($updatesRaw['result'])) {
                     foreach ($updatesRaw['result'] as $io => $each) {
+                        //supergroup messages
+                        if (isset($each['message'])) {
+                            if (isset($each['message']['chat'])) {
+                                if (isset($each['message']['chat']['type'])) {
+                                    if ($each['message']['chat']['type'] = 'supergroup') {
+                                        $groupData = $each['message']['chat'];
+                                        $result[$groupData['id']]['chatid'] = $groupData['id'];
+                                        $result[$groupData['id']]['name'] = @$groupData['username'];
+                                        $result[$groupData['id']]['type'] = 'supergroup';
+                                        $result[$groupData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
+                                    }
+                                }
+                            }
+                        }
                         //direct user message
                         if (isset($each['message'])) {
                             if (isset($each['message']['from'])) {
@@ -347,23 +361,11 @@ class UbillingTelegram {
                                     $result[$messageData['id']]['chatid'] = $messageData['id'];
                                     $result[$messageData['id']]['name'] = @$messageData['username']; //may be empty
                                     $result[$messageData['id']]['type'] = 'user';
+                                    $result[$messageData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
                                 }
                             }
                         }
-                        //supergroup messages
-                        if (isset($each['message'])) {
-                            if (isset($each['message']['chat'])) {
 
-                                if (isset($each['message']['chat']['type'])) {
-                                    if ($each['message']['chat']['type'] = 'supergroup') {
-                                        $groupData = $each['message']['chat'];
-                                        $result[$groupData['id']]['chatid'] = $groupData['id'];
-                                        $result[$groupData['id']]['name'] = @$groupData['username'];
-                                        $result[$groupData['id']]['type'] = 'supergroup';
-                                    }
-                                }
-                            }
-                        }
                         //channel message
                         if (isset($each['channel_post'])) {
                             if (isset($each['channel_post']['chat'])) {
@@ -372,6 +374,7 @@ class UbillingTelegram {
                                     $result[$chatData['id']]['chatid'] = $chatData['id'];
                                     $result[$chatData['id']]['name'] = $chatData['username'];
                                     $result[$chatData['id']]['type'] = 'channel';
+                                    $result[$messageData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
                                 }
                             }
                         }
@@ -379,6 +382,7 @@ class UbillingTelegram {
                 }
             }
         }
+
         return ($result);
     }
 
