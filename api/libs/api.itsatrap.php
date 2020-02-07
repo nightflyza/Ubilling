@@ -396,10 +396,12 @@ class ItSaTrap {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($rawData as $io => $eachLine) {
-                    $cells = wf_TableCell($lineCount);
-                    $cells .= wf_TableCell($eachLine);
-                    $rows .= wf_TableRow($cells, 'row5');
-                    $lineCount++;
+                    if (!empty($eachLine)) {
+                        $cells = wf_TableCell($lineCount);
+                        $cells .= wf_TableCell($eachLine);
+                        $rows .= wf_TableRow($cells, 'row5');
+                        $lineCount++;
+                    }
                 }
 
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -527,7 +529,7 @@ class ItSaTrap {
         $result = '' . '\r\n';
 
         //trapId may be integer/string or array
-        $trapFilters=(is_array($trapId)) ? array_flip($trapId) : array($trapId => 'onlyou');
+        $trapFilters = (is_array($trapId)) ? array_flip($trapId) : array($trapId => 'onlyou');
 
         if (!empty($rawData)) {
             $rawData = explodeRows($rawData);
