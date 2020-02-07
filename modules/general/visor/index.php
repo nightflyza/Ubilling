@@ -25,10 +25,10 @@ if (cfr('VISOR')) {
             $visor->ajaxAllCams();
         }
 
-        //users creation
+        //new user creation
         if (ubRouting::checkPost(array('newusercreate', 'newusername'))) {
-            $visor->createUser();
-            ubRouting::nav($visor::URL_ME . $visor::URL_USERS);
+            $userRegistrationResult = $visor->createUser();
+            ubRouting::nav($visor::URL_ME . $visor::URL_USERVIEW . $userRegistrationResult);
         }
 
         //all cameras listing
@@ -145,6 +145,12 @@ if (cfr('VISOR')) {
         if (ubRouting::checkPost(array('editchannelguid', 'editchanneldvrid'))) {
             $visor->saveChannelAssign();
             ubRouting::nav($visor::URL_ME . $visor::URL_CHANEDIT . ubRouting::post('editchannelguid') . '&dvrid=' . ubRouting::post('editchanneldvrid'));
+        }
+
+        //channel record mode editing
+        if (ubRouting::checkPost(array('recordchannelguid', 'recordchanneldvrid', 'recordchannelmode'))) {
+            $visor->saveChannelRecordMode();
+            ubRouting::nav($visor::URL_ME . $visor::URL_CHANEDIT . ubRouting::post('recordchannelguid') . '&dvrid=' . ubRouting::post('recordchanneldvrid'));
         }
 
         //DVR editing

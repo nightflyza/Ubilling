@@ -811,14 +811,31 @@ class TrassirServer {
     }
 
     /**
-     * TODO: receive channel recording type here
+     * Returns channel recording type. Possible values: 1 - permanent, 2 - manual, 3 - on detector
      * 
-     * @param type $channel
-     * @return type
+     * @param string $channel
+     * 
+     * @return array
      */
-    public function getChannelSettings($channel) {
+    public function getChannelRecordMode($channel) {
         $result = array();
-        $result = $this->apiRequest('/settings/channels/' . $channel . '/', 'apikey');
+        $result = $this->apiRequest('/settings/channels/' . $channel . '/record_mode_local', 'apikey');
+        if (!empty($result)) {
+            $result = $result['value'];
+        }
+        return($result);
+    }
+
+    /**
+     * Sets channel record mode.  Possible values: 1 - permanent, 2 - manual, 3 - on detector
+     * 
+     * @param string $channel
+     * @param int $mode
+     * 
+     * @return array
+     */
+    public function setChannelRecordMode($channel, $mode) {
+        $result = $this->apiRequest('/settings/channels/' . $channel . '/record_mode_local=' . $mode, 'apikey');
         return($result);
     }
 
@@ -864,6 +881,51 @@ class TrassirServer {
         $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/', 'sid');
         $result = $result['subdirs'];
         return($result);
+    }
+
+    /**
+     * Returns array of supported cameras for selected protocol
+     * 
+     * @param string $protocol
+     * 
+     * @return array
+     */
+    public function getCameraModels($protocol) {
+        $result = array();
+        $requestRaw = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/available_models', 'sid');
+        $requestRaw = @$requestRaw['value'];
+        if (!empty($requestRaw)) {
+            $requestRaw = explode(',', $requestRaw);
+            if (!empty($requestRaw)) {
+                foreach ($requestRaw as $io => $each) {
+                    $cleanName = str_replace('%20', ' ', $each);
+                    $result[$each] = $cleanName;
+                }
+            }
+        }
+        return($result);
+    }
+
+    public function camtest($protocol, $model, $ip, $port, $username, $password) {
+        //Setting camera port
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port, 'sid');
+        //Setting camera login
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username, 'sid');
+        //Setting camera password
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password, 'sid');
+        //Setting camera IP
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip, 'sid');
+        //Setting camera model
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid');
+
+
+        sleep(2);
+        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/autodetect_result', 'sid');
+        debarr($result);
+        //Camera creation
+        $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
+
+        debarr($cameraCreateResult);
     }
 
     /**

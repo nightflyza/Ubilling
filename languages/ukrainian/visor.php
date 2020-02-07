@@ -36,3 +36,7 @@ $lang['def']['No user assigned'] = 'Не присвоєні користувач
 $lang['def']['All channels'] = 'Усі канали';
 $lang['def']['Channel without assigned user'] = 'Канал не присвоєно жодному користувачеві. Халепа.';
 $lang['def']['Channel have user assigned'] = 'Канал належить користувачеві';
+$lang['def']['Archive record mode'] = 'Режим запису до архіву';
+$lang['def']['Permanent record'] = 'Постійний запис';
+$lang['def']['Manual record'] = 'Запис вручну';
+$lang['def']['On detector'] = 'По детектору';

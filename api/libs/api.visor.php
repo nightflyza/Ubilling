@@ -115,6 +115,13 @@ class UbillingVisor {
     protected $secrets = '';
 
     /**
+     * Available channel record modes
+     *
+     * @var array
+     */
+    protected $recordModes = array();
+
+    /**
      * Default channel preview size
      *
      * @var string
@@ -175,6 +182,7 @@ class UbillingVisor {
         $this->loadPaymentIds();
         $this->loadCams();
         $this->loadDvrs();
+        $this->loadRecordModes();
         $this->loadChans();
         $this->loadSecrets();
     }
@@ -211,6 +219,19 @@ class UbillingVisor {
         if ($this->trassirEnabled) {
             $this->dvrTypes += array('trassir' => __('Trassir Server'));
         }
+    }
+
+    /**
+     * Sets default available channel record modes
+     * 
+     * @return void
+     */
+    protected function loadRecordModes() {
+        $this->recordModes = array(
+            1 => __('Permanent record'),
+            2 => __('Manual record'),
+            3 => __('On detector')
+        );
     }
 
     /**
@@ -444,9 +465,10 @@ class UbillingVisor {
     /**
      * Creates new user in database
      * 
-     * @return void
+     * @return int
      */
     public function createUser() {
+        $result = '';
         if (wf_CheckPost(array('newusercreate', 'newusername'))) {
             $newRealName = $_POST['newusername'];
             $newRealNameF = mysql_real_escape_string($newRealName);
@@ -458,7 +480,9 @@ class UbillingVisor {
             nr_query($query);
             $newId = simple_get_lastid(self::TABLE_USERS);
             log_register('VISOR USER CREATE [' . $newId . '] NAME `' . $newRealName . '`');
+            $result = $newId;
         }
+        return($result);
     }
 
     /**
@@ -591,9 +615,13 @@ class UbillingVisor {
         if (isset($this->allUsers[$userId])) {
             $camerasCount = $this->getUserCamerasCount($userId);
             if ($camerasCount == 0) {
-                $query = "DELETE from `" . self::TABLE_USERS . "` WHERE `id`='" . $userId . "';";
-                nr_query($query);
-                log_register('VISOR USER DELETE [' . $userId . ']');
+                if (!isset($this->allChannels[$userId])) {
+                    $query = "DELETE from `" . self::TABLE_USERS . "` WHERE `id`='" . $userId . "';";
+                    nr_query($query);
+                    log_register('VISOR USER DELETE [' . $userId . ']');
+                } else {
+                    $result .= __('Channel have user assigned');
+                }
             } else {
                 $result .= __('User have some cameras associated');
             }
@@ -1524,7 +1552,9 @@ class UbillingVisor {
                         }
 
                         //Camera models temporary is here
-                        $supportedCameraModels = array('TR-D8141IR2' => 'TR-D8141IR2');
+                        $supportedCameraModels = array('TR-D8141IR2' => 'TR-D8141IR2'); //base model
+                        $supportedCameraModelsTmp = $trassir->getCameraModels('TRASSIR'); //Only trassir models list mixing. TODO: wizard mb?
+                        $supportedCameraModels += $supportedCameraModelsTmp;
 
                         //render registration form
                         if (!ubRouting::checkPost(array('newtrassircamera', 'newtrassircameraprotocol', 'newtrassircameramodel'))) {
@@ -1968,6 +1998,54 @@ class UbillingVisor {
     }
 
     /**
+     * Renders channel record mode editing form
+     * 
+     * @param string $channelGuid
+     * @param int $dvrId
+     * @param int $currentModeId
+     * 
+     * @return string
+     */
+    protected function renderChannelRecordForm($channelGuid, $dvrId, $currentModeId) {
+        $result = '';
+        $channelGuid = ubRouting::filters($channelGuid, 'mres');
+        $dvrId = ubRouting::filters($dvrId, 'int');
+        $currentModeId = ubRouting::filters($currentModeId, 'int');
+
+        $inputs = wf_HiddenInput('recordchannelguid', $channelGuid);
+        $inputs .= wf_HiddenInput('recordchanneldvrid', $dvrId);
+        $inputs .= wf_Selector('recordchannelmode', $this->recordModes, __('Archive record mode'), $currentModeId, false) . ' ';
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
+     * Changes some channel record mode
+     * 
+     * @return void
+     */
+    public function saveChannelRecordMode() {
+        if (ubRouting::checkPost(array('recordchannelguid', 'recordchanneldvrid', 'recordchannelmode'))) {
+            $channellGuid = ubRouting::post('recordchannelguid', 'mres');
+            $dvrId = ubRouting::post('recordchanneldvrid', 'int');
+            $mode = ubRouting::post('recordchannelmode', 'int');
+            if (isset($this->allDvrs[$dvrId])) {
+                $dvrData = $this->allDvrs[$dvrId];
+                if ($dvrData['type'] == 'trassir') {
+                    $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
+                    //channel avail check
+                    $allChannels = $trassir->getChannels();
+                    if (isset($allChannels[$channellGuid])) {
+                        $trassir->setChannelRecordMode($channellGuid, $mode);
+                        log_register('VISOR DVR [' . $dvrId . '] CHAN `' . $channellGuid . '` SET RECMODE [' . $mode . ']');
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Renders channel editing form
      * 
      * @param string $channelGuid
@@ -2008,6 +2086,9 @@ class UbillingVisor {
                 $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg');
                 $result .= wf_img_sized($channelUrl, '', '60%');
                 $result .= wf_delimiter();
+                //Channel record mode form here
+                $currentRecordMode = $trassir->getChannelRecordMode($channelGuid);
+                $result .= $this->renderChannelRecordForm($channelGuid, $dvrId, $currentRecordMode);
             }
 
             if (!isset($this->channelUsers[$channelGuid])) {

@@ -9,5 +9,7 @@ error_reporting(E_ALL);
 //$dvrData = $dvrData[0];
 //
 //$trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
-//debarr($trassir->getChannelSettings('tP7S7X1Q'));
-//debarr($trassir->getChannelSettings('vOIuS4wQ'));
+
+
+//deb($trassir->camtest('TRASSIR', 'Autodetect', '192.168.0.153', '80', 'admin', 'admin'));
+
