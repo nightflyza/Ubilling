@@ -189,12 +189,12 @@ class UbillingCache {
             if (!empty($dataSample)) {
                 $dataSize = strlen(serialize($dataSample)) . ' bytes';
                 if (ispos($event, 'GET KEY')) {
-                    $dataSize.=' HIT';
+                    $dataSize .= ' HIT';
                 }
             } else {
                 $dataSize = 'EMPTY_DATA';
                 if (ispos($event, 'GET KEY')) {
-                    $dataSize.=' MISS YA';
+                    $dataSize .= ' MISS YA';
                 }
             }
             $logData = $curDate . ' ' . $this->storage . ' ' . $event . ' ' . $dataSize . "\n";
@@ -366,9 +366,11 @@ class UbillingCache {
     /**
      * Show all data from cache
      * 
+     * @param bool $show_data
+     * 
      * @return void
      */
-    public function getAllcache($show_data = '') {
+    public function getAllcache($show_data = false) {
         $result = array();
         //files storage
         if ($this->storage == 'files') {
