@@ -3059,6 +3059,18 @@ function wf_StepsMeter($params, $current) {
 }
 
 /**
+ * Returns code that plays some sound from existing audio file
+ * 
+ * @param string $url
+ * 
+ * @return string
+ */
+function wf_doSound($url) {
+    $result = wf_tag('script') . "var audio = new Audio('" . $url . "'); audio.play();" . wf_tag('script', true);
+    return($result);
+}
+
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {
