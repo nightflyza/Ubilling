@@ -172,33 +172,66 @@ if (@$us_config['VISOR_ENABLED']) {
         /**
          * Gets channels preview as JSON from remote API call
          * 
+         * @param string $channelGuid
+         * @param bool $maxQuality
+         * 
          * @return string
          */
-        public function getMyChannelsPreview() {
+        public function getMyChannelsPreview($channelGuid = '', $maxQuality = false) {
             $result = '';
+            $channelGuid = vf($channelGuid);
+            $channelFilter = (!empty($channelGuid)) ? $channelGuid : '';
+            
+            if ($channelFilter) {
+                $result.= la_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton');
+            }
+
             if (@$this->userstatsCfg['API_URL'] AND @ $this->userstatsCfg['API_KEY']) {
                 if (!empty($this->myUserData)) {
                     if (isset($this->myUserData['id'])) {
                         $myVisorId = $this->myUserData['id'];
                         $requestUrl = '&action=visorchans&userid=' . $myVisorId . '&param=preview';
+                        if ($maxQuality) {
+                            $requestUrl .= '&fullsize=true';
+                        }
                         $channels = zbs_remoteApiRequest($requestUrl);
                         if (!empty($channels)) {
                             @$channels = json_decode($channels);
                             if (!empty($channels)) {
-                                foreach ($channels as $index => $eachUrl) {
+                                foreach ($channels as $eachChanGuid => $eachUrl) {
+                                    $filteredChan = true;
+                                    $previewWidth = '30%';
+
+                                    if ($channelFilter) {
+                                        $previewWidth = '100%';
+                                        if ($eachChanGuid == $channelFilter) {
+                                            $filteredChan = true;
+                                        } else {
+                                            $filteredChan = false;
+                                        }
+                                    }
+
+
                                     if (!empty($eachUrl)) {
-                                        $result .= la_tag('div', false, '', 'style="float:left; width:30%; margin:5px;"');
-                                        $result .= la_img_sized($eachUrl, '', '90%');
-                                        $result .= la_tag('br');
-                                        $result .= la_tag('br');
-                                        $result .= la_tag('a', false, 'anreadbutton', 'href="' . $eachUrl . '" target="_BLANK"') . __('View') . la_tag('a', true);
-                                        $result .= la_tag('div', true);
+                                        if ($filteredChan) {
+                                            $result .= la_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; margin:5px;"');
+                                            $result .= la_img_sized($eachUrl, '', '90%');
+                                            $result .= la_tag('br');
+                                            $result .= la_tag('br');
+                                            if (!$channelFilter) {
+                                                $fullQualUrl = '?module=visor&previewchannels=true&fullpreview=' . $eachChanGuid;
+                                                $result .= la_Link($fullQualUrl, __('View'), false, 'anreadbutton');
+                                            }
+                                            $result .= la_tag('div', true);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+            } else {
+                die(__('ERROR: API_KEY/API_URL not set or empty!'));
             }
 
             return($result);
@@ -263,7 +296,7 @@ if (@$us_config['VISOR_ENABLED']) {
                         }
 
                         $result .= la_TableBody($rows, '100%', 0, '');
-                        //TODO: make preview as separate route
+
                         $myChansCount = $this->getChansCount();
                         //user have some channels assigned
                         if ($myChansCount > 0) {
@@ -271,7 +304,12 @@ if (@$us_config['VISOR_ENABLED']) {
                             if (!la_CheckGet(array('previewchannels'))) {
                                 $result .= la_Link('?module=visor&previewchannels=true', __('View'), false, 'anreadbutton');
                             } else {
-                                $result .= la_Link('?module=visor', __('Back'), false, 'anunreadbutton');
+                                if (!la_CheckGet(array('fullpreview'))) {
+                                    $backUrl = '?module=visor';
+                                } else {
+                                    $backUrl = '?module=visor&previewchannels=true';
+                                }
+                                $result .= la_Link($backUrl, __('Back'), false, 'anunreadbutton');
                             }
                         }
                     } else {
@@ -289,9 +327,18 @@ if (@$us_config['VISOR_ENABLED']) {
     }
 
     $visor = new ZBSVisorInterface($user_login);
-    show_window(__('Surveillance'), $visor->renderProfile());
+    //Surveillance user profile
+    if (!la_CheckGet(array('fullpreview'))) {
+        show_window(__('Surveillance'), $visor->renderProfile());
+    }
+    
+    //channels preview
     if (la_CheckGet(array('previewchannels'))) {
-        show_window(__('View'), $visor->getMyChannelsPreview());
+        if (!la_CheckGet(array('fullpreview'))) {
+            show_window(__('View'), $visor->getMyChannelsPreview()); //low qual
+        } else {
+            show_window(__('View'), $visor->getMyChannelsPreview($_GET['fullpreview'], true)); //only one full qual
+        }
     }
 } else {
     show_window(__('Sorry'), __('This module is disabled'));

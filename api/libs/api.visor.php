@@ -2209,10 +2209,11 @@ class UbillingVisor {
      * Returns JSON list of mjpeg URLs of channels assigned for user
      * 
      * @param int $visorId
+     * @param bool $maxQual
      * 
      * @return string
      */
-    public function getUserChannelsPreviewJson($visorId) {
+    public function getUserChannelsPreviewJson($visorId, $maxQual = false) {
         $result = '';
         $visorId = ubRouting::filters($visorId, 'int');
         $urlTmp = array();
@@ -2222,8 +2223,12 @@ class UbillingVisor {
                     $dvrData = $this->allDvrs[$each['dvrid']];
                     if ($dvrData['type'] = 'trassir') {
                         $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-                        $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
-                        $urlTmp[] = $url;
+                        if (!$maxQual) {
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                        } else {
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg');
+                        }
+                        $urlTmp[$each['chan']] = $url;
                     }
                 }
             }

@@ -2008,7 +2008,7 @@ function zbs_remoteApiRequest($requestUrl) {
             $apiBase = $usConfig['API_URL'] . '/?module=remoteapi&key=' . $usConfig['API_KEY'];
             @$result .= file_get_contents($apiBase . $requestUrl);
         } else {
-            die('ERROR: API_KEY/API_URL is empty!'); /// TODO: by some reason this didnt work
+            die('ERROR: API_KEY/API_URL is empty!');
         }
     } else {
         die('ERROR: API_KEY/API_URL not set!');

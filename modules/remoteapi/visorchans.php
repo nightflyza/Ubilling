@@ -7,9 +7,10 @@ if (ubRouting::get('action') == 'visorchans') {
             if ($alterconf['TRASSIRMGR_ENABLED']) {
                 $chanCall = ubRouting::get('param');
                 $visor = new UbillingVisor();
+                $maxQual = (ubRouting::checkGet('fullsize')) ? true : false;
                 switch ($chanCall) {
                     case 'preview':
-                        die($visor->getUserChannelsPreviewJson(ubRouting::get('userid', 'int')));
+                        die($visor->getUserChannelsPreviewJson(ubRouting::get('userid', 'int'), $maxQual));
                         break;
                     default:
                         die(json_encode(array()));
