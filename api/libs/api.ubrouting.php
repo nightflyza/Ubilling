@@ -234,16 +234,22 @@ class ubRouting {
                     foreach ($argv as $io => $eachArg) {
                         $result = false; //each new arg drops to false
                         $fullOptMask = '--' . $eachparam . '='; //yeah, opts like --optioname=value
-                        if (ispos($eachArg, $fullOptMask)) {
+                        $shortOptMask = '--' . $eachparam; //but we checks just for --optionname at start
+                        if (ispos($eachArg, $shortOptMask)) {
                             if ($ignoreEmpty) {
-                                $optValue = str_replace($fullOptMask, '', $eachArg);
-                                if (!empty($optValue)) {
-                                    $result = true;
+                                if (ispos($eachArg, $fullOptMask)) {
+                                    $optValue = str_replace($fullOptMask, '', $eachArg);
+                                    if (!empty($optValue)) {
+                                        $result = true;
+                                    } else {
+                                        $result = false;
+                                    }
                                 } else {
                                     $result = false;
                                 }
                             } else {
                                 $result = true;
+                                return($result);
                             }
                         }
                     }
