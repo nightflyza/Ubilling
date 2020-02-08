@@ -634,14 +634,14 @@ class NyanORM {
                 if (!empty($whereString)) {
                     //double check, yeah.
                     if ($fieldsBatch) {
-                        $query = "UPDATE `" . $this->tableName . "` SET " ;
+                        $query = "UPDATE `" . $this->tableName . "` SET ";
 
                         foreach ($this->data as $field => $value) {
-                            $query.= $this->escapeField($field) . "='" . $value . "', ";
+                            $query .= $this->escapeField($field) . "='" . $value . "', ";
                         }
 
                         $query = rtrim($query, ', ');
-                        $query.= $whereString;
+                        $query .= $whereString;
                         $this->debugLog($query);
                         nr_query($query);
                     } else {
@@ -687,8 +687,8 @@ class NyanORM {
                 $dataStruct .= $this->escapeField($field) . ',';
                 $dataValues .= "'" . $value . "',";
             }
-            $dataStruct = zb_CutEnd($dataStruct);
-            $dataValues = zb_CutEnd($dataValues);
+            $dataStruct = substr($dataStruct, 0, -1);
+            $dataValues = substr($dataValues, 0, -1);
 
             $query = "INSERT INTO `" . $this->tableName . "` (" . $dataStruct . ') VALUES (' . $dataValues . ')';
             $this->debugLog($query);
