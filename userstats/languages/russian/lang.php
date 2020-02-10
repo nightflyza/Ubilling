@@ -406,6 +406,9 @@ $lang['def']['if no funds for further cameras functioning'] = 'в случае, 
 $lang['def']['Your primary account balance now is'] = 'Текущий баланс вашей основной учетной записи';
 $lang['def']['You can recharge it with following Payment ID'] = 'Вы можете пополнить его при помощи этого платежного ID';
 $lang['def']['Back'] = 'Назад';
-
+$lang['def']['Settings'] = 'Настройки';
+$lang['def']['Go to'] = 'Перейти';
+$lang['def']['Host'] = 'Хост';
+$lang['def']['Port'] = 'Порт';
 
 ?>

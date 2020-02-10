@@ -12,6 +12,9 @@ if (ubRouting::get('action') == 'visorchans') {
                     case 'preview':
                         die($visor->getUserChannelsPreviewJson(ubRouting::get('userid', 'int'), $maxQual));
                         break;
+                    case 'authdata':
+                        die($visor->getUserDvrAuthData(ubRouting::get('userid', 'int')));
+                        break;
                     default:
                         die(json_encode(array()));
                         break;

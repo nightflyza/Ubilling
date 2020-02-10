@@ -906,6 +906,16 @@ class TrassirServer {
         return($result);
     }
 
+    /**
+     * TODO: need to support model autodetection somehow. Remove it after.
+     * 
+     * @param type $protocol
+     * @param type $model
+     * @param type $ip
+     * @param type $port
+     * @param type $username
+     * @param type $password
+     */
     public function camtest($protocol, $model, $ip, $port, $username, $password) {
         //Setting camera port
         $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port, 'sid');

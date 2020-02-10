@@ -407,5 +407,10 @@ $lang['def']['if no funds for further cameras functioning'] = 'у випадку
 $lang['def']['Your primary account balance now is'] = 'Поточний баланс вашого основного облікового запису';
 $lang['def']['You can recharge it with following Payment ID'] = 'Ви можете поповнити його за допомогою цього платіжного ID';
 $lang['def']['Back'] = 'Назад';
+$lang['def']['Settings'] = 'Налаштування';
+$lang['def']['Go to'] = 'Перейти';
+$lang['def']['Host'] = 'Хост';
+$lang['def']['Port'] = 'Порт';
+
 
 ?>

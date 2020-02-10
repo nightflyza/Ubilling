@@ -2334,6 +2334,42 @@ class UbillingVisor {
     }
 
     /**
+     * Returns some DVRs authorization data if user have some channels assigned on managable DVRs
+     * 
+     * @param int $visorId
+     * 
+     * @return string
+     */
+    public function getUserDvrAuthData($visorId) {
+        $result = array();
+        $visorId = ubRouting::filters($visorId, 'int');
+        if (isset($this->allUsers[$visorId])) {
+            if (isset($this->allSecrets[$visorId])) {
+                $secretsData = $this->allSecrets[$visorId];
+                if (isset($this->allChannels[$visorId])) {
+                    if (!empty($this->allChannels[$visorId])) {
+                        $allChanData = $this->allChannels[$visorId];
+                        foreach ($allChanData as $io => $each) {
+                            if (isset($this->allDvrs[$each['dvrid']])) {
+                                $dvrData = $this->allDvrs[$each['dvrid']];
+                                $result[$each['dvrid']]['dvrid'] = $dvrData['id'];
+                                $result[$each['dvrid']]['ip'] = $dvrData['ip'];
+                                $result[$each['dvrid']]['port'] = $dvrData['port'];
+                                $result[$each['dvrid']]['login'] = $secretsData['login'];
+                                $result[$each['dvrid']]['password'] = $secretsData['password'];
+                                $result[$each['dvrid']]['weburl'] = 'https://'.$dvrData['ip'].':'.$dvrData['port'].'/webgui/';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $result = json_encode($result);
+
+        return($result);
+    }
+
+    /**
      * Performs default fee charge processing to prevent cameras offline
      * 
      * @return void
