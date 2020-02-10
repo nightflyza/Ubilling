@@ -40,4 +40,6 @@ $lang['def']['Archive record mode'] = 'Режим записи архива';
 $lang['def']['Permanent record'] = 'Постоянная запись';
 $lang['def']['Manual record'] = 'Запись вручную';
 $lang['def']['On detector'] = 'По детектору';
-$lang['def'][''] = '';
+$lang['def']['Cameras limit'] = 'Лимит камер';
+$lang['def']['Cameras'] = 'Камеры';
+$lang['def']['DVR health'] = 'Состояние DVR';

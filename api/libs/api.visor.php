@@ -153,6 +153,7 @@ class UbillingVisor {
     const URL_ALLCAMS = '&ajaxallcams=true';
     const URL_DVRS = '&dvrs=true';
     const URL_CHANS = '&channels=true';
+    const URL_HEALTH = '&health=true';
     const URL_CHANEDIT = '&editchannel=';
     const URL_AJUSERS = '&ajaxusers=true';
     const URL_DELUSER = '&deleteuserid=';
@@ -387,6 +388,7 @@ class UbillingVisor {
             $result .= wf_Link(self::URL_ME . self::URL_DVRS, wf_img('skins/icon_restoredb.png') . ' ' . __('DVRs'), false, 'ubButton') . ' ';
             if ($this->trassirEnabled) {
                 $result .= wf_Link(self::URL_ME . self::URL_CHANS, wf_img('skins/play.png') . ' ' . __('Channels'), false, 'ubButton') . ' ';
+                $result .= wf_Link(self::URL_ME . self::URL_HEALTH, wf_img('skins/log_icon_small.png') . ' ' . __('DVR health'), false, 'ubButton') . ' ';
             }
         }
         return ($result);
@@ -1409,9 +1411,23 @@ class UbillingVisor {
 
             if (!empty($this->allDvrs)) {
                 foreach ($this->allDvrs as $io => $each) {
+                    $dvrFull = false;
                     $dvrLabel = $each['ip'];
+                    if ($each['camlimit'] > 0) {
+                        $dvrCamsNow = $this->getDvrCameraCount($each['id']);
+                        if ($dvrCamsNow >= $each['camlimit']) {
+                            $dvrFull = true;
+                        }
+                    }
+
                     if (!empty($each['name'])) {
                         $dvrLabel .= ' - ' . $each['name'];
+                    }
+
+
+                    $dvrLabel .= ' (' . $dvrCamsNow . '/' . $each['camlimit'] . ')';
+                    if ($dvrFull) {
+                        $dvrLabel .= ' ' . __('full') . '!';
                     }
                     $dvrTmp[$each['id']] = $dvrLabel;
                 }
@@ -1714,6 +1730,7 @@ class UbillingVisor {
         $inputs .= wf_TextInput('newdvrlogin', __('Login'), '', true, 20);
         $inputs .= wf_TextInput('newdvrpassword', __('Password'), '', true, 20);
         $inputs .= wf_TextInput('newdvrapikey', __('API key'), '', true, 20);
+        $inputs .= wf_TextInput('newdvrcamlimit', __('Cameras limit'), '0', true, 3, 'digits');
         $inputs .= wf_Submit(__('Create'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1735,6 +1752,7 @@ class UbillingVisor {
             $name = ubRouting::post('newdvrname', 'mres');
             $type = ubRouting::post('newdvrtype', 'mres');
             $apikey = ubRouting::post('newdvrapikey', 'mres');
+            $camlimit = ubRouting::post('newdvrcamlimit', 'int');
 
             $dvrs = new NyanORM(self::TABLE_DVRS);
             $dvrs->data('ip', $ip_f);
@@ -1744,6 +1762,7 @@ class UbillingVisor {
             $dvrs->data('apikey', $apikey);
             $dvrs->data('name', $name);
             $dvrs->data('type', $type);
+            $dvrs->data('camlimit', $camlimit);
             $dvrs->create();
 
             $newId = $dvrs->getLastId();
@@ -1774,6 +1793,7 @@ class UbillingVisor {
             $inputs .= wf_TextInput('editdvrlogin', __('Login'), $dvrData['login'], true, 12);
             $inputs .= wf_TextInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
             $inputs .= wf_TextInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
+            $inputs .= wf_TextInput('editdvrcamlimit', __('Cameras limit'), $dvrData['camlimit'], true, 20);
             $inputs .= wf_tag('br');
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1802,6 +1822,7 @@ class UbillingVisor {
                 $newName = ubRouting::post('editdvrname', 'mres');
                 $newType = ubRouting::post('editdvrtype', 'mres');
                 $newApikey = ubRouting::post('editdvrapikey', 'mres');
+                $newCamlimit = ubRouting::post('editdvrcamlimit', 'int');
 
                 if ($dvrData['ip'] != $newIp) {
                     simple_update_field(self::TABLE_DVRS, 'ip', $newIp, $where);
@@ -1837,8 +1858,81 @@ class UbillingVisor {
                     simple_update_field(self::TABLE_DVRS, 'apikey', $newApikey, $where);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE APIKEY `' . $newApikey . '`');
                 }
+
+                if ($dvrData['camlimit'] != $newCamlimit) {
+                    simple_update_field(self::TABLE_DVRS, 'camlimit', $newCamlimit, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE CAMLIMIT `' . $newCamlimit . '`');
+                }
             }
         }
+    }
+
+    /**
+     * Returns count of cameras (channels) registered on some existing DVR
+     * 
+     * @param int $dvrId
+     * 
+     * @return int
+     */
+    protected function getDvrCameraCount($dvrId) {
+        $result = 0;
+        if (!empty($this->allCams)) {
+            foreach ($this->allCams as $io => $each) {
+                if ($each['dvrid'] == $dvrId) {
+                    $result++;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders available DVRs health report
+     * 
+     * @return string
+     */
+    public function renderDVRsHealth() {
+        $result = '';
+        if (!empty($this->allDvrs)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Disks'));
+            $cells .= wf_TableCell(__('Database'));
+            $cells .= wf_TableCell(__('Network'));
+            $cells .= wf_TableCell(__('Channels') . ' / ' . __('Online'));
+            $cells .= wf_TableCell(__('Uptime'));
+            $cells .= wf_TableCell(__('CPU load'));
+            $cells .= wf_TableCell(__('Archive days'));
+
+            $rows = wf_TableRowStyled($cells, 'row1');
+
+            foreach ($this->allDvrs as $io => $each) {
+                if ($each['type'] == 'trassir') {
+                    if (!empty($each['ip']) AND ! empty($each['login']) AND ! empty($each['password']) AND ! empty($each['apikey']) AND ! empty($each['port'])) {
+                        $dvrGate = new TrassirServer($each['ip'], $each['login'], $each['password'], $each['apikey'], $each['port']);
+                        $health = $dvrGate->getHealth();
+                        $cells = wf_TableCell($each['id']);
+                        $cells .= wf_TableCell($each['ip']);
+                        $cells .= wf_TableCell($each['name']);
+                        $cells .= wf_TableCell(web_bool_led($health['disks']));
+                        $cells .= wf_TableCell(web_bool_led($health['database']));
+                        $cells .= wf_TableCell(web_bool_led($health['network']));
+                        $cells .= wf_TableCell($health['channels_total'] . ' / ' . $health['channels_online']);
+                        $cells .= wf_TableCell(zb_formatTime($health['uptime']));
+                        $cells .= wf_TableCell($health['cpu_load'] . '%');
+                        $cells .= wf_TableCell($health['disks_stat_main_days'] . ' / ' . $health['disks_stat_subs_days']);
+
+                        $rows .= wf_TableRowStyled($cells, 'row5');
+                    }
+                }
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
     }
 
     /**
@@ -1853,6 +1947,7 @@ class UbillingVisor {
             $cells .= wf_TableCell(__('Name'));
             $cells .= wf_TableCell(__('IP'));
             $cells .= wf_TableCell(__('Port'));
+            $cells .= wf_TableCell(__('Cameras'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
@@ -1861,6 +1956,7 @@ class UbillingVisor {
                 $cells .= wf_TableCell($each['name']);
                 $cells .= wf_TableCell($each['ip']);
                 $cells .= wf_TableCell($each['port']);
+                $cells .= wf_TableCell($this->getDvrCameraCount($each['id']) . ' / ' . $each['camlimit']);
                 $actLinks = wf_JSAlert(self::URL_ME . self::URL_DELDVR . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['ip'], $this->renderDVREditForm($each['id']));
                 $cells .= wf_TableCell($actLinks);

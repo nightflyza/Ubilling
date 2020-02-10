@@ -173,6 +173,11 @@ if (cfr('VISOR')) {
         if (ubRouting::checkGet(array('editchannel', 'dvrid'))) {
             show_window(__('Edit') . ' ' . __('channel'), $visor->renderChannelEditForm(ubRouting::get('editchannel'), ubRouting::get('dvrid')));
         }
+        
+        //DVRs health
+        if (ubRouting::checkGet(array('health'))) {
+            show_window(__('DVR health'), $visor->renderDVRsHealth());
+        }
     } else {
         show_error(__('This module is disabled'));
     }

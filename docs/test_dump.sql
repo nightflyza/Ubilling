@@ -2713,3 +2713,5 @@ ALTER TABLE `envydevices` ADD `active` TINYINT NULL DEFAULT '1' AFTER `switchid`
 
 ALTER TABLE `frozen_charge_days` ADD `last_freeze_charge_dt` datetime NOT NULL AFTER `freeze_days_used`;
 ALTER TABLE `frozen_charge_days` ADD `last_workdays_upd_dt` datetime NOT NULL;
+
+ALTER TABLE `visor_dvrs` ADD `camlimit` int(11) NULL DEFAULT 0 AFTER `type`;

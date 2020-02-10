@@ -922,6 +922,7 @@ class TrassirServer {
         sleep(2);
         $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/autodetect_result', 'sid');
         debarr($result);
+        sleep(2);
         //Camera creation
         $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
 
