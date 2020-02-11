@@ -230,6 +230,7 @@ class UbillingTelegram {
             @$reply = curl_exec($ch);
             if ($this->debug) {
                 $curlError = curl_error($ch);
+                show_info($url);
                 if (!empty($curlError)) {
                     show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
                 } else {
@@ -346,7 +347,7 @@ class UbillingTelegram {
                                     if ($each['message']['chat']['type'] = 'supergroup') {
                                         $groupData = $each['message']['chat'];
                                         $result[$groupData['id']]['chatid'] = $groupData['id'];
-                                        $groupName = (!empty($groupData['username'])) ? $groupData['username'] : $groupData['title']; //only title for private groups
+                                        $groupName = (!empty($groupData['username'])) ? $groupData['username'] : @$groupData['title']; //only title for private groups
                                         $result[$groupData['id']]['name'] = $groupName;
                                         $result[$groupData['id']]['type'] = 'supergroup';
                                         $result[$groupData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
