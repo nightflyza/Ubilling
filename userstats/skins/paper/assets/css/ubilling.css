@@ -391,7 +391,7 @@ sub, sup {
     border:1px solid #74b807;
     display:inline-block;
     cursor:pointer;
-    color:#ffffff;
+    color:#ffffff !important;
     font-family:Arial;
     font-size:15px;
     font-weight:bold;
@@ -435,7 +435,7 @@ sub, sup {
     border:1px solid #d02718;
     display:inline-block;
     cursor:pointer;
-    color:#ffffff;
+    color:#ffffff !important;
     font-family:Arial;
     font-size:15px;
     font-weight:bold;
@@ -459,4 +459,8 @@ sub, sup {
 .anunreadbutton:active {
     position:relative;
     top:1px;
+}
+
+.resp-table {
+   word-break:break-all;
 }

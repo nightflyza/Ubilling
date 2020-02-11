@@ -200,7 +200,7 @@ if (@$us_config['VISOR_ENABLED']) {
                             if (!empty($channels)) {
                                 foreach ($channels as $eachChanGuid => $eachUrl) {
                                     $filteredChan = true;
-                                    $previewWidth = '30%';
+                                    $previewWidth = '300px';
 
                                     if ($channelFilter) {
                                         $previewWidth = '100%';
@@ -223,6 +223,7 @@ if (@$us_config['VISOR_ENABLED']) {
                                                 $result .= la_Link($fullQualUrl, __('View'), false, 'anreadbutton');
                                             }
                                             $result .= la_tag('div', true);
+                                            
                                         }
                                     }
                                 }
@@ -294,8 +295,7 @@ if (@$us_config['VISOR_ENABLED']) {
                                 $rows .= la_TableRow($cells, 'row3');
                             }
                         }
-
-                        $result .= la_TableBody($rows, '100%', 0, '');
+                        $result .= la_TableBody($rows, '100%', 0, 'resp-table');
 
                         $myChansCount = $this->getChansCount();
                         //user have some channels assigned
@@ -350,12 +350,12 @@ if (@$us_config['VISOR_ENABLED']) {
                         $cells .= la_TableCell($each['port']);
                         $cells .= la_TableCell($each['login']);
                         $cells .= la_TableCell($each['password']);
-                        $actLink = (!empty($each['weburl'])) ? la_Link($each['weburl'], __('Go to')) : '';
+                        $actLink = (!empty($each['weburl'])) ? la_Link($each['weburl'], __('Go to'), false, '', 'target="_BLANK"') : '';
                         $cells .= la_TableCell($actLink);
                         $rows .= la_TableRow($cells, 'row3');
                     }
 
-                    $result .= la_TableBody($rows, '100%', 0);
+                    $result .= la_TableBody($rows, '100%', 0,'resp-table');
                 }
             }
             return($result);
@@ -374,7 +374,7 @@ if (@$us_config['VISOR_ENABLED']) {
                     $result .= la_tag('br');
                     foreach ($rawSoft as $ia => $eachLink) {
                         $eachLink = explode('|', $eachLink);
-                        $result .= la_Link($eachLink[1], la_img($eachLink[0], $eachLink[2])) . ' ';
+                        $result .= la_Link($eachLink[1], la_img($eachLink[0], $eachLink[2]), false, '', 'target="_BLANK"') . ' ';
                     }
                 }
             }
@@ -385,7 +385,7 @@ if (@$us_config['VISOR_ENABLED']) {
 
     $visor = new ZBSVisorInterface($user_login);
     //Surveillance user profile
-    if (!la_CheckGet(array('fullpreview'))  AND !la_CheckGet(array('software'))) {
+    if (!la_CheckGet(array('fullpreview')) AND ! la_CheckGet(array('software'))) {
         show_window(__('Surveillance'), $visor->renderProfile());
     }
 
@@ -401,9 +401,11 @@ if (@$us_config['VISOR_ENABLED']) {
     if (la_CheckGet(array('software'))) {
         $authData = $visor->renderDvrAuthData();
         if (!empty($authData)) {
-              show_window('',la_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton'));
+            show_window('', la_Link('?module=visor&previewchannels=true', __('Back'), true, 'anunreadbutton'));
+            if (@$us_config['VISOR_SOFTWARE']) {
+                show_window(__('Downloads'), $visor->renderSoftwareList());
+            }
             show_window(__('Settings'), $authData);
-            show_window(__('Downloads'), $visor->renderSoftwareList());
         }
     }
 } else {

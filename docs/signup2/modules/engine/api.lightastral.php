@@ -94,10 +94,12 @@ function la_TextInput($name, $label = '', $value = '', $br = false, $size = '') 
  * @param   $title text title of URL
  * @param   $br append new line - bool
  * @param   $class class for link
+ * @param   $options for link
+ * 
  * @return  string
  *
  */
-function la_Link($url, $title, $br = false, $class = '') {
+function la_Link($url, $title, $br = false, $class = '', $options = '') {
     if ($class != '') {
         $link_class = 'class="' . $class . '"';
     } else {
@@ -108,7 +110,9 @@ function la_Link($url, $title, $br = false, $class = '') {
     } else {
         $newline = '';
     }
-    $result = '<a href="' . $url . '" ' . $link_class . '>' . __($title) . '</a>' . "\n";
+
+    $opts = ( empty($options) ) ? '' : ' ' . $options;
+    $result = '<a href="' . $url . '" ' . $link_class . $opts . '>' . __($title) . '</a>' . "\n";
     $result .= $newline . "\n";
     return ($result);
 }

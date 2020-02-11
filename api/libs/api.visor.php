@@ -2322,7 +2322,7 @@ class UbillingVisor {
                         if (!$maxQual) {
                             $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
                         } else {
-                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg');
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', 95, 100);
                         }
                         $urlTmp[$each['chan']] = $url;
                     }
@@ -2357,7 +2357,7 @@ class UbillingVisor {
                                 $result[$each['dvrid']]['port'] = $dvrData['port'];
                                 $result[$each['dvrid']]['login'] = $secretsData['login'];
                                 $result[$each['dvrid']]['password'] = $secretsData['password'];
-                                $result[$each['dvrid']]['weburl'] = 'https://'.$dvrData['ip'].':'.$dvrData['port'].'/webgui/';
+                                $result[$each['dvrid']]['weburl'] = 'https://' . $dvrData['ip'] . ':' . $dvrData['port'] . '/webgui/';
                             }
                         }
                     }
