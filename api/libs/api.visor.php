@@ -2179,7 +2179,7 @@ class UbillingVisor {
             $dvrData = $this->allDvrs[$dvrId];
             if ($dvrData['type'] == 'trassir') {
                 $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg');
+                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg', 95, 100);
                 $result .= wf_img_sized($channelUrl, '', '60%');
                 $result .= wf_delimiter();
                 //Channel record mode form here
