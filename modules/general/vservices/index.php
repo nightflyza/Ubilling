@@ -1,44 +1,46 @@
 <?php
 if(cfr('VSERVICES')) {
+    if (ubRouting::checkPost('newfee', false)) {
+        $tagid = ubRouting::post('newtagid');
+        $price = ubRouting::post('newfee');
+        $cashtype = ubRouting::post('newcashtype');
+        $priority = ubRouting::post('newpriority');
+        $feechargealways = (ubRouting::post('feechargealways')) ? 1 : 0;
+        $feechargeperiod = (ubRouting::post('newperiod')) ? ubRouting::post('newperiod') : 0;
 
-    if (isset ($_POST['newfee'])) {
-        $tagid = $_POST['newtagid'];
-        $price = $_POST['newfee'];
-        $cashtype = $_POST['newcashtype'];
-        $priority = $_POST['newpriority'];
-        $feechargealways = (wf_CheckPost(array('feechargealways'))) ? 1 : 0;
         if (!empty($price)) {
-        zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways);
-        rcms_redirect("?module=vservices");
+            zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways, $feechargeperiod);
+            rcms_redirect("?module=vservices");
         } else {
             show_error(__('No all of required fields is filled'));
         }
     }
-    
-    if (isset($_GET['delete'])) {
-        $vservid=$_GET['delete'];
+
+    if (ubRouting::checkGet('delete')) {
+        $vservid = ubRouting::get('delete');
         zb_VsericeDelete($vservid);
         rcms_redirect("?module=vservices");
     }
     
-    if (wf_CheckGet(array('edit')) ){
-        $editId=vf($_GET['edit'],3);
-        if (wf_CheckPost(array('edittagid', 'editcashtype', 'editpriority', 'editfee'))) {
-            simple_update_field('vservices', 'tagid', $_POST['edittagid'], "WHERE `id`='".$editId."'");
-            simple_update_field('vservices', 'cashtype', $_POST['editcashtype'], "WHERE `id`='".$editId."'");
-            simple_update_field('vservices', 'priority', $_POST['editpriority'], "WHERE `id`='".$editId."'");
-            simple_update_field('vservices', 'price', $_POST['editfee'], "WHERE `id`='".$editId."'");
-            simple_update_field('vservices', 'fee_charge_always', (wf_CheckPost(array('editfeechargealways'))) ? 1 : 0, "WHERE `id`='".$editId."'");
-            log_register("CHANGE VSERVICE [".$editId."] PRICE `".$_POST['editfee']."`");
+    if (ubRouting::checkGet('edit')) {
+        $editId = vf(ubRouting::get('edit'), 3);
+
+        if (ubRouting::checkPost(array('edittagid', 'editcashtype', 'editpriority', 'editfee'))) {
+            $feechargealways = (ubRouting::post('editfeechargealways')) ? 1 : 0;
+            $feechargeperiod = (ubRouting::post('editperiod')) ? ubRouting::post('editperiod') : 0;
+
+            zb_VserviceEdit($editId, ubRouting::post('edittagid'), ubRouting::post('editfee'),
+                            ubRouting::post('editcashtype'), ubRouting::post('editpriority'),
+                            $feechargealways, $feechargeperiod);
+
             rcms_redirect("?module=vservices");
         }
+
         show_window(__('Edit'), web_VserviceEditForm($_GET['edit']));
     } else {
-    //show available services list
+        //show available services list
         web_VservicesShow();
     }
-    
-    
 }
 else {
 	show_error(__('Access denied'));
