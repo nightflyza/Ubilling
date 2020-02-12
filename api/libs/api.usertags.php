@@ -9,11 +9,12 @@
  * 
  * @return array
  */
-function zb_UserGetAllTags() {
+function zb_UserGetAllTags($login = '') {
     $result = array();
     $tagTypes = stg_get_alltagnames();
+    $queryWhere = (empty($login)) ? '' : " WHERE `login` = '" . $login . "'";
     if (!empty($tagTypes)) {
-        $query = "SELECT * from `tags`";
+        $query = "SELECT * from `tags`" . $queryWhere;
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -280,7 +281,7 @@ function stg_del_user_tag($tagid) {
         $tagsDb->delete();
         log_register('TAGDEL (' . $tagLogin . ') TAGID [' . $tagType . ']');
     } else {
-        log_register('TAGDEL (' . $tagLogin . ') TAGID [' . $tagType . '] FAIL_NOT_EXISTS');
+        log_register('TAGDEL TAGID [' . $tagid . '] FAIL_NOT_EXISTS');
     }
 }
 
@@ -358,17 +359,52 @@ function zb_FlushAllUserTags($login) {
  * @param int $tagid
  * @param float $price
  * @param string $cashtype
- * @param int  $priority
+ * @param int $priority
+ * @param int $feechargealways
+ * @param int $feechargeperiod
  */
-function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways) {
+function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways = 0, $feechargeperiod = 0) {
     $tagid = vf($tagid, 3);
     $price = mysql_real_escape_string($price);
     $cashtype = vf($cashtype);
     $priority = vf($priority, 3);
-    $query = "INSERT INTO `vservices` (`id` , `tagid` , `price` , `cashtype` , `priority`, `fee_charge_always`)
-              VALUES (NULL , '" . $tagid . "', '" . $price . "', '" . $cashtype . "', '" . $priority . "', '" . $feechargealways . "');";
+    $feechargeperiod = vf($feechargeperiod, 3);
+
+    $query = "INSERT INTO `vservices` (`id` , `tagid` , `price` , `cashtype` , `priority`, `fee_charge_always`, charge_period_days)
+              VALUES (NULL , '" . $tagid . "', '" . $price . "', '" . $cashtype . "', '" . $priority . "', '" . $feechargealways . "', " . $feechargeperiod . ");";
     nr_query($query);
-    log_register("CREATE VSERVICE [" . $tagid . '] `' . $price . '` [' . $cashtype . '] `' . $priority . '` [' . $feechargealways . '] `');
+    log_register("CREATE VSERVICE [" . $tagid . '] `' . $price . '` [' . $cashtype . '] `' . $priority . '` [' . $feechargealways . '] `' . '` [' . $feechargeperiod . '] `');
+}
+
+/**
+ * Edits virtual service
+ *
+ * @param int $vserviceID
+ * @param int $tagid
+ * @param float $price
+ * @param string $cashtype
+ * @param int  $priority
+ * @param int $feechargealways
+ * @param int $feechargeperiod
+ */
+function zb_VserviceEdit($vserviceID, $tagid, $price, $cashtype, $priority, $feechargealways = 0, $feechargeperiod = 0) {
+    $tagid = vf($tagid, 3);
+    $price = mysql_real_escape_string($price);
+    $cashtype = vf($cashtype);
+    $priority = vf($priority, 3);
+    $feechargeperiod = vf($feechargeperiod, 3);
+
+    $query = "UPDATE `vservices` SET 
+                    `tagid` = " . $tagid . ",   
+                    `price` = " . $price . ", 
+                    `cashtype` = '" . $cashtype . "', 
+                    `priority` = " . $priority . ", 
+                    `fee_charge_always` = " . $feechargealways . ",
+                    `charge_period_days` = " . $feechargeperiod . "
+                WHERE `id` = " . $vserviceID;
+    nr_query($query);
+
+    log_register("CHANGE VSERVICE [" . $vserviceID . "] PRICE `" . $price . "`");
 }
 
 /**
@@ -440,7 +476,8 @@ function web_VserviceAddForm() {
     $inputs = stg_tagid_selector() . wf_tag('br');
     $inputs .= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
     $inputs .= web_priority_selector() . wf_tag('br');
-    $inputs .= wf_TextInput('newfee', __('Fee'), '', true, '5');
+    $inputs .= wf_TextInput('newfee', __('Fee'), '', true, '5', 'finance');
+    $inputs .= wf_TextInput('newperiod', __('Charge period in days'), '', true, '5', 'digits');
     $inputs .= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), true, false);
     $inputs .= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
@@ -473,13 +510,14 @@ function web_VserviceEditForm($vserviceid) {
             $priorities[$i] = $i;
         }
 
-        $FeeIsChargedAlways = ($serviceData['fee_charge_always'] == 1) ? true : false;
+        $feeIsChargedAlways = ($serviceData['fee_charge_always'] == 1) ? true : false;
 
         $inputs = wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'], true);
         $inputs .= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
         $inputs .= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
-        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
-        $inputs .= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $FeeIsChargedAlways);
+        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5', 'finance');
+        $inputs .= wf_TextInput('editperiod', __('Charge period in days'), $serviceData['charge_period_days'], true, '5', 'digits');
+        $inputs .= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $feeIsChargedAlways);
         $inputs .= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
@@ -507,14 +545,16 @@ function web_VservicesShow() {
         'Fee',
         'Cash type',
         'Priority',
-        'Always charge fee'
+        'Always charge fee',
+        'Charge period in days'
     );
     $keys = array('id',
         'tagid',
         'price',
         'cashtype',
         'priority',
-        'fee_charge_always'
+        'fee_charge_always',
+        'charge_period_days'
     );
     show_window(__('Virtual services'), web_GridEditorVservices($titles, $keys, $allvservices, 'vservices', true, true));
     if (!empty($alltagtypes)) {
@@ -675,14 +715,16 @@ function web_VservicesSelector() {
  * 
  * @param bool $log_payment
  * @param bool $charge_frozen
- * 
+ * @param string $whereString
+ *
  * @return void
  */
-function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
+function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true, $whereString = '') {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     $frozenUsers = array();
-    $query_services = "SELECT * from `vservices` ORDER by `priority` DESC";
+    $query_services = "SELECT * from `vservices` " . $whereString . " ORDER by `priority` DESC";
+
     $allUserData = zb_UserGetAllStargazerDataAssoc();
     $paymentTypeId = 1;
     //custom payment type ID optional option
@@ -693,6 +735,7 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
     }
 
     $allservices = simple_queryall($query_services);
+
     if (!empty($allservices)) {
         if (!$charge_frozen) {
             $frozen_query = "SELECT `login` from `users` WHERE `Passive`='1';";
@@ -773,6 +816,25 @@ function zb_VservicesGetAllPrices() {
 }
 
 /**
+ * Returns array of all available virtual services as tagid => array('price' => $price, 'period' => $period);
+ *
+ * @return array
+ */
+function zb_VservicesGetAllPricesPeriods() {
+    $result = array();
+    $query = "SELECT * from `vservices`";
+    $all = simple_queryall($query);
+
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['tagid']] = array('price' => $each['price'], 'daysperiod' => $each['charge_period_days']);
+        }
+    }
+
+    return ($result);
+}
+
+/**
  * Returns price summary of all virtual services fees assigned to user
  * 
  * @param string $login
@@ -793,6 +855,49 @@ function zb_VservicesGetUserPrice($login) {
             }
         }
     }
+    return ($result);
+}
+
+/**
+ * Returns all users with assigned virtual services as array:
+ *         login => array($vServiceName1 => vServicePrice1,
+ *                        $vServiceName2 => vServicePrice2,
+ *                        $vServiceNameN => vServicePriceN
+ *                       )
+ * if $includePeriod is true returned array will look like this:
+ *          login => array($vServiceName1 => array('price' => vServicePrice1, 'daysperiod' => vServicePeriod1),
+ *                        $vServiceName2 => array('price' => vServicePrice2, 'daysperiod' => vServicePeriod2),
+ *                        $vServiceNameN => array('price' => vServicePriceN, 'daysperiod' => vServicePeriodN),
+ *                       )
+ *
+ * @param string $login
+ * @param bool $includePeriod
+ *
+ * @return array
+ */
+function zb_VservicesGetUsersAll($login = '', $includePeriod = false) {
+    $result = array();
+    $allUserTags = zb_UserGetAllTags($login);
+
+    //user have some tags assigned
+    if (!empty($allUserTags)) {
+        $vservicePrices = ($includePeriod) ? zb_VservicesGetAllPricesPeriods() : zb_VservicesGetAllPrices();
+
+        foreach ($allUserTags as $eachLogin => $data) {
+            $tmpArr = array();
+
+            foreach ($data as $tagId => $tagName) {
+                if (isset($vservicePrices[$tagId])) {
+                    $tmpArr[$tagName] = $vservicePrices[$tagId];
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                $result[$eachLogin] = $tmpArr;
+            }
+        }
+    }
+
     return ($result);
 }
 

@@ -3139,6 +3139,7 @@ $lang['def']['Bearing'] = 'Азимут';
 $lang['def']['History of switch life'] = 'История жизни свитча';
 $lang['def']['FDB cache'] = 'Кеш FDB';
 $lang['def']['View full'] = 'Просмотреть полностью';
+$lang['def']['Charge period in days'] = 'Периодичность снятия оплаты в днях';
 $lang['def'][''] = '';
 
 ?>
