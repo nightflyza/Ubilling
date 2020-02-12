@@ -43,3 +43,6 @@ $lang['def']['On detector'] = 'По детектору';
 $lang['def']['Cameras limit'] = 'Лимит камер';
 $lang['def']['Cameras'] = 'Камеры';
 $lang['def']['DVR health'] = 'Состояние DVR';
+$lang['def']['Disks'] = 'Диски';
+$lang['def']['Database'] = 'База данных';
+$lang['def']['Archive days'] = 'Дней архива';

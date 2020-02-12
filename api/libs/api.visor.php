@@ -163,13 +163,18 @@ class UbillingVisor {
     const URL_CAMVIEW = '&showcamera=';
 
     /**
-     * Some default tables names
+     * Some default database tables names
      */
     const TABLE_USERS = 'visor_users';
     const TABLE_CAMS = 'visor_cams';
     const TABLE_DVRS = 'visor_dvrs';
     const TABLE_CHANS = 'visor_chans';
     const TABLE_SECRETS = 'visor_secrets';
+
+    /**
+     * Other stuff
+     */
+    const PATH_MODELS = 'content/documents/visormodels/';
 
     public function __construct() {
         $this->loadConfigs();
@@ -189,7 +194,7 @@ class UbillingVisor {
     }
 
     /**
-     * Loads reqired configss
+     * Loads reqired configs
      * 
      * @global object $ubillingConfig
      * 
@@ -1531,6 +1536,26 @@ class UbillingVisor {
     }
 
     /**
+     * Returns popular and most frequently used camera models for some protocol/vendor
+     * 
+     * @param string $protocol
+     * 
+     * @return array
+     */
+    protected function getPopularCameraModels($protocol) {
+        $result = array();
+        if (file_exists(self::PATH_MODELS . $protocol)) {
+            $allModels = rcms_scandir(self::PATH_MODELS . $protocol . '/');
+            if (!empty($allModels)) {
+                foreach ($allModels as $io => $each) {
+                    $result[$each] = $each . ' *';
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Rders camera DVR registering form if its not registered yet
      * 
      * @param int $cameraId
@@ -1577,7 +1602,10 @@ class UbillingVisor {
                             if (!empty($newCamProtocol)) {
                                 //getting protocol supported models
                                 $supportedCameraModelsTmp = $trassir->getCameraModels($newCamProtocol);
-                                $supportedCameraModels = array('TR-D8141IR2' => 'TR-D8141IR2'); //TODO: this must be optional. 
+                                //Protocol is supported on NVR
+                                if (!empty($supportedCameraModelsTmp)) {
+                                    $supportedCameraModels = $this->getPopularCameraModels($newCamProtocol); //frequently used models
+                                }
 
                                 $supportedCameraModels += $supportedCameraModelsTmp;
 
@@ -2038,12 +2066,12 @@ class UbillingVisor {
      */
     public function renderChannelsPreview() {
         $result = '';
+        $chanCount = 0;
         //chan controls here
         $result .= wf_Link(self::URL_ME . self::URL_CHANS, web_yellow_led() . ' ' . __('No user assigned'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . self::URL_CHANS . '&allchannels=true', web_green_led() . ' ' . __('All channels'), false, 'ubButton') . ' ';
         $result .= wf_delimiter();
         $allFlag = (ubRouting::checkGet('allchannels')) ? true : false;
-
 
         if (!empty($this->allDvrs)) {
             $result .= wf_tag('div', false, '');
@@ -2056,7 +2084,6 @@ class UbillingVisor {
                             $dvrChannels = $serverHealth['channels_health'];
                             if (!empty($dvrChannels)) {
                                 foreach ($dvrChannels as $ia => $eachChan) {
-
 
                                     $renderChannel = false;
                                     if ($allFlag) {
@@ -2084,6 +2111,7 @@ class UbillingVisor {
                                         $result .= __('Signal') . ' ' . web_bool_led($eachChan['signal']);
                                         $result .= wf_CleanDiv();
                                         $result .= wf_tag('div', true);
+                                        $chanCount++;
                                     }
                                 }
                             } else {
@@ -2094,6 +2122,11 @@ class UbillingVisor {
                         $result .= $this->messages->getStyledMessage(__('DVR connection error') . ': [' . $eachDvr['id'] . ']', 'error');
                     }
                 }
+            }
+
+            //all channels assigned, no channels registered alert
+            if ($chanCount == 0) {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
             }
 
             $result .= wf_CleanDiv();
