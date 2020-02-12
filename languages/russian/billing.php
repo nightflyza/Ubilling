@@ -3141,6 +3141,7 @@ $lang['def']['FDB cache'] = 'Кеш FDB';
 $lang['def']['View full'] = 'Просмотреть полностью';
 $lang['def']['Our profit'] = 'Наша прибыль';
 $lang['def']['Payouts for Megogo'] = 'Выплаты для Megogo';
+$lang['def']['Charge period in days'] = 'Периодичность снятия оплаты в днях';
 $lang['def'][''] = '';
 
 ?>
