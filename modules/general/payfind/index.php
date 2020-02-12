@@ -257,6 +257,10 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_CheckInput('type_paysys', '', false, false);
         $inputs.= web_PaySysPercentSelector();
         $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
+        $inputs.= wf_CheckInput('type_city', '', false, false);
+        $inputs.= web_CitySelector() . ' ' . __('City') . wf_delimiter(0);;
+        $inputs.= wf_CheckInput('type_contragent', '', false, false);
+        $inputs.= zb_ContrAhentSelectPreset() . ' ' . __('Service provider') . wf_delimiter(0);
         $inputs.= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
         $inputs.= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, false);
         $inputs.= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, false);
@@ -276,7 +280,7 @@ if (cfr('PAYFIND')) {
      * 
      * @return void
      */
-    function web_PaymentSearch($markers) {
+    function web_PaymentSearch($markers, $joins = '') {
         global $ubillingConfig;
         $altercfg = $ubillingConfig->getAlter();
         if (wf_CheckPost(array('searchtable'))) {
@@ -292,7 +296,7 @@ if (cfr('PAYFIND')) {
         }
         $query = "SELECT * from `" . $table . "`";
 
-        $query.=$markers;
+        $query.= $joins . $markers;
 
         $csvdata = '';
         $allpayments = simple_queryall($query);
@@ -463,6 +467,7 @@ if (cfr('PAYFIND')) {
     //Search
 
     $markers = '';
+    $joins = '';
 
     //date search
     if (wf_CheckPost(array('datefrom', 'dateto'))) {
@@ -563,9 +568,29 @@ if (cfr('PAYFIND')) {
         $markers.="AND `note` LIKE '%" . $notesMask . "%' ";
     }
 
+    //filter by city
+    if (wf_CheckPost(array('type_city', 'citysel'))) {
+        $cityID = mysql_real_escape_string($_POST['citysel']);
+
+        $joins.= " RIGHT JOIN (SELECT `address`.`login`,`city`.`cityname` FROM `address` 
+                                    INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+                                    INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+                                    INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
+                                    INNER JOIN `city` ON `street`.`cityid`=`city`.`id`
+                                WHERE `city`.`id` = " . $cityID . ") AS `tmpCity` USING(`login`) ";
+    }
+
+    //filter by strict contragent assign
+    if (wf_CheckPost(array('type_contragent', 'ahentsel'))) {
+        $contragentID = mysql_real_escape_string($_POST['ahentsel']);
+
+        $joins.= " RIGHT JOIN (SELECT `ahenassignstrict`.`login`,`ahenassignstrict`.`agentid` FROM `ahenassignstrict`                                    
+                                WHERE `ahenassignstrict`.`agentid` = " . $contragentID . ") AS `tmpContragents` USING(`login`) ";
+    }
+
     //executing search
     if (wf_CheckPost(array('dosearch'))) {
-        web_PaymentSearch($markers);
+        web_PaymentSearch($markers, $joins);
     }
 } else {
     show_error(__('Access denied'));

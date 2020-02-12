@@ -156,7 +156,7 @@ class FundsFlow {
             foreach ($cleardata as $eachline) {
                 $eachfee = explode(' ', $eachline);
                 if (isset($eachfee[1])) {
-                    $counter = strtotime($eachfee[0] . ' ' . $eachfee[1]);
+                    $counter = strtotime($eachfee[0] . ' ' . $eachfee[1]) + count($result);
 
                     $feefrom = str_replace("'.", '', $eachfee[12]);
                     $feeto = str_replace("'.", '', $eachfee[14]);
@@ -194,7 +194,7 @@ class FundsFlow {
 
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
-                $counter = strtotime($eachpayment['date']);
+                $counter = strtotime($eachpayment['date']) + count($result);
 
                 if (ispos($eachpayment['note'], 'MOCK:')) {
                     $cashto = $eachpayment['balance'];
@@ -239,7 +239,7 @@ class FundsFlow {
 
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
-                $counter = strtotime($eachpayment['date']);
+                $counter = strtotime($eachpayment['date']) + count($result);
                 $cashto = $eachpayment['summ'] + $eachpayment['balance'];
                 $result[$counter]['login'] = $login;
                 $result[$counter]['date'] = $eachpayment['date'];
