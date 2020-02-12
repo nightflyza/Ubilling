@@ -3160,6 +3160,7 @@ $lang['def']['Bearing'] = 'Азимут';
 $lang['def']['History of switch life'] = 'Історія життя та смерті комутатора';
 $lang['def']['FDB cache'] = 'Кеш FDB';
 $lang['def']['View full'] = 'Переглянути повністю';
-
+$lang['def']['Our profit'] = 'Наш прибуток';
+$lang['def']['Payouts for Megogo'] = 'Виплати для Megogo';
 
 ?>
