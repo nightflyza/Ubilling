@@ -25,7 +25,27 @@ if (@$us_config['OM_ENABLED']) {
         }
     }
 
-    //Check for user active state
+    //bundle tariffs check
+    $tariffBundle = false;
+    if (isset($us_config['OM_TARIFFSBUNDLE'])) {
+        $bundleTariffsList = array();
+        $bundleTariffsTmp = explode(',', $us_config['OM_TARIFFSBUNDLE']);
+
+        if (!empty($bundleTariffsTmp)) {
+            foreach ($bundleTariffsTmp as $optionIndex => $eachBundleTariffName) {
+                $cleanTariffName = trim($eachBundleTariffName);
+                $bundleTariffsList[$cleanTariffName] = $eachBundleTariffName;
+            }
+        }
+        //strict tariff name check
+        if (isset($bundleTariffsList[$userData['Tariff']])) {
+            $tariffBundle = true;
+        }
+    }
+
+
+
+//Check for user active state
     if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 ) AND ( $userData['Cash'] >= '-' . $userData['Credit']) AND ( $tariffAllowed)) {
         $omegaFront = new OmegaTvFrontend();
         $omegaFront->setLogin($user_login);
@@ -68,12 +88,13 @@ if (@$us_config['OM_ENABLED']) {
             }
         }
 
-        //default sub/unsub form
-        show_window(__('Attention'), __('On unsubscription will be charged fee the equivalent value of the subscription.'));
-        show_window(__('Available subscribtions'), $omegaFront->renderSubscribeForm());
-        $accountIdLabel = la_tag('h3') . __('Your account ID is') . ': ' . $omegaFront->generateCustormerId($user_login) . la_tag('h3', true) . la_tag('br');
-        show_window('', $accountIdLabel);
-
+        if (!$tariffBundle) {
+            //default sub/unsub form
+            show_window(__('Attention'), __('On unsubscription will be charged fee the equivalent value of the subscription.'));
+            show_window(__('Available subscribtions'), $omegaFront->renderSubscribeForm());
+            $accountIdLabel = la_tag('h3') . __('Your account ID is') . ': ' . $omegaFront->generateCustormerId($user_login) . la_tag('h3', true) . la_tag('br');
+            show_window('', $accountIdLabel);
+        }
 
         $subscribedTrariffs = $omegaFront->getSubscribedTariffs();
         if (!empty($subscribedTrariffs)) {

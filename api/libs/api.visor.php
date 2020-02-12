@@ -1547,7 +1547,7 @@ class UbillingVisor {
             $cameraUserData = $this->allUserData[$cameraData['login']];
             $cameraIp = $cameraUserData['ip'];
 
-            $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
+            $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
             $serverHealth = $trassir->getHealth();
             //dummy connection check
             if (!empty($serverHealth)) {
@@ -1561,23 +1561,34 @@ class UbillingVisor {
                     $result .= $this->messages->getStyledMessage(__('Camera is not registered at') . ' ' . $dvrData['name'], 'warning');
                     $protoTmp = $trassir->getCameraProtocols();
                     if (!empty($protoTmp)) {
-                        $supportedCameraProtocols = array('TRASSIR' => 'TRASSIR');
+                        $supportedCameraProtocols = array('TRASSIR' => 'TRASSIR', 'Hikvision' => 'Hikvision'); //popular protocols
                         //Protocols received from DVR
                         foreach ($protoTmp as $io => $each) {
                             $supportedCameraProtocols[$each] = $each;
                         }
 
-                        //Camera models temporary is here
-                        $supportedCameraModels = array('TR-D8141IR2' => 'TR-D8141IR2'); //base model
-                        $supportedCameraModelsTmp = $trassir->getCameraModels('TRASSIR'); //Only trassir models list mixing. TODO: wizard mb?
-                        $supportedCameraModels += $supportedCameraModelsTmp;
-
-                        //render registration form
+                        //camera registering form processing
                         if (!ubRouting::checkPost(array('newtrassircamera', 'newtrassircameraprotocol', 'newtrassircameramodel'))) {
+                            $supportedCameraModels = array();
+
+                            $newCamProtocol = (ubRouting::checkPost('newtrassircameraprotocol')) ? ubRouting::post('newtrassircameraprotocol') : '';
+
                             $inputs = wf_HiddenInput('newtrassircamera', 'true');
-                            $inputs .= wf_Selector('newtrassircameraprotocol', $supportedCameraProtocols, __('Device vendor'), '', false) . ' ';
-                            $inputs .= wf_Selector('newtrassircameramodel', $supportedCameraModels, __('Model'), '', false) . ' ';
-                            $inputs .= wf_Submit(__('Create camera') . ' ' . __('on') . ' ' . __('DVR') . ' ' . $dvrData['name']);
+                            if (!empty($newCamProtocol)) {
+                                //getting protocol supported models
+                                $supportedCameraModelsTmp = $trassir->getCameraModels($newCamProtocol);
+                                $supportedCameraModels = array('TR-D8141IR2' => 'TR-D8141IR2'); //TODO: this must be optional. 
+
+                                $supportedCameraModels += $supportedCameraModelsTmp;
+
+                                $inputs .= $newCamProtocol . ' ';
+                                $inputs .= wf_HiddenInput('newtrassircameraprotocol', $newCamProtocol);
+                                $inputs .= wf_Selector('newtrassircameramodel', $supportedCameraModels, __('Model'), '', false) . ' ';
+                                $inputs .= wf_Submit(__('Create camera') . ' ' . __('on') . ' ' . __('DVR') . ' ' . $dvrData['name']);
+                            } else {
+                                $inputs .= wf_Selector('newtrassircameraprotocol', $supportedCameraProtocols, __('Device vendor'), '', false) . ' ';
+                                $inputs .= wf_Submit(__('Continue'));
+                            }
                             $result .= wf_delimiter();
                             $result .= wf_Form('', 'POST', $inputs, 'glamour');
                         } else {

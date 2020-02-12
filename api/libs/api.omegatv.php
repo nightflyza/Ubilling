@@ -10,6 +10,13 @@ class OmegaTV {
     protected $hls = '';
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all of available omega tariffs as id=>data
      *
      * @var array
@@ -73,6 +80,13 @@ class OmegaTV {
     protected $suspended = array();
 
     /**
+     * Contains bundled internet tariffs names as name=>someshit. No fee charging for them. Lol.
+     *
+     * @var array
+     */
+    protected $bundledTariffs = array();
+
+    /**
      * Basic module path
      */
     const URL_ME = '?module=omegatv';
@@ -93,11 +107,45 @@ class OmegaTV {
     public function __construct() {
         $this->initHls();
         $this->initMessages();
+        $this->loadAlter();
         $this->loadTariffs();
         $this->loadUserData();
         $this->loadUserProfiles();
         $this->loadQueue();
         $this->loadSuspended();
+        $this->loadBundleTariffs();
+    }
+
+    /**
+     * Loads system alter config into protected property.
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Loads bundle tariffs list from config option into protected prop.
+     * 
+     * @return void
+     */
+    protected function loadBundleTariffs() {
+        //A-A-A-A-A-A-AA!!!!!111 Skybetik  eto pizdets!
+        if (isset($this->altCfg['OMEGATV_TARIFFSBUNDLE'])) {
+            $bundleTariffsList = array();
+            $bundleTariffsTmp = explode(',', $this->altCfg['OMEGATV_TARIFFSBUNDLE']);
+
+            if (!empty($bundleTariffsTmp)) {
+                foreach ($bundleTariffsTmp as $optionIndex => $eachBundleTariffName) {
+                    $cleanTariffName = trim($eachBundleTariffName);
+                    $this->bundledTariffs[$cleanTariffName] = $eachBundleTariffName;
+                }
+            }
+        }
     }
 
     /**
@@ -278,7 +326,7 @@ class OmegaTV {
             if (isset($userInfo['result'])) {
                 $userInfo = $userInfo['result'];
                 if (isset($userInfo['devices'])) {
-                    $result.=json_encode($userInfo['devices']);
+                    $result .= json_encode($userInfo['devices']);
                 }
             }
         }
@@ -300,7 +348,7 @@ class OmegaTV {
             if (isset($userInfo['result'])) {
                 $userInfo = $userInfo['result'];
                 if (isset($userInfo['playlists'])) {
-                    $result.=json_encode($userInfo['playlists']);
+                    $result .= json_encode($userInfo['playlists']);
                 }
             }
         }
@@ -381,14 +429,14 @@ class OmegaTV {
             if (isset($this->allUsers[$customerId])) {
                 $assignResult = $this->hls->addPlayList($customerId);
                 if (isset($assignResult['error'])) {
-                    $result.=__('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
+                    $result .= __('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
                 } else {
                     $uniq = $assignResult['result']['uniq'];
                     $userLogin = $this->getLocalCustomerLogin($customerId);
                     log_register('OMEGATV PLAYLIST ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('User not exists');
+                $result .= __('Something went wrong') . ': ' . __('User not exists');
             }
         }
         return ($result);
@@ -422,13 +470,13 @@ class OmegaTV {
                 }
             }
 
-            $inputs.=wf_Selector('changebasetariff', $baseTariffs, __('Base tariff'), $userData['basetariffid'], true);
-            $inputs.=wf_Selector('addbundletariff', $bundleTariffs, __('Add bundle tariff'), '', true);
-            $inputs.= wf_CheckInput('deleteallbundle', __('Delete all bundle tariffs'), true, false);
-            $inputs.=wf_tag('br');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_Selector('changebasetariff', $baseTariffs, __('Base tariff'), $userData['basetariffid'], true);
+            $inputs .= wf_Selector('addbundletariff', $bundleTariffs, __('Add bundle tariff'), '', true);
+            $inputs .= wf_CheckInput('deleteallbundle', __('Delete all bundle tariffs'), true, false);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
 
-            $result.=wf_Form(self::URL_SUBSCRIBER . $customerId, 'POST', $inputs, 'glamour');
+            $result .= wf_Form(self::URL_SUBSCRIBER . $customerId, 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -487,11 +535,11 @@ class OmegaTV {
     protected function renderDeviceAddForm($customerId) {
         $result = '';
         $inputs = wf_HiddenInput('manualassigndevice', 'true');
-        $inputs.= wf_HiddenInput('manualassigndevicecustomerid', $customerId);
-        $inputs.= wf_TextInput('manualassigndeviceuniq', __('Uniq'), '', true, 20, 'alphanumeric');
-        $inputs.=wf_CheckInput('manualassignnewplaylist', __('Just create new playlist'), true, false);
-        $inputs.=wf_Submit(__('Assign'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs .= wf_HiddenInput('manualassigndevicecustomerid', $customerId);
+        $inputs .= wf_TextInput('manualassigndeviceuniq', __('Uniq'), '', true, 20, 'alphanumeric');
+        $inputs .= wf_CheckInput('manualassignnewplaylist', __('Just create new playlist'), true, false);
+        $inputs .= wf_Submit(__('Assign'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -508,13 +556,13 @@ class OmegaTV {
             if (isset($this->allUsers[$customerId])) {
                 $assignResult = $this->hls->addDevice($customerId, $uniq);
                 if (isset($assignResult['error'])) {
-                    $result.=__('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
+                    $result .= __('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
                 } else {
                     $userLogin = $this->getLocalCustomerLogin($customerId);
                     log_register('OMEGATV DEVICE ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('User not exists');
+                $result .= __('Something went wrong') . ': ' . __('User not exists');
             }
         }
         return ($result);
@@ -532,14 +580,14 @@ class OmegaTV {
             if (isset($this->allUsers[$customerId])) {
                 $assignResult = $this->hls->addPlayList($customerId);
                 if (isset($assignResult['error'])) {
-                    $result.=__('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
+                    $result .= __('Strange exeption') . ': ' . $assignResult['error']['code'] . ' - ' . $assignResult['error']['msg'];
                 } else {
                     $uniq = $assignResult['result']['uniq'];
                     $userLogin = $this->getLocalCustomerLogin($customerId);
                     log_register('OMEGATV PLAYLIST ASSIGN `' . $uniq . '` FOR (' . $userLogin . ') AS [' . $customerId . ']');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('User not exists');
+                $result .= __('Something went wrong') . ': ' . __('User not exists');
             }
         }
         return ($result);
@@ -553,10 +601,10 @@ class OmegaTV {
     protected function renderProfileControls($customerId) {
         $customerId = vf($customerId, 3);
         $result = wf_tag('br');
-        $result.= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&blockuser=true', web_bool_led(0) . ' ' . __('Block user'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&unblockuser=true', web_bool_led(1) . ' ' . __('Unblock user'), false, 'ubButton');
-        $result.=wf_modalAuto(web_edit_icon() . ' ' . __('Edit tariff'), __('Edit tariff'), $this->renderManualTariffForm($customerId), 'ubButton');
-        $result.=wf_modalAuto(wf_img('skins/switch_models.png') . ' ' . __('Assign device'), __('Assign device'), $this->renderDeviceAddForm($customerId), 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&blockuser=true', web_bool_led(0) . ' ' . __('Block user'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&customerprofile=' . $customerId . '&unblockuser=true', web_bool_led(1) . ' ' . __('Unblock user'), false, 'ubButton');
+        $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit tariff'), __('Edit tariff'), $this->renderManualTariffForm($customerId), 'ubButton');
+        $result .= wf_modalAuto(wf_img('skins/switch_models.png') . ' ' . __('Assign device'), __('Assign device'), $this->renderDeviceAddForm($customerId), 'ubButton');
         return ($result);
     }
 
@@ -671,39 +719,39 @@ class OmegaTV {
         }
 
         if (!empty($localUserInfo)) {
-            $result.=wf_tag('b') . __('Local profile') . wf_tag('b', true) . wf_tag('br');
+            $result .= wf_tag('b') . __('Local profile') . wf_tag('b', true) . wf_tag('br');
             $rows = '';
 
             $cells = wf_TableCell(__('Tariff') . ' ' . __('base'), '', 'row2');
             $cells .= wf_TableCell($this->getTariffName($localUserInfo['basetariffid']));
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
 
             $bundleTariffs = $this->extractBundle($customerId);
             $bundleTariffsList = '';
             if (!empty($bundleTariffs)) {
                 foreach ($bundleTariffs as $io => $each) {
-                    $bundleTariffsList.=$this->getTariffName($io) . ' ';
+                    $bundleTariffsList .= $this->getTariffName($io) . ' ';
                 }
             }
 
             $cells = wf_TableCell(__('Tariffs') . ' ' . __('bundle'), '', 'row2');
             $cells .= wf_TableCell($bundleTariffsList);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
 
 
             $cells = wf_TableCell(__('Status'), '', 'row2');
             $cells .= wf_TableCell(web_bool_led($localUserInfo['active']));
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Suspended'), '', 'row2');
             $suspFlag = (isset($this->suspended[$localUserInfo['login']])) ? true : false;
             $cells .= wf_TableCell(web_bool_led($suspFlag));
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row3');
 
             $result .= wf_TableBody($rows, '100%', 0);
         }
 
-        $result.=$this->renderProfileControls($customerId);
+        $result .= $this->renderProfileControls($customerId);
 
         return($result);
     }
@@ -806,9 +854,9 @@ class OmegaTV {
         $result = '';
         $loginPreset = (wf_CheckGet(array('username'))) ? $_GET['username'] : '';
         $inputs = wf_HiddenInput('manualregister', 'true');
-        $inputs.= wf_TextInput('manualregisterlogin', __('Login'), $loginPreset, true, '15');
-        $inputs.= wf_Submit(__('Create'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs .= wf_TextInput('manualregisterlogin', __('Login'), $loginPreset, true, '15');
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -827,11 +875,11 @@ class OmegaTV {
                 if (empty($userLocalProfile)) {
                     $this->createUserProfile($userLogin);
                 } else {
-                    $result.=__('Something went wrong') . ': ' . __('Duplicate login') . ' - ' . $userLogin;
+                    $result .= __('Something went wrong') . ': ' . __('Duplicate login') . ' - ' . $userLogin;
                     log_register('OMEGATV FAIL CUSTOMER REGISTER (' . $userLogin . ') DUPLICATE');
                 }
             } else {
-                $result.=__('Something went wrong') . ': ' . __('User not exist') . ' - ' . $userLogin;
+                $result .= __('Something went wrong') . ': ' . __('User not exist') . ' - ' . $userLogin;
                 log_register('OMEGATV FAIL CUSTOMER REGISTER (' . $userLogin . ') NOLOGIN');
             }
         }
@@ -845,8 +893,8 @@ class OmegaTV {
      */
     public function renderChanControls() {
         $result = wf_Link(self::URL_ME . '&tariffs=true&chanlist=base', web_icon_search() . ' ' . __('Base'), false, 'ubButton');
-        $result.=wf_Link(self::URL_ME . '&tariffs=true&chanlist=bundle', web_icon_search() . ' ' . __('Bundle'), false, 'ubButton');
-        $result.=wf_Link(self::URL_ME . '&tariffs=true&chanlist=promo', web_icon_search() . ' ' . __('Promo'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&tariffs=true&chanlist=bundle', web_icon_search() . ' ' . __('Bundle'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&tariffs=true&chanlist=promo', web_icon_search() . ' ' . __('Promo'), false, 'ubButton');
         return ($result);
     }
 
@@ -901,10 +949,10 @@ class OmegaTV {
         $tmpArr = array();
         if (!empty($remoteTariffs)) {
             foreach ($remoteTariffs as $io => $each) {
-                //excluding already registered tariffs
-                if (!isset($this->tariffNames[$io])) {
-                    $tmpArr[$io] = $io . ' - ' . $each;
-                }
+                //excluding already registered tariffs. Commented due skybetik request.
+                // if (!isset($this->tariffNames[$io])) {
+                $tmpArr[$io] = $io . ' - ' . $each;
+                //}
             }
         }
 
@@ -924,7 +972,7 @@ class OmegaTV {
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return($result);
     }
@@ -1535,15 +1583,22 @@ class OmegaTV {
                 if ($each['active']) {
                     if (isset($this->allUserData[$each['login']])) {
                         if (!$this->allUserData[$each['login']]['Passive']) {
-                            if (!empty($each['basetariffid'])) {
-                                $this->chargeFee($each['login'], $each['basetariffid']);
-                                $userBundleTariffs = $this->extractBundle($each['customerid']);
-                                if (!empty($userBundleTariffs)) {
-                                    foreach ($userBundleTariffs as $eachBundleId => $eachBundleTariff) {
-                                        $this->chargeFee($each['login'], $eachBundleId);
+                            $userInternetTariff = $this->allUserData[$each['login']]['Tariff'];
+                            //user is not on internet bundled tariff
+                            if (!isset($this->bundledTariffs[$userInternetTariff])) {
+                                if (!empty($each['basetariffid'])) {
+                                    $this->chargeFee($each['login'], $each['basetariffid']);
+                                    $userBundleTariffs = $this->extractBundle($each['customerid']);
+                                    if (!empty($userBundleTariffs)) {
+                                        foreach ($userBundleTariffs as $eachBundleId => $eachBundleTariff) {
+                                            $this->chargeFee($each['login'], $eachBundleId);
+                                        }
                                     }
                                 }
+                            } else {
+                                log_register('OMEGATV CHARGE SKIP INETBUNDLE FOR (' . $each['login'] . ') AS [' . $each['id'] . ']');
                             }
+                            //end of internet bundle  check
                         }
                     }
                 }
