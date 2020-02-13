@@ -3136,6 +3136,7 @@ class Warehouse {
         $result = '';
         $tmpArr = array();
         $sum = 0;
+        $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
         if (!empty($this->allOutcoming)) {
             $tmpArr = $this->allOutcoming;
             if (!empty($tmpArr)) {
@@ -3146,6 +3147,9 @@ class Warehouse {
                 $cells .= wf_TableCell(__('Count'));
                 $cells .= wf_TableCell(__('Price'));
                 $cells .= wf_TableCell(__('Sum'));
+                if ($notesFlag) {
+                    $cells .= wf_TableCell(__('Notes'));
+                }
                 $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($tmpArr as $io => $each) {
@@ -3162,8 +3166,11 @@ class Warehouse {
                     } else {
                         $actLinks = '';
                     }
+                    if ($notesFlag) {
+                        $cells .= wf_TableCell($each['notes']);
+                    }
                     $cells .= wf_TableCell($actLinks);
-                    $rows .= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row5');
                     $sum = $sum + ($each['price'] * $each['count']);
                 }
                 $cells = wf_TableCell(__('Total'));
@@ -3173,6 +3180,9 @@ class Warehouse {
                 $cells .= wf_TableCell('');
                 $cells .= wf_TableCell('');
                 $cells .= wf_TableCell($sum);
+                if ($notesFlag) {
+                    $cells .= wf_TableCell('');
+                }
                 $cells .= wf_TableCell('');
                 $rows .= wf_TableRow($cells, 'row2');
 
