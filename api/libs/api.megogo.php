@@ -703,6 +703,21 @@ class MegogoInterface {
     }
 
     /**
+     * Colorize important report columns
+     * 
+     * @param string $data
+     * 
+     * @return string
+     */
+    protected function colorImportant($data) {
+        $result = '';
+        if (!empty($data)) {
+            $result .= wf_tag('font', false, '', 'color="#900000"') . $data . wf_tag('font', 'true');
+        }
+        return($result);
+    }
+
+    /**
      * Renders default subscriptions report
      * 
      * @return string
@@ -772,21 +787,26 @@ class MegogoInterface {
             $totalUsers = 0;
             $totalFree = 0;
             $totalSumm = 0;
+            $totalPayout = 0;
 
             foreach ($tmpArr as $io => $each) {
                 $totalUsers = $totalUsers + $each['count'];
                 $totalFree = $totalFree + $each['freeperiod'];
                 $totalSumm = $totalSumm + $each['summ'];
+                $tariffPercent = (isset($custPercents[$io])) ? $custPercents[$io] : $this->altCfg['MG_PERCENT'];
+                $ourProfit = zb_Percent($each['summ'], $tariffPercent);
+                $megogoPayout = $each['summ'] - $ourProfit;
+                $totalPayout = $totalPayout + $megogoPayout;
 
                 $cells = wf_TableCell(@$this->allTariffs[$io]['name']);
                 $cells .= wf_TableCell(@$this->allTariffs[$io]['fee']);
                 $cells .= wf_TableCell($each['count']);
                 $cells .= wf_TableCell($each['freeperiod']);
                 $cells .= wf_TableCell($each['summ']);
-                $tariffPercent = (isset($custPercents[$io])) ? $custPercents[$io] : $this->altCfg['MG_PERCENT'];
-                $cells .= wf_TableCell('TODO');
-                $cells .= wf_TableCell(zb_Percent($each['summ'], $tariffPercent));
-                $rows .= wf_TableRow($cells, 'row3');
+
+                $cells .= wf_TableCell($this->colorImportant($megogoPayout));
+                $cells .= wf_TableCell($ourProfit);
+                $rows .= wf_TableRow($cells, 'row5');
             }
 
             $cells = wf_TableCell(wf_tag('b') . __('Total') . wf_tag('b', true));
@@ -794,7 +814,7 @@ class MegogoInterface {
             $cells .= wf_TableCell($totalUsers);
             $cells .= wf_TableCell($totalFree);
             $cells .= wf_TableCell($totalSumm);
-            $cells .= wf_TableCell('TODO_SUMM');
+            $cells .= wf_TableCell($this->colorImportant($totalPayout));
             $cells .= wf_TableCell(zb_Percent($totalSumm, $tariffPercent));
             $rows .= wf_TableRow($cells, 'row2');
 
