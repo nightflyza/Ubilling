@@ -761,6 +761,17 @@ function wf_getBoolFromVar($Variable, $CheckAsTrueFalseStr = false) {
 }
 
 /**
+ * Returns true if $value is empty() or null but not equals to 0 or '0'
+ *
+ * @param string $value
+ *
+ * @return bool
+ */
+function wf_emptyNonZero($value = '') {
+    return ( (empty($value) and $value !== 0 and $value !== '0') ? true : false );
+}
+
+/**
  * Construct HTML table row element
  * 
  * @param string $cells table row cells

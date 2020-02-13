@@ -629,16 +629,18 @@ class Banksta2 {
      * Adds new fields mapping preset to DB
      *
      * @param $fmpName
-     * @param int $fmpColRealName
-     * @param int $fmpColAddr
-     * @param int $fmpColPaySum
-     * @param int $fmpColPayPurpose
-     * @param int $fmpColPayDate
-     * @param int $fmpColPayTime
-     * @param int $fmpColContract
+     * @param string $fmpColRealName
+     * @param string $fmpColAddr
+     * @param string $fmpColPaySum
+     * @param string $fmpColPayPurpose
+     * @param string $fmpColPayDate
+     * @param string $fmpColPayTime
+     * @param string $fmpColContract
      * @param int $fmpGuessContract
      * @param string $fmpContractDelimStart
      * @param string $fmpContractDelimEnd
+     * @param int $fmpContractMinLen
+     * @param int $fmpContractMaxLen
      * @param string $fmpSrvType
      * @param string $fmpInetStartDelim
      * @param string $fmpInetEndDelim
@@ -646,9 +648,20 @@ class Banksta2 {
      * @param string $fmpUKVDelimStart
      * @param string $fmpUKVDelimEnd
      * @param string $fmpUKVKeywords
+     * @param int $fmpSkipRow
+     * @param string $fmpColSkipRow
+     * @param string $fmpSkipRowKeywords
+     * @param int $fmpReplaceStrs
+     * @param string $fmpColReplaceStrs
+     * @param string $fmpStrsToReplace
+     * @param string $fmpStrsToReplaceWith
+     * @param string $fmpReplacementsCount
+     * @param int $fmpRemoveStrs
+     * @param string $fmpColRemoveStrs
+     * @param string $fmpStrsToRemove
      */
-    public function addFieldsMappingPreset($fmpName, $fmpColRealName = 0, $fmpColAddr = 0, $fmpColPaySum = 0, $fmpColPayPurpose = 0,
-                                           $fmpColPayDate = 0, $fmpColPayTime = 0, $fmpColContract = 0, $fmpGuessContract = 0,
+    public function addFieldsMappingPreset($fmpName, $fmpColRealName = 'NONE', $fmpColAddr = 'NONE', $fmpColPaySum = 'NONE', $fmpColPayPurpose = 'NONE',
+                                           $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpGuessContract = 0,
                                            $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0,
                                            $fmpSrvType = '', $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '',
                                            $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
@@ -656,6 +669,15 @@ class Banksta2 {
                                            $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = ''
                                           ) {
+
+        $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
+        $fmpColAddr         = (wf_emptyNonZero($fmpColAddr) ? 'NONE' : $fmpColAddr);
+        $fmpColPaySum       = (wf_emptyNonZero($fmpColPaySum) ? 'NONE' : $fmpColPaySum);
+        $fmpColPayPurpose   = (wf_emptyNonZero($fmpColPayPurpose) ? 'NONE' : $fmpColPayPurpose);
+        $fmpColPayDate      = (wf_emptyNonZero($fmpColPayDate) ? 'NONE' : $fmpColPayDate);
+        $fmpColPayTime      = (wf_emptyNonZero($fmpColPayTime) ? 'NONE' : $fmpColPayTime);
+        $fmpColContract     = (wf_emptyNonZero($fmpColContract) ? 'NONE' : $fmpColContract);
+
         $tQuery = "INSERT INTO `" . self::BANKSTA2_PRESETS_TABLE .
                   "` (`presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, `col_paydate`, 
                             `col_paytime`, `col_contract`, `guess_contract`, `contract_delim_start`, `contract_delim_end`, 
@@ -677,9 +699,44 @@ class Banksta2 {
         log_register('CREATE banksta2 fields mapping preset [' . $fmpName . ']');
     }
 
-
-    public function editFieldsMappingPreset($fmpID, $fmpName, $fmpColRealName = 0, $fmpColAddr = 0, $fmpColPaySum = 0, $fmpColPayPurpose = 0,
-                                            $fmpColPayDate = 0, $fmpColPayTime = 0, $fmpColContract = 0, $fmpGuessContract = 0,
+    /**
+     * Edits existing fields mapping preset
+     *
+     * @param $fmpID
+     * @param $fmpName
+     * @param string $fmpColRealName
+     * @param string $fmpColAddr
+     * @param string $fmpColPaySum
+     * @param string $fmpColPayPurpose
+     * @param string $fmpColPayDate
+     * @param string $fmpColPayTime
+     * @param string $fmpColContract
+     * @param int $fmpGuessContract
+     * @param string $fmpContractDelimStart
+     * @param string $fmpContractDelimEnd
+     * @param int $fmpContractMinLen
+     * @param int $fmpContractMaxLen
+     * @param string $fmpSrvType
+     * @param string $fmpInetStartDelim
+     * @param string $fmpInetEndDelim
+     * @param string $fmpInetKeywords
+     * @param string $fmpUKVDelimStart
+     * @param string $fmpUKVDelimEnd
+     * @param string $fmpUKVKeywords
+     * @param int $fmpSkipRow
+     * @param string $fmpColSkipRow
+     * @param string $fmpSkipRowKeywords
+     * @param int $fmpReplaceStrs
+     * @param string $fmpColReplaceStrs
+     * @param string $fmpStrsToReplace
+     * @param string $fmpStrsToReplaceWith
+     * @param string $fmpReplacementsCount
+     * @param int $fmpRemoveStrs
+     * @param string $fmpColRemoveStrs
+     * @param string $fmpStrsToRemove
+     */
+    public function editFieldsMappingPreset($fmpID, $fmpName, $fmpColRealName = 'NONE', $fmpColAddr = 'NONE', $fmpColPaySum = 'NONE', $fmpColPayPurpose = 'NONE',
+                                            $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpGuessContract = 0,
                                             $fmpContractDelimStart = '', $fmpContractDelimEnd = '', $fmpContractMinLen = 0, $fmpContractMaxLen = 0,
                                             $fmpSrvType = '', $fmpInetStartDelim = '', $fmpInetEndDelim = '', $fmpInetKeywords = '',
                                             $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
@@ -687,6 +744,15 @@ class Banksta2 {
                                             $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
                                             $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = ''
                                            ) {
+
+        $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
+        $fmpColAddr         = (wf_emptyNonZero($fmpColAddr) ? 'NONE' : $fmpColAddr);
+        $fmpColPaySum       = (wf_emptyNonZero($fmpColPaySum) ? 'NONE' : $fmpColPaySum);
+        $fmpColPayPurpose   = (wf_emptyNonZero($fmpColPayPurpose) ? 'NONE' : $fmpColPayPurpose);
+        $fmpColPayDate      = (wf_emptyNonZero($fmpColPayDate) ? 'NONE' : $fmpColPayDate);
+        $fmpColPayTime      = (wf_emptyNonZero($fmpColPayTime) ? 'NONE' : $fmpColPayTime);
+        $fmpColContract     = (wf_emptyNonZero($fmpColContract) ? 'NONE' : $fmpColContract);
+
         $tQuery = "UPDATE `" . self::BANKSTA2_PRESETS_TABLE . "` SET 
                             `presetname`            = '" . $fmpName . "', 
                             `col_realname`          = '" . $fmpColRealName . "',  
@@ -2215,9 +2281,12 @@ class Banksta2 {
                 }
 
                 $linkId1 = wf_InputId();
+                $linkId2 = wf_InputId();
                 $actions = wf_JSAlert(  '#', web_delete_icon(), 'Removing this may lead to irreparable results', 'deleteFMP(' . $eachRec['id'] . ', \'' . self::URL_ME . '\', \'delFMP\', \'' . wf_InputId() . '\')') . wf_nbsp();
                 $actions.= wf_Link('#', web_edit_icon(), false, '', 'id="' . $linkId1 . '"') . wf_nbsp();
+                $actions.= wf_Link('#', web_clone_icon(), false, '', 'id="' . $linkId2 . '"') . wf_nbsp();
                 $actions.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpedit' => 'true', 'fmpid' => $fmpID), $linkId1, true, 'POST');
+                $actions.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpclone' => 'true', 'fmpid' => $fmpID), $linkId2, true, 'POST');
 
                 $data[] = $actions;
 
@@ -2347,19 +2416,19 @@ class Banksta2 {
 
         $inputs = wf_TextInput('fmpname', __('Preset name'), '', true, '', '', '__FMPEmptyCheck');
 
-        $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), '0', false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), '0', false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaysum', __('Payment sum column number'), '0', false, '4'));
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), 'NONE', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), 'NONE', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaysum', __('Payment sum column number'), 'NONE', false, '4'));
         $inputsrows = wf_TableRow($inputscells);
 
-        $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), '0', false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), '0', false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), '0', true, '4'));
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), 'NONE', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), 'NONE', false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), 'NONE', true, '4'));
         $inputsrows.= wf_TableRow($inputscells);
         $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
 
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number') . ' (' . __('Payment ID') . ')', '0', true, '4');
+        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number') . ' (' . __('Payment ID') . ')', 'NONE', true, '4');
         $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field'), true, false, 'BankstaTryGuessContract');
         $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
@@ -2383,7 +2452,7 @@ class Banksta2 {
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
         $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaSkipRowKeyWordsCol');
-        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords  ') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaSkipRowKeyWords');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_CheckInput('fmpreplacestrs', __('Replace characters specified below in specified fields'), true, false, 'BankstaReplaceStrs');
         $inputs.= wf_TextInput('fmpcolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaReplaceStrsCols');
@@ -2412,31 +2481,38 @@ class Banksta2 {
      *
      * @return string
      */
-    public function renderFMPEditForm($fmpID, $modalWindowId) {
-        $formId = 'Form_' . wf_InputId();
-        $closeFormChkId = 'CloseFrmChkID_' . wf_InputId();
+    public function renderFMPEditForm($fmpID, $modalWindowId, $clone = false) {
+        $formId             = 'Form_' . wf_InputId();
+        $closeFormChkId     = 'CloseFrmChkID_' . wf_InputId();
 
-        $fmpData = $this->fieldsMappingPresets[$fmpID];
-        $contractGuessing = (empty($fmpData['guess_contract'])) ? false : true;
-        $rowSkipping = (empty($fmpData['skip_row'])) ? false : true;
-        $strReplacing = (empty($fmpData['replace_strs'])) ? false : true;
-        $strRemoving = (empty($fmpData['remove_strs'])) ? false : true;
+        $fmpData            = $this->fieldsMappingPresets[$fmpID];
+        $colRealName        = (wf_emptyNonZero($fmpData['col_realname']) ? 'NONE' : $fmpData['col_realname']);
+        $colAddress         = (wf_emptyNonZero($fmpData['col_address']) ? 'NONE' : $fmpData['col_address']);
+        $colPaysum          = (wf_emptyNonZero($fmpData['col_paysum']) ? 'NONE' : $fmpData['col_paysum']);
+        $colPayPurpose      = (wf_emptyNonZero($fmpData['col_paypurpose']) ? 'NONE' : $fmpData['col_paypurpose']);
+        $colPayDate         = (wf_emptyNonZero($fmpData['col_paydate']) ? 'NONE' : $fmpData['col_paydate']);
+        $colPayTime         = (wf_emptyNonZero($fmpData['col_paytime']) ? 'NONE' : $fmpData['col_paytime']);
+        $colContract        = (wf_emptyNonZero($fmpData['col_contract']) ? 'NONE' : $fmpData['col_contract']);
+        $contractGuessing   = (empty($fmpData['guess_contract'])) ? false : true;
+        $rowSkipping        = (empty($fmpData['skip_row'])) ? false : true;
+        $strReplacing       = (empty($fmpData['replace_strs'])) ? false : true;
+        $strRemoving        = (empty($fmpData['remove_strs'])) ? false : true;
 
         $inputs = wf_TextInput('fmpname', __('Preset name'), $fmpData['presetname'], true, '', '', '__FMPEmptyCheck');
 
-        $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), $fmpData['col_realname'], false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), $fmpData['col_address'], false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaysum', __('Payment sum column number'), $fmpData['col_paysum'], false, '4'));
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), $colRealName, false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), $colAddress, false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaysum', __('Payment sum column number'), $colPaysum, false, '4'));
         $inputsrows = wf_TableRow($inputscells);
 
-        $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), $fmpData['col_paypurpose'], false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), $fmpData['col_paydate'], false, '4'));
-        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), $fmpData['col_paytime'], true, '4'));
+        $inputscells = wf_TableCell(wf_TextInput('fmpcolpaypurpose', __('Payment purpose column number'), $colPayPurpose, false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaydate', __('Payment date column number'), $colPayDate, false, '4'));
+        $inputscells.= wf_TableCell(wf_TextInput('fmpcolpaytime', __('Payment time column number'), $colPayTime, true, '4'));
         $inputsrows.= wf_TableRow($inputscells);
         $inputs.= wf_TableBody($inputsrows, '', '0', '', 'cellspacing="4px" style="margin-top: 8px;"');
 
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
-        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number') . ' (' . __('Payment ID') . ')', $fmpData['col_contract'], true, '4');
+        $inputs.= wf_TextInput('fmpcolcontract', __('User contract column number') . ' (' . __('Payment ID') . ')', $colContract, true, '4');
         $inputs.= wf_CheckInput('fmptryguesscontract', __('Try to get contract from payment purpose field'), true, $contractGuessing, 'BankstaTryGuessContract');
         $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 800px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('ONLY, if mapped contract field for some row will be empty or if contract field will be not specified');
@@ -2460,7 +2536,7 @@ class Banksta2 {
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, $rowSkipping, 'BankstaSkipRow');
         $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_skiprow'], true, '', '', '', 'BankstaSkipRowKeyWordsCol');
-        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords  ') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['skip_row_keywords'], true, '40', '', '', 'BankstaSkipRowKeyWords');
+        $inputs.= wf_TextInput('fmpskiprowkeywords', __('Row skipping determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['skip_row_keywords'], true, '40', '', '', 'BankstaSkipRowKeyWords');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_CheckInput('fmpreplacestrs', __('Replace characters specified below in specified fields'), true, $strReplacing, 'BankstaReplaceStrs');
         $inputs.= wf_TextInput('fmpcolsreplacestrs', __('Fields to perform replacing') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_replace_strs'], true, '', '', '', 'BankstaReplaceStrsCols');
@@ -2476,10 +2552,10 @@ class Banksta2 {
         $inputs.= wf_CheckInput('formclose', __('Close form after operation'), false, true, $closeFormChkId, '__CloseFrmOnSubmitChk');
 
         $inputs.= wf_HiddenInput('', $modalWindowId, '', '__FMPFormModalWindowId');
-        $inputs.= wf_HiddenInput('fmpedit', 'true');
+        $inputs.= ($clone) ? wf_HiddenInput('fmpclone', 'true') : wf_HiddenInput('fmpedit', 'true');
         $inputs.= wf_HiddenInput('fmpid', $fmpID);
         $inputs.= wf_delimiter();
-        $inputs.= wf_Submit(__('Edit'));
+        $inputs.= ($clone) ? wf_Submit(__('Clone')) : wf_Submit(__('Edit'));
         $form = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __FMPForm', '', $formId);
 
         return ($form);
