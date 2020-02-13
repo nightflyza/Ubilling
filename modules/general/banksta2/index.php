@@ -130,28 +130,48 @@ if (cfr('BANKSTA2')) {
         // manipulate fields mapping preset
         if (wf_CheckPost(array('fmpid'))) {
             $fmpID = $_POST['fmpid'];
+            $fmpEdit = wf_CheckPost(array('fmpedit'));
+            $fmpClone = wf_CheckPost(array('fmpclone'));
 
-            // edit fields mapping preset
-            if (wf_CheckPost(array('fmpedit'))) {
+            // edit/clone fields mapping preset
+            if ($fmpEdit or $fmpClone) {
                  if (wf_CheckPost(array('fmpname'))) {
                      $newFMPName = $_POST['fmpname'];
-                     $foundId = $Banksta->checkFMPNameExists($newFMPName, $fmpID);
+                     $foundId = ($fmpClone) ? $Banksta->checkFMPNameExists($newFMPName) : $Banksta->checkFMPNameExists($newFMPName, $fmpID);
 
                      if (empty($foundId)) {
-                         $Banksta->editFieldsMappingPreset($fmpID, $newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
-                                                           $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
-                                                          (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
-                                                           $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
-                                                           $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
-                                                           $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
-                                                           $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
-                                                          (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
-                                                           $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
-                                                          (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
-                                                           $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
-                                                          (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                           $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove']
-                                                          );
+                         if ($fmpEdit) {
+                             $Banksta->editFieldsMappingPreset($fmpID, $newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
+                                                               $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
+                                                               (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
+                                                               $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
+                                                               $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
+                                                               $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
+                                                               $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
+                                                               (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
+                                                               $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
+                                                               (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
+                                                               $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
+                                                               (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
+                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove']
+                             );
+                         } elseif ($fmpClone) {
+                             $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
+                                                               $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
+                                                               (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
+                                                               $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
+                                                               $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
+                                                               $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
+                                                               $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
+                                                               (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
+                                                               $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
+                                                               (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
+                                                               $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
+                                                               (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
+                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove']
+                             );
+                         }
+
                          die();
                      } else {
                          $errormes = $Banksta->getUbMsgHelperInstance()->getStyledMessage(__('Preset with such name already exists with ID: ') . $foundId,
@@ -160,7 +180,7 @@ if (cfr('BANKSTA2')) {
                      }
                  }
 
-                die(wf_modalAutoForm(__('Edit fields mapping preset'), $Banksta->renderFMPEditForm($fmpID, $_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['modalWindowBodyId'], true));
+                die(wf_modalAutoForm(__('Edit fields mapping preset'), $Banksta->renderFMPEditForm($fmpID, $_POST['modalWindowId'], $fmpClone), $_POST['modalWindowId'], $_POST['modalWindowBodyId'], true));
             }
 
             // delete fields mapping preset

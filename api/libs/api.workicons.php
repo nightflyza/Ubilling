@@ -324,4 +324,15 @@ function web_bool_star($flag, $text = false) {
     return($led);
 }
 
+/**
+ * Returns standard edit icon
+ *
+ * @param string $title
+ * @return string
+ */
+function web_clone_icon($title = 'Clone') {
+    $icon = wf_img('skins/duplicate_icon.gif', __($title));
+    return($icon);
+}
+
 ?>
