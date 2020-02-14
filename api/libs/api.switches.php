@@ -445,9 +445,9 @@ function web_SwitchEditForm($switchid) {
     }
     $editinputs .= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
-        $uplinkSwitchLabel = wf_Link('?module=switches&edit=' . $switchdata['parentid'], __('Uplink switch'), false, '') . ' ' . wf_img_sized('skins/icon_active.gif', __('Ok'), '10', '10');
+        $uplinkSwitchLabel = wf_Link('?module=switches&edit=' . $switchdata['parentid'], wf_img_sized('skins/icon_ok.gif', '', '10', '10') . ' ' . __('Uplink switch'), false, '');
     } else {
-        $uplinkSwitchLabel = __('Uplink switch') . ' ' . wf_img_sized('skins/icon_inactive.gif', __('Ok'), '10', '10');
+        $uplinkSwitchLabel = wf_img_sized('skins/icon_minus.png', '', '10', '10') . ' ' . __('Uplink switch');
     }
     $editinputs .= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
 
