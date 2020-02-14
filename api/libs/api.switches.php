@@ -411,7 +411,7 @@ function web_SwitchDownlinksList($switchId) {
 }
 
 /**
- * Returns switch edit form for some existing device ID
+ * Returns switch edit form for some existing device ID aka "switch profile"
  * 
  * @param int $switchid
  * @return string
@@ -445,9 +445,9 @@ function web_SwitchEditForm($switchid) {
     }
     $editinputs .= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
-        $uplinkSwitchLabel = wf_Link('?module=switches&edit=' . $switchdata['parentid'], __('Uplink switch'), false, '');
+        $uplinkSwitchLabel = wf_Link('?module=switches&edit=' . $switchdata['parentid'], __('Uplink switch'), false, '') . ' ' . wf_img_sized('skins/icon_active.gif', __('Ok'), '10', '10');
     } else {
-        $uplinkSwitchLabel = __('Uplink switch');
+        $uplinkSwitchLabel = __('Uplink switch') . ' ' . wf_img_sized('skins/icon_inactive.gif', __('Ok'), '10', '10');
     }
     $editinputs .= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
 
@@ -462,24 +462,6 @@ function web_SwitchEditForm($switchid) {
         $editinputs .= wf_Submit('Save');
     }
     $mainForm .= wf_Form('', 'POST', $editinputs, 'glamour');
-
-    //some qinq interface here
-    /*
-      if (@$altCfg['QINQ_ENABLED']) {
-      $switchesQinQ = new SwitchesQinQ();
-      if (wf_CheckPost(array('qinqswitchid'))) {
-      $qinqSaveResult = $switchesQinQ->saveQinQ();
-      if (empty($qinqSaveResult)) {
-      rcms_redirect('?module=switches&edit=' . $switchid);
-      } else {
-      show_error($qinqSaveResult);
-      }
-      }
-
-      $mainForm .= $switchesQinQ->renderEditForm($switchid);
-      }
-     * 
-     */
 
     //main interface grid
     if (!empty($switchdata['ip'])) {
