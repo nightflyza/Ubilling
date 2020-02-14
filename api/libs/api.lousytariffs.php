@@ -75,23 +75,26 @@ function zb_LousyCheckTariff($tariff, $lousyarr) {
  */
 function web_LousyShowAll() {
     $allousy = zb_LousyTariffGetAll();
-    $allTariffs = zb_TariffGetPricesAll();
+    $allTariffPrices = zb_TariffGetPricesAll();
 
     $tablecells = wf_TableCell(__('Tariff'));
-    $tablecells.=wf_TableCell(__('Actions'));
+    $tablecells .= wf_TableCell(__('Fee'));
+    $tablecells .= wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
     if (!empty($allousy)) {
         foreach ($allousy as $eachtariff => $id) {
-            if (isset($allTariffs[$eachtariff])) {
-                $rowClass = 'row3';
+            if (isset($allTariffPrices[$eachtariff])) {
+                $rowClass = 'row5';
             } else {
                 $rowClass = 'sigdeleteduser';
             }
             $tablecells = wf_TableCell($eachtariff);
+            $tariffPrice = (isset($allTariffPrices[$eachtariff])) ? $allTariffPrices[$eachtariff] : __('Deleted');
+            $tablecells .= wf_TableCell($tariffPrice);
             $dellink = wf_JSAlert('?module=lousytariffs&delete=' . $eachtariff, web_delete_icon(), 'Removing this may lead to irreparable results');
-            $tablecells.=wf_TableCell($dellink);
-            $tablerows.=wf_TableRow($tablecells, $rowClass);
+            $tablecells .= wf_TableCell($dellink);
+            $tablerows .= wf_TableRow($tablecells, $rowClass);
         }
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
@@ -128,7 +131,7 @@ function web_LousyTariffSelector($fieldname = 'tariffsel') {
  */
 function web_LousyAddForm() {
     $addinputs = web_LousyTariffSelector('newlousytariff') . ' ';
-    $addinputs.=wf_Submit('Mark this tariff as not popular');
+    $addinputs .= wf_Submit('Mark this tariff as not popular');
     $addform = wf_Form('', 'POST', $addinputs, 'glamour');
     return ($addform);
 }
