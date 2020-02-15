@@ -149,6 +149,20 @@ class Salary {
      */
     protected $telegramNotify = false;
 
+    /**
+     * Contains start date that large data must be loaded
+     *
+     * @var string
+     */
+    protected $dateFrom = '';
+
+    /**
+     * Contains end date that large data must be loaded to
+     *
+     * @var string
+     */
+    protected $dateTo = '';
+
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -171,6 +185,7 @@ class Salary {
     public function __construct($taskid = '') {
         $this->loadAltCfg();
         $this->setOptions();
+        $this->setDates();
         $this->setUnitTypes();
         $this->loadEmployeeData();
         $this->loadJobtypes();
@@ -210,6 +225,30 @@ class Salary {
 
         if (isset($this->altCfg['SALARY_FACTOR_DEFAULT']) AND $this->altCfg['SALARY_FACTOR_DEFAULT']) {
             $this->defaultFactor = $this->altCfg['SALARY_FACTOR_DEFAULT'];
+        }
+    }
+
+    /**
+     * Sets start and end dates if requred. 
+     * Default on begin of month and end of current month.
+     * 
+     * @param string $dateFrom
+     * @param string $dateTo
+     * 
+     * @return void
+     */
+    protected function setDates($dateFrom = '', $dateTo = '') {
+        $startTime = '00:00:00';
+        $endTime = '23:56:59';
+
+        //TODO: set neccesary dates here 
+        if (empty($dateFrom) AND empty($dateTo)) {
+            $this->dateFrom = date("Y-m-") . '-01' . ' ' . $startTime;
+            $this->dateFrom = '2019-01-01' . ' ' . $startTime; //TODO: remove this
+            $this->dateTo = date("Y-m-d") . ' ' . $endTime;
+        } else {
+            $this->dateFrom = $dateFrom . ' ' . $startTime;
+            $this->dateTo = $dateTo . ' ' . $endTime;
         }
     }
 
@@ -299,7 +338,8 @@ class Salary {
      * @return void
      */
     protected function loadPaid() {
-        $query = "SELECT * from `salary_paid`";
+        $where = "WHERE `date` BETWEEN '" . $this->dateFrom . "' AND '" . $this->dateTo . "'";
+        $query = "SELECT * from `salary_paid` " . $where;
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -314,7 +354,8 @@ class Salary {
      * @return void
      */
     protected function loadTimesheets() {
-        $query = "SELECT * from `salary_timesheets` ORDER BY `id` DESC";
+        $where = "WHERE `date` BETWEEN '" . $this->dateFrom . "' AND '" . $this->dateTo . "'";
+        $query = "SELECT * from `salary_timesheets` " . $where . " ORDER BY `id` DESC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -563,7 +604,7 @@ class Salary {
                         }
                     }
                 }
-                
+
                 //sending prepared messages for all employee with jobs today
                 if (!empty($sendTmp)) {
                     foreach ($sendTmp as $io => $eachMessage) {
@@ -738,7 +779,14 @@ class Salary {
      */
     protected function loadSalaryJobs($taskid = '') {
         $taskid = vf($taskid, 3);
-        $where = (!empty($taskid)) ? "WHERE `taskid`='" . $taskid . "'" : '';
+        $where = '';
+
+        if (!empty($taskid)) {
+            $where = "WHERE `taskid`='" . $taskid . "'";
+        } else {
+            $where = "WHERE `date` BETWEEN '" . $this->dateFrom . "' AND '" . $this->dateTo . "'";
+        }
+
         $query = "SELECT * from `salary_jobs` " . $where . " ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
