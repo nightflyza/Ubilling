@@ -240,6 +240,16 @@ class DarkVoid {
             }
         }
 
+        //watchdog maintenance mode notification
+        if (isset($this->altCfg['WATCHDOG_ENABLED'])) {
+            if ($this->altCfg['WATCHDOG_ENABLED']) {
+                $watchDogMaintenance = zb_StorageGet('WATCHDOG_MAINTENANCE');
+                if ($watchDogMaintenance) {
+                    $this->alerts .= wf_Link('?module=watchdog', wf_img('skins/maintenance.png', __('Watchdog') . ': ' . __('Disabled')));
+                }
+            }
+        }
+
         //switchmon at notify area
         if ($this->altCfg['TB_SWITCHMON']) {
             $dead_raw = zb_StorageGet('SWDEAD');

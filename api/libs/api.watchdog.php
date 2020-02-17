@@ -144,11 +144,13 @@ class WatchDog {
         $phones = zb_StorageGet('WATCHDOG_PHONES');
         $emails = zb_StorageGet('WATCHDOG_EMAILS');
         $telegramchats = zb_StorageGet('WATCHDOG_TELEGRAM');
+        $maintenanceMode = zb_StorageGet('WATCHDOG_MAINTENANCE');
 
         $this->settings['WATCHDOG_ALERT'] = $alert;
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
         $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
+        $this->settings['WATCHDOG_MAINTENANCE'] = $maintenanceMode;
 
         if (empty($this->settings['WATCHDOG_ALERT'])) {
             throw new Exception(self::SETTINGS_EX);
@@ -563,148 +565,151 @@ class WatchDog {
      * @return void
      */
     public function processTask() {
-        foreach ($this->taskData as $taskID => $eachProcessTask) {
+        if (!$this->settings['WATCHDOG_MAINTENANCE']) {
+            foreach ($this->taskData as $taskID => $eachProcessTask) {
+                if ($this->checkCondition($taskID)) {
+                    //task details collecting
+                    $alertTaskName = $this->taskData[$taskID]['name'];
 
-            if ($this->checkCondition($taskID)) {
-                //task details collecting
-                $alertTaskName = $this->taskData[$taskID]['name'];
 
-
-                //if condition happens - do some task actions
-                $taskActions = $this->taskData[$taskID]['action'];
-                if (!empty($taskActions)) {
-                    /* different actions handling */
-                    // system log write
-                    if (ispos($taskActions, 'log')) {
-                        $notifyLogMessage = 'WATCHDOG NOTIFY THAT `' . $alertTaskName;
-                        //attach old result to log message if needed
-                        if (ispos($taskActions, 'oldresult')) {
-                            $notifyLogMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
-                        }
-
-                        //attach current results to log message
-                        if (ispos($taskActions, 'andresult')) {
-                            $notifyLogMessage .= ' ' . $this->curResults[$taskID];
-                        }
-                        $notifyLogMessage .= '`';
-                        log_register($notifyLogMessage);
-                    }
-                    //send emails with alerts
-                    if (ispos($taskActions, 'email')) {
-                        if (!empty($this->settings['WATCHDOG_EMAILS'])) {
-                            $allNotifyEmails = explode(',', $this->settings['WATCHDOG_EMAILS']);
-                            if (!empty($allNotifyEmails)) {
-                                $notifyMessageMail = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
-                                //attach old result to email if needed
-                                if (ispos($taskActions, 'oldresult')) {
-                                    $notifyMessageMail .= ' ' . $this->taskData[$taskID]['oldresult'];
-                                }
-
-                                //attach current results
-                                if (ispos($taskActions, 'andresult')) {
-                                    $notifyMessageMail .= ' ' . $this->curResults[$taskID];
-                                }
-
-                                foreach ($allNotifyEmails as $im => $eachmail) {
-                                    $this->sendEmail($eachmail, $notifyMessageMail);
-                                }
+                    //if condition happens - do some task actions
+                    $taskActions = $this->taskData[$taskID]['action'];
+                    if (!empty($taskActions)) {
+                        /* different actions handling */
+                        // system log write
+                        if (ispos($taskActions, 'log')) {
+                            $notifyLogMessage = 'WATCHDOG NOTIFY THAT `' . $alertTaskName;
+                            //attach old result to log message if needed
+                            if (ispos($taskActions, 'oldresult')) {
+                                $notifyLogMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
                             }
+
+                            //attach current results to log message
+                            if (ispos($taskActions, 'andresult')) {
+                                $notifyLogMessage .= ' ' . $this->curResults[$taskID];
+                            }
+                            $notifyLogMessage .= '`';
+                            log_register($notifyLogMessage);
                         }
-                    }
-                    //send telegram messages with alerts
-                    if (ispos($taskActions, 'telegram')) {
-                        if (!empty($this->settings['WATCHDOG_TELEGRAM'])) {
-                            $allNotifyTelegramChats = explode(',', $this->settings['WATCHDOG_TELEGRAM']);
-                            $additionalChats = array();
-                            if (preg_match('!\((.*?)\)!si', $taskActions, $tmpAddChats)) {
-                                $additionalChats = explode(',', $tmpAddChats[1]);
-                                if (!empty($additionalChats)) {
-                                    if (!ispos($taskActions, 'no_tg_primary')) {
-                                        foreach ($additionalChats as $ig => $eachAdditionalChat) {
-                                            if (!empty($eachAdditionalChat)) {
-                                                $allNotifyTelegramChats[] = $eachAdditionalChat;
-                                            }
-                                        }
-                                    } else {
-                                        $allNotifyTelegramChats = $additionalChats;
+                        //send emails with alerts
+                        if (ispos($taskActions, 'email')) {
+                            if (!empty($this->settings['WATCHDOG_EMAILS'])) {
+                                $allNotifyEmails = explode(',', $this->settings['WATCHDOG_EMAILS']);
+                                if (!empty($allNotifyEmails)) {
+                                    $notifyMessageMail = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
+                                    //attach old result to email if needed
+                                    if (ispos($taskActions, 'oldresult')) {
+                                        $notifyMessageMail .= ' ' . $this->taskData[$taskID]['oldresult'];
+                                    }
+
+                                    //attach current results
+                                    if (ispos($taskActions, 'andresult')) {
+                                        $notifyMessageMail .= ' ' . $this->curResults[$taskID];
+                                    }
+
+                                    foreach ($allNotifyEmails as $im => $eachmail) {
+                                        $this->sendEmail($eachmail, $notifyMessageMail);
                                     }
                                 }
                             }
-
-                            if (!empty($allNotifyTelegramChats)) {
-                                $notifyMessageTlg = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
-                                //attach old result to email if needed
-                                if (ispos($taskActions, 'oldresult')) {
-                                    $notifyMessageTlg .= ' ' . $this->taskData[$taskID]['oldresult'];
-                                }
-
-                                //attach current results
-                                if (ispos($taskActions, 'andresult')) {
-                                    $notifyMessageTlg .= ' ' . $this->curResults[$taskID];
-                                }
-
-                                foreach ($allNotifyTelegramChats as $tlgm => $eachtlgchat) {
-                                    $this->telegram->sendMessage($eachtlgchat, $notifyMessageTlg, false, 'WATCHDOG');
-                                }
-                            }
                         }
-                    }
-                    //run some script with path like [path]
-                    if (ispos($taskActions, 'script')) {
-                        if (preg_match('!\[(.*?)\]!si', $taskActions, $tmpArr)) {
-                            $runScriptPath = $tmpArr[1];
-                        } else {
-                            $runScriptPath = '';
-                        }
-                        if (!empty($runScriptPath)) {
-                            shell_exec($runScriptPath);
-                            log_register("WATCHDOG RUN SCRIPT `" . $runScriptPath . "`");
-                        }
-                    }
-
-                    //send sms messages
-                    if (ispos($taskActions, 'sms')) {
-                        if (!empty($this->settings['WATCHDOG_PHONES'])) {
-                            $allNotifyPhones = explode(',', $this->settings['WATCHDOG_PHONES']);
-                            $additionalPhones = array();
-                            if (preg_match('!\{(.*?)\}!si', $taskActions, $tmpAddPhones)) {
-                                $additionalPhones = explode(',', $tmpAddPhones[1]);
-                                if (!empty($additionalPhones)) {
-                                    if (!ispos($taskActions, 'noprimary')) {
-                                        foreach ($additionalPhones as $ig => $eachAdditionalPhone) {
-                                            if (!empty($eachAdditionalPhone)) {
-                                                $allNotifyPhones[] = $eachAdditionalPhone;
+                        //send telegram messages with alerts
+                        if (ispos($taskActions, 'telegram')) {
+                            if (!empty($this->settings['WATCHDOG_TELEGRAM'])) {
+                                $allNotifyTelegramChats = explode(',', $this->settings['WATCHDOG_TELEGRAM']);
+                                $additionalChats = array();
+                                if (preg_match('!\((.*?)\)!si', $taskActions, $tmpAddChats)) {
+                                    $additionalChats = explode(',', $tmpAddChats[1]);
+                                    if (!empty($additionalChats)) {
+                                        if (!ispos($taskActions, 'no_tg_primary')) {
+                                            foreach ($additionalChats as $ig => $eachAdditionalChat) {
+                                                if (!empty($eachAdditionalChat)) {
+                                                    $allNotifyTelegramChats[] = $eachAdditionalChat;
+                                                }
                                             }
+                                        } else {
+                                            $allNotifyTelegramChats = $additionalChats;
                                         }
-                                    } else {
-                                        $allNotifyPhones = $additionalPhones;
+                                    }
+                                }
+
+                                if (!empty($allNotifyTelegramChats)) {
+                                    $notifyMessageTlg = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
+                                    //attach old result to email if needed
+                                    if (ispos($taskActions, 'oldresult')) {
+                                        $notifyMessageTlg .= ' ' . $this->taskData[$taskID]['oldresult'];
+                                    }
+
+                                    //attach current results
+                                    if (ispos($taskActions, 'andresult')) {
+                                        $notifyMessageTlg .= ' ' . $this->curResults[$taskID];
+                                    }
+
+                                    foreach ($allNotifyTelegramChats as $tlgm => $eachtlgchat) {
+                                        $this->telegram->sendMessage($eachtlgchat, $notifyMessageTlg, false, 'WATCHDOG');
                                     }
                                 }
                             }
+                        }
+                        //run some script with path like [path]
+                        if (ispos($taskActions, 'script')) {
+                            if (preg_match('!\[(.*?)\]!si', $taskActions, $tmpArr)) {
+                                $runScriptPath = $tmpArr[1];
+                            } else {
+                                $runScriptPath = '';
+                            }
+                            if (!empty($runScriptPath)) {
+                                shell_exec($runScriptPath);
+                                log_register("WATCHDOG RUN SCRIPT `" . $runScriptPath . "`");
+                            }
+                        }
 
-
-                            if (!empty($allNotifyPhones)) {
-                                $notifyMessage = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
-                                //attach old result to sms if needed
-                                if (ispos($taskActions, 'oldresult')) {
-                                    $notifyMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
+                        //send sms messages
+                        if (ispos($taskActions, 'sms')) {
+                            if (!empty($this->settings['WATCHDOG_PHONES'])) {
+                                $allNotifyPhones = explode(',', $this->settings['WATCHDOG_PHONES']);
+                                $additionalPhones = array();
+                                if (preg_match('!\{(.*?)\}!si', $taskActions, $tmpAddPhones)) {
+                                    $additionalPhones = explode(',', $tmpAddPhones[1]);
+                                    if (!empty($additionalPhones)) {
+                                        if (!ispos($taskActions, 'noprimary')) {
+                                            foreach ($additionalPhones as $ig => $eachAdditionalPhone) {
+                                                if (!empty($eachAdditionalPhone)) {
+                                                    $allNotifyPhones[] = $eachAdditionalPhone;
+                                                }
+                                            }
+                                        } else {
+                                            $allNotifyPhones = $additionalPhones;
+                                        }
+                                    }
                                 }
 
-                                //attach current result to sms if needed
-                                if (ispos($taskActions, 'andresult')) {
-                                    $notifyMessage .= ' ' . $this->curResults[$taskID];
-                                }
 
-                                foreach ($allNotifyPhones as $iu => $eachmobile) {
-                                    $this->sendSMS($eachmobile, $notifyMessage);
+                                if (!empty($allNotifyPhones)) {
+                                    $notifyMessage = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
+                                    //attach old result to sms if needed
+                                    if (ispos($taskActions, 'oldresult')) {
+                                        $notifyMessage .= ' ' . $this->taskData[$taskID]['oldresult'];
+                                    }
+
+                                    //attach current result to sms if needed
+                                    if (ispos($taskActions, 'andresult')) {
+                                        $notifyMessage .= ' ' . $this->curResults[$taskID];
+                                    }
+
+                                    foreach ($allNotifyPhones as $iu => $eachmobile) {
+                                        $this->sendSMS($eachmobile, $notifyMessage);
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        throw new Exception("NO_AVAILABLE_TASK_ACTIONS");
                     }
-                } else {
-                    throw new Exception("NO_AVAILABLE_TASK_ACTIONS");
                 }
             }
+        } else {
+            log_register('WATCHDOG MAINTENANCE TASKS SKIPPED');
         }
     }
 
@@ -833,6 +838,7 @@ class WatchDogInterface {
             zb_StorageSet('WATCHDOG_EMAILS', '');
         }
         $telegramchats = zb_StorageGet('WATCHDOG_TELEGRAM');
+        $maintenanceMode = zb_StorageGet('WATCHDOG_MAINTENANCE');
 
 
 
@@ -840,6 +846,7 @@ class WatchDogInterface {
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
         $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
+        $this->settings['WATCHDOG_MAINTENANCE'] = $maintenanceMode;
 
         $this->checktypes = array(
             'icmpping' => 'icmpping',
@@ -1060,13 +1067,39 @@ class WatchDogInterface {
     public function panel() {
         $createWindow = $this->newTaskForm();
         $settingsWindow = $this->settingsForm();
-        $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton');
+        $result = '';
+
+        $result .= wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton');
         $result .= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif') . ' ' . __('Show all tasks'), false, 'ubButton');
         $result .= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif') . ' ' . __('Manual run'), false, 'ubButton');
         $result .= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png') . ' ' . __('Previous alerts'), false, 'ubButton');
         $result .= wf_modalAuto(wf_img('skins/settings.png') . ' ' . __('Settings'), __('Settings'), $settingsWindow, 'ubButton');
 
+
         return ($result);
+    }
+
+    /**
+     * Sets maincente mode state
+     * 
+     * @param string $action
+     * 
+     * @return void
+     */
+    public function setMaintenance($action) {
+        if ($action == 'enable') {
+            zb_StorageSet('WATCHDOG_MAINTENANCE', 'enabled');
+            log_register('WATCHDOG MAINTENANCE ENABLED');
+        }
+
+        if ($action == 'disable') {
+            zb_StorageDelete('WATCHDOG_MAINTENANCE');
+            log_register('WATCHDOG MAINTENANCE DISABLED');
+        }
+
+        //update notification area
+        $darkVoid = new DarkVoid();
+        $darkVoid->flushCache();
     }
 
     /**
@@ -1075,14 +1108,23 @@ class WatchDogInterface {
      * @return string
      */
     public function settingsForm() {
-
+        $result = '';
         $inputs = wf_TextInput('changealert', __('Watchdog alert text'), $this->settings['WATCHDOG_ALERT'], true, '30');
         $inputs .= wf_TextInput('changephones', __('Phone numbers to send alerts'), $this->settings['WATCHDOG_PHONES'], true, '30');
         $inputs .= wf_TextInput('changeemails', __('Emails to send alerts'), $this->settings['WATCHDOG_EMAILS'], true, '30');
         $inputs .= wf_TextInput('changetelegram', __('Telegram chat ids to send alerts'), $this->settings['WATCHDOG_TELEGRAM'], true, '30');
         $inputs .= wf_Submit(__('Save'));
-        $form = wf_Form("", 'POST', $inputs, 'glamour');
-        return ($form);
+        $result .= wf_Form("", 'POST', $inputs, 'glamour');
+
+        if (cfr('ROOT')) {
+            $result .= wf_tag('br');
+            if (!$this->settings['WATCHDOG_MAINTENANCE']) {
+                $result .= wf_Link('?module=watchdog&maintenance=enable', wf_img('skins/icon_ok.gif') . ' ' . __('Watchdog') . ': ' . __('Enabled'), false, 'ubButton');
+            } else {
+                $result .= wf_Link('?module=watchdog&maintenance=disable', wf_img('skins/icon_minus.png') . ' ' . __('Watchdog') . ': ' . __('Disabled'), false, 'ubButton');
+            }
+        }
+        return ($result);
     }
 
     /**
