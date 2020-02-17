@@ -560,6 +560,25 @@ class Envy {
     }
 
     /**
+     * Returns last envy-device configuration date
+     * 
+     * @param int $switchId
+     * 
+     * @return string
+     */
+    protected function getLastConfigDate($switchId) {
+        $result = '';
+        if (!empty($this->allConfigs)) {
+            foreach ($this->allConfigs as $io => $each) {
+                if ($each['switchid'] == $switchId) {
+                    $result = $each['date'];
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders available envy-devices with some their params
      * 
      * @return string
@@ -578,6 +597,7 @@ class Envy {
             }
 
             $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Latest config'));
             $cells .= wf_TableCell(__('IP'));
             $cells .= wf_TableCell(__('Switch'));
             $cells .= wf_TableCell(__('Model'));
@@ -592,6 +612,7 @@ class Envy {
             foreach ($this->allDevices as $io => $each) {
                 $switchData = $this->allSwitches[$each['switchid']];
                 $cells = wf_TableCell($each['switchid']);
+                $cells .= wf_TableCell($this->getLastConfigDate($each['switchid']));
                 $cells .= wf_TableCell($switchData['ip']);
                 $cells .= wf_TableCell($switchData['location']);
                 $cells .= wf_TableCell($allModelNames[$switchData['modelid']]);

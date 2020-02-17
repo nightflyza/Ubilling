@@ -20,3 +20,4 @@ $lang['def']['Compare'] = 'Порівняти';
 $lang['def']['Same configs selected'] = 'Вибрано один й той самий конфіг';
 $lang['def']['No difference between this two configurations'] = 'Жодних відмінностей між цими двома конфігураціями немає';
 $lang['def']['Something is different in this two configurations'] = 'Ой леле! Щось в цих двох конфігураціях відрізняється';
+$lang['def']['Latest config'] = 'Остання конфігурація';

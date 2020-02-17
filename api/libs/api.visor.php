@@ -2084,7 +2084,6 @@ class UbillingVisor {
                             $dvrChannels = $serverHealth['channels_health'];
                             if (!empty($dvrChannels)) {
                                 foreach ($dvrChannels as $ia => $eachChan) {
-
                                     $renderChannel = false;
                                     if ($allFlag) {
                                         $renderChannel = true;
@@ -2098,7 +2097,7 @@ class UbillingVisor {
                                         $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
                                         $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
                                         $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
-                                        $result .= $eachChan['name'] . ' / ' . $eachChan['guid'];
+                                        $result .= $eachChan['name'] . ' / ' . $eachChan['guid'] . ' @ ' . $eachDvr['id'];
                                         $result .= wf_tag('br');
                                         $result .= wf_img_sized($streamUrl, '', '90%');
                                         $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
