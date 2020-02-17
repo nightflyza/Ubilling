@@ -373,7 +373,11 @@ class Envy {
     public function renderControls() {
         $result = '';
         if (ubRouting::checkGet(self::ROUTE_SCRIPTS) OR ubRouting::checkGet(self::ROUTE_DEVICES) OR ubRouting::checkGet(self::ROUTE_DIFF)) {
-            $result .= wf_BackLink(self::URL_ME) . ' ';
+            if (!ubRouting::checkGet('devfilter')) {
+                $result .= wf_BackLink(self::URL_ME) . ' '; //default back control
+            } else {
+                $result .= wf_BackLink(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true') . ' '; //devfiltered diff backs to device manager
+            }
         } else {
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
@@ -627,7 +631,8 @@ class Envy {
                 $devControls .= wf_Link(self::URL_ME . '&previewdevice=' . $each['switchid'], web_icon_search('Preview')) . ' ';
                 $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
                 $devControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'], wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
-                $devControls .= wf_Link('?module=switches&edit=' . $each['switchid'], wf_img('skins/menuicons/switches.png', __('Go to switch')));
+                $devControls .= wf_Link('?module=switches&edit=' . $each['switchid'], wf_img('skins/menuicons/switches.png', __('Go to switch'))) . ' ';
+                $devControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_DIFF . '=true' . '&devfilter=' . $each['switchid'], wf_img('skins/diff_icon.png', __('Changes')));
                 $cells .= wf_TableCell($devControls);
 
                 $rows .= wf_TableRow($cells, 'row5');
@@ -876,6 +881,8 @@ class Envy {
      */
     public function renderDiffForm() {
         $result = '';
+        $devFilter = (ubRouting::checkGet('devfilter')) ? ubRouting::get('devfilter', 'int') : '';
+
         if (!empty($this->allConfigs)) {
             $confTmp = array();
             foreach ($this->allConfigs as $io => $each) {
@@ -886,7 +893,13 @@ class Envy {
                     $swichLabel = $each['switchid'] . ' - ' . __('Unknown');
                 }
 
-                $confTmp[$each['id']] = $each['date'] . ' ' . $swichLabel;
+                if ($devFilter) {
+                    if ($each['switchid'] == $devFilter) {
+                        $confTmp[$each['id']] = $each['date'] . ' ' . $swichLabel;
+                    }
+                } else {
+                    $confTmp[$each['id']] = $each['date'] . ' ' . $swichLabel;
+                }
             }
 
             $currDiffOne = (ubRouting::checkPost('diffone')) ? ubRouting::post('diffone') : '';
