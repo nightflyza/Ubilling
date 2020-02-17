@@ -1,6 +1,6 @@
 40 1 1 * *      /bin/ubapi "vserviceschargefee"
 */20 * * * *    /bin/ubapi "swping"
-5 * * * *       /bin/ubapi "fullhostscan&param=traffdiff"
+5 * * * *       /bin/ubapi "fullhostscan&param=traffdiff&nn=1"
 0 */1 * * *     /bin/ubapi "swpoll"
 */10 * * * *    /bin/ubapi "watchdog"
 */5 * * * *     /bin/ubapi "senddog"
