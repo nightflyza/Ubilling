@@ -1179,7 +1179,7 @@ class UbillingVisor {
                 }
                 $data[] = $cameraCash;
                 $data[] = $cameraCredit;
-                $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon());
+                $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon().' '.__('Edit') . ' ' . __('camera'));
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
