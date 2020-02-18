@@ -3713,8 +3713,6 @@ class PONizer {
                     $cleanInterface = strstr($ponInterface, ':', true);
                     $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and !empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
                     $data[] = $oltIfaceDescr . $ponInterface;
-                } else {
-                    $data[] = '';
                 }
 
                 $data[] = $this->getModelName($each['onumodelid']);
