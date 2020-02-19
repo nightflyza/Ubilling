@@ -1405,11 +1405,13 @@ function ts_ShowPanel() {
             $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
+        $submitOpts = '';
         if ($advFiltersEnabled) {
             $inputs .= ts_AdvFiltersControls();
+            $submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700;" ';
         }
 
-        $inputs .= wf_Submit('Show');
+        $inputs .= wf_Submit('Show', '', $submitOpts);
         $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour');
         $result .= $showTypeForm;
     }
@@ -2917,6 +2919,7 @@ function ts_AdvFiltersControls() {
     $jobtypecontains = ( wf_CheckPost(array('filtertaskjobtype')) ) ? $_POST['filtertaskjobtype'] : '';
     $addresscontains = ( wf_CheckPost(array('filtertaskaddr')) ) ? $_POST['filtertaskaddr'] : '';
     $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
+    $phonecontains   = ( wf_CheckPost(array('filtertaskphone')) ) ? $_POST['filtertaskphone'] : '';
 
     $inputs = wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
     $inputs .= __('Job type');
@@ -2940,6 +2943,12 @@ function ts_AdvFiltersControls() {
     $inputs .= wf_TextInput('filtertaskjobnote', '', $jobnotecontains);
     $inputs .= '&nbsp&nbsp&nbsp';
 
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= __('Job phone contains');
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_TextInput('filtertaskphone', '', $phonecontains, true);
+    $inputs .= '&nbsp&nbsp&nbsp';
+
     return($inputs);
 }
 
@@ -2958,6 +2967,10 @@ function ts_AdvFiltersQuery() {
 
     if (wf_CheckPost(array('filtertaskjobnote'))) {
         $AppendQuery .= " AND `jobnote` LIKE '%" . $_POST['filtertaskjobnote'] . "%'";
+    }
+
+    if (wf_CheckPost(array('filtertaskphone'))) {
+        $AppendQuery .= " AND `phone` LIKE '%" . $_POST['filtertaskphone'] . "%'";
     }
 
     return ($AppendQuery);

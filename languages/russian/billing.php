@@ -2926,6 +2926,7 @@ $lang['def']['From creation'] = 'От создания';
 $lang['def']['Network not found'] = 'Сеть не найдена';
 $lang['def']['Job type contains'] = 'Тип работы содержит';
 $lang['def']['Job note contains'] = 'Примечение к задаче содержит';
+$lang['def']['Job phone contains'] = 'Контактный телефон содержит';
 $lang['def']['Script with this alias already exists'] = 'Скрипт с этим алиасом уже существует';
 $lang['def']['Script with this alias not exists'] = 'Скрипт с этим алиасом не существует';
 $lang['def']['No available code templates'] = 'Нету существующих шаблонов кода';
