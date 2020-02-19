@@ -335,14 +335,15 @@ function wf_HiddenInput($name, $value = '', $CtrlID = '', $CtrlClass = '') {
  * Return submit web form element
  *
  * @param string  $value text label for button
- * @param  string $CtrlID
+ * @param string $CtrlID
+ * @param string $options
  *
  * @return string
  *
  */
-function wf_Submit($value, $CtrlID = '') {
+function wf_Submit($value, $CtrlID = '', $options = '') {
     $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
-    $result = '<input type="submit" value="' . __($value) . '" id="' . $SubmitID . '">';
+    $result = '<input type="submit" value="' . __($value) . '" id="' . $SubmitID . '" ' . $options . '>';
     return ($result);
 }
 
