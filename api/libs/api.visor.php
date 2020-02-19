@@ -441,7 +441,6 @@ class UbillingVisor {
                 $data[] = $chargeFlag;
                 $data[] = $this->getUserCamerasCount($each['id']);
                 $actLinks = '';
-                //$actLinks .= wf_JSAlert(self::URL_ME . self::URL_DELUSER . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks .= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
                 $data[] = $actLinks;
                 $json->addRow($data);
