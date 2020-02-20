@@ -430,6 +430,40 @@ class ADcomments {
         return ($result);
     }
 
+    /**
+     * Returns all items comments data for a given scope, like:
+     *      $item => array( [0] => array($comment1),
+     *                      [1] => array($comment2),
+     *                      [2] => array($comment3),
+     *                      .......................
+     *                      [N] => array($commentN)
+     *                    )
+     * @return array
+     *
+     * @throws Exception
+     */
+    public function getScopeItemsCommentsAll() {
+        if ($this->scope) {
+            $query = "SELECT * from `adcomments` WHERE `scope`='" . $this->scope . "';";
+            $all = $this->cache->getCallback('ADCOMMENTS_' . $this->scope, function() use ($query) {
+                return (simple_queryall($query));
+            }, $this->cacheTime);
+
+            $itemsComments = array();
+
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $itemsComments[$each['item']][] = $each;
+                }
+            }
+
+            $this->scopeItemsLoaded = true;
+
+            return ($itemsComments);
+        } else {
+            throw new Exception(self::EX_EMPTY_SCOPE);
+        }
+    }
 }
 
 ?>
