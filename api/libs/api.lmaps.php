@@ -193,6 +193,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     $mapsCfg = $ubillingConfig->getYmaps();
     $result = '';
     $tileLayerCustoms = '';
+    $canvasRender = ($mapsCfg['CANVAS_RENDER']) ? 'true' : 'false'; //string values
     if (empty($center)) {
         //autolocator here
         $mapCenter = 'map.locate({setView: true, maxZoom: ' . $zoom . '});';
@@ -255,17 +256,18 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         
         var options = {
           position: \'topright\',
+          preferCanvas: \'' . $canvasRender . '\',
              lengthUnit: {        
-        display: \''.__('meters').'\',          
+        display: \'' . __('meters') . '\',          
         decimal: 2,               
         factor: 1000,    
-        label: \''.__('Distance').':\'           
+        label: \'' . __('Distance') . ':\'           
       },
       angleUnit: {
         display: \'&deg;\',
         decimal: 2,        
         factor: null, 
-        label: \''.__('Bearing').':\'
+        label: \'' . __('Bearing') . ':\'
       }
         };
         L.control.ruler(options).addTo(map);
