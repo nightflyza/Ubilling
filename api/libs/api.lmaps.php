@@ -232,12 +232,15 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet/leaflet.js"') . wf_tag('script', true);
 
     //Geocoder libs init
-    $result .= wf_tag('link', false, '', 'rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.css"');
-    $result .= wf_tag('script', false, '', 'src="https://unpkg.com/leaflet-control-geocoder@latest/dist/Control.Geocoder.min.js"') . wf_tag('script', true);
+    $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-geocoder/Control.Geocoder.css"');
+    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-geocoder/Control.Geocoder.min.js"') . wf_tag('script', true);
 
     //Ruler libs init
     $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-ruler/src/leaflet-ruler.css"');
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-ruler/src/leaflet-ruler.js"') . wf_tag('script', true);
+
+    //Easyprint libs init
+    $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-easyprint/dist/bundle.js"') . wf_tag('script', true);
 
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
@@ -253,6 +256,16 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         
         var geoControl = new L.Control.Geocoder({showResultIcons: true, errorMessage: "' . __('Nothing found') . '", placeholder: "' . __('Search') . '"});
         geoControl.addTo(map);
+        
+        L.easyPrint({
+	title: \'' . __('Export') . '\',
+	position: \'topright\',
+        filename: \'ubillingmap_' . date("Y-m-d_H:i:s") . '\',
+        exportOnly: true,
+        hideControlContainer: true,
+	sizeModes: [\'Current\', \'A4Landscape\', \'A4Portrait\'],
+        }).addTo(map);
+
         
         var options = {
           position: \'topright\',
