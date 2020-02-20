@@ -259,6 +259,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         
         L.easyPrint({
 	title: \'' . __('Export') . '\',
+        defaultSizeTitles: {Current: \''.__('Current').'\', A4Landscape: \'A4 Landscape\', A4Portrait: \'A4 Portrait\'},
 	position: \'topright\',
         filename: \'ubillingmap_' . date("Y-m-d_H:i:s") . '\',
         exportOnly: true,
