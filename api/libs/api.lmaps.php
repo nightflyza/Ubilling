@@ -140,6 +140,8 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
         $result .= 'placemark.bindTooltip("' . $content . '", { sticky: true});';
     }
 
+    //$result.='markerscluster.addLayer(placemark);';
+
     return($result);
 }
 
@@ -242,6 +244,13 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     //Easyprint libs init
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-easyprint/dist/bundle.js"') . wf_tag('script', true);
 
+    //Marker cluster libs init
+    /**
+      $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.css"');
+      $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.Default.css"');
+      $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-markercluster/dist/leaflet.markercluster-src.js"') . wf_tag('script', true);
+     */
+    
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
     $result .= '
@@ -259,7 +268,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
         
         L.easyPrint({
 	title: \'' . __('Export') . '\',
-        defaultSizeTitles: {Current: \''.__('Current').'\', A4Landscape: \'A4 Landscape\', A4Portrait: \'A4 Portrait\'},
+        defaultSizeTitles: {Current: \'' . __('Current') . '\', A4Landscape: \'A4 Landscape\', A4Portrait: \'A4 Portrait\'},
 	position: \'topright\',
         filename: \'ubillingmap_' . date("Y-m-d_H:i:s") . '\',
         exportOnly: true,
@@ -285,10 +294,18 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
       }
         };
         L.control.ruler(options).addTo(map);
-
-
+        /**
+	var markerscluster = L.markerClusterGroup({
+			maxClusterRadius: 20
+                        },
+        );
+        **/
+        
 	' . $placemarks . '
         ' . $editor . '
+            
+        
+	/** map.addLayer(markerscluster); **/
 ';
     $result .= wf_tag('script', true);
     return($result);
