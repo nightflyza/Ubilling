@@ -371,6 +371,7 @@ if ($system->checkForRight('ONLINE')) {
             }
         }
 
+        // getting user notes and adcomments to show
         $showUserNotes = false;
         $adCommentsON = false;
         if (isset($alter_conf['ONLINE_SHOW_USERNOTES']) && $alter_conf['ONLINE_SHOW_USERNOTES']) {
@@ -381,20 +382,39 @@ if ($system->checkForRight('ONLINE')) {
                 $adcomments = new ADcomments('USERNOTES');
             }
 
+            // collecting user notes
             $query = "SELECT * from `notes`";
             $tmpUserNotes = simple_queryall($query);
 
             if (!empty($tmpUserNotes)) {
                 foreach ($tmpUserNotes as $io => $eachUN) {
-                    $adCommentsCount = 0;
+                    $allUserNotes[$eachUN['login']]['note'] = (empty($eachUN['note'])) ? '' : '( ' . $eachUN['note'] . ' )';
+                    $allUserNotes[$eachUN['login']]['adcomment'] = '';
+                }
+            }
 
-                    if (!empty($eachUN['note'])) {
-                        if ($adCommentsON) {
-                            $adCommentsCount = $adcomments->getCommentsCount($eachUN['login']);
+            // collecting user adcomments
+            $allAdComments = array();
+
+            if ($adCommentsON) {
+                // getting all adcomments for USERNOTES scope
+                $allAdComments = $adcomments->getScopeItemsCommentsAll();
+
+                if (!empty($allAdComments)) {
+                    foreach ($allAdComments as $eachLogin => $eachData) {
+                        $adCommentsCount = count($eachData);
+
+                        if (!isset($allUserNotes[$eachLogin])) {
+                            $allUserNotes[$eachLogin]['note'] = '';
                         }
 
-                        $adCommentsLink = (empty($adCommentsCount)) ? '' : wf_nbsp() . wf_Link('?module=notesedit&username=' . $eachUN['login'], wf_tag('sup') . $adCommentsCount . wf_tag('sup', true));
-                        $allUserNotes[$eachUN['login']] = array('note' => $eachUN['note'], 'adcomment' => $adCommentsLink);
+                        if (empty($allUserNotes[$eachLogin]['note'])) {
+                            $adCommentsLink = wf_nbsp() . wf_Link('?module=notesedit&username=' . $eachLogin, __('Additional comments') . ':' . wf_nbsp(2) . $adCommentsCount);
+                        } else {
+                            $adCommentsLink = wf_nbsp() . wf_Link('?module=notesedit&username=' . $eachLogin, wf_tag('sup') . $adCommentsCount . wf_tag('sup', true));
+                        }
+
+                        $allUserNotes[$eachLogin]['adcomment'] = $adCommentsLink;
                     }
                 }
             }
@@ -549,7 +569,7 @@ if ($system->checkForRight('ONLINE')) {
                         $jsonItem[] = @$allcontracts[$eachuser['login']] . (($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '');
                     }
 
-                    $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+                    $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . $allUserNotes[$eachuser['login']]['note'] . $allUserNotes[$eachuser['login']]['adcomment'] : '');
 
                     if ($showUserPhones) {
                         $jsonItem[] = $userPhones;
@@ -588,7 +608,7 @@ if ($system->checkForRight('ONLINE')) {
                             $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
                         }
 
-                        $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . '( ' . $allUserNotes[$eachuser['login']]['note'] . ' )' . $allUserNotes[$eachuser['login']]['adcomment'] : '');
+                        $jsonItem[] = @$fioz[$eachuser['login']] . (($showUserNotes and isset($allUserNotes[$eachuser['login']]['note'])) ? wf_delimiter(0) . $allUserNotes[$eachuser['login']]['note'] . $allUserNotes[$eachuser['login']]['adcomment'] : '');
 
                         if ($showUserPhones) {
                             $jsonItem[] = $userPhones;
