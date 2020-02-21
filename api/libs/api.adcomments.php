@@ -434,10 +434,13 @@ class ADcomments {
      * Returns all items comments data for a given scope, like:
      *      $item => array( [0] => array($comment1),
      *                      [1] => array($comment2),
-     *                      [2] => array($comment3),
      *                      .......................
      *                      [N] => array($commentN)
      *                    )
+     *
+     *      where $comment will be represented as an associative array
+     *      which repeats the `adcomments` table structure
+     *
      * @return array
      *
      * @throws Exception

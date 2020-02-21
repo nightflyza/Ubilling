@@ -476,7 +476,7 @@ function web_VserviceAddForm() {
     $inputs = stg_tagid_selector() . wf_tag('br');
     $inputs .= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
     $inputs .= web_priority_selector() . wf_tag('br');
-    $inputs .= wf_TextInput('newfee', __('Fee'), '', true, '5', 'finance');
+    $inputs .= wf_TextInput('newfee', __('Fee'), '', true, '5');
     $inputs .= wf_TextInput('newperiod', __('Charge period in days'), '', true, '5', 'digits');
     $inputs .= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), true, false);
     $inputs .= wf_Submit(__('Create'));
@@ -515,7 +515,7 @@ function web_VserviceEditForm($vserviceid) {
         $inputs = wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'], true);
         $inputs .= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
         $inputs .= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
-        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5', 'finance');
+        $inputs .= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
         $inputs .= wf_TextInput('editperiod', __('Charge period in days'), $serviceData['charge_period_days'], true, '5', 'digits');
         $inputs .= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $feeIsChargedAlways);
         $inputs .= wf_Submit(__('Save'));
