@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * TODO: setCookie, setUserAgent, setBasicAuth, setHeader, and mb getHeaders(?)
+ */
+
+/**
  * Basic remote URLs interraction class
  */
 class OmaeUrl {
@@ -41,11 +45,19 @@ class OmaeUrl {
     protected $error = false;
 
     /**
+     * Contains post data array that will be pushed to remote URL
      * 
      *
      * @var array
      */
     protected $postData = array();
+
+    /**
+     * Contains get data that will be mixed into URL on requests
+     *
+     * @var array
+     */
+    protected $getData = array();
 
     /**
      * Creates new omae wa mou shindeiru instance
@@ -69,7 +81,7 @@ class OmaeUrl {
      * 
      * @return void
      */
-    public function setUrl($url = '') {
+    protected function setUrl($url = '') {
         $this->url = $url;
     }
 
@@ -98,7 +110,23 @@ class OmaeUrl {
         if (!empty($field)) {
             $this->postData[$field] = $value;
         } else {
-            $this->flushData();
+            $this->flushPostData();
+        }
+    }
+
+    /**
+     * Puts some data into protected getData property for further usage
+     * 
+     * @param string $field record field name to push data
+     * @param string $value field content to push
+     * 
+     * @return void
+     */
+    public function getData($field = '', $value = '') {
+        if (!empty($field)) {
+            $this->getData[$field] = $value;
+        } else {
+            $this->flushGetData();
         }
     }
 
@@ -107,8 +135,17 @@ class OmaeUrl {
      * 
      * @return void
      */
-    protected function flushData() {
+    protected function flushPostData() {
         $this->postData = array();
+    }
+
+    /**
+     * Flushes current instance getData set
+     * 
+     * @return void
+     */
+    protected function flushGetData() {
+        $this->getData = array();
     }
 
     /**
@@ -118,13 +155,26 @@ class OmaeUrl {
      * 
      * @throws Exception
      */
-    public function get($url = '') {
+    public function response($url = '') {
         $result = '';
         if (!empty($url)) {
             $this->setUrl($url);
         }
+
         if (!empty($this->url)) {
-            $ch = curl_init($this->url);
+            $remoteUrl = $this->url;
+            if (!empty($this->getData)) {
+                if (strpos($this->url, '?') === false) {
+                    $remoteUrl .= '?';
+                }
+                foreach ($this->getData as $getKey => $getValue) {
+                    $remoteUrl .= '&' . $getKey . '=' . $getValue . '&';
+                }
+            }
+            /**
+             * Ora ora ora ora ora ora
+             */
+            $ch = curl_init($remoteUrl);
 
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->timeout);
             curl_setopt($ch, CURLOPT_HEADER, false);
@@ -134,7 +184,10 @@ class OmaeUrl {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             if (!empty($this->postData)) {
-                $postFields = array();
+                $postFields = '';
+                foreach ($this->postData as $postKey => $postValue) {
+                    $postFields .= $postKey . '=' . $postValue . '&';
+                }
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
             }
             $result .= curl_exec($ch);
