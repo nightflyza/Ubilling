@@ -2,6 +2,11 @@
 
 /**
  * TODO: setCookie, setUserAgent, setBasicAuth, setHeader, and mb getHeaders(?)
+ * 
+ * and responce codes getter like 200 or 302
+ * and debug mode required
+ * and multform part data etc for sending like real forms
+ * and referrers
  */
 
 /**
