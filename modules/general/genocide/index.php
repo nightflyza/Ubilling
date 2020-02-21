@@ -20,6 +20,34 @@ if (cfr('GENOCIDE')) {
         $home_band_p = vf($_POST['home_band_p'], 3);
     }
 
+    function gen_create_limit($tariff, $speed) {
+        $tariff = mysql_real_escape_string($tariff);
+        $speed = vf($speed, 3);
+        $query = "INSERT INTO `genocide` (
+            `id` ,
+            `tariff` ,
+            `speed`
+            )
+            VALUES (
+            NULL , '" . $tariff . "', '" . $speed . "'
+            );";
+        nr_query($query);
+        log_register("GENOCIDE ADD " . $tariff);
+    }
+
+    function gen_delete_limit($tariff) {
+        $query = "DELETE from `genocide` WHERE `tariff`='" . $tariff . "'";
+        nr_query($query);
+        log_register("GENOCIDE DELETE " . $tariff);
+    }
+
+    function web_gen_addform() {
+        $addinputs = web_tariffselector();
+        $addinputs .= wf_TextInput('newgenocide', 'Speed', '', false, '10');
+        $addinputs .= wf_Submit('Create');
+        $addform = wf_Form('', 'POST', $addinputs, 'glamour');
+        show_window('', $addform);
+    }
 
 //create or delete limits
     if (isset($_GET['delete'])) {
@@ -122,35 +150,6 @@ if (cfr('GENOCIDE')) {
         $result .= wf_TableBody($tablerows, '100%', '0', 'sortable');
 
         show_window(__('Genocide'), $result);
-    }
-
-    function gen_create_limit($tariff, $speed) {
-        $tariff = mysql_real_escape_string($tariff);
-        $speed = vf($speed, 3);
-        $query = "INSERT INTO `genocide` (
-            `id` ,
-            `tariff` ,
-            `speed`
-            )
-            VALUES (
-            NULL , '" . $tariff . "', '" . $speed . "'
-            );";
-        nr_query($query);
-        log_register("GENOCIDE ADD " . $tariff);
-    }
-
-    function gen_delete_limit($tariff) {
-        $query = "DELETE from `genocide` WHERE `tariff`='" . $tariff . "'";
-        nr_query($query);
-        log_register("GENOCIDE DELETE " . $tariff);
-    }
-
-    function web_gen_addform() {
-        $addinputs = web_tariffselector();
-        $addinputs .= wf_TextInput('newgenocide', 'Speed', '', false, '10');
-        $addinputs .= wf_Submit('Create');
-        $addform = wf_Form('', 'POST', $addinputs, 'glamour');
-        show_window('', $addform);
     }
 
     gen_check_users();
