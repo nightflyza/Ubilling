@@ -1,7 +1,7 @@
 <?php
 
 /**
- * TODO: setCookie, setUserAgent, setBasicAuth, setHeader, and mb getHeaders(?)
+ * TODO:  getHeaders(?)
  * 
  * and responce codes getter like 200 or 302
  * and debug mode required
@@ -65,6 +65,34 @@ class OmaeUrl {
     protected $getData = array();
 
     /**
+     * Contains cookie data as cookiename=>data
+     *
+     * @var array
+     */
+    protected $cookieData = array();
+
+    /**
+     * Contains current instance headers as headername=>value
+     *
+     * @var array
+     */
+    protected $headersData = array();
+
+    /**
+     * Contains default user agent
+     *
+     * @var string
+     */
+    protected $userAgent = '';
+
+    /**
+     * Contains current instance curl options array as option=>value
+     *
+     * @var array
+     */
+    protected $curlOpts = array();
+
+    /**
      * Creates new omae wa mou shindeiru instance
      * 
      * @param string $url
@@ -74,6 +102,7 @@ class OmaeUrl {
     public function __construct($url = '') {
         if ($this->checkModCurl()) {
             $this->setUrl($url);
+            $this->loadOpts();
         } else {
             throw new Exception('SHINDEIRU_NO_CURL_EXTENSION');
         }
@@ -104,6 +133,21 @@ class OmaeUrl {
     }
 
     /**
+     * Sets default instance curl options
+     * 
+     * @return void
+     */
+    protected function loadOpts() {
+        $this->setOpt(CURLOPT_CONNECTTIMEOUT, $this->timeout);
+        $this->setOpt(CURLOPT_HEADER, false);
+        $this->setOpt(CURLOPT_FOLLOWLOCATION, true);
+        $this->setOpt(CURLOPT_MAXREDIRS, 10);
+        $this->setOpt(CURLOPT_SSL_VERIFYHOST, false);
+        $this->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+        $this->setOpt(CURLOPT_RETURNTRANSFER, true);
+    }
+
+    /**
      * Puts some data into protected postData property for further usage
      * 
      * @param string $field record field name to push data
@@ -111,7 +155,7 @@ class OmaeUrl {
      * 
      * @return void
      */
-    public function postData($field = '', $value = '') {
+    public function dataPost($field = '', $value = '') {
         if (!empty($field)) {
             $this->postData[$field] = $value;
         } else {
@@ -127,11 +171,43 @@ class OmaeUrl {
      * 
      * @return void
      */
-    public function getData($field = '', $value = '') {
+    public function dataGet($field = '', $value = '') {
         if (!empty($field)) {
             $this->getData[$field] = $value;
         } else {
             $this->flushGetData();
+        }
+    }
+
+    /**
+     * Puts some data into protected cookieData property for further usage
+     * 
+     * @param string $name record field name to push data
+     * @param string $value field content to push
+     * 
+     * @return void
+     */
+    public function dataCookie($name = '', $value = '') {
+        if (!empty($name)) {
+            $this->cookieData[$name] = $value;
+        } else {
+            $this->flushCookieData();
+        }
+    }
+
+    /**
+     * Puts some data into protected headersData property for further usage
+     * 
+     * @param string $name record field name to push data
+     * @param string $value field content to push
+     * 
+     * @return void
+     */
+    public function dataHeader($name = '', $value = '') {
+        if (!empty($name)) {
+            $this->headersData[$name] = $value;
+        } else {
+            $this->flushHeadersData();
         }
     }
 
@@ -154,6 +230,36 @@ class OmaeUrl {
     }
 
     /**
+     * Flushes current instance cookieData set
+     * 
+     * @return void
+     */
+    protected function flushCookieData() {
+        $this->cookieData = array();
+    }
+
+    /**
+     * Flushes current instance headersData set
+     * 
+     * @return void
+     */
+    protected function flushHeadersData() {
+        $this->headersData = array();
+    }
+
+    /**
+     * Sets curl resource option for further usage
+     * 
+     * @param string $option
+     * @param mixed $value
+     * 
+     * @return void
+     */
+    protected function setOpt($option, $value) {
+        $this->curlOpts[$option] = $value;
+    }
+
+    /**
      * Returns some data from remote source URL
      * 
      * @return string
@@ -168,6 +274,7 @@ class OmaeUrl {
 
         if (!empty($this->url)) {
             $remoteUrl = $this->url;
+            //appending GET vars to URL
             if (!empty($this->getData)) {
                 if (strpos($this->url, '?') === false) {
                     $remoteUrl .= '?';
@@ -176,25 +283,41 @@ class OmaeUrl {
                     $remoteUrl .= '&' . $getKey . '=' . $getValue . '&';
                 }
             }
-            /**
-             * Ora ora ora ora ora ora
-             */
-            $ch = curl_init($remoteUrl);
 
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->timeout);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            //appending POST vars into options
             if (!empty($this->postData)) {
                 $postFields = '';
                 foreach ($this->postData as $postKey => $postValue) {
                     $postFields .= $postKey . '=' . $postValue . '&';
                 }
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+                $this->setOpt(CURLOPT_POSTFIELDS, $postFields);
             }
+
+            //appending cookie data into options
+            if (!empty($this->cookieData)) {
+                $this->setOpt(CURLOPT_COOKIE, implode('; ', array_map(function ($k, $v) {
+                                    return $k . '=' . $v;
+                                }, array_keys($this->cookieData), array_values($this->cookieData))));
+            }
+
+            //and some custom headers
+            if (!empty($this->headersData)) {
+                $headersTmp = array();
+                foreach ($this->headersData as $headerKey => $headerValue) {
+                    $headersTmp[] = $headerKey . ':' . $headerValue;
+                }
+                $this->setOpt(CURLOPT_HTTPHEADER, $headersTmp);
+            }
+
+            /**
+             * Ora ora ora ora ora ora
+             */
+            $ch = curl_init($remoteUrl);
+            //setting resource options before exec
+            if (!empty($this->curlOpts)) {
+                curl_setopt_array($ch, $this->curlOpts);
+            }
+            //executing request
             $result .= curl_exec($ch);
             $this->errorCode = curl_errno($ch);
             $this->errorMessage = curl_error($ch);
@@ -220,6 +343,47 @@ class OmaeUrl {
             $result['errormessage'] = $this->errorMessage;
         }
         return($result);
+    }
+
+    /**
+     * Sets user agent for current instance
+     * 
+     * @param string $userAgent
+     * 
+     * @return void
+     */
+    public function setUserAgent($userAgent) {
+        if (!empty($userAgent)) {
+            $this->userAgent = $userAgent;
+            $this->setOpt(CURLOPT_USERAGENT, $this->userAgent);
+        }
+    }
+
+    /**
+     * Sets instance connection timeout in seconds
+     * 
+     * @param int $timeout
+     * 
+     * @return void
+     */
+    public function setTimeout($timeout) {
+        $timeout = preg_replace("#[^0-9]#Uis", '', $timeout);
+        if (!empty($timeout)) {
+            $this->timeout = $timeout;
+        }
+    }
+
+    /**
+     * Sets HTTP basic auth params
+     * 
+     * @param string $login
+     * @param string $password
+     * 
+     * @return void
+     */
+    public function setBasicAuth($login, $password) {
+        $this->setOpt(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        $this->setOpt(CURLOPT_USERPWD, $login . ':' . $password);
     }
 
 }
