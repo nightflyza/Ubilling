@@ -605,16 +605,18 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
  * 
  * @param string $name
  * @param int    $state
+ * @param bool   $disableYes
+ *
  * @return string
  */
-function web_TriggerSelector($name, $state = '') {
+function web_TriggerSelector($name, $state = '', $disableYes = false) {
     $noflag = (!$state) ? 'SELECTED' : '';
+    $disableYes = ($disableYes) ? ' disabled ' : '';
 
     $selector = wf_tag('select', false, '', 'name="' . $name . '"');
-    $selector .= wf_tag('option', false, '', 'value="1"') . __('Yes') . wf_tag('option', true);
+    $selector .= wf_tag('option', false, '', 'value="1"' . $disableYes) . __('Yes') . wf_tag('option', true);
     $selector .= wf_tag('option', false, '', 'value="0" ' . $noflag) . __('No') . wf_tag('option', true);
     $selector .= wf_tag('select', true);
-
 
     return ($selector);
 }
@@ -626,9 +628,11 @@ function web_TriggerSelector($name, $state = '') {
  * @param string $fieldkey
  * @param string $useraddress
  * @param string $olddata
+ * @param bool   $disableYes
+ *
  * @return string
  */
-function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata = '') {
+function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata = '', $disableYes = false) {
     $curstate = web_trigger($olddata);
 
     $cells = wf_TableCell(__('User'), '', 'row2');
@@ -638,7 +642,7 @@ function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata 
     $cells .= wf_TableCell($curstate, '', 'row3');
     $rows .= wf_TableRow($cells);
     $cells = wf_TableCell('', '', 'row2');
-    $cells .= wf_TableCell(web_TriggerSelector($fieldkey, $olddata), '', 'row3');
+    $cells .= wf_TableCell(web_TriggerSelector($fieldkey, $olddata, $disableYes), '', 'row3');
     $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
