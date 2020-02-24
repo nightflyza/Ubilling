@@ -1,16 +1,7 @@
 <?php
 
 /**
- * TODO:  getHeaders(?)
- * 
- * and responce codes getter like 200 or 302
- * and debug mode required
- * and multform part data etc for sending like real forms
- * and referrers
- */
-
-/**
- * Basic remote URLs interraction class
+ * Basic remote URLs interaction class
  */
 class OmaeUrl {
 
@@ -93,6 +84,20 @@ class OmaeUrl {
     protected $curlOpts = array();
 
     /**
+     * Get headers flag
+     *
+     * @var bool
+     */
+    protected $headersFlag = false;
+
+    /**
+     * Request referrer
+     *
+     * @var string
+     */
+    protected $referrer = '';
+
+    /**
      * Creates new omae wa mou shindeiru instance
      * 
      * @param string $url
@@ -130,6 +135,30 @@ class OmaeUrl {
             $result = false;
         }
         return($result);
+    }
+
+    /**
+     * Sets return headers flag
+     * 
+     * @param bool $state
+     * 
+     * @return void
+     */
+    public function setHeadersReturn($state) {
+        $this->headersFlag = $state;
+        $this->setOpt(CURLOPT_HEADER, $this->headersFlag);
+    }
+
+    /**
+     * Sets instance referrer URL
+     * 
+     * @param string $url
+     * 
+     * @return void
+     */
+    public function setReferrer($url) {
+        $this->referrer = $url;
+        $this->setOpt(CURLOPT_REFERER, $this->referrer);
     }
 
     /**
@@ -370,6 +399,7 @@ class OmaeUrl {
         $timeout = preg_replace("#[^0-9]#Uis", '', $timeout);
         if (!empty($timeout)) {
             $this->timeout = $timeout;
+            $this->setOpt(CURLOPT_CONNECTTIMEOUT, $this->timeout);
         }
     }
 
