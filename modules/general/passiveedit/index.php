@@ -56,19 +56,9 @@ if (isset ($_GET['username'])) {
                 if ( ($FrzDaysUsed >= $FrzDaysAmount) && ($DaysWorked <= $WrkDaysToRestoreFrzDays) ) {
                     $FreezingAvailable = false;
 
-                    $cells = wf_TableCell(__('User'), '', 'row2');
-                    $cells.= wf_TableCell($useraddress, '', 'row3');
-                    $rows = wf_TableRow($cells);
-
-                    $cells = wf_TableCell(__('Current passive state'), '', 'row2');
-                    $cells.= wf_TableCell(web_trigger($current_passive), '', 'row2');
-                    $rows.= wf_TableRow($cells);
-                    $table = wf_TableBody($rows, '100%', 0, '');
-                    $inputs.= $table;
                     $inputs.= wf_tag('h3', false, '', 'style="color:#e95802; font-weight:600"');
                     $inputs.= __('Changing freeze status is unavailable: total amount of freeze days used up');
                     $inputs.= wf_tag('h3', true);
-                    $inputs.= wf_delimiter();
                 }
 
                 $cells = wf_TableCell(__('Freeze days used'), '', 'row2');
@@ -107,14 +97,13 @@ if (isset ($_GET['username'])) {
         }
     }
 
-if ($FreezingAvailable) {
-    // Edit form construct
-    $fieldname = __('Current passive state');
-    $fieldkey = 'newpassive';
-    $form.= web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $current_passive);
-}
 
-$form.= wf_delimiter() . $form2;
+// Edit form construct
+$fieldname = __('Current passive state');
+$fieldkey = 'newpassive';
+$form.= web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $current_passive, !$FreezingAvailable);
+
+$form.= $form2;
 $form.= web_UserControls($login);
 // show form
 show_window(__('Edit passive'), $form);
