@@ -76,10 +76,10 @@ function showhide(obj){
         <a href="?module=user.profile"><?=__('My profile')?></a>
     </td>
 </tr>
-<?php if(LOGGED_IN and !pm_disabled()) { ?>
+<?php if(LOGGED_IN ) { ?>
 <tr>
     <td class="row3">
-        <a href="?module=pm&mode=get" title="<? $ar = pm_get_msgs(); echo $ar[2]; ?>" ><? $ar = pm_get_msgs(); if ($ar[1] <> 0) echo '<b>'; echo __('Messages ').'('.$ar[1].'/'.$ar[0].')'; if ($ar[1] <> 0) echo '<b>';?></a>
+      
     </td>
 </tr>
 <?php }?>
