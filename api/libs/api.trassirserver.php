@@ -993,18 +993,12 @@ class TrassirServer {
         //Setting camera password
         $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password, 'sid');
         //Setting camera model
-        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid');
+        debarr($this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid'));
 
        
-        $test= $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/', 'sid');
-       
-        debarr($test);
-        
-        $test2= $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/model_detect_start=1', 'sid');
-        debarr($test2);
         //Camera creation
-        //$cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
-        //return($cameraCreateResult);
+        $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
+        return($cameraCreateResult);
     }
 
     /**
