@@ -185,9 +185,9 @@ class TrassirServer {
         $connnectCheck = $this->checkConnection();
 
         if ($connnectCheck) {
-            $this->logDebug('HTTP connection to IP ' . $this->ip . ' OK', 'success');
+            $this->logDebug('HTTPS connection to IP ' . $this->ip . ' OK', 'success');
         } else {
-            $this->logDebug('HTTP connection to IP ' . $this->ip . ' Failed', 'error');
+            $this->logDebug('HTTPS connection to IP ' . $this->ip . ' Failed', 'error');
         }
 
         $loginCheck = $this->login();
@@ -302,11 +302,13 @@ class TrassirServer {
      */
     protected function checkConnection() {
         $status = false;
-        $url = 'http://' . trim($this->ip) . ':80/';
+        $url = 'https://' . trim($this->ip) . ':' . $this->port . '/';
         $curlInit = curl_init($url);
         curl_setopt($curlInit, CURLOPT_CONNECTTIMEOUT, 2);
         curl_setopt($curlInit, CURLOPT_HEADER, true);
-        curl_setopt($curlInit, CURLOPT_NOBODY, true);
+        curl_setopt($curlInit, CURLOPT_NOBODY, false);
+        curl_setopt($curlInit, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($curlInit, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($curlInit, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curlInit);
         curl_close($curlInit);
@@ -967,6 +969,42 @@ class TrassirServer {
         $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
 
         return($cameraCreateResult);
+    }
+
+    /**
+     * Creates new camera device on remote Trassir Server NVR
+     * 
+     * @param string $protocol
+     * @param string $model
+     * @param string $ip
+     * @param string $port
+     * @param string $username
+     * @param string $password
+     * 
+     * @return array
+     */
+    public function createCameraAuto($protocol, $model, $ip, $port, $username, $password) {
+        //Setting camera IP
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip, 'sid');
+        //Setting camera port
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port, 'sid');
+        //Setting camera login
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username, 'sid');
+        //Setting camera password
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password, 'sid');
+        //Setting camera model
+        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid');
+
+       
+        $test= $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/', 'sid');
+       
+        debarr($test);
+        
+        $test2= $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/model_detect_start=1', 'sid');
+        debarr($test2);
+        //Camera creation
+        //$cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
+        //return($cameraCreateResult);
     }
 
     /**
