@@ -52,9 +52,9 @@ class Cemetery {
     public function __construct($loadDead = true) {
         $this->loadAlter();
         $this->setTagId();
+        //initalizing some database models
+        $this->initCemetery();
         if ($loadDead) {
-            //initalizing some database models
-            $this->initCemetery();
             $this->initTags();
             //loading required data
             $this->loadDead();
