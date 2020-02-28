@@ -5345,7 +5345,7 @@ function zb_ListCacheInform($param = '') {
                 }
                 $readableData = print_r($key['value'], true);
                 $dataSize = stg_convert_size(strlen($readableData));
-                $value = wf_tag('pre') . $readableData . wf_tag('pre', true);
+                $value = wf_tag('pre') . htmlspecialchars($readableData) . wf_tag('pre', true);
                 $cells .= wf_TableCell($dataCount . ' ~ ' . $dataSize);
                 $keyActions = '';
                 $viewControls = wf_modal(wf_img_sized('skins/icon_search_small.gif', '', '10') . ' ' . __('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600') . ' ';

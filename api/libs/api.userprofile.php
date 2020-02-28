@@ -664,9 +664,10 @@ class UserProfile {
                 }
 //and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
-                    if (file_exists('exports/' . $this->aptdata['buildid'] . '.inbuildusers')) {
-                        $inbuildNeigbors_raw = file_get_contents('exports/' . $this->aptdata['buildid'] . '.inbuildusers');
-                        $inbuildNeigbors_raw = unserialize($inbuildNeigbors_raw);
+                    $cache = new UbillingCache();
+                    $inbuildNeigbors_raw = $cache->get('INBUILDUSERS', 3600);
+                    if (isset($inbuildNeigbors_raw[$this->aptdata['buildid']])) {
+                        $inbuildNeigbors_raw = $inbuildNeigbors_raw[$this->aptdata['buildid']];
                         if (!empty($inbuildNeigbors_raw)) {
                             $inbuildNeigborsStat = '';
                             $inbuildNeigborsStat .= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');

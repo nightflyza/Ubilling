@@ -150,17 +150,17 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                             //switch is traced device
                             if ($each['id'] == $traceid) {
                                 $width = 5;
-                                $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                                $result .= sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                             } else {
                                 //detecting uplinks
                                 if (sm_MapIsLinked($alllinks, $traceid, $each['id'])) {
                                     $width = 3;
-                                    $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                                    $result .= sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                                 }
                             }
                         } else {
                             $width = 1;
-                            $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                            $result .= sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                         }
                     }
                 }
@@ -185,7 +185,7 @@ function sm_MapDrawSwitchesCoverage() {
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $each) {
             $geo = mysql_real_escape_string($each['geo']);
-            $result.=sm_MapAddCircle($geo, '100');
+            $result .= sm_MapAddCircle($geo, '100');
         }
     }
     return ($result);
@@ -279,27 +279,27 @@ function sm_MapDrawSwitches() {
 
 
             //switch footer controls
-            $footer.=$footerDelimiter;
-            $footer.=wf_tag('a', false, '', 'href="?module=switches&edit=' . $each['id'] . '"') . $switchEditIcon . wf_tag('a', true) . ' ';
+            $footer .= $footerDelimiter;
+            $footer .= wf_tag('a', false, '', 'href="?module=switches&edit=' . $each['id'] . '"') . $switchEditIcon . wf_tag('a', true) . ' ';
 
 
             if (!empty($each['snmp'])) {
-                $footer.=wf_tag('a', false, '', 'href="?module=switchpoller&switchid=' . $each['id'] . '"') . $switchPollerIcon . wf_tag('a', true) . ' ';
+                $footer .= wf_tag('a', false, '', 'href="?module=switchpoller&switchid=' . $each['id'] . '"') . $switchPollerIcon . wf_tag('a', true) . ' ';
             }
 
-            $footer.=wf_tag('a', false, '', 'href="?module=switchmap&finddevice=' . $each['geo'] . '"') . $switchLocatorIcon . wf_tag('a', true) . ' ';
+            $footer .= wf_tag('a', false, '', 'href="?module=switchmap&finddevice=' . $each['geo'] . '"') . $switchLocatorIcon . wf_tag('a', true) . ' ';
 
 
             if (!empty($each['parentid'])) {
                 $uplinkTraceUrl = '?module=switchmap&finddevice=' . $each['geo'] . '&showuplinks=true&traceid=' . $each['id'];
                 $uplinkTraceLink = wf_tag('a', false, '', 'href="' . $uplinkTraceUrl . '"') . $uplinkTraceIcon . wf_tag('a', true) . ' ';
-                $footer.= $uplinkTraceLink;
+                $footer .= $uplinkTraceLink;
             }
 
             if ($ym_conf['CANVAS_RENDER']) {
-                $result.=sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
+                $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
             } else {
-                $result.=sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, false);
+                $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, false);
             }
         }
     }
@@ -317,9 +317,18 @@ function um_MapDrawBuilds() {
     $allbuilds = simple_queryall($query);
     $allstreets = zb_AddressGetStreetAllData();
     $streetData = array();
-    $cacheDir = 'exports/';
-    $cacheTime = 60;
-    $cacheTime = time() - ($cacheTime * 60);
+
+    $cache = new UbillingCache();
+    $cacheTime = 3600;
+    //reading cached data
+    $cachedData = $cache->get('INBUILDUSERS', $cacheTime);
+    if (empty($cachedData)) {
+        $cachedData = array();
+        $updateCache = true;
+    } else {
+        $updateCache = false;
+    }
+
     //street id => streetname
     if (!empty($allstreets)) {
         foreach ($allstreets as $ia => $eachstreet) {
@@ -361,8 +370,8 @@ function um_MapDrawBuilds() {
 
             $content = '';
             $cells = wf_TableCell(__('apt.'));
-            $cells.= wf_TableCell(__('User'));
-            $cells.= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('User'));
+            $cells .= wf_TableCell(__('Status'));
             $rows = wf_tag('tr', false, '', 'bgcolor=#DCDCDC') . $cells . wf_tag('tr', true);
             $iconlabel = '';
             $footer = '';
@@ -370,26 +379,22 @@ function um_MapDrawBuilds() {
             $aliveUsers = 0;
             $usersCount = 0;
             if (!empty($aptData)) {
-                //build users data caching
-                $cacheName = $cacheDir . $each['id'] . '.inbuildusers';
-
-                if (file_exists($cacheName)) {
+                //is current build in cache
+                if (isset($cachedData[$each['id']])) {
                     $updateCache = false;
-                    if ((filemtime($cacheName) > $cacheTime)) {
-                        $updateCache = false;
-                    } else {
-                        $updateCache = true;
-                    }
                 } else {
                     $updateCache = true;
                 }
+                //cache in actual state
                 if (!$updateCache) {
-                    $cachePrev = file_get_contents($cacheName);
-                    $cachePrev = unserialize($cachePrev);
+                    //build extracted from cache
+                    $cachePrev = $cachedData[$each['id']];
+
                     $rows = $cachePrev['rows'];
                     $usersCount = $cachePrev['userscount'];
                     $aliveUsers = $cachePrev['aliveusers'];
                 } else {
+                    //all cache need to be updated
                     foreach ($aptData as $ib => $eachapt) {
                         if ($eachapt['buildid'] == $each['id']) {
                             if (isset($alluserips[$eachapt['login']])) {
@@ -401,19 +406,19 @@ function um_MapDrawBuilds() {
                                 } else {
                                     $aliveFlag = web_bool_led(false);
                                 }
+
+
                                 $cells = wf_TableCell($eachapt['apt']);
-                                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachapt['login'], $userIp, false));
-                                $cells.= wf_TableCell($aliveFlag);
-                                $rows.=wf_TableRow($cells);
+                                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachapt['login'], $userIp, false));
+                                $cells .= wf_TableCell($aliveFlag);
+                                $rows .= wf_TableRow($cells);
                             }
                         }
                     }
-                    $cacheStore = array();
-                    $cacheStore['rows'] = $rows;
-                    $cacheStore['userscount'] = $usersCount;
-                    $cacheStore['aliveusers'] = $aliveUsers;
-                    $cacheStore = serialize($cacheStore);
-                    file_put_contents($cacheName, $cacheStore);
+
+                    $cachedData[$each['id']]['rows'] = $rows;
+                    $cachedData[$each['id']]['userscount'] = $usersCount;
+                    $cachedData[$each['id']]['aliveusers'] = $aliveUsers;
                 }
             }
             $footer = __('Active') . ' ' . $aliveUsers . '/' . $usersCount;
@@ -430,7 +435,12 @@ function um_MapDrawBuilds() {
             $title = str_replace("'", '', $title);
             $title = str_replace("\n", '', $title);
 
-            $result.=sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
+            $result .= sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);
+        }
+
+        //update cache data if required
+        if ($updateCache) {
+            $cache->set('INBUILDUSERS', $cachedData, $cacheTime);
         }
     }
     return ($result);
@@ -521,8 +531,8 @@ function um_MapLocationBuildForm() {
         //form construct
         if (cfr('BUILDS')) {
             $inputs = wf_Selector('buildplacing', $buildData, '', $selectedBuild, true);
-            $inputs.=wf_Submit('Save');
-            $result.=$inputs;
+            $inputs .= wf_Submit('Save');
+            $result .= $inputs;
         }
     }
     return ($result);
@@ -553,8 +563,8 @@ function sm_MapLocationSwitchForm() {
                 $selected = '';
             }
             $inputs = wf_Selector('switchplacing', $switchData, '', $selected, true);
-            $inputs.=wf_Submit('Save');
-            $result.=$inputs;
+            $inputs .= wf_Submit('Save');
+            $result .= $inputs;
         }
     }
     return ($result);
@@ -685,18 +695,18 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
  */
 function sm_ShowMapContainer() {
     $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
-    $container.=wf_tag('div', true);
+    $container .= wf_tag('div', true);
     $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
-    $controls.= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+    $controls .= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
     if (cfr('SWITCHESEDIT')) {
-        $controls.= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
+        $controls .= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
     }
-    $controls.= wf_Link("?module=switchmap&showuplinks=true", wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
-    $controls.= wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png') . ' ' . __('Coverage area'), false, 'ubButton');
+    $controls .= wf_Link("?module=switchmap&showuplinks=true", wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
+    $controls .= wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png') . ' ' . __('Coverage area'), false, 'ubButton');
     if (cfr('SWITCHES')) {
-        $controls.= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+        $controls .= wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
     }
-    $controls.=wf_delimiter(1);
+    $controls .= wf_delimiter(1);
 
     show_window(__('Active equipment map'), $controls . $container);
 }
@@ -708,12 +718,12 @@ function sm_ShowMapContainer() {
  */
 function um_ShowMapContainer() {
     $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
-    $container.=wf_tag('div', true);
+    $container .= wf_tag('div', true);
 
     $controls = wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
-    $controls.= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
-    $controls.= wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
-    $controls.=wf_delimiter(1);
+    $controls .= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+    $controls .= wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
+    $controls .= wf_delimiter(1);
 
     show_window(__('Builds and users map'), $controls . $container);
 }
