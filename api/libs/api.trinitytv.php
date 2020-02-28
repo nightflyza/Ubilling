@@ -1031,15 +1031,25 @@ class TrinityTv {
         $subscriberId = vf($subscriberId, 3); //int
         $code = vf(strtoupper($code)); //alphanumeric
 
-        $response = $this->api->addCodeMacDevice($subscriberId, $code);
+        if (isset($this->allSubscribers[$subscriberId])) {
+            $response = $this->api->addCodeMacDevice($subscriberId, $code);
 
-        if (isset($response->result) AND $response->result == 'success') {
+            if (isset($response->result) AND $response->result == 'success') {
 
-            $result = $this->addDevice($userLogin, $response->mac);
+                $mac = vf(strtoupper($response->mac)); //alphanumeric
+                
+                $query = "INSERT INTO `" . self::TABLE_DEVICES . "` (`login`, `subscriber_id`, `mac`, `created_at`) VALUES ";
+                $query .= "('" . $this->allSubscribers[$subscriberId]['login'] . "', '" . $subscriberId . "','" . $mac . "', NOW() )";
+                nr_query($query);
+
+                $userLogin = $this->getSubscriberLogin($subscriberId);
+                log_register('TRINITYTV DEVICE ADD `' . $mac . '` FOR (' . $userLogin . ') AS [' . $subscriberId . ']');
+            } else {
+                $result = __('Strange exeption') . ': ' . @$response->result;
+            }
         } else {
-            $result = __('Strange exeption') . ': ' . @$response->result;
+            $result .= __('Something went wrong') . ': ' . __('User not exists');
         }
-
 
         return ($result);
     }
