@@ -909,25 +909,6 @@ class TrassirServer {
     }
 
     /**
-     * Disables model mismatch warning on some camera
-     * 
-     * @param string $cameraIp
-     * 
-     * @return void
-     */
-    public function disableModelMismatch($cameraIp) {
-        $allCams = $this->getAllCameraIps();
-        if (isset($allCams[$cameraIp])) {
-            $cameraGuid = $allCams[$cameraIp];
-            if (!empty($cameraGuid)) {
-                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/model_missmatch_off=1', 'sid');
-                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=0', 'sid');
-                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=1', 'sid');
-            }
-        }
-    }
-
-    /**
      * Creates new camera device on remote Trassir Server NVR
      * 
      * @param string $protocol
@@ -972,6 +953,25 @@ class TrassirServer {
             }
         }
         return($result);
+    }
+
+    /**
+     * Disables model mismatch warning on some cameras. TODO: use it for Hikvision.
+     * 
+     * @param string $cameraIp
+     * 
+     * @return void
+     */
+    public function disableModelMismatch($cameraIp) {
+        $allCams = $this->getAllCameraIps();
+        if (isset($allCams[$cameraIp])) {
+            $cameraGuid = $allCams[$cameraIp];
+            if (!empty($cameraGuid)) {
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/model_missmatch_off=1', 'sid');
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=0', 'sid');
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=1', 'sid');
+            }
+        }
     }
 
 }
