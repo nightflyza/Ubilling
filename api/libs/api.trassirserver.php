@@ -909,36 +909,22 @@ class TrassirServer {
     }
 
     /**
-     * TODO: need to support model autodetection somehow. Remove it after.
+     * Disables model mismatch warning on some camera
      * 
-     * @param type $protocol
-     * @param type $model
-     * @param type $ip
-     * @param type $port
-     * @param type $username
-     * @param type $password
+     * @param string $cameraIp
+     * 
+     * @return void
      */
-    public function camtest($protocol, $model, $ip, $port, $username, $password) {
-        //Setting camera port
-        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port, 'sid');
-        //Setting camera login
-        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username, 'sid');
-        //Setting camera password
-        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password, 'sid');
-        //Setting camera IP
-        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip, 'sid');
-        //Setting camera model
-        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid');
-
-
-        sleep(2);
-        $result = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/autodetect_result', 'sid');
-        debarr($result);
-        sleep(2);
-        //Camera creation
-        $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
-
-        debarr($cameraCreateResult);
+    public function disableModelMismatch($cameraIp) {
+        $allCams = $this->getAllCameraIps();
+        if (isset($allCams[$cameraIp])) {
+            $cameraGuid = $allCams[$cameraIp];
+            if (!empty($cameraGuid)) {
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/model_missmatch_off=1', 'sid');
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=0', 'sid');
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=1', 'sid');
+            }
+        }
     }
 
     /**
@@ -968,36 +954,6 @@ class TrassirServer {
         //Camera creation
         $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
 
-        return($cameraCreateResult);
-    }
-
-    /**
-     * Creates new camera device on remote Trassir Server NVR
-     * 
-     * @param string $protocol
-     * @param string $model
-     * @param string $ip
-     * @param string $port
-     * @param string $username
-     * @param string $password
-     * 
-     * @return array
-     */
-    public function createCameraAuto($protocol, $model, $ip, $port, $username, $password) {
-        //Setting camera IP
-        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_address=' . $ip, 'sid');
-        //Setting camera port
-        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_port=' . $port, 'sid');
-        //Setting camera login
-        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_username=' . $username, 'sid');
-        //Setting camera password
-        $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_password=' . $password, 'sid');
-        //Setting camera model
-        debarr($this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_model=' . $model, 'sid'));
-
-       
-        //Camera creation
-        $cameraCreateResult = $this->apiRequest('/settings/ip_cameras/ip_camera_add/' . $protocol . '/create_now=1', 'sid');
         return($cameraCreateResult);
     }
 
