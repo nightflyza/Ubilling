@@ -23,6 +23,13 @@ class OnuMaster {
     public $reboot = '';
 
     /**
+     * Placeholder for OnuDeregister class
+     *
+     * @var object
+     */
+    public $deregister = '';
+
+    /**
      * Contains system alter config
      *
      * @var array
@@ -41,6 +48,9 @@ class OnuMaster {
         }
         if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
             $this->reboot = new OnuReboot($login);
+        }
+        if (isset($this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) and $this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) {
+            $this->deregister = new OnuDeregister($login);
         }
     }
 
@@ -71,6 +81,9 @@ class OnuMaster {
             }
             if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
                 show_window('', $this->reboot->RebootForm());
+            }
+            if (isset($this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) and $this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) {
+                show_window('', $this->deregister->deregForm());
             }
         }
     }
