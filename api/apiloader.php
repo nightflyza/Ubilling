@@ -110,6 +110,7 @@ include('api/libs/api.mtsigmon.php');
 include('api/libs/api.taskbar.php');
 include('api/libs/api.onuregister.php');
 include('api/libs/api.onureboot.php');
+include('api/libs/api.onuderegister.php');
 include('api/libs/api.onudescribe.php');
 include('api/libs/api.onumaster.php');
 include('api/libs/api.smszilla.php');

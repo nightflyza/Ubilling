@@ -16,12 +16,29 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
                 }
             }
 
+            if (isset($_POST['DeregOnu'])) {
+                $deregResult = $onuMaster->deregister->deregOnu();
+                if ($deregResult) {
+                    show_success('DONE');
+                } else {
+                    show_error('ONU NOT FOUND');
+
+                    if (!empty($onuMaster->deregister->displayMessage)) {
+                        show_error($onuMaster->deregister->displayMessage);
+                    }
+                }
+            }
+
             if (isset($_POST['DescribeOnu'])) {
                 $describeResult = $onuMaster->describe->DescribeOnu($_POST['onuDescription']);
                 if (!empty($describeResult)) {
                     show_success($describeResult);
                 } else {
                     show_error('Unsuccessful');
+
+                    if (!empty($onuMaster->describe->displayMessage)) {
+                        show_error($onuMaster->describe->displayMessage);
+                    }
                 }
             }
         }

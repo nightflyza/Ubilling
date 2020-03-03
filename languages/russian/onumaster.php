@@ -36,4 +36,6 @@ $lang['def']['No OLT IP address value found.'] = 'IP адрес OLT не най�
 $lang['def']['No VLAN value found.'] = 'VLAN не найден.';
 $lang['def']['Registered ONU count is'] = 'Количество зарегистрированных ONU';
 $lang['def']['Ask for new license. ETTO cards not supported for 64+ ONT installation in this license version.'] = 'Запросите новую лицензию. ETTO карта для 64+ ONU не поддерживается в текущей версии лицензии.';
+$lang['def']['Function is not supported by this OLT'] = 'Функция не поддерживатся данным OLT';
+$lang['def']['Deregister onu'] = 'Дерегистрировать ONU';
 
