@@ -265,6 +265,11 @@ class Salary {
             $this->setDates(ubRouting::post('datefrom', 'mres'), ubRouting::post('dateto', 'mres'));
         }
 
+        //payroll printing
+        if (ubRouting::checkGet(array('df', 'dt', 'print'))) {
+            $this->setDates(ubRouting::get('df', 'mres'), ubRouting::get('dt', 'mres'));
+        }
+
         //year payments report
         if (ubRouting::checkGet(array('yearreport'))) {
             if (ubRouting::checkPost('showyear')) {
