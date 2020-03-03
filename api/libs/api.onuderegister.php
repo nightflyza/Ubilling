@@ -1,6 +1,6 @@
 <?php
 
-class OnuReboot {
+class OnuDeregister {
 
     /**
      * Contains system alter config as key=>value
@@ -50,6 +50,14 @@ class OnuReboot {
      * @var pointer
      */
     protected $snmp = '';
+
+    /**
+     * Placeholder for any message to return and/or display
+     *
+     * @var string
+     */
+    public $displayMessage = '';
+
 
     public function __construct($login = '') {
         if (!empty($login)) {
@@ -137,7 +145,7 @@ class OnuReboot {
         }
     }
 
-    public function RebootOnu() {
+    public function deregOnu() {
         if (!empty($this->onuData) AND ! empty($this->oltData) AND ! empty($this->oltSnmptemplate)) {
             $macOnu = $this->onuData['mac'];
             $decMacOnu = $this->MacHexToDec($macOnu);
@@ -155,13 +163,13 @@ class OnuReboot {
                     $macValType     = $snmpData['signal']['MACVALUE'];
 
                     if ($snmpControlMode == 'VSOL_1600D') {
-                        $reloadPONIdx = $snmpData['onu']['RELOADPONINDEX'];
-                        $reloadONUIdx = $snmpData['onu']['RELOADONUINDEX'];
+                        $reloadPONIdx = $snmpData['onu']['DEREGPONINDEX'];
+                        $reloadONUIdx = $snmpData['onu']['DEREGONUINDEX'];
                     }
 
                     if ($snmpControlMode == 'STELSFD11') {
                         $reloadOperIdx = $snmpData['onu']['OPERATION'];
-                        $reloadOperNum = $snmpData['onu']['RELOAD'];
+                        $reloadOperNum = $snmpData['onu']['DEREG'];
                     }
 
                     $macIndexFull = $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $macIndexOID);
@@ -208,50 +216,15 @@ class OnuReboot {
 
                 return (false);
             } else {
-                if (!isset($snmpData['onu']['IFINDEX'])) {
-                    return false;
-                }
-                if (!isset($snmpData['onu']['RELOAD'])) {
-                    return false;
-                }
-                if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_B') {
-                    $ifIndexOid = $snmpData['onu']['IFINDEX'] . '.' . $decMacOnu;
-                    $ifIndexFull = snmp2_get($this->oltData['ip'], $this->oltData['snmp'], $ifIndexOid);
-                    $ifIndex = trim(str_replace(array($ifIndexOid, 'INTEGER:'), '', $ifIndexFull));
-                    if (!empty($ifIndex)) {
-                        $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
-                        $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $reloadData);
-                        return true;
-                    }
-                }
-                if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_C') {
-                    $allOnuOid = $snmpData['signal']['MACINDEX'];
-                    snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
-                    $allOnu = @snmp2_real_walk($this->oltData['ip'], $this->oltData['snmp'], $allOnuOid);
-                    $searchArray = array();
-                    if (!empty($allOnu)) {
-                        foreach ($allOnu as $eachIndex => $eachOnu) {
-                            $eachIndex = trim(str_replace($allOnuOid . '.', '', $eachIndex));
-                            $eachOnu = strtolower(trim(str_replace($snmpData['signal']['MACVALUE'], '', $eachOnu)));
-                            $eachOnuMacArray = explode(" ", $eachOnu);
-                            $eachOnuMac = implode(":", $eachOnuMacArray);
-                            $searchArray[$eachOnuMac] = $eachIndex;
-                        }
-                        if (!empty($searchArray) and isset($searchArray[$macOnu])) {
-                            $ifIndex = $searchArray[$macOnu];
-                            $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
-                            $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $reloadData);
-                            return true;
-                        }
-                    }
-                }
-                return false;
+                $vlanMode = (empty($snmpData['vlan']['VLANMODE'])) ? '' : ': ' . $snmpData['vlan']['VLANMODE'];
+                $this->displayMessage = __('Function is not supported by this OLT') . $vlanMode;
+                return (false);
             }
         }
     }
 
-    public function RebootForm() {
-        $Inputs = wf_SubmitClassed('true', 'vlanButton', 'RebootOnu', __('Reboot onu'));
+    public function deregForm() {
+        $Inputs = wf_SubmitClassed('true', 'vlanButton', 'DeregOnu', __('Deregister onu'));
         $Form = wf_Form("", 'POST', $Inputs);
         return($Form);
     }
