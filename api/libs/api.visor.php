@@ -1178,7 +1178,7 @@ class UbillingVisor {
                 }
                 $data[] = $cameraCash;
                 $data[] = $cameraCredit;
-                $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon().' '.__('Edit') . ' ' . __('camera'));
+                $actLinks = wf_Link(self::URL_ME . self::URL_CAMVIEW . $each['id'], web_edit_icon() . ' ' . __('Edit') . ' ' . __('camera'));
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
@@ -1487,8 +1487,13 @@ class UbillingVisor {
                 $cells .= wf_TableCell($cameraData['port']);
                 $rows .= wf_TableRow($cells, 'row3');
 
+                if (!empty($this->allDvrs[$cameraData['dvrid']]['name'])) {
+                    $curCamDvrLabel = $this->allDvrs[$cameraData['dvrid']]['ip'] . ' - ' . $this->allDvrs[$cameraData['dvrid']]['name'];
+                } else {
+                    $curCamDvrLabel = $this->allDvrs[$cameraData['dvrid']]['ip'];
+                }
                 $cells = wf_TableCell(__('DVR'), '30%', 'row2');
-                $cells .= wf_TableCell(@$this->allDvrs[$cameraData['dvrid']]['ip']);
+                $cells .= wf_TableCell($curCamDvrLabel);
                 $rows .= wf_TableRow($cells, 'row3');
 
                 $cells = wf_TableCell(__('DVR login'), '30%', 'row2');
