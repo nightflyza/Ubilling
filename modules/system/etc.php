@@ -392,7 +392,6 @@ class message {
         }
         $this->str = str_replace(array_keys($this->sr_temp), array_values($this->sr_temp), $this->str);
         $this->result = $this->str;
-        $this->str = $old;
     }
 
     /**
