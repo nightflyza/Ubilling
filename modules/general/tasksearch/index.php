@@ -115,34 +115,36 @@ if (cfr('TASKMANSEARCH')) {
             $datetoDefault = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
 
             $inputs = __('Date') . ' ' . wf_DatePickerPreset('datefrom', $datefromDefault, true) . ' ' . __('From') . ' ' . wf_DatePickerPreset('dateto', $datetoDefault, true) . ' ' . __('To');
-            $inputs.= wf_tag('br');
-            $inputs.= wf_CheckInput('cb_admin', '', false, false);
-            $inputs.= wf_Selector('admin', $this->allAdmins, __('Administrator'), '', true);
-            $inputs.= wf_CheckInput('cb_id', '', false, false);
-            $inputs.= wf_TextInput('taskid', __('ID'), '', true, 4);
-            $inputs.= wf_CheckInput('cb_taskdays', '', false, false);
-            $inputs.= wf_TextInput('taskdays', __('Implementation took more days'), '', true, 4);
-            $inputs.= wf_CheckInput('cb_taskaddress', '', false, false);
-            $inputs.= wf_TextInput('taskaddress', __('Task address'), '', true, 20);
-            $inputs.= wf_CheckInput('cb_taskphone', '', false, false);
-            $inputs.= wf_TextInput('taskphone', __('Phone'), '', true, 20);
-            $inputs.= wf_CheckInput('cb_taskjobtype', '', false, false);
-            $inputs.= wf_Selector('taskjobtype', $this->allJobtypes, __('Job type'), '', true);
-            $inputs.= wf_CheckInput('cb_employee', '', false, false);
-            $inputs.= wf_Selector('employee', $this->activeEmployee, __('Who should do'), '', true);
-            $inputs.= wf_CheckInput('cb_employeedone', '', false, false);
-            $inputs.= wf_Selector('employeedone', $this->activeEmployee, __('Worker done'), '', true);
-            $inputs.= wf_CheckInput('cb_duplicateaddress', __('Duplicate address'), true, false);
-            $inputs.= wf_CheckInput('cb_showlate', __('Show late'), true, false);
-            $inputs.= wf_CheckInput('cb_onlydone', __('Done tasks'), true, false);
-            $inputs.= wf_CheckInput('cb_onlyundone', __('Undone tasks'), true, false);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_CheckInput('cb_admin', '', false, false);
+            $inputs .= wf_Selector('admin', $this->allAdmins, __('Administrator'), '', true);
+            $inputs .= wf_CheckInput('cb_id', '', false, false);
+            $inputs .= wf_TextInput('taskid', __('ID'), '', true, 4);
+            $inputs .= wf_CheckInput('cb_taskdays', '', false, false);
+            $inputs .= wf_TextInput('taskdays', __('Implementation took more days'), '', true, 4);
+            $inputs .= wf_CheckInput('cb_taskaddress', '', false, false);
+            $inputs .= wf_TextInput('taskaddress', __('Task address'), '', true, 20);
+            $inputs .= wf_CheckInput('cb_taskphone', '', false, false);
+            $inputs .= wf_TextInput('taskphone', __('Phone'), '', true, 20);
+            $inputs .= wf_CheckInput('cb_tasknotes', '', false, false);
+            $inputs .= wf_TextInput('tasknotes', __('Notes contains'), '', true, 20);
+            $inputs .= wf_CheckInput('cb_taskjobtype', '', false, false);
+            $inputs .= wf_Selector('taskjobtype', $this->allJobtypes, __('Job type'), '', true);
+            $inputs .= wf_CheckInput('cb_employee', '', false, false);
+            $inputs .= wf_Selector('employee', $this->activeEmployee, __('Who should do'), '', true);
+            $inputs .= wf_CheckInput('cb_employeedone', '', false, false);
+            $inputs .= wf_Selector('employeedone', $this->activeEmployee, __('Worker done'), '', true);
+            $inputs .= wf_CheckInput('cb_duplicateaddress', __('Duplicate address'), true, false);
+            $inputs .= wf_CheckInput('cb_showlate', __('Show late'), true, false);
+            $inputs .= wf_CheckInput('cb_onlydone', __('Done tasks'), true, false);
+            $inputs .= wf_CheckInput('cb_onlyundone', __('Undone tasks'), true, false);
             if ($this->altCfg['SALARY_ENABLED']) {
-                $inputs.=wf_CheckInput('cb_nosalsaryjobs', __('Tasks without jobs'), true, false);
+                $inputs .= wf_CheckInput('cb_nosalsaryjobs', __('Tasks without jobs'), true, false);
             }
 
-            $inputs.=wf_Submit(__('Search'));
+            $inputs .= wf_Submit(__('Search'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.= wf_CleanDiv();
+            $result .= wf_CleanDiv();
 
             return ($result);
         }
@@ -162,49 +164,54 @@ if (cfr('TASKMANSEARCH')) {
                 //task id
                 if (wf_CheckPost(array('cb_id', 'taskid'))) {
                     $taskid = vf($_POST['taskid'], 3);
-                    $appendQuery.=" AND `id`='" . $taskid . "' ";
+                    $appendQuery .= " AND `id`='" . $taskid . "' ";
                 }
 
                 //original task admin
                 if (wf_CheckPost(array('cb_admin', 'admin'))) {
                     $admin = mysql_real_escape_string($_POST['admin']);
-                    $appendQuery.=" AND `admin`='" . $admin . "' ";
+                    $appendQuery .= " AND `admin`='" . $admin . "' ";
                 }
 
                 //more than some days count
                 if (wf_CheckPost(array('cb_taskdays', 'taskdays'))) {
                     $taskdays = vf($_POST['taskdays'], 3);
-                    $appendQuery.=" AND DATEDIFF(`enddate`, `startdate`) > '" . $taskdays . "' ";
+                    $appendQuery .= " AND DATEDIFF(`enddate`, `startdate`) > '" . $taskdays . "' ";
                 }
 
                 //task address non strict 
                 if (wf_CheckPost(array('cb_taskaddress', 'taskaddress'))) {
                     $taskaddress = mysql_real_escape_string($_POST['taskaddress']);
-                    $appendQuery.=" AND `address` LIKE '%" . $taskaddress . "%' ";
+                    $appendQuery .= " AND `address` LIKE '%" . $taskaddress . "%' ";
                 }
 
                 //task phone non strict 
                 if (wf_CheckPost(array('cb_taskphone', 'taskphone'))) {
                     $taskphone = mysql_real_escape_string($_POST['taskphone']);
-                    $appendQuery.=" AND `phone` LIKE '%" . $taskphone . "%' ";
+                    $appendQuery .= " AND `phone` LIKE '%" . $taskphone . "%' ";
+                }
+
+                if (ubRouting::checkPost(array('cb_tasknotes', 'tasknotes'))) {
+                    $tasknotes = ubRouting::post('tasknotes', 'mres');
+                    $appendQuery .= " AND `jobnote` LIKE '%" . $tasknotes . "%'";
                 }
 
                 //task job type
                 if (wf_CheckPost(array('cb_taskjobtype', 'taskjobtype'))) {
                     $taskjobtypeid = vf($_POST['taskjobtype'], 3);
-                    $appendQuery.=" AND `jobtype` LIKE '" . $taskjobtypeid . "' ";
+                    $appendQuery .= " AND `jobtype` LIKE '" . $taskjobtypeid . "' ";
                 }
 
                 //original task employee
                 if (wf_CheckPost(array('cb_employee', 'employee'))) {
                     $employee = mysql_real_escape_string($_POST['employee']);
-                    $appendQuery.=" AND `employee`='" . $employee . "' ";
+                    $appendQuery .= " AND `employee`='" . $employee . "' ";
                 }
 
                 //original task employeedone
                 if (wf_CheckPost(array('cb_employeedone', 'employeedone'))) {
                     $employeedone = mysql_real_escape_string($_POST['employeedone']);
-                    $appendQuery.=" AND `employeedone`='" . $employeedone . "' ";
+                    $appendQuery .= " AND `employeedone`='" . $employeedone . "' ";
                 }
 
                 //address duplicate search
@@ -216,17 +223,17 @@ if (cfr('TASKMANSEARCH')) {
                 //late jobs
                 if (wf_CheckPost(array('cb_showlate'))) {
                     $curdate = curdate();
-                    $appendQuery.=" AND `status`='0' AND `startdate`< '" . $curdate . "' ";
+                    $appendQuery .= " AND `status`='0' AND `startdate`< '" . $curdate . "' ";
                 }
 
                 //only done jobs
                 if (wf_CheckPost(array('cb_onlydone'))) {
-                    $appendQuery.=" AND `status`='1' ";
+                    $appendQuery .= " AND `status`='1' ";
                 }
 
                 //only undone jobs
                 if (wf_CheckPost(array('cb_onlyundone'))) {
-                    $appendQuery.=" AND `status`='0' ";
+                    $appendQuery .= " AND `status`='0' ";
                 }
 
                 $query = $baseQuery . $appendQuery;
@@ -281,35 +288,35 @@ if (cfr('TASKMANSEARCH')) {
             $totalCount = 0;
             if (!empty($tasksArray)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.= wf_TableCell(__('Address'));
-                $cells.= wf_TableCell(__('Job type'));
-                $cells.= wf_TableCell(__('Phone'));
-                $cells.= wf_TableCell(__('Who should do'));
-                $cells.= wf_TableCell(__('Worker done'));
-                $cells.= wf_TableCell(__('Target date'));
-                $cells.= wf_TableCell(__('Finish date'));
-                $cells.= wf_TableCell(__('Status'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Address'));
+                $cells .= wf_TableCell(__('Job type'));
+                $cells .= wf_TableCell(__('Phone'));
+                $cells .= wf_TableCell(__('Who should do'));
+                $cells .= wf_TableCell(__('Worker done'));
+                $cells .= wf_TableCell(__('Target date'));
+                $cells .= wf_TableCell(__('Finish date'));
+                $cells .= wf_TableCell(__('Status'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($tasksArray as $io => $each) {
                     $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($each['address']);
-                    $cells.= wf_TableCell(@$this->allJobtypes[$each['jobtype']]);
-                    $cells.= wf_TableCell($each['phone']);
-                    $cells.= wf_TableCell(@$this->allEmployee[$each['employee']]);
-                    $cells.= wf_TableCell(@$this->allEmployee[$each['employeedone']]);
-                    $cells.= wf_TableCell($each['startdate'] . ' ' . $each['starttime']);
-                    $cells.= wf_TableCell($each['enddate']);
-                    $cells.= wf_TableCell(web_bool_led($each['status']), '', '', 'sorttable_customkey="' . $each['status'] . '"');
+                    $cells .= wf_TableCell($each['address']);
+                    $cells .= wf_TableCell(@$this->allJobtypes[$each['jobtype']]);
+                    $cells .= wf_TableCell($each['phone']);
+                    $cells .= wf_TableCell(@$this->allEmployee[$each['employee']]);
+                    $cells .= wf_TableCell(@$this->allEmployee[$each['employeedone']]);
+                    $cells .= wf_TableCell($each['startdate'] . ' ' . $each['starttime']);
+                    $cells .= wf_TableCell($each['enddate']);
+                    $cells .= wf_TableCell(web_bool_led($each['status']), '', '', 'sorttable_customkey="' . $each['status'] . '"');
                     $actLinks = wf_Link(self::URL_TASKVIEW . $each['id'], web_edit_icon(), false);
-                    $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($actLinks);
+                    $rows .= wf_TableRow($cells, 'row3');
                     $totalCount++;
                 }
 
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
-                $result.=__('Total') . ': ' . $totalCount;
+                $result .= __('Total') . ': ' . $totalCount;
             } else {
                 $messages = new UbillingMessageHelper();
                 $result = $messages->getStyledMessage(__('Nothing found'), 'warning');
