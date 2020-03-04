@@ -25,7 +25,7 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '15');
+define('RCMS_VERSION_C', '16');
 if (!defined('RCMS_ROOT_PATH')) {
     die('Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.'); //23:4
 }
@@ -34,8 +34,8 @@ if (is_file(RCMS_ROOT_PATH . 'CURRENT'))
 else
     define('RCMS_VERSION_SUFFIX', '');
 define('RCMS_LINK', 'http://reloadcms.com/main/');
-define('RCMS_COPYRIGHT', '&copy; 2019');
-define('RCMS_POWERED', '<a href="' . RCMS_LINK . '">RCMS Framework</a>');
+define('RCMS_COPYRIGHT', '&copy; 2020');
+define('RCMS_POWERED', 'RCMS Framework');
 
 // Main paths
 define('SYSTEM_MODULES_PATH', RCMS_ROOT_PATH . 'modules/system/');
