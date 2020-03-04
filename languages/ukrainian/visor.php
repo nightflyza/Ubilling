@@ -46,5 +46,6 @@ $lang['def']['DVR health'] = 'Стан DVR';
 $lang['def']['Disks'] = 'Диски';
 $lang['def']['Database'] = 'База даних';
 $lang['def']['Archive days'] = 'Днів архіву';
-$lang['def'][''] = '';
+$lang['def']['Model mismatch warning disabled on this DVR'] = 'Вимкнути попередження про невідповідність моделі на цьому DVR';
+$lang['def']['Cant detect mismatch warning state for camera'] = 'Не можу визначити стан вимкненості попередженнь для цієї камери';
 $lang['def'][''] = '';

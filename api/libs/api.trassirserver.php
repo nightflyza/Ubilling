@@ -956,22 +956,45 @@ class TrassirServer {
     }
 
     /**
-     * Disables model mismatch warning on some cameras. TODO: use it for Hikvision.
+     * Disables/enables model mismatch warning on some cameras.
      * 
      * @param string $cameraIp
+     * @param int $state
      * 
      * @return void
      */
-    public function disableModelMismatch($cameraIp) {
+    public function setModelMismatch($cameraIp, $state) {
         $allCams = $this->getAllCameraIps();
         if (isset($allCams[$cameraIp])) {
             $cameraGuid = $allCams[$cameraIp];
             if (!empty($cameraGuid)) {
-                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/model_missmatch_off=1', 'sid');
+                $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/model_missmatch_off=' . $state, 'sid');
                 $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=0', 'sid');
                 $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/grabber_enabled=1', 'sid');
             }
         }
+    }
+
+    /**
+     * Returns current some camera model mismatch warning state
+     * 
+     * @param string $cameraIp
+     * 
+     * @return int
+     */
+    public function getModelMismatch($cameraIp) {
+        $result = '';
+        $allCams = $this->getAllCameraIps();
+        if (isset($allCams[$cameraIp])) {
+            $cameraGuid = $allCams[$cameraIp];
+            if (!empty($cameraGuid)) {
+                $stateRaw = $this->apiRequest('/settings/ip_cameras/' . $cameraGuid . '/model_missmatch_off', 'sid');
+                if (is_array($stateRaw)) {
+                    $result .= $stateRaw['value'];
+                }
+            }
+        }
+        return($result);
     }
 
 }

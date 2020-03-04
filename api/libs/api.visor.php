@@ -1560,6 +1560,51 @@ class UbillingVisor {
     }
 
     /**
+     * Returns camera "model mismatch" warning editing form. Also catches change requests.
+     * 
+     * @param int $cameraId
+     * @param int $curState
+     * 
+     * @return string
+     */
+    protected function renderTrassirCameraMismatchForm($cameraId, $curState) {
+        $result = '';
+        $cameraId = ubRouting::filters($cameraId, 'int');
+        if (isset($this->allCams[$cameraId])) {
+            $cameraData = $this->allCams[$cameraId];
+            $cameraDvrId = $cameraData['dvrid'];
+            $dvrData = $this->allDvrs[$cameraDvrId];
+            $cameraUserData = $this->allUserData[$cameraData['login']];
+            $cameraIp = $cameraUserData['ip'];
+
+
+            //change model mismatch warning request catched
+            if (ubRouting::checkPost('disablemodelmismatchcameraid')) {
+                $newDisableState = (ubRouting::checkPost('modelmismatchdisabled')) ? 1 : 0; //need int as param
+                $trassirGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
+                $trassirGate->setModelMismatch($cameraIp, $newDisableState);
+                log_register('VISOR CAMERA [' . $cameraId . '] MMIS `' . $newDisableState . '` ON DVR [' . $cameraDvrId . '] AS `' . $cameraIp . '`');
+                ubRouting::nav(self::URL_ME . '&' . self::URL_CAMVIEW . $cameraId); //preventing form data duplication
+            }
+
+
+            if ($curState == 1 OR $curState == 0) {
+                $inputs = wf_HiddenInput('disablemodelmismatchcameraid', $cameraId);
+                $inputs .= wf_CheckInput('modelmismatchdisabled', __('Model mismatch warning disabled on this DVR'), false, $curState);
+                $inputs .= wf_Submit(__('Save'));
+                $result .= wf_tag('br');
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                //may be caused by wrong camera IP or NVR connection issues
+                $result .= $this->messages->getStyledMessage(__('Cant detect mismatch warning state for camera') . ' ' . $cameraIp, 'warning'); // Awesome Oo
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Camera') . ' ' . __('Not exists') . ' [' . $cameraId . ']', 'error');
+        }
+        return($result);
+    }
+
+    /**
      * Rders camera DVR registering form if its not registered yet
      * 
      * @param int $cameraId
@@ -1585,6 +1630,9 @@ class UbillingVisor {
                 if (isset($allCameraIps[$cameraIp])) {
                     $successLabel = __('Camera') . ': ' . __('Registered') . ' ' . __('On') . ' ' . __('DVR') . ' ' . $dvrData['name'];
                     $result .= $this->messages->getStyledMessage($successLabel, 'success');
+                    //Model mismatch disabling interface
+                    $curMissmatchState = $trassir->getModelMismatch($cameraIp);
+                    $result .= $this->renderTrassirCameraMismatchForm($cameraId, $curMissmatchState);
                 } else {
                     //here registering form.. MB...
                     $result .= $this->messages->getStyledMessage(__('Camera is not registered at') . ' ' . $dvrData['name'], 'warning');
