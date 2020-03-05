@@ -30,6 +30,20 @@ class OnuMaster {
     public $deregister = '';
 
     /**
+     * Placeholder for OnuDelete class
+     *
+     * @var object
+     */
+    public $delete = '';
+
+    /**
+     * Flag to determine if a particular user has an attached ONU actually
+     *
+     * @var bool
+     */
+    public $userHasONU = false;
+
+    /**
      * Contains system alter config
      *
      * @var array
@@ -43,15 +57,29 @@ class OnuMaster {
      */
     public function __construct($login) {
         $this->loadAlter();
+        $onuData = array();
+
         if ($this->altCfg['ONUAUTO_CONFIG_DESCRIBE']) {
             $this->describe = new OnuDescribe($login);
+            $onuData = $this->describe->getDataONU();
         }
+
         if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
             $this->reboot = new OnuReboot($login);
+            $onuData = $this->reboot->getDataONU();
         }
+
         if (isset($this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) and $this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) {
             $this->deregister = new OnuDeregister($login);
+            $onuData = $this->deregister->getDataONU();
         }
+
+        if (isset($this->altCfg['ONUAUTO_CONFIG_DELETE']) and $this->altCfg['ONUAUTO_CONFIG_DELETE']) {
+            $this->delete = new OnuDelete($login);
+            $onuData = $this->delete->getDataONU();
+        }
+
+        $this->userHasONU = (!empty($onuData));
     }
 
     //data loader function
@@ -67,24 +95,40 @@ class OnuMaster {
     }
 
     //view function
+
     /**
      * Renders main window for managing ONU.
-     * 
-     * @param string $login
-     * 
-     * @return void
+     *
+     * @param $login
+     *
+     * @throws Exception
      */
     public function renderMain($login) {
+        $windowContents = '';
+
         if (!empty($login)) {
-            if ($this->altCfg['ONUAUTO_CONFIG_DESCRIBE']) {
-                show_window('', $this->describe->DescribeForm($login));
+            if ($this->userHasONU) {
+                if ($this->altCfg['ONUAUTO_CONFIG_DESCRIBE']) {
+                    $windowContents.= $this->describe->DescribeForm($login) . wf_delimiter(0);
+                }
+
+                if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
+                    $windowContents.= $this->reboot->rebootForm() . wf_delimiter(0);
+                }
+
+                if (isset($this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) and $this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) {
+                    $windowContents.= $this->deregister->deregForm() . wf_delimiter(0);
+                }
+
+                if (isset($this->altCfg['ONUAUTO_CONFIG_DELETE']) and $this->altCfg['ONUAUTO_CONFIG_DELETE']) {
+                    $windowContents.= $this->delete->delForm() . wf_delimiter(0);
+                }
+            } else {
+                $windowContents = show_error(__('User has no ONU assigned'));
             }
-            if ($this->altCfg['ONUAUTO_CONFIG_REBOOT']) {
-                show_window('', $this->reboot->RebootForm());
-            }
-            if (isset($this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) and $this->altCfg['ONUAUTO_CONFIG_DEREGISTER']) {
-                show_window('', $this->deregister->deregForm());
-            }
+
+            show_window(__('ONU operations for login') . ':' . wf_nbsp(2) . $login, $windowContents);
+            show_window('', web_UserControls($login));
         }
     }
 

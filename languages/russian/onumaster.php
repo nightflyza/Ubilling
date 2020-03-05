@@ -38,4 +38,14 @@ $lang['def']['Registered ONU count is'] = 'Количество зарегист
 $lang['def']['Ask for new license. ETTO cards not supported for 64+ ONT installation in this license version.'] = 'Запросите новую лицензию. ETTO карта для 64+ ONU не поддерживается в текущей версии лицензии.';
 $lang['def']['Function is not supported by this OLT'] = 'Функция не поддерживатся данным OLT';
 $lang['def']['Deregister onu'] = 'Дерегистрировать ONU';
+$lang['def']['Delete onu'] = 'Удалить ONU';
+$lang['def']['SNMP template is not found or not exists'] = 'Шаблон SNMP не найден или не существует';
+$lang['def']['ONU data is empty'] = 'Отсутствуют данные по ONU';
+$lang['def']['Wrong MAC format (should be XX:XX:XX:XX:XX:XX)'] = 'Некорректный формат MAC адреса (должен быть XX:XX:XX:XX:XX:XX)';
+$lang['def']['Essential SNMP options are missing in template'] = 'В шаблоне осутствуют необходимые SNMP опции';
+$lang['def']['Operation unsuccessful'] = 'Операция завершилась неудачей';
+$lang['def']['ONU not found'] = 'ONU не найдена';
+$lang['def']['IMPORTANT NOTE: before ONU deletion it must be set offline, like with reboot action'] = 'ВАЖНОЕ ЗАМЕЧАНИЕ: перед удалением ONU переведите её в режим оффлайн, например - перезагрузив её';
+$lang['def']['ONU operations for login'] = 'Манипуляции с ONU для логина';
+$lang['def']['User has no ONU assigned'] = 'Пользователь не имеет ассоциированных ONU';
 

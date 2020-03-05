@@ -20,6 +20,7 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
 
             // Constants of class:
             const FORM_NAME = 'opts';
+            const URL_NAS_LIST = '?module=nas';
 
             public function __construct() {
                 /* Filter NAS'es id: */
@@ -196,7 +197,11 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
             if (isset($_POST[$obj::FORM_NAME])) {
                 $obj->save();
             }
-            show_window(__('MikroTik extended configuration'), $obj->render());
+
+            $backLink = wf_Plate(wf_BackLink($obj::URL_NAS_LIST, __('Network Access Servers')), '100%', '', '', 'text-align: center;');
+            $backLink.= wf_CleanDiv();
+
+            show_window(__('MikroTik extended configuration'), $obj->render() . wf_delimiter(0) . $backLink);
         } else
             show_window(__('Error'), __('No NAS was selected to add options!'));
     } else

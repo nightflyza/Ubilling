@@ -1,6 +1,6 @@
 <?php
 
-class OnuDeregister extends OnuBase {
+class OnuDelete extends OnuBase {
 
     /**
      * Performs ONU deregistration
@@ -9,7 +9,7 @@ class OnuDeregister extends OnuBase {
      *
      * @throws Exception
      */
-    public function deregOnu() {
+    public function deleteOnu() {
         if (empty($this->snmpTemplateParsed)) {
             $this->displayMessage = __('SNMP template is not found or not exists');
             return (false);
@@ -31,13 +31,13 @@ class OnuDeregister extends OnuBase {
                 $macValType  = $snmpData['signal']['MACVALUE'];
 
                 if ($snmpControlMode == 'VSOL_1600D') {
-                    $reloadPONIdx = $snmpData['onu']['DEREGPONINDEX'];
-                    $reloadONUIdx = $snmpData['onu']['DEREGONUINDEX'];
+                    $reloadPONIdx = $snmpData['onu']['DELETEPONINDEX'];
+                    $reloadONUIdx = $snmpData['onu']['DELETEONUINDEX'];
                 }
 
                 if ($snmpControlMode == 'STELSFD11') {
                     $reloadOperIdx = $snmpData['onu']['OPERATION'];
-                    $reloadOperNum = $snmpData['onu']['DEREG'];
+                    $reloadOperNum = $snmpData['onu']['DELETE'];
                 }
 
                 $macIndexFull = $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $macIndexOID);
@@ -99,14 +99,17 @@ class OnuDeregister extends OnuBase {
     }
 
     /**
-     * Returns ONU deregister button
+     * Returns ONU delete button
      *
      * @return string
      */
-    public function deregForm() {
-        $Inputs = wf_SubmitClassed('true', 'vlanButton', 'DeregOnu', __('Deregister onu'));
-        $Form = wf_Form("", 'POST', $Inputs);
-        return($Form);
+    public function delForm() {
+        $inputs = wf_SubmitClassed('true', 'vlanButton', 'DeleteOnu', __('Delete onu'));
+        $inputs.= wf_tag('p', false, '', 'style="margin-left: 10px;"');
+        $inputs.= __('IMPORTANT NOTE: before ONU deletion it must be set offline, like with reboot action');
+        $inputs.= wf_tag('p', true);
+        $form = wf_Form("", 'POST', $inputs);
+        return($form);
     }
 
 }
