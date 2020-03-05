@@ -1533,9 +1533,11 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
  * @param string $width   Widget width
  * @param string $height  Widget height
  * @param string $class   Widget class to assign
+ * @param string $opts    Widget style options. Do not include style="..."
+ *
  * @return string
  */
-function wf_Plate($content, $width = '', $height = '', $class = '') {
+function wf_Plate($content, $width = '', $height = '', $class = '', $opts = '') {
     if ($width != '') {
         $width = 'width: ' . $width . ';';
     }
@@ -1550,7 +1552,7 @@ function wf_Plate($content, $width = '', $height = '', $class = '') {
     }
 
     $result = '
-        <div style="' . $width . ' ' . $height . ' float: left;" ' . $class . '>
+        <div style="' . $width . ' ' . $height . ' float: left; ' . $opts . ' " ' . $class . '>
 		' . $content . '
         </div>
         ';
@@ -2606,12 +2608,13 @@ var dataView = new google.visualization.DataView(data);
  * @param string $title Link title
  * @param bool $br Line break line after link
  * @param string $class Link class name
+ * @param string $opts Link style or attributes
  * 
  * @return string
  */
-function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton') {
+function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton', $opts = '') {
     $title = (empty($title)) ? __('Back') : __($title);
-    $result = wf_Link($url, wf_img('skins/back.png') . ' ' . $title, $br, $class);
+    $result = wf_Link($url, wf_img('skins/back.png') . ' ' . $title, $br, $class, $opts);
     return ($result);
 }
 

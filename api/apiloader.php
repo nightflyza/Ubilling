@@ -108,6 +108,8 @@ include('api/libs/api.messagesqueue.php');
 include('api/libs/api.wcpe.php');
 include('api/libs/api.mtsigmon.php');
 include('api/libs/api.taskbar.php');
+include('api/libs/api.onubase.php');
+include('api/libs/api.onudelete.php');
 include('api/libs/api.onuregister.php');
 include('api/libs/api.onureboot.php');
 include('api/libs/api.onuderegister.php');
