@@ -4,8 +4,13 @@
 if ($_GET['action'] == 'getagentdata') {
     if (isset($_GET['param'])) {
         $userLogin = $_GET['param'];
-        $allUserAddress = zb_AddressGetFulladdresslistCached();
-        $userAddress = @$allUserAddress[$userLogin];
+        $allUserData = zb_UserGetAllDataCache();
+        if (isset($allUserData[$userLogin])) {
+            $userData = $allUserData[$userLogin];
+            $userAddress = $userData['cityname'] . ' ' . $userData['streetname'] . ' ' . $userData['buildnum'] . '/' . $userData['apt'];
+        } else {
+            $userAddress = '';
+        }
         $agentData = zb_AgentAssignedGetDataFast($userLogin, $userAddress);
         die(json_encode($agentData));
     } else {

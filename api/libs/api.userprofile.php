@@ -1146,7 +1146,12 @@ class UserProfile {
     protected function getAgentsControls() {
         $result = '';
         if ($this->alterCfg['AGENTS_ASSIGN'] == 2) {
-            $assignedAgentData = zb_AgentAssignedGetDataFast($this->login, $this->useraddress);
+            if (@$this->alterCfg['CITY_DISPLAY']) {
+                $userAddress = $this->useraddress;
+            } else {
+                $userAddress = @$this->AllUserData[$this->login]['cityname'] . ' ' . $this->useraddress;
+            }
+            $assignedAgentData = zb_AgentAssignedGetDataFast($this->login, $userAddress);
             $result = $this->addRow(__('Contrahent name'), @$assignedAgentData['contrname']);
         }
         return ($result);
