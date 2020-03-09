@@ -643,7 +643,7 @@ class TrinityTv {
                 $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_TARIFFS . '&deletetariffid=' . $tariff['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit tariff'), $this->tariffEditForm($tariff['id']));
                 $cells .= wf_TableCell($actLinks);
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
 
