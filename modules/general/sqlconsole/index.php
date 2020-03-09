@@ -42,20 +42,20 @@ if ($system->checkForRight('SQLCONSOLE')) {
 
     //module controls
     $devConControls = '';
-    $devConControls.=wf_Link("?module=sqlconsole", wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
-    $devConControls.=wf_Link("?module=sqlconsole&devconsole=true", wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
+    $devConControls .= wf_Link("?module=sqlconsole", wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
+    $devConControls .= wf_Link("?module=sqlconsole&devconsole=true", wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
     $migrationControls = '';
     if (cfr('ROOT')) {
-        $migrationControls.=wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
-        $migrationControls.=wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2', false, 'ubButton');
-        $migrationControls.=wf_Link("?module=migration2_ukv", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2 UKV', false, 'ubButton');
+        $migrationControls .= wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
+        $migrationControls .= wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2', false, 'ubButton');
+        $migrationControls .= wf_Link("?module=migration2_ukv", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2 UKV', false, 'ubButton');
     }
     if (cfr('MIKMIGR')) {
-        $migrationControls.=wf_Link("?module=mikbill_migration", wf_img('skins/ukv/dollar.png') . ' ' . __('Migration') . ' MikBiLL', false, 'ubButton');
+        $migrationControls .= wf_Link("?module=mikbill_migration", wf_img('skins/ukv/dollar.png') . ' ' . __('Migration') . ' MikBiLL', false, 'ubButton');
     }
 
-    $devConControls.=wf_modalAuto(wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), __('Migration'), $migrationControls, 'ubButton');
-    $devConControls.=wf_tag('br');
+    $devConControls .= wf_modalAuto(wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), __('Migration'), $migrationControls, 'ubButton');
+    $devConControls .= wf_tag('br');
 
 //construct query forms
     $sqlinputs = $devConControls;
@@ -68,9 +68,9 @@ if ($system->checkForRight('SQLCONSOLE')) {
     } else {
         $startQuery = '';
     }
-    $sqlinputs.=wf_TextArea('sqlq', '', $startQuery, true, '80x10');
-    $sqlinputs.=wf_CheckInput('tableresult', 'Display query result as table', true, false);
-    $sqlinputs.=wf_Submit('Process query');
+    $sqlinputs .= wf_TextArea('sqlq', '', $startQuery, true, '80x10');
+    $sqlinputs .= wf_CheckInput('tableresult', 'Display query result as table', true, false);
+    $sqlinputs .= wf_Submit('Process query');
     $sqlform = wf_Form('', 'POST', $sqlinputs, 'glamour');
 
     $phpinputs = $devConControls;
@@ -92,9 +92,9 @@ if ($system->checkForRight('SQLCONSOLE')) {
             $runcode = '';
         }
     }
-    $phpinputs.=wf_TextArea('phpq', '', $runcode, true, '80x10');
-    $phpinputs.=wf_CheckInput('phphightlight', 'Hightlight this PHP code', true, true);
-    $phpinputs.=wf_Submit('Run this code inside framework');
+    $phpinputs .= wf_TextArea('phpq', '', $runcode, true, '80x10');
+    $phpinputs .= wf_CheckInput('phphightlight', 'Hightlight this PHP code', true, true);
+    $phpinputs .= wf_Submit('Run this code inside framework');
     $phpform = wf_Form('?module=sqlconsole&devconsole=true', 'POST', $phpinputs, 'glamour');
 
 //php console grid assemble
@@ -106,7 +106,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
         } else {
             $punchCreateForm = '';
         }
-        $phpcells.= wf_TableCell($punchCreateForm, '50%', '', 'valign="top"');
+        $phpcells .= wf_TableCell($punchCreateForm, '50%', '', 'valign="top"');
     } else {
         if (wf_CheckGet(array('editscript'))) {
             //show scripts edit form
@@ -115,18 +115,18 @@ if ($system->checkForRight('SQLCONSOLE')) {
             } else {
                 $punchEditForm = '';
             }
-            $phpcells.=wf_TableCell($punchEditForm, '50%', '', 'valign="top"');
+            $phpcells .= wf_TableCell($punchEditForm, '50%', '', 'valign="top"');
         } else {
             //show scripts list
             if ($punchScriptsAvail) {
                 $punchScriptsList = $onePunch->renderScriptsList();
-                $punchScriptsList.=wf_tag('br');
-                $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create') . ' ' . __('One-Punch') . ' ' . __('Script'), true, 'ubButton');
+                $punchScriptsList .= wf_tag('br');
+                $punchScriptsList .= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create') . ' ' . __('One-Punch') . ' ' . __('Script'), true, 'ubButton');
             } else {
                 $punchScriptsList = '';
             }
 
-            $phpcells.= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
+            $phpcells .= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
         }
     }
 
@@ -149,7 +149,6 @@ if ($system->checkForRight('SQLCONSOLE')) {
             log_register('SQLCONSOLE ' . $stripquery);
             ob_start();
 
-            // commented due Den1xxx patch
             if (!extension_loaded('mysql')) {
                 $queried = mysqli_query($loginDB, $newquery);
             } else {
@@ -185,12 +184,12 @@ if ($system->checkForRight('SQLCONSOLE')) {
                     $tablerows = '';
                     foreach ($query_result as $eachresult) {
                         $tablecells = wf_TableCell('');
-                        $tablecells.=wf_TableCell('');
-                        $tablerows.=wf_TableRow($tablecells, 'row1');
+                        $tablecells .= wf_TableCell('');
+                        $tablerows .= wf_TableRow($tablecells, 'row1');
                         foreach ($eachresult as $io => $key) {
                             $tablecells = wf_TableCell($io);
-                            $tablecells.=wf_TableCell($key);
-                            $tablerows.=wf_TableRow($tablecells, 'row3');
+                            $tablecells .= wf_TableCell($key);
+                            $tablerows .= wf_TableRow($tablecells, 'row3');
                         }
                     }
                     $vdump = wf_TableBody($tablerows, '100%', '0', '');
@@ -229,6 +228,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             show_window(__('Result'), __('Empty code part received'));
         }
     }
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }
