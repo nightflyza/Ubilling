@@ -1346,7 +1346,7 @@ class ExistentialHorse {
                 $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
                     $result .= wf_gchartsLine($ukvfChartData, __('UKV finance'), '100%', '300px', $chartsOptions);
-                    $result .= wf_gchartsLine($ukvarpuChartData, __('ARPU'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($ukvarpuChartData, __('UKV') . ' ' . __('ARPU'), '100%', '300px', $chartsOptions);
                 }
             }
 
