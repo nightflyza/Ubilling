@@ -1095,7 +1095,8 @@ class ExistentialHorse {
         $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count')));
         $arpuChartsData = array(0 => array(__('Month'), __('ARPU'), __('ARPAU')));
         $ukvChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Illegal'), __('Complex'), __('Social'), __('Signups')));
-        $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU'), __('Debt')));
+        $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('Debt')));
+        $ukvarpuChartData = array(0 => array(__('Month'), __('ARPU'), __('ARPAU')));
         $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
         $askoziaChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
 
@@ -1338,12 +1339,14 @@ class ExistentialHorse {
                         $rows .= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
-                        $ukvfChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_arpu'], $each['c_arpau'], $each['c_totaldebt']);
+                        $ukvfChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_totaldebt']);
+                        $ukvarpuChartData[] = array($yearDisplay . $months[$monthNum], $each['c_arpu'], $each['c_arpau']);
                     }
                 }
                 $result .= wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
                     $result .= wf_gchartsLine($ukvfChartData, __('UKV finance'), '100%', '300px', $chartsOptions);
+                    $result .= wf_gchartsLine($ukvarpuChartData, __('ARPU'), '100%', '300px', $chartsOptions);
                 }
             }
 
