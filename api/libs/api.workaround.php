@@ -1867,7 +1867,22 @@ function web_PaymentsShowGraph($year) {
             }
         }
         //extracting all of needed payments in one query
-        $allYearPayments_q = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ`>'0' " . $dopWhere;
+        if ($ubillingConfig->getAlterParam('REPORT_FINANCE_CONSIDER_NEGATIVE')) {
+            // ugly way to get payments with negative sums
+            // performance degradation is kinda twice
+            $allYearPayments_q = "(SELECT * FROM `payments` 
+                                        WHERE `date` LIKE '" . $year . "-%' AND `summ` < '0' 
+                                            AND note NOT LIKE 'Service:%' 
+                                            AND note NOT LIKE 'PENALTY%' 
+                                            AND note NOT LIKE 'OMEGATV%' 
+                                            AND note NOT LIKE 'MEGOGO%' 
+                                            AND note NOT LIKE 'TRINITYTV%' " . $dopWhere . ") 
+                                  UNION ALL 
+                                  (SELECT * FROM `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > '0' " . $dopWhere . ")";
+        } else {
+            $allYearPayments_q = "SELECT * FROM `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > '0' " . $dopWhere;
+        }
+
         $allYearPayments = simple_queryall($allYearPayments_q);
         if (!empty($allYearPayments)) {
             foreach ($allYearPayments as $idx => $eachYearPayment) {
