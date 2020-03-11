@@ -2527,11 +2527,15 @@ function ts_PrintDialogue() {
             $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
-        $inputs .= ts_AdvFiltersControls();
+        $submitOpts = '';
+        if ($advFiltersEnabled) {
+            $inputs .= ts_AdvFiltersControls();
+            $submitOpts = ' style="width: 85%; height: 1.7em; font-weight: 700; margin-top: 10px; margin-left: 29px;" ';
+        }
     }
 
     $inputs .= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
-    $inputs .= wf_Submit(__('Print'));
+    $inputs .= wf_Submit(__('Print'), '', $submitOpts);
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     return ($result);
 }
