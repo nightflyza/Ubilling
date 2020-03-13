@@ -44,7 +44,7 @@ if ($user_ip) {
         //announcements notice
         if (isset($us_config['AN_ENABLED'])) {
             if ($us_config['AN_ENABLED']) {
-                zbs_AnnouncementsNotice();
+                zbs_AnnouncementsNotice($user_login);
             }
         }
 
