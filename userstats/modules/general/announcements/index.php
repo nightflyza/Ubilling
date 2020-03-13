@@ -97,6 +97,11 @@ if ($us_config['AN_ENABLED']) {
         $anReadId = vf($_GET['anmarkasread'], 3);
         zbs_AnnouncementsLogPush($user_login, $anReadId);
     }
+    if (isset($_POST['anmarkasread'])) {
+        $anReadId = vf($_POST['anmarkasread'], 3);
+        zbs_AnnouncementsLogPush($user_login, $anReadId);
+    }
+
     // delete logging 
     if (isset($_GET['anmarkasunread'])) {
         $anReadId = vf($_GET['anmarkasunread'], 3);

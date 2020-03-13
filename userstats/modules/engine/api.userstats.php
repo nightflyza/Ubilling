@@ -1935,13 +1935,35 @@ function zbs_CustomBackground() {
  * @return bool
  */
 function zbs_AnnouncementsAvailable($login) {
+    global $us_config;
     $login = mysql_real_escape_string($login);
-    $query = "SELECT `zbsannouncements`.`id`,  `zbh`.`annid` from `zbsannouncements` LEFT JOIN (SELECT * FROM `zbsannhist` WHERE `login` = '" . $login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' AND `annid` IS NULL";
+    $query = "SELECT `zbsannouncements`.*, `zbh`.`annid` from `zbsannouncements` LEFT JOIN (SELECT `annid` FROM `zbsannhist` WHERE `login` = '" . $login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' AND `annid` IS NULL ORDER BY `zbsannouncements`.`id` DESC LIMIT 1";
     $data = simple_queryall($query);
     if (!empty($data)) {
-        $result = true;
+        if (isset($us_config['AN_MODAL']) AND !empty($us_config['AN_MODAL'])) {
+            $inputs = '';
+            $inputs.= la_tag('br');
+            $inputs.= la_HiddenInput('anmarkasread', $data[0]['id']);
+
+            if ($data[0]['type'] == 'text') {
+                $eachtext = strip_tags($data[0]['text']);
+                $inputs.= nl2br($eachtext);
+            }
+
+            if ($data[0]['type'] == 'html') {
+                $inputs.= $data[0]['text'];
+            }
+            $inputs.= la_tag('br');
+            $inputs.= la_tag('br');
+            $inputs.= la_Submit('Mark as read');
+            $form = la_Form('/?module=announcements', "POST", $inputs, 'glamour');
+
+            $result = la_modalOpened($data[0]['title'], $form);
+        } else {
+            $result = TRUE;
+        }
     } else {
-        $result = false;
+        $result = FALSE;
     }
     return ($result);
 }
@@ -1956,10 +1978,13 @@ function zbs_AnnouncementsNotice($login) {
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
     if (zbs_AnnouncementsAvailable($login)) {
+        if (zbs_AnnouncementsAvailable($login) !== TRUE) {
+            $result.= zbs_AnnouncementsAvailable($login);
+        }
         $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
         $cells .= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
         $rows = la_TableRow($cells);
-        $result .= la_TableBody($rows, '100%', 0, 'announcementstable');
+        $result.= la_TableBody($rows, '100%', 0, 'announcementstable');
         show_window('', $result);
     }
 }
