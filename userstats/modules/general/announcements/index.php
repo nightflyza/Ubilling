@@ -23,25 +23,19 @@ function zbs_AnnouncementsLogPush($user_login, $annid) {
 }
 
 /**
- * Loads list of all announcements displayed for user earlier
+ * Delete logs announcements display for users from database
  * 
- * @param string $user_login
+ * @param int $id
  * 
- * @return array
+ * @return void
  */
-function zbs_AnnouncementsReadHistory($user_login) {
+function zbs_AnnouncementsLogDel($user_login, $annid) {
+    $annid = vf($annid, 3);
     $user_login = mysql_real_escape_string($user_login);
-    $result = array();
-    if (!empty($user_login)) {
-        $query = "SELECT * from `zbsannhist` WHERE `login`='" . $user_login . "';";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $result[$each['annid']] = $each['date'];
-            }
-        }
+    if ((!empty($user_login)) AND ( !empty($annid))) {
+        $query = "DELETE FROM `zbsannhist` WHERE `zbsannhist`.`login` = '" . $user_login . "' AND `annid` = '". $annid . "'";
+        nr_query($query);
     }
-    return ($result);
 }
 
 /**
@@ -55,15 +49,15 @@ function zbs_AnnouncementsReadHistory($user_login) {
 function zbs_AnnouncementsShow() {
     global $user_login;
     global $us_config;
+    $user_login = mysql_real_escape_string($user_login);
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
-    $query = "SELECT * from `zbsannouncements` WHERE `public`='1' ORDER by `id` DESC";
+    $query = "SELECT * from `zbsannouncements` LEFT JOIN (SELECT `annid` FROM `zbsannhist` WHERE `login` = '" . $user_login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' ORDER by `id` DESC";
     $all = simple_queryall($query);
     $result = '';
     if (!empty($all)) {
-        $annHistory = zbs_AnnouncementsReadHistory($user_login);
         foreach ($all as $io => $each) {
-            if (!isset($_COOKIE['zbsanread_' . $each['id']])) {
+            if (empty($each['annid'])) {
                 $readControl = la_Link('?module=announcements&anmarkasread=' . $each['id'], la_img($iconsPath . 'anunread.gif', __('Mark as read'))) . ' ';
                 $readButton = la_Link('?module=announcements&anmarkasread=' . $each['id'], __('Mark as read'), false, 'anunreadbutton');
             } else {
@@ -80,10 +74,6 @@ function zbs_AnnouncementsShow() {
             if ($each['type'] == 'html') {
                 $result .= $each['text'];
             }
-            //display logging 
-            if (!isset($annHistory[$each['id']])) {
-                zbs_AnnouncementsLogPush($user_login, $each['id']);
-            }
 
             //additional read/unread buttons
             if (@$us_config['AN_BUTTONS']) {
@@ -92,6 +82,8 @@ function zbs_AnnouncementsShow() {
 
             $result .= la_delimiter();
         }
+
+
     } else {
         show_window(__('Sorry'), __('There are not any announcements.'));
     }
@@ -100,6 +92,17 @@ function zbs_AnnouncementsShow() {
 }
 
 if ($us_config['AN_ENABLED']) {
+    // set logging 
+    if (isset($_GET['anmarkasread'])) {
+        $anReadId = vf($_GET['anmarkasread'], 3);
+        zbs_AnnouncementsLogPush($user_login, $anReadId);
+    }
+    // delete logging 
+    if (isset($_GET['anmarkasunread'])) {
+        $anReadId = vf($_GET['anmarkasunread'], 3);
+        zbs_AnnouncementsLogDel($user_login, $anReadId);
+    }
+
     zbs_AnnouncementsShow();
 } else {
     show_window(__('Sorry'), __('This module is disabled'));

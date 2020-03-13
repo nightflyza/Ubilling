@@ -1934,17 +1934,12 @@ function zbs_CustomBackground() {
  * 
  * @return bool
  */
-function zbs_AnnouncementsAvailable() {
-    $query = "SELECT `id` from `zbsannouncements` WHERE `public`='1';";
+function zbs_AnnouncementsAvailable($login) {
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT `zbsannouncements`.`id`,  `zbh`.`annid` from `zbsannouncements` LEFT JOIN (SELECT * FROM `zbsannhist` WHERE `login` = '" . $login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' AND `annid` IS NULL";
     $data = simple_queryall($query);
-    $result = false;
     if (!empty($data)) {
-        foreach ($data as $io => $each) {
-            if (!isset($_COOKIE['zbsanread_' . $each['id']])) {
-                $result = true;
-                break;
-            }
-        }
+        $result = true;
     } else {
         $result = false;
     }
@@ -1956,11 +1951,11 @@ function zbs_AnnouncementsAvailable() {
  * 
  * @return void
  */
-function zbs_AnnouncementsNotice() {
+function zbs_AnnouncementsNotice($login) {
     $result = '';
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
-    if (zbs_AnnouncementsAvailable()) {
+    if (zbs_AnnouncementsAvailable($login)) {
         $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
         $cells .= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
         $rows = la_TableRow($cells);

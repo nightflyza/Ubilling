@@ -56,18 +56,6 @@ if ($statsconfig['auth'] == 'login' OR $statsconfig['auth'] == 'both') { //if en
     }
 }
 
-//mark announcements as read/unread
-if (isset($_GET['anmarkasread'])) {
-    $anReadId = vf($_GET['anmarkasread']);
-    setcookie("zbsanread_" . $anReadId, $anReadId, time() + 31104000);
-    rcms_redirect('?module=announcements');
-}
-if (isset($_GET['anmarkasunread'])) {
-    $anUnreadId = vf($_GET['anmarkasunread']);
-    setcookie("zbsanread_" . $anUnreadId, '', time() - 3600);
-    rcms_redirect('?module=announcements');
-}
-
 /**
  * Returns userstats config as array
  * 
