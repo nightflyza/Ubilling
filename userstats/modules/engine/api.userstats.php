@@ -1956,7 +1956,7 @@ function zbs_AnnouncementsAvailable($login) {
             $inputs.= la_tag('br');
             $inputs.= la_tag('br');
             $inputs.= la_Submit('Mark as read');
-            $form = la_Form('/?module=announcements', "POST", $inputs, 'glamour');
+            $form = la_Form('?module=announcements', "POST", $inputs, 'glamour');
 
             $result = la_modalOpened($data[0]['title'], $form);
         } else {
@@ -1977,9 +1977,10 @@ function zbs_AnnouncementsNotice($login) {
     $result = '';
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
-    if (zbs_AnnouncementsAvailable($login)) {
-        if (zbs_AnnouncementsAvailable($login) !== TRUE) {
-            $result.= zbs_AnnouncementsAvailable($login);
+    $availableAnnouncements=zbs_AnnouncementsAvailable($login);
+    if ($availableAnnouncements) {
+        if ($availableAnnouncements !== TRUE) {
+            $result.= $availableAnnouncements;
         }
         $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
         $cells .= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
