@@ -2512,6 +2512,7 @@ function ts_PrintDialogue() {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
+    $submitOpts = '';
     $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
     $inputs .= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
 
@@ -2527,7 +2528,6 @@ function ts_PrintDialogue() {
             $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
-        $submitOpts = '';
         if ($advFiltersEnabled) {
             $inputs .= ts_AdvFiltersControls();
             $submitOpts = ' style="width: 85%; height: 1.7em; font-weight: 700; margin-top: 10px; margin-left: 29px;" ';
