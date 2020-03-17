@@ -1252,26 +1252,28 @@ class Banksta2 {
         $insatiability   = false;
 
         if ($dreamkasEnabled and wf_CheckPost(array('bankstapaymentsfiscalize'))) {
+            $DreamKas = null;
             $greed = new Avarice();
             $insatiability = $greed->runtime('DREAMKAS');
-            if (!empty($insatiability)) {
+
+            /*if (!empty($insatiability)) {
                 $DreamKas = new DreamKas();
-            }
+            }*/
 
             $needToFiscalize = true;
             $fiscalDataArray = json_decode(base64_decode($_POST['bankstapaymentsfiscalize']), true);
-            $DreamKas = new DreamKas();
+            //$DreamKas = new DreamKas();
 
             if ($refiscalize) {
                 $paymentsToPush = array();
                 $bs2RecIDs = implode(',', array_keys($fiscalDataArray));
-                $tQuery = "(SELECT `contracts`.`login` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `payid`, `service_type` AS `service` 
+                $tQuery = "(SELECT `contracts`.`login` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `pdate`, `ptime`, `payid`, `service_type` AS `service` 
                                   FROM `" . self::BANKSTA2_TABLE . "` 
                                     RIGHT JOIN `contracts` ON `" . self::BANKSTA2_TABLE . "`.`contract` = `contracts`.`contract` 
                                                               AND `" . self::BANKSTA2_TABLE . "`.`service_type` = 'Internet'
                                   WHERE `" . self::BANKSTA2_TABLE . "`.`id` IN (" . $bs2RecIDs . "))
                                UNION 
-                               (SELECT `ukv_users`.`id` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `payid`, `service_type` AS `service` 
+                               (SELECT `ukv_users`.`id` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `pdate`, `ptime`, `payid`, `service_type` AS `service` 
                                   FROM `" . self::BANKSTA2_TABLE . "` 
                                     RIGHT JOIN `ukv_users` ON `" . self::BANKSTA2_TABLE . "`.`contract` = `ukv_users`.`contract` 
                                                               AND `" . self::BANKSTA2_TABLE . "`.`service_type` = 'UKV'
@@ -1300,7 +1302,8 @@ class Banksta2 {
                     if ($this->checkBankstaRowIsUnprocessed($eachRecID)) {
                         $cashType = $eachRec['payid'];
                         $operation = 'add';
-                        $paymentNote = 'BANKSTA2: [' . $eachRecID . '] ASCONTRACT ' . $eachRec['usercontract'];
+                        $paymentDayTimeNote = (empty($eachRec['pdate'])) ? '' : ' ON ' . $eachRec['pdate'] . ' ' . $eachRec['ptime'];
+                        $paymentNote = 'BANKSTA2: [' . $eachRecID . '] ASCONTRACT ' . $eachRec['usercontract'] . $paymentDayTimeNote;
 
                         if (zb_checkMoney($paySumm)) {
                             if (strtolower($eachRec['service']) == 'internet') {
@@ -1356,6 +1359,8 @@ class Banksta2 {
                     and !empty($insatiability)
                     and isset($fiscalDataArray[$eachRecID])
                     and ($paymentSuccessful or $refiscalize) ) {
+
+                    $DreamKas = new DreamKas();
 
                     $rapacity_a = $insatiability['M']['KICKUP'];
                     $rapacity_b = $insatiability['M']['PICKUP'];
@@ -2022,6 +2027,8 @@ class Banksta2 {
                                     $cashPairs[$eachRec['id']]['userlogin'] = $detectedUser['login'];
                                     $cashPairs[$eachRec['id']]['usercontract'] = $detectedUser['contract'];
                                     $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
+                                    $cashPairs[$eachRec['id']]['pdate'] = $eachRec['pdate'];
+                                    $cashPairs[$eachRec['id']]['ptime'] = $eachRec['ptime'];
                                     $cashPairs[$eachRec['id']]['payid'] = $this->inetPaymentId;
                                     $cashPairs[$eachRec['id']]['service'] = $serviceType;
 
@@ -2052,6 +2059,8 @@ class Banksta2 {
                                     $cashPairs[$eachRec['id']]['userlogin'] = $detectedUser['id'];
                                     $cashPairs[$eachRec['id']]['usercontract'] = $detectedUser['contract'];
                                     $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
+                                    $cashPairs[$eachRec['id']]['pdate'] = $eachRec['pdate'];
+                                    $cashPairs[$eachRec['id']]['ptime'] = $eachRec['ptime'];
                                     $cashPairs[$eachRec['id']]['payid'] = $this->ukvPaymentId;
                                     $cashPairs[$eachRec['id']]['service'] = $serviceType;
 
@@ -2113,7 +2122,7 @@ class Banksta2 {
 
                 if ($refiscalize) {
                     $submitCaption = __('Re-fiscalize payments');
-                    $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush',base64_encode(serialize('refiscalize')));
+                    $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush', base64_encode(serialize('refiscalize')));
                     $cashInputs.= wf_HiddenInput('bankstaneedrefiscalize', 'true');
                 } else {
                     $cashPairs = serialize($cashPairs);
