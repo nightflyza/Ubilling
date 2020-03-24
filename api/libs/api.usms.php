@@ -4,6 +4,7 @@
  * SMS queue handling class
  */
 class UbillingSMS {
+
     /**
      * SMS_SERVICES_ADVANCED_ENABLED option state
      *
@@ -48,7 +49,8 @@ class UbillingSMS {
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
         if (!empty($number)) {
             if (ispos($number, '+')) {
-                $message = str_replace(array("\n\r", "\n", "\r"), ' ', $message);
+                $message = str_replace(array("\n\r", "\n", "\r"), ' ', $message); //single line
+                $message = str_replace(array("'", '"'), '`', $message); // dangerous quotes
                 if ($translit) {
                     $message = zb_TranslitString($message);
                 }
@@ -56,7 +58,7 @@ class UbillingSMS {
                 $queueId = 'us_' . zb_rand_string(8);
                 $filename = self::QUEUE_PATH . $queueId;
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
-                $storedata.= 'MESSAGE="' . $message . '"' . "\n";
+                $storedata .= 'MESSAGE="' . $message . '"' . "\n";
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS `' . $number . '`' . $module);
                 $result = $queueId;
@@ -145,6 +147,7 @@ class UbillingSMS {
         }
         return ($result);
     }
+
 }
 
 ?>
