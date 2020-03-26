@@ -140,7 +140,7 @@ class AskoziaNum {
             $userData = $this->cache->get('ASKUSERDATA', self::CACHE_TIME);
             if (empty($userData) or $ignoreCache) {
                 $userData = array();
-                $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline` from `users`");
+                $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline`,`Fee` from `users` LEFT JOIN (SELECT `name`,`Fee` FROM `tariffs`) as T on (`users`.`Tariff`=`T`.`name`)");
                 if (!empty($userDataRaw)) {
                     foreach ($userDataRaw as $io => $each) {
                         $userData[$each['login']] = $each;
@@ -162,6 +162,7 @@ class AskoziaNum {
                 if ($getMoney) {
                     $askReplyArr[] = $askReply;
                     $askReplyArr[] = round($userData['Cash'], 2);
+                    $askReplyArr[] = $userData['Fee'], 2;
                     $askReply = base64_encode(serialize($askReplyArr));
                 }
             }
