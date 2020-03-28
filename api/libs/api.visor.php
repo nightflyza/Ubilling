@@ -1490,7 +1490,7 @@ class UbillingVisor {
                 if (!empty($this->allDvrs[$cameraData['dvrid']]['name'])) {
                     $curCamDvrLabel = $this->allDvrs[$cameraData['dvrid']]['ip'] . ' - ' . $this->allDvrs[$cameraData['dvrid']]['name'];
                 } else {
-                    $curCamDvrLabel = $this->allDvrs[$cameraData['dvrid']]['ip'];
+                    $curCamDvrLabel = @$this->allDvrs[$cameraData['dvrid']]['ip'];
                 }
                 $cells = wf_TableCell(__('DVR'), '30%', 'row2');
                 $cells .= wf_TableCell($curCamDvrLabel);
