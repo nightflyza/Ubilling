@@ -83,28 +83,28 @@ if (cfr('PAYFIND')) {
         $allpaysys = zb_PaySysPercentGetAll();
 
         $inputs = wf_TextInput('newmarker', __('Payment system marker'), '', true, '10');
-        $inputs.= wf_TextInput('newname', __('Payment system name'), '', true, '10');
-        $inputs.= wf_TextInput('newpercent', __('Percent withholding payment system'), '', true, '4');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('newname', __('Payment system name'), '', true, '10');
+        $inputs .= wf_TextInput('newpercent', __('Percent withholding payment system'), '', true, '4');
+        $inputs .= wf_Submit(__('Save'));
         $form = wf_Form("", "POST", $inputs, 'glamour');
         $result = $form;
-        $result.= wf_BackLink("?module=payfind");
+        $result .= wf_BackLink("?module=payfind");
 
         if (!empty($allpaysys)) {
 
             $cells = wf_TableCell(__('Marker'));
-            $cells.= wf_TableCell(__('Name'));
-            $cells.= wf_TableCell(__('Percent'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Percent'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($allpaysys as $marker => $each) {
                 $cells = wf_TableCell($marker);
-                $cells.= wf_TableCell($each['name']);
-                $cells.= wf_TableCell($each['percent']);
-                $cells.= wf_TableCell(wf_JSAlert("?module=payfind&confpaysys=true&delete=" . $marker, web_delete_icon(), __('Removing this may lead to irreparable results')));
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($each['name']);
+                $cells .= wf_TableCell($each['percent']);
+                $cells .= wf_TableCell(wf_JSAlert("?module=payfind&confpaysys=true&delete=" . $marker, web_delete_icon(), __('Removing this may lead to irreparable results')));
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+            $result .= wf_TableBody($rows, '100%', '0', 'sortable');
         }
         return ($result);
     }
@@ -141,7 +141,7 @@ if (cfr('PAYFIND')) {
                 $administratorName = (isset($employeeLogins[$login])) ? $employeeLogins[$login] : $login;
                 $adminlist[$login] = $administratorName;
             }
-
+            $adminlist['openpayz'] = __('OpenPayz');
             $result = wf_Selector('cashier', $adminlist, __('Cashier'), '', true, true);
         }
         return ($result);
@@ -181,14 +181,14 @@ if (cfr('PAYFIND')) {
 
         if (!empty($alltagged)) {
             foreach ($alltagged as $io => $each) {
-                $result.="'" . $each['login'] . "',";
+                $result .= "'" . $each['login'] . "',";
             }
             $result = rtrim($result, ',');
         } else {
-            $result.="'" . zb_rand_string('12') . "'";
+            $result .= "'" . zb_rand_string('12') . "'";
         }
 
-        $result.=') ';
+        $result .= ') ';
         return ($result);
     }
 
@@ -229,48 +229,49 @@ if (cfr('PAYFIND')) {
         }
 
         $inputs = __('Date');
-        $inputs.= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
-        $inputs.= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To');
-        $inputs.= wf_delimiter();
-        $inputs.= wf_CheckInput('type_payid', '', false, false);
-        $inputs.= wf_TextInput('payid', __('Search by payment ID'), '', true, '10');
-        $inputs.= wf_CheckInput('type_contract', '', false, false);
-        $inputs.= wf_TextInput('contract', __('Search by users contract'), '', true, '10');
-        $inputs.= wf_CheckInput('type_login', '', false, false);
-        $inputs.= wf_TextInput('login', __('Search by users login'), '', true, '10');
-        $inputs.= wf_CheckInput('type_loginwildcard', '', false, false);
-        $inputs.= wf_TextInput('loginwildcard', __('Login contains'), '', true, '10');
-        $inputs.= wf_CheckInput('type_summ', '', false, false);
-        $inputs.= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
-        $inputs.= wf_CheckInput('type_payidenc', '', false, false);
-        $inputs.= wf_TextInput('payidenc', __('IDENC'), '', true, '10');
-        $inputs.= wf_CheckInput('type_summgreater', '', false, false);
-        $inputs.= wf_TextInput('paysummgreater', __('Payment summ greater then'), '', true, '10');
-        $inputs.= wf_CheckInput('type_notescontains', '', false, false);
-        $inputs.= wf_TextInput('paynotescontains', __('Notes contains'), '', true, '10');
-        $inputs.= wf_CheckInput('type_cashtype', '', false, false);
-        $inputs.= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
-        $inputs.= wf_CheckInput('type_cashier', '', false, false);
-        $inputs.= web_PayFindCashierSelector();
-        $inputs.= wf_CheckInput('type_tagid', '', false, false);
-        $inputs.= web_PayFindTagidSelector();
-        $inputs.= wf_CheckInput('type_paysys', '', false, false);
-        $inputs.= web_PaySysPercentSelector();
-        $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
-        $inputs.= wf_CheckInput('type_city', '', false, false);
-        $inputs.= web_CitySelector() . ' ' . __('City') . wf_delimiter(0);;
-        $inputs.= wf_CheckInput('type_contragent', '', false, false);
-        $inputs.= zb_ContrAhentSelectPreset() . ' ' . __('Service provider') . wf_delimiter(0);
-        $inputs.= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
-        $inputs.= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, false);
-        $inputs.= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, false);
+        $inputs .= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
+        $inputs .= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To');
+        $inputs .= wf_delimiter();
+        $inputs .= wf_CheckInput('type_payid', '', false, false);
+        $inputs .= wf_TextInput('payid', __('Search by payment ID'), '', true, '10');
+        $inputs .= wf_CheckInput('type_contract', '', false, false);
+        $inputs .= wf_TextInput('contract', __('Search by users contract'), '', true, '10');
+        $inputs .= wf_CheckInput('type_login', '', false, false);
+        $inputs .= wf_TextInput('login', __('Search by users login'), '', true, '10');
+        $inputs .= wf_CheckInput('type_loginwildcard', '', false, false);
+        $inputs .= wf_TextInput('loginwildcard', __('Login contains'), '', true, '10');
+        $inputs .= wf_CheckInput('type_summ', '', false, false);
+        $inputs .= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
+        $inputs .= wf_CheckInput('type_payidenc', '', false, false);
+        $inputs .= wf_TextInput('payidenc', __('IDENC'), '', true, '10');
+        $inputs .= wf_CheckInput('type_summgreater', '', false, false);
+        $inputs .= wf_TextInput('paysummgreater', __('Payment summ greater then'), '', true, '10');
+        $inputs .= wf_CheckInput('type_notescontains', '', false, false);
+        $inputs .= wf_TextInput('paynotescontains', __('Notes contains'), '', true, '10');
+        $inputs .= wf_CheckInput('type_cashtype', '', false, false);
+        $inputs .= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
+        $inputs .= wf_CheckInput('type_cashier', '', false, false);
+        $inputs .= web_PayFindCashierSelector();
+        $inputs .= wf_CheckInput('type_tagid', '', false, false);
+        $inputs .= web_PayFindTagidSelector();
+        $inputs .= wf_CheckInput('type_paysys', '', false, false);
+        $inputs .= web_PaySysPercentSelector();
+        $inputs .= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
+        $inputs .= wf_CheckInput('type_city', '', false, false);
+        $inputs .= web_CitySelector() . ' ' . __('City') . wf_delimiter(0);
+        ;
+        $inputs .= wf_CheckInput('type_contragent', '', false, false);
+        $inputs .= zb_ContrAhentSelectPreset() . ' ' . __('Service provider') . wf_delimiter(0);
+        $inputs .= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
+        $inputs .= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, false);
+        $inputs .= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, false);
         //ugly spacing hack
-        $inputs.= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . web_PayFindTableSelect() . wf_delimiter();
-        $inputs.= wf_HiddenInput('dosearch', 'true');
-        $inputs.= wf_Submit(__('Search'));
+        $inputs .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . web_PayFindTableSelect() . wf_delimiter();
+        $inputs .= wf_HiddenInput('dosearch', 'true');
+        $inputs .= wf_Submit(__('Search'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
-        $result.= wf_BackLink("?module=report_finance");
+        $result .= wf_BackLink("?module=report_finance");
 
         return ($result);
     }
@@ -296,7 +297,7 @@ if (cfr('PAYFIND')) {
         }
         $query = "SELECT * from `" . $table . "`";
 
-        $query.= $joins . $markers;
+        $query .= $joins . $markers;
 
         $csvdata = '';
         $allpayments = simple_queryall($query);
@@ -319,22 +320,22 @@ if (cfr('PAYFIND')) {
         $totalcount = 0;
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('PS%'));
-        $cells.= wf_TableCell(__('Profit'));
-        $cells.= wf_TableCell(__('Login'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('PS%'));
+        $cells .= wf_TableCell(__('Profit'));
+        $cells .= wf_TableCell(__('Login'));
         if ($altercfg['FINREP_CONTRACT']) {
-            $cells.= wf_TableCell(__('Contract'));
+            $cells .= wf_TableCell(__('Contract'));
         }
-        $cells.= wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Full address'));
+        $cells .= wf_TableCell(__('Real Name'));
         if ($altercfg['FINREP_TARIFF']) {
-            $cells.= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Tariff'));
         }
-        $cells.= wf_TableCell(__('Payment type'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Admin'));
+        $cells .= wf_TableCell(__('Payment type'));
+        $cells .= wf_TableCell(__('Notes'));
+        $cells .= wf_TableCell(__('Admin'));
         $rows = wf_TableRow($cells, 'row1');
 
 
@@ -344,11 +345,11 @@ if (cfr('PAYFIND')) {
             } else {
                 $csvTariffColumn = '';
             }
-            $csvdata.=__('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('PS%') . ';' . __('Profit') . ';' . __('Login') . ';' . __('Full address') . ';' . __('Real Name') . $csvTariffColumn . ';' . __('Payment type') . ';' . __('Notes') . ';' . __('Admin') . "\n";
+            $csvdata .= __('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('PS%') . ';' . __('Profit') . ';' . __('Login') . ';' . __('Full address') . ';' . __('Real Name') . $csvTariffColumn . ';' . __('Payment type') . ';' . __('Notes') . ';' . __('Admin') . "\n";
             foreach ($allpayments as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['summ']);
+                $cells .= wf_TableCell($each['date']);
+                $cells .= wf_TableCell($each['summ']);
                 //detecting paymentsystem and calc percent
                 if (isset($allpaysyspercents[$each['note']])) {
                     $currPc = $allpaysyspercents[$each['note']]['percent'];
@@ -359,36 +360,36 @@ if (cfr('PAYFIND')) {
                     $paySysPc = 0;
                     $ourProfit = $each['summ'];
                 }
-                $cells.= wf_TableCell($paySysPc);
-                $cells.= wf_TableCell($ourProfit);
+                $cells .= wf_TableCell($paySysPc);
+                $cells .= wf_TableCell($ourProfit);
 
-                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
+                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
                 if ($altercfg['FINREP_CONTRACT']) {
-                    $cells.= wf_TableCell(@$allcontracts[$each['login']]);
+                    $cells .= wf_TableCell(@$allcontracts[$each['login']]);
                 }
                 @$paymentRealname = $allrealnames[$each['login']];
                 @$paymentCashType = __($alltypes[$each['cashtypeid']]);
                 @$paymentAddress = $alladdress[$each['login']];
                 ;
-                $cells.= wf_TableCell($paymentAddress);
-                $cells.= wf_TableCell($paymentRealname);
+                $cells .= wf_TableCell($paymentAddress);
+                $cells .= wf_TableCell($paymentRealname);
                 if ($altercfg['FINREP_TARIFF']) {
                     @$userTariff = $alltariffs[$each['login']];
-                    $cells.= wf_TableCell($userTariff);
+                    $cells .= wf_TableCell($userTariff);
                     $csvTariff = ';' . $userTariff;
                 } else {
                     $csvTariff = '';
                 }
-                $cells.= wf_TableCell($paymentCashType);
+                $cells .= wf_TableCell($paymentCashType);
                 //payment notes translation
                 if ($altercfg['TRANSLATE_PAYMENTS_NOTES']) {
                     $paynote = zb_TranslatePaymentNote($each['note'], $allservicenames);
                 } else {
                     $paynote = $each['note'];
                 }
-                $cells.= wf_TableCell($paynote);
-                $cells.= wf_TableCell($each['admin']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($paynote);
+                $cells .= wf_TableCell($each['admin']);
+                $rows .= wf_TableRow($cells, 'row3');
 
                 //calculating totals
                 if ($each['summ'] > 0) {
@@ -404,7 +405,7 @@ if (cfr('PAYFIND')) {
                     $profitsumm = $profitsumm + $ourProfit;
                 }
                 $csvSumm = str_replace('.', ',', $each['summ']);
-                $csvdata.=$each['id'] . ';' . $each['date'] . ';' . $csvSumm . ';' . $paySysPc . ';' . $ourProfit . ';' . $each['login'] . ';' . $paymentAddress . ';' . $paymentRealname . $csvTariff . ';' . $paymentCashType . ';' . $paynote . ';' . $each['admin'] . "\n";
+                $csvdata .= $each['id'] . ';' . $each['date'] . ';' . $csvSumm . ';' . $paySysPc . ';' . $ourProfit . ';' . $each['login'] . ';' . $paymentAddress . ';' . $paymentRealname . $csvTariff . ';' . $paymentCashType . ';' . $paynote . ';' . $each['admin'] . "\n";
             }
         }
         //saving report for future download
@@ -421,11 +422,11 @@ if (cfr('PAYFIND')) {
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
 
         //additional total counters
-        $result.=wf_tag('div', false, 'glamour') . __('Count') . ': ' . $totalcount . wf_tag('div', true);
-        $result.=wf_tag('div', false, 'glamour') . __('Total payments') . ': ' . $totalsumm . wf_tag('div', true);
-        $result.=wf_tag('div', false, 'glamour') . __('Payment systems %') . ': ' . $paysyssumm . wf_tag('div', true);
-        $result.=wf_tag('div', false, 'glamour') . __('Our final profit') . ': ' . $profitsumm . wf_tag('div', true);
-        $result.=wf_CleanDiv();
+        $result .= wf_tag('div', false, 'glamour') . __('Count') . ': ' . $totalcount . wf_tag('div', true);
+        $result .= wf_tag('div', false, 'glamour') . __('Total payments') . ': ' . $totalsumm . wf_tag('div', true);
+        $result .= wf_tag('div', false, 'glamour') . __('Payment systems %') . ': ' . $paysyssumm . wf_tag('div', true);
+        $result .= wf_tag('div', false, 'glamour') . __('Our final profit') . ': ' . $profitsumm . wf_tag('div', true);
+        $result .= wf_CleanDiv();
 
         show_window(__('Payments found') . ' ' . $csvDownloadLink, $result);
     }
@@ -473,13 +474,13 @@ if (cfr('PAYFIND')) {
     if (wf_CheckPost(array('datefrom', 'dateto'))) {
         $datefrom = mysql_real_escape_string($_POST['datefrom']);
         $dateto = mysql_real_escape_string($_POST['dateto']);
-        $markers.="WHERE `date` BETWEEN '" . $datefrom . "' AND '" . $dateto . "' ";
+        $markers .= "WHERE `date` BETWEEN '" . $datefrom . "' AND '" . $dateto . "' ";
     }
 
     //payment id search
     if (wf_CheckPost(array('type_payid', 'payid'))) {
         $payid = vf($_POST['payid'], 3);
-        $markers.="AND `id`='" . $payid . "' ";
+        $markers .= "AND `id`='" . $payid . "' ";
     }
 
     //contract search
@@ -489,7 +490,7 @@ if (cfr('PAYFIND')) {
         if (!empty($allcontracts)) {
             if (isset($allcontracts[$contract])) {
                 $contractlogin = $allcontracts[$contract];
-                $markers.="AND `login`='" . $contractlogin . "' ";
+                $markers .= "AND `login`='" . $contractlogin . "' ";
             }
         }
     }
@@ -497,82 +498,82 @@ if (cfr('PAYFIND')) {
     //login payment search
     if (wf_CheckPost(array('type_login', 'login'))) {
         $userlogin = mysql_real_escape_string($_POST['login']);
-        $markers.="AND `login`='" . $userlogin . "' ";
+        $markers .= "AND `login`='" . $userlogin . "' ";
     }
 
     //not strict login search
     if (wf_CheckPost(array('type_loginwildcard', 'loginwildcard'))) {
         $userloginW = mysql_real_escape_string($_POST['loginwildcard']);
-        $markers.="AND `login` LIKE '%" . $userloginW . "%' ";
+        $markers .= "AND `login` LIKE '%" . $userloginW . "%' ";
     }
 
     //payment sum  search
     if (wf_CheckPost(array('type_summ', 'summ'))) {
         $summ = mysql_real_escape_string($_POST['summ']);
-        $markers.="AND `summ`='" . $summ . "' ";
+        $markers .= "AND `summ`='" . $summ . "' ";
     }
 
     //cashtype search
     if (wf_CheckPost(array('type_cashtype', 'cashtype'))) {
         $cashtype = vf($_POST['cashtype'], 3);
-        $markers.="AND `cashtypeid`='" . $cashtype . "' ";
+        $markers .= "AND `cashtypeid`='" . $cashtype . "' ";
     }
 
     //cashiers search
     if (wf_CheckPost(array('type_cashier', 'cashier'))) {
         $cashierLogin = mysql_real_escape_string($_POST['cashier']);
-        $markers.="AND `admin`='" . $cashierLogin . "' ";
+        $markers .= "AND `admin`='" . $cashierLogin . "' ";
     }
 
     //payment system search
     if (wf_CheckPost(array('type_paysys', 'paysys'))) {
         $cashtype = mysql_real_escape_string($_POST['paysys']);
-        $markers.="AND `note` LIKE '" . $cashtype . "' ";
+        $markers .= "AND `note` LIKE '" . $cashtype . "' ";
     }
 
     //only positive payments search
     if (isset($_POST['only_positive'])) {
-        $markers.="AND `summ` >'0' ";
+        $markers .= "AND `summ` >'0' ";
     }
 
     //payments with numeric notes
     if (isset($_POST['numeric_notes'])) {
-        $markers.="AND  `note` >0 ";
+        $markers .= "AND  `note` >0 ";
     }
 
     //payments only with numeric notes
     if (isset($_POST['numericonly_notes'])) {
-        $markers.="AND  `note`  REGEXP '^[0-9]+$' ";
+        $markers .= "AND  `note`  REGEXP '^[0-9]+$' ";
     }
 
     //tagtype search
     if (wf_CheckPost(array('type_tagid', 'tagid'))) {
-        $markers.=zb_PayFindExtractByTagId($_POST['tagid']);
+        $markers .= zb_PayFindExtractByTagId($_POST['tagid']);
     }
 
     //idenc search
     if (wf_CheckPost(array('type_payidenc', 'payidenc'))) {
         $payidenc = vf($_POST['payidenc']);
         $payidNormal = zb_NumUnEncode($payidenc);
-        $markers.="AND `id`='" . $payidNormal . "' ";
+        $markers .= "AND `id`='" . $payidNormal . "' ";
     }
 
     //summ is greater search
     if (wf_CheckPost(array('type_summgreater', 'paysummgreater'))) {
-        $markers.="AND `summ` > " . mysql_real_escape_string($_POST['paysummgreater']) . " ";
+        $markers .= "AND `summ` > " . mysql_real_escape_string($_POST['paysummgreater']) . " ";
     }
 
     //payment notes contains search
     if (wf_CheckPost(array('type_notescontains', 'paynotescontains'))) {
         $notesMask = mysql_real_escape_string($_POST['paynotescontains']);
-        $markers.="AND `note` LIKE '%" . $notesMask . "%' ";
+        $markers .= "AND `note` LIKE '%" . $notesMask . "%' ";
     }
 
     //filter by city
     if (wf_CheckPost(array('type_city', 'citysel'))) {
         $cityID = mysql_real_escape_string($_POST['citysel']);
 
-        $joins.= " RIGHT JOIN (SELECT `address`.`login`,`city`.`cityname` FROM `address` 
+        $joins .= " RIGHT JOIN (SELECT `address`.`login`,`city`.`cityname` FROM `address` 
                                     INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
                                     INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
                                     INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
@@ -584,7 +585,7 @@ if (cfr('PAYFIND')) {
     if (wf_CheckPost(array('type_contragent', 'ahentsel'))) {
         $contragentID = mysql_real_escape_string($_POST['ahentsel']);
 
-        $joins.= " RIGHT JOIN (SELECT `ahenassignstrict`.`login`,`ahenassignstrict`.`agentid` FROM `ahenassignstrict`                                    
+        $joins .= " RIGHT JOIN (SELECT `ahenassignstrict`.`login`,`ahenassignstrict`.`agentid` FROM `ahenassignstrict`                                    
                                 WHERE `ahenassignstrict`.`agentid` = " . $contragentID . ") AS `tmpContragents` USING(`login`) ";
     }
 
