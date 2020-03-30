@@ -51,7 +51,7 @@ if (cfr('COVID')) {
             /**
              * Default raw data caching timeout in seconds
              */
-            const CACHE_TIMEOUT = 3600;
+            const CACHE_TIMEOUT = 21600;
 
             /**
              * Default data source URL
@@ -131,6 +131,30 @@ if (cfr('COVID')) {
             }
 
             /**
+             * Returns default chart options
+             * 
+             * @return string
+             */
+            protected function getChartOptions() {
+                $result = "'focusTarget': 'category',
+                                'hAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'vAxis': {
+                                'color': 'none',
+                                    'baselineColor': 'none',
+                            },
+                                'curveType': 'function',
+                                'pointSize': 5,
+                                'crosshair': {
+                                trigger: 'none'
+                            },";
+                ;
+                return($result);
+            }
+
+            /**
              * Returns country selection form
              * 
              * @return string
@@ -157,11 +181,11 @@ if (cfr('COVID')) {
             }
 
             /**
-             * Renders COVID-19 causes report 
+             * Renders COVID-19 causes report by some country
              * 
              * @return string
              */
-            public function render() {
+            public function renderCountry() {
                 $result = '';
                 if (!empty($this->rawData)) {
                     if (isset($this->rawData[$this->altCfg['COVID19_ENABLED']])) {
@@ -185,21 +209,7 @@ if (cfr('COVID')) {
                          */
                         $countryTimeline = $this->rawData[$this->country];
                         if (!empty($countryTimeline)) {
-                            $chartsOptions = "
-                                    'focusTarget': 'category',
-                                                'hAxis': {
-                                                'color': 'none',
-                                                    'baselineColor': 'none',
-                                            },
-                                                'vAxis': {
-                                                'color': 'none',
-                                                    'baselineColor': 'none',
-                                            },
-                                                'curveType': 'function',
-                                                'pointSize': 5,
-                                                'crosshair': {
-                                                trigger: 'none'
-                                            },";
+                            $chartsOptions = $this->getChartOptions();
 
                             $charsDataTotal[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
                             $charsDataMonth[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
@@ -215,16 +225,15 @@ if (cfr('COVID')) {
                                 $lastData = $each;
                             }
 
-                            
+
                             $countryDeathPercent = zb_PercentValue($lastData['confirmed'], $lastData['deaths']);
 
                             $result .= $this->messages->getStyledMessage(__('Confirmed') . ' ' . $lastData['confirmed'], 'warning');
                             $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $countryDeathPercent . '%)', 'error');
                             $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
-                            
+
                             $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
                             $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
-
                         } else {
                             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing to show'), 'warning');
                         }
@@ -237,10 +246,85 @@ if (cfr('COVID')) {
                 return($result);
             }
 
+            /**
+             * Renders COVID-19 world causes report
+             * 
+             * @return string
+             */
+            public function renderWorld() {
+                $result = '';
+                if (!empty($this->rawData)) {
+                    $chartsOptions = $this->getChartOptions();
+                    $curMonth = curmonth() . '-';
+                    $totalTmp = array();
+
+                    $charsDataTotal[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
+                    $charsDataMonth[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
+
+                    foreach ($this->rawData as $eachCountry => $eachTimeline) {
+                        if (!empty($eachTimeline)) {
+                            foreach ($eachTimeline as $io => $each) {
+                                $timeStamp = strtotime($each['date']); //need to be transformed to Y-m-d
+                                $date = date("Y-m-d", $timeStamp);
+                                if (isset($totalTmp[$date])) {
+                                    $totalTmp[$date]['confirmed'] += $each['confirmed'];
+                                    $totalTmp[$date]['deaths'] += $each['deaths'];
+                                    $totalTmp[$date]['recovered'] += $each['recovered'];
+                                } else {
+                                    $totalTmp[$date]['confirmed'] = $each['confirmed'];
+                                    $totalTmp[$date]['deaths'] = $each['deaths'];
+                                    $totalTmp[$date]['recovered'] = $each['recovered'];
+                                }
+                            }
+                        }
+                    }
+
+                    if (!empty($totalTmp)) {
+                        foreach ($totalTmp as $date => $each) {
+                            if (ispos($date, $curMonth)) {
+                                $charsDataMonth[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
+                            }
+                            $charsDataTotal[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
+
+                            $lastData = $each;
+                        }
+
+                        $worldDeathPercent = zb_PercentValue($lastData['confirmed'], $lastData['deaths']);
+
+                        $result .= $this->messages->getStyledMessage(__('Confirmed') . ' ' . $lastData['confirmed'], 'warning');
+                        $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $worldDeathPercent . '%)', 'error');
+                        $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
+
+                        $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
+                        $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
+                }
+                return($result);
+            }
+
+            /**
+             * Renders default module controls
+             * 
+             * @return string
+             */
+            public function panel() {
+                $result = '';
+                $result .= wf_Link(self::URL_ME, wf_img('skins/country.png') . ' ' . __('Country'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&world=true', wf_img('skins/ymaps/globe.png') . ' ' . __('World'), false, 'ubButton');
+                return($result);
+            }
+
         }
 
         $covid = new Covid19();
-        show_window(__('COVID-19'), $covid->render());
+        show_window('', $covid->panel());
+        if (ubRouting::checkGet('world')) {
+            show_window(__('COVID-19'), $covid->renderWorld());
+        } else {
+            show_window(__('COVID-19'), $covid->renderCountry());
+        }
     } else {
         show_error(__('This module is disabled'));
     }
