@@ -3164,4 +3164,8 @@ $lang['def']['View full'] = 'Переглянути повністю';
 $lang['def']['Our profit'] = 'Наш прибуток';
 $lang['def']['Payouts for Megogo'] = 'Виплати для Megogo';
 $lang['def']['Charge period in days'] = 'Періодичність зняття оплати у днях';
+
+//rev 7414
+$lang['def']['Resurrected'] = 'Воскресли';
+
 ?>

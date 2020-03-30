@@ -4,16 +4,40 @@ if (cfr('REPORTAUTOFREEZE')) {
 
     class ReportAutoFreeze {
 
+        /**
+         * Autofreeze data
+         *
+         * @var array
+         */
         protected $data = array();
+
+        /**
+         * Array of currently frozen users
+         *
+         * @var array
+         */
         protected $frozen = array();
+
+        /**
+         * Contains user array of users unfrozen in some month
+         *
+         * @var array
+         */
+        protected $unfrozen = array();
+
+        /**
+         * Contains default date offset
+         *
+         * @var string
+         */
         protected $interval = '';
 
         public function __construct($date = '') {
-            //load actual data
+//load actual data
             $this->loadData($date);
-            //load currently frozen users
+//load currently frozen users
             $this->loadFrozen();
-            //sets default calendar position
+//sets default calendar position
             $this->interval = $date;
         }
 
@@ -40,7 +64,7 @@ if (cfr('REPORTAUTOFREEZE')) {
 
                     $parse = explode(' ', $each['event']);
 
-                    //all elements available
+//all elements available
                     if (sizeof($parse) == 5) {
                         $userLogin = str_replace('(', '', $parse[1]);
                         $userLogin = str_replace(')', '', $userLogin);
@@ -94,29 +118,29 @@ if (cfr('REPORTAUTOFREEZE')) {
             }
 
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Cash'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Login'));
+            $cells .= wf_TableCell(__('Address'));
+            $cells .= wf_TableCell(__('Real Name'));
+            $cells .= wf_TableCell(__('Cash'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
                     $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($each['date']);
+                    $cells .= wf_TableCell($each['date']);
                     $loginLink = wf_Link("?module=userprofile&username=" . @$each['login'], web_profile_icon() . ' ' . @$each['login'], false, '');
-                    $cells.= wf_TableCell($loginLink);
-                    $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                    $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                    $cells.= wf_TableCell(@$each['balance']);
-                    //deleded users indication
+                    $cells .= wf_TableCell($loginLink);
+                    $cells .= wf_TableCell(@$allAddress[$each['login']]);
+                    $cells .= wf_TableCell(@$allRealNames[$each['login']]);
+                    $cells .= wf_TableCell(@$each['balance']);
+//deleded users indication
                     if (@isset($allUsers[$each['login']])) {
                         $rowClass = 'row3';
                     } else {
                         $rowClass = 'sigdeleteduser';
                     }
-                    $rows.= wf_TableRow($cells, $rowClass);
+                    $rows .= wf_TableRow($cells, $rowClass);
                 }
             }
             $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -134,15 +158,43 @@ if (cfr('REPORTAUTOFREEZE')) {
         }
 
         /**
+         * Renders resurrection report for current month by default
+         * 
+         * @return string
+         */
+        public function renderResurrected() {
+            $result = '';
+            $curMonth = curmonth();
+            $weblogs = new NyanORM('weblogs');
+            $weblogs->where('date', 'LIKE', $curMonth . '-%');
+            $weblogs->where('event', 'LIKE', 'CHANGE Passive%ON 0');
+            $dataRaw = $weblogs->getAll();
+            if (!empty($dataRaw)) {
+                foreach ($dataRaw as $io => $each) {
+                    $event = htmlspecialchars($each['event']);
+                    if (preg_match('!\((.*?)\)!si', $event, $tmpLoginMatches)) {
+                        @$loginExtracted = $tmpLoginMatches[1];
+                        if (!empty($loginExtracted)) {
+                            $this->unfrozen[$loginExtracted] = $loginExtracted;
+                        }
+                    }
+                }
+            }
+            $result .= web_UserArrayShower($this->unfrozen);
+            return($result);
+        }
+
+        /**
          * renders form for date selecting
          * 
          * @return string
          */
         public function dateForm() {
             $inputs = wf_DatePickerPreset('date', $this->interval);
-            $inputs.= __('By date') . ' ';
-            $inputs.= wf_Submit(__('Show'));
-            $inputs.= '&nbsp;' . wf_Link("?module=report_autofreeze&showfrozen=true", wf_img('skins/icon_passive.gif').' '.__('Currently frozen'), false, 'ubButton');
+            $inputs .= __('By date') . ' ';
+            $inputs .= wf_Submit(__('Show'));
+            $inputs .= ' ' . wf_Link("?module=report_autofreeze&showfrozen=true", wf_img('skins/icon_passive.gif') . ' ' . __('Currently frozen'), false, 'ubButton');
+            $inputs .= ' ' . wf_Link("?module=report_autofreeze&resurrected=true", wf_img('skins/pigeon_icon.png') . ' ' . __('Resurrected'), false, 'ubButton');
             $result = wf_Form("", 'POST', $inputs, 'glamour');
             return ($result);
         }
@@ -151,12 +203,20 @@ if (cfr('REPORTAUTOFREEZE')) {
 
     $datePush = (wf_CheckPost(array('date'))) ? $dateSelector = $_POST['date'] : $dateSelector = '';
     $autoFreezeReport = new ReportAutoFreeze($dateSelector);
-    if (!wf_CheckGet(array('showfrozen'))) {
+//default route
+    if (!ubRouting::checkGet(array('showfrozen')) AND ! ubRouting::checkGet('resurrected')) {
         show_window('', $autoFreezeReport->dateForm());
         show_window(__('Autofreeze report'), $autoFreezeReport->render());
     } else {
-        show_window('', wf_BackLink('?module=report_autofreeze'));
-        show_window(__('Currently frozen'), $autoFreezeReport->renderFrozen());
+        if (ubRouting::checkGet('showfrozen')) {
+            show_window('', wf_BackLink('?module=report_autofreeze'));
+            show_window(__('Currently frozen'), $autoFreezeReport->renderFrozen());
+        }
+
+        if (ubRouting::checkGet('resurrected')) {
+            show_window('', wf_BackLink('?module=report_autofreeze'));
+            show_window(__('Resurrected'), $autoFreezeReport->renderResurrected());
+        }
     }
 } else {
     show_error(__('You cant control this module'));
