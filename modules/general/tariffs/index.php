@@ -18,7 +18,12 @@ if (cfr('TARIFFS')) {
 
     function tariff_name_filter($tariffname) {
         $tariffname = trim($tariffname);
-        return preg_replace("#[^a-z0-9A-Z\-_\.]#Uis", '', $tariffname);
+        $tariffname = preg_replace("#[^a-z0-9A-Z\-_\.]#Uis", '', $tariffname);
+        if (strlen($tariffname) > 32) {
+            //stargazer dramatically fails on long tariff names
+            $tariffname = substr($tariffname, 0, 32);
+        }
+        return ($tariffname);
     }
 
     function web_TariffCreateForm() {
