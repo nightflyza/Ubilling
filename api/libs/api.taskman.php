@@ -2662,7 +2662,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
     $tmpArr = array();
-    $pageBreakStyle = ($nopagebreaks) ? "" : "\npage-break-after: always;\n";
+    $pageBreakStyle = ($nopagebreaks) ? '' : 'page-break-after: always;';
     $result = wf_tag('style');
     $result .= '
         table.gridtable {
