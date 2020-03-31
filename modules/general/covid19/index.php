@@ -149,8 +149,14 @@ if (cfr('COVID')) {
                                 'pointSize': 5,
                                 'crosshair': {
                                 trigger: 'none'
-                            },";
-                ;
+                            },
+                            series: {
+                            0: { color: '#c7a20e' },
+                            1: { color: '#d20009' },
+                            2: { color: '#79c20d' },
+                            },
+                            ";
+                
                 return($result);
             }
 
