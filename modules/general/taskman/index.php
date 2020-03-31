@@ -159,7 +159,8 @@ if (cfr('TASKMAN')) {
                     if (!wf_CheckPost(array('tableview'))) {
                         ts_PrintTasks($_POST['printdatefrom'], $_POST['printdateto']);
                     } else {
-                        ts_PrintTasksTable($_POST['printdatefrom'], $_POST['printdateto']);
+                        $nopagebreaks = wf_CheckPost(array('nopagebreaks'));
+                        ts_PrintTasksTable($_POST['printdatefrom'], $_POST['printdateto'], $nopagebreaks);
                     }
                 }
 

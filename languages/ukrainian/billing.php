@@ -3167,5 +3167,6 @@ $lang['def']['Charge period in days'] = 'Періодичність зняття
 
 //rev 7414
 $lang['def']['Resurrected'] = 'Воскресли';
+$lang['def']['No page breaks for each employee'] = 'Не розділяти на окремі сторінки для кожного працівника';
 
 ?>
