@@ -2514,10 +2514,10 @@ function ts_PrintDialogue() {
 
     $submitOpts = '';
     $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
-    $inputs .= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
+    $inputs.= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
 
     if ($advFiltersEnabled) {
-        $inputs .= wf_delimiter();
+        $inputs.= wf_delimiter();
 
         $whoami = whoami();
         $employeeid = ts_GetEmployeeByLogin($whoami);
@@ -2525,17 +2525,16 @@ function ts_PrintDialogue() {
         if ($employeeid) {
             $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
             $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
-            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $inputs.= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
-        if ($advFiltersEnabled) {
-            $inputs .= ts_AdvFiltersControls();
-            $submitOpts = ' style="width: 85%; height: 1.7em; font-weight: 700; margin-top: 10px; margin-left: 29px;" ';
-        }
+        $inputs.= ts_AdvFiltersControls(false);
+        $submitOpts = ' style="width: 50%; height: 1.7em; font-weight: 700; margin-top: 10px; margin-left: 22px;" ';
+        $inputs.= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
     }
 
-    $inputs .= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
-    $inputs .= wf_Submit(__('Print'), '', $submitOpts);
+    $inputs.= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
+    $inputs.= wf_Submit(__('Print'), '', $submitOpts);
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     return ($result);
 }
@@ -2654,7 +2653,7 @@ function ts_PrintTasks($datefrom, $dateto) {
  * 
  * @return void
  */
-function ts_PrintTasksTable($datefrom, $dateto) {
+function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
@@ -2663,6 +2662,7 @@ function ts_PrintTasksTable($datefrom, $dateto) {
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
     $tmpArr = array();
+    $pageBreakStyle = ($nopagebreaks) ? "" : "\npage-break-after: always;\n";
     $result = wf_tag('style');
     $result .= '
         table.gridtable {
@@ -2672,7 +2672,7 @@ function ts_PrintTasksTable($datefrom, $dateto) {
             border-width: 1px;
             border-color: #666666;
             border-collapse: collapse;
-            page-break-after: always;
+            ' . $pageBreakStyle . '
         }
         
        .row1 {
@@ -2916,7 +2916,7 @@ function ts_GetAllTasksQuickData() {
     return ($result);
 }
 
-function ts_AdvFiltersControls() {
+function ts_AdvFiltersControls($extraTrailingSpace = true) {
     $alljobtypes = ts_GetAllJobtypes();
     $alljobtypes = array('0' => __('Any')) + $alljobtypes;
     $selectedjobtype = ( wf_CheckPost(array('filtertaskjobtypeexact')) ) ? $_POST['filtertaskjobtypeexact'] : '';
@@ -2945,13 +2945,13 @@ function ts_AdvFiltersControls() {
     $inputs .= __('Job note contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskjobnote', '', $jobnotecontains);
-    $inputs .= '&nbsp&nbsp&nbsp';
+    $inputs .= wf_nbsp(3);
 
     $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
     $inputs .= __('Job phone contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskphone', '', $phonecontains, true);
-    $inputs .= '&nbsp&nbsp&nbsp';
+    $inputs .= ($extraTrailingSpace) ? wf_nbsp() : '';
 
     return($inputs);
 }
