@@ -62,6 +62,14 @@ if (cfr('COVID')) {
              * Default module route
              */
             const URL_ME = '?module=covid19';
+            
+            /**
+             * Charts coloring
+             */
+            
+            const COLOR_CONFIRMED='f68500';
+            const COLOR_DEATHS='d20009';
+            const COLOR_RECOVERED='009b04';
 
             /**
              * Creates new instance of COVID-19 :P
@@ -151,12 +159,12 @@ if (cfr('COVID')) {
                                 trigger: 'none'
                             },
                             series: {
-                            0: { color: '#c7a20e' },
-                            1: { color: '#d20009' },
-                            2: { color: '#79c20d' },
+                            0: { color: '#".self::COLOR_CONFIRMED."' },
+                            1: { color: '#".self::COLOR_DEATHS."' },
+                            2: { color: '#".self::COLOR_RECOVERED."' },
                             },
                             ";
-                
+
                 return($result);
             }
 
@@ -193,6 +201,7 @@ if (cfr('COVID')) {
              */
             public function renderCountry() {
                 $result = '';
+                $curMonthCount = 0;
                 if (!empty($this->rawData)) {
                     if (isset($this->rawData[$this->altCfg['COVID19_ENABLED']])) {
                         //valid country name
@@ -225,6 +234,7 @@ if (cfr('COVID')) {
                                 $date = date("Y-m-d", $timeStamp);
                                 if (ispos($date, $curMonth)) {
                                     $charsDataMonth[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
+                                    $curMonthCount++;
                                 }
                                 $charsDataTotal[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
 
@@ -238,7 +248,9 @@ if (cfr('COVID')) {
                             $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $countryDeathPercent . '%)', 'error');
                             $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
 
-                            $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
+                            if ($curMonthCount > 0) {
+                                $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
+                            }
                             $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
                         } else {
                             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing to show'), 'warning');
@@ -259,6 +271,7 @@ if (cfr('COVID')) {
              */
             public function renderWorld() {
                 $result = '';
+                $curMonthCount = 0;
                 if (!empty($this->rawData)) {
                     $chartsOptions = $this->getChartOptions();
                     $curMonth = curmonth() . '-';
@@ -289,6 +302,7 @@ if (cfr('COVID')) {
                         foreach ($totalTmp as $date => $each) {
                             if (ispos($date, $curMonth)) {
                                 $charsDataMonth[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
+                                $curMonthCount++;
                             }
                             $charsDataTotal[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
 
@@ -301,7 +315,9 @@ if (cfr('COVID')) {
                         $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $worldDeathPercent . '%)', 'error');
                         $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
 
-                        $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
+                        if ($curMonthCount > 0) {
+                            $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
+                        }
                         $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
                     }
                 } else {
