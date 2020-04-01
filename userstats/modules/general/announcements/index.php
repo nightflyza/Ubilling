@@ -15,10 +15,14 @@ function zbs_AnnouncementsLogPush($user_login, $annid) {
     $annid = vf($annid, 3);
     $user_login = mysql_real_escape_string($user_login);
     if ((!empty($user_login)) AND ( !empty($annid))) {
-        $date = curdatetime();
-        $query = "INSERT INTO `zbsannhist` (`id`,`date`,`annid`,`login`) VALUES "
-                . "(NULL,'" . $date . "','" . $annid . "','" . $user_login . "');";
-        nr_query($query);
+        $uniqueCheck_q = "SELECT * from `zbsannhist` WHERE `annid`='" . $annid . "' AND `login`='" . $user_login . "';";
+        $uniqueCheck = simple_query($uniqueCheck_q);
+        if (empty($uniqueCheck)) {
+            $date = curdatetime();
+            $query = "INSERT INTO `zbsannhist` (`id`,`date`,`annid`,`login`) VALUES "
+                    . "(NULL,'" . $date . "','" . $annid . "','" . $user_login . "');";
+            nr_query($query);
+        }
     }
 }
 
@@ -33,7 +37,7 @@ function zbs_AnnouncementsLogDel($user_login, $annid) {
     $annid = vf($annid, 3);
     $user_login = mysql_real_escape_string($user_login);
     if ((!empty($user_login)) AND ( !empty($annid))) {
-        $query = "DELETE FROM `zbsannhist` WHERE `zbsannhist`.`login` = '" . $user_login . "' AND `annid` = '". $annid . "'";
+        $query = "DELETE FROM `zbsannhist` WHERE `zbsannhist`.`login` = '" . $user_login . "' AND `annid` = '" . $annid . "'";
         nr_query($query);
     }
 }
@@ -53,6 +57,7 @@ function zbs_AnnouncementsShow() {
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
     $query = "SELECT * from `zbsannouncements` LEFT JOIN (SELECT `annid` FROM `zbsannhist` WHERE `login` = '" . $user_login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' ORDER by `id` DESC";
+
     $all = simple_queryall($query);
     $result = '';
     if (!empty($all)) {
@@ -82,8 +87,6 @@ function zbs_AnnouncementsShow() {
 
             $result .= la_delimiter();
         }
-
-
     } else {
         show_window(__('Sorry'), __('There are not any announcements.'));
     }
