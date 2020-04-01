@@ -594,7 +594,7 @@ class WhyDoYouCall {
             $result .= __('Reaction time') . ' - ' . $reactTimeStat;
             $result .= wf_tag('br');
             $result .= wf_tag('br');
-            $result .= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
+            $result .= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 50, $jqDtOpts);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }

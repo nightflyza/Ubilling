@@ -2998,7 +2998,7 @@ function web_UserArrayShower($usersarr) {
             $tablecells .= wf_TableCell($usercredit);
 
 
-            $tablerows .= wf_TableRow($tablecells, 'row3');
+            $tablerows .= wf_TableRow($tablecells, 'row5');
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
