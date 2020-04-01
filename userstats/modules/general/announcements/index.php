@@ -15,7 +15,7 @@ function zbs_AnnouncementsLogPush($user_login, $annid) {
     $annid = vf($annid, 3);
     $user_login = mysql_real_escape_string($user_login);
     if ((!empty($user_login)) AND ( !empty($annid))) {
-        $uniqueCheck_q = "SELECT * from `zbsannhist` WHERE `annid`='" . $annid . "' AND `login`='" . $user_login . "';";
+        $uniqueCheck_q = "SELECT `id` from `zbsannhist` WHERE `annid`='" . $annid . "' AND `login`='" . $user_login . "';";
         $uniqueCheck = simple_query($uniqueCheck_q);
         if (empty($uniqueCheck)) {
             $date = curdatetime();
