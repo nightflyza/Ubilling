@@ -351,7 +351,7 @@ function web_AgentAssignShow() {
             $cells.= wf_TableCell($eachassign['streetname']);
             $actLinks = wf_JSAlert('?module=contrahens&deleteassign=' . $eachassign['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
             $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row5');
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -396,7 +396,7 @@ function web_AgentAssignStrictShow() {
             $cells.= wf_TableCell(@$agentnames[$eachagent]);
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
             $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row5');
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
