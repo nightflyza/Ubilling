@@ -32,12 +32,12 @@ function sp_parse_zyportstates($data) {
 
         if (ispos($data[1], '1')) {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-            $cells.= wf_TableCell(web_bool_led(true));
+            $cells .= wf_TableCell(web_bool_led(true));
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
         } else {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-            $cells.= wf_TableCell(web_bool_led(false));
+            $cells .= wf_TableCell(web_bool_led(false));
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
         }
@@ -64,12 +64,12 @@ function sp_parse_fxportstates($data) {
         if ($portnum != 0) {
             if (ispos($data[1], '1')) {
                 $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-                $cells.= wf_TableCell(web_bool_led(true));
+                $cells .= wf_TableCell(web_bool_led(true));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', 0, '');
             } else {
                 $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-                $cells.= wf_TableCell(web_bool_led(false));
+                $cells .= wf_TableCell(web_bool_led(false));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', 0, '');
             }
@@ -126,10 +126,10 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                 $cells_data = '';
                 foreach ($data as $test_id => $info) {
                     if ($test_id == 0 and $info != 2) {
-                        if ($data[1] == 0 OR $data[2] == 0 OR $data[3] == 0 OR $data[4] == 0) {
+                        if (@$data[1] == 0 OR @ $data[2] == 0 OR @ $data[3] == 0 OR @ $data[4] == 0) {
                             $cells_data .= __("OK");
                             // Return Length for Pair2, becase some modele have accrose rawdata
-                            $cells_data .= ($data[2] == 0 AND $data[6] > 0 ) ? "," . __("Cable Length:") . $data[6] : '';
+                            @$cells_data .= ($data[2] == 0 AND $data[6] > 0 ) ? "," . __("Cable Length:") . $data[6] : '';
                         } elseif ($data[1] == 1 OR $data[2] == 1 OR $data[3] == 1 OR $data[4] == 1) {
                             $cells_data .= ($data[1] == 1) ? __("Pair1 Open:") . $data[5] . " " : '';
                             $cells_data .= ($data[2] == 1) ? __("Pair2 Open:") . $data[6] . " " : '';
@@ -169,9 +169,9 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                         $cells_data .= __("Cable Diagnostic processing");
                     }
                 }
-                $cells.= wf_TableCell($cells_data);
+                $cells .= wf_TableCell($cells_data);
                 $rows = wf_TableRow($cells, 'row3');
-                $result.= wf_TableBody($rows, '100%', 0, '');
+                $result .= wf_TableBody($rows, '100%', 0, '');
             }
         }
         return ($result);
@@ -197,12 +197,12 @@ function sp_parse_zyportbytes($data) {
 
         if (ispos($data[1], 'up')) {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-            $cells.= wf_TableCell($bytes);
+            $cells .= wf_TableCell($bytes);
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
         } else {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-            $cells.= wf_TableCell($bytes);
+            $cells .= wf_TableCell($bytes);
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
         }
@@ -232,12 +232,12 @@ function sp_parse_fxportbytes($data) {
         if ($portnum != 0) {
             if (ispos($data[1], 'up')) {
                 $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-                $cells.= wf_TableCell($bytes);
+                $cells .= wf_TableCell($bytes);
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', 0, '');
             } else {
                 $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-                $cells.= wf_TableCell($bytes);
+                $cells .= wf_TableCell($bytes);
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', 0, '');
             }
@@ -267,12 +267,12 @@ function sp_parse_zyportdesc($data) {
         }
         if (ispos($data[1], 'up')) {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-            $cells.= wf_TableCell($desc);
+            $cells .= wf_TableCell($desc);
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
         } else {
             $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
-            $cells.= wf_TableCell($desc);
+            $cells .= wf_TableCell($desc);
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
         }
@@ -618,7 +618,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             foreach ($alltemplates[$deviceTemplate] as $section => $eachpoll) {
                 if ($section != 'define') {
                     if (!$quiet) {
-                        $finalResult.= wf_tag('div', false, 'dashboard', '');
+                        $finalResult .= wf_tag('div', false, 'dashboard', '');
                     }
 
                     @$sectionName = $eachpoll['NAME'];
@@ -672,15 +672,15 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
                     if (!$quiet) {
                         if (!empty($sectionResult)) {
-                            $finalResult.= wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
-                            $finalResult.= $sectionResult . wf_tag('div', true);
+                            $finalResult .= wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
+                            $finalResult .= $sectionResult . wf_tag('div', true);
                         }
                     }
                 }
             }
-            $finalResult.= wf_tag('div', true);
-            $finalResult.= wf_tag('div', false, '', 'style="clear:both;"');
-            $finalResult.= wf_tag('div', true);
+            $finalResult .= wf_tag('div', true);
+            $finalResult .= wf_tag('div', false, '', 'style="clear:both;"');
+            $finalResult .= wf_tag('div', true);
             if (!$quiet) {
                 show_window('', $finalResult);
             }
@@ -777,8 +777,8 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     $allusermacs = array_flip($allusermacs);
 
                     $cells = wf_TableCell(__('User'), '30%');
-                    $cells.= wf_TableCell(__('MAC'));
-                    $cells.= wf_TableCell(__('Ports'));
+                    $cells .= wf_TableCell(__('MAC'));
+                    $cells .= wf_TableCell(__('Ports'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($portData as $eachMac => $eachPort) {
                         //user detection
@@ -791,7 +791,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                 $assignForm = wf_modal(web_edit_icon(__('Switch port assign')), __('Switch port assign'), web_SnmpSwitchControlForm($userLogin, $allswitchesArray, $allportassigndata, @$_GET['switchid'], $eachPort), '', '500', '250');
 
                                 if (isset($allportassigndata[$userLogin])) {
-                                    $assignForm.=wf_img('skins/arrow_right_green.png') . @$allportassigndata[$userLogin]['port'];
+                                    $assignForm .= wf_img('skins/arrow_right_green.png') . @$allportassigndata[$userLogin]['port'];
                                 }
                             } else {
                                 $assignForm = '';
@@ -801,9 +801,9 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $assignForm = '';
                         }
                         $cells = wf_TableCell($userlink . $assignForm, '', '', 'sorttable_customkey="' . $eachPort . '"');
-                        $cells.= wf_TableCell($eachMac);
-                        $cells.= wf_TableCell($eachPort);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($eachMac);
+                        $cells .= wf_TableCell($eachPort);
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
                     if (!$quiet) {
                         show_window(__('FDB'), wf_TableBody($rows, '100%', '0', 'sortable'));
@@ -953,7 +953,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
             $switchControls = '';
             if (!empty($switchId)) {
                 if (cfr('SWITCHES')) {
-                    $switchControls.= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon());
+                    $switchControls .= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon());
                 }
             }
             if (file_exists('exports/' . $each_raw)) {
@@ -977,7 +977,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
                         if (sn_FDBFilterCheckMac($mac, $allfilters)) {
                             $data[] = $switchIp;
                             $data[] = $port;
-                            $data[] = @$switchdata[$switchIp].' '.$switchControls;
+                            $data[] = @$switchdata[$switchIp] . ' ' . $switchControls;
                             $data[] = $mac;
                             $data[] = $userlink;
                             $json->addRow($data);
@@ -1044,13 +1044,13 @@ function sn_SnmpParseFdbExtract($data) {
     if (!empty($data)) {
         if (sizeof($data) == 1) {
             foreach ($data as $io => $each) {
-                $result.=$each;
+                $result .= $each;
             }
         } else {
             foreach ($data as $io => $each) {
-                $modalContent.=$each . wf_tag('br');
+                $modalContent .= $each . wf_tag('br');
             }
-            $result.=$each . ' ' . wf_modal(wf_img_sized('skins/menuicons/switches.png', __('Switches'), '12', '12'), __('Switches'), $modalContent, '', '600', '400');
+            $result .= $each . ' ' . wf_modal(wf_img_sized('skins/menuicons/switches.png', __('Switches'), '12', '12'), __('Switches'), $modalContent, '', '600', '400');
         }
     }
     return ($result);
