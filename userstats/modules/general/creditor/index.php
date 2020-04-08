@@ -41,11 +41,11 @@ function zbs_VServicesGetPrice($login) {
  */
 function zbs_ShowCreditForm() {
     $inputs = la_tag('center');
-    $inputs.= la_HiddenInput('setcredit', 'true');
-    $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
-    $inputs.= la_delimiter();
-    $inputs.= la_Submit(__('Set me credit please'));
-    $inputs.= la_tag('center', true);
+    $inputs .= la_HiddenInput('setcredit', 'true');
+    $inputs .= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
+    $inputs .= la_delimiter();
+    $inputs .= la_Submit(__('Set me credit please'));
+    $inputs .= la_tag('center', true);
     $form = la_Form("", 'POST', $inputs, '');
 
     return($form);
@@ -139,13 +139,29 @@ function zbs_CreditCheckAllowed($sc_allowed, $usertariff) {
 function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid) {
     global $us_config;
     $creditLimit = $tariffprice + $sc_price;
+    $remoteFlag = false;
+    if (isset($us_config['SC_REMOTE'])) {
+        if ($us_config['SC_REMOTE']) {
+            $remoteFlag = true;
+        }
+    }
+
+    if (!$remoteFlag) {
+        //default sgconf routines
+        billing_setcredit($user_login, $creditLimit);
+        billing_setcreditexpire($user_login, $scend);
+        zbs_PaymentLog($user_login, '-' . $sc_price, $sc_cashtypeid, "SCFEE");
+        billing_addcash($user_login, '-' . $sc_price);
+    } else {
+        //remote API callback
+        $remoteApiRequest = '&action=sc&login=' . $user_login . '&cr=' . $creditLimit . '&end=' . $scend . '&fee=' . $sc_price . '&ct=' . $sc_cashtypeid;
+        $remoteResult = zbs_remoteApiRequest($remoteApiRequest);
+    }
+
     zbs_CreditLogPush($user_login);
-    billing_setcredit($user_login, $creditLimit);
-    billing_setcreditexpire($user_login, $scend);
-    zbs_PaymentLog($user_login, '-' . $sc_price, $sc_cashtypeid, "SCFEE");
-    billing_addcash($user_login, '-' . $sc_price);
     log_register('CHANGE Credit (' . $user_login . ') ON ' . $creditLimit);
     show_window('', __('Now you have a credit'));
+
     if (isset($us_config['SC_MTAPI_FIX'])) {
         if ($us_config['SC_MTAPI_FIX']) {
             //Reset via Down flag
@@ -195,23 +211,23 @@ if ($us_config['SC_ENABLED']) {
 
 
     $tariffprice = zbs_UserGetTariffPrice($tariff);
-    $tariffprice+=$vs_price;
+    $tariffprice += $vs_price;
     if (isset($us_config['SC_DAILY_FIX'])) {
         if ($us_config['SC_DAILY_FIX']) {
             $tariffprice = abs($current_cash) + ($tariffprice * $us_config['SC_TERM']);
         }
     }
 
-    
+
     $cday = date("d");
 
 //welcome message
     $wmess = __('If you wait too long to pay for the service, here you can get credit for') . ' ' . $sc_term . ' ' . __('days. The price of this service is') . ': ' . $sc_price . ' ' . $us_currency . '. ';
     if (isset($us_config['SC_VSCREDIT'])) {
         if ($us_config['SC_VSCREDIT']) {
-            $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ".";
+            $wmess .= __('Also you promise to pay for the current month, in accordance with your service plan') . ".";
         } else {
-            $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ". " . __('Additional services are not subject to credit') . ".";
+            $wmess .= __('Also you promise to pay for the current month, in accordance with your service plan') . ". " . __('Additional services are not subject to credit') . ".";
         }
     }
     show_window(__('Credits'), $wmess);
