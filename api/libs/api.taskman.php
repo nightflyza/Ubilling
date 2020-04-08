@@ -567,6 +567,10 @@ function ts_JGetUndoneTasks() {
 
     //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+    //administrator is cursed of some branch
+    if (ts_isMeBranchCursed()) {
+        $displaytype = 'onlyme';
+    }
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
@@ -704,6 +708,10 @@ function ts_JGetDoneTasks() {
 
     //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+    //administrator is cursed of some branch
+    if (ts_isMeBranchCursed()) {
+        $displaytype = 'onlyme';
+    }
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
@@ -828,6 +836,10 @@ function ts_JGetAllTasks() {
 
     //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+    //administrator is cursed of some branch
+    if (ts_isMeBranchCursed()) {
+        $displaytype = 'onlyme';
+    }
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
@@ -1346,10 +1358,14 @@ function ts_TaskCreateFormSigreq($address, $phone) {
 function ts_ShowPanel() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $branchCurseFlag = ts_isMeBranchCursed();
 
     $createform = ts_TaskCreateForm();
     $tools = '';
-    $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
+    $result = '';
+    if (!$branchCurseFlag) {
+        $result .= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
+    }
     $result .= wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
     $result .= wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png') . ' ' . __('Done tasks'), false, 'ubButton');
     $result .= wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('All tasks'), false, 'ubButton');
@@ -1377,8 +1393,9 @@ function ts_ShowPanel() {
     $tools .= wf_Link('?module=report_taskmanmap', wf_img('skins/swmapsmall.png') . ' ' . __('Tasks map'), false, 'ubButton');
     $tools .= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
 
-
-    $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
+    if (!$branchCurseFlag) {
+        $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
+    }
 
     //show type selector
     $whoami = whoami();
@@ -1413,7 +1430,9 @@ function ts_ShowPanel() {
 
         $inputs .= wf_Submit('Show', '', $submitOpts);
         $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour');
-        $result .= $showTypeForm;
+        if (!$branchCurseFlag) {
+            $result .= $showTypeForm;
+        }
     }
 
     return ($result);
@@ -2504,6 +2523,30 @@ function ts_TaskProblemsEditForm() {
 }
 
 /**
+ * Checks is current administrator cursed by some branch?
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return bool
+ */
+function ts_isMeBranchCursed() {
+    global $ubillingConfig;
+    $result = false;
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
+        if (cfr('ROOT')) {
+            $result = false;
+        } else {
+            if (cfr('BRANCHES')) {
+                $result = true;
+            }
+        }
+    } else {
+        $result = false;
+    }
+    return($result);
+}
+
+/**
  * Returns tasks by date printing dialogue
  * 
  * @return string
@@ -2514,10 +2557,10 @@ function ts_PrintDialogue() {
 
     $submitOpts = '';
     $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
-    $inputs.= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
+    $inputs .= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
 
     if ($advFiltersEnabled) {
-        $inputs.= wf_delimiter();
+        $inputs .= wf_delimiter();
 
         $whoami = whoami();
         $employeeid = ts_GetEmployeeByLogin($whoami);
@@ -2525,16 +2568,16 @@ function ts_PrintDialogue() {
         if ($employeeid) {
             $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
             $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
-            $inputs.= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
         }
 
-        $inputs.= ts_AdvFiltersControls(false);
+        $inputs .= ts_AdvFiltersControls(false);
         $submitOpts = ' style="width: 50%; height: 1.7em; font-weight: 700; margin-top: 10px; margin-left: 22px;" ';
-        $inputs.= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
+        $inputs .= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
     }
 
-    $inputs.= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
-    $inputs.= wf_Submit(__('Print'), '', $submitOpts);
+    $inputs .= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
+    $inputs .= wf_Submit(__('Print'), '', $submitOpts);
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     return ($result);
 }
@@ -2923,7 +2966,7 @@ function ts_AdvFiltersControls($extraTrailingSpace = true) {
     $jobtypecontains = ( wf_CheckPost(array('filtertaskjobtype')) ) ? $_POST['filtertaskjobtype'] : '';
     $addresscontains = ( wf_CheckPost(array('filtertaskaddr')) ) ? $_POST['filtertaskaddr'] : '';
     $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
-    $phonecontains   = ( wf_CheckPost(array('filtertaskphone')) ) ? $_POST['filtertaskphone'] : '';
+    $phonecontains = ( wf_CheckPost(array('filtertaskphone')) ) ? $_POST['filtertaskphone'] : '';
 
     $inputs = wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
     $inputs .= __('Job type');

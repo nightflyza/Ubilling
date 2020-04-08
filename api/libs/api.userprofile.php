@@ -634,11 +634,14 @@ class UserProfile {
      * @return string
      */
     protected function getTaskCreateControl() {
+        $result = '';
 //profile task creation icon
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
-            @$shortAddress = $this->useraddress;
-            $createForm = ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login);
-            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $createForm, '', '450', '540');
+            if (!ts_isMeBranchCursed()) {
+                @$shortAddress = $this->useraddress;
+                $createForm = ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login);
+                $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $createForm, '', '450', '540');
+            }
         } else {
             $result = '';
         }
