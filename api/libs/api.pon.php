@@ -3077,6 +3077,8 @@ class PONizer {
                 $onuCount = $oltOnuCounters[$oltId];
                 $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
+                $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
+                $onuMaxCount = ( !empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCount;
                 if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
