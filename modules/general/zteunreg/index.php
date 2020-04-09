@@ -81,6 +81,14 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                         $register->router = $router;
                         $register->vlan = $_POST[OnuRegister::VLAN_FIELD];
                         $register->onuModel = $_POST[OnuRegister::MODELID_FIELD];
+                        if ($_POST[OnuRegister::ONUDESCRIPTION_FIELD] and ! empty($_POST[OnuRegister::ONUDESCRIPTION_FIELD]) and $_POST[OnuRegister::ONUDESCRIPTION_FIELD] != '__empty') {
+                            $register->onuDescription = $_POST[OnuRegister::ONUDESCRIPTION_FIELD];
+                        }
+                        if ($register->login) {
+                            if (isset($_POST[OnuRegister::ONUDESCRIPTION_AS_LOGIN_FIELD])) {
+                                $register->onuDescription = $register->login;
+                            }
+                        }
                         if (isset($_POST[OnuRegister::GET_UNIVERSALQINQ])) {
                             $register->useUniversalQINQ = $_POST[OnuRegister::GET_UNIVERSALQINQ];
                         }

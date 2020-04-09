@@ -48,4 +48,6 @@ $lang['def']['ONU not found'] = 'ONU не найдена';
 $lang['def']['IMPORTANT NOTE: before ONU deletion it must be set offline, like with reboot action'] = 'ВАЖНОЕ ЗАМЕЧАНИЕ: перед удалением ONU переведите её в режим оффлайн, например - перезагрузив её';
 $lang['def']['ONU operations for login'] = 'Манипуляции с ONU для логина';
 $lang['def']['User has no ONU assigned'] = 'Пользователь не имеет ассоциированных ONU';
-
+$lang['def']['ONU description same as login'] = 'Логин как описание ОНУ';
+$lang['def']['ONU description'] = 'Описание ОНУ';
+$lang['def'][''] = '';
