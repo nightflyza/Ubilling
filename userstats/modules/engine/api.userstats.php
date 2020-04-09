@@ -1325,7 +1325,7 @@ function zbs_UserTraffStats($login) {
             $query_prev = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "`,`month`,`year`,`cash` from `stat` WHERE `login`='" . $login . "' ORDER BY `year`,`month`";
             $allprevmonth = simple_queryall($query_prev);
             //and again no classes
-            if ($dir['rulenumber'] == 0) {
+            if ($eachdir['rulenumber'] == 0) {
                 if ($us_config[$ishimuraOption]) {
                     $query_hideki = "SELECT `D0`,`U0`,`month`,`year`,`cash` from `" . $ishimuraTable . "` WHERE `login`='" . $login . "' ORDER BY `year`,`month`;";
                     $dataHideki = simple_queryall($query_hideki);
