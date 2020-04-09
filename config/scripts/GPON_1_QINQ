@@ -9,6 +9,7 @@ set ONU_NUM [lindex $argv 6]
 set VLAN [lindex $argv 7]
 set SVLAN [lindex $argv 8]
 set SN [lindex $argv 9]
+set DESCRIPTION [lindex $argv 9]
 
 if {[string match "TELNET" $METHOD]} {
     spawn telnet $IP
@@ -37,6 +38,11 @@ send "exit\r"
 
 expect "*(config)#"
 send "interface $ONU_INT:$ONU_NUM\r"
+
+if {![string match "__empty" $DESCRIPTION]} {
+    expect "*(config-if)#"
+    send "description $DESCRIPTION\r"
+}
 expect "*(config-if)#"
 send "tcont 1 name unlim profile unlim\r"
 expect "*(config-if)#"

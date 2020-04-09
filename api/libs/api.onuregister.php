@@ -37,6 +37,8 @@ class OnuRegister {
     CONST ROUTER_FIELD = 'router';
     CONST SAVE_FIELD = 'save';
     CONST PONIZER_ADD_FIELD = 'ponizer_add';
+    CONST ONUDESCRIPTION_FIELD = 'onu_description';
+    CONST ONUDESCRIPTION_AS_LOGIN_FIELD = 'onu_description_as_login';
     CONST GET_UNIVERSALQINQ_NONE = 'none';
     CONST GET_UNIVERSALQINQ_CVLAN = 'cvlan';
     CONST GET_UNIVERSALQINQ_PAIR = 'pair';
@@ -356,6 +358,13 @@ class OnuRegister {
      * @var string
      */
     public $useUniversalQINQ = 'none';
+
+    /**
+     * Contains onu description or '__empty'
+     * 
+     * @var string
+     */
+    public $onuDescription = '__empty';
 
     /**
      * Contains all alter.ini options
@@ -1403,6 +1412,7 @@ class OnuRegister {
                 $command .= ' ' . $this->nativeVlan;
                 $command .= ' ' . $this->servicePort;
             }
+            $command .= ' ' . $this->onuDescription;
         }
         return($command);
     }
@@ -2092,6 +2102,7 @@ $(".changeType").change(function () {
                 $cell .= wf_HiddenInput(self::MAC_FIELD, $this->onuIdentifier);
                 $cell .= wf_HiddenInput(self::OLTID_FIELD, $this->currentOltSwId);
                 $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
+                $cell .= wf_TextInput(self::ONUDESCRIPTION_FIELD, __('ONU description'), '', true);
                 $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
                 if ($this->altCfg[VlanManagement::VLANMANAGEMENT_OPTION] and $this->altCfg[VlanManagement::UNIVERSAL_QINQ_OPTION] and $this->altCfg[VlanManagement::ONUREG_QINQ_OPTION]) {
                     $paramString = "this.value,'" . $_GET['interface'] . "'," . $_GET['swid'];
@@ -2099,6 +2110,7 @@ $(".changeType").change(function () {
                 } else {
                     $cell .= wf_TextInput(self::LOGIN_FIELD, __('Login'), '', true);
                 }
+                $cell .= wf_CheckInput(self::ONUDESCRIPTION_AS_LOGIN_FIELD, __('ONU description same as login'), true, false);
                 $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __('Add ONU to PONizer'), true, true);
                 $cell .= wf_Tag('br');
                 $cell .= wf_CheckInput(self::SAVE_FIELD, __('Save config'), true);
@@ -2111,6 +2123,7 @@ $(".changeType").change(function () {
                 $cell .= wf_HiddenInput(self::SN_FIELD, $this->onuIdentifier);
                 $cell .= wf_HiddenInput(self::OLTID_FIELD, $this->currentOltSwId);
                 $cell .= wf_Selector(self::MODELID_FIELD, $this->onuModelsSelector, __('Choose ONU model'), '', true);
+                $cell .= wf_TextInput(self::ONUDESCRIPTION_FIELD, __('ONU description'), '', true);
                 $cell .= wf_TextInput(self::VLAN_FIELD, 'VLAN', $vlan, true);
                 if ($this->altCfg[VlanManagement::VLANMANAGEMENT_OPTION] and $this->altCfg[VlanManagement::UNIVERSAL_QINQ_OPTION] and $this->altCfg[VlanManagement::ONUREG_QINQ_OPTION]) {
                     $paramString = "this.value,'" . $_GET['interface'] . "'," . $_GET['swid'];
@@ -2120,6 +2133,7 @@ $(".changeType").change(function () {
                 }
                 $cell .= wf_TextInput(self::MAC_ONU_FIELD, __('MAC ONU for PONizer'), '', true);
                 $cell .= wf_CheckInput(self::RANDOM_MAC_FIELD, __('Generate random mac'), true, true);
+                $cell .= wf_CheckInput(self::ONUDESCRIPTION_AS_LOGIN_FIELD, __('ONU description same as login'), true, false);
                 $cell .= wf_CheckInput(self::PONIZER_ADD_FIELD, __('Add ONU to PONizer'), true, true);
                 $cell .= wf_Tag('br');
                 $cell .= wf_CheckInput(self::SAVE_FIELD, __('Save config'), true);
