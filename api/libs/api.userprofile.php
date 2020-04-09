@@ -149,6 +149,13 @@ class UserProfile {
      */
     protected $paymentid = '';
 
+    /**
+     * Path to SMS template for user quick credentials sending
+     *
+     * @var string
+     */
+    protected $esmsTemplatePath = 'content/documents/easy_sms_template/easy_sms.tpl';
+
     const EX_EMPTY_LOGIN = 'EMPTY_USERNAME_RECEIVED';
     const EX_EMPTY_USERDATA = 'EMPTY_DATABASE_USERDATA';
     const MAIN_ROW_HEADER_WIDTH = '30%';
@@ -1111,15 +1118,31 @@ class UserProfile {
                         $userMobile = str_replace('-', '', $userMobile);
                         $userMobile = str_replace('(', '', $userMobile);
                         $userMobile = str_replace(')', '', $userMobile);
+
                         if (isset($this->alterCfg['REMINDER_PREFIX'])) {
-                            $prefix = $this->alterCfg['REMINDER_PREFIX']; //trying to support defferent formats
+                            $prefix = $this->alterCfg['REMINDER_PREFIX']; //trying to support different formats
+                            $smsText = '';
+                            $sendInputs = '';
+
                             if (!empty($prefix)) {
                                 $userMobile = str_replace($prefix, '', $userMobile);
                                 $userMobile = $prefix . $userMobile;
                             }
-                            $sendInputs = '';
+
+                            if ($this->ubConfig->getAlterParam('EASY_SMS_QUICK_TEMPLATE')) {
+                                $templateData = file_get_contents($this->esmsTemplatePath);
+
+                                if (empty($templateData)) {
+                                    $smsText = 'Login: ' . $this->login . ' Password: ' . $this->userdata['Password'];
+                                } else {
+                                    $smsText = $templateData;
+                                    $smsText = str_ireplace('{LOGIN}', $this->login, $smsText);
+                                    $smsText = str_ireplace('{PASSWORD}', $this->userdata['Password'], $smsText);
+                                }
+                            }
+
                             $sendInputs .= wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
-                            $sendInputs .= wf_TextArea('neweasysmstext', '', '', true, '40x5');
+                            $sendInputs .= wf_TextArea('neweasysmstext', '', $smsText, true, '40x5');
                             $sendInputs .= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
                             $sendInputs .= wf_tag('br');
                             $sendInputs .= wf_Submit(__('Send SMS'));
