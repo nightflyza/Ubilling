@@ -181,6 +181,8 @@ if (cfr('REPORTAUTOFREEZE')) {
                 }
             }
             $result .= web_UserArrayShower($this->unfrozen);
+            $result .= wf_tag('br');
+            $result .= wf_tag('b') . __('Resurrected') . wf_tag('b', true) . ': ' . $curMonth;
             return($result);
         }
 
