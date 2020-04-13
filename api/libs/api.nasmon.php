@@ -54,12 +54,13 @@ class NasMon {
     protected function checkAllNas() {
         $this->loadAllNas();
         $deadCount = 0;
+        $nasCount = 0;
         $result = array();
         $list = '';
         if (!empty($this->allNas)) {
             $cells = wf_TableCell(__('NAS name'));
-            $cells.= wf_TableCell(__('IP'));
-            $cells.= wf_TableCell(__('Status'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Status'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allNas as $io => $each) {
                 $icmpState = zb_PingICMP($each['nasip']);
@@ -75,11 +76,13 @@ class NasMon {
                     $deadCount++;
                 }
                 $cells = wf_TableCell($each['nasname']);
-                $cells.= wf_TableCell($each['nasip']);
-                $cells.= wf_TableCell($aliveFlag);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell($each['nasip']);
+                $cells .= wf_TableCell($aliveFlag);
+                $rows .= wf_TableRow($cells, 'row5');
+                $nasCount++;
             }
             $list = wf_TableBody($rows, '100%', 0, 'sortable');
+            $list .= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . $nasCount;
         } else {
             $messages = new UbillingMessageHelper();
             $list = $messages->getStyledMessage(__('No NAS available in database'), 'warning');
