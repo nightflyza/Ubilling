@@ -511,10 +511,19 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     global $ubillingConfig;
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
-
+    $me = whoami();
 
     //cash suspect checking 
     $alterconf = $ubillingConfig->getAlter();
+    //balance editing limiting
+    $limitedFinance = false;
+    if (@$alterconf['CAN_TOUCH_MONEY']) {
+        if (!empty($alterconf['CAN_TOUCH_MONEY'])) {
+            $limitedFinance = true;
+            $godministrators = explode(',', $alterconf['CAN_TOUCH_MONEY']); //coma separated
+            $godministrators = array_flip($godministrators);
+        }
+    }
     if ($alterconf['SUSP_PAYMENTS_NOTIFY']) {
         $suspnotifyscript = js_CashCheck($alterconf['SUSP_PAYMENTS_NOTIFY']);
         $cashfieldanchor = 'onchange="checkcashfield();"';
@@ -533,12 +542,21 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
         $setCashControl = wf_RadioInput('operation', __('Set cash'), 'set', false, false);
     }
 
+    $radio = '';
+    $radio .= wf_RadioInput('operation', __('Add cash'), 'add', false, true);
+    //additional controls
+    $extRadio = '';
+    $extRadio .= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
+    $extRadio .= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
+    $extRadio .= $setCashControl;
 
-    $radio = wf_RadioInput('operation', __('Add cash'), 'add', false, true);
-    $radio .= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
-    $radio .= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
-    $radio .= $setCashControl;
-
+    if ($limitedFinance) {
+        if (isset($godministrators[$me])) {
+            $radio .= $extRadio;
+        }
+    } else {
+        $radio .= $extRadio;
+    }
     //cash input widget
     $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '" size="5" id="cashfield" ' . $cashfieldanchor . ' autofocus');
     $cashInputControl .= ' ' . __('The expected payment') . ': ' . $tariff_price;
