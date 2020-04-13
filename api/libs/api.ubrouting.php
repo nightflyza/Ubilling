@@ -87,7 +87,7 @@ class ubRouting {
      * Returns filtered data
      * 
      * @param type $rawData data to be filtered
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb
      * @param string/array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed/false
@@ -105,6 +105,12 @@ class ubRouting {
                 break;
             case 'mres':
                 return(mysql_real_escape_string($rawData));
+                break;
+            case 'vf':
+                return(preg_replace("#[^a-z0-9A-Z]#Uis", '', $rawData));
+                break;
+            case 'nb':
+                return(preg_replace('/\0/s', '', $rawData));
                 break;
             case 'fi':
                 if (!empty($callback)) {
