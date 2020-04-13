@@ -72,7 +72,7 @@ function cu_GetAllParentUsers() {
     $linkfield = $alterconf['USER_LINKING_FIELD'];
     $linkcfid = $alterconf['USER_LINKING_CFID'];
     $result = array();
-    $query_cfs = "SELECT DISTINCT `content` FROM `cfitems` WHERE `typeid`='" . $linkcfid . "'";
+    $query_cfs = "SELECT DISTINCT `content` FROM `cfitems` WHERE `typeid`='" . $linkcfid . "' AND `content` <> ''";
     $allcfs = simple_queryall($query_cfs);
     if (!empty($allcfs)) {
         foreach ($allcfs as $io => $eachcf) {
