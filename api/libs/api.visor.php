@@ -143,9 +143,22 @@ class UbillingVisor {
     protected $chanPreviewFramerate = 1000; // 1 fps
 
     /**
+     * Quality percent of large channel preview
+     *
+     * @var int
+     */
+    protected $chanBigPreviewQuality = 95;
+
+    /**
+     * Large preview framerate
+     *
+     * @var int
+     */
+    protected $chanBigPreviewFramerate = 1000;
+
+    /**
      * Basic module URLs
      */
-
     const URL_ME = '?module=visor';
     const URL_USERS = '&users=true';
     const URL_CAMS = '&cams=true';
@@ -2274,7 +2287,7 @@ class UbillingVisor {
             $dvrData = $this->allDvrs[$dvrId];
             if ($dvrData['type'] == 'trassir') {
                 $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg', 95, 100);
+                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg', $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
                 $result .= wf_img_sized($channelUrl, '', '60%');
                 $result .= wf_delimiter();
                 //Channel record mode form here
@@ -2417,7 +2430,7 @@ class UbillingVisor {
                         if (!$maxQual) {
                             $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
                         } else {
-                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', 95, 100);
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
                         }
                         $urlTmp[$each['chan']] = $url;
                     }
