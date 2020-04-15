@@ -90,8 +90,15 @@ if ($altcfg['CALLSHIST_ENABLED']) {
              * @return void
              */
             protected function loadCalls() {
+
                 $where = (!empty($this->loginSearch)) ? " WHERE `login`='" . $this->loginSearch . "'" : '';
+                if (!empty($this->loginSearch)) {
+                    $where = "WHERE `login`='" . $this->loginSearch . "'";
+                } else {
+                    $where = "WHERE `date` LIKE '" . curyear() . "-%'";
+                }
                 $query = "SELECT * from `" . $this->dataSource . "` " . $where;
+                // die($query);
                 $all = simple_queryall($query);
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {
@@ -121,7 +128,7 @@ if ($altcfg['CALLSHIST_ENABLED']) {
                 if (!empty($userLogin)) {
                     if (isset($this->userTags[$userLogin])) {
                         if (!empty($this->userTags[$userLogin])) {
-                            $result.=implode(', ', $this->userTags[$userLogin]);
+                            $result .= implode(', ', $this->userTags[$userLogin]);
                         }
                     }
                 }
@@ -138,7 +145,7 @@ if ($altcfg['CALLSHIST_ENABLED']) {
                 $columns = array('Date', 'Number', 'User', 'Tariff', 'Tags');
                 $opts = '"order": [[ 0, "desc" ]]';
                 $loginFilter = (!empty($this->loginSearch)) ? '&username=' . $this->loginSearch : '';
-                $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajaxcalls=true' . $loginFilter, false, __('Calls'), 100, $opts);
+                $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajaxcalls=true' . $loginFilter, false, __('Calls'), 100, $opts);
                 return ($result);
             }
 
@@ -204,7 +211,7 @@ if ($altcfg['CALLSHIST_ENABLED']) {
                             if (!empty($detectedLogin)) {
                                 simple_update_field($this->dataSource, 'login', $detectedLogin, "WHERE `id`='" . $each['id'] . "'");
                                 $notification = $each['date'] . ' ' . $each['number'] . ' ' . __('Assigned') . ' ' . $detectedLogin;
-                                $result.=$messages->getStyledMessage($notification, 'success');
+                                $result .= $messages->getStyledMessage($notification, 'success');
                                 $countGuessed++;
                             } else {
                                 $countMissed++;
@@ -212,9 +219,9 @@ if ($altcfg['CALLSHIST_ENABLED']) {
                         }
                     }
                 }
-                
-                $result.=$messages->getStyledMessage(__('telepathically guessed').': '.$countGuessed, 'info');
-                $result.=$messages->getStyledMessage(__('skipped').': '.$countMissed, 'warning');
+
+                $result .= $messages->getStyledMessage(__('telepathically guessed') . ': ' . $countGuessed, 'info');
+                $result .= $messages->getStyledMessage(__('skipped') . ': ' . $countMissed, 'warning');
                 return ($result);
             }
 
@@ -238,7 +245,7 @@ if ($altcfg['CALLSHIST_ENABLED']) {
         //rendering report container
         if (!wf_CheckGet(array('updateusers'))) {
             if (cfr('ROOT')) {
-                $updateControls = ' ' . wf_Link($report::URL_ME . '&updateusers=true', wf_img('skins/refresh.gif',__('User calls assign update')));
+                $updateControls = ' ' . wf_Link($report::URL_ME . '&updateusers=true', wf_img('skins/refresh.gif', __('User calls assign update')));
             } else {
                 $updateControls = '';
             }
@@ -255,7 +262,7 @@ if ($altcfg['CALLSHIST_ENABLED']) {
         if (wf_CheckGet(array('username'))) {
             //optional profile-return links
             $controlsLinks = wf_BackLink($report::URL_PROFILE . $_GET['username']) . ' ';
-            $controlsLinks.= wf_Link($report::URL_ME, wf_img('skins/done_icon.png') . ' ' . __('All calls'), false, 'ubButton');
+            $controlsLinks .= wf_Link($report::URL_ME, wf_img('skins/done_icon.png') . ' ' . __('All calls'), false, 'ubButton');
             show_window('', $controlsLinks);
         }
     } else {
