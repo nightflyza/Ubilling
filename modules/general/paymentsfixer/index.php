@@ -142,7 +142,7 @@ if (cfr('ROOT')) {
                 $cat = $this->billCfg['CAT'];
                 $stgLog = $this->altCfg['STG_LOG_PATH'];
                 $grep = $this->billCfg['GREP'];
-                $command = $sudo . ' ' . $cat . ' ' . $stgLog . ' | ' . $grep . ' ' . $this->checkDate . ' | ' . $grep . ' cash';
+                $command = $sudo . ' ' . $cat . ' ' . $stgLog . ' | ' . $grep . ' ' . $this->checkDate . ' | ' . $grep . ' cash | ' . $grep . ' -v fee';
                 $result .= shell_exec($command);
             }
             return($result);
