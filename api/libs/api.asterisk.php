@@ -100,6 +100,12 @@ class Asterisk {
      */
     protected $getFullCDRCELData = false;
 
+    /**
+     * Placeholder for MOBILES_EXT alter.ini option
+     *
+     * @var bool
+     */
+    protected $extMobilesON = false;
 
     // Database's vars:
     private $connected;
@@ -130,6 +136,7 @@ class Asterisk {
         $this->recordingsCELTab = ($ubillingConfig->getAlterParam('ASTERISK_CALLRECS_CEL_TAB_NAME')) ? $ubillingConfig->getAlterParam('ASTERISK_CALLRECS_CEL_TAB_NAME') : '';
         $this->recordingsFormat = ($ubillingConfig->getAlterParam('ASTERISK_CALLRECS_FORMAT')) ? $ubillingConfig->getAlterParam('ASTERISK_CALLRECS_FORMAT') : '';
         $this->getFullCDRCELData = $ubillingConfig->getAlterParam('ASTERISK_GET_FULL_CDR_CEL_DATA');
+        $this->extMobilesON = $ubillingConfig->getAlterParam('MOBILES_EXT');
     }
 
     /**
@@ -1028,6 +1035,168 @@ class Asterisk {
         }
 
         //$result = rcms_scandir($this->voicePath, $this->callsFormat, 'file');
+        return ($result);
+    }
+
+    /**
+     * Returns all logins for a given phone number or a part of phone number
+     *
+     * @param $mobile
+     * @param bool $returnJSON
+     *
+     * @return array|string
+     */
+    public function getLoginsByMobile($mobile, $returnJSON = true) {
+        $logins = array();
+        $query = "(SELECT `login` FROM `phones` WHERE `mobile` LIKE '%" . $mobile . "%')
+                  UNION ALL
+                  (SELECT `login` FROM `mobileext` WHERE `mobile` LIKE '%" . $mobile . "%')";
+        $queryResult = simple_queryall($query);
+
+        if (!empty($queryResult)) {
+            foreach ($queryResult as $eachRec) {
+                $logins[] = $eachRec['login'];
+            }
+        }
+
+        $logins = ($returnJSON) ? json_encode($logins) : $logins;
+        return ($logins);
+    }
+
+    /**
+     * Returns all contracts for a given phone number or a part of phone number
+     *
+     * @param $mobile
+     * @param bool $returnJSON
+     *
+     * @return array|string
+     */
+    public function getContractsByMobile($mobile, $returnJSON = true) {
+        $contracts = array();
+        $logins = $this->getLoginsByMobile($mobile, false);
+        
+        if (!empty($logins)) {
+            foreach ($logins as $eachLogin) {
+                $contracts[] = zb_UserGetContract($eachLogin);
+            }
+        }
+
+        $contracts = ($returnJSON) ? json_encode($contracts) : $contracts;
+        return ($contracts);
+    }
+
+
+    /**
+     * Returns some user data by login with optional auth by login + password
+     *
+     * @param $login
+     * @param string $passwd
+     * @param bool $getExtMobiles
+     * @param bool $returnJSON
+     *
+     * @return array|string
+     */
+    public function getUserData($login, $passwd = '', $getExtMobiles = true, $returnJSON = true) {
+        $userData = array();
+
+        if (!is_array($login) and !empty($passwd)) {
+            $allUsers = zb_UserGetAllDataCache();
+
+            if (empty($allUsers[$login]) or $allUsers[$login]['Password'] !== $passwd) {
+                $userData['ERROR'] = 'Auth failed';
+                $userData = ($returnJSON) ? json_encode($userData) : $userData;
+                return ($userData);
+            }
+        }
+
+        if (is_array($login)) {
+            $login = "'" . implode("','", $login) . "'";
+            $whereStr = "WHERE `users`.`login` IN (". $login . ")";
+        } else {
+            $whereStr = "WHERE `users`.`login` = '". $login . "'";
+        }
+
+        $query = "SELECT `login`, `Password`, `Cash`, `Credit`, `CreditExpire`, `Passive`, `Down`, `AlwaysOnline`, `Tariff`, 
+                         `tariffs`.`Fee`, `contracts`.`contract`, `phones`.`mobile`, `tAgents`.`agentid`, `tAgents`.`contrname`  
+                    FROM `users` 
+                        LEFT JOIN `tariffs` ON (`users`.`Tariff` = `tariffs`.`name`)
+                        LEFT JOIN `contracts` USING(`login`)
+                        LEFT JOIN `phones` USING(`login`)
+                        LEFT JOIN (SELECT `agentid`, `login`, `contrahens`.`contrname` FROM `ahenassignstrict`
+                                        LEFT JOIN `contrahens` ON `ahenassignstrict`.`agentid` = `contrahens`.`id`) AS `tAgents` USING(`login`)
+                    " . $whereStr;
+        $queryResult = simple_queryall($query);
+
+        if (!empty($queryResult)) {
+            foreach ($queryResult as $eachRec) {
+                $tmpLogin = $eachRec['login'];
+
+                if ($this->extMobilesON and $getExtMobiles) {
+                    $extMob = new MobilesExt();
+                    $allExtMobs = $extMob->getUserMobiles($eachRec['login'], true);
+                    $eachRec['ext_mobiles'] = (empty($allExtMobs[$tmpLogin])) ? array() : $allExtMobs[$tmpLogin];
+                }
+
+                $userData[$tmpLogin] = $eachRec;
+            }
+        }
+
+        $userData = ($returnJSON) ? json_encode($userData) : $userData;
+        return ($userData);
+    }
+
+    /**
+     * Adds or creates user mobiles with max mobiles count threshold support
+     *
+     * @param $login
+     * @param $mobile
+     * @param int $maxMobilesCnt
+     * @param bool $returnJSON
+     *
+     * @return array|string
+     */
+    public function addUserMobile($login, $mobile, $maxMobilesCnt = 0, $returnJSON = true) {
+        $allPhones = zb_GetAllAllPhonesCache();
+        $result = array();
+
+        if (!empty($allPhones[$login])) {
+            $curUserPhones = $allPhones[$login];
+            $noMainMobileSet = empty($curUserPhones['mobile']);
+
+            //check if such mobile already exists for this user
+            if ($curUserPhones['mobile'] == $mobile or in_array($mobile, $curUserPhones['mobiles'])) {
+                $result['ERROR'] = 'Such mobile already exists for this user';
+                $result = ($returnJSON) ? json_encode($result) : $result;
+                return ($result);
+            }
+
+            // check if user mobiles count reached $maxMobilesCnt
+            if (!empty($maxMobilesCnt)) {
+                $curMobsCnt = ($noMainMobileSet) ? 0 : 1;
+                $curMobsCnt += count($curUserPhones['mobiles']);
+
+                if ($curMobsCnt >= $maxMobilesCnt) {
+                    $result['ERROR'] = 'Max mobiles count threshold reached';
+                    $result = ($returnJSON) ? json_encode($result) : $result;
+                    return ($result);
+                }
+            }
+
+            if ($noMainMobileSet) {
+                zb_UserChangeMobile($login, $mobile);
+            } else {
+                $extMob = new MobilesExt();
+                $extMob->createUserMobile($login, $mobile, 'Added by Asterisk');
+            }
+        } else {
+            zb_UserCreatePhone($login, '', $mobile);
+        }
+
+        $cache = new UbillingCache();
+        $cache->delete('USER_ALL_PHONES_DATA');
+
+        $result['SUCCES'] = 'Mobile added';
+        $result = ($returnJSON) ? json_encode($result) : $result;
         return ($result);
     }
 }
