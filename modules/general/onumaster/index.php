@@ -12,10 +12,10 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
 
                 if ($rebootResult) {
                     show_success('DONE');
-                    log_register('ONUMASTER ONU reboot for login [' . $userLogin . ']');
+                    log_register('ONUMASTER ONU reboot for login (' . $userLogin . ')');
                 } else {
                     show_error($onuMaster->reboot->displayMessage);
-                    log_register('ONUMASTER ONU reboot failed for login [' . $userLogin . ']. Message: ' . $onuMaster->reboot->displayMessage);
+                    log_register('ONUMASTER ONU reboot failed for login (' . $userLogin . '). Message: ' . $onuMaster->reboot->displayMessage);
                 }
             }
 
@@ -24,10 +24,10 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
 
                 if ($delResult) {
                     show_success('DONE');
-                    log_register('ONUMASTER ONU delete for login [' . $userLogin . ']');
+                    log_register('ONUMASTER ONU delete for login (' . $userLogin . ')');
                 } else {
                     show_error($onuMaster->delete->displayMessage);
-                    log_register('ONUMASTER ONU delete failed for login [' . $userLogin . ']. Message: ' . $onuMaster->delete->displayMessage);
+                    log_register('ONUMASTER ONU delete failed for login (' . $userLogin . '). Message: ' . $onuMaster->delete->displayMessage);
                 }
             }
 
@@ -36,10 +36,10 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
 
                 if ($deregResult) {
                     show_success('DONE');
-                    log_register('ONUMASTER ONU deregister for login [' . $userLogin . ']');
+                    log_register('ONUMASTER ONU deregister for login (' . $userLogin . ')');
                 } else {
                     show_error($onuMaster->deregister->displayMessage);
-                    log_register('ONUMASTER ONU deregister failed for login [' . $userLogin . ']. Message: ' . $onuMaster->deregister->displayMessage);
+                    log_register('ONUMASTER ONU deregister failed for login (' . $userLogin . '). Message: ' . $onuMaster->deregister->displayMessage);
                 }
             }
 
@@ -50,10 +50,10 @@ if ($altcfg['ONU_MASTER_ENABLED']) {
                     $describeResult = trim($describeResult, " \t\n\r\0\x0B\x31\x22");
                     $describeResult = ($describeResult === '') ? wf_nbsp() : $describeResult;
                     show_success($describeResult);
-                    log_register('ONUMASTER ONU description change for login [' . $userLogin . '] to `' . $describeResult . '`');
+                    log_register('ONUMASTER ONU description change for login (' . $userLogin . ') to `' . $describeResult . '`');
                 } else {
                     show_error($onuMaster->describe->displayMessage);
-                    log_register('ONUMASTER ONU description change failed for login [' . $userLogin . ']. Message: ' . $onuMaster->describe->displayMessage);
+                    log_register('ONUMASTER ONU description change failed for login (' . $userLogin . '). Message: ' . $onuMaster->describe->displayMessage);
                 }
             }
 
