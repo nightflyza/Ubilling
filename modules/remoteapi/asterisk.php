@@ -6,38 +6,46 @@
  * 
  * Format: /?module=remoteapi&key=[ubserial]&action=[action]&number=[+380XXXXXXXXX]&param=[parameter]
  * 
- * Avaible parameter: login, swstatus, userstatus, setcredit, paycardpay
+ * Available parameter: login, swstatus, userstatus, setcredit, paycardpay,
+ *                      getuserdatabylogin, getuserdatabymobile, getcontractsbymobile, addusermobile
  *
  * With "userstatus" param you may use pretty self explanationary "ignorecache" and "getmoney" params as well
  * With "setcredit" param you'll need to pass "login", "money" and "expiredays" params as well
  * With "paycardpay" param you'll need to pass "login", "paycardnum", "paycardcashtype" param as well
- * 
+ * With "getuserdatabylogin" param you may pass "userpass" param as well to enable user + password verification
+ * "getuserdatabymobile", "getcontractsbymobile" and "addusermobile" need no additional parameters except the mobile passed in "number" param
+ *
  */
+
 if ($_GET['action'] == 'asterisk') {
     if ($alterconf['ASTERISK_ENABLED']) {
-        if (ubRouting::checkGet('number')) {
+        if (ubRouting::checkGet('number') or ubRouting::checkGet(array('login', 'userpass'))) {
             if (ubRouting::checkGet('param')) {
-                $ignoreCache = wf_CheckGet(array('ignorecache'));
-                $getMoney = wf_CheckGet(array('getmoney'));
-                $userLogin = (wf_CheckGet(array('login'))) ? $_GET['login'] : '';
-                $creditMoney = (wf_CheckGet(array('money'))) ? $_GET['money'] : 0.00;
-                $creditExpireDays = (wf_CheckGet(array('expiredays'))) ? $_GET['expiredays'] : 0;
-                $payCardNum = (wf_CheckGet(array('paycardnum'))) ? $_GET['paycardnum'] : '';
-                $payCardCashType = (wf_CheckGet(array('paycardcashtype'))) ? $_GET['paycardcashtype'] : 1;
-                $number = trim($_GET['number']);
+                $ignoreCache = ubRouting::checkGet('ignorecache');
+                $getMoney = ubRouting::checkGet('getmoney');
+                $addMobile = ubRouting::checkGet('addmobile');
+                $maxMobilesAmount = (ubRouting::checkGet('maxmobilesamnt')) ? ubRouting::get('maxmobilesamnt') : 0;
+                $userLogin = (ubRouting::checkGet('login')) ? ubRouting::get('login') : '';
+                $userPasswd = (ubRouting::checkGet('userpass')) ? ubRouting::get('userpass') : '';
+                $creditMoney = (ubRouting::checkGet('money')) ? ubRouting::get('money') : 0.00;
+                $creditExpireDays = (ubRouting::checkGet('expiredays')) ? ubRouting::get('expiredays') : 0;
+                $payCardNum = (ubRouting::checkGet('paycardnum')) ? ubRouting::get('paycardnum') : '';
+                $payCardCashType = (ubRouting::checkGet('paycardcashtype')) ? ubRouting::get('paycardcashtype') : 1;
+                $number = trim(ubRouting::get('number'));
+                $apiParam = ubRouting::get('param');
 
                 $userdata = (empty($userLogin)) ? array() : zb_ProfileGetStgData($userLogin);
 
                 $asterisk = new Asterisk();
                 // We do not need this data in the modules: callshist, ForWhomTheBellTolls
-                if (ubRouting::get('param') == 'swstatus') {
+                if ($apiParam == 'swstatus') {
                     $result = $asterisk->AsteriskGetInfoApi($number, 'swstatus');
                     die($result);
                 } else {
                     $askNum = new AskoziaNum();
                     $askNum->setNumber($number);
 
-                    switch ($_GET['param']) {
+                    switch ($apiParam) {
                         case 'setcredit':
                             if (!empty($userdata)) {
                                 if (isset($userdata['Cash']) and $userdata['Cash'] < 0) {
@@ -190,6 +198,22 @@ if ($_GET['action'] == 'asterisk') {
                             $askNum->renderReply(false, $ignoreCache, $getMoney);
                             // no break or die() needed - previous line will call die() itself
 
+                        case 'getuserdatabylogin':
+                            $result = $asterisk->getUserData($userLogin, $userPasswd, true);
+                            die($result);
+
+                        case 'getuserdatabymobile':
+                            $logins = $asterisk->getLoginsByMobile($number, false);
+                            $result = $asterisk->getUserData($logins, '', true);
+                            die($result);
+
+                        case 'getcontractsbymobile':
+                            $result = $asterisk->getContractsByMobile($number);
+                            die($result);
+
+                        case 'addusermobile':
+                            $result = $asterisk->addUserMobile($userLogin, $number, $maxMobilesAmount);
+                            die($result);
 
                         default:
                             $askNum->renderReply(true, $ignoreCache, $getMoney);

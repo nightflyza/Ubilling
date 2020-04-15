@@ -78,19 +78,24 @@ class MobilesExt {
     }
 
     /**
-     * Returns filtered array for some user phones as id=>data
-     * 
+     * Returns filtered array for some user phones as id => data or as login => array_of_mobiles
+     *
      * @param string $login
+     * @param bool $loginAsKey
      * 
      * @return array
      */
-    public function getUserMobiles($login) {
+    public function getUserMobiles($login, $loginAsKey = false) {
         $result = array();
         if (!empty($login)) {
             if (!empty($this->allMobiles)) {
                 foreach ($this->allMobiles as $io => $each) {
                     if ($each['login'] == $login) {
-                        $result[$each['id']] = $each;
+                        if ($loginAsKey) {
+                            $result[$login][] = $each['mobile'];
+                        } else {
+                            $result[$each['id']] = $each;
+                        }
                     }
                 }
             }
