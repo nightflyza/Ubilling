@@ -166,6 +166,38 @@ if ($altCfg['PON_ENABLED']) {
                 );
             }
         }
+
+        //ONU assigment check
+        if ($_GET['action'] = 'checkONUAssignment' and isset($_GET['onumac'])) {
+            $tString = '';
+            $tStatus = 0;
+            $tLogin = '';
+            $oltData = '';
+            $onuMAC = $_GET['onumac'];
+
+            $ONUAssignment = $pon->checkONUAssignment($pon->getONUIDByMAC($onuMAC), true, true);
+
+            $tStatus = $ONUAssignment['status'];
+            $tLogin = $ONUAssignment['login'];
+            $oltData = $ONUAssignment['oltdata'];
+
+            switch ($tStatus) {
+                case 0:
+                    $tString = __('ONU is not assigned');
+                    break;
+
+                case 1:
+                    $tString = __('ONU is already assigned, but such login is not exists anymore') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData ;
+                    break;
+
+                case 2:
+                    $tString = __('ONU is already assigned') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData ;
+                    break;
+
+            }
+
+            die($tString);
+        }
     } else {
         show_error(__('You cant control this module'));
     }

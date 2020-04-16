@@ -735,20 +735,21 @@ function web_UserRegFormNetData($newuser_data) {
             $form .= wf_tag('a', true);
             $form .= wf_tag('script', false, '', 'type="text/javascript"');
             $form .= '$(\'#onuassignment1\').click(function(evt){
-                if ( typeof( $(\'input[name=onumac]\').val() ) === "string" && $(\'input[name=onumac]\').val().length > 0 ) {
-                    $.ajax({
-                        type: "GET",
-                        url: "?module=userreg",
-                        data: {action:\'checkONUAssignment\', onumac:$(\'input[name=onumac]\').val()},
-                        success: function(result) {
-                                    $(\'#onuassignment2\').text(result);
-                                 }
-                    });
-                } else {$(\'#onuassignment2\').text(\'\');}
-                
-                evt.preventDefault();
-                return false;                
-            });';
+                        evt.preventDefault();
+                        
+                        if ( typeof( $(\'input[name=onumac]\').val() ) === "string" && $(\'input[name=onumac]\').val().length > 0 ) {
+                            $.ajax({
+                                type: "GET",
+                                url: "?module=ponizer",
+                                data: {action:\'checkONUAssignment\', onumac:$(\'input[name=onumac]\').val()},
+                                success: function(result) {
+                                            $(\'#onuassignment2\').text(result);
+                                         }
+                            });
+                        } else {$(\'#onuassignment2\').text(\'\');}
+                       
+                        return false;                
+                    });';
             $form .= wf_tag('script', true);
             $form .= wf_tag('td', true);
             $form .= wf_tag('td', false);

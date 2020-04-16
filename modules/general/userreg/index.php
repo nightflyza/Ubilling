@@ -24,32 +24,6 @@ if (cfr('USERREG')) {
         die($Pon->getUnknownONUMACList(vf($_GET['oltid'], 3), true, true, $_GET['selectorid'], $_GET['selectorname']));
     }
 
-    //ONU assigment check
-    if (@$alter_conf['ONUAUTO_USERREG']) {
-        if ($_GET['action'] = 'checkONUAssignment' and isset($_GET['onumac'])) {
-            $PONAPIObject = new PONizer();
-            $ONUMAC = $_GET['onumac'];
-            $ONUAssignment = $PONAPIObject->checkONUAssignment($PONAPIObject->getONUIDByMAC($ONUMAC));
-
-            switch ($ONUAssignment) {
-                case 0:
-                    $tString = __('ONU is not assigned');
-                    break;
-
-                case 1:
-                    $tString = __('ONU is already assigned, but such login is not exists anymore');
-                    break;
-
-                case 2:
-                    $tString = __('ONU is already assigned');
-                    break;
-            }
-
-            echo $tString;
-            die();
-        }
-    }
-
     if ((!isset($_POST['apt'])) AND ( !isset($_POST['IP']))) {
         show_window(__('User registration part 1 (location)'), web_UserRegFormLocation());
     } else {
