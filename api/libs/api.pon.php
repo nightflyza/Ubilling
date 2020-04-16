@@ -1941,35 +1941,53 @@ class PONizer {
 
     /**
      * Returns int for ONU has or has not some of subscribers login assignment
+     * May return array with status, login and OLT location and IP
+     *
      * 0 - has no assignment
      * 1 - has assignment, but login does not exist
      * 2 - has assignment
      *
      * @param int $onuid
+     * @param bool $getLogin
+     * @param bool $getOLTData
      *
-     * @return int
+     * @return int|array
      */
-    public function checkONUAssignment($onuid) {
+    public function checkONUAssignment($onuid, $getLogin = false, $getOLTData = false) {
         $result = 0;
         $tLogin = '';
+        $oltData = '';
+        $tArray = array();
 
-        if (empty($onuid))
-            return $result;
+        if (isset($this->allOnu[$onuid])) {
+            $onuRec = $this->allOnu[$onuid];
 
-        $query = "SELECT * from `pononu` WHERE `id`='" . $onuid . "'";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            $tLogin = $all[0]['login'];
+            if (!empty($onuRec)) {
+                $tLogin = $onuRec['login'];
 
-            if (!empty($tLogin)) {
-                $query = "SELECT * from `users` WHERE `login`='" . $tLogin . "'";
-                $LoginRec = simple_queryall($query);
+                if (empty($tLogin)) {
+                    $result = 1;
+                } else {
+                    $query = "SELECT * from `users` WHERE `login`='" . $tLogin . "'";
+                    $loginRec = simple_query($query);
 
-                empty($LoginRec) ? $result = 1 : $result = 2;
+                    (empty($loginRec)) ? $result = 1 : $result = 2;
+                }
+
+                if ($getOLTData and isset($this->allOltDevices[$onuRec['oltid']])) {
+                    $oltData = $this->allOltDevices[$onuRec['oltid']];
+                }
             }
         }
 
-        return $result;
+        if ($getLogin or $getOLTData) {
+            $tArray['status'] = $result;
+            $tArray['login'] = $tLogin;
+            $tArray['oltdata'] = $oltData;
+            $result = $tArray;
+        }
+
+        return ($result);
     }
 
     /**
@@ -2305,6 +2323,9 @@ class PONizer {
         $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20, '', '__NewONUMAC');
         $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
+        $inputs .= wf_Link('#', __('Check if ONU is assigned to any login already'), true, 'ubButton __CheckONUAssignmentBtn', 'style="width: 100%; text-align: center;padding: 6px 0; margin-top: 5px;"');
+        $inputs .= wf_tag('span', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
+        $inputs .= wf_tag('span', true);
 
         if (($this->onuUknownUserByMACSearchShow and ( empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
             $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
@@ -2316,7 +2337,7 @@ class PONizer {
                     wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
                     wf_tag('span', true);
             $inputs .= wf_tag('div', true);
-            $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%;text-align: center;padding: 6px 0;margin-top: 5px;"');
+            $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
             $inputs .= wf_tag('div', true);
         }
 
@@ -2339,23 +2360,23 @@ class PONizer {
         $result .= wf_HiddenInput('', $ModalWindowID, $HiddenModalID, '__ONUAACFormModalWindowID');
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
         $result .= '
-                        $(\'#' . $FormID . '\').submit(function(evt) {
-                            if ( $(\'#' . $NoRedirChkID . '\').is(\':checked\') ) {
-                                evt.preventDefault();
-                                 
-                                $.ajax({
-                                    type: "POST",
-                                    url: "' . self::URL_ME . '",
-                                    data: $(\'#' . $FormID . '\').serialize(),
-                                    success: function() {
-                                                if ( $(\'#' . $ReloadChkID . '\').is(\':checked\') ) { location.reload();}
-                                                $( \'#\'+$(\'#' . $HiddenReplID . '\').val() ).replaceWith(\'' . web_ok_icon() . '\');
-                                                $( \'#\'+$(\'#' . $HiddenModalID . '\').val() ).dialog("close");
-                                             }
-                                });
-                            }
-                        });
-                        ';
+                    $(\'#' . $FormID . '\').submit(function(evt) {
+                        if ( $(\'#' . $NoRedirChkID . '\').is(\':checked\') ) {
+                            evt.preventDefault();
+                             
+                            $.ajax({
+                                type: "POST",
+                                url: "' . self::URL_ME . '",
+                                data: $(\'#' . $FormID . '\').serialize(),
+                                success: function() {
+                                            if ( $(\'#' . $ReloadChkID . '\').is(\':checked\') ) { location.reload();}
+                                            $( \'#\'+$(\'#' . $HiddenReplID . '\').val() ).replaceWith(\'' . web_ok_icon() . '\');
+                                            $( \'#\'+$(\'#' . $HiddenModalID . '\').val() ).dialog("close");
+                                         }
+                            });
+                        }
+                    });
+                    ';
         $result .= wf_tag('script', true);
 
         return ($result);
@@ -2764,7 +2785,34 @@ class PONizer {
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
         $result .= wf_JSEmptyFunc();
-        $result .= 'function OLTIndividualRefresh(OLTID, JQAjaxTab, RefreshButtonSelector) {  
+        $result .= wf_JSElemInsertedCatcherFunc();
+        $result .= '
+                    function checkONUAssignment() {
+                        if ( typeof( $(\'input[name=newmac]\').val() ) === "string" && $(\'input[name=newmac]\').val().length > 0 ) {
+                            $.ajax({
+                                type: "GET",
+                                url: "?module=ponizer",
+                                data: {action:\'checkONUAssignment\', onumac:$(\'input[name=newmac]\').val()},
+                                success: function(result) {
+                                            $(\'#onuassignment2\').text(result);
+                                         }
+                            });
+                        } else {$(\'#onuassignment2\').text(\'\');}
+                    }        
+        
+                    function dynamicBindClick(ctrlClassName) {
+                        $(document).on("click", ctrlClassName, function(evt) {
+                            evt.preventDefault();
+                            checkONUAssignment($(ctrlClassName).val());                            
+                            return false;            
+                        });
+                    }
+        
+                    onElementInserted(\'body\', \'.__CheckONUAssignmentBtn\', function(element) {
+                        dynamicBindClick(\'.__CheckONUAssignmentBtn\');
+                    });
+                    
+                    function OLTIndividualRefresh(OLTID, JQAjaxTab, RefreshButtonSelector) {  
                         $.ajax({
                             type: "GET",
                             url: "' . self::URL_ME . '",
@@ -3931,6 +3979,14 @@ class PONizer {
         $json->getJson();
     }
 
+    /**
+     * Returns ONU create and assign form for user profile module
+     *
+     * @param $userLogin
+     * @param $allUserData
+     *
+     * @return string
+     */
     public function renderCpeUserControls($userLogin, $allUserData) {
         $result = '';
         $userHasCPE = false;
@@ -3950,32 +4006,59 @@ class PONizer {
             $result .= web_icon_create() . ' ' . __('Create new CPE');
             $result .= wf_tag('a', true);
             $result .= wf_tag('script', false, '', 'type="text/javascript"');
-            $result .= '                    
-                    $(\'#' . $LnkID . '\').click(function(evt) {
-                        $.ajax({
-                            type: "GET",
-                            url: "' . self::URL_ME . '",                              
-                            data: {
-                                renderCreateForm:true,
-                                renderedOutside:true,
-                                reloadPageAfterDone:true,
-                                userLogin:"' . $userLogin . '",
-                                onumac:"' . $userMAC . '",
-                                userIP:"' . $userIP . '",
-                                oltid:"",
-                                ActionCtrlID:"' . $LnkID . '",
-                                ModalWID:"dialog-modal_' . $LnkID . '"
-                            },
-                            success: function(result) { 
-                                        $(\'#body_dialog-modal_' . $LnkID . '\').html(result);
-                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
-                                     }
+            $result .= wf_JSElemInsertedCatcherFunc();
+            $result .= wf_JSEmptyFunc();
+            $result .= '
+                        function checkONUAssignment() {
+                            if ( typeof( $(\'input[name=newmac]\').val() ) === "string" && $(\'input[name=newmac]\').val().length > 0 ) {
+                                $.ajax({
+                                    type: "GET",
+                                    url: "?module=ponizer",
+                                    data: {action:\'checkONUAssignment\', onumac:$(\'input[name=newmac]\').val()},
+                                    success: function(result) {
+                                                $(\'#onuassignment2\').text(result);
+                                             }
+                                });
+                            } else {$(\'#onuassignment2\').text(\'\');}
+                        }        
+            
+                        function dynamicBindClick(ctrlClassName) {
+                            $(document).on("click", ctrlClassName, function(evt) {
+                                evt.preventDefault();
+                                checkONUAssignment($(ctrlClassName).val());                                
+                                return false;         
+                            });
+                        }
+            
+                        onElementInserted(\'body\', \'.__CheckONUAssignmentBtn\', function(element) {
+                            dynamicBindClick(\'.__CheckONUAssignmentBtn\');
                         });
-                        
-                        evt.preventDefault();
-                        return false;
-                    });
-                    ';
+                
+                        $(\'#' . $LnkID . '\').click(function(evt) {
+                            $.ajax({
+                                type: "GET",
+                                url: "' . self::URL_ME . '",                              
+                                data: {
+                                    renderCreateForm:true,
+                                    renderedOutside:true,
+                                    reloadPageAfterDone:true,
+                                    userLogin:"' . $userLogin . '",
+                                    onumac:"' . $userMAC . '",
+                                    userIP:"' . $userIP . '",
+                                    oltid:"",
+                                    ActionCtrlID:"' . $LnkID . '",
+                                    ModalWID:"dialog-modal_' . $LnkID . '"
+                                },
+                                success: function(result) { 
+                                            $(\'#body_dialog-modal_' . $LnkID . '\').html(result);
+                                            $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                         }
+                            });
+                            
+                            evt.preventDefault();
+                            return false;
+                        });
+                        ';
             $result .= wf_tag('script', true);
             $result .= wf_delimiter();
         }
