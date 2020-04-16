@@ -102,6 +102,8 @@ function web_AddressBuildShowAptsCheck($buildid) {
  */
 function web_UserRegFormLocation() {
     global $registerSteps;
+    global $ubillingConfig;
+
     $aptsel = '';
     $servicesel = '';
     $currentStep = 0;
@@ -270,9 +272,9 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 4;
             for ($i = 1; $i < 100000; $i++) {
-                $nextIncrementFiveProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementFiveProposal])) {
-                    $result = $nextIncrementFiveProposal;
+                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                if (!isset($busylogins[$nextIncrementProposal])) {
+                    $result = $nextIncrementProposal;
                     break;
                 }
             }
@@ -283,9 +285,9 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 5;
             for ($i = 1; $i < 100000; $i++) {
-                $nextIncrementFiveProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementFiveProposal])) {
-                    $result = $nextIncrementFiveProposal;
+                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                if (!isset($busylogins[$nextIncrementProposal])) {
+                    $result = $nextIncrementProposal;
                     break;
                 }
             }
@@ -296,9 +298,9 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 6;
             for ($i = 1; $i < 1000000; $i++) {
-                $nextIncrementFiveProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                if (!isset($busylogins[$nextIncrementFiveProposal])) {
-                    $result = $nextIncrementFiveProposal;
+                $nextIncrementProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                if (!isset($busylogins[$nextIncrementProposal])) {
+                    $result = $nextIncrementProposal;
                     break;
                 }
             }
@@ -309,11 +311,11 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 4;
             for ($i = 1; $i < 100000; $i++) {
-
-                $nextIncrementFiveRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                $nextIncrementFiveRevProposal = strrev($nextIncrementFiveRevProposal);
-                if (!isset($busylogins[$nextIncrementFiveRevProposal])) {
-                    $result = $nextIncrementFiveRevProposal;
+                //$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                //$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
+                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
+                if (!isset($busylogins[$nextIncrementRevProposal])) {
+                    $result = $nextIncrementRevProposal;
                     break;
                 }
             }
@@ -324,11 +326,11 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 5;
             for ($i = 1; $i < 100000; $i++) {
-
-                $nextIncrementFiveRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                $nextIncrementFiveRevProposal = strrev($nextIncrementFiveRevProposal);
-                if (!isset($busylogins[$nextIncrementFiveRevProposal])) {
-                    $result = $nextIncrementFiveRevProposal;
+                //$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                //$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
+                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
+                if (!isset($busylogins[$nextIncrementRevProposal])) {
+                    $result = $nextIncrementRevProposal;
                     break;
                 }
             }
@@ -338,12 +340,12 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
         if ($type == 'INCREMENTSIXREV') {
             $busylogins = zb_AllBusyLogins();
             $prefixSize = 6;
-            for ($i = 1; $i < 100000; $i++) {
-
-                $nextIncrementFiveRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
-                $nextIncrementFiveRevProposal = strrev($nextIncrementFiveRevProposal);
-                if (!isset($busylogins[$nextIncrementFiveRevProposal])) {
-                    $result = $nextIncrementFiveRevProposal;
+            for ($i = 1; $i < 1000000; $i++) {
+                //$nextIncrementRevProposal = sprintf('%0' . $prefixSize . 'd', $i);
+                //$nextIncrementRevProposal = strrev($nextIncrementRevProposal);
+                $nextIncrementRevProposal = sprintf('%-0' . $prefixSize . 's', $i);
+                if (!isset($busylogins[$nextIncrementRevProposal])) {
+                    $result = $nextIncrementRevProposal;
                     break;
                 }
             }
@@ -627,16 +629,17 @@ function web_UserRegFormNetData($newuser_data) {
             $form.= wf_tag('tr', false, 'row3');
             $form.= wf_tag('td', false, '', 'style="text-align: center;" colspan="2"');
             $form.= wf_tag('h3', false, '', 'style="color: #000"');
-            $form .= __('No OLT devices found - can not associate ONU');
+            $form.= __('No OLT devices found - can not associate ONU');
             $form.= wf_tag('h3', true);
-            $form .= wf_tag('td', true);
-            $form .= wf_tag('tr', true);
+            $form.= wf_tag('td', true);
+            $form.= wf_tag('tr', true);
+            $form.= wf_HiddenInput('nooltsfound', 'true');
         } else {
             $form.= wf_tag('tr', false, 'row3');
             $form.= wf_tag('td', false);
-            $form .= wf_Selector('oltid', $allOLTs, '', '', true, false, 'OLTSelector');
-            $form .= wf_tag('script', false, '', 'type="text/javascript"');
-            $form .= '
+            $form.= wf_Selector('oltid', $allOLTs, '', '', true, false, 'OLTSelector');
+            $form.= wf_tag('script', false, '', 'type="text/javascript"');
+            $form.= '
                 $(document).ready(function() {
                     getUnknownONUList($(\'#OLTSelector\').val());
                 });
@@ -830,6 +833,8 @@ function zb_UserRegister($user_data, $goprofile = true) {
     global $billing, $ubillingConfig;
     $billingconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
+    $registerUserONU = $ubillingConfig->getAlterParam('ONUAUTO_USERREG');
+    $needONUAssignment = false;
 
     // Init all of needed user data
     $login = vf($user_data['login']);
@@ -846,13 +851,13 @@ function zb_UserRegister($user_data, $goprofile = true) {
     $serviceid = $user_data['service'];
 
     //ONU auto assign options
-    if (@$alterconf['ONUAUTO_USERREG']) {
+    if ($registerUserONU and !empty($user_data['oltid'])) {
         $OLTID = $user_data['oltid'];
         $ONUModelID = $user_data['onumodelid'];
         $ONUIP = $user_data['onuip'];
         $ONUMAC = $user_data['onumac'];
         $ONUSerial = $user_data['onuserial'];
-        $NeedONUAssignment = !empty($ONUMAC);
+        $needONUAssignment = !empty($ONUMAC);
     }
 
     if (isset($user_data['userMAC']) and ! empty($user_data['userMAC'])) {
@@ -999,18 +1004,17 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
     // ONU assign for newly created user
-    if (@$alterconf['ONUAUTO_USERREG']) {
-        if ($NeedONUAssignment) {
-            $PONAPIObject = new PONizer();
+    if ($registerUserONU and $needONUAssignment) {
+        $PONAPIObject = new PONizer();
 
-            if ($PONAPIObject->checkMacUnique($ONUMAC)) {
-                $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, $ONUSerial, $login);
-            } else {
-                $ONUID = $PONAPIObject->getONUIDByMAC($ONUMAC);
-                $PONAPIObject->onuAssign($ONUID, $login);
-            }
+        if ($PONAPIObject->checkMacUnique($ONUMAC)) {
+            $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, $ONUSerial, $login);
+        } else {
+            $ONUID = $PONAPIObject->getONUIDByMAC($ONUMAC);
+            $PONAPIObject->onuAssign($ONUID, $login);
         }
     }
+
     ///////////////////////////////////
     if ($goprofile) {
         rcms_redirect("?module=userprofile&username=" . $login . '&justregistered=true');
