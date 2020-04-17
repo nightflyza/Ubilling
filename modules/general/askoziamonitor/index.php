@@ -52,6 +52,11 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             const URL_ME = '?module=askoziamonitor';
 
             /**
+             * URL of user profile route
+             */
+            const URL_PROFILE = '?module=userprofile&username=';
+
+            /**
              * Creates new askozia monitor instance
              * 
              * @return void
@@ -157,6 +162,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $telepathy->usePhones();
                 $askCalls = new nya_askcalls();
                 $previousCalls = $askCalls->getAll('filename');
+                $curYear = curyear() . '-';
+                //current year filter for all calls
+                if (empty($filterLogin)) {
+                    $renderAll = false;
+                } else {
+                    $renderAll = true;
+                }
 
                 if (!empty($allVoiceFiles)) {
                     /**
@@ -183,17 +195,29 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                             } else {
                                 $userLogin = $previousCalls[$fileName]['login'];
                             }
+
                             $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                             $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                             $cleanDate = $newDateString;
                             $fileUrl = self::URL_ME . '&dlaskcall=' . $fileName;
                             if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
-                                $data[] = wf_img($callDirection) . ' ' . $cleanDate;
-                                $data[] = $callingNumber;
-                                $data[] = $userLink;
-                                $data[] = $this->renderUserTags($userLogin);
-                                $data[] = $this->getSoundcontrols($fileUrl);
-                                $json->addRow($data);
+                                if ($renderAll) {
+                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                                    $data[] = $callingNumber;
+                                    $data[] = $userLink;
+                                    $data[] = $this->renderUserTags($userLogin);
+                                    $data[] = $this->getSoundcontrols($fileUrl);
+                                    $json->addRow($data);
+                                } else {
+                                    if (ispos($cleanDate, $curYear)) {
+                                        $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                                        $data[] = $callingNumber;
+                                        $data[] = $userLink;
+                                        $data[] = $this->renderUserTags($userLogin);
+                                        $data[] = $this->getSoundcontrols($fileUrl);
+                                        $json->addRow($data);
+                                    }
+                                }
                             }
                             unset($data);
                         }
@@ -260,6 +284,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
         $windowControls = wf_Link($askMon::URL_ME . '&cleantelepathycache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')), false);
         show_window(__('Askozia calls records') . ' ' . $windowControls, $askMon->initPlayer() . $askMon->renderCallsList());
+
+        if (ubRouting::checkGet('username')) {
+            //optional profile-return links
+            $controlsLinks = wf_BackLink($askMon::URL_PROFILE . $_GET['username']) . ' ';
+            $controlsLinks .= wf_Link($askMon::URL_ME, wf_img('skins/done_icon.png') . ' ' . __('All calls'), false, 'ubButton');
+            show_window('', $controlsLinks);
+        }
     } else {
         show_error(__('Permission denied'));
     }
