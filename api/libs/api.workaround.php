@@ -1498,7 +1498,9 @@ function web_GrepLogByUser($login, $strict = false) {
     if (!empty($allevents)) {
         foreach ($allevents as $io => $eachevent) {
             $adminName = (isset($employeeNames[$eachevent['admin']])) ? $employeeNames[$eachevent['admin']] : $eachevent['admin'];
-            $cells = wf_TableCell($eachevent['id']);
+            $idLabel = wf_tag('abbr', false, '', 'title="' . $eachevent['ip'] . '"') . $eachevent['id'] . wf_tag('abbr', true);
+            $cells = wf_TableCell($idLabel);
+
             $cells .= wf_TableCell($adminName);
             $cells .= wf_TableCell($eachevent['date']);
             $cells .= wf_TableCell($eachevent['event']);
