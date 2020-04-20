@@ -158,15 +158,42 @@ if (cfr('REPORTAUTOFREEZE')) {
         }
 
         /**
+         * Rdenders date search controls
+         * 
+         * @return string
+         */
+        public function renderResDateForm() {
+            $result = '';
+            $showYear = curyear();
+            $showMonth = date("m");
+            //previous data preset
+            if (ubRouting::checkPost(array('showyear', 'showmonth'))) {
+                $showYear = ubRouting::post('showyear', 'int');
+                $showMonth = ubRouting::post('showmonth', 'int');
+            }
+            $inputs = wf_YearSelectorPreset('showyear', __('Year'), false, $showYear) . ' ';
+            $inputs .= wf_MonthSelector('showmonth', __('Month'), $showMonth, false) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            return($result);
+        }
+
+        /**
          * Renders resurrection report for current month by default
          * 
          * @return string
          */
         public function renderResurrected() {
             $result = '';
-            $curMonth = curmonth();
+            $showYear = curyear();
+            $showMonth = date("m");
+            if (ubRouting::checkPost(array('showyear', 'showmonth'))) {
+                $showYear = ubRouting::post('showyear', 'int');
+                $showMonth = ubRouting::post('showmonth', 'int');
+            }
+            $showDate = $showYear . '-' . $showMonth;
             $weblogs = new NyanORM('weblogs');
-            $weblogs->where('date', 'LIKE', $curMonth . '-%');
+            $weblogs->where('date', 'LIKE', $showDate . '-%');
             $weblogs->where('event', 'LIKE', 'CHANGE Passive%ON 0');
             $dataRaw = $weblogs->getAll();
             if (!empty($dataRaw)) {
@@ -182,7 +209,7 @@ if (cfr('REPORTAUTOFREEZE')) {
             }
             $result .= web_UserArrayShower($this->unfrozen);
             $result .= wf_tag('br');
-            $result .= wf_tag('b') . __('Resurrected') . wf_tag('b', true) . ': ' . $curMonth;
+            $result .= wf_tag('b') . __('Date') . wf_tag('b', true) . ': ' . $showDate;
             return($result);
         }
 
@@ -217,6 +244,7 @@ if (cfr('REPORTAUTOFREEZE')) {
 
         if (ubRouting::checkGet('resurrected')) {
             show_window('', wf_BackLink('?module=report_autofreeze'));
+            show_window('', $autoFreezeReport->renderResDateForm());
             show_window(__('Resurrected'), $autoFreezeReport->renderResurrected());
         }
     }
