@@ -187,7 +187,7 @@ class GlobalMenu {
                 $checkOption = (!empty($each['NEED_OPTION'])) ? @$this->altCfg[$each['NEED_OPTION']] : true;
                 if ($checkRight and $checkOption) {
                     if (!isset($this->disabled[$io])) {
-                        $this->menuData[$each['CATEGORY']].=wf_tag('li', false) . wf_Link($each['URL'], wf_img($icon) . ' ' . $name, false) . wf_tag('li', true);
+                        $this->menuData[$each['CATEGORY']] .= wf_tag('li', false) . wf_Link($each['URL'], wf_img($icon) . ' ' . $name, false) . wf_tag('li', true);
                     }
                 }
             }
@@ -204,10 +204,10 @@ class GlobalMenu {
             if (!empty($this->menuData)) {
                 foreach ($this->categories as $eachCategoryName => $eachCategoryId) {
                     if (!empty($this->menuData[$eachCategoryId])) {
-                        $this->menuCode.=wf_tag('h3', false) . __($eachCategoryName) . wf_tag('h3', true);
-                        $this->menuCode.= wf_tag('ul', false, 'toggleGMENU');
-                        $this->menuCode.=$this->menuData[$eachCategoryId];
-                        $this->menuCode.= wf_tag('ul', true);
+                        $this->menuCode .= wf_tag('h3', false) . __($eachCategoryName) . wf_tag('h3', true);
+                        $this->menuCode .= wf_tag('ul', false, 'toggleGMENU');
+                        $this->menuCode .= $this->menuData[$eachCategoryId];
+                        $this->menuCode .= wf_tag('ul', true);
                     }
                 }
             }
@@ -238,8 +238,8 @@ class GlobalMenu {
                     //table headers
                     if (!isset($tmpArr[$each['CATEGORY']])) {
                         $formCells = wf_TableCell(__('Module'), '50%');
-                        $formCells.= wf_TableCell(__('Hidden'));
-                        $formCells.= wf_TableCell(__('Fast access'));
+                        $formCells .= wf_TableCell(__('Hidden'));
+                        $formCells .= wf_TableCell(__('Fast access'));
                         $formRows = wf_TableRow($formCells, 'row1');
                         $tmpArr[$each['CATEGORY']] = $formRows;
                     }
@@ -252,26 +252,26 @@ class GlobalMenu {
                     if ($checkRight and $checkOption) {
                         $formCells = wf_TableCell(wf_Link($each['URL'], wf_img($icon) . ' ' . $name, false));
                         $disabledFlag = (isset($this->disabled[$io])) ? true : false;
-                        $formCells.= wf_TableCell(wf_CheckInput('_glmdisabled[' . $io . ']', '', false, $disabledFlag));
+                        $formCells .= wf_TableCell(wf_CheckInput('_glmdisabled[' . $io . ']', '', false, $disabledFlag));
                         $fastAccessFlag = (isset($this->fastAccess[$io])) ? true : false;
-                        $formCells.= wf_TableCell(wf_CheckInput('_glmfastacc[' . $io . ']', '', false, $fastAccessFlag));
+                        $formCells .= wf_TableCell(wf_CheckInput('_glmfastacc[' . $io . ']', '', false, $fastAccessFlag));
                         $formRows = wf_TableRow($formCells, 'row5');
-                        $tmpArr[$each['CATEGORY']].=$formRows;
+                        $tmpArr[$each['CATEGORY']] .= $formRows;
                     }
                 }
             }
 
 
             foreach ($this->categories as $eachCategoryName => $eachCategoryId) {
-                $result.=wf_tag('h3', false) . __($eachCategoryName) . wf_tag('h3', true);
-                $result.= wf_TableBody($tmpArr[$eachCategoryId], '100%', 0, '');
+                $result .= wf_tag('h3', false) . __($eachCategoryName) . wf_tag('h3', true);
+                $result .= wf_TableBody($tmpArr[$eachCategoryId], '100%', 0, '');
             }
         }
 
         if (!empty($result)) {
-            $result.= wf_HiddenInput('glcustomconfedit', 'true');
-            $result.= wf_tag('br');
-            $result.= wf_Submit(__('Save'));
+            $result .= wf_HiddenInput('glcustomconfedit', 'true');
+            $result .= wf_tag('br');
+            $result .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $result, '');
         }
 
@@ -291,7 +291,7 @@ class GlobalMenu {
         if (wf_CheckPost(array('_glmdisabled'))) {
             if (!empty($_POST['_glmdisabled'])) {
                 foreach ($_POST['_glmdisabled'] as $modulename => $on) {
-                    $tmpData.=trim($modulename) . ',';
+                    $tmpData .= trim($modulename) . ',';
                 }
                 $tmpData = rtrim($tmpData, ",");
                 file_put_contents($disabledFilename, $tmpData);
@@ -308,7 +308,7 @@ class GlobalMenu {
         if (wf_CheckPost(array('_glmfastacc'))) {
             if (!empty($_POST['_glmfastacc'])) {
                 foreach ($_POST['_glmfastacc'] as $modulename => $on) {
-                    $tmpData.=trim($modulename) . ',';
+                    $tmpData .= trim($modulename) . ',';
                 }
                 $tmpData = rtrim($tmpData, ",");
                 file_put_contents($fastaccFilename, $tmpData);
@@ -333,9 +333,14 @@ class GlobalMenu {
                 if (isset($this->fastAccess[$io])) {
                     $name = __($each['NAME']);
                     $url = $each['URL'];
-                    $tmpData.=$delimiter . wf_Link($url, $name, false);
+                    $tmpData .= $delimiter . wf_Link($url, $name, false);
                 }
             }
+        }
+        //edit control here
+        if (cfr('GLMENUCONF')) {
+            $tmpData .= wf_tag('div', false, 'breadcrumb_divider') . wf_tag('div', true);
+            $tmpData .= wf_Link('?module=glmenuconf', '+', false, '', 'title="' . __('Personalize menu') . '"');
         }
         file_put_contents($fastaccData, $tmpData);
     }
@@ -346,10 +351,10 @@ class GlobalMenu {
      * @return void
      */
     protected function loadFastAccesMenu() {
-        $this->menuCodeFA.= wf_Link('?module=taskbar', __('Taskbar'), false);
+        $this->menuCodeFA .= wf_Link('?module=taskbar', __('Taskbar'), false);
         $fastaccData = self::CUSTOMS_PATH . $this->myLogin . '.fastaccdata';
         if (file_exists($fastaccData)) {
-            $this->menuCodeFA.= file_get_contents($fastaccData);
+            $this->menuCodeFA .= file_get_contents($fastaccData);
         }
     }
 
