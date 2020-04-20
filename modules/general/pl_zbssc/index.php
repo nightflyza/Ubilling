@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('SCREPORT')) {
+if (cfr('CREDIT')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['SCREP_ENABLED']) {
 
