@@ -2259,6 +2259,7 @@ function web_AddressAptForm($login) {
     $table .= wf_Submit(__('Save'));
 
     $form = wf_Form("", 'POST', $table, '');
+    $form .= web_AddressBuildShowAptsCheck($aptdata['buildid'], $aptdata['apt'], $login);
 
     return($form);
 }

@@ -84,41 +84,48 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
     $buildid = vf($buildid, 3);
 
     $messages = new UbillingMessageHelper();
-    if ((empty($apt)) AND ($apt!=0)) {
-        $result .= $messages->getStyledMessage(__('Are you sure you want to keep the homeless from this user'), 'warning');
-    } else {
-        $allapts = zb_AddressGetBuildAptIds($buildid);
-        $someoneLiveHere = false;
-        $busyApts = array(); //IDs of apts which is busy
-        if (!empty($allapts)) {
-            foreach ($allapts as $aptid => $aptnum) {
-                if (!empty($aptnum)) {
-                    if ($aptnum == $apt) {
-                        $someoneLiveHere = true;
-                        $busyApts[$aptid] = $aptnum;
+    $allapts = zb_AddressGetBuildAptIds($buildid);
+    $someoneLiveHere = false;
+    $busyApts = array(); //IDs of apts which is busy
+    if (!empty($allapts)) {
+        foreach ($allapts as $aptid => $aptnum) {
+            if ($aptnum == $apt) {
+                $someoneLiveHere = true;
+                $busyApts[$aptid] = $aptnum;
+            }
+        }
+    }
+
+
+    //display of users which lives in this apt
+    if ($someoneLiveHere) {
+        $allAddress = zb_AddressGetAddressAllData();
+        if (!empty($allAddress)) {
+            $similarAddressUsers = array();
+            foreach ($allAddress as $io => $each) {
+                if (isset($busyApts[$each['aptid']])) {
+                    if ($each['login'] != $login) {
+                        $similarAddressUsers[$each['login']] = $each['login'];
                     }
                 }
             }
-        }
-        //display of users which lives in this apt
-        if ($someoneLiveHere) {
-            $result .= $messages->getStyledMessage(__('The apartment has one lives, we have nothing against, just be warned'), 'warning');
-            $allAddress = zb_AddressGetAddressAllData();
 
-            if (!empty($allAddress)) {
-                $similarAddressUsers = array();
-                foreach ($allAddress as $io => $each) {
-                    if (isset($busyApts[$each['aptid']])) {
-                        if ($each['login'] != $login) {
-                            $similarAddressUsers[$each['login']] = $each['login'];
-                        }
-                    }
-                }
+            if (!empty($similarAddressUsers)) {
+                $result .= $messages->getStyledMessage(__('The apartment has one lives, we have nothing against, just be warned'), 'warning');
+            }
+
+            //additional cosmetic delimiter for binder module
+            if (!empty($login)) {
+                $result .= wf_delimiter(0);
+            }
+
+            if (!empty($similarAddressUsers)) {
                 $result .= web_UserArrayShower($similarAddressUsers);
             }
         }
     }
-    //modal window width control
+
+    //modal window width control for cosmetic purposes
     if (!empty($result)) {
         $result .= wf_tag('div', false, '', 'style="width:900px;"') . wf_tag('div', true);
     }
