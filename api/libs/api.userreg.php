@@ -84,7 +84,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
     $buildid = vf($buildid, 3);
 
     $messages = new UbillingMessageHelper();
-    if (empty($apt)) {
+    if ((empty($apt)) AND ($apt!=0)) {
         $result .= $messages->getStyledMessage(__('Are you sure you want to keep the homeless from this user'), 'warning');
     } else {
         $allapts = zb_AddressGetBuildAptIds($buildid);
