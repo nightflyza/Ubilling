@@ -85,7 +85,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
 
     $messages = new UbillingMessageHelper();
     if (empty($apt)) {
-        $result .= $messages->getStyledMessage(__('Are you sure you want to keep the homeless from this user'), 'error');
+        $result .= $messages->getStyledMessage(__('Are you sure you want to keep the homeless from this user'), 'warning');
     } else {
         $allapts = zb_AddressGetBuildAptIds($buildid);
         $someoneLiveHere = false;
@@ -102,7 +102,7 @@ function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
         }
         //display of users which lives in this apt
         if ($someoneLiveHere) {
-            $result .= $messages->getStyledMessage(__('The apartment has one lives, we have nothing against, just be warned'), 'error');
+            $result .= $messages->getStyledMessage(__('The apartment has one lives, we have nothing against, just be warned'), 'warning');
             $allAddress = zb_AddressGetAddressAllData();
 
             if (!empty($allAddress)) {
