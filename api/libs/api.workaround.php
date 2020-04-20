@@ -2316,7 +2316,7 @@ function web_AddressOccupancyForm() {
                 $inputs .= wf_TableCell(web_ok_icon() . ' ' . __('Build'));
                 $rows .= wf_TableRow($inputs, 'row3');
 
-                $inputs = wf_TableCell(web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm());
+                $inputs = wf_TableCell(web_AptCreateForm());
                 $inputs .= wf_TableCell(__('Apartment'));
                 $rows .= wf_TableRow($inputs, 'row3');
 
