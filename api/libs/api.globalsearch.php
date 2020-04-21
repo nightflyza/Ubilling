@@ -45,6 +45,13 @@ class GlobalSearch {
     protected $fields = array();
 
     /**
+     * UbillingConfig object placeholder
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
+    /**
      * Path to globalsearch cache file
      */
     const CACHE_NAME = 'exports/globalsearchcache.dat';
@@ -60,6 +67,9 @@ class GlobalSearch {
      * @return void
      */
     public function __construct() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+
         $this->loadAlter();
         $this->setPlaceholder();
         $this->setStyles();
@@ -68,14 +78,11 @@ class GlobalSearch {
 
     /**
      * Loads system alter config into protected prop
-     * 
-     * @global type $ubillingConfig
-     * 
+     *
      * @return void
      */
     protected function loadAlter() {
-        global $ubillingConfig;
-        $this->alterConf = $ubillingConfig->getAlter();
+        $this->alterConf = $this->ubConfig->getAlter();
     }
 
     /**
@@ -180,6 +187,8 @@ class GlobalSearch {
     protected function loadRawdata($forceCache = false) {
         $cacheTime = $this->alterConf['GLOBALSEARCH_CACHE'];
         $cacheTime = time() - ($cacheTime * 60); //in minutes
+        $addressExtendedOn = $this->ubConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED');
+
         //extracting user fields types to load
         if (!empty($this->alterConf['GLOBALSEARCH_FIELDS'])) {
             $this->fields = explode(',', $this->alterConf['GLOBALSEARCH_FIELDS']);
@@ -214,6 +223,9 @@ class GlobalSearch {
                 $this->rawData = $this->rawData + $this->transformArray(zb_AddressGetFulladdresslist(), __('Full address'), 'address');
             }
 
+            if ($addressExtendedOn and isset($this->fields['address_extend'])) {
+                $this->rawData = $this->rawData + $this->transformArray(zb_AddressExtenGetList(), __('Extended address info'), 'address_extend');
+            }
 
             if (isset($this->fields['contract'])) {
                 $allContracts = zb_UserGetAllContracts();

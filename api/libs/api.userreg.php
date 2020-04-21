@@ -53,7 +53,7 @@ function zb_AddressGetBuildApts($buildid) {
 
 /**
  * Returns array of apartments located in some build
- * 
+ *
  * @param int $buildid
  * @return array
  */
@@ -76,7 +76,7 @@ function zb_AddressGetBuildAptIds($buildid) {
  * @param int $buildid
  * @param string $apt
  * @param string $login
- * 
+ *
  * @return void/string on error
  */
 function web_AddressBuildShowAptsCheck($buildid, $apt = '', $login = '') {
@@ -144,6 +144,9 @@ function web_UserRegFormLocation() {
     $aptsel = '';
     $servicesel = '';
     $currentStep = 0;
+    $addressExten = '';
+    $addressExtendedOn = $ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED');
+
     if (!isset($_POST['citysel'])) {
         $citysel = web_CitySelectorAc(); // onChange="this.form.submit();
         $streetsel = '';
@@ -168,6 +171,11 @@ function web_UserRegFormLocation() {
         $builddata = zb_AddressGetBuildData($_POST['buildsel']);
         $buildsel = $builddata['buildnum'] . wf_HiddenInput('buildsel', $builddata['id']);
         $aptsel = web_AptCreateForm();
+
+        if ($addressExtendedOn) {
+            $addressExten = web_AddressExtenCreateForm();
+        }
+
         $servicesel = multinet_service_selector();
         $currentStep = 3;
 //contrahens user diff
@@ -207,10 +215,17 @@ function web_UserRegFormLocation() {
     $formInputs .= wf_tag('td', false) . __('Build') . wf_tag('td', true);
     $formInputs .= wf_tag('tr', true);
 
-    $formInputs .= wf_tag('tr', false, 'row3');
-    $formInputs .= wf_tag('td', false) . $aptsel . wf_tag('td', true);
-    $formInputs .= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
-    $formInputs .= wf_tag('tr', true);
+    $formInputs.= wf_tag('tr', false, 'row3');
+    $formInputs.= wf_tag('td', false) . $aptsel . wf_tag('td', true);
+    $formInputs.= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
+    $formInputs.= wf_tag('tr', true);
+
+    if ($addressExtendedOn) {
+        $formInputs.= wf_tag('tr', false, 'row3');
+        $formInputs.= wf_tag('td', false) . $addressExten . wf_tag('td', true);
+        $formInputs.= wf_tag('td', false) . __('Extended address info') . wf_tag('td', true);
+        $formInputs.= wf_tag('tr', true);
+    }
 
     $formInputs .= wf_tag('tr', false, 'row3');
     $formInputs .= wf_tag('td', false) . $servicesel . wf_tag('td', true);
@@ -876,6 +891,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     global $billing, $ubillingConfig;
     $billingconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
+    $addressExtendedOn = $ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED');
     $registerUserONU = $ubillingConfig->getAlterParam('ONUAUTO_USERREG');
     $needONUAssignment = false;
 
@@ -893,8 +909,14 @@ function zb_UserRegister($user_data, $goprofile = true) {
     $apt = $user_data['apt'];
     $serviceid = $user_data['service'];
 
+    if ($addressExtendedOn) {
+        $postCode  = $user_data['postalcode'];
+        $extenTown = $user_data['towndistr'];
+        $extenAddr = $user_data['addressexten'];
+    }
+
 //ONU auto assign options
-    if ($registerUserONU and ! empty($user_data['oltid'])) {
+    if ($registerUserONU and !empty($user_data['oltid'])) {
         $OLTID = $user_data['oltid'];
         $ONUModelID = $user_data['onumodelid'];
         $ONUIP = $user_data['onuip'];
@@ -1058,7 +1080,11 @@ function zb_UserRegister($user_data, $goprofile = true) {
         }
     }
 
-///////////////////////////////////
+    if ($addressExtendedOn) {
+        zb_AddAddressExtenSave($login, false, $postCode, $extenTown, $extenAddr);
+    }
+
+    ///////////////////////////////////
     if ($goprofile) {
         rcms_redirect("?module=userprofile&username=" . $login . '&justregistered=true');
     }

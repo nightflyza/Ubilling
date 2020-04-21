@@ -13,6 +13,7 @@ if (cfr('ANNIHILATION')) {
      */
     function zb_AnnihilateUser($login) {
         global $billing;
+        global $ubillingConfig;
         $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
         $user_ip = zb_UserGetIP($login);
         $user_aptdata = zb_AddressGetAptData($login);
@@ -28,6 +29,11 @@ if (cfr('ANNIHILATION')) {
         //start user deletion
         zb_AddressDeleteApartment($user_aptid);
         zb_AddressOrphanUser($login);
+
+        if ($ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED')) {
+            zb_AddAddressExtenDelete($login);
+        }
+
         zb_UserDeleteEmail($login);
         zb_UserDeleteNotes($login);
         zb_UserDeletePhone($login);

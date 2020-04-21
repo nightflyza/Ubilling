@@ -2,6 +2,8 @@
 
 if (cfr('USERREG')) {
     $alter_conf = $ubillingConfig->getAlter();
+    $registerUserONU = $ubillingConfig->getAlterParam('ONUAUTO_USERREG');
+
     //check if exclusive database locking is enabled
     $dbLockEnabled = false;
     if (isset($alter_conf['DB_LOCK_ENABLED'])) {
@@ -42,6 +44,13 @@ if (cfr('USERREG')) {
                     $newuser_data['contrahent'] = $_POST['regagent'];
                 }
             }
+
+            //pack extended address info data
+            if (isset($alter_conf['ADDRESS_EXTENDED_ENABLED']) and $alter_conf['ADDRESS_EXTENDED_ENABLED']) {
+                $newuser_data['postalcode'] = (isset($_POST['postalcode'])) ? $_POST['postalcode'] : '';
+                $newuser_data['towndistr'] = (isset($_POST['towndistr'])) ? $_POST['towndistr'] : '';
+                $newuser_data['addressexten'] = (isset($_POST['addressexten'])) ? $_POST['addressexten'] : '';
+            }
         } else {
             $newuser_data = unserialize(base64_decode($_POST['repostdata']));
         }
@@ -63,13 +72,22 @@ if (cfr('USERREG')) {
             $newuser_data['IP'] = $_POST['IP'];
             $newuser_data['login'] = $_POST['login'];
             $newuser_data['password'] = $_POST['password'];
+
             //ONU auto assign additional options
-            if (@$alter_conf['ONUAUTO_USERREG']) {
-                $newuser_data['oltid'] = $_POST['oltid'];
-                $newuser_data['onumodelid'] = $_POST['onumodelid'];
-                $newuser_data['onuip'] = wf_CheckPost(array('onuipproposal')) ? $_POST['IP'] : $_POST['onuip'];
-                $newuser_data['onumac'] = $_POST['onumac'];
-                $newuser_data['onuserial'] = $_POST['onuserial'];
+            if ($registerUserONU) {
+                if (wf_CheckPost(array('nooltsfound'))) {
+                    $newuser_data['oltid'] = '';
+                    $newuser_data['onumodelid'] = '';
+                    $newuser_data['onuip'] = '';
+                    $newuser_data['onumac'] = '';
+                    $newuser_data['onuserial'] = '';
+                } else {
+                    $newuser_data['oltid'] = @$_POST['oltid'];
+                    $newuser_data['onumodelid'] = @$_POST['onumodelid'];
+                    $newuser_data['onuip'] = wf_CheckPost(array('onuipproposal')) ? $_POST['IP'] : @$_POST['onuip'];
+                    $newuser_data['onumac'] = @$_POST['onumac'];
+                    $newuser_data['onuserial'] = @$_POST['onuserial'];
+                }
             }
 
             if (isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED']) {

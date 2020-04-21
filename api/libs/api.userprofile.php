@@ -1676,6 +1676,28 @@ class UserProfile {
         return ($result);
     }
 
+
+    /**
+     * Returns cached user extended address info rows
+     *
+     * @return string
+     */
+    protected function getAddressExtenControls() {
+        $result = '';
+        if ($this->ubConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED')) {
+            $extenAddrData = zb_AddressExtenGetLoginFast($this->login);
+
+            $postCode  = (empty($extenAddrData['postal_code'])) ? '' : $extenAddrData['postal_code'];
+            $extenTown = (empty($extenAddrData['town_district'])) ? '' : $extenAddrData['town_district'];
+            $extenAddr = (empty($extenAddrData['address_exten'])) ? '' : $extenAddrData['address_exten'];
+
+            $result.= $this->addRow(__('Postal code'), $postCode, false);
+            $result.= $this->addRow(__('Town/District/Region'), $extenTown, false);
+            $result.= $this->addRow(__('Extended address'), $extenAddr, false);
+        }
+        return ($result);
+    }
+
     /**
       Брат, братан, братишка Когда меня отпустит?
      */
@@ -1713,6 +1735,8 @@ class UserProfile {
             $renderAddress = $this->useraddress;
         }
         $profile .= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
+//user extended address info rows
+        $profile .= $this->getAddressExtenControls();
 //apt data like floor and entrance row
         $profile .= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
 //user districts row
