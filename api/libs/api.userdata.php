@@ -162,9 +162,20 @@ function zb_UserGetAllData($login = '') {
     // ts_ModifyTask()      - api.taskman
     // loadUserAlldata()    - api.userprofile
 
+    if ($ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED')) {
+        $addrexten_query = "  `postal_code`, `town_district`, address_exten, ";
+        $addrexten_join = " LEFT JOIN `address_extended` ON `users`.`login` = `address_extended`.`login` ";
+    } else {
+        $addrexten_query = '';
+        $addrexten_join = '';
+    }
+
     $query = "
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `Down`, `Password`,`AlwaysOnline`, `Tariff`, `TariffChange`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,";
+
+    $query.= $addrexten_query;
+
     if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
         $query.= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
     } elseif ($altCfg['ZERO_TOLERANCE'] and ! $altCfg['CITY_DISPLAY']) {
@@ -187,7 +198,7 @@ function zb_UserGetAllData($login = '') {
                     LEFT JOIN `phones` ON (`users`.`login`=`phones`.`login`)
                     LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
                     LEFT JOIN `emails` ON (`users`.`login`=`emails`.`login`)
-                    " . $query_wh;
+                    " . $addrexten_join . $query_wh;
 
     $Alldata = (!empty($login)) ? simple_query($query) : simple_queryall($query);
 

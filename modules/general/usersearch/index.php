@@ -82,6 +82,10 @@ if (cfr('USERSEARCH')) {
                 $globalSearchQuery = trim($globalSearchQuery);
                 $found_users = zb_UserSearchAddressPartial($globalSearchQuery);
                 show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize('partialaddr', $globalSearchQuery), web_UserArrayShower($found_users));
+            } elseif ($globalSearchType == 'address_extend') {
+                $globalSearchQuery = trim($globalSearchQuery);
+                $found_users = zb_UserSearchAddressPartial($globalSearchQuery, true);
+                show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize('extenaddr', $globalSearchQuery), web_UserArrayShower($found_users));
             } else {
                 if ($globalSearchType != 'full') {
                     //other fields search
@@ -97,8 +101,6 @@ if (cfr('USERSEARCH')) {
             show_warning(__('Nothing found'));
         }
     }
-
-
 
     zb_BillingStats(true);
 } else {

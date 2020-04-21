@@ -12,6 +12,7 @@
 function zb_AddressCleanAddressCache() {
     $cache = new UbillingCache();
     $cache->delete('FULLADDRESSLISTCACHE');
+    $cache->delete('ADDRESS_EXTEN_CACHE');
 }
 
 /**
@@ -1490,7 +1491,7 @@ function web_BuildEditForm($buildid, $streetid, $ModalWID) {
 function web_AptCreateForm() {
     $inputs = wf_TextInput('entrance', __('Entrance'), '', true);
     $inputs.= wf_TextInput('floor', __('Floor'), '', true);
-    $inputs.= wf_tag('input', false, '', 'type="text" id="apt" name="apt" onchange="checkapt();"') . __('Apartment') . wf_tag('br');
+    $inputs.= wf_tag('input', false, '', 'type="text" id="apt" name="apt" style="margin-right: 8px;" onchange="checkapt();"') . __('Apartment') . wf_tag('br');
 
     return($inputs);
 }
@@ -1725,6 +1726,155 @@ function renderCityJSON() {
     }
 
     $JSONHelper->getJson();
+}
+
+/**
+ * Returns extended address info control fields
+ *
+ * @return string
+ */
+function web_AddressExtenCreateForm() {
+    $inputs = wf_TextInput('postalcode', __('Postal code'), '', true);
+    $inputs.= wf_TextInput('towndistr', __('Town/District/Region'), '', true);
+    $inputs.= wf_TextArea('addressexten', __('Extended address'), '', true, '47x4');
+
+    return($inputs);
+}
+
+/**
+ * Creates or edits extended address info record for $login
+ *
+ * @param string $login
+ * @param bool $makeEdit
+ * @param string $postalcode
+ * @param string $towndistr
+ * @param string $addr_exten
+ */
+function zb_AddAddressExtenSave($login, $makeEdit, $postalcode = '', $towndistr = '', $addr_exten = '') {
+    $tabAddrExten = new nya_address_extended();
+
+    // check if such login even exists
+    if ($makeEdit) {
+        $loginExists = zb_AddressExtenGetAll($login);
+        $makeEdit = (!empty($loginExists));
+    }
+
+    if ($makeEdit) {
+        $tabAddrExten->data('postal_code', $postalcode);
+        $tabAddrExten->data('town_district', $towndistr);
+        $tabAddrExten->data('address_exten', $addr_exten);
+        $tabAddrExten->where('login', '=', $login);
+        $tabAddrExten->save(true, true);
+
+        log_register('Extended address record changed for user [' . $login . ']');
+    } elseif (!empty($postalcode) or !empty($towndistr) or !empty($addr_exten)) {
+        $tabAddrExten->data('login', $login);
+        $tabAddrExten->data('postal_code', $postalcode);
+        $tabAddrExten->data('town_district', $towndistr);
+        $tabAddrExten->data('address_exten', $addr_exten);
+        $tabAddrExten->create();
+
+        log_register('Extended address record created for user [' . $login . ']');
+    }
+}
+
+/**
+ * Removes extended address info record from DB
+ *
+ * @param $login
+ */
+function zb_AddAddressExtenDelete($login) {
+    $tabAddrExten = new nya_address_extended();
+    $tabAddrExten->where('login', '=', $login);
+    $tabAddrExten->delete();
+    zb_AddressCleanAddressCache();
+}
+
+/**
+ * Returns all extended address info data as $login => $data
+ * Data can be filtered by login
+ *
+ * @param string $login
+ *
+ * @return array
+ */
+function zb_AddressExtenGetAll($login = '') {
+    $result = array();
+    $whereString = (empty($login)) ? "" : " `login` = '" . $login . "'";
+    $tabAddrExten = new nya_address_extended();
+    $tabAddrExten->whereRaw($whereString);
+    $tabAddrExten->selectable('*');
+    $allAddrExten = $tabAddrExten->getAll();
+
+    if (!empty($allAddrExten)) {
+        foreach ($allAddrExten as $eachRow) {
+            $result[$eachRow['login']] = $eachRow;
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns all extended address info data as a list of $login => postal_code . ' ' . town_district . ' ' . address_exten
+ * Data can be filtered by login
+ *
+ * @param string $login
+ *
+ * @return array
+ */
+function zb_AddressExtenGetList($login = '') {
+    $result = array();
+    $whereString = (empty($login)) ? "" : " `login` = '" . $login . "'";
+    $tabAddrExten = new nya_address_extended();
+    $tabAddrExten->whereRaw($whereString);
+    $tabAddrExten->selectable('*');
+    $allAddrExten = $tabAddrExten->getAll();
+
+    if (!empty($allAddrExten)) {
+        foreach ($allAddrExten as $eachRow) {
+            $result[$eachRow['login']] = $eachRow['postal_code'] . ' ' . $eachRow['town_district'] . ' ' . $eachRow['address_exten'];
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns all extended address info data as $login => $data from cache
+ *
+ * @return array|string
+ */
+function zb_AddressExtenGetAllCached() {
+    global $ubillingConfig;
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = $ubillingConfig->getAlterParam('ADDRESS_CACHE_TIME') * 60; // in minutes!!!!
+
+    $result = $cache->getCallback('ADDRESS_EXTEN_CACHE', function () {
+                  return (zb_AddressExtenGetAll());
+              }, $cacheTime);
+
+    return($result);
+}
+
+/**
+ * Tries to get extended address info for certain $login from cache
+ *
+ * @param $login
+ *
+ * @return array
+ */
+function zb_AddressExtenGetLoginFast($login) {
+    $result = zb_AddressExtenGetAllCached();
+
+    if (!empty($result) and isset($result[$login])) {
+        $result = $result[$login];
+    } else {
+        $result = array();
+    }
+
+    return ($result);
 }
 
 /**

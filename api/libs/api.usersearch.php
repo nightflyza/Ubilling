@@ -379,21 +379,31 @@ function web_CorpsSearchForm() {
 }
 
 /**
- * Performs login search by partial address
+ * Performs login search by partial address or extended address
  * 
  * @global object $ubillingConfig
  * @param string $query
+ * @param bool $searchExtenAddr
+ *
  * @return array
  */
-function zb_UserSearchAddressPartial($query) {
+function zb_UserSearchAddressPartial($query, $searchExtenAddr = false) {
     global $ubillingConfig;
     $altercfg = $ubillingConfig->getAlter();
     $query = mysql_real_escape_string($query);
+
     if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $query = strtolower_utf8($query);
     }
-    $alluseraddress = zb_AddressGetFulladdresslist();
+
+    if ($searchExtenAddr) {
+        $alluseraddress = zb_AddressExtenGetList();
+    } else {
+        $alluseraddress = zb_AddressGetFulladdresslist();
+    }
+
     $result = array();
+
     if (!empty($alluseraddress)) {
         if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             foreach ($alluseraddress as $login => $address) {
@@ -409,6 +419,7 @@ function zb_UserSearchAddressPartial($query) {
             }
         }
     }
+
     return ($result);
 }
 
@@ -457,6 +468,9 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
             break;
         case 'partialaddr':
             $result .= __('Partial address');
+            break;
+        case 'extenaddr':
+            $result .= __('Extended address');
             break;
         case 'seal':
             $result .= __('Cable seal');
