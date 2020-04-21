@@ -2220,6 +2220,7 @@ function web_BackupForm() {
  * @return string
  */
 function web_AddressAptForm($login) {
+    global $ubillingConfig;
     $login = vf($login);
     $aptdata = zb_AddressGetAptData($login);
     $useraddress = zb_AddressGetFulladdresslist();
@@ -2254,6 +2255,37 @@ function web_AddressAptForm($login) {
     $cells .= wf_TableCell(@$aptdata['apt']);
     $cells .= wf_TableCell(wf_TextInput('changeapt', '', @$aptdata['apt'], false));
     $rows .= wf_TableRow($cells, 'row3');
+
+    if ($ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED')) {
+        $extenAddrData = zb_AddressExtenGetLoginFast($login);
+        $postCode  = (empty($extenAddrData['postal_code'])) ? '' : $extenAddrData['postal_code'];
+        $extenTown = (empty($extenAddrData['town_district'])) ? '' : $extenAddrData['town_district'];
+        $extenAddr = (empty($extenAddrData['address_exten'])) ? '' : $extenAddrData['address_exten'];
+
+        // empty row divider
+        $cells = wf_TableCell(wf_nbsp());
+        $cells .= wf_TableCell(wf_nbsp());
+        $cells .= wf_TableCell(wf_HiddenInput('change_extended_address', 'true'));
+        $rows .= wf_TableRow($cells, 'row2');
+
+        // postal code
+        $cells = wf_TableCell(__('Postal code'));
+        $cells .= wf_TableCell($postCode);
+        $cells .= wf_TableCell(wf_TextInput('changepostcode', '', $postCode, false, '10'));
+        $rows .= wf_TableRow($cells, 'row3');
+
+        // town/district/region
+        $cells = wf_TableCell(__('Town/District/Region'));
+        $cells .= wf_TableCell($extenTown);
+        $cells .= wf_TableCell(wf_TextInput('changetowndistr', '', $extenTown, false, '47'));
+        $rows .= wf_TableRow($cells, 'row3');
+
+        // extended address info
+        $cells = wf_TableCell(__('Extended address info'));
+        $cells .= wf_TableCell($extenAddr);
+        $cells .= wf_TableCell(wf_TextArea('changeaddrexten', '', $extenAddr, false, '48x4'));
+        $rows .= wf_TableRow($cells, 'row3');
+    }
 
     $table = wf_TableBody($rows, '100%', 0, '');
     $table .= wf_Submit(__('Save'));
