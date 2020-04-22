@@ -150,12 +150,19 @@ if (cfr('CREDIT')) {
                     foreach ($this->allData as $io => $each) {
                         $cells = wf_TableCell($this->colorize($each['date'], $curMonth, $curDay));
                         $adminLogin = 'external';
+
                         if (isset($each['admin'])) {
                             $adminLogin = $each['admin'];
+                            //existing employee admin
                             if (isset($employeeNames[$adminLogin])) {
                                 $adminLogin = $employeeNames[$adminLogin];
                             }
                         }
+                        //userstats credit service
+                        if ($adminLogin == 'guest' OR $adminLogin == 'external') {
+                            $adminLogin = __('Userstats');
+                        }
+
                         $cells .= wf_TableCell($adminLogin);
                         $rows .= wf_TableRow($cells, 'row5');
                     }
