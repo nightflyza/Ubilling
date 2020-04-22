@@ -53,22 +53,22 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                 show_window('', wf_BackLink(PONizer::URL_ME));
             }
 
-            if (wf_CheckPost(array('createZteCard', 'swid', 'card_name')) AND ( !empty($_POST['slot_number']))) {
+            if (wf_CheckPost(array('createZteCard', 'swid', 'card_name'))) {
                 $register->createZteCard($_POST['swid'], $_POST['chasis_number'], $_POST['slot_number'], $_POST['card_name']);
             }
 
 
-            if (wf_CheckPost(array('editZteCard', 'swid', 'card_name')) AND ( !empty($_POST['slot_number']))) {
+            if (wf_CheckPost(array('editZteCard', 'swid', 'card_name'))) {
                 $register->editZteCard($_POST['swid'], $_POST['slot_number'], $_POST['card_name']);
             }
 
-            if (wf_CheckPost(array('createZteBind', 'swid', 'port_number', 'vlan')) AND ( !empty($_POST['slot_number']))) {
+            if (wf_CheckPost(array('createZteBind', 'swid', 'vlan'))) {
                 if ($_POST['port_number'] != '======') {
                     $register->createZteBind($_POST['swid'], $_POST['slot_number'], $_POST['port_number'], $_POST['vlan']);
                 }
             }
 
-            if (wf_CheckPost(array('editZteBind', 'swid', 'slot_number', 'port_number', 'vlan'))) {
+            if (wf_CheckPost(array('editZteBind', 'swid', 'vlan'))) {
                 $register->editZteBind($_POST['swid'], $_POST['slot_number'], $_POST['port_number'], $_POST['vlan']);
             }
         } else {

@@ -515,6 +515,21 @@ class OnuRegister {
     }
 
     /**
+     * Setter for huawei gpon cards.
+     * 
+     * @return array
+     */
+    protected static function allHuaweiCards() {
+        return(array(
+            'GPBH',
+            'GPMD',
+            'H806G',
+            'H803G',
+            'H805G'
+        ));
+    }
+
+    /**
      * Loads all onu models into onuModels.
      * 
      * @return void
@@ -666,8 +681,14 @@ class OnuRegister {
         } elseif (isset($this->gponCards[$cardName])) {
             $count = $this->gponCards[$cardName];
         }
+        if (array_search($cardName, self::allHuaweiCards())) {
+            $i = 0;
+            $count -= 1;
+        } else {
+            $i = 1;
+        }
         $this->portSelector['======'] = '======';
-        for ($i = 1; $i <= $count; $i++) {
+        for ($i; $i <= $count; $i++) {
             $this->portSelector[$i] = $i;
         }
         if (!empty($exclude)) {
@@ -1887,7 +1908,7 @@ $(".changeType").change(function () {
         foreach ($this->allBinds as $each => $eachBind) {
             if (isset($oltType[$eachBind['swid']])) {
                 $tablecells = wf_TableCell($eachBind['id']);
-                $tablecells .= wf_TableCell($this->allZteOlt[$eachBind['swid']]['ip']);
+                $tablecells .= wf_TableCell($oltType[$eachBind['swid']]['ip']);
                 $tablecells .= wf_TableCell($eachBind['slot_number']);
                 $tablecells .= wf_TableCell($eachBind['port_number']);
                 $tablecells .= wf_TableCell($eachBind['vlan']);
