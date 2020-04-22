@@ -521,6 +521,8 @@ class OnuRegister {
      */
     protected static function allHuaweiCards() {
         return(array(
+            'GPBD',
+            'GPFD',
             'GPBH',
             'GPMD',
             'H806G',
