@@ -1766,7 +1766,7 @@ function zb_AddAddressExtenSave($login, $makeEdit, $postalcode = '', $towndistr 
         $tabAddrExten->where('login', '=', $login);
         $tabAddrExten->save(true, true);
 
-        log_register('Extended address record changed for user [' . $login . ']');
+        log_register('Extended address record changed for user (' . $login . ')');
     } elseif (!empty($postalcode) or !empty($towndistr) or !empty($addr_exten)) {
         $tabAddrExten->data('login', $login);
         $tabAddrExten->data('postal_code', $postalcode);
@@ -1774,7 +1774,7 @@ function zb_AddAddressExtenSave($login, $makeEdit, $postalcode = '', $towndistr 
         $tabAddrExten->data('address_exten', $addr_exten);
         $tabAddrExten->create();
 
-        log_register('Extended address record created for user [' . $login . ']');
+        log_register('Extended address record created for user (' . $login . ')');
     }
 }
 
