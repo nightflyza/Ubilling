@@ -165,17 +165,17 @@ function zb_ContrAhentAddForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs.= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true);
-    $inputs.= wf_TextInput('newbankacc', __('Bank account'), '', true);
-    $inputs.= wf_TextInput('newbankname', __('Bank name'), '', true);
-    $inputs.= wf_TextInput('newbankcode', __('Bank code'), '', true);
-    $inputs.= wf_TextInput('newedrpo', __('EDRPOU'), '', true);
-    $inputs.= wf_TextInput('newipn', __('IPN'), '', true);
-    $inputs.= wf_TextInput('newlicensenum', __('License number'), '', true);
-    $inputs.= wf_TextInput('newjuraddr', __('Juridical address'), '', true);
-    $inputs.= wf_TextInput('newphisaddr', __('Phisical address'), '', true);
-    $inputs.= wf_TextInput('newphone', __('Phone'), '', true);
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_TextInput('newcontrname', __('Contrahent name') . $sup, '', true);
+    $inputs .= wf_TextInput('newbankacc', __('Bank account'), '', true);
+    $inputs .= wf_TextInput('newbankname', __('Bank name'), '', true);
+    $inputs .= wf_TextInput('newbankcode', __('Bank code'), '', true);
+    $inputs .= wf_TextInput('newedrpo', __('EDRPOU'), '', true);
+    $inputs .= wf_TextInput('newipn', __('IPN'), '', true);
+    $inputs .= wf_TextInput('newlicensenum', __('License number'), '', true);
+    $inputs .= wf_TextInput('newjuraddr', __('Juridical address'), '', true);
+    $inputs .= wf_TextInput('newphisaddr', __('Phisical address'), '', true);
+    $inputs .= wf_TextInput('newphone', __('Phone'), '', true);
+    $inputs .= wf_Submit(__('Create'));
 
     $result = wf_Form("", 'POST', $inputs, 'glamour');
 
@@ -195,18 +195,18 @@ function zb_ContrAhentEditForm($ahentid) {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '';
-    $inputs.= wf_TextInput('changecontrname', __('Contrahent name') . $sup, $cdata['contrname'], true);
-    $inputs.= wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], true);
-    $inputs.= wf_TextInput('changebankname', __('Bank name'), $cdata['bankname'], true);
-    $inputs.= wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], true);
-    $inputs.= wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], true);
-    $inputs.= wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], true);
-    $inputs.= wf_TextInput('changelicensenum', __('License number'), $cdata['licensenum'], true);
-    $inputs.= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], true);
-    $inputs.= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], true);
-    $inputs.= wf_TextInput('changephone', __('Phone'), $cdata['phone'], true);
+    $inputs .= wf_TextInput('changecontrname', __('Contrahent name') . $sup, $cdata['contrname'], true);
+    $inputs .= wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], true);
+    $inputs .= wf_TextInput('changebankname', __('Bank name'), $cdata['bankname'], true);
+    $inputs .= wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], true);
+    $inputs .= wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], true);
+    $inputs .= wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], true);
+    $inputs .= wf_TextInput('changelicensenum', __('License number'), $cdata['licensenum'], true);
+    $inputs .= wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], true);
+    $inputs .= wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], true);
+    $inputs .= wf_TextInput('changephone', __('Phone'), $cdata['phone'], true);
 
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_Submit(__('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
 
     return ($result);
@@ -314,9 +314,9 @@ function zb_AgentAssignAdd($ahenid, $streetname) {
 function web_AgentAssignForm() {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = zb_ContrAhentSelect();
-    $inputs.= wf_tag('br');
-    $inputs.= wf_TextInput('newassign', __('Street name') . $sup, '', true);
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_tag('br');
+    $inputs .= wf_TextInput('newassign', __('Street name') . $sup, '', true);
+    $inputs .= wf_Submit(__('Save'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
 
     return($result);
@@ -338,20 +338,20 @@ function web_AgentAssignShow() {
     }
 
     $cells = wf_TableCell(__('ID'));
-    $cells.= wf_TableCell(__('Contrahent name'));
-    $cells.= wf_TableCell(__('Street name'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Contrahent name'));
+    $cells .= wf_TableCell(__('Street name'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allassigns)) {
         foreach ($allassigns as $io2 => $eachassign) {
 
             $cells = wf_TableCell($eachassign['id']);
-            $cells.= wf_TableCell(@$agentnames[$eachassign['ahenid']]);
-            $cells.= wf_TableCell($eachassign['streetname']);
+            $cells .= wf_TableCell(@$agentnames[$eachassign['ahenid']]);
+            $cells .= wf_TableCell($eachassign['streetname']);
             $actLinks = wf_JSAlert('?module=contrahens&deleteassign=' . $eachassign['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-            $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row5');
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -379,24 +379,24 @@ function web_AgentAssignStrictShow() {
 
 
     $cells = wf_TableCell(__('Login'));
-    $cells.= wf_TableCell(__('Full address'));
-    $cells.= wf_TableCell(__('Real Name'));
-    $cells.= wf_TableCell(__('Tariff'));
-    $cells.= wf_TableCell(__('Contrahent name'));
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Full address'));
+    $cells .= wf_TableCell(__('Real Name'));
+    $cells .= wf_TableCell(__('Tariff'));
+    $cells .= wf_TableCell(__('Contrahent name'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allassigns)) {
         foreach ($allassigns as $eachlogin => $eachagent) {
             $loginLink = wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin, false, '');
             $cells = wf_TableCell($loginLink);
-            $cells.= wf_TableCell(@$alladdress[$eachlogin]);
-            $cells.= wf_TableCell(@$allrealnames[$eachlogin]);
-            $cells.= wf_TableCell(@$allusertariffs[$eachlogin]);
-            $cells.= wf_TableCell(@$agentnames[$eachagent]);
+            $cells .= wf_TableCell(@$alladdress[$eachlogin]);
+            $cells .= wf_TableCell(@$allrealnames[$eachlogin]);
+            $cells .= wf_TableCell(@$allusertariffs[$eachlogin]);
+            $cells .= wf_TableCell(@$agentnames[$eachagent]);
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
-            $cells.= wf_TableCell($actLinks);
-            $rows.= wf_TableRow($cells, 'row5');
+            $cells .= wf_TableCell($actLinks);
+            $rows .= wf_TableRow($cells, 'row5');
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -598,10 +598,10 @@ function zb_ExportForm() {
     $yesterday = date("Y-m-d", time() - 86400);
 
     $inputs = __('From');
-    $inputs.= wf_DatePickerPreset('fromdate', $yesterday);
-    $inputs.=__('To');
-    $inputs.=wf_DatePickerPreset('todate', $curdate);
-    $inputs.=wf_Submit('Export');
+    $inputs .= wf_DatePickerPreset('fromdate', $yesterday);
+    $inputs .= __('To');
+    $inputs .= wf_DatePickerPreset('todate', $curdate);
+    $inputs .= wf_Submit('Export');
     $form = wf_Form("", 'POST', $inputs, 'glamour');
     return($form);
 }
@@ -712,15 +712,15 @@ function zb_ExportPayments($from_date, $to_date) {
             if ($export_only_positive) {
                 // check is that pos payment
                 if ($paysumm > 0) {
-                    $export_result.=zb_ExportParseTemplate($template, $parse_data);
+                    $export_result .= zb_ExportParseTemplate($template, $parse_data);
                 }
             } else {
                 //or anyway export it
-                $export_result.=zb_ExportParseTemplate($template, $parse_data);
+                $export_result .= zb_ExportParseTemplate($template, $parse_data);
             }
         }
     }
-    $export_result.=zb_ExportParseTemplate($template_end, $parse_data);
+    $export_result .= zb_ExportParseTemplate($template_end, $parse_data);
 
     if ($import_encoding != $export_encoding) {
         $export_result = iconv($import_encoding, $export_encoding, $export_result);
@@ -965,17 +965,17 @@ function web_NdsPaymentsShow($query) {
     $ndstotal = 0;
 
     $tablecells = wf_TableCell(__('ID'));
-    $tablecells.= wf_TableCell(__('IDENC'));
-    $tablecells.= wf_TableCell(__('Date'));
-    $tablecells.= wf_TableCell(__('Cash'));
-    $tablecells.= wf_TableCell(__('NDS'));
-    $tablecells.= wf_TableCell(__('Without NDS'));
-    $tablecells.= wf_TableCell(__('Login'));
-    $tablecells.= wf_TableCell(__('Full address'));
-    $tablecells.= wf_TableCell(__('Cash type'));
+    $tablecells .= wf_TableCell(__('IDENC'));
+    $tablecells .= wf_TableCell(__('Date'));
+    $tablecells .= wf_TableCell(__('Cash'));
+    $tablecells .= wf_TableCell(__('NDS'));
+    $tablecells .= wf_TableCell(__('Without NDS'));
+    $tablecells .= wf_TableCell(__('Login'));
+    $tablecells .= wf_TableCell(__('Full address'));
+    $tablecells .= wf_TableCell(__('Cash type'));
 
-    $tablecells.= wf_TableCell(__('Notes'));
-    $tablecells.= wf_TableCell(__('Admin'));
+    $tablecells .= wf_TableCell(__('Notes'));
+    $tablecells .= wf_TableCell(__('Admin'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
     if (!empty($allapayments)) {
@@ -1012,19 +1012,19 @@ function web_NdsPaymentsShow($query) {
 
 
                 $tablecells = wf_TableCell($eachpayment['id']);
-                $tablecells.= wf_TableCell(zb_NumEncode($eachpayment['id']));
-                $tablecells.= wf_TableCell($eachpayment['date']);
-                $tablecells.= wf_TableCell($eachpayment['summ']);
+                $tablecells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+                $tablecells .= wf_TableCell($eachpayment['date']);
+                $tablecells .= wf_TableCell($eachpayment['summ']);
                 $paynds = zb_NdsCalc($eachpayment['summ'], $ndspercent);
-                $tablecells.= wf_TableCell($paynds);
-                $tablecells.= wf_TableCell($eachpayment['summ'] - $paynds);
+                $tablecells .= wf_TableCell($paynds);
+                $tablecells .= wf_TableCell($eachpayment['summ'] - $paynds);
                 $profilelink = wf_Link('?module=userprofile&username=' . $eachpayment['login'], web_profile_icon() . ' ' . $eachpayment['login'], false);
-                $tablecells.= wf_TableCell($profilelink);
-                $tablecells.= wf_TableCell(@$alladrs[$eachpayment['login']]);
-                $tablecells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
-                $tablecells.= wf_TableCell($eachpayment['note']);
-                $tablecells.= wf_TableCell($eachpayment['admin']);
-                $tablerows.= wf_TableRow($tablecells, 'row3');
+                $tablecells .= wf_TableCell($profilelink);
+                $tablecells .= wf_TableCell(@$alladrs[$eachpayment['login']]);
+                $tablecells .= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
+                $tablecells .= wf_TableCell($eachpayment['note']);
+                $tablecells .= wf_TableCell($eachpayment['admin']);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
 
 
                 if ($eachpayment['summ'] > 0) {
@@ -1036,20 +1036,20 @@ function web_NdsPaymentsShow($query) {
     }
 
     $tablecells = wf_TableCell('');
-    $tablecells.= wf_TableCell('');
-    $tablecells.= wf_TableCell('');
-    $tablecells.= wf_TableCell($total);
-    $tablecells.= wf_TableCell($ndstotal);
-    $tablecells.= wf_TableCell($total - $ndstotal);
-    $tablecells.= wf_TableCell('');
-    $tablecells.= wf_TableCell('');
-    $tablecells.= wf_TableCell('');
-    $tablecells.= wf_TableCell('');
-    $tablecells.= wf_TableCell('');
-    $tablerows.= wf_TableRow($tablecells, 'row2');
+    $tablecells .= wf_TableCell('');
+    $tablecells .= wf_TableCell('');
+    $tablecells .= wf_TableCell($total);
+    $tablecells .= wf_TableCell($ndstotal);
+    $tablecells .= wf_TableCell($total - $ndstotal);
+    $tablecells .= wf_TableCell('');
+    $tablecells .= wf_TableCell('');
+    $tablecells .= wf_TableCell('');
+    $tablecells .= wf_TableCell('');
+    $tablecells .= wf_TableCell('');
+    $tablerows .= wf_TableRow($tablecells, 'row2');
 
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-    $result.='' . __('Total') . ': <strong>' . $total . '</strong> ' . __('ELVs for all payments of') . ': <strong>' . $ndstotal . '</strong>';
+    $result .= '' . __('Total') . ': <strong>' . $total . '</strong> ' . __('ELVs for all payments of') . ': <strong>' . $ndstotal . '</strong>';
     return($result);
 }
 
@@ -1072,7 +1072,7 @@ function web_NdsPaymentsShowYear($year) {
         $month_summ = zb_PaymentsGetMonthSumm($year, $eachmonth);
         $paycount = zb_PaymentsGetMonthCount($year, $eachmonth);
         $cells = wf_TableCell(wf_Link('?module=nds&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname), false));
-        $rows.= wf_TableRow($cells, 'row3');
+        $rows .= wf_TableRow($cells, 'row3');
     }
     $result = wf_TableBody($rows, '30%', '0');
 
@@ -1111,21 +1111,21 @@ function web_AgentAssignStrictForm($login, $currentassign) {
         $currentAgentName = __('No');
     }
     $inputs = zb_ContrAhentSelectPreset($currentassign);
-    $inputs.= wf_HiddenInput('assignstrictlogin', $login);
+    $inputs .= wf_HiddenInput('assignstrictlogin', $login);
 
     $deleteCheckbox = wf_CheckInput('deleteassignstrict', __('Delete'), false, false);
 
     $cells = wf_TableCell(__('Service provider'), '', 'row2');
-    $cells.= wf_TableCell($currentAgentName, '', 'row3');
+    $cells .= wf_TableCell($currentAgentName, '', 'row3');
     $rows = wf_tablerow($cells);
     $cells = wf_TableCell(__('New assign'), '', 'row2');
-    $cells.= wf_TableCell($inputs, '', 'row3');
-    $rows.=wf_tablerow($cells);
+    $cells .= wf_TableCell($inputs, '', 'row3');
+    $rows .= wf_tablerow($cells);
     $cells = wf_TableCell('', '', 'row2');
-    $cells.= wf_TableCell($deleteCheckbox, '', 'row3');
-    $rows.=wf_tablerow($cells);
+    $cells .= wf_TableCell($deleteCheckbox, '', 'row3');
+    $rows .= wf_tablerow($cells);
     $form = wf_TableBody($rows, '100%', 0);
-    $form.=wf_Submit('Save');
+    $form .= wf_Submit('Save');
 
     $result = wf_Form("", 'POST', $form, '');
     return ($result);
@@ -1161,6 +1161,67 @@ function zb_AgentAssignStrictCreate($login, $agentid) {
               VALUES (NULL , '" . $agentid . "', '" . $clearLogin . "');";
     nr_query($query);
     log_register("AGENTASSIGNSTRICT ADD (" . $login . ") [" . $agentid . "]");
+}
+
+/**
+ * Renders agent assigned users stats
+ * 
+ * @return string
+ */
+function zb_AgentStatsRender() {
+    /**
+     * Seems that waz written with Paranormal Helicopter Porn
+     */
+    $result = '';
+    $allUsers = zb_UserGetAllStargazerDataAssoc();
+    $tmpArr = array(); // contains all user assigns as login=>agentid
+    $agentCounters = array(); //contains binding stats as AgentId = > userCount
+    if (!empty($allUsers)) {
+        $allAddress = zb_AddressGetFullCityaddresslist();
+        $allAssigns = zb_AgentAssignGetAllData();
+        $strictAssigns = zb_AgentAssignStrictGetAllData();
+        $allAgentData = zb_ContrAhentGetAllData();
+        $allAgentNames = array(); //agentid=>contrname
+        if (!empty($allAgentData)) {
+            //shitty preprocessing here
+            foreach ($allAgentData as $io => $eachAgentData) {
+                $allAgentNames[$eachAgentData['id']] = $eachAgentData['contrname'];
+            }
+        }
+        foreach ($allUsers as $eachLogin => $eachUserData) {
+            $assignedAgentId = zb_AgentAssignCheckLoginFast($eachLogin, $allAssigns, @$allAddress[$eachLogin], $strictAssigns);
+            if (!empty($assignedAgentId)) {
+                $tmpArr[$eachLogin] = $assignedAgentId;
+            }
+        }
+
+        if (!empty($tmpArr)) {
+            foreach ($tmpArr as $eachUser => $eachAgentId) {
+                if (isset($agentCounters[$eachAgentId])) {
+                    $agentCounters[$eachAgentId] ++;
+                } else {
+                    $agentCounters[$eachAgentId] = 1;
+                }
+            }
+        }
+
+        if (!empty($agentCounters)) {
+            $cells = wf_TableCell(__('Contrahent name'));
+            $cells .= wf_TableCell(__('Users'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($agentCounters as $agentId => $userCount) {
+                $cells = wf_TableCell(@$allAgentNames[$agentId]);
+                $cells .= wf_TableCell($userCount);
+                $rows.= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+    }
+    return($result);
 }
 
 ?>

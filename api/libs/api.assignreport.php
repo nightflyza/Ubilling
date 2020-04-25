@@ -606,7 +606,6 @@ class agentAssignReport {
             $agCells .= wf_TableCell(__('Sum'));
             $agCells .= wf_TableCell(__('Actions'));
             $agRows = wf_TableRow($agCells, 'row1');
-
             foreach ($this->agentsumm as $eachAgentId => $eachAgentStat) {
                 $exportControls = wf_Link("?module=report_agentfinance&exportcsvagentid=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('full')), false, '') . ' ';
                 $exportControls .= wf_Link("?module=report_agentfinance&exportcsvagentidshort=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('short')), false, '') . ' ';
