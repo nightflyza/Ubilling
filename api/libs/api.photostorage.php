@@ -245,7 +245,7 @@ class PhotoStorage {
             foreach ($this->allimages as $io => $eachimage) {
                 if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
                     $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
-                    $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'],'','100%'); //TODO LATER
+                    $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'],'','100%');
                     $imgFull .= wf_tag('br');
                     $imgFull .= __('Date') . ': ' . $eachimage['date'] . ' / ';
                     $imgFull .= __('Admin') . ': ' . $eachimage['admin'];
