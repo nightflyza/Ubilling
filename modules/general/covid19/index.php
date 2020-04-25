@@ -62,14 +62,13 @@ if (cfr('COVID')) {
              * Default module route
              */
             const URL_ME = '?module=covid19';
-            
+
             /**
              * Charts coloring
              */
-            
-            const COLOR_CONFIRMED='f68500';
-            const COLOR_DEATHS='d20009';
-            const COLOR_RECOVERED='009b04';
+            const COLOR_CONFIRMED = 'f68500';
+            const COLOR_DEATHS = 'd20009';
+            const COLOR_RECOVERED = '009b04';
 
             /**
              * Creates new instance of COVID-19 :P
@@ -159,9 +158,9 @@ if (cfr('COVID')) {
                                 trigger: 'none'
                             },
                             series: {
-                            0: { color: '#".self::COLOR_CONFIRMED."' },
-                            1: { color: '#".self::COLOR_DEATHS."' },
-                            2: { color: '#".self::COLOR_RECOVERED."' },
+                            0: { color: '#" . self::COLOR_CONFIRMED . "' },
+                            1: { color: '#" . self::COLOR_DEATHS . "' },
+                            2: { color: '#" . self::COLOR_RECOVERED . "' },
                             },
                             ";
 
@@ -228,7 +227,10 @@ if (cfr('COVID')) {
 
                             $charsDataTotal[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
                             $charsDataMonth[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
+                            $charsDataPeaks[] = array(__('Date'), __('Confirmed'), __('Deaths'));
                             $curMonth = curmonth() . '-';
+                            $prevConf = 0;
+                            $prevDeaths = 0;
                             foreach ($countryTimeline as $io => $each) {
                                 $timeStamp = strtotime($each['date']); //need to be transformed to Y-m-d
                                 $date = date("Y-m-d", $timeStamp);
@@ -238,7 +240,10 @@ if (cfr('COVID')) {
                                 }
                                 $charsDataTotal[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
 
+                                $charsDataPeaks[] = array($date, ($each['confirmed'] - $prevConf), ($each['deaths'] - $prevDeaths));
                                 $lastData = $each;
+                                $prevConf = $each['confirmed'];
+                                $prevDeaths = $each['deaths'];
                             }
 
 
@@ -251,7 +256,9 @@ if (cfr('COVID')) {
                             if ($curMonthCount > 0) {
                                 $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
                             }
+                            $result .= wf_gchartsLine($charsDataPeaks, __('By date'), '100%', '300px;', $chartsOptions);
                             $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
+                            
                         } else {
                             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing to show'), 'warning');
                         }
