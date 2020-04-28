@@ -2142,7 +2142,15 @@ function ts_TaskChangeForm($taskid) {
             $inputs .= wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
             $inputs .= wf_tag('br');
             $inputs .= wf_tag('label', false) . __('Finish note') . wf_tag('label', true) . wf_tag('br');
+
             $inputs .= wf_TextArea('editdonenote', '', '', true, '35x3');
+			// Counting money from work done
+            if (isset($altercfg['TASKMAN_COUNTING_MONEY']) and !empty($altercfg['TASKMAN_COUNTING_MONEY'])) {
+            $inputs .= wf_TableCell(wf_TextInput('givedmoney', __('Received money from a subscriber'), '', false, 5, 'finance'));
+            $inputs .= wf_tag('br');
+            $inputs .= wf_TableCell(wf_TextInput('holddmoney', __('Holding money from payment received'), '', false, 5, 'finance'));
+			}
+
             $inputs .= wf_tag('br');
             $inputs .= $jobgencheckbox;
             $inputs .= wf_Submit(__('This task is done'));
