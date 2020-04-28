@@ -73,6 +73,15 @@ if (cfr('TASKMAN')) {
                     stg_add_new_job($_POST['generatelogin'], curdatetime(), $_POST['editemployeedone'], $_POST['generatejobid'], 'TASKID:[' . $_POST['changetask'] . ']');
                     log_register("TASKMAN GENJOB (" . $_POST['generatelogin'] . ') VIA [' . $_POST['changetask'] . ']');
                 }
+                // set login for task
+                if (wf_CheckPost(array('setlogin'))) {
+                    if (! empty($_POST['setlogin'])) {
+                        $login = vf($_POST['setlogin']);
+                        $login = mysql_real_escape_string($login);
+                        simple_update_field('taskman', 'login', $login, "WHERE `id`='" . vf($_POST['changetask']) . "'");
+                        log_register("TASKMAN SETLOGIN (" . $login . ') VIA [' . vf($_POST['changetask']) . ']');
+                    }
+                }
             } else {
                 show_error(__('Wrong date format'));
             }
