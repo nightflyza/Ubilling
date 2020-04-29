@@ -369,7 +369,7 @@ function web_AgentAssignStrictShow() {
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslistCached();
     $allusertariffs = zb_TariffsGetAllUsers();
-
+    $countTotal = 0;
     $agentnames = array();
     if (!empty($allahens)) {
         foreach ($allahens as $io => $eachahen) {
@@ -397,9 +397,11 @@ function web_AgentAssignStrictShow() {
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
             $cells .= wf_TableCell($actLinks);
             $rows .= wf_TableRow($cells, 'row5');
+            $countTotal++;
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    $result .= __('Total') . ': ' . $countTotal;
     return($result);
 }
 
