@@ -1106,6 +1106,7 @@ class UserProfile {
                         $targetText = $_POST['neweasysmstext'];
                         $translitFlag = (wf_CheckPost(array('neweasysmstranslit'))) ? true : false;
                         $smsServiceId = ( wf_CheckPost(array('preferredsmssrvid')) ) ? $_POST['preferredsmssrvid'] : '';
+                        log_register('EASYSMS SEND SMS `' . $targetNumber . '` FOR (' . $this->login . ')');
                         $queueFile = $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS');
                         $sms->setDirection($queueFile, '', '', $smsServiceId);
                         rcms_redirect('?module=userprofile&username=' . $this->login);
@@ -1676,7 +1677,6 @@ class UserProfile {
         return ($result);
     }
 
-
     /**
      * Returns cached user extended address info rows
      *
@@ -1687,13 +1687,13 @@ class UserProfile {
         if ($this->ubConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED')) {
             $extenAddrData = zb_AddressExtenGetLoginFast($this->login);
 
-            $postCode  = (empty($extenAddrData['postal_code'])) ? '' : $extenAddrData['postal_code'];
+            $postCode = (empty($extenAddrData['postal_code'])) ? '' : $extenAddrData['postal_code'];
             $extenTown = (empty($extenAddrData['town_district'])) ? '' : $extenAddrData['town_district'];
             $extenAddr = (empty($extenAddrData['address_exten'])) ? '' : $extenAddrData['address_exten'];
 
-            $result.= $this->addRow(__('Postal code'), $postCode, false);
-            $result.= $this->addRow(__('Town/District/Region'), $extenTown, false);
-            $result.= $this->addRow(__('Extended address'), $extenAddr, false);
+            $result .= $this->addRow(__('Postal code'), $postCode, false);
+            $result .= $this->addRow(__('Town/District/Region'), $extenTown, false);
+            $result .= $this->addRow(__('Extended address'), $extenAddr, false);
         }
         return ($result);
     }
