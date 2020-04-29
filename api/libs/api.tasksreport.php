@@ -66,6 +66,13 @@ class TasksReport {
     protected $warehouseFlag = false;
 
     /**
+     * Task payments usage flag
+     *
+     * @var bool
+     */
+    protected $taskPayments = false;
+
+    /**
      * Salary usage flag
      *
      * @var bool
@@ -252,6 +259,10 @@ class TasksReport {
 
         if (isset($this->altCfg['TASKREPORT_SALARY_MULTIPLIER'])) {
             $this->salaryMultiplier = $this->altCfg['TASKREPORT_SALARY_MULTIPLIER'];
+        }
+
+        if (isset($this->altCfg['TASKMAN_PAYMENTS'])) {
+            $this->taskPayments = $this->altCfg['TASKMAN_PAYMENTS'];
         }
     }
 

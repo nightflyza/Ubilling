@@ -28,10 +28,10 @@ if (cfr('TASKMAN')) {
             if (zb_checkDate($_POST['newstartdate'])) {
                 ts_CreateTask($_POST['newstartdate'], @$_POST['newstarttime'], $_POST['newtaskaddress'], @$_POST['newtasklogin'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $newjobnote);
                 if (!isset($_GET['gotolastid'])) {
-                    rcms_redirect("?module=taskman");
+                    ubRouting::nav("?module=taskman");
                 } else {
                     $lasttaskid = simple_get_lastid('taskman');
-                    rcms_redirect("?module=taskman&edittask=" . $lasttaskid);
+                    ubRouting::nav("?module=taskman&edittask=" . $lasttaskid);
                 }
             } else {
                 show_error(__('Wrong date format'));
@@ -48,7 +48,7 @@ if (cfr('TASKMAN')) {
             if (zb_checkDate($_POST['modifystartdate'])) {
                 $taskid = $_POST['modifytask'];
                 ts_ModifyTask($taskid, $_POST['modifystartdate'], $_POST['modifystarttime'], $_POST['modifytaskaddress'], @$_POST['modifytasklogin'], $_POST['modifytaskphone'], $_POST['modifytaskjobtype'], $_POST['modifytaskemployee'], $_POST['modifytaskjobnote']);
-                rcms_redirect("?module=taskman&edittask=" . $taskid);
+                ubRouting::nav("?module=taskman&edittask=" . $taskid);
             } else {
                 show_error(__('Wrong date format'));
             }
@@ -61,25 +61,48 @@ if (cfr('TASKMAN')) {
     if (isset($_POST['changetask'])) {
         if (wf_CheckPost(array('editenddate', 'editemployeedone'))) {
             if (zb_checkDate($_POST['editenddate'])) {
-                //editing task sub
-                ts_TaskIsDone();
+                if ($ubillingConfig->getAlterParam('TASKMAN_PAYMENTS') AND ubRouting::checkPost(array('taskpayment'))) {
+                    if ((ubRouting::checkPost(array('setlogin')) OR ubRouting::checkPost(array('tasklogin')))) {
+                        // set login for task
+                        if (ubRouting::checkPost(array('setlogin'))) {
+                                $login = ubRouting::post('setlogin','mres');
+                                simple_update_field('taskman', 'login', $login, "WHERE `id`='" . vf($_POST['changetask']) . "'");
+                                log_register("TASKMAN SETLOGIN (" . $login . ') VIA [' . vf($_POST['changetask']) . ']');
+                        } else {
+                            $login = ubRouting::post('tasklogin','mres');
+                        }
+                        // Render signup job types id's in alter.ini
+                        if ($ubillingConfig->getAlterParam('TASKREPORT_SIGNUPJOBTYPES') ) {
+                            $sigJobTypesIds = explode(',', $ubillingConfig->getAlterParam('TASKREPORT_SIGNUPJOBTYPES'));
+                        }
+                        if (ubRouting::checkPost(array('paidmoney')) OR ubRouting::checkPost(array('spentmoney')) OR ($sigJobTypesIds AND in_array(ubRouting::post('taskjobid','int'), $sigJobTypesIds))) {
+                            // Check if this task SIGNUP
+                            if ($sigJobTypesIds AND in_array(ubRouting::post('taskjobid','int'), $sigJobTypesIds)) {
+                            debArr($_POST);
+                            }
 
-                //flushing darkvoid after changing task
-                $darkVoid = new DarkVoid();
-                $darkVoid->flushCache();
+                        }
+                    } else {
+                        show_error(__('Task must have login'));
+                    }
+                } else {
+                    //editing task sub
+                    ts_TaskIsDone();
 
-                //generate job for some user
-                if (wf_CheckPost(array('generatejob', 'generatelogin', 'generatejobid'))) {
-                    stg_add_new_job($_POST['generatelogin'], curdatetime(), $_POST['editemployeedone'], $_POST['generatejobid'], 'TASKID:[' . $_POST['changetask'] . ']');
-                    log_register("TASKMAN GENJOB (" . $_POST['generatelogin'] . ') VIA [' . $_POST['changetask'] . ']');
-                }
-                // set login for task
-                if (wf_CheckPost(array('setlogin'))) {
-                    if (! empty($_POST['setlogin'])) {
-                        $login = vf($_POST['setlogin']);
-                        $login = mysql_real_escape_string($login);
-                        simple_update_field('taskman', 'login', $login, "WHERE `id`='" . vf($_POST['changetask']) . "'");
-                        log_register("TASKMAN SETLOGIN (" . $login . ') VIA [' . vf($_POST['changetask']) . ']');
+                    //flushing darkvoid after changing task
+                    $darkVoid = new DarkVoid();
+                    $darkVoid->flushCache();
+
+                    //generate job for some user
+                    if (wf_CheckPost(array('generatejob', 'generatelogin', 'generatejobid'))) {
+                        stg_add_new_job($_POST['generatelogin'], curdatetime(), $_POST['editemployeedone'], $_POST['generatejobid'], 'TASKID:[' . $_POST['changetask'] . ']');
+                        log_register("TASKMAN GENJOB (" . $_POST['generatelogin'] . ') VIA [' . $_POST['changetask'] . ']');
+                    }
+                    // set login for task
+                    if (ubRouting::checkPost(array('setlogin'))) {
+                            $login = ubRouting::post('setlogin','mres');;
+                            simple_update_field('taskman', 'login', $login, "WHERE `id`='" . vf($_POST['changetask']) . "'");
+                            log_register("TASKMAN SETLOGIN (" . $login . ') VIA [' . vf($_POST['changetask']) . ']');
                     }
                 }
             } else {
@@ -108,7 +131,7 @@ if (cfr('TASKMAN')) {
         $darkVoid->flushCache();
 
 
-        rcms_redirect("?module=taskman");
+        ubRouting::nav("?module=taskman");
     }
 
     //deleting task 
@@ -118,7 +141,7 @@ if (cfr('TASKMAN')) {
         //flushing darkvoid after task deletion
         $darkVoid = new DarkVoid();
         $darkVoid->flushCache();
-        rcms_redirect("?module=taskman");
+        ubRouting::nav("?module=taskman");
     }
 
     if (!wf_CheckGet(array('probsettings'))) {
@@ -192,14 +215,14 @@ if (cfr('TASKMAN')) {
                     //flushing dark void
                     $darkVoid = new DarkVoid();
                     $darkVoid->flushCache();
-                    rcms_redirect('?module=taskman&edittask=' . $_GET['edittask']);
+                    ubRouting::nav('?module=taskman&edittask=' . $_GET['edittask']);
                 }
             }
 
             //sms data flush
             if (wf_CheckGet(array('flushsmsdata'))) {
                 ts_FlushSMSData($_GET['flushsmsdata']);
-                rcms_redirect('?module=taskman&edittask=' . $_GET['flushsmsdata']);
+                ubRouting::nav('?module=taskman&edittask=' . $_GET['flushsmsdata']);
             }
 
             /**
@@ -210,21 +233,21 @@ if (cfr('TASKMAN')) {
                 if (wf_CheckGet(array('deletejobid'))) {
                     $salary = new Salary($_GET['edittask']);
                     $salary->deleteJob($_GET['deletejobid']);
-                    rcms_redirect($salary::URL_TS . $_GET['edittask']);
+                    ubRouting::nav($salary::URL_TS . $_GET['edittask']);
                 }
 
                 //salary job editing
                 if (wf_CheckPost(array('editsalaryjobid', 'editsalaryemployeeid', 'editsalaryjobtypeid'))) {
                     $salary = new Salary($_GET['edittask']);
                     $salary->jobEdit($_POST['editsalaryjobid'], $_POST['editsalaryemployeeid'], $_POST['editsalaryjobtypeid'], $_POST['editsalaryfactor'], $_POST['editsalaryoverprice'], $_POST['editsalarynotes']);
-                    rcms_redirect($salary::URL_TS . $_GET['edittask']);
+                    ubRouting::nav($salary::URL_TS . $_GET['edittask']);
                 }
 
                 //salary job creation
                 if (wf_CheckPost(array('newsalarytaskid', 'newsalaryemployeeid', 'newsalaryjobtypeid'))) {
                     $salary = new Salary($_GET['edittask']);
                     $salary->createSalaryJob($_POST['newsalarytaskid'], $_POST['newsalaryemployeeid'], $_POST['newsalaryjobtypeid'], $_POST['newsalaryfactor'], $_POST['newsalaryoverprice'], $_POST['newsalarynotes']);
-                    rcms_redirect($salary::URL_TS . $_GET['edittask']);
+                    ubRouting::nav($salary::URL_TS . $_GET['edittask']);
                 }
             }
 

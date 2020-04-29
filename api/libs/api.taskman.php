@@ -1984,7 +1984,8 @@ function ts_TaskChangeForm($taskid) {
             $jobgencheckbox .= wf_HiddenInput('generatejobid', $taskdata['jobtype']);
             $jobgencheckbox .= wf_delimiter();
         } else {
-            $jobgencheckbox = '';
+            $jobgencheckbox = wf_TextInput('setlogin', __('Username'));
+            $jobgencheckbox .= wf_delimiter();
         }
 
         //modify form handlers
@@ -2144,12 +2145,18 @@ function ts_TaskChangeForm($taskid) {
             $inputs .= wf_tag('label', false) . __('Finish note') . wf_tag('label', true) . wf_tag('br');
 
             $inputs .= wf_TextArea('editdonenote', '', '', true, '35x3');
-			// Counting money from work done
-            if (isset($altercfg['TASKMAN_COUNTING_MONEY']) and !empty($altercfg['TASKMAN_COUNTING_MONEY'])) {
-            $inputs .= wf_TableCell(wf_TextInput('givedmoney', __('Received money from a subscriber'), '', false, 5, 'finance'));
-            $inputs .= wf_tag('br');
-            $inputs .= wf_TableCell(wf_TextInput('holddmoney', __('Holding money from payment received'), '', false, 5, 'finance'));
-			}
+            // Counting money from work done
+            if ($ubillingConfig->getAlterParam('TASKMAN_PAYMENTS')) {
+                $jobtypesTmp = explode(',', @$altercfg['TASKREPORT_JOBTYPES']);
+                if (in_array($taskdata['jobtype'], $jobtypesTmp)) {
+                    $inputs .= wf_HiddenInput('tasklogin', $taskLogin);
+                    $inputs .= wf_HiddenInput('taskjobid', $taskdata['jobtype']);
+                    $inputs .= wf_HiddenInput('taskpayment', 'TRUE');
+                    $inputs .= wf_TableCell(wf_TextInput('paidmoney', __('Paid by user'), '', false, 10, 'finance'));
+                    $inputs .= wf_tag('br');
+                    $inputs .= wf_TableCell(wf_TextInput('spentmoney', __('Spent on task'), '', false, 10, 'finance'));
+                }
+            }
 
             $inputs .= wf_tag('br');
             $inputs .= $jobgencheckbox;
