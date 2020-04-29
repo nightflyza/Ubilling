@@ -1992,7 +1992,10 @@ function ts_TaskChangeForm($taskid) {
         if (cfr('TASKMANTRACK')) {
             $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task')));
         }
-        $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
+        //task editing limitations
+        if (cfr('TASKMANEDITTASK')) {
+            $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
+        }
         //modform end
         //extracting sms data
         if (!empty($taskdata['smsdata'])) {
