@@ -814,7 +814,7 @@ class SMSZilla {
             foreach ($this->supportedMacro as $io => $each) {
                 $result .= wf_tag('b') . $io . wf_tag('b', true) . ' - ' . $each . wf_tag('br');
             }
-            $result .= wf_tag('br') . wf_Link(self::URL_MACROHELP, __('Details'));
+            $result .= wf_tag('br') . wf_Link(self::URL_MACROHELP, __('Details'), false, '', 'target="_BLANK"');
         }
         return ($result);
     }
@@ -1732,8 +1732,8 @@ class SMSZilla {
         $result = false;
         if (isset($this->allSwitchesUsers[$login])) {
             if ($this->allSwitchesUsers[$login] == $switchId) {
-                        $result = true;
-                        return ($result);
+                $result = true;
+                return ($result);
             }
         }
         return ($result);
