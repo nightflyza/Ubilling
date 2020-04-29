@@ -179,10 +179,10 @@ class PhotoStorage {
     protected function imageControls($imageId) {
         $result = wf_tag('br');
         $downloadUrl = self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $imageId;
-        $result .= wf_Link($downloadUrl, wf_img('skins/icon_download.png', __('Download')), false, '');
+        $result .= wf_Link($downloadUrl, wf_img('skins/icon_download.png').' '.__('Download'), false, 'ubButton').' ';
         if (cfr('PHOTOSTORAGEDELETE')) {
             $deleteUrl = self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&delete=' . $imageId;
-            $result .= wf_AjaxLink($deleteUrl, web_delete_icon(), 'ajRefCont_' . $imageId, false, '');
+            $result .= wf_AjaxLink($deleteUrl, web_delete_icon().' '.__('Delete'), 'ajRefCont_' . $imageId, false, 'ubButton').' ';
         }
         return ($result);
     }

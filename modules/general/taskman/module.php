@@ -5,7 +5,8 @@ $this->registerModule($module, 'main', __('Tasks manager'), 'Nightfly', array(
     'TASKMANDONE' => __('right to mark tasks as done'),
     'TASKMANDELETE' => __('right to delete tasks'),
     'TASKMANNODONDATE' => __('deny tasks done date change'),
-    'TASKMANNWATCHLOG' => __('can watch log change for tasks')
+    'TASKMANNWATCHLOG' => __('can watch log change for tasks'),
+    'TASKMANEDITTASK'=> __('right to edit existing tasks')
 ));
 
 ?>

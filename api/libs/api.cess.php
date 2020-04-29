@@ -369,7 +369,7 @@ function web_AgentAssignStrictShow() {
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslistCached();
     $allusertariffs = zb_TariffsGetAllUsers();
-
+    $countTotal = 0;
     $agentnames = array();
     if (!empty($allahens)) {
         foreach ($allahens as $io => $eachahen) {
@@ -397,9 +397,11 @@ function web_AgentAssignStrictShow() {
             $actLinks = wf_JSAlert('?module=contractedit&username=' . $eachlogin, web_edit_icon(), __('Are you serious'));
             $cells .= wf_TableCell($actLinks);
             $rows .= wf_TableRow($cells, 'row5');
+            $countTotal++;
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    $result .= __('Total') . ': ' . $countTotal;
     return($result);
 }
 
@@ -1197,10 +1199,18 @@ function zb_AgentStatsRender() {
 
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $eachUser => $eachAgentId) {
-                if (isset($agentCounters[$eachAgentId])) {
-                    $agentCounters[$eachAgentId] ++;
+                $userData = $allUsers[$eachUser];
+                if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+                    $active = 1;
                 } else {
-                    $agentCounters[$eachAgentId] = 1;
+                    $active = 0;
+                }
+                if (isset($agentCounters[$eachAgentId])) {
+                    $agentCounters[$eachAgentId]['total'] ++;
+                    $agentCounters[$eachAgentId]['active'] += $active;
+                } else {
+                    $agentCounters[$eachAgentId]['total'] = 1;
+                    $agentCounters[$eachAgentId]['active'] = $active;
                 }
             }
         }
@@ -1208,11 +1218,13 @@ function zb_AgentStatsRender() {
         if (!empty($agentCounters)) {
             $cells = wf_TableCell(__('Contrahent name'));
             $cells .= wf_TableCell(__('Users'));
+            $cells .= wf_TableCell(__('Active'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($agentCounters as $agentId => $userCount) {
                 $cells = wf_TableCell(@$allAgentNames[$agentId]);
-                $cells .= wf_TableCell($userCount);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell($userCount['total']);
+                $cells .= wf_TableCell($userCount['active']);
+                $rows .= wf_TableRow($cells, 'row5');
             }
 
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
