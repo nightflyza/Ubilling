@@ -1197,10 +1197,18 @@ function zb_AgentStatsRender() {
 
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $eachUser => $eachAgentId) {
-                if (isset($agentCounters[$eachAgentId])) {
-                    $agentCounters[$eachAgentId] ++;
+                $userData = $allUsers[$eachUser];
+                if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+                    $active = 1;
                 } else {
-                    $agentCounters[$eachAgentId] = 1;
+                    $active = 0;
+                }
+                if (isset($agentCounters[$eachAgentId])) {
+                    $agentCounters[$eachAgentId]['total'] ++;
+                    $agentCounters[$eachAgentId]['active'] += $active;
+                } else {
+                    $agentCounters[$eachAgentId]['total'] = 1;
+                    $agentCounters[$eachAgentId]['active'] = $active;
                 }
             }
         }
@@ -1208,11 +1216,13 @@ function zb_AgentStatsRender() {
         if (!empty($agentCounters)) {
             $cells = wf_TableCell(__('Contrahent name'));
             $cells .= wf_TableCell(__('Users'));
+            $cells .= wf_TableCell(__('Active'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($agentCounters as $agentId => $userCount) {
                 $cells = wf_TableCell(@$allAgentNames[$agentId]);
-                $cells .= wf_TableCell($userCount);
-                $rows.= wf_TableRow($cells, 'row5');
+                $cells .= wf_TableCell($userCount['total']);
+                $cells .= wf_TableCell($userCount['active']);
+                $rows .= wf_TableRow($cells, 'row5');
             }
 
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
