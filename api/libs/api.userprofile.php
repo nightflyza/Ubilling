@@ -1138,7 +1138,18 @@ class UserProfile {
                                 } else {
                                     $smsText = $templateData;
                                     $smsText = str_ireplace('{LOGIN}', $this->login, $smsText);
-                                    $smsText = str_ireplace('{PASSWORD}', $this->userdata['Password'], $smsText);
+                                    $smsText = str_ireplace('{PASSWORD}', $this->AllUserData[$this->login]['Password'], $smsText);
+                                    $smsText = str_ireplace('{TARIFF}', $this->AllUserData[$this->login]['Tariff'], $smsText);
+                                    $smsText = str_ireplace('{TARIFFPRICE}', zb_TariffGetPrice($this->AllUserData[$this->login]['Tariff']), $smsText);
+                                    $smsText = str_ireplace('{CASH}', $this->AllUserData[$this->login]['Cash'], $smsText);
+                                    $smsText = str_ireplace('{ROUNDCASH}', round($this->AllUserData[$this->login]['Cash'], 2), $smsText);
+                                    $smsText = str_ireplace('{CONTRACT}', $this->contract, $smsText);
+                                    $smsText = str_ireplace('{REALNAME}', $this->realname, $smsText);
+                                    $smsText = str_ireplace('{ADDRESS}', $this->AllUserData[$this->login]['fulladress'], $smsText);
+                                    $smsText = str_ireplace('{PAYID}', $this->paymentid, $smsText);
+                                    $smsText = str_ireplace('{IP}', $this->AllUserData[$this->login]['ip'], $smsText);
+                                    $smsText = str_ireplace('{MAC}', $this->mac, $smsText);
+                                    $smsText = str_ireplace('{CURDATE}', curdate(), $smsText);
                                 }
                             }
 

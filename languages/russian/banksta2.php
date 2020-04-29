@@ -101,5 +101,6 @@ $lang['def']['select "Telepathy" to try to get service type from payment purpose
 $lang['def']['Payment type ID'] = 'ID типа оплат';
 $lang['def']['Char replacing'] = 'Замена символов';
 $lang['def']['Char removing'] = 'Удаление символов';
+$lang['def']['Processing canceled'] = 'Исключено из обработки';
 $lang['def'][''] = '';
 ?>
