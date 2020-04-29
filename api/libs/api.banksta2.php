@@ -115,6 +115,13 @@ class Banksta2 {
     protected $regexKeywordsDelimiter = ',';
 
     /**
+     * Placeholder for BANKSTA2_LSTCHK_FNAMES_TRANSLATE option
+     *
+     * @var bool
+     */
+    protected $translateLstChkFieldNames = false;
+
+    /**
      * Placeholder for file data preprocessed during filePreprocessing()
      *
      * @var array
@@ -170,7 +177,6 @@ class Banksta2 {
      * Routing URLs
      */
     const URL_ME = '?module=banksta2';
-    //const URL_BANKSTA_MGMT = '?module=bankstamd&banksta=true';
     const URL_BANKSTA2_UPLOADFORM = '?module=banksta2&uploadform=true';
     const URL_BANKSTA2_PROCESSING = '?module=banksta2&showhash=';
     const URL_BANKSTA2_DETAILED = '?module=banksta2&showdetailed=';
@@ -231,6 +237,7 @@ class Banksta2 {
         $this->inetPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_INET');
         $this->ukvPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_UKV');
         $this->regexKeywordsDelimiter = (wf_getBoolFromVar($this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM'))) ? $this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM') : ',';
+        $this->translateLstChkFieldNames = $this->ubConfig->getAlterParam('BANKSTA2_LSTCHK_FNAMES_TRANSLATE');
     }
 
 
@@ -1842,16 +1849,38 @@ class Banksta2 {
      * @param $dataRows
      */
     public function web_LastChecksForm($dataRows) {
+        if ($this->translateLstChkFieldNames) {
+            $captContract   = __('Contract');
+            $captSumm       = __('Sum');
+            $captAddr       = __('Address');
+            $captRealName   = __('Real name');
+            $captNotes      = __('Payment notes');
+            $captPDate      = __('Payment date');
+            $captPTime      = __('Payment time');
+            $captSrvType    = __('Service type');
+            $captCanceled   = __('Processing canceled');
+        } else {
+            $captContract   = '[contract]';
+            $captSumm       = '[summ]';
+            $captAddr       = '[address]';
+            $captRealName   = '[realname]';
+            $captNotes      = '[notes]';
+            $captPDate      = '[pdate]';
+            $captPTime      = '[ptime]';
+            $captSrvType    = '[service_type]';
+            $captCanceled   = '[row_canceled]';
+        }
+
         $cells = wf_TableCell('#');
-        $cells.= wf_TableCell('[contract]');
-        $cells.= wf_TableCell('[summ]');
-        $cells.= wf_TableCell('[address]');
-        $cells.= wf_TableCell('[realname]');
-        $cells.= wf_TableCell('[notes]');
-        $cells.= wf_TableCell('[pdate]');
-        $cells.= wf_TableCell('[ptime]');
-        $cells.= wf_TableCell('[service_type]');
-        $cells.= wf_TableCell('[row_canceled]');
+        $cells.= wf_TableCell($captContract);
+        $cells.= wf_TableCell($captSumm);
+        $cells.= wf_TableCell($captAddr);
+        $cells.= wf_TableCell($captRealName);
+        $cells.= wf_TableCell($captNotes);
+        $cells.= wf_TableCell($captPDate);
+        $cells.= wf_TableCell($captPTime);
+        $cells.= wf_TableCell($captSrvType);
+        $cells.= wf_TableCell($captCanceled);
 
         $rows = wf_TableRow($cells, 'row1');
         $table = wf_TableBody($rows . $dataRows, '100%', '0', '');
