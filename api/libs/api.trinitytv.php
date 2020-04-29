@@ -1037,7 +1037,7 @@ class TrinityTv {
             if (isset($response->result) AND $response->result == 'success') {
 
                 $mac = vf(strtoupper($response->mac)); //alphanumeric
-                
+
                 $query = "INSERT INTO `" . self::TABLE_DEVICES . "` (`login`, `subscriber_id`, `mac`, `created_at`) VALUES ";
                 $query .= "('" . $this->allSubscribers[$subscriberId]['login'] . "', '" . $subscriberId . "','" . $mac . "', NOW() )";
                 nr_query($query);
@@ -1632,7 +1632,9 @@ class TrinityTv {
                 __('Actions')
             );
         }
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, true, __('Subscriptions'), '100');
+
+        $orderOpts = '"order": [[ 0, "desc" ]]';
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, false, __('Subscriptions'), '100', $orderOpts);
         return ($result);
     }
 
