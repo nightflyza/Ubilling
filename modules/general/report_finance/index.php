@@ -48,7 +48,7 @@ if (cfr('REPORTFINANCE')) {
         $controlcells = wf_TableCell($yearform);
         $controlcells .= wf_TableCell($dateform);
         $controlcells .= wf_TableCell(wf_Link("?module=payfind", web_icon_search() . ' ' . __('Find'), false, 'ubButton'));
-        $controlcells .= wf_TableCell(wf_Link("?module=report_finance&analytics=true", wf_img('skins/icon_stats.gif') . ' ' . __('Show'), false, 'ubButton'));
+        $controlcells .= wf_TableCell(wf_Link("?module=report_finance&analytics=true", web_icon_charts() . ' ' . __('Show'), false, 'ubButton'));
         $controlcells .= wf_TableCell(wf_Link("?module=report_arpu", wf_img('skins/ukv/report.png') . ' ' . __('Show'), false, 'ubButton'));
         if ($ubillingConfig->getAlterParam('AGENTS_ASSIGN') == '2') {
             $controlcells .= wf_TableCell(wf_Link("?module=report_agentfinance", wf_img('skins/corporate_small.png') . ' ' . __('Search'), false, 'ubButton'));
@@ -100,7 +100,7 @@ if (cfr('REPORTFINANCE')) {
 
         $yearinputs = wf_YearSelectorPreset('anyearsel', __('Year'), false, $currentYear) . ' ';
         $yearinputs .= wf_Submit(__('Show'));
-        $anControls.= wf_delimiter();
+        $anControls .= wf_delimiter();
         $anControls .= wf_Form('', 'POST', $yearinputs, 'glamour');
         $graphs = '';
         show_window('', $anControls);
