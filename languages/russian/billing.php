@@ -3148,6 +3148,8 @@ $lang['def']['Charge period in days'] = 'Периодичность снятия
 $lang['def']['Resurrected'] = 'Воскресли';
 $lang['def']['No page breaks for each employee'] = 'Не разделять на отдельные страницы для каждого работника';
 $lang['def']['Userstats'] = 'Кабинет пользователя';
-$lang['def'][''] = '';
+
+//rev 7473
+$lang['def']['Metabolism'] = 'Метаболизм';
 
 ?>

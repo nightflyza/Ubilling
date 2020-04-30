@@ -568,7 +568,7 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
- * @param bool    $allTime
+ * @param bool    $allTime appends month '1488' to the end of selector
  * 
  * @return  string
  */

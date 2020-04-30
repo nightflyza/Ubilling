@@ -93,13 +93,17 @@ if (cfr('REPORTFINANCE')) {
             $currentYear = date("Y");
         }
 
+
+
+        $anControls = wf_BackLink("?module=report_finance");
+        $anControls .= wf_Link('?module=metabolism', web_icon_charts() . ' ' . __('Metabolism'), false, 'ubButton');
+
         $yearinputs = wf_YearSelectorPreset('anyearsel', __('Year'), false, $currentYear) . ' ';
         $yearinputs .= wf_Submit(__('Show'));
-        $yearform = wf_Form("", 'POST', $yearinputs, 'glamour');
-        show_window(__('Analytics'), $yearform);
-
-        $graphs = wf_BackLink("?module=report_finance");
-
+        $anControls.= wf_delimiter();
+        $anControls .= wf_Form('', 'POST', $yearinputs, 'glamour');
+        $graphs = '';
+        show_window('', $anControls);
         $ubCache = new UbillingCache();
 
         //try to cache rendered charts
@@ -111,8 +115,7 @@ if (cfr('REPORTFINANCE')) {
             }
             return (web_AnalyticsAllGraphs($currentYear));
         }, 3600);
-
-        show_window('', $graphs);
+        show_window(__('Analytics'), $graphs);
     }
 
 

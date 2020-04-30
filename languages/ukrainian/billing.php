@@ -3170,4 +3170,7 @@ $lang['def']['Resurrected'] = 'Воскресли';
 $lang['def']['No page breaks for each employee'] = 'Не розділяти на окремі сторінки для кожного працівника';
 $lang['def']['Userstats'] = 'Кабінет користувача';
 
+//rev 7473
+$lang['def']['Metabolism'] = 'Метаболізм';
+
 ?>
