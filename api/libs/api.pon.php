@@ -756,12 +756,18 @@ class PONizer {
 // olt iface descr extraction
         if ($processIfaceCustDescr) {
             foreach ($ifaceCustDescrRaw as $io => $each) {
-                if (empty($each)) { continue; }
+                if (empty($each)) {
+                    continue;
+                }
 
                 $ifDescr = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $each));
 
-                if ((empty($ifDescr[0]) && empty($ifDescr[1])) || intval($ifDescr[0]) < 7) { continue; }
-                if ($ifDescr[0] > 10) { break; }
+                if ((empty($ifDescr[0]) && empty($ifDescr[1])) || intval($ifDescr[0]) < 7) {
+                    continue;
+                }
+                if ($ifDescr[0] > 10) {
+                    break;
+                }
 
                 $ifaceCustDescrIdx[$ifDescr[0] - 6] = $ifDescr[1];
             }
@@ -1418,11 +1424,15 @@ class PONizer {
 // olt iface descr extraction
         if ($processIfaceCustDescr) {
             foreach ($ifaceCustDescrRaw as $io => $each) {
-                if (empty($each)) { continue; }
+                if (empty($each)) {
+                    continue;
+                }
 
                 $ifDescr = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $each));
 
-                if (empty($ifDescr[0]) && empty($ifDescr[1])) { continue; }
+                if (empty($ifDescr[0]) && empty($ifDescr[1])) {
+                    continue;
+                }
 
                 $ifaceCustDescrIdx[$ifDescr[0]] = $ifDescr[1];
             }
@@ -3126,7 +3136,7 @@ class PONizer {
                 $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
-                $onuMaxCount = ( !empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCount;
+                $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCount;
                 if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
@@ -3177,8 +3187,8 @@ class PONizer {
                                 }
 
                                 //storing PON ifaces descriptions, if not stored yet
-                                if(!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                   and !empty($ifaceDescrs) and !empty($ifaceDescrs[$cleanInterface])) {
+                                if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
+                                        and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
 
                                     $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                                 }
@@ -3206,7 +3216,7 @@ class PONizer {
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
-                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and !empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
+                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
                         $cells = wf_TableCell($eachInterface . $oltIfaceDescr);
                         $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
 
@@ -3456,10 +3466,9 @@ class PONizer {
                     $tmpArr[$interface] = $ifDescr;
                 }
 
-                $this->ponIfaceDescrCache[$oltID] =  $tmpArr;
+                $this->ponIfaceDescrCache[$oltID] = $tmpArr;
             }
         }
-
     }
 
     /**
@@ -3761,7 +3770,7 @@ class PONizer {
                     }
 
                     $cleanInterface = strstr($ponInterface, ':', true);
-                    $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and !empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                    $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
                     $data[] = $oltIfaceDescr . $ponInterface;
                 }
 
@@ -4105,6 +4114,9 @@ class PONizer {
                 if (isset($signalCache[$each['mac']])) {
                     $allOnuSignals[$each['login']] = $signalCache[$each['mac']];
                 }
+                if (isset($signalCache[$each['serial']])) {
+                    $allOnuSignals[$each['login']] = $signalCache[$each['serial']];
+                }
             }
         }
 
@@ -4124,6 +4136,7 @@ class PONizer {
 
         return (!empty($matches[0]));
     }
+
 }
 
 class PONizerLegacy extends PONizer {
@@ -4331,6 +4344,7 @@ class PONizerLegacy extends PONizer {
         $result .= show_window('', wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
         return ($result);
     }
+
 }
 
 ?>
