@@ -264,7 +264,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                             if ($eachSheduled['action'] == 'tagdel') {
                                 $action = __('deactivated');
                             }
-                            $cells.= la_TableCell(__('Sheduled') . ' ' . __($action) . ' ' . la_JSAlert('?module=adservice&delete_shedule=' . $eachSheduled['param'], la_img($imagesPath.'delete.gif'), __('You realy want to abort service activation') . '?'));
+                            $cells.= la_TableCell(__('Sheduled') . ' ' . __($action) . ' ' . la_JSAlert('?module=advservice&delete_shedule=' . $eachSheduled['param'], la_img($imagesPath.'delete.gif'), __('You realy want to abort service activation') . '?'));
                             $rows.= la_TableRow($cells, 'row3');
                         }
                     }
@@ -274,7 +274,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                     foreach ($allActivated as $eachActivated) {
                         if ($eachActivated['tagid'] == $tagid) {
                             $cells = la_TableCell($name);
-                            $cells.= la_TableCell(__('Active') . la_JSAlert('?module=adservice&delete_service=' . $eachActivated['tagid'], la_img($imagesPath.'delete.gif'), __('You realy want to deactivate service') . '?'));
+                            $cells.= la_TableCell(__('Active') . la_JSAlert('?module=advservice&delete_service=' . $eachActivated['tagid'], la_img($imagesPath.'delete.gif'), __('You realy want to deactivate service') . '?'));
                             $rows.=la_TableRow($cells, 'row3');
                         }
                     }
@@ -304,7 +304,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                     }
                 }
                 if ($accept) {
-                    rcms_redirect('?module=adservice&accept=show&service=' . $param);
+                    rcms_redirect('?module=advservice&accept=show&service=' . $param);
                 } else {
                     if (checkTask($user_login, $action, $param)) {
                         createTask($date, $user_login, $action, $param, $note);
@@ -315,7 +315,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                     createTask($date, $user_login, $action, $param, $note);
                 }
             }
-            rcms_redirect('?module=adservice&action=add&wait=true');
+            rcms_redirect('?module=advservice&action=add&wait=true');
         }
     }
 
@@ -326,7 +326,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             $tag = mysql_real_escape_string($tag);
             $tag = vf($tag, 3);
             deleteTask($user_login, $tag);
-            rcms_redirect('?module=adservice&action=delete&wait=true');
+            rcms_redirect('?module=advservice&action=delete&wait=true');
         }
     }
 
@@ -348,7 +348,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             if (checkTask($user_login, $action, $param)) {
                 createTask($date, $user_login, $action, $param, $note);
             }
-            rcms_redirect('?module=adservice&action=delete&wait=true');
+            rcms_redirect('?module=advservice&action=delete&wait=true');
         }
     }
 
@@ -382,7 +382,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 createTask($date, $user_login, $action, $param, $note);
             }
 
-            rcms_redirect('?module=adservice&action=add&wait=true');
+            rcms_redirect('?module=advservice&action=add&wait=true');
         }
     }
 
