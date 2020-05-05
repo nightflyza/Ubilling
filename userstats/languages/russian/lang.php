@@ -186,7 +186,7 @@ $lang['def']['This module is disabled'] = 'Этот модуль сейчас о
 $lang['def']['Mark as read'] = 'Пометить как прочитанное';
 $lang['def']['Mark as unread'] = 'Пометить как непрочитанное';
 
-$lang['def']['Additional services'] = 'Дополнительные услуги';
+$lang['def']['Additional services'] = 'Доп. услуги';
 $lang['def']['Price'] = 'Стоимость';
 $lang['def']['The test may not be accurate and is dependent on the type and configuration of client software. The results of tests can influence the type of browser settings firewall, flash player, active anti-virus scanning of HTTP traffic function, active downloads, etc'] = 'Тест может быть не точным и зависим от типа и настроек клиентского программного обеспечения. На результаты тестирования могут влиять тип браузера, настройки фаервола, версия флэш-плеера, активные антивирусы с функцией сканирования HTTP трафика, активные загрузки и т.д..';
 
