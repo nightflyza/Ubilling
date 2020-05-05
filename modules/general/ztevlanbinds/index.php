@@ -36,10 +36,10 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     show_window('', $register->editZteCardForm($_GET[$avidity['P']['EAC']], $_GET['slot_number'], $_GET['card_name']));
                 }
             } elseif (isset($_GET[$avidity['P']['EAI']])) {
-                if (wf_CheckGet(array('delete', 'slot_number', 'port_number'))) {
+                if (wf_CheckGet(array('delete'))) {
                     $register->deleteZteBind($_GET[$avidity['P']['EAI']], $_GET['slot_number'], $_GET['port_number']);
                 }
-                if (wf_CheckGet(array('edit', 'slot_number', 'port_number', 'vlan'))) {
+                if (wf_CheckGet(array('edit', 'vlan'))) {
                     $avidity_i = $avidity['M']['DVA'];
                     show_window('', $register->$avidity_i($_GET[$avidity['P']['EAI']], $_GET['slot_number'], $_GET['port_number'], $_GET['vlan']));
                 }
@@ -52,22 +52,17 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                 show_window(__('All ZTE OLTs'), $register->$avidity_b());
                 show_window('', wf_BackLink(PONizer::URL_ME));
             }
-
             if (wf_CheckPost(array('createZteCard', 'swid', 'card_name'))) {
                 $register->createZteCard($_POST['swid'], $_POST['chasis_number'], $_POST['slot_number'], $_POST['card_name']);
             }
-
-
             if (wf_CheckPost(array('editZteCard', 'swid', 'card_name'))) {
                 $register->editZteCard($_POST['swid'], $_POST['slot_number'], $_POST['card_name']);
             }
-
             if (wf_CheckPost(array('createZteBind', 'swid', 'vlan'))) {
                 if ($_POST['port_number'] != '======') {
                     $register->createZteBind($_POST['swid'], $_POST['slot_number'], $_POST['port_number'], $_POST['vlan']);
                 }
             }
-
             if (wf_CheckPost(array('editZteBind', 'swid', 'vlan'))) {
                 $register->editZteBind($_POST['swid'], $_POST['slot_number'], $_POST['port_number'], $_POST['vlan']);
             }
