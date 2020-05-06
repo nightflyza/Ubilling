@@ -587,6 +587,11 @@ class UserProfile {
         //receipt print button
         $result .= $this->getReceiptControls();
 
+        //optional ONU master controls
+        if ($this->ubConfig->getAlterParam('USERPROFILE_ONUMASTER_BUTTON_ON')) {
+            $result .= $this->getControl('?module=onumaster&username=' . $this->login, 'skins/onu_master.png', 'ONU master', 'ONU master', 'ONUMASTER');
+        }
+
         $result .= wf_tag('td', true);
         $result .= wf_tag('tbody', true);
         $result .= wf_tag('table', true);
