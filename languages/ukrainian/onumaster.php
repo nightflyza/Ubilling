@@ -50,3 +50,4 @@ $lang['def']['ONU operations for login'] = 'Маніпуляції з ONU для
 $lang['def']['User has no ONU assigned'] = 'Користувач не має асоційованих ONU';
 $lang['def']['ONU description same as login'] = 'Логін як опис ОНУ';
 $lang['def']['ONU description'] = 'Опис ОНУ';
+$lang['def']['Seems no options for describe, reboot, deregister or delete actions are enabled. Check ONUAUTO_CONFIG_* options statuses in alter.ini.'] = 'Схоже на те, що жодну з опцій для доступних дій з ОНУ не ввімкнено. Перевірте стан опцій ONUAUTO_CONFIG_* в alter.ini.';
