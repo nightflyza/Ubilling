@@ -276,7 +276,7 @@ if ($system->checkForRight('STREETEPORT')) {
                     $cells .= wf_TableCell($each['streetname']);
                     $cells .= wf_TableCell($each['buildcount']);
                     $cells .= wf_TableCell($each['usercount']);
-                    $cells .= wf_TableCell(web_bar($each['usercount'], $this->totalusercount), '50%', '', 'sorttable_customkey="' . $each['usercount'] . '"');
+                    $cells .= wf_TableCell(web_bar($each['usercount'], $this->totalusercount), '15%', '', 'sorttable_customkey="' . $each['usercount'] . '"');
                     $cells .= wf_TableCell($this->getLevel($each['usercount'], $each['buildcount']));
                     $addrString = @$this->cities[$each['cityid']] . ' ' . $each['streetname'];
                     $paymentsSumm = (isset($addrPayments[$addrString])) ? $addrPayments[$addrString] : '0';
