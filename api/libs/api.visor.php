@@ -351,7 +351,7 @@ class UbillingVisor {
      * @return void
      */
     protected function loadUsers() {
-        $query = "SELECT * from `visor_users`";
+        $query = "SELECT * from `visor_users` ORDER BY `id` DESC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
