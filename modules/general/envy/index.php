@@ -62,7 +62,12 @@ if (cfr('ENVY')) {
         if (ubRouting::checkGet('storedevice')) {
             $storeResult = $envy->storeArchiveData(ubRouting::get('storedevice'), $envy->runDeviceScript(ubRouting::get('storedevice')));
             if (empty($storeResult)) {
-                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
+                if (ubRouting::checkGet('resave')) {
+                    $returnUrl = $envy::URL_ME;
+                } else {
+                    $returnUrl = $envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true';
+                }
+                ubRouting::nav($returnUrl);
             } else {
                 show_error($storeResult);
             }
@@ -71,14 +76,14 @@ if (cfr('ENVY')) {
         //all existing devices config backup
         if (ubRouting::checkGet($envy::ROUTE_ARCHALL)) {
             $envy->storeArchiveAllDevices();
-            ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
+            ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true');
         }
 
         //device deletion
         if (ubRouting::checkGet('deletedevice')) {
             $devDeletionResult = $envy->deleteDevice(ubRouting::get('deletedevice'));
             if (empty($devDeletionResult)) {
-                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true');
+                ubRouting::nav($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true');
             } else {
                 show_error($devDeletionResult);
             }
@@ -107,7 +112,7 @@ if (cfr('ENVY')) {
         if (ubRouting::checkGet('previewdevice') OR ubRouting::checkGet('viewarchiveid')) {
             //device preview
             if (ubRouting::checkGet('previewdevice')) {
-                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . '=true'));
+                show_window('', wf_BackLink($envy::URL_ME . '&' . $envy::ROUTE_DEVICES . ' = true'));
                 show_window(__('Preview'), $envy->previewScriptsResult($envy->runDeviceScript(ubRouting::get('previewdevice'))));
             }
 
