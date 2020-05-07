@@ -754,7 +754,7 @@ class Envy {
                 $archControls .= wf_JSAlert(self::URL_ME . '&deletearchiveid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert() . ' ' . $each['date']) . ' ';
                 $archControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_ARCHVIEW . '=' . $each['id'], web_icon_search('Config')) . ' ';
                 $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
-                $archControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'] . '&resave=true', wf_img('skins/icon_restoredb.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
+                $archControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'] . '&resave=true', wf_img('skins/icon_envy_resave.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
                 $archControls .= wf_Link(self::URL_ME . '&downloadarchiveid=' . $each['id'], web_icon_download());
 
                 $data[] = $archControls;
