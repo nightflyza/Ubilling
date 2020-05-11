@@ -253,12 +253,12 @@ if (cfr('COVID')) {
                             $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $countryDeathPercent . '%)', 'error');
                             $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
 
+                            $result .= wf_gchartsLine($charsDataPeaks, __('By date'), '100%', '300px;', $chartsOptions);
                             if ($curMonthCount > 0) {
                                 $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
                             }
-                            $result .= wf_gchartsLine($charsDataPeaks, __('By date'), '100%', '300px;', $chartsOptions);
+
                             $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
-                            
                         } else {
                             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing to show'), 'warning');
                         }
@@ -283,12 +283,16 @@ if (cfr('COVID')) {
                     $chartsOptions = $this->getChartOptions();
                     $curMonth = curmonth() . '-';
                     $totalTmp = array();
+                    $prevConf = 0;
+                    $prevDeaths = 0;
 
                     $charsDataTotal[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
                     $charsDataMonth[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
+                    $charsDataPeaks[] = array(__('Date'), __('Confirmed'), __('Deaths'));
 
                     foreach ($this->rawData as $eachCountry => $eachTimeline) {
                         if (!empty($eachTimeline)) {
+
                             foreach ($eachTimeline as $io => $each) {
                                 $timeStamp = strtotime($each['date']); //need to be transformed to Y-m-d
                                 $date = date("Y-m-d", $timeStamp);
@@ -312,8 +316,10 @@ if (cfr('COVID')) {
                                 $curMonthCount++;
                             }
                             $charsDataTotal[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
-
+                            $charsDataPeaks[] = array($date, ($each['confirmed'] - $prevConf), ($each['deaths'] - $prevDeaths));
                             $lastData = $each;
+                            $prevConf = $each['confirmed'];
+                            $prevDeaths = $each['deaths'];
                         }
 
                         $worldDeathPercent = zb_PercentValue($lastData['confirmed'], $lastData['deaths']);
@@ -322,9 +328,11 @@ if (cfr('COVID')) {
                         $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $worldDeathPercent . '%)', 'error');
                         $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
 
+                        $result .= wf_gchartsLine($charsDataPeaks, __('By date'), '100%', '300px;', $chartsOptions);
                         if ($curMonthCount > 0) {
                             $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
                         }
+
                         $result .= wf_gchartsLine($charsDataTotal, __('All time'), '100%', '300px;', $chartsOptions);
                     }
                 } else {
