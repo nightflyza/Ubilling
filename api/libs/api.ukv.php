@@ -1272,7 +1272,7 @@ class UkvSystem {
 //saving user internet backlinking
             if ($this->users[$userId]['inetlogin'] != $_POST['ueditinetlogin']) {
                 simple_update_field($tablename, 'inetlogin', $_POST['ueditinetlogin'], $where);
-                log_register('UKV USER ((' . $userId . ')) CHANGE INETLOGIN `' . $_POST['ueditinetlogin'] . '`');
+                log_register('UKV USER ((' . $userId . ')) CHANGE INETLOGIN (' . $_POST['ueditinetlogin'] . ')');
             }
 
 //saving passport number
@@ -4082,7 +4082,7 @@ class UkvSystem {
             $updateInetLogin = $_POST['assignComplexLogin'];
             if ($this->users[$updateUserId]['inetlogin'] != $updateInetLogin) {
                 simple_update_field('ukv_users', 'inetlogin', $updateInetLogin, "WHERE `id`='" . $updateUserId . "';");
-                log_register('UKV USER ((' . $updateUserId . ')) ASSIGN INETLOGIN `' . $updateInetLogin . '`');
+                log_register('UKV USER ((' . $updateUserId . ')) ASSIGN INETLOGIN (' . $updateInetLogin . ')');
                 rcms_redirect(self::URL_REPORTS_MGMT . 'reportComplexAssign');
             }
         }
