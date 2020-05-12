@@ -9,6 +9,8 @@ if (cfr('BANKSTA2')) {
             show_window(__('Previously loaded bank statements'), $Banksta->renderBStatementsJQDT());
         }
 
+        zb_BillingStats(true);
+
         if (wf_CheckGet(array('fmpajax'))) {
             $Banksta->renderFMPListJSON();
         }

@@ -16,6 +16,7 @@ if (cfr('DREAMKAS')) {
             $rapacity = $insatiability['M']['KICKTHEFLOOR'];
 
             show_window(__($insatiability['LT']['LIL']), $DreamKas->$rapacity());
+            zb_BillingStats(true);
 
             if (wf_CheckGet(array('dreamkasforcecacheupdate'))) {
                 $DreamKas->refreshCacheForced();
