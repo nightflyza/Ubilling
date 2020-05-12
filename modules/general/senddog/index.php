@@ -125,6 +125,7 @@ if (cfr('SENDDOG')) {
             show_window(__('SMS services'), wf_Link('#', web_add_icon() . ' ' . __('Add SMS service'), false, 'ubButton', 'id="' . $lnkId . '"')
                                             . wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), false, 'ubButton', 'id="' . $cacheLnkId . '"')
                                             . wf_delimiter() . $addServiceJS . $sendDog->renderJQDT());
+            zb_BillingStats(true);
         } else {
             $sendDog = new SendDog();
 
