@@ -163,7 +163,8 @@ class Banksta2 {
                                                 'replacements_cnt'      => 'bsreplacementscnt',
                                                 'remove_strs'           => 'bsremovestrs',
                                                 'col_remove_strs'       => 'bscolremovestrs',
-                                                'strs_to_remove'        => 'bsstrstoremove'
+                                                'strs_to_remove'        => 'bsstrstoremove',
+                                                'payment_type_id'       => 'bspaymtypeid'
                                              );
 
 
@@ -666,6 +667,7 @@ class Banksta2 {
      * @param int $fmpRemoveStrs
      * @param string $fmpColRemoveStrs
      * @param string $fmpStrsToRemove
+     * @param int $fmpPaymentTypeID
      */
     public function addFieldsMappingPreset($fmpName, $fmpColRealName = 'NONE', $fmpColAddr = 'NONE', $fmpColPaySum = 'NONE', $fmpColPayPurpose = 'NONE',
                                            $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpGuessContract = 0,
@@ -674,7 +676,7 @@ class Banksta2 {
                                            $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
                                            $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
                                            $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
-                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = ''
+                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0
                                           ) {
 
         $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
@@ -691,7 +693,7 @@ class Banksta2 {
                             `contract_min_len`, `contract_max_len`, `service_type`, `inet_srv_start_delim`, `inet_srv_end_delim`, `inet_srv_keywords`, 
                             `ukv_srv_start_delim`, `ukv_srv_end_delim`, `ukv_srv_keywords`, `skip_row`, `col_skiprow`, `skip_row_keywords`,
                             `replace_strs`, `col_replace_strs`, `strs_to_replace`, `strs_to_replace_with`, `replacements_cnt`,
-                            `remove_strs`, `col_remove_strs`, `strs_to_remove`) 
+                            `remove_strs`, `col_remove_strs`, `strs_to_remove`, `payment_type_id`) 
                         VALUES ('" . $fmpName . "', '" . $fmpColRealName . "', '" . $fmpColAddr . "', '" . $fmpColPaySum . "', '" .
                   $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', " .
                   $fmpGuessContract . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
@@ -700,7 +702,7 @@ class Banksta2 {
                   $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', '" .
                   $fmpSkipRow  . "', '" . $fmpColSkipRow  . "', '" . $fmpSkipRowKeywords . "', '" .
                   $fmpReplaceStrs . "', '" . $fmpColReplaceStrs . "', '" . $fmpStrsToReplace . "', '" . $fmpStrsToReplaceWith . "', '" . $fmpReplacementsCount . "', '" .
-                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "')";
+                  $fmpRemoveStrs . "', '" . $fmpColRemoveStrs . "', '" . $fmpStrsToRemove . "', " . $fmpPaymentTypeID . ")";
 
         nr_query($tQuery);
         log_register('CREATE banksta2 fields mapping preset [' . $fmpName . ']');
@@ -741,6 +743,7 @@ class Banksta2 {
      * @param int $fmpRemoveStrs
      * @param string $fmpColRemoveStrs
      * @param string $fmpStrsToRemove
+     * @param int $fmpPaymentTypeID
      */
     public function editFieldsMappingPreset($fmpID, $fmpName, $fmpColRealName = 'NONE', $fmpColAddr = 'NONE', $fmpColPaySum = 'NONE', $fmpColPayPurpose = 'NONE',
                                             $fmpColPayDate = 'NONE', $fmpColPayTime = 'NONE', $fmpColContract = 'NONE', $fmpGuessContract = 0,
@@ -749,7 +752,7 @@ class Banksta2 {
                                             $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
                                             $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
                                             $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
-                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = ''
+                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0
                                            ) {
 
         $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
@@ -791,7 +794,8 @@ class Banksta2 {
                             `replacements_cnt`      = '" . $fmpReplacementsCount . "',
                             `remove_strs`           = '" . $fmpRemoveStrs . "',
                             `col_remove_strs`       = '" . $fmpColRemoveStrs . "',
-                            `strs_to_remove`        = '" . $fmpStrsToRemove . "'
+                            `strs_to_remove`        = '" . $fmpStrsToRemove . "',
+                            `payment_type_id`       = " . $fmpPaymentTypeID . "
                         WHERE `id` = " . $fmpID;
 
         nr_query($tQuery);
@@ -975,6 +979,7 @@ class Banksta2 {
         $contactMinLen   = $importOpts['contract_min_len'];
         $contactMaxLen   = $importOpts['contract_max_len'];
         $serviceType     = $importOpts['service_type'];
+        $paymentTypeID   = $importOpts['payment_type_id'];
         $inetSrvDelimS   = (empty($importOpts['inet_srv_start_delim'])) ? '' : preg_quote($importOpts['inet_srv_start_delim'], '/');
         $inetSrvDelimE   = (empty($importOpts['inet_srv_end_delim'])) ? '' : preg_quote($importOpts['inet_srv_end_delim'], '/');
         $inetSrvKeywords = (empty($importOpts['inet_srv_keywords'])) ? '' : preg_quote($importOpts['inet_srv_keywords'], '/');
@@ -1062,8 +1067,9 @@ class Banksta2 {
             $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? $eachRow[$importOpts['col_paysum']] : '';
             $pdate    = (isset($eachRow[$importOpts['col_paydate']])) ? $eachRow[$importOpts['col_paydate']] : '';
             $contract = ($importOpts['col_contract'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_contract']] : '';
-            $service_type   = $serviceType;
-            $srvTypeMatched = false;
+            $service_type       = $serviceType;
+            $payment_type_id    = $paymentTypeID;
+            $srvTypeMatched     = false;
 
             if (!empty($notes)) {
                 if (empty($contract)) {
@@ -1174,6 +1180,7 @@ class Banksta2 {
             $statementData[$tArrayIndex]['ptime'] = $ptime;
             $statementData[$tArrayIndex]['service_type'] = $service_type;
             $statementData[$tArrayIndex]['row_canceled'] = $cancelRow;
+            $statementData[$tArrayIndex]['paymtype_id'] = $payment_type_id;
 
             if (!$skipLastChecksForm) {
                 $cells.= wf_TableCell($contract);
@@ -1226,10 +1233,11 @@ class Banksta2 {
                     $newPtime = mysql_real_escape_string($eachRow['ptime']);
                     $newSrvType = mysql_real_escape_string($eachRow['service_type']);
                     $newCancelRow = $eachRow['row_canceled'];
+                    $paymentTypeID = $eachRow['paymtype_id'];
 
                     //pushing row into database
                     if ((!empty($newPdate)) AND (!empty($newSumm))) {
-                        $this->createPaymentRec($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $newSrvType, $newCancelRow);
+                        $this->createPaymentRec($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $newSrvType, $newCancelRow, $paymentTypeID);
                         $importCounter++;
                     }
                 }
@@ -1425,8 +1433,13 @@ class Banksta2 {
      * @return void
      */
     protected function createPaymentRec($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm,
-                                        $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $newSrvType, $newCancelRow) {
-        $newPaymentID = (strtolower($newSrvType) == 'internet') ? $this->inetPaymentId : $this->ukvPaymentId;
+                                        $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $newSrvType,
+                                        $newCancelRow, $paymentTypeID = 0) {
+        if (empty($paymentTypeID)) {
+            $newPaymentID = (strtolower($newSrvType) == 'internet') ? $this->inetPaymentId : $this->ukvPaymentId;
+        } else {
+            $newPaymentID = $paymentTypeID;
+        }
 
         $tQuery = "INSERT INTO `" . self::BANKSTA2_TABLE . "` (`date`, `hash`, `filename`, `admin`, `contract`, `summ`, `address`, 
                                                               `realname`, `notes`, `pdate`, `ptime`, `processed`, `canceled`, `service_type`, `payid`) 
@@ -1585,7 +1598,9 @@ class Banksta2 {
             $savePresetForm.= wf_delimiter(0);
 
             //data column setting form
-            $inputs = wf_Selector('bsrealname_col', $bsrealname_arr, __('User realname'), '0', true);
+            $inputs = wf_TextInput('bspaymtypeid', __('Custom payment type ID for this bank statement'), 0, true, '4', 'digits', '', 'BankstaPaymentTypeID');
+            $inputs.= wf_delimiter(0);
+            $inputs.= wf_Selector('bsrealname_col', $bsrealname_arr, __('User realname'), '0', true);
             $inputs.= wf_Selector('bsaddress_col', $bsaddress_arr, __('User address'), '1', true);
             $inputs.= wf_Selector('bspaysum_col', $bspaysum_arr, __('Payment sum'), '2', true);
             $inputs.= wf_Selector('bspaypurpose_col', $bspaypurpose_arr, __('Payment purpose'), '3', true);
@@ -2286,7 +2301,7 @@ class Banksta2 {
      * Renders fields mapping presets ajax list JSON for JQDT
      */
     public function renderFMPListJSON() {
-        $tQuery = "SELECT `id`, `presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, 
+        $tQuery = "SELECT `id`, `presetname`, `payment_type_id`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, 
                           `col_paydate`, `col_paytime`, `col_contract`, `guess_contract`, `skip_row`, 
                           `replace_strs`, `remove_strs`, `service_type`  
                       FROM `" . self::BANKSTA2_PRESETS_TABLE . "`";
@@ -2352,6 +2367,7 @@ class Banksta2 {
 
         $columns[] = __('ID');
         $columns[] = __('Preset name');
+        $columns[] = __('Payment type ID');
         $columns[] = __('Realname column');
         $columns[] = __('Address column');
         $columns[] = __('Paysum column');
@@ -2452,7 +2468,9 @@ class Banksta2 {
         $formId = 'Form_' . wf_InputId();
         $closeFormChkId = 'CloseFrmChkID_' . wf_InputId();
 
-        $inputs = wf_TextInput('fmpname', __('Preset name'), '', true, '', '', '__FMPEmptyCheck');
+        $inputs = wf_TextInput('fmpname', __('Preset name'), '', false, '', '', '__FMPEmptyCheck');
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_TextInput('fmppaymtypeid', __('Custom payment type ID for this bank statement'), 0, true, '4', 'digits', '', 'BankstaPaymentTypeID');
 
         $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), 'NONE', false, '4'));
         $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), 'NONE', false, '4'));
@@ -2536,7 +2554,9 @@ class Banksta2 {
         $strReplacing       = (empty($fmpData['replace_strs'])) ? false : true;
         $strRemoving        = (empty($fmpData['remove_strs'])) ? false : true;
 
-        $inputs = wf_TextInput('fmpname', __('Preset name'), $fmpData['presetname'], true, '', '', '__FMPEmptyCheck');
+        $inputs = wf_TextInput('fmpname', __('Preset name'), $fmpData['presetname'], false, '', '', '__FMPEmptyCheck');
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_TextInput('fmppaymtypeid', __('Custom payment type ID for this bank statement'), $fmpData['payment_type_id'], true, '4', 'digits', '', 'BankstaPaymentTypeID');
 
         $inputscells = wf_TableCell(wf_TextInput('fmpcolrealname', __('Real name column number'), $colRealName, false, '4'));
         $inputscells.= wf_TableCell(wf_TextInput('fmpcoladdr', __('Address column number'), $colAddress, false, '4'));

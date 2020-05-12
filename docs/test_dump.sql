@@ -2741,3 +2741,5 @@ CREATE TABLE IF NOT EXISTS `address_extended` (
 
 ALTER TABLE `payments` MODIFY `note` varchar(200) NULL DEFAULT NULL;
 ALTER TABLE `paymentscorr` MODIFY `note` varchar(200) NULL DEFAULT NULL;
+
+ALTER TABLE `banksta2_presets` ADD `payment_type_id` int(11) NOT NULL DEFAULT 0;

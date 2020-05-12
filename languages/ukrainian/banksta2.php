@@ -103,5 +103,6 @@ $lang['def']['Payment type ID'] = 'ID типу оплат';
 $lang['def']['Char replacing'] = 'Заміна символів';
 $lang['def']['Char removing'] = 'Видалення символів';
 $lang['def']['Processing canceled'] = 'Виключено з обробки';
+$lang['def']['Custom payment type ID for this bank statement'] = 'Кастомний ID типу оплат для цієї виписки';
 $lang['def'][''] = '';
 ?>

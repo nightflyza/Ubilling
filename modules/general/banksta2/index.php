@@ -96,7 +96,8 @@ if (cfr('BANKSTA2')) {
                                                          mysql_real_escape_string($_POST['bscolsreplacestrs']),  mysql_real_escape_string($_POST['bsstrstoreplace']),
                                                          mysql_real_escape_string($_POST['bsstrstoreplacewith']),  mysql_real_escape_string($_POST['bsreplacementscnt']),
                                                         (wf_CheckPost(array('bsremovestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['bscolremovestrs']),  mysql_real_escape_string($_POST['bsstrstoremove'])
+                                                         mysql_real_escape_string($_POST['bscolremovestrs']),  mysql_real_escape_string($_POST['bsstrstoremove']),
+                                                         $_POST['fmppaymtypeid']
                                                         );
                     } else {
                         $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
@@ -113,7 +114,8 @@ if (cfr('BANKSTA2')) {
                                                          mysql_real_escape_string($_POST['fmpcolsreplacestrs']),  mysql_real_escape_string($_POST['fmpstrstoreplace']),
                                                          mysql_real_escape_string($_POST['fmpstrstoreplacewith']),  mysql_real_escape_string($_POST['fmpstrsreplacecount']),
                                                         (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                         mysql_real_escape_string($_POST['fmpcolsremovestrs']),  mysql_real_escape_string($_POST['fmpstrstoremove'])
+                                                         mysql_real_escape_string($_POST['fmpcolsremovestrs']),  mysql_real_escape_string($_POST['fmpstrstoremove']),
+                                                         $_POST['fmppaymtypeid']
                                                         );
                     }
                     die();
@@ -153,22 +155,24 @@ if (cfr('BANKSTA2')) {
                                                                (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
                                                                $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
                                                                (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove']
+                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove'],
+                                                               $_POST['fmppaymtypeid']
                              );
                          } elseif ($fmpClone) {
                              $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
-                                                               $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
-                                                               (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
-                                                               $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
-                                                               $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
-                                                               $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
-                                                               $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
-                                                               (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
-                                                               $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
-                                                               (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
-                                                               $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
-                                                               (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
-                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove']
+                                                              $_POST['fmpcolpaypurpose'], $_POST['fmpcolpaydate'], $_POST['fmpcolpaytime'], $_POST['fmpcolcontract'],
+                                                              (wf_CheckPost(array('fmptryguesscontract'))) ? 1 : 0,
+                                                              $_POST['fmpcontractdelimstart'], $_POST['fmpcontractdelimend'],
+                                                              $_POST['fmpcontractminlen'], $_POST['fmpcontractmaxlen'], $_POST['fmpsrvtype'],
+                                                              $_POST['fmpinetdelimstart'], $_POST['fmpinetdelimend'], $_POST['fmpinetkeywords'],
+                                                              $_POST['fmpukvdelimstart'], $_POST['fmpukvdelimend'], $_POST['fmpukvkeywords'],
+                                                              (wf_CheckPost(array('fmpskiprow'))) ? 1 : 0,
+                                                              $_POST['fmpcolskiprow'], $_POST['fmpskiprowkeywords'],
+                                                              (wf_CheckPost(array('fmpreplacestrs'))) ? 1 : 0,
+                                                              $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
+                                                              (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
+                                                              $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove'],
+                                                              $_POST['fmppaymtypeid']
                              );
                          }
 
