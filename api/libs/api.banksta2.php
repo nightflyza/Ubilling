@@ -2073,7 +2073,7 @@ class Banksta2 {
                                     $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
                                     $cashPairs[$eachRec['id']]['pdate'] = $eachRec['pdate'];
                                     $cashPairs[$eachRec['id']]['ptime'] = $eachRec['ptime'];
-                                    $cashPairs[$eachRec['id']]['payid'] = $this->inetPaymentId;
+                                    $cashPairs[$eachRec['id']]['payid'] = (empty($eachRec['payid'])) ? $this->inetPaymentId : $eachRec['payid'];
                                     $cashPairs[$eachRec['id']]['service'] = $serviceType;
 
                                     $fiscalRecsIDsList[] = $eachRec['id'];
@@ -2105,7 +2105,7 @@ class Banksta2 {
                                     $cashPairs[$eachRec['id']]['summ'] = $eachRec['summ'];
                                     $cashPairs[$eachRec['id']]['pdate'] = $eachRec['pdate'];
                                     $cashPairs[$eachRec['id']]['ptime'] = $eachRec['ptime'];
-                                    $cashPairs[$eachRec['id']]['payid'] = $this->ukvPaymentId;
+                                    $cashPairs[$eachRec['id']]['payid'] = (empty($eachRec['payid'])) ? $this->ukvPaymentId : $eachRec['payid'];
                                     $cashPairs[$eachRec['id']]['service'] = $serviceType;
 
                                     $fiscalRecsIDsList[] = $eachRec['id'];
