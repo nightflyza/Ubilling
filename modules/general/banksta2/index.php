@@ -99,7 +99,7 @@ if (cfr('BANKSTA2')) {
                                                          mysql_real_escape_string($_POST['bsstrstoreplacewith']),  mysql_real_escape_string($_POST['bsreplacementscnt']),
                                                         (wf_CheckPost(array('bsremovestrs'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['bscolremovestrs']),  mysql_real_escape_string($_POST['bsstrstoremove']),
-                                                         $_POST['fmppaymtypeid']
+                                                         $_POST['bspaymtypeid']
                                                         );
                     } else {
                         $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],

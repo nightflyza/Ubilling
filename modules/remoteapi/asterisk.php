@@ -13,7 +13,9 @@
  * With "setcredit" param you'll need to pass "login", "money" and "expiredays" params as well
  * With "paycardpay" param you'll need to pass "login", "paycardnum", "paycardcashtype" param as well
  * With "getuserdatabylogin" param you may pass "userpass" param as well to enable user + password verification
- * "getuserdatabymobile", "getcontractsbymobile" and "addusermobile" need no additional parameters except the mobile passed in "number" param
+ * With "addusermobile" param you'll need to pass "login" param also. Optional "maxmobilesamnt" param can be passed to determine
+ * the max mobiles count threshold per user.
+ * "getuserdatabymobile" and "getcontractsbymobile" need no additional parameters except the mobile passed in "number" param
  *
  */
 
