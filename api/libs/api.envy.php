@@ -85,6 +85,16 @@ class Envy {
     const ROUTE_ARCHVIEW = 'viewarchiveid';
     const ROUTE_ARCHALL = 'archiveall';
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
+    const ROUTE_FILTER = 'devicefilter';
+
+    /**
+     *   ___ _ ____   ___   _ 
+     *  / _ \ '_ \ \ / / | | |
+     * |  __/ | | \ V /| |_| |
+     *  \___|_| |_|\_/  \__, |
+     *                   __/ |
+     *                  |___/ 
+     */
 
     /**
      * Creates new envy sin instance
@@ -724,15 +734,43 @@ class Envy {
     }
 
     /**
+     * Renders form for filtering some envy-device in archive
+     * 
+     * @return string
+     */
+    public function renderArchiveFilterForm() {
+        $result = '';
+        $devicesTmp = array('0' => __('All'));
+        if (!empty($this->allDevices)) {
+
+            foreach ($this->allDevices as $io => $each) {
+                @$switchData = $this->allSwitches[$each['switchid']];
+                $devicesTmp[$each['switchid']] = @$switchData['ip'] . ' - ' . @$switchData['location'];
+            }
+
+            $curDeviceId = ubRouting::checkPost('devicefilter') ? ubRouting::post('devicefilter', 'int') : 0;
+            $inputs = wf_Selector('devicefilter', $devicesTmp, __('Device'), $curDeviceId, false, false) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
      * Renders previously envy data arhive container
      * 
      * @return string
      */
     public function renderArchive() {
         $result = '';
+
         $columns = array('Date', 'IP', 'Device', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_ARCHIVE_AJ . '=true', false, __('Config'), 100, $opts);
+        $devFilter = ubRouting::checkPost('devicefilter') ? ubRouting::post('devicefilter', 'int') : 0;
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_ARCHIVE_AJ . '=true&' . self::ROUTE_FILTER . '=' . $devFilter, false, __('Config'), 100, $opts);
+        $result .= wf_delimiter(0);
+        $result .= $this->renderArchiveFilterForm();
         return($result);
     }
 
@@ -743,23 +781,26 @@ class Envy {
      */
     public function getAjArchive() {
         $json = new wf_JqDtHelper();
-
+        $devFilter = ubRouting::checkGet('devicefilter') ? ubRouting::get('devicefilter', 'int') : 0;
         if (!empty($this->allConfigs)) {
             foreach ($this->allConfigs as $io => $each) {
-                @$switchData = $this->allSwitches[$each['switchid']];
-                $data[] = $each['date'];
-                $data[] = @$switchData['ip'];
-                $data[] = @$switchData['location'];
-                $archControls = '';
-                $archControls .= wf_JSAlert(self::URL_ME . '&deletearchiveid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert() . ' ' . $each['date']) . ' ';
-                $archControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_ARCHVIEW . '=' . $each['id'], web_icon_search('Config')) . ' ';
-                $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
-                $archControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'] . '&resave=true', wf_img('skins/icon_envy_resave.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
-                $archControls .= wf_Link(self::URL_ME . '&downloadarchiveid=' . $each['id'], web_icon_download());
+                if (!$devFilter OR $devFilter == $each['switchid']) {
+                    @$switchData = $this->allSwitches[$each['switchid']];
+                    $data[] = $each['date'];
+                    $data[] = @$switchData['ip'];
+                    $data[] = @$switchData['location'];
+                    $archControls = '';
+                    $archControls .= wf_JSAlert(self::URL_ME . '&deletearchiveid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert() . ' ' . $each['date']) . ' ';
+                    $archControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_ARCHVIEW . '=' . $each['id'], web_icon_search('Config')) . ' ';
+                    $storeAlert = $this->messages->getEditAlert() . ' ' . __('Backup device configuration to archive') . '?';
+                    $archControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DEVICES . '&=true' . '&storedevice=' . $each['switchid'] . '&resave=true', wf_img('skins/icon_envy_resave.png', __('Backup device configuration to archive')), $storeAlert) . ' ';
+                    $archControls .= wf_Link(self::URL_ME . '&downloadarchiveid=' . $each['id'], web_icon_download());
 
-                $data[] = $archControls;
-                $json->addRow($data);
-                unset($data);
+                    $data[] = $archControls;
+
+                    $json->addRow($data);
+                    unset($data);
+                }
             }
         }
         $json->getJson();
@@ -962,4 +1003,33 @@ class Envy {
         return($result);
     }
 
+//                                    __o__
+//                           /\ | /\  ,__,             \
+//                          /__\|/__\o/o /             /                 ,
+//          __(\          ,   , |    `7 /              \_               /)
+//      _.-'   \\        _)\_/) |    __||___,     <----)_)---<<        //
+//   ,-'  _.---'\\      (/ (6\> |___// /_ /_\ ,_,_,   / )\            //
+// ,'_.--'       \\    /`  _ /\>/._\/\/__/\ | =/= /  / /  \_         //
+//                \\  / ,_//\  \>' , / ,/ / ) `0 /  / /,__, \       //
+//                 \\ \_('o  | )> _)\_/) |\/  __\\_/ /o/o /-       //
+//             ,   ,\\  `7 / /   (/ (0\>  , _/,/ /_'/ \j /      o<\>>o
+//            _)\_/) \\,__\\_\' /`  _ /\>_)\_/)|_|_/ __//___,____/_\
+//           (/ (9\>  \\_) | / / ,_//\  (/ (6\> )_/_// /_ /__\_/_/
+//          /`  _ /\> /\\\/_/ '\_('  | /`  _ /\>/._\/\/__/
+//         / ,_//\  \>' \_)/  \_|  _/// ,_//\  \>    _)_/
+//         \_('  |  )>  x / _/ / _/  \\_('\||  )>   x)_::\       ______,
+//               /  \>_//( (  / /--.,/     +/  \>__//  o /----.,/(  )\\))
+//               \'  \| ) \| / /    / '     \'  \|  )___/ \     \/  \\\\\
+//               /    +-/</\/ /    /  \_|   /    +-/o/----+      |
+//              / '     \ _/,/  _ / _/ / _// '     \_\,  ___     /
+//             /  \_|  _// ( __,/( (  / / /  \_|  _/\_|-" /,    /
+//            / _/ / _/  ^-' |  | \| / / / _/ / _/   )\|  |   _/
+//           ( (  / /    /_/  \_ \_\/ / ( (  / /    /_/ \_ \_(__
+//            \| / /           / /_/,/   \| / /           / /  /
+//             \/ /           / // (      \/ /           / / _/
+//            _/,/          _/_/,^-'     _/,/          _/_/,/
+//           / (           /_/ (        / (           /_/ (
+//           ^-'             ^-'        ^-'             ^-'
+// Now I watched when the Lamb opened one of the seven seals, and I heard one of the four 
+// living creatures say with a voice like thunder, “Come!”          
 }
