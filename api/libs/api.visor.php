@@ -2164,7 +2164,9 @@ class UbillingVisor {
                                         $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
                                         $result .= $eachChan['name'] . ' / ' . $eachChan['guid'] . ' @ ' . $eachDvr['id'];
                                         $result .= wf_tag('br');
+                                        $result.= wf_tag('div',false,'','style="overflow:hidden; height:220px; max-height:250px;"');
                                         $result .= wf_img_sized($streamUrl, '', '90%');
+                                        $result.= wf_tag('div',true);
                                         $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
                                         $assignedUserLabel = (isset($this->allUsers[$assignedUserId])) ? $this->iconVisorUser() . ' ' . $this->allUsers[$assignedUserId]['realname'] : '';
                                         $userAssignedLink = ($assignedUserId) ? wf_Link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $assignedUserLabel) : __('No');
