@@ -66,6 +66,13 @@ class PowerTariffs {
     protected $usersDb = '';
 
     /**
+     * All stargazer users abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $stgDb = '';
+
+    /**
      * Users day offset switching log database abstraction placeholder
      *
      * @var object
@@ -190,7 +197,9 @@ class PowerTariffs {
      * @return void
      */
     protected function loadSystemUsers() {
-        $this->systemUsers = zb_UserGetAllStargazerDataAssoc();
+        $this->stgDb = new NyanORM('users');
+        $this->stgDb->selectable(array('login', 'Tariff', 'Cash', 'Credit', 'Passive'));
+        $this->systemUsers = $this->stgDb->getAll('login');
     }
 
     /**
@@ -437,9 +446,13 @@ class PowerTariffs {
                             $this->logUser($userLogin, $userData['Tariff'], $this->currentDay);
                             //charging fee on user detection if required
                             if ($this->chargeOnRegister) {
-                                $tariffData = $this->allTariffs[$userData['Tariff']];
-                                $tariffFee = $tariffData['fee'];
-                                $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
+                                $realCurrentDay = date("d");
+                                //avoid double tax rates :P
+                                if ($realCurrentDay <= $this->maxDay) {
+                                    $tariffData = $this->allTariffs[$userData['Tariff']];
+                                    $tariffFee = $tariffData['fee'];
+                                    $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
+                                }
                             }
                         }
                     }
