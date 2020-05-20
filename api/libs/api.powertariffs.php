@@ -392,7 +392,8 @@ class PowerTariffs {
      */
     protected function isUserActive($userData) {
         $result = false;
-        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['Passive'] == 0)) {
+        //dont check credit state to avoid fee day offset change
+        if (($userData['Cash'] >= 0) AND ( $userData['Passive'] == 0)) {
             $result = true;
         }
         return($result);
@@ -514,14 +515,30 @@ class PowerTariffs {
                     $userDayOffset = $this->allUsers[$userLogin];
                     //now user is on the power tariff
                     if ($this->userHavePowerTariff($userData)) {
+                        $tariffData = $this->allTariffs[$userData['Tariff']];
+                        $tariffFee = $tariffData['fee'];
+
                         //now is user personal date for fee charge
                         if ($userDayOffset == $this->currentDay) {
                             //user is active, and we can charge some fee from him
                             if ($this->isUserActive($userData)) {
-                                $tariffData = $this->allTariffs[$userData['Tariff']];
-                                $tariffFee = $tariffData['fee'];
                                 //charge some fee from this user
                                 $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
+                                //new user balance state after fee charge
+                                $newBalanceState = $userData['Cash'] - $tariffFee;
+                                if ($newBalanceState < '-' . $userData['Credit']) {
+                                    $this->userBurial($userLogin); //settin offset to zero
+                                }
+                            }
+                        } else {
+                            //not current user day or user is buried
+                            if ($userDayOffset == 0) {
+                                //yeah, he is really buried
+                                if ($this->isUserActive($userData)) {
+                                    //but he restored his account balance
+                                    $this->userResurrect($userLogin); //set new offset day to current
+                                    $this->logUser($userLogin, $userData['Tariff'], $this->currentDay); //log resurrection miracle
+                                }
                             }
                         }
                     }
