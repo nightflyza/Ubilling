@@ -14,3 +14,12 @@ CREATE TABLE IF NOT EXISTS `pt_tariffs` (
   `fee` double DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `pt_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `login` varchar(64) NOT NULL,
+  `tariff` varchar(40) NOT NULL,
+  `day` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

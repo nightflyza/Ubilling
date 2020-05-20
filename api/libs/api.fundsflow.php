@@ -423,6 +423,13 @@ class FundsFlow {
                     $cashtype = __('Payment');
                 }
 
+                //PowerTariffs Internet service fee
+                if (ispos($each['note'], 'PTFEE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorFee . '"');
+                    $operation = __('Fee');
+                    $cashtype = __('Fee');
+                }
+
                 //notes translation
                 if ($this->alterConf['TRANSLATE_PAYMENTS_NOTES']) {
                     $displaynote = zb_TranslatePaymentNote($each['note'], $allservicenames);

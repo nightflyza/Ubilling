@@ -1042,6 +1042,10 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $ddtcharged = explode(':', $paynote);
         $paynote = __('Doomsday tariff') . ': ' . $ddtcharged[1];
     }
+    
+     if (ispos($paynote, 'PTFEE')) {
+        $paynote = __('PT').' '.__('Fee');
+    }
 
     return ($paynote);
 }

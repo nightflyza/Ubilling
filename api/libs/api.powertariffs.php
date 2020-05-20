@@ -3,6 +3,27 @@
 class PowerTariffs {
 
     /**
+     * Most essential property for this Porno Tariffs mechanics
+     *
+     * @var int
+     */
+    protected $currentDay = 0;
+
+    /**
+     * Default maximum day of month which will be rounded to 1st.
+     * May be configurable in future.
+     *
+     * @var int 
+     */
+    protected $maxDay = 26;
+
+    /**
+     *
+     * @var bool
+     */
+    protected $chargeOnRegister = true;
+
+    /**
      * Contains names and prices of system tariffs as name=>fee
      *
      * @var array
@@ -15,6 +36,20 @@ class PowerTariffs {
      * @var array
      */
     protected $allTariffs = array();
+
+    /**
+     * Contains all existing power users as login=>day
+     *
+     * @var array
+     */
+    protected $allUsers = array();
+
+    /**
+     * Contains system users data as login=>userdata
+     *
+     * @var array
+     */
+    protected $systemUsers = array();
 
     /**
      * Power tariffs database abstraction placeholder
@@ -31,6 +66,20 @@ class PowerTariffs {
     protected $usersDb = '';
 
     /**
+     * Users day offset switching log database abstraction placeholder
+     *
+     * @var object
+     */
+    protected $journalDb = '';
+
+    /**
+     * Users fee charge database abstraction placeholder
+     *
+     * @var object
+     */
+    protected $feeDb = '';
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -38,11 +87,20 @@ class PowerTariffs {
     protected $messages = '';
 
     /**
+     * Contains current administrator login
+     *
+     * @var string
+     */
+    protected $currentAdministrator = '';
+
+    /**
      * Routes, tables, etc
      */
     const URL_ME = '?module=pt';
     const TABLE_TARIFFS = 'pt_tariffs';
     const TABLE_USERS = 'pt_users';
+    const TABLE_PAYLOG = 'paymentscorr';
+    const TABLE_LOG = 'pt_log';
     const ROUTE_DELETE = 'deletept';
     const ROUTE_EDIT = 'editpt';
 
@@ -51,9 +109,35 @@ class PowerTariffs {
      */
     public function __construct() {
         $this->initMessages();
+        $this->setCurrentDate();
+        $this->setCurrentAdmin();
         $this->initPowerBase();
         $this->loadSystemTariffs();
-        $this->loadPowerTariffs();
+        $this->loadSystemUsers();
+        $this->loadPowerTariffs(); //Go Go Power Rangers
+        $this->loadPowerUsers();
+    }
+
+    /**
+     * Sets current day into protected prop
+     * 
+     * @return void
+     */
+    protected function setCurrentDate() {
+        $currentDayOfMonth = date("d");
+        if ($currentDayOfMonth >= $this->maxDay) {
+            $currentDayOfMonth = 1;
+        }
+        $this->currentDay = $currentDayOfMonth;
+    }
+
+    /**
+     * Sets administrator login for current PT instance once
+     * 
+     * @return void
+     */
+    protected function setCurrentAdmin() {
+        $this->currentAdministrator = whoami();
     }
 
     /**
@@ -82,6 +166,31 @@ class PowerTariffs {
     protected function initPowerBase() {
         $this->tariffsDb = new NyanORM(self::TABLE_TARIFFS);
         $this->usersDb = new NyanORM(self::TABLE_USERS);
+        $this->journalDb = new NyanORM(self::TABLE_LOG);
+        $this->feeDb = new NyanORM(self::TABLE_PAYLOG);
+    }
+
+    /**
+     * Loads all existing power users to protected property
+     * 
+     * @return void
+     */
+    protected function loadPowerUsers() {
+        $usersTmp = $this->usersDb->getAll();
+        if (!empty($usersTmp)) {
+            foreach ($usersTmp as $io => $each) {
+                $this->allUsers[$each['login']] = $each['day'];
+            }
+        }
+    }
+
+    /**
+     * Loads all existing  system  users data to protected property
+     * 
+     * @return void
+     */
+    protected function loadSystemUsers() {
+        $this->systemUsers = zb_UserGetAllStargazerDataAssoc();
     }
 
     /**
@@ -256,6 +365,169 @@ class PowerTariffs {
             $result .= 'Tariff not exists';
         }
         return($result);
+    }
+
+    /**
+     * Check is user using one of power tariffs?
+     * 
+     * @param array $userData
+     * 
+     * @return bool
+     */
+    protected function userHavePowerTariff($userData) {
+        $result = false;
+        $userTariff = $userData['Tariff'];
+        if (isset($this->allTariffs[$userTariff])) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is user active now?
+     * 
+     * @param array $userData
+     * 
+     * @return bool
+     */
+    protected function isUserActive($userData) {
+        $result = false;
+        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['Passive'] == 0)) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Logs user day offset switching into 
+     * 
+     * @param string $userLogin
+     * @param string $userTariff
+     * @param int $dayOffset
+     * 
+     * @return void
+     */
+    protected function logUser($userLogin, $userTariff, $dayOffset) {
+        $curDateTime = curdatetime();
+        $this->journalDb->data('date', $curDateTime);
+        $this->journalDb->data('login', $userLogin);
+        $this->journalDb->data('tariff', $userTariff);
+        $this->journalDb->data('day', $dayOffset);
+        $this->journalDb->create();
+    }
+
+    /**
+     * Runs for detecting of newly registered users or users which need to be power-users
+     * 
+     * @return
+     */
+    public function registerNewUsers() {
+        if (!empty($this->systemUsers)) {
+            foreach ($this->systemUsers as $userLogin => $userData) {
+                //not registered yet
+                if (!isset($this->allUsers[$userLogin])) {
+                    //need to do something with this user at all?
+                    if ($this->userHavePowerTariff($userData)) {
+                        //user is not dead at all
+                        if ($this->isUserActive($userData)) {
+                            $this->usersDb->data('login', $userLogin);
+                            $this->usersDb->data('day', $this->currentDay);
+                            $this->usersDb->create();
+                            $this->logUser($userLogin, $userData['Tariff'], $this->currentDay);
+                            //charging fee on user detection if required
+                            if ($this->chargeOnRegister) {
+                                $tariffData = $this->allTariffs[$userData['Tariff']];
+                                $tariffFee = $tariffData['fee'];
+                                $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Charges fee from user account. Using this instead zb_CashAdd for avoid unnecessary logging.
+     * 
+     * @global object $billing
+     * @param string $userLogin
+     * @param float $fee
+     * @param float $balance
+     * 
+     * @return void
+     */
+    protected function chargeFee($userLogin, $fee, $balance) {
+        global $billing;
+        $fee = '-' . $fee; //fee is negative i guess?
+        $curDateTime = curdatetime(); //fee datetime is changing on each operation
+        //charge fee from user balance
+        $billing->addcash($userLogin, $fee);
+
+        //logging financial operation
+        $this->feeDb->data('login', $userLogin);
+        $this->feeDb->data('date', $curDateTime);
+        $this->feeDb->data('admin', $this->currentAdministrator);
+        $this->feeDb->data('balance', $balance);
+        $this->feeDb->data('summ', $fee);
+        $this->feeDb->data('cashtypeid', '1');
+        $this->feeDb->data('note', 'PTFEE');
+        $this->feeDb->create();
+    }
+
+    /**
+     * Performs user burial on cash exceed
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    protected function userBurial($userLogin) {
+        $this->usersDb->data('day', 0); //set offset day to zero
+        $this->usersDb->where('login', '=', $userLogin);
+        $this->usersDb->save();
+    }
+
+    /**
+     * Performs user resurrection on restoring cash
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    protected function userResurrect($userLogin) {
+        $this->usersDb->data('day', $this->currentDay); //set offset day to current
+        $this->usersDb->where('login', '=', $userLogin);
+        $this->usersDb->save();
+    }
+
+    /**
+     * Performs fee processing for users affected by power tariffs
+     * 
+     * @return void
+     */
+    public function processingFee() {
+        if (!empty($this->systemUsers)) {
+            foreach ($this->systemUsers as $userLogin => $userData) {
+                //user is affected by some power tariff
+                if (isset($this->allUsers[$userLogin])) {
+                    $userDayOffset = $this->allUsers[$userLogin];
+                    //now user is on the power tariff
+                    if ($this->userHavePowerTariff($userData)) {
+                        //now is user personal date for fee charge
+                        if ($userDayOffset == $this->currentDay) {
+                            //user is active, and we can charge some fee from him
+                            if ($this->isUserActive($userData)) {
+                                $tariffData = $this->allTariffs[$userData['Tariff']];
+                                $tariffFee = $tariffData['fee'];
+                                //charge some fee from this user
+                                $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
