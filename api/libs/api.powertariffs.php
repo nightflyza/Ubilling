@@ -528,6 +528,7 @@ class PowerTariffs {
                                 $newBalanceState = $userData['Cash'] - $tariffFee;
                                 if ($newBalanceState < '-' . $userData['Credit']) {
                                     $this->userBurial($userLogin); //settin offset to zero
+                                    $this->logUser($userLogin, $userData['Tariff'], 0); //log user burial
                                 }
                             }
                         } else {
