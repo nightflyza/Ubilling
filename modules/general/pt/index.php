@@ -25,6 +25,16 @@ if (cfr('PT')) {
             }
         }
 
+        //tariff editing
+        if (ubRouting::checkPost(array($pt::ROUTE_EDIT, 'editptfee'))) {
+            $tariffEditResult = $pt->saveTariff(ubRouting::post($pt::ROUTE_EDIT), ubRouting::post('editptfee'));
+            if (empty($tariffEditResult)) {
+                ubRouting::nav($pt::URL_ME);
+            } else {
+                show_error(__($tariffEditResult));
+            }
+        }
+
         show_window(__('Available tariffs'), $pt->renderTariffsList());
         show_window(__('Create new tariff'), $pt->renderTariffCreateForm());
     } else {

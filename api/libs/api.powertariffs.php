@@ -110,7 +110,7 @@ class PowerTariffs {
                 $cells = wf_TableCell($each['tariff']);
                 $cells .= wf_TableCell($each['fee']);
                 $tariffControls = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DELETE . '=' . $each['tariff'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $tariffControls .= wf_JSAlert(self::URL_ME . '&' . self::ROUTE_EDIT . '=' . $each['tariff'], web_edit_icon(), $this->messages->getEditAlert());
+                $tariffControls .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['tariff'], $this->renderTariffEditForm($each['tariff']));
                 $cells .= wf_TableCell($tariffControls);
                 $rowClass = (isset($this->systemTariffs[$each['tariff']])) ? 'row5' : 'sigdeleteduser';
                 $rows .= wf_TableRow($cells, $rowClass);
@@ -154,6 +154,27 @@ class PowerTariffs {
     }
 
     /**
+     * Returns existing power tariff editing form
+     * 
+     * @param string $tariffName
+     * 
+     * @return string
+     */
+    public function renderTariffEditForm($tariffName) {
+        $result = '';
+
+        if (isset($this->allTariffs[$tariffName])) {
+            $tariffData = $this->allTariffs[$tariffName];
+            $inputs = wf_HiddenInput('editpt', $tariffName);
+            $inputs .= wf_TextInput('editptfee', __('Fee'), $tariffData['fee'], false, 5, 'finance');
+            $inputs .= wf_Submit(__('Save'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
      * Creates new power tariff in database
      * 
      * @param string $tariffName
@@ -182,6 +203,36 @@ class PowerTariffs {
             }
         } else {
             $result .= 'Tariff already exists';
+        }
+        return($result);
+    }
+
+    /**
+     * Saves existing power tariff in database
+     * 
+     * @param string $tariffName
+     * @param float $fee
+     * 
+     * @return void/string on error
+     */
+    public function saveTariff($tariffName, $fee) {
+        $result = '';
+        $tariffNameF = ubRouting::filters($tariffName, 'mres');
+        $feeF = ubRouting::filters($fee, 'mres');
+        if (isset($this->allTariffs[$tariffName])) {
+            $tariffData = $this->allTariffs[$tariffName];
+            if ($feeF > 0) {
+                $tariffId = $tariffData['id'];
+                //seems ok, lets save power tariff
+                $this->tariffsDb->data('fee', $feeF);
+                $this->tariffsDb->where('tariff', '=', $tariffNameF);
+                $this->tariffsDb->save();
+                log_register('PT EDIT TARIFF [' . $tariffId . '] NAME `' . $tariffName . '` FEE `' . $fee . '`');
+            } else {
+                $result .= 'Power tariff price cant be zero';
+            }
+        } else {
+            $result .= 'Tariff not exists';
         }
         return($result);
     }
