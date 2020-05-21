@@ -1482,6 +1482,9 @@ if (cfr('VOLS')) {
         } else {
             show_window(__('Error'), __('No license key available'));
         }
+    } else {
+        show_error(__('This module is disabled'));
     }
-} else
+} else {
     show_error(__('Access denied'));
+}
