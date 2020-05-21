@@ -4,8 +4,6 @@
  * Yandex maps API implementation
  */
 
-
-
 /**
  * Returns JS code to draw line within two points
  * 
@@ -50,16 +48,26 @@ function generic_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = 
  * @return string
  */
 function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU', $container = 'ubmap') {
+    global $ubillingConfig;
     if (empty($center)) {
         $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
     } else {
         $center = $center;
     }
 
-    $result = wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"');
-    $result.=wf_tag('script', true);
-    $result.=wf_tag('script', false, '', 'type="text/javascript"');
-    $result.= '
+
+    $mapsCfg = $ubillingConfig->getYmaps();
+    $yandexApiKey = @$mapsCfg['YMAPS_APIKEY'];
+    if ($yandexApiKey) {
+        $yandexApiKey = '&apikey=' . $yandexApiKey;
+    } else {
+        $yandexApiKey = '';
+    }
+    $apiUrl = 'https://api-maps.yandex.ru/2.0/';
+    $result = wf_tag('script', false, '', 'src="' . $apiUrl . '?load=package.full&lang=' . $lang . $yandexApiKey . '"  type="text/javascript"');
+    $result .= wf_tag('script', true);
+    $result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $result .= '
         ymaps.ready(init);
         function init () {
             var myMap = new ymaps.Map(\'' . $container . '\', {
@@ -78,7 +86,7 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
          ' . $placemarks . '    
          ' . $editor . '
     }';
-    $result.=wf_tag('script', true);
+    $result .= wf_tag('script', true);
 
     return ($result);
 }
@@ -177,7 +185,7 @@ function generic_MapContainer($width = '', $height = '', $id = '') {
     $height = (!empty($height)) ? $height : '800px;';
     $id = (!empty($id)) ? $id : 'ubmap';
     $result = wf_tag('div', false, '', 'id="' . $id . '" style="width: 100%; height:800px;"');
-    $result.=wf_tag('div', true);
+    $result .= wf_tag('div', true);
     return ($result);
 }
 

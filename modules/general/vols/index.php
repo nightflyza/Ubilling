@@ -1,60 +1,59 @@
-<?php if ( cfr('VOLS') ) {
+<?php
+
+if (cfr('VOLS')) {
+
     /**
      * Класс:
      */
     class VOLS {
-        
         /* Private variablesЖ */
+
         private $html;
         private $config = array();
-        
-        private $polylines  = '';
+        private $polylines = '';
         private $placemarks = '';
-        
+
         /* Names of forms: */
-        const FORM_ADD  = 'form_add';
+
+        const FORM_ADD = 'form_add';
         const FORM_EDIT = 'form_edit';
-        
+
         /* URLs: */
-        const URL_HOME     = '?module=vols&item=map&action=show';
+        const URL_HOME = '?module=vols&item=map&action=show';
         const URL_MAP_SHOW = '?module=vols&item=map&action=show';
         const URL_MAP_EDIT = '?module=vols&item=map&action=edit';
-        
         const URL_MARK_TYPES_LIST = '?module=vols&item=mark_type&action=list';
-        const URL_MARK_TYPE_EDIT  = '?module=vols&item=mark_type&action=edit&id=';
-        const URL_MARK_TYPE_DEL   = '?module=vols&item=mark_type&action=delete&id=';
-        const URL_MARK_TYPE_ADD   = '?module=vols&item=mark_type&action=add';
-        
+        const URL_MARK_TYPE_EDIT = '?module=vols&item=mark_type&action=edit&id=';
+        const URL_MARK_TYPE_DEL = '?module=vols&item=mark_type&action=delete&id=';
+        const URL_MARK_TYPE_ADD = '?module=vols&item=mark_type&action=add';
         const URL_MARKS_LIST = '?module=vols&item=mark&action=list';
         const URL_MARK_PLACE = '?module=vols&item=mark&action=place&id=';
-        const URL_MARK_DOCS  = '?module=vols&item=mark&action=documents&id=';
-        const URL_MARK_EDIT  = '?module=vols&item=mark&action=edit&id=';
-        const URL_MARK_DEL   = '?module=vols&item=mark&action=delete&id=';
-        const URL_MARK_ADD   = '?module=vols&item=mark&action=add';
-        
+        const URL_MARK_DOCS = '?module=vols&item=mark&action=documents&id=';
+        const URL_MARK_EDIT = '?module=vols&item=mark&action=edit&id=';
+        const URL_MARK_DEL = '?module=vols&item=mark&action=delete&id=';
+        const URL_MARK_ADD = '?module=vols&item=mark&action=add';
         const URL_LINES_LIST = '?module=vols&item=line&action=list';
         const URL_LINE_PLACE = '?module=vols&item=line&action=place&id=';
-        const URL_LINE_DOCS  = '?module=vols&item=line&action=documents&id=';
-        const URL_LINE_EDIT  = '?module=vols&item=line&action=edit&id=';
-        const URL_LINE_DEL   = '?module=vols&item=line&action=delete&id=';
-        const URL_LINE_ADD   = '?module=vols&item=line&action=add';
-        
+        const URL_LINE_DOCS = '?module=vols&item=line&action=documents&id=';
+        const URL_LINE_EDIT = '?module=vols&item=line&action=edit&id=';
+        const URL_LINE_DEL = '?module=vols&item=line&action=delete&id=';
+        const URL_LINE_ADD = '?module=vols&item=line&action=add';
         const URL_DOC_DOWNLOAD = '?module=vols&item=document&action=download&id=';
-        const URL_DOC_DELETE   = '?module=vols&item=document&action=delete&id=';
-        
+        const URL_DOC_DELETE = '?module=vols&item=document&action=delete&id=';
+
         /* DB tables: */
-        const TABLE_DOCS  = 'vols_docs';
+        const TABLE_DOCS = 'vols_docs';
         const TABLE_LINES = 'vols_lines';
         const TABLE_MARKS = 'vols_marks';
         const TABLE_MARKS_TYPES = 'vols_marks_types';
-        
+
         /* Maps` constants: */
-        const MAP_ID        = 'ymaps';
-        const MAP_VAR       = 'yandexMaps';
+        const MAP_ID = 'ymaps';
+        const MAP_VAR = 'yandexMaps';
         const MAP_CLUSTERER = 'clusterer';
         const MAP_LINES_ARR = 'polylines';
         const MAP_MARKS_ARR = 'placemarks';
-        
+
         /**
          * Constructor. Loads `ymaps.ini` configuration file data
          * 
@@ -64,7 +63,7 @@
             $this->config = parse_ini_file(CONFIG_PATH . 'ymaps.ini', true);
             return true;
         }
-        
+
         /**
          * Generates HTML-code of Yandex.Maps control buttons
          * 
@@ -75,7 +74,7 @@
             $this->html .= wf_Link(self::URL_MARK_TYPES_LIST, __('Types of marks'), false, 'ubButton');
             $this->html .= wf_Link(self::URL_MARKS_LIST, __('VOLS marks'), false, 'ubButton');
             $this->html .= wf_Link(self::URL_LINES_LIST, __('VOLS lines'), false, 'ubButton');
-            switch ( true ) {
+            switch (true) {
                 case ( strpos($_SERVER['REQUEST_URI'], self::URL_MAP_EDIT) !== false ):
                 case ( strpos($_SERVER['REQUEST_URI'], self::URL_MARK_PLACE) !== false ):
                 case ( strpos($_SERVER['REQUEST_URI'], self::URL_LINE_PLACE) !== false ):
@@ -88,7 +87,7 @@
             $this->html .= wf_delimiter(1);
             return $this->html;
         }
-        
+
         /**
          * Generates HTML-code of Yandex.Maps container with control buttons
          * 
@@ -102,19 +101,28 @@
             $this->html .= wf_tag('div', true);
             return $this->html;
         }
-        
+
         /**
          * Generates Yandex.Maps JavaScript init code
          * 
          * @return  string  HTML-code of Yandex.Maps ( JavaScript )
          */
         public function map_init($edit = false) {
+            global $ubillingConfig;
             // Generate map container:
             $this->map_container();
-            
+            $mapsCfg = $ubillingConfig->getYmaps();
+            $yandexApiKey = @$mapsCfg['YMAPS_APIKEY'];
+            if ($yandexApiKey) {
+                $yandexApiKey = '&apikey=' . $yandexApiKey;
+            } else {
+                $yandexApiKey = '';
+            }
+            $apiUrl = 'https://api-maps.yandex.ru/2.0/';
+
             // Init code:
             $this->html .= '
-<script src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->config['LANG'] . '"  type="text/javascript"></script>
+<script src="' . $apiUrl . '?load=package.full&lang=' . $this->config['LANG'] . $yandexApiKey . '"  type="text/javascript"></script>
 <script type="text/javascript">
     ymaps.ready(init);
     function init () {
@@ -127,7 +135,7 @@
         var ' . self::MAP_VAR . ' = new ymaps.Map("' . self::MAP_ID . '", {
             zoom: ' . $this->config['ZOOM'] . ',
             type: "yandex#' . $this->config['TYPE'] . '",
-            center: [' . ( !empty($this->config['CENTER']) ? $this->config['CENTER'] : 'ymaps.geolocation.latitude, ymaps.geolocation.longitude' ) . '],
+            center: [' . (!empty($this->config['CENTER']) ? $this->config['CENTER'] : 'ymaps.geolocation.latitude, ymaps.geolocation.longitude' ) . '],
             behaviors: ["default", "scrollZoom"]
         }, {
             balloonMaxWidth: 250
@@ -212,7 +220,7 @@
         }
         
         ' . $this->show_placemarks($edit) . '
-        ' . $this->show_polylines()  . '
+        ' . $this->show_polylines() . '
         // Размещаем все линии на карте:
         jQuery.map( ' . self::MAP_LINES_ARR . ' , function( polyline ) {
             ' . self::MAP_VAR . '.geoObjects.add( polyline );
@@ -220,8 +228,8 @@
         
         clusterize();
     ';
-            
-            if ( $edit ) {
+
+            if ($edit) {
                 $this->html .= '
         jQuery.map( ' . self::MAP_MARKS_ARR . ' , function( placemark ) {
             placemark.events.add(\'dragend\', function ( e ) {
@@ -267,7 +275,7 @@
 </script>
 ';
         }
-        
+
         /**
          * Places closures on the map, whitch have coords in DB. If
          * $edit_mode was setted to `true` you will be abled to edit
@@ -296,12 +304,12 @@
                WHERE `" . self::TABLE_MARKS . "`.`geo` != ''
                  AND `" . self::TABLE_MARKS . "`.`geo` != '[  ]'";
             $placemarks = simple_queryall($query);
-            
-            if ( !empty($placemarks) ) {
-                foreach ( $placemarks as $placemark ) {
+
+            if (!empty($placemarks)) {
+                foreach ($placemarks as $placemark) {
                     // Actions:
-                    $actions  = wf_Link(self::URL_MARK_DOCS . $placemark['id'], web_corporate_icon('Documentation'));
-                    $actions  = str_replace("\n", null, $actions);
+                    $actions = wf_Link(self::URL_MARK_DOCS . $placemark['id'], web_corporate_icon('Documentation'));
+                    $actions = str_replace("\n", null, $actions);
                     $this->placemarks .= "
         " . self::MAP_MARKS_ARR . ".push(
             new ymaps.Placemark(" . $placemark['geo'] . ", {
@@ -320,7 +328,7 @@
             }
             return $this->placemarks;
         }
-        
+
         /**
          * This function enebles "placemark adding mode". It's add `click` 
          * event handling. After event click coordinates will be added to
@@ -348,7 +356,7 @@
                   ON `" . self::TABLE_MARKS_TYPES . "`.`id` = `" . self::TABLE_MARKS . "`.`type_id` 
                WHERE `" . self::TABLE_MARKS . "`.`id` = '" . $id . "'";
             $placemark = simple_query($query);
-            if ( !empty($placemark) ) {
+            if (!empty($placemark)) {
                 // Actions:
                 $actions = wf_Link(self::URL_MARK_DOCS . $placemark['id'], web_corporate_icon('Documentation'));
                 $actions = str_replace("\n", null, $actions);
@@ -388,7 +396,7 @@
             }
             return true;
         }
-        
+
         /**
          * Places lines on the map, whitch have coords in DB. If $edit_mode
          * was setted to `true` you will be abled to edit geometry of any
@@ -401,8 +409,8 @@
             // Take a closures list from database:
             $query = "SELECT * FROM `" . self::TABLE_LINES . "` WHERE `geo` IS NOT NULL AND `geo` != '[  ]'";
             $result = simple_queryall($query);
-            if ( !empty($result) ) {
-                foreach ( $result as $line ) {
+            if (!empty($result)) {
+                foreach ($result as $line) {
                     $this->polylines .= "
         " . self::MAP_LINES_ARR . ".push(
             new ymaps.Polyline(" . $line['geo'] . ", {
@@ -418,12 +426,12 @@
             }
             return $this->polylines;
         }
-        
+
         public function place_polyline($id) {
             // Take a lines list from database:
             $query = "SELECT * FROM `" . self::TABLE_LINES . "` WHERE `id` = '" . $id . "'";
             $polyline = simple_query($query);
-            if ( !empty($polyline) ) {
+            if (!empty($polyline)) {
                 $this->polylines .= "
         // Добавляем новую линию:
         newPolyline = new ymaps.Polyline( [] , {
@@ -464,45 +472,43 @@
             }
             return true;
         }
-        
+
         /**
          * Get employee list from database
          * 
          * @return  array   Employee array ( $id => $name )
          */
         private function get_employee() {
-            $query  = "SELECT `id`, `name` FROM `employee`";
+            $query = "SELECT `id`, `name` FROM `employee`";
             $result = simple_queryall($query);
             $return = array();
-            if ( !empty($result) ) {
-                foreach ( $result as $employee ) {
+            if (!empty($result)) {
+                foreach ($result as $employee) {
                     $return[$employee['id']] = $employee['name'];
                 }
             }
             return $return;
         }
-        
+
         /**
          * Get marks types list from database
          * 
          * @return  array   Marks types array ( $id => $type )
          */
         private function get_marks_types() {
-            $query  = "SELECT `id`, `type` FROM `" . self::TABLE_MARKS_TYPES . "`";
+            $query = "SELECT `id`, `type` FROM `" . self::TABLE_MARKS_TYPES . "`";
             $result = simple_queryall($query);
             $return = array();
-            if ( !empty($result) ) {
-                foreach ( $result as $marks_type ) {
+            if (!empty($result)) {
+                foreach ($result as $marks_type) {
                     $return[$marks_type['id']] = $marks_type['type'];
                 }
             }
             return $return;
         }
-        
-        
+
         /* MARK TYPES */
-        
-        
+
         /**
          * Returns HTML-table, containing existing mark types
          * 
@@ -526,18 +532,18 @@
             ";
             $result = simple_queryall($query);
             // HTML-table header:
-            $cells  = wf_TableCell(__('ID'));
-            $cells .= wf_TableCell(__('Type'),      100);
-            $cells .= wf_TableCell(__('Model'),     150);
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Type'), 100);
+            $cells .= wf_TableCell(__('Model'), 150);
             $cells .= wf_TableCell(__('Description'));
-            $cells .= wf_TableCell(__('Quantity'),  50);
-            $cells .= wf_TableCell(__('Icon'),      125);
-            $cells .= wf_TableCell(__('Actions'),   50);
-            $rows   =  wf_TableRow($cells, 'row2');
+            $cells .= wf_TableCell(__('Quantity'), 50);
+            $cells .= wf_TableCell(__('Icon'), 125);
+            $cells .= wf_TableCell(__('Actions'), 50);
+            $rows = wf_TableRow($cells, 'row2');
             // HTML-table content:
-            if ( !empty($result) ) {
-                foreach ( $result as $marks_type ) {
-                    $cells  = wf_TableCell($marks_type['id']);
+            if (!empty($result)) {
+                foreach ($result as $marks_type) {
+                    $cells = wf_TableCell($marks_type['id']);
                     $cells .= wf_TableCell($marks_type['type']);
                     $cells .= wf_TableCell($marks_type['model']);
                     $cells .= wf_TableCell($marks_type['description']);
@@ -545,11 +551,11 @@
                     $cells .= wf_TableCell($marks_type['icon_color'] . $marks_type['icon_style']);
                     // Actions:
                     $actions = wf_Link(self::URL_MARK_TYPE_EDIT . $marks_type['id'], web_edit_icon());
-                    if ( $marks_type['amount'] == 0 ) {
+                    if ($marks_type['amount'] == 0) {
                         $actions .= wf_Link(self::URL_MARK_TYPE_DEL . $marks_type['id'], web_delete_icon());
                     }
                     $cells .= wf_TableCell($actions);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             } else {
                 $cells = wf_TableCell(__('There is no marks types to show'), null, null, 'colspan="8" align="center"');
@@ -558,7 +564,7 @@
             // Generate HTML-table:
             return wf_TableBody($rows, '100%', '0', 'sortable');
         }
-        
+
         /**
          * Returns marks type add form
          * 
@@ -566,10 +572,10 @@
          */
         public function mark_type_add_form_show() {
             // Fill in the inputs:
-            $inputs  = wf_TextInput(self::FORM_ADD . '[type]', 'Type', null, true, '25');
+            $inputs = wf_TextInput(self::FORM_ADD . '[type]', 'Type', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[model]', 'Model', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[description]', 'Description', null, true, '25');
-            $inputs .= wf_Selector( self::FORM_ADD . '[icon_color]', array(
+            $inputs .= wf_Selector(self::FORM_ADD . '[icon_color]', array(
                 'blue' => 'blue',
                 'orange' => 'orange',
                 'darkblue' => 'darkblue',
@@ -586,17 +592,17 @@
                 'brown' => 'brown',
                 'night' => 'night',
                 'black' => 'black',
-            ), 'Icon', null, true, '25');
-            $inputs .= wf_Selector( self::FORM_ADD . '[icon_style]', array(
+                    ), 'Icon', null, true, '25');
+            $inputs .= wf_Selector(self::FORM_ADD . '[icon_style]', array(
                 '' => '',
                 'Dot' => 'Dot',
                 'Stretchy' => 'Stretchy'
-            ), 'Icon style', null, true, '25');
+                    ), 'Icon style', null, true, '25');
             $inputs .= wf_Submit('Save', 'ubButton');
             // Generate HTML-form:
             return wf_Form('', 'POST', $inputs, 'glamour');
         }
-                
+
         /**
          * Returns marks type edit form
          * 
@@ -604,13 +610,13 @@
          */
         public function mark_type_edit_form_show($id) {
             // Get current data from database:
-            $query  = "SELECT * FROM `" . self::TABLE_MARKS_TYPES . "` WHERE `id` = '" . $id . "'";
+            $query = "SELECT * FROM `" . self::TABLE_MARKS_TYPES . "` WHERE `id` = '" . $id . "'";
             $result = simple_query($query);
             // Fill in the inputs:
-            $inputs  = wf_TextInput(self::FORM_EDIT . '[type]', 'Type', $result['type'], true, '25');
+            $inputs = wf_TextInput(self::FORM_EDIT . '[type]', 'Type', $result['type'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[model]', 'Model', $result['model'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[description]', 'Description', $result['description'], true, '25');
-            $inputs .= wf_Selector( self::FORM_EDIT . '[icon_color]', array(
+            $inputs .= wf_Selector(self::FORM_EDIT . '[icon_color]', array(
                 'blue' => 'blue',
                 'orange' => 'orange',
                 'darkblue' => 'darkblue',
@@ -627,17 +633,17 @@
                 'brown' => 'brown',
                 'night' => 'night',
                 'black' => 'black'
-            ), 'Icon color', $result['icon_color'], true, '25');
-            $inputs .= wf_Selector( self::FORM_EDIT . '[icon_style]', array(
+                    ), 'Icon color', $result['icon_color'], true, '25');
+            $inputs .= wf_Selector(self::FORM_EDIT . '[icon_style]', array(
                 '' => '',
                 'Dot' => 'Dot',
                 'Stretchy' => 'Stretchy'
-            ), 'Icon style', $result['icon_style'], true, '25');
+                    ), 'Icon style', $result['icon_style'], true, '25');
             $inputs .= wf_Submit('Save', 'ubButton');
             // Generate HTML-form:
             return wf_Form('', 'POST', $inputs, 'glamour');
         }
-        
+
         /**
          * Adds marks type to database
          * 
@@ -658,12 +664,12 @@
                     '" . $data['model'] . "',
                     '" . $data['description'] . "',
                     '" . $data['icon_color'] . "',
-                    '" . ( !empty($data['icon_style']) ? $data['icon_style'] : null ) . "'
+                    '" . (!empty($data['icon_style']) ? $data['icon_style'] : null ) . "'
                 );
             ";
             return nr_query($query);
         }
-        
+
         /**
          * Updates marks type data in database
          * 
@@ -671,12 +677,12 @@
          */
         public function mark_type_edit_form_submit($id, $data) {
             $where = "WHERE `id` = '" . $id . "'";
-            foreach ( $data as $column => $new_value ) {
+            foreach ($data as $column => $new_value) {
                 simple_update_field(self::TABLE_MARKS_TYPES, $column, $new_value, $where);
             }
             return true;
         }
-        
+
         /**
          * Deletes marks type from database
          * 
@@ -687,11 +693,9 @@
             $query = "DELETE FROM `" . self::TABLE_MARKS_TYPES . "` WHERE `id` = '" . $id . "'";
             return nr_query($query);
         }
-        
-        
+
         /* MARKS */
-        
-        
+
         /**
          * Returns HTML-table, containing existing marks
          * 
@@ -699,7 +703,7 @@
          */
         public function mark_list_show() {
             // Query marks:
-            $query  = "SELECT
+            $query = "SELECT
                 `" . self::TABLE_MARKS . "`.`id`,
                 `" . self::TABLE_MARKS_TYPES . "`.`type`,
                 `" . self::TABLE_MARKS . "`.`number`,
@@ -712,30 +716,30 @@
             ";
             $result = simple_queryall($query);
             // HTML-table header:
-            $cells  = wf_TableCell(__('ID'));
+            $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Type'));
             $cells .= wf_TableCell(__('Number'));
             $cells .= wf_TableCell(__('Placement'));
             $cells .= wf_TableCell(__('Description'), 500);
             $cells .= wf_TableCell(__('Actions'), 80);
-            $rows   =  wf_TableRow($cells, 'row2');
+            $rows = wf_TableRow($cells, 'row2');
             // HTML-table content:
-            if ( !empty($result) ) {
-                foreach ( $result as $mark ) {
-                    $cells  = wf_TableCell($mark['id']);
+            if (!empty($result)) {
+                foreach ($result as $mark) {
+                    $cells = wf_TableCell($mark['id']);
                     $cells .= wf_TableCell($mark['type']);
                     $cells .= wf_TableCell($mark['number']);
                     $cells .= wf_TableCell($mark['placement']);
                     $cells .= wf_TableCell($mark['description']);
                     // Actions:
-                    $actions  = wf_Link(self::URL_MARK_DEL  . $mark['id'], web_delete_icon());
+                    $actions = wf_Link(self::URL_MARK_DEL . $mark['id'], web_delete_icon());
                     $actions .= wf_Link(self::URL_MARK_EDIT . $mark['id'], web_edit_icon());
                     $actions .= wf_Link(self::URL_MARK_DOCS . $mark['id'], web_corporate_icon('Documentation'));
-                    if ( $mark['geo'] == '[  ]' || empty($mark['geo']) ) {
+                    if ($mark['geo'] == '[  ]' || empty($mark['geo'])) {
                         $actions .= wf_Link(self::URL_MARK_PLACE . $mark['id'], web_add_icon(__('Place on map')));
                     }
                     $cells .= wf_TableCell($actions);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             } else {
                 $cells = wf_TableCell(__('There is no marks to show'), null, null, 'colspan="8" align="center"');
@@ -744,7 +748,7 @@
             // Generate HTML-table:
             return wf_TableBody($rows, '100%', '0', 'sortable');
         }
-        
+
         /**
          * Returns mark add form
          * 
@@ -754,7 +758,7 @@
             // Get marks types:
             $types = $this->get_marks_types();
             // Fill in the inputs:
-            $inputs  =  wf_Selector(self::FORM_ADD . '[type_id]', $types, 'Type', null, true);
+            $inputs = wf_Selector(self::FORM_ADD . '[type_id]', $types, 'Type', null, true);
             $inputs .= wf_TextInput(self::FORM_ADD . '[number]', 'Number', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[placement]', 'Placement', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[description]', 'Description', null, true, '25');
@@ -762,7 +766,7 @@
             // Generate HTML-form:
             return wf_Form('', 'POST', $inputs, 'glamour');
         }
-        
+
         /**
          * Returns mark edit form
          * 
@@ -770,12 +774,12 @@
          */
         public function mark_edit_form_show($id) {
             // Get current data from database:
-            $query  = "SELECT * FROM `" . self::TABLE_MARKS . "` WHERE `id` = '" . $id . "'";
+            $query = "SELECT * FROM `" . self::TABLE_MARKS . "` WHERE `id` = '" . $id . "'";
             $result = simple_query($query);
             // Get closure types:
             $types = $this->get_marks_types();
             // Fill in the inputs:
-            $inputs  =  wf_Selector(self::FORM_EDIT . '[type_id]', $types, 'Type', $result['type_id'], true);
+            $inputs = wf_Selector(self::FORM_EDIT . '[type_id]', $types, 'Type', $result['type_id'], true);
             $inputs .= wf_TextInput(self::FORM_EDIT . '[number]', 'Number', $result['number'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[placement]', 'Placement', $result['placement'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[description]', 'Description', $result['description'], true, '25');
@@ -783,7 +787,7 @@
             // Generate HTML-form:
             return wf_Form('', 'POST', $inputs, 'glamour');
         }
-        
+
         /**
          * Adds mark to database
          * 
@@ -809,7 +813,7 @@
             ";
             return nr_query($query);
         }
-        
+
         /**
          * Updates mark data in database
          * 
@@ -817,12 +821,12 @@
          */
         public function mark_edit_form_submit($id, $data) {
             $where = "WHERE `id` = '" . $id . "'";
-            foreach ( $data as $column => $new_value ) {
+            foreach ($data as $column => $new_value) {
                 simple_update_field(self::TABLE_MARKS, $column, $new_value, $where);
             }
             return true;
         }
-        
+
         /**
          * Deletes mark from database
          * 
@@ -832,19 +836,17 @@
         public function mark_delete($id) {
             $query = "SELECT `id` FROM `" . self::TABLE_DOCS . "` WHERE `mark_id` = '" . $id . "'";
             $result = simple_queryall($query);
-            if ( !empty($result) ) {
-                foreach( $result as $document ) {
+            if (!empty($result)) {
+                foreach ($result as $document) {
                     $this->document_delete($document['id'], false);
                 }
             }
             $query = "DELETE FROM `" . self::TABLE_MARKS . "` WHERE `id` = '" . $id . "'";
             return nr_query($query);
         }
-        
-        
+
         /* LINES */
-        
-        
+
         /**
          * Generates HTML-table, containing existing lines
          * 
@@ -852,7 +854,7 @@
          */
         public function line_list_show() {
             // Query lines:
-            $query  = "SELECT
+            $query = "SELECT
                      `" . self::TABLE_LINES . "`.`id`,
                      `" . self::TABLE_LINES . "`.`point_start`,
                      `" . self::TABLE_LINES . "`.`point_end`,
@@ -868,7 +870,7 @@
             ";
             $result = simple_queryall($query);
             // HTML-table header:
-            $cells  = wf_TableCell(__('ID'));
+            $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Starting point'));
             $cells .= wf_TableCell(__('End point'));
             $cells .= wf_TableCell(__('Fibers amount'), 75);
@@ -877,13 +879,13 @@
             $cells .= wf_TableCell(__('Engineer'));
             $cells .= wf_TableCell(__('Color'), 60);
             $cells .= wf_TableCell(__('Actions'), 80);
-            $rows   =  wf_TableRow($cells, 'row2');
+            $rows = wf_TableRow($cells, 'row2');
             // HTML-table content:
-            if ( !empty($result) ) {
-                foreach ( $result as $line ) {
+            if (!empty($result)) {
+                foreach ($result as $line) {
                     // Color decoration:
                     $line['param_color'] = '<span style="color: ' . $line['param_color'] . '">' . $line['param_color'] . '</span>';
-                    $cells  = wf_TableCell($line['id']);
+                    $cells = wf_TableCell($line['id']);
                     $cells .= wf_TableCell($line['point_start']);
                     $cells .= wf_TableCell($line['point_end']);
                     $cells .= wf_TableCell($line['fibers_amount']);
@@ -892,14 +894,14 @@
                     $cells .= wf_TableCell($line['engineer']);
                     $cells .= wf_TableCell($line['param_color']);
                     // Actions:
-                    $actions  = wf_Link(self::URL_LINE_DEL  . $line['id'], web_delete_icon());
+                    $actions = wf_Link(self::URL_LINE_DEL . $line['id'], web_delete_icon());
                     $actions .= wf_Link(self::URL_LINE_EDIT . $line['id'], web_edit_icon());
                     $actions .= wf_Link(self::URL_LINE_DOCS . $line['id'], web_corporate_icon('Documentation'));
-                    if ( empty($line['geo']) || $line['geo'] == '[  ]' ) {
+                    if (empty($line['geo']) || $line['geo'] == '[  ]') {
                         $actions .= wf_Link(self::URL_LINE_PLACE . $line['id'], web_add_icon(__('Place on map')));
                     }
                     $cells .= wf_TableCell($actions);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             } else {
                 $cells = wf_TableCell(__('There is no lines to show'), null, null, 'colspan="9" align="center"');
@@ -908,7 +910,7 @@
             // Generate HTML-table:
             return wf_TableBody($rows, '100%', '0');
         }
-        
+
         /**
          * Returns line add form
          * 
@@ -918,19 +920,19 @@
             // Get employee:
             $employee = $this->get_employee();
             // Fill in the inputs:
-            $inputs  = wf_TextInput(self::FORM_ADD . '[point_start]', 'Starting point', null, true, '25');
+            $inputs = wf_TextInput(self::FORM_ADD . '[point_start]', 'Starting point', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[point_end]', 'End point', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[fibers_amount]', 'Fibers amount', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[length]', 'Length', null, true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[description]', 'Description', null, true, '25');
-            $inputs .=  wf_Selector(self::FORM_ADD . '[employee_id]', $employee, 'Engineer', null, true);
+            $inputs .= wf_Selector(self::FORM_ADD . '[employee_id]', $employee, 'Engineer', null, true);
             $inputs .= wf_ColPicker(self::FORM_ADD . '[param_color]', 'Color', '#f57601', true, '25');
             $inputs .= wf_TextInput(self::FORM_ADD . '[param_width]', 'Line width', 2, true, '25');
             $inputs .= wf_Submit('Save', 'ubButton');
             // Generate HTML-form:
             return wf_Form('', 'POST', $inputs, 'glamour');
         }
-        
+
         /**
          * Returns line edit form
          * 
@@ -940,22 +942,22 @@
             // Get employee:
             $employee = $this->get_employee();
             // Get current data from database:
-            $query  = "SELECT * FROM `" . self::TABLE_LINES . "` WHERE `id` = '" . $id . "'";
+            $query = "SELECT * FROM `" . self::TABLE_LINES . "` WHERE `id` = '" . $id . "'";
             $result = simple_query($query);
             // Fill in the inputs:
-            $inputs  = wf_TextInput(self::FORM_EDIT . '[point_start]', 'Starting point', $result['point_start'], true, '25');
+            $inputs = wf_TextInput(self::FORM_EDIT . '[point_start]', 'Starting point', $result['point_start'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[point_end]', 'End point', $result['point_end'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[fibers_amount]', 'Fibers amount', $result['fibers_amount'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[length]', 'Length', $result['length'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[description]', 'Description', $result['description'], true, '25');
-            $inputs .=  wf_Selector(self::FORM_EDIT . '[employee_id]', $employee, 'Engineer', $result['employee_id'], true);
+            $inputs .= wf_Selector(self::FORM_EDIT . '[employee_id]', $employee, 'Engineer', $result['employee_id'], true);
             $inputs .= wf_ColPicker(self::FORM_EDIT . '[param_color]', 'Color', $result['param_color'], true, '25');
             $inputs .= wf_TextInput(self::FORM_EDIT . '[param_width]', 'Line width', $result['param_width'], true, '25');
             $inputs .= wf_Submit('Save', 'ubButton');
             // Generate HTML-form:
             return wf_Form('', 'POST', $inputs, 'glamour');
         }
-        
+
         /**
          * Adds line to database
          * 
@@ -989,7 +991,7 @@
             ";
             return nr_query($query);
         }
-        
+
         /**
          * Updates line data in database
          * 
@@ -997,12 +999,12 @@
          */
         public function line_edit_form_submit($id, $data) {
             $where = "WHERE `id` = '" . $id . "'";
-            foreach ( $data as $column => $new_value ) {
+            foreach ($data as $column => $new_value) {
                 simple_update_field(self::TABLE_LINES, $column, $new_value, $where);
             }
             return true;
         }
-        
+
         /**
          * Deletes line from database
          * 
@@ -1012,43 +1014,41 @@
         public function line_delete($id) {
             $query = "SELECT `id` FROM `" . self::TABLE_DOCS . "` WHERE `line_id` = '" . $id . "'";
             $result = simple_queryall($query);
-            if ( !empty($result) ) {
-                foreach( $result as $document ) {
+            if (!empty($result)) {
+                foreach ($result as $document) {
                     $this->document_delete($document['id'], false);
                 }
             }
             $query = "DELETE FROM `" . self::TABLE_LINES . "` WHERE `id` = '" . $id . "'";
             return nr_query($query);
         }
-        
-        
+
         /* DOCUMENTS */
-        
-        
+
         public function documents_list_show($item, $item_id) {
             // Get documents list using the elements' id:
-            $query  = "SELECT * FROM `" . self::TABLE_DOCS . "` WHERE `" . $item . "_id` = '" . $item_id . "'";
+            $query = "SELECT * FROM `" . self::TABLE_DOCS . "` WHERE `" . $item . "_id` = '" . $item_id . "'";
             $result = simple_queryall($query);
-            
-            $cells  = wf_TableCell(__('ID'));
+
+            $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Title'));
             $cells .= wf_TableCell(__('Date'));
             $cells .= wf_TableCell(__('Filename'));
             $cells .= wf_TableCell(__('Actions'));
-            $rows   =  wf_TableRow($cells, 'row2');
+            $rows = wf_TableRow($cells, 'row2');
 
-            if ( !empty($result) ) {
-                foreach ( $result as $document ) {
+            if (!empty($result)) {
+                foreach ($result as $document) {
                     $filename = basename($document['path']);
-                    
-                    $cells  = wf_TableCell($document['id']);
+
+                    $cells = wf_TableCell($document['id']);
                     $cells .= wf_TableCell($document['title']);
                     $cells .= wf_TableCell($document['date']);
                     $cells .= wf_TableCell($filename);
-                    
-                    $actions  = wf_Link(self::URL_DOC_DOWNLOAD . $document['id'], wf_img('skins/icon_download.png', __('Download')));
+
+                    $actions = wf_Link(self::URL_DOC_DOWNLOAD . $document['id'], wf_img('skins/icon_download.png', __('Download')));
                     $actions .= wf_Link(self::URL_DOC_DELETE . $document['id'], web_delete_icon());
-                    
+
                     $cells .= wf_TableCell($actions);
                     $rows .= wf_TableRow($cells, 'row3');
                 }
@@ -1059,25 +1059,25 @@
 
             return wf_TableBody($rows, '100%', '0');
         }
-        
+
         public function document_add_form_show($item, $item_id) {
-            $inputs  = wf_HiddenInput(self::FORM_ADD . '[' . $item . '_id]', $item_id);
+            $inputs = wf_HiddenInput(self::FORM_ADD . '[' . $item . '_id]', $item_id);
             $inputs .= wf_TextInput(self::FORM_ADD . '[title]', __('Title'), null, true, '20');
             $inputs .= __('Select document from HDD') . wf_tag('br');
             $inputs .= wf_tag('input', false, '', 'id="fileselector" type="file" name="' . self::FORM_ADD . '[file]"') . wf_tag('br');
             $inputs .= wf_Submit('Upload');
             return bs_UploadFormBody('', 'POST', $inputs, 'glamour');
         }
-        
+
         public function document_add_form_submit($item, $item_id, $data) {
             $return = false;
-            if ( !empty($data['title']) ) {
+            if (!empty($data['title'])) {
                 $file_name = uniqid();
                 $file_extention = pathinfo($_FILES[self::FORM_ADD]['name']['file'], PATHINFO_EXTENSION);
                 $upload_path = DATA_PATH . 'documents/vols/' . $file_name . '.' . $file_extention;
-                if ( move_uploaded_file($_FILES[self::FORM_ADD]['tmp_name']['file'], $upload_path) ) {
+                if (move_uploaded_file($_FILES[self::FORM_ADD]['tmp_name']['file'], $upload_path)) {
                     $return = true;
-                    $query  = "
+                    $query = "
                         INSERT INTO `" . self::TABLE_DOCS . "` (
                             `id`,
                             `title`,
@@ -1093,11 +1093,13 @@
                         )
                     ";
                     nr_query($query);
-                } else show_window(__('Error'), __('You should add any file'));
-            } else show_window(__('Error'), __('No display title for document'));
+                } else
+                    show_window(__('Error'), __('You should add any file'));
+            } else
+                show_window(__('Error'), __('No display title for document'));
             return $return;
         }
-        
+
         /**
          * Sends document on the server to the browser for downloading
          * 
@@ -1105,18 +1107,18 @@
          */
         public function document_download($id) {
             // Get info about downloading file:
-            $query  = "SELECT * FROM `" . self::TABLE_DOCS . "` WHERE `id` = '" . $id . "'";
+            $query = "SELECT * FROM `" . self::TABLE_DOCS . "` WHERE `id` = '" . $id . "'";
             $result = simple_query($query);
-            
+
             // Send document to browser:
             $document = file_get_contents($result['path']);
             log_register("DOWNLOAD FILE `" . $result['path'] . "`");
             header('Content-Type: application/octet-stream');
-            header("Content-Transfer-Encoding: Binary"); 
-            header("Content-disposition: attachment; filename=\"" . $result['title'] . '.' . pathinfo($result['path'], PATHINFO_EXTENSION) . "\""); 
+            header("Content-Transfer-Encoding: Binary");
+            header("Content-disposition: attachment; filename=\"" . $result['title'] . '.' . pathinfo($result['path'], PATHINFO_EXTENSION) . "\"");
             die($document);
         }
-        
+
         /**
          * Deletes document from database and filesystem and redirects back to
          * documents list of the node
@@ -1126,46 +1128,47 @@
          */
         public function document_delete($id, $redirect = true) {
             // Get info about deleting file:
-            $query  = "SELECT * FROM `" . self::TABLE_DOCS . "` WHERE `id` = '" . $id . "'";
+            $query = "SELECT * FROM `" . self::TABLE_DOCS . "` WHERE `id` = '" . $id . "'";
             $result = simple_query($query);
-            
+
             // Delete from database if deleted from filesystem:
-            if ( unlink($result['path']) ) {
-                $query  = "DELETE FROM `" . self::TABLE_DOCS . "` WHERE `id` = '" . $id . "'";
+            if (unlink($result['path'])) {
+                $query = "DELETE FROM `" . self::TABLE_DOCS . "` WHERE `id` = '" . $id . "'";
                 nr_query($query);
-                if ( $redirect ) {
-                    $item    = empty($result['mark_id']) ? 'line' : 'mark';
+                if ($redirect) {
+                    $item = empty($result['mark_id']) ? 'line' : 'mark';
                     $item_id = empty($result['mark_id']) ? $result['line_id'] : $result['mark_id'];
                     rcms_redirect('?module=vols&item=' . $item . '&action=documents&id=' . $item_id);
                 }
             }
         }
+
     }
-    
+
     /**
      * Controller:
      */
     $alter = $ubillingConfig->getAlter();
-    if ( !empty($alter['VOLS_ENABLED']) ) { 
+    if (!empty($alter['VOLS_ENABLED'])) {
         $greed = new Avarice();
         $runtime = $greed->runtime('VOLS');
-        if ( !empty($runtime) ) {
+        if (!empty($runtime)) {
             $obj = new VOLS();
-            if ( wf_CheckGet(array('item', 'action')) ) {
-                $item   = vf($_GET['item'], 4);
+            if (wf_CheckGet(array('item', 'action'))) {
+                $item = vf($_GET['item'], 4);
                 $action = vf($_GET['action'], 4);
-                switch ( $item ) {
+                switch ($item) {
                     case 'map':
-                        switch ( $action ) {
+                        switch ($action) {
                             case 'show':
-                                if (  isset($runtime['METHOD']['RNDR']) and method_exists($obj, $runtime['METHOD']['RNDR']) )
+                                if (isset($runtime['METHOD']['RNDR']) and method_exists($obj, $runtime['METHOD']['RNDR']))
                                     $runtimeA = $runtime['METHOD']['RNDR'];
-                                    show_window(__('Map of VOLS'), $obj->$runtimeA());
+                                show_window(__('Map of VOLS'), $obj->$runtimeA());
                                 break;
                             case 'edit':
-                                if (  isset($runtime['METHOD']['RNDR']) and method_exists($obj, $runtime['METHOD']['RNDR']) )
+                                if (isset($runtime['METHOD']['RNDR']) and method_exists($obj, $runtime['METHOD']['RNDR']))
                                     $runtimeB = $runtime['METHOD']['RNDR'];
-                                    show_window(__('Map of VOLS'), $obj->$runtimeB(true));
+                                show_window(__('Map of VOLS'), $obj->$runtimeB(true));
                                 break;
                             default:
                                 // Переадресация на главную стр. модуля при попытке доступа
@@ -1174,109 +1177,112 @@
                                 break;
                         }
                         break;
-                     case 'mark_type':
-                        switch ( $action ) {
+                    case 'mark_type':
+                        switch ($action) {
                             case 'list':
                                 // Show window:
-                                $title  = __('Types of marks') . ' ';
+                                $title = __('Types of marks') . ' ';
                                 $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARK_TYPE_ADD, wf_img('skins/vols_nav/add.png', __('Create')));
-                                if (  isset($runtime['METHOD']['MRKTPLST']) and method_exists($obj, $runtime['METHOD']['MRKTPLST']) )
+                                if (isset($runtime['METHOD']['MRKTPLST']) and method_exists($obj, $runtime['METHOD']['MRKTPLST']))
                                     $runtimeC = $runtime['METHOD']['MRKTPLST'];
-                                    show_window($title, $obj->$runtimeC());
+                                show_window($title, $obj->$runtimeC());
                                 break;
                             case 'add':
                                 // Form submit handle:
-                                if ( wf_CheckPost(array($obj::FORM_ADD)) ) {
+                                if (wf_CheckPost(array($obj::FORM_ADD))) {
                                     $data = $_POST[$obj::FORM_ADD];
-                                    if ( $obj->mark_type_add_form_submit($data) ) {
+                                    if ($obj->mark_type_add_form_submit($data)) {
                                         rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                     }
                                 }
                                 // Show window:
                                 $title = __('Adding of marks type') . ' ';
-                                $title .= wf_Link($obj::URL_MAP_SHOW,        wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARK_TYPES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
-                                if (  isset($runtime['METHOD']['MRKTPD']) and method_exists($obj, $runtime['METHOD']['MRKTPD']) )
+                                if (isset($runtime['METHOD']['MRKTPD']) and method_exists($obj, $runtime['METHOD']['MRKTPD']))
                                     $runtimeD = $runtime['METHOD']['MRKTPD'];
-                                    show_window($title, $obj->$runtimeD());
+                                show_window($title, $obj->$runtimeD());
                                 break;
                             case 'edit':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     // Form submit handle:
-                                    if ( wf_CheckPost(array($obj::FORM_EDIT)) ) {
+                                    if (wf_CheckPost(array($obj::FORM_EDIT))) {
                                         $data = $_POST[$obj::FORM_EDIT];
-                                        if ( $obj->mark_type_edit_form_submit($id, $data) ) {
+                                        if ($obj->mark_type_edit_form_submit($id, $data)) {
                                             rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                         }
                                     }
                                     // Show window:
                                     $title = __('Editing of marks type') . ' ';
-                                    $title .= wf_Link($obj::URL_MAP_SHOW,        wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                    $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_MARK_TYPES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
-                                    if (  isset($runtime['METHOD']['MRKTPDT']) and method_exists($obj, $runtime['METHOD']['MRKTPDT']) )
+                                    if (isset($runtime['METHOD']['MRKTPDT']) and method_exists($obj, $runtime['METHOD']['MRKTPDT']))
                                         $runtimeE = $runtime['METHOD']['MRKTPDT'];
-                                        show_window($title, $obj->$runtimeE($id));
-                                } else rcms_redirect($obj::URL_MARK_TYPES_LIST);
+                                    show_window($title, $obj->$runtimeE($id));
+                                } else
+                                    rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                 break;
                             case 'delete':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['MRKTPDLT']) and method_exists($obj, $runtime['METHOD']['MRKTPDLT']) ) {
+                                    if (isset($runtime['METHOD']['MRKTPDLT']) and method_exists($obj, $runtime['METHOD']['MRKTPDLT'])) {
                                         $runtimeF = $runtime['METHOD']['MRKTPDLT'];
-                                        if ( $obj->$runtimeF($id) ) {
+                                        if ($obj->$runtimeF($id)) {
                                             rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                         }
                                     }
-                                } else rcms_redirect($obj::URL_MARK_TYPES_LIST);
+                                } else
+                                    rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                 break;
                         }
                         break;
                     case 'mark':
-                        switch ( $action ) {
+                        switch ($action) {
                             case 'list':
                                 // Show window:
-                                $title  = __('VOLS marks') . ' ';
+                                $title = __('VOLS marks') . ' ';
                                 $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARK_ADD, wf_img('skins/vols_nav/add.png', __('Add mark'))) . ' ';
-                                if (  isset($runtime['METHOD']['MRKLST']) and method_exists($obj, $runtime['METHOD']['MRKLST']) )
+                                if (isset($runtime['METHOD']['MRKLST']) and method_exists($obj, $runtime['METHOD']['MRKLST']))
                                     $runtimeH = $runtime['METHOD']['MRKLST'];
-                                    show_window($title, $obj->$runtimeH());
+                                show_window($title, $obj->$runtimeH());
                                 break;
                             case 'add':
                                 // Form submit handle:
-                                if ( wf_CheckPost(array($obj::FORM_ADD)) ) {
+                                if (wf_CheckPost(array($obj::FORM_ADD))) {
                                     $data = $_POST[$obj::FORM_ADD];
-                                    if ( $obj->mark_add_form_submit($data) ) {
+                                    if ($obj->mark_add_form_submit($data)) {
                                         rcms_redirect($obj::URL_MARKS_LIST);
                                     }
                                 }
                                 // Show window:
                                 $title = __('Adding of mark') . ' ';
-                                $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARKS_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
-                                if (  isset($runtime['METHOD']['MRKD']) and method_exists($obj, $runtime['METHOD']['MRKD']) )
+                                if (isset($runtime['METHOD']['MRKD']) and method_exists($obj, $runtime['METHOD']['MRKD']))
                                     $runtimeI = $runtime['METHOD']['MRKD'];
-                                    show_window($title, $obj->$runtimeI());
+                                show_window($title, $obj->$runtimeI());
                                 break;
                             case 'place':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     $obj->place_placemark($id);
-                                    if (  isset($runtime['METHOD']['MRKPLC']) and method_exists($obj, $runtime['METHOD']['MRKPLC']) )
+                                    if (isset($runtime['METHOD']['MRKPLC']) and method_exists($obj, $runtime['METHOD']['MRKPLC']))
                                         $runtimeJ = $runtime['METHOD']['MRKPLC'];
-                                        show_window(__('Map of VOLS'), $obj->$runtimeJ());
-                                } else rcms_redirect($obj::URL_LINES_LIST);
+                                    show_window(__('Map of VOLS'), $obj->$runtimeJ());
+                                } else
+                                    rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'edit':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     // Form submit handle:
-                                    if ( wf_CheckPost(array($obj::FORM_EDIT)) ) {
+                                    if (wf_CheckPost(array($obj::FORM_EDIT))) {
                                         $data = $_POST[$obj::FORM_EDIT];
                                         // The ajax check:
-                                        if( !empty($_SERVER['HTTP_X_REQUESTED_WITH']) ) {
+                                        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
                                             die($obj->mark_edit_form_submit($id, $data));
                                         } else {
                                             $obj->mark_edit_form_submit($id, $data);
@@ -1285,93 +1291,97 @@
                                     }
                                     // Show window:
                                     $title = __('Editing of mark') . ' ';
-                                    $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                    $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_MARKS_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
-                                    if (  isset($runtime['METHOD']['MRKDT']) and method_exists($obj, $runtime['METHOD']['MRKDT']) )
+                                    if (isset($runtime['METHOD']['MRKDT']) and method_exists($obj, $runtime['METHOD']['MRKDT']))
                                         $runtimeK = $runtime['METHOD']['MRKDT'];
-                                        show_window($title, $obj->$runtimeK($id));
-                                } else rcms_redirect($obj::URL_MARKS_LIST);
+                                    show_window($title, $obj->$runtimeK($id));
+                                } else
+                                    rcms_redirect($obj::URL_MARKS_LIST);
                                 break;
                             case 'delete':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['MRKDLT']) and method_exists($obj, $runtime['METHOD']['MRKDLT']) ) {
+                                    if (isset($runtime['METHOD']['MRKDLT']) and method_exists($obj, $runtime['METHOD']['MRKDLT'])) {
                                         $runtimeL = $runtime['METHOD']['MRKDLT'];
-                                        if ( $obj->$runtimeL($id) ) {
+                                        if ($obj->$runtimeL($id)) {
                                             rcms_redirect($obj::URL_MARKS_LIST);
                                         }
                                     }
-                                } else rcms_redirect($obj::URL_MARKS_LIST);
+                                } else
+                                    rcms_redirect($obj::URL_MARKS_LIST);
                                 break;
                             case 'documents':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     // Form submit handle:
-                                    if ( wf_CheckPost(array($obj::FORM_ADD)) ) {
+                                    if (wf_CheckPost(array($obj::FORM_ADD))) {
                                         $data = $_POST[$obj::FORM_ADD];
                                         $obj->document_add_form_submit($item, $id, $data);
                                     }
                                     // Title + navigation buttons:
-                                    $title  = __('Documentation of VOLS') . ' ';
-                                    $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                    $title = __('Documentation of VOLS') . ' ';
+                                    $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_MARKS_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                     // Show window:
-                                    if (  isset($runtime['METHOD']['MRKDCMNTSLST']) and method_exists($obj, $runtime['METHOD']['MRKDCMNTSLST']) )
+                                    if (isset($runtime['METHOD']['MRKDCMNTSLST']) and method_exists($obj, $runtime['METHOD']['MRKDCMNTSLST']))
                                         $runtimeM = $runtime['METHOD']['MRKDCMNTSLST'];
-                                        show_window($title, $obj->$runtimeM($item, $id));
-                                    if ( isset($runtime['METHOD']['MRKDCMNTSD']) and method_exists($obj, $runtime['METHOD']['MRKDCMNTSD']) )
+                                    show_window($title, $obj->$runtimeM($item, $id));
+                                    if (isset($runtime['METHOD']['MRKDCMNTSD']) and method_exists($obj, $runtime['METHOD']['MRKDCMNTSD']))
                                         $runtimeN = $runtime['METHOD']['MRKDCMNTSD'];
-                                        show_window(__('Adding of document'), $obj->$runtimeN($item, $id));
-                                } else rcms_redirect($obj::URL_MARKS_LIST);
+                                    show_window(__('Adding of document'), $obj->$runtimeN($item, $id));
+                                } else
+                                    rcms_redirect($obj::URL_MARKS_LIST);
                                 break;
                         }
                         break;
                     case 'line':
-                        switch ( $action ) {
+                        switch ($action) {
                             case 'list':
                                 // Title + navigation buttons:
-                                $title  = __('VOLS lines') . ' ';
+                                $title = __('VOLS lines') . ' ';
                                 $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_LINE_ADD, wf_img('skins/vols_nav/add.png', __('Create')));
 
                                 // Show window:
-                                if (  isset($runtime['METHOD']['LNLST']) and method_exists($obj, $runtime['METHOD']['LNLST']) )
+                                if (isset($runtime['METHOD']['LNLST']) and method_exists($obj, $runtime['METHOD']['LNLST']))
                                     $runtimeO = $runtime['METHOD']['LNLST'];
-                                    show_window($title, $obj->$runtimeO());
+                                show_window($title, $obj->$runtimeO());
                                 break;
                             case 'add':
                                 // Form submit handle:
-                                if ( wf_CheckPost(array($obj::FORM_ADD)) ) {
+                                if (wf_CheckPost(array($obj::FORM_ADD))) {
                                     $data = $_POST[$obj::FORM_ADD];
-                                    if ( $obj->line_add_form_submit($data) ) {
+                                    if ($obj->line_add_form_submit($data)) {
                                         rcms_redirect($obj::URL_LINES_LIST);
                                     }
                                 }
                                 // Show window:
                                 $title = __('Adding of line') . ' ';
-                                $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_LINES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
-                                if (  isset($runtime['METHOD']['LND']) and method_exists($obj, $runtime['METHOD']['LND']) )
+                                if (isset($runtime['METHOD']['LND']) and method_exists($obj, $runtime['METHOD']['LND']))
                                     $runtimeP = $runtime['METHOD']['LND'];
-                                    show_window($title, $obj->$runtimeP());
+                                show_window($title, $obj->$runtimeP());
                                 break;
                             case 'place':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     $obj->place_polyline($id);
-                                    if (  isset($runtime['METHOD']['LNPLC']) and method_exists($obj, $runtime['METHOD']['LNPLC']) )
+                                    if (isset($runtime['METHOD']['LNPLC']) and method_exists($obj, $runtime['METHOD']['LNPLC']))
                                         $runtimeS = $runtime['METHOD']['LNPLC'];
-                                        show_window(__('Map of VOLS'), $obj->$runtimeS());
-                                } else rcms_redirect($obj::URL_LINES_LIST);
+                                    show_window(__('Map of VOLS'), $obj->$runtimeS());
+                                } else
+                                    rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'edit':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     // Form submit handle:
-                                    if ( wf_CheckPost(array($obj::FORM_EDIT)) ) {
+                                    if (wf_CheckPost(array($obj::FORM_EDIT))) {
                                         $data = $_POST[$obj::FORM_EDIT];
                                         // The ajax check:
-                                        if( !empty($_SERVER['HTTP_X_REQUESTED_WITH']) ) {
+                                        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
                                             die($obj->line_edit_form_submit($id, $data));
                                         } else {
                                             $obj->line_edit_form_submit($id, $data);
@@ -1380,46 +1390,49 @@
                                     }
                                     // Show window:
                                     $title = __('Editing of line') . ' ';
-                                    $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                    $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_LINES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
-                                    if (  isset($runtime['METHOD']['LNDT']) and method_exists($obj, $runtime['METHOD']['LNDT']) )
-                                        $runtimeQ= $runtime['METHOD']['LNDT'];
-                                        show_window($title, $obj->$runtimeQ($id));
-                                } else rcms_redirect($obj::URL_LINES_LIST);
+                                    if (isset($runtime['METHOD']['LNDT']) and method_exists($obj, $runtime['METHOD']['LNDT']))
+                                        $runtimeQ = $runtime['METHOD']['LNDT'];
+                                    show_window($title, $obj->$runtimeQ($id));
+                                } else
+                                    rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'delete':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['LNDLT']) and method_exists($obj, $runtime['METHOD']['LNDLT']) ) {
+                                    if (isset($runtime['METHOD']['LNDLT']) and method_exists($obj, $runtime['METHOD']['LNDLT'])) {
                                         $runtimeR = $runtime['METHOD']['LNDLT'];
-                                        if ( $obj->$runtimeR($id) ) {
+                                        if ($obj->$runtimeR($id)) {
                                             rcms_redirect($obj::URL_LINES_LIST);
                                         }
                                     }
-                                } else rcms_redirect($obj::URL_LINES_LIST);
+                                } else
+                                    rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'documents':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
                                     // Form submit handle:
-                                    if ( wf_CheckPost(array($obj::FORM_ADD)) ) {
+                                    if (wf_CheckPost(array($obj::FORM_ADD))) {
                                         $data = $_POST[$obj::FORM_ADD];
                                         $obj->document_add_form_submit($item, $id, $data);
                                     }
 
                                     // Title + navigation buttons:
-                                    $title  = __('Documentation of VOLS') . ' ';
-                                    $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
+                                    $title = __('Documentation of VOLS') . ' ';
+                                    $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_LINES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
 
                                     // Show window:
-                                    if (  isset($runtime['METHOD']['LNDCMNTSLST']) and method_exists($obj, $runtime['METHOD']['LNDCMNTSLST']) )
+                                    if (isset($runtime['METHOD']['LNDCMNTSLST']) and method_exists($obj, $runtime['METHOD']['LNDCMNTSLST']))
                                         $runtimeT = $runtime['METHOD']['LNDCMNTSLST'];
-                                        show_window($title, $obj->$runtimeT($item, $id));
-                                    if (  isset($runtime['METHOD']['LNDCMNTSD']) and method_exists($obj, $runtime['METHOD']['LNDCMNTSD']) )
+                                    show_window($title, $obj->$runtimeT($item, $id));
+                                    if (isset($runtime['METHOD']['LNDCMNTSD']) and method_exists($obj, $runtime['METHOD']['LNDCMNTSD']))
                                         $runtimeU = $runtime['METHOD']['LNDCMNTSD'];
-                                        show_window(__('Adding of document'), $obj->$runtimeU($item, $id));
-                                } else rcms_redirect($obj::URL_LINES_LIST);
+                                    show_window(__('Adding of document'), $obj->$runtimeU($item, $id));
+                                } else
+                                    rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             default:
                                 // Переадресация на главную стр. модуля при попытке доступа
@@ -1429,22 +1442,24 @@
                         }
                         break;
                     case 'document':
-                        switch ( $action ) {
+                        switch ($action) {
                             case 'download':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['DCMNTSDWNLD']) and method_exists($obj, $runtime['METHOD']['DCMNTSDWNLD']) )
+                                    if (isset($runtime['METHOD']['DCMNTSDWNLD']) and method_exists($obj, $runtime['METHOD']['DCMNTSDWNLD']))
                                         $runtimeV = $runtime['METHOD']['DCMNTSDWNLD'];
-                                        $obj->$runtimeV($id);
-                                } else rcms_redirect($obj::URL_HOME);
+                                    $obj->$runtimeV($id);
+                                } else
+                                    rcms_redirect($obj::URL_HOME);
                                 break;
                             case 'delete':
-                                if ( wf_CheckGet(array('id')) ) {
+                                if (wf_CheckGet(array('id'))) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['DCMNTSDLT']) and method_exists($obj, $runtime['METHOD']['DCMNTSDLT']) )
+                                    if (isset($runtime['METHOD']['DCMNTSDLT']) and method_exists($obj, $runtime['METHOD']['DCMNTSDLT']))
                                         $runtimeW = $runtime['METHOD']['DCMNTSDLT'];
-                                        $obj->$runtimeW($id);
-                                } else rcms_redirect($obj::URL_HOME);
+                                    $obj->$runtimeW($id);
+                                } else
+                                    rcms_redirect($obj::URL_HOME);
                                 break;
                             default:
                                 // Переадресация на главную стр. модуля при попытке доступа
@@ -1468,5 +1483,5 @@
             show_window(__('Error'), __('No license key available'));
         }
     }
-    
-} else show_error(__('Access denied'));
+} else
+    show_error(__('Access denied'));
