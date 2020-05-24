@@ -141,7 +141,7 @@
                     // Page gentime end
                     $mtime = explode(' ', microtime());
                     $totaltime = $mtime[0] + $mtime[1] - $starttime;
-                    print(__('GT:') . round($totaltime, 2));
+                    print('GT:' . round($totaltime, 3));
                     print(' QC: ' . $query_counter);
                     ?></p>
             </footer>
