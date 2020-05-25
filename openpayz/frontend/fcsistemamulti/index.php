@@ -171,7 +171,7 @@ function fcs_ReplyCheck($customerID, $useAgentCodes = false) {
 <response>
 <result>' . FCS_USER_EXISTS . '</result>
 <text></text>
-<comment>Account exist.</comment>
+<comment>Account exists.</comment>
 ' . $companyCode . '
 </response>
                     ';
@@ -181,7 +181,7 @@ function fcs_ReplyCheck($customerID, $useAgentCodes = false) {
 <response>
 <result>' . FCS_NO_SUCH_USER . '</result>
 <text></text>
-<comment>Account exist.</comment>                        
+<comment>Account does not exist.</comment>                        
 </response>
                     ';
     }

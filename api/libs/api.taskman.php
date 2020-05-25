@@ -1424,7 +1424,10 @@ function ts_ShowPanel() {
 
         $submitOpts = '';
         if ($advFiltersEnabled) {
+            $inputs = wf_tag('span', false, '', 'style="float:left; margin: 5px 10px 5px 0;"') . $inputs . wf_tag('span', true);
             $inputs .= ts_AdvFiltersControls();
+            $inputs = wf_Plate($inputs);
+            $inputs .= wf_CleanDiv();
             $submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700;" ';
         }
 
@@ -2559,26 +2562,35 @@ function ts_PrintDialogue() {
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
 
     $submitOpts = '';
+    $tmpInputs = '';
     $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
     $inputs .= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
 
     if ($advFiltersEnabled) {
-        $inputs .= wf_delimiter();
-
         $whoami = whoami();
         $employeeid = ts_GetEmployeeByLogin($whoami);
 
         if ($employeeid) {
             $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
             $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
-            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $tmpInputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $tmpInputs = wf_tag('span', false, '', 'style="float:left; margin: 5px 10px 5px 0;"') . $tmpInputs . wf_tag('span', true);
         }
 
-        $inputs .= ts_AdvFiltersControls(false);
-        $submitOpts = ' style="width: 50%; height: 1.7em; font-weight: 700; margin-top: 10px; margin-left: 22px;" ';
-        $inputs .= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
+        $tmpInputs .= ts_AdvFiltersControls(false);
+        $tmpInputs = wf_Plate($tmpInputs, '', '', '', 'margin-top: 8px;');
+        $tmpInputs .= wf_CleanDiv();
+        $tmpInputs .= wf_delimiter(0);
+        $tmpInputs .= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
+
+        $inputs = wf_tag('span', false, '', 'style="float: left"') . $inputs . wf_tag('span', true);
+        $inputs .= wf_CleanDiv();
+
+        $submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700; margin-top: 10px;" ';
+        //margin-left: 22px;
     }
 
+    $inputs .= $tmpInputs;
     $inputs .= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
     $inputs .= wf_Submit(__('Print'), '', $submitOpts);
     $result = wf_Form("", 'POST', $inputs, 'glamour');
@@ -2971,32 +2983,43 @@ function ts_AdvFiltersControls($extraTrailingSpace = true) {
     $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
     $phonecontains = ( wf_CheckPost(array('filtertaskphone')) ) ? $_POST['filtertaskphone'] : '';
 
-    $inputs = wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs = wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
     $inputs .= __('Job type');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_Selector('filtertaskjobtypeexact', $alljobtypes, '', $selectedjobtype);
+    $inputs .= wf_tag('span', true);
 
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
     $inputs .= __('Job type contains');
     $inputs .= wf_tag('h3', true);
-    $inputs .= wf_TextInput('filtertaskjobtype', '', $jobtypecontains, true);
-    $inputs .= wf_tag('br');
+    $inputs .= wf_TextInput('filtertaskjobtype', '', $jobtypecontains);
+    $inputs .= wf_tag('span', true);
+    $inputs .= wf_delimiter();
 
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 1px; display: inline-block"');
+    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
     $inputs .= __('Address contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskaddr', '', $addresscontains);
+    $inputs .= wf_tag('span', true);
 
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
     $inputs .= __('Job note contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskjobnote', '', $jobnotecontains);
     $inputs .= wf_nbsp(3);
+    $inputs .= wf_tag('span', true);
 
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
     $inputs .= __('Job phone contains');
     $inputs .= wf_tag('h3', true);
-    $inputs .= wf_TextInput('filtertaskphone', '', $phonecontains, true);
+    $inputs .= wf_TextInput('filtertaskphone', '', $phonecontains);
+    $inputs .= wf_tag('span', true);
+    $inputs .= wf_delimiter(0);
     $inputs .= ($extraTrailingSpace) ? wf_nbsp() : '';
 
     return($inputs);
