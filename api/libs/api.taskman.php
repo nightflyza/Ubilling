@@ -2580,7 +2580,6 @@ function ts_PrintDialogue() {
         $tmpInputs .= ts_AdvFiltersControls(false);
         $tmpInputs = wf_Plate($tmpInputs, '', '', '', 'margin-top: 8px;');
         $tmpInputs .= wf_CleanDiv();
-        $tmpInputs .= wf_delimiter(0);
         $tmpInputs .= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
 
         $inputs = wf_tag('span', false, '', 'style="float: left"') . $inputs . wf_tag('span', true);
