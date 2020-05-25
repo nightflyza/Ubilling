@@ -1408,17 +1408,25 @@ function zbs_ModulesMenuShow($icons = false) {
     $skinPath = zbs_GetCurrentSkinPath($globconf);
     $iconsPath = $skinPath . 'iconz/';
     $all_modules = rcms_scandir($mod_path);
+    $currentModule = 'index';
+    if (isset($_GET['module'])) {
+        if (!empty($_GET['module'])) {
+            $currentModule = $_GET['module'];
+        }
+    }
 
     $count = 1;
     $result = '';
     //default home link
     if ($icons) {
-        $result .= '<li><a href="index.php"><img src="' . $skinPath . 'iconz/home.gif"> ' . __('Home') . '</a></li>';
+        $homeClass = ($currentModule == 'index') ? 'active' : 'menublock';
+        $result .= '<li class="' . $homeClass . '"><a href="index.php"><img src="' . $skinPath . 'iconz/home.gif"> ' . __('Home') . '</a></li>';
     } else {
         $result .= '<li><a href="index.php"> ' . __('Home') . '</a></li>';
     }
     if (!empty($all_modules)) {
         foreach ($all_modules as $eachmodule) {
+            $linkClass = ($currentModule == $eachmodule) ? 'active' : 'menublock';
             if ($icons == true) {
                 if (file_exists($iconsPath . $eachmodule . ".gif")) {
                     $iconlink = ' <img src="' . $iconsPath . $eachmodule . '.gif" class="menuicon"> ';
@@ -1437,8 +1445,9 @@ function zbs_ModulesMenuShow($icons = false) {
                     $mod_data = parse_ini_file($mod_path . $eachmodule);
                     $mod_name = __($mod_data['NAME']);
                     $mod_need = isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
+
                     if ((@$globconf[$mod_need]) OR ( empty($mod_need))) {
-                        $result .= '<li><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . $mod_name . '</a></li>';
+                        $result .= '<li><a  href="?module=' . $eachmodule . '" >' . $iconlink . '' . $mod_name . '</a></li>';
                         $count++;
                     }
                 }
@@ -1447,7 +1456,7 @@ function zbs_ModulesMenuShow($icons = false) {
                 $mod_name = __($mod_data['NAME']);
                 $mod_need = isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
                 if ((@$globconf[$mod_need]) OR ( empty($mod_need))) {
-                    $result .= '<li class="menublock"><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . __($mod_name) . '</a></li>';
+                    $result .= '<li class="' . $linkClass . '"><a  href="?module=' . $eachmodule . '">' . $iconlink . __($mod_name) . '</a></li>';
                     $count++;
                 }
             }
@@ -1940,22 +1949,22 @@ function zbs_AnnouncementsAvailable($login) {
     $query = "SELECT `zbsannouncements`.*, `zbh`.`annid` from `zbsannouncements` LEFT JOIN (SELECT `annid` FROM `zbsannhist` WHERE `login` = '" . $login . "') as zbh ON ( `zbsannouncements`.`id`=`zbh`.`annid`) WHERE `public`='1' AND `annid` IS NULL ORDER BY `zbsannouncements`.`id` DESC LIMIT 1";
     $data = simple_queryall($query);
     if (!empty($data)) {
-        if (isset($us_config['AN_MODAL']) AND !empty($us_config['AN_MODAL'])) {
+        if (isset($us_config['AN_MODAL']) AND ! empty($us_config['AN_MODAL'])) {
             $inputs = '';
-            $inputs.= la_tag('br');
-            $inputs.= la_HiddenInput('anmarkasread', $data[0]['id']);
+            $inputs .= la_tag('br');
+            $inputs .= la_HiddenInput('anmarkasread', $data[0]['id']);
 
             if ($data[0]['type'] == 'text') {
                 $eachtext = strip_tags($data[0]['text']);
-                $inputs.= nl2br($eachtext);
+                $inputs .= nl2br($eachtext);
             }
 
             if ($data[0]['type'] == 'html') {
-                $inputs.= $data[0]['text'];
+                $inputs .= $data[0]['text'];
             }
-            $inputs.= la_tag('br');
-            $inputs.= la_tag('br');
-            $inputs.= la_Submit('Mark as read');
+            $inputs .= la_tag('br');
+            $inputs .= la_tag('br');
+            $inputs .= la_Submit('Mark as read');
             $form = la_Form('?module=announcements', "POST", $inputs, 'glamour');
 
             $result = la_modalOpened($data[0]['title'], $form);
@@ -1977,15 +1986,15 @@ function zbs_AnnouncementsNotice($login) {
     $result = '';
     $skinPath = zbs_GetCurrentSkinPath();
     $iconsPath = $skinPath . 'iconz/';
-    $availableAnnouncements=zbs_AnnouncementsAvailable($login);
+    $availableAnnouncements = zbs_AnnouncementsAvailable($login);
     if ($availableAnnouncements) {
         if ($availableAnnouncements !== TRUE) {
-            $result.= $availableAnnouncements;
+            $result .= $availableAnnouncements;
         }
         $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, 'announcementslink'));
         $cells .= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, 'announcementslink'));
         $rows = la_TableRow($cells);
-        $result.= la_TableBody($rows, '100%', 0, 'announcementstable');
+        $result .= la_TableBody($rows, '100%', 0, 'announcementstable');
         show_window('', $result);
     }
 }
