@@ -517,6 +517,7 @@ class Envy {
      * @return void/string on error
      */
     public function saveDevice() {
+        $result = '';
         if (ubRouting::checkPost(array('editdeviceswitchid', 'editdeviceid'))) {
             $deviceId = ubRouting::post('editdeviceid', 'int');
             $switchId = ubRouting::post('editdeviceswitchid', 'int');
@@ -546,6 +547,7 @@ class Envy {
                 $result .= __('Something went wrong') . ': EX_EMPTYSWITCHID';
             }
         }
+        return($result);
     }
 
     /**
