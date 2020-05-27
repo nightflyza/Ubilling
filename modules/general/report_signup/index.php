@@ -140,6 +140,7 @@ if (cfr('REPORTSIGNUP')) {
             return (zb_SignupsGetAilveStats($year));
         }, 86400); //cached for 1 day
         $allUserData = zb_UserGetAllDataCache();
+        $allContractDates = zb_UserContractDatesGetAll();
         $deadCount = 0;
         $frozenCount = 0;
         $result = '';
@@ -159,6 +160,7 @@ if (cfr('REPORTSIGNUP')) {
                 $cells .= wf_TableCell(__('Balance'));
                 $cells .= wf_TableCell(__('Credit'));
                 $cells .= wf_TableCell(__('Phones'));
+                $cells .= wf_TableCell(__('Contract date'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($aliveStats['deadlogins'] as $io => $login) {
@@ -192,6 +194,7 @@ if (cfr('REPORTSIGNUP')) {
                     $cells .= wf_TableCell($userData['Cash']);
                     $cells .= wf_TableCell($userData['Credit']);
                     $cells .= wf_TableCell($userData['mobile'] . ' ' . $userData['phone'] . ' ' . $userExtMobiles);
+                    $cells .= wf_TableCell(@$allContractDates[$userData['contract']]);
                     $rows .= wf_TableRow($cells, 'row5');
                     $deadCount++;
                 }
