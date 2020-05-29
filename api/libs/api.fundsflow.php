@@ -45,6 +45,13 @@ class FundsFlow {
     protected $userTags = array();
 
     /**
+     * Placeholder for FF_REP_AVOID_DUPLICATE_DT_KEYS alter.ini option
+     *
+     * @var bool
+     */
+    public $avoidDTKeysDuplicates = false;
+
+    /**
      * Rendering coloring settings
      */
     protected $colorPayment = '005304';
@@ -74,6 +81,7 @@ class FundsFlow {
         global $ubillingConfig;
         $this->alterConf = $ubillingConfig->getAlter();
         $this->billingConf = $ubillingConfig->getBilling();
+        $this->avoidDTKeysDuplicates = $ubillingConfig->getAlterParam('FF_REP_AVOID_DUPLICATE_DT_KEYS');
     }
 
     /**
@@ -158,6 +166,11 @@ class FundsFlow {
                 if (isset($eachfee[1])) {
                     $counter = strtotime($eachfee[0] . ' ' . $eachfee[1]);
 
+                    // trying to avoid duplicate keys
+                    while ($this->avoidDTKeysDuplicates and array_key_exists($counter, $result)) {
+                        $counter++;
+                    }
+
                     $feefrom = str_replace("'.", '', $eachfee[12]);
                     $feeto = str_replace("'.", '', $eachfee[14]);
                     $feefrom = str_replace("'", '', $feefrom);
@@ -195,6 +208,11 @@ class FundsFlow {
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
                 $counter = strtotime($eachpayment['date']);
+
+                // trying to avoid duplicate keys
+                while ($this->avoidDTKeysDuplicates and array_key_exists($counter, $result)) {
+                    $counter++;
+                }
 
                 if (ispos($eachpayment['note'], 'MOCK:')) {
                     $cashto = $eachpayment['balance'];
@@ -236,10 +254,15 @@ class FundsFlow {
 
         $result = array();
 
-
         if (!empty($allpayments)) {
             foreach ($allpayments as $io => $eachpayment) {
                 $counter = strtotime($eachpayment['date']);
+
+                // trying to avoid duplicate keys
+                while ($this->avoidDTKeysDuplicates and array_key_exists($counter, $result)) {
+                    $counter++;
+                }
+
                 $cashto = $eachpayment['summ'] + $eachpayment['balance'];
                 $result[$counter]['login'] = $login;
                 $result[$counter]['date'] = $eachpayment['date'];
@@ -910,6 +933,96 @@ class FundsFlow {
                 }
             }
         }
+    }
+
+    /**
+     * Process possible duplicates and concatenates $fees, $payments and $corrections arrays
+     *
+     * @param array $fees
+     * @param array $payments
+     * @param array $corrections
+     *
+     * @return mixed
+     */
+    public function concatAvoidDuplicateKeys($fees, $payments, $corrections) {
+        // searching and fixing duplicates in fees - payments array
+        $duplicates = array_intersect_key($fees, $payments);
+
+        if (!empty($duplicates)) {
+            foreach ($duplicates as $key => $val) {
+                // walking through duplicates array and trying to get
+                // a unique key instead of existing duplicate key
+                if (array_key_exists($key, $payments)) {
+                    $tmpVal = $payments[$key];
+                    $tmpKey = $key + 1;
+
+                    while (array_key_exists($tmpKey, $fees) or
+                           array_key_exists($tmpKey, $payments) or
+                           array_key_exists($tmpKey, $corrections)
+                          ) {
+
+                        $tmpKey++;
+                    }
+
+                    // remove array item with duplicate key and set it's preserved value to new key
+                    // we're not worried about the keys order as concatenated array
+                    // will be later sorted by keys anyway
+                    unset($payments[$key]);
+                    $payments[$tmpKey] = $tmpVal;
+                }
+            }
+        }
+
+        // searching and fixing duplicates in fees - corrections array
+        $duplicates = array_intersect_key($fees, $corrections);
+
+        if (!empty($duplicates)) {
+            foreach ($duplicates as $key => $val) {
+                if (array_key_exists($key, $corrections)) {
+                    $tmpVal = $corrections[$key];
+                    $tmpKey = $key + 1;
+
+                    while (array_key_exists($tmpKey, $fees) or
+                           array_key_exists($tmpKey, $payments) or
+                           array_key_exists($tmpKey, $corrections)
+                          ) {
+
+                        $tmpKey++;
+                    }
+
+                    unset($corrections[$key]);
+                    $corrections[$tmpKey] = $tmpVal;
+                }
+            }
+        }
+
+        // searching and fixing duplicates in payments - corrections array
+        $duplicates = array_intersect_key($payments, $corrections);
+
+        if (!empty($duplicates)) {
+            foreach ($duplicates as $key => $val) {
+                if (array_key_exists($key, $corrections)) {
+                    $tmpVal = $corrections[$key];
+                    $tmpKey = $key + 1;
+
+                    while (array_key_exists($tmpKey, $fees) or
+                           array_key_exists($tmpKey, $payments) or
+                           array_key_exists($tmpKey, $corrections)
+                          ) {
+
+                        $tmpKey++;
+                    }
+
+                    unset($corrections[$key]);
+                    $corrections[$tmpKey] = $tmpVal;
+                }
+            }
+        }
+
+        // concatenate fixed arrays
+        $allFundsFlow = $fees + $payments + $corrections;
+
+        return ($allFundsFlow);
     }
 
 }

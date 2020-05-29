@@ -13,7 +13,12 @@ if (cfr('PLFUNDS')) {
         $allpayments = $funds->getPayments($login);
         $allcorrectings = $funds->getPaymentsCorr($login);
 
-        $fundsflow = $allfees + $allpayments + $allcorrectings;
+        if ($funds->avoidDTKeysDuplicates) {
+            $fundsflow = $funds->concatAvoidDuplicateKeys($allfees, $allpayments, $allcorrectings);
+        } else {
+            $fundsflow = $allfees + $allpayments + $allcorrectings;
+        }
+
         $fundsflow=$funds->transformArray($fundsflow);
 
         
