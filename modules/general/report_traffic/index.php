@@ -3,6 +3,11 @@
 if (cfr('REPORTTRAFFIC')) {
 
     function web_TstatsShow() {
+        global $ubillingConfig;
+        $altCfg = $ubillingConfig->getAlter();
+        $ishimuraOption = MultiGen::OPTION_ISHIMURA;
+        $ishimuraTable = MultiGen::NAS_ISHIMURA;
+
         $allclasses = zb_DirectionsGetAll();
         $classtraff = array();
         $traffCells = wf_TableCell(__('Traffic classes'), '20%');
@@ -21,15 +26,28 @@ if (cfr('REPORTTRAFFIC')) {
                 $classup = simple_query($query_u);
                 $classup = $classup['SUM(`' . $u_name . '`)'];
                 $classtraff[$eachclass['rulename']] = $classdown + $classup;
+
+                //Yep, no traffic classes at all. Just internet accounting here.
+                if ($eachclass['rulenumber'] == 0) {
+                    if ($altCfg[$ishimuraOption]) {
+                        $query_hideki = "SELECT SUM(`D0`) as `downloaded`, SUM(`U0`) as `uploaded` from `" . $ishimuraTable . "` WHERE  `month`='" . date("n") . "' AND `year`='" . curyear() . "'";
+                        $dataHideki = simple_query($query_hideki);
+                        if (isset($classtraff[$eachclass['rulename']])) {
+                            @$classtraff[$eachclass['rulename']] += $dataHideki['downloaded'] + $dataHideki['uploaded'];
+                        } else {
+                            $classtraff[$eachclass['rulename']] = $dataHideki['downloaded'] + $dataHideki['uploaded'];
+                        }
+                    }
+                }
             }
 
             if (!empty($classtraff)) {
                 $total = max($classtraff);
                 foreach ($classtraff as $name => $count) {
                     $traffCells = wf_TableCell($name);
-                    $traffCells.= wf_TableCell(stg_convert_size($count), '', '', 'sorttable_customkey="' . $count . '"');
-                    $traffCells.= wf_TableCell(web_bar($count, $total), '', '', 'sorttable_customkey="' . $count . '"');
-                    $traffRows.= wf_TableRow($traffCells, 'row3');
+                    $traffCells .= wf_TableCell(stg_convert_size($count), '', '', 'sorttable_customkey="' . $count . '"');
+                    $traffCells .= wf_TableCell(web_bar($count, $total), '', '', 'sorttable_customkey="' . $count . '"');
+                    $traffRows .= wf_TableRow($traffCells, 'row3');
                 }
             }
         }
