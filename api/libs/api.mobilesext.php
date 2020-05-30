@@ -181,11 +181,11 @@ class MobilesExt {
         if (!empty($login)) {
             $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $inputs = wf_HiddenInput('newmobileextlogin', $login);
-            $inputs.= wf_TextInput('newmobileextnumber', __('New mobile'), '', false, '20', $formFilter);
-            $inputs.= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
-            $inputs.= wf_Submit(__('Create'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=wf_CleanDiv();
+            $inputs .= wf_TextInput('newmobileextnumber', __('New mobile'), '', false, '20', $formFilter);
+            $inputs .= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
+            $inputs .= wf_Submit(__('Create'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_CleanDiv();
         }
         return ($result);
     }
@@ -204,11 +204,11 @@ class MobilesExt {
             $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $mobileData = $this->allMobiles[$mobileId];
             $inputs = wf_HiddenInput('editmobileextid', $mobileId);
-            $inputs.= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', $formFilter);
-            $inputs.= wf_TextInput('editmobileextnotes', __('Notes'), $mobileData['notes'], true, '40');
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=wf_CleanDiv();
+            $inputs .= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', $formFilter);
+            $inputs .= wf_TextInput('editmobileextnotes', __('Notes'), $mobileData['notes'], true, '40');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_CleanDiv();
         }
         return ($result);
     }
@@ -225,18 +225,18 @@ class MobilesExt {
         $userMobiles = $this->getUserMobiles($login);
         if (!empty($userMobiles)) {
             $cells = wf_TableCell(__('Mobile'));
-            $cells.= wf_TableCell(__('Notes'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Notes'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($userMobiles as $io => $each) {
                 $cells = wf_TableCell($each['mobile']);
-                $cells.= wf_TableCell($each['notes']);
+                $cells .= wf_TableCell($each['notes']);
                 $actLinks = wf_JSAlert(self::URL_ME . '&username=' . $login . '&deleteext=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['mobile'], $this->renderEditForm($each['id']));
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['mobile'], $this->renderEditForm($each['id']));
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         }
         return ($result);
     }
@@ -281,14 +281,19 @@ class MobilesExt {
         if (!empty($askoziaLog)) {
             $numsTmp = array();
             $curdate = curdate();
+            $curhour = date("H:");
             foreach ($askoziaLog as $io => $each) {
+                //only today calls
                 if ($each['date'] == $curdate) {
                     if ((empty($each['login'])) AND ( $each['reply'] == 0)) {
-                        if (!empty($each['number'])) {
-                            //is this really unknown number?
-                            $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
-                            if (empty($detectedLogin)) {
-                                $numsTmp[$each['number']] = $each['time'] . ' - ' . $each['number'];
+                        //just for last hour
+                        if (substr($each['time'], 0, 3) == $curhour) {
+                            if (!empty($each['number'])) {
+                                //is this really unknown number?
+                                $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
+                                if (empty($detectedLogin)) {
+                                    $numsTmp[$each['number']] = $each['time'] . ' - ' . $each['number'];
+                                }
                             }
                         }
                     }
@@ -299,14 +304,15 @@ class MobilesExt {
             if (!empty($numsTmp)) {
                 if (!empty($login)) {
                     $inputs = wf_HiddenInput('newmobileextlogin', $login);
-                    $inputs.= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '', false);
-                    $inputs.= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
-                    $inputs.= wf_Submit(__('Create'));
-                    $result.= wf_Form('', 'POST', $inputs, 'glamour');
-                    $result.=wf_CleanDiv();
+                    $inputs .= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '', false);
+                    $inputs .= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
+                    $inputs .= wf_Submit(__('Create'));
+                    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+                    $result .= wf_CleanDiv();
                 }
                 show_window(__('Some of numbers which calls us today'), $result);
             }
         }
     }
+
 }
