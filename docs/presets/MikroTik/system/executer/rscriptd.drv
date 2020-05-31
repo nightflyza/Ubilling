@@ -34,13 +34,13 @@
             shell_exec($this->config['arpcmd'] . ' -S ' . IP . ' ' . $this->database->get_user_mac());
             // Speed control:
             shell_exec($this->config['fwcmd'] . " pipe " .  (ID + 101) . " config bw " . $rate['tx'] . $this->config['rate_val'] . " queue 32Kbytes");
-            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " config bw " . $rate['rx'] . $this->config['rate_val'] . " queue 32Kbytes");
+            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 18101) . " config bw " . $rate['rx'] . $this->config['rate_val'] . " queue 32Kbytes");
             // Shaper:
             shell_exec($this->config['fwcmd'] . " table 3 add " . IP . " " . (ID + 101));
-            shell_exec($this->config['fwcmd'] . " table 4 add " . IP . " " . (ID + 8101));
+            shell_exec($this->config['fwcmd'] . " table 4 add " . IP . " " . (ID + 18101));
             shell_exec($this->config['fwcmd'] . " table 47 delete " . IP);
             // Day/Night switcher:
-            file_put_contents(BASEPATH . "dn/" . LOGIN, $rate['rx'] . ":" . (ID + 8101), LOCK_EX);
+            file_put_contents(BASEPATH . "dn/" . LOGIN, $rate['rx'] . ":" . (ID + 18101), LOCK_EX);
             shell_exec("/bin/chmod 777 " . BASEPATH . "dn/" . LOGIN);
             $this->log->message(__CLASS__, "Creation of firewall rules done", 'success');
         }
@@ -49,10 +49,10 @@
         public function OnDisconnect() {
             // Delete old pipes:
             shell_exec($this->config['fwcmd'] . " pipe " .  (ID + 101) . " delete");
-            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " delete");
+            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 18101) . " delete");
             // Delete from shaper:
             shell_exec($this->config['fwcmd'] . " table 3 delete " . IP . " " .  (ID + 101));
-            shell_exec($this->config['fwcmd'] . " table 4 delete " . IP . " " . (ID + 8101));
+            shell_exec($this->config['fwcmd'] . " table 4 delete " . IP . " " . (ID + 18101));
             shell_exec($this->config['fwcmd'] . " table 47 add " . IP);
             // Day/Night switcher:
             shell_exec("/bin/rm " . BASEPATH . "dn/" . LOGIN);
