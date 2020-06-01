@@ -51,3 +51,6 @@ $lang['def']['User has no ONU assigned'] = 'Користувач не має а�
 $lang['def']['ONU description same as login'] = 'Логін як опис ОНУ';
 $lang['def']['ONU description'] = 'Опис ОНУ';
 $lang['def']['Seems no options for describe, reboot, deregister or delete actions are enabled. Check ONUAUTO_CONFIG_* options statuses in alter.ini.'] = 'Схоже на те, що жодну з опцій для доступних дій з ОНУ не ввімкнено. Перевірте стан опцій ONUAUTO_CONFIG_* в alter.ini.';
+$lang['def']['Enable DHCP snooping'] = 'Увімкнути DHCP snooping';
+$lang['def']['Enable loopdetect'] = 'Увімкнути захист від петель (loopdetect)';
+$lang['def'][''] = '';
