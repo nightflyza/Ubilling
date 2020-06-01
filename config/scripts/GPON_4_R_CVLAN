@@ -9,6 +9,8 @@ set ONU_NUM [lindex $argv 6]
 set VLAN [lindex $argv 7]
 set SN [lindex $argv 8]
 set DESCRIPTION [lindex $argv 9]
+set DHCPSNOOPING [lindex $argv 10]
+set LOOPDETECT [lindex $argv 11]
 
 if {[string match "TELNET" $METHOD]} {
     spawn telnet $IP
@@ -42,6 +44,12 @@ if {![string match "__empty" $DESCRIPTION]} {
     expect "*(config-if)#"
     send "description $DESCRIPTION\r"
 }
+
+if {![string match "__empty" $DHCPSNOOPING]} {
+    expect "*(config-if)#"
+    send "ip dhcp snooping enable vport 1\r"
+}
+
 expect "*(config-if)#"
 send "tcont 1 name unlim profile unlim\r"
 expect "*(config-if)#"
@@ -55,6 +63,18 @@ send "exit\r"
 
 expect "*(config)#"
 send "pon-onu-mng $ONU_INT:$ONU_NUM\r"
+
+if {![string match "__empty" $LOOPDETECT]} {
+    expect "*(config-if)#"
+    send "loop-detect ethuni eth_0/1 enable\r"
+    expect "*(config-if)#"
+    send "loop-detect ethuni eth_0/2 enable\r"
+    expect "*(config-if)#"
+    send "loop-detect ethuni eth_0/3 enable\r"
+    expect "*(config-if)#"
+    send "loop-detect ethuni eth_0/4 enable\r"
+}
+
 expect "*(gpon-onu-mng)#"
 send "flow mode 1 tag-filter vid-filter untag-filter discard\r"
 expect "*(gpon-onu-mng)#"

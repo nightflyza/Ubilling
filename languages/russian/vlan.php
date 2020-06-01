@@ -1,4 +1,4 @@
-<?
+<?php
 $lang['def']['First Vlan'] = 'Первый VLAN';
 $lang['def']['Last Vlan'] = 'Последний VLAN';
 $lang['def']['Create vlan pool'] = 'Создать пул Vlan-ов';

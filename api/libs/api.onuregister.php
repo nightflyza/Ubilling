@@ -38,6 +38,8 @@ class OnuRegister {
     CONST SAVE_FIELD = 'save';
     CONST PONIZER_ADD_FIELD = 'ponizer_add';
     CONST ONUDESCRIPTION_FIELD = 'onu_description';
+    CONST DHCP_SNOOPING_FIELD = 'dhcp_snooping';
+    CONST LOOPDETECT_FIELD = 'loopdetect';
     CONST ONUDESCRIPTION_AS_LOGIN_FIELD = 'onu_description_as_login';
     CONST GET_UNIVERSALQINQ_NONE = 'none';
     CONST GET_UNIVERSALQINQ_CVLAN = 'cvlan';
@@ -365,6 +367,20 @@ class OnuRegister {
      * @var string
      */
     public $onuDescription = '__empty';
+
+    /**
+     * Flag for enabling dhcp snooping
+     * 
+     * @var type 
+     */
+    public $onuDhcpSnooping = '__empty';
+
+    /**
+     * Flag for enabling loopdetec
+     * 
+     * @var type 
+     */
+    public $onuLoopdetect = '__empty';
 
     /**
      * Contains all alter.ini options
@@ -1440,6 +1456,8 @@ class OnuRegister {
                 $command .= ' ' . $this->servicePort;
             }
             $command .= ' ' . $this->onuDescription;
+            $command .= ' ' . $this->onuDhcpSnooping;
+            $command .= ' ' . $this->onuLoopdetect;
         }
         return($command);
     }
@@ -2165,6 +2183,8 @@ $(".changeType").change(function () {
                 $cell .= wf_Tag('br');
                 $cell .= wf_CheckInput(self::SAVE_FIELD, __('Save config'), true);
                 $cell .= wf_CheckInput(self::ROUTER_FIELD, __('Router ONU mode'), true);
+                $cell .= wf_CheckInput(self::DHCP_SNOOPING_FIELD, __('Enable DHCP snooping') . '?');
+                $cell .= wf_CheckInput(self::LOOPDETECT_FIELD, __('Enable loopdetect') . '?');
 
                 break;
         }

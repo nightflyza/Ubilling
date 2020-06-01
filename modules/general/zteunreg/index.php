@@ -92,6 +92,12 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                         if (isset($_POST[OnuRegister::GET_UNIVERSALQINQ])) {
                             $register->useUniversalQINQ = $_POST[OnuRegister::GET_UNIVERSALQINQ];
                         }
+                        if (isset($_POST[OnuRegister::DHCP_SNOOPING_FIELD])) {
+                            $register->onuDhcpSnooping = 'set';
+                        }
+                        if (isset($_POST[OnuRegister::LOOPDETECT_FIELD])) {
+                            $register->onuLoopdetect = 'set';
+                        }
                         $loginCheck = $register->checkOltParams();
                         if ($loginCheck !== OnuRegister::NO_ERROR_CONNECTION) {
                             show_error(__($loginCheck));
