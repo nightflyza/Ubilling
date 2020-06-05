@@ -1154,7 +1154,7 @@ class Warehouse {
         $result = '';
         $adminNames = array('' => '-');
         $adminNames += $this->getAdminNames();
-        $inputs = __('From') . ' ' . wf_DatePickerPreset('reshistfilterfrom', date("Y-m") . '-01') . ' ';
+        $inputs = __('From') . ' ' . wf_DatePickerPreset('reshistfilterfrom', curdate()) . ' ';
         $inputs .= __('To') . ' ' . wf_DatePickerPreset('reshistfilterto', curdate()) . ' ';
         $inputs .= wf_Selector('reshistfilteremployeeid', $this->activeEmployee, __('Worker'), '', false);
         $inputs .= wf_Selector('reshistfilteradminlogin', $adminNames, __('Admin'), '', false);
@@ -1253,8 +1253,10 @@ class Warehouse {
                     }
 
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= wf_tag('br');
+                    $result .= __('Signature') . '______________________';
 
-                    $this->reportPrintable(__('History'), $result);
+                    $this->reportPrintable(__('Act of issuance of goods from the warehouse'), $result);
                 } else {
                     show_warning(__('Nothing to show'));
                 }

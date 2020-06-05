@@ -3151,5 +3151,7 @@ $lang['def']['Userstats'] = 'Кабинет пользователя';
 
 //rev 7473
 $lang['def']['Metabolism'] = 'Метаболизм';
+$lang['def']['Act of issuance of goods from the warehouse']='Акт выдачи ТМЦ со склада';
+$lang['def']['Signature'] = 'Подпись';
 
 ?>
