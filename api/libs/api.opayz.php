@@ -125,10 +125,17 @@ class OpenPayz {
     /**
      * Loads available openpayz transactions into private data property
      * 
+     * @param int $year
+     * 
      * @return void
      */
-    protected function loadTransactions() {
-        $query = "SELECT * from `op_transactions` ORDER by `id` ASC;";
+    protected function loadTransactions($year = '') {
+        $year = vf($year, 3);
+        $where = '';
+        if (!empty($year) AND $year != '1488') {
+            $where = "WHERE `date` LIKE '" . $year . "-%'";
+        }
+        $query = "SELECT * from `op_transactions` " . $where . " ORDER by `id` ASC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -277,16 +284,38 @@ class OpenPayz {
     }
 
     /**
+     * Renders year selection form for charts
+     * 
+     * @return string
+     */
+    protected function renderChartsYearForm() {
+        $result = '';
+        $curYear = ubRouting::checkPost('chartsyear') ? ubRouting::post('chartsyear', 'int') : curyear();
+        $inputs = wf_YearSelectorPreset('chartsyear', __('Year'), false, $curYear, true) . ' ';
+        $inputs .= wf_Submit(__('Show'));
+
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
      * Renders per-payment system openpayz transaction charts
      * 
      * @return string
      */
     public function renderGraphs() {
-        $this->loadTransactions();
+        $showYear = ubRouting::checkPost('chartsyear') ? ubRouting::post('chartsyear', 'int') : curyear();
+
+        $cache = new UbillingCache();
+        $cacheTimeout = 86400;
+        $curMonth = curmonth();
+        $curDay = curdate();
+        $curYear = curyear();
         $psysdata = array();
         $gcAllData = array();
         $gcYearData = array();
         $gcMonthData = array();
+        $gcDayData = array();
         $gchartsData = array();
 
         $chartsOptions = "
@@ -306,52 +335,75 @@ class OpenPayz {
                     },";
 
         $result = wf_BackLink('?module=openpayz', '', true);
-        if (!empty($this->allTransactions)) {
-            foreach ($this->allTransactions as $io => $each) {
-                $timestamp = strtotime($each['date']);
-                $curMonth = curmonth();
-                $curYear = curyear();
-                $date = date("Y-m", $timestamp);
-                if (isset($psysdata[$each['paysys']][$date]['count'])) {
-                    $psysdata[$each['paysys']][$date]['count'] ++;
-                    $psysdata[$each['paysys']][$date]['summ'] = $psysdata[$each['paysys']][$date]['summ'] + $each['summ'];
-                } else {
-                    $psysdata[$each['paysys']][$date]['count'] = 1;
-                    $psysdata[$each['paysys']][$date]['summ'] = $each['summ'];
-                }
+        //cahche data extraction
+        $chacheKeyName = 'OPCHARTS_' . $showYear;
+        $cahcheDataRaw = $cache->get($chacheKeyName, $cacheTimeout);
+        //something in cache
+        if (!empty($cahcheDataRaw)) {
+            $psysdata = $cahcheDataRaw['psysdata'];
+            $gcYearData = $cahcheDataRaw['gcYearData'];
+            $gcMonthData = $cahcheDataRaw['gcMonthData'];
+            $gcDayData = $cahcheDataRaw['gcDayData'];
+        } else {
+            //real data loading
+            $this->loadTransactions($showYear);
+            if (!empty($this->allTransactions)) {
+                foreach ($this->allTransactions as $io => $each) {
+                    $timestamp = strtotime($each['date']);
 
-                //all time stats
-                if (isset($gcAllData[$each['paysys']])) {
-                    $gcAllData[$each['paysys']] ++;
-                } else {
-                    $gcAllData[$each['paysys']] = 1;
-                }
-
-                //current year stats
-                if (ispos($date, $curYear)) {
-                    if (isset($gcYearData[$each['paysys']])) {
-                        $gcYearData[$each['paysys']] ++;
+                    $date = date("Y-m", $timestamp);
+                    $dateFull = date("Y-m-d", $timestamp);
+                    if (isset($psysdata[$each['paysys']][$date]['count'])) {
+                        $psysdata[$each['paysys']][$date]['count'] ++;
+                        $psysdata[$each['paysys']][$date]['summ'] = $psysdata[$each['paysys']][$date]['summ'] + $each['summ'];
                     } else {
-                        $gcYearData[$each['paysys']] = 1;
+                        $psysdata[$each['paysys']][$date]['count'] = 1;
+                        $psysdata[$each['paysys']][$date]['summ'] = $each['summ'];
                     }
-                }
 
-                //current month stats
-                if (ispos($date, $curMonth)) {
-                    if (isset($gcMonthData[$each['paysys']])) {
-                        $gcMonthData[$each['paysys']] ++;
-                    } else {
-                        $gcMonthData[$each['paysys']] = 1;
+                    //current year stats
+                    if (ispos($date, $curYear)) {
+                        if (isset($gcYearData[$each['paysys']])) {
+                            $gcYearData[$each['paysys']] ++;
+                        } else {
+                            $gcYearData[$each['paysys']] = 1;
+                        }
+                    }
+
+                    //current month stats
+                    if (ispos($date, $curMonth)) {
+                        if (isset($gcMonthData[$each['paysys']])) {
+                            $gcMonthData[$each['paysys']] ++;
+                        } else {
+                            $gcMonthData[$each['paysys']] = 1;
+                        }
+                    }
+
+                    //current day stats
+                    if (ispos($dateFull, $curDay)) {
+                        if (isset($gcDayData[$each['paysys']])) {
+                            $gcDayData[$each['paysys']] ++;
+                        } else {
+                            $gcDayData[$each['paysys']] = 1;
+                        }
                     }
                 }
             }
+
+            //store in cache
+            $cahcheDataRaw['psysdata'] = $psysdata;
+            $cahcheDataRaw['gcYearData'] = $gcYearData;
+            $cahcheDataRaw['gcMonthData'] = $gcMonthData;
+            $cahcheDataRaw['gcDayData'] = $gcDayData;
+            $cache->set($chacheKeyName, $cahcheDataRaw, $cacheTimeout);
         }
+
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
 
-        if (!empty($gcAllData)) {
-            $gcAllPie = wf_gcharts3DPie($gcAllData, __('All time'), '300px', '300px', $chartOpts);
+        if (!empty($gcDayData)) {
+            $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts);
         } else {
-            $gcAllPie = '';
+            $gcDayPie = '';
         }
 
         if (!empty($gcMonthData)) {
@@ -366,10 +418,15 @@ class OpenPayz {
             $gcYearPie = '';
         }
 
-        $gcells = wf_TableCell($gcAllPie);
-        $gcells .= wf_TableCell($gcYearPie);
+
+        $gcells = wf_TableCell($gcYearPie);
         $gcells .= wf_TableCell($gcMonthPie);
+        $gcells .= wf_TableCell($gcDayPie);
         $grows = wf_TableRow($gcells);
+
+        $result .= wf_tag('br');
+        $result .= $this->renderChartsYearForm();
+        $result .= wf_CleanDiv();
         $result .= wf_TableBody($grows, '100%', 0, '');
 
 
