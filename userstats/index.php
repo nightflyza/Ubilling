@@ -1,6 +1,14 @@
 <?php
 
 //error_reporting(E_ALL);
+
+/**
+ * Page generation time counters begins
+ */
+$pageGenStartTime = explode(' ', microtime());
+$pageGenStartTime = $pageGenStartTime[1] + $pageGenStartTime[0];
+
+
 // LOAD LIBS:
 include('modules/engine/api.mysql.php');
 include('modules/engine/api.compat.php');
@@ -88,6 +96,15 @@ if ($user_ip) {
                 show_window('', zbs_IntroLoadText());
             }
         }
+    }
+}
+
+//Page generation timings and query count output
+if (isset($us_config['DEBUG_COUNTERS'])) {
+    if ($us_config['DEBUG_COUNTERS']) {
+        $mtNowTime = explode(' ', microtime());
+        $totalPageGenTime = $mtNowTime[0] + $mtNowTime[1] - $pageGenStartTime;
+        show_window('', __('GT:') . round($totalPageGenTime, 3) . ' QC: ' . $query_counter);
     }
 }
 
