@@ -9,25 +9,25 @@ function web_UserSearchFieldsForm() {
     global $ubillingConfig;
     $altCf = $ubillingConfig->getAlter();
     $fieldinputs = wf_TextInput('searchquery', 'Search by', '', true, '40');
-    $fieldinputs.=wf_RadioInput('searchtype', 'All fields', 'full', true, true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Real Name', 'realname', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Login', 'login', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Phone', 'phone', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Mobile', 'mobile', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Email', 'email', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Notes', 'note', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Contract', 'contract', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'IP', 'ip', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'MAC', 'mac', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'All fields', 'full', true, true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Real Name', 'realname', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Login', 'login', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Phone', 'phone', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Mobile', 'mobile', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Email', 'email', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Notes', 'note', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Contract', 'contract', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'IP', 'ip', true);
+    $fieldinputs .= wf_RadioInput('searchtype', 'MAC', 'mac', true);
     if ($altCf['PON_ENABLED']) {
-        $fieldinputs.=wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
+        $fieldinputs .= wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
     }
     if ($altCf['SWITCHES_EXTENDED']) {
-        $fieldinputs.=wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
+        $fieldinputs .= wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
     }
-    $fieldinputs.=wf_tag('br');
-    $fieldinputs.=wf_Submit('Search');
+    $fieldinputs .= wf_tag('br');
+    $fieldinputs .= wf_Submit('Search');
     $form = wf_Form('', 'POST', $fieldinputs);
 
     return($form);
@@ -157,13 +157,25 @@ function zb_UserSearchFields($query, $searchtype) {
  * @return string
  */
 function zb_UserSearchAllFields($query, $render = true) {
+    global $ubillingConfig;
+    $notesSearchFlag = $ubillingConfig->getAlterParam('SEARCH_NOTES');
     $allfoundlogins = array();
     if (strlen($query) >= 3) {
         $searh_data_array = zb_UserGetAllDataCache();
-        // Delete space and quote special characters
+        if ($notesSearchFlag) {
+            $allUserNotes = zb_UserGetAllNotes();
+            if (!empty($allUserNotes)) {
+                foreach ($allUserNotes as $noteLogin => $noteText) {
+                    if (isset($searh_data_array[$noteLogin])) {
+                        $searh_data_array[$noteLogin]['note']=$noteText;
+                    }
+                }
+            }
+        }
+
         $searh_part = trim($query);
         $searh_part = preg_quote($searh_part, '/');
-        foreach ($searh_data_array as $login=>$data) {
+        foreach ($searh_data_array as $login => $data) {
             if (preg_grep('/' . $searh_part . '/iu', $data)) {
                 $allfoundlogins[] = $login;
             }
@@ -190,7 +202,7 @@ function web_UserSearchCFForm() {
     $cfsearchform = wf_tag('h3') . __('Additional profile fields') . wf_tag('h3', true);
     if (!empty($allcftypes)) {
         foreach ($allcftypes as $io => $eachtype) {
-            $cfsearchform.=$eachtype['name'] . ' ' . cf_TypeGetSearchControl($eachtype['type'], $eachtype['id']);
+            $cfsearchform .= $eachtype['name'] . ' ' . cf_TypeGetSearchControl($eachtype['type'], $eachtype['id']);
         }
     } else {
         $cfsearchform = '';
@@ -231,12 +243,12 @@ function web_UserSearchContractForm() {
     $altercfg = $ubillingConfig->getAlter();
     if (isset($altercfg['SEARCH_CUSTOM_CONTRACT'])) {
         if ($altercfg['SEARCH_CUSTOM_CONTRACT']) {
-            $result.=wf_tag('h3') . __('Contract search') . wf_tag('h3', true);
+            $result .= wf_tag('h3') . __('Contract search') . wf_tag('h3', true);
             $inputs = wf_TextInput('searchquery', '', '', false);
-            $inputs.= wf_HiddenInput('searchtype', 'contract');
-            $inputs.= wf_Submit(__('Search'));
-            $result.= wf_Form("", 'POST', $inputs, '');
-            $result.=wf_delimiter();
+            $inputs .= wf_HiddenInput('searchtype', 'contract');
+            $inputs .= wf_Submit(__('Search'));
+            $result .= wf_Form("", 'POST', $inputs, '');
+            $result .= wf_delimiter();
         }
     }
     return ($result);
@@ -262,7 +274,7 @@ function web_UserSearchAddressPartialForm() {
 
 
 
-    $inputs.=wf_Submit('Search');
+    $inputs .= wf_Submit('Search');
     $result = wf_Form('', 'POST', $inputs, '', '');
 
 
@@ -277,71 +289,71 @@ function web_UserSearchAddressPartialForm() {
 function web_UserSearchAddressForm() {
 
     $form = wf_tag('form', false, '', 'action="" method="POST"');
-    $form.= wf_tag('table', false, '', 'width="100%" border="0"');
+    $form .= wf_tag('table', false, '', 'width="100%" border="0"');
     if (!isset($_POST['citysel'])) {
         $cells = wf_TableCell(__('City'), '40%');
-        $cells.= wf_TableCell(web_CitySelectorAc());
-        $form.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(web_CitySelectorAc());
+        $form .= wf_TableRow($cells, 'row3');
     } else {
         // if city selected
         $cityname = zb_AddressGetCityData($_POST['citysel']);
         $cityname = $cityname['cityname'];
 
         $cells = wf_TableCell(__('City'), '40%');
-        $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysel', $_POST['citysel']));
-        $form.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysel', $_POST['citysel']));
+        $form .= wf_TableRow($cells, 'row3');
 
         if (!isset($_POST['streetsel'])) {
 
             $cells = wf_TableCell(__('Street'), '40%');
-            $cells.= wf_TableCell(web_StreetSelectorAc($_POST['citysel']));
-            $form.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(web_StreetSelectorAc($_POST['citysel']));
+            $form .= wf_TableRow($cells, 'row3');
         } else {
             // if street selected
             $streetname = zb_AddressGetStreetData($_POST['streetsel']);
             $streetname = $streetname['streetname'];
 
             $cells = wf_TableCell(__('Street'), '40%');
-            $cells.= wf_TableCell(web_ok_icon() . ' ' . $streetname . wf_HiddenInput('streetsel', $_POST['streetsel']));
-            $form.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell(web_ok_icon() . ' ' . $streetname . wf_HiddenInput('streetsel', $_POST['streetsel']));
+            $form .= wf_TableRow($cells, 'row3');
 
             if (!isset($_POST['buildsel'])) {
 
                 $cells = wf_TableCell(__('Build'), '40%');
-                $cells.= wf_TableCell(web_BuildSelectorAc($_POST['streetsel']));
-                $form.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell(web_BuildSelectorAc($_POST['streetsel']));
+                $form .= wf_TableRow($cells, 'row3');
             } else {
                 //if build selected
                 $buildnum = zb_AddressGetBuildData($_POST['buildsel']);
                 $buildnum = $buildnum['buildnum'];
 
                 $cells = wf_TableCell(__('Build'), '40%');
-                $cells.= wf_TableCell(web_ok_icon() . ' ' . $buildnum . wf_HiddenInput('buildsel', $_POST['buildsel']));
-                $form.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell(web_ok_icon() . ' ' . $buildnum . wf_HiddenInput('buildsel', $_POST['buildsel']));
+                $form .= wf_TableRow($cells, 'row3');
 
                 if (!isset($_POST['aptsel'])) {
                     $cells = wf_TableCell(__('Apartment'), '40%');
-                    $cells.= wf_TableCell(web_AptSelectorAc($_POST['buildsel']));
-                    $form.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(web_AptSelectorAc($_POST['buildsel']));
+                    $form .= wf_TableRow($cells, 'row3');
                 } else {
                     //if apt selected
                     $aptnum = zb_AddressGetAptDataById($_POST['aptsel']);
                     $aptnum = $aptnum['apt'];
 
                     $cells = wf_TableCell(__('Apartment'), '40%');
-                    $cells.= wf_TableCell(web_ok_icon() . ' ' . $aptnum . wf_HiddenInput('aptsel', $_POST['aptsel']));
-                    $form.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(web_ok_icon() . ' ' . $aptnum . wf_HiddenInput('aptsel', $_POST['aptsel']));
+                    $form .= wf_TableRow($cells, 'row3');
 
                     $cells = wf_TableCell(wf_HiddenInput('aptsearch', $_POST['aptsel']));
-                    $cells.= wf_TableCell(wf_Submit(__('Find')));
-                    $form.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(wf_Submit(__('Find')));
+                    $form .= wf_TableRow($cells, 'row3');
                 }
             }
         }
     }
 
-    $form.=wf_tag('table', true);
-    $form.=wf_tag('form', true);
+    $form .= wf_tag('table', true);
+    $form .= wf_tag('form', true);
 
     return($form);
 }
@@ -357,7 +369,7 @@ function web_CorpsSearchForm() {
     $alterCfg = $ubillingConfig->getAlter();
     $result = '';
     if ($alterCfg['CORPS_ENABLED']) {
-        $result.=wf_tag('h3') . __('Corporate users') . wf_tag('h3', true);
+        $result .= wf_tag('h3') . __('Corporate users') . wf_tag('h3', true);
         if ($alterCfg['SEARCHADDR_AUTOCOMPLETE']) {
             $corps = new Corps();
             $corpsDataRaw = $corps->getCorps();
@@ -372,8 +384,8 @@ function web_CorpsSearchForm() {
         } else {
             $inputs = wf_TextInput('searchcorpname', '', '', false, '30');
         }
-        $inputs.= wf_Submit(__('Search'));
-        $result.= wf_Form('?module=corps&show=search', 'POST', $inputs, '');
+        $inputs .= wf_Submit(__('Search'));
+        $result .= wf_Form('?module=corps&show=search', 'POST', $inputs, '');
     }
     return ($result);
 }
@@ -484,7 +496,7 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
     }
 
     if (!empty($query)) {
-        $result.=' "' . $query . '"';
+        $result .= ' "' . $query . '"';
     }
 
     return ($result);

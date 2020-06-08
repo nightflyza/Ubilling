@@ -1,6 +1,6 @@
 <?php
 // Set following option to 1 for enable debug mode
-define('XHPROF', 0);
+define('XHPROF', 1);
 if (XHPROF) {
 define("XHPROF_ROOT", __DIR__ . '/xhprof');
 require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
