@@ -126,8 +126,12 @@ if ($altCfg['PON_ENABLED']) {
                                 //rendering OLT stats
                                 show_window(__('Stats'), $pon->renderOltStats());
                             } else {
+                                //saving manual descriptions
+                                if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
+                                    $pon->ponInterfaces->save();
+                                    ubRouting::nav($pon::URL_ME . '&oltstats=true&oltid=' . ubRouting::post('newoltiddesc') . '&if=' . ubRouting::post('newoltif'));
+                                }
                                 //manual interface description controller
-                                show_window('', wf_BackLink($pon::URL_ME . '&oltstats=true'));
                                 show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
                             }
                         } else {

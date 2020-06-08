@@ -3291,11 +3291,11 @@ class PONizer {
                         $eachInterfaceLabel = $eachInterface;
                         if ($this->ponIfDescribe) {
                             $controllerUrl = self::URL_ME . '&oltstats=true&oltid=' . $oltId . '&if=' . $eachInterface;
-                            $ponIfDescr= $this->ponInterfaces->getDescription($oltId,$eachInterface);
+                            $ponIfDescr = $this->ponInterfaces->getDescription($oltId, $eachInterface);
                             if (!empty($ponIfDescr)) {
-                                $ponIfDescr=' '.$ponIfDescr;
+                                $ponIfDescr = ' ' . $ponIfDescr;
                             }
-                            $eachInterfaceLabel = wf_Link($controllerUrl, $eachInterface).$ponIfDescr;
+                            $eachInterfaceLabel = wf_Link($controllerUrl, $eachInterface) . $ponIfDescr;
                         }
 
                         $cells = wf_TableCell($eachInterfaceLabel . $oltIfaceDescr);

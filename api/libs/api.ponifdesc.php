@@ -78,9 +78,50 @@ class PONIfDesc {
      * @return string
      */
     public function renderIfForm($oltId, $interface) {
+        $oltId = ubRouting::filters($oltId, 'int');
         $result = '';
-        $result .= 'TODO';
+        $result .= wf_BackLink(PONizer::URL_ME . '&oltstats=true');
+        $result .= wf_CleanDiv() . wf_delimiter(0);
+        if (!empty($oltId)) {
+            $currentDesc = $this->getDescription($oltId, $interface);
+            $inputs = wf_HiddenInput('newoltiddesc', $oltId);
+            $interface .= wf_HiddenInput('newoltif', $interface);
+            $inputs .= wf_TextInput('newoltifdesc', __('Description') . ' ' . $interface, $currentDesc, false, 20) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
         return($result);
+    }
+
+    /**
+     * Saves changed interface description in database
+     * 
+     * @return void
+     */
+    public function save() {
+        if (ubRouting::checkPost(array('newoltiddesc', 'newoltif'))) {
+            $oltId = ubRouting::post('newoltiddesc', 'int');
+            $interface = ubRouting::post('newoltif');
+            $interfaceF = ubRouting::post('newoltif', 'mres');
+            $newDescF = ubRouting::post('newoltifdesc', 'mres');
+            $newDesc = ubRouting::post('newoltifdesc');
+            $currentDesc = $this->getDescription($oltId, $interface);
+            //something changed
+            if ($currentDesc != $newDescF) {
+                //clean old description
+                $this->dataSource->where('oltid', '=', $oltId);
+                $this->dataSource->where('iface', '=', $interfaceF);
+                $this->dataSource->delete();
+                //create new
+                $this->dataSource->data('oltid', $oltId);
+                $this->dataSource->data('iface', $interfaceF);
+                $this->dataSource->data('desc', $newDescF);
+                $this->dataSource->create();
+
+                log_register('PON OLT [' . $oltId . '] IFACE `' . $interface . '` DESC CHANGE ON `' . $newDesc . '`');
+            }
+        }
     }
 
 }
