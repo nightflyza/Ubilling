@@ -5,7 +5,7 @@ if (XHPROF) {
 define("XHPROF_ROOT", __DIR__ . '/xhprof');
 require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
 require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php');
-xhprof_enable(XHPROF_FLAGS_NO_BUILTINS + XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 }
 ////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ReloadCMS Development Team                                 //
