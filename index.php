@@ -5,18 +5,10 @@ if (XHPROF) {
 define("XHPROF_ROOT", __DIR__ . '/xhprof');
 require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_lib.php');
 require_once (XHPROF_ROOT . '/xhprof_lib/utils/xhprof_runs.php');
-xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+//append XHPROF_FLAGS_NO_BUILTINS if your PHP instance crashes
+xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY); 
 }
-////////////////////////////////////////////////////////////////////////////////
-//   Copyright (C) ReloadCMS Development Team                                 //
-//   http://reloadcms.com                                                  //
-//                                                                            //
-//   This program is distributed in the hope that it will be useful,          //
-//   but WITHOUT ANY WARRANTY, without even the implied warranty of           //
-//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     //
-//                                                                            //
-//   This product released under GNU General Public License v2                //
-////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Initializations                                                            //
