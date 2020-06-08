@@ -122,10 +122,16 @@ if ($altCfg['PON_ENABLED']) {
                         show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
                     } else {
                         if (wf_CheckGet(array('oltstats'))) {
-                            //rendering OLT stats
-                            show_window(__('Stats'), $pon->renderOltStats());
+                            if (!ubRouting::checkGet(array('oltid', 'if'))) {
+                                //rendering OLT stats
+                                show_window(__('Stats'), $pon->renderOltStats());
+                            } else {
+                                //manual interface description controller
+                                show_window('', wf_BackLink($pon::URL_ME . '&oltstats=true'));
+                                show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
+                            }
                         } else {
-                            //rendering availavle onu LIST
+                            //rendering available onu LIST
                             show_window(__('ONU directory'), $pon->controls());
                             if (!$legacy) {
                                 $pon->renderOnuList();
@@ -187,13 +193,12 @@ if ($altCfg['PON_ENABLED']) {
                     break;
 
                 case 1:
-                    $tString = __('ONU is already assigned, but such login is not exists anymore') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData ;
+                    $tString = __('ONU is already assigned, but such login is not exists anymore') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
                     break;
 
                 case 2:
-                    $tString = __('ONU is already assigned') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData ;
+                    $tString = __('ONU is already assigned') . '. ' . __('Login') . ': ' . $tLogin . '. OLT: ' . $oltData;
                     break;
-
             }
 
             die($tString);

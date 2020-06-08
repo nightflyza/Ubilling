@@ -234,6 +234,20 @@ class PONizer {
     protected $hideOnuMac = array();
 
     /**
+     * OLT intefaces manual descriptions flag
+     *
+     * @var bool
+     */
+    protected $ponIfDescribe = false;
+
+    /**
+     * PON interfaces object placeholder
+     *
+     * @var object
+     */
+    public $ponInterfaces = '';
+
+    /**
      * Some predefined routes, paths, etc
      */
     const SIGCACHE_PATH = 'exports/';
@@ -294,7 +308,10 @@ class PONizer {
         $this->replaceInvalidONUMACWithRandom = $this->ubConfig->getAlterParam('PON_ONU_MAC_MAKE_RANDOM_IF_INVALID');
         $this->showPONIfaceDescrMainTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_MAINTAB');
         $this->showPONIfaceDescrStatsTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_STATSTAB');
-
+        $this->ponIfDescribe = $this->ubConfig->getAlterParam('PON_IFDESC');
+        if ($this->ponIfDescribe) {
+            $this->ponInterfaces = new PONIfDesc();
+        }
         //optional ONU MAC hiding
         if (@$this->altCfg['PON_ONU_HIDE']) {
             $tmpHideOnuList = explode(',', $this->altCfg['PON_ONU_HIDE']);
@@ -3216,9 +3233,8 @@ class PONizer {
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
+
                         $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
-                        $cells = wf_TableCell($eachInterface . $oltIfaceDescr);
-                        $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
 
                         $avgSignalCount = @$avgSignals[$oltId][$eachInterface];
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
@@ -3242,9 +3258,9 @@ class PONizer {
                         }
 
 
-                        $cells = wf_TableCell($eachInterface);
+
                         $interfaceFillLabel = $interfaceFillColor . $eachInterfaceCount . ' (' . $eachInterfacePercent . '%)' . $interfaceFillColorEnd;
-                        $cells .= wf_TableCell($interfaceFillLabel, '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+
 
                         if (!empty($avgSignalCount)) {
                             if ($avgSignalCount >= 3) {
@@ -3272,6 +3288,18 @@ class PONizer {
                             $badSignalCount = '';
                         }
 
+                        $eachInterfaceLabel = $eachInterface;
+                        if ($this->ponIfDescribe) {
+                            $controllerUrl = self::URL_ME . '&oltstats=true&oltid=' . $oltId . '&if=' . $eachInterface;
+                            $ponIfDescr= $this->ponInterfaces->getDescription($oltId,$eachInterface);
+                            if (!empty($ponIfDescr)) {
+                                $ponIfDescr=' '.$ponIfDescr;
+                            }
+                            $eachInterfaceLabel = wf_Link($controllerUrl, $eachInterface).$ponIfDescr;
+                        }
+
+                        $cells = wf_TableCell($eachInterfaceLabel . $oltIfaceDescr);
+                        $cells .= wf_TableCell($interfaceFillLabel, '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
                         $cells .= wf_TableCell($avgSignalColor . $avgSignalCount . $avgSignalColorEnd);
                         $cells .= wf_TableCell($avgSignalPercent);
                         $cells .= wf_TableCell($badSignalColor . $badSignalCount . $badSignalColorEnd);
