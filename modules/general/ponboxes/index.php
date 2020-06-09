@@ -6,6 +6,7 @@ if (cfr('PON')) {
         if ($altCfg['PON_ENABLED']) {
             $boxes = new PONBoxes(true);
 
+
             //boxes list rendering
             if (ubRouting::checkGet($boxes::ROUTE_BOXLIST)) {
                 $boxes->ajBoxesList();
@@ -47,6 +48,7 @@ if (cfr('PON')) {
             } else {
                 //boxes editing interface
                 show_window(__('Edit'), $boxes->renderBoxEditForm(ubRouting::get($boxes::ROUTE_BOXEDIT)));
+                show_window(__('Links'), $boxes->renderBoxLinksList(ubRouting::get($boxes::ROUTE_BOXEDIT)));
             }
         } else {
             show_error(__('PONizer') . ' ' . __('disabled'));

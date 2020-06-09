@@ -44,6 +44,7 @@ class PONBoxes {
     const ROUTE_BOXLIST = 'ajboxes';
     const ROUTE_MAP = 'boxmap';
     const ROUTE_BOXEDIT = 'editboxid';
+    const ROUTE_LINKDEL = 'deletelinkid';
     const TABLE_BOXES = 'ponboxes';
     const TABLE_LINKS = 'ponboxeslinks';
 
@@ -210,7 +211,7 @@ class PONBoxes {
                     log_register('PONBOX CHANGE BOX [' . $boxId . '] GEO');
                 }
             } else {
-                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
+                $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
             }
         }
         return($result);
@@ -304,6 +305,117 @@ class PONBoxes {
             $result .= generic_MapInit($mapsCfg['CENTER'], $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Creates box->entity link in database
+     * 
+     * @param int $boxId existing PON Box ID
+     * @param string $type link type: login,address,onuid
+     * @param string $param link parameter
+     * 
+     * @return void/string on error
+     */
+    public function createLink($boxId, $type, $param) {
+        $result = '';
+        $boxId = ubRouting::filters($boxId, 'int');
+        $paramF = ubRouting::filters($param, 'mres');
+        if (isset($this->allBoxes[$boxId])) {
+            $saveLink = true;
+            switch ($type) {
+                case 'login':
+                    $useField = 'login';
+                    break;
+                case 'address':
+                    $useField = 'address';
+                    break;
+                case 'onuid':
+                    $useField = 'onuid';
+                    break;
+                default:
+                    $saveLink = false;
+                    $result .= __('Unknown link type') . ' ' . $type;
+                    break;
+            }
+
+            if ($saveLink) {
+                $this->links->data('boxid', $boxId);
+                $this->links->data($useField, $paramF);
+                $this->links->create();
+                log_register('PONBOX LINK BOX [' . $boxId . ']  TO `' . $param . '`');
+            }
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns linked entity control link
+     * 
+     * @param array $linkData
+     * 
+     * @return string
+     */
+    protected function getLinkEntityControl($linkData) {
+        $result = '';
+        if (!empty($linkData)) {
+            if (!empty($linkData['login'])) {
+                $result .= wf_Link('?module=userprofile&username=' . $linkData['login'], web_profile_icon() . ' ' . $linkData['login']);
+            }
+
+            if (!empty($linkData['onuid'])) {
+                $result .= wf_Link('?module=ponizer&editonu=' . $linkData['onuid'], wf_img('skins/switch_models.png', __('ONU')) . ' ' . $linkData['onuid']);
+            }
+
+            if (!empty($linkData['address'])) {
+                $result .= wf_img('skins/icon_build.gif', __('Address')) . ' ' . $linkData['address'];
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders existing POB Box links of any type
+     * 
+     * @param int $boxId
+     * 
+     * @return string
+     */
+    public function renderBoxLinksList($boxId) {
+        $result = '';
+        $boxId = ubRouting::filters($boxId, 'int');
+        if (isset($this->allBoxes[$boxId])) {
+            if (!empty($this->allLinks)) {
+                $curBoxLinks = array();
+                foreach ($this->allLinks as $io => $each) {
+                    if ($each['boxid'] == $boxId) {
+                        $curBoxLinks[] = $each;
+                    }
+                }
+
+                if (!empty($curBoxLinks)) {
+                    $cells = wf_TableCell(__('User') . ' / ' . __('ONU') . ' / ' . __('Address'));
+                    $cells .= wf_TableCell(__('Actions'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($curBoxLinks as $io => $each) {
+                        $cells = wf_TableCell($this->getLinkEntityControl($each));
+                        $actLinks = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_LINKDEL . '=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                        $cells .= wf_TableCell($actLinks);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
         }
         return($result);
     }
