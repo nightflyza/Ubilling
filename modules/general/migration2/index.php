@@ -202,8 +202,8 @@ function web_MigrationPreprocessing($filename,$delimiter,$encoding) {
 }
 
 function web_MigrationPrepare($import_rawdata,$import_opts) {
-    $import_rawdata=  unserialize(base64_decode($import_rawdata));
-    $import_opts=  unserialize(base64_decode($import_opts));
+    $import_rawdata = unserialize(base64_decode($import_rawdata));
+    $import_opts = unserialize(base64_decode($import_opts));
     
     $cells =  wf_TableCell('#');
     $cells.=  wf_TableCell('[login]');
@@ -233,211 +233,211 @@ function web_MigrationPrepare($import_rawdata,$import_opts) {
     $cells.=  wf_TableCell('[down]');
     $cells.=  wf_TableCell('[passive]');
 
-    $rows=    wf_TableRow($cells, 'row1');
+    $rows = wf_TableRow($cells, 'row1');
     
     $regdata=array();
     $i=0;
     
     foreach ($import_rawdata as $eachrow) {
-    $i++;    
-    $cells =  wf_TableCell($i);    
-    if ($import_opts['login_col']!='RANDOM') {
-        $login=$eachrow[$import_opts['login_col']];
-    } else {
-        $login=  'mi_'.zb_rand_string(8);
-    }
-    
-    $cells.=  wf_TableCell($login);
-    
-    if ($import_opts['password_col']!='RANDOM') {
-        $password=$eachrow[$import_opts['password_col']];
-    } else {
-        $password=  zb_rand_string(10);
-    }
-    $cells.=  wf_TableCell($password);
-    
-    $ip=$eachrow[$import_opts['ip_col']];
-    $cells.=  wf_TableCell($ip);
-    
-    if ($import_opts['mac_col']!='RANDOM') {
-        $mac=$eachrow[$import_opts['mac_col']];
-    } else {
-        $mac='14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
-    }
-    $cells.=  wf_TableCell($mac);
-    
-    $tariff=$eachrow[$import_opts['tariff_col']];
-    $cells.=  wf_TableCell($tariff);
-    
-    $cash=$eachrow[$import_opts['cash_col']];
-    $cells.=  wf_TableCell($cash);
-    
-    if ($import_opts['phone_col']!='NONE') {
-        $phone=$eachrow[$import_opts['phone_col']];
-    } else {
-        $phone='';
-    }
-    $cells.=  wf_TableCell($phone);
-    
-    if ($import_opts['mobile_col']!='NONE') {
-        $mobile=$eachrow[$import_opts['mobile_col']];
-    } else {
-        $mobile='';
-    }
-    $cells.=  wf_TableCell($mobile);
-  
-    if ($import_opts['email_col']!='NONE') {
-        $email=$eachrow[$import_opts['email_col']];
-    } else {
-        $email='';
-    }
-    $cells.=  wf_TableCell($email);
-  
-    if ($import_opts['credit_col']!='ZERO') {
-        $credit=$eachrow[$import_opts['credit_col']];
-    } else {
-        $credit=0;
-    }
-    $cells.=  wf_TableCell($credit);
-    
-    if ($import_opts['creditex_col']!='NONE') {
-        $creditex=$eachrow[$import_opts['creditex_col']];
-    } else {
-        $creditex='0';
-    }
-    $cells.=  wf_TableCell($creditex);
+        $i++;
+        $cells = wf_TableCell($i);
+        if ($import_opts['login_col'] != 'RANDOM') {
+            $login = trim($eachrow[$import_opts['login_col']]);
+        } else {
+            $login = 'mi_'.zb_rand_string(8);
+        }
+        $cells.= wf_TableCell($login);
 
-    /*START ADD*/
-    if ($import_opts['city_col']!='NONE') {
-        $city=$eachrow[$import_opts['city_col']];
-    } else {
-        $city='';
-    }
-    $cells.=  wf_TableCell($city);
+        if ($import_opts['password_col'] != 'RANDOM') {
+            $password = $eachrow[$import_opts['password_col']];
+        } else {
+            $password = zb_rand_string(10);
+        }
+        $cells.= wf_TableCell($password);
 
-    if ($import_opts['street_col']!='NONE') {
-        $street=$eachrow[$import_opts['street_col']];
-    } else {
-        $street='';
-    }
-    $cells.=  wf_TableCell($street);
-    
-    if ($import_opts['build_col']!='NONE') {
-        $build=$eachrow[$import_opts['build_col']];
-    } else {
-        $build='';
-    }
-    $cells.=  wf_TableCell($build);
-    
-    if ($import_opts['apt_entrance_col']!='NONE') {
-        $apt_entrance=$eachrow[$import_opts['apt_entrance_col']];
-    } else {
-        $apt_entrance='';
-    }
-    $cells.=  wf_TableCell($apt_entrance);
-    
-    if ($import_opts['apt_floor_col']!='NONE') {
-        $apt_floor=$eachrow[$import_opts['apt_floor_col']];
-    } else {
-        $apt_floor='';
-    }
-    $cells.=  wf_TableCell($apt_floor);
-    
-    if ($import_opts['apt_apt_col']!='NONE') {
-        $apt_apt=$eachrow[$import_opts['apt_apt_col']];
-    } else {
-        $apt_apt='';
-    }
-    $cells.=  wf_TableCell($apt_apt);
-    /*END ADD*/
-    
-    if ($import_opts['address_col']!='NONE') {
-        $address=$eachrow[$import_opts['address_col']];
-    } else {
-        $address='';
-    }
-    $cells.=  wf_TableCell($address);
-    
-    if ($import_opts['realname_col']!='NONE') {
-        $realname=$eachrow[$import_opts['realname_col']];
-    } else {
-        $realname='';
-    }
-    $cells.=  wf_TableCell($realname);
-    
-    if ($import_opts['contract_col']!='NONE') {
-        $contract=$eachrow[$import_opts['contract_col']];
-    } else {
-        $contract='';
-    }
-    $cells.=  wf_TableCell($contract);
+        $ip = trim($eachrow[$import_opts['ip_col']]);
+        $cells.= wf_TableCell($ip);
 
-    if ($import_opts['contract_d_col']!='NONE') {
-        $contract_d=$eachrow[$import_opts['contract_d_col']];
-    } else {
-        $contract_d='';
-    }
-    $cells.=  wf_TableCell($contract_d);
+        if ($import_opts['mac_col'] != 'RANDOM') {
+            $mac = trim($eachrow[$import_opts['mac_col']]);
+        } else {
+            $mac = '14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
+        }
+        $cells.= wf_TableCell($mac);
 
-    if ($import_opts['ao_col']!='AO_1') {
-        $ao=$eachrow[$import_opts['ao_col']];
-    } else {
-        $ao=1;
+        $tariff = trim($eachrow[$import_opts['tariff_col']]);
+        $cells.= wf_TableCell($tariff);
+
+        $cash = trim($eachrow[$import_opts['cash_col']]);
+        $cells.= wf_TableCell($cash);
+
+        if ($import_opts['phone_col'] != 'NONE') {
+            $phone = trim($eachrow[$import_opts['phone_col']]);
+        } else {
+            $phone = '';
+        }
+        $cells.= wf_TableCell($phone);
+
+        if ($import_opts['mobile_col'] != 'NONE') {
+            $mobile = trim($eachrow[$import_opts['mobile_col']]);
+        } else {
+            $mobile = '';
+        }
+        $cells.= wf_TableCell($mobile);
+
+        if ($import_opts['email_col'] != 'NONE') {
+            $email = trim($eachrow[$import_opts['email_col']]);
+        } else {
+            $email = '';
+        }
+        $cells.= wf_TableCell($email);
+
+        if ($import_opts['credit_col'] != 'ZERO') {
+            $credit = trim($eachrow[$import_opts['credit_col']]);
+        } else {
+            $credit = 0;
+        }
+        $cells.= wf_TableCell($credit);
+
+        if ($import_opts['creditex_col'] != 'NONE') {
+            $creditex = trim($eachrow[$import_opts['creditex_col']]);
+        } else {
+            $creditex = '0';
+        }
+        $cells.= wf_TableCell($creditex);
+
+        /*START ADD*/
+        if ($import_opts['city_col'] != 'NONE') {
+            $city = trim($eachrow[$import_opts['city_col']]);
+        } else {
+            $city = '';
+        }
+        $cells.= wf_TableCell($city);
+
+        if ($import_opts['street_col'] != 'NONE') {
+            $street = trim($eachrow[$import_opts['street_col']]);
+        } else {
+            $street = '';
+        }
+        $cells.= wf_TableCell($street);
+
+        if ($import_opts['build_col'] != 'NONE') {
+            $build = trim($eachrow[$import_opts['build_col']]);
+        } else {
+            $build = '';
+        }
+        $cells.= wf_TableCell($build);
+
+        if ($import_opts['apt_entrance_col'] != 'NONE') {
+            $apt_entrance = trim($eachrow[$import_opts['apt_entrance_col']]);
+        } else {
+            $apt_entrance = '';
+        }
+        $cells.= wf_TableCell($apt_entrance);
+
+        if ($import_opts['apt_floor_col'] != 'NONE') {
+            $apt_floor = trim($eachrow[$import_opts['apt_floor_col']]);
+        } else {
+            $apt_floor = '';
+        }
+        $cells.= wf_TableCell($apt_floor);
+
+        if ($import_opts['apt_apt_col'] != 'NONE') {
+            $apt_apt = trim($eachrow[$import_opts['apt_apt_col']]);
+        } else {
+            $apt_apt = '';
+        }
+        $cells.= wf_TableCell($apt_apt);
+        /*END ADD*/
+
+        if ($import_opts['address_col'] != 'NONE') {
+            $address = trim($eachrow[$import_opts['address_col']]);
+        } else {
+            $address = '';
+        }
+        $cells.= wf_TableCell($address);
+
+        if ($import_opts['realname_col'] != 'NONE') {
+            $realname = trim($eachrow[$import_opts['realname_col']]);
+        } else {
+            $realname = '';
+        }
+        $cells.= wf_TableCell($realname);
+
+        if ($import_opts['contract_col'] != 'NONE') {
+            $contract = trim($eachrow[$import_opts['contract_col']]);
+        } else {
+            $contract = '';
+        }
+        $cells.= wf_TableCell($contract);
+
+        if ($import_opts['contract_d_col'] != 'NONE') {
+            $contract_d = trim($eachrow[$import_opts['contract_d_col']]);
+        } else {
+            $contract_d = '';
+        }
+        $cells.= wf_TableCell($contract_d);
+
+        if ($import_opts['ao_col'] != 'AO_1') {
+            $ao = trim($eachrow[$import_opts['ao_col']]);
+        } else {
+            $ao = 1;
+        }
+        $cells.= wf_TableCell($ao);
+
+        if ($import_opts['down_col'] != 'DOWN_0') {
+            $down = trim($eachrow[$import_opts['down_col']]);
+        } else {
+            $down = 0;
+        }
+        $cells.= wf_TableCell($down);
+
+        if ($import_opts['passive_col'] != 'PASSIVE_0') {
+            $passive = trim($eachrow[$import_opts['passive_col']]);
+        } else {
+            $passive = 0;
+        }
+
+        $cells.= wf_TableCell($passive);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        // filling userreg array
+        $regdata[$login]['login'] = $login;
+        $regdata[$login]['password'] = $password;
+        $regdata[$login]['ip'] = $ip;
+        $regdata[$login]['mac'] = $mac;
+        $regdata[$login]['tariff'] = $tariff;
+        $regdata[$login]['cash'] = $cash;
+        $regdata[$login]['phone'] = $phone;
+        $regdata[$login]['mobile'] = $mobile;
+        $regdata[$login]['email'] = $email;
+        $regdata[$login]['credit'] = $credit;
+        $regdata[$login]['creditex'] = $creditex;
+        /*Start ADD*/
+        $regdata[$login]['city'] = $city;
+        $regdata[$login]['street'] = $street;
+        $regdata[$login]['build'] = $build;
+        $regdata[$login]['apt_entrance'] = $apt_entrance;
+        $regdata[$login]['apt_floor'] = $apt_floor;
+        $regdata[$login]['apt_apt'] = $apt_apt;
+        /*End ADD*/
+        $regdata[$login]['address'] = $address;
+        $regdata[$login]['realname'] = $realname;
+        $regdata[$login]['contract'] = $contract;
+        $regdata[$login]['contract_d'] = $contract_d;
+        $regdata[$login]['ao'] = $ao;
+        $regdata[$login]['down'] = $down;
+        $regdata[$login]['passive'] = $passive;
     }
-    $cells.=  wf_TableCell($ao);
     
-    if ($import_opts['down_col']!='DOWN_0') {
-     $down=$eachrow[$import_opts['down_col']];   
-    } else {
-     $down=0;    
-    }   
-    $cells.=  wf_TableCell($down);
-    
-    if ($import_opts['passive_col']!='PASSIVE_0') {
-        $passive=$eachrow[$import_opts['passive_col']];
-    } else {
-        $passive=0;
-    }
-    $cells.=  wf_TableCell($passive);
-    
-    $rows.=wf_TableRow($cells, 'row3');
-    // filling userreg array
-    $regdata[$login]['login']=$login;
-    $regdata[$login]['password']=$password;
-    $regdata[$login]['ip']=$ip;
-    $regdata[$login]['mac']=$mac;
-    $regdata[$login]['tariff']=$tariff;
-    $regdata[$login]['cash']=$cash;
-    $regdata[$login]['phone']=$phone;
-    $regdata[$login]['mobile']=$mobile;
-    $regdata[$login]['email']=$email;
-    $regdata[$login]['credit']=$credit;
-    $regdata[$login]['creditex']=$creditex;
-    /*Start ADD*/
-    $regdata[$login]['city']=$city;
-    $regdata[$login]['street']=$street;
-    $regdata[$login]['build']=$build;
-    $regdata[$login]['apt_entrance']=$apt_entrance;
-    $regdata[$login]['apt_floor']=$apt_floor;
-    $regdata[$login]['apt_apt']=$apt_apt;
-    /*End ADD*/
-    $regdata[$login]['address']=$address;
-    $regdata[$login]['realname']=$realname;
-    $regdata[$login]['contract']=$contract;
-    $regdata[$login]['contract_d']=$contract_d;
-    $regdata[$login]['ao']=$ao;
-    $regdata[$login]['down']=$down;
-    $regdata[$login]['passive']=$passive;
-    }
-    
-    $regdata_save=  serialize($regdata);
-    $regdata_save=  base64_encode($regdata_save);
+    $regdata_save = serialize($regdata);
+    $regdata_save = base64_encode($regdata_save);
     zb_StorageSet('IMPORT_REGDATA', $regdata_save);
     
-    $preparse=  wf_TableBody($rows, '100%', '0', '');
+    $preparse = wf_TableBody($rows, '100%', '0', '');
     show_window(__('All correct').'?',$preparse);
     
-    $inputs=  wf_Link('?module=migration2', 'No I want to try another import settings', false, 'ubButton');
+    $inputs = wf_Link('?module=migration2', 'No I want to try another import settings', false, 'ubButton');
     $inputs.= wf_Link('?module=migration2&setpointers=true&goregister=ok', 'Yes, proceed registeration of this users', false, 'ubButton');
     $inputs.= wf_delimiter();
     $inputs.= wf_tag('h3', false, '', 'style="color: red; background-color: #F5F5DC"');
@@ -451,27 +451,26 @@ function web_MigrationPrepare($import_rawdata,$import_opts) {
 }
 
 if (!wf_CheckGet(array('setpointers'))) {
-if(!wf_CheckPost(array('uploaduserbase'))) {
-//show upload form
-    show_window(__('User database import from text file'), web_MigrationUploadForm());
-    
-} else {
-  //upload file and show preprocessing form
-     $upload_done=  migrate_UploadFile();
-    if ($upload_done) {
-     $delimiter= $_POST['delimiter'];
-     $encoding=  $_POST['encoding'];
-      
-     web_MigrationPreprocessing($upload_done, $delimiter, $encoding);
+    if(!wf_CheckPost(array('uploaduserbase'))) {
+    //show upload form
+        show_window(__('User database import from text file'), web_MigrationUploadForm());
+
+    } else {
+    //upload file and show preprocessing form
+            $upload_done = migrate_UploadFile();
+        if ($upload_done) {
+            $delimiter = $_POST['delimiter'];
+            $encoding = $_POST['encoding'];
+
+         web_MigrationPreprocessing($upload_done, $delimiter, $encoding);
+        }
     }
-    
-}
 } else {
     //some pointers already set, load raw data into database for processing
     if (wf_CheckPost(array('import_rawdata'))) {
-        $import_rawdata=$_POST['import_rawdata'];
+        $import_rawdata = $_POST['import_rawdata'];
         zb_StorageSet('IMPORT_RAWDATA', $import_rawdata);
-        $import_opts=array(
+        $import_opts = array(
           'login_col'=>  $_POST['login_col'], 
           'password_col'=>  $_POST['password_col'], 
           'ip_col'=>  $_POST['ip_col'], 
@@ -502,13 +501,12 @@ if(!wf_CheckPost(array('uploaduserbase'))) {
           'regtype'=>$_POST['regtype']  
         );
         
-        $import_opts=  serialize($import_opts);
-        $import_opts=  base64_encode($import_opts);
+        $import_opts = serialize($import_opts);
+        $import_opts = base64_encode($import_opts);
         zb_StorageSet('IMPORT_OPTS', $import_opts);
-        
     } else {
-        $import_rawdata= zb_StorageGet('IMPORT_RAWDATA');
-        $import_opts=  zb_StorageGet('IMPORT_OPTS');
+        $import_rawdata = zb_StorageGet('IMPORT_RAWDATA');
+        $import_opts = zb_StorageGet('IMPORT_OPTS');
     }
     
     //last checks
@@ -519,9 +517,9 @@ if(!wf_CheckPost(array('uploaduserbase'))) {
         $CreateOccupancy = ( wf_CheckGet(array('create_accupancy')) ) ? true : false;
 
         //register imported users
-        $regdata_raw=  zb_StorageGet('IMPORT_REGDATA');
-        $regdata=  unserialize(base64_decode($regdata_raw));
-        $querybuff='';
+        $regdata_raw = zb_StorageGet('IMPORT_REGDATA');
+        $regdata = unserialize(base64_decode($regdata_raw));
+        $querybuff = '';
 
         if (!empty($regdata)) {
             $iopts = unserialize(base64_decode($import_opts));

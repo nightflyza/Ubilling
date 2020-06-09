@@ -36,7 +36,7 @@ class OnuDescribe extends OnuBase {
         if (isset($snmpData['onu']['CONTROLMODE'])) {
             $snmpControlMode = $snmpData['onu']['CONTROLMODE'];
 
-            if ($snmpControlMode == 'STELSFD11') {
+            if ($snmpControlMode == 'STELSFD11' or $snmpControlMode == 'STELSFD12') {
                 $this->displayMessage = __('Function is not supported by this OLT') . ': ' . $snmpControlMode;
                 return ($result);
             }
@@ -194,7 +194,7 @@ class OnuDescribe extends OnuBase {
         if (isset($snmpData['onu']['CONTROLMODE'])) {
             $snmpControlMode = $snmpData['onu']['CONTROLMODE'];
 
-            if ($snmpControlMode == 'STELSFD11') {
+            if ($snmpControlMode == 'STELSFD11' or $snmpControlMode == 'STELSFD12') {
                 $this->displayMessage = __('Function is not supported by this OLT') . ': ' . $snmpControlMode;
                 return ($result);
             }
