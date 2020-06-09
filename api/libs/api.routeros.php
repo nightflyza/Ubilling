@@ -58,7 +58,7 @@ class RouterOS {
                     $this->write('=password=' . $password);
 
                     $response = $this->read(false);
-                    if ($response[0] == '!done') {
+                    if (isset($response[0]) && $response[0] == '!done') {
                         $this->connected = true;
                         break;
                     }
@@ -72,7 +72,7 @@ class RouterOS {
                                 $this->write('=name=' . $username, false);
                                 $this->write('=response=00' . md5(chr(0) . $password . pack('H*', $matches[0][1])));
                                 $response = $this->read(false);
-                                if ($response[0] == '!done') {
+                                if (isset($response[0]) && $response[0] == '!done') {
                                     $this->connected = true;
                                     break;
                                 }

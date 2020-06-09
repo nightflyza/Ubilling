@@ -78,21 +78,21 @@
                         $this->write('=password=' . $this->options['password']);
 
                         $RESPONSE = $this->read(FALSE);
-                        if ($RESPONSE[0] == '!done') {
+                        if ( isset($RESPONSE[0]) && $RESPONSE[0] == '!done' ) {
                             $this->connected = TRUE;
                             break;
                         }
                     } else {
                         $this->write('/login');
                         $RESPONSE = $this->read(FALSE);
-                        if ( $RESPONSE[0] == '!done' ) {
+                        if ( isset($RESPONSE[0]) && $RESPONSE[0] == '!done' ) {
                             if ( preg_match_all('/[^=]+/i', $RESPONSE[1], $MATCHES) ) {
                                 if ( $MATCHES[0][0] == 'ret' && strlen($MATCHES[0][1]) == 32 ) {
                                     $this->write('/login', FALSE);
                                     $this->write('=name=' . $this->options['username'], FALSE);
                                     $this->write('=response=00' . md5(chr(0) . $this->options['password'] . pack('H*', $MATCHES[0][1])));
                                     $RESPONSE = $this->read(FALSE);
-                                    if ( $RESPONSE[0] == '!done' ) {
+                                    if ( isset($RESPONSE[0]) && $RESPONSE[0] == '!done' ) {
                                         $this->connected = TRUE;
                                         break;
                                     }

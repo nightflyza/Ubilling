@@ -26,7 +26,7 @@ class OnuDeregister extends OnuBase {
         if (isset($snmpData['onu']['CONTROLMODE'])) {
             $snmpControlMode = $snmpData['onu']['CONTROLMODE'];
 
-            if ($snmpControlMode == 'VSOL_1600D' or $snmpControlMode == 'STELSFD11') {
+            if ($snmpControlMode == 'VSOL_1600D' or $snmpControlMode == 'STELSFD11' or $snmpControlMode == 'STELSFD12') {
                 $macIndexOID = $snmpData['signal']['MACINDEX'];
                 $macValType  = $snmpData['signal']['MACVALUE'];
 
@@ -35,7 +35,7 @@ class OnuDeregister extends OnuBase {
                     $reloadONUIdx = $snmpData['onu']['DEREGONUINDEX'];
                 }
 
-                if ($snmpControlMode == 'STELSFD11') {
+                if ($snmpControlMode == 'STELSFD11' or $snmpControlMode == 'STELSFD12') {
                     $reloadOperIdx = $snmpData['onu']['OPERATION'];
                     $reloadOperNum = $snmpData['onu']['DEREG'];
                 }
@@ -55,7 +55,7 @@ class OnuDeregister extends OnuBase {
                                 $tmpCleanMAC = trim($indexMAC[1]);
                             }
 
-                            if ($snmpControlMode == 'STELSFD11') {
+                            if ($snmpControlMode == 'STELSFD11' or $snmpControlMode == 'STELSFD12') {
                                 $tmpCleanMAC = strtolower(str_replace(' ', ':', trim($indexMAC[1])));
                             }
 
@@ -72,6 +72,10 @@ class OnuDeregister extends OnuBase {
                                 if ($snmpControlMode == 'STELSFD11') {
                                     $onuIndex = ($onuIndex - 1) / 256;
                                     $reloadData[] = array('oid' => $reloadOperIdx . '.' . $ponIfaceIndex . '.' . $onuIndex, 'type' => 'i', 'value' => $reloadOperNum);
+                                }
+
+                                if ($snmpControlMode == 'STELSFD12') {
+                                    $reloadData[] = array('oid' => $reloadOperIdx . '.5.2.1.4' . '.1' . $onuIndex, 'type' => 'i', 'value' => $reloadOperNum);
                                 }
 
                                 $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $reloadData);
