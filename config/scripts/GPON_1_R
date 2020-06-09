@@ -45,11 +45,6 @@ if {![string match "__empty" $DESCRIPTION]} {
     send "description $DESCRIPTION\r"
 }
 
-if {![string match "__empty" $DHCPSNOOPING]} {
-    expect "*(config-if)#"
-    send "ip dhcp snooping enable vport 1\r"
-}
-
 expect "*(config-if)#"
 send "tcont 1 name unlim profile unlim\r"
 expect "*(config-if)#"
@@ -60,6 +55,12 @@ expect "*(config-if)#"
 send "switchport mode trunk vport 1\r"
 expect "*(config-if)#"
 send "switchport vlan $VLAN tag vport 1\r"
+
+if {![string match "__empty" $DHCPSNOOPING]} {
+    expect "*(config-if)#"
+    send "ip dhcp snooping enable vport 1\r"
+}
+
 expect "*(config-if)#"
 send "exit\r"
 
