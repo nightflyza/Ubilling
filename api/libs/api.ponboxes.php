@@ -151,6 +151,72 @@ class PONBoxes {
     }
 
     /**
+     * Renders existing box editing form
+     * 
+     * @param int $boxId
+     * 
+     * @return string
+     */
+    public function renderBoxEditForm($boxId) {
+        $boxid = ubRouting::filters($boxId, 'int');
+        $result = '';
+        if (isset($this->allBoxes[$boxId])) {
+            $boxData = $this->allBoxes[$boxId];
+            $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+            $inputs = wf_HiddenInput('editboxid', $boxId);
+            $inputs .= wf_TextInput('editboxname', __('Name') . $sup, $boxData['name'], true, 20);
+            $inputs .= wf_TextInput('editboxgeo', __('Location'), $boxData['geo'], true, 20, 'geo');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_delimiter(0);
+            $result .= wf_BackLink(self::URL_ME);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Saves box data if required
+     * 
+     * @return void/string on error
+     */
+    public function saveBox() {
+        $result = '';
+        if (ubRouting::checkPost(array('editboxid', 'editboxname'))) {
+            $boxId = ubRouting::post('editboxid', 'int');
+            $newBoxName = ubRouting::post('editboxname');
+            $newBoxNameF = ubRouting::filters($newBoxName, 'mres');
+            $newBoxGeoF = ubRouting::post('editboxgeo', 'mres');
+            if (isset($this->allBoxes[$boxId])) {
+                $boxData = $this->allBoxes[$boxId];
+                if ($newBoxNameF != $boxData['name']) {
+                    //name changed
+                    if ($this->isBoxNameFree($newBoxNameF)) {
+                        //and still is unique
+                        $this->boxes->data('name', $newBoxNameF);
+                        $this->boxes->where('id', '=', $boxId);
+                        $this->boxes->save();
+                        log_register('PONBOX CHANGE BOX [' . $boxId . '] NAME `' . $newBoxName . '`');
+                    } else {
+                        $result .= __('This box already exists');
+                    }
+                }
+
+                if ($newBoxGeoF != $boxData['geo']) {
+                    $this->boxes->data('geo', $newBoxGeoF);
+                    $this->boxes->where('id', '=', $boxId);
+                    $this->boxes->save();
+                    log_register('PONBOX CHANGE BOX [' . $boxId . '] GEO');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Check is box name alredy user or not?
      * 
      * @param string $boxName

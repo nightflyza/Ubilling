@@ -21,6 +21,16 @@ if (cfr('PON')) {
                 }
             }
 
+            //existing box editing
+            if (ubRouting::checkPost('editboxid')) {
+                $savingResult = $boxes->saveBox();
+                if (empty($savingResult)) {
+                    ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . ubRouting::post('editboxid'));
+                } else {
+                    show_error($savingResult);
+                }
+            }
+
             //default module controls panel
             show_window('', $boxes->renderControls());
 
@@ -36,7 +46,7 @@ if (cfr('PON')) {
                 }
             } else {
                 //boxes editing interface
-                show_window(__('Edit'), 'TODO');
+                show_window(__('Edit'), $boxes->renderBoxEditForm(ubRouting::get($boxes::ROUTE_BOXEDIT)));
             }
         } else {
             show_error(__('PONizer') . ' ' . __('disabled'));
