@@ -3849,8 +3849,8 @@ class PONizer {
         $fdbPointer = '';
         if (!empty($OnuId)) {
             $allUserTariffs = zb_TariffsGetAllUsers();
-            $onuMacId = $this->allOnu[$OnuId]['mac'];
-            $onuSerialId = $this->allOnu[$OnuId]['serial'];
+            $onuMacId = @$this->allOnu[$OnuId]['mac'];
+            $onuSerialId = @$this->allOnu[$OnuId]['serial'];
             $fdbCacheAvail = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
             if (!empty($fdbCacheAvail)) {
                 $fdbCacheAvail = true;
