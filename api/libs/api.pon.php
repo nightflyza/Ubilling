@@ -2678,7 +2678,9 @@ class PONizer {
                 //interface render
                 $result .= wf_delimiter();
                 $result .= $ponBoxes->renderBoxAssignForm($this->allOnu[$onuId]);
-                debarr($ponBoxes->getLinkedBoxes($this->allOnu[$onuId]));
+                //rendering associated boxes
+                $linkedBoxes = $ponBoxes->getLinkedBoxes($this->allOnu[$onuId]);
+                $result .= $ponBoxes->renderLinkedBoxes($linkedBoxes);
             }
 
             $result .= wf_delimiter();

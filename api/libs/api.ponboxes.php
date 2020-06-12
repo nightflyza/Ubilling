@@ -454,6 +454,13 @@ class PONBoxes {
         return($result);
     }
 
+    /**
+     * Search some linked boxes for this ONU
+     * 
+     * @param array $onuData
+     * 
+     * @return array
+     */
     public function getLinkedBoxes($onuData) {
         $result = array();
         if (!empty($onuData)) {
@@ -466,12 +473,42 @@ class PONBoxes {
                     }
 
                     if (!empty($onuUser)) {
+                        //fast and dirty address search
+                        $allUserAddress = zb_AddressGetFulladdresslistCached();
+                        $onuUserAddress = $allUserAddress[$onuUser];
+
+                        if ($eachLink['address'] == $onuUserAddress) {
+                            $result[$eachLink['boxid']] = $eachLink['id'];
+                        }
+
+                        //direct login seach
                         if ($eachLink['login'] == $onuUser) {
-                            $result[$eachLink['boxid']] = $eachLink['boxid'];
+                            $result[$eachLink['boxid']] = $eachLink['id'];
                         }
                     }
                 }
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders linked lined boxes list
+     * 
+     * @param array $boxesArray
+     * 
+     * @return string
+     */
+    public function renderLinkedBoxes($boxesArray) {
+        $result = '';
+        if (!empty($boxesArray)) {
+            foreach ($boxesArray as $boxId => $linkId) {
+                $boxName = $this->allBoxes[$boxId]['name'];
+                $boxLink = wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $boxId, $boxName);
+                $result .= $this->messages->getStyledMessage(__('Box') . ': ' . $boxLink, 'success');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('PON Boxes') . ': ' . __('Nothing to show'), 'info');
         }
         return($result);
     }
