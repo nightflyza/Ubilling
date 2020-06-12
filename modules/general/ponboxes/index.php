@@ -13,8 +13,8 @@ if (cfr('PON')) {
             }
 
             //new box creation
-            if (ubRouting::checkPost('newboxname')) {
-                $creationResult = $boxes->createBox(ubRouting::post('newboxname'), ubRouting::post('newboxgeo'));
+            if (ubRouting::checkPost($boxes::PROUTE_NEWBOXNAME)) {
+                $creationResult = $boxes->createBox(ubRouting::post($boxes::PROUTE_NEWBOXNAME), ubRouting::post($boxes::PROUTE_NEWBOXGEO));
                 if (empty($creationResult)) {
                     ubRouting::nav($boxes::URL_ME);
                 } else {
@@ -23,15 +23,36 @@ if (cfr('PON')) {
             }
 
             //existing box editing
-            if (ubRouting::checkPost('editboxid')) {
+            if (ubRouting::checkPost($boxes::ROUTE_BOXEDIT)) {
                 $savingResult = $boxes->saveBox();
                 if (empty($savingResult)) {
-                    ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . ubRouting::post('editboxid'));
+                    ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . ubRouting::post($boxes::ROUTE_BOXEDIT));
                 } else {
                     show_error($savingResult);
                 }
             }
 
+            //existing box deletion
+            if (ubRouting::checkGet($boxes::ROUTE_BOXDEL)) {
+                $deletionResult = $boxes->deleteBox(ubRouting::get($boxes::ROUTE_BOXDEL));
+                if (empty($deletionResult)) {
+                    ubRouting::nav($boxes::URL_ME);
+                } else {
+                    show_error($deletionResult);
+                }
+            }
+
+            //existing link deletion
+            if (ubRouting::checkGet($boxes::ROUTE_LINKDEL)) {
+                $linkDelResult = $boxes->deleteLink(ubRouting::get($boxes::ROUTE_LINKDEL));
+                if (empty($linkDelResult)) {
+                    ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . ubRouting::get($boxes::ROUTE_BOXNAV));
+                } else {
+                    show_error($linkDelResult);
+                }
+            }
+
+            //fast box navigation
             //default module controls panel
             show_window('', $boxes->renderControls());
 

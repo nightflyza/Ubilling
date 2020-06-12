@@ -8,4 +8,5 @@ $lang['def']['This box already exists'] = 'Така коробка вже існ
 $lang['def']['box'] = 'коробка';
 $lang['def']['Unknown link type'] = 'Невідомий тип зв`язку';
 $lang['def']['Links'] = 'Зв`язки';
+$lang['def']['Create new PON box link'] = 'Створити новий зв`язок ПОН коробки';
 $lang['def'][''] = '';

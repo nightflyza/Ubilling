@@ -2660,6 +2660,27 @@ class PONizer {
             $result = wf_TableBody($gridRows, '100%', 0, '');
             $result .= wf_CleanDiv();
 
+            ///ponboxes here. We hope.
+            if (@$this->altCfg['PONBOXES_ENABLED']) {
+                $ponBoxes = new PONBoxes(true);
+                //linking if required
+                if (ubRouting::checkPost(array($ponBoxes::PROUTE_NEWLINKBOX, $ponBoxes::PROUTE_NEWLINKONU, $ponBoxes::PROUTE_NEWLINKTYPE))) {
+                    $newLinkBoxId = ubRouting::post($ponBoxes::PROUTE_NEWLINKBOX);
+                    $newLinkType = ubRouting::post($ponBoxes::PROUTE_NEWLINKTYPE);
+                    $newLinkOnuId = ubRouting::post($ponBoxes::PROUTE_NEWLINKONU);
+                    $ponBoxLinkResult = $ponBoxes->createLinkONU($newLinkBoxId, $newLinkOnuId, $newLinkType);
+                    if (empty($ponBoxLinkResult)) {
+                        ubRouting::nav(self::URL_ME . '&editonu=' . $newLinkOnuId);
+                    } else {
+                        show_error($ponBoxLinkResult);
+                    }
+                }
+                //interface render
+                $result .= wf_delimiter();
+                $result .= $ponBoxes->renderBoxAssignForm($this->allOnu[$onuId]);
+                debarr($ponBoxes->getLinkedBoxes($this->allOnu[$onuId]));
+            }
+
             $result .= wf_delimiter();
             $result .= wf_BackLink(self::URL_ME);
 

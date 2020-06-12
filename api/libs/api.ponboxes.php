@@ -3,7 +3,7 @@
 class PONBoxes {
 
     /**
-     * Contains all available PON boxes as id=>boxdata
+     * Contains all available PON boxes as boxid=>boxdata
      *
      * @var array
      */
@@ -41,12 +41,20 @@ class PONBoxes {
      * Routes, static defines etc
      */
     const URL_ME = '?module=ponboxes';
+    const PROUTE_NEWBOXNAME = 'newboxname';
+    const PROUTE_NEWBOXGEO = 'newboxgeo';
+    const PROUTE_NEWLINKBOX = 'newlinkboxid';
+    const PROUTE_NEWLINKTYPE = 'newlinktype';
+    const PROUTE_NEWLINKONU = 'newlinkonu';
     const ROUTE_BOXLIST = 'ajboxes';
+    const ROUTE_BOXNAV = 'boxidnav';
     const ROUTE_MAP = 'boxmap';
     const ROUTE_BOXEDIT = 'editboxid';
+    const ROUTE_BOXDEL = 'deleteboxid';
     const ROUTE_LINKDEL = 'deletelinkid';
     const TABLE_BOXES = 'ponboxes';
     const TABLE_LINKS = 'ponboxeslinks';
+    const TABLE_PONONU = 'pononu';
 
     /**
      * Creates new PONBoxes instance
@@ -92,7 +100,7 @@ class PONBoxes {
         //              ^r- .._ .- .-"  `- .  ~"--.
         //               > \.                      \
         //               ]   ^.                     \
-        //               3  .  ">            .       Y  -MEOW!
+        //               3  .  ">            .       Y  -MEOW! WHERE IS MY BOX?!
         //  ,.__.--._   _j   \ ~   .         ;       |
         // (    ~"-._~"^._\   ^.    ^._      I     . l
         //  "-._ ___ ~"-,_7    .Z-._   7"   Y      ;  \        _
@@ -148,7 +156,7 @@ class PONBoxes {
                 $data[] = $each['id'];
                 $data[] = $each['name'];
                 $data[] = $each['geo'];
-                $boxActs = ''; //TODO: deletion control here
+                $boxActs = '';
                 $boxActs .= wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon());
                 $data[] = $boxActs;
                 $json->addRow($data);
@@ -174,7 +182,7 @@ class PONBoxes {
     }
 
     /**
-     * Renders existing box editing form
+     * Renders existing box editing form aka "Box profile"
      * 
      * @param int $boxId
      * 
@@ -193,6 +201,10 @@ class PONBoxes {
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
             $result .= wf_delimiter(0);
             $result .= wf_BackLink(self::URL_ME);
+            if (!$this->isBoxProtected($boxId)) {
+                $boxDelControlUrl = self::URL_ME . '&' . self::ROUTE_BOXDEL . '=' . $boxid;
+                $result .= ' ' . wf_JSAlert($boxDelControlUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', 'ubButton');
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
         }
@@ -304,6 +316,73 @@ class PONBoxes {
     }
 
     /**
+     * Check is box protected wit some existing links
+     * 
+     * @param int $boxId
+     * 
+     * @return bool
+     */
+    protected function isBoxProtected($boxId) {
+        $boxId = ubRouting::filters($boxId, 'int');
+        $result = false;
+        if (!empty($this->allLinks)) {
+            foreach ($this->allLinks as $io => $each) {
+                if ($each['boxid'] == $boxId) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Deletes existing PON box from database
+     * 
+     * @param int $boxId
+     * 
+     * @return void/string on error
+     */
+    public function deleteBox($boxId) {
+        $boxId = ubRouting::filters($boxId, 'int');
+        $result = '';
+        if (isset($this->allBoxes[$boxId])) {
+            if (!$this->isBoxProtected($boxId)) {
+                $boxData = $this->allBoxes[$boxId];
+                $this->boxes->where('id', '=', $boxId);
+                $this->boxes->delete();
+                log_register('PONBOX DELETE BOX [' . $boxId . '] NAME `' . $boxData['name'] . '`');
+            } else {
+                $result .= __('Something went wrong') . ': ' . __('This item is used by something');
+            }
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    /**
+     * Delete link from database
+     * 
+     * @param int $linkId
+     * 
+     * @return void/string on error
+     */
+    public function deleteLink($linkId) {
+        $linkId = ubRouting::filters($linkId, 'int');
+        $result = '';
+        if (isset($this->allLinks[$linkId])) {
+            $linkData = $this->allLinks[$linkId];
+            $this->links->where('id', '=', $linkId);
+            $this->links->delete();
+            log_register('PONBOX DELETE LINK [' . $linkId . '] BOX [' . $linkData['boxid'] . ']');
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('Link') . ' [' . $linkId . '] ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    /**
      * Renders available boxes map
      * 
      * @global object $ubillingConfig
@@ -321,7 +400,7 @@ class PONBoxes {
             $editor = '';
             foreach ($this->allBoxes as $io => $each) {
                 if (!empty($each['geo'])) {
-                    $placemarks .= generic_mapAddMark($each['geo'], $each['name'], 'TODO CONTENT', 'TODO FOOTER', '', '', true);
+                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'], '', '', '', true);
                 }
             }
             $result .= generic_MapInit($mapsCfg['CENTER'], $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
@@ -340,7 +419,7 @@ class PONBoxes {
      * 
      * @return void/string on error
      */
-    public function createLink($boxId, $type, $param) {
+    protected function createLink($boxId, $type, $param) {
         $result = '';
         $boxId = ubRouting::filters($boxId, 'int');
         $paramF = ubRouting::filters($param, 'mres');
@@ -366,10 +445,33 @@ class PONBoxes {
                 $this->links->data('boxid', $boxId);
                 $this->links->data($useField, $paramF);
                 $this->links->create();
-                log_register('PONBOX LINK BOX [' . $boxId . ']  TO `' . $param . '`');
+                $newId = $this->links->getLastId();
+                log_register('PONBOX CREATE LINK [' . $newId . '] BOX [' . $boxId . '] TYPE `' . $type . '`  TO `' . $param . '`');
             }
         } else {
             $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    public function getLinkedBoxes($onuData) {
+        $result = array();
+        if (!empty($onuData)) {
+            $onuId = $onuData['id'];
+            $onuUser = $onuData['login'];
+            if (!empty($this->allLinks)) {
+                foreach ($this->allLinks as $io => $eachLink) {
+                    if ($eachLink['onuid'] == $onuData) {
+                        $result[$eachLink['boxid']] = $eachLink['boxid'];
+                    }
+
+                    if (!empty($onuUser)) {
+                        if ($eachLink['login'] == $onuUser) {
+                            $result[$eachLink['boxid']] = $eachLink['boxid'];
+                        }
+                    }
+                }
+            }
         }
         return($result);
     }
@@ -424,7 +526,8 @@ class PONBoxes {
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($curBoxLinks as $io => $each) {
                         $cells = wf_TableCell($this->getLinkEntityControl($each));
-                        $actLinks = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_LINKDEL . '=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                        $delLinkUrl = self::URL_ME . '&' . self::ROUTE_LINKDEL . '=' . $each['id'] . '&' . self::ROUTE_BOXNAV . '=' . $each['boxid'];
+                        $actLinks = wf_JSAlert($delLinkUrl, web_delete_icon(), $this->messages->getDeleteAlert());
                         $cells .= wf_TableCell($actLinks);
                         $rows .= wf_TableRow($cells, 'row5');
                     }
@@ -439,6 +542,103 @@ class PONBoxes {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Renders box assign form. With some ONU or another ONU params
+     * 
+     * @param array $onuData
+     * 
+     * @return string
+     */
+    public function renderBoxAssignForm($onuData) {
+        $result = '';
+        $boxesTmp = array('' => '-');
+        if (!empty($onuData)) {
+            $onuId = $onuData['id'];
+            $onuUserName = $onuData['login'];
+            $onuUserName = trim($onuUserName);
+            if (!empty($this->allBoxes)) {
+                $inputs = '';
+                foreach ($this->allBoxes as $eachBoxId => $eachBoxData) {
+                    $boxesTmp[$eachBoxData['id']] = $eachBoxData['name'];
+                }
+                $inputs .= wf_HiddenInput(self::PROUTE_NEWLINKONU, $onuId);
+                $inputs .= wf_Selector(self::PROUTE_NEWLINKBOX, $boxesTmp, __('box'), '', false, false) . ' ';
+                if (!empty($onuUserName)) {
+                    $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('ONU'), 'onuid', false, true) . ' ';
+                    $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('User'), 'login', false, false) . ' ';
+                    $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('Address'), 'address', false, false) . ' ';
+                } else {
+                    $inputs .= wf_HiddenInput(self::PROUTE_NEWLINKTYPE, 'onuid');
+                }
+
+
+                $inputs .= wf_Submit(__('Create new PON box link'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            }
+        }
+
+
+        return($result);
+    }
+
+    /**
+     * Create PON box link with some ONU by some type in database
+     * 
+     * @param int $boxId
+     * @param int $onuId
+     * @param string $linkType
+     * 
+     * @return void/string on error
+     */
+    public function createLinkONU($boxId, $onuId, $linkType) {
+        $result = '';
+        $boxId = ubRouting::filters($boxId, 'int');
+        $onuId = ubRouting::filters($onuId, 'int');
+        if (isset($this->allBoxes[$boxId])) {
+            //PON ONU database abstraction workaround here
+            $ponOnu = new NyanORM(self::TABLE_PONONU);
+            $ponOnu->where('id', '=', $onuId);
+            $onuData = $ponOnu->getAll();
+            if (!empty($onuData)) {
+                $onuData = $onuData[0];
+                //trying to create link
+                if ($linkType == 'onuid') {
+                    $result .= $this->createLink($boxId, $linkType, $onuId);
+                }
+
+                if ($linkType == 'login' OR $linkType == 'address') {
+                    $userLogin = trim($onuData['login']);
+                    if (!empty($userLogin)) {
+                        $userData = zb_UserGetAllData($userLogin);
+                        if (!empty($userData)) {
+                            $userAddress = $userData[$userLogin]['fulladress'];
+                            //login linking
+                            if ($linkType == 'login') {
+                                $result .= $this->createLink($boxId, $linkType, $userLogin);
+                            }
+                            //address linking
+                            if ($linkType == 'address') {
+                                if (!empty($userAddress)) {
+                                    $result .= $this->createLink($boxId, $linkType, $userAddress);
+                                } else {
+                                    $result .= __('Something went wrong') . ': ' . __('Address') . ' ' . __('Empty');
+                                }
+                            }
+                        } else {
+                            $result .= __('Something went wrong') . ': ' . __('User') . ' (' . $userLogin . ') ' . __('Not exists');
+                        }
+                    }
+                }
+            } else {
+                $result .= __('Something went wrong') . ': ' . __('ONU') . ' [' . $onuId . '] ' . __('Not exists');
+            }
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
+        }
+
         return($result);
     }
 
