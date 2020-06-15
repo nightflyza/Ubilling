@@ -254,7 +254,7 @@ if (cfr('COVID')) {
                             $result .= $this->messages->getStyledMessage(__('Confirmed') . ' ' . $lastData['confirmed'], 'warning');
                             $result .= $this->messages->getStyledMessage(__('Deaths') . ' ' . $lastData['deaths'] . ' (' . $countryDeathPercent . '%)', 'error');
                             $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
-                            $result .= $this->messages->getStyledMessage(__('For the last day') . ' (' . __('Confirmed') . '/' . __('Deaths') . ') ' . $lastConf . '/' . $lastDeath, 'info');
+                            $result .= $this->messages->getStyledMessage(__('For the last day') .' '.$date. ' (' . __('Confirmed') . '/' . __('Deaths') . ') ' . $lastConf . '/' . $lastDeath, 'info');
 
                             $result .= wf_gchartsLine($charsDataPeaks, __('By date'), '100%', '300px;', $chartsOptions);
                             if ($curMonthCount > 0) {
