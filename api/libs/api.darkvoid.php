@@ -39,6 +39,13 @@ class DarkVoid {
     protected $ubConfig = null;
 
     /**
+     * Array of modules that must be skipped on alert updates
+     *
+     * @var array
+     */
+    protected $skipOnModules = array();
+
+    /**
      * Cache storage path
      */
     const CACHE_PATH = 'exports/';
@@ -50,10 +57,21 @@ class DarkVoid {
 
     public function __construct() {
         if (LOGGED_IN) {
+            $this->setModSkip();
             $this->setMyLogin();
             $this->loadAlter();
             $this->loadAlerts();
         }
+    }
+
+    /**
+     * Sets modules array to be skipped on alert updates to prevent DB ops
+     * 
+     * @return void
+     */
+    protected function setModSkip() {
+        $this->skipOnModules = array('turbosms', 'senddog', 'remoteapi', 'updatemanager');
+        $this->skipOnModules = array_flip($this->skipOnModules);
     }
 
     /**
@@ -80,7 +98,7 @@ class DarkVoid {
         if ($updateCache) {
             //ugly hack to prevent alerts update on tsms and senddog modules
             if (isset($_GET['module'])) {
-                if (($_GET['module'] != 'turbosms') AND ( ( $_GET['module'] != 'senddog')) AND ( ( $_GET['module'] != 'remoteapi'))) {
+                if (!isset($this->skipOnModules[$_GET['module']])) {
                     //renew cache
                     $this->updateAlerts();
                 }
