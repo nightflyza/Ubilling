@@ -1042,9 +1042,9 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $ddtcharged = explode(':', $paynote);
         $paynote = __('Doomsday tariff') . ': ' . $ddtcharged[1];
     }
-    
-     if (ispos($paynote, 'PTFEE')) {
-        $paynote = __('PT').' '.__('Fee');
+
+    if (ispos($paynote, 'PTFEE')) {
+        $paynote = __('PT') . ' ' . __('Fee');
     }
 
     return ($paynote);
@@ -2262,7 +2262,7 @@ function web_AddressAptForm($login) {
 
     if ($ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED')) {
         $extenAddrData = zb_AddressExtenGetLoginFast($login);
-        $postCode  = (empty($extenAddrData['postal_code'])) ? '' : $extenAddrData['postal_code'];
+        $postCode = (empty($extenAddrData['postal_code'])) ? '' : $extenAddrData['postal_code'];
         $extenTown = (empty($extenAddrData['town_district'])) ? '' : $extenAddrData['town_district'];
         $extenAddr = (empty($extenAddrData['address_exten'])) ? '' : $extenAddrData['address_exten'];
 
@@ -4835,16 +4835,36 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     }
 
     ////////////////////////////////////
-    $alltariffprices = zb_TariffGetPricesAll();
-    @$tariffPrice = (isset($alltariffprices[$userTariff])) ? $alltariffprices[$userTariff] : 0;
 
+    $allTariffsData = zb_TariffGetAllData();
+
+    @$tariffPrice = (isset($allTariffsData[$userTariff])) ? $allTariffsData[$userTariff]['Fee'] : 0;
+    $tariffPeriod = 'month';
+    if ($tariffPrice) {
+        //some valid tariff
+        if (isset($allTariffsData[$userTariff]['period'])) {
+            $tariffPeriod = $allTariffsData[$userTariff]['period'];
+        }
+    }
 
     if ($cash >= '-' . $credit) {
         $creditProposal = $tariffPrice;
         $creditNote = __('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
+        //daily tariffs fix for active users
+        if ($tariffPeriod == 'day') {
+            $creditProposal = $tariffPrice * $easycreditoption;
+            $creditNote = __('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
+            $creditNote .= ' + ' . $easycreditoption . ' ' . __('days') . '.';
+        }
     } else {
         $creditProposal = abs($cash);
         $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
+        //daily tariffs fix for debtors
+        if ($tariffPeriod == 'day') {
+            $creditProposal = abs($cash) + ($tariffPrice * $easycreditoption);
+            $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
+            $creditNote .= ' + ' . $easycreditoption . ' ' . __('days') . '.';
+        }
     }
 
     //calculate credit expire date
@@ -4852,6 +4872,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     $creditSeconds = ($easycreditoption * 86400); //days*secs
     $creditOffset = $nowTimestamp + $creditSeconds;
     $creditExpireDate = date("Y-m-d", $creditOffset);
+
     //construct form
     $controlIcon = wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
     $inputs = '';
