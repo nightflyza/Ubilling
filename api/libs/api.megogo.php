@@ -38,6 +38,20 @@ class MegogoApi {
     protected $urlApi = '';
 
     /**
+     * Contains web-login URL
+     *
+     * @var string
+     */
+    protected $urlCms = '';
+
+    /**
+     * Contains default ISP domain to perform users register.
+     *
+     * @var string
+     */
+    protected $ispDomain = '';
+
+    /**
      * Authorization API URL
      *
      * @var string
@@ -68,8 +82,49 @@ class MegogoApi {
         $this->partnerId = $this->altCfg['MG_PARTNERID'];
         $this->prefix = $this->altCfg['MG_PREFIX'];
         $this->salt = $this->altCfg['MG_SALT'];
-        $this->urlApi = 'http://billing.megogo.net/partners/';
+        $this->ispDomain = @$this->altCfg['MG_DOMAIN'];
+
         $this->urlAuth = 'http://megogo.net/auth/by_partners/';
+        $this->urlCms = 'https://cms.qa.megogo.net/'; // TODO: delete qa. subdomain
+        $this->urlApi = 'http://billing.qa.megogo.net/partners/'; // TODO: delete qa. subdomain
+    }
+
+    /**
+     * Performs registering user for web auth
+     * 
+     * @param login $login
+     * @param string $password
+     * 
+     * @return array/void on error
+     */
+    public function registerWebUser($login, $password) {
+        $result = '';
+        if (!empty($this->ispDomain)) {
+            if (!empty($login) AND ! empty($password)) {
+                $userId = $this->prefix . $login;
+                $queryUrl = $this->urlApi . $this->partnerId . '/user/changeCredentials';
+                $requestArr = array(
+                    'isdn' => '{' . $userId . '}',
+                    'email' => $login . '@' . $this->ispDomain,
+                    'password' => $password
+                );
+
+                $requestJson = json_encode($requestArr);
+                $ch = curl_init($queryUrl);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $requestJson);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                $resultRaw = curl_exec($ch);
+                if (!empty($resultRaw)) {
+                    $resultRaw = json_decode($resultRaw, true);
+                    if (isset($resultRaw['successful']) AND $resultRaw['successful'] == 1) {
+                        $result = $requestArr;
+                    }
+                }
+            }
+        }
+        return($result);
     }
 
     /**
@@ -437,6 +492,12 @@ class MegogoInterface {
                         log_register('MEGOGO SUBSCRIBE (' . $login . ') TARIFF [' . $tariffid . ']');
                         $mgApi = new MegogoApi();
                         $mgApi->subscribe($login, $tariffData['serviceid']);
+                        $userSystemData = $this->allUsers[$login];
+                        //TODO: remove following IF statement or replace with normal mechanics
+                        if (!empty($userSystemData['Password'])) {
+//                            $webRegisterResult = $mgApi->registerWebUser($login, $userSystemData['Password']);
+//                            file_put_contents('exports/mgreg.log', print_r($webRegisterResult, true));
+                        }
                         log_register('MEGOGO ACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
 
                         //force fee
