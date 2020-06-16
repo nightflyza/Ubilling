@@ -209,9 +209,23 @@ if ($us_config['SC_ENABLED']) {
         }
     }
 
+//getting some tariff data
+    $tariffData = zbs_UserGetTariffData($tariff);
 
-    $tariffprice = zbs_UserGetTariffPrice($tariff);
-    $tariffprice += $vs_price;
+    $tariffFee = $tariffData['Fee'];
+    if (isset($tariffData['period'])) {
+        $tariffPeriod = $tariffData['period'];
+    } else {
+        $tariffPeriod = 'month'; //older stargazer releases
+    }
+
+    $tariffprice = $tariffFee; //default for month/spread tariffs
+    if ($tariffPeriod == 'day') {
+        $tariffprice = $tariffFee * date("t"); // now this is price for whole month
+    }
+
+    $tariffprice += $vs_price; //appending virtual services price
+
     if (isset($us_config['SC_DAILY_FIX'])) {
         if ($us_config['SC_DAILY_FIX']) {
             $tariffprice = abs($current_cash) + ($tariffprice * $us_config['SC_TERM']);
