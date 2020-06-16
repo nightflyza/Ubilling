@@ -220,8 +220,11 @@ if ($us_config['SC_ENABLED']) {
     }
 
     $tariffprice = $tariffFee; //default for month/spread tariffs
-    if ($tariffPeriod == 'day') {
-        $tariffprice = $tariffFee * date("t"); // now this is price for whole month
+    
+    if (!@$us_config['SC_DAILY_FIX']) {
+        if ($tariffPeriod == 'day') {
+            $tariffprice = $tariffFee * date("t"); // now this is price for whole month
+        }
     }
 
     $tariffprice += $vs_price; //appending virtual services price
