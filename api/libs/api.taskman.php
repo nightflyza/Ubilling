@@ -2538,11 +2538,11 @@ function ts_TaskProblemsEditForm() {
 function ts_isMeBranchCursed() {
     global $ubillingConfig;
     $result = false;
-    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED') OR $ubillingConfig->getAlterParam('TASKMAN_GULAG')) {
         if (cfr('ROOT')) {
             $result = false;
         } else {
-            if (cfr('BRANCHES')) {
+            if (cfr('BRANCHES') OR cfr('TASKMANGULAG')) {
                 $result = true;
             }
         }

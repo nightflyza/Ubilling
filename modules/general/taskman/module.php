@@ -6,7 +6,8 @@ $this->registerModule($module, 'main', __('Tasks manager'), 'Nightfly', array(
     'TASKMANDELETE' => __('right to delete tasks'),
     'TASKMANNODONDATE' => __('deny tasks done date change'),
     'TASKMANNWATCHLOG' => __('can watch log change for tasks'),
-    'TASKMANEDITTASK'=> __('right to edit existing tasks')
+    'TASKMANEDITTASK'=> __('right to edit existing tasks'),
+    'TASKMANGULAG'=> __('the administrator is repressed')
 ));
 
 ?>
