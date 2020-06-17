@@ -154,6 +154,9 @@ if (cfr('SENDDOG')) {
                     case 'smspilotbalance':
                         show_window(__('SMSPILOT') . ' ' . __('Balance'), $sendDog->renderSMSPILOTBalance());
                         break;
+                    case 'alphasmsbalance':
+                        show_window(__('ALPHASMS') . ' ' . __('Balance'), $sendDog->renderAlpasmsBalance());
+                        break;
                     case 'telegramcontacts':
                         show_window(__('Telegram bot contacts'), $sendDog->renderTelegramContacts());
                         break;
