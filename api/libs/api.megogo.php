@@ -85,8 +85,12 @@ class MegogoApi {
         $this->ispDomain = @$this->altCfg['MG_DOMAIN'];
 
         $this->urlAuth = 'http://megogo.net/auth/by_partners/';
+
         $this->urlCms = 'https://cms.qa.megogo.net/'; // TODO: delete qa. subdomain
         $this->urlApi = 'http://billing.qa.megogo.net/partners/'; // TODO: delete qa. subdomain
+        //Production
+        $this->urlCms = 'https://cms.megogo.net/';
+        $this->urlApi = 'http://billing.megogo.net/partners/';
     }
 
     /**
