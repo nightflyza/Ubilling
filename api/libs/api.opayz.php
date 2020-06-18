@@ -345,6 +345,7 @@ class OpenPayz {
             $gcMonthData = $cahcheDataRaw['gcMonthData'];
             $gcDayData = $cahcheDataRaw['gcDayData'];
         } else {
+            $cahcheDataRaw = array();
             //real data loading
             $this->loadTransactions($showYear);
             if (!empty($this->allTransactions)) {
