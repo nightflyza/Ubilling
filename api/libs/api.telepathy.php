@@ -251,6 +251,9 @@ class Telepathy {
     public function usePhones() {
         //init previously detected phones cache
         $this->phoneTelepathyCache = $this->cache->get('PHONETELEPATHY', self::PHONE_CACHE_TIME);
+        if (empty($this->phoneTelepathyCache)) {
+            $this->phoneTelepathyCache = array();
+        }
         //loading user phones data
         if ($this->cachedPhones) {
             $allPhoneData = $this->cache->get('PHONEDATA', self::PHONE_CACHE_TIME);
@@ -459,7 +462,7 @@ class Telepathy {
         $phoneNumber = ($normalizeMobile) ? $this->normalizePhoneFormat($phoneNumber) : $phoneNumber;
         if (!empty($phoneNumber)) {
             if (!$onlyMobile) {
-                if (!empty($this->allPhones) and !$this->uniqLogin) {
+                if (!empty($this->allPhones) and ! $this->uniqLogin) {
                     foreach ($this->allPhones as $baseNumber => $userLogin) {
                         if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                             $result = $userLogin;
@@ -468,7 +471,7 @@ class Telepathy {
                 }
             }
 
-            if (!empty($this->allExtMobiles) and !$this->uniqLogin) {
+            if (!empty($this->allExtMobiles) and ! $this->uniqLogin) {
                 foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
                     if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                         $result = $userLogin;
@@ -476,7 +479,7 @@ class Telepathy {
                 }
             }
 
-            if (!empty($this->allMobiles) and !$this->uniqLogin) {
+            if (!empty($this->allMobiles) and ! $this->uniqLogin) {
                 foreach ($this->allMobiles as $baseNumber => $userLogin) {
                     if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                         $result = $userLogin;
@@ -515,8 +518,8 @@ class Telepathy {
             $result = $this->phoneTelepathyCache[$phoneNumber];
         } else {
             $detectedLogin = $this->getByPhone($phoneNumber, $onlyMobile, $normalizeMobile);
-            $result=$detectedLogin;
-                $this->phoneTelepathyCache[$phoneNumber] = $detectedLogin;
+            $result = $detectedLogin;
+            $this->phoneTelepathyCache[$phoneNumber] = $detectedLogin;
         }
         return ($result);
     }
@@ -529,7 +532,7 @@ class Telepathy {
     public function savePhoneTelepathyCache() {
         $this->cache->set('PHONETELEPATHY', $this->phoneTelepathyCache, self::PHONE_CACHE_TIME);
     }
-    
+
     /**
      * Cleans phone telepathy cache
      * 
@@ -537,7 +540,6 @@ class Telepathy {
      */
     public function flushPhoneTelepathyCache() {
         $this->cache->delete('PHONETELEPATHY');
-        
     }
 
 }
