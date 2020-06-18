@@ -560,7 +560,7 @@ class SendDog {
         $response = @unserialize($this->base64_url_decode($response));
 
         $result .= wf_BackLink(self::URL_ME, '', true);
-        $result .= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response['balance'] . ' UAN', 'info');
+        $result .= $this->messages->getStyledMessage(__('Current account balance') . ': ' . @$response['balance'] . ' UAN', 'info');
         return ($result);
     }
 
