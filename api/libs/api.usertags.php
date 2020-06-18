@@ -153,29 +153,18 @@ function stg_get_tagtype_data($tagtypeid) {
  * @return string
  */
 function stg_show_user_tags($login) {
-    $query = "SELECT * from `tags` WHERE `login`='" . $login . "';";
+    $query = "SELECT * from `tags` INNER JOIN (SELECT * from `tagtypes`) AS tt ON (`tags`.`tagid`=`tt`.`id`) LEFT JOIN (SELECT `mobile`,`tagid` AS emtag FROM `employee` WHERE `tagid` != '') as tem ON (`tags`.`tagid`=`tem`.`emtag`) WHERE `login`='" . $login . "';";
     $alltags = simple_queryall($query);
-    $tagTypesData = array();
     $result = '';
     if (!empty($alltags)) {
-        //getting tags data
-        $tagTypes_q = "SELECT * from `tagtypes`";
-        $tagTypesRaw = simple_queryall($tagTypes_q);
-        if (!empty($tagTypesRaw)) {
-            foreach ($tagTypesRaw as $ia => $eachTagType) {
-                $tagTypesData[$eachTagType['id']] = $eachTagType;
-            }
-        }
-
 
         foreach ($alltags as $io => $eachtag) {
-            if (isset($tagTypesData[$eachtag['tagid']])) {
-                $tagbody = $tagTypesData[$eachtag['tagid']];
-                $result .= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
-                $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . wf_tag('a', true);
+                $emploeeMobile = ($eachtag['mobile']) ? wf_modal(wf_img('skins/icon_mobile.gif', $eachtag['tagname']),  $eachtag['tagname'] . ' - ' . __('Mobile'),  $eachtag['mobile'], '', 400, 200) : '';
+                $result .= wf_tag('font', false, '', 'color="' . $eachtag['tagcolor'] . '" size="' . $eachtag['tagsize'] . '"');
+                $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $eachtag['tagcolor'] . ';"') . $eachtag['tagname'] . wf_tag('a', true);
+                $result .= $emploeeMobile;
                 $result .= wf_tag('font', true);
                 $result .= '&nbsp;';
-            }
         }
     }
     return ($result);
