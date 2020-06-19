@@ -1168,6 +1168,9 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
     $telepathy = new Telepathy(false, true);
     $cache = new UbillingCache();
     $addressLoginsCache = $cache->get('ADDRESSTELEPATHY', 2592000);
+    if (empty($addressLoginsCache)) {
+        $addressLoginsCache = array();
+    }
 
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
