@@ -136,11 +136,11 @@ class ConnectionDetails {
         $currentData = $this->getByLogin($login);
 
         $inputs = wf_TextInput('newseal', __('Cable seal'), @$currentData['seal'], true, '40');
-        $inputs.= wf_TextInput('newlength', __('Cable length') . ', ' . __('m'), @$currentData['length'], true, '5');
-        $inputs.= wf_TextInput('newprice', __('Signup price'), @$currentData['price'], true, '5');
-        $inputs.= wf_HiddenInput('editcondet', 'true');
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('newlength', __('Cable length') . ', ' . __('m'), @$currentData['length'], true, 5, 'digits');
+        $inputs .= wf_TextInput('newprice', __('Signup price'), @$currentData['price'], true, 5, 'finance');
+        $inputs .= wf_HiddenInput('editcondet', 'true');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Save'));
 
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
@@ -158,15 +158,15 @@ class ConnectionDetails {
         $result = '';
         if (!empty($currentData)) {
             if (!empty($currentData['seal'])) {
-                $result.=__('Seal') . ': ' . $currentData['seal'] . ' ';
+                $result .= __('Seal') . ': ' . $currentData['seal'] . ' ';
             }
 
             if (!empty($currentData['price'])) {
-                $result.=__('Cost') . ': ' . $currentData['price'] . ' ';
+                $result .= __('Cost') . ': ' . $currentData['price'] . ' ';
             }
 
             if (!empty($currentData['length'])) {
-                $result.=__('Cable') . ': ' . $currentData['length'] . __('m');
+                $result .= __('Cable') . ': ' . $currentData['length'] . __('m');
             }
         }
         return ($result);
