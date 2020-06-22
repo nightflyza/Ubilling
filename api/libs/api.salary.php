@@ -492,6 +492,9 @@ class Salary {
      */
     protected function loadTaskJobsCache() {
         $this->taskJobsCache = $this->cache->get('TASKSJOBS', self::CACHE_TIMEOUT);
+        if (empty($this->taskJobsCache)) {
+            $this->taskJobsCache = array();
+        }
     }
 
     /**

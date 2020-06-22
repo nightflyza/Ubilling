@@ -286,6 +286,9 @@ class Warehouse {
      */
     protected function loadTaskOutsCache() {
         $this->taskOutsCache = $this->cache->get('TASKSOUTS', self::CACHE_TIMEOUT);
+        if (empty($this->taskOutsCache)) {
+            $this->taskOutsCache = array();
+        }
     }
 
     /**

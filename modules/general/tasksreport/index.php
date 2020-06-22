@@ -413,7 +413,7 @@ if (cfr('TASKREPORT')) {
                     if (!empty($all)) {
                         foreach ($all as $io => $each) {
                             if (isset($this->signupPayments[$each['login']])) {
-                                $this->signupPayments[$each['login']]+=$each['summ'];
+                                $this->signupPayments[$each['login']] += $each['summ'];
                             } else {
                                 $this->signupPayments[$each['login']] = $each['summ'];
                             }
@@ -456,7 +456,7 @@ if (cfr('TASKREPORT')) {
                         foreach ($all as $io => $each) {
                             if (isset($this->notesTagids[$each['tagid']])) {
                                 if (isset($this->userTags[$each['login']])) {
-                                    $this->userTags[$each['login']].=@$this->tagTypes[$each['tagid']] . ' ';
+                                    $this->userTags[$each['login']] .= @$this->tagTypes[$each['tagid']] . ' ';
                                 } else {
                                     $this->userTags[$each['login']] = @$this->tagTypes[$each['tagid']] . ' ';
                                 }
@@ -477,6 +477,9 @@ if (cfr('TASKREPORT')) {
                 $result = 0;
                 if (isset($this->signupPayments[$login])) {
                     $result = $this->signupPayments[$login];
+                    if (!is_numeric($result)) {
+                        $result = 0;
+                    }
                 }
                 return ($result);
             }
@@ -489,8 +492,8 @@ if (cfr('TASKREPORT')) {
             public function renderDatesForm() {
                 $result = '';
                 $inputs = __('Date') . ' ' . wf_DatePickerPreset('datefrom', $this->dateFrom, true) . ' ' . __('From') . ' ';
-                $inputs.= wf_DatePickerPreset('dateto', $this->dateTo, true) . ' ' . __('To') . ' ';
-                $inputs.= wf_Submit(__('Show'));
+                $inputs .= wf_DatePickerPreset('dateto', $this->dateTo, true) . ' ' . __('To') . ' ';
+                $inputs .= wf_Submit(__('Show'));
                 $result = wf_Form('', 'POST', $inputs, 'glamour');
                 return ($result);
             }
@@ -506,17 +509,17 @@ if (cfr('TASKREPORT')) {
             public function reportPrintable($title, $data) {
                 $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
                 $header = wf_tag('html', false);
-                $header.= wf_tag('head', false);
-                $header.= wf_tag('title') . $title . wf_tag('title', true);
-                $header.= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
-                $header.= wf_tag('style', false, '', 'type="text/css"');
-                $header.= $style;
-                $header.=wf_tag('style', true);
-                $header.= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
-                $header.=wf_tag('head', true);
-                $header.= wf_tag('body', false);
+                $header .= wf_tag('head', false);
+                $header .= wf_tag('title') . $title . wf_tag('title', true);
+                $header .= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
+                $header .= wf_tag('style', false, '', 'type="text/css"');
+                $header .= $style;
+                $header .= wf_tag('style', true);
+                $header .= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
+                $header .= wf_tag('head', true);
+                $header .= wf_tag('body', false);
                 $footer = wf_tag('body', true);
-                $footer.= wf_tag('html', true);
+                $footer .= wf_tag('html', true);
 
                 $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
                 $data = $header . $title . $data . $footer;
@@ -546,17 +549,17 @@ if (cfr('TASKREPORT')) {
 
                 if (!empty($this->allTasks)) {
                     $cells = wf_TableCell('№');
-                    $cells.= wf_TableCell(__('ID'));
-                    $cells.= wf_TableCell(__('Done'));
-                    $cells.= wf_TableCell(__('Contract'));
-                    $cells.= wf_TableCell(__('Address'));
-                    $cells.= wf_TableCell(__('Type'));
+                    $cells .= wf_TableCell(__('ID'));
+                    $cells .= wf_TableCell(__('Done'));
+                    $cells .= wf_TableCell(__('Contract'));
+                    $cells .= wf_TableCell(__('Address'));
+                    $cells .= wf_TableCell(__('Type'));
                     if ($this->warehouseFlag OR $this->salaryFlag) {
-                        $cells.= wf_TableCell(__('Spent on task'));
+                        $cells .= wf_TableCell(__('Spent on task'));
                     }
-                    $cells.= wf_TableCell(__('Paid by user'));
-                    $cells.= wf_TableCell(__('Tariff fee'));
-                    $cells.= wf_TableCell(__('Notes'));
+                    $cells .= wf_TableCell(__('Paid by user'));
+                    $cells .= wf_TableCell(__('Tariff fee'));
+                    $cells .= wf_TableCell(__('Notes'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($this->allTasks as $io => $each) {
@@ -572,7 +575,7 @@ if (cfr('TASKREPORT')) {
                         $userLogin = '';
                         $userLink = '';
                         $userTariff = '';
-                        $tariffPrice = '';
+                        $tariffPrice = 0;
                         if (!empty($each['login'])) {
                             $userLogin = $each['login'];
                             @$userContract = $this->userContracts[$userLogin];
@@ -594,11 +597,11 @@ if (cfr('TASKREPORT')) {
                         }
 
                         $cells = wf_TableCell($count);
-                        $cells.= wf_TableCell(wf_Link(self::URL_TASK . $each['id'], $each['id'], false));
-                        $cells.= wf_TableCell(web_bool_led($each['status']), '', '', 'sorttable_customkey="' . $each['status'] . '"');
-                        $cells.= wf_TableCell($userLink);
-                        $cells.= wf_TableCell($styleStart . $each['address'] . $styleEnd);
-                        $cells.= wf_TableCell($styleStart . $this->jobtypes[$each['jobtype']]['jobname'] . $styleEnd);
+                        $cells .= wf_TableCell(wf_Link(self::URL_TASK . $each['id'], $each['id'], false));
+                        $cells .= wf_TableCell(web_bool_led($each['status']), '', '', 'sorttable_customkey="' . $each['status'] . '"');
+                        $cells .= wf_TableCell($userLink);
+                        $cells .= wf_TableCell($styleStart . $each['address'] . $styleEnd);
+                        $cells .= wf_TableCell($styleStart . $this->jobtypes[$each['jobtype']]['jobname'] . $styleEnd);
                         if ($this->warehouseFlag OR $this->salaryFlag) {
                             if ($this->warehouseFlag) {
                                 $warehouseSpentRaw = $this->warehouse->taskMaterialsSpentPrice($each['id']);
@@ -622,25 +625,28 @@ if (cfr('TASKREPORT')) {
                                 }
                             }
                             $totalTaskSpent = $warehouseSpent + $salarySpent;
-                            $cells.= wf_TableCell($totalTaskSpent);
+                            $cells .= wf_TableCell($totalTaskSpent);
                         }
                         //detecting signup price and some counters only for signup tasks
                         if (isset($this->signupJobtypeId[$each['jobtype']])) {
                             $signupPrice = $this->getSignupPrice($userLogin);
-                            $signupsSalaryTotalSpent+=$salarySpent;
-                            $signupsWarehouseTotalSpent+=$warehouseSpent;
-                            $signupsTotalSpent+=$warehouseSpent + $salarySpent;
-                            $signupsTotalPayments+=$signupPrice;
-                            $signupsTotalTariffPrices+=$tariffPrice;
+                            $signupsSalaryTotalSpent += $salarySpent;
+                            $signupsWarehouseTotalSpent += $warehouseSpent;
+                            $signupsTotalSpent += $warehouseSpent + $salarySpent;
+                            $signupsTotalPayments += $signupPrice;
+                            if (!is_numeric($tariffPrice)) {
+                                $tariffPrice = 0; //fix of non detected user tariffs pricing
+                            }
+                            $signupsTotalTariffPrices += $tariffPrice;
                         } else {
                             //other task types
-                            $signupPrice = '';
-                            $otherTasksTotalSpent+=$warehouseSpent + $salarySpent;
+                            $signupPrice = 0;
+                            $otherTasksTotalSpent += $warehouseSpent + $salarySpent;
                         }
-                        $cells.= wf_TableCell($signupPrice);
-                        $cells.= wf_TableCell($tariffPrice);
+                        $cells .= wf_TableCell($signupPrice);
+                        $cells .= wf_TableCell($tariffPrice);
 
-                        $cells.= wf_TableCell(@$this->userTags[$userLogin]);
+                        $cells .= wf_TableCell(@$this->userTags[$userLogin]);
 
                         //row coloring
                         if (empty($userLogin)) {
@@ -658,16 +664,16 @@ if (cfr('TASKREPORT')) {
                         }
 
 
-                        $rows.= wf_TableRow($cells, $rowColor);
+                        $rows .= wf_TableRow($cells, $rowColor);
 
                         //report summary
                         if (isset($tasksSummary[$each['jobtype']])) {
                             $tasksSummary[$each['jobtype']]['count'] ++;
-                            $tasksSummary[$each['jobtype']]['warehouse']+=$warehouseSpent;
-                            $tasksSummary[$each['jobtype']]['salary']+=$salarySpent;
-                            $tasksSummary[$each['jobtype']]['sigprice']+=$signupPrice;
+                            $tasksSummary[$each['jobtype']]['warehouse'] += $warehouseSpent;
+                            $tasksSummary[$each['jobtype']]['salary'] += $salarySpent;
+                            $tasksSummary[$each['jobtype']]['sigprice'] += $signupPrice;
                             if (isset($this->signupJobtypeId[$each['jobtype']])) {
-                                $tasksSummary[$each['jobtype']]['tariffprice']+=$tariffPrice;
+                                $tasksSummary[$each['jobtype']]['tariffprice'] += $tariffPrice;
                             }
                         } else {
                             $tasksSummary[$each['jobtype']]['tasktype'] = $this->jobtypes[$each['jobtype']]['jobname'];
@@ -686,46 +692,46 @@ if (cfr('TASKREPORT')) {
                     }
 
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-                    $result.= wf_tag('br');
+                    $result .= wf_tag('br');
 
                     //detailed tasks summary
                     if (!empty($tasksSummary)) {
                         $cells = wf_TableCell(__('Job type'));
-                        $cells.= wf_TableCell(__('Count'));
+                        $cells .= wf_TableCell(__('Count'));
                         if ($this->warehouseFlag OR $this->salaryFlag) {
                             if ($this->warehouseFlag) {
-                                $cells.= wf_TableCell(__('Spent materials'));
+                                $cells .= wf_TableCell(__('Spent materials'));
                             }
                             if ($this->salaryFlag) {
-                                $cells.= wf_TableCell(__('Paid staff'));
+                                $cells .= wf_TableCell(__('Paid staff'));
                             }
                         }
-                        $cells.= wf_TableCell(__('Tariff fee'));
-                        $cells.= wf_TableCell(__('Signup payments total'));
+                        $cells .= wf_TableCell(__('Tariff fee'));
+                        $cells .= wf_TableCell(__('Signup payments total'));
 
-                        $cells.= wf_TableCell(__('Profit'));
+                        $cells .= wf_TableCell(__('Profit'));
                         $rows = wf_TableRow($cells, 'row1');
 
                         foreach ($tasksSummary as $io => $each) {
                             $cells = wf_TableCell($each['tasktype']);
-                            $cells.= wf_TableCell($each['count']);
+                            $cells .= wf_TableCell($each['count']);
                             if ($this->warehouseFlag OR $this->salaryFlag) {
                                 if ($this->warehouseFlag) {
-                                    $cells.= wf_TableCell($each['warehouse']);
+                                    $cells .= wf_TableCell($each['warehouse']);
                                 }
                                 if ($this->salaryFlag) {
-                                    $cells.= wf_TableCell($each['salary']);
+                                    $cells .= wf_TableCell($each['salary']);
                                 }
                             }
-                            $cells.= wf_TableCell($each['tariffprice']);
-                            $cells.= wf_TableCell($each['sigprice']);
+                            $cells .= wf_TableCell($each['tariffprice']);
+                            $cells .= wf_TableCell($each['sigprice']);
 
-                            $cells.= wf_TableCell((($each['tariffprice'] + $each['sigprice']) - ($each['warehouse'] + $each['salary'])));
-                            $rows.= wf_TableRow($cells, 'row3');
+                            $cells .= wf_TableCell((($each['tariffprice'] + $each['sigprice']) - ($each['warehouse'] + $each['salary'])));
+                            $rows .= wf_TableRow($cells, 'row3');
                         }
 
-                        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-                        $result.= wf_tag('br');
+                        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                        $result .= wf_tag('br');
 
                         //signup warehouse items spent summary stats
                         if (!empty($signupMaterialsSpent)) {
@@ -734,8 +740,8 @@ if (cfr('TASKREPORT')) {
                                 if (!empty($flow)) {
                                     foreach ($flow as $ia => $each) {
                                         if (isset($warehouseSignupStats[$each['itemtypeid']])) {
-                                            $warehouseSignupStats[$each['itemtypeid']]['count']+=$each['count'];
-                                            $warehouseSignupStats[$each['itemtypeid']]['price']+=$each['price'] * $each['count'];
+                                            $warehouseSignupStats[$each['itemtypeid']]['count'] += $each['count'];
+                                            $warehouseSignupStats[$each['itemtypeid']]['price'] += $each['price'] * $each['count'];
                                         } else {
                                             $warehouseSignupStats[$each['itemtypeid']]['count'] = $each['count'];
                                             $warehouseSignupStats[$each['itemtypeid']]['price'] = $each['price'] * $each['count'];
@@ -745,23 +751,23 @@ if (cfr('TASKREPORT')) {
                             }
 
                             $cells = wf_TableCell(__('Category'));
-                            $cells.= wf_TableCell(__('Warehouse item types'));
-                            $cells.= wf_TableCell(__('Count'));
-                            $cells.= wf_TableCell(__('Money'));
+                            $cells .= wf_TableCell(__('Warehouse item types'));
+                            $cells .= wf_TableCell(__('Count'));
+                            $cells .= wf_TableCell(__('Money'));
                             $rows = wf_TableRow($cells, 'row1');
 
                             foreach ($warehouseSignupStats as $io => $each) {
                                 $cells = wf_TableCell($this->warehouse->itemtypeGetCategory($io));
-                                $cells.= wf_TableCell($this->warehouse->itemtypeGetName($io));
-                                $cells.= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
-                                $cells.= wf_TableCell($each['price']);
-                                $rows.= wf_TableRow($cells, 'row3');
+                                $cells .= wf_TableCell($this->warehouse->itemtypeGetName($io));
+                                $cells .= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
+                                $cells .= wf_TableCell($each['price']);
+                                $rows .= wf_TableRow($cells, 'row3');
                             }
 
 
-                            $resultPrintable.=wf_tag('b') . __('Total spent materials for signups') . wf_tag('b', true);
-                            $resultPrintable.= wf_TableBody($rows, '100%', 0, 'sortable');
-                            $resultPrintable.= wf_tag('br');
+                            $resultPrintable .= wf_tag('b') . __('Total spent materials for signups') . wf_tag('b', true);
+                            $resultPrintable .= wf_TableBody($rows, '100%', 0, 'sortable');
+                            $resultPrintable .= wf_tag('br');
                         }
 
                         //warehouse items spent on non-signup tasks
@@ -771,8 +777,8 @@ if (cfr('TASKREPORT')) {
                                 if (!empty($flow)) {
                                     foreach ($flow as $ia => $each) {
                                         if (isset($warehouseNonSignupStats[$each['itemtypeid']])) {
-                                            $warehouseNonSignupStats[$each['itemtypeid']]['count']+=$each['count'];
-                                            $warehouseNonSignupStats[$each['itemtypeid']]['price']+=$each['price'] * $each['count'];
+                                            $warehouseNonSignupStats[$each['itemtypeid']]['count'] += $each['count'];
+                                            $warehouseNonSignupStats[$each['itemtypeid']]['price'] += $each['price'] * $each['count'];
                                         } else {
                                             $warehouseNonSignupStats[$each['itemtypeid']]['count'] = $each['count'];
                                             $warehouseNonSignupStats[$each['itemtypeid']]['price'] = $each['price'] * $each['count'];
@@ -782,59 +788,59 @@ if (cfr('TASKREPORT')) {
                             }
 
                             $cells = wf_TableCell(__('Category'));
-                            $cells.= wf_TableCell(__('Warehouse item types'));
-                            $cells.= wf_TableCell(__('Count'));
-                            $cells.= wf_TableCell(__('Money'));
+                            $cells .= wf_TableCell(__('Warehouse item types'));
+                            $cells .= wf_TableCell(__('Count'));
+                            $cells .= wf_TableCell(__('Money'));
                             $rows = wf_TableRow($cells, 'row1');
 
                             foreach ($warehouseNonSignupStats as $io => $each) {
                                 $cells = wf_TableCell($this->warehouse->itemtypeGetCategory($io));
-                                $cells.= wf_TableCell($this->warehouse->itemtypeGetName($io));
-                                $cells.= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
-                                $cells.= wf_TableCell($each['price']);
-                                $rows.= wf_TableRow($cells, 'row3');
+                                $cells .= wf_TableCell($this->warehouse->itemtypeGetName($io));
+                                $cells .= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
+                                $cells .= wf_TableCell($each['price']);
+                                $rows .= wf_TableRow($cells, 'row3');
                             }
 
 
-                            $resultPrintable.=wf_tag('b') . __('Total spent for other tasks') . ' (' . __('From warehouse storage') . ')' . wf_tag('b', true);
-                            $resultPrintable.= wf_TableBody($rows, '100%', 0, 'sortable');
-                            $resultPrintable.= wf_tag('br');
-                            $result.=$resultPrintable;
+                            $resultPrintable .= wf_tag('b') . __('Total spent for other tasks') . ' (' . __('From warehouse storage') . ')' . wf_tag('b', true);
+                            $resultPrintable .= wf_TableBody($rows, '100%', 0, 'sortable');
+                            $resultPrintable .= wf_tag('br');
+                            $result .= $resultPrintable;
                         }
 
                         //appending totals counters
                         $cells = wf_TableCell(__('Counter'));
-                        $cells.= wf_TableCell(__('Money'));
+                        $cells .= wf_TableCell(__('Money'));
                         $rows = wf_TableRow($cells, 'row1');
 
                         $cells = wf_TableCell(__('Total spent on signups'), '', 'row2');
-                        $cells.= wf_TableCell($signupsTotalSpent);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($signupsTotalSpent);
+                        $rows .= wf_TableRow($cells, 'row3');
 
                         $cells = wf_TableCell(__('Total spent materials for signups'), '', 'row2');
-                        $cells.= wf_TableCell($signupsWarehouseTotalSpent);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($signupsWarehouseTotalSpent);
+                        $rows .= wf_TableRow($cells, 'row3');
 
                         $cells = wf_TableCell(__('Total spent salary for signups'), '', 'row2');
-                        $cells.= wf_TableCell($signupsSalaryTotalSpent);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($signupsSalaryTotalSpent);
+                        $rows .= wf_TableRow($cells, 'row3');
 
                         $cells = wf_TableCell(__('Signup payments total'), '', 'row2');
-                        $cells.= wf_TableCell($signupsTotalPayments);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($signupsTotalPayments);
+                        $rows .= wf_TableRow($cells, 'row3');
 
                         $cells = wf_TableCell(__('Total spent for other tasks'), '', 'row2');
-                        $cells.= wf_TableCell($otherTasksTotalSpent);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($otherTasksTotalSpent);
+                        $rows .= wf_TableRow($cells, 'row3');
 
                         $signupsProfit = ($signupsTotalTariffPrices + $signupsTotalPayments) - $signupsTotalSpent;
                         $cells = wf_TableCell(__('Profit from users signups'), '', 'row2');
-                        $cells.= wf_TableCell($signupsProfit);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($signupsProfit);
+                        $rows .= wf_TableRow($cells, 'row3');
 
-                        $result.= wf_TableBody($rows, '50%', 0, 'sortable');
+                        $result .= wf_TableBody($rows, '50%', 0, 'sortable');
                         if ($this->salaryMultiplier) {
-                            $result.=__('Including salary tax rates');
+                            $result .= __('Including salary tax rates');
                         }
                     }
                 } else {
