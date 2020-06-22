@@ -454,6 +454,24 @@ class UbillingTelegram {
             $method = 'sendVenue' . $locationParams;
         }
 
+        //photo sending
+        if (ispos($message, 'sendPhoto:')) {
+            if (preg_match('!\[(.*?)\]!si', $message, $tmpPhoto)) {
+                $cleanPhoto = $tmpPhoto[1];
+            }
+
+            if (preg_match('!\{(.*?)\}!si', $message, $tmpCaption)) {
+                $cleanCaption = $tmpCaption[1];
+            }
+
+            $photoParams = '?chat_id=' . $chatid . '&photo=' . $cleanPhoto;
+            if (!empty($cleanCaption)) {
+                $photoParams .= '&caption=' . $cleanCaption;
+            }
+            $method = 'sendPhoto' . $photoParams;
+        }
+
+
         //POST data encoding
         $data_json = json_encode($data);
 
