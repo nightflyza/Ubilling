@@ -1862,7 +1862,7 @@ class UserProfile {
         $profile .= wf_tag('td', true); //end of main profile container 
 
 
-        $profile .= wf_tag('td', false, '', 'valign="top" width="10%"'); //profile plugins container
+        $profile .= wf_tag('td', false, '', 'valign="top" width="10%" class="profileplugincontainer"'); //profile plugins container
         $profile .= $this->plugins;
         $profile .= wf_tag('td', true); // end of plugins container
 
