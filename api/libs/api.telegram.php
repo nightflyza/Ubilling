@@ -503,6 +503,63 @@ class UbillingTelegram {
         }
     }
 
+    /**
+     * Sets HTTPS web hook URL for some bot
+     * 
+     * @param string $webHookUrl HTTPS url to send updates to. Use an empty string to remove webhook integration
+     * @param int $maxConnections Maximum allowed number of simultaneous HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
+     * 
+     * @return string
+     */
+    public function setWebHook($webHookUrl, $maxConnections = 40) {
+        $result = '';
+        if (!empty($this->botToken)) {
+            $data = array();
+            if (!empty($webHookUrl)) {
+                $method = 'setWebhook';
+                if (ispos($webHookUrl, 'https://')) {
+                    $data['url'] = $webHookUrl;
+                    $data['max_connections'] = $maxConnections;
+                } else {
+                    throw new Exception('EX_NOT_SSL_URL');
+                }
+            } else {
+                $method = 'deleteWebhook';
+            }
+
+            $url = $this->apiUrl . $this->botToken . '/' . $method;
+            if ($this->debug) {
+                deb($url);
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            curl_setopt($ch, CURLOPT_POST, 1);
+            if (!empty($data)) {
+                $data_json = json_encode($data);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
+            }
+
+            if ($this->debug) {
+                $result = curl_exec($ch);
+                deb($result);
+                $curlError = curl_error($ch);
+                if (!empty($curlError)) {
+                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
+                } else {
+                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
+                }
+            } else {
+                $result = curl_exec($ch);
+            }
+            curl_close($ch);
+        } else {
+            throw new Exception('EX_TOKEN_EMPTY');
+        }
+        return($result);
+    }
+
 }
 
 ?>
