@@ -110,6 +110,7 @@ class UkvSystem {
     const URL_USERS_MGMT = '?module=ukv&users=true'; //users management
     const URL_USERS_LIST = '?module=ukv&users=true&userslist=true'; //users list route
     const URL_USERS_PROFILE = '?module=ukv&users=true&showuser='; //user profile
+    const URL_USERS_LIFESTORY = '?module=ukv&users=true&lifestory=true&showuser='; //user lifestory
     const URL_USERS_REGISTER = '?module=ukv&users=true&register=true'; //users registration route
     const URL_USERS_AJAX_SOURCE = '?module=ukv&ajax=true'; //ajax datasource for JQuery data tables
     const URL_INET_USER_PROFILE = '?module=userprofile&username='; //internet user profile
@@ -1116,7 +1117,7 @@ class UkvSystem {
      * 
      * @return string
      */
-    protected function userLifeStoryForm($userid) {
+    public function userLifeStoryForm($userid) {
         $userid = vf($userid, 3);
         $query = "SELECT * from `weblogs` WHERE `event` LIKE '%((" . $userid . "))%' ORDER BY `id` DESC;";
         $all = simple_queryall($query);
@@ -1133,7 +1134,7 @@ class UkvSystem {
                 $cells .= wf_TableCell($each['admin']);
                 $cells .= wf_TableCell($each['date']);
                 $cells .= wf_TableCell($each['event']);
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -1640,7 +1641,8 @@ class UkvSystem {
 
             $profilePlugins = '';
             if (cfr('UKV')) {
-                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600') . __('Details') . wf_tag('div', true);
+                $lifeStoryUrl = self::URL_USERS_LIFESTORY . $userid;
+                $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_Link($lifeStoryUrl, wf_img('skins/icon_orb_big.gif', __('User lifestory'))) . __('Details') . wf_tag('div', true);
             }
             if (cfr('UKVCASH')) {
                 $profilePlugins .= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);

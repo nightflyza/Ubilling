@@ -161,7 +161,7 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
 
                     $lastDKErrorParam = '';
 
-                    if (isset($voracity_i) and !empty($voracity_i)) {
+                    if (isset($voracity_i) and ! empty($voracity_i)) {
                         $lastDKErrorParam = '&lastdkerror=' . urlencode($voracity_i);
                     }
 
@@ -185,7 +185,14 @@ if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
                 rcms_redirect(UkvSystem::URL_USERS_PROFILE . ubRouting::get('showuser'));
             }
 
-            show_window(__('User profile'), $ukv->userProfile($_GET['showuser']) . $errorWindow);
+            //user profile rendering
+            if (!ubRouting::checkGet('lifestory')) {
+                show_window(__('User profile'), $ukv->userProfile(ubRouting::get('showuser')) . $errorWindow);
+            } else {
+                //or lifestory view
+                show_window('', wf_BackLink($ukv::URL_USERS_PROFILE . ubRouting::get('showuser')));
+                show_window(__('User lifestory'), $ukv->userLifeStoryForm(ubRouting::get('showuser')));
+            }
         }
 
         // bank statements processing
