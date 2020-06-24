@@ -595,6 +595,41 @@ class UbillingTelegram {
         return($result);
     }
 
+    /**
+     * Returns webhook data
+     * 
+     * @param bool $rawData receive raw reply or preprocess to something easy
+     * 
+     * @return array
+     */
+    public function getHookData($rawData = false) {
+        $result = array();
+        $postRaw = file_get_contents('php://input');
+        if (!empty($postRaw)) {
+            $postRaw = json_decode($postRaw, true);
+            if ($this->debug) {
+                debarr($result);
+            }
+
+            if (!$rawData) {
+                if (isset($postRaw['message'])) {
+                    if (isset($postRaw['message']['from'])) {
+                        $result['message_id'] = $postRaw['message']['message_id'];
+                        $result['from']['id'] = $postRaw['message']['from']['id'];
+                        $result['from']['username'] = $postRaw['message']['from']['username'];
+                        $result['chat']['id'] = $postRaw['message']['chat']['id'];
+                        $result['chat']['type'] = $postRaw['message']['chat']['type'];
+                        $result['date'] = $postRaw['message']['date'];
+                        @$result['text'] = $postRaw['message']['text'];
+                    }
+                }
+            } else {
+                $result = $postRaw;
+            }
+        }
+        return($result);
+    }
+
 }
 
 ?>
