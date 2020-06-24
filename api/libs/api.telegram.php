@@ -560,6 +560,41 @@ class UbillingTelegram {
         return($result);
     }
 
+    /**
+     * Returns bot web hook info
+     * 
+     * @return string
+     */
+    public function getWebHookInfo() {
+        $result = '';
+        if (!empty($this->botToken)) {
+            $method = 'getWebhookInfo';
+            $url = $this->apiUrl . $this->botToken . '/' . $method;
+            if ($this->debug) {
+                deb($url);
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            if ($this->debug) {
+                $result = curl_exec($ch);
+                deb($result);
+                $curlError = curl_error($ch);
+                if (!empty($curlError)) {
+                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
+                } else {
+                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
+                }
+            } else {
+                $result = curl_exec($ch);
+            }
+            curl_close($ch);
+        }
+
+        return($result);
+    }
+
 }
 
 ?>
