@@ -42,3 +42,14 @@
     color: #000000 !important;
 }
 
+/* Dark mode */
+.darkmode--activated .sphinxsearchcontainer {
+    background-color: #222222;
+    color: #f2f2f2  !important;
+}
+
+.darkmode--activated  .sphinxsearchcontainer a:hover {
+    text-decoration: none !important;
+    background-color: #fefefe;
+    color: #000000 !important;
+}

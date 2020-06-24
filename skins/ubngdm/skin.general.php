@@ -189,7 +189,7 @@
             darkmode.showWidget();
         </script>
 
-        <link rel="stylesheet" href="modules/jsc/jquery-ui-themes/themes/dark-hive/jquery-ui.min.css" type="text/css"/>
+        <!--  <link rel="stylesheet" href="modules/jsc/jquery-ui-themes/themes/dark-hive/jquery-ui.min.css" type="text/css"/> -->
         <link rel="stylesheet" href="modules/jsc/jquery-ui-themes/themes/dark-hive/theme.css" type="text/css"/>
         <link rel="stylesheet" href="modules/jsc/dt3/css/jquery.dataTables.ub_dm.css" type="text/css"/>
         
