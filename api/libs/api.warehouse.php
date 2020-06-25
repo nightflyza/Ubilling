@@ -2149,7 +2149,7 @@ class Warehouse {
                 $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
-                $data[] = ($each['price'] * $each['count']);
+                $data[] = round($each['price'] * $each['count'],2);
                 $data[] = @$this->allStorages[$each['storageid']];
                 $data[] = $each['notes'];
                 $data[] = $actLink;
