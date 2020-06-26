@@ -598,7 +598,7 @@ class UbillingTelegram {
     /**
      * Returns webhook data
      * 
-     * @param bool $rawData receive raw reply or preprocess to something easy
+     * @param bool $rawData receive raw reply or preprocess to something more simple.
      * 
      * @return array
      */
@@ -617,10 +617,17 @@ class UbillingTelegram {
                         $result['message_id'] = $postRaw['message']['message_id'];
                         $result['from']['id'] = $postRaw['message']['from']['id'];
                         $result['from']['username'] = $postRaw['message']['from']['username'];
+                        $result['from']['first_name'] = $postRaw['message']['from']['first_name'];
+                        @$result['from']['language_code'] = $postRaw['message']['from']['language_code'];
                         $result['chat']['id'] = $postRaw['message']['chat']['id'];
-                        $result['chat']['type'] = $postRaw['message']['chat']['type'];
                         $result['date'] = $postRaw['message']['date'];
+                        $result['chat']['type'] = $postRaw['message']['chat']['type'];
                         @$result['text'] = $postRaw['message']['text'];
+                        @$result['photo'] = $postRaw['message']['photo'];
+                        @$result['document'] = $postRaw['message']['document'];
+                        @$result['voice'] = $postRaw['message']['voice'];
+                        @$result['audio'] = $postRaw['message']['audio'];
+                        @$result['video_note'] = $postRaw['message']['video_note'];
                     }
                 }
             } else {
