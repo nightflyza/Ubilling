@@ -270,6 +270,8 @@ class WolfDispatcher {
                     }
                 }
             }
+            //this shall be executed on any non empty data recieve
+            $this->handleAnyWay();
         }
     }
 
@@ -289,6 +291,15 @@ class WolfDispatcher {
      */
     protected function handleEmptyText() {
         //will be executed on messages with empty text field
+    }
+
+    /**
+     * Dummy method which will be executed on receive any non empty data on listener
+     * 
+     * @return void
+     */
+    protected function handleAnyWay() {
+        //will be executed on eny non empty received data
     }
 
     /**
