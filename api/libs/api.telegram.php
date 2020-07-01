@@ -596,6 +596,48 @@ class UbillingTelegram {
     }
 
     /**
+     * Returns chat data array by its chatId
+     * 
+     * @param int chatId
+     * 
+     * @return array
+     */
+    public function getChatInfo($chatId) {
+        $result = array();
+        if (!empty($this->botToken) AND ( !empty($chatId))) {
+            $method = 'getChat';
+            $url = $this->apiUrl . $this->botToken . '/' . $method . '?chat_id=' . $chatId;
+            if ($this->debug) {
+                deb($url);
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            if ($this->debug) {
+                $result = curl_exec($ch);
+                deb($result);
+                $curlError = curl_error($ch);
+                if (!empty($curlError)) {
+                    show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
+                } else {
+                    show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
+                }
+            } else {
+                $result = curl_exec($ch);
+            }
+
+            curl_close($ch);
+
+            if (!empty($result)) {
+                $result = json_decode($result, true);
+            }
+        }
+
+        return($result);
+    }
+
+    /**
      * Returns webhook data
      * 
      * @param bool $rawData receive raw reply or preprocess to something more simple.
