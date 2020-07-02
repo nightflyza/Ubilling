@@ -4834,7 +4834,6 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
         }
     }
 
-    ////////////////////////////////////
 
     $allTariffsData = zb_TariffGetAllData();
 
@@ -4864,6 +4863,12 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
             $creditProposal = abs($cash) + ($tariffPrice * $easycreditoption);
             $creditNote = __('At the moment the account have debt. It is proposed to establish credit in its size.');
             $creditNote .= ' + ' . $easycreditoption . ' ' . __('days') . '.';
+        }
+
+        //small and ugly hack to avoid precision issues with floating point values
+        if (ispos($creditProposal, '.')) {
+            $creditProposal = $creditProposal + 1;
+            $creditProposal = round($creditProposal);
         }
     }
 
