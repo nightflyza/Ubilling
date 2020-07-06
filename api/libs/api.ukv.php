@@ -2813,7 +2813,6 @@ class UkvSystem {
     public function getDebtors() {
         $result = array();
         $debtorsArr = array();
-        $result = '';
         $counter = 0;
         $summDebt = 0;
         if ($this->altCfg['COMPLEX_ENABLED']) {
