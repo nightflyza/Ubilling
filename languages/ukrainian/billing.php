@@ -3174,5 +3174,7 @@ $lang['def']['Userstats'] = 'Кабінет користувача';
 $lang['def']['Metabolism'] = 'Метаболізм';
 $lang['def']['Act of issuance of goods from the warehouse']='Акт видачі ТМЦ зі складу';
 $lang['def']['Signature'] = 'Підпис';
+$lang['def']['Lightning map'] = 'Мапа блискавок';
+
 
 ?>
