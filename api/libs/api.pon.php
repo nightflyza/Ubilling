@@ -265,6 +265,8 @@ class PONizer {
     const DEREGCACHE_EXT = 'ONUDEREGS';
     const UPTIME_PATH = 'exports/';
     const UPTIME_EXT = 'OLTUPTIME';
+    const TEMPERATURE_PATH = 'exports/';
+    const TEMPERATURE_EXT = 'OLTTEMPERATURE';
     const URL_ME = '?module=ponizer';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const SNMPCACHE = false;
@@ -768,6 +770,24 @@ class PONizer {
             $uptimeRaw = $uptimeRaw[1];
             $uptimeRaw = trim($uptimeRaw);
             file_put_contents(self::UPTIME_PATH . $oltid . '_' . self::UPTIME_EXT, $uptimeRaw);
+        }
+    }
+
+    /**
+     * Parses BDCom temperature data and saves it into uptime cache
+     * 
+     * @param int $oltid
+     * @param string $uptimeRaw
+     * 
+     * @return void
+     */
+    protected function temperatureParseBd($oltid, $tempRaw) {
+        $oltid = ubRouting::filters($oltid, 'int');
+        if (!empty($oltid) AND ! empty($tempRaw)) {
+            $tempRaw = explode(':', $tempRaw);
+            $tempRaw = $tempRaw[1];
+            $tempRaw = trim($tempRaw);
+            file_put_contents(self::TEMPERATURE_PATH . $oltid . '_' . self::TEMPERATURE_EXT, $tempRaw);
         }
     }
 
@@ -1657,10 +1677,20 @@ class PONizer {
                                 }
                             }
 //getting other system data from OLT
-                            if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
-                                $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
-                                $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
-                                $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
+                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
+                                //OLT uptime
+                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+                                    $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
+                                }
+
+                                //OLT temperature
+                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
+                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
+                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
+                                    $this->temperatureParseBd($oltid, $oltTemperatureRaw);
+                                }
                             }
 //getting MAC index. 
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
@@ -3357,10 +3387,16 @@ class PONizer {
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                     //gettin uptime
-                    if (file_exists(self::UPTIME_PATH.$oltId.'_'.self::UPTIME_EXT)) {
-                        $oltUptime= file_get_contents(self::UPTIME_PATH.$oltId.'_'.self::UPTIME_EXT);
-                        $result.=__('uptime').': '.$oltUptime.wf_delimiter(0);
+                    if (file_exists(self::UPTIME_PATH . $oltId . '_' . self::UPTIME_EXT)) {
+                        $oltUptime = file_get_contents(self::UPTIME_PATH . $oltId . '_' . self::UPTIME_EXT);
+                        $result .= __('Uptime') . ': ' . $oltUptime;
                     }
+
+                    if (file_exists(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT)) {
+                        $oltTemperature = file_get_contents(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT);
+                        $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . ' °C';
+                    }
+                    $result .= wf_delimiter(0);
                 }
             }
         } else {
