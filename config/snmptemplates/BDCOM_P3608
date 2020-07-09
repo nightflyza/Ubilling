@@ -24,6 +24,7 @@ RTTINDEX=".1.3.6.1.4.1.3320.101.11.1.1.8"
 
 [system]
 CPULOAD=".1.3.6.1.2.1.25.3.3.1.2"
+UPTIME=".1.3.6.1.2.1.1.3.0"
 
 [vlan]
 VLANMODE="BDCOM_C"

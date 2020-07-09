@@ -263,6 +263,8 @@ class PONizer {
     const FDBCACHE_EXT = 'OLTFDB';
     const DEREGCACHE_PATH = 'exports/';
     const DEREGCACHE_EXT = 'ONUDEREGS';
+    const UPTIME_PATH = 'exports/';
+    const UPTIME_EXT = 'OLTUPTIME';
     const URL_ME = '?module=ponizer';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const SNMPCACHE = false;
@@ -748,6 +750,24 @@ class PONizer {
                 $result = serialize($result);
                 file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
             }
+        }
+    }
+
+    /**
+     * Parses BDCom uptime data and saves it into uptime cache
+     * 
+     * @param int $oltid
+     * @param string $uptimeRaw
+     * 
+     * @return void
+     */
+    protected function uptimeParseBd($oltid, $uptimeRaw) {
+        $oltid = ubRouting::filters($oltid, 'int');
+        if (!empty($oltid) AND ! empty($uptimeRaw)) {
+            $uptimeRaw = explode(')', $uptimeRaw);
+            $uptimeRaw = $uptimeRaw[1];
+            $uptimeRaw = trim($uptimeRaw);
+            file_put_contents(self::UPTIME_PATH . $oltid . '_' . self::UPTIME_EXT, $uptimeRaw);
         }
     }
 
@@ -1636,7 +1656,12 @@ class PONizer {
                                     $ifaceCustDescrIndex = explodeRows($ifaceCustDescrIndex);
                                 }
                             }
-
+//getting other system data from OLT
+                            if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                                $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                                $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+                                $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
+                            }
 //getting MAC index. 
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
@@ -3331,6 +3356,11 @@ class PONizer {
                         $rows .= wf_TableRow($cells, 'row5');
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    //gettin uptime
+                    if (file_exists(self::UPTIME_PATH.$oltId.'_'.self::UPTIME_EXT)) {
+                        $oltUptime= file_get_contents(self::UPTIME_PATH.$oltId.'_'.self::UPTIME_EXT);
+                        $result.=__('uptime').': '.$oltUptime.wf_delimiter(0);
+                    }
                 }
             }
         } else {
