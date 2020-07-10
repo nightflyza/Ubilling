@@ -658,7 +658,7 @@ class UbillingTelegram {
                     if (isset($postRaw['message']['from'])) {
                         $result['message_id'] = $postRaw['message']['message_id'];
                         $result['from']['id'] = $postRaw['message']['from']['id'];
-                        $result['from']['username'] = $postRaw['message']['from']['username'];
+                        @$result['from']['username'] = $postRaw['message']['from']['username'];
                         $result['from']['first_name'] = $postRaw['message']['from']['first_name'];
                         @$result['from']['language_code'] = $postRaw['message']['from']['language_code'];
                         $result['chat']['id'] = $postRaw['message']['chat']['id'];
