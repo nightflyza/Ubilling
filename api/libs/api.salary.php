@@ -619,6 +619,7 @@ class Salary {
                         $factor = $eachJob['factor'];
                         $jobtypeid = $eachJob['jobtypeid'];
                         $overprice = $eachJob['overprice'];
+                        $priceOverrided = false;
                         if (!empty($chatId)) {
                             if (!isset($sendTmp[$employeeId])) {
                                 $sendTmp[$employeeId] = '';
@@ -635,7 +636,8 @@ class Salary {
                                     $jobPrice = $this->allJobPrices[$jobtypeid] * $factor;
                                 }
                             } else {
-                                $jobPrice = $overprice . ' (' . __('Price override') . ')';
+                                $priceOverrided = true;
+                                $jobPrice = $overprice;
                             }
 
                             //per day summary
@@ -647,11 +649,11 @@ class Salary {
 
 
                             $unitType = @$this->allJobUnits[$jobtypeid];
-
+                            $overLabel = ($priceOverrided) ? ' (' . __('Price override') . ')' : '';
                             $message .= __('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
                             $message .= __('Job type') . ': ' . $jobName . '\r\n ';
                             $message .= __('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
-                            $message .= __('Job price') . ': ' . $jobPrice . '\r\n ';
+                            $message .= __('Job price') . ': ' . $jobPrice . $overLabel . '\r\n ';
                             $message .= '💵💵💵' . '\r\n '; // vsrate emoji
 
                             $message .= '' . '\r\n ';
