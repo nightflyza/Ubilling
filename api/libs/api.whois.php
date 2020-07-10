@@ -139,6 +139,7 @@ class UbillingWhois {
                 $this->cache->set('WHOIS_GEO', $this->cachedGeoData, self::CACHE_TIMEOUT);
             }
         } else {
+            $this->cachedGeoData = array();
             $request = self::URL_GEO . $this->ip;
             $this->geoDataRaw = file_get_contents($request);
             @$this->cachedGeoData[$this->ip] = $this->geoDataRaw;
@@ -163,6 +164,7 @@ class UbillingWhois {
                 $this->cache->set('WHOIS_ISP', $this->cachedIspData, self::CACHE_TIMEOUT);
             }
         } else {
+            $this->cachedIspData = array();
             $request = self::URL_ISP . $this->ip;
             $this->ispDataRaw = file_get_contents($request);
             @$this->cachedIspData[$this->ip] = $this->ispDataRaw;
@@ -186,6 +188,7 @@ class UbillingWhois {
                 $this->cache->set('RESOLVE', $this->cachedResolveData, self::CACHE_TIMEOUT);
             }
         } else {
+            $this->cachedResolveData = array();
             $this->resolveData = gethostbyaddr($this->ip);
             @$this->cachedResolveData[$this->ip] = $this->resolveData;
             $this->cache->set('RESOLVE', $this->cachedResolveData, self::CACHE_TIMEOUT);
