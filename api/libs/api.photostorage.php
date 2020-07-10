@@ -393,7 +393,7 @@ class PhotoStorage {
                 if ($fileAccepted) {
                     $newFilename = zb_rand_string(16) . '_upload.jpg';
                     $newSavePath = self::STORAGE_PATH . $newFilename;
-                    move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
+                    @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
                         $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
                         $this->registerImage($newFilename);
