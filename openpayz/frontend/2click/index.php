@@ -213,6 +213,9 @@ class TwoClickFrontend {
 
     public function listen() {
         $this->receivedData = $this->getRequestData();
+        if (!empty($this->receivedData)) {
+            //TODO: basic actions calling
+        }
     }
 
     /**
