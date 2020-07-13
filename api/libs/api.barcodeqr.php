@@ -64,7 +64,7 @@ final class BarcodeQR {
 	 * @param string $filename
 	 * @return bool
 	 */
-	public function draw($size = 150, $filename = null) {
+	public function draw($size = 150, $filename = null, $returnRawImgData = false) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, self::API_CHART_URL);
 		curl_setopt($ch, CURLOPT_POST, true);
@@ -76,13 +76,15 @@ final class BarcodeQR {
 		curl_close($ch);
 
 		if($img) {
-			if($filename) {
-				if(!preg_match("#\.png$#i", $filename)) {
-					$filename .= ".png";
-				}
-				
-				return file_put_contents($filename, $img);
-			} else {
+            if ($filename) {
+                if (!preg_match("#\.png$#i", $filename)) {
+                    $filename .= ".png";
+                }
+
+                return file_put_contents($filename, $img);
+            } elseif ($returnRawImgData) {
+                return ($img);
+            } else {
 				header("Content-type: image/png");
 				print $img;
 				return true;

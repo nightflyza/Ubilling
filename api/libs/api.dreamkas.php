@@ -1426,17 +1426,17 @@ class DreamKas {
      * JSON for cashiers JQDT
      */
     public function renderCashiersListJSON() {
-        $cashMachinesData = (isset($this->dataCahched['cashiers'])) ? $this->dataCahched['cashiers'] : array();
+        $cashiersData = (isset($this->dataCahched['cashiers'])) ? $this->dataCahched['cashiers'] : array();
         $json = new wf_JqDtHelper();
 
-        if (!empty($cashMachinesData)) {
+        if (!empty($cashiersData)) {
             $data = array();
 
-            foreach ($cashMachinesData as $eachCM) {
-                $data[] = $eachCM['tabNumber'];
-                $data[] = $eachCM['name'];
-                $data[] = $eachCM['inn'];
-                $data[] = $eachCM['deviceId'];
+            foreach ($cashiersData as $eachCashier) {
+                $data[] = $eachCashier['tabNumber'];
+                $data[] = $eachCashier['name'];
+                $data[] = $eachCashier['inn'];
+                $data[] = empty($eachCashier['deviceId']) ? '-' : $eachCashier['deviceId'];
 
                 $json->addRow($data);
                 unset($data);
@@ -1538,7 +1538,7 @@ class DreamKas {
                 $disableLink = (!empty($sellPosMapped2Srv)) ? 'style="opacity: 0.35; pointer-events: none"' : '';
                 $enableDelLnk = (empty($sellPosMapped2Srv)) ? 'style="opacity: 0.35; pointer-events: none"' : '';
 
-                $data[] = $eachItem['category'];
+                $data[] = empty($eachItem['category']) ? '-' : $eachItem['category'];
                 $data[] = $eachItem['name'];
                 $data[] = $eachItem['type'];
                 $data[] = $eachItem['quantity'];
