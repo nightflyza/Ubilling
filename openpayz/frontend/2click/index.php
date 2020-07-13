@@ -351,8 +351,6 @@ class TwoClickFrontend {
             if (isset($this->receivedData['SIGN'])) {
                 $requestSign = $this->receivedData['SIGN'];
                 $validSign = $this->getSign($this->receivedData['ACT'], @$this->receivedData['PAY_ACCOUNT'], $this->receivedData['SERVICE_ID'], $this->receivedData['PAY_ID']);
-//                print($validSign.'->');
-//                die($requestSign);
                 if ($requestSign != $validSign) {
                     $result = false;
                 }
