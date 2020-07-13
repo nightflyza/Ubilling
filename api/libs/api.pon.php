@@ -2282,10 +2282,13 @@ class PONizer {
         simple_update_field('pononu', 'ip', $ip, $where);
         if (!empty($mac)) {
             if (check_mac_format($mac)) {
-                if ($this->checkMacUnique($mac)) {
-                    simple_update_field('pononu', 'mac', $mac, $where);
-                } else {
-                    log_register('PON MACDUPLICATE TRY `' . $mac . '`');
+                $currentMac = $this->allOnu[$onuId]['mac'];
+                if ($currentMac != $mac) {
+                    if ($this->checkMacUnique($mac)) {
+                        simple_update_field('pononu', 'mac', $mac, $where);
+                    } else {
+                        log_register('PON MACDUPLICATE TRY `' . $mac . '`');
+                    }
                 }
             } else {
                 log_register('PON MACINVALID TRY `' . $mac . '`');
@@ -2295,7 +2298,7 @@ class PONizer {
         }
         simple_update_field('pononu', 'serial', $serial, $where);
         simple_update_field('pononu', 'login', $login, $where);
-        log_register('PON EDIT ONU [' . $onuId . ']');
+        log_register('PON EDIT ONU [' . $onuId . '] MAC `' . $mac . '`');
     }
 
     /**
