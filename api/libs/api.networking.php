@@ -1076,6 +1076,36 @@ function multinet_get_all_free_ip($table, $field, $network_id) {
 }
 
 /**
+ * Counts free IPs fast for certain network
+ * 
+ * @param int $network_id
+ * 
+ * @return int
+ */
+function multinet_get_free_count($network_id) {
+    $network_spec = multinet_get_network_params($network_id);
+    $desc = $network_spec['desc'];
+    $desc_parts = explode("/", $desc);
+    $network = $desc_parts[0];
+    $cidr = $desc_parts[1];
+    $first_ip = ip2long($network_spec['startip']);
+    $last_ip = ip2long($network_spec['endip']);
+    $count_all = $last_ip - $first_ip;
+    $num_hosts = pow(2, 32 - $cidr);
+
+
+    if ($count_all >= $num_hosts - (3 * ceil($num_hosts / 256))) {
+        $count_all = $num_hosts - (3 * ceil($num_hosts / 256));
+    }
+
+    $query = "SELECT COUNT(*) as used FROM `nethosts` WHERE `netid`='" . $network_id . "'";
+    $count_result = simple_query($query);
+    $count_used = $count_result['used'];
+    $free_count = $count_all - $count_used;
+    return($free_count);
+}
+
+/**
  * Returns first free and unused IP for some network ID
  * 
  * @param string $table
