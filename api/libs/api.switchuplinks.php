@@ -242,7 +242,7 @@ class SwitchUplinks {
             }
 
             //empty existing record
-            if (!$this->uplinkData['port'] AND ! $this->uplinkData['speed'] AND ! $this->uplinkData['port']) {
+            if (!$this->uplinkData['media'] AND ! $this->uplinkData['speed'] AND ! $this->uplinkData['port']) {
                 $result .= __('Uplink parameters is not set');
             }
         } else {
