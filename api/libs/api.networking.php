@@ -30,9 +30,8 @@ function multinet_getFreeIpStats() {
 
     if (!empty($netsTmp)) {
         foreach ($netsTmp as $io => $each) {
-            $totalIps = multinet_expand_network($each['startip'], $each['endip']);
             $allNets[$each['id']]['desc'] = $each['desc'];
-            $allNets[$each['id']]['total'] = count($totalIps);
+            $allNets[$each['id']]['total'] = multinet_totalips_count($each['startip'], $each['endip']);
             //finding used hosts count
             if (isset($nethostsUsed[$each['id']])) {
                 $allNets[$each['id']]['used'] = $nethostsUsed[$each['id']];
@@ -51,6 +50,27 @@ function multinet_getFreeIpStats() {
     }
 
     return ($allNets);
+}
+
+/**
+ * Fast count of possible pool size for some IPs range
+ * 
+ * @param string $first_ip
+ * @param string $last_ip
+ * 
+ * @return int
+ */
+function multinet_totalips_count($first_ip, $last_ip) {
+    $first = ip2int($first_ip);
+    $last = ip2int($last_ip);
+    $result = 0;
+    for ($i = $first; $i <= $last; $i++) {
+        $curIpOffset = int2ip($i);
+        if (!preg_match("#\.(0|1|255)$#", $curIpOffset)) {
+            $result++;
+        }
+    }
+    return($result);
 }
 
 /**
