@@ -150,6 +150,13 @@ class UserProfile {
     protected $paymentid = '';
 
     /**
+     * Contains preloaded additional mobiles numbers
+     *
+     * @var array
+     */
+    protected $mobilesExt = array();
+
+    /**
      * Path to SMS template for user quick credentials sending
      *
      * @var string
@@ -185,6 +192,7 @@ class UserProfile {
             $this->loadSpeedoverride();
             $this->loadPaymentID();
             $this->loadPlugins();
+            $this->loadMobilesExt();
         } else {
             throw new Exception(self::EX_EMPTY_LOGIN . ' ' . print_r($this, true));
         }
@@ -472,6 +480,25 @@ class UserProfile {
     }
 
     /**
+     * Preloads extended mobile numbers from database
+     * 
+     * @return void
+     */
+    protected function loadMobilesExt() {
+        if (isset($this->alterCfg['MOBILES_EXT'])) {
+            if ($this->alterCfg['MOBILES_EXT']) {
+                //using raw query here to avoid performance degradation
+                $allExtRaw = simple_queryall("SELECT `id`,`mobile` from `mobileext` WHERE `login`='" . $this->login . "'");
+                if (!empty($allExtRaw)) {
+                    foreach ($allExtRaw as $io => $each) {
+                        $this->mobilesExt[] = $each['mobile'];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * returns private userdata property to external scope
      * 
      * @return array
@@ -651,7 +678,17 @@ class UserProfile {
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
             if (!ts_isMeBranchCursed()) {
                 @$shortAddress = $this->useraddress;
-                $createForm = ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login);
+                //additional mobile numbers preset
+                $additionalNumbers = '';
+                if (isset($this->alterCfg['MOBILES_EXT'])) {
+                    if ($this->alterCfg['MOBILES_EXT']) {
+                        if (!empty($this->mobilesExt)) {
+                            $additionalNumbers .= ' '; //space before primary mobile
+                            $additionalNumbers .= implode(' ', $this->mobilesExt);
+                        }
+                    }
+                }
+                $createForm = ts_TaskCreateFormProfile($shortAddress, $this->mobile . $additionalNumbers, $this->phone, $this->login);
                 $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $createForm, '', '450', '540');
             }
         } else {
@@ -1415,19 +1452,8 @@ class UserProfile {
         $result = '';
         if (isset($this->alterCfg['MOBILES_EXT'])) {
             if ($this->alterCfg['MOBILES_EXT']) {
-                //$extMob = new MobilesExt();
-                //$allExtRaw = $extMob->getUserMobiles($this->login);
-                //commented due performance issues. Using raw query below
-                $allExtRaw = simple_queryall("SELECT `id`,`mobile` from `mobileext` WHERE `login`='" . $this->login . "'");
-                $allExt = array();
-                if (!empty($allExtRaw)) {
-                    foreach ($allExtRaw as $io => $each) {
-                        $allExt[] = $each['mobile'];
-                    }
-                }
-
-                if (!empty($allExt)) {
-                    $additionalNumbers = implode(', ', $allExt);
+                if (!empty($this->mobilesExt)) {
+                    $additionalNumbers = implode(', ', $this->mobilesExt);
                 } else {
                     $additionalNumbers = '';
                 }
