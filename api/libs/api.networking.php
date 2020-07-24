@@ -45,6 +45,8 @@ function multinet_getFreeIpStats() {
             } else {
                 $allNets[$each['id']]['service'] = '';
             }
+            //free IPs counter
+            $allNets[$each['id']]['free'] = $allNets[$each['id']]['total'] - $allNets[$each['id']]['used'];
         }
     }
 
