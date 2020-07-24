@@ -1399,7 +1399,13 @@ class UserSideApi {
                 if (isset($changeParams['value'])) {
                     if (zb_checkMoney($changeParams['value'])) {
                         $paymentNotes = (isset($changeParams['comment'])) ? $changeParams['comment'] : '';
-                        zb_CashAdd($changeParams['customerid'], $changeParams['value'], 'add', 1, $paymentNotes);
+                        $cashTypeId = 1; //like default
+                        if (isset($this->altCfg['USERSIDE_CASHTYPE'])) {
+                            if (!empty($this->altCfg['USERSIDE_CASHTYPE'])) {
+                                $cashTypeId = $this->altCfg['USERSIDE_CASHTYPE'];
+                            }
+                        }
+                        zb_CashAdd($changeParams['customerid'], $changeParams['value'], 'add', $cashTypeId, $paymentNotes);
                         $result = array('result' => 'ok');
                     } else {
                         $result = array('result' => 'error', 'error' => $this->errorNotices['EX_BAD_MONEY_FORMAT'] . ': ' . $changeParams['value']);
