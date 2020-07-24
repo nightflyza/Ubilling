@@ -385,12 +385,18 @@ function multinet_get_services() {
 function multinet_service_selector() {
     global $ubillingConfig;
     $tmpArr = array();
+    $allNetsStats = array();
     if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
         global $branchControl;
         $branchControl->loadServices();
     }
 
+    if ($ubillingConfig->getAlterParam('USERREG_FREEIP_STATS')) {
+        $allNetsStats = multinet_getFreeIpStats();
+    }
+
     $allservices = multinet_get_services();
+
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
             if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
@@ -399,6 +405,10 @@ function multinet_service_selector() {
                 }
             } else {
                 $tmpArr[$eachservice['id']] = $eachservice['desc'];
+            }
+            //optional free IP stats
+            if (isset($allNetsStats[$eachservice['netid']])) {
+                $tmpArr[$eachservice['id']] .= ' (' . __('Free') . ' ' . $allNetsStats[$eachservice['netid']]['free'] . ')';
             }
         }
     }

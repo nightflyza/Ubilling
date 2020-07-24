@@ -177,6 +177,9 @@ function web_UserRegFormLocation() {
         }
 
         $servicesel = multinet_service_selector();
+        if ($ubillingConfig->getAlterParam('USERREG_FREEIP_STATS')) {
+            $servicesel .= wf_modalAuto(wf_img('skins/icon_whois_small.png', __('IP usage stats')), __('IP usage stats'), web_FreeIpStats());
+        }
         $currentStep = 3;
 //contrahens user diff
         $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
@@ -215,16 +218,16 @@ function web_UserRegFormLocation() {
     $formInputs .= wf_tag('td', false) . __('Build') . wf_tag('td', true);
     $formInputs .= wf_tag('tr', true);
 
-    $formInputs.= wf_tag('tr', false, 'row3');
-    $formInputs.= wf_tag('td', false) . $aptsel . wf_tag('td', true);
-    $formInputs.= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
-    $formInputs.= wf_tag('tr', true);
+    $formInputs .= wf_tag('tr', false, 'row3');
+    $formInputs .= wf_tag('td', false) . $aptsel . wf_tag('td', true);
+    $formInputs .= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
+    $formInputs .= wf_tag('tr', true);
 
     if ($addressExtendedOn) {
-        $formInputs.= wf_tag('tr', false, 'row3');
-        $formInputs.= wf_tag('td', false) . $addressExten . wf_tag('td', true);
-        $formInputs.= wf_tag('td', false) . __('Extended address info') . wf_tag('td', true);
-        $formInputs.= wf_tag('tr', true);
+        $formInputs .= wf_tag('tr', false, 'row3');
+        $formInputs .= wf_tag('td', false) . $addressExten . wf_tag('td', true);
+        $formInputs .= wf_tag('td', false) . __('Extended address info') . wf_tag('td', true);
+        $formInputs .= wf_tag('tr', true);
     }
 
     $formInputs .= wf_tag('tr', false, 'row3');
@@ -910,13 +913,13 @@ function zb_UserRegister($user_data, $goprofile = true) {
     $serviceid = $user_data['service'];
 
     if ($addressExtendedOn) {
-        $postCode  = $user_data['postalcode'];
+        $postCode = $user_data['postalcode'];
         $extenTown = $user_data['towndistr'];
         $extenAddr = $user_data['addressexten'];
     }
 
 //ONU auto assign options
-    if ($registerUserONU and !empty($user_data['oltid'])) {
+    if ($registerUserONU and ! empty($user_data['oltid'])) {
         $OLTID = $user_data['oltid'];
         $ONUModelID = $user_data['onumodelid'];
         $ONUIP = $user_data['onuip'];
