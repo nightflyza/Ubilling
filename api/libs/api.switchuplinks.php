@@ -24,6 +24,13 @@ class SwitchUplinks {
     protected $mediaTypes = array();
 
     /**
+     * Contains available media types icons
+     *
+     * @var array
+     */
+    protected $mediaIcons = array();
+
+    /**
      * Contains typical uplink speed rates
      *
      * @var array
@@ -54,6 +61,7 @@ class SwitchUplinks {
     const ROUTE_SPEED = 'swuplinksspeed';
     const ROUTE_PORT = 'swuplinksport';
     const ROUTE_EDITINTERFACE = 'editswuplinkparameters';
+    const PATH_ICONS = 'skins/';
 
     /**
      * Creates new switch uplinks object instance
@@ -77,11 +85,17 @@ class SwitchUplinks {
      * @return void
      */
     protected function setMediaTypes() {
-        //may be configurable in future
+        //may be configurable in future.. or not..
         $this->mediaTypes = array(
             'F' => __('Fiber optics'),
             'C' => __('Copper'),
             'W' => __('Wireless'),
+        );
+
+        $this->mediaIcons = array(
+            'F' => 'linkfiber.png',
+            'C' => 'linkcopper.png',
+            'W' => 'linkwireless.png',
         );
     }
 
@@ -211,7 +225,12 @@ class SwitchUplinks {
         $result = '';
         if (!empty($this->uplinkData)) {
             if (!empty($this->uplinkData['media'])) {
-                $result .= $this->mediaTypes[$this->uplinkData['media']] . ' ';
+                if (isset($this->mediaIcons[$this->uplinkData['media']])) {
+                    $mediaIcon = wf_img_sized(self::PATH_ICONS . $this->mediaIcons[$this->uplinkData['media']], '', '10') . ' ';
+                } else {
+                    $mediaIcon = '';
+                }
+                $result .= $mediaIcon . $this->mediaTypes[$this->uplinkData['media']] . ' ';
             }
 
             if (!empty($this->uplinkData['speed'])) {
