@@ -451,6 +451,25 @@ function web_SwitchEditForm($switchid) {
     }
     $editinputs .= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
 
+//switch uplink detailed data here
+    if ($ubillingConfig->getAlterParam('SWITCHES_EXTENDED')) {
+        $swUplink = new SwitchUplinks($switchid);
+        //saving changes if required
+        if (ubRouting::checkPost($swUplink::ROUTE_SWID)) {
+            $swUplink->save();
+            ubRouting::nav($swUplink::URL_SWPROFILE . ubRouting::post($swUplink::ROUTE_SWID));
+        }
+        $editinputs .= wf_delimiter(0) . $swUplink->renderSwitchUplinkData();
+        if (cfr('SWITCHESEDIT')) {
+            if (!ubRouting::checkGet($swUplink::ROUTE_EDITINTERFACE)) {
+                $editinputs .= ' ' . wf_Link($swUplink::URL_SWPROFILE . $switchid . '&' . $swUplink::ROUTE_EDITINTERFACE . '=true', '⬇️');
+            } else {
+                $editinputs .= ' ' . wf_Link($swUplink::URL_SWPROFILE . $switchid , '⬆️');
+                $editinputs.= wf_delimiter(0).$swUplink->renderEditForm();
+            }
+        }
+    }
+
     $editinputs .= wf_tag('br');
 
     if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
@@ -459,6 +478,7 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('SWITCHESEDIT')) {
+        $editinputs .= wf_delimiter(0);
         $editinputs .= wf_Submit('Save');
     }
     $mainForm .= wf_Form('', 'POST', $editinputs, 'glamour');

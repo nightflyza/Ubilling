@@ -3154,5 +3154,14 @@ $lang['def']['Metabolism'] = 'Метаболизм';
 $lang['def']['Act of issuance of goods from the warehouse']='Акт выдачи ТМЦ со склада';
 $lang['def']['Signature'] = 'Подпись';
 $lang['def']['Lightning map'] = 'Карта молний';
+$lang['def']['Fiber optics'] = 'Оптоволокно';
+$lang['def']['Copper'] = 'Медь';
+$lang['def']['Wireless'] = 'Беспроводной';
+$lang['def']['Gbit/s'] = 'Гбит/с';
+$lang['def']['Mbit/s'] = 'Мбит/с';
+$lang['def']['Uplink parameters is not set']='Свойства аплинка не установлены';
+$lang['def']['Uplink parameters']='Свойства аплинка';
+
+
 
 ?>

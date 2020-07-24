@@ -3175,6 +3175,13 @@ $lang['def']['Metabolism'] = 'Метаболізм';
 $lang['def']['Act of issuance of goods from the warehouse']='Акт видачі ТМЦ зі складу';
 $lang['def']['Signature'] = 'Підпис';
 $lang['def']['Lightning map'] = 'Мапа блискавок';
+$lang['def']['Fiber optics'] = 'Оптика';
+$lang['def']['Copper'] = 'Мідь';
+$lang['def']['Wireless'] = 'Бездротовий';
+$lang['def']['Gbit/s'] = 'Гбіт/с';
+$lang['def']['Mbit/s'] = 'Мбіт/с';
+$lang['def']['Uplink parameters is not set']='Властивості аплінку не встановлені';
+$lang['def']['Uplink parameters']='Властивості аплінку';
 
 
 ?>
