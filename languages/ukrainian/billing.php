@@ -3182,6 +3182,7 @@ $lang['def']['Gbit/s'] = 'Гбіт/с';
 $lang['def']['Mbit/s'] = 'Мбіт/с';
 $lang['def']['Uplink parameters is not set']='Властивості аплінку не встановлені';
 $lang['def']['Uplink parameters']='Властивості аплінку';
+$lang['def']['Uplink'] = 'Аплінк';
 
 
 ?>

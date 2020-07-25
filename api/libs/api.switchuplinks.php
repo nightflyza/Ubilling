@@ -52,6 +52,13 @@ class SwitchUplinks {
     protected $switchUplinks = '';
 
     /**
+     * Contains all switches uplinks detailed data as switch=>updata
+     *
+     * @var array
+     */
+    protected $allUplinksData = array();
+
+    /**
      * Static routes, etc
      */
     const TABLE_UPLINKS = 'switchuplinks';
@@ -247,6 +254,42 @@ class SwitchUplinks {
             }
         } else {
             $result .= __('Uplink parameters is not set');
+        }
+        return($result);
+    }
+
+    /**
+     * Loads all switches uplinks data
+     * 
+     * @return void
+     */
+    public function loadAllUplinksData() {
+        $this->allUplinksData = $this->switchUplinks->getAll('switchid');
+    }
+
+    /**
+     * Returns count of available uplinks data records
+     * 
+     * @return int
+     */
+    public function getAllUplinksCount() {
+        return(sizeof($this->allUplinksData));
+    }
+
+    /**
+     * Returns short uplink parameters text description
+     * 
+     * @param int $swithchId
+     * 
+     * @return string
+     */
+    public function getUplinkTinyDesc($swithchId) {
+        $result = '';
+        if (isset($this->allUplinksData[$swithchId])) {
+            $media = $this->allUplinksData[$swithchId]['media'];
+            $speed = $this->allUplinksData[$swithchId]['speed'];
+            $icon = (isset($this->mediaIcons[$media])) ? wf_img(self::PATH_ICONS . $this->mediaIcons[$media], $this->mediaTypes[$media]) : '';
+            $result .= $icon . $media . $speed;
         }
         return($result);
     }

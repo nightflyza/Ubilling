@@ -464,8 +464,8 @@ function web_SwitchEditForm($switchid) {
             if (!ubRouting::checkGet($swUplink::ROUTE_EDITINTERFACE)) {
                 $editinputs .= ' ' . wf_Link($swUplink::URL_SWPROFILE . $switchid . '&' . $swUplink::ROUTE_EDITINTERFACE . '=true', '⬇️');
             } else {
-                $editinputs .= ' ' . wf_Link($swUplink::URL_SWPROFILE . $switchid , '⬆️');
-                $editinputs.= wf_delimiter(0).$swUplink->renderEditForm();
+                $editinputs .= ' ' . wf_Link($swUplink::URL_SWPROFILE . $switchid, '⬆️');
+                $editinputs .= wf_delimiter(0) . $swUplink->renderEditForm();
             }
         }
     }
@@ -1112,10 +1112,16 @@ function web_SwitchesRenderList() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+    $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
     $summaryCache = 'exports/switchcounterssummary.dat';
     $columns = array('ID', 'IP');
+
     if ($alterconf['SWITCHES_SNMP_MAC_EXORCISM']) {
         $columns[] = ('MAC');
+    }
+
+    if ($switchesExtended) {
+        $columns[] = __('Uplink');
     }
 
     if ($swGroupsEnabled) {
@@ -1142,10 +1148,17 @@ function zb_SwitchesRenderAjaxList() {
     $alterconf = $ubillingConfig->getAlter();
 
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+    $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
+
     $allswitchgroups = '';
     if ($swGroupsEnabled) {
         $switchGroups = new SwitchGroups();
         $allswitchgroups = $switchGroups->getSwitchesIdsWithGroupsData();
+    }
+
+    if ($switchesExtended) {
+        $switchesUplinks = new SwitchUplinks();
+        $switchesUplinks->loadAllUplinksData();
     }
 
     $allswitches = zb_SwitchesGetAll();
@@ -1223,6 +1236,10 @@ function zb_SwitchesRenderAjaxList() {
                 }
 
                 $jsonItem[] = $deviceMac;
+            }
+
+            if ($switchesExtended) {
+                $jsonItem[] = $switchesUplinks->getUplinkTinyDesc($eachswitch['id']);
             }
 
             $jsonItem[] = $eachswitch['location'];
