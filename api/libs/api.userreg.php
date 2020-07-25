@@ -177,7 +177,8 @@ function web_UserRegFormLocation() {
         }
 
         $servicesel = multinet_service_selector();
-        if ($ubillingConfig->getAlterParam('USERREG_FREEIP_STATS')) {
+        $freeIpStatsFlag = $ubillingConfig->getAlterParam('USERREG_FREEIP_STATS');
+        if ($freeIpStatsFlag == 1 OR $freeIpStatsFlag == 3) {
             $servicesel .= wf_modalAuto(wf_img('skins/icon_whois_small.png', __('IP usage stats')), __('IP usage stats'), web_FreeIpStats());
         }
         $currentStep = 3;

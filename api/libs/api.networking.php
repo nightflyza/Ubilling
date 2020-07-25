@@ -390,8 +390,9 @@ function multinet_service_selector() {
         global $branchControl;
         $branchControl->loadServices();
     }
-
-    if ($ubillingConfig->getAlterParam('USERREG_FREEIP_STATS')) {
+    
+    $freeIpStatsFlag=$ubillingConfig->getAlterParam('USERREG_FREEIP_STATS');
+    if ($freeIpStatsFlag==2 OR $freeIpStatsFlag==3) {
         $allNetsStats = multinet_getFreeIpStats();
     }
 
