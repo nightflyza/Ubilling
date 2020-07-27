@@ -4,8 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
     <script type="text/javascript" src="../../../modules/jsc/jquery.min.js"></script>
-    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/jquery.qrcode.js"></script>
-    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/qrcode.js"></script>
+    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/jquery.qrcode.min.js"></script>
+    <script type="text/javascript" src="../../../modules/jsc/qr_gen_inpage/qrcode.min.js"></script>
     <title>TITLE</title>
     <style>
         td.brdr-bottom {
@@ -147,6 +147,11 @@ QR8bitByte.prototype.write = function(buffer) {
 /* Hack End*/
 
 function genQRs() {
+    if ($('#qr_embedded').val() == "1") {
+        console.log('QRs are embedded');
+        return false;
+    }
+
     // if you plan to save generated page as document -
     // need to prevent the duplication of QRs
     $('[name ^= "qr"] canvas').remove();
@@ -180,5 +185,7 @@ $(document).ready(function() {
 {QR_EXT_END}
 {DATES_FORMAT_START}Y-m-d{DATES_FORMAT_END}
 {MONTHYEAR_FORMAT_START}m-Y{MONTHYEAR_FORMAT_END}
+
 -->
     <input id="qr_count" type="hidden" value="{QR_CODES_CNT}" />
+    <input id="qr_embedded" type="hidden" value="0" />
