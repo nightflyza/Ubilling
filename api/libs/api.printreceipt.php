@@ -44,7 +44,7 @@ class PrintReceipt {
     public $receiptsHistoryOn = false;
 
     /**
-     * Placeholder for PRINT_RECEIPTS_HISTORY_ENABLED alter.ini option
+     * Placeholder for ADDRESS_EXTENDED_ENABLED alter.ini option
      *
      * @var bool
      */
