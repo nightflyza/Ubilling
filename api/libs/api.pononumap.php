@@ -137,6 +137,7 @@ class PONONUMAP {
         $marksRendered = 0;
         $marksNoGeo = 0;
         $marksNoUser = 0;
+        $marksDeadUser = 0;
         $result .= wf_BackLink('?module=ponizer') . wf_delimiter();
 
         $result .= generic_MapContainer('', '', 'ponmap');
@@ -157,7 +158,11 @@ class PONONUMAP {
                             $marksNoGeo++;
                         }
                     } else {
-                        $marksNoUser++;
+                        if ($eachOnu['login'] != 'dead') {
+                            $marksNoUser++;
+                        } else {
+                            $marksDeadUser++; //TODO: may be output that somewhere in future.
+                        }
                     }
                 } else {
                     $marksNoUser++;
@@ -175,7 +180,6 @@ class PONONUMAP {
         if ($marksNoUser > 0) {
             $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
         }
-
 
         return($result);
     }
