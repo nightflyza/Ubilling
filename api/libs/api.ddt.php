@@ -483,7 +483,7 @@ class DoomsDayTariffs {
 
                                                     //set credit
                                                     $billing->setcredit($eachUserLogin, $newUserCredit);
-                                                    log_register('CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
+                                                    log_register('DDT CHANGE Credit (' . $eachUserLogin . ') ON ' . $newUserCredit);
                                                     //set credit expire date
 
                                                     if ($tariffPeriod == 'month') {
@@ -495,7 +495,7 @@ class DoomsDayTariffs {
                                                     }
 
                                                     $billing->setcreditexpire($eachUserLogin, $tariffExpireDate);
-                                                    log_register('CHANGE CreditExpire (' . $eachUserLogin . ') ON ' . $tariffExpireDate);
+                                                    log_register('DDT CHANGE CreditExpire (' . $eachUserLogin . ') ON ' . $tariffExpireDate);
                                                 }
                                             }
                                         }
