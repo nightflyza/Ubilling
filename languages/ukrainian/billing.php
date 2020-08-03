@@ -1790,7 +1790,7 @@ $lang['def']['Create note as active'] = 'Створити нотатку як а
 $lang['def']['Remind only after this date'] = 'Нагадати тільки після цієї дати';
 $lang['def']['Creation date'] = 'Дата створення';
 $lang['def']['Remind date'] = 'Дата нагадування';
-$lang['def']['Sticky note'] = 'Персональная нотатка';
+$lang['def']['Sticky note'] = 'Персональна нотатка';
 $lang['def']['Personal notes and reminders'] = 'Персональні нотатки та нагадування';
 $lang['def']['Personal note active'] = 'Персональна нотатка активна';
 

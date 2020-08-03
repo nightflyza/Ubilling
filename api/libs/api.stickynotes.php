@@ -158,7 +158,7 @@ class StickyNotes {
      * 
      * @return array
      */
-    protected function getNoteData($noteId) {
+    public function getNoteData($noteId) {
         $result = array();
         if (!empty($this->allnotes)) {
             if (isset($this->allnotes[$noteId])) {

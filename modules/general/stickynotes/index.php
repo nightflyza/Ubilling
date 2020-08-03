@@ -42,7 +42,16 @@ if (cfr('STICKYNOTES')) {
             } else {
                 //rendering full note content
                 if (wf_CheckGet(array('shownote'))) {
-                    show_window(__('Sticky note'), $stickyNotes->renderNote($_GET['shownote']));
+                    $noteData = $stickyNotes->getNoteData($_GET['shownote']);
+                    $noteParams = '';
+                    if (!empty($noteData['reminddate'])) {
+                        $noteParams .= ' / ' . __('Remind time') . ': ' . $noteData['reminddate'];
+                    }
+
+                    if (!empty($noteData['remindtime'])) {
+                        $noteParams .= ' ' . $noteData['remindtime'];
+                    }
+                    show_window(__('Sticky note') . $noteParams, $stickyNotes->renderNote($_GET['shownote']));
                 }
 
                 //note editing interface
