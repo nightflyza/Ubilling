@@ -7,6 +7,7 @@ if (cfr('USERPROFILE')) {
 
         $nethosts = new NyanORM('nethosts');
         $nases = new NyanORM('nas');
+        $networks = new NyanORM('networks');
 
         //getting some user nethost data
         $nethosts->where('ip', '=', $userIp);
@@ -14,14 +15,29 @@ if (cfr('USERPROFILE')) {
 
         if (!empty($userNethost)) {
             $userNetId = $userNethost[0]['netid'];
+            $userNetId = ubRouting::filters($userNetId, 'int');
+
             $nases->where('netid', '=', $userNetId);
             $allNases = $nases->getAll('id');
 
             if (!empty($allNases)) {
                 $rows = '';
+                //all NASes for this network
                 foreach ($allNases as $io => $each) {
-                    $cells = wf_TableCell($each['nasname']);
+                    $cells = wf_TableCell(__('NAS'), '', 'row1');
+                    $cells .= wf_TableCell($each['nasname']);
                     $cells .= wf_TableCell($each['nasip']);
+                    $rows .= wf_TableRow($cells, 'row2');
+                }
+                //Network info
+                if (!empty($userNetId)) {
+                    $networks->where('id', '=', $userNetId);
+                    $userNetwork = $networks->getAll();
+                    $userNetwork = $userNetwork[0];
+
+                    $cells = wf_TableCell(__('Network'), '', 'row1');
+                    $cells .= wf_TableCell($userNetwork['nettype']);
+                    $cells .= wf_TableCell($userNetwork['desc']);
                     $rows .= wf_TableRow($cells, 'row2');
                 }
 
