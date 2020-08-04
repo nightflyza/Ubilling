@@ -63,6 +63,20 @@ if ($system->checkForRight('STREETEPORT')) {
          */
         protected $month = '';
 
+        /**
+         * Contains all preprocessed assigns for some agents as fullstreet=>agentid
+         *
+         * @var array
+         */
+        protected $allAssigns = array();
+
+        /**
+         * Contains available agents as id=>name
+         *
+         * @var array
+         */
+        protected $agents = array();
+
         public function __construct() {
             $this->setDates();
             $this->initPayments();
@@ -70,9 +84,10 @@ if ($system->checkForRight('STREETEPORT')) {
             $this->loadStreets();
             $this->loadBuilds();
             $this->loadApts();
-
             $this->countApts();
             $this->countBuilds();
+            $this->loadAllAssigns();
+            $this->loadAgents();
         }
 
         /**
@@ -115,6 +130,37 @@ if ($system->checkForRight('STREETEPORT')) {
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
                     $this->cities[$each['id']] = $each['cityname'];
+                }
+            }
+        }
+
+        /**
+         * loads available assigns from database into private prop
+         * 
+         * @return void
+         */
+        protected function loadAllAssigns() {
+            $assignsTmp = zb_AgentAssignGetAllData();
+
+            if (!empty($assignsTmp)) {
+                foreach ($assignsTmp as $io => $each) {
+                    $this->allAssigns[$each['streetname']] = $each['ahenid'];
+                }
+            }
+        }
+
+        /**
+         * loads contragent data into protected prop
+         * 
+         * @return void
+         */
+        protected function loadAgents() {
+            $tmpArr = array();
+            $tmpArr = zb_ContrAhentGetAllData();
+
+            if (!empty($tmpArr)) {
+                foreach ($tmpArr as $io => $each) {
+                    $this->agents[$each['id']] = $each['contrname'];
                 }
             }
         }
@@ -263,6 +309,7 @@ if ($system->checkForRight('STREETEPORT')) {
                 $cells = wf_TableCell(__('ID'));
                 $cells .= wf_TableCell(__('City'));
                 $cells .= wf_TableCell(__('Street'));
+                $cells .= wf_TableCell(__('Contrahent name'));
                 $cells .= wf_TableCell(__('Builds'));
                 $cells .= wf_TableCell(__('Users'));
                 $cells .= wf_TableCell(__('Visual'));
@@ -271,14 +318,32 @@ if ($system->checkForRight('STREETEPORT')) {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($this->streets as $streetid => $each) {
-                    $cells = wf_TableCell($streetid);
+                    $streetAgentId = 0;
+                    $addrString = @$this->cities[$each['cityid']] . ' ' . $each['streetname'];
+                    if (!empty($this->allAssigns)) {
+                        foreach ($this->allAssigns as $streetAssign => $agentId) {
+                            if (ispos($addrString, $streetAssign)) {
+                                $streetAgentId = $agentId; //gotcha motherfucker!
+                            }
+                        }
+                    }
+                    if ($streetAgentId != 0) {
+                        $streetAgentName = $this->agents[$streetAgentId];
+                        $cellsClass = 'todaysig';
+                    } else {
+                        $streetAgentName = '';
+                        $cellsClass = 'row3';
+                    }
+
+                    $cells = wf_TableCell($streetid,'',$cellsClass);
                     $cells .= wf_TableCell(@$this->cities[$each['cityid']]);
                     $cells .= wf_TableCell($each['streetname']);
+                    $cells .= wf_TableCell($streetAgentName);
                     $cells .= wf_TableCell($each['buildcount']);
                     $cells .= wf_TableCell($each['usercount']);
                     $cells .= wf_TableCell(web_bar($each['usercount'], $this->totalusercount), '15%', '', 'sorttable_customkey="' . $each['usercount'] . '"');
                     $cells .= wf_TableCell($this->getLevel($each['usercount'], $each['buildcount']));
-                    $addrString = @$this->cities[$each['cityid']] . ' ' . $each['streetname'];
+
                     $paymentsSumm = (isset($addrPayments[$addrString])) ? $addrPayments[$addrString] : '0';
                     $totalPaymentsSumm += $paymentsSumm;
                     $cells .= wf_TableCell($paymentsSumm);
