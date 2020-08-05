@@ -146,6 +146,7 @@ if (cfr('CREDIT')) {
                     $cells = wf_TableCell(__('Date'));
                     $cells .= wf_TableCell(__('Administrator'));
                     $rows = wf_TableRow($cells, 'row1');
+
                     foreach ($this->allData as $io => $each) {
                         $cells = wf_TableCell($this->colorize($each['date'], $curMonth, $curDay));
                         $adminLogin = 'external';
@@ -163,8 +164,10 @@ if (cfr('CREDIT')) {
                         }
 
                         //dooms day tariffs optional credit on first month fee charge
-                        if (ispos($each['event'], 'DDT ')) {
-                            $adminLogin = __('Doomsday tariffs');
+                        if (isset($each['event'])) {
+                            if (ispos($each['event'], 'DDT ')) {
+                                $adminLogin = __('Doomsday tariffs');
+                            }
                         }
 
                         $cells .= wf_TableCell($adminLogin);
