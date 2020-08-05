@@ -100,7 +100,6 @@ if (cfr('CREDIT')) {
                 $tmpScData = $this->scLog->getAll('date');
 
                 $this->eventLog->where('event', 'LIKE', '%CHANGE Credit (' . $this->userLogin . ')%');
-                $this->eventLog->selectable(array('id', 'date', 'admin'));
                 $tmpEventData = $this->eventLog->getAll('date');
                 $dataTmp = $tmpScData + $tmpEventData;
                 if (!empty($dataTmp)) {
@@ -161,6 +160,11 @@ if (cfr('CREDIT')) {
                         //userstats credit service
                         if ($adminLogin == 'guest' OR $adminLogin == 'external') {
                             $adminLogin = __('Userstats');
+                        }
+
+                        //dooms day tariffs optional credit on first month fee charge
+                        if (ispos($each['event'], 'DDT ')) {
+                            $adminLogin = __('Doomsday tariffs');
                         }
 
                         $cells .= wf_TableCell($adminLogin);
