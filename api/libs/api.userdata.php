@@ -174,19 +174,19 @@ function zb_UserGetAllData($login = '') {
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `Down`, `Password`,`AlwaysOnline`, `Tariff`, `TariffChange`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,";
 
-    $query.= $addrexten_query;
+    $query .= $addrexten_query;
 
     if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
-        $query.= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
+        $query .= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
     } elseif ($altCfg['ZERO_TOLERANCE'] and ! $altCfg['CITY_DISPLAY']) {
-        $query.= "concat(`streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
+        $query .= "concat(`streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
     } elseif (!$altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
-        $query.= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
+        $query .= "concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
     } else {
-        $query.= "concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
+        $query .= "concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
     }
 
-    $query.= "
+    $query .= "
                     `phones`.`phone`,`mobile`,`contract`,`emails`.`email`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
                     LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
@@ -736,10 +736,14 @@ function zb_CreditGetAllUsers() {
  * @return float
  */
 function zb_TariffGetPrice($tariff) {
+    $result = 0;
     $tariff = mysql_real_escape_string($tariff);
     $query = "SELECT `Fee` from `tariffs` WHERE `name`='" . $tariff . "'";
     $res = simple_query($query);
-    return($res['Fee']);
+    if (isset($res['Fee'])) {
+        $result = $res['Fee'];
+    }
+    return($result);
 }
 
 /**
@@ -902,9 +906,9 @@ function zb_GetAllAllPhonesCache() {
     $cache = new UbillingCache();
     $cacheTime = ($ubillingConfig->getAlterParam('ALL_PHONES_CACHE_TIMEOUT')) ? $ubillingConfig->getAlterParam('ALL_PHONES_CACHE_TIMEOUT') : 1800;
     $result = $cache->getCallback('USER_ALL_PHONES_DATA', function () {
-                                        return (zb_GetAllAllPhones());
-                                    }, $cacheTime
-                                 );
+        return (zb_GetAllAllPhones());
+    }, $cacheTime
+    );
 
     return ($result);
 }
@@ -933,7 +937,7 @@ function zb_GetAllAllPhones($login = '') {
     $resultPhones = simple_queryall($queryPhones);
 
     if ($useExtMobiles) {
-        $queryLogin = "SELECT DISTINCT `login` FROM `mobileext` "  . $where2 . " ORDER BY `login`";
+        $queryLogin = "SELECT DISTINCT `login` FROM `mobileext` " . $where2 . " ORDER BY `login`";
         $qlResult = simple_queryall($queryLogin);
 
         if (!empty($qlResult)) {
@@ -941,7 +945,7 @@ function zb_GetAllAllPhones($login = '') {
                 $allExt[$each['login']] = array();
             }
 
-            $query = "SELECT `login`, `mobile` FROM `mobileext` "  . $where2 . "  ORDER BY `login`";
+            $query = "SELECT `login`, `mobile` FROM `mobileext` " . $where2 . "  ORDER BY `login`";
             $all = simple_queryall($query);
 
             if (!empty($all)) {
@@ -991,13 +995,13 @@ function zb_GetAllOnlineTabPhones() {
  */
 function zb_GetOnlineTabPhonesStr($phone = '', $mobile = '', $extMobiles = array()) {
     $phonesStr = (empty($phone)) ? '' : str_ireplace(array('+', "-"), '', $phone) . ' ';
-    $phonesStr.= (empty($mobile)) ? '' : str_ireplace(array('+', "-"), '', $mobile);
+    $phonesStr .= (empty($mobile)) ? '' : str_ireplace(array('+', "-"), '', $mobile);
 
     if (!empty($extMobiles)) {
-        $phonesStr.= '<br />' ;
+        $phonesStr .= '<br />';
 
         foreach ($extMobiles as $io => $eachmobile) {
-            $phonesStr.= (empty($eachmobile)) ? '' : str_ireplace(array('+', "-"), '', $eachmobile) . ' ';
+            $phonesStr .= (empty($eachmobile)) ? '' : str_ireplace(array('+', "-"), '', $eachmobile) . ' ';
         }
     }
 
