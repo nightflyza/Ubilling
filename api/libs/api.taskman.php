@@ -2546,7 +2546,12 @@ function ts_isMeBranchCursed() {
             $result = false;
         } else {
             if (cfr('BRANCHES') OR cfr('TASKMANGULAG')) {
-                $result = true;
+                if (cfr('TSUNCURSED')) {
+                    //glag and branches curse excluding right
+                    $result = false;
+                } else {
+                    $result = true;
+                }
             }
         }
     } else {

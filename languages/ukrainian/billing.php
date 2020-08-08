@@ -3184,5 +3184,7 @@ $lang['def']['Uplink parameters is not set']='Властивості аплін�
 $lang['def']['Uplink parameters']='Властивості аплінку';
 $lang['def']['Uplink'] = 'Аплінк';
 
+//rev 7604
+$lang['def']['immunity for branch curses and gulag']='Імунітет від ГУЛАГу та мітки філіальності'
 
 ?>
