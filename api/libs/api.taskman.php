@@ -1958,24 +1958,24 @@ function ts_CheckDailyDuplicates($taskData) {
             $addressDuplicates = array();
             $result = '';
             $tasksDb = new NyanORM('taskman');
-            $tasksDb->where('id', '!=', $taskData['id']);
-            $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
             if (!empty($taskData['login'])) {
+                $tasksDb->where('id', '!=', $taskData['id']);
+                $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
                 $tasksDb->where('login', '=', $taskData['login']);
                 $loginDuplicates = $tasksDb->getAll('id');
             }
 
 
-
-            $tasksDb->where('id', '!=', $taskData['id']);
-            $tasksDb->where('startdate', 'LIKE', curdate() . '%');
             if (!empty($taskData['address'])) {
+                $tasksDb->where('id', '!=', $taskData['id']);
+                $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
                 $tasksDb->where('address', '=', $taskData['address']);
                 $addressDuplicates = $tasksDb->getAll('id');
             }
-            
+
 
             $allTasksDuplicates = $loginDuplicates + $addressDuplicates;
+
             if (!empty($allTasksDuplicates)) {
                 $messages = new UbillingMessageHelper();
                 foreach ($allTasksDuplicates as $io => $each) {
