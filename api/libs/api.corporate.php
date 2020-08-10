@@ -78,7 +78,9 @@ function cu_GetAllParentUsers() {
         foreach ($allcfs as $io => $eachcf) {
             $query_user = "SELECT `login` from `users` WHERE `" . $linkfield . "`='" . $eachcf['content'] . "' ";
             $userlogin = simple_query($query_user);
-            $result[$userlogin['login']] = $eachcf['content'];
+            if (!empty($userlogin) AND ! empty($eachcf['content'])) {
+                $result[$userlogin['login']] = $eachcf['content'];
+            }
         }
     }
     return ($result);
