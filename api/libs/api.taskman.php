@@ -1954,22 +1954,26 @@ function ts_CheckDailyDuplicates($taskData) {
     if (!empty($taskData)) {
         if (!empty($taskData['startdate'])) {
             $allTasksDuplicates = array();
+            $loginDuplicates = array();
+            $addressDuplicates = array();
             $result = '';
             $tasksDb = new NyanORM('taskman');
             $tasksDb->where('id', '!=', $taskData['id']);
             $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
             if (!empty($taskData['login'])) {
                 $tasksDb->where('login', '=', $taskData['login']);
+                $loginDuplicates = $tasksDb->getAll('id');
             }
 
-            $loginDuplicates = $tasksDb->getAll('id');
+
 
             $tasksDb->where('id', '!=', $taskData['id']);
             $tasksDb->where('startdate', 'LIKE', curdate() . '%');
             if (!empty($taskData['address'])) {
                 $tasksDb->where('address', '=', $taskData['address']);
+                $addressDuplicates = $tasksDb->getAll('id');
             }
-            $addressDuplicates = $tasksDb->getAll('id');
+            
 
             $allTasksDuplicates = $loginDuplicates + $addressDuplicates;
             if (!empty($allTasksDuplicates)) {
