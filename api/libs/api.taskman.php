@@ -1944,6 +1944,47 @@ function ts_GetAllEmployeeLoginsCached() {
 }
 
 /**
+ * Checks some task for today duplicates by login/address fields
+ * 
+ * @param array $taskData
+ * 
+ * @return void
+ */
+function ts_CheckDailyDuplicates($taskData) {
+    if (!empty($taskData)) {
+        if (!empty($taskData['startdate'])) {
+            $allTasksDuplicates = array();
+            $result = '';
+            $tasksDb = new NyanORM('taskman');
+            $tasksDb->where('id', '!=', $taskData['id']);
+            $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
+            if (!empty($taskData['login'])) {
+                $tasksDb->where('login', '=', $taskData['login']);
+            }
+
+            $loginDuplicates = $tasksDb->getAll('id');
+
+            $tasksDb->where('id', '!=', $taskData['id']);
+            $tasksDb->where('startdate', 'LIKE', curdate() . '%');
+            if (!empty($taskData['address'])) {
+                $tasksDb->where('address', '=', $taskData['address']);
+            }
+            $addressDuplicates = $tasksDb->getAll('id');
+
+            $allTasksDuplicates = $loginDuplicates + $addressDuplicates;
+            if (!empty($allTasksDuplicates)) {
+                $messages = new UbillingMessageHelper();
+                foreach ($allTasksDuplicates as $io => $each) {
+                    $taskLink = ' ' . __('ID') . wf_Link('?module=taskman&edittask=' . $each['id'], '[' . $each['id'] . '] ');
+                    $result .= $messages->getStyledMessage(__('Duplicate') . $taskLink . $each['startdate'] . ' ' . $each['address'], 'warning');
+                }
+                show_window(__('Tasks with duplicate address created for same day'), $result);
+            }
+        }
+    }
+}
+
+/**
  * Shows task editing/management form aka task profile
  * 
  * @global object $ubillingConfig
@@ -2118,6 +2159,11 @@ function ts_TaskChangeForm($taskid) {
         // Task logs
         if (cfr('TASKMANNWATCHLOG')) {
             show_window(__('View log'), ts_renderLogsListAjax($taskid));
+        }
+
+        //Task duplicates check
+        if (@$altercfg['TASKMAN_DUPLICATE_CHECK']) {
+            ts_CheckDailyDuplicates($taskdata);
         }
 
         //Salary accounting

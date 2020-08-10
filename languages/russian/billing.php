@@ -3165,6 +3165,8 @@ $lang['def']['Uplink'] = 'Аплинк';
 
 //rev 7604
 $lang['def']['immunity for branch curses and gulag']='Иммунитет от ГУЛАГа и метки филиальности';
+$lang['def']['Tasks with duplicate address created for same day']='Задачи для этого же адреса созданные на тот же день';
+
 
 
 ?>

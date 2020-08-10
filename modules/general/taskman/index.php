@@ -219,7 +219,7 @@ if (cfr('TASKMAN')) {
                 }
             }
 
-            //display task change form
+            //display task change form aka task profile
             ts_TaskChangeForm($_GET['edittask']);
 
             //photostorage integration

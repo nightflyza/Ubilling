@@ -3172,7 +3172,7 @@ $lang['def']['Userstats'] = 'Кабінет користувача';
 
 //rev 7473
 $lang['def']['Metabolism'] = 'Метаболізм';
-$lang['def']['Act of issuance of goods from the warehouse']='Акт видачі ТМЦ зі складу';
+$lang['def']['Act of issuance of goods from the warehouse'] = 'Акт видачі ТМЦ зі складу';
 $lang['def']['Signature'] = 'Підпис';
 $lang['def']['Lightning map'] = 'Мапа блискавок';
 $lang['def']['Fiber optics'] = 'Оптика';
@@ -3180,11 +3180,11 @@ $lang['def']['Copper'] = 'Мідь';
 $lang['def']['Wireless'] = 'Бездротовий';
 $lang['def']['Gbit/s'] = 'Гбіт/с';
 $lang['def']['Mbit/s'] = 'Мбіт/с';
-$lang['def']['Uplink parameters is not set']='Властивості аплінку не встановлені';
-$lang['def']['Uplink parameters']='Властивості аплінку';
+$lang['def']['Uplink parameters is not set'] = 'Властивості аплінку не встановлені';
+$lang['def']['Uplink parameters'] = 'Властивості аплінку';
 $lang['def']['Uplink'] = 'Аплінк';
 
 //rev 7604
-$lang['def']['immunity for branch curses and gulag']='Імунітет від ГУЛАГу та мітки філіальності'
-
+$lang['def']['immunity for branch curses and gulag'] = 'Імунітет від ГУЛАГу та мітки філіальності';
+$lang['def']['Tasks with duplicate address created for same day'] = 'Задачі для цієї ж адреси створені той же день';
 ?>
