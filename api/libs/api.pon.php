@@ -3832,7 +3832,12 @@ class PONizer {
 
                 if (!empty($each['login'])) {
                     $userLogin = trim($each['login']);
-                    $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin], false);
+                    if (isset($allAddress[$userLogin])) {
+                        $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $allAddress[$userLogin], false);
+                    } else {
+                        $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(), false) . ' ' . $userLogin;
+                    }
+
                     @$userRealName = $allRealnames[$userLogin];
 
 //tariff data
