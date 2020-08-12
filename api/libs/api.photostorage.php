@@ -24,14 +24,14 @@ class PhotoStorage {
     protected $allimages = array();
 
     /**
-     * Contains current photostorage scope item id
+     * Contains current photostorage items scope
      *
      * @var string
      */
     protected $scope = '';
 
     /**
-     * Contains 
+     * Contains current instance item ID in the current scope
      *
      * @var string
      */
@@ -100,7 +100,6 @@ class PhotoStorage {
     protected function loadConfig() {
         global $ubillingConfig;
         $this->photoCfg = $ubillingConfig->getPhoto();
-        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -179,10 +178,10 @@ class PhotoStorage {
     protected function imageControls($imageId) {
         $result = wf_tag('br');
         $downloadUrl = self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $imageId;
-        $result .= wf_Link($downloadUrl, wf_img('skins/icon_download.png').' '.__('Download'), false, 'ubButton').' ';
+        $result .= wf_Link($downloadUrl, wf_img('skins/icon_download.png') . ' ' . __('Download'), false, 'ubButton') . ' ';
         if (cfr('PHOTOSTORAGEDELETE')) {
             $deleteUrl = self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&delete=' . $imageId;
-            $result .= wf_AjaxLink($deleteUrl, web_delete_icon().' '.__('Delete'), 'ajRefCont_' . $imageId, false, 'ubButton').' ';
+            $result .= wf_AjaxLink($deleteUrl, web_delete_icon() . ' ' . __('Delete'), 'ajRefCont_' . $imageId, false, 'ubButton') . ' ';
         }
         return ($result);
     }
