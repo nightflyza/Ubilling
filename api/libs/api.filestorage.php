@@ -10,7 +10,7 @@ class FileStorage {
     protected $altCfg = array();
 
     /**
-     * Contains array of available files in database as id=>imagedata
+     * Contains array of available files in database as id=>filedata
      *
      * @var array
      */
@@ -45,11 +45,33 @@ class FileStorage {
     protected $storageDb = '';
 
     /**
+     * Contains default file preview container size in px
+     *
+     * @var int
+     */
+    protected $filePreviewSize = 64;
+
+    /**
+     * Contains allowed file extensions. May be configurable in future.
+     *
+     * @var array
+     */
+    protected $allowedExtensions = array();
+
+    /**
+     * System message helper placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    /**
      * Some predefined paths and URLs
      */
     const TABLE_STORAGE = 'filestorage';
     const STORAGE_PATH = 'content/documents/filestorage/';
     const URL_ME = '?module=filestorage';
+    const URL_UPLOAD_FILE = '?module=filestorage&uploadfile=true';
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
     const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
 
@@ -62,11 +84,20 @@ class FileStorage {
      * @return void
      */
     public function __construct($scope = '', $itemid = '') {
+        $this->initMessages();
         $this->loadAlter();
+        $this->setAllowedExtenstions();
         $this->setScope($scope);
         $this->setItemid($itemid);
         $this->setLogin();
         $this->initDatabase();
+    }
+
+    /**
+     * Inits system message helper for further usage
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -77,6 +108,15 @@ class FileStorage {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets allowed file extensions for this instance
+     * 
+     * @return void
+     */
+    protected function setAllowedExtenstions() {
+        $this->allowedExtensions = array('jpg', 'gif', 'png', 'jpeg', 'xls', 'doc', 'docx', 'pdf', 'txt');
     }
 
     /**
@@ -120,7 +160,7 @@ class FileStorage {
     }
 
     /**
-     * Loads images list from database into private prop
+     * Loads files list from database into private prop
      * 
      * @return void
      */
@@ -160,7 +200,7 @@ class FileStorage {
      * 
      * @return void
      */
-    protected function unregisterImage($fileId) {
+    protected function unregisterFile($fileId) {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
             $fileId = ubRouting::filters($fileId, 'int');
             $date = curdatetime();
@@ -170,6 +210,233 @@ class FileStorage {
 
             log_register('FILESTORAGE DELETE SCOPE `' . $this->scope . '` ITEM [' . $this->itemId . ']');
         }
+    }
+
+    /**
+     * Returns basic file controls
+     * 
+     * @param int $fileId existing image ID
+     * 
+     * @return string
+     */
+    protected function fileControls($fileId) {
+        $fileId = ubRouting::filters($fileId, 'int');
+        $result = wf_tag('br');
+        $downloadUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $fileId;
+
+        $result .= wf_Link($downloadUrl, wf_img('skins/icon_download.png') . ' ' . __('Download'), false, 'ubButton') . ' ';
+        if (cfr('FILESTORAGEDELETE')) {
+            $deleteUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&delete=' . $fileId;
+            $result .= wf_AjaxLink($deleteUrl, web_delete_icon() . ' ' . __('Delete'), 'ajRefCont_' . $fileId, false, 'ubButton') . ' ';
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns file upload controls
+     * 
+     * @return string
+     */
+    public function uploadControlsPanel() {
+        $result = '';
+        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+            $result .= wf_Link(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns custom module backlinks for some scopes
+     * 
+     * @return string
+     */
+    protected function backUrlHelper() {
+        $result = '';
+        if ($this->scope == 'USERPROFILE') {
+            $result = web_UserControls($this->itemId);
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns current scope/item files list
+     * 
+     * @return string
+     */
+    public function renderFilesList() {
+        if (empty($this->allFiles)) {
+            $this->loadAllFiles();
+        }
+
+        $result = wf_AjaxLoader();
+
+        if (!empty($this->allFiles)) {
+            foreach ($this->allFiles as $io => $eachFile) {
+                if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
+
+                    $dimensions = 'width:' . ($this->filePreviewSize + 10) . 'px;';
+                    $dimensions .= 'height:' . ($this->filePreviewSize + 10) . 'px;';
+                    $result .= wf_tag('div', false, '', 'style="float:left;  ' . $dimensions . ' padding:15px;" id="ajRefCont_' . $eachFile['id'] . '"');
+                    $result .= 'TODO';
+                    $result .= $this->fileControls($eachFile['id']);
+                    $result .= wf_tag('div', true);
+                }
+            }
+        }
+
+        $result .= wf_CleanDiv();
+        $result .= wf_delimiter();
+        $result .= $this->backUrlHelper();
+        return ($result);
+    }
+
+    /**
+     * Returns list of available files for current scope/item
+     * 
+     * @return string
+     */
+    public function renderFilesRaw() {
+        $result = '';
+        if (empty($this->allFiles)) {
+            $this->loadAllFiles();
+        }
+
+        if (!empty($this->allFiles)) {
+            foreach ($this->allFiles as $io => $eachFile) {
+                if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
+                    $result .= 'TODO:' . $eachFile['filename'];
+                }
+            }
+        }
+
+
+        $result .= wf_CleanDiv();
+        return ($result);
+    }
+
+    /**
+     * Downloads file by its id
+     * 
+     * @param int $fileId database file ID
+     * 
+     * @return void
+     */
+    public function catchDownloadFile($fileId) {
+        $fileId = ubRouting::filters($fileId, 'int');
+
+        if (empty($this->allFiles)) {
+            $this->loadAllFiles();
+        }
+        if (!empty($fileId)) {
+            @$filename = $this->allFiles[$fileId]['filename'];
+            if (file_exists(self::STORAGE_PATH . $filename)) {
+                zb_DownloadFile(self::STORAGE_PATH . $filename, 'default');
+            } else {
+                show_error(__('File not exist'));
+            }
+        } else {
+            show_error(__('File not exists'));
+        }
+    }
+
+    /**
+     * Deletes file from database and FS by its ID
+     * 
+     * @param int $fileId database file ID
+     * 
+     * @return void
+     */
+    public function catchDeleteFile($fileId) {
+        $fileId = ubRouting::filters($fileId, 'int');
+
+        if (empty($this->allFiles)) {
+            $this->loadAllFiles();
+        }
+        if (!empty($fileId)) {
+            @$filename = $this->allFiles[$fileId]['filename'];
+            if (file_exists(self::STORAGE_PATH . $filename)) {
+                if (cfr('FILESTORAGEDELETE')) {
+                    unlink(self::STORAGE_PATH . $filename);
+                    $this->unregisterFile($fileId);
+                    $deleteResult = $this->messages->getStyledMessage(__('Deleted'), 'warning');
+                } else {
+                    $deleteResult = $this->messages->getStyledMessage(__('Access denied'), 'error');
+                }
+            } else {
+                $deleteResult = $this->messages->getStyledMessage(__('File not exist') . ': ' . $filename, 'error');
+            }
+        } else {
+            $deleteResult = $this->messages->getStyledMessage(__('File not exist') . ': [' . $fileId . ']', 'error');
+        }
+        die($deleteResult);
+    }
+
+    /**
+     * Catches file upload in background
+     * 
+     * @return void
+     */
+    public function catchFileUpload() {
+        if (ubRouting::checkGet('uploadfile')) {
+            if (!empty($this->scope)) {
+                $fileAccepted = true;
+                foreach ($_FILES as $file) {
+                    if ($file['tmp_name'] > '') {
+                        //TODO: in PHP 7.1 following string generates notice
+                        if (@!in_array(end(explode(".", strtolower($file['name']))), $this->allowedExtensions)) {
+                            $fileAccepted = false;
+                        }
+                    }
+                }
+
+                if ($fileAccepted) {
+                    $newFilename = zb_rand_string(16) . '_upload.dat';
+                    $newSavePath = self::STORAGE_PATH . $newFilename;
+                    @move_uploaded_file($_FILES['filestorageFileUpload']['tmp_name'], $newSavePath);
+                    if (file_exists($newSavePath)) {
+                        $uploadResult = $this->messages->getStyledMessage(__('File upload complete'), 'success');
+                        $this->registerFile($newFilename);
+                        rcms_redirect(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename);
+                    } else {
+                        $uploadResult = $this->messages->getStyledMessage(__('File upload failed'), 'error');
+                    }
+                } else {
+                    $uploadResult = $this->messages->getStyledMessage(__('File upload failed') . ': ' . self::EX_WRONG_EXT, 'error');
+                }
+            } else {
+                $uploadResult = $this->messages->getStyledMessage(__('Strange exeption') . ': ' . self::EX_NOSCOPE, 'error');
+            }
+
+            show_window('', $uploadResult);
+            show_window('', wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader'));
+        }
+    }
+
+    /**
+     * Returns file upload form
+     * 
+     * @return string
+     */
+    public function renderUploadForm() {
+        $postUrl = self::URL_UPLOAD_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId;
+        $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
+        $inputs .= wf_tag('input', false, '', 'type="file" name="filestorageFileUpload"');
+        $inputs .= wf_Submit(__('Upload'));
+        $inputs .= wf_tag('form', true);
+
+        $result = $inputs;
+        $result .= wf_delimiter(2);
+        if (wf_CheckGet(array('preview'))) {
+            //TODO:
+//            $result .= wf_img_sized(self::STORAGE_PATH . $_GET['preview'], __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+//            $result .= wf_delimiter();
+
+            $result .= $this->messages->getStyledMessage(__('Photo upload complete'), 'success');
+            $result .= wf_delimiter();
+        }
+        $result .= wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
+        return ($result);
     }
 
 }
