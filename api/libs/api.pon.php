@@ -3430,7 +3430,7 @@ class PONizer {
     public function renderOnuFdbCache() {
         $result = wf_BackLink(self::URL_ME);
         $result .= wf_delimiter();
-        $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
+        $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Login', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&fdbcachelist=true&ajaxfdblist=true', false, 'ONU', 100, $opts);
         return ($result);
@@ -4093,6 +4093,7 @@ class PONizer {
                                     $data[] = $onuData['vlan'];
                                     $data[] = $onuData['mac'] . $userCheck;
                                     $data[] = $userLink;
+                                    $data[] = $associatedUserLogin;
                                     $data[] = $userRealName;
                                     $data[] = $userTariff;
 
