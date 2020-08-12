@@ -4,7 +4,6 @@ $altCfg = $ubillingConfig->getAlter();
 if ($altCfg['FILESTORAGE_ENABLED']) {
     if (cfr('FILESTORAGE')) {
 
-
         if (ubRouting::checkGet(array('scope', 'itemid'))) {
             $fileStorage = new FileStorage(ubRouting::get('scope'), ubRouting::get('itemid'));
 
@@ -29,7 +28,7 @@ if ($altCfg['FILESTORAGE_ENABLED']) {
 
                 //just file upload interface
                 if ($modeSet == 'loader') {
-                    show_window(__('Upload file'), $fileStorage->renderUploadForm());
+                    show_window(__('Files upload'), $fileStorage->renderUploadForm());
                 }
 
                 //listing images for some object

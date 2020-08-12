@@ -49,7 +49,7 @@ class FileStorage {
      *
      * @var int
      */
-    protected $filePreviewSize = 64;
+    protected $filePreviewSize = 128;
 
     /**
      * Contains allowed file extensions. May be configurable in future.
@@ -116,7 +116,8 @@ class FileStorage {
      * @return void
      */
     protected function setAllowedExtenstions() {
-        $this->allowedExtensions = array('jpg', 'gif', 'png', 'jpeg', 'xls', 'doc', 'docx', 'pdf', 'txt');
+        $this->allowedExtensions = array('jpg', 'gif', 'png', 'jpeg', 'xls', 'doc', 'odt', 'docx', 'pdf', 'txt');
+        $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
 
     /**
@@ -215,7 +216,7 @@ class FileStorage {
     /**
      * Returns basic file controls
      * 
-     * @param int $fileId existing image ID
+     * @param int $fileId existing file ID
      * 
      * @return string
      */
@@ -260,6 +261,21 @@ class FileStorage {
     }
 
     /**
+     * Renders file preview icon
+     * 
+     * @param string $filename
+     * 
+     * @return string
+     */
+    protected function renderFilePreviewIcon($filename) {
+        $result = '';
+        if (!empty($filename)) {
+            $result .= wf_img('skins/somebox.png', $filename);
+        }
+        return($result);
+    }
+
+    /**
      * Returns current scope/item files list
      * 
      * @return string
@@ -274,12 +290,13 @@ class FileStorage {
         if (!empty($this->allFiles)) {
             foreach ($this->allFiles as $io => $eachFile) {
                 if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
-
-                    $dimensions = 'width:' . ($this->filePreviewSize + 10) . 'px;';
-                    $dimensions .= 'height:' . ($this->filePreviewSize + 10) . 'px;';
-                    $result .= wf_tag('div', false, '', 'style="float:left;  ' . $dimensions . ' padding:15px;" id="ajRefCont_' . $eachFile['id'] . '"');
-                    $result .= 'TODO';
+                    $dimensions = 'width:' . ($this->filePreviewSize + 220) . 'px;';
+                    $dimensions .= 'height:' . ($this->filePreviewSize + 60) . 'px;';
+                    $result .= wf_tag('div', false, '', 'style="border: 1px solid; float:left;  ' . $dimensions . ' margin:15px;" id="ajRefCont_' . $eachFile['id'] . '"');
+                    $result .= wf_tag('center');
+                    $result .= $this->renderFilePreviewIcon($eachFile['filename']);
                     $result .= $this->fileControls($eachFile['id']);
+                    $result .= wf_tag('center', true);
                     $result .= wf_tag('div', true);
                 }
             }
@@ -288,30 +305,6 @@ class FileStorage {
         $result .= wf_CleanDiv();
         $result .= wf_delimiter();
         $result .= $this->backUrlHelper();
-        return ($result);
-    }
-
-    /**
-     * Returns list of available files for current scope/item
-     * 
-     * @return string
-     */
-    public function renderFilesRaw() {
-        $result = '';
-        if (empty($this->allFiles)) {
-            $this->loadAllFiles();
-        }
-
-        if (!empty($this->allFiles)) {
-            foreach ($this->allFiles as $io => $eachFile) {
-                if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
-                    $result .= 'TODO:' . $eachFile['filename'];
-                }
-            }
-        }
-
-
-        $result .= wf_CleanDiv();
         return ($result);
     }
 
@@ -383,15 +376,17 @@ class FileStorage {
                 $fileAccepted = true;
                 foreach ($_FILES as $file) {
                     if ($file['tmp_name'] > '') {
-                        //TODO: in PHP 7.1 following string generates notice
-                        if (@!in_array(end(explode(".", strtolower($file['name']))), $this->allowedExtensions)) {
+                        $uploadedFileExtension = pathinfo(strtolower($file['name']), PATHINFO_EXTENSION);
+
+                        if (!isset($this->allowedExtensions[$uploadedFileExtension])) {
                             $fileAccepted = false;
                         }
                     }
                 }
 
                 if ($fileAccepted) {
-                    $newFilename = zb_rand_string(16) . '_upload.dat';
+                    $originalFileName = zb_TranslitString($file['name']); //prevent cyrillic filenames on FS
+                    $newFilename = zb_rand_string(6) . '_' . $originalFileName;
                     $newSavePath = self::STORAGE_PATH . $newFilename;
                     @move_uploaded_file($_FILES['filestorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
@@ -428,11 +423,7 @@ class FileStorage {
         $result = $inputs;
         $result .= wf_delimiter(2);
         if (wf_CheckGet(array('preview'))) {
-            //TODO:
-//            $result .= wf_img_sized(self::STORAGE_PATH . $_GET['preview'], __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
-//            $result .= wf_delimiter();
-
-            $result .= $this->messages->getStyledMessage(__('Photo upload complete'), 'success');
+            $result .= $this->messages->getStyledMessage(__('File upload complete'), 'success');
             $result .= wf_delimiter();
         }
         $result .= wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
