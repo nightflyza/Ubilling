@@ -3251,7 +3251,7 @@ class PONizer {
      */
     public function renderOltStats() {
         $oltOnuCounters = $this->getOltOnuCounts();
-        $onuMaxCount = @$this->altCfg['PON_ONU_PORT_MAX'];
+        $onuMaxCountConf = @$this->altCfg['PON_ONU_PORT_MAX'];
         $oltOnuFilled = array();
         $oltInterfacesFilled = array();
         $oltInterfaceDescrs = array();
@@ -3268,7 +3268,7 @@ class PONizer {
                 $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
-                $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCount;
+                $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
                 if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
