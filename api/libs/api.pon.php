@@ -4033,8 +4033,8 @@ class PONizer {
         $result = true;
         $sn = strtoupper($onuMac);
         if (!empty($this->onuMacOltidList)) {
-            if (isset($this->onuMacOltidList[$mac])) {
-                if ($this->onuMacOltidList[$mac] != $oltId) {
+            if (isset($this->onuMacOltidList[$onuMac])) {
+                if ($this->onuMacOltidList[$onuMac] != $oltId) {
                     $result = false;
                 }
             }
