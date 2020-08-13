@@ -2012,7 +2012,7 @@ class PONizer {
             foreach ($all as $io => $each) {
                 $this->allOnu[$each['id']] = $each;
                 $this->onuMacIdList[$each['mac']] = $each['id'];
-                $this->onuSerialList[$each['serial']] = $each['id'];
+                $this->onuSerialIdList[$each['serial']] = $each['id'];
                 $this->onuMacOltidList[$each['mac']] = $each['oltid'];
                 $this->onuSerialOltidList[$each['serial']] = $each['oltid'];
             }
@@ -2132,9 +2132,9 @@ class PONizer {
             }
         }
 
-        if (!empty($this->onuSerialList)) {
-            if (isset($this->onuSerialList[$sn])) {
-                $ONUID = $this->onuSerialList[$sn];
+        if (!empty($this->onuSerialIdList)) {
+            if (isset($this->onuSerialIdList[$sn])) {
+                $ONUID = $this->onuSerialIdList[$sn];
             }
         }
 
