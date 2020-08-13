@@ -4034,14 +4034,14 @@ class PONizer {
         $sn = strtoupper($onuMac);
         if (!empty($this->onuMacOltidList)) {
             if (isset($this->onuMacOltidList[$mac])) {
-                if ($this->onuMacOltidList[$mac] == $oltId) {
+                if ($this->onuMacOltidList[$mac] != $oltId) {
                     $result = false;
                 }
             }
         }
         if (!empty($this->onuSerialOltidList)) {
             if (isset($this->onuSerialOltidList[$sn])) {
-                if ($this->onuSerialOltidList[$sn] == $oltId) {
+                if ($this->onuSerialOltidList[$sn] != $oltId) {
                     $result = false;
                 }
             }
