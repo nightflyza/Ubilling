@@ -10,6 +10,34 @@ class PONizer {
     protected $allOnu = array();
 
     /**
+     * List for mac = id
+     * 
+     * @var array
+     */
+    protected $onuMacIdList = array();
+
+    /**
+     * List for serial = id
+     * 
+     * @var type 
+     */
+    protected $onuSerialIdList = array();
+
+    /**
+     * List for mac = oltid
+     * 
+     * @var array
+     */
+    protected $onuMacOltidList = array();
+
+    /**
+     * List for serial = oltid
+     * 
+     * @var array
+     */
+    protected $onuSerialOltidList = array();
+
+    /**
      * Contains array of additional ONU users as id=>binddata
      *
      * @var array
@@ -1983,6 +2011,10 @@ class PONizer {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allOnu[$each['id']] = $each;
+                $this->onuMacIdList[$each['mac']] = $each['id'];
+                $this->onuSerialList[$each['serial']] = $each['id'];
+                $this->onuMacOltidList[$each['mac']] = $each['oltid'];
+                $this->onuSerialOltidList[$each['serial']] = $each['oltid'];
             }
         }
     }
@@ -2091,16 +2123,18 @@ class PONizer {
      */
     public function getONUIDByMAC($mac) {
         $mac = strtolower($mac);
+        $sn = strtoupper($mac);
         $ONUID = 0;
 
-        if (!empty($this->allOnu)) {
-            foreach ($this->allOnu as $io => $each) {
-                if ($each['mac'] == $mac) {
-                    $ONUID = $each['id'];
-                }
-                if ($each['serial'] == strtoupper($mac)) {
-                    $ONUID = $each['id'];
-                }
+        if (!empty($this->onuMacIdList)) {
+            if (isset($this->onuMacIdList[$mac])) {
+                $ONUID = $this->onuMacIdList[$mac];
+            }
+        }
+
+        if (!empty($this->onuSerialList)) {
+            if (isset($this->onuSerialList[$sn])) {
+                $ONUID = $this->onuSerialList[$sn];
             }
         }
 
@@ -3997,15 +4031,22 @@ class PONizer {
      */
     protected function checkOnuOLTid($onuMac, $oltId) {
         $result = true;
-        if (!empty($this->allOnu)) {
-            foreach ($this->allOnu as $io => $each) {
-                if ($each['mac'] == $onuMac) {
-                    if ($oltId != $each['oltid']) {
-                        $result = false;
-                    }
+        $sn = strtoupper($onuMac);
+        if (!empty($this->onuMacOltidList)) {
+            if (isset($this->onuMacOltidList[$mac])) {
+                if ($this->onuMacOltidList[$mac] == $oltId) {
+                    $result = false;
                 }
             }
         }
+        if (!empty($this->onuSerialOltidList)) {
+            if (isset($this->onuSerialOltidList[$sn])) {
+                if ($this->onuSerialOltidList[$sn] == $oltId) {
+                    $result = false;
+                }
+            }
+        }
+
         return ($result);
     }
 
