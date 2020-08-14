@@ -3454,7 +3454,7 @@ class PONizer {
 
                     if (file_exists(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT)) {
                         $oltTemperature = file_get_contents(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT);
-                        $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . ' В°C';
+                        $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . '  °C';
                     }
                     $result .= wf_delimiter(0);
                 }
