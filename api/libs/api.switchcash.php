@@ -3,6 +3,13 @@
 class SwitchCash {
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available switches financial data as switchId=>data
      *
      * @var array
@@ -24,9 +31,17 @@ class SwitchCash {
     protected $messages = '';
 
     /**
+     * Filestorage instance object placeholder
+     *
+     * @var object
+     */
+    protected $filestorage = '';
+
+    /**
      * Some static defines etc
      */
     const TABLE_FINANCE = 'swcash';
+    const FILESTORAGE_SCOPE = 'SWCASH';
     const URL_ME = '?module=swcash';
     const URL_SWITCHPROFILE = '?module=switches&edit=';
     const ROUTE_EDIT = 'switchid';
@@ -43,7 +58,9 @@ class SwitchCash {
     const PROUTE_SWITCHDATE = 'newswitchdate';
 
     public function __construct() {
+        $this->loadAlter();
         $this->initMessages();
+        $this->initFilestorage();
         $this->initDatabase();
         $this->loadAllCashData();
     }
@@ -64,6 +81,29 @@ class SwitchCash {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits filestorage instance if enabled
+     * 
+     * @return void
+     */
+    protected function initFilestorage() {
+        if (@$this->altCfg['FILESTORAGE_ENABLED']) {
+            $this->filestorage = new FileStorage(self::FILESTORAGE_SCOPE);
+        }
+    }
+
+    /**
+     * Loads system alter.ini config into protected prop
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -133,7 +173,7 @@ class SwitchCash {
     public function catchSave() {
         $result = '';
         if (ubRouting::checkPost(self::PROUTE_SAVE) AND ubRouting::checkPost(self::PROUTE_RECORD)) {
-            $switchId = ubRouting::post(self::PROUTE_CREATE, 'int');
+            $switchId = ubRouting::post(self::PROUTE_SAVE, 'int');
             $recordId = ubRouting::post(self::PROUTE_RECORD, 'int');
 
             $placecontract = ubRouting::post(self::PROUTE_PLACECONTRACT, 'mres');
@@ -206,22 +246,35 @@ class SwitchCash {
      */
     public function renderEditForm($switchId) {
         $result = '';
-        //TODO: file attaches
+
         $switchId = ubRouting::filters($switchId, 'int');
         if (isset($this->allCashData[$switchId])) {
             $switchData = $this->allCashData[$switchId];
             //save flag and record id
             $inputs = wf_HiddenInput(self::PROUTE_SAVE, $switchId);
             $inputs .= wf_HiddenInput(self::PROUTE_RECORD, $switchData['id']);
+
             //placement data
             $inputs .= wf_TextInput(self::PROUTE_PLACECONTRACT, __('Placement contract'), $switchData['placecontract'], true, 20);
             $inputs .= wf_TextInput(self::PROUTE_PLACEPRICE, __('Placement price') . ' / ' . __('month'), $switchData['placeprice'], true, 5, 'finance');
+            if (!empty($this->filestorage)) {
+                $this->filestorage->setItemid('place' . $switchId);
+                $inputs .= $this->filestorage->renderFilesPreview(true);
+            }
             //power data
             $inputs .= wf_TextInput(self::PROUTE_POWERCONTRACT, __('Power contract'), $switchData['powercontract'], true, 20);
             $inputs .= wf_TextInput(self::PROUTE_POWERPRICE, __('Power price') . ' / ' . __('month'), $switchData['powerprice'], true, 5, 'finance');
+               if (!empty($this->filestorage)) {
+                $this->filestorage->setItemid('power' . $switchId);
+                $inputs .= $this->filestorage->renderFilesPreview(true);
+            }
             //transport data
             $inputs .= wf_TextInput(self::PROUTE_TRANSPORTCONTRACT, __('Transport contract'), $switchData['transportcontract'], true, 20);
             $inputs .= wf_TextInput(self::PROUTE_TRANSPORTPRICE, __('Transport price') . ' / ' . __('month'), $switchData['transportprice'], true, 5, 'finance');
+               if (!empty($this->filestorage)) {
+                $this->filestorage->setItemid('transport' . $switchId);
+                $inputs .= $this->filestorage->renderFilesPreview(true);
+            }
             //switch pricing and installation date
             $inputs .= wf_TextInput(self::PROUTE_SWITCHPRICE, __('Switch price'), $switchData['switchprice'], true, 5, 'finance');
             $inputs .= wf_DatePickerPreset(self::PROUTE_SWITCHDATE, $switchData['switchdate'], true) . ' ' . __('Switch installation date');

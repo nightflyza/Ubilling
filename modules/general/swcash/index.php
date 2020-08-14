@@ -39,6 +39,8 @@ if (@$altCfg['SW_CASH_ENABLED']) {
                 show_window('', wf_BackLink($swCash::URL_SWITCHPROFILE . $switchId));
             }
         }
+    } else {
+        show_error(__('Access denied'));
     }
 } else {
     show_error(__('This module is disabled'));

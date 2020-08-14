@@ -116,7 +116,19 @@ class FileStorage {
      * @return void
      */
     protected function setAllowedExtenstions() {
-        $this->allowedExtensions = array('jpg', 'gif', 'png', 'jpeg', 'xls', 'doc', 'odt', 'docx', 'pdf', 'txt');
+        $this->allowedExtensions = array(
+            'jpg',
+            'gif',
+            'png',
+            'jpeg',
+            'xls',
+            'doc',
+            'odt',
+            'docx',
+            'pdf',
+            'txt',
+            'mp3',
+            'gsm');
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
 
@@ -138,7 +150,7 @@ class FileStorage {
      * 
      * @return void
      */
-    protected function setItemid($itemid) {
+    public function setItemid($itemid) {
         $this->itemId = ubRouting::filters($itemid, 'mres');
     }
 
@@ -257,6 +269,12 @@ class FileStorage {
         if ($this->scope == 'USERPROFILE') {
             $result = web_UserControls($this->itemId);
         }
+
+        if ($this->scope == SwitchCash::FILESTORAGE_SCOPE) {
+            $switchId = ubRouting::filters($this->itemId, 'int');
+            $result = wf_BackLink(SwitchCash::URL_ME . '&' . SwitchCash::ROUTE_EDIT . '=' . $switchId);
+        }
+
         return ($result);
     }
 
@@ -264,22 +282,69 @@ class FileStorage {
      * Renders file preview icon
      * 
      * @param string $filename
+     * @param int $size
      * 
      * @return string
      */
-    protected function renderFilePreviewIcon($filename) {
+    protected function renderFilePreviewIcon($filename, $size = '') {
         $result = '';
         if (!empty($filename)) {
             $fileTypeIconsPath = 'skins/fileicons/';
             $extension = pathinfo(strtolower($filename), PATHINFO_EXTENSION);
             $fileTypeIcon = 'skins/fileicons/package.png';
-            $customTypeIcon=$fileTypeIconsPath . $extension . '.png';
+            $customTypeIcon = $fileTypeIconsPath . $extension . '.png';
             if (file_exists($customTypeIcon)) {
                 $fileTypeIcon = $customTypeIcon;
             }
 
-            $result .= wf_img($fileTypeIcon, $filename);
+            //custom icon size
+            if ($size) {
+                $result .= wf_img_sized($customTypeIcon, $filename, $size);
+            } else {
+                $result .= wf_img($fileTypeIcon, $filename);
+            }
         }
+        return($result);
+    }
+
+    /**
+     * Renders attached files preview with optional navigation button
+     * 
+     * @param bool $navbutton
+     * 
+     * @return string
+     */
+    public function renderFilesPreview($navButton = false) {
+        $result = '';
+        if (empty($this->allFiles)) {
+            $this->loadAllFiles();
+        }
+
+        $result .= wf_tag('div');
+
+        if ($navButton) {
+            $mgmtUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list';
+            $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')), false, 'ubButton');
+        }
+
+        if (!empty($this->allFiles)) {
+            foreach ($this->allFiles as $io => $eachFile) {
+                if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
+                    $result .= wf_tag('div', false, '', 'style="border: 0px dotted; float:left; margin:2px;"');
+                    $result .= wf_tag('center');
+                    if (cfr('FILESTORAGE')) {
+                        $fileDownloadUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $eachFile['id'];
+                        $result .= wf_Link($fileDownloadUrl, $this->renderFilePreviewIcon($eachFile['filename'], 32));
+                    } else {
+                        $result .= $this->renderFilePreviewIcon($eachFile['filename'], 32);
+                    }
+                    $result .= wf_tag('center', true);
+                    $result .= wf_tag('div', true);
+                }
+            }
+        }
+        $result .= wf_tag('div', true);
+        $result .= wf_CleanDiv();
         return($result);
     }
 
