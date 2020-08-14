@@ -128,7 +128,8 @@ class FileStorage {
             'pdf',
             'txt',
             'mp3',
-            'gsm');
+            'gsm'
+        );
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
 
