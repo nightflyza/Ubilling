@@ -537,6 +537,12 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('SWITCHESEDIT')) {
+        if (ispos($switchdata['desc'], 'SWCASH')) {
+            $result .= wf_Link('?module=swcash&switchid=' . $switchid, wf_img('skins/ukv/dollar.png') . ' ' . __('Financial data'), false, 'ubButton');
+        }
+    }
+
+    if (cfr('SWITCHESEDIT')) {
         $result .= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
     }
 

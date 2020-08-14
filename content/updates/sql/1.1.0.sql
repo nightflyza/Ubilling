@@ -10,3 +10,18 @@ CREATE TABLE IF NOT EXISTS `filestorage` (
   KEY `item` (`item`),
   KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `swcash` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `switchid` int(11) NOT NULL,
+  `placecontract` varchar(200) DEFAULT NULL,
+  `placeprice` double NOT NULL DEFAULT '0',
+  `powercontract` varchar(200) DEFAULT NULL,
+  `powerprice` double NOT NULL DEFAULT '0',
+  `transportcontract` varchar(200) DEFAULT NULL,
+  `transportprice` double NOT NULL DEFAULT '0',
+  `switchprice` double NOT NULL DEFAULT '0',
+  `switchdate` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `switchid` (`switchid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
