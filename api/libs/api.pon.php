@@ -3272,8 +3272,9 @@ class PONizer {
      */
     public function renderOltStats() {
         $oltOnuCounters = $this->getOltOnuCounts();
-        $onuMaxCount = @$this->altCfg['PON_ONU_PORT_MAX'];
+        $onuMaxCountConf = @$this->altCfg['PON_ONU_PORT_MAX'];
         $oltOnuFilled = array();
+        $oltOnuPonPortMax = array();
         $oltInterfacesFilled = array();
         $oltInterfaceDescrs = array();
         $signals = array();
@@ -3289,10 +3290,11 @@ class PONizer {
                 $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
-                $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCount;
+                $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
                 if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
+                    $oltOnuPonPortMax[$oltId] = $onuMaxCount;
                     $onuInterfacesCache = self::INTCACHE_PATH . $oltId . '_' . self::INTCACHE_EXT;
                     $onuSignalsCache = self::SIGCACHE_PATH . $oltId . '_' . self::SIGCACHE_EXT;
                     $oltInterfaceDescrsCache = self::INTCACHE_PATH . $oltId . '_' . self::INTDESCRCACHE_EXT;
@@ -3368,7 +3370,7 @@ class PONizer {
                     $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
-                        $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
+                        $eachInterfacePercent = zb_PercentValue($oltOnuPonPortMax[$oltId], $eachInterfaceCount); 
 
                         $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
 
@@ -3440,7 +3442,7 @@ class PONizer {
                         $cells .= wf_TableCell($avgSignalPercent);
                         $cells .= wf_TableCell($badSignalColor . $badSignalCount . $badSignalColorEnd);
                         $cells .= wf_TableCell($badSignalPercent);
-                        $cells .= wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+                        $cells .= wf_TableCell(web_bar($eachInterfaceCount, $oltOnuPonPortMax[$oltId]), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
                         $rows .= wf_TableRow($cells, 'row5');
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
@@ -3452,7 +3454,7 @@ class PONizer {
 
                     if (file_exists(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT)) {
                         $oltTemperature = file_get_contents(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT);
-                        $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . ' °C';
+                        $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . ' В°C';
                     }
                     $result .= wf_delimiter(0);
                 }
