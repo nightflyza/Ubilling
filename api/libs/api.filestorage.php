@@ -270,7 +270,15 @@ class FileStorage {
     protected function renderFilePreviewIcon($filename) {
         $result = '';
         if (!empty($filename)) {
-            $result .= wf_img('skins/somebox.png', $filename);
+            $fileTypeIconsPath = 'skins/fileicons/';
+            $extension = pathinfo(strtolower($filename), PATHINFO_EXTENSION);
+            $fileTypeIcon = 'skins/fileicons/package.png';
+            $customTypeIcon=$fileTypeIconsPath . $extension . '.png';
+            if (file_exists($customTypeIcon)) {
+                $fileTypeIcon = $customTypeIcon;
+            }
+
+            $result .= wf_img($fileTypeIcon, $filename);
         }
         return($result);
     }
@@ -292,7 +300,7 @@ class FileStorage {
                 if (($eachFile['scope'] == $this->scope) AND ( $eachFile['item'] == $this->itemId)) {
                     $dimensions = 'width:' . ($this->filePreviewSize + 220) . 'px;';
                     $dimensions .= 'height:' . ($this->filePreviewSize + 60) . 'px;';
-                    $result .= wf_tag('div', false, '', 'style="border: 1px solid; float:left;  ' . $dimensions . ' margin:15px;" id="ajRefCont_' . $eachFile['id'] . '"');
+                    $result .= wf_tag('div', false, '', 'style="border: 1px dotted; float:left;  ' . $dimensions . ' margin:15px;" id="ajRefCont_' . $eachFile['id'] . '"');
                     $result .= wf_tag('center');
                     $result .= $this->renderFilePreviewIcon($eachFile['filename']);
                     $result .= $this->fileControls($eachFile['id']);
