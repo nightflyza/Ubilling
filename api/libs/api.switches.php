@@ -1315,6 +1315,13 @@ function zb_SwitchesRenderAjaxList() {
                 }
             }
 
+            if (@$alterconf['SW_CASH_ENABLED']) {
+                if (ispos($eachswitch['desc'], 'SWCASH')) {
+                    $swCashUrl = SwitchCash::URL_ME . '&' . SwitchCash::ROUTE_EDIT . '=' . $eachswitch['id'];
+                    $switchcontrols .= wf_Link($swCashUrl, wf_img('skins/ukv/dollar.png', __('Financial data')));
+                }
+            }
+
             $jsonItem[] = $switchcontrols;
             $countTotal++;
             $jsonAAData[] = $jsonItem;
