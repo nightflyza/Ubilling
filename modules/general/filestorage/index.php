@@ -28,7 +28,7 @@ if ($altCfg['FILESTORAGE_ENABLED']) {
 
                 //just file upload interface
                 if ($modeSet == 'loader') {
-                    show_window(__('Files upload'), $fileStorage->renderUploadForm());
+                    show_window(__('File upload'), $fileStorage->renderUploadForm());
                 }
 
                 //listing images for some object
