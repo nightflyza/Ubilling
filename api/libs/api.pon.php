@@ -2424,6 +2424,7 @@ class PONizer {
     public function onuRegisterForm($oltId, $onuMac, $UserLogin = '', $UserIP = '', $RenderedOutside = false, $PageReloadAfterDone = false, $CtrlIDToReplaceAfterDone = '', $ModalWindowID = '') {
         $models = array();
         $telepathyArray = array();
+        $result = '';
 
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
@@ -2446,50 +2447,52 @@ class PONizer {
             }
         }
 
-        $inputs = wf_HiddenInput('createnewonu', 'true');
-        $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
-        $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
-        $inputs .= wf_TextInput('newip', __('IP'), $UserIP, true, 20, '', '__NewONUIP');
-        $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20, '', '__NewONUMAC');
-        $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
-        $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
-        $inputs .= wf_Link('#', __('Check if ONU is assigned to any login already'), true, 'ubButton __CheckONUAssignmentBtn', 'style="width: 100%; text-align: center;padding: 6px 0; margin-top: 5px;"');
-        $inputs .= wf_tag('span', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
-        $inputs .= wf_tag('span', true);
+        if (!empty($this->allOltDevices)) {
+            if (!empty($models)) {
+                $inputs = wf_HiddenInput('createnewonu', 'true');
+                $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
+                $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
+                $inputs .= wf_TextInput('newip', __('IP'), $UserIP, true, 20, '', '__NewONUIP');
+                $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20, '', '__NewONUMAC');
+                $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+                $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20, '', '__NewONULogin');
+                $inputs .= wf_Link('#', __('Check if ONU is assigned to any login already'), true, 'ubButton __CheckONUAssignmentBtn', 'style="width: 100%; text-align: center;padding: 6px 0; margin-top: 5px;"');
+                $inputs .= wf_tag('span', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
+                $inputs .= wf_tag('span', true);
 
-        if (($this->onuUknownUserByMACSearchShow and ( empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
-            $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
-            $inputs .= __('Try to find user by MAC') . ':';
-            $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
-            $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
-                    __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                    wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
-                    wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
-                    wf_tag('span', true);
-            $inputs .= wf_tag('div', true);
-            $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
-            $inputs .= wf_tag('div', true);
-        }
+                if (($this->onuUknownUserByMACSearchShow and ( empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
+                    $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
+                    $inputs .= __('Try to find user by MAC') . ':';
+                    $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
+                    $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
+                            __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                            wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
+                            wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                            wf_tag('span', true);
+                    $inputs .= wf_tag('div', true);
+                    $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
+                    $inputs .= wf_tag('div', true);
+                }
 
-        $NoRedirChkID = 'NoRedirChk_' . wf_InputId();
-        $ReloadChkID = 'ReloadChk_' . wf_InputId();
-        $SubmitID = 'Submit_' . wf_InputId();
-        $FormID = 'Form_' . wf_InputId();
-        $HiddenReplID = 'ReplaceCtrlID_' . wf_InputId();
-        $HiddenModalID = 'ModalWindowID_' . wf_InputId();
+                $NoRedirChkID = 'NoRedirChk_' . wf_InputId();
+                $ReloadChkID = 'ReloadChk_' . wf_InputId();
+                $SubmitID = 'Submit_' . wf_InputId();
+                $FormID = 'Form_' . wf_InputId();
+                $HiddenReplID = 'ReplaceCtrlID_' . wf_InputId();
+                $HiddenModalID = 'ModalWindowID_' . wf_InputId();
 
-        $inputs .= wf_tag('br');
-        $inputs .= ( ($RenderedOutside) ? wf_CheckInput('NoRedirect', __('Do not redirect anywhere: just add & close'), true, true, $NoRedirChkID, '__ONUAACFormNoRedirChck') : '' );
-        $inputs .= ( ($PageReloadAfterDone) ? wf_CheckInput('', __('Reload page after action'), true, true, $ReloadChkID, '__ONUAACFormPageReloadChck') : '' );
+                $inputs .= wf_tag('br');
+                $inputs .= ( ($RenderedOutside) ? wf_CheckInput('NoRedirect', __('Do not redirect anywhere: just add & close'), true, true, $NoRedirChkID, '__ONUAACFormNoRedirChck') : '' );
+                $inputs .= ( ($PageReloadAfterDone) ? wf_CheckInput('', __('Reload page after action'), true, true, $ReloadChkID, '__ONUAACFormPageReloadChck') : '' );
 
-        $inputs .= wf_tag('br');
-        $inputs .= wf_Submit(__('Create'), $SubmitID);
+                $inputs .= wf_tag('br');
+                $inputs .= wf_Submit(__('Create'), $SubmitID);
 
-        $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __ONUAssignAndCreateForm', '', $FormID);
-        $result .= wf_HiddenInput('', $CtrlIDToReplaceAfterDone, $HiddenReplID, '__ONUAACFormReplaceCtrlID');
-        $result .= wf_HiddenInput('', $ModalWindowID, $HiddenModalID, '__ONUAACFormModalWindowID');
-        $result .= wf_tag('script', false, '', 'type="text/javascript"');
-        $result .= '
+                $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __ONUAssignAndCreateForm', '', $FormID);
+                $result .= wf_HiddenInput('', $CtrlIDToReplaceAfterDone, $HiddenReplID, '__ONUAACFormReplaceCtrlID');
+                $result .= wf_HiddenInput('', $ModalWindowID, $HiddenModalID, '__ONUAACFormModalWindowID');
+                $result .= wf_tag('script', false, '', 'type="text/javascript"');
+                $result .= '
                     $(\'#' . $FormID . '\').submit(function(evt) {
                         if ( $(\'#' . $NoRedirChkID . '\').is(\':checked\') ) {
                             evt.preventDefault();
@@ -2507,8 +2510,15 @@ class PONizer {
                         }
                     });
                     ';
-        $result .= wf_tag('script', true);
-
+                $result .= wf_tag('script', true);
+            } else {
+                $messages = new UbillingMessageHelper();
+                $result .= $messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+            }
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
+        }
         return ($result);
     }
 
