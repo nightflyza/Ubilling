@@ -3187,4 +3187,6 @@ $lang['def']['Uplink'] = 'Аплінк';
 //rev 7604
 $lang['def']['immunity for branch curses and gulag'] = 'Імунітет від ГУЛАГу та мітки філіальності';
 $lang['def']['Tasks with duplicate address created for same day'] = 'Задачі для цієї ж адреси створені той же день';
+$lang['def']['Any available ONU models exist'] = 'Не існує жодних моделей ONU';
+$lang['def']['Any available OLT devices exist'] = 'Не існує жодних OLT пристроїв';
 ?>

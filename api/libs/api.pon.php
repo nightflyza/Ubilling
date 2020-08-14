@@ -2372,6 +2372,7 @@ class PONizer {
      */
     protected function onuCreateForm() {
         $models = array();
+        $result = '';
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
                 if (@$this->altCfg['ONUMODELS_FILTER']) {
@@ -2384,21 +2385,31 @@ class PONizer {
             }
         }
 
-        $inputs = wf_HiddenInput('createnewonu', 'true');
-        $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, '', true);
-        $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
-        if (@$this->altCfg['PON_ONUIPASIF']) {
-            $ipFieldLabel = __('Interface');
-        } else {
-            $ipFieldLabel = __('IP');
-        }
-        $inputs .= wf_TextInput('newip', $ipFieldLabel, '', true, 20);
-        $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
-        $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
-        $inputs .= wf_TextInput('newlogin', __('Login'), '', true, 20);
-        $inputs .= wf_Submit(__('Create'));
+        if (!empty($this->allOltDevices)) {
+            if (!empty($models)) {
+                $inputs = wf_HiddenInput('createnewonu', 'true');
+                $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, '', true);
+                $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
+                if (@$this->altCfg['PON_ONUIPASIF']) {
+                    $ipFieldLabel = __('Interface');
+                } else {
+                    $ipFieldLabel = __('IP');
+                }
+                $inputs .= wf_TextInput('newip', $ipFieldLabel, '', true, 20);
+                $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
+                $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+                $inputs .= wf_TextInput('newlogin', __('Login'), '', true, 20);
+                $inputs .= wf_Submit(__('Create'));
 
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $messages = new UbillingMessageHelper();
+                $result .= $messages->getStyledMessage(__('Any available ONU models exist'), 'error');
+            }
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
+        }
         return ($result);
     }
 
