@@ -12,3 +12,7 @@ $lang['def']['Switch installation date'] = 'Дата встановлення к
 $lang['def']['Switches profitability']='Окупність світчів';
 $lang['def']['Monthly expenses'] = 'Витрати на місяць';
 $lang['def']['Monthly profit'] = 'Прибуток на місяць';
+$lang['def']['Good payback'] = 'Хороша окупність';
+$lang['def']['Bad payback'] = 'Погана окупність';
+$lang['def']['Equal'] = 'Однаково';
+$lang['def']['Payback'] = 'Окупність';

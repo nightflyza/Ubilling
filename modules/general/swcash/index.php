@@ -43,8 +43,15 @@ if (@$altCfg['SW_CASH_ENABLED']) {
 
         //rendering basic report
         if (ubRouting::checkGet($swCash::ROUTE_REPORT)) {
-            $swCash->loadReportData();
+
             show_window(__('Switches profitability'), $swCash->renderBasicReport());
+        }
+
+        //rendering assigned users report
+        if (ubRouting::checkGet($swCash::ROUTE_USERS)) {
+            show_window(__('Users'), $swCash->renderUsersReport(ubRouting::get($swCash::ROUTE_USERS)));
+            $backUrl = $swCash::URL_ME . '&' . $swCash::ROUTE_REPORT . '=true';
+            show_window('', wf_BackLink($backUrl));
         }
     } else {
         show_error(__('Access denied'));

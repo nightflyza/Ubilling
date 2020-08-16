@@ -67,6 +67,27 @@ class SwitchCash {
     protected $allTariffPrices = array();
 
     /**
+     * Contains bad colored switches count
+     *
+     * @var int
+     */
+    protected $counterBad = 0;
+
+    /**
+     * Contains good colored switches count
+     *
+     * @var int
+     */
+    protected $counterGood = 0;
+
+    /**
+     * Contains equal colored switches count
+     *
+     * @var int
+     */
+    protected $counterEqual = 0;
+
+    /**
      * Some static defines etc
      */
     const TABLE_FINANCE = 'swcash';
@@ -76,6 +97,7 @@ class SwitchCash {
     const URL_SWITCHPROFILE = '?module=switches&edit=';
     const ROUTE_EDIT = 'switchid';
     const ROUTE_REPORT = 'renderreport';
+    const ROUTE_USERS = 'renderswusers';
     const PROUTE_CREATE = 'createswitchid';
     const PROUTE_SAVE = 'saveswitchid';
     const PROUTE_RECORD = 'swcashrecordid';
@@ -87,6 +109,9 @@ class SwitchCash {
     const PROUTE_TRANSPORTPRICE = 'newtransportprice';
     const PROUTE_SWITCHPRICE = 'newswitchprice';
     const PROUTE_SWITCHDATE = 'newswitchdate';
+    const COLOR_BAD = 'bc0000';
+    const COLOR_GOOD = '007603';
+    const COLOR_EQUAL = 'f47900';
 
     public function __construct() {
         $this->loadAlter();
@@ -152,7 +177,7 @@ class SwitchCash {
      * 
      * @return void
      */
-    public function loadReportData() {
+    protected function loadReportData() {
         $this->loadUserData();
         $this->loadTariffPrices();
         $this->loadSwitchesData();
@@ -412,12 +437,6 @@ class SwitchCash {
         return($result);
     }
 
-    protected function preprocessAssignedUsers() {
-        $result = array();
-
-        return($result);
-    }
-
     /**
      * Returns total switch profit per month
      * 
@@ -444,12 +463,66 @@ class SwitchCash {
     }
 
     /**
+     * Colorize switch name based on profit
+     * 
+     * @param string $switchName
+     * @param float $expenses
+     * @param float $profit
+     * 
+     * @return string
+     */
+    protected function colorizeSwitch($switchName, $expenses, $profit) {
+        $result = $switchName;
+        $textColor = '';
+
+        if ($profit > $expenses) {
+            $textColor = self::COLOR_GOOD;
+            $this->counterGood++;
+        }
+        if ($profit < $expenses) {
+            $textColor = self::COLOR_BAD;
+            $this->counterBad++;
+        }
+        if ($profit == $expenses) {
+            $textColor = self::COLOR_EQUAL;
+            $this->counterEqual++;
+        }
+
+        if ($textColor) {
+            $result = wf_tag('font', false, '', 'color="#' . $textColor . '"') . $switchName . wf_tag('font', true);
+        }
+        return($result);
+    }
+
+    /**
+     * Renders chart of switches profitability percents
+     * 
+     * @return string
+     */
+    protected function renderCharts() {
+        $result = '';
+        if ($this->counterBad OR $this->counterGood OR $this->counterEqual) {
+            $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
+            $chartData=array(
+                __('Good payback')=> $this->counterGood,
+                __('Bad payback')=> $this->counterBad,
+                __('Equal')=> $this->counterEqual,
+            );
+            $result .= wf_gcharts3DPie($chartData, __('Payback'), '400px', '300px', $chartOpts);
+        }
+        return($result);
+    }
+
+    /**
      * Renders basic report with switches profitability
      * 
      * @return string
      */
     public function renderBasicReport() {
         $result = '';
+        //loading all data required for this report
+        $this->loadReportData();
+
         if (!empty($this->allReportSwitches)) {
             $cells = wf_TableCell(__('Address'));
             $cells .= wf_TableCell(__('Monthly expenses'));
@@ -459,17 +532,53 @@ class SwitchCash {
             foreach ($this->allReportSwitches as $eachSwitchId => $eachSwitchData) {
                 $switchExpenses = $this->getSwitchExpenses($eachSwitchId);
                 $switchProfit = $this->getSwitchProfit($eachSwitchId);
-
-                $cells = wf_TableCell($eachSwitchData['location']);
+                $switchName = (!empty($eachSwitchData['location'])) ? $eachSwitchData['location'] : $eachSwitchData['ip'];
+                $cells = wf_TableCell($this->colorizeSwitch($switchName, $switchExpenses, $switchProfit));
                 $cells .= wf_TableCell($switchExpenses);
                 $cells .= wf_TableCell($switchProfit);
-                $cells .= wf_TableCell(__('Actions'));
+                $swControls = '';
+                $swControls .= wf_Link(self::URL_SWITCHPROFILE . $eachSwitchId, web_edit_icon(__('Switch'))) . ' ';
+                $swControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_EDIT . '=' . $eachSwitchId, wf_img('skins/ukv/dollar.png', __('Financial data'))) . ' ';
+                $swControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_USERS . '=' . $eachSwitchId, web_profile_icon(__('Users'))) . ' ';
+                $cells .= wf_TableCell($swControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+
+            //charts rendering
+            $result.= $this->renderCharts();
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
+        return($result);
+    }
+
+    /**
+     * Renders users list assigned for some switch
+     * 
+     * @param int $switchId
+     * 
+     * @return string
+     */
+    public function renderUsersReport($switchId) {
+        $result = '';
+        //loading all data required for this report
+        $this->loadReportData();
+        $switchId = ubRouting::filters($switchId, 'int');
+        $usersTmp = array();
+        if (!empty($this->allCashData)) {
+            if (!empty($this->allSwitchAssigns)) {
+                foreach ($this->allSwitchAssigns as $eachLogin => $eachAssignData) {
+                    if ($eachAssignData['switchid'] == $switchId) {
+                        if (isset($this->allUsersData[$eachLogin])) {
+                            $usersTmp[$eachLogin] = $eachLogin;
+                        }
+                    }
+                }
+            }
+        }
+
+        $result .= web_UserArrayShower($usersTmp);
         return($result);
     }
 
