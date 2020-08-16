@@ -9,3 +9,6 @@ $lang['def']['Transport contract'] = 'Угода транспорту';
 $lang['def']['Transport price'] = 'Витрати на транспорт';
 $lang['def']['Switch price'] = 'Вартість комутатора';
 $lang['def']['Switch installation date'] = 'Дата встановлення комутатора';
+$lang['def']['Switches profitability']='Окупність світчів';
+$lang['def']['Monthly expenses'] = 'Витрати на місяць';
+$lang['def']['Monthly profit'] = 'Прибуток на місяць';

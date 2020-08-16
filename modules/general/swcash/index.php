@@ -3,6 +3,7 @@
 $altCfg = $ubillingConfig->getAlter();
 if (@$altCfg['SW_CASH_ENABLED']) {
     if (cfr('SWITCHESEDIT')) {
+        set_time_limit(0);
         $swCash = new SwitchCash();
 
         //creating new financial data for some switch
@@ -38,6 +39,12 @@ if (@$altCfg['SW_CASH_ENABLED']) {
                 show_window(__('Edit') . ' ' . __('Financial data'), $swCash->renderEditForm($switchId));
                 show_window('', wf_BackLink($swCash::URL_SWITCHPROFILE . $switchId));
             }
+        }
+
+        //rendering basic report
+        if (ubRouting::checkGet($swCash::ROUTE_REPORT)) {
+            $swCash->loadReportData();
+            show_window(__('Switches profitability'), $swCash->renderBasicReport());
         }
     } else {
         show_error(__('Access denied'));

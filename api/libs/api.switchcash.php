@@ -38,13 +38,44 @@ class SwitchCash {
     protected $filestorage = '';
 
     /**
+     * Contains all user data as login=>userdata
+     *
+     * @var array
+     */
+    protected $allUsersData = array();
+
+    /**
+     * 
+     * Contains all switch assigns as login=>assignData
+     *
+     * @var array
+     */
+    protected $allSwitchAssigns = array();
+
+    /**
+     * Contains all switches that contains report mark as switchId=>switchData
+     *
+     * @var array
+     */
+    protected $allReportSwitches = array();
+
+    /**
+     * Contains all available tariff prices as tariffname=>Fee
+     *
+     * @var array
+     */
+    protected $allTariffPrices = array();
+
+    /**
      * Some static defines etc
      */
     const TABLE_FINANCE = 'swcash';
     const FILESTORAGE_SCOPE = 'SWCASH';
+    const REPORT_MASK = 'SWCASH';
     const URL_ME = '?module=swcash';
     const URL_SWITCHPROFILE = '?module=switches&edit=';
     const ROUTE_EDIT = 'switchid';
+    const ROUTE_REPORT = 'renderreport';
     const PROUTE_CREATE = 'createswitchid';
     const PROUTE_SAVE = 'saveswitchid';
     const PROUTE_RECORD = 'swcashrecordid';
@@ -113,6 +144,55 @@ class SwitchCash {
      */
     protected function loadAllCashData() {
         $this->allCashData = $this->swCashDb->getAll('switchid');
+    }
+
+    /**
+     * Loads all data required for basic report. 
+     * Must be called manually to save some resources.
+     * 
+     * @return void
+     */
+    public function loadReportData() {
+        $this->loadUserData();
+        $this->loadTariffPrices();
+        $this->loadSwitchesData();
+        $this->loadSwitchPortAssigns();
+    }
+
+    /**
+     * Loads all users data into protected prop
+     * 
+     * @return void
+     */
+    protected function loadUserData() {
+        $this->allUsersData = zb_UserGetAllDataCache();
+    }
+
+    /**
+     * Loads all available tariff fees
+     * 
+     * @return void
+     */
+    protected function loadTariffPrices() {
+        $this->allTariffPrices = zb_TariffGetPricesAll();
+    }
+
+    /**
+     * Loads switches data into protected property
+     * 
+     * @return void
+     */
+    protected function loadSwitchesData() {
+        $this->allReportSwitches = zb_SwitchesGetAllMask(self::REPORT_MASK);
+    }
+
+    /**
+     * Loads all available switchport assigns into protected prop
+     * 
+     * @return void
+     */
+    protected function loadSwitchPortAssigns() {
+        $this->allSwitchAssigns = zb_SwitchesGetAssignsAll();
     }
 
     /**
@@ -264,14 +344,14 @@ class SwitchCash {
             //power data
             $inputs .= wf_TextInput(self::PROUTE_POWERCONTRACT, __('Power contract'), $switchData['powercontract'], true, 20);
             $inputs .= wf_TextInput(self::PROUTE_POWERPRICE, __('Power price') . ' / ' . __('month'), $switchData['powerprice'], true, 5, 'finance');
-               if (!empty($this->filestorage)) {
+            if (!empty($this->filestorage)) {
                 $this->filestorage->setItemid('power' . $switchId);
                 $inputs .= $this->filestorage->renderFilesPreview(true);
             }
             //transport data
             $inputs .= wf_TextInput(self::PROUTE_TRANSPORTCONTRACT, __('Transport contract'), $switchData['transportcontract'], true, 20);
             $inputs .= wf_TextInput(self::PROUTE_TRANSPORTPRICE, __('Transport price') . ' / ' . __('month'), $switchData['transportprice'], true, 5, 'finance');
-               if (!empty($this->filestorage)) {
+            if (!empty($this->filestorage)) {
                 $this->filestorage->setItemid('transport' . $switchId);
                 $inputs .= $this->filestorage->renderFilesPreview(true);
             }
@@ -283,6 +363,112 @@ class SwitchCash {
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NO_SWCASHDATA', 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Returns switch month price for the first year
+     * 
+     * @param int $switchId
+     * 
+     * @return float
+     */
+    protected function getSwitchPrice($switchId) {
+        $result = 0;
+        if (isset($this->allCashData[$switchId])) {
+            $curDateTimestamp = time();
+            $switchCashData = $this->allCashData[$switchId];
+            if ($switchCashData['switchprice'] > 0) {
+                if (!empty($switchCashData['switchdate'])) {
+                    $switchSetupTimestamp = strtotime($switchCashData['switchdate']);
+                    $timeFromSetup = $curDateTimestamp - $switchSetupTimestamp;
+                    $daysFromSetup = round($timeFromSetup / 86400);
+                    if ($daysFromSetup < 365) { //switch installed less than one year ago
+                        $result = $switchCashData['switchprice'] / 12; //price per month
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns total of switch expenses per month
+     * 
+     * @param int $switchId
+     * 
+     * @return float
+     */
+    protected function getSwitchExpenses($switchId) {
+        $result = 0;
+        if (isset($this->allCashData[$switchId])) {
+            $switchCashData = $this->allCashData[$switchId];
+            $result += $this->getSwitchPrice($switchId); //switch price for the first year
+            $result += $switchCashData['placeprice']; //placement price
+            $result += $switchCashData['powerprice']; //power price
+            $result += $switchCashData['transportprice']; //transport price
+        }
+        return($result);
+    }
+
+    protected function preprocessAssignedUsers() {
+        $result = array();
+
+        return($result);
+    }
+
+    /**
+     * Returns total switch profit per month
+     * 
+     * @param int $switchId
+     * 
+     * @return float
+     */
+    protected function getSwitchProfit($switchId) {
+        $result = 0;
+        if (!empty($this->allSwitchAssigns)) {
+            foreach ($this->allSwitchAssigns as $eachLogin => $assignData) {
+                if ($assignData['switchid'] == $switchId) {
+                    if (isset($this->allUsersData[$eachLogin])) {
+                        $userTariff = $this->allUsersData[$eachLogin]['Tariff'];
+                        if (isset($this->allTariffPrices[$userTariff])) {
+                            $userFee = $this->allTariffPrices[$userTariff];
+                            $result += $userFee;
+                        }
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders basic report with switches profitability
+     * 
+     * @return string
+     */
+    public function renderBasicReport() {
+        $result = '';
+        if (!empty($this->allReportSwitches)) {
+            $cells = wf_TableCell(__('Address'));
+            $cells .= wf_TableCell(__('Monthly expenses'));
+            $cells .= wf_TableCell(__('Monthly profit'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allReportSwitches as $eachSwitchId => $eachSwitchData) {
+                $switchExpenses = $this->getSwitchExpenses($eachSwitchId);
+                $switchProfit = $this->getSwitchProfit($eachSwitchId);
+
+                $cells = wf_TableCell($eachSwitchData['location']);
+                $cells .= wf_TableCell($switchExpenses);
+                $cells .= wf_TableCell($switchProfit);
+                $cells .= wf_TableCell(__('Actions'));
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return($result);
     }

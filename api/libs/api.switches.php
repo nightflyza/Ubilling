@@ -587,6 +587,30 @@ function zb_SwitchesGetAll($order = '') {
 }
 
 /**
+ * Returns array of all available switches with its full data with some %mask% in description as switchId=>switchData
+ * 
+ * @param string $mask
+ * 
+ * @return array
+ */
+function zb_SwitchesGetAllMask($mask = '') {
+    $result = array();
+    if (!empty($mask)) {
+        $where = "WHERE `desc` LIKE '%" . $mask . "%'";
+    } else {
+        $where = '';
+    }
+    $query = 'SELECT * FROM `switches` ' . $where . ';';
+    $allSwitches = simple_queryall($query);
+    if (!empty($allSwitches)) {
+        foreach ($allSwitches as $io => $each) {
+            $result[$each['id']] = $each;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns array of all available switches with its full data ordered by location
  * 
  * @return array
