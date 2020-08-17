@@ -337,6 +337,15 @@ function web_SwitchMiniMap($switchdata) {
  * @return void
  */
 function web_SwitchDownlinksList($switchId) {
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
+    $switchesExtended = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
+
+    if ($switchesExtended) {
+        $switchesUplinks = new SwitchUplinks();
+        $switchesUplinks->loadAllUplinksData();
+    }
+
     $switchId = vf($switchId, 3);
     $all = zb_SwitchesGetAll();
     $downlinks = array();
@@ -364,6 +373,9 @@ function web_SwitchDownlinksList($switchId) {
         $allModels = zb_SwitchModelsGetAllTag();
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('IP'));
+        if ($switchesExtended) {
+            $cells .= wf_TableCell(__('Uplink'));
+        }
         $cells .= wf_TableCell(__('Location'));
         $cells .= wf_TableCell(__('Active'));
         $cells .= wf_TableCell(__('Model'));
@@ -394,6 +406,9 @@ function web_SwitchDownlinksList($switchId) {
 
             $cells = wf_TableCell($each['id']);
             $cells .= wf_TableCell($each['ip']);
+            if ($switchesExtended) {
+                $cells .= wf_TableCell($switchesUplinks->getUplinkTinyDesc($each['id']));
+            }
             $cells .= wf_TableCell($each['location']);
             $cells .= wf_TableCell($aliveled);
             $cells .= wf_TableCell(@$allModels[$each['modelid']]);
