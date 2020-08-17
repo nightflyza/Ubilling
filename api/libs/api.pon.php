@@ -974,6 +974,85 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache OLT FDB
+     *
+     * @param int $oltid
+     * @param array $FDBIndex
+     * @param array $macIndex
+     * @param array $oltModelId
+     *
+     * @return void
+     */
+    protected function FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId) {
+        $oltid = vf($oltid, 3);
+        $TmpArr = array();
+        $FDBTmp = array();
+        $macTmp = array();
+        $result = array();
+
+//fdb index preprocessing
+        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
+            foreach ($FDBIndex as $io => $eachfdbRaw) {
+                if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '|INTEGER:/', $eachfdbRaw)) {
+                    $eachfdbRaw = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], 'INTEGER:'), '', $eachfdbRaw);
+                    $line = explode('=', $eachfdbRaw);
+//fdb is present
+                    if (isset($line[1])) {
+                        $devOID = trim($line[0]); // FDB last OID
+                        $lineRaw = trim($line[1]); // FDB
+                        $devline = explode('.', $devOID);
+                        $FDBvlan = trim($devline[1]); // Vlan
+                        $FDBnum = trim($devline[7]); // Count number of MAC
+                        if (preg_match('/^1/', $devOID)) {
+                            $FDBRaw = str_replace(' ', ':', $lineRaw);
+                            $FDBRaw = strtolower($FDBRaw);
+                            $TmpArr[$devOID]['mac'] = $FDBRaw;
+                            $TmpArr[$devOID]['vlan'] = $FDBvlan;
+                            $TmpArr[$devOID]['FDBnum'] = $FDBnum;
+                        } elseif (preg_match('/^2/', $devOID)) {
+                            $devIndexOid = substr_replace($devOID, '1', 0, 1);
+                            $TmpArr[$devIndexOid]['index'] = $lineRaw;
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+            }
+            if (!empty($TmpArr)) {
+            // Crete tmp Ubilling PON FDB array
+                foreach ($TmpArr as $io => $each) {
+                    $FDBTmp[$each['index']][$each['FDBnum']]['mac'] = $each['mac'];
+                    $FDBTmp[$each['index']][$each['FDBnum']]['vlan'] = $each['vlan'];
+                }
+            }
+//mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+//mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                }
+            }
+//storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($FDBTmp[$devId])) {
+                        $fdb = $FDBTmp[$devId];
+                        $result[$eachMac] = $fdb;
+                    }
+                }
+
+                $result = serialize($result);
+                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
      * Parses & stores in cache OLT ONU interfaces
      *
      * @param int $oltid
@@ -1737,7 +1816,11 @@ class PONizer {
 //and interface description data
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrIndex);
 //processing FDB data
-                                        $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) AND $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
+                                            $this->FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        } else {
+                                            $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        }
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
 //processing last dereg reason data
                                             $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
