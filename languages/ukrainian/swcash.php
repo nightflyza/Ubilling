@@ -16,3 +16,4 @@ $lang['def']['Good payback'] = 'Хороша окупність';
 $lang['def']['Bad payback'] = 'Погана окупність';
 $lang['def']['Equal'] = 'Однаково';
 $lang['def']['Payback'] = 'Окупність';
+$lang['def']['right to control switches profitability'] = 'Право керувати окупністю світчів';

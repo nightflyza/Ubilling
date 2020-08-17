@@ -16,3 +16,4 @@ $lang['def']['Good payback'] = 'Хорошая окупаемость';
 $lang['def']['Bad payback'] = 'Плохая окупаемость';
 $lang['def']['Equal'] = 'Одинаково';
 $lang['def']['Payback'] = 'Окупаемость';
+$lang['def']['right to control switches profitability'] = 'Право управлять окупаемостью свитчей';

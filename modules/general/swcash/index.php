@@ -2,7 +2,7 @@
 
 $altCfg = $ubillingConfig->getAlter();
 if (@$altCfg['SW_CASH_ENABLED']) {
-    if (cfr('SWITCHESEDIT')) {
+    if (cfr('SWCASH')) {
         set_time_limit(0);
         $swCash = new SwitchCash();
 

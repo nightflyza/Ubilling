@@ -536,7 +536,7 @@ function web_SwitchEditForm($switchid) {
         $result .= wf_AjaxLink('?module=switchhistory&ajax=true&&switchid=' . $switchid, wf_img('skins/log_icon_small.png') . ' ' . __('History'), 'icmppingcontainer', false, 'ubButton') . ' ';
     }
 
-    if (cfr('SWITCHESEDIT')) {
+    if (cfr('SWCASH')) {
         if (ispos($switchdata['desc'], 'SWCASH')) {
             $result .= wf_Link('?module=swcash&switchid=' . $switchid, wf_img('skins/ukv/dollar.png') . ' ' . __('Financial data'), false, 'ubButton');
         }
