@@ -538,7 +538,9 @@ function web_SwitchEditForm($switchid) {
 
     if (cfr('SWCASH')) {
         if (ispos($switchdata['desc'], 'SWCASH')) {
-            $result .= wf_Link('?module=swcash&switchid=' . $switchid, wf_img('skins/ukv/dollar.png') . ' ' . __('Financial data'), false, 'ubButton');
+            if (@$altCfg['SW_CASH_ENABLED']) {
+                $result .= wf_Link('?module=swcash&switchid=' . $switchid, wf_img('skins/ukv/dollar.png') . ' ' . __('Financial data'), false, 'ubButton');
+            }
         }
     }
 
