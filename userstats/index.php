@@ -10,16 +10,18 @@ $pageGenStartTime = $pageGenStartTime[1] + $pageGenStartTime[0];
 
 
 // LOAD LIBS:
-include('modules/engine/api.mysql.php');
-include('modules/engine/api.compat.php');
-include('modules/engine/api.lightastral.php');
-include('modules/engine/api.userstats.php');
-include('modules/engine/api.agents.php');
-include('modules/engine/api.megogo.php');
-include('modules/engine/api.polls.php');
-include('modules/engine/api.extmobiles.php');
-include('modules/engine/api.omegatv.php');
-include('modules/engine/api.trinitytv.php');
+require_once('modules/engine/api.mysql.php');
+require_once('modules/engine/api.compat.php');
+require_once('modules/engine/api.lightastral.php');
+require_once('modules/engine/api.userstats.php');
+require_once('modules/engine/api.agents.php');
+require_once('modules/engine/api.megogo.php');
+require_once('modules/engine/api.polls.php');
+require_once('modules/engine/api.extmobiles.php');
+require_once('modules/engine/api.ubrouting.php');
+require_once('modules/engine/api.nyanorm.php');
+require_once('modules/engine/api.omegatv.php');
+require_once('modules/engine/api.trinitytv.php');
 
 
 // ACTIONS HANDLING:
