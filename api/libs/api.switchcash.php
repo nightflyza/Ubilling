@@ -113,6 +113,12 @@ class SwitchCash {
     const COLOR_GOOD = '007603';
     const COLOR_EQUAL = 'f47900';
 
+    /**
+     *   ___     ___
+     *  (o o)   (o o)
+     * (  V  ) (  V  )
+     * /--m-m- /--m-m-
+     */
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
@@ -503,10 +509,10 @@ class SwitchCash {
         $result = '';
         if ($this->counterBad OR $this->counterGood OR $this->counterEqual) {
             $chartOpts = "chartArea: {  width: '100%', height: '80%' }, legend : {position: 'right', textStyle: {fontSize: 12 }},  pieSliceText: 'value-and-percentage',";
-            $chartData=array(
-                __('Good payback')=> $this->counterGood,
-                __('Bad payback')=> $this->counterBad,
-                __('Equal')=> $this->counterEqual,
+            $chartData = array(
+                __('Good payback') => $this->counterGood,
+                __('Bad payback') => $this->counterBad,
+                __('Equal') => $this->counterEqual,
             );
             $result .= wf_gcharts3DPie($chartData, __('Payback'), '400px', '300px', $chartOpts);
         }
@@ -546,7 +552,7 @@ class SwitchCash {
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
             //charts rendering
-            $result.= $this->renderCharts();
+            $result .= $this->renderCharts();
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
