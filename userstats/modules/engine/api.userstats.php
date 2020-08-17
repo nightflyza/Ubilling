@@ -350,6 +350,45 @@ function zbs_AddressGetFulladdresslist() {
 }
 
 /**
+ * Returns array of availble user address as login=>array('cityname' = ..., 'streetname' = ..., 'buildnum' = ..., 'apt' = ...)
+ * 
+ * @return array
+ */
+function zbs_AddressGetFulladdresslistStruct($login) {
+    $login = mysql_real_escape_string($login);
+    $alterconf = zbs_LoadConfig();
+    $result = array();
+    $query_full = "
+        SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address`
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id`
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id`
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id`
+        INNER JOIN `city` ON `street`.`cityid`=`city`.`id` WHERE `login`='" . $login . "'";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
+            // zero apt handle
+            if ($alterconf['ZERO_TOLERANCE']) {
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' . $ArrayData['apt'];
+            } else {
+                $apartment_filtered = '/' . $ArrayData['apt'];
+            }
+            if ($alterconf['CITY_DISPLAY']) {
+                $result[$ArrayData['login']]['cityname'] = $ArrayData['cityname'];
+                $result[$ArrayData['login']]['streetname'] = $ArrayData['streetname'];
+                $result[$ArrayData['login']]['buildnum'] = $ArrayData['buildnum'];
+                $result[$ArrayData['login']]['apt'] = $ArrayData['apt'];
+            } else {
+                $result[$ArrayData['login']]['streetname'] = $ArrayData['streetname'];
+                $result[$ArrayData['login']]['buildnum'] = $ArrayData['buildnum'];
+                $result[$ArrayData['login']]['apt'] = $ArrayData['apt'];
+            }
+        }
+    }
+    return($result);
+}
+
+/**
  * Returns array of stargazer user data
  * 
  * @param string $login
@@ -651,6 +690,7 @@ function zbs_UserShowXmlAgentData($login) {
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
     $alladdress = zbs_AddressGetFulladdresslist();
+    $alladdressStruct = zbs_AddressGetFulladdresslistStruct($login);
     $allrealnames = zbs_UserGetAllRealnames();
     $contract = zbs_UserGetContract($login);
     $email = zbs_UserGetEmail($login);
@@ -732,6 +772,11 @@ function zbs_UserShowXmlAgentData($login) {
     $result = '<?xml version="1.0" encoding="utf-8"?>
 <userdata>' . "\n";
     $result .= "\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
+    if ($us_config['UBA_XML_ADDRESS_STRUCT']) {
+        foreach ($alladdressStruct[$login] as $field => $value) {
+            $result .= "\t<" . $field . '>' . $value . '</' . $field . ">\n";
+        }
+    }
     $result .= "\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
     $result .= "\t" . '<login>' . $login . '</login>' . "\n";
     $result .= "\t" . '<cash>' . @round($userdata['Cash'], 2) . '</cash>' . "\n";
