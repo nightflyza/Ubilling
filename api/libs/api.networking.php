@@ -390,9 +390,9 @@ function multinet_service_selector() {
         global $branchControl;
         $branchControl->loadServices();
     }
-    
-    $freeIpStatsFlag=$ubillingConfig->getAlterParam('USERREG_FREEIP_STATS');
-    if ($freeIpStatsFlag==2 OR $freeIpStatsFlag==3) {
+
+    $freeIpStatsFlag = $ubillingConfig->getAlterParam('USERREG_FREEIP_STATS');
+    if ($freeIpStatsFlag == 2 OR $freeIpStatsFlag == 3) {
         $allNetsStats = multinet_getFreeIpStats();
     }
 
@@ -1286,6 +1286,12 @@ function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = ''
     $tariff = mysql_real_escape_string($tariff);
     $speeddown = vf($speeddown);
     $speedup = vf($speedup);
+    if ($speeddown == '') {
+        $speeddown = 0;
+    }
+    if ($speedup == '') {
+        $speedup = 0;
+    }
     $burstdownload = vf($burstdownload);
     $burstupload = vf($burstupload);
     $bursttimedownload = vf($bursttimedownload);

@@ -46,7 +46,7 @@ if (cfr('TARIFFSPEED')) {
             $newBurstTimeDown = isset($_POST['newbursttimedownload']) ? trim($_POST['newbursttimedownload']) : '';
             $newBurstTimeUp = isset($_POST['newburstimetupload']) ? trim($_POST['newburstimetupload']) : '';
             zb_TariffCreateSpeed($tariff, $newSpeedDown, $newSpeedUp, $newBurstDown, $newBurstUp, $newBurstTimeDown, $newBurstTimeUp, $newBurstTimeUp);
-            rcms_redirect("?module=tariffspeeds");
+            rcms_redirect("?module=tariffspeeds&tariff=" . $tariff);
         }
     } else {
         //deleting speed

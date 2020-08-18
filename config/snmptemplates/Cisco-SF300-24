@@ -1,6 +1,8 @@
 [define]
 DEVICE=Cisco-SF300-24
-FDB=false
+FDB=true
+FDB_MODE=dlp
+FDB_IGNORE_PORTS="49,50,51,52"
 
 [PORTSTATE]
 NAME="Port states"
