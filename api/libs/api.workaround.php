@@ -5687,3 +5687,318 @@ function zb_backups_rotate($maxAge) {
         }
     }
 }
+
+/**
+ * Performs filtering of tariff name
+ * 
+ * @param string $tariffname
+ * 
+ * @return string
+ */
+function zb_TariffNameFilter($tariffname) {
+    $tariffname = trim($tariffname);
+    $tariffname = preg_replace("#[^a-z0-9A-Z\-_\.]#Uis", '', $tariffname);
+    if (strlen($tariffname) > 32) {
+        //stargazer dramatically fails on long tariff names
+        $tariffname = substr($tariffname, 0, 32);
+    }
+    return ($tariffname);
+}
+
+/**
+ * Returns Stargazer tariff creation select input options string
+ * 
+ * @param int $t count of selectable options
+ * @param int $selected selected option here
+ * 
+ * @return string
+ */
+function zb_TariffTimeSelector($t, $selected = false) {
+    $result = '';
+    $b = '';
+    for ($i = 1; $i < $t; ++$i) {
+        if ($i < 10) {
+            $a = '0';
+        } else {
+            $a = '';
+        }
+        if ($selected == @$a . $i) {
+            $b = 'SELECTED';
+        } else {
+            $b = '';
+        }
+        $result .= wf_tag('option', false, '', $b) . $a . $i . wf_tag('option', true);
+    }
+    return($result);
+}
+
+/**
+ * Returns list of available Stargazer tariffs with some controls
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
+function web_TariffLister() {
+    $alltariffs = billing_getalltariffs();
+    $dbSchema = zb_CheckDbSchema();
+
+    global $ubillingConfig;
+    $alter = $ubillingConfig->getAlter();
+    $tariffSpeeds = zb_TariffGetAllSpeeds();
+
+    $cells = wf_TableCell(__('Tariff name'));
+    $cells .= wf_TableCell(__('Tariff Fee'));
+    if ($dbSchema > 0) {
+        $cells .= wf_TableCell(__('Period'));
+    }
+    $cells .= wf_TableCell(__('Speed'));
+    $cells .= wf_TableCell(__('Actions'));
+    $rows = wf_TableRow($cells, 'row1');
+
+    $result = wf_Link("?module=tariffs&action=new", web_icon_create() . ' ' . __('Create new tariff'), true, 'ubButton');
+
+    if (!empty($alltariffs)) {
+        foreach ($alltariffs as $io => $eachtariff) {
+            $cells = wf_TableCell($eachtariff['name']);
+            $cells .= wf_TableCell($eachtariff['Fee']);
+            if ($dbSchema > 0) {
+                $cells .= wf_TableCell(__($eachtariff['period']));
+            }
+
+            if (isset($tariffSpeeds[$eachtariff['name']])) {
+                $speedData = $tariffSpeeds[$eachtariff['name']]['speeddown'] . ' / ' . $tariffSpeeds[$eachtariff['name']]['speedup'];
+            } else {
+                $speedData = wf_tag('font', false, '', 'color="#bc0000"') . __('Speed is not set') . wf_tag('font', true);
+            }
+            $cells .= wf_TableCell($speedData);
+
+            $actions = wf_JSAlert("?module=tariffs&action=delete&tariffname=" . $eachtariff['name'], web_delete_icon(), __('Delete') . ' ' . $eachtariff['name'] . '? ' . __('Removing this may lead to irreparable results'));
+            $actions .= wf_JSAlert("?module=tariffs&action=edit&tariffname=" . $eachtariff['name'], web_edit_icon(), __('Edit') . ' ' . $eachtariff['name'] . '? ' . __('Are you serious'));
+            $actions .= wf_Link('?module=tariffspeeds&tariff=' . $eachtariff['name'], wf_img('skins/icon_speed.gif', __('Edit speed')), false, '');
+            $actions .= ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
+            $cells .= wf_TableCell($actions);
+            $rows .= wf_TableRow($cells, 'row5');
+        }
+    }
+
+    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+
+    return($result);
+}
+
+/**
+ * WTF???!!!
+ * 
+ * @param type $a
+ * @param type $b
+ * @return type
+ */
+function zb_tariff_yoba_price($a, $b) {
+    if ($a == $b) {
+        return $a;
+    } else {
+        return "$a/$b";
+    }
+}
+
+/**
+ * Renders new tariff creation form
+ * 
+ * @global array $dirs
+ * 
+ * @return string
+ */
+function web_TariffCreateForm() {
+    global $dirs;
+
+    $dbSchema = zb_CheckDbSchema();
+
+    if ($dbSchema > 0) { //stargazer >=2.409
+        $availOpts = array('month' => __('Month'), 'day' => __('Day'));
+        $periodControls = wf_Selector("options[Period]", $availOpts, __('Period'), @$tariffdata['period'], true);
+        $periodControls .= wf_delimiter(0);
+    } else {
+        $periodControls = '';
+    }
+
+    $traffCountOptions = array(
+        'up+down' => 'up+down',
+        'up' => 'up',
+        'down' => 'down',
+        'max' => 'max',
+    );
+
+    $result = '';
+
+    $inputs = wf_TextInput('options[TARIFF]', __('Tariff name'), '', true, '20');
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_TextInput('options[Fee]', __('Fee'), '', true, 4, 'finance');
+    $inputs .= wf_delimiter(0);
+    $inputs .= $periodControls;
+    $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic'), '0', true, 3, 'digits');
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), '', true);
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_TextInput('options[PassiveCost]', __('Cost of freezing'), '', true, 3, 'finance');
+    $inputs .= wf_delimiter(0);
+
+    $inputsDirs = '';
+
+    foreach ($dirs as $dir) {
+        $inputsDirs .= wf_tag('fieldset', false);
+        $inputsDirs .= wf_tag('legend');
+        $inputsDirs .= __('Traffic classes') . ': ' . wf_tag('b') . $dir['rulename'] . wf_tag('b', true);
+        $inputsDirs .= wf_tag('legend', true);
+
+
+        $inputsDirs .= wf_tag('select', false, '', 'id="dhour' . $dir['rulenumber'] . '"  name="options[dhour][' . $dir['rulenumber'] . ']"');
+        $inputsDirs .= wf_tag('option', false, '', 'SELECTED') . '00' . wf_tag('option', true);
+        $inputsDirs .= zb_TariffTimeSelector(24);
+        $inputsDirs .= wf_tag('select', true);
+
+
+        $inputsDirs .= wf_tag('select', false, '', 'id="dmin' . $dir['rulenumber'] . '"  name="options[dmin][' . $dir['rulenumber'] . ']"');
+        $inputsDirs .= wf_tag('option', false, '', 'SELECTED') . '00' . wf_tag('option', true);
+        $inputsDirs .= zb_TariffTimeSelector(60);
+        $inputsDirs .= wf_tag('select', true);
+        $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Day');
+
+        $inputsDirs .= wf_TextInput('options[PriceDay][' . $dir['rulenumber'] . ']', __('Price day'), '', false, 3);
+        $inputsDirs .= wf_TextInput('options[Threshold][' . $dir['rulenumber'] . ']', __('Threshold') . ' (' . __('Mb') . ')', '0', true, 3, 'digits');
+
+        $inputsDirs .= wf_tag('select', false, '', 'id="nhour' . $dir['rulenumber'] . '"  name="options[nhour][' . $dir['rulenumber'] . ']"');
+        $inputsDirs .= wf_tag('option', false, '', 'SELECTED') . '00' . wf_tag('option', true);
+        $inputsDirs .= zb_TariffTimeSelector(24);
+        $inputsDirs .= wf_tag('select', true);
+
+        $inputsDirs .= wf_tag('select', false, '', 'id="nmin' . $dir['rulenumber'] . '"  name="options[nmin][' . $dir['rulenumber'] . ']"');
+        $inputsDirs .= wf_tag('option', false, '', 'SELECTED') . '00' . wf_tag('option', true);
+        $inputsDirs .= zb_TariffTimeSelector(60);
+        $inputsDirs .= wf_tag('select', true);
+        $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Night');
+        $inputsDirs .= wf_TextInput('options[PriceNight][' . $dir['rulenumber'] . ']', __('Price night'), '', false, 3);
+
+        $inputsDirs .= wf_CheckInput('options[NoDiscount][' . $dir['rulenumber'] . ']', __('Without threshold'), true, true);
+        $inputsDirs .= wf_CheckInput('options[SinglePrice][' . $dir['rulenumber'] . ']', __('Price does not depend on time'), true, true);
+
+        $inputsDirs .= wf_tag('fieldset', true);
+        $inputsDirs .= wf_delimiter(0);
+    }
+    $allInputs = $inputs . $inputsDirs;
+    $allInputs .= wf_Submit(__('Create new tariff'));
+    $result .= wf_Form('', 'POST', $allInputs, '', '', 'tariff_add');
+    return($result);
+}
+
+/**
+ * Renders existing tariff editing form
+ * 
+ * @global array $dirs
+ * @param string $tariffname
+ * 
+ * @return string
+ */
+function web_TariffEditForm($tariffname) {
+    global $dirs;
+    $result = '';
+    $tariffdata = billing_gettariff($tariffname);
+    if (!empty($tariffdata)) {
+        $traffCountOptions = array(
+            'up+down' => 'up+down',
+            'up' => 'up',
+            'down' => 'down',
+            'max' => 'max',
+        );
+
+
+        $dbSchema = zb_CheckDbSchema();
+
+
+        if ($dbSchema > 0) {
+            $availOpts = array('month' => __('Month'), 'day' => __('Day'));
+            $periodControls = wf_Selector("options[Period]", $availOpts, __('Period'), $tariffdata['period'], true);
+            $periodControls .= wf_delimiter(0);
+        } else {
+            $periodControls = '';
+        }
+
+        $form = '';
+        $inputs = '';
+
+
+        $inputs .= wf_TextInput('options[TARIFF]', __('Tariff name'), $tariffdata['name'], true, 20, '', '', '', 'DISABLED');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_TextInput('options[Fee]', __('Fee'), $tariffdata['Fee'], true, 4, 'finance');
+        $inputs .= wf_delimiter(0);
+        $inputs .= $periodControls;
+        $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic'), $tariffdata['Free'], true, 3, 'digits');
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Selector('options[TraffType]', $traffCountOptions, __('Counting traffic'), $tariffdata['TraffType'], true);
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_TextInput('options[PassiveCost]', __('Cost of freezing'), $tariffdata['PassiveCost'], true, 3, 'finance');
+        $inputs .= wf_delimiter(0);
+
+        $inputsDirs = '';
+
+        foreach ($dirs as $dir) {
+            $inputsDirs .= wf_tag('fieldset', false);
+            $inputsDirs .= wf_tag('legend');
+            $inputsDirs .= __('Traffic classes') . ': ' . wf_tag('b') . $dir['rulename'] . wf_tag('b', true);
+            $inputsDirs .= wf_tag('legend', true);
+
+            $rulenumber = $dir['rulenumber'];
+            $arrTime = explode('-', $tariffdata ["Time" . $rulenumber]);
+            $day = explode(':', $arrTime [0]);
+            $night = explode(':', $arrTime [1]);
+
+            $tariffdata ['Time'] [$rulenumber] ['Dmin'] = $day [1];
+            $tariffdata ['Time'] [$rulenumber] ['Dhour'] = $day [0];
+            $tariffdata ['Time'] [$rulenumber] ['Nmin'] = $night [1];
+            $tariffdata ['Time'] [$rulenumber] ['Nhour'] = $night [0];
+
+            $inputsDirs .= wf_tag('select', false, '', 'id="dhour' . $dir['rulenumber'] . '"  name="options[dhour][' . $dir['rulenumber'] . ']"');
+            $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
+            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']] ['Dhour']);
+            $inputsDirs .= wf_tag('select', true);
+
+            $inputsDirs .= wf_tag('select', false, '', 'id="dmin' . $dir['rulenumber'] . '"  name="options[dmin][' . $dir['rulenumber'] . ']"');
+            $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
+            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']] ['Dmin']);
+            $inputsDirs .= wf_tag('select', true);
+            $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Day');
+
+            $inputsDirs .= wf_TextInput('options[PriceDay][' . $dir['rulenumber'] . ']', __('Price day'), zb_tariff_yoba_price($tariffdata ["PriceDayA" . $dir['rulenumber']], $tariffdata ["PriceDayB" . $dir['rulenumber']]), false, 3);
+            $inputsDirs .= wf_TextInput('options[Threshold][' . $dir['rulenumber'] . ']', __('Threshold') . ' (' . __('Mb') . ')', $tariffdata ["Threshold$dir[rulenumber]"], true, 3, 'digits');
+
+            $inputsDirs .= wf_tag('select', false, '', 'id="nhour' . $dir['rulenumber'] . '"  name="options[nhour][' . $dir['rulenumber'] . ']"');
+            $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
+            $inputsDirs .= zb_TariffTimeSelector(24, $tariffdata['Time'][$dir['rulenumber']] ['Nhour']);
+            $inputsDirs .= wf_tag('select', true);
+
+            $inputsDirs .= wf_tag('select', false, '', 'id="nmin' . $dir['rulenumber'] . '"  name="options[nmin][' . $dir['rulenumber'] . ']"');
+            $inputsDirs .= wf_tag('option', false, '', '') . '00' . wf_tag('option', true);
+            $inputsDirs .= zb_TariffTimeSelector(60, $tariffdata['Time'][$dir['rulenumber']] ['Nmin']);
+            $inputsDirs .= wf_tag('select', true);
+            $inputsDirs .= ' (' . __('hours') . '/' . __('minutes') . ') ' . __('Night');
+            $inputsDirs .= wf_TextInput('options[PriceNight][' . $dir['rulenumber'] . ']', __('Price night'), zb_tariff_yoba_price($tariffdata ["PriceNightA$dir[rulenumber]"], $tariffdata ["PriceNightB$dir[rulenumber]"]), false, 3);
+
+            $inputsDirs .= wf_CheckInput('options[NoDiscount][' . $dir['rulenumber'] . ']', __('Without threshold'), true, $tariffdata["NoDiscount" . $rulenumber]);
+            $inputsDirs .= wf_CheckInput('options[SinglePrice][' . $dir['rulenumber'] . ']', __('Price does not depend on time'), true, $tariffdata["SinglePrice" . $rulenumber]);
+
+
+            $inputsDirs .= wf_tag('fieldset', true);
+            $inputsDirs .= wf_delimiter(0);
+        }
+
+
+        $allInputs = $inputs . $inputsDirs;
+        $allInputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $allInputs, '', '', 'save');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('Something went wrong') . ': FATAL_TARIFF_NOT_EXISTS', 'error');
+    }
+
+    return($result);
+}
