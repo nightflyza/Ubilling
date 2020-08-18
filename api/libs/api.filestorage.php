@@ -128,7 +128,8 @@ class FileStorage {
             'pdf',
             'txt',
             'mp3',
-            'gsm'
+            'gsm',
+            'conf'
         );
         $this->allowedExtensions = array_flip($this->allowedExtensions); //extension string => index
     }
@@ -254,7 +255,12 @@ class FileStorage {
     public function uploadControlsPanel() {
         $result = '';
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
-            $result .= wf_Link(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
+            $callBackUrl = '';
+            if (ubRouting::checkGet('callback')) {
+                $callBackUrl = '&callback=' . ubRouting::get('callback');
+            }
+            $controlUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader' . $callBackUrl;
+            $result .= wf_Link($controlUrl, wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
         }
 
         return ($result);
@@ -269,6 +275,14 @@ class FileStorage {
         $result = '';
         if ($this->scope == 'USERPROFILE') {
             $result = web_UserControls($this->itemId);
+        }
+
+        if ($this->scope == 'USERCONTRACT') {
+            if (ubRouting::checkGet('callback')) {
+                $result = wf_BackLink('?module=swcash&renderswusers=' . ubRouting::get('callback', 'int'));
+            } else {
+                $result = wf_BackLink('?module=contractedit&username=' . $this->itemId);
+            }
         }
 
         if ($this->scope == SwitchCash::FILESTORAGE_SCOPE) {
@@ -312,20 +326,24 @@ class FileStorage {
      * Renders attached files preview with optional navigation button
      * 
      * @param bool $navbutton
+     * @param string $navbuttonText
+     * @param string $navbuttonClass
+     * @param int $iconSize
+     * @param string $urlAppend
      * 
      * @return string
      */
-    public function renderFilesPreview($navButton = false) {
+    public function renderFilesPreview($navButton = false, $navbuttonText = '', $navbuttonClass = 'ubButton', $iconSize = '32', $urlAppend = '') {
         $result = '';
         if (empty($this->allFiles)) {
             $this->loadAllFiles();
         }
 
-        $result .= wf_tag('div');
+        $result .= wf_tag('div', false, '', '');
 
         if ($navButton) {
-            $mgmtUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list';
-            $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')), false, 'ubButton');
+            $mgmtUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list' . $urlAppend;
+            $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')) . $navbuttonText, false, $navbuttonClass);
         }
 
         if (!empty($this->allFiles)) {
@@ -335,9 +353,9 @@ class FileStorage {
                     $result .= wf_tag('center');
                     if (cfr('FILESTORAGE')) {
                         $fileDownloadUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $eachFile['id'];
-                        $result .= wf_Link($fileDownloadUrl, $this->renderFilePreviewIcon($eachFile['filename'], 32));
+                        $result .= wf_Link($fileDownloadUrl, $this->renderFilePreviewIcon($eachFile['filename'], $iconSize));
                     } else {
-                        $result .= $this->renderFilePreviewIcon($eachFile['filename'], 32);
+                        $result .= $this->renderFilePreviewIcon($eachFile['filename'], $iconSize);
                     }
                     $result .= wf_tag('center', true);
                     $result .= wf_tag('div', true);
@@ -446,6 +464,10 @@ class FileStorage {
      */
     public function catchFileUpload() {
         if (ubRouting::checkGet('uploadfile')) {
+            $callBackUrl = '';
+            if (ubRouting::checkGet('callback')) {
+                $callBackUrl = '&callback=' . ubRouting::get('callback');
+            }
             if (!empty($this->scope)) {
                 $fileAccepted = true;
                 foreach ($_FILES as $file) {
@@ -466,7 +488,7 @@ class FileStorage {
                     if (file_exists($newSavePath)) {
                         $uploadResult = $this->messages->getStyledMessage(__('File upload complete'), 'success');
                         $this->registerFile($newFilename);
-                        rcms_redirect(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename);
+                        ubRouting::nav(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&uldd=1' . $callBackUrl);
                     } else {
                         $uploadResult = $this->messages->getStyledMessage(__('File upload failed'), 'error');
                     }
@@ -478,7 +500,7 @@ class FileStorage {
             }
 
             show_window('', $uploadResult);
-            show_window('', wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader'));
+            show_window('', wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader' . $callBackUrl));
         }
     }
 
@@ -488,7 +510,11 @@ class FileStorage {
      * @return string
      */
     public function renderUploadForm() {
-        $postUrl = self::URL_UPLOAD_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId;
+        $callBackUrl = '';
+        if (ubRouting::checkGet('callback')) {
+            $callBackUrl = '&callback=' . ubRouting::get('callback');
+        }
+        $postUrl = self::URL_UPLOAD_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId . $callBackUrl;
         $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
         $inputs .= wf_tag('input', false, '', 'type="file" name="filestorageFileUpload"');
         $inputs .= wf_Submit(__('Upload'));
@@ -496,11 +522,15 @@ class FileStorage {
 
         $result = $inputs;
         $result .= wf_delimiter(2);
-        if (wf_CheckGet(array('preview'))) {
+        if (ubRouting::checkGet('uldd')) {
             $result .= $this->messages->getStyledMessage(__('File upload complete'), 'success');
             $result .= wf_delimiter();
         }
-        $result .= wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
+        $callBackUrl = '';
+        if (ubRouting::checkGet('callback')) {
+            $callBackUrl = '&callback=' . ubRouting::get('callback');
+        }
+        $result .= wf_BackLink(self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list' . $callBackUrl);
         return ($result);
     }
 

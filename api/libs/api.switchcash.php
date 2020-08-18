@@ -584,7 +584,7 @@ class SwitchCash {
             }
         }
 
-        $result .= web_UserArrayShower($usersTmp);
+        $result .= web_UserCorpsArrayShower($usersTmp, $switchId);
         return($result);
     }
 

@@ -3069,6 +3069,155 @@ function web_UserArrayShower($usersarr) {
 }
 
 /**
+ * Returns user array in table view with optional corps users detection with contract attach possibility
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @param array $usersarr
+ * @param string $callback
+ * 
+ * @return string
+ */
+function web_UserCorpsArrayShower($usersarr, $callBack = '') {
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
+
+    if (!empty($usersarr)) {
+        $alladdress = zb_AddressGetFulladdresslistCached();
+        $allrealnames = zb_UserGetAllRealnames();
+        $alltariffs = zb_TariffsGetAllUsers();
+        $allusercash = zb_CashGetAllUsers();
+        $allusercredits = zb_CreditGetAllUsers();
+        $alluserips = zb_UserGetAllIPs();
+
+        if ($alterconf['ONLINE_LAT']) {
+            $alluserlat = zb_LatGetAllUsers();
+        }
+
+        //additional finance links
+        if ($alterconf['FAST_CASH_LINK']) {
+            $fastcash = true;
+        } else {
+            $fastcash = false;
+        }
+
+        /**
+         * Corporate users notification column
+         */
+        if (@$alterconf['CORPS_ENABLED']) {
+            $corpsFlag = true;
+            $corps = new Corps();
+        } else {
+            $corpsFlag = false;
+        }
+
+        //filestorage support for corporate users contracts
+        if (@$alterconf['FILESTORAGE_ENABLED']) {
+            $filestorageFlag = true;
+            $filestorage = new FileStorage('USERCONTRACT');
+        } else {
+            $filestorageFlag = false;
+        }
+
+
+
+        $tablecells = wf_TableCell(__('Login'));
+        $tablecells .= wf_TableCell(__('Address'));
+        $tablecells .= wf_TableCell(__('Real Name'));
+        if ($corpsFlag) {
+            $tablecells .= wf_TableCell(__('User type'));
+        }
+        $tablecells .= wf_TableCell(__('IP'));
+        $tablecells .= wf_TableCell(__('Tariff'));
+        // last activity time
+        if ($alterconf['ONLINE_LAT']) {
+            $tablecells .= wf_TableCell(__('LAT'));
+        }
+        $tablecells .= wf_TableCell(__('Active'));
+        //online detect
+        if ($alterconf['DN_ONLINE_DETECT']) {
+            $tablecells .= wf_TableCell(__('Users online'));
+        }
+        $tablecells .= wf_TableCell(__('Balance'));
+        $tablecells .= wf_TableCell(__('Credit'));
+
+
+
+        $tablerows = wf_TableRow($tablecells, 'row1');
+
+        foreach ($usersarr as $eachlogin) {
+            @$usercash = $allusercash[$eachlogin];
+            @$usercredit = $allusercredits[$eachlogin];
+            //finance check
+            $activity = web_green_led();
+            $activity_flag = 1;
+            if ($usercash < '-' . $usercredit) {
+                $activity = web_red_led();
+                $activity_flag = 0;
+            }
+
+            //fast cash link
+            if ($fastcash) {
+                $financelink = wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
+            } else {
+                $financelink = '';
+            }
+
+            $profilelink = $financelink . wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
+            $tablecells = wf_TableCell($profilelink);
+            $tablecells .= wf_TableCell(@$alladdress[$eachlogin]);
+            $tablecells .= wf_TableCell(@$allrealnames[$eachlogin]);
+            if ($corpsFlag) {
+                $corpsCheck = $corps->userIsCorporate($eachlogin);
+                if ($corpsCheck) {
+                    $userType = wf_img('skins/folder_small.png') . ' ' . __('Corporate user');
+
+                    if ($filestorageFlag) {
+                        $filestorage->setItemid($eachlogin);
+                        $userType .= $filestorage->renderFilesPreview(true, '', '', '16', '&callback=' . $callBack);
+                    }
+                } else {
+                    $userType = __('Private user');
+                }
+                $tablecells .= wf_TableCell($userType);
+            }
+            $tablecells .= wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2int(@$alluserips[$eachlogin]) . '"');
+            $tablecells .= wf_TableCell(@$alltariffs[$eachlogin]);
+            if ($alterconf['ONLINE_LAT']) {
+                if (isset($alluserlat[$eachlogin])) {
+                    $cUserLat = date("Y-m-d H:i:s", $alluserlat[$eachlogin]);
+                } else {
+                    $cUserLat = __('No');
+                }
+                $tablecells .= wf_TableCell($cUserLat);
+            }
+            $tablecells .= wf_TableCell($activity, '', '', 'sorttable_customkey="' . $activity_flag . '"');
+            if ($alterconf['DN_ONLINE_DETECT']) {
+                if (file_exists(DATA_PATH . 'dn/' . $eachlogin)) {
+                    $online_flag = 1;
+                } else {
+                    $online_flag = 0;
+                }
+                $tablecells .= wf_TableCell(web_bool_star($online_flag), '', '', 'sorttable_customkey="' . $online_flag . '"');
+            }
+            $tablecells .= wf_TableCell($usercash);
+            $tablecells .= wf_TableCell($usercredit);
+
+
+            $tablerows .= wf_TableRow($tablecells, 'row5');
+        }
+
+        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        $result .= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . sizeof($usersarr);
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result = $messages->getStyledMessage(__('Any users found'), 'info');
+    }
+
+    return ($result);
+}
+
+/**
  * Safely transliterates UTF-8 string
  * 
  * @param string $string
