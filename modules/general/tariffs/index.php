@@ -24,7 +24,7 @@ if (cfr('TARIFFS')) {
             //check for tariff fee valid money format
             if (zb_checkMoney($newTariffOptions['Fee'])) {
                 if (!empty($newTariffName)) {
-                    $currentTariffData = billing_gettariff($newTariffName);
+                    $currentTariffData = zb_TariffGetData($newTariffName);
                     if (empty($currentTariffData)) {
                         //The same tariff doesnt exists
                         $billing->createtariff($newTariffName); //just creating empty tariff
