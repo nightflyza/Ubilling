@@ -5833,7 +5833,7 @@ function web_TariffCreateForm() {
 
     $inputs = wf_TextInput('options[TARIFF]', __('Tariff name'), '', true, '20');
     $inputs .= wf_delimiter(0);
-    $inputs .= wf_TextInput('options[Fee]', __('Fee'), '', true, 4, 'finance');
+    $inputs .= wf_TextInput('options[Fee]', __('Fee'), '0', true, 4, 'finance');
     $inputs .= wf_delimiter(0);
     $inputs .= $periodControls;
     $inputs .= wf_TextInput('options[Free]', __('Prepaid traffic'), '0', true, 3, 'digits');
