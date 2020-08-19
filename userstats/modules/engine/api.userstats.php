@@ -690,7 +690,11 @@ function zbs_UserShowXmlAgentData($login) {
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
     $alladdress = zbs_AddressGetFulladdresslist();
-    $alladdressStruct = zbs_AddressGetFulladdresslistStruct($login);
+    if ($us_config['UBA_XML_ADDRESS_STRUCT']) {
+        $alladdressStruct = zbs_AddressGetFulladdresslistStruct($login);
+    } else {
+        $alladdressStruct = array();
+    }
     $allrealnames = zbs_UserGetAllRealnames();
     $contract = zbs_UserGetContract($login);
     $email = zbs_UserGetEmail($login);
@@ -773,8 +777,10 @@ function zbs_UserShowXmlAgentData($login) {
 <userdata>' . "\n";
     $result .= "\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
     if ($us_config['UBA_XML_ADDRESS_STRUCT']) {
-        foreach ($alladdressStruct[$login] as $field => $value) {
-            $result .= "\t<" . $field . '>' . $value . '</' . $field . ">\n";
+        if (!empty($alladdressStruct)) {
+            foreach ($alladdressStruct[$login] as $field => $value) {
+                $result .= "\t<" . $field . '>' . $value . '</' . $field . ">\n";
+            }
         }
     }
     $result .= "\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
