@@ -2355,6 +2355,8 @@ function ts_renderLogsDataAjax($taskid = '') {
             $data[] = $administratorChange;
             $data[] = $each['ip'];
 
+
+
             if ($each['event'] == 'create') {
                 $data[] = __('Create task');
                 $data_event = @unserialize($each['logs']);
@@ -2452,50 +2454,53 @@ function ts_renderLogsDataAjax($taskid = '') {
                 $data[] = __('Task delete');
                 $data_event = '';
                 $logDataArr = @unserialize($each['logs']);
+                if ($logDataArr) {
+                    $data_event .= wf_tag('b') . __('Create date') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['date'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Create date') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['date'] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['address'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Task address') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['address'] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['login'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Login') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['login'] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . @$alljobtypes[$logDataArr['jobtype']] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Job type') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . @$alljobtypes[$logDataArr['jobtype']] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Job note') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['jobnote'] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Phone') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Phone') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['phone'] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employee']] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Worker') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employee']] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employeedone']] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Worker done') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . @$allemployee[$logDataArr['employeedone']] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate'] . " " . $logDataArr['starttime'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Target date') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['startdate'] . " " . $logDataArr['starttime'] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Admin') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
 
-                $data_event .= wf_tag('b') . __('Admin') . ": " . wf_tag('b', true);
-                $data_event .= wf_tag('font', false, '', 'color="red"') . @$employeeLogins[$logDataArr['admin']] . wf_tag('font', true);
-                $data_event .= wf_tag('br');
-
-                $data_event .= wf_tag('b') . __('Status') . ": " . wf_tag('b', true);
-                $data_event .= web_bool_led($logDataArr['status']);
-                $data_event .= wf_tag('br');
+                    $data_event .= wf_tag('b') . __('Status') . ": " . wf_tag('b', true);
+                    $data_event .= web_bool_led($logDataArr['status']);
+                    $data_event .= wf_tag('br');
+                } else {
+                    $data[] = __('Log data corrupted');
+                }
             } else {
                 $data[] = __($each['event']);
                 $data_event = $each['logs'];
