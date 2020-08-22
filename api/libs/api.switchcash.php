@@ -38,6 +38,13 @@ class SwitchCash {
     protected $filestorage = '';
 
     /**
+     * Excel report placeholder
+     * 
+     * @var objecr
+     */
+    protected $excelReport = '';
+
+    /**
      * Contains all user data as login=>userdata
      *
      * @var array
@@ -97,6 +104,7 @@ class SwitchCash {
     const URL_SWITCHPROFILE = '?module=switches&edit=';
     const ROUTE_EDIT = 'switchid';
     const ROUTE_REPORT = 'renderreport';
+    const ROUTE_EXCEL = 'excelexport';
     const ROUTE_USERS = 'renderswusers';
     const PROUTE_CREATE = 'createswitchid';
     const PROUTE_SAVE = 'saveswitchid';
@@ -188,6 +196,7 @@ class SwitchCash {
         $this->loadTariffPrices();
         $this->loadSwitchesData();
         $this->loadSwitchPortAssigns();
+        $this->initExcelLib();
     }
 
     /**
@@ -224,6 +233,16 @@ class SwitchCash {
      */
     protected function loadSwitchPortAssigns() {
         $this->allSwitchAssigns = zb_SwitchesGetAssignsAll();
+    }
+
+    /**
+     * Inits excel export library
+     * 
+     * @return void
+     */
+    protected function initExcelLib() {
+        require_once ('api/vendor/PHPExcel/Classes/PHPExcel.php');
+        $this->excelReport = new PHPExcel();
     }
 
     /**
@@ -520,6 +539,48 @@ class SwitchCash {
     }
 
     /**
+     * Performs report exporting in MS Excel format
+     * 
+     * @return
+     */
+    protected function exportBasicReport() {
+        // Set document properties
+        $this->excelReport->getProperties()->setCreator("Ubilling")
+                ->setLastModifiedBy("Ubilling")
+                ->setTitle('Switches profitability report')
+                ->setSubject('Switches profitability report')
+                ->setDescription('Switches profitability report')
+                ->setKeywords("Ubilling");
+
+        // Redirect output to a client’s web browser (Excel5)
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . curdatetime() . '_report.xls"');
+        header('Cache-Control: max-age=0');
+        // If you're serving to IE 9, then the following may be needed
+        header('Cache-Control: max-age=1');
+
+        // If you're serving to IE over SSL, then the following may be needed
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
+        // Set document properties
+        $this->excelReport->getProperties()->setCreator("Ubilling")
+                ->setLastModifiedBy("Ubilling")
+                ->setTitle('Switches profitability report')
+                ->setSubject('Switches profitability report')
+                ->setDescription('Switches profitability report')
+                ->setKeywords("Ubilling");
+
+        // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+        $this->excelReport->setActiveSheetIndex(0);
+
+        $objWriter = PHPExcel_IOFactory::createWriter($this->excelReport, 'Excel5');
+        $objWriter->save('php://output');
+        die();
+    }
+
+    /**
      * Renders basic report with switches profitability
      * 
      * @return string
@@ -528,6 +589,7 @@ class SwitchCash {
         $result = '';
         //loading all data required for this report
         $this->loadReportData();
+        $exportFlag = (ubRouting::checkGet(self::ROUTE_EXCEL)) ? true : false;
 
         if (!empty($this->allReportSwitches)) {
             $cells = wf_TableCell(__('Address'));
@@ -535,7 +597,16 @@ class SwitchCash {
             $cells .= wf_TableCell(__('Monthly profit'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
+            $rowCounter = 1; //starts from 1 due excel columns numbering            
+            //appending export headers if required
+            if ($exportFlag) {
+                $this->excelReport->setActiveSheetIndex(0)->setCellValue('A' . $rowCounter, __('Address'));
+                $this->excelReport->setActiveSheetIndex(0)->setCellValue('B' . $rowCounter, __('Monthly expenses'));
+                $this->excelReport->setActiveSheetIndex(0)->setCellValue('C' . $rowCounter, __('Monthly profit'));
+            }
+
             foreach ($this->allReportSwitches as $eachSwitchId => $eachSwitchData) {
+                $rowCounter++;
                 $switchExpenses = $this->getSwitchExpenses($eachSwitchId);
                 $switchProfit = $this->getSwitchProfit($eachSwitchId);
                 $switchName = (!empty($eachSwitchData['location'])) ? $eachSwitchData['location'] : $eachSwitchData['ip'];
@@ -548,11 +619,22 @@ class SwitchCash {
                 $swControls .= wf_Link(self::URL_ME . '&' . self::ROUTE_USERS . '=' . $eachSwitchId, web_profile_icon(__('Users'))) . ' ';
                 $cells .= wf_TableCell($swControls);
                 $rows .= wf_TableRow($cells, 'row5');
+                //appending export data if required
+                if ($exportFlag) {
+                    $this->excelReport->setActiveSheetIndex(0)->setCellValue('A' . $rowCounter, $switchName);
+                    $this->excelReport->setActiveSheetIndex(0)->setCellValue('B' . $rowCounter, $switchExpenses);
+                    $this->excelReport->setActiveSheetIndex(0)->setCellValue('C' . $rowCounter, $switchProfit);
+                }
             }
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
 
             //charts rendering
             $result .= $this->renderCharts();
+
+            //excel report exporting
+            if ($exportFlag) {
+                $this->exportBasicReport();
+            }
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }

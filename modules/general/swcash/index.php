@@ -43,8 +43,9 @@ if (@$altCfg['SW_CASH_ENABLED']) {
 
         //rendering basic report
         if (ubRouting::checkGet($swCash::ROUTE_REPORT)) {
-
-            show_window(__('Switches profitability'), $swCash->renderBasicReport());
+            $excelExportUrl = $swCash::URL_ME . '&' . $swCash::ROUTE_REPORT . '=true&' . $swCash::ROUTE_EXCEL . '=true';
+            $excelControl = wf_Link($excelExportUrl, wf_img('skins/excel.gif', __('Export to excel')));
+            show_window(__('Switches profitability') . ' ' . $excelControl, $swCash->renderBasicReport());
         }
 
         //rendering assigned users report
