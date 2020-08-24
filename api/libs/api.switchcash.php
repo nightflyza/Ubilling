@@ -575,6 +575,11 @@ class SwitchCash {
         // Set active sheet index to the first sheet, so Excel opens this as the first sheet
         $this->excelReport->setActiveSheetIndex(0);
 
+        //setting columns width
+        $this->excelReport->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
+        $this->excelReport->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
+        $this->excelReport->getActiveSheet()->getColumnDimension('C')->setAutoSize(true);
+
         $objWriter = PHPExcel_IOFactory::createWriter($this->excelReport, 'Excel5');
         $objWriter->save('php://output');
         die();
