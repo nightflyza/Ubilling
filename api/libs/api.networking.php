@@ -24,7 +24,8 @@ function multinet_getFreeIpStats() {
 
     if (!empty($servicesTmp)) {
         foreach ($servicesTmp as $io => $each) {
-            $allServices[$each['netid']] = $each['desc'];
+            $allServices[$each['netid']]['desc'] = $each['desc'];
+            $allServices[$each['netid']]['servid'] = $each['id'];
         }
     }
 
@@ -40,9 +41,11 @@ function multinet_getFreeIpStats() {
             }
             //finding network associated service
             if (isset($allServices[$each['id']])) {
-                $allNets[$each['id']]['service'] = $allServices[$each['id']];
+                $allNets[$each['id']]['service'] = $allServices[$each['id']]['desc'];
+                $allNets[$each['id']]['serviceid'] = $allServices[$each['id']]['servid'];
             } else {
                 $allNets[$each['id']]['service'] = '';
+                $allNets[$each['id']]['serviceid'] = '';
             }
             //free IPs counter
             $allNets[$each['id']]['free'] = $allNets[$each['id']]['total'] - $allNets[$each['id']]['used'];
@@ -76,9 +79,13 @@ function multinet_totalips_count($first_ip, $last_ip) {
 /**
  * Renders IP usage stats in existing networks. Reacts to allnets GET parameter.
  * 
+ * @global object $ubillingConfig
+ * @global object $branchControl
+ * 
  * @return string
  */
 function web_FreeIpStats() {
+    global $ubillingConfig;
     $result = '';
     $data = multinet_getFreeIpStats();
 
@@ -87,6 +94,12 @@ function web_FreeIpStats() {
         $servFlag = false;
     } else {
         $servFlag = true;
+    }
+
+    // branches support
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
+        global $branchControl;
+        $branchControl->loadServices();
     }
 
     $cells = wf_TableCell(__('ID'));
@@ -108,6 +121,16 @@ function web_FreeIpStats() {
             } else {
                 $appendResult = true;
             }
+
+            //branch resctrictions control
+            if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
+                if ($branchControl->isMyService($each['serviceid'])) {
+                    $appendResult = true;
+                } else {
+                    $appendResult = false;
+                }
+            }
+
 
             if ($appendResult) {
                 $free = $each['total'] - $each['used'];
@@ -403,13 +426,17 @@ function multinet_service_selector() {
             if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
                 if ($branchControl->isMyService($eachservice['id'])) {
                     $tmpArr[$eachservice['id']] = $eachservice['desc'];
+                    //optional free IP stats for branch restricted users
+                    if (isset($allNetsStats[$eachservice['netid']])) {
+                        $tmpArr[$eachservice['id']] .= ' (' . __('Free') . ' ' . $allNetsStats[$eachservice['netid']]['free'] . ')';
+                    }
                 }
             } else {
                 $tmpArr[$eachservice['id']] = $eachservice['desc'];
-            }
-            //optional free IP stats
-            if (isset($allNetsStats[$eachservice['netid']])) {
-                $tmpArr[$eachservice['id']] .= ' (' . __('Free') . ' ' . $allNetsStats[$eachservice['netid']]['free'] . ')';
+                //optional free IP stats for all nets
+                if (isset($allNetsStats[$eachservice['netid']])) {
+                    $tmpArr[$eachservice['id']] .= ' (' . __('Free') . ' ' . $allNetsStats[$eachservice['netid']]['free'] . ')';
+                }
             }
         }
     }
