@@ -2029,7 +2029,11 @@ class MultiGen {
         $result = '';
         if (isset($this->usersQinQ[$userLogin])) {
             $qinqData = $this->usersQinQ[$userLogin];
-            $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . $qinqData['cvlan'];
+            if ($this->allSvlan[$qinqData['svlan_id']]['svlan'] === 0) {
+                $result .= $qinqData['cvlan'];
+            } else {
+                $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . $qinqData['cvlan'];
+            }
         } elseif (isset($this->userSwitchAssigns[$userLogin])) {
             $assignData = $this->userSwitchAssigns[$userLogin];
             $assignedSwitchId = $assignData['switchid'];
@@ -2037,7 +2041,11 @@ class MultiGen {
             if (isset($this->switchesQinQ[$assignedSwitchId])) {
                 $qinqData = $this->switchesQinQ[$assignedSwitchId];
                 if (!empty($assignedPort)) {
-                    $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . ($qinqData['cvlan'] + ($assignedPort - 1));
+                    if ($this->allSvlan[$qinqData['svlan_id']]['svlan'] === 0) {
+                        $result .= ($qinqData['cvlan'] + ($assignedPort - 1));
+                    } else {
+                        $result .= $this->allSvlan[$qinqData['svlan_id']]['svlan'] . $delimiter . ($qinqData['cvlan'] + ($assignedPort - 1));
+                    }
                 }
             }
         }
@@ -2627,7 +2635,7 @@ class MultiGen {
             $result = json_encode($result);
             $result = base64_encode($result);
         } else {
-            $result='';
+            $result = '';
         }
         return ($result);
     }
