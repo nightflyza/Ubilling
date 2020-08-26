@@ -13,38 +13,38 @@
 /*********************************************************************************
 * Timezones                                                                      *
 *********************************************************************************/
-$lang['tz']['-12'] = 'GMT - 12 Hours';
-$lang['tz']['-11'] = 'GMT - 11 Hours';
-$lang['tz']['-10'] = 'GMT - 10 Hours';
-$lang['tz']['-9'] = 'GMT - 9 Hours';
-$lang['tz']['-8'] = 'GMT - 8 Hours';
-$lang['tz']['-7'] = 'GMT - 7 Hours';
-$lang['tz']['-6'] = 'GMT - 6 Hours';
-$lang['tz']['-5'] = 'GMT - 5 Hours';
-$lang['tz']['-4'] = 'GMT - 4 Hours';
-$lang['tz']['-3.5'] = 'GMT - 3.5 Hours';
-$lang['tz']['-3'] = 'GMT - 3 Hours';
-$lang['tz']['-2'] = 'GMT - 2 Hours';
-$lang['tz']['-1'] = 'GMT - 1 Hours';
+$lang['tz']['-12'] = 'GMT - 12 Horas';
+$lang['tz']['-11'] = 'GMT - 11 Horas';
+$lang['tz']['-10'] = 'GMT - 10 Horas';
+$lang['tz']['-9'] = 'GMT - 9 Horas';
+$lang['tz']['-8'] = 'GMT - 8 Horas';
+$lang['tz']['-7'] = 'GMT - 7 Horas';
+$lang['tz']['-6'] = 'GMT - 6 Horas';
+$lang['tz']['-5'] = 'GMT - 5 Horas';
+$lang['tz']['-4'] = 'GMT - 4 Horas';
+$lang['tz']['-3.5'] = 'GMT - 3.5 Horas';
+$lang['tz']['-3'] = 'GMT - 3 Horas';
+$lang['tz']['-2'] = 'GMT - 2 Horas';
+$lang['tz']['-1'] = 'GMT - 1 Horas';
 $lang['tz']['0'] = 'GMT';
-$lang['tz']['1'] = 'GMT + 1 Hour';
-$lang['tz']['2'] = 'GMT + 2 Hours';
-$lang['tz']['3'] = 'GMT + 3 Hours';
-$lang['tz']['3.5'] = 'GMT + 3.5 Hours';
-$lang['tz']['4'] = 'GMT + 4 Hours';
-$lang['tz']['4.5'] = 'GMT + 4.5 Hours';
-$lang['tz']['5'] = 'GMT + 5 Hours';
-$lang['tz']['5.5'] = 'GMT + 5.5 Hours';
-$lang['tz']['6'] = 'GMT + 6 Hours';
-$lang['tz']['6.5'] = 'GMT + 6.5 Hours';
-$lang['tz']['7'] = 'GMT + 7 Hours';
-$lang['tz']['8'] = 'GMT + 8 Hours';
-$lang['tz']['9'] = 'GMT + 9 Hours';
-$lang['tz']['9.5'] = 'GMT + 9.5 Hours';
-$lang['tz']['10'] = 'GMT + 10 Hours';
-$lang['tz']['11'] = 'GMT + 11 Hours';
-$lang['tz']['12'] = 'GMT + 12 Hours';
-$lang['tz']['13'] = 'GMT + 13 Hours';
+$lang['tz']['1'] = 'GMT + 1 Hora';
+$lang['tz']['2'] = 'GMT + 2 Horas';
+$lang['tz']['3'] = 'GMT + 3 Horas';
+$lang['tz']['3.5'] = 'GMT + 3.5 Horas';
+$lang['tz']['4'] = 'GMT + 4 Horas';
+$lang['tz']['4.5'] = 'GMT + 4.5 Horas';
+$lang['tz']['5'] = 'GMT + 5 Horas';
+$lang['tz']['5.5'] = 'GMT + 5.5 Horas';
+$lang['tz']['6'] = 'GMT + 6 Horas';
+$lang['tz']['6.5'] = 'GMT + 6.5 Horas';
+$lang['tz']['7'] = 'GMT + 7 Horas';
+$lang['tz']['8'] = 'GMT + 8 Horas';
+$lang['tz']['9'] = 'GMT + 9 Horas';
+$lang['tz']['9.5'] = 'GMT + 9.5 Horas';
+$lang['tz']['10'] = 'GMT + 10 Horas';
+$lang['tz']['11'] = 'GMT + 11 Horas';
+$lang['tz']['12'] = 'GMT + 12 Horas';
+$lang['tz']['13'] = 'GMT + 13 Horas';
 
 /*********************************************************************************
 * Date localization                                                              *
@@ -86,5 +86,5 @@ $lang['datetime']['Aug'] = 'Ago';
 $lang['datetime']['Sep'] = 'Sep';
 $lang['datetime']['Oct'] = 'Oct';
 $lang['datetime']['Nov'] = 'Nov';
-$lang['datetime']['Dec'] = 'Dec';
+$lang['datetime']['Dec'] = 'Dic';
 ?>
