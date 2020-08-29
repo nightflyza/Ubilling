@@ -1104,7 +1104,7 @@ class UbillingVisor {
                     $visorLinkLabel = $this->iconVisorUser() . ' ' . @$this->allUsers[$each['visorid']]['realname'];
                     $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $each['visorid'], $visorLinkLabel);
                     $data[] = $visorUserLink;
-                    $cameraLinkLabel = web_profile_icon() . ' ' . $cameraUserData['fulladress'];
+                    $cameraLinkLabel = web_profile_icon() . ' ' . @$cameraUserData['fulladress'];
                     $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
                     $data[] = $cameraLink;
                     $data[] = @$cameraUserData['ip'];
