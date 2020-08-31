@@ -1108,6 +1108,12 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
             }
             $newTaskDate = $TaskDate->format('Y-m-d');
             $newTaskTime = $TaskDate->format('H:i');
+        } elseif ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 3) {
+            $TaskDate = new DateTime();
+            $TaskDate->add(new DateInterval('P1D'));
+            $TaskDate->setTime(8, 00);
+            $newTaskDate = $TaskDate->format('Y-m-d');
+            $newTaskTime = $TaskDate->format('H:i');
         } else {
             $newTaskDate = '';
             $newTaskTime = '';
