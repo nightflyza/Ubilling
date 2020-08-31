@@ -1628,6 +1628,8 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
 
     $taskid = simple_query("SELECT LAST_INSERT_ID() as id");
     $taskid = $taskid['id'];
+    $realname = simple_query("SELECT * FROM `realname` where `login` ='" . $login . "'");
+    $realname = $realname['realname'];
 
     //store messages for backround processing via senddog for Telegramm
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
@@ -1635,6 +1637,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
         if (isset($_POST['newtasksendtelegram'])) {
             $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
             $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
+            $newTelegramText .= __('Real Name') . ': ' . $realname . '\r\n';
             $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
             $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
