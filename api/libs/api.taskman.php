@@ -1648,7 +1648,6 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             $newTelegramText .= __('Create date') . ': ' . $jobSendTime . '\r\n';
             if (!empty($login)) {
 
-
                 $userCableSeal = '';
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
                     $userCondet = new ConnectionDetails();
