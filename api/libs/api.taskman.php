@@ -1628,23 +1628,26 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
 
     $taskid = simple_query("SELECT LAST_INSERT_ID() as id");
     $taskid = $taskid['id'];
-    $realname = simple_query("SELECT * FROM `realname` where `login` ='" . $login . "'");
-    $realname = $realname['realname'];
 
     //store messages for backround processing via senddog for Telegramm
     if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
+        if (!empty($login)) {
+            $userData = zb_UserGetAllData($login);
+        }
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
             $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
             $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
-            $newTelegramText .= __('Real Name') . ': ' . $realname . '\r\n';
+            if (!empty($login)) {
+                $newTelegramText .= __('Real Name') . ': ' . @$userData[$login]['realname'] . '\r\n';
+            }
             $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
             $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
             $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
             $newTelegramText .= __('Create date') . ': ' . $jobSendTime . '\r\n';
             if (!empty($login)) {
-                $userData = zb_UserGetAllData($login);
+
 
                 $userCableSeal = '';
                 if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
