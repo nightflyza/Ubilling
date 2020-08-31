@@ -334,6 +334,7 @@ div.dhtml_menu div.vert_menu a.active:hover
 
 .glamour input:hover, textarea:hover { 
     /** no effects here due Firefox 80 hover issue **/
+    color: #6f0000;
 } 
 
 .glamour  legend
