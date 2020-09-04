@@ -68,10 +68,14 @@ class OnuBase {
 
     public function __construct($login = '') {
         if (!empty($login)) {
+            $this->snmp = new SNMPHelper;
             $this->loadAlter();
             $this->login = $login;
             $this->getOnuData($login);
-            $this->snmp = new SNMPHelper;
+
+            if (empty($this->onuData)) {
+                $this->getExtUserOnuData($login);
+            }
 
             if (!empty($this->oltId)) {
                 $this->getOltData($this->oltId);
@@ -108,6 +112,27 @@ class OnuBase {
         if (!empty($data)) {
             $this->oltId = $data['oltid'];
             $this->onuData = $data;
+        }
+    }
+
+    /**
+     * Get onu data mac and olt ID to which onu is linked for external logins(multiport ONUs)
+     *
+     * @param string $login
+     */
+    protected function getExtUserOnuData($login) {
+        $query = "SELECT * FROM `pononuextusers` WHERE `login` = '$login'";
+        $data = simple_query($query);
+
+        if (!empty($data) and !empty($data['onuid'])) {
+            $onuID = $data['onuid'];
+            $query = "SELECT * FROM `pononu` WHERE `id` = $onuID";
+            $data = simple_query($query);
+
+            if (!empty($data)) {
+                $this->oltId = $data['oltid'];
+                $this->onuData = $data;
+            }
         }
     }
 

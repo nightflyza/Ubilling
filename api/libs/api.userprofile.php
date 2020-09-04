@@ -995,9 +995,19 @@ class UserProfile {
             $onuAdditionalData = '';
             $query = "SELECT `pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, `switchmodels`.`modelname` 
                         FROM `pononu`
-                        LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id`  
-                        WHERE `login`='" . $this->login . "'";
+                        LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id`                        
+                        WHERE `login` = '" . $this->login . "'";
             $onu_data = simple_query($query);
+
+            if (empty($onu_data)) {
+                $query = "SELECT `pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, 
+                                 `switchmodels`.`modelname`, `pononuextusers`.`login` 
+                            FROM `pononu`
+                                LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id`
+                                INNER JOIN `pononuextusers` ON `pononu`.`id` = `pononuextusers`.`onuid`  
+                            WHERE `pononuextusers`.`login` = '" . $this->login . "'";
+                $onu_data = simple_query($query);
+            }
 
             if (!empty($onu_data)) {
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW') and isset($onu_data['oltid'])) {
