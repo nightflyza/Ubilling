@@ -51,6 +51,7 @@ class SmartUP {
      * Storage keys etc.
      */
     const PAYID_KEY = 'SMARTUP_PAYIDS';
+    const USERDATA_KEY = 'SMARTUP_USERDATA';
 
     /**
      * Creates some magic instance
@@ -76,15 +77,37 @@ class SmartUP {
     }
 
     /**
+     * Loads all required by SmartUp users data from database
+     * 
+     * @return array
+     */
+    protected function getAllUserData() {
+        $result = array();
+        $query = "SELECT `users`.`login`,`IP`, `realname`.`realname`, `Tariff`,`Cash` FROM `users` LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['login']] = $each;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Loads all avilable users data from database into protected prop for further usage
      * 
      * @return void
      */
     protected function loadUserData() {
         if ($this->useCaching) {
-            $this->allUserData = zb_UserGetAllDataCache();
+            $this->allUserData = $this->cache->get(self::USERDATA_KEY, $this->cacheTimeout);
+            if (empty($this->allUserData)) {
+                //cache update required
+                $this->allUserData = $this->getAllUserData();
+                $this->cache->set(self::USERDATA_KEY, $this->allUserData, $this->cacheTimeout);
+            }
         } else {
-            $this->allUserData = zb_UserGetAllData();
+            $this->allUserData = $this->getAllUserData();
         }
     }
 
@@ -131,7 +154,7 @@ class SmartUP {
         if (!empty($ip)) {
             if (!empty($this->allUserData)) {
                 foreach ($this->allUserData as $io => $each) {
-                    if ($each['ip'] == $ip) {
+                    if ($each['IP'] == $ip) {
                         $result .= $each['login'];
                         break;
                     }
