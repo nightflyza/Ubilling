@@ -92,7 +92,7 @@ if (cfr('SWITCHESEDIT')) {
              * Тебе побачив і на дупу впав
              */
             $curNet = (wf_CheckPost(array('searchnetdevs'))) ? $_POST['searchnetdevs'] : '';
-            $curCidr = (wf_CheckPost(array('searchnetcidr'))) ? $_POST['searchnetcidr'] : '';
+            $curCidr = (wf_CheckPost(array('searchnetcidr'))) ? $_POST['searchnetcidr'] : 22;
             $inputs = wf_TextInput('searchnetdevs', __('Network') . ' /', $curNet, false, 20);
             $inputs .= wf_Selector('searchnetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
             $inputs .= wf_Submit(__('Search'));
@@ -108,7 +108,7 @@ if (cfr('SWITCHESEDIT')) {
         public function renderFormFree() {
             $result = '';
             $curNet = (wf_CheckPost(array('freenetdevs'))) ? $_POST['freenetdevs'] : '';
-            $curCidr = (wf_CheckPost(array('freecidr'))) ? $_POST['freenetcidr'] : '';
+            $curCidr = (wf_CheckPost(array('freecidr'))) ? $_POST['freenetcidr'] : 22;
             $inputs = wf_TextInput('freenetdevs', __('Network') . ' /', $curNet, false, 20);
             $inputs .= wf_Selector('freenetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
             $inputs .= wf_Submit(__('Show'));
