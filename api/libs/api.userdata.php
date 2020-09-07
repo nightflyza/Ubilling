@@ -114,13 +114,20 @@ function zb_UserGetAllIpMACs() {
 }
 
 /**
- * Flushes USER_ALL_DATA cache
+ * Flushes USER_ALL_DATA cache and other cache keys that must be actual
+ * 
+ * @global object $ubillingConfig
  * 
  * @return void
  */
 function zb_UserGetAllDataCacheClean() {
+    global $ubillingConfig;
     $cache = new UbillingCache();
     $cache->delete('USER_ALL_DATA');
+    if ($ubillingConfig->getAlterParam('SMARTUP_ENABLED')) {
+        $cache->delete('SMARTUP_USERDATA');
+        $cache->delete('SMARTUP_PAYIDS');
+    }
 }
 
 /**
