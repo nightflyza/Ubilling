@@ -206,6 +206,7 @@ if (cfr('SWITCHESEDIT')) {
         public function lookupFreeIPs() {
             $result = '';
             $tmpArr = array();
+            $count = 0;
             if (!empty($this->scanIps)) {
                 foreach ($this->scanIps as $io => $eachIp) {
                     if (!isset($this->allSwitchesIp[$eachIp])) {
@@ -223,10 +224,12 @@ if (cfr('SWITCHESEDIT')) {
                     if (!preg_match("#\.(0|1|255)$#", $each)) {
                         $cells = wf_TableCell($each, '', '', 'sorttable_customkey="' . ip2int($each) . '"');
                         $rows .= wf_TableRow($cells, 'row5');
+                        $count++;
                     }
                 }
 
                 $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= __('Total') . ':' . $count;
             } else {
                 $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
             }
