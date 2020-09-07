@@ -225,16 +225,16 @@ function web_TicketsShow() {
 
 
     $tablecells = wf_TableCell(__('ID'));
-    $tablecells.=wf_TableCell(__('Date'));
-    $tablecells.=wf_TableCell(__('From'));
-    $tablecells.=wf_TableCell(__('Real Name'));
-    $tablecells.=wf_TableCell(__('Full address'));
-    $tablecells.=wf_TableCell(__('IP'));
-    $tablecells.=wf_TableCell(__('Tariff'));
-    $tablecells.=wf_TableCell(__('Balance'));
-    $tablecells.=wf_TableCell(__('Credit'));
-    $tablecells.=wf_TableCell(__('Processed'));
-    $tablecells.=wf_TableCell(__('Actions'));
+    $tablecells .= wf_TableCell(__('Date'));
+    $tablecells .= wf_TableCell(__('From'));
+    $tablecells .= wf_TableCell(__('Real Name'));
+    $tablecells .= wf_TableCell(__('Full address'));
+    $tablecells .= wf_TableCell(__('IP'));
+    $tablecells .= wf_TableCell(__('Tariff'));
+    $tablecells .= wf_TableCell(__('Balance'));
+    $tablecells .= wf_TableCell(__('Credit'));
+    $tablecells .= wf_TableCell(__('Processed'));
+    $tablecells .= wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
 
 
@@ -249,23 +249,23 @@ function web_TicketsShow() {
         foreach ($alltickets as $io => $eachticket) {
 
             $tablecells = wf_TableCell($eachticket['id']);
-            $tablecells.=wf_TableCell($eachticket['date']);
+            $tablecells .= wf_TableCell($eachticket['date']);
             $fromlink = wf_Link('?module=userprofile&username=' . $eachticket['from'], web_profile_icon() . ' ' . $eachticket['from']);
-            $tablecells.=wf_TableCell($fromlink);
-            $tablecells.=wf_TableCell(@$allrealnames[$eachticket['from']]);
-            $tablecells.=wf_TableCell(@$alladdress[$eachticket['from']]);
-            $tablecells.=wf_TableCell(@$alluserips[$eachticket['from']]);
-            $tablecells.=wf_TableCell(@$alltariffs[$eachticket['from']]);
-            $tablecells.=wf_TableCell(@$allcash[$eachticket['from']]);
-            $tablecells.=wf_TableCell(@$allcredits[$eachticket['from']]);
-            $tablecells.=wf_TableCell(web_bool_led($eachticket['status']), '', '', 'sorttable_customkey="' . $eachticket['status'] . '"');
+            $tablecells .= wf_TableCell($fromlink);
+            $tablecells .= wf_TableCell(@$allrealnames[$eachticket['from']]);
+            $tablecells .= wf_TableCell(@$alladdress[$eachticket['from']]);
+            $tablecells .= wf_TableCell(@$alluserips[$eachticket['from']]);
+            $tablecells .= wf_TableCell(@$alltariffs[$eachticket['from']]);
+            $tablecells .= wf_TableCell(@$allcash[$eachticket['from']]);
+            $tablecells .= wf_TableCell(@$allcredits[$eachticket['from']]);
+            $tablecells .= wf_TableCell(web_bool_led($eachticket['status']), '', '', 'sorttable_customkey="' . $eachticket['status'] . '"');
             $actionlink = wf_Link('?module=ticketing&showticket=' . $eachticket['id'], wf_img_sized('skins/icon_search_small.gif', '', '12') . ' ' . __('Show'), false, 'ubButton');
-            $tablecells.=wf_TableCell($actionlink);
-            $tablerows.=wf_TableRow($tablecells, 'row3');
+            $tablecells .= wf_TableCell($actionlink);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
         }
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-    $result.=$paginator;
+    $result .= $paginator;
 
 
     return ($result);
@@ -278,8 +278,8 @@ function web_TicketsShow() {
  */
 function web_TicketsTAPAddForm() {
     $inputs = wf_HiddenInput('createnewtap', 'true');
-    $inputs.= wf_TextArea('newtaptext', '', '', true, '60x10');
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_TextArea('newtaptext', '', '', true, '60x10');
+    $inputs .= wf_Submit(__('Create'));
     $result = wf_Form('', "POST", $inputs, 'glamour');
     return ($result);
 }
@@ -294,8 +294,8 @@ function web_TicketsTAPAddForm() {
  */
 function web_TicketsTAPEditForm($keyname, $text) {
     $inputs = wf_HiddenInput('edittapkey', $keyname);
-    $inputs.= wf_TextArea('edittaptext', '', $text, true, '60x10');
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_TextArea('edittaptext', '', $text, true, '60x10');
+    $inputs .= wf_Submit(__('Save'));
     $result = wf_Form('', 'POST', $inputs, 'glamour');
     return ($result);
 }
@@ -370,16 +370,16 @@ function web_TicketsTapShowAvailable() {
     $all = zb_TicketsTAPgetAll();
 
     $cells = wf_TableCell(__('Text'), '90%');
-    $cells.= wf_TableCell(__('Actions'));
+    $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($all)) {
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each);
             $actlinks = wf_JSAlert('?module=ticketing&settings=true&deletetap=' . $io, web_delete_icon(), __('Removing this may lead to irreparable results'));
-            $actlinks.= wf_modalAuto(web_edit_icon(), __('Edit'), web_TicketsTAPEditForm($io, $each), '');
-            $cells.= wf_TableCell($actlinks);
-            $rows.= wf_TableRow($cells, 'row3');
+            $actlinks .= wf_modalAuto(web_edit_icon(), __('Edit'), web_TicketsTAPEditForm($io, $each), '');
+            $cells .= wf_TableCell($actlinks);
+            $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -397,19 +397,22 @@ function web_TicketsTAPLister() {
     $maxLen = 50;
     $allReplies = zb_TicketsTAPgetAll();
     if (!empty($allReplies)) {
-        $result.=wf_delimiter() . wf_tag('h3') . __('Typical answers presets') . wf_tag('h3', true);
-        $result.= wf_tag('ul', false);
+        $result .= wf_delimiter() . wf_tag('h3') . __('Typical answers presets') . wf_tag('h3', true);
+        $result .= wf_tag('ul', false);
         foreach ($allReplies as $io => $each) {
             $randId = wf_InputId();
             $rawText = trim($each);
-            $result.= wf_tag('script', false, '', 'language="javascript" type="text/javascript"');
-            $result.='
+            $result .= wf_tag('script', false, '', 'language="javascript" type="text/javascript"');
+            $encodedReply = json_encode($rawText);
+            $encodedReply = rtrim($encodedReply, '"');
+            $encodedReply = ltrim($encodedReply, '"');
+            $result .= '
                     function jsAddReplyText_' . $randId . '() {
-                         var replytext=\'' . json_encode($rawText) . '\';
+                         var replytext=\'' . $encodedReply . '\';
                          $("#ticketreplyarea").val(replytext);
                     }
                     ';
-            $result.=wf_tag('script', true);
+            $result .= wf_tag('script', true);
 
             $linkText = htmlspecialchars($rawText);
             if (mb_strlen($linkText, 'UTF-8') > $maxLen) {
@@ -418,9 +421,9 @@ function web_TicketsTAPLister() {
                 $linkText = $rawText;
             }
 
-            $result.= wf_tag('li') . wf_tag('a', false, '', 'href="#" onClick="jsAddReplyText_' . $randId . '();"') . $linkText . wf_tag('a', true) . wf_tag('li', true);
+            $result .= wf_tag('li') . wf_tag('a', false, '', 'href="#" onClick="jsAddReplyText_' . $randId . '();"') . $linkText . wf_tag('a', true) . wf_tag('li', true);
         }
-        $result.=wf_tag('ul', true);
+        $result .= wf_tag('ul', true);
     }
     return ($result);
 }
@@ -438,11 +441,11 @@ function web_TicketReplyForm($ticketid) {
     $ticketstate = $ticketdata['status'];
     if (!$ticketstate) {
         $replyinputs = wf_HiddenInput('postreply', $ticketid);
-        $replyinputs.= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"') . wf_tag('textarea', true) . wf_tag('br');
+        $replyinputs .= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"') . wf_tag('textarea', true) . wf_tag('br');
         ;
-        $replyinputs.=wf_Submit('Reply');
+        $replyinputs .= wf_Submit('Reply');
         $replyform = wf_Form('', 'POST', $replyinputs, 'glamour');
-        $replyform.= web_TicketsTAPLister();
+        $replyform .= web_TicketsTAPLister();
     } else {
         $replyform = __('Ticket is closed');
     }
@@ -450,15 +453,15 @@ function web_TicketReplyForm($ticketid) {
     //ajax background render
     if (wf_CheckGet(array('ajevents'))) {
         $currentTicketEvents = wf_tag('h3') . __('Events for ticket') . '  ' . $ticketid . wf_tag('h3', true);
-        $currentTicketEvents.=getTicketEvents($ticketid, true);
+        $currentTicketEvents .= getTicketEvents($ticketid, true);
         die($currentTicketEvents);
     }
 
     //previous ticket events
-    $replyform.=wf_AjaxLoader();
-    $replyform.= wf_delimiter();
-    $replyform.=wf_AjaxLink('?module=ticketing&showticket=' . $ticketid . '&ajevents=true', wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), 'ajticketevents', false, 'ubButton');
-    $replyform.=wf_AjaxContainer('ajticketevents', '', '');
+    $replyform .= wf_AjaxLoader();
+    $replyform .= wf_delimiter();
+    $replyform .= wf_AjaxLink('?module=ticketing&showticket=' . $ticketid . '&ajevents=true', wf_img('skins/log_icon_small.png') . ' ' . __('Show ticket events'), 'ajticketevents', false, 'ubButton');
+    $replyform .= wf_AjaxContainer('ajticketevents', '', '');
 
 
     return ($replyform);
@@ -477,8 +480,8 @@ function web_TicketReplyEditForm($replyid) {
     $replytext = $ticketdata['text'];
 
     $inputs = wf_HiddenInput('editreply', $replyid);
-    $inputs.=wf_TextArea('editreplytext', '', $replytext, true, '60x10');
-    $inputs.=wf_Submit('Save');
+    $inputs .= wf_TextArea('editreplytext', '', $replytext, true, '60x10');
+    $inputs .= wf_Submit('Save');
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
     return ($form);
@@ -518,37 +521,37 @@ function web_TicketDialogue($ticketid) {
 
 
         $tablecells = wf_TableCell(__('ID'));
-        $tablecells.=wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Login'));
-        $tablecells.=wf_TableCell(__('Real Name'));
-        $tablecells.=wf_TableCell(__('Full address'));
-        $tablecells.=wf_TableCell(__('IP'));
-        $tablecells.=wf_TableCell(__('Tariff'));
-        $tablecells.=wf_TableCell(__('Balance'));
-        $tablecells.=wf_TableCell(__('Credit'));
-        $tablecells.=wf_TableCell(__('Processed'));
+        $tablecells .= wf_TableCell(__('Date'));
+        $tablecells .= wf_TableCell(__('Login'));
+        $tablecells .= wf_TableCell(__('Real Name'));
+        $tablecells .= wf_TableCell(__('Full address'));
+        $tablecells .= wf_TableCell(__('IP'));
+        $tablecells .= wf_TableCell(__('Tariff'));
+        $tablecells .= wf_TableCell(__('Balance'));
+        $tablecells .= wf_TableCell(__('Credit'));
+        $tablecells .= wf_TableCell(__('Processed'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         $tablecells = wf_TableCell($ticketdata['id']);
-        $tablecells.=wf_TableCell($ticketdata['date']);
+        $tablecells .= wf_TableCell($ticketdata['date']);
         $profilelink = wf_Link('?module=userprofile&username=' . $ticketdata['from'], web_profile_icon() . ' ' . $ticketdata['from']);
-        $tablecells.=wf_TableCell($profilelink);
-        $tablecells.=wf_TableCell($userRealName);
-        $tablecells.=wf_TableCell($userAddress);
-        $tablecells.=wf_TableCell($userIp);
-        $tablecells.=wf_TableCell($userTariff);
-        $tablecells.=wf_TableCell($userCash);
-        $tablecells.=wf_TableCell($userCredit);
-        $tablecells.=wf_TableCell(web_bool_led($ticketdata['status']));
-        $tablerows.=wf_TableRow($tablecells, 'row3');
-        $result.=wf_TableBody($tablerows, '100%', '0');
+        $tablecells .= wf_TableCell($profilelink);
+        $tablecells .= wf_TableCell($userRealName);
+        $tablecells .= wf_TableCell($userAddress);
+        $tablecells .= wf_TableCell($userIp);
+        $tablecells .= wf_TableCell($userTariff);
+        $tablecells .= wf_TableCell($userCash);
+        $tablecells .= wf_TableCell($userCredit);
+        $tablecells .= wf_TableCell(web_bool_led($ticketdata['status']));
+        $tablerows .= wf_TableRow($tablecells, 'row3');
+        $result .= wf_TableBody($tablerows, '100%', '0');
 
         //ticket body
 
         $tickettext = strip_tags($ticketdata['text']);
         $tickettext = nl2br($tickettext);
         $tablecells = wf_TableCell('', '20%');
-        $tablecells.=wf_TableCell($ticketdata['date']);
+        $tablecells .= wf_TableCell($ticketdata['date']);
         $tablerows = wf_TableRow($tablecells, 'row2');
 
         $ticketauthor = wf_tag('center') . wf_tag('b') . @$allrealnames[$ticketdata['from']] . wf_tag('b', true) . wf_tag('center', true);
@@ -556,17 +559,17 @@ function web_TicketDialogue($ticketid) {
         $ticketpanel = $ticketauthor . wf_tag('br') . $ticketavatar;
 
         $tablecells = wf_TableCell($ticketpanel);
-        $tablecells.=wf_TableCell($tickettext);
-        $tablerows.=wf_TableRow($tablecells, 'row3');
+        $tablecells .= wf_TableCell($tickettext);
+        $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
-        $result.=$actionlink;
+        $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
+        $result .= $actionlink;
     }
 
 
     if (!empty($ticketreplies)) {
-        $result.=wf_tag('h2') . __('Replies') . wf_tag('h2', true);
-        $result.= wf_CleanDiv();
+        $result .= wf_tag('h2') . __('Replies') . wf_tag('h2', true);
+        $result .= wf_CleanDiv();
         foreach ($ticketreplies as $io => $eachreply) {
             //reply
             if ($eachreply['admin']) {
@@ -579,9 +582,9 @@ function web_TicketDialogue($ticketid) {
             }
 
             $replyactions = wf_tag('center');
-            $replyactions.= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-            $replyactions.= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
-            $replyactions.= wf_tag('center', true);
+            $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+            $replyactions .= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
+            $replyactions .= wf_tag('center', true);
 
             // reply body 
 
@@ -606,15 +609,15 @@ function web_TicketDialogue($ticketid) {
 
 
             $tablecells = wf_TableCell('', '20%');
-            $tablecells.=wf_TableCell($eachreply['date']);
+            $tablecells .= wf_TableCell($eachreply['date']);
             $tablerows = wf_TableRow($tablecells, 'row2');
 
             $tablecells = wf_TableCell($replypanel);
-            $tablecells.=wf_TableCell($replytext);
-            $tablerows.=wf_TableRow($tablecells, 'row3');
+            $tablecells .= wf_TableCell($replytext);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
 
-            $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
-            $result.= wf_CleanDiv();
+            $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
+            $result .= wf_CleanDiv();
         }
     }
 
@@ -627,20 +630,20 @@ function web_TicketDialogue($ticketid) {
         $previoustickets = wf_tag('h2') . __('All tickets by this user') . wf_tag('h2', true);
         foreach ($allprevious as $io => $eachprevious) {
             $tablecells = wf_TableCell($eachprevious['date']);
-            $tablecells.=wf_TableCell(web_bool_led($eachprevious['status']));
+            $tablecells .= wf_TableCell(web_bool_led($eachprevious['status']));
             $prevaction = wf_Link('?module=ticketing&showticket=' . $eachprevious['id'], wf_img_sized('skins/icon_search_small.gif', '', '12') . ' ' . __('Show'), false, 'ubButton');
-            $tablecells.=wf_TableCell($prevaction);
+            $tablecells .= wf_TableCell($prevaction);
             $tablerows = wf_TableRow($tablecells, 'row3');
-            $previoustickets.=wf_TableBody($tablerows, '100%', '0');
+            $previoustickets .= wf_TableBody($tablerows, '100%', '0');
         }
     }
 
     $tablecells = wf_TableCell(web_TicketReplyForm($ticketid), '50%', '', 'valign="top"');
-    $tablecells.=wf_TableCell($previoustickets, '50%', '', 'valign="top"');
+    $tablecells .= wf_TableCell($previoustickets, '50%', '', 'valign="top"');
     $tablerows = wf_TableRow($tablecells);
 
-    $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
-    $result.=wf_CleanDiv();
+    $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
+    $result .= wf_CleanDiv();
     return ($result);
 }
 
@@ -666,7 +669,7 @@ function web_TicketsCalendar() {
             } else {
                 $coloring = '';
             }
-            $calendarData.="
+            $calendarData .= "
                       {
                         title: '" . $rawTime . ' ' . @$allAddress[$each['from']] . "',
                         url: '?module=ticketing&showticket=" . $each['id'] . "',
@@ -698,24 +701,24 @@ function getTicketEvents($TicketID, $ReturnHTML = false) {
 
     if ($ReturnHTML and ! empty($QResult)) {
         $TableCells = wf_TableCell(__('ID'));
-        $TableCells.= wf_TableCell(__('Date'));
-        $TableCells.= wf_TableCell(__('Admin'));
-        $TableCells.= wf_TableCell(__('IP'));
-        $TableCells.= wf_TableCell(__('Event'));
+        $TableCells .= wf_TableCell(__('Date'));
+        $TableCells .= wf_TableCell(__('Admin'));
+        $TableCells .= wf_TableCell(__('IP'));
+        $TableCells .= wf_TableCell(__('Event'));
         $TableRows = wf_TableRow($TableCells, 'row1');
 
         foreach ($QResult as $Rec) {
             $Event = htmlspecialchars($Rec['event']);
 
             $TableCells = wf_TableCell($Rec['id']);
-            $TableCells.= wf_TableCell($Rec['date']);
-            $TableCells.= wf_TableCell($Rec['admin']);
-            $TableCells.= wf_TableCell($Rec['ip']);
-            $TableCells.= wf_TableCell($Event);
+            $TableCells .= wf_TableCell($Rec['date']);
+            $TableCells .= wf_TableCell($Rec['admin']);
+            $TableCells .= wf_TableCell($Rec['ip']);
+            $TableCells .= wf_TableCell($Event);
             $TableRows .= wf_TableRow($TableCells, 'row3');
         }
 
-        $HTMLStr.= wf_TableBody($TableRows, '100%', 0, 'sortable');
+        $HTMLStr .= wf_TableBody($TableRows, '100%', 0, 'sortable');
     }
 
     return ( ($ReturnHTML) ? $HTMLStr : $QResult );
