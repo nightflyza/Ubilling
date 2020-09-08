@@ -1843,15 +1843,19 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
 
     //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
+        if (!empty($login)) {
+            $userData = zb_UserGetAllData($login);
+        }
         $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
         $newTelegramText .= __('Address') . ': ' . $address . '\r\n';
+        if (!empty($login)) {
+            $newTelegramText .= __('Real Name') . ': ' . @$userData[$login]['realname'] . '\r\n';
+        }
         $newTelegramText .= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
         $newTelegramText .= __('Phone') . ': ' . $phone . '\r\n';
         $newTelegramText .= __('Job note') . ': ' . $jobnote . '\r\n';
         $newTelegramText .= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
         if (!empty($login)) {
-            $userData = zb_UserGetAllData($login);
-
             $userCableSeal = '';
             if ($ubillingConfig->getAlterParam('CONDET_ENABLED')) {
                 $userCondet = new ConnectionDetails();
