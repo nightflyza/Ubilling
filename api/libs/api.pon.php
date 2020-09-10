@@ -3559,14 +3559,18 @@ class PONizer {
                 }
             }
 
-            if (!empty($oltsTemps)) {
-                if (ubRouting::checkGet('temperature')) {
-                    $result = $statsControls . wf_tag('br');
+
+            if (ubRouting::checkGet('temperature')) {
+                $result = $statsControls . wf_tag('br');
+                if (!empty($oltsTemps)) {
                     $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
                     foreach ($oltsTemps as $oltTempId => $oltTempValue) {
                         $result .= $this->renderTemperature($oltTempValue, $this->allOltDevices[$oltTempId]);
                     }
                     $result .= wf_CleanDiv();
+                } else {
+                    $messages = new UbillingMessageHelper();
+                    $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
                 }
             }
         } else {
