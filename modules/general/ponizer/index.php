@@ -139,7 +139,8 @@ if ($altCfg['PON_ENABLED']) {
                             if (ubRouting::checkPost('onusearchquery')) {
                                 show_window('', wf_BackLink($pon::URL_ME));
                                 if (@$altCfg['PON_ONU_SEARCH_ENABLED']) {
-                                    show_window(__('Search') . ' ' . __('ONU'), $pon->renderOnuSearchResult());
+                                    show_window(__('Search') . ' ' . __('ONU'), $pon->renderOnuSearchForm());
+                                    show_window(__('Search results'), $pon->renderOnuSearchResult());
                                 } else {
                                     show_error(__('Search') . ' ' . __('ONU') . ' ' . __('Disabled'));
                                 }

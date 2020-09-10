@@ -4466,9 +4466,7 @@ class PONizer {
         $messages = new UbillingMessageHelper();
 
         if (!empty($this->allOnu)) {
-            $result .= $this->renderOnuSearchForm();
             $searchQuery = ubRouting::post('onusearchquery', 'mres');
-
             if (!empty($searchQuery)) {
                 //search fields flags 
                 $macChecked = (ubRouting::checkPost('searchmac')) ? true : false;
@@ -4554,7 +4552,7 @@ class PONizer {
             }
             $result .= wf_delimiter(0);
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
-            $result .= __('Total') . ': ' . $count;
+            $result .= wf_tag('b') . __('Total') . ': ' . $count . wf_tag('b', true);
         }
         return($result);
     }
