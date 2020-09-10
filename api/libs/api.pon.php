@@ -3564,7 +3564,7 @@ class PONizer {
                     $result = $statsControls . wf_tag('br');
                     $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
                     foreach ($oltsTemps as $oltTempId => $oltTempValue) {
-                        $result .= $this->renderTemperature($oltTempValue, $this->allOltDevices[$oltId]);
+                        $result .= $this->renderTemperature($oltTempValue, $this->allOltDevices[$oltTempId]);
                     }
                     $result .= wf_CleanDiv();
                 }
