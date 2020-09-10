@@ -128,7 +128,7 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
 
       	var customIcon = new LeafIcon({iconUrl: '" . $iconFile . "'});
 
-";
+        ";
         $iconCode .= ', {icon: customIcon}';
     }
 
@@ -250,7 +250,6 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
       $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.Default.css"');
       $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-markercluster/dist/leaflet.markercluster-src.js"') . wf_tag('script', true);
      */
-    
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
     $result .= '

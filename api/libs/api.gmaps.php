@@ -189,7 +189,12 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
         $coordLng = trim($coords[1]);
     }
 
-    $iconUrl = gm_GetIconUrl($icon);
+    if (!empty($icon)) {
+        $iconUrl = gm_GetIconUrl($icon);
+    } else {
+        $iconUrl = gm_GetIconUrl('twirl#lightblueIcon');
+    }
+
     if (!empty($iconUrl)) {
         $iconCode = "var image_" . $markerId . " = '" . $iconUrl . "';";
     }
