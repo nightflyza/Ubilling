@@ -135,13 +135,23 @@ if ($altCfg['PON_ENABLED']) {
                                 show_window(__('Description'), $pon->ponInterfaces->renderIfForm(ubRouting::get('oltid'), ubRouting::get('if')));
                             }
                         } else {
-                            //rendering available onu LIST
-                            show_window(__('ONU directory'), $pon->controls());
-                            if (!$legacy) {
-                                $pon->renderOnuList();
-                                zb_BillingStats(true);
+                            //ONU search results
+                            if (ubRouting::checkPost('onusearchquery')) {
+                                show_window('', wf_BackLink($pon::URL_ME));
+                                if (@$altCfg['PON_ONU_SEARCH_ENABLED']) {
+                                    show_window(__('Search') . ' ' . __('ONU'), $pon->renderOnuSearchResult());
+                                } else {
+                                    show_error(__('Search') . ' ' . __('ONU') . ' ' . __('Disabled'));
+                                }
                             } else {
-                                $pon2->renderOnuList();
+                                //rendering available onu LIST
+                                show_window(__('ONU directory'), $pon->controls());
+                                if (!$legacy) {
+                                    $pon->renderOnuList();
+                                    zb_BillingStats(true);
+                                } else {
+                                    $pon2->renderOnuList();
+                                }
                             }
                         }
                     }

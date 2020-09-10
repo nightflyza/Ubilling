@@ -1019,7 +1019,7 @@ class PONizer {
                 }
             }
             if (!empty($TmpArr)) {
-            // Crete tmp Ubilling PON FDB array
+                // Crete tmp Ubilling PON FDB array
                 foreach ($TmpArr as $io => $each) {
                     $FDBTmp[$each['index']][$each['FDBnum']]['mac'] = $each['mac'];
                     $FDBTmp[$each['index']][$each['FDBnum']]['vlan'] = $each['vlan'];
@@ -2995,7 +2995,7 @@ class PONizer {
     public function controls() {
         $result = '';
         if (!wf_CheckGet(array('unknownonulist'))) {
-            $result .= wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16') . ' ' . __('Register new ONU'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
+            $result .= wf_modalAuto(wf_img_sized('skins/add_icon.png', '', '16', '16') . ' ' . __('Create') . ' ' . __('ONU'), __('Register new ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
             $availOnuCache = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
             $result .= wf_Link(self::URL_ME . '&forcepoll=true', wf_img_sized('skins/refresh.gif', '', '16', '16') . ' ' . __('Force query'), false, 'ubButton');
             if (!empty($availOnuCache)) {
@@ -3013,6 +3013,12 @@ class PONizer {
 
             if (@$this->altCfg['PONMAP_ENABLED']) {
                 $result .= wf_Link('?module=ponmap', wf_img_sized('skins/ponmap_icon.png', '', '16', '16') . ' ' . __('ONU Map'), false, 'ubButton');
+            }
+
+            if (@$this->altCfg['PON_ONU_SEARCH_ENABLED']) {
+                $result .= wf_modalAuto(web_icon_search() . ' ' . __('Search'), __('Search') . ' ' . __('ONU'), $this->renderOnuSearchForm(), 'ubButton');
+                //TODO: remove following:
+                //$result .= $this->renderOnuSearchForm();
             }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
@@ -3453,7 +3459,7 @@ class PONizer {
                     $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
-                        $eachInterfacePercent = zb_PercentValue($oltOnuPonPortMax[$oltId], $eachInterfaceCount); 
+                        $eachInterfacePercent = zb_PercentValue($oltOnuPonPortMax[$oltId], $eachInterfaceCount);
 
                         $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
 
@@ -4408,6 +4414,149 @@ class PONizer {
         preg_match($this->onuMACValidateRegex, $onuMAC, $matches);
 
         return (!empty($matches[0]));
+    }
+
+    /**
+     * Renders ONU search form
+     * 
+     * @return string
+     */
+    public function renderOnuSearchForm() {
+        $result = '';
+        if (!empty($this->allOnu)) {
+            $inputs = '';
+            $searchQueryPreset = (ubRouting::checkPost('onusearchquery')) ? ubRouting::post('onusearchquery', 'mres') : '';
+
+            $inputs .= wf_TextInput('onusearchquery', '', $searchQueryPreset, true, 40) . ' ';
+            $inputs .= __('Search by') . ':' . wf_delimiter(0);
+            if (ubRouting::checkPost('onusearchquery')) {
+                //saving checkbox state between queries
+                $macChecked = (ubRouting::checkPost('searchmac')) ? true : false;
+                $loginChecked = (ubRouting::checkPost('searchlogin')) ? true : false;
+                $serialChecked = (ubRouting::checkPost('searchserial')) ? true : false;
+                $ipChecked = (ubRouting::checkPost('searchip')) ? true : false;
+            } else {
+                //default checkbox state
+                $macChecked = true;
+                $loginChecked = true;
+                $serialChecked = true;
+                $ipChecked = true;
+            }
+
+            $inputs .= wf_CheckInput('searchmac', __('MAC'), true, $macChecked);
+            $inputs .= wf_CheckInput('searchlogin', __('Login'), true, $loginChecked);
+            $inputs .= wf_CheckInput('searchserial', __('Serial number'), true, $serialChecked);
+            $inputs .= wf_CheckInput('searchip', __('IP'), true, $ipChecked);
+            $inputs .= wf_delimiter(0);
+            $inputs .= wf_Submit(__('Search'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
+     * Catches ONU search request and renders some result
+     * 
+     * @return string
+     */
+    public function renderOnuSearchResult() {
+        $result = '';
+        $resultTmp = array();
+        $messages = new UbillingMessageHelper();
+
+        if (!empty($this->allOnu)) {
+            $result .= $this->renderOnuSearchForm();
+            $searchQuery = ubRouting::post('onusearchquery', 'mres');
+
+            if (!empty($searchQuery)) {
+                //search fields flags 
+                $macChecked = (ubRouting::checkPost('searchmac')) ? true : false;
+                $loginChecked = (ubRouting::checkPost('searchlogin')) ? true : false;
+                $serialChecked = (ubRouting::checkPost('searchserial')) ? true : false;
+                $ipChecked = (ubRouting::checkPost('searchip')) ? true : false;
+
+                //processing some search
+                foreach ($this->allOnu as $eachOnuId => $eachOnuData) {
+                    if ($macChecked) {
+                        $rawMac = str_replace(':', '', $eachOnuData['mac']);
+                        if (ispos($eachOnuData['mac'], $searchQuery) OR ispos($rawMac, $searchQuery)) {
+                            $resultTmp[$eachOnuId] = $eachOnuData;
+                        }
+                    }
+
+                    if ($loginChecked) {
+                        if (ispos($eachOnuData['login'], $searchQuery)) {
+                            $resultTmp[$eachOnuId] = $eachOnuData;
+                        }
+                    }
+
+                    if ($serialChecked) {
+                        if (ispos($eachOnuData['serial'], $searchQuery)) {
+                            $resultTmp[$eachOnuId] = $eachOnuData;
+                        }
+                    }
+
+                    if ($ipChecked) {
+                        if (ispos($eachOnuData['ip'], $searchQuery)) {
+                            $resultTmp[$eachOnuId] = $eachOnuData;
+                        }
+                    }
+                }
+                //something found
+                if (!empty($resultTmp)) {
+                    $result .= $this->renderOnuArray($resultTmp);
+                } else {
+                    $result .= $messages->getStyledMessage(__('Nothing found'), 'warning');
+                }
+            }
+        } else {
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders ONU Array just as table list with some controls
+     * 
+     * @param array $onuArray
+     * 
+     * @return string
+     */
+    protected function renderOnuArray($onuArray) {
+        $result = '';
+
+        if (!empty($onuArray)) {
+            $count = 0;
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('OLT'));
+            $cells .= wf_TableCell(__('Model'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Serial number'));
+            $cells .= wf_TableCell(__('MAC'));
+            $cells .= wf_TableCell(__('User'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($onuArray as $eachOnuId => $eachOnuData) {
+                $cells = wf_TableCell($eachOnuId);
+                $cells .= wf_TableCell(@$this->allOltNames[$eachOnuData['oltid']]);
+                $cells .= wf_TableCell(@$this->allModelsData[$eachOnuData['onumodelid']]['modelname']);
+                $cells .= wf_TableCell($eachOnuData['ip']);
+                $cells .= wf_TableCell($eachOnuData['serial']);
+                $cells .= wf_TableCell($eachOnuData['mac']);
+                $userLink = wf_Link(self::URL_USERPROFILE . $eachOnuData['login'], web_profile_icon() . ' ' . $eachOnuData['login']);
+                $cells .= wf_TableCell($userLink);
+                $actControls = wf_Link(self::URL_ME . '&editonu=' . $eachOnuId, web_edit_icon());
+                $cells .= wf_TableCell($actControls);
+                $rows .= wf_TableRow($cells, 'row5');
+                $count++;
+            }
+            $result .= wf_delimiter(0);
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= __('Total') . ': ' . $count;
+        }
+        return($result);
     }
 
 }
