@@ -3369,8 +3369,17 @@ class PONizer {
         $signals = array();
         $badSignals = array();
         $avgSignals = array();
+        $oltsTemps = array(); //oltId=>temperature
+
+        $statsControls = wf_BackLink(self::URL_ME);
+        if (!ubRouting::checkGet('temperature')) {
+            $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&temperature=true', wf_img('skins/temperature.png') . ' ' . __('Temperature'), false, 'ubButton');
+        } else {
+            $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/notemperature.png') . ' ' . __('Temperature'), false, 'ubButton');
+        }
+
         $result = '';
-        $result .= wf_BackLink(self::URL_ME);
+        $result .= $statsControls;
         $result .= wf_tag('br');
 
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
@@ -3543,9 +3552,21 @@ class PONizer {
 
                     if (file_exists(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT)) {
                         $oltTemperature = file_get_contents(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT);
+                        $oltsTemps[$oltId] = $oltTemperature; //filling temp array
                         $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . '  °C';
                     }
                     $result .= wf_delimiter(0);
+                }
+            }
+
+            if (!empty($oltsTemps)) {
+                if (ubRouting::checkGet('temperature')) {
+                    $result = $statsControls . wf_tag('br');
+                    $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
+                    foreach ($oltsTemps as $oltTempId => $oltTempValue) {
+                        $result .= $this->renderTemperature($oltTempValue, $this->allOltDevices[$oltId]);
+                    }
+                    $result .= wf_CleanDiv();
                 }
             }
         } else {
@@ -3553,6 +3574,58 @@ class PONizer {
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return ($result);
+    }
+
+    /**
+     * Renders temperature gauge
+     * 
+     * @param float $temperature
+     * @param string $title
+     * 
+     * @return string
+     */
+    protected function renderTemperature($temperature, $title = '') {
+        $result = '';
+        $gaugeId = wf_InputId();
+
+        $containerStyle = 'width: 300px; height: 300px; float:left; ';
+        $result .= wf_tag('div', false, '', 'style="' . $containerStyle . '"');
+        $result .= wf_tag('div', false, '', 'id="temperature_div' . $gaugeId . '"');
+        $result .= wf_tag('div', true);
+        $result .= wf_tag('center') . wf_tag('b') . $title . wf_tag('b', true) . wf_tag('center', true);
+        $result .= wf_tag('div', true);
+
+        $result .= wf_tag('script');
+
+        $result .= 'google.charts.load(\'current\', {\'packages\':[\'gauge\']});
+          google.charts.setOnLoadCallback(drawChart);
+
+          function drawChart() {
+
+            var data = google.visualization.arrayToDataTable([
+              [\'Label\', \'Value\'],
+              [\'°C\', ' . $temperature . ']
+
+            ]);
+
+            var options = {
+              max: 100,
+              min: 0,
+              width: 280, height: 280,
+              greenFrom: 10, greenTo: 60,
+              yellowFrom:60, yellowTo: 70,
+              redFrom: 70, redTo: 100,
+              minorTicks: 5
+            };
+
+            var chart = new google.visualization.Gauge(document.getElementById(\'temperature_div' . $gaugeId . '\'));
+
+            chart.draw(data, options);
+        
+          } ';
+        $result .= wf_tag('script', true);
+
+        return($result);
     }
 
     /**
