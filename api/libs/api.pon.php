@@ -4550,7 +4550,6 @@ class PONizer {
                 $rows .= wf_TableRow($cells, 'row5');
                 $count++;
             }
-            $result .= wf_delimiter(0);
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             $result .= wf_tag('b') . __('Total') . ': ' . $count . wf_tag('b', true);
         }
