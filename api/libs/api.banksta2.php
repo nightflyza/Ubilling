@@ -122,6 +122,13 @@ class Banksta2 {
     protected $translateLstChkFieldNames = false;
 
     /**
+     * Placeholder for BANKSTA2_OPAYZID_AS_CONTRACT option
+     *
+     * @var bool
+     */
+    protected $opayzIDAsContract = false;
+
+    /**
      * Placeholder for file data preprocessed during filePreprocessing()
      *
      * @var array
@@ -239,6 +246,7 @@ class Banksta2 {
         $this->ukvPaymentId = $this->ubConfig->getAlterParam('BANKSTA2_PAYMENTID_UKV');
         $this->regexKeywordsDelimiter = (wf_getBoolFromVar($this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM'))) ? $this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM') : ',';
         $this->translateLstChkFieldNames = $this->ubConfig->getAlterParam('BANKSTA2_LSTCHK_FNAMES_TRANSLATE');
+        $this->opayzIDAsContract = $this->ubConfig->getAlterParam('BANKSTA2_OPAYZID_AS_CONTRACT');
     }
 
 
@@ -248,12 +256,31 @@ class Banksta2 {
      * @return void
      */
     protected function loadUserDataInet() {
+        $allOpenPayzUsers = array();
         $this->allUsersDataInet = zb_UserGetAllData();
+
+        // getting openpayz customers, if any
+        if ($this->opayzIDAsContract) {
+            $tQuery = "SELECT * FROM `op_customers`";
+            $tQueryResult = simple_queryall($tQuery);
+
+            if (!empty($tQueryResult)) {
+                foreach ($tQueryResult as $eachRec => $eachOpayzUser) {
+                    if (!empty($eachOpayzUser['virtualid'])) {
+                        $allOpenPayzUsers[$eachOpayzUser['realid']] = $eachOpayzUser['virtualid'];
+                    }
+                }
+            }
+        }
 
         if (!empty($this->allUsersDataInet)) {
             foreach ($this->allUsersDataInet as $io => $each) {
+                $login = $each['login'];
+
                 if (!empty($each['contract'])) {
-                    $this->allContractsInet[$each['contract']] = $each['login'];
+                    $this->allContractsInet[$each['contract']] = $login;
+                } elseif ($this->opayzIDAsContract and !empty($allOpenPayzUsers[$login])){
+                    $this->allContractsInet[$allOpenPayzUsers[$login]] = $login;
                 }
             }
         }
@@ -953,7 +980,7 @@ class Banksta2 {
         $keywordsArray = explode($delimiter, $keyWordStr);
 
         foreach ($keywordsArray as $keyWord) {
-            $keywordsStr .= trim($keyWord) . '|';
+            $keywordsStr.= trim(preg_quote($keyWord, '/')) . '|';
         }
 
         $keywordsStr = rtrim($keywordsStr, '|');
@@ -1064,7 +1091,7 @@ class Banksta2 {
             $address  = ($importOpts['col_address'] !== 'NONE' and isset($eachRow[$importOpts['col_address']])) ? $eachRow[$importOpts['col_address']] : '';
             $notes    = ($importOpts['col_paypurpose'] !== 'NONE' and isset($eachRow[$importOpts['col_paypurpose']])) ? $eachRow[$importOpts['col_paypurpose']] : '';
             $ptime    = ($importOpts['col_paytime'] !== 'NONE' and isset($eachRow[$importOpts['col_paytime']])) ? $eachRow[$importOpts['col_paytime']] : '';
-            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? $eachRow[$importOpts['col_paysum']] : '';
+            $summ     = (isset($eachRow[$importOpts['col_paysum']])) ? preg_replace('/[^-(0-9)\.,]/', '', $eachRow[$importOpts['col_paysum']]) : '';
             $pdate    = (isset($eachRow[$importOpts['col_paydate']])) ? $eachRow[$importOpts['col_paydate']] : '';
             $contract = ($importOpts['col_contract'] !== 'NONE' and isset($eachRow[$importOpts['col_contract']])) ? $eachRow[$importOpts['col_contract']] : '';
             $service_type       = $serviceType;
