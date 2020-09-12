@@ -4,3 +4,5 @@
 error_reporting(E_ALL);
 
 
+$states=new TaskStates();
+debarr($states);
