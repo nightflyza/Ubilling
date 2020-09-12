@@ -102,4 +102,29 @@ class TaskStates {
         $this->allStates = $this->statesDb->getAll('id');
     }
 
+    /**
+     * Renders states control panel
+     * 
+     * @param int $taskId
+     * 
+     * @return string
+     */
+    public function renderStatePanel($takskId) {
+        $result = '';
+        $result .= wf_tag('div', false);
+        if (!empty($this->stateTypes)) {
+            foreach ($this->stateTypes as $stateId => $stateLabel) {
+                $stateIcon= $this->stateIcons[$stateId];
+                $result .= wf_tag('div', false, 'dashtask');
+                $result.= wf_img($stateIcon);
+                $result.= wf_delimiter(0).$stateLabel;
+                $result .= wf_tag('div', true);
+            }
+        }
+        $result .= wf_tag('div', true);
+        $result.= wf_CleanDiv();
+
+        return($result);
+    }
+
 }
