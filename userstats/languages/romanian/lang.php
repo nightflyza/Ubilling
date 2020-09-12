@@ -123,7 +123,6 @@ $lang['def']['January'] = 'Ianuarie';
 $lang['def']['February'] = 'Februarie';
 $lang['def']['March'] = 'Martie';
 $lang['def']['April'] = 'Aprilie';
-$lang['def']['May'] = 'Mai';
 $lang['def']['June'] = 'Iunie';
 $lang['def']['July'] = 'Iulie';
 $lang['def']['August'] = 'August';

@@ -122,7 +122,6 @@ $lang['def']['January'] = 'იანვარი';
 $lang['def']['February'] = 'თებერვალი';
 $lang['def']['March'] = 'მარტი';
 $lang['def']['April'] = 'აპრილი';
-$lang['def']['May'] = 'მაისი';
 $lang['def']['June'] = 'ივნისი';
 $lang['def']['July'] = 'ივლისი';
 $lang['def']['August'] = 'აგვისტო';

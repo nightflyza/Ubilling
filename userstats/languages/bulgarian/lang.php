@@ -127,7 +127,6 @@ $lang['def']['Jan'] = 'Яну';
 $lang['def']['Feb'] = 'Фев';
 $lang['def']['Mar'] = 'Мар';
 $lang['def']['Apr'] = 'Апр';
-$lang['def']['May'] = 'Май';
 $lang['def']['Jun'] = 'Юни';
 $lang['def']['Jul'] = 'Юли';
 $lang['def']['Aug'] = 'Авг';

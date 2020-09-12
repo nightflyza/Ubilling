@@ -114,7 +114,6 @@ $lang['def']['January'] = 'Enero';
 $lang['def']['February'] = 'Febrero';
 $lang['def']['March'] = 'Marzo';
 $lang['def']['April'] = 'Abril';
-$lang['def']['May'] = 'Mayo';
 $lang['def']['June'] = 'Junio';
 $lang['def']['July'] = 'Julio';
 $lang['def']['August'] = 'Agosto';
