@@ -937,6 +937,21 @@ class UserProfile {
     }
 
     /**
+     * gets zabbix profile controls
+     * 
+     * @return string
+     */
+    protected function getZabbixProblemControls() {
+//zabbix section
+        if ($this->ubConfig->getAlterParam('ZABBIX_PROBLEM_IN_PROFILE')) {
+            $result.= web_ProfileSwitchZabbixProblem($this->login);
+        } else {
+            $result = '';
+        }
+        return ($result);
+    }
+
+    /**
      * Returns user Vlan assign controls
      * 
      * @return string
@@ -1908,6 +1923,8 @@ class UserProfile {
         $profile .= wf_tag('table', true); //end of all profile container
 //profile switch port controls
         $profile .= $this->getSwitchAssignControls();
+//profile zabbix problen controls
+        $profile .= $this->getZabbixProblemControls();
 //profile onu signal controls
         $profile .= $this->getPonSignalControl();
 //profile vlan controls
