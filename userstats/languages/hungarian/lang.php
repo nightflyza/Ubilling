@@ -297,7 +297,6 @@ $lang['def']['Non existent user'] = 'Nem létező felhasználó';
 $lang['def']['Already subscribed'] = 'Már feliratkozott';
 $lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'A számláján szereplő pénzösszeg nem elegendő az előfizetéshez';
 $lang['def']['Your subscriptions'] = 'Előfizetései';
-$lang['def']['Active'] = 'Aktív';
 $lang['def']['Primary'] = 'Elsődleges';
 $lang['def']['Only one primary tariff allowed'] = 'Csak egy elsődleges előfizetés megengedett';
 $lang['def']['The service will be disabled on the first day of the following month'] = 'A szolgáltatás a következő hónap első napjától lesz lekapcsolva';

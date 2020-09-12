@@ -296,7 +296,6 @@ $lang['def']['Non existent user'] = 'Несуществующий пользов
 $lang['def']['Already subscribed'] = 'Уже подписаны';
 $lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'Сумма денег на вашем счету, не достаточна для оформления подписки';
 $lang['def']['Your subscriptions'] = 'Ваши подписки';
-$lang['def']['Active'] = 'Активный';
 $lang['def']['Primary'] = 'Основной';
 $lang['def']['Only one primary tariff allowed'] = 'Разрешена только одна основная подписка';
 $lang['def']['The service will be disabled on the first day of the following month'] = 'Услуга будет отключена с первого числа следующего месяца';

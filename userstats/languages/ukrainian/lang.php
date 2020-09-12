@@ -297,7 +297,6 @@ $lang['def']['Non existent user'] = 'Неіснуючий користувач';
 $lang['def']['Already subscribed'] = 'Вже підписані';
 $lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'Сума коштів на вашому рахунку не достатня, для оформлення передплати';
 $lang['def']['Your subscriptions'] = 'Ваші передплати';
-$lang['def']['Active'] = 'Активний';
 $lang['def']['Primary'] = 'Основний';
 $lang['def']['Only one primary tariff allowed'] = 'Дозволено тільки одну основну передплату';
 $lang['def']['The service will be disabled on the first day of the following month'] = 'Послугу буде відключено з першого числа наступного місяця';

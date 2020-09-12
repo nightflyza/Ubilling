@@ -296,7 +296,6 @@ $lang['def']['Non existent user'] = 'მომხმარებელი არ
 $lang['def']['Already subscribed'] = 'უკვე ჩაწერილია';
 $lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'ანგარიშზე, ჩაწერის გაფორმებისთვის საკმარისი თანხა არ არის ';
 $lang['def']['Your subscriptions'] = 'თქვენი ჩაწერები';
-$lang['def']['Active'] = 'აქტიურები';
 $lang['def']['Primary'] = 'ძირითადები';
 $lang['def']['Only one primary tariff allowed'] = 'დაშვებულია მხოლოდ ერთი ძირითადი ტარიფი';
 $lang['def']['The service will be disabled on the first day of the following month'] = 'მომსახურება მომდევნო თვის პირველ რიცხვში გაითიშება';

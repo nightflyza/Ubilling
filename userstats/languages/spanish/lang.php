@@ -291,7 +291,6 @@ $lang['def']['Cost'] = 'El precio';
 $lang['def']['Aditional service name'] = 'Los nombres de los servicios adicionales';
 $lang['def']['Service name'] = 'Los nombres de los servicios'; 
 $lang['def']['Sheduled'] = 'Planeado'; 
-$lang['def']['Active'] = 'Conectado';
 $lang['def']['Success'] = 'El éxito';
 $lang['def']['Your order was sheduled'] = 'Su encargo es aceptado';
 $lang['def']['Please wait for'] = 'espere por favor';
