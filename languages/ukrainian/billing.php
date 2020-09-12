@@ -3189,4 +3189,10 @@ $lang['def']['immunity for branch curses and gulag'] = 'Імунітет від 
 $lang['def']['Tasks with duplicate address created for same day'] = 'Задачі для цієї ж адреси створені той же день';
 $lang['def']['Any available ONU models exist'] = 'Не існує жодних моделей ONU';
 $lang['def']['Any available OLT devices exist'] = 'Не існує жодних OLT пристроїв';
+
+//rev 7673
+$lang['def']['Moved'] = 'Перенесено';
+$lang['def']['Missed a phone call'] = 'Не зміг додзвонитись';
+$lang['def']['Fixed connector'] = 'Зрихтував конектор';
+
 ?>

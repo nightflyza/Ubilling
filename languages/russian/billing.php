@@ -3151,7 +3151,7 @@ $lang['def']['Userstats'] = 'Кабинет пользователя';
 
 //rev 7473
 $lang['def']['Metabolism'] = 'Метаболизм';
-$lang['def']['Act of issuance of goods from the warehouse']='Акт выдачи ТМЦ со склада';
+$lang['def']['Act of issuance of goods from the warehouse'] = 'Акт выдачи ТМЦ со склада';
 $lang['def']['Signature'] = 'Подпись';
 $lang['def']['Lightning map'] = 'Карта молний';
 $lang['def']['Fiber optics'] = 'Оптоволокно';
@@ -3159,15 +3159,18 @@ $lang['def']['Copper'] = 'Медь';
 $lang['def']['Wireless'] = 'Беспроводной';
 $lang['def']['Gbit/s'] = 'Гбит/с';
 $lang['def']['Mbit/s'] = 'Мбит/с';
-$lang['def']['Uplink parameters is not set']='Свойства аплинка не установлены';
-$lang['def']['Uplink parameters']='Свойства аплинка';
+$lang['def']['Uplink parameters is not set'] = 'Свойства аплинка не установлены';
+$lang['def']['Uplink parameters'] = 'Свойства аплинка';
 $lang['def']['Uplink'] = 'Аплинк';
 
 //rev 7604
-$lang['def']['immunity for branch curses and gulag']='Иммунитет от ГУЛАГа и метки филиальности';
-$lang['def']['Tasks with duplicate address created for same day']='Задачи для этого же адреса созданные на тот же день';
+$lang['def']['immunity for branch curses and gulag'] = 'Иммунитет от ГУЛАГа и метки филиальности';
+$lang['def']['Tasks with duplicate address created for same day'] = 'Задачи для этого же адреса созданные на тот же день';
 $lang['def']['Any available ONU models exist'] = 'Не существует ни одной модели ONU';
 $lang['def']['Any available OLT devices exist'] = 'Нету никаких OLT устройств';
 
-
+//rev 7673
+$lang['def']['Moved'] = 'Перенесено';
+$lang['def']['Missed a phone call'] = 'Не смог дозвониться';
+$lang['def']['Fixed connector'] = 'Починил коннектор';
 ?>
