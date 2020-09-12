@@ -944,7 +944,7 @@ class UserProfile {
     protected function getZabbixProblemControls() {
 //zabbix section
         if ($this->ubConfig->getAlterParam('ZABBIX_PROBLEM_IN_PROFILE')) {
-            $result.= web_ProfileSwitchZabbixProblem($this->login);
+            $result = web_ProfileSwitchZabbixProblem($this->login);
         } else {
             $result = '';
         }
