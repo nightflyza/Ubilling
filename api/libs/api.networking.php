@@ -2159,4 +2159,47 @@ function getZabbixUserGraphLinks($userIP, $fieldToSearch, $dataToSearch, $zbxAll
     return ($graphURL);
 }
 
+/**
+ * Gets Zabbix problems and actions by problems
+ *
+ * @return array
+ */
+function getZabbixProblems($switchIP) {
+    global $ubillingConfig;
+    $zbx = new ZabbixAPI();
+    $zbxAuthToken = $zbx->getAuthToken();
+    $problemActions = array();
+    $switchIP = trim($switchIP);
+
+    if (!empty($switchIP) AND ! empty($zbxAuthToken)) {
+        /* Selectd problem level severities
+            Возможные значения:
+            0 - не классифицировано;
+            1 - информационный;
+            2 - предупреждение;
+            3 - средняя;
+            4 - высокая;
+            5 - чрезвычайная.
+        */
+        if ($ubillingConfig->getAlterParam('ZABBIX_PROBLEM_SEVERITIES')) {
+            $severities = explode(',', $ubillingConfig->getAlterParam('ZABBIX_PROBLEM_SEVERITIES'));
+        } else {
+            $severities = array('0','1','2','3','4','5');
+        }
+
+        $reqParams = array('filter' => array('ip' => $switchIP));
+        $zbxHostData = json_decode($zbx->runQuery('host.get', $reqParams), true);
+        if (!empty($zbxHostData['result'])) {
+            $zbxHostID = $zbxHostData['result'][0]['hostid'];
+            $reqParams = array('hostids' => $zbxHostID, 'severities' => $severities, "selectAcknowledges"  => "extend");
+            $zbxProblemActions = json_decode($zbx->runQuery('problem.get', $reqParams), true);
+            if (!empty($zbxProblemActions['result'])) {
+                $problemActions = $zbxProblemActions['result'];
+            }
+        }
+    }
+
+    return ($problemActions);
+}
+
 ?>

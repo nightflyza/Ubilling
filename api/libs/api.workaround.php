@@ -6151,3 +6151,62 @@ function web_TariffEditForm($tariffname) {
 
     return($result);
 }
+
+/**
+ * Returns switch problem from zabbix in profile form
+ * 
+ * @param string $login
+ * @return string
+ */
+function web_ProfileSwitchZabbixProblem($login) {
+    $result = '';
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT `ip` FROM `switchportassign` LEFT JOIN `switches` ON (switchid=`switches`.`id`) WHERE login = '" . $login . "' LIMIT 1";
+
+    //getting switch IP
+    $swIP = simple_query($query);
+
+    if (!empty($swIP)) {
+        $allProblems = getZabbixProblems($swIP['ip']);
+        if (!empty($allProblems)) {
+            $cells = wf_TableCell(wf_tag('b', false) . __('Problem') . wf_tag('b', true), '30%', 'row2');
+            $cells .= wf_TableCell(wf_tag('b', false) . __('Start date') . wf_tag('b', true), '', 'row2');
+            $cells .= wf_TableCell(wf_tag('b', false) . __('Notes') . wf_tag('b', true), '', 'row2');
+            $rows = wf_TableRow($cells, 'row3');
+
+            foreach ($allProblems as $io => $problemData) {
+                // Colorized problem
+                if ($problemData['severity'] == 5) {
+                    $problemColor = wf_tag('font', false, '', 'color="#8B0000"') . wf_tag('b', false);
+                    $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                } elseif ($problemData['severity'] == 4) {
+                    $problemColor = wf_tag('font', false, '', 'color="#FF0000"') . wf_tag('b', false);
+                    $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                } elseif ($problemData['severity'] == 3) {
+                    $problemColor = wf_tag('font', false, '', 'color="#00008B"') . wf_tag('b', false);
+                    $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                } elseif ($problemData['severity'] == 2) {
+                    $problemColor = wf_tag('font', false, '', 'color="#4682B4"') . wf_tag('b', false);
+                    $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                } elseif ($problemData['severity'] == 1) {
+                    $problemColor = wf_tag('font', false, '', 'color="#7499FF"') . wf_tag('b', false);
+                    $problemColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                } else {
+                    $problemColor = wf_tag('b', false);
+                    $problemColorEnd = wf_tag('b', true);
+                }
+                $acknowledges = $problemData['acknowledges'];
+                $acknowledgesMessages = array_column($acknowledges , 'message');
+
+                $cells = wf_TableCell($problemColor . __($problemData['name']) . $problemColorEnd , '30%');
+                $cells .= wf_TableCell(date('Y-m-d H:i:s', $problemData['clock']));
+                $cells .= wf_TableCell(implode(wf_tag('br'), $acknowledgesMessages));
+                $rows .= wf_TableRow($cells, 'row4');
+
+            }
+            $result = wf_TableBody($rows, '100%', '0');
+        }
+    }
+
+    return ($result);
+}
