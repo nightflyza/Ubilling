@@ -2173,13 +2173,13 @@ function getZabbixProblems($switchIP) {
 
     if (!empty($switchIP) AND ! empty($zbxAuthToken)) {
         /* Selectd problem level severities
-            Возможные значения:
-            0 - не классифицировано;
-            1 - информационный;
-            2 - предупреждение;
-            3 - средняя;
-            4 - высокая;
-            5 - чрезвычайная.
+            Possible values:
+             0 - not classified;
+             1 - informational;
+             2 - warning;
+             3 - medium;
+             4 - high;
+             5 - emergency.
         */
         if ($ubillingConfig->getAlterParam('ZABBIX_PROBLEM_SEVERITIES')) {
             $severities = explode(',', $ubillingConfig->getAlterParam('ZABBIX_PROBLEM_SEVERITIES'));
