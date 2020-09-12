@@ -10,4 +10,4 @@ Please visit our official resources:
   * [Community forums](http://local.com.ua/forum/forum/144-stargazer-ubilling/)
 
 [![Build Status](https://travis-ci.org/nightflyza/Ubilling.svg?branch=master)](https://travis-ci.org/nightflyza/Ubilling)
-[![i18n](https://hosted.weblate.org/engage/ubilling/)](https://hosted.weblate.org/widgets/ubilling/-/svg-badge.svg)
+[![i18n](https://hosted.weblate.org/widgets/ubilling/-/svg-badge.svg)](https://hosted.weblate.org/engage/ubilling/)
