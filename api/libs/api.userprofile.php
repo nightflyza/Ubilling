@@ -1098,6 +1098,7 @@ class UserProfile {
                                 }
 
                                 $searched = $signal;
+                                break;
                             }
                         }
                     }
