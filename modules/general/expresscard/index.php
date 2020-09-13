@@ -1,6 +1,6 @@
 <?php
 if(cfr('EXPRESSCARD')) {
-    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['CRM_MODE']) {
            
            // push ajax data for new address creation
@@ -27,8 +27,8 @@ if(cfr('EXPRESSCARD')) {
             
             //making this user homeless
             if (wf_CheckGet(array('orphan'))) {
-                 $deleteaddrdata=zb_AddressGetAptData($login);
-                 $deleteatpid=$deleteaddrdata['aptid'];
+                 $deleteaddrdata = zb_AddressGetAptData($login);
+                 $deleteatpid = $deleteaddrdata['aptid'];
                  zb_AddressOrphanUser($login);
                  zb_AddressDeleteApartment($deleteatpid);
                  rcms_redirect("?module=expresscard&username=".$login);
@@ -36,12 +36,12 @@ if(cfr('EXPRESSCARD')) {
             
             //new address creation
             if (wf_CheckPost(array('citybox','streetbox','buildbox','createapt'))) {
-                 $apt=$_POST['createapt'];
-                 @$entrance=$_POST['createentrance'];
-                 @$floor=$_POST['createfloor'];
-                 $buildid=$_POST['buildbox'];
+                 $apt = $_POST['createapt'];
+                 @$entrance = $_POST['createentrance'];
+                 @$floor = $_POST['createfloor'];
+                 $buildid = $_POST['buildbox'];
                  zb_AddressCreateApartment($buildid, $entrance, $floor, $apt);
-                 $newaptid=zb_AddressGetLastid();
+                 $newaptid = zb_AddressGetLastid();
                  zb_AddressCreateAddress($login, $newaptid);
                  
                  
@@ -49,24 +49,24 @@ if(cfr('EXPRESSCARD')) {
             
             //existing address modify
             if (wf_CheckPost(array('editapt'))) {
-                $changeaptdata=zb_AddressGetAptData($login);
-                $changeaptid=$changeaptdata['id'];
-                $changeaptbuildid=$changeaptdata['buildid'];
-                $changeapt=$_POST['editapt'];
-                @$changefloor=$_POST['editfloor'];
-                @$changeentrance=$_POST['editentrance'];
+                $changeaptdata = zb_AddressGetAptData($login);
+                $changeaptid = $changeaptdata['id'];
+                $changeaptbuildid = $changeaptdata['buildid'];
+                $changeapt = $_POST['editapt'];
+                @$changefloor = $_POST['editfloor'];
+                @$changeentrance = $_POST['editentrance'];
                 zb_AddressChangeApartment($changeaptid, $changeaptbuildid, $changeentrance, $changefloor, $changeapt);
             }
          
             /*
              * Here user editing if catched all of needed params
              */
-            $editrequired=array('expresscardedit');
+            $editrequired = array('expresscardedit');
             if (wf_CheckPost($editrequired)) {
                 log_register("EXPRESSCARD (".$login.") EDIT BEGIN ");
                 //contract edit
                 if (wf_CheckPost(array('editcontract'))) {
-                    $newcontract=  mysql_real_escape_string($_POST['editcontract']);
+                    $newcontract = mysql_real_escape_string($_POST['editcontract']);
                     zb_UserChangeContract($login, $newcontract);
                    
                 }
@@ -74,12 +74,12 @@ if(cfr('EXPRESSCARD')) {
                 
                 //contract date editing
                 if (wf_CheckPost(array('editcontractdate','editcontract'))) {
-                    $newcontractdate=  mysql_real_escape_string($_POST['editcontractdate']);
-                    $allcontractdates=zb_UserContractDatesGetAll();
+                    $newcontractdate = mysql_real_escape_string($_POST['editcontractdate']);
+                    $allcontractdates = zb_UserContractDatesGetAll($_POST['editcontract']);
                       if (isset($allcontractdates[$_POST['editcontract']])) {
-                             $currentContractDate=$allcontractdates[$_POST['editcontract']];
+                             $currentContractDate = $allcontractdates[$_POST['editcontract']];
                            } else {
-                             $currentContractDate='';
+                             $currentContractDate = '';
                            }
                    if (empty($currentContractDate)) {
                        zb_UserContractDateCreate($_POST['editcontract'], $newcontractdate);
@@ -91,40 +91,40 @@ if(cfr('EXPRESSCARD')) {
                 
                //realname editing
                 if (wf_CheckPost(array('editsurname','editname','editpatronymic'))) {
-                    $newsurname=  $_POST['editsurname'];
-                    $newname=  $_POST['editname'];
-                    $newpatronymic=  $_POST['editpatronymic'];
-                    $normalRealName=$newsurname.' '.$newname.' '.$newpatronymic;
+                    $newsurname = $_POST['editsurname'];
+                    $newname = $_POST['editname'];
+                    $newpatronymic = $_POST['editpatronymic'];
+                    $normalRealName = $newsurname.' '.$newname.' '.$newpatronymic;
                     zb_UserChangeRealName($login, $normalRealName);
                 }
                 
                 //passportdata editing
                 if (wf_CheckPost(array('editbirthdate'))) {
-                    $newbirthdate=$_POST['editbirthdate'];
-                    $newpassportnum=$_POST['editpassportnum'];
-                    $newpassportdate=$_POST['editpassportdate'];
-                    $newpassportwho=$_POST['editpassportwho'];
+                    $newbirthdate = $_POST['editbirthdate'];
+                    $newpassportnum = $_POST['editpassportnum'];
+                    $newpassportdate = $_POST['editpassportdate'];
+                    $newpassportwho = $_POST['editpassportwho'];
                     
                     //if address is not like primary
                     if (!isset($_POST['custompaddress'])) {
-                        $newpcity=$_POST['editpcity'];
-                        $newpstreet=$_POST['editpstreet'];
-                        $newpbuild=$_POST['editpbuild'];
-                        $newpapt=$_POST['editpapt'];
+                        $newpcity = $_POST['editpcity'];
+                        $newpstreet = $_POST['editpstreet'];
+                        $newpbuild = $_POST['editpbuild'];
+                        $newpapt = $_POST['editpapt'];
                     } else {
                         //if paddress must be like primary
                         if (wf_CheckPost(array('samepapt','samepbuild','samepstreet','samepcity'))) {
-                        $newpcity=$_POST['samepcity'];
-                        $newpstreet=$_POST['samepstreet'];
-                        $newpbuild=$_POST['samepbuild'];
-                        $newpapt=$_POST['samepapt'];
+                        $newpcity = $_POST['samepcity'];
+                        $newpstreet = $_POST['samepstreet'];
+                        $newpbuild = $_POST['samepbuild'];
+                        $newpapt = $_POST['samepapt'];
                         } else {
                             //looks like user have no address, using old data
-                            $cpdata=  zb_UserPassportDataGet($login);
-                            @$newpcity=$cpdata['pcity'];
-                            @$newpstreet=$cpdata['pstreet'];
-                            @$newpbuild=$cpdata['pbuild'];
-                            @$newpapt=$cpdata['papt'];
+                            $cpdata = zb_UserPassportDataGet($login);
+                            @$newpcity = $cpdata['pcity'];
+                            @$newpstreet = $cpdata['pstreet'];
+                            @$newpbuild = $cpdata['pbuild'];
+                            @$newpapt = $cpdata['papt'];
                         }
                     }
                      
@@ -133,27 +133,27 @@ if(cfr('EXPRESSCARD')) {
                 
                 //tariff editing
                 if (wf_CheckPost(array('edittariff'))) {
-                     $newtariff=$_POST['edittariff'];
+                     $newtariff = $_POST['edittariff'];
                      $billing->settariff($login,$newtariff);
                      log_register('CHANGE Tariff ('.$login.') ON '.$newtariff);
                 }
                 
                 //ip editing
                 if (wf_CheckPost(array('editip'))) {
-                    $service=$_POST['serviceselect'];
+                    $service = $_POST['serviceselect'];
                     //if ip is not a same
-                    if ($service!='SAME') {
-                        $currentip=  zb_UserGetIP($login);
-                        $currentmac=  zb_MultinetGetMAC($currentip);
-                        $newnetid=  multinet_get_service_networkid($service);
-                        $newip=trim($_POST['editip']);
-                        $newip=  mysql_real_escape_string($newip);
-                        @$checkfreeip=multinet_get_next_freeip('nethosts', 'ip', $newnetid);
+                    if ($service! = 'SAME') {
+                        $currentip = zb_UserGetIP($login);
+                        $currentmac = zb_MultinetGetMAC($currentip);
+                        $newnetid = multinet_get_service_networkid($service);
+                        $newip = trim($_POST['editip']);
+                        $newip = mysql_real_escape_string($newip);
+                        @$checkfreeip = multinet_get_next_freeip('nethosts', 'ip', $newnetid);
                         
                         if (!empty($checkfreeip)) {
                             //check is ip acceptable for this pool?
-                            $allfreeips= multinet_get_all_free_ip('nethosts', 'ip', $newnetid);
-                            $allfreeips=  array_flip($allfreeips);
+                            $allfreeips = multinet_get_all_free_ip('nethosts', 'ip', $newnetid);
+                            $allfreeips = array_flip($allfreeips);
                             if (isset($allfreeips[$newip])) {
                             $billing->setip($login,$newip);
                             multinet_delete_host($currentip);
@@ -162,7 +162,7 @@ if(cfr('EXPRESSCARD')) {
                             multinet_RestartDhcp();
                             log_register("CHANGE MultiNetIP (".$login.") FROM ".$currentip." ON ".$newip); 
                             } else {
-                                $alert='
+                                $alert = '
                             <script type="text/javascript">
                               alert("'.__('Error').': '.__('Wrong IP').'");
                               document.location.href="?module=expresscard&username='. $login. '";
@@ -173,7 +173,7 @@ if(cfr('EXPRESSCARD')) {
                             }
                         } else {
                             //no free IPs left in network
-                            $alert='
+                            $alert = '
                             <script type="text/javascript">
                             alert("'.__('Error').': '.__('No free IP available in selected pool').'");
                             </script>
@@ -185,13 +185,13 @@ if(cfr('EXPRESSCARD')) {
                 
                 //editing MAC
                 if (wf_CheckPost(array('editmac'))) {
-                    $mac=trim($_POST['editmac']);
+                    $mac = trim($_POST['editmac']);
                      //check mac for free
                     if (multinet_mac_free($mac)) {
                      //validate mac format
                      if (check_mac_format($mac)) {   
-                    $ip=zb_UserGetIP($login);
-                    $old_mac=zb_MultinetGetMAC($ip);
+                    $ip = zb_UserGetIP($login);
+                    $old_mac = zb_MultinetGetMAC($ip);
                     multinet_change_mac($ip, $mac);
                     log_register("MAC CHANGE (".$login.") ".$ip." FROM  ".$old_mac." ON ".$mac);
                     multinet_rebuild_all_handlers();
@@ -211,26 +211,26 @@ if(cfr('EXPRESSCARD')) {
                 
               //editing notes
                 if (wf_CheckPost(array('editnotes'))) {
-                     $newnotes=$_POST['editnotes'];
+                     $newnotes = $_POST['editnotes'];
                         zb_UserDeleteNotes($login);
                         zb_UserCreateNotes($login,$newnotes);
                 }
                
               //editing user email
                 if (wf_CheckPost(array('editemail'))) {
-                    $newemail=$_POST['editemail'];
+                    $newemail = $_POST['editemail'];
                     zb_UserChangeEmail($login, $newemail);
                 }
               
             //editing user phone
                 if (wf_CheckPost(array('editphone'))) {
-                    $newphone=$_POST['editphone'];
+                    $newphone = $_POST['editphone'];
                     zb_UserChangePhone($login, $newphone);
                 }
                 
             //editing user mobile
                 if (wf_CheckPost(array('editmobile'))) {
-                    $newmobile=$_POST['editmobile'];
+                    $newmobile = $_POST['editmobile'];
                     zb_UserChangeMobile($login, $newmobile);
                 }
             
