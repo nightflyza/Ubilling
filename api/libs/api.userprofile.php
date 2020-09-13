@@ -1010,7 +1010,7 @@ class UserProfile {
             $onuAdditionalData = '';
             $query = "SELECT `pononu`.`id`, `pononu`.`onumodelid`, `pononu`.`oltid`, `pononu`.`ip`, `pononu`.`mac`, `pononu`.`serial`, `switchmodels`.`modelname` 
                         FROM `pononu`
-                        LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id`                        
+                        LEFT JOIN `switchmodels` ON `pononu`.`onumodelid` = `switchmodels`.`id` 
                         WHERE `login` = '" . $this->login . "'";
             $onu_data = simple_query($query);
 
@@ -1063,16 +1063,14 @@ class UserProfile {
                     $rows .= wf_TableRow($onuAdditionalData, 'row3');
 
                     $onuInterface = '';
-                    $availCacheData = rcms_scandir(PONizer::INTCACHE_PATH, '*_' . PONizer::INTCACHE_EXT);
-                    if (!empty($availCacheData)) {
-                        foreach ($availCacheData as $io => $each) {
-                            $raw = file_get_contents(PONizer::INTCACHE_PATH . $each);
-                            $raw = unserialize($raw);
-                            foreach ($raw as $mac => $interface) {
-                                if ($mac == $onu_data['mac']) {
-                                    $onuInterface = $interface;
-                                    break;
-                                }
+                    $onuInterfacesCache = PONizer::INTCACHE_PATH . $onu_data['oltid'] . '_' . PONizer::INTCACHE_EXT;
+                    if (file_exists($onuInterfacesCache)) {
+                        $raw = file_get_contents($onuInterfacesCache);
+                        $raw = unserialize($raw);
+                        foreach ($raw as $mac => $interface) {
+                            if ($mac == $onu_data['mac']) {
+                                $onuInterface = $interface;
+                                break;
                             }
                         }
                     }
@@ -1082,24 +1080,22 @@ class UserProfile {
                     $rows .= wf_TableRow($onuAdditionalData, 'row3');
                 }
 
-                $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
-                if (!empty($availCacheData)) {
-                    foreach ($availCacheData as $io => $each) {
-                        $raw = file_get_contents(PONizer::SIGCACHE_PATH . $each);
-                        $raw = unserialize($raw);
-                        foreach ($raw as $mac => $signal) {
-                            if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
-                                if (($signal > 0) OR ( $signal < -27)) {
-                                    $sigColor = '#ab0000';
-                                } elseif ($signal > -27 AND $signal < -25) {
-                                    $sigColor = '#FF5500';
-                                } else {
-                                    $sigColor = '#005502';
-                                }
-
-                                $searched = $signal;
-                                break;
+                $onuSignalsCache = PONizer::SIGCACHE_PATH . $onu_data['oltid'] . '_' . PONizer::SIGCACHE_EXT;
+                if (file_exists($onuSignalsCache)) {
+                    $raw = file_get_contents($onuSignalsCache);
+                    $raw = unserialize($raw);
+                    foreach ($raw as $mac => $signal) {
+                        if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
+                            if (($signal > 0) OR ( $signal < -27)) {
+                                $sigColor = '#ab0000';
+                            } elseif ($signal > -27 AND $signal < -25) {
+                                $sigColor = '#FF5500';
+                            } else {
+                                $sigColor = '#005502';
                             }
+
+                            $searched = $signal;
+                            break;
                         }
                     }
                 }
