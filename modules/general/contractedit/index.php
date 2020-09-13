@@ -40,7 +40,7 @@ if (cfr('CONTRACT')) {
         }
         
 //contract date editing
-        $allcontractdates = zb_UserContractDatesGetAll();
+        $allcontractdates = zb_UserContractDatesGetAll($current_contract);
         if (isset($allcontractdates[$current_contract])) {
             $currentContractDate = $allcontractdates[$current_contract];
         } else {
