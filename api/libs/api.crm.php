@@ -27,8 +27,9 @@ function zb_UserContractDateCreate($contract, $date) {
  * 
  *  @return array
  */
-function zb_UserContractDatesGetAll() {
-    $query = "SELECT * from `contractdates`";
+function zb_UserContractDatesGetAll($contract = '') {
+    $query_wh = (!empty($contract)) ? " WHERE `contractdates`.`contract` = '" . $contract . "'" : "";
+    $query = "SELECT * from `contractdates`"  . $query_wh;
     $all = simple_queryall($query);
     $result = array();
 
@@ -464,7 +465,7 @@ function web_ExpressServiceSelectorReg() {
 function web_ExpressCardEditForm($login) {
 
     $contract = zb_UserGetContract($login);
-    $allcontractdates = zb_UserContractDatesGetAll();
+    $allcontractdates = zb_UserContractDatesGetAll($contract);
     $realname = zb_UserGetRealName($login);
     $phone = zb_UserGetPhone($login);
     $mobile = zb_UserGetMobile($login);
