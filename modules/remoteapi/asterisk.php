@@ -44,6 +44,7 @@ if ($_GET['action'] == 'asterisk') {
                     $result = $asterisk->AsteriskGetInfoApi($number, 'swstatus');
                     die($result);
                 } else {
+                    global $billing;
                     $askNum = new AskoziaNum();
                     $askNum->setNumber($number);
 
@@ -83,7 +84,6 @@ if ($_GET['action'] == 'asterisk') {
                                             log_register('ASTERISK CREDIT GET TRY (' . $userLogin . '): CREDIT IS CURRENTLY ACTIVE');
                                             die('ASTERISK CREDIT NOT AVAILABLE: CREDIT IS CURRENTLY ACTIVE');
                                         } else {
-                                            global $billing;
                                             //set credit
                                             $billing->setcredit($userLogin, $creditMoney);
                                             log_register('ASTERISK CHANGE Credit (' . $userLogin . ') ON ' . $creditMoney);
@@ -188,11 +188,22 @@ if ($_GET['action'] == 'asterisk') {
                                     }
                                 }
 
-                                global $billing;
                                 $billing->setpassive($userLogin, 1);
 
                                 log_register('ASTERISK SET PAUSE SUCCESSFUL FOR  ' . $userLogin);
                                 die('ASTERISK SET PAUSE SUCCESSFUL FOR  ' . $userLogin);
+                            }
+
+
+                        case 'setunpause':
+                            if ($userdata['Passive']) {
+                                $billing->setpassive($userLogin, 0);
+
+                                log_register('ASTERISK UNPAUSE SUCCESSFUL FOR  ' . $userLogin . ' FROM MOBILE: ' . $number);
+                                die('ASTERISK UNPAUSE SUCCESSFUL FOR  ' . $userLogin . ' FROM MOBILE: ' . $number);
+                            } else {
+                                log_register('ASTERISK UNPAUSE UNSUCCESSFUL FOR  ' . $userLogin . ' FROM MOBILE: ' . $number . ': PAUSE IS NOT ACTIVE');
+                                die('ASTERISK UNPAUSE UNSUCCESSFUL FOR  ' . $userLogin . ' FROM MOBILE: ' . $number . ': PAUSE IS NOT ACTIVE');
                             }
 
 
