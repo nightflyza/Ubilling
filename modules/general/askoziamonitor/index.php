@@ -21,6 +21,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             protected $voicePath = '/mnt/askozia/';
 
             /**
+             * Contains voice recors archive path
+             *
+             * @var string
+             */
+            protected $archivePath = '/mnt/calls_archive/';
+
+            /**
              * Contains default recorded files file extensions
              *
              * @var string
@@ -94,7 +101,17 @@ if ($altcfg['ASKOZIA_ENABLED']) {
              */
             public function catchFileDownload() {
                 if (wf_CheckGet(array('dlaskcall'))) {
-                    zb_DownloadFile($this->voicePath . $_GET['dlaskcall'], 'default');
+                    //voice records
+                    if (file_exists($this->voicePath . $_GET['dlaskcall'])) {
+                        zb_DownloadFile($this->voicePath . $_GET['dlaskcall'], 'default');
+                    } else {
+                        //archive download
+                        if (file_exists($this->archivePath . $_GET['dlaskcall'])) {
+                            zb_DownloadFile($this->archivePath . $_GET['dlaskcall'], 'default');
+                        } else {
+                            show_error(__('File not exist') . ': ' . $_GET['dlaskcall']);
+                        }
+                    }
                 }
             }
 
@@ -105,7 +122,22 @@ if ($altcfg['ASKOZIA_ENABLED']) {
              */
             protected function getCallsDir() {
                 $result = array();
-                $result = rcms_scandir($this->voicePath, $this->callsFormat, 'file');
+                if (file_exists($this->voicePath)) {
+                    $result = rcms_scandir($this->voicePath, $this->callsFormat, 'file');
+                }
+                return ($result);
+            }
+
+            /**
+             * Returns available archived calls files array 
+             * 
+             * @return array
+             */
+            protected function getArchiveDir() {
+                $result = array();
+                if (file_exists($this->archivePath)) {
+                    $result = rcms_scandir($this->archivePath, $this->callsFormat, 'file');
+                }
                 return ($result);
             }
 
@@ -158,6 +190,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $this->loadUserTags();
                 $json = new wf_JqDtHelper();
                 $allVoiceFiles = $this->getCallsDir();
+                $allArchiveFiles = $this->getArchiveDir();
                 $telepathy = new Telepathy(false, true);
                 $telepathy->usePhones();
                 $askCalls = new nya_askcalls();
@@ -170,6 +203,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $renderAll = true;
                 }
 
+                //normal voice records rendering
                 if (!empty($allVoiceFiles)) {
                     /**
                      * Fuck a fucking placement, I don't need you motherfuckers
@@ -178,6 +212,55 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                      * I see right through your guise, you try and hide but you can't run from me
                      */
                     foreach ($allVoiceFiles as $io => $each) {
+                        $fileName = $each;
+                        $explodedFile = explode('_', $fileName);
+                        $cleanDate = explode('.', $explodedFile[2]);
+                        $cleanDate = $cleanDate[0];
+                        $callingNumber = $explodedFile[1];
+                        $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
+                        //unfinished calls
+                        if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
+                            if (!isset($previousCalls[$fileName])) {
+                                //here onlyMobile flag used for mobile normalizing too
+                                $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                                $askCalls->data('filename', ubRouting::filters($fileName, 'mres'));
+                                $askCalls->data('login', ubRouting::filters($userLogin, 'mres'));
+                                $askCalls->create();
+                            } else {
+                                $userLogin = $previousCalls[$fileName]['login'];
+                            }
+
+                            $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
+                            $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
+                            $cleanDate = $newDateString;
+                            $fileUrl = self::URL_ME . '&dlaskcall=' . $fileName;
+                            if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
+                                if ($renderAll) {
+                                    $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                                    $data[] = $callingNumber;
+                                    $data[] = $userLink;
+                                    $data[] = $this->renderUserTags($userLogin);
+                                    $data[] = $this->getSoundcontrols($fileUrl);
+                                    $json->addRow($data);
+                                } else {
+                                    if (ispos($cleanDate, $curYear)) {
+                                        $data[] = wf_img($callDirection) . ' ' . $cleanDate;
+                                        $data[] = $callingNumber;
+                                        $data[] = $userLink;
+                                        $data[] = $this->renderUserTags($userLogin);
+                                        $data[] = $this->getSoundcontrols($fileUrl);
+                                        $json->addRow($data);
+                                    }
+                                }
+                            }
+                            unset($data);
+                        }
+                    }
+                }
+
+                //archived records rendering
+                if (!empty($allArchiveFiles)) {
+                    foreach ($allArchiveFiles as $io => $each) {
                         $fileName = $each;
                         $explodedFile = explode('_', $fileName);
                         $cleanDate = explode('.', $explodedFile[2]);
