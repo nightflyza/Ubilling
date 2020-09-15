@@ -260,6 +260,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
                 //archived records rendering
                 if (!empty($allArchiveFiles)) {
+                    $archiveLabel = wf_img('skins/calls/archived.png', __('Archive'));
                     foreach ($allArchiveFiles as $io => $each) {
                         $fileName = $each;
                         $explodedFile = explode('_', $fileName);
@@ -289,7 +290,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                                     $data[] = $callingNumber;
                                     $data[] = $userLink;
                                     $data[] = $this->renderUserTags($userLogin);
-                                    $data[] = $this->getSoundcontrols($fileUrl);
+                                    $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel;
                                     $json->addRow($data);
                                 } else {
                                     if (ispos($cleanDate, $curYear)) {
@@ -297,7 +298,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                                         $data[] = $callingNumber;
                                         $data[] = $userLink;
                                         $data[] = $this->renderUserTags($userLogin);
-                                        $data[] = $this->getSoundcontrols($fileUrl);
+                                        $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel;
                                         $json->addRow($data);
                                     }
                                 }
