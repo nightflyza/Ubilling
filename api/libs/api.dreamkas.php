@@ -403,16 +403,22 @@ class DreamKas {
     protected function getFiscalOperations($dateFrom = '', $dateTo = '') {
         if (!empty($dateFrom) and $dateFrom == $dateTo) {
             $dateTo = $dateTo . ' 23:59:59';
+        } elseif (!empty($dateFrom) and empty($dateTo)) {
+            $dateTo = $dateFrom . ' 23:59:59';
         }
 
-        $urlString = self::URL_API . 'operations';
-        //((empty($dateFrom)) ? '' : '&from=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateFrom))) .
-        //((empty($dateTo)) ? '' : '&to=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateTo))) .
+        // for now - this is useless, 'cause Dreamkas API doesn't support fiscal operations filtering by time range
+        // but there is hope it may change in future
+        $urlParams = empty($dateFrom) ? '' : '?from=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateFrom));
+        $urlParams.= empty($dateTo) ? '' : (empty($dateFrom) ? '?' : '&') . 'to=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateTo));
+
+        $urlString = self::URL_API . 'operations' . $urlParams;
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $urlString);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $this->basicHTTPHeaders);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        //curl_setopt($curl, CURLOPT_TIMEOUT, 12);
         $result = curl_exec($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
@@ -535,6 +541,8 @@ class DreamKas {
     protected function getReceipts($dateFrom = '', $dateTo = '', $cashDeviceID = '', $limit = 1000) {
         if (!empty($dateFrom) and $dateFrom == $dateTo) {
             $dateTo = $dateTo . ' 23:59:59';
+        } elseif (!empty($dateFrom) and empty($dateTo)) {
+            $dateTo = $dateFrom . ' 23:59:59';
         }
 
         $limit = '?limit=' . $limit;
@@ -1691,12 +1699,24 @@ class DreamKas {
      * JSON for fiscal operations JQDT
      */
     public function renderFiscalOperationsListJSON($dateFrom = '', $dateTo = '') {
-        $fopsData = $this->getFiscalOperations($dateFrom, $dateTo);
         $json = new wf_JqDtHelper();
 
+        $whereStr = '';
+        if (!empty($dateFrom) and !empty($dateTo)) {
+            $whereStr = " `date_create` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "  23:59:59' ";
+        } elseif (!empty($dateFrom) and empty($dateTo)) {
+            $whereStr = " `date_create` >= '" . $dateFrom . "  23:59:59' ";
+        } elseif (empty($dateFrom) and !empty($dateTo)) {
+            $whereStr = " `date_create` <= '" . $dateTo . "  23:59:59' ";
+        }
+
+        $fopsDataExt = $this->getFiscalOperations($dateFrom, $dateTo);
+        if (!empty($fopsDataExt)) {
+            $this->updateFiscalOperationsLocalStorage($fopsDataExt);
+        }
+
+        $fopsData = $this->getFiscalOperationsLocal($whereStr);
         if (!empty($fopsData)) {
-            $this->updateFiscalOperationsLocalStorage($fopsData);
-            $fopsData = $this->getFiscalOperationsLocal();
             $ajaxURLStr = self::URL_ME . '&foperationslistajax=true';
             $JQDTId = 'jqdt_' . md5($ajaxURLStr);
             $data = array();
@@ -1732,8 +1752,8 @@ class DreamKas {
                 $actions .= wf_tag('script', true);
 
                 $data[] = $actions;
-
                 $json->addRow($data);
+
                 unset($data);
             }
         }

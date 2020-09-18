@@ -38,6 +38,8 @@ if (cfr('DREAMKAS')) {
             }
 
             if (wf_CheckGet(array('foperationslistajax'))) {
+                //$dateFrom = (wf_CheckGet(array('fopsdatefrom'))) ? $_GET['fopsdatefrom'] : date('Y-m-d', strtotime(curdate() . "-1 day"));
+                //$dateTo = (wf_CheckGet(array('fopsdateto'))) ? $_GET['fopsdateto'] : curdate();
                 $dateFrom = (wf_CheckGet(array('fopsdatefrom'))) ? $_GET['fopsdatefrom'] : '';
                 $dateTo = (wf_CheckGet(array('fopsdateto'))) ? $_GET['fopsdateto'] : '';
 
@@ -77,7 +79,7 @@ if (cfr('DREAMKAS')) {
             }
 
             if (wf_CheckGet(array('getoperations'))) {
-                show_window(__('Operations'), $DreamKas->renderFiscalOperationsJQDT());
+                show_window(__('Operations'), $DreamKas->web_FiscalOperationsFilter() . $DreamKas->renderFiscalOperationsJQDT());
             }
 
             if (wf_CheckGet(array('getreceipts'))) {
