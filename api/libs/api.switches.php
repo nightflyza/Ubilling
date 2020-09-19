@@ -98,11 +98,24 @@ function web_SwitchModelAddForm() {
  * @return string
  */
 function web_SwitchModelsShow() {
-    $query = 'SELECT * from `switchmodels`';
-    $allmodels = simple_queryall($query);
+    $allmodels = zb_SwitchModelsGetAll();
+    $allSwitches = zb_SwitchesGetAll();
+    $modelsCount = array();
+    if (!empty($allSwitches)) {
+        foreach ($allSwitches as $io => $eachSwitchData) {
+            if (isset($modelsCount[$eachSwitchData['modelid']])) {
+                $modelsCount[$eachSwitchData['modelid']]++;
+            } else {
+                $modelsCount[$eachSwitchData['modelid']]=1;
+            }
+        }
+    }
+    
+    
 
     $tablecells = wf_TableCell(__('ID'));
     $tablecells .= wf_TableCell(__('Model'));
+    $tablecells .= wf_TableCell(__('Devices'));
     $tablecells .= wf_TableCell(__('Ports'));
     $tablecells .= wf_TableCell(__('SNMP template'));
     $tablecells .= wf_TableCell(__('Actions'));
@@ -115,9 +128,10 @@ function web_SwitchModelsShow() {
      */
     if (!empty($allmodels)) {
         foreach ($allmodels as $io => $eachmodel) {
-
+            $availDevicesCount=(isset($modelsCount[$eachmodel['id']])) ? $modelsCount[$eachmodel['id']] : 0 ;
             $tablecells = wf_TableCell($eachmodel['id']);
             $tablecells .= wf_TableCell($eachmodel['modelname']);
+            $tablecells .= wf_TableCell($availDevicesCount);
             $tablecells .= wf_TableCell($eachmodel['ports']);
             $tablecells .= wf_TableCell($eachmodel['snmptemplate']);
             $switchmodelcontrols = wf_JSAlert('?module=switchmodels&deletesm=' . $eachmodel['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
