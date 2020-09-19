@@ -146,9 +146,7 @@ if (cfr('TASKMAN')) {
                         //custom jobtypes color styling
                         $customJobColorStyle = ts_GetAllJobtypesColorStyles();
                         //show full calendar view
-                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts,
-                                                                               $extendedDoneAlterStylingBool,
-                                                                               $extendedDoneAlterListOnly));
+                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts, $extendedDoneAlterStylingBool, $extendedDoneAlterListOnly));
                     }
                 } else {
                     show_window(__('Show late'), ts_ShowLate());
@@ -166,11 +164,6 @@ if (cfr('TASKMAN')) {
 
                 //show printing form
                 show_window(__('Tasks printing'), ts_PrintDialogue());
-
-                /*if (wf_CheckPost(array('showemptyqueryerror'))) {
-                    $messages = new UbillingMessageHelper();
-                    show_window(__('Warning'), $messages->getStyledMessage(__('Query returned empty result'), 'warning'));
-                }*/
             }
         } else {
             //sms post sending
@@ -222,11 +215,27 @@ if (cfr('TASKMAN')) {
             //display task change form aka task profile
             ts_TaskChangeForm($_GET['edittask']);
 
+            //Task States support
+            if (@$altCfg['TASKSTATES_ENABLED']) {
+                $taskStates = new TaskStates();
+                show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask')));
+                if (ubRouting::checkGet('changestate', 'edittask')) {
+                    $newStateSetResult = $taskStates->setTaskState(ubRouting::get('edittask'), ubRouting::get('changestate'));
+                    if (empty($newStateSetResult)) {
+                        die($taskStates->renderStatePanel(ubRouting::get('edittask')));
+                    } else {
+                        $messages = new UbillingMessageHelper();
+                        die($messages->getStyledMessage($newStateSetResult, 'error'));
+                    }
+                }
+            }
+
+
             //photostorage integration
             if ($altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage = new PhotoStorage('TASKMAN', $_GET['edittask']);
                 $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . $_GET['edittask'], wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                $photostorageControl.= wf_delimiter();
+                $photostorageControl .= wf_delimiter();
                 $photosList = $photoStorage->renderImagesRaw();
                 show_window(__('Photostorage'), $photostorageControl . $photosList);
             }

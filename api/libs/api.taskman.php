@@ -2358,6 +2358,7 @@ function ts_renderLogsDataAjax($taskid = '') {
     if (!empty($result_log)) {
         $allemployee = ts_GetAllEmployee();
         $alljobtypes = ts_GetAllJobtypes();
+        $taskStates = new TaskStates(false);
 
         foreach ($result_log as $each) {
             $administratorChange = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
@@ -2444,6 +2445,15 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $data_event .= wf_tag('font', false, '', 'color="green"') . $logDataArr['starttime']['old'] . wf_tag('font', true);
                     $data_event .= " => ";
                     $data_event .= wf_tag('font', false, '', 'color="red"') . $logDataArr['starttime']['new'] . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
+                }
+
+                if (isset($logDataArr['taskstate'])) {
+
+                    $data_event .= wf_tag('b') . __('Task state') . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . $taskStates->getStateName($logDataArr['taskstate']['old']) . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . $taskStates->getStateName($logDataArr['taskstate']['new']) . wf_tag('font', true);
                     $data_event .= wf_tag('br');
                 }
             } elseif ($each['event'] == 'done') {

@@ -3173,4 +3173,5 @@ $lang['def']['Any available OLT devices exist'] = 'Нету никаких OLT �
 $lang['def']['Moved'] = 'Перенесено';
 $lang['def']['Missed a phone call'] = 'Не смог дозвониться';
 $lang['def']['Fixed connector'] = 'Починил коннектор';
+$lang['def']['Task state'] = 'Состояние задачи';
 ?>
