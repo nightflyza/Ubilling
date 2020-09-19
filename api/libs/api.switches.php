@@ -98,20 +98,40 @@ function web_SwitchModelAddForm() {
  * @return string
  */
 function web_SwitchModelsShow() {
+    global $ubillingConfig;
     $allmodels = zb_SwitchModelsGetAll();
     $allSwitches = zb_SwitchesGetAll();
     $modelsCount = array();
+
+
+    //switch devices count
     if (!empty($allSwitches)) {
         foreach ($allSwitches as $io => $eachSwitchData) {
             if (isset($modelsCount[$eachSwitchData['modelid']])) {
-                $modelsCount[$eachSwitchData['modelid']]++;
+                $modelsCount[$eachSwitchData['modelid']] ++;
             } else {
-                $modelsCount[$eachSwitchData['modelid']]=1;
+                $modelsCount[$eachSwitchData['modelid']] = 1;
             }
         }
     }
-    
-    
+
+    //PON devices count
+    if ($ubillingConfig->getAlterParam('PON_ENABLED')) {
+        $onuDevicesDb = new NyanORM('pononu');
+        $onuDevicesDb->selectable(array('id', 'onumodelid'));
+        $allOnu = $onuDevicesDb->getAll();
+        if (!empty($allOnu)) {
+            foreach ($allOnu as $io => $eachOnuData) {
+                if (isset($modelsCount[$eachOnuData['onumodelid']])) {
+                    $modelsCount[$eachOnuData['onumodelid']] ++;
+                } else {
+                    $modelsCount[$eachOnuData['onumodelid']] = 1;
+                }
+            }
+        }
+    }
+
+
 
     $tablecells = wf_TableCell(__('ID'));
     $tablecells .= wf_TableCell(__('Model'));
@@ -128,7 +148,7 @@ function web_SwitchModelsShow() {
      */
     if (!empty($allmodels)) {
         foreach ($allmodels as $io => $eachmodel) {
-            $availDevicesCount=(isset($modelsCount[$eachmodel['id']])) ? $modelsCount[$eachmodel['id']] : 0 ;
+            $availDevicesCount = (isset($modelsCount[$eachmodel['id']])) ? $modelsCount[$eachmodel['id']] : 0;
             $tablecells = wf_TableCell($eachmodel['id']);
             $tablecells .= wf_TableCell($eachmodel['modelname']);
             $tablecells .= wf_TableCell($availDevicesCount);
