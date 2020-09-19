@@ -176,18 +176,22 @@ class TaskStates {
      * @retrun void
      */
     protected function logStateChange($taskId, $stateId) {
-        $log_data = '';
+        $taskId = ubRouting::filters($taskId, 'int');
+
         $log_data_arr = array();
         $prevState = (isset($this->allStates[$taskId])) ? $this->allStates[$taskId]['state'] : '';
-        $log_data .= __('State') . ':`' . $prevState . '` => `' . $stateId . '`';
+        $logData['taskstate']['old'] = $prevState;
+        $logData['taskstate']['new'] = $stateId;
+        $storeLogData = serialize($logData);
 
-        $log_data_arr['taskstate']['old'] = $prevState;
-        $log_data_arr['taskstate']['new'] = $stateId;
-
-        $queryLogTask = ("
-        INSERT INTO `taskmanlogs` (`id`, `taskid`, `date`, `admin`, `ip`, `event`, `logs`)
-        VALUES (NULL, '" . $taskId . "', CURRENT_TIMESTAMP, '" . whoami() . "', '" . @$_SERVER['REMOTE_ADDR'] . "', 'modify', '" . serialize($log_data_arr) . "') ");
-        nr_query($queryLogTask);
+        $taskmanLogs = new NyanORM('taskmanlogs');
+        $taskmanLogs->data('taskid', $taskId);
+        $taskmanLogs->data('date', curdatetime());
+        $taskmanLogs->data('admin', whoami());
+        $taskmanLogs->data('ip', @$_SERVER['REMOTE_ADDR']);
+        $taskmanLogs->data('event', 'modify');
+        $taskmanLogs->data('logs', $storeLogData);
+        $taskmanLogs->create();
     }
 
     /**
