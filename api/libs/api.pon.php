@@ -3017,8 +3017,6 @@ class PONizer {
 
             if (@$this->altCfg['PON_ONU_SEARCH_ENABLED']) {
                 $result .= wf_modalAuto(web_icon_search() . ' ' . __('Search'), __('Search') . ' ' . __('ONU'), $this->renderOnuSearchForm(), 'ubButton');
-                //TODO: remove following:
-                //$result .= $this->renderOnuSearchForm();
             }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
@@ -4620,9 +4618,14 @@ class PONizer {
                 $cells .= wf_TableCell($eachOnuData['ip']);
                 $cells .= wf_TableCell($eachOnuData['serial']);
                 $cells .= wf_TableCell($eachOnuData['mac']);
-                $userLink = wf_Link(self::URL_USERPROFILE . $eachOnuData['login'], web_profile_icon() . ' ' . $eachOnuData['login']);
+                if (!empty($eachOnuData['login'])) {
+                    $userLink = wf_Link(self::URL_USERPROFILE . $eachOnuData['login'], web_profile_icon() . ' ' . $eachOnuData['login']);
+                } else {
+                    $userLink = '';
+                }
+
                 $cells .= wf_TableCell($userLink);
-                $actControls = wf_Link(self::URL_ME . '&editonu=' . $eachOnuId, web_edit_icon());
+                $actControls = wf_Link(self::URL_ME . '&editonu=' . $eachOnuId, web_edit_icon(__('Edit') . ' ' . __('ONU')));
                 $cells .= wf_TableCell($actControls);
                 $rows .= wf_TableRow($cells, 'row5');
                 $count++;
