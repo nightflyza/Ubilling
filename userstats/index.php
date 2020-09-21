@@ -37,8 +37,6 @@ if (!empty($us_access)) {
 }
 
 if ($user_ip) {
-
-
     if (!isset($_GET['module'])) {
         if ($us_config['UBA_ENABLED']) {
             // UBAgent SUPPORT:
@@ -51,6 +49,7 @@ if ($user_ip) {
                 zbs_UserShowXmlAgentData($user_login);
             }
         } else {
+            //REST API disabled by configuration
             if (isset($_GET['xmlagent'])) {
                 $errorOutputFormat = 'xml';
                 if (ubRouting::checkGet('json')) {
