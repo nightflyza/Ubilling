@@ -89,7 +89,7 @@ if (cfr('REPORTSIGNUP')) {
             if ($cemeteryEnabled) {
                 $deadDateMask = $year . '-' . $eachmonth . '-';
                 $deadCount = $cemetery->getDeadDateCount($deadDateMask);
-                $deadBar = web_barTariffs($count, $deadCount);
+                $deadBar = web_barTariffs(abs($count), abs($deadCount));
                 $tablecells .= wf_TableCell($deadCount);
                 $tablecells .= wf_TableCell($deadBar);
             }
