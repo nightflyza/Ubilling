@@ -51,11 +51,13 @@ if ($user_ip) {
                 zbs_UserShowXmlAgentData($user_login);
             }
         } else {
-            $outputFormat = 'xml';
-            if (ubRouting::checkGet('json')) {
-                $errorOutputFormat = 'json';
+            if (isset($_GET['xmlagent'])) {
+                $errorOutputFormat = 'xml';
+                if (ubRouting::checkGet('json')) {
+                    $errorOutputFormat = 'json';
+                }
+                zbs_XMLAgentRender(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat, false);
             }
-            zbs_XMLAgentRender(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat, false);
         }
 
         //announcements notice
