@@ -627,66 +627,123 @@ function zbs_UserShowAgentData($login) {
 }
 
 /**
+ * Renders some data as XML
+ * 
+ * @param array $data data array for rendering
+ * @param string $mainSection all output data parent element tag name
+ * @param string $subSections parent tag for each data qunique element tag name
+ * @param string $format output format: xml or json
+ * @param bool $messages is data contain announcements data for render
+ * 
+ * @return void
+ */
+function zbs_XMLAgentRender($data, $mainSection = '', $subSections = '', $format = 'xml', $messages = false) {
+    $result = '';
+    //XML legacy output
+    if ($format == 'xml') {
+        $result .= '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
+
+        if (!empty($mainSection)) {
+            $result .= '<' . $mainSection . '>' . PHP_EOL;
+        }
+        if (!empty($data)) {
+
+            foreach ($data as $index => $record) {
+                if (!empty($subSections)) {
+                    $result .= '<' . $subSections . '>' . PHP_EOL;
+                }
+
+                //normal data output
+                if (!$messages) {
+                    foreach ($record as $tag => $value) {
+                        $result .= "\t" . '<' . $tag . '>' . $value . '</' . $tag . '>' . PHP_EOL;
+                    }
+                } else {
+                    //announcements data output
+                    $result .= '<message unic="' . $record['unic'] . '" title="' . $record['title'] . '">' . $record['text'] . '</message>' . PHP_EOL;
+                }
+
+                if (!empty($subSections)) {
+                    $result .= '</' . $subSections . '>' . PHP_EOL;
+                }
+            }
+        }
+
+        if (!empty($mainSection)) {
+            $result .= '</' . $mainSection . '>' . PHP_EOL;
+        }
+    }
+
+    //JSON data output
+    if ($format == 'json') {
+        $result .= json_encode($data);
+    }
+
+
+    //pushing result to client
+    header('Last-Modified: ' . gmdate('r'));
+    header('Content-Type: text/html; charset=utf-8');
+    header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
+    header("Pragma: no-cache");
+    header('Access-Control-Allow-Origin: *');
+    die($result);
+}
+
+/**
  * Returns XML-agent user data
  * 
  * @param string $login
  */
 function zbs_UserShowXmlAgentData($login) {
     $us_config = zbs_LoadConfig();
-    if (isset($_GET['payments'])) {
+    $outputFormat = 'xml';
+    if (ubRouting::checkGet('json')) {
+        $outputFormat = 'json';
+    }
+    //payments export
+    if (ubRouting::checkGet('payments')) {
         if ($us_config['PAYMENTS_ENABLED']) {
             $allpayments = zbs_CashGetUserPayments($login);
-
-            $payments = '<?xml version="1.0" encoding="utf-8"?>
-<data>' . "\n";
+            $payments = array();
             if (!empty($allpayments)) {
                 foreach ($allpayments as $io => $eachpayment) {
-                    $payments .= '<payment>' . "\n";
-                    $payments .= "\t" . '<date>' . $eachpayment['date'] . '</date>' . "\n";
-                    $payments .= "\t" . '<summ>' . $eachpayment['summ'] . '</summ>' . "\n";
-                    $payments .= "\t" . '<balance>' . $eachpayment['balance'] . '</balance>' . "\n";
-                    $payments .= '</payment>' . "\n";
+                    $payments[$eachpayment['id']]['date'] = $eachpayment['date'];
+                    $payments[$eachpayment['id']]['summ'] = $eachpayment['summ'];
+                    $payments[$eachpayment['id']]['balance'] = $eachpayment['balance'];
                 }
+                zbs_XMLAgentRender($payments, 'data', 'payment', $outputFormat);
+            } else {
+                zbs_XMLAgentRender(array(), 'data', 'payment', $outputFormat);
             }
-            $payments .= '</data>' . "\n";
         } else {
-            $payments = '<?xml version="1.0" encoding="utf-8"?>' . "\n" . '<data>' . "\n" . '</data>' . "\n";
+            zbs_XMLAgentRender(array(), 'data', 'payment', $outputFormat);
         }
-        header('Last-Modified: ' . gmdate('r'));
-        header('Content-Type: text/html; charset=utf-8');
-        header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
-        header("Pragma: no-cache");
-        header('Access-Control-Allow-Origin: *');
-        die($payments);
     }
 
-
-    if (isset($_GET['announcements'])) {
+    //announcements export
+    if (ubRouting::checkGet('announcements')) {
         if ($us_config['AN_ENABLED']) {
             $announcements_query = "SELECT * from `zbsannouncements` WHERE `public`='1' ORDER by `id` DESC";
             $allAnnouncements = simple_queryall($announcements_query);
-
-            $announcements = '<?xml version="1.0" encoding="utf-8"?>
-<data>' . "\n";
+            $annArr = array();
             if (!empty($allAnnouncements)) {
                 foreach ($allAnnouncements as $ian => $eachAnnouncement) {
                     $annText = strip_tags($eachAnnouncement['text']);
                     $allTitle = strip_tags($eachAnnouncement['title']);
-                    $announcements .= '<message unic="' . $eachAnnouncement['id'] . '" title="' . $allTitle . '">' . $annText . '</message>' . "\n";
+                    $annArr[] = array(
+                        'unic' => $eachAnnouncement['id'],
+                        'title' => $allTitle,
+                        'text' => $annText
+                    );
                 }
             }
-            $announcements .= '</data>' . "\n";
+            zbs_XMLAgentRender($annArr, 'data', '', $outputFormat, true);
         } else {
-            $announcements = '<?xml version="1.0" encoding="utf-8"?>' . "\n" . '<data>' . "\n" . '</data>' . "\n";
+            zbs_XMLAgentRender(array(), 'data', '', $outputFormat, true);
         }
-        header('Last-Modified: ' . gmdate('r'));
-        header('Content-Type: text/html; charset=utf-8');
-        header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
-        header("Pragma: no-cache");
-        header('Access-Control-Allow-Origin: *');
-        die($announcements);
     }
 
+    //user data export
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
     $alladdress = zbs_AddressGetFulladdresslist();
@@ -772,47 +829,37 @@ function zbs_UserShowXmlAgentData($login) {
     }
     // >> END OF ONLINELEFT COUNTING
 
-
-    $result = '<?xml version="1.0" encoding="utf-8"?>
-<userdata>' . "\n";
-    $result .= "\t" . '<address>' . @$alladdress[$login] . '</address>' . "\n";
-    if ($us_config['UBA_XML_ADDRESS_STRUCT']) {
+    $reqResult = array();
+    $reqResult[] = array('address' => @$alladdress[$login]);
+    if (@$us_config['UBA_XML_ADDRESS_STRUCT']) {
         if (!empty($alladdressStruct)) {
             foreach ($alladdressStruct[$login] as $field => $value) {
-                $result .= "\t<" . $field . '>' . $value . '</' . $field . ">\n";
+                $reqResult[] = array($field => $value);
             }
         }
     }
-    $result .= "\t" . '<realname>' . @$allrealnames[$login] . '</realname>' . "\n";
-    $result .= "\t" . '<login>' . $login . '</login>' . "\n";
-    $result .= "\t" . '<cash>' . @round($userdata['Cash'], 2) . '</cash>' . "\n";
-    $result .= "\t" . '<ip>' . @$userdata['IP'] . '</ip>' . "\n";
-    $result .= "\t" . '<phone>' . $phone . '</phone>' . "\n";
-    $result .= "\t" . '<mobile>' . $mobile . '</mobile>' . "\n";
-    $result .= "\t" . '<email>' . $email . '</email>' . "\n";
-    $result .= "\t" . '<credit>' . @$userdata['Credit'] . '</credit>' . "\n";
-    $result .= "\t" . '<creditexpire>' . $credexpire . '</creditexpire>' . "\n";
-    $result .= "\t" . '<payid>' . $paymentid . '</payid>' . "\n";
-    $result .= "\t" . '<contract>' . $contract . '</contract>' . "\n";
-    $result .= "\t" . '<tariff>' . $userdata['Tariff'] . '</tariff>' . "\n";
-    $result .= "\t" . '<tariffnm>' . $tariffNm . '</tariffnm>' . "\n";
-    $result .= "\t" . '<traffdownload>' . zbs_convert_size($traffdown) . '</traffdownload>' . "\n";
-    $result .= "\t" . '<traffupload>' . zbs_convert_size($traffup) . '</traffupload>' . "\n";
-    $result .= "\t" . '<trafftotal>' . zbs_convert_size($traffdown + $traffup) . '</trafftotal>' . "\n";
-    $result .= "\t" . '<accountstate>' . $passive_state . $down_state . '</accountstate>' . "\n";
-    $result .= "\t" . '<accountexpire>' . $balanceExpire . '</accountexpire>' . "\n";
-    $result .= "\t" . '<currency>' . $us_currency . '</currency>' . "\n";
-    $result .= "\t" . '<version>' . $apiVer . '</version>' . "\n";
+    $reqResult[] = array('realname' => @$allrealnames[$login]);
+    $reqResult[] = array('login' => $login);
+    $reqResult[] = array('cash' => @round($userdata['Cash'], 2));
+    $reqResult[] = array('ip' => @$userdata['IP']);
+    $reqResult[] = array('phone' => $phone);
+    $reqResult[] = array('mobile' => $mobile);
+    $reqResult[] = array('email' => $email);
+    $reqResult[] = array('credit' => @$userdata['Credit']);
+    $reqResult[] = array('creditexpire' => $credexpire);
+    $reqResult[] = array('payid' => $paymentid);
+    $reqResult[] = array('contract' => $contract);
+    $reqResult[] = array('tariff' => $userdata['Tariff']);
+    $reqResult[] = array('tariffnm' => $tariffNm);
+    $reqResult[] = array('traffdownload' => zbs_convert_size($traffdown));
+    $reqResult[] = array('traffupload' => zbs_convert_size($traffup));
+    $reqResult[] = array('trafftotal' => zbs_convert_size($traffdown + $traffup));
+    $reqResult[] = array('accountstate' => $passive_state . $down_state);
+    $reqResult[] = array('accountexpire' => $balanceExpire);
+    $reqResult[] = array('currency' => $us_currency);
+    $reqResult[] = array('version' => $apiVer);
 
-    $result .= '</userdata>' . "\n";
-
-    header('Last-Modified: ' . gmdate('r'));
-    header('Content-Type: text/html; charset=utf-8');
-    header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
-    header("Pragma: no-cache");
-    header('Access-Control-Allow-Origin: *');
-
-    die($result);
+    zbs_XMLAgentRender($reqResult, 'userdata', '', $outputFormat, false);
 }
 
 /**

@@ -50,7 +50,14 @@ if ($user_ip) {
             if (isset($_GET['xmlagent'])) {
                 zbs_UserShowXmlAgentData($user_login);
             }
+        } else {
+            $outputFormat = 'xml';
+            if (ubRouting::checkGet('json')) {
+                $errorOutputFormat = 'json';
+            }
+            zbs_XMLAgentRender(array(array('reason' => 'disabled')), 'error', '', $errorOutputFormat, false);
         }
+
         //announcements notice
         if (isset($us_config['AN_ENABLED'])) {
             if ($us_config['AN_ENABLED']) {
