@@ -35,10 +35,21 @@ function zbs_UserDetectIp($debug = false) {
     $glob_conf = zbs_LoadConfig();
     $ip = '';
 
+    //force REST API auth
+    if (ubRouting::checkGet('uberlogin', 'uberpassword')) {
+        $ip = zbs_UserCheckLoginAuth(vf(ubRouting::get('uberlogin')), vf(ubRouting::get('uberpassword')));
+        if (!empty($ip)) {
+            return($ip);
+        } else {
+            die('ERROR_WRONG_UBERAUTH');
+        }
+    }
+
     //default auth method
     if ($glob_conf['auth'] == 'ip') {
         $ip = $_SERVER['REMOTE_ADDR'];
     }
+
     //password based auth
     if ($glob_conf['auth'] == 'login') {
         if ((isset($_COOKIE['ulogin'])) AND ( isset($_COOKIE['upassword']))) {
