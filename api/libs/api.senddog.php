@@ -327,7 +327,7 @@ class SendDog {
 
     /**
      * Loads AlphaSMS service config
-     * 
+     *
      * @return void
      */
     protected function loadAlphasmsConfig() {
@@ -531,7 +531,7 @@ class SendDog {
 
     /**
      * Renders current AlphaSMS service user balance
-     * 
+     *
      * @return string
      */
     public function renderAlpasmsBalance() {
@@ -717,7 +717,7 @@ class SendDog {
 
     /**
      * Returns set of inputs, required for Lifecell service configuration
-     * 
+     *
      * @return string
      */
     protected function renderAlphasmsConfigInputs() {
@@ -966,9 +966,9 @@ class SendDog {
                 $myXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
                 $myXML .= "<request>";
                 $myXML .= "<operation>SENDSMS</operation>";
-                $myXML .= '     <message start_time="' . $start_time . '" end_time="' . $end_time . '" lifetime="' . $lifetime . '" rate="' . $rate . '" desc="' . $description . '" source="' . $source . '">' . "\n";
-                $myXML .= "     <body>" . $eachsms['message'] . "</body>";
-                $myXML .= "     <recipient>" . $number . "</recipient>";
+                $myXML .= '		<message start_time="' . $start_time . '" end_time="' . $end_time . '" lifetime="' . $lifetime . '" rate="' . $rate . '" desc="' . $description . '" source="' . $source . '">' . "\n";
+                $myXML .= "		<body>" . $eachsms['message'] . "</body>";
+                $myXML .= "		<recipient>" . $number . "</recipient>";
                 $myXML .= "</message>";
                 $myXML .= "</request>";
 
@@ -1630,6 +1630,13 @@ class SendDogAdvanced extends SendDog {
     protected $defaultSmsServiceApi = '';
 
     /**
+     * Placeholder for SMS_SERVICES_ADVANCED_PHPMAILER_ON alter.ini option
+     *
+     * @var bool
+     */
+    protected $phpMailerOn = false;
+
+    /**
      * Contains path to files with services APIs implementations
      */
     const API_IMPL_PATH = 'api/vendor/sms_services_APIs/';
@@ -1640,7 +1647,85 @@ class SendDogAdvanced extends SendDog {
         $this->initMessages();
         $this->loadTelegramConfig();
         $this->getServicesAPIsIDs();
+        $this->loadPHPMailerConfig();
+
+        $this->phpMailerOn = wf_getBoolFromVar($this->altCfg['SMS_SERVICES_ADVANCED_PHPMAILER_ON']);
     }
+
+    /**
+     * Loads PHPMailer config from storage
+     */
+    protected function loadPHPMailerConfig() {
+        $mailerDebug = zb_StorageGet('SENDDOG_PHPMAILER_DEBUG');
+        if (empty($mailerDebug)) {
+            //Enable SMTP debugging
+            // 1 - SMTP::DEBUG_OFF = off (for production use)
+            // 2 - SMTP::DEBUG_CLIENT = client messages
+            // 3 - SMTP::DEBUG_SERVER = client and server messages
+            $mailerDebug = 1;
+            zb_StorageSet('SENDDOG_PHPMAILER_DEBUG', $mailerDebug);
+        }
+
+        $mailerSMTPHost = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_HOST');
+        if (empty($mailerSMTPHost)) {
+            $mailerSMTPHost = 'smtp.mail.server';
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_HOST', $mailerSMTPHost);
+        }
+
+        $mailerSMTPPort = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_PORT');
+        if (empty($mailerSMTPPort)) {
+            $mailerSMTPPort = '25';
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_PORT', $mailerSMTPPort);
+        }
+
+        $mailerSMTPSecure = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_SECURE');
+        if (empty($mailerSMTPSecure)) {
+            $mailerSMTPSecure = 1;
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_SECURE', $mailerSMTPSecure);
+        }
+
+        $mailerSMTPAuth = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_USEAUTH');
+        if (empty($mailerSMTPAuth)) {
+            $mailerSMTPAuth = '';
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_USEAUTH', $mailerSMTPAuth);
+        }
+
+        $mailerSMTPUser = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_USER');
+        if (empty($mailerSMTPUser)) {
+            $mailerSMTPUser = '';
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_USER', $mailerSMTPUser);
+        }
+
+        $mailerSMTPPasswd = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_PASSWD');
+        if (empty($mailerSMTPPasswd)) {
+            $mailerSMTPPasswd = '';
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_PASSWD', $mailerSMTPPasswd);
+        }
+
+        $mailerSMTPDefaultFrom = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_DEFAULTFROM');
+        if (empty($mailerSMTPDefaultFrom)) {
+            $mailerSMTPDefaultFrom = '';
+            zb_StorageSet('SENDDOG_PHPMAILER_SMTP_DEFAULTFROM', $mailerSMTPDefaultFrom);
+        }
+
+        $mailerAttachPath = zb_StorageGet('SENDDOG_PHPMAILER_ATTACHMENTS_PATH');
+        if (empty($mailerAttachPath)) {
+            $mailerAttachPath = 'exports/';
+            zb_StorageSet('SENDDOG_PHPMAILER_ATTACHMENTS_PATH', $mailerAttachPath);
+        }
+
+
+        $this->settings['SENDDOG_PHPMAILER_DEBUG'] = $mailerDebug;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_HOST'] = $mailerSMTPHost;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_PORT'] = $mailerSMTPPort;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_SECURE'] = $mailerSMTPSecure;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_USEAUTH'] = $mailerSMTPAuth;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_USER'] = $mailerSMTPUser;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_PASSWD'] = $mailerSMTPPasswd;
+        $this->settings['SENDDOG_PHPMAILER_SMTP_DEFAULTFROM'] = $mailerSMTPDefaultFrom;
+        $this->settings['SENDDOG_PHPMAILER_ATTACHMENTS_PATH'] = $mailerAttachPath;
+    }
+
 
     /**
      * Fills up $SrvsAPIsIDs with IDs => APINames
@@ -1768,6 +1853,45 @@ class SendDogAdvanced extends SendDog {
         $inputs .= wf_TextInput('edittelegrambottoken', '', $this->settings['TELEGRAM_BOTTOKEN'], false, '50');
 
         return ($inputs);
+    }
+
+    /**
+     * Changes PHPMailer settings
+     */
+    public function editPHPMailerConfig($smtpdebug, $smtphost, $smtpport, $smtpsecure, $smtpuser, $smtppasswd, $smtpfrom, $smtpauth, $attachpath) {
+        zb_StorageSet('SENDDOG_PHPMAILER_DEBUG', $smtpdebug);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_HOST', $smtphost);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_PORT', $smtpport);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_SECURE', $smtpsecure);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_USER', $smtpuser);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_PASSWD', $smtppasswd);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_DEFAULTFROM', $smtpfrom);
+        zb_StorageSet('SENDDOG_PHPMAILER_SMTP_USEAUTH', $smtpauth);
+        zb_StorageSet('SENDDOG_PHPMAILER_ATTACHMENTS_PATH', $attachpath);
+
+        log_register('SENDDOG PHPMailer settings changed');
+    }
+
+    public function renderPHPMailerConfigInputs() {
+        // smtpDebug = 0, 1, 2 - off, client, server
+        $inputs = wf_tag('h2');
+        $inputs.= __('PHPMailer settings');
+        $inputs.= wf_tag('h2', true);
+        $inputs.= wf_TextInput('editsmtpdebug', 'SMTP debug feature(1 - off, 2 - client messages debug, 3 - server & client messages debug)', $this->settings['SENDDOG_PHPMAILER_DEBUG'], true, '5', 'digits');
+        $inputs.= wf_TextInput('editsmtpsecure', 'SMTP secure connection type (1 - off, 2 - TLS, 3 - SSL)', $this->settings['SENDDOG_PHPMAILER_SMTP_SECURE'], true, '5', 'digits');
+        $inputs.= wf_TextInput('editsmtphost', 'SMTP host', $this->settings['SENDDOG_PHPMAILER_SMTP_HOST'], true);
+        $inputs.= wf_TextInput('editsmtpport', 'SMTP port', $this->settings['SENDDOG_PHPMAILER_SMTP_PORT'], true, '20', 'digits');
+        $inputs.= wf_TextInput('editsmtpuser','SMTP user name', $this->settings['SENDDOG_PHPMAILER_SMTP_USER'], true);
+        $inputs.= wf_PasswordInput('editsmtppasswd','SMTP user password', $this->settings['SENDDOG_PHPMAILER_SMTP_PASSWD'], true);
+        $inputs.= wf_TextInput('editsmtpdefaultfrom','SMTP default "From" value', $this->settings['SENDDOG_PHPMAILER_SMTP_DEFAULTFROM'], true);
+        $inputs.= wf_TextInput('editattachpath','Attachments temporary upload path', $this->settings['SENDDOG_PHPMAILER_ATTACHMENTS_PATH'], true, '25');
+        $inputs.= wf_CheckInput('editsmtpuseauth', 'SMTP use authentication', true, wf_getBoolFromVar($this->settings['SENDDOG_PHPMAILER_SMTP_USEAUTH']));
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Submit(__('Save'));
+
+        $form = wf_Form('', 'POST', $inputs, 'glamour');
+
+        return ($form);
     }
 
     /**
@@ -2319,6 +2443,35 @@ class SendDogAdvanced extends SendDog {
                 $tmpApiObj->pushMessages();
             }
         }
+    }
+
+    /**
+     * Loads and sends all email messages from system queue via PHPMailer
+     *
+     * @return int
+     */
+    public function phpMailProcessing() {
+        $email = new UbillingPHPMail();
+        $messagesCount = $email->getQueueCount();
+
+        if ($messagesCount > 0) {
+            $allMessagesData = $email->getQueueData();
+
+            if (!empty($allMessagesData)) {
+                foreach ($allMessagesData as $io => $eachmessage) {
+                    $email->directPushEmail($eachmessage['email'], $eachmessage['subj'], $eachmessage['message'],
+                                            $eachmessage['attachpath'], $eachmessage['bodyashtml'], $eachmessage['from'],
+                                            $eachmessage['customheaders']);
+
+                    $email->phpMailer->clearAllRecipients();
+                    $email->phpMailer->clearAttachments();
+                    $email->deleteAttachment($eachmessage['attachpath']);
+                    $email->deleteEmail($eachmessage['filename']);
+                }
+            }
+        }
+
+        return ($messagesCount);
     }
 
     /**

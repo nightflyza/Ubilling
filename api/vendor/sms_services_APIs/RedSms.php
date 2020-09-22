@@ -8,7 +8,7 @@ class RedSms extends SMSServiceApi {
 
     public function getBalance() {
         $result = '';
-        $timestamp = microtime().rand(0, 10000);
+        $timestamp = microtime() . rand(0, 10000);
         $api_key = $this->serviceApiKey;
         $login = $this->serviceLogin;
 
@@ -18,11 +18,20 @@ class RedSms extends SMSServiceApi {
         curl_setopt($curl, CURLOPT_URL, $query);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-type: application/json'));
-        $response = json_decode(curl_exec($curl));
+        $response = curl_exec($curl);
+        $response = json_decode($response);
         curl_close($curl);
-        $ballance = $response->{"info"}->{"balance"};
+
+        if (empty($response->{"error_message"})) {
+            $ballance = __('Current account balance') . ': ' . $response->{"info"}->{"balance"} . ' RUR';
+            $msgType  = 'info';
+        } else {
+            $ballance = $response->{"error_message"};
+            $msgType  = 'warning';
+        }
+
         //$result.= wf_BackLink(self::URL_ME, '', true);
-        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $ballance . ' RUR', 'info');
+        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage($ballance, $msgType);
         //return ($result);
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
