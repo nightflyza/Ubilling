@@ -754,7 +754,7 @@ function zbs_UserShowXmlAgentData($login) {
         }
     }
 
-    //helpdesk tickets
+    //helpdesk tickets export
     if (ubRouting::checkGet('tickets')) {
         if ($us_config['TICKETING_ENABLED']) {
             $queryTickets = "SELECT * from `ticketing`  ORDER BY `date` DESC";
