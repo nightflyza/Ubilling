@@ -754,6 +754,35 @@ function zbs_UserShowXmlAgentData($login) {
         }
     }
 
+    //helpdesk tickets
+    if (ubRouting::checkGet('tickets')) {
+        if ($us_config['TICKETING_ENABLED']) {
+            $queryTickets = "SELECT * from `ticketing`  ORDER BY `date` DESC";
+            $allTickets = simple_queryall($queryTickets);
+            $ticketsArr = array();
+            $myTickets = array();
+
+            if (!empty($allTickets)) {
+                foreach ($allTickets as $io => $each) {
+                    if ($each['from'] == $login OR $each['to'] == $login OR isset($myTickets[$each['replyid']])) {
+                        $myTickets[$each['id']] = $each['id'];
+                        $ticketsArr[$each['id']]['id'] = $each['id'];
+                        $ticketsArr[$each['id']]['date'] = $each['date'];
+                        $ticketsArr[$each['id']]['from'] = $each['from'];
+                        $ticketsArr[$each['id']]['to'] = $each['to'];
+                        $ticketsArr[$each['id']]['replyid'] = $each['replyid'];
+                        $ticketsArr[$each['id']]['status'] = $each['status'];
+                        $ticketsArr[$each['id']]['text'] = $each['text'];
+                    }
+                }
+                zbs_XMLAgentRender($ticketsArr, 'data', 'ticket', $outputFormat, false);
+            }
+            die();
+        } else {
+            zbs_XMLAgentRender(array(), 'data', '', $outputFormat, false);
+        }
+    }
+
     //user data export
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
