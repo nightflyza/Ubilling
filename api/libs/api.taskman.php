@@ -2300,7 +2300,12 @@ function ts_GetLogTask($taskid) {
     if (!empty($taskid)) {
         $query = "SELECT * FROM `taskmanlogs` WHERE taskid = '" . $taskid . "' ORDER BY `id` ASC";
     } else {
-        $query = "SELECT * FROM `taskmanlogs` ORDER BY `id` DESC";
+        $renderYear = (ubRouting::checkGet('renderyear')) ? ubRouting::get('renderyear', 'int') : curyear();
+        if ($renderYear == '1488') {
+            //all time tasks
+            $renderYear = '%';
+        }
+        $query = "SELECT * FROM `taskmanlogs` WHERE `date` LIKE '" . $renderYear . "-%' ORDER BY `id` DESC";
     }
     $resultLog = simple_queryall($query);
     if (!empty($resultLog)) {
@@ -2334,9 +2339,19 @@ function ts_renderLogsListAjax($taskid = '') {
         $columns[] = 'IP';
         $columns[] = 'Events';
         $columns[] = 'Logs';
-
+        $renderYear = (ubRouting::checkPost('renderyear')) ? ubRouting::post('renderyear', 'int') : '';
         $module_link = (empty($taskid)) ? '?module=taskman&ajaxlog=true' : '?module=taskman&ajaxlog=true&edittask=' . $taskid;
+        if (!empty($renderYear)) {
+            $module_link .= '&renderyear=' . $renderYear;
+        }
         $result = wf_JqDtLoader($columns, $module_link, false, 'Logs', 100, $opts);
+        if (empty($taskid)) {
+            //appending year selector form
+            $inputs = wf_YearSelectorPreset('renderyear', __('Year'), false, $renderYear, true) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_delimiter(0);
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
     }
     return ($result);
 }
