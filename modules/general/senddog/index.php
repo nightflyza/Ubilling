@@ -1,97 +1,106 @@
 <?php
 
 if (cfr('SENDDOG')) {
-    $altCfg = $ubillingConfig->getAlter();
-    if ($altCfg['SENDDOG_ENABLED']) {
-        if ( $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')
-             and !wf_CheckGet(array('showmisc')) and !wf_CheckPost(array('editconfig')) ) {
+    if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
+        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')
+            and !ubRouting::checkGet('showmisc') and !ubRouting::checkPost('editconfig')) {
 
             $sendDog = new SendDogAdvanced();
 
-            if ( wf_CheckGet(array('ajax')) ) {
+            if (ubRouting::checkGet('ajax')) {
                 $smsServicesData = $sendDog->getSmsServicesConfigData();
                 $sendDog->renderJSON($smsServicesData);
             }
 
-            if (isset($_POST['edittelegrambottoken'])) {
-                $sendDog->editTelegramBotToken($_POST['edittelegrambottoken']);
+            if (ubRouting::checkPost('edittelegrambottoken', false)) {
+                $sendDog->editTelegramBotToken(ubRouting::post('edittelegrambottoken'));
                 rcms_redirect($sendDog->getBaseUrl());
             }
 
-            if ( wf_CheckPost(array('smssrvcreate')) ) {
-                if ( wf_CheckPost(array('smssrvname')) ) {
-                    $newServiceName = $_POST['smssrvname'];
+            if (ubRouting::checkPost('editsmtphost', false)) {
+                $smtpAuth = (ubRouting::checkPost('editsmtpuseauth', false)) ? wf_getBoolFromVar(ubRouting::post('editsmtpuseauth')) : false;
+
+                $sendDog->editPHPMailerConfig(ubRouting::post('editsmtpdebug'), ubRouting::post('editsmtphost'), ubRouting::post('editsmtpport'),
+                                              ubRouting::post('editsmtpsecure'), ubRouting::post('editsmtpuser'), ubRouting::post('editsmtppasswd'),
+                                              ubRouting::post('editsmtpdefaultfrom'), $smtpAuth, ubRouting::post('editattachpath'));
+
+                rcms_redirect($sendDog->getBaseUrl());
+            }
+
+            if (ubRouting::checkPost('smssrvcreate')) {
+                if (ubRouting::checkPost('smssrvname')) {
+                    $newServiceName = ubRouting::post('smssrvname');
                     $foundSrvId = $sendDog->checkServiceNameExists($newServiceName);
 
-                    if ( empty($foundSrvId) ) {
-                        $alphaName = (wf_CheckPost(array('smssrvalphaaslogin'))) ? $_POST['smssrvlogin'] : $_POST['smssrvalphaname'];
+                    if (empty($foundSrvId)) {
+                        $alphaName = (ubRouting::checkPost('smssrvalphaaslogin')) ? ubRouting::post('smssrvlogin') : ubRouting::post('smssrvalphaname');
 
-                        $sendDog->addSmsService($newServiceName, $_POST['smssrvlogin'], $_POST['smssrvpassw'],
-                                                $_POST['smssrvurlip'], $_POST['smssrvapikey'], $alphaName,
-                                                $_POST['smssrvapiimplementation'], $_POST['smssrvdefault']);
+                        $sendDog->addSmsService($newServiceName, ubRouting::post('smssrvlogin'), ubRouting::post('smssrvpassw'),
+                                                ubRouting::post('smssrvurlip'), ubRouting::post('smssrvapikey'), $alphaName,
+                                                ubRouting::post('smssrvapiimplementation'), ubRouting::post('smssrvdefault'));
                         die();
                     } else {
                         $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
                                                                                                 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                        die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                        die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                     }
                 }
 
-                die(wf_modalAutoForm(__('Add SMS service'), $sendDog->renderAddForm($_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['modalWindowBodyId'], true));
+                die(wf_modalAutoForm(__('Add SMS service'), $sendDog->renderAddForm(ubRouting::post('modalWindowId')), ubRouting::post('modalWindowId'), ubRouting::post('modalWindowBodyId'), true));
             }
 
-            if ( wf_CheckPost(array('action')) ) {
-                if ($_POST['action'] == 'RefreshBindingsCache') {
+            if ( ubRouting::checkPost('action')) {
+                if (ubRouting::post('action') == 'RefreshBindingsCache') {
                     $sendDog->getSmsQueueInstance()->smsDirections->refreshCacheForced();
                     $messageWindow = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
                                                                                                 'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                    die(wf_modalAutoForm('', $messageWindow, $_POST['modalWindowId'], '', true));
+                    die(wf_modalAutoForm('', $messageWindow, ubRouting::post('modalWindowId'), '', true));
                 }
 
-                if ( wf_CheckPost(array('smssrvid')) ) {
-                    $smsServiceId = $_POST['smssrvid'];
+                if (ubRouting::checkPost('smssrvid')) {
+                    $smsServiceId = ubRouting::post('smssrvid');
 
-                    if ($_POST['action'] == 'editSMSSrv') {
-                        if ( wf_CheckPost(array('smssrvname')) ) {
-                            $foundSrvId = $sendDog->checkServiceNameExists($_POST['smssrvname'], $smsServiceId);
+                    if (ubRouting::post('action') == 'editSMSSrv') {
+                        if (ubRouting::checkPost('smssrvname')) {
+                            $foundSrvId = $sendDog->checkServiceNameExists(ubRouting::post('smssrvname'), $smsServiceId);
 
                             if ( empty($foundSrvId) ) {
-                                $alphaName = (wf_CheckPost(array('smssrvalphaaslogin'))) ? $_POST['smssrvlogin'] : $_POST['smssrvalphaname'];
+                                $alphaName = (ubRouting::checkPost('smssrvalphaaslogin')) ? ubRouting::post('smssrvlogin') : ubRouting::post('smssrvalphaname');
 
-                                $sendDog->editSmsService($smsServiceId, $_POST['smssrvname'], $_POST['smssrvlogin'], $_POST['smssrvpassw'],
-                                                         $_POST['smssrvurlip'], $_POST['smssrvapikey'], $alphaName,
-                                                         $_POST['smssrvapiimplementation'], $_POST['smssrvdefault']);
+                                $sendDog->editSmsService($smsServiceId, ubRouting::post('smssrvname'), ubRouting::post('smssrvlogin'), ubRouting::post('smssrvpassw'),
+                                                         ubRouting::post('smssrvurlip'), ubRouting::post('smssrvapikey'), $alphaName,
+                                                         ubRouting::post('smssrvapiimplementation'), ubRouting::post('smssrvdefault'));
                                 die();
                             } else {
                                 $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
                                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"' );
-                                die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                                die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                             }
                         }
 
-                        die(wf_modalAutoForm(__('Edit SMS service'), $sendDog->renderEditForm($smsServiceId, $_POST['modalWindowId']), $_POST['modalWindowId'], $_POST['ModalWBID'], true));
+                        die(wf_modalAutoForm(__('Edit SMS service'), $sendDog->renderEditForm($smsServiceId, ubRouting::post('modalWindowId')), ubRouting::post('modalWindowId'), ubRouting::post('ModalWBID'), true));
                     }
 
-                    if ($_POST['action'] == 'deleteSMSSrv') {
-                        if ( wf_CheckPost(array('smssrvid')) ) {
-                            if ( !$sendDog->checkSmsServiceProtected($_POST['smssrvid']) ) {
-                                $sendDog->deleteSmsService($_POST['smssrvid']);
+                    if (ubRouting::post('action') == 'deleteSMSSrv') {
+                        if (ubRouting::checkPost('smssrvid')) {
+                            if (!$sendDog->checkSmsServiceProtected(ubRouting::post('smssrvid'))) {
+                                $sendDog->deleteSmsService(ubRouting::post('smssrvid'));
                                 die();
                             } else {
                                 $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('Can not remove SMS which has existing relations on users or other entities'),
                                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"' );
-                                die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                                die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                             }
                         }
                     }
 
-                    if ( wf_CheckPost(array('SMSAPIName')) ) {
-                        $smsServiceApiName = $_POST['SMSAPIName'];
-                        $smsServiceId = $_POST['smssrvid'];
-                        include ($sendDog::API_IMPL_PATH . $smsServiceApiName . '.php');
+                    if (ubRouting::checkPost('SMSAPIName')) {
+                        $smsServiceApiName = ubRouting::post('SMSAPIName');
+                        $smsServiceId = ubRouting::post('smssrvid');
+                        include_once ($sendDog::API_IMPL_PATH . $smsServiceApiName . '.php');
                         $tmpApiObj = new $smsServiceApiName($smsServiceId);
 
-                        switch ($_POST['action']) {
+                        switch (ubRouting::post('action')) {
                             case 'getBalance':
                                 $tmpApiObj->getBalance();
                                 break;
@@ -115,6 +124,10 @@ if (cfr('SENDDOG')) {
 
             show_window(__('Telegram'), $form);
 
+            if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON')) {
+                show_window(__('Mail'), $sendDog->renderPHPMailerConfigInputs());
+            }
+
             $lnkId = wf_InputId();
             $cacheLnkId = wf_InputId();
             $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
@@ -130,7 +143,7 @@ if (cfr('SENDDOG')) {
             $sendDog = new SendDog();
 
             //editing config
-            if (wf_CheckPost(array('editconfig'))) {
+            if (ubRouting::checkPost('editconfig')) {
                 $sendDog->saveConfig();
                 rcms_redirect($sendDog->getBaseUrl());
             }
