@@ -3,21 +3,25 @@
 /*
  * SendDog queues processing
  */
-if ($_GET['action'] == 'senddog') {
-    if ($alterconf['SENDDOG_ENABLED']) {
-        if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
+if (ubRouting::get('action') == 'senddog') {
+    if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
+        $sendDogAdvOn = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED');
+        $phpMailerOn  = $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON');
+
+        if ($sendDogAdvOn) {
             $runSendDog = new SendDogAdvanced();
         } else {
             $runSendDog = new SendDog();
         }
 
-        if (isset($_GET['param']) && ($_GET['param'] == 'chkmsgstatuses')) {
+        if (ubRouting::get('param') == 'chkmsgstatuses') {
             if ($ubillingConfig->getAlterParam('SMS_HISTORY_ON')) {
                 if ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
                     $runSendDog->smsProcessing(true);
                 } else {
                     $runSendDog->smsHistoryProcessing();
                 }
+
                 die('OK:SENDDOG SMS STATUS CHECK PROCESSED');
             } else {
                 die('OK:SENDDOG SMS HISTORY DISABLED');
@@ -27,7 +31,12 @@ if ($_GET['action'] == 'senddog') {
         $sendDogTelegram = $runSendDog->telegramProcessing();
         $sendDogEmail = $runSendDog->emailProcessing();
         $sendDogSms = $runSendDog->smsProcessing();
-        die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '` EML `' . $sendDogEmail . '`');
+
+        if ($sendDogAdvOn and $phpMailerOn) {
+            $sendDogEmailPMailer = $runSendDog->phpMailProcessing();
+        }
+
+        die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '` EML `' . $sendDogEmail . '`' . '` PHPEML `' . $sendDogEmailPMailer . '`');
     } else {
         die('ERROR:SENDDOG_DISABLED');
     }

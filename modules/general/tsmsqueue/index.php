@@ -1,60 +1,28 @@
 <?php
-
-$altCfg = $ubillingConfig->getAlter();
-
-if ($altCfg['SENDDOG_ENABLED']) {
+if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
     if (cfr('SENDDOG')) {
+        $phpMailerOn = ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')
+                        and $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON'));
 
         $messagesQueue = new MessagesQueue();
-        show_window('', $messagesQueue->renderPanel());
+        show_window('', $messagesQueue->renderPanel($phpMailerOn));
 
         //rendering json data with queue list
-        if (wf_CheckGet(array('ajaxsms'))) {
+        if (ubRouting::checkGet('ajaxsms')) {
             $messagesQueue->renderSMSAjaxQueue();
         }
 
         //SMS messages queue management
-        if (!wf_CheckGet(array('showqueue'))) {
-            if (wf_CheckPost(array('newsmsnumber', 'newsmsmessage'))) {
-                $smsSendResult = $messagesQueue->createSMS($_POST['newsmsnumber'], $_POST['newsmsmessage']);
-                if (empty($smsSendResult)) {
-                    rcms_redirect($messagesQueue::URL_ME);
-                } else {
-                    show_error($smsSendResult);
-                }
-            }
-            //deleting SMS from queue
-            if (wf_CheckGet(array('deletesms'))) {
-                $deletionResult = $messagesQueue->deleteSms($_GET['deletesms']);
-                if ($deletionResult == 0) {
-                    log_register('USMS DELETE MESSAGE `' . $_GET['deletesms'] . '`');
-                    $darkVoid = new DarkVoid();
-                    $darkVoid->flushCache();
-                    rcms_redirect($messagesQueue::URL_ME);
-                } else {
-                    if ($deletionResult == 2) {
-                        show_error(__('Not existing item'));
-                    }
-
-                    if ($deletionResult == 1) {
-                        show_error(__('Permission denied'));
-                    }
-                }
-            }
-
-
-            //render sms queue
-            show_window(__('SMS in queue') . ' ' . $messagesQueue->smsCreateForm(), $messagesQueue->renderSmsQueue());
-        } else {
+        if (ubRouting::checkGet('showqueue')) {
             //rendering email queue json
-            if (wf_CheckGet(array('ajaxmail'))) {
+            if (ubRouting::checkGet('ajaxmail')) {
                 $messagesQueue->renderEmailAjaxQueue();
             }
 
             //creating new email in queue
-            if ($_GET['showqueue'] == 'email') {
-                if (wf_CheckPost(array('newemailaddress', 'newemailmessage'))) {
-                    $emailSendResult = $messagesQueue->createEmail($_POST['newemailaddress'], $_POST['newemailsubj'], $_POST['newemailmessage']);
+            if (ubRouting::get('showqueue') == 'email') {
+                if (ubRouting::checkPost(array('newemailaddress', 'newemailmessage'))) {
+                    $emailSendResult = $messagesQueue->createEmail(ubRouting::post('newemailaddress'), ubRouting::post('newemailsubj'), ubRouting::post('newemailmessage'));
                     if (empty($emailSendResult)) {
                         rcms_redirect($messagesQueue::URL_ME . '&showqueue=email');
                     } else {
@@ -63,10 +31,10 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 }
 
                 //delete some email from queue
-                if (wf_CheckGet(array('deleteemail'))) {
-                    $deletionResult = $messagesQueue->deleteEmail($_GET['deleteemail']);
+                if (ubRouting::checkGet('deleteemail')) {
+                    $deletionResult = $messagesQueue->deleteEmail(ubRouting::get('deleteemail'));
                     if ($deletionResult == 0) {
-                        log_register('UEML DELETE EMAIL `' . $_GET['deleteemail'] . '`');
+                        log_register('UEML DELETE EMAIL `' . ubRouting::get('deleteemail') . '`');
                         rcms_redirect($messagesQueue::URL_ME . '&showqueue=email');
                     } else {
                         if ($deletionResult == 2) {
@@ -83,15 +51,63 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 show_window(__('Emails in queue') . ' ' . $messagesQueue->emailCreateForm(), $messagesQueue->renderEmailQueue());
             }
 
-            if ($_GET['showqueue'] == 'telegram') {
+            //rendering PHPMail queue json
+            if (ubRouting::checkGet('ajaxphpmail')) {
+                $messagesQueue->renderPHPMailAjaxQueue();
+            }
+
+            //creating new PHPMail in queue
+            if (ubRouting::get('showqueue') == 'phpmail') {
+                if (ubRouting::checkPost(array('newemailaddress', 'newemailmessage'))) {
+                    $bodyAsHTML = (ubRouting::checkPost('newmailbodyashtml', false)) ? wf_getBoolFromVar(ubRouting::post('newmailbodyashtml')) : false;
+
+                    if ( isset($_FILES['newmailattach']) ) {
+                        $attachPath = $messagesQueue->uploadAttach();
+                    } else {
+                        $attachPath = '';
+                    }
+
+                    $emailSendResult = $messagesQueue->createPHPMail(ubRouting::post('newemailaddress'), ubRouting::post('newemailsubj'),
+                                                                     ubRouting::post('newemailmessage'), $attachPath, $bodyAsHTML,
+                                                                     ubRouting::post('newemailfrom'));
+
+                    if (empty($emailSendResult)) {
+                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=phpmail');
+                    } else {
+                        show_error($emailSendResult);
+                    }
+                }
+
+                //delete some PHPMail from queue
+                if (ubRouting::checkGet('deletephpmail')) {
+                    $deletionResult = $messagesQueue->deletePHPMail(ubRouting::get('deletephpmail'));
+                    if ($deletionResult == 0) {
+                        log_register('UPHPEML DELETE EMAIL `' . ubRouting::get('deletephpmail') . '`');
+                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=phpmail');
+                    } else {
+                        if ($deletionResult == 2) {
+                            show_error(__('Not existing item'));
+                        }
+
+                        if ($deletionResult == 1) {
+                            show_error(__('Permission denied'));
+                        }
+                    }
+                }
+
+                //render PHPMail emails queue
+                show_window(__('Emails in queue') . ' ' . $messagesQueue->phpMailCreateForm(), $messagesQueue->renderPHPMailQueue());
+            }
+
+            if (ubRouting::get('showqueue') == 'telegram') {
                 //rendering telegram queue json data
-                if (wf_CheckGet(array('ajaxtelegram'))) {
+                if (ubRouting::checkGet('ajaxtelegram')) {
                     $messagesQueue->renderTelegramAjaxQueue();
                 }
 
                 //creating new telegram message in queue
-                if (wf_CheckPost(array('newtelegramchatid'))) {
-                    $telegramSendResult = $messagesQueue->createTelegram($_POST['newtelegramchatid'], $_POST['newtelegrammessage']);
+                if (ubRouting::checkPost('newtelegramchatid')) {
+                    $telegramSendResult = $messagesQueue->createTelegram(ubRouting::post('newtelegramchatid'), ubRouting::post('newtelegrammessage'));
                     if (empty($telegramSendResult)) {
                         rcms_redirect($messagesQueue::URL_ME . '&showqueue=telegram');
                     } else {
@@ -100,10 +116,10 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 }
 
                 //delete some telegram message from queue
-                if (wf_CheckGet(array('deletetelegram'))) {
-                    $deletionResult = $messagesQueue->deleteTelegram($_GET['deletetelegram']);
+                if (ubRouting::checkGet('deletetelegram')) {
+                    $deletionResult = $messagesQueue->deleteTelegram(ubRouting::get('deletetelegram'));
                     if ($deletionResult == 0) {
-                        log_register('UTLG DELETE MESSAGE `' . $_GET['deletetelegram'] . '`');
+                        log_register('UTLG DELETE MESSAGE `' . ubRouting::get('deletetelegram') . '`');
                         rcms_redirect($messagesQueue::URL_ME . '&showqueue=telegram');
                     } else {
                         if ($deletionResult == 2) {
@@ -119,6 +135,36 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 //render telegram queue
                 show_window(__('Telegram messages queue') . ' ' . $messagesQueue->telegramCreateForm(), $messagesQueue->renderTelegramQueue());
             }
+        } else {
+            if (ubRouting::checkPost(array('newsmsnumber', 'newsmsmessage'))) {
+                $smsSendResult = $messagesQueue->createSMS(ubRouting::post('newsmsnumber'), ubRouting::post('newsmsmessage'));
+                if (empty($smsSendResult)) {
+                    rcms_redirect($messagesQueue::URL_ME);
+                } else {
+                    show_error($smsSendResult);
+                }
+            }
+            //deleting SMS from queue
+            if (ubRouting::checkGet('deletesms')) {
+                $deletionResult = $messagesQueue->deleteSms(ubRouting::get('deletesms'));
+                if ($deletionResult == 0) {
+                    log_register('USMS DELETE MESSAGE `' . ubRouting::get('deletesms') . '`');
+                    $darkVoid = new DarkVoid();
+                    $darkVoid->flushCache();
+                    rcms_redirect($messagesQueue::URL_ME);
+                } else {
+                    if ($deletionResult == 2) {
+                        show_error(__('Not existing item'));
+                    }
+
+                    if ($deletionResult == 1) {
+                        show_error(__('Permission denied'));
+                    }
+                }
+            }
+
+            //render sms queue
+            show_window(__('SMS in queue') . ' ' . $messagesQueue->smsCreateForm(), $messagesQueue->renderSmsQueue());
         }
     } else {
         show_error(__('Access denied'));

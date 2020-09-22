@@ -24,6 +24,13 @@ class MessagesQueue {
     protected $email = '';
 
     /**
+     * PHPMail queue object placeholder
+     *
+     * @var object
+     */
+    protected $phpMail = '';
+
+    /**
      * Telegram system queue object placeholder
      *
      * @var object
@@ -65,6 +72,7 @@ class MessagesQueue {
     protected function initSystemQueues() {
         $this->sms = new UbillingSMS();
         $this->email = new UbillingMail();
+        $this->phpMail = new UbillingPHPMail();
         $this->telegram = new UbillingTelegram();
     }
 
@@ -314,10 +322,11 @@ class MessagesQueue {
      * 
      * @return string
      */
-    public function renderPanel() {
+    public function renderPanel($phpMailerOn = false) {
         $result = '';
         $result.= wf_Link(self::URL_ME, wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS in queue'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&showqueue=email', wf_img('skins/icon_mail.gif') . ' ' . __('Emails in queue'), false, 'ubButton');
+        $result.= ($phpMailerOn) ? wf_Link(self::URL_ME . '&showqueue=phpmail', wf_img('skins/icon_mail.gif') . ' PHPMailer: ' . __('Emails in queue'), false, 'ubButton') : '';
         $result.= wf_Link(self::URL_ME . '&showqueue=telegram', wf_img_sized('skins/icon_telegram_small.png', '', '10', '10') . ' ' . __('Telegram messages queue'), false, 'ubButton');
         return ($result);
     }
@@ -426,6 +435,161 @@ class MessagesQueue {
         return ($result);
     }
 
+    /**
+     * Renders one PHPMailer queue element in human readable preview
+     *
+     * @param array $data
+     *
+     * @return string
+     */
+    protected function phpMailPreview($data) {
+        $result = '';
+        if (!empty($data)) {
+            $dataCells = wf_TableCell(__('Email'), '', 'row2');
+            $dataCells .= wf_TableCell($data['email']);
+            $dataRows = wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('Subject'), '', 'row2');
+            $dataCells .= wf_TableCell($data['subj']);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('Message'), '', 'row2');
+            $dataCells .= wf_TableCell($data['message']);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('Attach path'), '', 'row2');
+            $dataCells .= wf_TableCell($data['attachpath']);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('Body as HTML'), '', 'row2');
+            $dataCells .= wf_TableCell(($data['bodyashtml']) ? web_green_led() : web_red_led());
+            $dataRows .= wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('From'), '', 'row2');
+            $dataCells .= wf_TableCell($data['from']);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('Custom headers'), '', 'row2');
+            $dataCells .= wf_TableCell((empty($data['customheaders'])) ? web_red_led() : web_green_led());
+            $dataRows .= wf_TableRow($dataCells, 'row3');
+
+            $result = wf_TableBody($dataRows, '100%', '0', 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders list of available PHPMailer emails in queue container
+     *
+     * @return string
+     */
+    public function renderPHPMailQueue() {
+        $result = '';
+        $queueCount = $this->phpMail->getQueueCount();
+        $ajaxURL = '&showqueue=phpmail&ajaxphpmail=true';
+
+        if ($queueCount > 0) {
+            $columns = array('Date', 'Email', 'Actions');
+            $result .= wf_JqDtLoader($columns, self::URL_ME . $ajaxURL, false, __('Email'), 100, '"order": [[ 0, "desc" ]]');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders JSON list of available PHPMailer emails in queue with some controls
+     *
+     * @return void
+     */
+    public function renderPHPMailAjaxQueue() {
+        $queue = $this->phpMail->getQueueData();
+        $delURL = '&showqueue=phpmail&deletephpmail=';
+
+        if (!empty($queue)) {
+            foreach ($queue as $io => $each) {
+                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->phpMailPreview($each), '');
+                $actLinks .= wf_JSAlert(self::URL_ME . $delURL . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $data[] = $each['date'];
+                $data[] = $each['email'];
+                $data[] = $actLinks;
+                $this->json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $this->json->getJson();
+    }
+
+    /**
+     * Deletes email from local queue
+     *
+     * @param string $filename Existing email filename
+     *
+     * @return int
+     */
+    public function deletePHPMail($filename) {
+        $result = $this->phpMail->deleteEmail($filename);
+        return ($result);
+    }
+
+    /**
+     * Returns modal window with email creation form
+     *
+     * @return string
+     */
+    public function phpMailCreateForm() {
+        $result = '';
+        $inputs = wf_TextInput('newemailaddress', __('Email'), '', true, '20');
+        $inputs .= wf_TextInput('newemailfrom', __('From'), '', true, '20');
+        $inputs .= wf_CheckInput('newmailbodyashtml', __('Body as HTML'), true);
+        $inputs .= wf_TextInput('newemailsubj', __('Subject'), '', true, '40');
+        $inputs .= wf_TextArea('newemailmessage', '', '', true, '50x10');
+        $inputs .= __('Add attachment') . ' <input id="fileselector" type="file" name="newmailattach" size="10" />' . wf_delimiter(0);
+        $inputs .= wf_delimiter(0);
+        $inputs .= wf_Submit(__('Create'));
+
+        $form = bs_UploadFormBody('', 'POST', $inputs, 'glamour');
+
+        $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new email')), __('Create new email'), $form, '');
+        return ($result);
+    }
+
+    /**
+     * Creates new PHPMail message in queue
+     *
+     * @param string $email
+     * @param string $subj
+     * @param string $messages
+     * @param string $attachPath
+     * @param bool $bodyAsHTML
+     * @param string $from
+     *
+     * @return string/void
+     */
+    public function createPHPMail($email, $subj, $message, $attachPath = '', $bodyAsHTML = false, $from = '') {
+        $result = '';
+
+        if ((!empty($email)) AND (!empty($message)) AND (!empty($subj))) {
+            $this->phpMail->sendEmail($email, $subj, $message, $attachPath, $bodyAsHTML, $from, array(), 'TQUEUE');
+        } else {
+            $result = __('Not all of required fields are filled');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Uploads attachment file for further processing
+     *
+     * @return string
+     */
+    public function uploadAttach() {
+        $result = '';
+        $uploaddir = $this->phpMail->mailerAttachPath;
+        $uploadfile = $uploaddir . vf($_FILES['newmailattach']['name']);
+
+        if (move_uploaded_file($_FILES['newmailattach']['tmp_name'], $uploadfile)) {
+            $result = $uploadfile;
+        }
+
+        return ($result);
+    }
 }
 
 ?>
