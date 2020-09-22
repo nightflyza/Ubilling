@@ -783,6 +783,48 @@ function zbs_UserShowXmlAgentData($login) {
         }
     }
 
+    //online payments URLs export
+    if (ubRouting::checkGet('opayz')) {
+        if ($us_config['OPENPAYZ_ENABLED']) {
+            $paySys = explode(",", $us_config['OPENPAYZ_PAYSYS']);
+            $payDesc = array();
+            $opayzArr = array();
+
+            if (file_exists('config/opayz.ini')) {
+                $payDesc = parse_ini_file('config/opayz.ini');
+            } else {
+                $payDesc = array();
+            }
+
+            if ($us_config['OPENPAYZ_REALID']) {
+                $opayzPaymentid = zbs_PaymentIDGet($login);
+            } else {
+                $userdata = zbs_UserGetStargazerData($login);
+                $opayzPaymentid = ip2int($userdata['IP']);
+            }
+
+            if (!empty($paySys)) {
+                if (!empty($opayzPaymentid)) {
+                    foreach ($paySys as $io => $eachpaysys) {
+                        if (isset($payDesc[$eachpaysys])) {
+                            $paysys_desc = $payDesc[$eachpaysys];
+                        } else {
+                            $paysys_desc = '';
+                        }
+                        $paymentUrl = $us_config['OPENPAYZ_URL'] . $eachpaysys . '/?customer_id=' . $opayzPaymentid;
+                        $opayzArr[$eachpaysys]['name'] = $eachpaysys;
+                        $opayzArr[$eachpaysys]['url'] = $paymentUrl;
+                        $opayzArr[$eachpaysys]['description'] = $paysys_desc;
+                    }
+                }
+            }
+
+            zbs_XMLAgentRender($opayzArr, 'data', 'paysys', $outputFormat, false);
+        } else {
+            zbs_XMLAgentRender(array(), 'data', '', $outputFormat, false);
+        }
+    }
+
     //user data export
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
