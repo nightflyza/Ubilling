@@ -107,7 +107,7 @@ class ubRouting {
                 return(mysql_real_escape_string($rawData));
                 break;
             case 'vf':
-                return(preg_replace("#[^a-z0-9A-Z]#Uis", '', $rawData));
+                return(preg_replace("#[~@\+\?\%\/\;=\*\>\<\"\'\-]#Uis", '', $rawData));
                 break;
             case 'nb':
                 return(preg_replace('/\0/s', '', $rawData));
