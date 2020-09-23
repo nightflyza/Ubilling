@@ -1529,7 +1529,7 @@ class OmegaTV {
      */
     public function renderUserListContainer() {
         $result = '';
-        $columns = array('ID', 'Full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Actions');
+        $columns = array('ID', 'Full address', 'Real Name', 'Cash', 'Base tariff', 'Bundle tariffs', 'Date', 'Active', 'Customer ID', 'Actions');
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&subscriptions=true&ajuserlist=true', false, __('Users'));
         return ($result);
     }
@@ -1563,7 +1563,9 @@ class OmegaTV {
                 $data[] = $bundleList;
                 $data[] = $each['actdate'];
                 $data[] = web_bool_led($each['active'], true);
+                $data[] = $each['customerid'];
                 $actLinks = wf_Link(self::URL_ME . '&customerprofile=' . $each['customerid'], web_edit_icon());
+                $actLinks.= wf_Link('https://admin.hls.tv/customers/operator#page=1&search=' . $each['customerid'], web_icon_search());
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
