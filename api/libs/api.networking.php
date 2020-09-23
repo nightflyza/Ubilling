@@ -1402,7 +1402,7 @@ function zb_MultinetGetMAC($ip) {
 }
 
 /**
- * Returns user IP addres by its login
+ * Returns user IP address by its login
  * 
  * @param string $login
  * 
@@ -1412,6 +1412,28 @@ function zb_UserGetIP($login) {
     $userdata = zb_UserGetStargazerData($login);
     $userip = $userdata['IP'];
     return ($userip);
+}
+
+/**
+ * Returns user login by it's IP address
+ *
+ * @param $ip
+ *
+ * @return array|string
+ */
+function zb_UserGetLoginByIp($ip) {
+    $result = '';
+
+    if (!empty($ip)) {
+        $query = "SELECT `login` from `users` where `IP`='" . $ip . "'";
+        $queryResult = simple_query($query);
+
+        if (!empty($queryResult['login'])) {
+            $result = $queryResult['login'];
+        }
+    }
+
+    return ($result);
 }
 
 /**
@@ -1695,7 +1717,19 @@ function zb_BandwidthdGenLinks($ip) {
     }
 
     if (!empty($zbxAllGraphs) and isset($zbxAllGraphs[$nasdata['nasip']])) {
-        $userSearchIdentify = ($zbxGraphsSearchIdnetify == 'MAC') ? zb_MultinetGetMAC($ip) : $ip;
+        switch ($zbxGraphsSearchIdnetify) {
+            case 'MAC':
+                $userSearchIdentify = zb_MultinetGetMAC($ip);
+                break;
+
+            case 'login':
+                $userSearchIdentify = zb_UserGetLoginByIp($ip);
+                break;
+
+            default:
+                $userSearchIdentify = $ip;
+        }
+
         $urls = getZabbixUserGraphLinks($ip, $zbxGraphsSearchField, $userSearchIdentify, $zbxAllGraphs, $zbxGraphsExtended);
     } else {
 // RouterOS graph model:
