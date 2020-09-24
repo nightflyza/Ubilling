@@ -807,6 +807,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                 @$switchAddress = $allswitchmacs[$eachMac]['location'];
                                 @$switchId = $allswitchmacs[$eachMac]['id'];
                                 $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchAddress);
+                                $assignForm = '';
                             } else {
                                 $userlink = '';
                                 $assignForm = '';
