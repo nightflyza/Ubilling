@@ -11,16 +11,24 @@
 :if ($leaseBound = 1) do={
     /queue simple
     :foreach tQueue in=[/queue simple find target="$leaseActIP/32"] do={
-            :set speed [get $tQueue max-limit];
+        :set speed [get $tQueue max-limit];
 
-            :if ([get $tQueue name] != "mlg_$leaseActIP") do={
-                remove $tQueue;
-            } else={
-                :set alreadyExists true;
-            }
+        :if ([get $tQueue name] != "mlg_$leaseActIP") do={
+            remove $tQueue;
+        } else={
+            :set alreadyExists true;
+        }
     }
 
-    :if (!alreadyExists && $speed != "") do={
-        add name="mlg_$leaseActIP" max-limit=$speed target="$leaseActIP/32";
+    :if ($speed != "") do={
+        :if (alreadyExists) do={
+            :if ([get $tQueue max-limit] != $speed) do={
+                set $tQueue max-limit=$speed;
+            } else={
+                :log warning ("mlg_ changer: nothing to change for $leaseActIP - already exists with such speed";
+            }
+        } else={
+            add name="mlg_$leaseActIP" max-limit=$speed target="$leaseActIP/32";
+        }
     }
 }
