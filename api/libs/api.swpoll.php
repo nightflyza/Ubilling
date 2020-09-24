@@ -567,16 +567,22 @@ function sp_SnmpParseFdbFlp($portTable, $oid) {
 }
 
 /**
- * Show data for some device
+ * Poll/Show data for some device
  * 
- * @param   $ip device ip
- * @param   $community snmp community
- * @param   $alltemplates all of snmp templates
- * @param   $quiet  no output
+ * @global object $ubillingConfig
+ * @param string $ip
+ * @param string $community
+ * @param array $alltemplates
+ * @param string $deviceTemplate
+ * @param array $allusermacs
+ * @param array $alladdress
+ * @param string $communitywrite
+ * @param bool $quiet
+ * @param array $allswitchmacs
  * 
- * @return  void
+ * @return void
  */
-function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite = '', $quiet = false) {
+function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite = '', $quiet = false, $allswitchmacs = array()) {
     global $ubillingConfig;
     if (isset($alltemplates[$deviceTemplate])) {
         $currentTemplate = $alltemplates[$deviceTemplate];
@@ -776,7 +782,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     }
                     $allusermacs = array_flip($allusermacs);
 
-                    $cells = wf_TableCell(__('User'), '30%');
+                    $cells = wf_TableCell(__('User') . ' / ' . __('Device'), '30%');
                     $cells .= wf_TableCell(__('MAC'));
                     $cells .= wf_TableCell(__('Ports'));
                     $rows = wf_TableRow($cells, 'row1');
@@ -797,8 +803,14 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                 $assignForm = '';
                             }
                         } else {
-                            $userlink = '';
-                            $assignForm = '';
+                            if (isset($allswitchmacs[$eachMac])) {
+                                @$switchAddress = $allswitchmacs[$eachMac]['location'];
+                                @$switchId = $allswitchmacs[$eachMac]['id'];
+                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchAddress);
+                            } else {
+                                $userlink = '';
+                                $assignForm = '';
+                            }
                         }
                         $cells = wf_TableCell($userlink . $assignForm, '', '', 'sorttable_customkey="' . $eachPort . '"');
                         $cells .= wf_TableCell($eachMac);
@@ -903,13 +915,16 @@ function sn_FDBFilterCheckMac($mac, $allfilters) {
 }
 
 /**
- * function that display JSON data for display FDB cache
+ * Renders JSON data for display FDB cache
  * 
- * @param $fdbData_raw - array of existing cache _fdb files
+ * @global object $ubillingConfig
+ * @param array $fdbData_raw
+ * @param string $macFilter
  * 
  * @return void
  */
 function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
+    global $ubillingConfig;
     $allusermacs = zb_UserGetAllMACs();
     $allusermacs = array_flip($allusermacs);
     $alladdress = zb_AddressGetFulladdresslist();
@@ -919,6 +934,8 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
     $switchdata = array();
     $switchIds = array();
     $allfilters = array();
+    $allswitchmacs = array();
+    $switchesExtFlag = $ubillingConfig->getAlterParam('SWITCHES_EXTENDED');
     $json = new wf_JqDtHelper();
 
     //switch data preprocessing
@@ -926,6 +943,11 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
         foreach ($allswitches as $io => $eachswitch) {
             $switchdata[$eachswitch['ip']] = $eachswitch['location'];
             $switchIds[$eachswitch['ip']] = $eachswitch['id'];
+            if ($switchesExtFlag) {
+                $allswitchmacs[$eachswitch['swid']]['id'] = $eachswitch['id'];
+                $allswitchmacs[$eachswitch['swid']]['ip'] = $eachswitch['ip'];
+                $allswitchmacs[$eachswitch['swid']]['location'] = $eachswitch['location'];
+            }
         }
     }
     //mac filters preprocessing
@@ -971,7 +993,13 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
                         if ($userlogin) {
                             $userlink = wf_Link('?module=userprofile&username=' . $userlogin, web_profile_icon() . ' ' . @$alladdress[$userlogin], $allfilters, false, '');
                         } else {
-                            $userlink = '';
+                            if (isset($allswitchmacs[$mac])) {
+                                @$switchAddress = $allswitchmacs[$mac]['location'];
+                                @$switchId = $allswitchmacs[$mac]['id'];
+                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchAddress);
+                            } else {
+                                $userlink = '';
+                            }
                         }
 
                         if (sn_FDBFilterCheckMac($mac, $allfilters)) {

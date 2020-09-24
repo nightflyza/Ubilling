@@ -132,7 +132,7 @@ if (cfr('SWITCHPOLL')) {
         $mainControls = FDBArchive::renderNavigationPanel();
         show_window('', $mainControls);
 
-        $columns = array('Switch IP', 'Port', 'Location', 'MAC', 'User');
+        $columns = array('Switch IP', 'Port', 'Location', 'MAC', __('User').' / '.__('Device'));
         $result .= wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
         show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
@@ -145,6 +145,20 @@ if (cfr('SWITCHPOLL')) {
     $alladdress = zb_AddressGetFullCityaddresslist();
     $alldeadswitches = zb_SwitchesGetAllDead();
     $deathTime = zb_SwitchesGetAllDeathTime();
+    if ($ubillingConfig->getAlterParam('SWITCHES_EXTENDED')) {
+        $allswitchmacs = array();
+        if (!empty($allDevices)) {
+            foreach ($allDevices as $io => $each) {
+                if (!empty($each['swid'])) {
+                    $allswitchmacs[$each['swid']]['id'] = $each['id'];
+                    $allswitchmacs[$each['swid']]['ip'] = $each['ip'];
+                    $allswitchmacs[$each['swid']]['location'] = $each['location'];
+                }
+            }
+        }
+    } else {
+        $allswitchmacs = array();
+    }
 
     //poll single device
     if (wf_CheckGet(array('switchid'))) {
@@ -171,7 +185,7 @@ if (cfr('SWITCHPOLL')) {
                                 $modActions .= wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
                                 $modActions .= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
                                 show_window($deviceTemplate . ' ' . $eachDevice['ip'] . ' - ' . $eachDevice['location'], $modActions);
-                                sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $eachDevice['snmpwrite'], false);
+                                sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, $eachDevice['snmpwrite'], false, $allswitchmacs);
                             } else {
                                 show_error(__('Switch dead since') . ' ' . @$deathTime[$eachDevice['ip']]);
                                 show_window('', wf_BackLink('?module=switches') . ' ' . wf_Link('?module=switches&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit switch'), false, 'ubButton'));
