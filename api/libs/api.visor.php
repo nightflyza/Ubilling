@@ -1075,7 +1075,7 @@ class UbillingVisor {
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Primary', 'User', 'Address', 'DVR', 'IP', 'Tariff', 'Active', 'Balance', 'Credit', 'Actions');
         if ($this->altCfg['DN_ONLINE_DETECT']) {
-            $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
+            $columns = array('ID', 'Primary', 'User', 'Address', 'DVR', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
         }
         $result .= wf_JqDtLoader($columns, $url, false, __('Cams'), 50, $opts);
         return($result);
@@ -1108,7 +1108,7 @@ class UbillingVisor {
                     $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
                     $data[] = $cameraLink;
                     $cameraDvr = (!empty($each['dvrid'])) ? @$this->allDvrs[$each['dvrid']]['name'] : __('No');
-                    $data[]=$cameraDvr;
+                    $data[] = $cameraDvr;
                     $data[] = @$cameraUserData['ip'];
                     $data[] = @$cameraUserData['Tariff'];
                     $cameraCash = @$cameraUserData['Cash'];
