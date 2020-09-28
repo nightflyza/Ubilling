@@ -1073,7 +1073,7 @@ class UbillingVisor {
     public function renderCamerasContainer($url) {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Tariff', 'Active', 'Balance', 'Credit', 'Actions');
+        $columns = array('ID', 'Primary', 'User', 'Address', 'DVR', 'IP', 'Tariff', 'Active', 'Balance', 'Credit', 'Actions');
         if ($this->altCfg['DN_ONLINE_DETECT']) {
             $columns = array('ID', 'Primary', 'User', 'Address', 'IP', 'Tariff', 'Active', 'Online', 'Balance', 'Credit', 'Actions');
         }
@@ -1107,6 +1107,8 @@ class UbillingVisor {
                     $cameraLinkLabel = web_profile_icon() . ' ' . @$cameraUserData['fulladress'];
                     $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
                     $data[] = $cameraLink;
+                    $cameraDvr = (!empty($each['dvrid'])) ? @$this->allDvrs[$each['dvrid']]['name'] : __('No');
+                    $data[]=$cameraDvr;
                     $data[] = @$cameraUserData['ip'];
                     $data[] = @$cameraUserData['Tariff'];
                     $cameraCash = @$cameraUserData['Cash'];
@@ -1171,6 +1173,8 @@ class UbillingVisor {
                 $cameraLinkLabel = web_profile_icon() . ' ' . $cameraUserData['fulladress'];
                 $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
                 $data[] = $cameraLink;
+                $cameraDvr = (!empty($each['dvrid'])) ? @$this->allDvrs[$each['dvrid']]['name'] : __('No');
+                $data[] = $cameraDvr;
                 $data[] = @$cameraUserData['ip'];
                 $data[] = @$cameraUserData['Tariff'];
                 $cameraCash = @$cameraUserData['Cash'];
@@ -2164,9 +2168,9 @@ class UbillingVisor {
                                         $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
                                         $result .= $eachChan['name'] . ' / ' . $eachChan['guid'] . ' @ ' . $eachDvr['id'];
                                         $result .= wf_tag('br');
-                                        $result.= wf_tag('div',false,'','style="overflow:hidden; height:220px; max-height:250px;"');
+                                        $result .= wf_tag('div', false, '', 'style="overflow:hidden; height:220px; max-height:250px;"');
                                         $result .= wf_img_sized($streamUrl, '', '90%');
-                                        $result.= wf_tag('div',true);
+                                        $result .= wf_tag('div', true);
                                         $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
                                         $assignedUserLabel = (isset($this->allUsers[$assignedUserId])) ? $this->iconVisorUser() . ' ' . $this->allUsers[$assignedUserId]['realname'] : '';
                                         $userAssignedLink = ($assignedUserId) ? wf_Link(self::URL_ME . self::URL_USERVIEW . $assignedUserId, $assignedUserLabel) : __('No');
