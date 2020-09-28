@@ -781,6 +781,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         }
                     }
                     $allusermacs = array_flip($allusermacs);
+                    $recordsCounter = 0;
 
                     $cells = wf_TableCell(__('User') . ' / ' . __('Device'), '30%');
                     $cells .= wf_TableCell(__('MAC'));
@@ -806,20 +807,26 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             if (isset($allswitchmacs[$eachMac])) {
                                 @$switchAddress = $allswitchmacs[$eachMac]['location'];
                                 @$switchId = $allswitchmacs[$eachMac]['id'];
-                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchAddress);
+                                @$switchIp = $allswitchmacs[$eachMac]['ip'];
+                                $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIp;
+                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
                                 $assignForm = '';
                             } else {
                                 $userlink = '';
                                 $assignForm = '';
                             }
                         }
+
                         $cells = wf_TableCell($userlink . $assignForm, '', '', 'sorttable_customkey="' . $eachPort . '"');
                         $cells .= wf_TableCell($eachMac);
                         $cells .= wf_TableCell($eachPort);
-                        $rows .= wf_TableRow($cells, 'row3');
+                        $rows .= wf_TableRow($cells, 'row5');
+                        $recordsCounter++;
                     }
                     if (!$quiet) {
-                        show_window(__('FDB'), wf_TableBody($rows, '100%', '0', 'sortable'));
+                        $fdbTableResult = wf_TableBody($rows, '100%', '0', 'sortable');
+                        $fdbTableResult .= wf_tag('b') . __('Total') . ': ' . $recordsCounter . wf_tag('b', true);
+                        show_window(__('FDB'), $fdbTableResult);
                     }
                 }
             }
@@ -997,7 +1004,9 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
                             if (isset($allswitchmacs[$mac])) {
                                 @$switchAddress = $allswitchmacs[$mac]['location'];
                                 @$switchId = $allswitchmacs[$mac]['id'];
-                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchAddress);
+                                @$switchIp = $allswitchmacs[$mac]['ip'];
+                                $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIp;
+                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
                             } else {
                                 $userlink = '';
                             }

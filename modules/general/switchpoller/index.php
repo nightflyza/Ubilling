@@ -132,7 +132,7 @@ if (cfr('SWITCHPOLL')) {
         $mainControls = FDBArchive::renderNavigationPanel();
         show_window('', $mainControls);
 
-        $columns = array('Switch IP', 'Port', 'Location', 'MAC', __('User').' / '.__('Device'));
+        $columns = array('Switch IP', 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
         $result .= wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
         show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
@@ -147,8 +147,9 @@ if (cfr('SWITCHPOLL')) {
     $deathTime = zb_SwitchesGetAllDeathTime();
     if ($ubillingConfig->getAlterParam('SWITCHES_EXTENDED')) {
         $allswitchmacs = array();
-        if (!empty($allDevices)) {
-            foreach ($allDevices as $io => $each) {
+        $allSwitches = zb_SwitchesGetAll();
+        if (!empty($allSwitches)) {
+            foreach ($allSwitches as $io => $each) {
                 if (!empty($each['swid'])) {
                     $allswitchmacs[$each['swid']]['id'] = $each['id'];
                     $allswitchmacs[$each['swid']]['ip'] = $each['ip'];
