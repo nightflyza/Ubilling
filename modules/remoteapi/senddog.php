@@ -31,12 +31,13 @@ if (ubRouting::get('action') == 'senddog') {
         $sendDogTelegram = $runSendDog->telegramProcessing();
         $sendDogEmail = $runSendDog->emailProcessing();
         $sendDogSms = $runSendDog->smsProcessing();
+        $sendDogEmailPMailer = '';
 
         if ($sendDogAdvOn and $phpMailerOn) {
-            $sendDogEmailPMailer = $runSendDog->phpMailProcessing();
+            $sendDogEmailPMailer = ' PHPEML `' . $runSendDog->phpMailProcessing() . '`';
         }
 
-        die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '` EML `' . $sendDogEmail . '`' . '` PHPEML `' . $sendDogEmailPMailer . '`');
+        die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '` EML `' . $sendDogEmail . '`' . $sendDogEmailPMailer);
     } else {
         die('ERROR:SENDDOG_DISABLED');
     }
