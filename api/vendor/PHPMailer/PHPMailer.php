@@ -3709,12 +3709,9 @@ class PHPMailer
      */
     public function clearQueuedAddresses($kind)
     {
-        $this->RecipientsQueue = array_filter(
-            $this->RecipientsQueue,
-            static function ($params) use ($kind) {
-                return $params[0] !== $kind;
-            }
-        );
+        foreach ($this->RecipientsQueue as $io => $eachRecipient) {
+            if ($eachRecipient == $kind) { unset ($this->RecipientsQueue[$io]); }
+        }
     }
 
     /**
