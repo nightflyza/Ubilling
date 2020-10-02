@@ -84,7 +84,6 @@ require_once('api/libs/api.dealwithit.php');
 require_once('api/libs/api.megogo.php');
 require_once('api/libs/api.userside.php');
 require_once('api/libs/api.whois.php');
-require_once('api/libs/api.email.php');
 require_once('api/libs/api.exhorse.php');
 require_once('api/libs/api.telegram.php');
 require_once('api/libs/api.senddog.php');
