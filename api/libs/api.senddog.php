@@ -537,12 +537,12 @@ class SendDog {
     public function renderAlpasmsBalance() {
         $result = '';
         $params = array();
-        $params['login'] =  $this->settings['ALPHASMS_LOGIN'];
-        $params['password'] =  $this->settings['ALPHASMS_PASSWORD'];
-        $params['key'] =  $this->settings['ALPHASMS_APIKEY'];
+        $params['login'] = $this->settings['ALPHASMS_LOGIN'];
+        $params['password'] = $this->settings['ALPHASMS_PASSWORD'];
+        $params['key'] = $this->settings['ALPHASMS_APIKEY'];
         $params['command'] = 'balance';
         $params_url = '';
-        foreach($params as $key => $value) {
+        foreach ($params as $key => $value) {
             $params_url .= '&' . $key . '=' . $this->base64_url_encode($value);
         }
 
@@ -722,13 +722,13 @@ class SendDog {
      */
     protected function renderAlphasmsConfigInputs() {
         $inputs = wf_tag('h2') . __('AlphaSMS') . ' ' . wf_Link(self::URL_ME . '&showmisc=alphasmsbalance', wf_img_sized('skins/icon_dollar.gif', __('Balance'), '10', '10'), true) . wf_tag('h2', true);
-        $inputs .= wf_TextInput('editalphasmsgateway', __('Lifecell API address'), $this->settings['ALPHASMS_GATEWAY'], true, 30);
+        $inputs .= wf_TextInput('editalphasmsgateway', __('API address') . ' ' . __('AlphaSMS'), $this->settings['ALPHASMS_GATEWAY'], true, 30);
         $inputs .= wf_TextInput('editalphasmslogin', __('User login to access API'), $this->settings['ALPHASMS_LOGIN'], true, 20);
         $inputs .= wf_TextInput('editalphasmspassword', __('User password for access API'), $this->settings['ALPHASMS_PASSWORD'], true, 20);
-        $inputs .= wf_TextInput('editalphasmsapikey', __('User API key for access AlphaSMS API'), $this->settings['ALPHASMS_APIKEY'], true, 20);
+        $inputs .= wf_TextInput('editalphasmsapikey', __('User API key for') . ' ' . __('AlphaSMS'), $this->settings['ALPHASMS_APIKEY'], true, 20);
         $inputs .= wf_TextInput('editalphasmssign', __('AlphaSMS') . ' ' . __('Sign') . ' (' . __('Alphaname') . ')', $this->settings['ALPHASMS_SIGN'], true, 20);
         $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'alphasms') ? true : false;
-        $inputs .= wf_RadioInput('defaultsmsservice', __('Use AlphaSMS as default SMS service'), 'alphasms', true, $smsServiceFlag);
+        $inputs .= wf_RadioInput('defaultsmsservice', __('Use') . ' ' . __('AlphaSMS') . ' ' . __('as default SMS service'), 'alphasms', true, $smsServiceFlag);
         return ($inputs);
     }
 
@@ -1127,14 +1127,14 @@ class SendDog {
             foreach ($allSmsQueue as $sms) {
                 $formattedPhone = $this->cutInternationalsFromPhoneNum($sms['number']);
                 $params = array('from' => urlencode($sender),
-                               'to' => urlencode($formattedPhone),
-                               'message'=> urlencode($sms['message']),
-                               'login'=> $this->settings['ALPHASMS_LOGIN'],
-                               'password'=> $this->settings['ALPHASMS_PASSWORD'],
-                               'key'=> urlencode($apikey),
-                               'command'=> 'send');
+                    'to' => urlencode($formattedPhone),
+                    'message' => urlencode($sms['message']),
+                    'login' => $this->settings['ALPHASMS_LOGIN'],
+                    'password' => $this->settings['ALPHASMS_PASSWORD'],
+                    'key' => urlencode($apikey),
+                    'command' => 'send');
                 $params_url = '';
-                foreach($params as $key => $value) {
+                foreach ($params as $key => $value) {
                     $params_url .= '&' . $key . '=' . $this->base64_url_encode($value);
                 }
 
@@ -1726,7 +1726,6 @@ class SendDogAdvanced extends SendDog {
         $this->settings['SENDDOG_PHPMAILER_ATTACHMENTS_PATH'] = $mailerAttachPath;
     }
 
-
     /**
      * Fills up $SrvsAPIsIDs with IDs => APINames
      *
@@ -1875,17 +1874,17 @@ class SendDogAdvanced extends SendDog {
     public function renderPHPMailerConfigInputs() {
         // smtpDebug = 0, 1, 2 - off, client, server
         $inputs = wf_tag('h2');
-        $inputs.= __('PHPMailer settings');
-        $inputs.= wf_tag('h2', true);
-        $inputs.= wf_TextInput('editsmtpdebug', 'SMTP debug feature(1 - off, 2 - client messages debug, 3 - server & client messages debug)', $this->settings['SENDDOG_PHPMAILER_DEBUG'], true, '5', 'digits');
-        $inputs.= wf_TextInput('editsmtpsecure', 'SMTP secure connection type (1 - off, 2 - TLS, 3 - SSL)', $this->settings['SENDDOG_PHPMAILER_SMTP_SECURE'], true, '5', 'digits');
-        $inputs.= wf_TextInput('editsmtphost', 'SMTP host', $this->settings['SENDDOG_PHPMAILER_SMTP_HOST'], true);
-        $inputs.= wf_TextInput('editsmtpport', 'SMTP port', $this->settings['SENDDOG_PHPMAILER_SMTP_PORT'], true, '20', 'digits');
-        $inputs.= wf_TextInput('editsmtpuser','SMTP user name', $this->settings['SENDDOG_PHPMAILER_SMTP_USER'], true);
-        $inputs.= wf_PasswordInput('editsmtppasswd','SMTP user password', $this->settings['SENDDOG_PHPMAILER_SMTP_PASSWD'], true);
-        $inputs.= wf_TextInput('editsmtpdefaultfrom','SMTP default "From" value', $this->settings['SENDDOG_PHPMAILER_SMTP_DEFAULTFROM'], true);
-        $inputs.= wf_TextInput('editattachpath','Attachments temporary upload path', $this->settings['SENDDOG_PHPMAILER_ATTACHMENTS_PATH'], true, '25');
-        $inputs.= wf_CheckInput('editsmtpuseauth', 'SMTP use authentication', true, wf_getBoolFromVar($this->settings['SENDDOG_PHPMAILER_SMTP_USEAUTH']));
+        $inputs .= __('PHPMailer settings');
+        $inputs .= wf_tag('h2', true);
+        $inputs .= wf_TextInput('editsmtpdebug', 'SMTP debug feature(1 - off, 2 - client messages debug, 3 - server & client messages debug)', $this->settings['SENDDOG_PHPMAILER_DEBUG'], true, '5', 'digits');
+        $inputs .= wf_TextInput('editsmtpsecure', 'SMTP secure connection type (1 - off, 2 - TLS, 3 - SSL)', $this->settings['SENDDOG_PHPMAILER_SMTP_SECURE'], true, '5', 'digits');
+        $inputs .= wf_TextInput('editsmtphost', 'SMTP host', $this->settings['SENDDOG_PHPMAILER_SMTP_HOST'], true);
+        $inputs .= wf_TextInput('editsmtpport', 'SMTP port', $this->settings['SENDDOG_PHPMAILER_SMTP_PORT'], true, '20', 'digits');
+        $inputs .= wf_TextInput('editsmtpuser', 'SMTP user name', $this->settings['SENDDOG_PHPMAILER_SMTP_USER'], true);
+        $inputs .= wf_PasswordInput('editsmtppasswd', 'SMTP user password', $this->settings['SENDDOG_PHPMAILER_SMTP_PASSWD'], true);
+        $inputs .= wf_TextInput('editsmtpdefaultfrom', 'SMTP default "From" value', $this->settings['SENDDOG_PHPMAILER_SMTP_DEFAULTFROM'], true);
+        $inputs .= wf_TextInput('editattachpath', 'Attachments temporary upload path', $this->settings['SENDDOG_PHPMAILER_ATTACHMENTS_PATH'], true, '25');
+        $inputs .= wf_CheckInput('editsmtpuseauth', 'SMTP use authentication', true, wf_getBoolFromVar($this->settings['SENDDOG_PHPMAILER_SMTP_USEAUTH']));
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Save'));
 
@@ -2459,9 +2458,7 @@ class SendDogAdvanced extends SendDog {
 
             if (!empty($allMessagesData)) {
                 foreach ($allMessagesData as $io => $eachmessage) {
-                    $email->directPushEmail($eachmessage['email'], $eachmessage['subj'], $eachmessage['message'],
-                                            $eachmessage['attachpath'], $eachmessage['bodyashtml'], $eachmessage['from'],
-                                            $eachmessage['customheaders']);
+                    $email->directPushEmail($eachmessage['email'], $eachmessage['subj'], $eachmessage['message'], $eachmessage['attachpath'], $eachmessage['bodyashtml'], $eachmessage['from'], $eachmessage['customheaders']);
 
                     $email->phpMailer->clearAllRecipients();
                     $email->phpMailer->clearAttachments();

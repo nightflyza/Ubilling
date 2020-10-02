@@ -3195,5 +3195,8 @@ $lang['def']['Moved'] = 'Перенесено';
 $lang['def']['Missed a phone call'] = 'Не зміг додзвонитись';
 $lang['def']['Fixed connector'] = 'Зрихтував конектор';
 $lang['def']['Task state'] = 'Стан задачі';
+$lang['def']['API address'] = 'Адреса API';
+$lang['def']['User API key for']='Користувацький ключ API для';
+$lang['def']['as default SMS service'] = 'як службу SMS за замовчуванням';
 
 ?>

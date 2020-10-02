@@ -3174,4 +3174,8 @@ $lang['def']['Moved'] = 'Перенесено';
 $lang['def']['Missed a phone call'] = 'Не смог дозвониться';
 $lang['def']['Fixed connector'] = 'Починил коннектор';
 $lang['def']['Task state'] = 'Состояние задачи';
+$lang['def']['API address'] = 'Адрес API';
+$lang['def']['User API key for']='Пользовательский ключ API для';
+$lang['def']['as default SMS service'] = 'как службу SMS по-умолчанию';
+
 ?>
