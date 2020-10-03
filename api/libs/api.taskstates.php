@@ -132,6 +132,24 @@ class TaskStates {
     }
 
     /**
+     * Returns all available state types as type=>name
+     * 
+     * @return array
+     */
+    public function getStateTypes() {
+        return($this->stateTypes);
+    }
+
+    /**
+     * Returns all available state icons as type=>iconpath
+     * 
+     * @return array
+     */
+    public function getStateIcons() {
+        return($this->stateIcons);
+    }
+
+    /**
      * Sets new state for the some task
      * 
      * @param int $taskId
