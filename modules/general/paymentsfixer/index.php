@@ -214,6 +214,79 @@ if (cfr('ROOT')) {
         }
 
         /**
+         * Renders users that failed with their payments
+         * 
+         * @return string
+         */
+        public function renderDebtorUsers() {
+            $result = '';
+            $allPayments = $this->getPayments();
+            $debtorsTmp = array();
+            if (!empty($allPayments)) {
+                foreach ($allPayments as $io => $each) {
+                    if (isset($this->allUserData[$each['login']])) {
+                        $userData = $this->allUserData[$each['login']];
+                        if ($userData['Cash'] < '-' . $userData['Credit']) {
+                            if (!ispos($each['note'], 'MOCK:')) {
+                                $debtorsTmp[] = $each;
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($debtorsTmp)) {
+                    $allCashtypes = zb_CashGetAllCashTypes();
+                    $allTariffPrices = zb_TariffGetPricesAll();
+
+                    $cells = wf_TableCell(__('Sum'));
+                    $cells .= wf_TableCell(__('Previous') . ' ' . __('Balance'));
+                    $cells .= wf_TableCell(__('Current Cash state'));
+                    $cells .= wf_TableCell(__('Cash type'));
+                    $cells .= wf_TableCell(__('User'));
+                    $cells .= wf_TableCell(__('Tariff') . ' / ' . __('Fee'));
+                    $cells .= wf_TableCell(__('Notes'));
+                    $cells .= wf_TableCell(__('Reason'));
+                    $cells .= wf_TableCell(__('Actions'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($debtorsTmp as $io => $each) {
+                        $userData = $this->allUserData[$each['login']];
+                        $userTariff = $userData['Tariff'];
+                        $userTariffPrice = (isset($allTariffPrices[$userTariff])) ? $allTariffPrices[$userTariff] : 0;
+
+                        $cells = wf_TableCell($each['summ']);
+                        $cells .= wf_TableCell($each['balance']);
+                        $cells .= wf_TableCell($userData['Cash']);
+
+                        $cells .= wf_TableCell(__(@$allCashtypes[$each['cashtypeid']]));
+                        $userLink = wf_Link(self::URL_PROFILE . $each['login'], web_profile_icon() . ' ' . @$userData['fulladress']);
+                        $cells .= wf_TableCell($userLink);
+                        $cells .= wf_TableCell($userTariff . ' / ' . $userTariffPrice);
+                        $cells .= wf_TableCell($each['note']);
+                        $reason = '';
+
+                        if ($each['summ'] < $userTariffPrice) {
+                            $reason .= __('Less than tariff price') . ' ';
+                        } else {
+                            if ($userData['Cash'] < '-' . $userTariffPrice) {
+                                $reason .= __('User was inactive for a long time') . ' ';
+                            }
+                        }
+                        $cells .= wf_TableCell($reason);
+                        $cells .= wf_TableCell('TODO');
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'success');
+            }
+            return($result);
+        }
+
+        /**
          * Rdenders default date setup form
          * 
          * @param string $date
@@ -309,6 +382,8 @@ if (cfr('ROOT')) {
     show_window('', $fixer->renderDateSelectorForm($checkDate));
     $fixer->setDate($checkDate);
     show_window(__('Money transactions that may was not processed'), $fixer->renderFailedPayments());
+    show_window(__('That users payed something but still is debtors'), $fixer->renderDebtorUsers());
+
     show_window('', wf_BackLink('?module=report_finance'));
 } else {
     show_error(__('Access denied'));

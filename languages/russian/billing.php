@@ -3175,7 +3175,12 @@ $lang['def']['Missed a phone call'] = 'Не смог дозвониться';
 $lang['def']['Fixed connector'] = 'Починил коннектор';
 $lang['def']['Task state'] = 'Состояние задачи';
 $lang['def']['API address'] = 'Адрес API';
-$lang['def']['User API key for']='Пользовательский ключ API для';
+$lang['def']['User API key for'] = 'Пользовательский ключ API для';
 $lang['def']['as default SMS service'] = 'как службу SMS по-умолчанию';
+$lang['def']['Reason'] = 'Причина';
+$lang['def']['That users payed something but still is debtors'] = 'Эти пользователи что-то заплатили но почему-то все еще должники';
+$lang['def']['Less than tariff price'] = 'Меньше стоимости тарифа';
+$lang['def']['User was inactive for a long time'] = 'Пользователь был неактивен длительное время';
+$lang['def'][''] = '';
 
 ?>

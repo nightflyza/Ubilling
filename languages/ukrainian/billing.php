@@ -1,5 +1,4 @@
 <?php
-
 // misc
 $lang['def']['Taskbar'] = 'Панель задач';
 $lang['def']['Internet users'] = 'Користувачі';
@@ -3196,7 +3195,11 @@ $lang['def']['Missed a phone call'] = 'Не зміг додзвонитись';
 $lang['def']['Fixed connector'] = 'Зрихтував конектор';
 $lang['def']['Task state'] = 'Стан задачі';
 $lang['def']['API address'] = 'Адреса API';
-$lang['def']['User API key for']='Користувацький ключ API для';
+$lang['def']['User API key for'] = 'Користувацький ключ API для';
 $lang['def']['as default SMS service'] = 'як службу SMS за замовчуванням';
-
+$lang['def']['Reason'] = 'Причина';
+$lang['def']['That users payed something but still is debtors'] = 'Ці користувачі щось оплатили але все ще боржники';
+$lang['def']['Less than tariff price'] = 'Менше вартості тарифу';
+$lang['def']['User was inactive for a long time'] = 'Користувач був довго неактивним';
+$lang['def'][''] = '';
 ?>
