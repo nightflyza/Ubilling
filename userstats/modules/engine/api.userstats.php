@@ -642,13 +642,13 @@ function zbs_UserShowAgentData($login) {
  * 
  * @param array $data data array for rendering
  * @param string $mainSection all output data parent element tag name
- * @param string $subSections parent tag for each data qunique element tag name
+ * @param string $subSection parent tag for each data qunique element tag name
  * @param string $format output format: xml or json
  * @param bool $messages is data contain announcements data for render
  * 
  * @return void
  */
-function zbs_XMLAgentRender($data, $mainSection = '', $subSections = '', $format = 'xml', $messages = false) {
+function zbs_XMLAgentRender($data, $mainSection = '', $subSection = '', $format = 'xml', $messages = false) {
     $result = '';
     //XML legacy output
     if ($format == 'xml') {
@@ -660,8 +660,8 @@ function zbs_XMLAgentRender($data, $mainSection = '', $subSections = '', $format
         if (!empty($data)) {
 
             foreach ($data as $index => $record) {
-                if (!empty($subSections)) {
-                    $result .= '<' . $subSections . '>' . PHP_EOL;
+                if (!empty($subSection)) {
+                    $result .= '<' . $subSection . '>' . PHP_EOL;
                 }
 
                 //normal data output
@@ -674,8 +674,8 @@ function zbs_XMLAgentRender($data, $mainSection = '', $subSections = '', $format
                     $result .= '<message unic="' . $record['unic'] . '" title="' . $record['title'] . '">' . $record['text'] . '</message>' . PHP_EOL;
                 }
 
-                if (!empty($subSections)) {
-                    $result .= '</' . $subSections . '>' . PHP_EOL;
+                if (!empty($subSection)) {
+                    $result .= '</' . $subSection . '>' . PHP_EOL;
                 }
             }
         }
@@ -687,7 +687,23 @@ function zbs_XMLAgentRender($data, $mainSection = '', $subSections = '', $format
 
     //JSON data output
     if ($format == 'json') {
-        $result .= json_encode($data);
+        $jsonData = array();
+        $rcount = 0;
+        if (!empty($data)) {
+            foreach ($data as $index => $record) {
+                if (!empty($record)) {
+                    foreach ($record as $tag => $value) {
+                        if (!empty($subSection) OR $messages) {
+                            $jsonData[$rcount][$tag] = $value;
+                        } else {
+                            $jsonData[$tag] = $value;
+                        }
+                    }
+                }
+                $rcount++;
+            }
+        }
+        $result .= json_encode($jsonData);
     }
 
 
