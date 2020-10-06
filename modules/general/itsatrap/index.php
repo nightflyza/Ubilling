@@ -77,6 +77,7 @@ if ($altCfg['ITSATRAP_ENABLED']) {
                 show_window(__('Events'), $itsatrap->renderTrapEventsList());
             }
         }
+        zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
     }

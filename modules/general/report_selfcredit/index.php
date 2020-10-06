@@ -152,7 +152,7 @@ if (cfr('SCREPORT')) {
                         $payMonth = date("m", $payTimestamp);
                         if (isset($this->yeardata[$year . '-' . $payMonth])) {
                             $this->yeardata[$year . '-' . $payMonth]['count'] ++;
-                            $this->yeardata[$year . '-' . $payMonth]['summ']+=abs($each['summ']);
+                            $this->yeardata[$year . '-' . $payMonth]['summ'] += abs($each['summ']);
                         } else {
                             $this->yeardata[$year . '-' . $payMonth]['count'] = 1;
                             $this->yeardata[$year . '-' . $payMonth]['summ'] = abs($each['summ']);
@@ -175,10 +175,10 @@ if (cfr('SCREPORT')) {
                 $this->chartdata = array(0 => array(__('Month'), __('Count'), __('Cash')));
 
                 $cells = wf_TableCell('');
-                $cells.=wf_TableCell(__('Month'));
-                $cells.=wf_TableCell(__('Payments count'));
-                $cells.=wf_TableCell(__('Our final profit'));
-                $cells.=wf_TableCell(__('Visual'));
+                $cells .= wf_TableCell(__('Month'));
+                $cells .= wf_TableCell(__('Payments count'));
+                $cells .= wf_TableCell(__('Our final profit'));
+                $cells .= wf_TableCell(__('Visual'));
                 $this->tabledata = wf_TableRow($cells, 'row1');
 
                 foreach ($months as $eachmonth => $monthname) {
@@ -187,11 +187,11 @@ if (cfr('SCREPORT')) {
                     $this->chartdata[] = (array($year . '-' . $eachmonth, $paycount, $month_summ));
 
                     $cells = wf_TableCell($eachmonth);
-                    $cells.=wf_TableCell(rcms_date_localise($monthname));
-                    $cells.=wf_TableCell($paycount);
-                    $cells.=wf_TableCell($month_summ);
-                    $cells.=wf_TableCell(web_bar($month_summ, $yearSumm));
-                    $this->tabledata.=wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(rcms_date_localise($monthname));
+                    $cells .= wf_TableCell($paycount);
+                    $cells .= wf_TableCell($month_summ);
+                    $cells .= wf_TableCell(web_bar($month_summ, $yearSumm));
+                    $this->tabledata .= wf_TableRow($cells, 'row3');
                     $this->yearsumm = $this->yearsumm + $month_summ;
                 }
             }
@@ -211,14 +211,14 @@ if (cfr('SCREPORT')) {
                 $result = '';
 
                 $cells = wf_TableCell(__('ID'));
-                $cells.= wf_TableCell(__('Date'));
-                $cells.= wf_TableCell(__('Cash'));
-                $cells.= wf_TableCell(__('Login'));
-                $cells.= wf_TableCell(__('Real Name'));
-                $cells.= wf_TableCell(__('Full address'));
-                $cells.= wf_TableCell(__('Tariff'));
-                $cells.= wf_TableCell(__('Balance'));
-                $cells.= wf_TableCell(__('Credit'));
+                $cells .= wf_TableCell(__('Date'));
+                $cells .= wf_TableCell(__('Cash'));
+                $cells .= wf_TableCell(__('Login'));
+                $cells .= wf_TableCell(__('Real Name'));
+                $cells .= wf_TableCell(__('Full address'));
+                $cells .= wf_TableCell(__('Tariff'));
+                $cells .= wf_TableCell(__('Balance'));
+                $cells .= wf_TableCell(__('Credit'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 if (!empty($this->data)) {
@@ -238,23 +238,23 @@ if (cfr('SCREPORT')) {
 
                         $totalSumm = $totalSumm + $each['summ'];
                         $cells = wf_TableCell($each['id']);
-                        $cells.= wf_TableCell($each['date']);
-                        $cells.= wf_TableCell($each['summ']);
+                        $cells .= wf_TableCell($each['date']);
+                        $cells .= wf_TableCell($each['summ']);
                         $loginLink = wf_Link("?module=userprofile&username=" . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
-                        $cells.= wf_TableCell($loginLink);
-                        $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                        $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                        $cells.= wf_TableCell($usertariff);
-                        $cells.= wf_TableCell($usercash);
-                        $cells.= wf_TableCell($usercredit);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($loginLink);
+                        $cells .= wf_TableCell(@$allRealNames[$each['login']]);
+                        $cells .= wf_TableCell(@$allAddress[$each['login']]);
+                        $cells .= wf_TableCell($usertariff);
+                        $cells .= wf_TableCell($usercash);
+                        $cells .= wf_TableCell($usercredit);
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
                 }
 
-                $result.= wf_tag('div', false, 'glamour') . __('Count') . ': ' . $totalCount . wf_tag('div', true);
-                $result.= wf_tag('div', false, 'glamour') . __('Our final profit') . ': ' . $totalSumm . wf_tag('div', true);
-                $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', 'true');
-                $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+                $result .= wf_tag('div', false, 'glamour') . __('Count') . ': ' . $totalCount . wf_tag('div', true);
+                $result .= wf_tag('div', false, 'glamour') . __('Our final profit') . ': ' . $totalSumm . wf_tag('div', true);
+                $result .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', 'true');
+                $result .= wf_TableBody($rows, '100%', '0', 'sortable');
 
                 return ($result);
             }
@@ -289,12 +289,12 @@ if (cfr('SCREPORT')) {
 
                 $this->loadMonthData();
                 $result = '';
-                $result.=wf_TableBody($this->tabledata, '100%', '0', 'sortable');
-                $result.=wf_tag('span', false, 'glamour') . __('Our final profit') . ': ' . $this->yearsumm . wf_tag('span', true);
-                $result.=wf_tag('span', false, 'style="clear:both;"') . wf_tag('div', true);
-                $result.= wf_delimiter();
+                $result .= wf_TableBody($this->tabledata, '100%', '0', 'sortable');
+                $result .= wf_tag('span', false, 'glamour') . __('Our final profit') . ': ' . $this->yearsumm . wf_tag('span', true);
+                $result .= wf_tag('span', false, 'style="clear:both;"') . wf_tag('div', true);
+                $result .= wf_delimiter();
 
-                $result.= wf_gchartsLine($this->chartdata, __('Year') . ' ' . $this->curyear, '100%;', '400px;', $chartsOptions);
+                $result .= wf_gchartsLine($this->chartdata, __('Year') . ' ' . $this->curyear, '100%;', '400px;', $chartsOptions);
 
                 return ($result);
             }
@@ -306,7 +306,7 @@ if (cfr('SCREPORT')) {
              */
             public function yearSelector() {
                 $inputs = wf_YearSelectorPreset('setyear', '', false, $this->curyear);
-                $inputs.= wf_Submit(__('Show'));
+                $inputs .= wf_Submit(__('Show'));
                 $result = wf_Form("", 'POST', $inputs, 'glamour');
                 return ($result);
             }
@@ -320,15 +320,15 @@ if (cfr('SCREPORT')) {
                 $result = '';
                 if (!empty($this->tariffstats)) {
                     $cells = wf_TableCell(__('Tariff'));
-                    $cells.= wf_TableCell(__('Count'));
-                    $cells.= wf_TableCell(__('Visual'));
+                    $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($this->tariffstats as $tariffName => $countCredits) {
                         $cells = wf_TableCell($tariffName);
-                        $cells.= wf_TableCell($countCredits);
-                        $cells.= wf_TableCell(web_bar($countCredits, sizeof($this->data)));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($countCredits);
+                        $cells .= wf_TableCell(web_bar($countCredits, sizeof($this->data)));
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
 
                     $graphs = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -353,6 +353,7 @@ if (cfr('SCREPORT')) {
             show_window('', wf_BackLink('?module=report_selfcredit'));
             show_window(__('Self credit dynamic over the year') . ' ' . $screport->getYear(), $screport->renderMonthGraph());
         }
+        zb_BillingStats(true);
     } else {
         show_error(__('This module is disabled'));
     }

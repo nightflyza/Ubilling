@@ -59,6 +59,7 @@ if (cfr('UBIM')) {
     if (wf_CheckGet(array('gothread'))) {
         show_window('', im_ThreadLoad($_GET['gothread']));
     }
+    zb_BillingStats(true);
 } else {
     show_error(__('You cant control this module'));
 }

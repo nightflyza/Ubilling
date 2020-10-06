@@ -1479,6 +1479,7 @@ if (cfr('VOLS')) {
                 // необходисые параметры в $_GET[];
                 rcms_redirect($obj::URL_HOME);
             }
+            zb_BillingStats(true);
         } else {
             show_window(__('Error'), __('No license key available'));
         }

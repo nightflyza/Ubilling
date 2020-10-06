@@ -58,6 +58,7 @@ if (cfr('OPENPAYZ')) {
         } else {
             show_window(__('Graphs'), $opayz->renderGraphs());
         }
+        zb_BillingStats(true);
     } else {
         show_error(__('OpenPayz support not enabled'));
     }

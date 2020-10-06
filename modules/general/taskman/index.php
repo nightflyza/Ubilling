@@ -249,6 +249,8 @@ if (cfr('TASKMAN')) {
     } else {
         show_window(__('Typical problems'), ts_TaskProblemsEditForm());
     }
+
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }
