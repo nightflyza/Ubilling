@@ -1095,7 +1095,7 @@ class UserProfile {
                             }
                             $searched = $signal;
 
-                            if ($signal == '-9000') {
+                            if ($signal == 'Offline') {
                                 $sigColor = '#000000';
                                 $searched = __('No');
                             }

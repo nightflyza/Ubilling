@@ -308,7 +308,7 @@ class PONizer {
     const COLOR_AVG = '#FF5500';
     const COLOR_BAD = '#AB0000';
     const COLOR_NOSIG = '#000000';
-    const NO_SIGNAL = '-9000';
+    const NO_SIGNAL = 'Offline';
 
     /**
      * Creates new PONizer object instance

@@ -96,7 +96,7 @@ class PONONUMAP {
         if ((($onuSignal > 0) OR ( $onuSignal < -27))) {
             $result = 'twirl#redIcon';
         }
-        if ($onuSignal == 'NO') {
+        if ($onuSignal == 'NO' OR $onuSignal == 'Offline' OR $onuSignal == '-9000') {
             $result = 'twirl#greyIcon';
         }
         return($result);
@@ -151,7 +151,7 @@ class PONONUMAP {
                             $onuIcon = $this->getIcon($onuSignal);
                             $onuControls = $this->getONUControls($eachOnu['id'], $eachOnu['login'], $userData['geo']);
                             $onuTitle = $userData['fulladress'];
-                            $signalLabel = ($onuSignal != 'NO') ? $onuSignal : __('No signal');
+                            $signalLabel = ($onuSignal == 'NO' OR $onuSignal == 'Offline' OR $onuSignal == '-9000') ? __('No signal') : $onuSignal;
                             $placemarks .= generic_mapAddMark($userData['geo'], $onuTitle, $signalLabel, $onuControls, $onuIcon, '', true);
                             $marksRendered++;
                         } else {
