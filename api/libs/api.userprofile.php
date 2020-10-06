@@ -1093,8 +1093,12 @@ class UserProfile {
                             } else {
                                 $sigColor = '#005502';
                             }
-
                             $searched = $signal;
+
+                            if ($signal == '-9000') {
+                                $sigColor = '#000000';
+                                $searched = __('No');
+                            }
                             break;
                         }
                     }

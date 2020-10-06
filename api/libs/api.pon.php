@@ -308,6 +308,7 @@ class PONizer {
     const COLOR_AVG = '#FF5500';
     const COLOR_BAD = '#AB0000';
     const COLOR_NOSIG = '#000000';
+    const NO_SIGNAL = '-9000';
 
     /**
      * Creates new PONizer object instance
@@ -2763,17 +2764,31 @@ class PONizer {
                     $sigColor = self::COLOR_OK;
                     $sigLabel = 'Normal';
                 }
+
+                if ($signal == self::NO_SIGNAL) {
+                    $ONUIsOffline = true;
+                    $signal = __('No');
+                    $sigColor = self::COLOR_NOSIG;
+                    $sigLabel = 'No signal';
+                }
             } elseif (isset($this->signalCache[$onuData['serial']])) {
                 $signal = $this->signalCache[$onuData['serial']];
                 if (($signal > 0) OR ( $signal < -27)) {
-                    $sigColor = '#ab0000';
-                    $sigLabel = self::COLOR_BAD;
+                    $sigColor = self::COLOR_BAD;
+                    $sigLabel = 'Bad signal';
                 } elseif ($signal > -27 AND $signal < -25) {
                     $sigColor = self::COLOR_AVG;
                     $sigLabel = 'Mediocre signal';
                 } else {
                     $sigColor = self::COLOR_OK;
                     $sigLabel = 'Normal';
+                }
+
+                if ($signal == self::NO_SIGNAL) {
+                    $ONUIsOffline = true;
+                    $signal = __('No');
+                    $sigColor = self::COLOR_NOSIG;
+                    $sigLabel = 'No signal';
                 }
             } else {
                 $ONUIsOffline = true;
@@ -4089,6 +4104,12 @@ class PONizer {
                     } else {
                         $sigColor = self::COLOR_OK;
                     }
+
+                    if ($signal == self::NO_SIGNAL) {
+                        $ONUIsOffline = true;
+                        $signal = __('No');
+                        $sigColor = self::COLOR_NOSIG;
+                    }
                 } elseif (isset($this->signalCache[$each['serial']])) {
                     $signal = $this->signalCache[$each['serial']];
                     if (($signal > 0) OR ( $signal < -27)) {
@@ -4097,6 +4118,12 @@ class PONizer {
                         $sigColor = self::COLOR_AVG;
                     } else {
                         $sigColor = self::COLOR_OK;
+                    }
+
+                    if ($signal == self::NO_SIGNAL) {
+                        $ONUIsOffline = true;
+                        $signal = __('No');
+                        $sigColor = self::COLOR_NOSIG;
                     }
                 } else {
                     $ONUIsOffline = true;
@@ -4730,21 +4757,33 @@ class PONizerLegacy extends PONizer {
                     if (isset($this->signalCache[$each['mac']])) {
                         $signal = $this->signalCache[$each['mac']];
                         if (($signal > 0) OR ( $signal < -25)) {
-                            $sigColor = '#ab0000';
+                            $sigColor = self::COLOR_BAD;
                         } else {
-                            $sigColor = '#005502';
+                            $sigColor = self::COLOR_OK;
+                        }
+                        
+                        if ($signal == self::NO_SIGNAL) {
+                            $ONUIsOffline = true;
+                            $signal = __('No');
+                            $sigColor = self::COLOR_NOSIG;
                         }
                     } elseif (isset($this->signalCache[$each['serial']])) {
                         $signal = $this->signalCache[$each['serial']];
                         if (($signal > 0) OR ( $signal < -25)) {
-                            $sigColor = '#ab0000';
+                            $sigColor = self::COLOR_BAD;
                         } else {
-                            $sigColor = '#005502';
+                            $sigColor = self::COLOR_OK;
+                        }
+
+                        if ($signal == self::NO_SIGNAL) {
+                            $ONUIsOffline = true;
+                            $signal = __('No');
+                            $sigColor = self::COLOR_NOSIG;
                         }
                     } else {
                         $ONUIsOffline = true;
                         $signal = __('No');
-                        $sigColor = '#000000';
+                        $sigColor = self::COLOR_NOSIG;
                     }
 
                     $data[] = $each['id'];
