@@ -1128,7 +1128,7 @@ class SendDog {
                 $formattedPhone = $this->cutInternationalsFromPhoneNum($sms['number']);
                 $params = array('from' => urlencode($sender),
                     'to' => urlencode($formattedPhone),
-                    'message' => urlencode($sms['message']),
+                    'message' => $sms['message'],
                     'login' => $this->settings['ALPHASMS_LOGIN'],
                     'password' => $this->settings['ALPHASMS_PASSWORD'],
                     'key' => urlencode($apikey),
