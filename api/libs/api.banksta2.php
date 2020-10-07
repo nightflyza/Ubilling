@@ -1298,13 +1298,8 @@ class Banksta2 {
             $greed = new Avarice();
             $insatiability = $greed->runtime('DREAMKAS');
 
-            /*if (!empty($insatiability)) {
-                $DreamKas = new DreamKas();
-            }*/
-
             $needToFiscalize = true;
             $fiscalDataArray = json_decode(base64_decode($_POST['bankstapaymentsfiscalize']), true);
-            //$DreamKas = new DreamKas();
 
             if ($refiscalize) {
                 $paymentsToPush = array();
@@ -1319,7 +1314,16 @@ class Banksta2 {
                                   FROM `" . self::BANKSTA2_TABLE . "` 
                                     RIGHT JOIN `ukv_users` ON `" . self::BANKSTA2_TABLE . "`.`contract` = `ukv_users`.`contract` 
                                                               AND `" . self::BANKSTA2_TABLE . "`.`service_type` = 'UKV'
-                                  WHERE `" . self::BANKSTA2_TABLE . "`.`id` IN (" . $bs2RecIDs . "))";
+                                  WHERE `" . self::BANKSTA2_TABLE . "`.`id` IN (" . $bs2RecIDs . ")) ";
+
+                if ($this->opayzIDAsContract) {
+                    $tQuery.= " UNION 
+                               (SELECT `op_customers`.`realid` AS `userlogin`, `" . self::BANKSTA2_TABLE . "`.`id`, `summ`, `pdate`, `ptime`, `payid`, `service_type` AS `service` 
+                                  FROM `" . self::BANKSTA2_TABLE . "` 
+                                    RIGHT JOIN `op_customers` ON `" . self::BANKSTA2_TABLE . "`.`contract` = `op_customers`.`virtualid` 
+                                                              AND `" . self::BANKSTA2_TABLE . "`.`service_type` = 'Internet'
+                                  WHERE `" . self::BANKSTA2_TABLE . "`.`id` IN (" . $bs2RecIDs . ")) ";
+                }
 
                 $tQueryResult = simple_queryall($tQuery);
 
