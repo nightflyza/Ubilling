@@ -276,7 +276,7 @@ class PONizer {
     public $ponInterfaces = '';
 
     /**
-     * Some predefined routes, paths, etc
+     * Some predefined paths, etc
      */
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
@@ -295,11 +295,15 @@ class PONizer {
     const UPTIME_EXT = 'OLTUPTIME';
     const TEMPERATURE_PATH = 'exports/';
     const TEMPERATURE_EXT = 'OLTTEMPERATURE';
-    const URL_ME = '?module=ponizer';
-    const URL_USERPROFILE = '?module=userprofile&username=';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
+
+    /**
+     * Some routes here
+     */
+    const URL_ME = '?module=ponizer';
+    const URL_USERPROFILE = '?module=userprofile&username=';
 
     /**
      * Views/stats coloring
@@ -2794,7 +2798,7 @@ class PONizer {
                 $ONUIsOffline = true;
                 $signal = __('No');
                 $sigColor = self::COLOR_NOSIG;
-                $sigLabel = '';
+                $sigLabel = 'No signal';
             }
 
             $result .= wf_tag('div', false, 'onusignalbig');
@@ -4761,7 +4765,7 @@ class PONizerLegacy extends PONizer {
                         } else {
                             $sigColor = self::COLOR_OK;
                         }
-                        
+
                         if ($signal == self::NO_SIGNAL) {
                             $ONUIsOffline = true;
                             $signal = __('No');
