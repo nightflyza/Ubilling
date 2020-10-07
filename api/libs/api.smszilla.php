@@ -466,8 +466,7 @@ class SMSZilla {
      * @return void
      */
     protected function loadCities() {
-        $query = "SELECT * from `city`";
-        $all = simple_queryall($query);
+        $all = zb_AddressGetCityAllData();
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allCities[$each['id']] = $each;
