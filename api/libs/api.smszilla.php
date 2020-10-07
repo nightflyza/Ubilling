@@ -466,7 +466,7 @@ class SMSZilla {
      * @return void
      */
     protected function loadCities() {
-        $query = "SELECT * from `city`";
+        $query = "SELECT * from `city` ORDER BY `city`.`cityname` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
