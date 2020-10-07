@@ -2149,7 +2149,7 @@ class Warehouse {
                 $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
-                $data[] = round($each['price'] * $each['count'],2);
+                $data[] = round($each['price'] * $each['count'], 2);
                 $data[] = @$this->allStorages[$each['storageid']];
                 $data[] = $each['notes'];
                 $data[] = $actLink;
@@ -3141,6 +3141,7 @@ class Warehouse {
         $result = '';
         $tmpArr = array();
         $sum = 0;
+        $outcomesCount = 0;
         $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
         if (!empty($this->allOutcoming)) {
             $tmpArr = $this->allOutcoming;
@@ -3177,8 +3178,9 @@ class Warehouse {
                     $cells .= wf_TableCell($actLinks);
                     $rows .= wf_TableRow($cells, 'row5');
                     $sum = $sum + ($each['price'] * $each['count']);
+                    $outcomesCount++;
                 }
-                $cells = wf_TableCell(__('Total'));
+                $cells = wf_TableCell(__('Total') . ': ' . $outcomesCount);
                 $cells .= wf_TableCell('');
                 $cells .= wf_TableCell('');
                 $cells .= wf_TableCell('');

@@ -24,6 +24,13 @@ class PhotoStorage {
     protected $allimages = array();
 
     /**
+     * Contains loaded images count for each item in some scope as scope=>itemid=>count
+     *
+     * @var array
+     */
+    protected $imagesCount = array();
+
+    /**
      * Contains current photostorage items scope
      *
      * @var string
@@ -43,6 +50,13 @@ class PhotoStorage {
      * @var string
      */
     protected $myLogin = '';
+
+    /**
+     * Flag for preventing multiple database requests
+     *
+     * @var bool
+     */
+    protected $imagesLoadedFlag = false;
 
     /**
      * Some predefined paths and URLs
@@ -130,9 +144,16 @@ class PhotoStorage {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
             $query = "SELECT * from `photostorage` ORDER by `id` ASC;";
             $all = simple_queryall($query);
+            $this->imagesLoadedFlag = true;
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
                     $this->allimages[$each['id']] = $each;
+
+                    if (isset($this->imagesCount[$each['scope']][$each['item']])) {
+                        $this->imagesCount[$each['scope']][$each['item']] ++;
+                    } else {
+                        $this->imagesCount[$each['scope']][$each['item']] = 1;
+                    }
                 }
             }
         }
@@ -228,15 +249,34 @@ class PhotoStorage {
     }
 
     /**
+     * Returns count of loaded images for some itemid in some scope
+     * 
+     * @param string $itemId
+     * 
+     * @return int
+     */
+    public function getImagesCount($itemId) {
+        $result = 0;
+        $this->itemId = $itemId;
+        if (!$this->imagesLoadedFlag) {
+            $this->loadAllImages();
+        }
+
+        if (isset($this->imagesCount[$this->scope][$itemId])) {
+            $result = $this->imagesCount[$this->scope][$itemId];
+        }
+        return($result);
+    }
+
+    /**
      * Returns current scope/item images list
      * 
      * @return string
      */
     public function renderImagesList() {
-        if (empty($this->allimages)) {
+        if (!$this->imagesLoadedFlag) {
             $this->loadAllImages();
         }
-
 
         $result = wf_AjaxLoader();
 
@@ -273,9 +313,10 @@ class PhotoStorage {
      */
     public function renderImagesRaw() {
         $result = '';
-        if (empty($this->allimages)) {
+        if (!$this->imagesLoadedFlag) {
             $this->loadAllImages();
         }
+
         if (!empty($this->allimages)) {
             foreach ($this->allimages as $io => $eachimage) {
                 if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
@@ -302,7 +343,7 @@ class PhotoStorage {
      */
     public function catchDownloadImage($id) {
         $id = vf($id, 3);
-        if (empty($this->allimages)) {
+        if (!$this->imagesLoadedFlag) {
             $this->loadAllImages();
         }
         if (!empty($id)) {
@@ -324,7 +365,7 @@ class PhotoStorage {
      */
     public function catchDeleteImage($id) {
         $id = vf($id, 3);
-        if (empty($this->allimages)) {
+        if (!$this->imagesLoadedFlag) {
             $this->loadAllImages();
         }
         if (!empty($id)) {
