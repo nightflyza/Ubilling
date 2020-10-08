@@ -60,7 +60,7 @@ if ($altCfg['MAPON_ENABLED']) {
 
                         $prevCoords = '';
                         $unitId = $io;
-                        $unitRouteColor = '#' . substr(md5($unitId), 0, 6);
+                        $unitRouteColor = '#' . wf_genColorCodeFromText($unitId, 'Wrooom');
                         $routesCount = sizeof($route);
                         $i = 1;
                         if (!empty($route)) {
