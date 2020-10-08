@@ -400,7 +400,7 @@ class OpenPayz {
         }
 
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-        $fixedColors = $this->altCfg['OPENPAYZ_PALETTE'];
+        $fixedColors = @$this->altCfg['OPENPAYZ_PALETTE'];
         
 
         if (!empty($gcDayData)) {
