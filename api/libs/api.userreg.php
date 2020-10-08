@@ -666,7 +666,13 @@ function web_UserRegFormNetData($newuser_data) {
         $modelsData = $ponAPIObject->getAllModelsData();
         if (!empty($modelsData)) {
             foreach ($modelsData as $io => $each) {
-                $models[$each['id']] = $each['modelname'];
+                if (@$alterconf['ONUMODELS_FILTER']) {
+                    if (ispos($each['modelname'], 'ONU')) {
+                        $models[$each['id']] = $each['modelname'];
+                    }
+                } else {
+                    $models[$each['id']] = $each['modelname'];
+                }
             }
         }
 
