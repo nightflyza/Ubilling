@@ -400,21 +400,23 @@ class OpenPayz {
         }
 
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+        $fixedColors = 'O';
+        
 
         if (!empty($gcDayData)) {
-            $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts);
+            $gcDayPie = wf_gcharts3DPie($gcDayData, __('Today'), '300px', '300px', $chartOpts, $fixedColors);
         } else {
             $gcDayPie = '';
         }
 
         if (!empty($gcMonthData)) {
-            $gcMonthPie = wf_gcharts3DPie($gcMonthData, __('Current month'), '300px', '300px', $chartOpts);
+            $gcMonthPie = wf_gcharts3DPie($gcMonthData, __('Current month'), '300px', '300px', $chartOpts, $fixedColors);
         } else {
             $gcMonthPie = '';
         }
 
         if (!empty($gcYearData)) {
-            $gcYearPie = wf_gcharts3DPie($gcYearData, __('Current year'), '300px', '300px', $chartOpts);
+            $gcYearPie = wf_gcharts3DPie($gcYearData, __('Current year'), '300px', '300px', $chartOpts, $fixedColors);
         } else {
             $gcYearPie = '';
         }

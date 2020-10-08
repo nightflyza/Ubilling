@@ -2363,6 +2363,21 @@ function wf_JQDTColumnHideShow($CallerObjID, $CallerObjEvent, $JQDTID, $ColIndex
 }
 
 /**
+ * Outputs a hex color based text string
+ *
+ * @param $text String of text
+ * @param $palette Integer between 0 and 100
+ * 
+ * @return string
+ */
+function wf_genColorCodeFromText($text, $palette = '') {
+    $hash = md5($palette . $text); // modify input to get a different palette
+    $result = '';
+    $result = substr($hash, 0, 2) . substr($hash, 2, 2) . substr($hash, 4, 2);
+    return($result);
+}
+
+/**
  * Renders Google 3d pie chart
  * 
  * @param array $params data in format like string=>count
@@ -2375,10 +2390,11 @@ function wf_JQDTColumnHideShow($CallerObjID, $CallerObjEvent, $JQDTID, $ColIndex
  * backgroundColor: '#666', <br>
  * legend : {position: 'bottom', textStyle: {color: 'red', fontSize: 12 }}, <br>
  * chartArea: {  width: '90%', height: '90%' }, <br>
+ * @param string $fixedColors use fixed auto-generated colors based on text labels with pallette<br>
  * 
  * @return string
  */
-function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $options = '') {
+function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $options = '', $fixedColors = '') {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
 
@@ -2399,11 +2415,37 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
     }
 
     if ($enableFlag) {
+        $colors = '';
+        if ($fixedColors) {
+            $palette = (is_bool($fixedColors)) ? '' : $fixedColors; //use string parameter as palette
+            $colors .= 'var colors = { ';
+        }
+
         if (!empty($params)) {
             foreach ($params as $io => $each) {
                 $chartData .= '[\'' . $io . '\',' . $each . '],';
+                if ($fixedColors) {
+                    $colors .= " '" . $io . "': '" . wf_genColorCodeFromText($io, $palette) . "',";
+                }
             }
             $chartData = substr($chartData, 0, -1);
+        }
+
+        if ($fixedColors) {
+            $colors = rtrim($colors, ',');
+            $colors .= '};';
+        }
+
+        if ($fixedColors) {
+            $colors .= ' var slices = [];
+                for (var i = 0; i < data.getNumberOfRows(); i++) {
+                  slices.push({
+                    color: colors[data.getValue(i, 0)]
+                  });
+                }';
+            $slicesInject = 'slices: slices,';
+        } else {
+            $slicesInject = '';
         }
 
 //legend.scrollArrows.activeColor
@@ -2419,17 +2461,23 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
           [\'X\', \'Y\'],
            ' . $chartData . '
          ]);
-
+         
+        ' . $colors . '
+        
         var options = {
           title: \'' . $title . '\',
+          ' . $slicesInject . '
           is3D: true,
+          
           ' . $options . '
+          
           \'tooltip\' : {
              trigger: \'none\'
             }
         };
 
         var chart = new google.visualization.PieChart(document.getElementById(\'' . $containerId . '\'));
+          
         chart.draw(data, options);
       }
 ';
