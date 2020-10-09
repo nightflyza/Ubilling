@@ -233,9 +233,25 @@ if (cfr('TASKMAN')) {
 
             //photostorage integration
             if ($altCfg['PHOTOSTORAGE_ENABLED']) {
-                $photoStorage = new PhotoStorage('TASKMAN', $_GET['edittask']);
-                $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . $_GET['edittask'], wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                $photostorageControl .= wf_delimiter();
+                $photoStorage = new PhotoStorage('TASKMAN', ubRouting::get('edittask'));
+                $renderPhotoControlFlag = true;
+                if (@$altCfg['TASKSTATES_ENABLED']) {
+                    $taskData = ts_GetTaskData(ubRouting::get('edittask'));
+                    $taskState = $taskData['status'];
+                    if ($taskState) {
+                        //task already closed
+                        $renderPhotoControlFlag = false;
+                    }
+                }
+
+                if ($renderPhotoControlFlag) {
+                    $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . ubRouting::get('edittask'), wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                    $photostorageControl .= wf_delimiter();
+                } else {
+                    $messages = new UbillingMessageHelper();
+                    $photostorageControl = $messages->getStyledMessage(__('You cant attach images for already closed task'), 'warning'). wf_delimiter();
+                            
+                }
                 $photosList = $photoStorage->renderImagesRaw();
                 show_window(__('Photostorage'), $photostorageControl . $photosList);
             }

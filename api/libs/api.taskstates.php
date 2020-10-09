@@ -70,6 +70,7 @@ class TaskStates {
      * @return void
      */
     protected function setTypes() {
+        $this->stateTypes['STATE_INPROGRESS'] = ' ' . __('Task is in progress');
         $this->stateTypes['STATE_DONE'] = ' ' . __('Done');
         $this->stateTypes['STATE_UNDONE'] = ' ' . __('Undone');
         $this->stateTypes['STATE_MOVED'] = ' ' . __('Moved');

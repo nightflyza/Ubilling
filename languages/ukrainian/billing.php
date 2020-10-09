@@ -3201,5 +3201,8 @@ $lang['def']['Reason'] = 'Причина';
 $lang['def']['That users payed something but still is debtors'] = 'Ці користувачі щось оплатили але все ще боржники';
 $lang['def']['Less than tariff price'] = 'Менше вартості тарифу';
 $lang['def']['User was inactive for a long time'] = 'Користувач був довго неактивним';
+$lang['def']['Task is in progress'] = 'Задача виконується';
+$lang['def']['You cant attach images for already closed task'] = 'Ви не можете чіпляти зображення до вже закритих задач';
 $lang['def'][''] = '';
+
 ?>
