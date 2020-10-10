@@ -130,6 +130,28 @@ function im_CheckForUnreadMessagesByUser($username) {
 }
 
 /**
+ * Returns array of users from which we have some unread messages as login=>count
+ * 
+ * @return array
+ */
+function im_GetAllMyUnreadMessagesUsers() {
+    $result = array();
+    $me = whoami();
+    $query = "SELECT `from`,`id` from `ub_im` WHERE `read`='0' AND `to`='" . $me . "'";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            if (isset($result[$each['from']])) {
+                $result[$each['from']] ++;
+            } else {
+                $result[$each['from']] = 1;
+            }
+        }
+    }
+    return($result);
+}
+
+/**
  * Return contact list 
  * 
  * @return string
@@ -139,6 +161,7 @@ function im_ContactList() {
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $alladmins = rcms_scandir(DATA_PATH . "users/");
     $activeAdmins = im_GetActiveAdmins();
+    $haveUnread = im_GetAllMyUnreadMessagesUsers();
     $result = '';
     $rows = '';
     if (!empty($alladmins)) {
@@ -147,7 +170,7 @@ function im_ContactList() {
                 //need checks for unread messages for each user
                 $contactClass = 'ubimcontact';
                 if (wf_CheckGet(array('checknew'))) {
-                    $unreadCounter = im_CheckForUnreadMessagesByUser($eachadmin);
+                    $unreadCounter = (isset($haveUnread[$eachadmin])) ? $haveUnread[$eachadmin] : 0;
                     if ($unreadCounter != 0) {
                         $contactClass = 'ubimcontactincome';
                     }
@@ -170,9 +193,9 @@ function im_ContactList() {
             }
         }
         $result = wf_TableBody($rows, '100%', '0', 'glamour');
-        
+
         $myAva = gravatar_ShowAdminAvatar($me, '16');
-        $result.= wf_CleanDiv();
+        $result .= wf_CleanDiv();
         $result .= wf_delimiter() . wf_Link("?module=ubim&avatarcontrol=true", $myAva . ' ' . __('Avatar control'), false, 'ubButton');
     }
     return ($result);
