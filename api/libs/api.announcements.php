@@ -87,9 +87,11 @@ class Announcements {
     protected $introText = '';
 
     /**
-     * Contains intro text storage key name
+     * System caching instance placeholder
+     *
+     * @var object
      */
-    const INTRO_KEY = 'ZBS_INTRO';
+    protected $cache = '';
 
     /**
      * Caching timeout
@@ -98,13 +100,32 @@ class Announcements {
      */
     protected $cacheTime = 2592000; //month by default
 
+    /**
+     * Contains default announcements cache key name
+     */
+
+    const CACHE_KEY_ANN = 'ANNOUNCEMENTS';
+
+    /**
+     * Contains default announcements viewed cache key name
+     */
+    const CACHE_KEY_ADMAQ = 'ADMACQUAINTED';
+
+    /**
+     * Contains intro text storage key name
+     */
+    const INTRO_KEY = 'ZBS_INTRO';
+
+    /**
+     * Other predefined constants
+     */
     const URL_ME = '?module=announcements';
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
     public function __construct() {
         $this->initMessages();
         $this->setLogin();
-        //$this->initCache();
+        $this->initCache();
         $this->setAnnounceFor();
         $this->setAnnounceId();
         $this->loadAdminsName();
@@ -138,6 +159,16 @@ class Announcements {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Flushes precached data
+     * 
+     * @return void
+     */
+    protected function flushCache() {
+        $this->cache->delete(self::CACHE_KEY_ANN);
+        $this->cache->delete(self::CACHE_KEY_ADMAQ);
     }
 
     /**
@@ -200,19 +231,24 @@ class Announcements {
      * @return array
      */
     protected function avaibleAnnouncementsCached() {
-       // $obj = $this;
-//        $ann_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for, function() use ($obj) {
-//            return ($obj->loadAvaibleAnnouncements());
-//        }, $this->cacheTime);
-        //TODO: remove it
-        $ann_arr=$this->loadAvaibleAnnouncements();
-        if (!empty($ann_arr)) {
-            foreach ($ann_arr as $key => $data) {
-                $this->announcesAvaible[$data['id']]['public'] = @$data['public'];
-                $this->announcesAvaible[$data['id']]['type'] = @$data['type'];
-                $this->announcesAvaible[$data['id']]['title'] = $data['title'];
-                $this->announcesAvaible[$data['id']]['text'] = $data['text'];
+        $cachedAnnouncements = $this->cache->get(self::CACHE_KEY_ANN, $this->cacheTime);
+        if (empty($cachedAnnouncements)) {
+            $cachedAnnouncements = array();
+        }
+        if (isset($cachedAnnouncements[$this->announcementsTable])) {
+            $this->announcesAvaible = $cachedAnnouncements[$this->announcementsTable];
+        } else {
+            $ann_arr = $this->loadAvaibleAnnouncements();
+            if (!empty($ann_arr)) {
+                foreach ($ann_arr as $key => $data) {
+                    $this->announcesAvaible[$data['id']]['public'] = @$data['public'];
+                    $this->announcesAvaible[$data['id']]['type'] = @$data['type'];
+                    $this->announcesAvaible[$data['id']]['title'] = $data['title'];
+                    $this->announcesAvaible[$data['id']]['text'] = $data['text'];
+                }
             }
+            $cachedAnnouncements[$this->announcementsTable] = $this->announcesAvaible;
+            $this->cache->set(self::CACHE_KEY_ANN, $cachedAnnouncements, $this->cacheTime);
         }
     }
 
@@ -233,14 +269,7 @@ class Announcements {
      * @return void
      */
     protected function announcesHistoryCacheInfoClean($ann_id) {
-//        $query = "SELECT `id` FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "' ORDER BY `id` DESC LIMIT 1";
-//        $last_db_uniqueid = simple_query($query);
-//        $last_cache_id = $this->cache->get('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
-//        if ($last_db_uniqueid != $last_cache_id) {
-//            $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
-//            $this->cache->set('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $last_db_uniqueid, $this->cacheTime);
-//        }
-        //TODO: remove it
+        
     }
 
     /**
@@ -254,15 +283,7 @@ class Announcements {
         $ann_id = ($ann_id) ? $ann_id : $this->ann_id;
 
         if (isset($this->announcesAvaible[$ann_id])) {
-            // Check for needed cache by ann_id
-//            $this->announcesHistoryCacheInfoClean($ann_id);
-//            $obj = $this;
-//            $votes_arr = $this->cache->getCallback('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', function() use ($ann_id, $obj) {
-//                return ($obj->loadAnnounceHistory($ann_id));
-//            }, $this->cacheTime);
-            //TODO: remove it
-            
-             $votes_arr = $this->loadAnnounceHistory($ann_id);
+            $votes_arr = $this->loadAnnounceHistory($ann_id);
             if (!empty($votes_arr)) {
                 foreach ($votes_arr as $data) {
                     $this->announcesHistory[$data['annid']]['id'][$data['login']] = $data['id'];
@@ -313,8 +334,7 @@ class Announcements {
         $ann_id = simple_query($query_ann_id);
         $ann_id = $ann_id['id'];
         log_register("ANNOUNCEMENT " . $this->log_register . "CREATE [" . $ann_id . "]");
-        //$this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
-        //TODO: remove it
+        $this->flushCache();
         return ($ann_id);
     }
 
@@ -331,9 +351,8 @@ class Announcements {
             foreach ($diff_data as $field => $value) {
                 simple_update_field($this->announcementsTable, $field, $value, "WHERE `id`='" . $ann_id . "'");
             }
-           // $this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
-            //TODO: remove it
             log_register("ANNOUNCEMENT " . $this->log_register . "EDIT [" . $ann_id . "]");
+            $this->flushCache();
         }
     }
 
@@ -347,8 +366,7 @@ class Announcements {
         $this->deleteAnnounceHistory($ann_id);
         $query = "DELETE FROM `" . $this->announcementsTable . "` WHERE `id` ='" . $ann_id . "'";
         nr_query($query);
-        //$this->cache->delete('ANNOUNCE_' . $this->ann_for, $this->cacheTime);
-        //TODO: remove it
+        $this->flushCache();
     }
 
     /**
@@ -360,9 +378,6 @@ class Announcements {
     protected function deleteAnnounceHistory($ann_id) {
         $query = "DELETE FROM `" . $this->historyTable . "` WHERE `annid` = '" . $ann_id . "'";
         nr_query($query);
-//        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY', $this->cacheTime);
-//        $this->cache->delete('ANNOUNCE_' . $this->ann_for . '_' . $ann_id . '_HISTORY_LAST', $this->cacheTime);
-        //TODO: remove it
     }
 
     /**
@@ -394,7 +409,7 @@ class Announcements {
             if (!empty($announcements_data['title'])) {
                 $name = ($announcements_data['title']);
             } else {
-                $message_warn.= $this->messages->getStyledMessage(__('Title cannot be empty'), 'warning');
+                $message_warn .= $this->messages->getStyledMessage(__('Title cannot be empty'), 'warning');
             }
 
             // Check that we dont have warning message and create Announce
@@ -414,10 +429,10 @@ class Announcements {
                 rcms_redirect(self::URL_ME . '&action=edit&ann_id=' . $this->ann_id . $this->admiface);
             }
         } else {
-            $result.= $this->messages->getStyledMessage(__('Poll data cannot be empty '), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Poll data cannot be empty '), 'warning');
         }
 
-        $result.= $message_warn;
+        $result .= $message_warn;
 
         return ($result);
     }
@@ -436,32 +451,32 @@ class Announcements {
         $result = '';
         if (!empty($this->ann_id)) {
             $ann_action = 'editann';
-            $result.= wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($this->ann_id), 'ubButton', '600', '400');
-            $result.= wf_delimiter();
+            $result .= wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($this->ann_id), 'ubButton', '600', '400');
+            $result .= wf_delimiter();
             $inputs = wf_TextInput($ann_action . '[title]', __('Title'), $this->announcesAvaible[$this->ann_id]['title'], true, 40);
-            $inputs.= __('Text') . ' (HTML)' . $sup . wf_tag('br');
-            $inputs.= wf_TextArea($ann_action . '[text]', '', $this->announcesAvaible[$this->ann_id]['text'], true, '60x10');
+            $inputs .= __('Text') . ' (HTML)' . $sup . wf_tag('br');
+            $inputs .= wf_TextArea($ann_action . '[text]', '', $this->announcesAvaible[$this->ann_id]['text'], true, '60x10');
             // Check that we dont use admin parametr
             if ($this->ann_for != 'ADMINS') {
-                $inputs.= wf_Selector($ann_action . '[public]', $states, __('Public'), $this->announcesAvaible[$this->ann_id]['public'], false);
-                $inputs.= wf_Selector($ann_action . '[type]', $types, __('Type'), $this->announcesAvaible[$this->ann_id]['type'], false);
+                $inputs .= wf_Selector($ann_action . '[public]', $states, __('Public'), $this->announcesAvaible[$this->ann_id]['public'], false);
+                $inputs .= wf_Selector($ann_action . '[type]', $types, __('Type'), $this->announcesAvaible[$this->ann_id]['type'], false);
             }
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form("", 'POST', $inputs, 'glamour');
+            $inputs .= wf_delimiter();
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form("", 'POST', $inputs, 'glamour');
             return ($result);
         } else {
             $ann_action = 'createann';
             $inputs = wf_TextInput($ann_action . '[title]', __('Title'), '', true, 40);
-            $inputs.= __('Text') . ' (HTML)' . $sup . wf_tag('br');
-            $inputs.= wf_TextArea($ann_action . '[text]', '', '', true, '60x10');
+            $inputs .= __('Text') . ' (HTML)' . $sup . wf_tag('br');
+            $inputs .= wf_TextArea($ann_action . '[text]', '', '', true, '60x10');
             // Check that we dont use admin parametr
             if ($this->ann_for != 'ADMINS') {
-                $inputs.= wf_Selector($ann_action . '[public]', $states, __('Public'), '', false);
-                $inputs.= wf_Selector($ann_action . '[type]', $types, __('Type'), '', false);
+                $inputs .= wf_Selector($ann_action . '[public]', $states, __('Public'), '', false);
+                $inputs .= wf_Selector($ann_action . '[type]', $types, __('Type'), '', false);
             }
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Create'));
+            $inputs .= wf_delimiter();
+            $inputs .= wf_Submit(__('Create'));
             $result = wf_Form("", 'POST', $inputs, 'glamour');
             return ($result);
         }
@@ -484,9 +499,9 @@ class Announcements {
     protected function introEditForm() {
         $result = '';
         $inputs = wf_HiddenInput('newzbsintro', 'true');
-        $inputs.= __('Text') . ' (HTML)' . wf_tag('br');
-        $inputs.= wf_TextArea('newzbsintrotext', '', $this->introText, true, '70x15');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= __('Text') . ' (HTML)' . wf_tag('br');
+        $inputs .= wf_TextArea('newzbsintrotext', '', $this->introText, true, '70x15');
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -512,25 +527,25 @@ class Announcements {
         $result = '';
         // Add backlink
         if (wf_CheckGet(array('action')) OR wf_CheckGet(array('show_acquainted'))) {
-            $result.= wf_BackLink(self::URL_ME . $this->admiface);
+            $result .= wf_BackLink(self::URL_ME . $this->admiface);
         } else {
             if (cfr('ZBSANNCONFIG')) {
-                $result.= wf_Link(self::URL_ME . '&action=create' . $this->admiface, web_icon_create() . ' ' . __('Create'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&action=create' . $this->admiface, web_icon_create() . ' ' . __('Create'), false, 'ubButton');
             }
         }
 
 
         if (!wf_CheckGet(array('show_acquainted')) AND wf_CheckGet(array('admiface'))) {
-            $result.= wf_Link(self::URL_ME, wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats announcements'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME, wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats announcements'), false, 'ubButton') . ' ';
         }
 
         if (!wf_CheckGet(array('show_acquainted')) AND ! wf_CheckGet(array('admiface'))) {
             if (cfr('ZBSANNCONFIG')) {
-                $result.= wf_modalAuto(wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats intro'), __('Userstats intro'), $this->introEditForm(), 'ubButton');
+                $result .= wf_modalAuto(wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats intro'), __('Userstats intro'), $this->introEditForm(), 'ubButton');
             }
 
             if (!wf_CheckGet(array('show_acquainted'))) {
-                $result.= wf_Link(self::URL_ME . '&admiface=true', wf_img('skins/admannouncements.png') . ' ' . __('Administrators announcements'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&admiface=true', wf_img('skins/admannouncements.png') . ' ' . __('Administrators announcements'), false, 'ubButton');
             }
         }
 
@@ -551,8 +566,8 @@ class Announcements {
                 $result = wf_tag('h3', false, 'row2', '') . $this->announcesAvaible[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
             }
             $previewtext = $this->announcesAvaible[$id]['text'];
-            $result.= nl2br($previewtext);
-            $result.= wf_delimiter();
+            $result .= nl2br($previewtext);
+            $result .= wf_delimiter();
         }
         return ($result);
     }
@@ -643,10 +658,10 @@ class Announcements {
                 $this->loadAnnouncesHistoryCached($ann_id);
                 $actionLinks = '';
                 if (cfr('ZBSANNCONFIG')) {
-                    $actionLinks.= wf_JSAlert(self::URL_ME . '&action=delete&ann_id=' . $ann_id . $this->admiface, web_delete_icon(), __('Removing this may lead to irreparable results'));
-                    $actionLinks.= wf_JSAlert(self::URL_ME . '&action=edit&ann_id=' . $ann_id . $this->admiface, web_edit_icon(), __('Are you serious'));
+                    $actionLinks .= wf_JSAlert(self::URL_ME . '&action=delete&ann_id=' . $ann_id . $this->admiface, web_delete_icon(), __('Removing this may lead to irreparable results'));
+                    $actionLinks .= wf_JSAlert(self::URL_ME . '&action=edit&ann_id=' . $ann_id . $this->admiface, web_edit_icon(), __('Are you serious'));
                 }
-                $actionLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($ann_id), '', '600', '400');
+                $actionLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($ann_id), '', '600', '400');
 
                 if (isset($this->announcesHistoryCount[$ann_id])) {
                     $announcesHistory = wf_Link(self::URL_ME . '&show_acquainted=true&ann_id=' . $ann_id . $this->admiface, $this->announcesHistoryCount[$ann_id]);
@@ -694,15 +709,23 @@ class AdminAnnouncements extends Announcements {
     /**
      * gets poll that user not voted yet
      * 
-     * @return string
+     * @return array
      */
     protected function loadAnnouncementsForAcquainted() {
-        $result = '';
-        $date = date("Y-m-d H:i:s");
-        $query = "SELECT * FROM `admannouncements` WHERE `id` NOT IN (SELECT `annid` FROM `admacquainted` "
-                . "WHERE `admin` = '" . $this->myLogin . "') "
-        ;
-        $result = simple_queryall($query);
+        $result = array();
+        $cachedResult = $this->cache->get(self::CACHE_KEY_ADMAQ, $this->cacheTime);
+        if (empty($cachedResult)) {
+            $cachedResult = array();
+        }
+        if (isset($cachedResult[$this->myLogin])) {
+            $result = $cachedResult[$this->myLogin];
+        } else {
+            $query = "SELECT * FROM `admannouncements` WHERE `id` NOT IN (SELECT `annid` FROM `admacquainted` "
+                    . "WHERE `admin` = '" . $this->myLogin . "') ";
+            $result = simple_queryall($query);
+            $cachedResult[$this->myLogin] = $result;
+            $this->cache->set(self::CACHE_KEY_ADMAQ, $cachedResult, $this->cacheTime);
+        }
         return ($result);
     }
 
@@ -717,8 +740,8 @@ class AdminAnnouncements extends Announcements {
         if (!empty($AnnouncementsForAcquainted)) {
             if (!empty($this->myLogin)) {
                 foreach ($AnnouncementsForAcquainted as $io => $each) {
-                    $result.= $this->preview($each['id']);
-                    $result.= wf_Link('?module=taskbar&setacquainted=' . $each['id'], wf_img('skins/icon_ok.gif').' '.__('Acquainted'), true, 'ubButton');
+                    $result .= $this->preview($each['id']);
+                    $result .= wf_Link('?module=taskbar&setacquainted=' . $each['id'], wf_img('skins/icon_ok.gif') . ' ' . __('Acquainted'), true, 'ubButton');
                 }
             }
         }
@@ -745,6 +768,7 @@ class AdminAnnouncements extends Announcements {
                     . "(NULL, '" . $curDate . "','" . $loginFiltered . "','" . $announcementId . "');";
             nr_query($query);
             log_register("ANNOUNCEMENT ADM READ [" . $announcementId . "]");
+            $this->flushCache();
         }
     }
 

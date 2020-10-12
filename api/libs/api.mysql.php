@@ -297,12 +297,12 @@ if (!extension_loaded('mysql')) {
             if (!in_array(mysql_errno(), array(1062, 1065, 1191))) { // Errcodes in array are handled at another way :)
                 if (DEBUG == 1 || $show == 1) {
                     $warning = '<br><b>' . ('MySQL Error') . ':</b><br><i>';
-                    $warning.=mysql_errno() . ' : ' . mysql_error() . (empty($query) ? '</i>' : '<br>In query: <textarea cols="50" rows="7">' . $query . '</textarea></i>');
+                    $warning .= mysql_errno() . ' : ' . mysql_error() . (empty($query) ? '</i>' : '<br>In query: <textarea cols="50" rows="7">' . $query . '</textarea></i>');
                     print($warning) or print($warning);
                 } else {
                     print('An error occured. Please, try again later. Thank You !');
-                    @$message.=mysql_errno() . ':' . mysql_error() . "\r\n";
-                    $message.=(empty($query) ? '' : "In query: \r\n" . $query . "\r\n");
+                    @$message .= mysql_errno() . ':' . mysql_error() . "\r\n";
+                    $message .= (empty($query) ? '' : "In query: \r\n" . $query . "\r\n");
                     die('MySQL error ' . $message);
                 }
             }
