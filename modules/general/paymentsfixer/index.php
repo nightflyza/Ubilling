@@ -246,7 +246,6 @@ if (cfr('ROOT')) {
                     $cells .= wf_TableCell(__('Tariff') . ' / ' . __('Fee'));
                     $cells .= wf_TableCell(__('Notes'));
                     $cells .= wf_TableCell(__('Reason'));
-                    $cells .= wf_TableCell(__('Actions'));
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($debtorsTmp as $io => $each) {
@@ -273,7 +272,6 @@ if (cfr('ROOT')) {
                             }
                         }
                         $cells .= wf_TableCell($reason);
-                        $cells .= wf_TableCell('TODO');
                         $rows .= wf_TableRow($cells, 'row5');
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
