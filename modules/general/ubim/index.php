@@ -38,9 +38,11 @@ if (cfr('UBIM')) {
 //display main grid
         $mainGrid = im_MainWindow();
         show_window(__('Instant messaging service'), $mainGrid);
-        //update notification area
-        $darkVoid = new DarkVoid();
-        $darkVoid->flushCache();
+        if (!wf_CheckGet(array('timecheckunread'))) {
+            //update notification area
+            $darkVoid = new DarkVoid();
+            $darkVoid->flushCache();
+        }
     } else {
         //avatar control and mail change form
         show_window(__('Avatar control'), im_AvatarControlForm());
