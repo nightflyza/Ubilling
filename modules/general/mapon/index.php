@@ -80,7 +80,7 @@ if ($altCfg['MAPON_ENABLED']) {
                                                 $curCoords = $each['lat'] . ',' . $each['lng'];
                                                 if (!empty($prevCoords)) {
                                                     $routeLabel = date("Y-m-d H:i:s", $each['time']) . ' ' . @$unitDrivers[$unitId];
-                                                    $placemarks .= generic_MapAddLine($curCoords, $prevCoords, $unitRouteColor, $routeLabel, 2);
+                                                    $placemarks .= generic_MapAddLine($curCoords, $prevCoords, $unitRouteColor, $routeLabel, 3);
                                                 }
                                                 $prevCoords = $curCoords;
                                             }

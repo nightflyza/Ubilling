@@ -248,6 +248,7 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
  * @param string $coord2
  * @param string $color
  * @param string $hint
+ * @param string $width
  * 
  * @return string
  */

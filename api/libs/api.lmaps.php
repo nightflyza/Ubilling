@@ -350,6 +350,7 @@ function generic_MapEditor($name, $title = '', $data = '') {
  * @param string $coord2
  * @param string $color
  * @param string $hint
+ * @param string $width
  * 
  * @return string
  */
