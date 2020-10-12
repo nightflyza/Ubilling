@@ -142,8 +142,8 @@ if ($us_config['OPENPAYZ_ENABLED']) {
          */
         protected function getStyle() {
             $result = la_tag('style', false);
-            $result.= file_get_contents($this->skinPath . '/opayz.css');
-            $result.= la_tag('style', true);
+            $result .= file_get_contents($this->skinPath . '/opayz.css');
+            $result .= la_tag('style', true);
             return ($result);
         }
 
@@ -154,7 +154,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
          */
         public function render() {
             $result = '';
-            $result.=$this->getStyle();
+            $result .= $this->getStyle();
             $inputs = '';
             if (!empty($this->paySys)) {
                 if (!empty($this->paymentId)) {
@@ -174,25 +174,27 @@ if ($us_config['OPENPAYZ_ENABLED']) {
                         }
 
                         $inputs = la_tag('div', false, 'opbackend');
-                        $inputs.=la_HiddenInput('customer_id', $this->paymentId);
+                        $inputs .= la_HiddenInput('customer_id', $this->paymentId);
 
                         if (empty($paysysIcon)) {
-                            $inputs.=la_Submit(strtoupper($eachpaysys));
-                            $inputs.=la_tag('br');
-                            $inputs.=$paysys_desc;
+                            $inputs .= la_Submit(strtoupper($eachpaysys));
+                            $inputs .= la_tag('br');
+                            $inputs .= $paysys_desc;
                         } else {
                             $fullDesc = ' alt="' . strtoupper($eachpaysys) . ' - ' . $paysys_desc . '" title="' . strtoupper($eachpaysys) . ' - ' . $paysys_desc . '" ';
                             $iconParams = 'width="200" height="200" ';
-                            $inputs.=la_tag('input', false, '', 'type="image" src="' . $paysysIcon . '"' . $fullDesc . $iconParams);
+                            $inputs .= la_tag('input', false, '', 'type="image" src="' . $paysysIcon . '"' . $fullDesc . $iconParams);
                         }
-                        $inputs.=la_tag('div', true);
+                        $inputs .= la_tag('div', true);
 
 
-                        $result.= la_Form($this->usConf['OPENPAYZ_URL'] . $eachpaysys . '/', 'GET', $inputs, '', '', false);
+                        $result .= la_Form($this->usConf['OPENPAYZ_URL'] . $eachpaysys . '/', 'GET', $inputs, '', '', false);
                     }
 
 
                     show_window(__('Online payments'), $result);
+                } else {
+                    show_window(__('Sorry'), __('No available payment systems'));
                 }
             } else {
                 show_window(__('Sorry'), __('No available payment systems'));
