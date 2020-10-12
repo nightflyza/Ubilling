@@ -264,15 +264,6 @@ class Announcements {
     }
 
     /**
-     * Check for last cache data and if need clean
-     * 
-     * @return void
-     */
-    protected function announcesHistoryCacheInfoClean($ann_id) {
-        
-    }
-
-    /**
      * Loads all avaible hystory results from cache
      * 
      * @return array announcesHistory
