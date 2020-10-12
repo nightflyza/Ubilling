@@ -38,6 +38,28 @@ class StickyNotes {
     protected $myLogin = '';
 
     /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Default taskbar notifications caching timeout in seconds
+     */
+    const CACHE_TIMEOUT = 3600;
+
+    /**
+     * Default cache key name for personal notes
+     */
+    const CACHE_KEY_NOTES = 'STICKYNOTES';
+
+    /**
+     * Default cache key name for revelations
+     */
+    const CACHE_KEY_REVELATIONS = 'STICKYREVELATIONS';
+
+    /**
      * Default notes management module URL
      */
     const URL_ME = '?module=stickynotes';
@@ -62,6 +84,7 @@ class StickyNotes {
     public function __construct($onlyActive) {
         $this->setLogin();
         $this->loadConfig();
+        $this->initCache();
         if ($onlyActive) {
             $this->loadActiveNotes();
             if ($this->revelationsFlag) {
@@ -97,6 +120,25 @@ class StickyNotes {
     }
 
     /**
+     * Inits system caching object instance
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Flushes cache keys on sticky notes or revelations changes
+     * 
+     * @return void
+     */
+    protected function flushCache() {
+        $this->cache->delete(self::CACHE_KEY_NOTES);
+        $this->cache->delete(self::CACHE_KEY_REVELATIONS);
+    }
+
+    /**
      * Loads notes from database into private property
      * 
      * @return void
@@ -118,13 +160,23 @@ class StickyNotes {
      * @return void
      */
     protected function loadActiveNotes() {
-        $query = "SELECT * from `stickynotes` WHERE `owner`= '" . $this->myLogin . "' AND `active`='1' ORDER BY `id` ASC";
-        $tmpArr = simple_queryall($query);
-        //map id=>id
-        if (!empty($tmpArr)) {
-            foreach ($tmpArr as $io => $each) {
-                $this->activenotes[$each['id']] = $each;
+        $cachedNotes = $this->cache->get(self::CACHE_KEY_NOTES, self::CACHE_TIMEOUT);
+        if (empty($cachedNotes)) {
+            $cachedNotes = array();
+        }
+        if (isset($cachedNotes[$this->myLogin])) {
+            $this->activenotes = $cachedNotes[$this->myLogin];
+        } else {
+            $query = "SELECT * from `stickynotes` WHERE `owner`= '" . $this->myLogin . "' AND `active`='1' ORDER BY `id` ASC";
+            $tmpArr = simple_queryall($query);
+            //map id=>id
+            if (!empty($tmpArr)) {
+                foreach ($tmpArr as $io => $each) {
+                    $this->activenotes[$each['id']] = $each;
+                }
             }
+            $cachedNotes[$this->myLogin] = $this->activenotes;
+            $this->cache->set(self::CACHE_KEY_NOTES, $cachedNotes, self::CACHE_TIMEOUT);
         }
     }
 
@@ -137,16 +189,31 @@ class StickyNotes {
      */
     protected function loadRevelations($onlyForMe = false) {
         if ($onlyForMe) {
-            //yeah, logins must be space-separated
-            $query = "SELECT * from `stickyrevelations` WHERE `showto` LIKE '% " . $this->myLogin . " %'  AND `active`='1' ORDER BY `id` ASC";
+            $cachedRevelations = $this->cache->get(self::CACHE_KEY_REVELATIONS, self::CACHE_TIMEOUT);
+            if (empty($cachedRevelations)) {
+                $cachedRevelations = array();
+            }
+            if (isset($cachedRevelations[$this->myLogin])) {
+                $this->allRevelations = $cachedRevelations[$this->myLogin];
+            } else {
+                //yeah, logins must be space-separated
+                $query = "SELECT * from `stickyrevelations` WHERE `showto` LIKE '% " . $this->myLogin . " %'  AND `active`='1' ORDER BY `id` ASC";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $this->allRevelations[$each['id']] = $each;
+                    }
+                }
+                $cachedRevelations[$this->myLogin] = $this->allRevelations;
+                $this->cache->set(self::CACHE_KEY_REVELATIONS, $cachedRevelations, self::CACHE_TIMEOUT);
+            }
         } else {
             $query = "SELECT * from `stickyrevelations` ORDER BY `id` DESC";
-        }
-
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->allRevelations[$each['id']] = $each;
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->allRevelations[$each['id']] = $each;
+                }
             }
         }
     }
@@ -364,6 +431,7 @@ class StickyNotes {
         $query = "INSERT INTO `stickynotes` (`id`, `owner`, `createdate`, `reminddate`,`remindtime`, `active`, `text`) "
                 . "VALUES (NULL, '" . $owner . "', '" . $createDate . "', " . $remindDate . ", " . $remindTime . " , '" . $activity . "', '" . $text . "');";
         nr_query($query);
+        $this->flushCache();
     }
 
     /**
@@ -400,6 +468,7 @@ class StickyNotes {
         $query = "INSERT INTO `stickyrevelations` (`id`, `owner`, `showto`,`createdate`, `dayfrom`,`dayto`, `active`, `text`) "
                 . "VALUES (NULL, '" . $owner . "', '" . $showTo . "' ,'" . $createDate . "', " . $dayFrom . ", " . $dayTo . " , '" . $activity . "', '" . $text . "');";
         nr_query($query);
+        $this->flushCache();
     }
 
     /**
@@ -416,7 +485,7 @@ class StickyNotes {
         if (!empty($text)) {
             if ($offsetLeft) {
                 $offsetLeft = 35 + $offsetLeft . 'px';
-                $dividedLeftOffset=vf($offsetLeft,3)/5;
+                $dividedLeftOffset = vf($offsetLeft, 3) / 5;
                 $roundedLeftOffset = round($dividedLeftOffset);
                 $offsetTop = 25 + $roundedLeftOffset . 'px';
             } else {
@@ -631,6 +700,7 @@ class StickyNotes {
                     simple_update_field('stickyrevelations', 'showto', $showTo, $where);
                     log_register("REVELATION CHANGED SHOWTO [" . $revelationId . "]");
                 }
+                $this->flushCache();
             }
         }
     }
@@ -641,7 +711,6 @@ class StickyNotes {
      * @return void
      */
     public function addMyRevelation() {
-
         if (wf_CheckPost(array('newrevelationtext'))) {
             $dayFrom = (!empty($_POST['newrevelationdayfrom'])) ? $_POST['newrevelationdayfrom'] : '';
             $dayTo = (!empty($_POST['newrevelationdayto'])) ? $_POST['newrevelationdayto'] : '';
@@ -727,6 +796,7 @@ class StickyNotes {
                 if ($text != $oldText) {
                     simple_update_field('stickynotes', 'text', $text, $where);
                     log_register("STICKY CHANGED TEXT [" . $noteId . "]");
+                    $this->flushCache();
                 }
                 //remind date
                 $remindDate = $_POST['editreminddate'];
@@ -740,11 +810,17 @@ class StickyNotes {
                     $query = "UPDATE `stickynotes` SET `reminddate` = " . $remindDate . " " . $where; // ugly hack, i know
                     nr_query($query);
                     log_register("STICKY CHANGED REMINDDATE [" . $noteId . "] ON " . $remindDate . "");
+                    $this->flushCache();
                 }
 
                 //remind time 
                 $remindTime = $_POST['editremindtime'];
                 $oldRemindTime = $noteData['remindtime'];
+
+                if (ispos($oldRemindTime, ':')) {
+                    $oldRemindTime = explode(':', $oldRemindTime);
+                    $oldRemindTime = $oldRemindTime[0] . ':' . $oldRemindTime[1];
+                }
                 if ($remindTime != $oldRemindTime) {
                     if (!empty($remindTime)) {
                         $remindTime = "'" . mysql_real_escape_string($remindTime) . "'";
@@ -754,6 +830,7 @@ class StickyNotes {
                     $query = "UPDATE `stickynotes` SET `remindtime` = " . $remindTime . " " . $where;
                     nr_query($query);
                     log_register("STICKY CHANGED REMINDTIME [" . $noteId . "] ON " . $remindTime . "");
+                    $this->flushCache();
                 }
 
                 //activity flag
@@ -762,6 +839,7 @@ class StickyNotes {
                 if ($activity != $oldActivity) {
                     simple_update_field('stickynotes', 'active', $activity, $where);
                     log_register("STICKY CHANGED ACTIVE [" . $noteId . "] ON " . $activity . "");
+                    $this->flushCache();
                 }
             }
         }
@@ -780,6 +858,7 @@ class StickyNotes {
             $query = "DELETE FROM `stickynotes` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register("STICKY DELETE [" . $id . "]");
+            $this->flushCache();
         }
     }
 
@@ -796,6 +875,7 @@ class StickyNotes {
             $query = "DELETE FROM `stickyrevelations` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register("REVELATION DELETE [" . $id . "]");
+            $this->flushCache();
         }
     }
 
