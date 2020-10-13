@@ -1168,9 +1168,11 @@ function zb_AgentAssignStrictCreate($login, $agentid) {
 /**
  * Renders agent assigned users stats
  * 
+ * @param string $mask Optional tariff mask to separate users
+ * 
  * @return string
  */
-function zb_AgentStatsRender() {
+function zb_AgentStatsRender($mask = '') {
     /**
      * Seems that waz written with Paranormal Helicopter Porn
      */
@@ -1178,6 +1180,7 @@ function zb_AgentStatsRender() {
     $allUsers = zb_UserGetAllStargazerDataAssoc();
     $tmpArr = array(); // contains all user assigns as login=>agentid
     $agentCounters = array(); //contains binding stats as AgentId = > userCount
+    $maskCounters = array(); //contains binding stats as AgentId mask=>all/active
     if (!empty($allUsers)) {
         $allAddress = zb_AddressGetFullCityaddresslist();
         $allAssigns = zb_AgentAssignGetAllData();
@@ -1205,12 +1208,25 @@ function zb_AgentStatsRender() {
                 } else {
                     $active = 0;
                 }
+
                 if (isset($agentCounters[$eachAgentId])) {
                     $agentCounters[$eachAgentId]['total'] ++;
                     $agentCounters[$eachAgentId]['active'] += $active;
                 } else {
                     $agentCounters[$eachAgentId]['total'] = 1;
                     $agentCounters[$eachAgentId]['active'] = $active;
+                }
+
+                if (!empty($mask)) {
+                    if (ispos($userData['Tariff'], $mask)) {
+                        if (isset($maskCounters[$eachAgentId][$mask])) {
+                            $maskCounters[$eachAgentId][$mask]['all'] ++;
+                            $maskCounters[$eachAgentId][$mask]['active'] += $active;
+                        } else {
+                            $maskCounters[$eachAgentId][$mask]['all'] = 1;
+                            $maskCounters[$eachAgentId][$mask]['active'] = $active;
+                        }
+                    }
                 }
             }
         }
@@ -1219,11 +1235,17 @@ function zb_AgentStatsRender() {
             $cells = wf_TableCell(__('Contrahent name'));
             $cells .= wf_TableCell(__('Users'));
             $cells .= wf_TableCell(__('Active'));
+            if ($mask) {
+                $cells .= wf_TableCell($mask . ': ' . __('Total') . ' / ' . __('Active'));
+            }
             $rows = wf_TableRow($cells, 'row1');
             foreach ($agentCounters as $agentId => $userCount) {
                 $cells = wf_TableCell(@$allAgentNames[$agentId]);
                 $cells .= wf_TableCell($userCount['total']);
                 $cells .= wf_TableCell($userCount['active']);
+                if ($mask) {
+                    $cells .= wf_TableCell(@$maskCounters[$agentId][$mask]['all'].' / '.@$maskCounters[$agentId][$mask]['active']);
+                }
                 $rows .= wf_TableRow($cells, 'row5');
             }
 

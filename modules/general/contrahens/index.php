@@ -81,7 +81,8 @@ if (cfr('AGENTS')) {
 
         //agent assigned users stats
         if (ubRouting::checkGet('agentstats')) {
-            show_window(__('Available assigns'), zb_AgentStatsRender());
+            $privateTariffsMask=@$alter_conf['PRIVATE_TARIFFS_MASK'];
+            show_window(__('Available assigns'), zb_AgentStatsRender($privateTariffsMask));
             show_window('', wf_BackLink('?module=contrahens'));
         }
     }
