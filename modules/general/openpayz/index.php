@@ -1,16 +1,16 @@
 <?php
 
 if (cfr('OPENPAYZ')) {
-    $alter_conf = $ubillingConfig->getAlter();
+    $altCfg = $ubillingConfig->getAlter();
 //check is openpayz enabled?
-    if ($alter_conf['OPENPAYZ_SUPPORT']) {
+    if ($altCfg['OPENPAYZ_SUPPORT']) {
 
         $opayz = new OpenPayz();
 
         //if manual processing transaction
-        if ($alter_conf['OPENPAYZ_MANUAL']) {
-            if (isset($_GET['process'])) {
-                $transaction_data = $opayz->transactionGetData($_GET['process']);
+        if ($altCfg['OPENPAYZ_MANUAL']) {
+            if (ubRouting::checkGet('process', false)) {
+                $transaction_data = $opayz->transactionGetData(ubRouting::get('process'));
                 $customerid = $transaction_data['customerid'];
                 $transaction_summ = $transaction_data['summ'];
                 $transaction_paysys = $transaction_data['paysys'];
@@ -19,7 +19,7 @@ if (cfr('OPENPAYZ')) {
                     if ($transaction_data['processed'] != 1) {
                         $opayz->cashAdd($allcustomers[$customerid], $transaction_summ, $transaction_paysys);
                         $opayz->transactionSetProcessed($transaction_data['id']);
-                        rcms_redirect("?module=openpayz");
+                        ubRouting::nav('?module=openpayz');
                     } else {
                         show_error(__('Already processed'));
                     }
@@ -29,30 +29,30 @@ if (cfr('OPENPAYZ')) {
             }
         }
 
-        if (wf_CheckGet(array('ajax'))) {
+        if (ubRouting::checkGet('ajax')) {
             $opayz->transactionAjaxSource();
         }
 
 
-        if (!wf_CheckGet(array('graphs'))) {
+        if (!ubRouting::checkGet('graphs')) {
             //download exported search
-            if (wf_CheckGet(array('dload'))) {
-                zb_DownloadFile(base64_decode($_GET['dload']), 'docx');
+            if (ubRouting::checkGet('dload')) {
+                zb_DownloadFile(base64_decode(ubRouting::get('dload')), 'docx');
             }
 
 
 
-            if (wf_CheckPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
+            if (ubRouting::checkPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
                 show_window(__('Search'), $opayz->renderSearchForm());
                 show_window('', wf_BackLink('?module=openpayz', '', true));
-                $opayz->doSearch($_POST['searchyear'], $_POST['searchmonth'], $_POST['searchpaysys']);
+                $opayz->doSearch(ubRouting::post('searchyear'), ubRouting::post('searchmonth'), ubRouting::post('searchpaysys'));
             } else {
-                if (!wf_CheckGet(array('showtransaction'))) {
+                if (!ubRouting::checkGet('showtransaction')) {
                     show_window(__('Search'), $opayz->renderSearchForm());
                     //show transactions list
                     $opayz->renderTransactionList();
                 } else {
-                    $opayz->renderTransactionDetails($_GET['showtransaction']);
+                    $opayz->renderTransactionDetails(ubRouting::get('showtransaction'));
                 }
             }
         } else {
