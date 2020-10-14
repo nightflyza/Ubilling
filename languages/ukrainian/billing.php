@@ -3203,6 +3203,10 @@ $lang['def']['Less than tariff price'] = 'Менше вартості тариф
 $lang['def']['User was inactive for a long time'] = 'Користувач був довго неактивним';
 $lang['def']['Task is in progress'] = 'Задача виконується';
 $lang['def']['You cant attach images for already closed task'] = 'Ви не можете чіпляти зображення до вже закритих задач';
+$lang['def']['User access control'] = 'Керування дозволами користувача';
+$lang['def']['Deny online payments for this user'] = 'Заборонити онлайн платежі цьому користувачу';
+$lang['def']['OpenPayz access'] = 'Доступ до OpenPayz';
+$lang['def']['Users which denied from OpenPayz usage'] = 'Користувачі, яким заборонено доступ до OpenPayz';
 $lang['def'][''] = '';
 
 ?>

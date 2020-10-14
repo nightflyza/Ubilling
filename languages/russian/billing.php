@@ -3183,6 +3183,11 @@ $lang['def']['Less than tariff price'] = 'Меньше стоимости тар
 $lang['def']['User was inactive for a long time'] = 'Пользователь был неактивен длительное время';
 $lang['def']['Task is in progress'] = 'Задача выполняется';
 $lang['def']['You cant attach images for already closed task'] = 'Вы не можете цеплять изображения к уже закрытым задачам';
+$lang['def']['User access control'] = 'Управление доступами пользователя';
+$lang['def']['Deny online payments for this user'] = 'Запретить онлайн платежи этому пользователю';
+$lang['def']['OpenPayz access'] = 'Доступ к OpenPayz';
+$lang['def']['Users which denied from OpenPayz usage'] = 'Пользователи которым запрещено использование OpenPayz';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>
