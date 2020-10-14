@@ -3188,6 +3188,6 @@ $lang['def']['Deny online payments for this user'] = 'Запретить онл�
 $lang['def']['OpenPayz access'] = 'Доступ к OpenPayz';
 $lang['def']['Users which denied from OpenPayz usage'] = 'Пользователи которым запрещено использование OpenPayz';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
+
 
 ?>
