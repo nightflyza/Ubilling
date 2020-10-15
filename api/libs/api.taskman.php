@@ -2999,15 +2999,24 @@ function ts_GetUndoneCountersAll() {
 }
 
 /**
- * Returns count of undone tasks - used by Warehouse and another weird things
+ * Returns array of undone tasks - used by Warehouse and another weird things as id=>taskdata
+ * 
+ * @param bool $allTime get undone tasks not only before current date
  * 
  * @return array
  */
-function ts_GetUndoneTasksArray() {
+function ts_GetUndoneTasksArray($allTime = false) {
     $result = array();
-    $curdate = curdate();
-    $filters = "ORDER BY `address`,`jobtype` ASC";
-    $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "' " . $filters;
+    if (!$allTime) {
+        $curdate = curdate();
+        $dateFilters = "AND `startdate` <= '" . $curdate . "'";
+    } else {
+        $dateFilters = '';
+    }
+
+    $orders = "ORDER BY `address`,`jobtype` ASC";
+    $query = "SELECT * from `taskman` WHERE `status` = '0' " . $dateFilters . " " . $orders;
+
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {

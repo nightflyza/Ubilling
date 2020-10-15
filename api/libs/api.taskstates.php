@@ -44,7 +44,7 @@ class TaskStates {
     const URL_BASE = '?module=taskman';
 
     /**
-     * Contains all of task states as id=>statedata
+     * Contains all of task states as taskid=>statedata
      *
      * @var array
      */
@@ -76,7 +76,8 @@ class TaskStates {
         $this->stateTypes['STATE_MOVED'] = ' ' . __('Moved');
         $this->stateTypes['STATE_CALLFAIL'] = '️ ' . __('Missed a phone call');
         $this->stateTypes['STATE_CANCELLED'] = ' ' . __('Canceled');
-        $this->stateTypes['STATE_CONNECTOR'] = ' ' . __('Fixed connector');
+        //TODO: take decision about following state
+        //$this->stateTypes['STATE_CONNECTOR'] = ' ' . __('Fixed connector');
     }
 
     /**
@@ -148,6 +149,22 @@ class TaskStates {
      */
     public function getStateIcons() {
         return($this->stateIcons);
+    }
+
+    /**
+     * Returns task state if it exists
+     * 
+     * @param int $taskId
+     * 
+     * @return string/void
+     */
+    public function getTaskState($taskId) {
+        $result = '';
+        if (isset($this->allStates[$taskId])) {
+            $result = $this->allStates[$taskId]['state'];
+        }
+
+        return($result);
     }
 
     /**
