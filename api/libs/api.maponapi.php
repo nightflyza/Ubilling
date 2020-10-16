@@ -1,8 +1,5 @@
 <?php
 
-namespace Mapon;
-use stdClass;
-
 class MaponAPI {
 
     /**

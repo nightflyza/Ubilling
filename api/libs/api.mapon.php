@@ -67,7 +67,7 @@ class MapOn {
      */
     protected function initMapOn() {
         require_once 'api/libs/api.maponapi.php';
-        $this->api = new Mapon\MaponAPI($this->apiKey, self::API_URL);
+        $this->api = new MaponAPI($this->apiKey, self::API_URL);
     }
 
     /**
