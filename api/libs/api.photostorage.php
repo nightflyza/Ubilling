@@ -322,6 +322,7 @@ class PhotoStorage {
                 if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
                     $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
                     $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
+                    $imgFull .= __('Date') . ': ' . $eachimage['date'];
 
                     $dimensions = 'width:' . ($this->photoCfg['IMGLIST_PREV_W'] + 10) . 'px;';
                     $dimensions .= 'height:' . ($this->photoCfg['IMGLIST_PREV_H'] + 10) . 'px;';
