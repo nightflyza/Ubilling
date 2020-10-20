@@ -2363,7 +2363,7 @@ function wf_JQDTColumnHideShow($CallerObjID, $CallerObjEvent, $JQDTID, $ColIndex
 }
 
 /**
- * Outputs a hex color based text string
+ * Outputs a hex color based text string without # at begin, like an ac1c09
  *
  * @param $text String of text
  * @param $palette Integer between 0 and 100

@@ -304,12 +304,19 @@ class FundsFlow {
      * @param array $fundsflow
      */
     public function renderArray($fundsflow) {
+        global $ubillingConfig;
+        $timeIntervalPalette = $ubillingConfig->getAlterParam('FUNDSFLOW_EXTCOLORING');
+        $timeIntervalColoringFlag = ($timeIntervalPalette) ? true : false;
         $allcashtypes = $this->getCashTypeNames();
         $allservicenames = zb_VservicesGetAllNamesLabeled();
         @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
         $result = '';
 
-        $tablecells = wf_TableCell(__('Date'));
+        $tablecells = '';
+        if ($timeIntervalColoringFlag) {
+            $tablecells .= wf_TableCell('');
+        }
+        $tablecells .= wf_TableCell(__('Date'));
         $tablecells .= wf_TableCell(__('Cash'));
         $tablecells .= wf_TableCell(__('From'));
         $tablecells .= wf_TableCell(__('To'));
@@ -463,7 +470,16 @@ class FundsFlow {
                 //admin login detection
                 $adminName = (isset($employeeNames[$each['admin']])) ? $employeeNames[$each['admin']] : $each['admin'];
 
-                $tablecells = wf_TableCell($fc . $each['date'] . $efc, '150');
+                //time interval coloring
+                if ($timeIntervalColoringFlag) {
+                    $operationMonth = (!empty($each['date'])) ? date("m", strtotime($each['date'])) : '';
+                    $intervalColor = wf_genColorCodeFromText($operationMonth, $timeIntervalPalette);
+                }
+                $tablecells = '';
+                if ($timeIntervalColoringFlag) {
+                    $tablecells .= wf_TableCell('&nbsp;', '', '', 'bgcolor="#' . $intervalColor . '"');
+                }
+                $tablecells .= wf_TableCell($fc . $each['date'] . $efc, '150');
                 $tablecells .= wf_TableCell($fc . $each['summ'] . $efc);
                 $tablecells .= wf_TableCell($fc . $each['from'] . $efc);
                 $tablecells .= wf_TableCell($fc . $each['to'] . $efc);
@@ -957,9 +973,9 @@ class FundsFlow {
                     $tmpKey = $key + 1;
 
                     while (array_key_exists($tmpKey, $fees) or
-                           array_key_exists($tmpKey, $payments) or
-                           array_key_exists($tmpKey, $corrections)
-                          ) {
+                    array_key_exists($tmpKey, $payments) or
+                    array_key_exists($tmpKey, $corrections)
+                    ) {
 
                         $tmpKey++;
                     }
@@ -983,9 +999,9 @@ class FundsFlow {
                     $tmpKey = $key + 1;
 
                     while (array_key_exists($tmpKey, $fees) or
-                           array_key_exists($tmpKey, $payments) or
-                           array_key_exists($tmpKey, $corrections)
-                          ) {
+                    array_key_exists($tmpKey, $payments) or
+                    array_key_exists($tmpKey, $corrections)
+                    ) {
 
                         $tmpKey++;
                     }
@@ -1006,9 +1022,9 @@ class FundsFlow {
                     $tmpKey = $key + 1;
 
                     while (array_key_exists($tmpKey, $fees) or
-                           array_key_exists($tmpKey, $payments) or
-                           array_key_exists($tmpKey, $corrections)
-                          ) {
+                    array_key_exists($tmpKey, $payments) or
+                    array_key_exists($tmpKey, $corrections)
+                    ) {
 
                         $tmpKey++;
                     }
