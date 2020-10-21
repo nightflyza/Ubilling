@@ -2183,8 +2183,8 @@ $(".changeType").change(function () {
                 $cell .= wf_Tag('br');
                 $cell .= wf_CheckInput(self::SAVE_FIELD, __('Save config'), true);
                 $cell .= wf_CheckInput(self::ROUTER_FIELD, __('Router ONU mode'), true);
-                $cell .= wf_CheckInput(self::DHCP_SNOOPING_FIELD, __('Enable DHCP snooping') . '?');
-                $cell .= wf_CheckInput(self::LOOPDETECT_FIELD, __('Enable loopdetect') . '?');
+                $cell .= wf_CheckInput(self::DHCP_SNOOPING_FIELD, __('Enable DHCP snooping') . '?', false, $this->altCfg['ONUREG_DHCP_SNOOPING_DEFAULT']);
+                $cell .= wf_CheckInput(self::LOOPDETECT_FIELD, __('Enable loopdetect') . '?', false, $this->altCfg['ONUREG_LOOPDETECT_DEFAULT']);
 
                 break;
         }
