@@ -9,9 +9,9 @@ set ONU_NUM [lindex $argv 6]
 set VLAN [lindex $argv 7]
 set SVLAN [lindex $argv 8]
 set SN [lindex $argv 9]
-set DESCRIPTION [lindex $argv 9]
-set DHCPSNOOPING [lindex $argv 10]
-set LOOPDETECT [lindex $argv 11]
+set DESCRIPTION [lindex $argv 10]
+set DHCPSNOOPING [lindex $argv 11]
+set LOOPDETECT [lindex $argv 12]
 
 if {[string match "TELNET" $METHOD]} {
     spawn telnet $IP
