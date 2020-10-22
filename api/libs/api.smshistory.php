@@ -110,15 +110,15 @@ class SMSHistory {
                                  {"targets": [6, 7], "width": "100px"},
                                  {"targets": [' . $CheckCol1 . ', ' . $CheckCol2 . '], "className": "dt-center"}
                                 ],
-                 "rowCallback": function(row, data, index) {
-                    /*if ( data[8] == "' . __('Yes') . '" ) {
-                        $(\'td\', row).css(\'background-color\', \'green\');
-                        $(\'td\', row).css(\'color\', \'white\');
-                    }*/
-                    
-                    if ( data['. $CheckCol2 . '] == "' . __('Yes') . '" ) {
+                 "rowCallback": function(row, data, index) {                   
+                    if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data['. $CheckCol2 . '] == "' . __('Yes') . '" ) {
                         $(\'td\', row).css(\'background-color\', \'red\');
                         $(\'td\', row).css(\'color\', \'#FFFF44\');
+                    }
+                    
+                    if ( data[' . $CheckCol1 . '] == "' . __('Yes') . '" && data[' . $CheckCol2 . '] == "' . __('Yes') . '") {
+                        $(\'td\', row).css(\'background-color\', \'#4f7318\');
+                        $(\'td\', row).css(\'color\', \'white\');
                     }
                     
                     if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('No') . '") {
