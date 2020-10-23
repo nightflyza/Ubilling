@@ -1090,7 +1090,7 @@ class MTsigmon {
     }
 
     /**
-     * Renders available ONU JQDT list container
+     * Renders available CPE JQDT list container
      * 
      * @return string
      */
@@ -1339,7 +1339,7 @@ class MTsigmon {
                                                      );
 
                     $tabsData[$QuickAPLinkID] = array('options' => 'style="padding: 0 0 0 2px;"',
-                                                      'body' => $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
+                                                      'body' => $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, 'CPE', 100, $opts),
                                                       'additional_data' => ''
                                                      );
                 }
