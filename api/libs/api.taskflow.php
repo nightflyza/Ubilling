@@ -55,12 +55,16 @@ class TaskFlow {
      * Predefined routes/URLs/etc
      */
     const URL_ME = '?module=taskflow';
+    const URL_TASK = '?module=taskman&edittask=';
     const PROUTE_STATE = 'searchtaskstate';
     const PROUTE_PHOTO = 'searchtaskphoto';
     const PROUTE_WAREHOUSE = 'searchtaskwarehouse';
     const PROUTE_ADCOMMENTS = 'searchtaskadcomments';
     const PROUTE_EMPLOYEE = 'searchtaskemployee';
     const PROUTE_STARTSEARCH = 'searchtaskbegin';
+    const VAL_YES = 'yes';
+    const VAL_NO = 'no';
+    const VAL_ANY = 'any';
 
     public function __construct() {
         $this->loadAlter();
@@ -165,7 +169,7 @@ class TaskFlow {
         $stateFlag = ubRouting::post(self::PROUTE_STATE);
         $inputs .= wf_SelectorAC(self::PROUTE_STATE, $this->taskStates->getStateTypes(), __('Task state'), $stateFlag, false) . ' ';
 
-        $filterParams = array('any' => __('No difference'), 'yes' => __('Yes'), 'no' => __('No'));
+        $filterParams = array(self::VAL_ANY => __('No difference'), self::VAL_YES => __('Yes'), self::VAL_NO => __('No'));
 
         if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
             $photoFlag = ubRouting::post(self::PROUTE_PHOTO);
@@ -187,7 +191,7 @@ class TaskFlow {
             $employeeParams += $this->allActiveEmployee;
 
             $empFlag = ubRouting::post(self::PROUTE_EMPLOYEE);
-            $inputs .= wf_SelectorAC(self::PROUTE_EMPLOYEE, $employeeParams, __('Employee'), $empFlag, false) . ' ';
+            $inputs .= wf_SelectorAC(self::PROUTE_EMPLOYEE, $employeeParams, __('Worker'), $empFlag, false) . ' ';
         }
 
         // $inputs .= wf_Submit(__('Search'));
@@ -202,7 +206,7 @@ class TaskFlow {
      * 
      * @return string
      */
-    public function renderSearchResults() {
+    public function performSearch() {
         $result = '';
         //realy search is required?
         if (ubRouting::checkPost(self::PROUTE_STARTSEARCH)) {
@@ -216,18 +220,97 @@ class TaskFlow {
             $filteredTasks = array(); // mem overusage? heh.. who cares?! :P
             //search filters setup
             $filterState = ubRouting::post(self::PROUTE_STATE);
+            $filterPhoto = ubRouting::post(self::PROUTE_PHOTO);
+            $filterWarehouse = ubRouting::post(self::PROUTE_WAREHOUSE);
+            $filterAdcomments = ubRouting::post(self::PROUTE_ADCOMMENTS);
+            $filterEmployee = ubRouting::post(self::PROUTE_EMPLOYEE);
 
             if (!empty($allUndoneTasks)) {
                 foreach ($allUndoneTasks as $taskId => $taskData) {
+                    $filtersMatched = false;
+                    //primary task state filtering
                     if ($this->taskStates->getTaskState($taskId) == $filterState) {
-                        debarr($taskData); //TODO: take a decision about refilter or exclude from source
+                        $filtersMatched = true;
+
+                        //photostorage filering
+                        if ($filterPhoto != self::VAL_ANY) {
+                            $imagesCount = $this->photoStorage->getImagesCount($taskId);
+                            if ($filterPhoto == self::VAL_YES AND $imagesCount == 0) {
+                                $filtersMatched = false;
+                            }
+                            if ($filterPhoto == self::VAL_NO AND $imagesCount > 0) {
+                                $filtersMatched = false;
+                            }
+                        }
+
+                        //warehouse filtering
+                        if ($filterWarehouse != self::VAL_ANY) {
+                            $outcomesCount = 0;
+                            if (isset($this->allWarehouseOutcomes[$taskId])) {
+                                $outcomesCount = $this->allWarehouseOutcomes[$taskId];
+                            }
+
+                            if ($filterWarehouse == self::VAL_YES AND $outcomesCount == 0) {
+                                $filtersMatched = false;
+                            }
+
+                            if ($filterWarehouse == self::VAL_NO AND $outcomesCount > 0) {
+                                $filtersMatched = false;
+                            }
+                        }
+
+                        //ADcomments filtering 
+                        if ($filterAdcomments != self::VAL_ANY) {
+                            $adCommentsCount = $this->adComments->getCommentsCount($taskId);
+
+                            if ($filterAdcomments == self::VAL_YES AND $adCommentsCount == 0) {
+                                $filtersMatched = false;
+                            }
+
+                            if ($filterAdcomments == self::VAL_NO AND $adCommentsCount > 0) {
+                                $filtersMatched = false;
+                            }
+                        }
+
+                        if ($filterEmployee != self::VAL_ANY) {
+                            if ($filterEmployee != $taskData['employee']) {
+                                $filtersMatched = false;
+                            }
+                        }
                     }
+
+                    if ($filtersMatched) {
+                        $filteredTasks[$taskId] = $taskData;
+                    }
+                }
+                //display some tasks list
+                if (!empty($filteredTasks)) {
+                    $result .= $this->renderFilteredTasks($filteredTasks);
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
                 }
             } else {
                 $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
             }
         }
 
+        return($result);
+    }
+
+    /**
+     * Renders filtered tasks array
+     * 
+     * @param array $filteredTasks
+     * 
+     * @return string
+     */
+    protected function renderFilteredTasks($filteredTasks) {
+        $result = '';
+        if (!empty($filteredTasks)) {
+            foreach ($filteredTasks as $io => $each) {
+                //TODO: render here something
+            }
+        }
         return($result);
     }
 

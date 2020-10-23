@@ -9,7 +9,7 @@ if (cfr('TASKFLOW')) {
 
         //Do some fucking search!
         if (ubRouting::checkPost($taskFlow::PROUTE_STARTSEARCH)) {
-            show_window(__('Search results'), $taskFlow->renderSearchResults());
+            show_window(__('Search results'), $taskFlow->performSearch());
         }
     } else {
         show_error(__('This module is disabled'));
