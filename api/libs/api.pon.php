@@ -4541,18 +4541,21 @@ class PONizer {
                 $loginChecked = (ubRouting::checkPost('searchlogin')) ? true : false;
                 $serialChecked = (ubRouting::checkPost('searchserial')) ? true : false;
                 $ipChecked = (ubRouting::checkPost('searchip')) ? true : false;
+                $idChecked = (ubRouting::checkPost('searchonuid')) ? true : false;
             } else {
                 //default checkbox state
                 $macChecked = true;
                 $loginChecked = true;
                 $serialChecked = true;
                 $ipChecked = true;
+                $idChecked = true;
             }
 
             $inputs .= wf_CheckInput('searchmac', __('MAC'), true, $macChecked);
             $inputs .= wf_CheckInput('searchlogin', __('Login'), true, $loginChecked);
             $inputs .= wf_CheckInput('searchserial', __('Serial number'), true, $serialChecked);
             $inputs .= wf_CheckInput('searchip', __('IP'), true, $ipChecked);
+            $inputs .= wf_CheckInput('searchonuid', __('ONU') . ' ' . __('ID'), true, $idChecked);
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Search'));
 
@@ -4579,6 +4582,7 @@ class PONizer {
                 $loginChecked = (ubRouting::checkPost('searchlogin')) ? true : false;
                 $serialChecked = (ubRouting::checkPost('searchserial')) ? true : false;
                 $ipChecked = (ubRouting::checkPost('searchip')) ? true : false;
+                $idChecked = (ubRouting::checkPost('searchonuid')) ? true : false;
 
                 //processing some search
                 foreach ($this->allOnu as $eachOnuId => $eachOnuData) {
@@ -4603,6 +4607,12 @@ class PONizer {
 
                     if ($ipChecked) {
                         if (ispos($eachOnuData['ip'], $searchQuery)) {
+                            $resultTmp[$eachOnuId] = $eachOnuData;
+                        }
+                    }
+
+                    if ($idChecked) {
+                        if ($eachOnuData['id'] === $searchQuery) {
                             $resultTmp[$eachOnuId] = $eachOnuData;
                         }
                     }
