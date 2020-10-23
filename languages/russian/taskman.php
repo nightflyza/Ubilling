@@ -5,3 +5,4 @@ $lang['def']['the administrator is repressed']='Администратор ре�
 $lang['def']['Log data corrupted']='Данные из лога повреждены либо проебались';
 $lang['def']['Task flow']='Ход задач';
 $lang['def']['No difference']='Без разницы';
+$lang['def']['Advice of the day']='Совет дня';

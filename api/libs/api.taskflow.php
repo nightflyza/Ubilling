@@ -17,6 +17,13 @@ class TaskFlow {
     protected $allActiveEmployee = array();
 
     /**
+     * Contains all available job types as id=>name
+     *
+     * @var array
+     */
+    protected $allJobTypes = array();
+
+    /**
      * Task states instance placeholder
      *
      * @var object
@@ -52,10 +59,25 @@ class TaskFlow {
     protected $messages = '';
 
     /**
+     * System cache object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Default advices caching timeout
+     *
+     * @var int
+     */
+    protected $cacheTimeout = 86400;
+
+    /**
      * Predefined routes/URLs/etc
      */
     const URL_ME = '?module=taskflow';
     const URL_TASK = '?module=taskman&edittask=';
+    const URL_ADVICE = 'http://fucking-great-advice.ru/api/random';
     const PROUTE_STATE = 'searchtaskstate';
     const PROUTE_PHOTO = 'searchtaskphoto';
     const PROUTE_WAREHOUSE = 'searchtaskwarehouse';
@@ -65,6 +87,7 @@ class TaskFlow {
     const VAL_YES = 'yes';
     const VAL_NO = 'no';
     const VAL_ANY = 'any';
+    const ADVICE_KEY = 'FGADVICE';
 
     public function __construct() {
         $this->loadAlter();
@@ -104,6 +127,15 @@ class TaskFlow {
     }
 
     /**
+     * Loads all available jobtypes names from database
+     * 
+     * @return void
+     */
+    protected function loadJobTypes() {
+        $this->allJobTypes = ts_GetAllJobtypes();
+    }
+
+    /**
      * Inits TaskStates instance for further usage
      * 
      * @return void
@@ -132,6 +164,15 @@ class TaskFlow {
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $this->adComments = new ADcomments('TASKMAN');
         }
+    }
+
+    /**
+     * Inits ubilling caching engine
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -178,12 +219,12 @@ class TaskFlow {
 
         if ($this->altCfg['WAREHOUSE_ENABLED']) {
             $whFlag = ubRouting::post(self::PROUTE_WAREHOUSE);
-            $inputs .= wf_SelectorAC(self::PROUTE_WAREHOUSE, $filterParams, __('Additionally spent materials'), $whFlag, false) . ' ';
+            $inputs .= wf_SelectorAC(self::PROUTE_WAREHOUSE, $filterParams, __('Warehouse'), $whFlag, false) . ' ';
         }
 
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adFlag = ubRouting::post(self::PROUTE_ADCOMMENTS);
-            $inputs .= wf_SelectorAC(self::PROUTE_ADCOMMENTS, $filterParams, __('Additional comments'), $adFlag, false) . ' ';
+            $inputs .= wf_SelectorAC(self::PROUTE_ADCOMMENTS, $filterParams, __('Notes'), $adFlag, false) . ' ';
         }
 
         if (!empty($this->allActiveEmployee)) {
@@ -194,7 +235,7 @@ class TaskFlow {
             $inputs .= wf_SelectorAC(self::PROUTE_EMPLOYEE, $employeeParams, __('Worker'), $empFlag, false) . ' ';
         }
 
-        // $inputs .= wf_Submit(__('Search'));
+        $inputs .= wf_Submit(__('Search'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -307,9 +348,87 @@ class TaskFlow {
     protected function renderFilteredTasks($filteredTasks) {
         $result = '';
         if (!empty($filteredTasks)) {
-            foreach ($filteredTasks as $io => $each) {
-                //TODO: render here something
+            //preloading some data required for rendering
+            $allStateIcons = $this->taskStates->getStateIcons();
+            $this->loadJobTypes();
+
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Task state'));
+            if (@$this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $cells .= wf_TableCell(__('Image'));
             }
+            if (@$this->altCfg['WAREHOUSE_ENABLED']) {
+                $cells .= wf_TableCell(__('Outcoming operations'));
+            }
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Address'));
+            $cells .= wf_TableCell(__('Job type'));
+            $cells .= wf_TableCell(__('Worker'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($filteredTasks as $taskId => $taskData) {
+                $taskState = $this->taskStates->getTaskState($taskId);
+                $taskStateName = $this->taskStates->getStateName($taskState);
+                if (isset($allStateIcons[$taskState])) {
+                    $taskStateLabel = wf_img_sized($allStateIcons[$taskState], $taskStateName, 16, 16) . ' ' . $taskStateName;
+                } else {
+                    $taskStateLabel = $taskState;
+                }
+                $cells = wf_TableCell($taskData['id']);
+                $cells .= wf_TableCell($taskStateLabel);
+                if (@$this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                    $imagesCount = $this->photoStorage->getImagesCount($taskId);
+                    $cells .= wf_TableCell(web_bool_led($imagesCount));
+                }
+                if (@$this->altCfg['WAREHOUSE_ENABLED']) {
+                    $whOutcomesCount = (isset($this->allWarehouseOutcomes[$taskId])) ? $this->allWarehouseOutcomes[$taskId] : 0;
+                    $cells .= wf_TableCell(web_bool_led($whOutcomesCount));
+                }
+                $cells .= wf_TableCell($taskData['startdate']);
+                $cells .= wf_TableCell($taskData['address']);
+                $cells .= wf_TableCell(@$this->allJobTypes[$taskData['jobtype']]);
+                $cells .= wf_TableCell($this->allActiveEmployee[$taskData['employee']]);
+                $taskControl = wf_Link(self::URL_TASK . $taskId, web_icon_search() . ' ' . __('Show'), false, 'ubButton', 'target="_BLANK"');
+                $cells .= wf_TableCell($taskControl);
+                $rows .= wf_TableRow($cells, 'row3');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+        return($result);
+    }
+
+    /**
+     * Gets advice of the hour
+     * 
+     * @return string
+     */
+    public function getAwesomeAdvice() {
+        $result = '';
+        $this->initCache();
+
+        $cachedData = $this->cache->get(self::ADVICE_KEY, $this->cacheTimeout);
+        if (empty($cachedData)) {
+            //updating cache
+            $fga = new OmaeUrl(self::URL_ADVICE);
+            $fga->setTimeout(1);
+            $randomAdviceRaw = $fga->response();
+            if (!empty($randomAdviceRaw)) {
+                $randomAdviceText = json_decode($randomAdviceRaw, true);
+                if (is_array($randomAdviceText)) {
+                    $result .= @$randomAdviceText['text'];
+                }
+            }
+
+            if (@!empty($randomAdviceText['text'])) {
+                $this->cache->set(self::ADVICE_KEY, $randomAdviceText['text'], $this->cacheTimeout);
+            } else {
+                //failed at remote API connection
+                $this->cache->set(self::ADVICE_KEY, 'Oo', $this->cacheTimeout);
+            }
+        } else {
+            $result .= $cachedData;
         }
         return($result);
     }
