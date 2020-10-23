@@ -6,3 +6,4 @@ $lang['def']['Log data corrupted']='Данные из лога поврежде�
 $lang['def']['Task flow']='Ход задач';
 $lang['def']['No difference']='Без разницы';
 $lang['def']['Advice of the day']='Совет дня';
+$lang['def']['right to use taskflow module']='Право управлять ходом задач';
