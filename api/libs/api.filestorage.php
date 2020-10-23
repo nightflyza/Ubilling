@@ -290,6 +290,11 @@ class FileStorage {
             $result = wf_BackLink(SwitchCash::URL_ME . '&' . SwitchCash::ROUTE_EDIT . '=' . $switchId);
         }
 
+        if ($this->scope == 'WAREHOUSEINCOME') {
+            $incomeId = ubRouting::filters($this->itemId, 'int');
+            $result = wf_BackLink(Warehouse::URL_ME . '&' . Warehouse::URL_VIEWERS . '&showinid=' . $incomeId);
+        }
+
         return ($result);
     }
 

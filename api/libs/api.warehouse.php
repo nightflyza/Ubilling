@@ -2245,12 +2245,21 @@ class Warehouse {
             $result = $this->messages->getStyledMessage(__('Strange exeption') . ' NO_EXISTING_INCOME_ID', 'error');
         }
 
+        //File storage
+        if (@$this->altCfg['FILESTORAGE_ENABLED']) {
+            $fileStorage = new FileStorage('WAREHOUSEINCOME', $id);
+            $result .= wf_tag('h3') . __('Uploaded files') . wf_tag('h3', true);
+            $result .= $fileStorage->renderFilesPreview(true, '', 'ubButton', 64, '&callback=whin');
+        }
+
         //ADcomments support
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('WAREHOUSEINCOME');
             $result .= wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
             $result .= $adcomments->renderComments($id);
         }
+
+
 
         return ($result);
     }
