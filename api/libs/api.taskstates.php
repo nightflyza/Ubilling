@@ -330,6 +330,8 @@ class TaskStates {
         if (!empty($this->stateTypes)) {
             if (isset($this->allStates[$takskId])) {
                 $currentTaskState = $this->allStates[$takskId]['state'];
+            } else {
+                $currentTaskState = 'NONE';
             }
 
             //take some decision about state change protection
