@@ -310,6 +310,8 @@ class TaskStates {
         $taskmanLogs->data('event', 'modify');
         $taskmanLogs->data('logs', $storeLogData);
         $taskmanLogs->create();
+
+        log_register('TASKSTATE CHANGE TASK [' . $taskId . '] STATE `' . $stateId . '`');
     }
 
     /**
