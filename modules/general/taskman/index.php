@@ -217,12 +217,15 @@ if (cfr('TASKMAN')) {
 
             //Task States support
             if (@$altCfg['TASKSTATES_ENABLED']) {
+                $taskData = ts_GetTaskData(ubRouting::get('edittask'));
+                $taskState = $taskData['status'];
+
                 $taskStates = new TaskStates();
-                show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask')));
+                show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
                 if (ubRouting::checkGet('changestate', 'edittask')) {
                     $newStateSetResult = $taskStates->setTaskState(ubRouting::get('edittask'), ubRouting::get('changestate'));
                     if (empty($newStateSetResult)) {
-                        die($taskStates->renderStatePanel(ubRouting::get('edittask')));
+                        die($taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
                     } else {
                         $messages = new UbillingMessageHelper();
                         die($messages->getStyledMessage($newStateSetResult, 'error'));
@@ -236,8 +239,7 @@ if (cfr('TASKMAN')) {
                 $photoStorage = new PhotoStorage('TASKMAN', ubRouting::get('edittask'));
                 $renderPhotoControlFlag = true;
                 if (@$altCfg['TASKSTATES_ENABLED']) {
-                    $taskData = ts_GetTaskData(ubRouting::get('edittask'));
-                    $taskState = $taskData['status'];
+
                     if ($taskState) {
                         //task already closed
                         $renderPhotoControlFlag = false;
@@ -249,8 +251,7 @@ if (cfr('TASKMAN')) {
                     $photostorageControl .= wf_delimiter();
                 } else {
                     $messages = new UbillingMessageHelper();
-                    $photostorageControl = $messages->getStyledMessage(__('You cant attach images for already closed task'), 'warning'). wf_delimiter();
-                            
+                    $photostorageControl = $messages->getStyledMessage(__('You cant attach images for already closed task'), 'warning') . wf_delimiter();
                 }
                 $photosList = $photoStorage->renderImagesRaw();
                 show_window(__('Photostorage'), $photostorageControl . $photosList);

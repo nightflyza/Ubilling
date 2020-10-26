@@ -1,6 +1,16 @@
 <?php
 
+/**
+ * Performs tasks processing states management
+ */
 class TaskStates {
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
 
     /**
      * Contains available state types as type=>label
@@ -15,6 +25,20 @@ class TaskStates {
      * @var array
      */
     protected $stateIcons = array();
+
+    /**
+     * Contains available princess list logins as login=>login
+     *
+     * @var array
+     */
+    protected $princessList = array();
+
+    /**
+     * Contains current administrator login
+     *
+     * @var string
+     */
+    protected $myLogin = '';
 
     /**
      * Database abstraction layer placeholder
@@ -56,8 +80,12 @@ class TaskStates {
      * @param bool $loadDb Load states from DB
      */
     public function __construct($loadStatesDb = true) {
+        $this->setMyLogin();
+        $this->loadAlter();
+        $this->loadPrincessList();
         $this->setTypes();
         $this->setTypesIcons();
+
         if ($loadStatesDb) {
             $this->InitDatabase();
             $this->loadAllTasksStates();
@@ -76,8 +104,62 @@ class TaskStates {
         $this->stateTypes['STATE_MOVED'] = ' ' . __('Moved');
         $this->stateTypes['STATE_CALLFAIL'] = '️ ' . __('Missed a phone call');
         $this->stateTypes['STATE_CANCELLED'] = ' ' . __('Canceled');
-        //TODO: take decision about following state
-        //$this->stateTypes['STATE_CONNECTOR'] = ' ' . __('Fixed connector');
+        if (!empty($this->princessList)) {
+            $this->stateTypes['STATE_PRINCESS'] = ' ' . __('Princess was here'); //protected state. May be modified only by princess.
+        }
+    }
+
+    /**
+     * Sets current administrator login
+     * 
+     * @return void
+     */
+    protected function setMyLogin() {
+        $this->myLogin = whoami();
+    }
+
+    /**
+     * Checks is me an princess or not?
+     * 
+     * @return bool
+     */
+    public function iAmPrincess() {
+        $result = false;
+        if (isset($this->princessList[$this->myLogin])) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Loads system alter config into protected prop
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Preloads princess list from config option
+     * 
+     * @return void
+     */
+    protected function loadPrincessList() {
+        if (isset($this->altCfg['PRINCESS_LIST'])) {
+            if (!empty($this->altCfg['PRINCESS_LIST'])) {
+                $princessRaw = explode(',', $this->altCfg['PRINCESS_LIST']);
+                if (!empty($princessRaw)) {
+                    foreach ($princessRaw as $io => $eachPrincess) {
+                        $eachPrincess = trim($eachPrincess);
+                        $this->princessList[$eachPrincess] = $eachPrincess;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -233,26 +315,65 @@ class TaskStates {
     /**
      * Renders states control panel
      * 
-     * @param int $taskId
+     * @param int $takskId Existing task ID
+     * @param bool $protected Deny of modification tasks states
      * 
      * @return string
      */
-    public function renderStatePanel($takskId) {
+    public function renderStatePanel($takskId, $protected = false) {
         $result = '';
         $containerName = 'ajTaskState_' . $takskId;
         $result .= wf_AjaxLoader();
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
         if (!empty($this->stateTypes)) {
+            if (isset($this->allStates[$takskId])) {
+                $currentTaskState = $this->allStates[$takskId]['state'];
+            }
+
+            //take some decision about state change protection
+            if ($protected) {
+                $stateChangeble = false;
+            } else {
+                if ($currentTaskState == 'STATE_PRINCESS') { //protected state
+                    if ($this->iAmPrincess()) {
+                        $stateChangeble = true;
+                    } else {
+                        $stateChangeble = false;
+                    }
+                } else {
+                    //normal states
+                    $stateChangeble = true;
+                }
+            }
+
             foreach ($this->stateTypes as $stateId => $stateLabel) {
                 $stateIcon = $this->stateIcons[$stateId];
                 $controlClass = 'dashtask';
-                if (isset($this->allStates[$takskId])) {
-                    if ($this->allStates[$takskId]['state'] == $stateId) {
-                        $controlClass .= ' todaysig';
+
+                //setting state as currently selected
+                if ($currentTaskState == $stateId) {
+                    $controlClass .= ' todaysig';
+                }
+
+                if ($stateId == 'STATE_PRINCESS') {
+                    if ($protected) {
+                        $stateChangeble = false;
+                    } else {
+                        if ($this->iAmPrincess()) {
+                            $stateChangeble = true;
+                        } else {
+                            $stateChangeble = false;
+                        }
                     }
                 }
 
-                $controlUrl = wf_AjaxLink(self::URL_BASE . '&edittask=' . $takskId . '&changestate=' . $stateId, wf_img($stateIcon), $containerName);
+
+                if ($stateChangeble) {
+                    $controlUrl = wf_AjaxLink(self::URL_BASE . '&edittask=' . $takskId . '&changestate=' . $stateId, wf_img($stateIcon), $containerName);
+                } else {
+                    $controlUrl = wf_img($stateIcon);
+                }
+
 
                 $result .= wf_tag('div', false, $controlClass, '');
                 $result .= $controlUrl;
@@ -262,6 +383,10 @@ class TaskStates {
         }
         $result .= wf_tag('div', true);
         $result .= wf_CleanDiv();
+        if ($protected) {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('You cant modify closed tasks state'), 'warning');
+        }
 
         return($result);
     }

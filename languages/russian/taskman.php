@@ -7,3 +7,5 @@ $lang['def']['Task flow']='Ход задач';
 $lang['def']['No difference']='Без разницы';
 $lang['def']['Advice of the day']='Совет дня';
 $lang['def']['right to use taskflow module']='Право управлять ходом задач';
+$lang['def']['Princess was here']='Здесь были принцессы';
+$lang['def']['You cant modify closed tasks state']='Вы не можете изменять состояние закрытых задач';
