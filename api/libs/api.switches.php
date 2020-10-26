@@ -157,7 +157,7 @@ function web_SwitchModelsShow() {
             $switchmodelcontrols = wf_JSAlert('?module=switchmodels&deletesm=' . $eachmodel['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $switchmodelcontrols .= wf_Link('?module=switchmodels&edit=' . $eachmodel['id'], web_edit_icon());
             $tablecells .= wf_TableCell($switchmodelcontrols);
-            $tablerows .= wf_TableRow($tablecells, 'row3');
+            $tablerows .= wf_TableRow($tablecells, 'row5');
         }
     }
 
