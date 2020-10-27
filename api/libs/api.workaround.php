@@ -4110,6 +4110,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "г" => "g", "Г" => "G",
             "д" => "d", "Д" => "D",
             "е" => "e", "Е" => "E",
+            "ё" => "e", "Ё" => "E",
             "ж" => "zh", "Ж" => "Zh",
             "з" => "z", "З" => "Z",
             "и" => "i", "И" => "I",
@@ -4138,7 +4139,8 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "я" => "ya", "Я" => "Ya",
             "і" => "i", "І" => "I",
             "ї" => "yi", "Ї" => "Yi",
-            "є" => "e", "Є" => "E"
+            "є" => "e", "Є" => "E",
+            "ґ" => "g", "Ґ" => "G"
         );
     } else {
         $replace = array(
@@ -4150,6 +4152,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "г" => "g", "Г" => "g",
             "д" => "d", "Д" => "d",
             "е" => "e", "Е" => "e",
+            "ё" => "e", "Ё" => "e",
             "ж" => "zh", "Ж" => "zh",
             "з" => "z", "З" => "z",
             "и" => "i", "И" => "i",
@@ -4178,7 +4181,8 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "я" => "ya", "Я" => "ya",
             "і" => "i", "І" => "i",
             "ї" => "yi", "Ї" => "yi",
-            "є" => "e", "Є" => "e"
+            "є" => "e", "Є" => "e",
+            "ґ" => "g", "Ґ" => "g"
         );
     }
     return $str = iconv("UTF-8", "UTF-8//IGNORE", strtr($string, $replace));
