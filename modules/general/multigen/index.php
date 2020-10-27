@@ -140,6 +140,8 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
                 show_window(__('Terminate user session'), $multigen->renderManualPodForm($_GET['username']));
             }
         }
+        
+        zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
     }
