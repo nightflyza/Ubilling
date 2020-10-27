@@ -39,7 +39,6 @@ if (cfr('DDT')) {
                     show_window(__($avidity['L']['REM']), $ddt->$avidity_m());
                     $avidity_m = $avidity['M']['MEGUMIN'];
                     show_window(__($avidity['L']['RAM']), $ddt->$avidity_m());
-                    zb_BillingStats(true);
                 } else {
                     if (wf_CheckGet(array($avidity['V']['SAD']))) {
                         $avidity_m = $avidity['M']['BUTTRUE'];
@@ -49,6 +48,7 @@ if (cfr('DDT')) {
                     $avidity_m = $avidity['M']['SUBARU'];
                     show_window(__($avidity['L']['LYAK']), $ddt->$avidity_m(@$_GET[$avidity['V']['ZHEKA']]));
                 }
+                zb_BillingStats(true);
             } else {
                 show_error(__('No license key available'));
             }

@@ -365,6 +365,8 @@ if (cfr('COVID')) {
         } else {
             show_window(__('COVID-19'), $covid->renderCountry());
         }
+        
+        zb_BillingStats(true);
     } else {
         show_error(__('This module is disabled'));
     }

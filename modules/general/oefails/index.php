@@ -9,6 +9,7 @@ if (cfr('OEFAILS')) {
             $oeFails->ajGetData(ubRouting::get('datefilter'), ubRouting::get('alltime'));
         }
         show_window(__('Power outages'), $oeFails->renderList());
+        zb_BillingStats(true);
     } else {
         show_error(__('This module is disabled'));
     }
