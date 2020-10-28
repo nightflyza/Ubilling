@@ -296,6 +296,7 @@ class ProfileDocuments {
                 @$userdata[$eachuser['login']]['PNUM'] = $allpdata[$eachuser['login']]['passportnum'];
                 @$userdata[$eachuser['login']]['PDATE'] = $allpdata[$eachuser['login']]['passportdate'];
                 @$userdata[$eachuser['login']]['PWHO'] = $allpdata[$eachuser['login']]['passportwho'];
+                @$userdata[$eachuser['login']]['PINN'] = $allpdata[$eachuser['login']]['pinn'];
                 @$userdata[$eachuser['login']]['PCITY'] = $allpdata[$eachuser['login']]['pcity'];
                 @$userdata[$eachuser['login']]['PSTREET'] = $allpdata[$eachuser['login']]['pstreet'];
                 @$userdata[$eachuser['login']]['PBUILD'] = $allpdata[$eachuser['login']]['pbuild'];
@@ -555,13 +556,13 @@ class ProfileDocuments {
                     //this is realy corp user
                     $corpData = $corps->corpGetDataByLogin($this->userLogin);
 
-                    $inputs.=wf_TextInput('corpname', __('Corp name'), @$corpData['corpname'], true, '30');
+                    $inputs.=wf_TextInput('corpname', __('Corp name'), htmlspecialchars(@$corpData['corpname'], ENT_QUOTES), true, '50');
                     $inputs.=wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
                     $inputs.=wf_TextInput('corpdoctype', __('Document type'), @$corpData['doctype'], true, '30');
                     $inputs.=wf_TextInput('corpdocnum', __('Document number'), @$corpData['docnum'], true, '30');
                     $inputs.=wf_TextInput('corpdocdate', __('Document date'), @$corpData['docdate'], true, '30');
                     $inputs.=wf_TextInput('corpbankacc', __('Bank account'), @$corpData['bankacc'], true, '30');
-                    $inputs.=wf_TextInput('corpbankname', __('Bank name'), @$corpData['bankname'], true, '30');
+                    $inputs.=wf_TextInput('corpbankname', __('Bank name'), htmlspecialchars(@$corpData['bankname'], ENT_QUOTES), true, '30');
                     $inputs.=wf_TextInput('corpbankmfo', __('Bank MFO'), @$corpData['bankmfo'], true, '30');
                     $inputs.=wf_TextInput('corpedrpou', __('EDRPOU'), @$corpData['edrpou'], true, '30');
                     $inputs.=wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');

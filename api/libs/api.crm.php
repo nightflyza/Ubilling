@@ -89,6 +89,7 @@ function web_UserContractDateChangeForm($contract, $date = '') {
  * @param    $passportnum - passport number
  * @param    $passportdate - passport assign date
  * @param    $passportwho - who produce the passport?
+ * @param    $pinn - additional Identification code
  * @param    $pcity - additional address city
  * @param    $pstreet - additional address street
  * @param    $pbuild - additional address build
@@ -96,12 +97,13 @@ function web_UserContractDateChangeForm($contract, $date = '') {
  * 
  * @return void
  */
-function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt) {
+function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pinn, $pcity, $pstreet, $pbuild, $papt) {
     $login = mysql_real_escape_string($login);
     $birthdate = mysql_real_escape_string($birthdate);
     $passportnum = mysql_real_escape_string($passportnum);
     $passportdate = mysql_real_escape_string($passportdate);
     $passportwho = mysql_real_escape_string($passportwho);
+    $pinn = mysql_real_escape_string($pinn);
     $pcity = mysql_real_escape_string($pcity);
     $pstreet = mysql_real_escape_string($pstreet);
     $pbuild = mysql_real_escape_string($pbuild);
@@ -115,6 +117,7 @@ function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportda
                     `passportnum` ,
                     `passportdate` ,
                     `passportwho` ,
+                    `pinn`, 
                     `pcity` ,
                     `pstreet` ,
                     `pbuild` ,
@@ -127,6 +130,7 @@ function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportda
                     '" . $passportnum . "',
                     '" . $passportdate . "',
                     '" . $passportwho . "',
+                    '" . $pinn . "',
                     '" . $pcity . "',
                     '" . $pstreet . "',
                     '" . $pbuild . "',
@@ -145,6 +149,7 @@ function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportda
  * @param    $passportnum - passport number
  * @param    $passportdate - passport assign date
  * @param    $passportwho - who produce the passport?
+ * @param    $pinn - Personal identification code
  * @param    $pcity - additional address city
  * @param    $pstreet - additional address street
  * @param    $pbuild - additional address build
@@ -152,12 +157,13 @@ function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportda
  * 
  * @return void
  */
-function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt) {
+function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pinn, $pcity, $pstreet, $pbuild, $papt) {
     $login = mysql_real_escape_string($login);
     $birthdate = mysql_real_escape_string($birthdate);
     $passportnum = mysql_real_escape_string($passportnum);
     $passportdate = mysql_real_escape_string($passportdate);
     $passportwho = mysql_real_escape_string($passportwho);
+    $pinn = mysql_real_escape_string($pinn);
     $pcity = mysql_real_escape_string($pcity);
     $pstreet = mysql_real_escape_string($pstreet);
     $pbuild = mysql_real_escape_string($pbuild);
@@ -169,6 +175,7 @@ function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate,
                     `passportnum` = '" . $passportnum . "',
                     `passportdate` = '" . $passportdate . "',
                     `passportwho` = '" . $passportwho . "',
+                    `pinn` = '" . $pinn . "',
                     `pcity` = '" . $pcity . "',
                     `pstreet` = '" . $pstreet . "',
                     `pbuild` = '" . $pbuild . "',
@@ -213,6 +220,7 @@ function zb_UserPassportDataGetAll() {
             $result[$each['login']]['passportnum'] = $each['passportnum'];
             $result[$each['login']]['passportdate'] = $each['passportdate'];
             $result[$each['login']]['passportwho'] = $each['passportwho'];
+            $result[$each['login']]['pinn'] = $each['pinn'];
             $result[$each['login']]['pcity'] = $each['pcity'];
             $result[$each['login']]['pstreet'] = $each['pstreet'];
             $result[$each['login']]['pbuild'] = $each['pbuild'];
@@ -230,6 +238,7 @@ function zb_UserPassportDataGetAll() {
  * @param    $passportnum - passport number
  * @param    $passportdate - passport assign date
  * @param    $passportwho - who produce the passport?
+ * @param    $pinn - Personal identification code
  * @param    $pcity - additional address city
  * @param    $pstreet - additional address street
  * @param    $pbuild - additional address build
@@ -237,15 +246,15 @@ function zb_UserPassportDataGetAll() {
  * 
  * @return void
  */
-function zb_UserPassportDataChange($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt) {
+function zb_UserPassportDataChange($login, $birthdate, $passportnum, $passportdate, $passportwho, $pinn, $pcity, $pstreet, $pbuild, $papt) { 
     $exist_q = "SELECT `id` from `passportdata` WHERE `login`='" . mysql_real_escape_string($login) . "'";
     $exist = simple_query($exist_q);
     if (!empty($exist)) {
         // data for this user already exists, just - modify
-        zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt);
+        zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pinn, $pcity, $pstreet, $pbuild, $papt);
     } else {
         //create new
-        zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt);
+        zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pinn, $pcity, $pstreet, $pbuild, $papt);
     }
 }
 
@@ -485,6 +494,7 @@ function web_ExpressCardEditForm($login) {
         $passportnum = $passportdata['passportnum'];
         $passportdate = $passportdata['passportdate'];
         $passportwho = $passportdata['passportwho'];
+        $pinn = $passportdata['pinn'];
         $pcity = $passportdata['pcity'];
         $pstreet = $passportdata['pstreet'];
         $pbuild = $passportdata['pbuild'];
@@ -494,6 +504,7 @@ function web_ExpressCardEditForm($login) {
         $passportnum = '';
         $passportdate = '';
         $passportwho = '';
+        $pinn = '';
         $pcity = '';
         $pstreet = '';
         $pbuild = '';
@@ -532,6 +543,10 @@ function web_ExpressCardEditForm($login) {
     $inputs.=wf_DatePickerPreset('editpassportdate', $passportdate);
     $inputs.=__('Issuing authority');
     $inputs.=wf_TextInput('editpassportwho', '', $passportwho, false, '40');
+    $inputs.=wf_delimiter();
+
+    $inputs.=__('Identification code');
+    $inputs.=wf_TextInput('editpinn', '', $pinn, false, '10');
     $inputs.=wf_delimiter();
 
     $inputs.=__('Phone');
@@ -643,6 +658,7 @@ function web_ExpressCardRegForm() {
     $passportnum = '';
     $passportdate = '';
     $passportwho = '';
+    $pinn = '';
     $pcity = '';
     $pstreet = '';
     $pbuild = '';
@@ -674,6 +690,9 @@ function web_ExpressCardRegForm() {
     $inputs.=__('Issuing authority');
     $inputs.=wf_TextInput('newpassportwho', '', $passportwho, false, '40');
     $inputs.=wf_delimiter();
+
+    $inputs.=__('Identification code');
+    $inputs.=wf_TextInput('newpinn', '', $pinn, false, '10');
 
     $inputs.=__('Phone');
     $inputs.=wf_TextInput('newphone', '', $phone, false, '20');
@@ -772,6 +791,7 @@ function web_PassportDataEditFormshow($login, $passportdata) {
         $passportnum = $passportdata['passportnum'];
         $passportdate = $passportdata['passportdate'];
         $passportwho = $passportdata['passportwho'];
+        $pinn = $passportdata['pinn'];
         $pcity = $passportdata['pcity'];
         $pstreet = $passportdata['pstreet'];
         $pbuild = $passportdata['pbuild'];
@@ -781,6 +801,7 @@ function web_PassportDataEditFormshow($login, $passportdata) {
         $passportnum = '';
         $passportdate = '';
         $passportwho = '';
+        $pinn = '';
         $pcity = '';
         $pstreet = '';
         $pbuild = '';
@@ -799,7 +820,8 @@ function web_PassportDataEditFormshow($login, $passportdata) {
     $inputs.=wf_DatePickerPreset('editpassportdate', $passportdate, true);
     $inputs.=__('Date of issue');
     $inputs.=wf_delimiter();
-
+    $inputs.=wf_TextInput('editpinn', __('Identification code'), $pinn, false, '10');
+    $inputs.=wf_delimiter();
 
     $inputs.= wf_tag('h3') . __('Registration address') . wf_tag('h3', true);
     $inputs.=wf_TextInput('editpcity', __('City'), $pcity, false, '20');
@@ -840,6 +862,10 @@ function web_UserPassportDataShow($login) {
 
         $cells = wf_TableCell(__('Date of issue'));
         $cells.= wf_TableCell($passportdata['passportdate']);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Identification code'));
+        $cells.= wf_TableCell($passportdata['pinn']);
         $rows.= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Registration address'));

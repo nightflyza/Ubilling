@@ -1130,6 +1130,7 @@ $lang['def']['Birth date'] = 'Дата рождения';
 $lang['def']['Passport number'] = 'Номер паспорта';
 $lang['def']['Issuing authority'] = 'Кем выдан';
 $lang['def']['Date of issue'] = 'Дата выдачи';
+$lang['def']['Identification code'] = 'ИНН';
 $lang['def']['Address of service'] = 'Адрес подключения';
 $lang['def']['Registration address'] = 'Адрес регистрации';
 $lang['def']['The same'] = 'такой же как и выше';

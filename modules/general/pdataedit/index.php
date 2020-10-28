@@ -11,12 +11,13 @@ if (cfr('PDATA')) {
              $newpassportnum=$_POST['editpassportnum'];
              $newpassportdate=$_POST['editpassportdate'];
              $newpassportwho=$_POST['editpassportwho'];
+             $newpinn=$_POST['editpinn'];
              $newpcity=$_POST['editpcity'];
              $newpstreet=$_POST['editpstreet'];
              $newpbuild=$_POST['editpbuild'];
              $newpapt=$_POST['editpapt'];
              
-             zb_UserPassportDataChange($login, $newbirthdate, $newpassportnum, $newpassportdate, $newpassportwho, $newpcity, $newpstreet, $newpbuild, $newpapt);
+             zb_UserPassportDataChange($login, $newbirthdate, $newpassportnum, $newpassportdate, $newpassportwho, $newpinn, $newpcity, $newpstreet, $newpbuild, $newpapt);
              rcms_redirect("?module=pdataedit&username=".$login);
          }
         
