@@ -1,0 +1,1 @@
+ALTER TABLE `passportdata` ADD `pinn` VARCHAR(15) NULL DEFAULT NULL;
