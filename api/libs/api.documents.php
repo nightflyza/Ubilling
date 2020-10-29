@@ -296,11 +296,11 @@ class ProfileDocuments {
                 @$userdata[$eachuser['login']]['PNUM'] = $allpdata[$eachuser['login']]['passportnum'];
                 @$userdata[$eachuser['login']]['PDATE'] = $allpdata[$eachuser['login']]['passportdate'];
                 @$userdata[$eachuser['login']]['PWHO'] = $allpdata[$eachuser['login']]['passportwho'];
-                @$userdata[$eachuser['login']]['PINN'] = $allpdata[$eachuser['login']]['pinn'];
                 @$userdata[$eachuser['login']]['PCITY'] = $allpdata[$eachuser['login']]['pcity'];
                 @$userdata[$eachuser['login']]['PSTREET'] = $allpdata[$eachuser['login']]['pstreet'];
                 @$userdata[$eachuser['login']]['PBUILD'] = $allpdata[$eachuser['login']]['pbuild'];
                 @$userdata[$eachuser['login']]['PAPT'] = $allpdata[$eachuser['login']]['papt'];
+                @$userdata[$eachuser['login']]['PINN'] = $allpdata[$eachuser['login']]['pinn'];
 
                 //other document data
                 @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
