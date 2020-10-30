@@ -791,7 +791,7 @@ class TrassirServer {
      * 
      * @param string $channel
      * @param string $stream should be main or sub
-     * @param string $container should be mjpeg|flv|jpeg
+     * @param string $container should be mjpeg|flv|jpeg|hls
      * @param int $quality jpg container type quality between 0-100 (percents) 
      * @param int $framerate 0 - realtime / 60000 - 1 frame per minute
      * 
@@ -807,7 +807,11 @@ class TrassirServer {
         $token = $this->apiRequest($requestUrl, 'sidamp');
         if ($token['success'] == 1) {
             $videoToken = $token['token'];
-            $result = $this->httpVideoProtocol . '://' . trim($this->ip) . ':' . $this->httpVideoPort . '/' . $videoToken;
+            if ($container != 'hls') {
+                $result = $this->httpVideoProtocol . '://' . trim($this->ip) . ':' . $this->httpVideoPort . '/' . $videoToken;
+            } else {
+                $result = $this->sdkProtocol . '://' . trim($this->ip) . ':' . $this->port . '/hls/' . $videoToken . '/master.m3u8';
+            }
         }
         return ($result);
     }
