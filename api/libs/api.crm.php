@@ -246,7 +246,7 @@ function zb_UserPassportDataGetAll() {
  * 
  * @return void
  */
-function zb_UserPassportDataChange($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn) { 
+function zb_UserPassportDataChange($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn='') { 
     $exist_q = "SELECT `id` from `passportdata` WHERE `login`='" . mysql_real_escape_string($login) . "'";
     $exist = simple_query($exist_q);
     if (!empty($exist)) {
