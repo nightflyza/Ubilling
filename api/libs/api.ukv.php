@@ -2285,6 +2285,8 @@ class UkvSystem {
         $query = "SELECT * from `ukv_banksta` WHERE `hash`='" . $hash . "' ORDER BY `id` ASC;";
         $all = simple_queryall($query);
         $cashPairs = array();
+        $totalSumm = 0;
+        $rowsCount = 0;
 
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Address'));
@@ -2362,8 +2364,24 @@ class UkvSystem {
                 $cells .= wf_TableCell($detectedAddress);
                 $cells .= wf_TableCell($detectedTariff);
                 $rows .= wf_TableRow($cells, $rowClass);
+
+                $totalSumm = $totalSumm + $each['summ'];
+                $rowsCount++;
             }
         }
+
+        //summary here
+        $cells = wf_TableCell('');
+        $cells .= wf_TableCell(__('Total'));
+        $cells .= wf_TableCell($rowsCount);
+        $cells .= wf_TableCell('');
+        $cells .= wf_TableCell($totalSumm);
+        $cells .= wf_TableCell('');
+        $cells .= wf_TableCell('');
+        $cells .= wf_TableCell('');
+        $cells .= wf_TableCell('');
+        $cells .= wf_TableCell('');
+        $rows .= wf_TableRow($cells, 'row2');
 
         $result = wf_TableBody($rows, '100%', '0', '');
 
