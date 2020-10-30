@@ -86,10 +86,10 @@ if (cfr('REPORTTRAFFIC')) {
                         // Modals:
                         $width = 940;
                         $height = 666;
-                        $daygraph = __('Downloaded') . wf_img($d_day) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_day);
-                        $weekgraph = __('Downloaded') . wf_img($d_week) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_week);
-                        $monthgraph = __('Downloaded') . wf_img($d_month) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_month);
-                        $yeargraph = __('Downloaded') . wf_img($d_year) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_year);
+                        $daygraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
+                        $weekgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
+                        $monthgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
+                        $yeargraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_year)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_year));
                         $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
                         break;
                     case 'mikrotik':

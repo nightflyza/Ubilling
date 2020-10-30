@@ -2373,6 +2373,28 @@ function web_AddressOccupancyForm() {
 }
 
 /**
+ * Generates actual bandwidthd charts links dependent on some options
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @param string $url
+ * 
+ * @return string
+ */
+function zb_BandwidthdImgLink($url) {
+    global $ubillingConfig;
+    $result = '';
+    $bandwidthdProxy = $ubillingConfig->getAlterParam('BANDWIDTHD_PROXY');
+    if ($bandwidthdProxy) {
+        $result = '?module=traffstats&loadimg=' . base64_encode($url);
+    } else {
+        $result = $url;
+    }
+
+    return($result);
+}
+
+/**
  * Generates user's traffic statistic module content
  * 
  * @param   str     $login  User's login, for whitch generate module content
@@ -2431,27 +2453,27 @@ function web_UserTraffStats($login) {
         $bwd = zb_BandwidthdGenLinks($ip);
 
         // Dayly graph button:
-        $daybw = wf_img($bwd['dayr'], __('Downloaded'));
+        $daybw = wf_img(zb_BandwidthdImgLink($bwd['dayr']), __('Downloaded'));
         if (!empty($bwd['days'])) {
-            $daybw .= wf_delimiter() . wf_img($bwd['days'], __('Uploaded'));
+            $daybw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['days']), __('Uploaded'));
         }
 
         // Weekly graph button:
-        $weekbw = wf_img($bwd['weekr'], __('Downloaded'));
+        $weekbw = wf_img(zb_BandwidthdImgLink($bwd['weekr']), __('Downloaded'));
         if (!empty($bwd['weeks'])) {
-            $weekbw .= wf_delimiter() . wf_img($bwd['weeks'], __('Uploaded'));
+            $weekbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['weeks']), __('Uploaded'));
         }
 
         // Monthly graph button:
-        $monthbw = wf_img($bwd['monthr'], __('Downloaded'));
+        $monthbw = wf_img(zb_BandwidthdImgLink($bwd['monthr']), __('Downloaded'));
         if (!empty($bwd['months'])) {
-            $monthbw .= wf_delimiter() . wf_img($bwd['months'], __('Uploaded'));
+            $monthbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['months']), __('Uploaded'));
         }
 
         // Yearly graph button:
-        $yearbw = wf_img($bwd['yearr'], __('Downloaded'));
+        $yearbw = wf_img(zb_BandwidthdImgLink($bwd['yearr']), __('Downloaded'));
         if (!empty($bwd['years'])) {
-            $yearbw .= wf_delimiter() . wf_img($bwd['years'], __('Uploaded'));
+            $yearbw .= wf_delimiter() . wf_img(zb_BandwidthdImgLink($bwd['years']), __('Uploaded'));
         }
 
         // Modal window sizes:
@@ -6200,13 +6222,12 @@ function web_ProfileSwitchZabbixProblem($login) {
                     $problemColorEnd = wf_tag('b', true);
                 }
                 $acknowledges = $problemData['acknowledges'];
-                $acknowledgesMessages = array_column($acknowledges , 'message');
+                $acknowledgesMessages = array_column($acknowledges, 'message');
 
-                $cells = wf_TableCell($problemColor . __($problemData['name']) . $problemColorEnd , '30%');
+                $cells = wf_TableCell($problemColor . __($problemData['name']) . $problemColorEnd, '30%');
                 $cells .= wf_TableCell(date('Y-m-d H:i:s', $problemData['clock']));
                 $cells .= wf_TableCell(implode(wf_tag('br'), $acknowledgesMessages));
                 $rows .= wf_TableRow($cells, 'row4');
-
             }
             $result = wf_TableBody($rows, '100%', '0');
         }
