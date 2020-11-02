@@ -845,7 +845,7 @@ function zbs_UserShowXmlAgentData($login) {
     $us_currency = $us_config['currency'];
     $userdata = zbs_UserGetStargazerData($login);
     $alladdress = zbs_AddressGetFulladdresslist();
-    if ($us_config['UBA_XML_ADDRESS_STRUCT']) {
+    if (@$us_config['UBA_XML_ADDRESS_STRUCT']) {
         $alladdressStruct = zbs_AddressGetFulladdresslistStruct($login);
     } else {
         $alladdressStruct = array();
