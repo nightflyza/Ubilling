@@ -583,7 +583,10 @@ if (cfr('PERMISSIONS')) {
 
     show_window(__('Admins'), web_list_admins());
 
-    show_window('', wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), true, 'ubButton'));
+    $primaryControls='';
+    $primaryControls.=wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
+    $primaryControls.= wf_Link('?module=admstats', web_icon_charts().' '.__('Administrators timeline'),false,'ubButton');
+    show_window('', $primaryControls);
 } else {
     show_error(__('You cant control this module'));
 }

@@ -3208,6 +3208,7 @@ $lang['def']['User access control'] = 'Керування дозволами к�
 $lang['def']['Deny online payments for this user'] = 'Заборонити онлайн платежі цьому користувачу';
 $lang['def']['OpenPayz access'] = 'Доступ до OpenPayz';
 $lang['def']['Users which denied from OpenPayz usage'] = 'Користувачі, яким заборонено доступ до OpenPayz';
+$lang['def']['Administrators timeline'] = 'Таймлайн адміністраторів';
 $lang['def'][''] = '';
 
 ?>

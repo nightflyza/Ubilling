@@ -2,6 +2,9 @@
 
 if (cfr('ROOT')) {
 
+    /**
+     * Renders administrators activity time report
+     */
     class AdministratorStats {
 
         /**
@@ -213,7 +216,8 @@ if (cfr('ROOT')) {
     }
 
     $admStats = new AdministratorStats();
-    show_window(__('Administrators') . ': ' . __('time'), $admStats->renderReport());
+    show_window('', wf_BackLink('?module=permissions'));
+    show_window(__('Administrators timeline'), $admStats->renderReport());
 } else {
     show_error(__('Access denied'));
 }
