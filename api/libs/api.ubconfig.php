@@ -1,9 +1,8 @@
 <?php
 
-/*
- * Class to speed up loading of base configs
+/**
+ * Basic configs abstraction class
  */
-
 class UbillingConfig {
 
     //stores system configs
@@ -41,8 +40,7 @@ class UbillingConfig {
      * @return parametr from alter.ini or FALSE if parameter not defined
      */
     public function getAlterParam($param = false) {
-        return ($param and isset($this->alterCfg[$param]))
-            ? $this->alterCfg[$param] : false ;
+        return ($param and isset($this->alterCfg[$param])) ? $this->alterCfg[$param] : false;
     }
 
     /**
@@ -108,7 +106,7 @@ class UbillingConfig {
 }
 
 /**
- * Draft message helper
+ * Default system message helper
  */
 class UbillingMessageHelper {
 
