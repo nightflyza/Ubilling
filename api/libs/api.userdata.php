@@ -152,7 +152,7 @@ function zb_UserGetAllDataCache() {
  * Returns all information about User by login
  * 
  * @param string $login existing user login
- * @return array['login']=>array(login,realname,Passive,Down,Password,AlwaysOnline,Tariff,Credit,Cash,ip,mac,cityname,streetname,buildnum,entrance,floor,apt,geo,fulladress,phone,mobile,contract)
+ * @return array ['login']=>array(login,realname,Passive,Down,Password,AlwaysOnline,Tariff,Credit,Cash,ip,mac,cityname,streetname,buildnum,entrance,floor,apt,geo,fulladress,phone,mobile,contract)
  * Crazy Pautina
  */
 function zb_UserGetAllData($login = '') {

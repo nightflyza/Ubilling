@@ -3209,6 +3209,12 @@ $lang['def']['Deny online payments for this user'] = 'Заборонити он�
 $lang['def']['OpenPayz access'] = 'Доступ до OpenPayz';
 $lang['def']['Users which denied from OpenPayz usage'] = 'Користувачі, яким заборонено доступ до OpenPayz';
 $lang['def']['Administrators timeline'] = 'Таймлайн адміністраторів';
+$lang['def']['No online users at all'] = 'Нема онлайнових користувачів взагалі';
+$lang['def']['Everything is good'] = 'Все в порядку';
+$lang['def']['Users with bad karma'] = 'Користувачі з поганою кармою';
+$lang['def']['To much money'] = 'Надто багато грошей';
+$lang['def']['We tried all that we can. Nothing helps. This user is doomed.'] = 'Ми спробували все можливе. Нічого не допомагає. Цей користувач приречений.';
 $lang['def'][''] = '';
+
 
 ?>

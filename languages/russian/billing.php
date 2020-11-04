@@ -3189,6 +3189,10 @@ $lang['def']['Deny online payments for this user'] = 'Запретить онл�
 $lang['def']['OpenPayz access'] = 'Доступ к OpenPayz';
 $lang['def']['Users which denied from OpenPayz usage'] = 'Пользователи которым запрещено использование OpenPayz';
 $lang['def']['Administrators timeline'] = 'Таймлайн администраторов';
+$lang['def']['No online users at all'] = 'Нету онлайновых пользователей вообще';
+$lang['def']['Everything is good'] = 'Все в порядке';
+$lang['def']['Users with bad karma'] = 'Пользователи с плохой кармой';
+$lang['def']['We tried all that we can. Nothing helps. This user is doomed.'] = 'Мы попробовали все возможное. Ничего не помогает. Этот пользователь обречен.';
 $lang['def'][''] = '';
 
 
