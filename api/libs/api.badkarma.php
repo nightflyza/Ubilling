@@ -239,6 +239,7 @@ class BadKarma {
     public function renderReport() {
         $result = '';
         $tmpArr = array();
+        $totalCount = 0;
         if (!empty($this->allUsersData)) {
             if (!empty($this->allOnlineUsers)) {
                 foreach ($this->allUsersData as $eachUserLogin => $eachUserData) {
@@ -275,9 +276,11 @@ class BadKarma {
                         $cells .= wf_TableCell($eachUserData['Credit']);
                         $cells .= wf_TableCell($repairLinkControl);
                         $rows .= wf_TableRow($cells, 'row5');
+                        $totalCount++;
                     }
 
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= __('Total') . ' ' . $totalCount;
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Everything is good'), 'success');
                 }
