@@ -6,7 +6,7 @@
 class BadKarma {
 
     /**
-     * Contains default online users detection path
+     * Contains default online users detection path. May be customizable in future.
      *
      * @var string
      */
@@ -53,6 +53,7 @@ class BadKarma {
     const URL_PROFILE = '?module=userprofile&username=';
     const URL_ME = '?module=badkarma';
     const ROUTE_FIX = 'fixuserkarma';
+    const COLOR_BAD = '#AB0000';
 
     /**
      * Creates new BadKarma instance
@@ -170,7 +171,7 @@ class BadKarma {
      * 
      * @return void/string on error
      */
-    public function fixUserCarma($userLogin) {
+    public function fixUserKarma($userLogin) {
         global $billing;
         $result = '';
         $userData = (isset($this->allUsersData[$userLogin])) ? $this->allUsersData[$userLogin] : array();
@@ -215,6 +216,22 @@ class BadKarma {
     }
 
     /**
+     * Highlights corrupted zero cash value
+     * 
+     * @param float $cashValue
+     * 
+     * @return string
+     */
+    protected function highlightCorruptedCash($cashValue) {
+        if ($cashValue == 0) {
+            $result = wf_tag('font', false, '', 'color="' . self::COLOR_BAD . '"') . $cashValue . wf_tag('font', true);
+        } else {
+            $result = $cashValue;
+        }
+        return($result);
+    }
+
+    /**
      * Renders report of users which possible have an bad karma
      * 
      * @return string
@@ -248,13 +265,13 @@ class BadKarma {
                     foreach ($tmpArr as $eachUserLogin => $eachUserData) {
                         $userLinkControl = wf_Link(self::URL_PROFILE . $eachUserLogin, web_profile_icon() . ' ' . $eachUserLogin);
                         $alertLabel = $this->messages->getEditAlert() . ' ' . __('Fix') . ' ' . $eachUserLogin . '?';
-                        $repairLinkControl = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_FIX . '=' . $eachUserLogin, wf_img('skins/icon_repair.gif'), $alertLabel);
+                        $repairLinkControl = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_FIX . '=' . $eachUserLogin, wf_img('skins/icon_repair.gif', __('Fix')), $alertLabel);
                         $cells = wf_TableCell($userLinkControl);
                         $cells .= wf_TableCell($eachUserData['fulladress']);
                         $cells .= wf_TableCell($eachUserData['realname']);
                         $cells .= wf_TableCell($eachUserData['ip']);
                         $cells .= wf_TableCell($eachUserData['Tariff']);
-                        $cells .= wf_TableCell($eachUserData['Cash']);
+                        $cells .= wf_TableCell($this->highlightCorruptedCash($eachUserData['Cash']));
                         $cells .= wf_TableCell($eachUserData['Credit']);
                         $cells .= wf_TableCell($repairLinkControl);
                         $rows .= wf_TableRow($cells, 'row5');

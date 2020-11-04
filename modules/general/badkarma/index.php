@@ -6,7 +6,7 @@ if (cfr('CASH')) {
     //trying to fix user
     if (ubRouting::checkGet($badKarma::ROUTE_FIX)) {
         $repairLogin = ubRouting::get($badKarma::ROUTE_FIX);
-        $repairResult = $badKarma->fixUserCarma($repairLogin);
+        $repairResult = $badKarma->fixUserKarma($repairLogin);
         if (!empty($repairResult)) {
             show_error($repairResult);
         } else {

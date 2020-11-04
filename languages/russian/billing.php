@@ -3193,6 +3193,7 @@ $lang['def']['No online users at all'] = 'Нету онлайновых поль
 $lang['def']['Everything is good'] = 'Все в порядке';
 $lang['def']['Users with bad karma'] = 'Пользователи с плохой кармой';
 $lang['def']['We tried all that we can. Nothing helps. This user is doomed.'] = 'Мы попробовали все возможное. Ничего не помогает. Этот пользователь обречен.';
+$lang['def']['Karma control'] = 'Контроль кармы';
 $lang['def'][''] = '';
 
 

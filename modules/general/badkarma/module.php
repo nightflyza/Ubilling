@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Bad Karma'), 'Nightfly');
+$this->registerModule($module, 'main', __('Karma control'), 'Nightfly');
 ?>
