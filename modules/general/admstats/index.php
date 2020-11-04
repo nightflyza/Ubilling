@@ -40,6 +40,7 @@ if (cfr('ROOT')) {
          */
         const TABLE_DATASOURCE = 'weblogs';
         const PROUTE_DATE = 'admstatsdate';
+        const PROUTE_SUMMARY = 'admstatssummary';
 
         public function __construct() {
             $this->setDate();
@@ -105,6 +106,7 @@ if (cfr('ROOT')) {
         public function renderReport() {
             $this->loadReportData();
             $result = '';
+            $result .= $this->renderControlsForm();
             $dataTmp = array();
             $timelineData = array();
             if (!empty($this->allDataRaw)) {
@@ -115,12 +117,25 @@ if (cfr('ROOT')) {
 
                 if (!empty($dataTmp)) {
                     foreach ($dataTmp as $eachAdmin => $eachDate) {
-                        $adminName = (isset($allAdmins[$eachAdmin])) ? $allAdmins[$eachAdmin] : $eachAdmin;
-                        $timelineData[$adminName]['start'] = reset($eachDate);
-                        $timelineData[$adminName]['end'] = end($eachDate);
+                        $adminLabel = (isset($allAdmins[$eachAdmin])) ? $allAdmins[$eachAdmin] : $eachAdmin;
+                        $startTime = reset($eachDate);
+                        $endTime = end($eachDate);
+                        $startTimeStamp = strtotime($startTime);
+                        $endTimeStamp = strtotime($endTime);
+                        $workTime = $endTimeStamp - $startTimeStamp;
+                        $timelineData[$adminLabel]['start'] = $startTime;
+                        $timelineData[$adminLabel]['end'] = $endTime;
+                        $timelineData[$adminLabel]['worktime'] = $workTime;
                     }
                 }
-                $result .= $this->renderTimeline($timelineData);
+
+                //normal timeline render
+                if (!ubRouting::checkPost(self::PROUTE_SUMMARY)) {
+                    $result .= $this->renderTimeline($timelineData);
+                } else {
+                    //just administrators summary
+                    $result .= $this->renderTimeSummary($timelineData);
+                }
             } else {
                 $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
             }
@@ -145,9 +160,9 @@ if (cfr('ROOT')) {
          */
         protected function renderTimeline($timelineData) {
             $result = '';
-            $result .= $this->renderDateForm();
             $containerId = 'timeline' . wf_InputId();
             $timelineCode = "['Activity', 'Start Time', 'End Time'],";
+
             if (!empty($timelineData)) {
                 foreach ($timelineData as $key => $eachTime) {
                     $startTime = $eachTime['start'];
@@ -174,6 +189,7 @@ if (cfr('ROOT')) {
                 $timelineCode = zb_CutEnd($timelineCode);
             }
 
+
             $result .= wf_tag('div', false, '', 'id="' . $containerId . '"') . wf_tag('div', true);
             $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
             $result .= wf_tag('script', false);
@@ -197,6 +213,42 @@ if (cfr('ROOT')) {
                           }
                         ";
             $result .= wf_tag('script', true);
+
+            return($result);
+        }
+
+        /**
+         * Renders administrator worktime stats summary
+         * 
+         * @param array $timelineData
+         * 
+         * @return string
+         */
+        protected function renderTimeSummary($timelineData) {
+            $result = '';
+            $worktimeStats = array();
+            $totalWorktime = 0;
+
+            if (!empty($timelineData)) {
+                foreach ($timelineData as $key => $eachTime) {
+                    $worktimeStats[$key] = $eachTime['worktime'];
+                    $totalWorktime += $eachTime['worktime'];
+                }
+            }
+
+            if (!empty($worktimeStats)) {
+                $cells = wf_TableCell(__('Administrator'));
+                $cells .= wf_TableCell(__('Time'));
+                $cells .= wf_TableCell(__('Visual'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($worktimeStats as $eachAdmin => $worktime) {
+                    $cells = wf_TableCell($eachAdmin);
+                    $cells .= wf_TableCell(zb_formatTime($worktime),'','','sorttable_customkey="'.$worktime.'"');
+                    $cells .= wf_TableCell(web_bar($worktime, $totalWorktime),'40%','','sorttable_customkey="'.$worktime.'"');
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            }
             return($result);
         }
 
@@ -205,11 +257,13 @@ if (cfr('ROOT')) {
          * 
          * @return string
          */
-        protected function renderDateForm() {
+        protected function renderControlsForm() {
             $result = '';
-            $inputs = wf_DatePickerPreset(self::PROUTE_DATE, $this->showDate, true);
+            $inputs = wf_DatePickerPreset(self::PROUTE_DATE, $this->showDate, true) . ' ';
+            $inputs .= wf_CheckInput(self::PROUTE_SUMMARY, __('No charts'), false, ubRouting::checkPost(self::PROUTE_SUMMARY)) . ' ';
             $inputs .= wf_Submit(__('Show'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_CleanDiv();
             return($result);
         }
 
