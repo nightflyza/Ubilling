@@ -2541,6 +2541,11 @@ class UbillingVisor {
                                                     }
                                                 }
 
+                                                //dont charge money for frozen cameras
+                                                if ($cameraUserData['Passive'] == 1) {
+                                                    $chargeThisCam = false;
+                                                }
+
                                                 //perform money movement from primary account
                                                 if ($chargeThisCam) {
                                                     //charge some money from primary account
