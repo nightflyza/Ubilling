@@ -7,22 +7,33 @@ if (cfr('ROOT')) {
  
  
     $inputData = array(
-    13279 => 9230,
-    13374 => 9204,
-    13448 => 9218,
-    13518 => 8827,
-    13604 => 9050,
-    13695 => 9148,
-    13840 => 9246,
-    13950 => 9355,
-    14121 => 9576,
+    28.4=>1,
+    2840=>100,
+    28400=>1000,
+    284000=>10056.72,
     );
 
- 
 
    $mrnn=new MRNN();
-   debarr($mrnn->learnDataSet($inputData));
-   deb($mrnn->processInputData(13279));
+   $trainStats=$mrnn->learnDataSet($inputData);
+   $mrnn->processInputData(14);
 
+   $chartData=array(
+           0=>array('Epoch','Error')
+           );
+   if (!empty($trainStats)) {
+    foreach ($trainStats as $neuron => $neuronStats) {
+        if (!empty($neuronStats)) {
+            foreach ($neuronStats as $epoch => $error) {
+                $chartData[]=array($epoch,$error);
+            }
+        }
+    }
+   }
+
+   deb(wf_gchartsLine($chartData, 'Train network', '800px', '400px', '') );
+
+
+   show_info($mrnn->processInputData(50));
 
 }
