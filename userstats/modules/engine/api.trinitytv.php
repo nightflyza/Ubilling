@@ -196,7 +196,7 @@ class TrinityTvFrontend {
      */
     public function canAddMoreDevices() {
         $result = true;
-         $subscriberId = $this->getSubscriberId($this->userLogin);
+        $subscriberId = $this->getSubscriberId($this->userLogin);
         $query = "SELECT COUNT(`id`) from `" . self::TABLE_DEVICES . "`  WHERE `subscriber_id` = '" . $subscriberId . "'";
         $rawData = simple_query($query);
         if (!empty($rawData)) {
@@ -497,6 +497,8 @@ class TrinityTvFrontend {
             //available devices
             $devices = $this->getSubscriberDevices();
             $devicesCount = sizeof($devices);
+            $noMoreDevs = false;
+            //check for device count limit
             if ($devicesCount < $this->deviceLimit) {
                 // Add device
                 $result .= la_modalAuto(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button');
@@ -505,6 +507,8 @@ class TrinityTvFrontend {
                 $result .= la_modalAuto(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button');
 
                 $result .= la_tag('br') . la_tag('br');
+            } else {
+                $noMoreDevs = true;
             }
 
             $cells = la_TableCell(__('MAC') . ' ' . __('Address'));
@@ -526,6 +530,9 @@ class TrinityTvFrontend {
             }
 
             $result .= la_TableBody($rows, '100%', 0, 'sortable');
+            if ($noMoreDevs) {
+                $result .= __('Devices count limit is exceeded');
+            }
         }
         return ($result);
     }
