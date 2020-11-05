@@ -3,6 +3,7 @@
 if (cfr('CASH')) {
 
     if ($ubillingConfig->getAlterParam('KARMA_CONTROL')) {
+        set_time_limit(0); // karma repair may take a long time
         $badKarma = new BadKarma();
         //trying to fix user
         if (ubRouting::checkGet($badKarma::ROUTE_FIX)) {
