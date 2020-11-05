@@ -380,7 +380,7 @@ class UserProfile {
         if (!isset($this->alterCfg['NO_ADCOMMENTS_IN_PROFILE'])) {
             if ($this->alterCfg['ADCOMMENTS_ENABLED']) {
                 $adcomments = new ADcomments('USERNOTES');
-                $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login), false, '');
+                $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login, '12'), false, '');
             } else {
                 $result = '';
             }
@@ -1136,6 +1136,21 @@ class UserProfile {
     }
 
     /**
+     * Returns user karma state notification
+     * 
+     * @return string
+     */
+    protected function getUserKarma() {
+        $result = '';
+        if (@$this->alterCfg['KARMA_CONTROL']) {
+            $userKarma = new BadKarma(true);
+            $karmaState = $userKarma->getKarmaIndicator($this->login, $this->userdata, '12');
+            $result = $this->addRow(__('Karma'), $karmaState);
+        }
+        return($result);
+    }
+
+    /**
      * gets corporate users handling controls
      * 
      * @return string
@@ -1828,7 +1843,9 @@ class UserProfile {
 //additional mobile data
         $profile .= $this->getMobilesExtControl();
 //Email data row
-        $profile .= $this->addRow(__('Email'), $this->mail);
+        if (!@$this->alterCfg['EMAILHIDE']) {
+            $profile .= $this->addRow(__('Email'), $this->mail);
+        }
 //payment ID data
         $profile .= $this->addRow(__('Payment ID'), $this->paymentid, true);
 //LAT data row
@@ -1865,6 +1882,8 @@ class UserProfile {
         $profile .= $this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
 //DN online detection row
         $profile .= $this->getUserOnlineDN();
+//Karma controls here        
+        $profile .= $this->getUserKarma();
 //Always online flag row
         $profile .= $this->addRow(__('Always Online'), web_trigger($this->userdata['AlwaysOnline']));
 //Detail stats flag row

@@ -3215,6 +3215,9 @@ $lang['def']['Users with bad karma'] = 'Користувачі з поганою
 $lang['def']['To much money'] = 'Надто багато грошей';
 $lang['def']['We tried all that we can. Nothing helps. This user is doomed.'] = 'Ми спробували все можливе. Нічого не допомагає. Цей користувач приречений.';
 $lang['def']['Karma control'] = 'Контроль карми';
+$lang['def']['Karma'] = 'Карма';
+$lang['def']['Bad karma'] = 'Погана карма';
+$lang['def']['Good karma'] = 'Хороша карма';
 $lang['def'][''] = '';
 
 

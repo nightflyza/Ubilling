@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Universal additional comments class
+ */
 class ADcomments {
 
     /**
@@ -23,7 +26,7 @@ class ADcomments {
      */
     protected $cache = '';
 
-     /**
+    /**
      * Comments caching time
      *
      * @var int
@@ -160,7 +163,7 @@ class ADcomments {
      */
     protected function commentAddForm() {
         $inputs = wf_TextArea('newadcommentstext', '', '', true, '60x10');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_Submit(__('Save'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -273,15 +276,15 @@ class ADcomments {
         if (isset($this->data[$commentid])) {
             if (($this->data[$commentid]['admin'] == $this->mylogin) OR ( cfr('ROOT'))) {
                 $deleteInputs = wf_HiddenInput('adcommentsdeleteid', $commentid);
-                $deleteInputs.= wf_tag('input', false, '', 'type="image" src="skins/icon_del.gif" title="' . __('Delete') . '" ' . $this->jsAlert(__('Removing this may lead to irreparable results')));
+                $deleteInputs .= wf_tag('input', false, '', 'type="image" src="skins/icon_del.gif" title="' . __('Delete') . '" ' . $this->jsAlert(__('Removing this may lead to irreparable results')));
                 $deleteForm = wf_Form('', 'POST', $deleteInputs, '');
 
                 $editInputs = wf_HiddenInput('adcommentseditid', $commentid);
-                $editInputs.= wf_tag('input', false, '', 'type="image" src="skins/icon_edit.gif"  title="' . __('Edit') . '" ' . $this->jsAlert(__('Are you serious')));
+                $editInputs .= wf_tag('input', false, '', 'type="image" src="skins/icon_edit.gif"  title="' . __('Edit') . '" ' . $this->jsAlert(__('Are you serious')));
                 $editForm = wf_Form('', 'POST', $editInputs, '');
 
-                $result.=wf_tag('div', false, '', 'style="display:inline-block;"') . $deleteForm . wf_tag('div', true);
-                $result.=wf_tag('div', false, '', 'style="display:inline-block;"') . $editForm . wf_tag('div', true);
+                $result .= wf_tag('div', false, '', 'style="display:inline-block;"') . $deleteForm . wf_tag('div', true);
+                $result .= wf_tag('div', false, '', 'style="display:inline-block;"') . $editForm . wf_tag('div', true);
             }
         }
         return ($result);
@@ -297,8 +300,8 @@ class ADcomments {
         $result = '';
         if (isset($this->data[$commentid])) {
             $inputs = wf_HiddenInput('adcommentsmodifyid', $commentid);
-            $inputs.= wf_TextArea('adcommentsmodifytext', '', $this->data[$commentid]['text'], true, '60x10');
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_TextArea('adcommentsmodifytext', '', $this->data[$commentid]['text'], true, '60x10');
+            $inputs .= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
@@ -338,17 +341,17 @@ class ADcomments {
 
 
                 $cells = wf_TableCell('', '20%');
-                $cells.= wf_TableCell($each['date']);
-                $rows.= wf_TableRow($cells, 'row2');
+                $cells .= wf_TableCell($each['date']);
+                $rows .= wf_TableRow($cells, 'row2');
                 $cells = wf_TableCell($authorPanel);
-                $cells.= wf_TableCell($commentText);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($commentText);
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result.=wf_TableBody($rows, '100%', '0', '');
+            $result .= wf_TableBody($rows, '100%', '0', '');
         }
 
-        $result.=$this->commentAddForm();
+        $result .= $this->commentAddForm();
 
         return ($result);
     }
@@ -417,6 +420,8 @@ class ADcomments {
      * Checks have item some additional comments and return native indicator
      * 
      * @param string $item
+     * @param int $size
+     * 
      * @return string
      */
     public function getCommentsIndicator($item, $size = '') {
@@ -467,6 +472,7 @@ class ADcomments {
             throw new Exception(self::EX_EMPTY_SCOPE);
         }
     }
+
 }
 
 ?>

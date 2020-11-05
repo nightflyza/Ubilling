@@ -154,10 +154,34 @@ class BadKarma {
      * 
      * @return bool
      */
-    protected function isUserOnlineRightNow($userLogin) {
+    public function isUserOnlineRightNow($userLogin) {
         $result = false;
         if (file_exists($this->onlineDataPath . $userLogin)) {
             $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns some user karma state indicator with some controls
+     * 
+     * @param string $userLogin
+     * @param array $userData
+     * @param int $size
+     * 
+     * @return string
+     */
+    public function getKarmaIndicator($userLogin, $userData, $size = '') {
+        $result = '';
+        $iconSize = ($size) ? $size : '16';
+        if ($this->userMustBeOnline($userData)) {
+            if ($this->isUserOnlineRightNow($userLogin)) {
+                $result = wf_img_sized('skins/karmagood.png', '', '', $iconSize) . ' ' . __('Good karma');
+            } else {
+                $result = wf_Link($this::URL_ME, wf_img_sized('skins/karmabad.png', __('Fix'), '', $iconSize)) . ' ' . __('Bad karma') . '!';
+            }
+        } else {
+            $result = wf_img_sized('skins/karmafail.png', '', '', $iconSize) . ' ' . __('Normal');
         }
         return($result);
     }
