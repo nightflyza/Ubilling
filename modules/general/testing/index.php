@@ -15,7 +15,8 @@ if (cfr('ROOT')) {
 
 
    $mrnn=new MRNN();
-   $trainStats=$mrnn->learnDataSet($inputData);
+   $accel=true;
+   $trainStats=$mrnn->learnDataSet($inputData,$accel);
    $mrnn->processInputData(14);
 
    $chartData=array(
@@ -31,9 +32,10 @@ if (cfr('ROOT')) {
     }
    }
 
+    show_info($mrnn->processInputData(14));
    deb(wf_gchartsLine($chartData, 'Train network', '800px', '400px', '') );
 
 
-   show_info($mrnn->processInputData(50));
+ 
 
 }

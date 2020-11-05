@@ -138,19 +138,24 @@ class MRNN {
         return(true);
     }
 
-    public function learnDataSet($dataSet) {
+    public function learnDataSet($dataSet,$accel=false) {
     	$result=array();
     	if (is_array($dataSet)) {
     		if (!empty($dataSet)) {
     	    $totalweight = 0;
     		$neurons=array();
     		$neuronIndex=0;
+    		$prevWeight=$this->weight;
     		foreach ($dataSet as $input=>$expectedResult) {
     			$neurons[$neuronIndex] = new MRNN();
+    			if ($accel) {
+    			  $neurons[$neuronIndex]->setWeight($prevWeight);
+    			}
     			 if ($neurons[$neuronIndex]->learn($input, $expectedResult)) {
          		   show_success('Learned weight: ' . $neurons[$neuronIndex]->getWeight() . ' on epoch ' . $neurons[$neuronIndex]->getEpoch()); //TODO: remove it
          		   $totalweight += $neurons[$neuronIndex]->getWeight();
          		   $result[]=$neurons[$neuronIndex]->getTrainStats();
+         		   $prevWeight=$neurons[$neuronIndex]->getWeight();
          		   unset($neurons[$neuronIndex]);
         		 }
     			$neuronIndex++;
