@@ -2,6 +2,8 @@
 
 /**
  * Most Retarded Neural Network ever. Yep, with single neuron.
+ *
+ * TODO: some debug flags, learning visualization, sigmoid function? CLI mode.. etc
  */
 class MRNN {
 

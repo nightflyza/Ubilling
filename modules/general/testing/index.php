@@ -31,11 +31,12 @@ if (cfr('ROOT')) {
         }
     }
    }
+    
+   //most low effective UAH to USD converter ever!!!! OMG!
+   show_info($mrnn->processInputData(14));
 
-    show_info($mrnn->processInputData(14));
    deb(wf_gchartsLine($chartData, 'Train network', '800px', '400px', '') );
 
 
- 
 
 }
