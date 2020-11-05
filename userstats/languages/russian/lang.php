@@ -408,5 +408,6 @@ $lang['def']['Settings'] = 'Настройки';
 $lang['def']['Go to'] = 'Перейти';
 $lang['def']['Host'] = 'Хост';
 $lang['def']['Port'] = 'Порт';
+$lang['def']['Devices count limit is exceeded'] = 'Лимит количества устройств исчерпан';
 
 ?>

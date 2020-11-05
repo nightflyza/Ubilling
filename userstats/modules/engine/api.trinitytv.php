@@ -65,6 +65,13 @@ class TrinityTvFrontend {
      */
     protected $urlMe = '?module=trinitytv';
 
+    /**
+     * Contains default devices per account limit
+     *
+     * @var int
+     */
+    protected $deviceLimit = 4;
+
     const TABLE_SUBS = 'trinitytv_subscribers';
     const TABLE_TARIFFS = 'trinitytv_tariffs';
     const TABLE_DEVICES = 'trinitytv_devices';
@@ -165,7 +172,7 @@ class TrinityTvFrontend {
      *
      * @return array
      */
-    private function getSubscriberDevices() {
+    protected function getSubscriberDevices() {
         $result = array();
 
         $subscriberId = $this->getSubscriberId($this->userLogin);
@@ -180,6 +187,27 @@ class TrinityTvFrontend {
             }
         }
         return $result;
+    }
+
+    /**
+     * Checks can user add more devices or not?
+     * 
+     * @return bool
+     */
+    public function canAddMoreDevices() {
+        $result = true;
+         $subscriberId = $this->getSubscriberId($this->userLogin);
+        $query = "SELECT COUNT(`id`) from `" . self::TABLE_DEVICES . "`  WHERE `subscriber_id` = '" . $subscriberId . "'";
+        $rawData = simple_query($query);
+        if (!empty($rawData)) {
+            if (isset($rawData['COUNT(`id`)'])) {
+                $devicesCount = $rawData['COUNT(`id`)'];
+                if ($devicesCount >= $this->deviceLimit) {
+                    $result = false;
+                }
+            }
+        }
+        return($result);
     }
 
     /**
@@ -468,14 +496,16 @@ class TrinityTvFrontend {
 
             //available devices
             $devices = $this->getSubscriberDevices();
+            $devicesCount = sizeof($devices);
+            if ($devicesCount < $this->deviceLimit) {
+                // Add device
+                $result .= la_modalAuto(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button');
 
-            // Add device
-            $result .= la_modalAuto(__('Assign device by MAC'), __('Assign device'), $this->renderDeviceAddForm(), 'trinity-button');
+                // Add device by MAC
+                $result .= la_modalAuto(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button');
 
-            // Add device by MAC
-            $result .= la_modalAuto(__('Assign device by Code'), __('Assign device'), $this->renderDeviceByCodeAddForm(), 'trinity-button');
-
-            $result .= la_tag('br') . la_tag('br');
+                $result .= la_tag('br') . la_tag('br');
+            }
 
             $cells = la_TableCell(__('MAC') . ' ' . __('Address'));
             $cells .= la_TableCell(__('Date'));

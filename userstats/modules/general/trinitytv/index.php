@@ -45,25 +45,28 @@ if (@$us_config['TRINITYTV_ENABLED']) {
 
         // manual add device
         if (la_CheckPost(array('device'))) {
-
-            // add device by mac
-            if (la_CheckPost(array('mac'))) {
-                $addDeviceResult = $trinitytvFront->pushDeviceAddMacRequest($_POST['mac']);
-                if (!$addDeviceResult) {
-                    rcms_redirect('?module=trinitytv');
-                } else {
-                    show_window(__('Sorry'), __($addDeviceResult));
+            if ($trinitytvFront->canAddMoreDevices()) {
+                // add device by mac
+                if (la_CheckPost(array('mac'))) {
+                    $addDeviceResult = $trinitytvFront->pushDeviceAddMacRequest($_POST['mac']);
+                    if (!$addDeviceResult) {
+                        rcms_redirect('?module=trinitytv');
+                    } else {
+                        show_window(__('Sorry'), __($addDeviceResult));
+                    }
                 }
-            }
 
-            // add device by code
-            if (la_CheckPost(array('code'))) {
-                $addDeviceResult = $trinitytvFront->pushDeviceAddCodeRequest($_POST['code']);
-                if (!$addDeviceResult) {
-                    rcms_redirect('?module=trinitytv');
-                } else {
-                    show_window(__('Sorry'), __($addDeviceResult));
+                // add device by code
+                if (la_CheckPost(array('code'))) {
+                    $addDeviceResult = $trinitytvFront->pushDeviceAddCodeRequest($_POST['code']);
+                    if (!$addDeviceResult) {
+                        rcms_redirect('?module=trinitytv');
+                    } else {
+                        show_window(__('Sorry'), __($addDeviceResult));
+                    }
                 }
+            } else {
+                show_window(__('Sorry'), __('Devices count limit is exceeded'));
             }
         }
 
