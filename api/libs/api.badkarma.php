@@ -221,15 +221,37 @@ class BadKarma {
                                     $billing->resetuser($userLogin);
                                     log_register("RESET User (" . $userLogin . ")");
                                     sleep($this->waitTimeout);
-                                    //we give up :(
                                     if (!$this->isUserOnlineRightNow($userLogin)) {
-                                        $result .= __('We tried all that we can. Nothing helps. This user is doomed.');
+                                        //may be credit limit have not real zero value?
+                                        if ($userData['Credit'] == 0) {
+                                            $billing->setcredit($userLogin, 0);
+                                            log_register('CHANGE Credit (' . $userLogin . ') ON 0');
+                                            sleep($this->waitTimeout);
+                                            //we give up :(
+                                            if (!$this->isUserOnlineRightNow($userLogin)) {
+                                                $result .= __('We tried all that we can. Nothing helps. This user is doomed.');
+                                                log_register('KARMA (' . $userLogin . ') FIX FAIL AT CREDIT THATS ALL');
+                                            } else {
+                                                log_register('KARMA (' . $userLogin . ') FIXED ON CREDIT TO ZERO');
+                                            }
+                                        } else {
+                                            //and give up again. Nothing to else to do.
+                                            $result .= __('We tried all that we can. Nothing helps. This user is doomed.');
+                                            log_register('KARMA (' . $userLogin . ') FIX FAIL AT ALL');
+                                        }
+                                    } else {
+                                        log_register('KARMA (' . $userLogin . ') FIXED ON RESET2');
                                     }
+                                } else {
+                                    log_register('KARMA (' . $userLogin . ') FIXED ON CASH TO ZERO');
                                 }
                             } else {
                                 $result .= __('To much money') . ': ' . $userData['Cash'];
+                                log_register('KARMA (' . $userLogin . ') FIX FAIL ON MUCH_CASH');
                             }
                         }
+                    } else {
+                        log_register('KARMA (' . $userLogin . ') FIXED ON RESET1');
                     }
                 }
             }
