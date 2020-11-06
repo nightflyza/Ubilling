@@ -3,7 +3,7 @@
 /**
  * Most Retarded Neural Network ever. Yep, with single neuron.
  *
- * TODO: some debug flags, learning visualization, sigmoid function? CLI mode.. etc
+ * TODO: some debug flags, learning visualization, sigmoid function?, save/load network state, CLI mode.. etc
  */
 class MRNN {
 
@@ -54,14 +54,14 @@ class MRNN {
      *
      * @var array
      */
-    protected $trainStats=array();
+    protected $trainStats = array();
 
     /**
      * Contains train stats multiplier
      *
      * @var int
      */
-    protected $statEvery=5000;
+    protected $statEvery = 5000;
 
     /**
      * What did you expect?
@@ -82,7 +82,7 @@ class MRNN {
     }
 
     /**
-     * TODO: different activation functions
+     * Returns data output processed by trained neuron (forward)
      * 
      * @param float $input
      * 
@@ -94,7 +94,7 @@ class MRNN {
     }
 
     /**
-     * TODO: different activation functions
+     * Returns data input processed by trained neuron (backward)
      * 
      * @param float $output
      * 
@@ -121,57 +121,70 @@ class MRNN {
     }
 
     /**
-     * Train neural network on some input value
+     * Train neural network on some single input value
      * 
      * @param float $input
      * @param float $expectedResult
      * 
      * @return bool
      */
-    public function learn($input, $expectedResult) {
+    protected function learn($input, $expectedResult) {
         $this->epoch = 0;
         while ($this->lastError > $this->smoothing OR $this->lastError < '-' . $this->smoothing) {
             $this->train($input, $expectedResult);
-            if (($this->epoch % $this->statEvery)==0) {
-            $this->trainStats[$this->epoch]=$this->lastError;
-        	}
+            if (($this->epoch % $this->statEvery) == 0) {
+                $this->trainStats[$this->epoch] = $this->lastError;
+            }
             $this->epoch++;
         }
         return(true);
     }
 
-    public function learnDataSet($dataSet,$accel=false) {
-    	$result=array();
-    	if (is_array($dataSet)) {
-    		if (!empty($dataSet)) {
-    	    $totalweight = 0;
-    		$neurons=array();
-    		$neuronIndex=0;
-    		$prevWeight=$this->weight;
-    		foreach ($dataSet as $input=>$expectedResult) {
-    			$neurons[$neuronIndex] = new MRNN();
-    			if ($accel) {
-    			  $neurons[$neuronIndex]->setWeight($prevWeight);
-    			}
-    			 if ($neurons[$neuronIndex]->learn($input, $expectedResult)) {
-         		   show_success('Learned weight: ' . $neurons[$neuronIndex]->getWeight() . ' on epoch ' . $neurons[$neuronIndex]->getEpoch()); //TODO: remove it
-         		   $totalweight += $neurons[$neuronIndex]->getWeight();
-         		   $result[]=$neurons[$neuronIndex]->getTrainStats();
-         		   $prevWeight=$neurons[$neuronIndex]->getWeight();
-         		   unset($neurons[$neuronIndex]);
-        		 }
-    			$neuronIndex++;
-    		 }
-  		 
-			
-    	     $this->weight = $totalweight / $neuronIndex; //learning complete
-    	  }
-    	}
-    	return($result);
+    /**
+     * Performs training of neural network with 
+     * 
+     * @param array $dataSet inputs data array like array(inputValue=>estimatedValue)
+     * @param bool $accel perform learning optimizations with previous weight inherition
+     * 
+     * @return bool
+     */
+    public function learnDataSet($dataSet, $accel = false) {
+        $result = false;
+        if (is_array($dataSet)) {
+            if (!empty($dataSet)) {
+                $totalweight = 0;
+                $neurons = array();
+                $neuronIndex = 0;
+                $prevWeight = $this->weight;
+                foreach ($dataSet as $input => $expectedResult) {
+                    $neurons[$neuronIndex] = new MRNN();
+                    //optional learning acceleration via  next weight correction
+                    if ($accel) {
+                        $neurons[$neuronIndex]->setWeight($prevWeight);
+                    }
+                    if ($neurons[$neuronIndex]->learn($input, $expectedResult)) {
+                        show_success('Learned weight: ' . $neurons[$neuronIndex]->getWeight() . ' on epoch ' . $neurons[$neuronIndex]->getEpoch()); //TODO: remove it
+                        $totalweight += $neurons[$neuronIndex]->getWeight();
+                        $this->trainStats[] = $neurons[$neuronIndex]->getTrainStats();
+                        $prevWeight = $neurons[$neuronIndex]->getWeight();
+                        unset($neurons[$neuronIndex]);
+                    }
+                    $neuronIndex++;
+                }
+                $this->weight = $totalweight / $neuronIndex; //learning complete
+            }
+        }
+        $result = true;
+        return($result);
     }
 
+    /**
+     * Retrurns current network instance training stats
+     * 
+     * @return array
+     */
     public function getTrainStats() {
-    	return($this->trainStats);
+        return($this->trainStats);
     }
 
     /**
@@ -202,11 +215,11 @@ class MRNN {
     }
 
     /**
-     * Returns current training iteration
+     * Returns current training epoch
      * 
      * @return float
      */
-    public function getEpoch() {
+    protected function getEpoch() {
         return($this->epoch);
     }
 
