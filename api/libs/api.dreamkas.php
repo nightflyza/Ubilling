@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * DreamKas service interraction class
+ */
 class DreamKas {
     /**
      * UbillingConfig object placeholder

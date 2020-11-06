@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Network equipment FDB tables archive implementation
+ */
 class FDBArchive {
 
     /**

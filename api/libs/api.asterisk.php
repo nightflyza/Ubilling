@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Asterisk PBX basic integration class
+ */
 class Asterisk {
 
     /**
@@ -42,14 +45,14 @@ class Asterisk {
      *
      * @var array
      */
-    protected $allrealnames ;
+    protected $allrealnames;
 
     /**
      *
      *
      * @var array
      */
-    protected $alladdress ;
+    protected $alladdress;
 
     /**
      * Contains system mussages object placeholder
@@ -106,14 +109,14 @@ class Asterisk {
      * @var bool
      */
     protected $extMobilesON = false;
-
     // Database's vars:
     private $connected;
     private $AsteriskDB;
 
     const URL_ME = '?module=asterisk';
     const CACHE_PATH = 'exports/';
-    public function __construct () {
+
+    public function __construct() {
         $this->loadAlter();
         $this->initMessages();
         $this->AsteriskLoadConf();
@@ -147,7 +150,6 @@ class Asterisk {
     protected function AsteriskLoadConf() {
         $this->config = $this->AsteriskGetConf();
         $this->cacheTime = $this->config['cachetime'];
-
     }
 
     /**
@@ -174,7 +176,7 @@ class Asterisk {
      * @return void
      */
     protected function AsterikCacheInfoClean($asteriskTable, $from, $to) {
-        if (!empty($from) and !empty($to)) {
+        if (!empty($from) and ! empty($to)) {
             $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC LIMIT 1";
             $cacheName = $from . $to;
             $cache_uniqueid_key = 'ASTERISK_UNI_' . $cacheName;
@@ -232,7 +234,7 @@ class Asterisk {
         if (empty($cache)) {
             $cache = '2592000';
             zb_StorageSet('ASTERISK_CACHETIME', $cache);
-        }        
+        }
         //getting caching time
         $dopmobile = zb_StorageGet('ASTERISK_DOPMOBILE');
         if (empty($dopmobile)) {
@@ -251,7 +253,7 @@ class Asterisk {
     }
 
     /**
-    * Initialises connection with Asterisk database server and selects needed db
+     * Initialises connection with Asterisk database server and selects needed db
      *
      * @param MySQL Connection Id $connection
      * @return MySQLDB
@@ -288,7 +290,6 @@ class Asterisk {
             $result = rcms_redirect(self::URL_ME . '&config=true');
             return ($result);
         }
-
     }
 
     /**
@@ -327,22 +328,22 @@ class Asterisk {
      */
     public function AsteriskConfigForm() {
         $result = wf_BackLink(self::URL_ME, '', true);
-        $result.= wf_tag('br');
+        $result .= wf_tag('br');
 
         if (cfr('ASTERISKCONF')) {
             $inputs = '';
-            if (! $this->connected) {
-                $inputs .= $this->messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error').wf_tag('br/', false);
+            if (!$this->connected) {
+                $inputs .= $this->messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error') . wf_tag('br/', false);
             }
-            $inputs.= wf_TextInput('newhost', __('Asterisk host'), $this->config['host'], true);
-            $inputs.= wf_TextInput('newdb', __('Database name'), $this->config['db'], true);
-            $inputs.= wf_TextInput('newtable', __('CDR table name'), $this->config['table'], true);
-            $inputs.= wf_TextInput('newlogin', __('Database login'), $this->config['login'], true);
-            $inputs.= wf_TextInput('newpassword', __('Database password'), $this->config['password'], true);
-            $inputs.= wf_TextInput('newcachetime', __('Cache time'), $this->config['cachetime'], true);
-            $inputs.= wf_TextInput('dopmobile', __('Additional mobile - Profile field ID'), $this->config['dopmobile'], true);
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form("", "POST", $inputs, 'glamour');
+            $inputs .= wf_TextInput('newhost', __('Asterisk host'), $this->config['host'], true);
+            $inputs .= wf_TextInput('newdb', __('Database name'), $this->config['db'], true);
+            $inputs .= wf_TextInput('newtable', __('CDR table name'), $this->config['table'], true);
+            $inputs .= wf_TextInput('newlogin', __('Database login'), $this->config['login'], true);
+            $inputs .= wf_TextInput('newpassword', __('Database password'), $this->config['password'], true);
+            $inputs .= wf_TextInput('newcachetime', __('Cache time'), $this->config['cachetime'], true);
+            $inputs .= wf_TextInput('dopmobile', __('Additional mobile - Profile field ID'), $this->config['dopmobile'], true);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form("", "POST", $inputs, 'glamour');
         } else {
             $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
@@ -358,8 +359,8 @@ class Asterisk {
         $result = '';
         if (cfr('ASTERISKALIAS')) {
             $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
-            $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
-            $createinputs.=wf_Submit(__('Create'));
+            $createinputs .= wf_TextInput('newaliasname', __('Alias'), '', true);
+            $createinputs .= wf_Submit(__('Create'));
             $createform = wf_Form('', 'POST', $createinputs, 'glamour');
             $result = $createform;
 
@@ -369,9 +370,9 @@ class Asterisk {
                     $delArr[$num] = $num . ' - ' . $eachname;
                 }
                 $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
-                $delinputs.= wf_Submit(__('Delete'));
+                $delinputs .= wf_Submit(__('Delete'));
                 $delform = wf_Form('', 'POST', $delinputs, 'glamour');
-                $result.= $delform;
+                $result .= $delform;
             }
         } else {
             $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
@@ -425,7 +426,7 @@ class Asterisk {
         zb_StorageSet('ASTERISK_TABLE', $newtable);
         zb_StorageSet('ASTERISK_LOGIN', $newlogin);
         zb_StorageSet('ASTERISK_PASSWORD', $newpassword);
-        zb_StorageSet('ASTERISK_CACHETIME', ($newcachetime < 2592000) ? $newcachetime: 2592000);
+        zb_StorageSet('ASTERISK_CACHETIME', ($newcachetime < 2592000) ? $newcachetime : 2592000);
         zb_StorageSet('ASTERISK_DOPMOBILE', $dopmobile);
         log_register('ASTERISK settings changed');
         rcms_redirect(self::URL_ME . '&config=true');
@@ -443,17 +444,17 @@ class Asterisk {
             $inputs .= wf_BackLink(self::URL_ME, '', false);
         }
         if (cfr('ASTERISKCONF')) {
-            $inputs.=wf_Link(self::URL_ME . '&config=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
+            $inputs .= wf_Link(self::URL_ME . '&config=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
         }
-        $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
-        $inputs.= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
+        $inputs .= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
+        $inputs .= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
         if (!isset($user_login)) {
-            $inputs.= wf_Trigger('countnum', 'Показать самых назойливых', false);
+            $inputs .= wf_Trigger('countnum', 'Показать самых назойливых', false);
         }
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form("", "POST", $inputs, 'glamour');
-        if (! $this->connected) {
-            $result .= $this->messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error').wf_tag('br/', false);
+        if (!$this->connected) {
+            $result .= $this->messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error') . wf_tag('br/', false);
         }
         return ($result);
     }
@@ -466,10 +467,10 @@ class Asterisk {
      * @return string
      */
     protected function AsteriskGetCommentsForUser($idComments) {
-            $query = "SELECT `text` from `adcomments` WHERE `scope`='ASTERISK' AND `item`='" . $idComments . "' ORDER BY `date` ASC LIMIT 1;";
-            $result = simple_query($query);
-            $comments = $result["text"];
-            return ($comments);
+        $query = "SELECT `text` from `adcomments` WHERE `scope`='ASTERISK' AND `item`='" . $idComments . "' ORDER BY `date` ASC LIMIT 1;";
+        $result = simple_query($query);
+        $comments = $result["text"];
+        return ($comments);
     }
 
     /**
@@ -483,8 +484,8 @@ class Asterisk {
         $alldeadswitches = zb_SwitchesGetAllDead();
         $query = "SELECT `login`,`ip` FROM `switchportassign` LEFT JOIN `switches` ON switchportassign.switchid=switches.id WHERE `login`='" . $login . "';";
         $result_q = simple_query($query);
-        if (empty($result_q) ) {
-            $result =  'ERROR: USER NOT HAVE SWITCH';
+        if (empty($result_q)) {
+            $result = 'ERROR: USER NOT HAVE SWITCH';
         } else {
             $result = isset($alldeadswitches[$result_q['ip']]) ? "DIE" : "OK";
         }
@@ -512,7 +513,7 @@ class Asterisk {
             } elseif ($param == "realname") {
                 $this->AsteriskGetUserAllRealnames();
                 $realname = @$this->allrealnames[$login];
-                $realname = preg_replace('/[^a-zA-Zа-яА-Я0-9ё\d ]+/iu','',$realname);
+                $realname = preg_replace('/[^a-zA-Zа-яА-Я0-9ё\d ]+/iu', '', $realname);
                 $realname = zb_TranslitString($realname, TRUE);
                 $result = $login . "-" . $realname;
             } else {
@@ -581,7 +582,6 @@ class Asterisk {
                 if (!empty($result[$data['login']]['mobile'])) {
                     $resultTempUniq[substr($data['mobile'], -10)][] = $data['login'];
                 }
-
             }
 
             if ($this->config['dopmobile']) {
@@ -600,7 +600,7 @@ class Asterisk {
                 foreach ($result_me as $data) {
                     $result[$data['login']]['mobileext'][] = substr($data['mobileext'], -10);
                     $result_a[substr($data['mobileext'], -10)] = $data['login'];
-                    if (!empty( $result[$data['login']]['mobileext'])) {
+                    if (!empty($result[$data['login']]['mobileext'])) {
                         $resultTempUniq[substr($data['mobileext'], -10)][] = $data['login'];
                     }
                 }
@@ -611,16 +611,16 @@ class Asterisk {
         foreach ($resultTempUniq as $phone => $dataArr) {
             $rawArr = array_unique($dataArr);
             if (count($rawArr) == 1) {
-                 $resultUniq[$phone] = $rawArr[0];
+                $resultUniq[$phone] = $rawArr[0];
             } else {
-                $resultNotUniq[$phone] =  $rawArr;
+                $resultNotUniq[$phone] = $rawArr;
             }
         }
         /*
-        print "<pre>";
-        print_r ($resultUniq);
-        print "</pre>";
-        */
+          print "<pre>";
+          print_r ($resultUniq);
+          print "</pre>";
+         */
 
         $this->result_LoginByNumber = $result;
         $this->result_NumberLogin = $result_a;
@@ -710,7 +710,7 @@ class Asterisk {
      * @return void
      */
     protected function AsteriskGetCDR() {
-       $result = '';
+        $result = '';
         // Load needed function
         $this->AsteriskGetLoginByNumberQuery();
         $this->AsteriskGetUserAllRealnames();
@@ -721,18 +721,18 @@ class Asterisk {
         $asteriskTable = mysql_real_escape_string($this->config['table']);
         $user_login = isset($_GET['username']) ? vf($_GET['username']) : '';
 
-        if (!empty($this->recordingsPath) and !empty($this->recordingsCELTab)) {
+        if (!empty($this->recordingsPath) and ! empty($this->recordingsCELTab)) {
             $cel = $this->recordingsCELTab;
-            $query_flds = $asteriskTable . ".*, " . $cel .  ".id, " . $cel . ".appname, SUBSTRING_INDEX(" . $cel . ".appdata, ',', 1) AS app_data ";
+            $query_flds = $asteriskTable . ".*, " . $cel . ".id, " . $cel . ".appname, SUBSTRING_INDEX(" . $cel . ".appdata, ',', 1) AS app_data ";
             $query_voice_join = " LEFT JOIN " . $cel . " ON " . $asteriskTable . ".calldate = " . $cel . ".eventtime " .
-                                            " AND " . $asteriskTable . ".cnum = " . $cel . ".cid_num " .
-                                            " AND (lower(" . $cel . ".appname) = 'monitor' OR lower(" . $cel . ".appname) = 'mixmonitor') ";
+                    " AND " . $asteriskTable . ".cnum = " . $cel . ".cid_num " .
+                    " AND (lower(" . $cel . ".appname) = 'monitor' OR lower(" . $cel . ".appname) = 'mixmonitor') ";
         } else {
             $query_flds = ' * ';
             $query_voice_join = '';
         }
 
-        if (! empty($user_login)) {
+        if (!empty($user_login)) {
             //fetch some data from Asterisk database
             $phone = @$this->result_LoginByNumber[$user_login]['phone'];
             $mobile = @$this->result_LoginByNumber[$user_login]['mobile'];
@@ -743,40 +743,40 @@ class Asterisk {
             $where_part = '';
             $query = "select " . $query_flds . " from `" . $asteriskTable . "` " . $query_voice_join . " where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (";
             if (!empty($phone) AND empty($where_part)) {
-                $where_part.= "`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "'";
-            } elseif (!empty($phone) AND !empty($where_part)) {
-                $where_part.= " OR `src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "'";
+                $where_part .= "`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "'";
+            } elseif (!empty($phone) AND ! empty($where_part)) {
+                $where_part .= " OR `src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "'";
             }
             if (!empty($mobile) AND empty($where_part)) {
-                $where_part.= "`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "'";
-            } elseif (!empty($mobile) AND !empty($where_part)) {
-                $where_part.= " OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "'";
+                $where_part .= "`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "'";
+            } elseif (!empty($mobile) AND ! empty($where_part)) {
+                $where_part .= " OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "'";
             }
             if (!empty($mobileext_arr) AND empty($where_part)) {
-                foreach ($mobileext_arr as $id=>$mobileext) {
+                foreach ($mobileext_arr as $id => $mobileext) {
                     if ($id == 0) {
-                    $where_part.= "`src` LIKE '%" . $mobileext . "' OR `dst` LIKE '%" . $mobileext . "'";
+                        $where_part .= "`src` LIKE '%" . $mobileext . "' OR `dst` LIKE '%" . $mobileext . "'";
                     } else {
-                        $where_part.= " OR `src` LIKE '%" . $mobileext . "' OR `dst` LIKE '%" . $mobileext . "'";
+                        $where_part .= " OR `src` LIKE '%" . $mobileext . "' OR `dst` LIKE '%" . $mobileext . "'";
                     }
                 }
-            } elseif (!empty($mobileext_arr) AND !empty($where_part)) {
+            } elseif (!empty($mobileext_arr) AND ! empty($where_part)) {
                 foreach ($mobileext_arr as $mobileext) {
-                    $where_part.= " OR `src` LIKE '%" . $mobileext . "' OR `dst` LIKE '%" . $mobileext . "'";
+                    $where_part .= " OR `src` LIKE '%" . $mobileext . "' OR `dst` LIKE '%" . $mobileext . "'";
                 }
             }
             if (!empty($dop_mobile) AND empty($where_part)) {
-                $where_part.= "`src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "'";
-            } elseif (!empty($dop_mobile) AND !empty($where_part)) {
-                $where_part.= " OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "'";
+                $where_part .= "`src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "'";
+            } elseif (!empty($dop_mobile) AND ! empty($where_part)) {
+                $where_part .= " OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "'";
             }
-            $query.= $where_part;
-            $query.= ") AND `lastapp`='dial' ORDER BY `calldate` DESC";
+            $query .= $where_part;
+            $query .= ") AND `lastapp`='dial' ORDER BY `calldate` DESC";
 
             if (!empty($where_part)) {
                 $rawResult = $this->AsteriskQuery($query);
             }
-        } elseif (wf_CheckGet(array('countnum')) and  empty($user_login)) {
+        } elseif (wf_CheckGet(array('countnum')) and empty($user_login)) {
             $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND `lastapp`='dial' GROUP BY `src`";
             $rawResult = $this->AsteriskQuery($query);
         } else {
@@ -787,9 +787,9 @@ class Asterisk {
 
             $obj = $this;
             $cacheName = $from . $to;
-            $rawResult = $this->cache->getCallback('ASTERISK_CDR_' . $cacheName, function()  use ($query, $obj) {
-                        return ($obj->AsteriskQuery($query));
-                        }, $this->cacheTime);
+            $rawResult = $this->cache->getCallback('ASTERISK_CDR_' . $cacheName, function() use ($query, $obj) {
+                return ($obj->AsteriskQuery($query));
+            }, $this->cacheTime);
         }
 
         // Check for rawResult
@@ -818,10 +818,10 @@ class Asterisk {
         }
 
         if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
-            $columns[]= 'Назойливость';
+            $columns[] = 'Назойливость';
             $countnum = '&countnum=true';
         } else {
-            $columns[]= 'Comments';
+            $columns[] = 'Comments';
             $countnum = '';
         }
 
@@ -830,7 +830,7 @@ class Asterisk {
         $user_login = isset($_GET['username']) ? '&username=' . vf($_GET['username']) : '';
 
         $opts = '"order": [[ 0, "asc" ]]';
-        $result = $playerInit . wf_JqDtLoader($columns, '?module=asterisk&ajax=true&datefrom=' . $from  . '&dateto=' . $to . $user_login . $countnum, false, 'Calls', 100, $opts);
+        $result = $playerInit . wf_JqDtLoader($columns, '?module=asterisk&ajax=true&datefrom=' . $from . '&dateto=' . $to . $user_login . $countnum, false, 'Calls', 100, $opts);
         return ($result);
     }
 
@@ -886,10 +886,10 @@ class Asterisk {
                 $answerTime = $tmpTime + ($each['duration'] - $each['billsec']);
                 $answerTime = date("H:i:s", $answerTime);
                 $tmpStats = __('Taken up the phone') . ': ' . $answerTime . "\n";
-                $tmpStats.=__('End of call') . ': ' . $endTime;
+                $tmpStats .= __('End of call') . ': ' . $endTime;
                 $sessionTimeStats = wf_tag('abbr', false, '', 'title="' . $tmpStats . '"');
-                $sessionTimeStats.=$startTime;
-                $sessionTimeStats.=wf_tag('abbr', true);
+                $sessionTimeStats .= $startTime;
+                $sessionTimeStats .= wf_tag('abbr', true);
                 $callDirection = '';
 
                 $CallType = __('Dial');
@@ -947,19 +947,19 @@ class Asterisk {
                 }
 
                 if (wf_CheckGet(array('countnum')) and ! isset($user_login) and $_GET['countnum']) {
-                    $data[]= $each['countnum'];
+                    $data[] = $each['countnum'];
                 } else {
-                        $itemId = $each['uniqueid'] . $each['disposition'][0];
+                    $itemId = $each['uniqueid'] . $each['disposition'][0];
 
-                        if ($adcomments->haveComments($itemId)) {
-                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . $this->AsteriskGetCommentsForUser($itemId) . wf_tag('span', true) . wf_tag('center', true);
-                        } else {
-                            $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
-                        }
-                    if (!empty($login)) {
-                        $data[]= wf_Link(self::URL_ME . '&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false);
+                    if ($adcomments->haveComments($itemId)) {
+                        $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . $this->AsteriskGetCommentsForUser($itemId) . wf_tag('span', true) . wf_tag('center', true);
                     } else {
-                        $data[]= wf_Link(self::URL_ME . '&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false);
+                        $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
+                    }
+                    if (!empty($login)) {
+                        $data[] = wf_Link(self::URL_ME . '&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false);
+                    } else {
+                        $data[] = wf_Link(self::URL_ME . '&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false);
                     }
                 }
                 $json->addRow($data);
@@ -1025,7 +1025,7 @@ class Asterisk {
         $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->recordingsPath));
 
         foreach ($rii as $file) {
-            if (!$file -> isDir()) {
+            if (!$file->isDir()) {
                 if (!empty($this->recordingsFormat) and preg_match($exp, $file->getPathname())) {
                     $result[] = str_ireplace($this->recordingsPath, '', $file->getPathname());
                 } else {
@@ -1074,7 +1074,7 @@ class Asterisk {
     public function getContractsByMobile($mobile, $returnJSON = true) {
         $contracts = array();
         $logins = $this->getLoginsByMobile($mobile, false);
-        
+
         if (!empty($logins)) {
             foreach ($logins as $eachLogin) {
                 $contracts[] = zb_UserGetContract($eachLogin);
@@ -1084,7 +1084,6 @@ class Asterisk {
         $contracts = ($returnJSON) ? json_encode($contracts) : $contracts;
         return ($contracts);
     }
-
 
     /**
      * Returns some user data by login with optional auth by login + password
@@ -1099,7 +1098,7 @@ class Asterisk {
     public function getUserData($login, $passwd = '', $getExtMobiles = true, $returnJSON = true) {
         $userData = array();
 
-        if (!is_array($login) and !empty($passwd)) {
+        if (!is_array($login) and ! empty($passwd)) {
             $allUsers = zb_UserGetAllDataCache();
 
             if (empty($allUsers[$login]) or $allUsers[$login]['Password'] !== $passwd) {
@@ -1111,9 +1110,9 @@ class Asterisk {
 
         if (is_array($login)) {
             $login = "'" . implode("','", $login) . "'";
-            $whereStr = "WHERE `users`.`login` IN (". $login . ")";
+            $whereStr = "WHERE `users`.`login` IN (" . $login . ")";
         } else {
-            $whereStr = "WHERE `users`.`login` = '". $login . "'";
+            $whereStr = "WHERE `users`.`login` = '" . $login . "'";
         }
 
         $query = "SELECT `login`, `Password`, `Cash`, `Credit`, `CreditExpire`, `Passive`, `Down`, `AlwaysOnline`, `Tariff`, 
@@ -1199,6 +1198,7 @@ class Asterisk {
         $result = ($returnJSON) ? json_encode($result) : $result;
         return ($result);
     }
+
 }
 
 ?>

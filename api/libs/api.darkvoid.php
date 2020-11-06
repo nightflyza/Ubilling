@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Notification area aka DarkVoid class
+ */
 class DarkVoid {
 
     /**

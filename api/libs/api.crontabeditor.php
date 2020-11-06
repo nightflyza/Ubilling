@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * System crontab editor class
+ */
 class CrontabEditor {
 
     /**

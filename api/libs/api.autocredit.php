@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Automatic user credits setting class
+ */
 class AutoCredit {
 
     /**

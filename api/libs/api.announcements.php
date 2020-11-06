@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Ubilling user announcements basic class
+ */
 class Announcements {
 
     /**
@@ -688,6 +691,9 @@ class Announcements {
 
 }
 
+/**
+ * Ubilling administrator announcements basic class
+ */
 class AdminAnnouncements extends Announcements {
 
     public function __construct() {

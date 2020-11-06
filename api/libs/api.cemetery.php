@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Dead users burial implementation
+ */
 class Cemetery {
 
     /**

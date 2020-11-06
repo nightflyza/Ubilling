@@ -3,7 +3,6 @@
 /**
  * DOCx profile documents base class
  */
-
 class ProfileDocuments {
 
     /**
@@ -333,11 +332,11 @@ class ProfileDocuments {
         if (isset($this->templates[$templateId])) {
             $templateData = $this->templates[$templateId];
             $inputs = wf_HiddenInput('editsometemplateid', $templateId);
-            $inputs.= wf_TextInput('editsometemplatename', __('Template display name'), $templateData['name'], true, 20);
-            $inputs.= wf_CheckInput('editsometemplatepublic', __('Template is public'), true, $templateData['public']);
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_TextInput('editsometemplatename', __('Template display name'), $templateData['name'], true, 20);
+            $inputs .= wf_CheckInput('editsometemplatepublic', __('Template is public'), true, $templateData['public']);
+            $inputs .= wf_Submit(__('Save'));
 
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -374,28 +373,28 @@ class ProfileDocuments {
      */
     public function renderTemplatesList() {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Admin'));
-        $cells.= wf_TableCell(__('Public'));
-        $cells.= wf_TableCell(__('Name'));
-        $cells.= wf_TableCell(__('Path'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Admin'));
+        $cells .= wf_TableCell(__('Public'));
+        $cells .= wf_TableCell(__('Name'));
+        $cells .= wf_TableCell(__('Path'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->templates)) {
             foreach ($this->templates as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['admin']);
-                $cells.= wf_TableCell(web_bool_led($each['public']));
-                $cells.= wf_TableCell($each['name']);
-                $cells.= wf_TableCell($each['path']);
+                $cells .= wf_TableCell($each['date']);
+                $cells .= wf_TableCell($each['admin']);
+                $cells .= wf_TableCell(web_bool_led($each['public']));
+                $cells .= wf_TableCell($each['name']);
+                $cells .= wf_TableCell($each['path']);
                 $actlinks = wf_JSAlert('?module=pl_documents&deletetemplate=' . $each['id'] . '&username=' . $this->userLogin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-                $actlinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderTemplateEditForm($each['id'])) . ' ';
-                $actlinks.= wf_Link('?module=pl_documents&download=' . $each['path'] . '&username=' . $this->userLogin, wf_img('skins/icon_download.png', __('Download'))) . ' ';
-                $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print.png') . ' ' . __('Print'), false, 'ubButton');
-                $cells.= wf_TableCell($actlinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $actlinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderTemplateEditForm($each['id'])) . ' ';
+                $actlinks .= wf_Link('?module=pl_documents&download=' . $each['path'] . '&username=' . $this->userLogin, wf_img('skins/icon_download.png', __('Download'))) . ' ';
+                $actlinks .= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print.png') . ' ' . __('Print'), false, 'ubButton');
+                $cells .= wf_TableCell($actlinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -409,12 +408,12 @@ class ProfileDocuments {
      */
     public function uploadForm() {
         $uploadinputs = wf_HiddenInput('uploadtemplate', 'true');
-        $uploadinputs.= wf_TextInput('templatedisplayname', __('Template display name'), '', true, 20);
-        $uploadinputs.= wf_CheckInput('publictemplate', __('Template is public'), true, false);
-        $uploadinputs.=__('Upload new document template from HDD') . wf_tag('br');
-        $uploadinputs.=wf_tag('input', false, '', 'id="fileselector" type="file" name="uldocxtempplate"') . wf_tag('br');
+        $uploadinputs .= wf_TextInput('templatedisplayname', __('Template display name'), '', true, 20);
+        $uploadinputs .= wf_CheckInput('publictemplate', __('Template is public'), true, false);
+        $uploadinputs .= __('Upload new document template from HDD') . wf_tag('br');
+        $uploadinputs .= wf_tag('input', false, '', 'id="fileselector" type="file" name="uldocxtempplate"') . wf_tag('br');
 
-        $uploadinputs.=wf_Submit('Upload');
+        $uploadinputs .= wf_Submit('Upload');
         $uploadform = bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
         return ($uploadform);
     }
@@ -540,14 +539,14 @@ class ProfileDocuments {
         }
 
         $inputs = wf_DatePickerPreset('customdate', curdate());
-        $inputs.= wf_tag('br');
-        $inputs.= wf_TextInput('customrealname', __('Real Name'), @$this->userData[$this->userLogin]['REALNAME'], true, '20');
-        $inputs.= wf_TextInput('customphone', __('Phone'), @$this->userData[$this->userLogin]['PHONE'], true, '10');
-        $inputs.= wf_Selector('customservice', $availServices, __('Service'), '', 'true');
-        $inputs.= wf_TextInput('customnotes', __('Notes'), '', true, '20');
-        $inputs.= wf_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
+        $inputs .= wf_tag('br');
+        $inputs .= wf_TextInput('customrealname', __('Real Name'), @$this->userData[$this->userLogin]['REALNAME'], true, '20');
+        $inputs .= wf_TextInput('customphone', __('Phone'), @$this->userData[$this->userLogin]['PHONE'], true, '10');
+        $inputs .= wf_Selector('customservice', $availServices, __('Service'), '', 'true');
+        $inputs .= wf_TextInput('customnotes', __('Notes'), '', true, '20');
+        $inputs .= wf_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
         if ($this->altcfg['CORPS_ENABLED']) {
-            $inputs.=wf_tag('br') . wf_tag('span', false, 'row3') . ' ' . __('Corporate users') . ' ' . wf_tag('span', true) . wf_tag('br');
+            $inputs .= wf_tag('br') . wf_tag('span', false, 'row3') . ' ' . __('Corporate users') . ' ' . wf_tag('span', true) . wf_tag('br');
             $greed = new Avarice();
             $corpsRuntime = $greed->runtime('CORPS');
             if (!empty($corpsRuntime)) {
@@ -556,31 +555,31 @@ class ProfileDocuments {
                     //this is realy corp user
                     $corpData = $corps->corpGetDataByLogin($this->userLogin);
 
-                    $inputs.=wf_TextInput('corpname', __('Corp name'), htmlspecialchars(@$corpData['corpname'], ENT_QUOTES), true, '50');
-                    $inputs.=wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
-                    $inputs.=wf_TextInput('corpdoctype', __('Document type'), @$corpData['doctype'], true, '30');
-                    $inputs.=wf_TextInput('corpdocnum', __('Document number'), @$corpData['docnum'], true, '30');
-                    $inputs.=wf_TextInput('corpdocdate', __('Document date'), @$corpData['docdate'], true, '30');
-                    $inputs.=wf_TextInput('corpbankacc', __('Bank account'), @$corpData['bankacc'], true, '30');
-                    $inputs.=wf_TextInput('corpbankname', __('Bank name'), htmlspecialchars(@$corpData['bankname'], ENT_QUOTES), true, '30');
-                    $inputs.=wf_TextInput('corpbankmfo', __('Bank MFO'), @$corpData['bankmfo'], true, '30');
-                    $inputs.=wf_TextInput('corpedrpou', __('EDRPOU'), @$corpData['edrpou'], true, '30');
-                    $inputs.=wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
-                    $inputs.=wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
-                    $inputs.=wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
-                    $inputs.=wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
+                    $inputs .= wf_TextInput('corpname', __('Corp name'), htmlspecialchars(@$corpData['corpname'], ENT_QUOTES), true, '50');
+                    $inputs .= wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
+                    $inputs .= wf_TextInput('corpdoctype', __('Document type'), @$corpData['doctype'], true, '30');
+                    $inputs .= wf_TextInput('corpdocnum', __('Document number'), @$corpData['docnum'], true, '30');
+                    $inputs .= wf_TextInput('corpdocdate', __('Document date'), @$corpData['docdate'], true, '30');
+                    $inputs .= wf_TextInput('corpbankacc', __('Bank account'), @$corpData['bankacc'], true, '30');
+                    $inputs .= wf_TextInput('corpbankname', __('Bank name'), htmlspecialchars(@$corpData['bankname'], ENT_QUOTES), true, '30');
+                    $inputs .= wf_TextInput('corpbankmfo', __('Bank MFO'), @$corpData['bankmfo'], true, '30');
+                    $inputs .= wf_TextInput('corpedrpou', __('EDRPOU'), @$corpData['edrpou'], true, '30');
+                    $inputs .= wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
+                    $inputs .= wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
+                    $inputs .= wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
+                    $inputs .= wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
                 } else {
-                    $inputs.=__('Private user');
+                    $inputs .= __('Private user');
                 }
             } else {
-                $inputs.=__('No license key available');
+                $inputs .= __('No license key available');
             }
         }
-        $inputs.= wf_HiddenInput('customfields', 'true');
+        $inputs .= wf_HiddenInput('customfields', 'true');
         $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
-        $inputs.= wf_CheckInput('savedocaspublic', $publicLabel, true, $publicFlag);
-        $inputs.= wf_tag('br');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_CheckInput('savedocaspublic', $publicLabel, true, $publicFlag);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -759,10 +758,10 @@ class ProfileDocuments {
             $currentDocumentData = $this->userDocuments[$documentId];
             $inputs = wf_HiddenInput('chvisdocumentid', $documentId);
             $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
-            $inputs.= wf_CheckInput('chdocumentpublic', $publicLabel, true, $currentDocumentData['public']);
-            $inputs.=wf_tag('br');
-            $inputs.=wf_Submit(__('Save'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_CheckInput('chdocumentpublic', $publicLabel, true, $currentDocumentData['public']);
+            $inputs .= wf_tag('br');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -791,26 +790,26 @@ class ProfileDocuments {
      */
     public function renderUserDocuments() {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Public'));
-        $cells.= wf_TableCell(__('Template'));
-        $cells.= wf_TableCell(__('Path'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Public'));
+        $cells .= wf_TableCell(__('Template'));
+        $cells .= wf_TableCell(__('Path'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->userDocuments)) {
             foreach ($this->userDocuments as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell(web_bool_led($each['public']));
+                $cells .= wf_TableCell($each['date']);
+                $cells .= wf_TableCell(web_bool_led($each['public']));
                 @$templateName = $this->templates[$each['templateid']]['name'];
-                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
+                $cells .= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
                 $downloadLink = wf_Link('?module=pl_documents&username=' . $this->userLogin . '&documentdownload=' . $each['path'], $each['path'], false, '');
-                $cells.= wf_TableCell($downloadLink);
+                $cells .= wf_TableCell($downloadLink);
                 $actionLinks = wf_JSAlert('?module=pl_documents&username=' . $this->userLogin . '&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious')) . ' ';
-                $actionLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDocumentEditForm($each['id']));
-                $cells.= wf_TableCell($actionLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $actionLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDocumentEditForm($each['id']));
+                $cells .= wf_TableCell($actionLinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
@@ -828,32 +827,32 @@ class ProfileDocuments {
         $allRealnames = zb_UserGetAllRealnames();
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Public'));
-        $cells.= wf_TableCell(__('Template'));
-        $cells.= wf_TableCell(__('Path'));
-        $cells.= wf_TableCell(__('Login'));
-        $cells.= wf_TableCell(__('Address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Date'));
+        $cells .= wf_TableCell(__('Public'));
+        $cells .= wf_TableCell(__('Template'));
+        $cells .= wf_TableCell(__('Path'));
+        $cells .= wf_TableCell(__('Login'));
+        $cells .= wf_TableCell(__('Address'));
+        $cells .= wf_TableCell(__('Real Name'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allUserDocuments)) {
             foreach ($this->allUserDocuments as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell(web_bool_led($each['public']));
+                $cells .= wf_TableCell($each['date']);
+                $cells .= wf_TableCell(web_bool_led($each['public']));
                 @$templateName = $this->templates[$each['templateid']]['name'];
-                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
+                $cells .= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
                 $downloadLink = wf_Link('?module=report_documents&documentdownload=' . $each['path'], $each['path'], false, '');
-                $cells.= wf_TableCell($downloadLink);
+                $cells .= wf_TableCell($downloadLink);
                 $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login']);
-                $cells.= wf_TableCell($profileLink);
-                $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                $cells.= wf_TableCell(@$allRealnames[$each['login']]);
+                $cells .= wf_TableCell($profileLink);
+                $cells .= wf_TableCell(@$allAddress[$each['login']]);
+                $cells .= wf_TableCell(@$allRealnames[$each['login']]);
                 $actionLinks = wf_JSAlert('?module=report_documents&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious'));
-                $cells.= wf_TableCell($actionLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($actionLinks);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
@@ -876,7 +875,7 @@ class ProfileDocuments {
                 $timestamp = strtotime($each['date']);
                 $date = date("Y, n-1, j", $timestamp);
                 $rawTime = date("H:i:s", $timestamp);
-                $calendarData.="
+                $calendarData .= "
                       {
                         title: '" . $rawTime . ' ' . @$allAddress[$each['login']] . "',
                         url: '?module=userprofile&username=" . $each['login'] . "',
@@ -904,7 +903,7 @@ class ProfileDocuments {
         }
 
         $inputs = wf_DatePickerPreset('showdate', $curdate);
-        $inputs.= wf_Submit(__('Show'));
+        $inputs .= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
 
         return ($result);

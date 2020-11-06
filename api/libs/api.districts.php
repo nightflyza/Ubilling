@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Coverage map districts absctraction
+ */
 class Districts {
 
     /**

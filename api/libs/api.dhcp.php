@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * ISC-DHCPD server management class
+ */
 class UbillingDHCP {
 
     /**

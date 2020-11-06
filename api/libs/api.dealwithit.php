@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Per-user task scheduler
+ */
 class DealWithIt {
 
     /**

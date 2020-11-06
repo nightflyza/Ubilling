@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Corporate aka enterprise users implementation
+ */
 class Corps {
 
     /**

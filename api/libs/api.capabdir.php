@@ -1,9 +1,8 @@
 <?php
 
-/*
+/**
  * Capabilities directory base class
  */
-
 class CapabilitiesDirectory {
 
     /**
@@ -209,7 +208,7 @@ class CapabilitiesDirectory {
         $columns = array(__('Admin'), __('Date'), __('Address'), __('Phone'), __('Status'), __('Notes'), __('Price'), __('Employee'), __('Changed'), __('Actions'));
         $result = $this->panel();
         $opts = '"order": [[ 4, "asc" ]]';
-        $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Objects'), 100, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Objects'), 100, $opts);
         return ($result);
     }
 
@@ -223,7 +222,7 @@ class CapabilitiesDirectory {
         if (!empty($this->capabstates)) {
             foreach ($this->capabstates as $io => $each) {
                 $customColorStyleName = 'capabcolorcustom_' . $io;
-                $result.='.' . $customColorStyleName . ',
+                $result .= '.' . $customColorStyleName . ',
                                                    .' . $customColorStyleName . ' div,
                                                    .' . $customColorStyleName . ' span {
                                                         background-color: #' . $each['color'] . '; 
@@ -232,7 +231,7 @@ class CapabilitiesDirectory {
                                                     }';
             }
         }
-        $result.=wf_tag('style', true);
+        $result .= wf_tag('style', true);
         return ($result);
     }
 
@@ -243,8 +242,8 @@ class CapabilitiesDirectory {
      */
     public function renderCalendar() {
         $result = '';
-        $result.=$this->panel();
-        $result.=$this->getColorStyles();
+        $result .= $this->panel();
+        $result .= $this->getColorStyles();
         $data = '';
         if (!empty($this->allcapab)) {
             foreach ($this->allcapab as $io => $each) {
@@ -257,7 +256,7 @@ class CapabilitiesDirectory {
                 $doneTimestamp = (!empty($each['donedate'])) ? strtotime($each['donedate']) : time();
                 $doneDate = date("Y, n-1, j", $doneTimestamp);
                 $daysSpent = zb_formatTime($doneTimestamp - $timestamp);
-                $data.="
+                $data .= "
                       {
                         title: '" . $each['address'] . ' - ' . $stateName . ' (' . $daysSpent . ')' . "',
                         start: new Date(" . $startDate . "),
@@ -269,7 +268,7 @@ class CapabilitiesDirectory {
 
             $data = zb_CutEnd($data);
         }
-        $result.=wf_FullCalendar($data);
+        $result .= wf_FullCalendar($data);
         return ($result);
     }
 
@@ -292,9 +291,9 @@ class CapabilitiesDirectory {
 
                 $actions = '';
                 if (cfr('ROOT')) {
-                    $actions.= wf_JSAlert(self::URL_ME . "&delete=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
+                    $actions .= wf_JSAlert(self::URL_ME . "&delete=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
                 }
-                $actions.= wf_link(self::URL_ME . "&edit=" . $each['id'], web_edit_icon(), false);
+                $actions .= wf_link(self::URL_ME . "&edit=" . $each['id'], web_edit_icon(), false);
 
                 $loginGuess = $this->telepathy->getLogin($each['address']);
                 $profileLink = (!empty($loginGuess)) ? wf_Link('?module=userprofile&username=' . $loginGuess, web_profile_icon(), false, '') . ' (' . __('guessed') . ')' : '';
@@ -408,10 +407,10 @@ class CapabilitiesDirectory {
         $allAddress = zb_AddressGetFulladdresslistCached();
         natsort($allAddress);
         $inputs = wf_AutocompleteTextInput('newaddress', $allAddress, __('Address') . $sup, '', false);
-        $inputs.= wf_TextInput('newphone', __('Phone') . $sup, $phone, true);
-        $inputs.= __('Notes') . wf_tag('br');
-        $inputs.= wf_TextArea('newnotes', '', $notes, true, '40x5');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextInput('newphone', __('Phone') . $sup, $phone, true);
+        $inputs .= __('Notes') . wf_tag('br');
+        $inputs .= wf_TextArea('newnotes', '', $notes, true, '40x5');
+        $inputs .= wf_Submit(__('Create'));
 
         $result = wf_Form(self::URL_CREATE, 'POST', $inputs, 'glamour');
         return ($result);
@@ -455,21 +454,21 @@ class CapabilitiesDirectory {
             $taskControl = wf_modalAuto(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
 
             $result = wf_BackLink(self::URL_ME) . ' ';
-            $result.= $taskControl . wf_delimiter();
+            $result .= $taskControl . wf_delimiter();
 
             $inputs = wf_TextInput('editaddress', __('Full address') . $sup, $this->allcapab[$id]['address'], true);
-            $inputs.= wf_TextInput('editphone', __('Phone') . $sup, $this->allcapab[$id]['phone'], true);
-            $inputs.= __('Notes') . wf_tag('br');
-            $inputs.= wf_TextArea('editnotes', '', $this->allcapab[$id]['notes'], true, '40x5');
-            $inputs.= wf_TextInput('editprice', __('Price'), $this->allcapab[$id]['price'], true);
-            $inputs.= wf_Selector('editstateid', $stateSelector, __('Status'), $this->allcapab[$id]['stateid'], true);
-            $inputs.= wf_Selector('editemployeeid', $employeeSelector, __('Worker'), $this->allcapab[$id]['employeeid'], true);
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_TextInput('editphone', __('Phone') . $sup, $this->allcapab[$id]['phone'], true);
+            $inputs .= __('Notes') . wf_tag('br');
+            $inputs .= wf_TextArea('editnotes', '', $this->allcapab[$id]['notes'], true, '40x5');
+            $inputs .= wf_TextInput('editprice', __('Price'), $this->allcapab[$id]['price'], true);
+            $inputs .= wf_Selector('editstateid', $stateSelector, __('Status'), $this->allcapab[$id]['stateid'], true);
+            $inputs .= wf_Selector('editemployeeid', $employeeSelector, __('Worker'), $this->allcapab[$id]['employeeid'], true);
+            $inputs .= wf_delimiter();
+            $inputs .= wf_Submit(__('Save'));
 
 
             $form = wf_Form("", 'POST', $inputs, 'glamour');
-            $form.=wf_CleanDiv();
+            $form .= wf_CleanDiv();
 
             $capabHist = '';
             if (isset($this->history[$id])) {
@@ -494,14 +493,14 @@ class CapabilitiesDirectory {
                                 $style = 'info';
                                 break;
                         }
-                        $capabHist.=$messages->getStyledMessage($label . ' ' . $each['date'] . ' ' . $employeeName, $style);
+                        $capabHist .= $messages->getStyledMessage($label . ' ' . $each['date'] . ' ' . $employeeName, $style);
                     }
                 }
             }
             $cells = wf_TableCell($form, '', '', 'valign="top"');
-            $cells.= wf_TableCell($capabHist, '', '', 'valign="top"');
+            $cells .= wf_TableCell($capabHist, '', '', 'valign="top"');
             $rows = wf_TableRow($cells);
-            $result.=wf_TableBody($rows, '100%', 0);
+            $result .= wf_TableBody($rows, '100%', 0);
         } else {
             throw new Exception(self::NO_ID);
         }
@@ -553,26 +552,26 @@ class CapabilitiesDirectory {
     public function statesList() {
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Status'));
-        $cells.= wf_TableCell(__('Color'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Status'));
+        $cells .= wf_TableCell(__('Color'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
 
         if (!empty($this->capabstates)) {
             foreach ($this->capabstates as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['state']);
+                $cells .= wf_TableCell($each['state']);
                 $color = wf_tag('font', false, '', 'color = "#' . $each['color'] . '"') . $each['color'] . wf_tag('font', true);
-                $cells.= wf_TableCell($color);
+                $cells .= wf_TableCell($color);
                 if ($each['id'] != 0) {
                     $actions = wf_JSAlert(self::URL_ME . "&states=true&deletestate=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                    $actions.= wf_JSAlert(self::URL_ME . "&states=true&editstate=" . $each['id'], web_edit_icon(), __('Are you serious'));
+                    $actions .= wf_JSAlert(self::URL_ME . "&states=true&editstate=" . $each['id'], web_edit_icon(), __('Are you serious'));
                 } else {
                     $actions = '';
                 }
-                $cells.= wf_TableCell($actions);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($actions);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
@@ -589,9 +588,9 @@ class CapabilitiesDirectory {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $result = wf_BackLink(self::URL_ME, '', true);
         $inputs = wf_TextInput('createstate', __('New status') . $sup, '', true, '20');
-        $inputs.= wf_ColPicker('createstatecolor', __('New status color') . $sup, '#' . $this->genRandomColor(), true, '10');
-        $inputs.= wf_Submit(__('Create'));
-        $result.= wf_Form("", 'POST', $inputs, 'glamour');
+        $inputs .= wf_ColPicker('createstatecolor', __('New status color') . $sup, '#' . $this->genRandomColor(), true, '10');
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -606,9 +605,9 @@ class CapabilitiesDirectory {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $result = wf_BackLink(self::URL_ME . '&states=true', '', true);
         $inputs = wf_TextInput('editstate', __('New status') . $sup, $this->capabstates[$id]['state'], true, '20');
-        $inputs.= wf_ColPicker('editstatecolor', __('New status color') . $sup, '#' . $this->capabstates[$id]['color'], true, '10');
-        $inputs.= wf_Submit(__('Save'));
-        $result.= wf_Form("", 'POST', $inputs, 'glamour');
+        $inputs .= wf_ColPicker('editstatecolor', __('New status color') . $sup, '#' . $this->capabstates[$id]['color'], true, '10');
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -687,21 +686,21 @@ class CapabilitiesDirectory {
 
             if (!empty($statsTmp)) {
                 $cells = wf_TableCell(__('Status'));
-                $cells.= wf_TableCell(__('Count'));
-                $cells.= wf_TableCell(__('Visual'));
+                $cells .= wf_TableCell(__('Count'));
+                $cells .= wf_TableCell(__('Visual'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($statsTmp as $stateid => $count) {
                     $cells = wf_TableCell(@$this->capabstates[$stateid]['state']);
-                    $cells.= wf_TableCell($count);
-                    $cells.= wf_TableCell(web_bar($count, $total));
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($count);
+                    $cells .= wf_TableCell(web_bar($count, $total));
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             }
         } else {
             $messages = new UbillingMessageHelper();
-            $result.=$messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
     }
@@ -714,16 +713,16 @@ class CapabilitiesDirectory {
     protected function panel() {
         $result = '';
         if (cfr('ROOT')) {
-            $result.= wf_Link(self::URL_ME . "&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
+            $result .= wf_Link(self::URL_ME . "&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
-        $result.= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
-        $result.= wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
+        $result .= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
+        $result .= wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
         if (wf_CheckGet(array('calendar'))) {
-            $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
         } else {
-            $result.= wf_Link(self::URL_ME . '&calendar=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&calendar=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
         }
-        $result.=wf_tag('br') . wf_tag('br');
+        $result .= wf_tag('br') . wf_tag('br');
 
         return ($result);
     }

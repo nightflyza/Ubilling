@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Allows to attach files to random items in some scope
+ */
 class FileStorage {
 
     /**

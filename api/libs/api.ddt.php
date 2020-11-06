@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Automatic user tariff migration aka  Dooms Day Tariffs class
+ */
 class DoomsDayTariffs {
 
     /**

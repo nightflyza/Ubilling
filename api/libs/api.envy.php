@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Equipment configuration backup aka Envy implementation
+ */
 class Envy {
 
     /**

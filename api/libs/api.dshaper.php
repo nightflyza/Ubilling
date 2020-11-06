@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * User dynamic shaper with speeds self-changing depends on time of day
+ */
 class DynamicShaper {
 
     /**

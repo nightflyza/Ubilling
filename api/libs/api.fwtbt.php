@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Incoming calls notifications class
+ */
 class ForWhomTheBellTolls {
 
     /**

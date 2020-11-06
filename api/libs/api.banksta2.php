@@ -1,4 +1,8 @@
 <?php
+
+/**
+ * Bank statements processing class
+ */
 class Banksta2 {
     /**
      * UbillingConfig object placeholder

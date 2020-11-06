@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * ISP branches implementation
+ */
 class UbillingBranches {
 
     /**

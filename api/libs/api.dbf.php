@@ -48,24 +48,6 @@
 
  * ************************************************************ */
 
-/*
- * UB usage example:
- * 
-  $dbf = new dbf_class($thefile);
-
-  $num_rec=$dbf->dbf_num_rec;
-
-
-  $result=array();
-
-  for ($i=0;$i<=$num_rec;$i++) {
-  $result[$i]=$dbf->getRowAssoc($i);
-  }
-
-  debarr($result);
- * 
- */
-
 class dbf_class {
 
     var $dbf_num_rec;           //Number of records in the file
@@ -165,7 +147,7 @@ class dbf_class {
                 $memoend = strpos($this->_memos, $memoeot, $memobeg);   //Find the end of the memo
                 $rowrecs[] = substr($this->_memos, $memobeg, $memoend - $memobeg);
             }
-            $beg+=$this->dbf_names[$i]['len'];
+            $beg += $this->dbf_names[$i]['len'];
         }
         return $rowrecs;
     }
@@ -187,7 +169,7 @@ class dbf_class {
                 $memoend = strpos($this->_memos, $memoeot, $memobeg);   //Find the end of the memo
                 $rowrecs[$this->dbf_names[$i]['name']] = substr($this->_memos, $memobeg, $memoend - $memobeg);
             }
-            $beg+=$this->dbf_names[$i]['len'];
+            $beg += $this->dbf_names[$i]['len'];
         }
         return $rowrecs;
     }

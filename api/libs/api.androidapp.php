@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * Android application implementation
+ * https://github.com/romaznova/ubilling
+ */
 class AndroidApp {
 
     /**
@@ -150,13 +155,13 @@ class AndroidApp {
 
     public function __construct() {
         // Check if user logged
-        if (LOGGED_IN){
+        if (LOGGED_IN) {
             // Only once need change this parametr
             $this->loggedIn = true;
             // Check who logged
             $this->setLogin();
             $this->loadAdminsName();
-            if (cfr('ANDROID')) { 
+            if (cfr('ANDROID')) {
                 $this->access = true;
                 $this->initDebug();
                 $this->setGetModuleAction();
@@ -175,7 +180,7 @@ class AndroidApp {
      * @return void
      */
     protected function setGetModuleAction() {
-        if (wf_CheckGet(array('action'))){
+        if (wf_CheckGet(array('action'))) {
             $this->getModuleAction = vf($_GET['action']);
         } else {
             $this->getModuleAction = 'taskman';
@@ -192,14 +197,14 @@ class AndroidApp {
         $this->getStartDate = curdate();
         $this->getEndDate = curdate();
         // Change parametrs days if needed
-        if (wf_CheckGet(array('date'))){
-            $this->getDate =  date( "Y-m-d", strtotime($_GET['date']));
+        if (wf_CheckGet(array('date'))) {
+            $this->getDate = date("Y-m-d", strtotime($_GET['date']));
             $this->setGetDate = true;
         } elseif (wf_CheckGet(array('startdate'))) {
-            $this->getStartDate = date( "Y-m-d", strtotime($_GET['startdate']));
+            $this->getStartDate = date("Y-m-d", strtotime($_GET['startdate']));
             // Check if we getting endDate
             if (wf_CheckGet(array('enddate'))) {
-                $testEndDate = date( "Y-m-d", strtotime($_GET['enddate']));
+                $testEndDate = date("Y-m-d", strtotime($_GET['enddate']));
                 // We check that we are not trying to cheat
                 if ($testEndDate > $this->getStartDate) {
                     $this->getEndDate = $testEndDate;
@@ -216,26 +221,26 @@ class AndroidApp {
      * @return void
      */
     protected function loadPermissionCheckGlobal() {
-            $this->permissionCheckAdd('taskmansearch');
-            $this->permissionCheckAdd('taskman');
-            $this->permissionCheckAdd('userprofile');
-            $this->permissionCheckAdd('useredit');
-            $this->permissionCheckAdd('pl_dhcp');
-            $this->permissionCheckAdd('pl_pinger');
-            $this->permissionCheckAdd('useredit');
-            $this->permissionCheckAdd('passwordedit');
-            $this->permissionCheckAdd('realnameedit');
-            $this->permissionCheckAdd('phoneedit');
-            $this->permissionCheckAdd('mobileedit');
-            $this->permissionCheckAdd('mailedit');
-            $this->permissionCheckAdd('downedit');
-            $this->permissionCheckAdd('passiveedit');
-            $this->permissionCheckAdd('notesedit');
-            $this->permissionCheckAdd('reset');
-            $this->permissionCheckAdd('condetedit');
-            $this->permissionCheckAdd('addcash');
-            $this->permissionCheckAdd('usersearch');
-            $this->permissionCheckAdd('macedit');
+        $this->permissionCheckAdd('taskmansearch');
+        $this->permissionCheckAdd('taskman');
+        $this->permissionCheckAdd('userprofile');
+        $this->permissionCheckAdd('useredit');
+        $this->permissionCheckAdd('pl_dhcp');
+        $this->permissionCheckAdd('pl_pinger');
+        $this->permissionCheckAdd('useredit');
+        $this->permissionCheckAdd('passwordedit');
+        $this->permissionCheckAdd('realnameedit');
+        $this->permissionCheckAdd('phoneedit');
+        $this->permissionCheckAdd('mobileedit');
+        $this->permissionCheckAdd('mailedit');
+        $this->permissionCheckAdd('downedit');
+        $this->permissionCheckAdd('passiveedit');
+        $this->permissionCheckAdd('notesedit');
+        $this->permissionCheckAdd('reset');
+        $this->permissionCheckAdd('condetedit');
+        $this->permissionCheckAdd('addcash');
+        $this->permissionCheckAdd('usersearch');
+        $this->permissionCheckAdd('macedit');
     }
 
     /**
@@ -244,7 +249,7 @@ class AndroidApp {
      * @return void
      */
     public function loadData() {
-        if($this->access) {
+        if ($this->access) {
             switch ($this->getModuleAction) {
                 case 'getallcashtypes':
                     $this->getAllCashTypes();
@@ -253,10 +258,10 @@ class AndroidApp {
                     $this->getJobTypes();
                     break;
                 case 'admins':
-                         $this->data = unserialize(ts_GetAllEmployeeLoginsCached());
+                    $this->data = unserialize(ts_GetAllEmployeeLoginsCached());
                     break;
                 case 'emploees':
-                        $this->data = ts_GetAllEmployee();
+                    $this->data = ts_GetAllEmployee();
                     break;
                 case 'usersearch':
                     if (cfr('USERSEARCH')) {
@@ -306,7 +311,7 @@ class AndroidApp {
                         $this->updateSuccessAndMessage('Permission denied');
                         $this->DebugMessageAdd('Permission denied for', array('function' => 'loadData', 'cfr' => 'TASKMAN', 'getModuleAction' => 'taskman'));
                     }
-                    break; 
+                    break;
                 case 'taskmandone':
                     if (cfr('TASKMAN')) {
                         $this->getTasks(true, false);
@@ -354,12 +359,12 @@ class AndroidApp {
                 $tail_path = $config['TAIL'];
                 $sudo_path = $config['SUDO'];
                 $leasefile = $ubillingConfig->getAlterParam('NMLEASES');
-                $command = $sudo_path.' '.$cat_path.' '.$leasefile.' | '.$grep_path.' '.$this->usersData[$this->login]['mac'].' | '.$tail_path.'  -n 30';
+                $command = $sudo_path . ' ' . $cat_path . ' ' . $leasefile . ' | ' . $grep_path . ' ' . $this->usersData[$this->login]['mac'] . ' | ' . $tail_path . '  -n 30';
                 $output = shell_exec($command);
                 $this->usersData[$this->login]['dhcp'] = $output;
-                } else { 
-                    $this->updateSuccessAndMessage('Username cannot be empty');
-                }
+            } else {
+                $this->updateSuccessAndMessage('Username cannot be empty');
+            }
         }
     }
 
@@ -381,9 +386,9 @@ class AndroidApp {
                 $command = $sudo_path . ' ' . $ping_path . ' -i 0.01 -c 10 ' . $this->usersData[$this->login]['ip'];
                 $output = shell_exec($command);
                 $this->usersData[$this->login]['ping'] = $output;
-                } else { 
-                    $this->updateSuccessAndMessage('Username cannot be empty');
-                }
+            } else {
+                $this->updateSuccessAndMessage('Username cannot be empty');
+            }
         }
     }
 
@@ -464,8 +469,8 @@ class AndroidApp {
                     $extMob = new MobilesExt();
                     if (version_compare(phpversion(), '5.5.0', '<')) {
                         $allExt = array();
-                        $allExtTemp =  $extMob->getUserMobiles($this->login);
-                        foreach ($allExtTemp as  $ia => $eachExt) {
+                        $allExtTemp = $extMob->getUserMobiles($this->login);
+                        foreach ($allExtTemp as $ia => $eachExt) {
                             $allExt[] = $eachExt['mobile'];
                         }
                     } else {
@@ -484,7 +489,7 @@ class AndroidApp {
                 // gets and preformats last activity time
                 if ($ubillingConfig->getAlterParam('PROFILE_LAT')) {
                     //if ($this->usersData[$this->login]['LastActivityTime'] != 0) {
-                        //$data = date("Y-m-d H:i:s", $this->usersData[$this->login]['LastActivityTime']);
+                    //$data = date("Y-m-d H:i:s", $this->usersData[$this->login]['LastActivityTime']);
                     //  $this->usersData[$this->login]['LastActivityTime'] = $data;
                     //}
                 }
@@ -519,7 +524,7 @@ class AndroidApp {
                     }
                 }
             }
-        } else { 
+        } else {
             $this->updateSuccessAndMessage('Username cannot be empty');
         }
     }
@@ -547,7 +552,7 @@ class AndroidApp {
     public function searchUsersQuery($query) {
         if (strlen($query) >= 3) {
             $this->usersData = array_intersect_key(zb_UserGetAllDataCache(), array_flip(zb_UserSearchAllFields($query, false)));
-        } else { 
+        } else {
             $this->success = false;
             $this->message = __('At least 3 characters are required for search');
         }
@@ -574,12 +579,12 @@ class AndroidApp {
         $SQLwhereArr = array();
 
         // Check if we want get tasks for all emploees
-        if(isset($_GET['emploee']) and $_GET['emploee'] == 'all') {
+        if (isset($_GET['emploee']) and $_GET['emploee'] == 'all') {
             $SQLwhereArr['emploee'] = '';
-        } elseif (isset($_GET['emploee']) and !empty($_GET['emploee'])) {
-            $SQLwhereArr['emploee'] = "`employee`='" . vf($_GET['emploee'], 3) . "'" ;
+        } elseif (isset($_GET['emploee']) and ! empty($_GET['emploee'])) {
+            $SQLwhereArr['emploee'] = "`employee`='" . vf($_GET['emploee'], 3) . "'";
         } else {
-            $SQLwhereArr['emploee'] = "`employee`='" . ts_GetEmployeeByLogin($this->adminLogin) . "'" ;
+            $SQLwhereArr['emploee'] = "`employee`='" . ts_GetEmployeeByLogin($this->adminLogin) . "'";
         }
 
         // Check if need show undone tasks
@@ -592,14 +597,14 @@ class AndroidApp {
         }
 
         if ($showUndone) {
-            $SQLwhereArr['date'] = "startdate < '". curdate() . "'";
-        } 
+            $SQLwhereArr['date'] = "startdate < '" . curdate() . "'";
+        }
 
-        if ($this->setGetDate){
+        if ($this->setGetDate) {
             $SQLwhereArr['date'] = "(`startdate` = '" . $this->getDate . "' OR `enddate` = '" . $this->getDate . "')";
         }
 
-        if ($this->setGetStartDate){
+        if ($this->setGetStartDate) {
             $SQLwhereArr['date'] = "`startdate` BETWEEN '" . $this->getStartDate . "' AND '" . $this->getEndDate . "'";
         }
 
@@ -618,14 +623,13 @@ class AndroidApp {
 
         //additional comments 
         if ($ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED')) {
-            if(!empty($tasksArr)) {
-                array_walk($tasksArr, 
-                    function ($item, $key) use (&$tasksArr) {
-                        $query = "SELECT * from `adcomments` WHERE `scope`='TASKMAN' AND `item`='" . $item['id'] . "' ORDER BY `date` ASC;";
-                        $all = simple_queryall($query);
-                        $tasksArr[$key]['comments'] = $all;
-                        return($tasksArr);
-                    }
+            if (!empty($tasksArr)) {
+                array_walk($tasksArr, function ($item, $key) use (&$tasksArr) {
+                    $query = "SELECT * from `adcomments` WHERE `scope`='TASKMAN' AND `item`='" . $item['id'] . "' ORDER BY `date` ASC;";
+                    $all = simple_queryall($query);
+                    $tasksArr[$key]['comments'] = $all;
+                    return($tasksArr);
+                }
                 );
             }
         }
@@ -661,13 +665,13 @@ class AndroidApp {
         $this->DebugMessageAdd('Use function', array('function' => 'getJobTypes'));
     }
 
-     /**
+    /**
      * Sets current user login
      * 
      * @return void
      */
     protected function initDebug() {
-        if(isset($_GET['debug']) and $_GET['debug'] == 'true' ) {
+        if (isset($_GET['debug']) and $_GET['debug'] == 'true') {
             if ($this->access and cfr('ANDROIDDEBUG')) {
                 $this->debug = true;
             } else {
@@ -677,7 +681,7 @@ class AndroidApp {
         }
     }
 
-     /**
+    /**
      * Sets current user login
      * 
      * @return void
@@ -686,7 +690,7 @@ class AndroidApp {
         $this->adminLogin = whoami();
     }
 
-     /**
+    /**
      * Sets current user login
      * 
      * @return void
@@ -707,8 +711,8 @@ class AndroidApp {
      */
     protected function loadAdminsName() {
         @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
-        if ( ! empty($employeeLogins)) {
-            foreach ($employeeLogins as $login => $name){
+        if (!empty($employeeLogins)) {
+            foreach ($employeeLogins as $login => $name) {
                 $this->adminsName[$login] = $name;
             }
         }
@@ -733,7 +737,7 @@ class AndroidApp {
         $this->debug_message['DEBUG_GET'] = $_GET;
         $this->debug_message['DEBUG_COOKIE'] = $_COOKIE;
     }
-    
+
     /**
      * Function for add debug information
      *
@@ -755,7 +759,7 @@ class AndroidApp {
         if (!empty($module)) {
             $permission_arr = @$system->modules['main'][$module]['rights'];
             if (!empty($permission_arr)) {
-                foreach($permission_arr as $right => $desc) {
+                foreach ($permission_arr as $right => $desc) {
                     $this->permissions[$right]['desc'] = $desc;
                     $this->permissions[$right]['rights'] = cfr($right);
                 }
@@ -771,8 +775,8 @@ class AndroidApp {
     public function checkRight($right = '') {
         $result = false;
         if (!empty($right)) {
-                    $this->needRights[] = $right;
-                    $result = cfr($right);
+            $this->needRights[] = $right;
+            $result = cfr($right);
         }
         return $result;
     }
@@ -821,12 +825,14 @@ class AndroidApp {
         $this->CreateJsonData();
 
         // Send main headers
-        header('Last-Modified: ' . gmdate('r')); 
+        header('Last-Modified: ' . gmdate('r'));
         header('Content-Type: application/json; charset=UTF-8');
         header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
         header("Pragma: no-cache");
 
         return (json_encode($this->json));
     }
+
 }
+
 ?>

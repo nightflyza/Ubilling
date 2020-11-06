@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Askozia PBX incoming calls processing class
+ */
 class AskoziaNum {
 
     /**

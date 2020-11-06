@@ -2,6 +2,9 @@
 
 error_reporting(E_ALL ^ E_DEPRECATED); //hide some deprecated warnings on 5.6 :(
 
+/**
+ * Yet another manual database connection class
+ */
 class DbConnect {
 
     var $host = '';

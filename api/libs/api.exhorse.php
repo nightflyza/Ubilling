@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * System-wide previous periods statistics arhive aka Existential Horse
+ */
 class ExistentialHorse {
 
     /**

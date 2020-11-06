@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Extended network pools implementation
+ */
 class ExtNets {
 
     protected $networks = array();

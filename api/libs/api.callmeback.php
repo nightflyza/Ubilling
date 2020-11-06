@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * callback service implementation
+ */
 class CallMeBack {
 
     /**

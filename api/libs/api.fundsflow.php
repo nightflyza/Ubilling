@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Financial data preprocessing and rendering class
+ */
 class FundsFlow {
 
     /**

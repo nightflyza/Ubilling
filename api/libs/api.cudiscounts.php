@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Cumulative discounts implementation
+ */
 class CumulativeDiscounts {
 
     protected $allDiscounts = array();

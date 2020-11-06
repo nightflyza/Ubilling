@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Penalty aka Crime and punishment implementation
+ */
 class CrimeAndPunishment {
 
     protected $altCfg = array();

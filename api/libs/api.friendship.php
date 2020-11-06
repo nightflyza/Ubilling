@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Referal like bonus program for users
+ */
 class FriendshipIsMagic {
 
     /**

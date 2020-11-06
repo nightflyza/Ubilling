@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * XLS Bank statements processing class
+ */
 class BankstaMd {
 
     /**

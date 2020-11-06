@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Custom users maps class
+ */
 class CustomMaps {
 
     protected $allMaps = array();

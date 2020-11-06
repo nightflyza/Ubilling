@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * One of se7en deadly sins
+ */
 class Avarice {
 
     private $data = array();
