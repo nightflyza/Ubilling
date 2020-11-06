@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Network access servers management class
+ */
 class NasMon {
 
     /**

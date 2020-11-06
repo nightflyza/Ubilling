@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Morphological values converter
+ */
 class UBMorph {
 
     protected $currencyType = '';

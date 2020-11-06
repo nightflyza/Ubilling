@@ -1,7 +1,7 @@
 <?php
 
 /**
- * MapOn service API wrapper
+ * MapOn cars GPS location service API wrapper
  */
 class MapOn {
 

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Electrical failures reporting class
+ */
 class OeFails {
 
     /**

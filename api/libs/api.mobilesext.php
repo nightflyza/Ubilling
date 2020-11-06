@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Additional users mobile numbers
+ */
 class MobilesExt {
 
     /**

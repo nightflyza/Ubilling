@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * User signup and payments extended stats
+ */
 class Metabolism {
 
     /**

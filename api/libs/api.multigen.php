@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Most awesome FreeRADIUS support implementation ever
+ */
 class MultiGen {
 
     /**

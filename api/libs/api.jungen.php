@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Old-school Juniper MX NAS support
+ */
 class JunGen {
 
     /**

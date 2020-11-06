@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Ubilling user search implementation
+ */
 class GlobalSearch {
 
     /**

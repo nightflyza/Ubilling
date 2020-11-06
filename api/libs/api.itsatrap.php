@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * SNMP traps processing class
+ */
 class ItSaTrap {
 
     /**

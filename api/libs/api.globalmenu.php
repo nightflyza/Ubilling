@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Ubilling global menu rendering and customization class
+ */
 class GlobalMenu {
 
     /**

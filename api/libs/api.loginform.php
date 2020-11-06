@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Ubilling administrative interface login form
+ */
 class LoginForm {
 
     protected $form = '';

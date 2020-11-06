@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * User IP changing/management implementation
+ */
 class IpChange {
 
     /**

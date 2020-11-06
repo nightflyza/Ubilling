@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OmegaTV OTT service implementation
+ */
 class OmegaTV {
 
     /**

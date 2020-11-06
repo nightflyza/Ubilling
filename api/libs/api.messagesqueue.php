@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * System-wide outcoming messages queue for SMS/Telegram/Emails etc..
+ */
 class MessagesQueue {
 
     /**

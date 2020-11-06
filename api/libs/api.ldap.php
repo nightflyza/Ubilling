@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * LDAP database management class
+ */
 class UbillingLDAPManager {
 
     /**

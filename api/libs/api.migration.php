@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * And again one more database interconnection abstraction class
+ */
 class simpleOverlay {
 
     /**
@@ -111,6 +114,9 @@ class simpleOverlay {
 
 }
 
+/**
+ * Mikbill migration class
+ */
 class mikbill {
 
     /**

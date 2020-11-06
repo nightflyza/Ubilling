@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Mapon cars GPS location service low-level api
+ */
 class MaponAPI {
 
     /**

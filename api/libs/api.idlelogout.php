@@ -1,7 +1,7 @@
 <?php
 
-/*
- * base user-idle auto logout class
+/**
+ * Basic user-idle auto logout class
  */
 class AutoLogout {
     

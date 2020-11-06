@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Megogo OTT service implementation class
+ */
 class MegogoApi {
 
     /**
