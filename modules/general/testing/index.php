@@ -8,22 +8,27 @@ if (cfr('ROOT')) {
 
 
     $inputData = array(
-        32 => 64,
-        3 => 6,
-        4 => 8,
-        5 => 10,
+        9 => 3,
+        169 => 13,
+        144 => 12,
+        121=>11,
+        225=>15,
+        256=>16,
+        65536=>256
     );
 
+  
 
+    debarr($inputData);
     $mrnn = new MRNN();
     $mrnn->setDebug(0);
     $accel = true;
     $mrnn->learnDataSet($inputData, $accel);
     $trainStats = $mrnn->getTrainStats();
-    
- 
-    $inputValue = 365535;
-    show_info($inputValue . ' *2 = ' . $mrnn->processInputData($inputValue) . ' <- Oo ');
+
+
+    $inputValue = 100;
+    show_info($inputValue . ' sqrt = ' . $mrnn->processInputData($inputValue) . ' <- Oo ');
 
     deb($mrnn->visualizeTrain($trainStats));
 }
