@@ -3870,6 +3870,7 @@ class Warehouse {
         $messages = new UbillingMessageHelper();
         $totalPrice = 0;
         $totalCount = 0;
+        $countUnit = '';
         ///search form construction
         $inputs = wf_YearSelectorPreset('filtersomeyear', __('Year'), false, $filterYear, true) . ' ';
         $inputs .= wf_Selector('showsomeitemtypeid', $this->allItemTypeNames, __('Warehouse item type'), $itemtypeId, false) . ' ';
@@ -3945,13 +3946,14 @@ class Warehouse {
                                         $cells .= wf_TableCell($eachOp['count'] . ' ' . $itemUnitType);
                                         $cells .= wf_TableCell($opPrice);
                                         $cells .= wf_TableCell($from . ' ' . wf_img('skins/arrow_right_green.png') . ' ' . $to);
-                                        
+
                                         $taskAddress = (isset($allTasksAddress[$eachOp['destparam']])) ? $allTasksAddress[$eachOp['destparam']] : '';
                                         $cells .= wf_TableCell($taskAddress);
                                         $cells .= wf_TableCell($administratorName);
                                         $rows .= wf_TableRow($cells, 'row3');
                                         $totalCount += $eachOp['count'];
                                         $totalPrice += $opPrice;
+                                        $countUnit=$itemUnitType;
                                     }
                                 }
                             }
@@ -3960,7 +3962,7 @@ class Warehouse {
 
 
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
-                    $result .= __('Total') . ' ' . __('Count') . ': ' . $totalCount;
+                    $result .= __('Total') . ' ' . __('Count') . ': ' . $totalCount . ' ' . $countUnit;
                     $result .= wf_tag('br');
                     $result .= __('Total') . ' ' . __('Price') . ': ' . $totalPrice;
                 } else {
