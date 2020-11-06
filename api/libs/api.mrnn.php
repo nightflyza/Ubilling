@@ -3,9 +3,15 @@
 /**
  * Most Retarded Neural Network ever. Yep, with single neuron.
  *
- * TODO: some debug flags, learning visualization, sigmoid function?, save/load network state, CLI mode.. etc
  */
 class MRNN {
+    /**
+     *  TODO: 
+     * - sigmoid function
+     * - save/load network state
+     * - CLI mode..
+     * - backport to YALF
+     */
 
     /**
      * Initial weight
@@ -62,6 +68,13 @@ class MRNN {
      * @var int
      */
     protected $statEvery = 5000;
+
+    /**
+     * Output of debug messages due train progress
+     *
+     * @var bool
+     */
+    protected $debug = false;
 
     /**
      * What did you expect?
@@ -163,7 +176,9 @@ class MRNN {
                         $neurons[$neuronIndex]->setWeight($prevWeight);
                     }
                     if ($neurons[$neuronIndex]->learn($input, $expectedResult)) {
-                        show_success('Learned weight: ' . $neurons[$neuronIndex]->getWeight() . ' on epoch ' . $neurons[$neuronIndex]->getEpoch()); //TODO: remove it
+                        if ($this->debug) {
+                            show_success('Trained weight: ' . $neurons[$neuronIndex]->getWeight() . ' on epoch ' . $neurons[$neuronIndex]->getEpoch());
+                        }
                         $totalweight += $neurons[$neuronIndex]->getWeight();
                         $this->trainStats[] = $neurons[$neuronIndex]->getTrainStats();
                         $prevWeight = $neurons[$neuronIndex]->getWeight();
@@ -221,6 +236,40 @@ class MRNN {
      */
     protected function getEpoch() {
         return($this->epoch);
+    }
+
+    /**
+     * Sets debug state of learning progress
+     * 
+     * @param bool $debugState
+     * 
+     * @return void
+     */
+    public function setDebug($debugState = false) {
+        $this->debug = $debugState;
+    }
+
+    /**
+     * Performs network training progress
+     * 
+     * @param array $trainStats
+     * 
+     * @return string
+     */
+    public function visualizeTrain($trainStats) {
+        $result = '';
+        $chartData = array(0 => array(__('Epoch'), __('Error')));
+        if (!empty($trainStats)) {
+            foreach ($trainStats as $neuron => $neuronStats) {
+                if (!empty($neuronStats)) {
+                    foreach ($neuronStats as $epoch => $error) {
+                        $chartData[] = array($epoch, $error);
+                    }
+                }
+            }
+            $result .= wf_gchartsLine($chartData, __('Network training'), '100%', '400px', '');
+        }
+        return($result);
     }
 
 }

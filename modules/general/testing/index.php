@@ -27,27 +27,17 @@ if (cfr('ROOT')) {
 
 
     $mrnn = new MRNN();
+    //$mrnn->setDebug(true);
     $accel = true;
     $mrnn->learnDataSet($inputData, $accel);
     $trainStats = $mrnn->getTrainStats();
     
 
-    $chartData = array(
-        0 => array('Epoch', 'Error')
-    );
-    if (!empty($trainStats)) {
-        foreach ($trainStats as $neuron => $neuronStats) {
-            if (!empty($neuronStats)) {
-                foreach ($neuronStats as $epoch => $error) {
-                    $chartData[] = array($epoch, $error);
-                }
-            }
-        }
-    }
+    
 
     //most low effective UAH to USD converter ever!!!! OMG!
     $inputValue = 9763;
     show_info($inputValue . ' users do  ' . $mrnn->processInputData($inputValue) . ' ARPU in october');
 
-    deb(wf_gchartsLine($chartData, 'Train network', '1200px', '400px', ''));
+    deb($mrnn->visualizeTrain($trainStats));
 }
