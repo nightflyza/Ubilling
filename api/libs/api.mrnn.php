@@ -2,7 +2,6 @@
 
 /**
  * Most Retarded Neural Network ever. Yep, with single neuron.
- *
  */
 class MRNN {
     /**
