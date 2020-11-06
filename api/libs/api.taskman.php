@@ -2999,6 +2999,22 @@ function ts_GetUndoneCountersAll() {
 }
 
 /**
+ * Returns array of all tasks address as taskId=>address
+ * 
+ * @return array
+ */
+function ts_GetAllTasksAddress() {
+    $result = array();
+    $all = simple_queryall("SELECT `id`,`address` from `taskman`");
+    if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+            $result[$each['id']]=$each['address'];
+        }
+    }
+    return($result);
+}
+
+/**
  * Returns array of undone tasks - used by Warehouse and another weird things as id=>taskdata
  * 
  * @param bool $allTime get undone tasks not only before current date

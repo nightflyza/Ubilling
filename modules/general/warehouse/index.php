@@ -319,6 +319,16 @@ if (cfr('WAREHOUSE')) {
                         show_error(__('Access denied'));
                     }
                 }
+
+                if (ubRouting::checkGet('itemtypeoutcomes')) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Warehouse item type').' '.__('History'), $warehouse->renderItemtypeOutcomesHistory());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
             }
 
 

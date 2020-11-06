@@ -1463,6 +1463,7 @@ class Warehouse {
             $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Warehouse item type') . ' ' . __('History'), false, 'ubButton');
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
@@ -3853,6 +3854,125 @@ class Warehouse {
         } else {
             show_error(__('Something went wrong'));
         }
+    }
+
+    /**
+     * Renders some itemtype outomes history for some finance accounting purposes. Yep. I dont know what for.
+     * 
+     * @return string
+     */
+    public function renderItemtypeOutcomesHistory() {
+        $result = '';
+        $tmpArr = array();
+        $filterYear = (ubRouting::checkPost('filtersomeyear')) ? ubRouting::post('filtersomeyear') : curyear();
+        $yearMask = $filterYear . '-';
+        $itemtypeId = (ubRouting::checkPost('showsomeitemtypeid')) ? ubRouting::post('showsomeitemtypeid', 'int') : 0; // Yeah. Come get some.
+        $messages = new UbillingMessageHelper();
+        $totalPrice = 0;
+        $totalCount = 0;
+        ///search form construction
+        $inputs = wf_YearSelectorPreset('filtersomeyear', __('Year'), false, $filterYear, true) . ' ';
+        $inputs .= wf_Selector('showsomeitemtypeid', $this->allItemTypeNames, __('Warehouse item type'), $itemtypeId, false) . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+
+        if ($itemtypeId AND $filterYear) {
+            if (isset($this->allItemTypeNames[$itemtypeId])) {
+                $itemTypeName = $this->allItemTypeNames[$itemtypeId];
+                $itemTypeCategory = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
+
+
+                if (!empty($this->allOutcoming)) {
+                    foreach ($this->allOutcoming as $io => $each) {
+
+                        if ($each['itemtypeid'] == $itemtypeId) {
+                            if ($each['desttype'] == 'task') {
+                                if (ispos($each['date'], $yearMask)) {
+                                    $tmpArr[$each['date']]['out'][] = $each;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                if (!empty($tmpArr)) {
+                    krsort($tmpArr);
+                    $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+                    $allTasksAddress = ts_GetAllTasksAddress();
+                    $cells = wf_TableCell(__('Date'));
+                    $cells .= wf_TableCell(__('Type'));
+                    $cells .= wf_TableCell(__('Warehouse storage'));
+                    $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Price'));
+                    $cells .= wf_TableCell(__('Actions'));
+                    $cells .= wf_TableCell(__('Address'));
+                    $cells .= wf_TableCell(__('Admin'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($tmpArr as $io => $eachDate) {
+                        if (!empty($eachDate)) {
+                            foreach ($eachDate as $opType => $eachPack) {
+                                if (!empty($eachPack)) {
+                                    foreach ($eachPack as $ix => $eachOp) {
+                                        $administratorName = (isset($employeeLogins[$eachOp['admin']])) ? $employeeLogins[$eachOp['admin']] : $eachOp['admin'];
+                                        $from = '';
+                                        $to = '';
+                                        $opTypeName = '';
+                                        $opLink = '';
+                                        $itemUnitType = @$this->unitTypes[$this->allItemTypes[$eachOp['itemtypeid']]['unit']];
+
+
+                                        //outcoming ops
+                                        if ($opType == 'out') {
+                                            $from = $this->allStorages[$eachOp['storageid']];
+                                            $to = $this->outDests[$eachOp['desttype']] . $this->outDestControl($eachOp['desttype'], $eachOp['destparam']);
+                                            $opTypeName = __('Outcoming');
+                                            $rowColor = '#b50000';
+                                            $opLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $eachOp['id'], wf_img_sized('skins/whoutcoming_icon.png', __('Show'), '10', '10'));
+                                        }
+
+                                        //itemtype price calculation
+                                        if (isset($eachOp['price'])) {
+                                            $opPrice = $eachOp['price'] * $eachOp['count'];
+                                        } else {
+                                            $opPrice = 0;
+                                        }
+
+                                        $cells = wf_TableCell(wf_tag('font', false, '', 'color="' . $rowColor . '"') . $eachOp['date'] . wf_tag('font', true));
+                                        $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $rowColor . '"') . $opTypeName . wf_tag('font', true) . ' ' . $opLink);
+                                        $cells .= wf_TableCell(@$this->allStorages[$eachOp['storageid']]);
+                                        $cells .= wf_TableCell($eachOp['count'] . ' ' . $itemUnitType);
+                                        $cells .= wf_TableCell($opPrice);
+                                        $cells .= wf_TableCell($from . ' ' . wf_img('skins/arrow_right_green.png') . ' ' . $to);
+                                        
+                                        $taskAddress = (isset($allTasksAddress[$eachOp['destparam']])) ? $allTasksAddress[$eachOp['destparam']] : '';
+                                        $cells .= wf_TableCell($taskAddress);
+                                        $cells .= wf_TableCell($administratorName);
+                                        $rows .= wf_TableRow($cells, 'row3');
+                                        $totalCount += $eachOp['count'];
+                                        $totalPrice += $opPrice;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= __('Total') . ' ' . __('Count') . ': ' . $totalCount;
+                    $result .= wf_tag('br');
+                    $result .= __('Total') . ' ' . __('Price') . ': ' . $totalPrice;
+                } else {
+                    $result .= $messages->getStyledMessage(__('Nothing found'), 'info');
+                }
+            } else {
+                $result .= $messages->getStyledMessage(__('Something went wrong'), 'error');
+            }
+        } else {
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
     }
 
 }
