@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Telegram bot API implementation
+ */
 class UbillingTelegram {
 
     /**

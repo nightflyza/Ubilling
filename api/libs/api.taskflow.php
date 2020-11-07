@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Extended tasks processing implementation based on task states
+ */
 class TaskFlow {
 
     /**

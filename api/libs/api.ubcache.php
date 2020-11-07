@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * System-wide caching abstraction engine
+ */
 class UbillingCache {
 
     /**

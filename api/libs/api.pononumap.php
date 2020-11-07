@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Performs rendering of exiting user-assigned PON ONU devices on coverage map
+ */
 class PONONUMAP {
 
     /**

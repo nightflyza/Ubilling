@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON ONU management basic class
+ */
 class OnuBase {
 
     /**

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Taskbar loading and rendering class
+ */
 class UbillingTaskbar {
 
     /**
@@ -494,7 +497,7 @@ class UbillingTaskbar {
 }
 
 /**
- * Basic widgets class.
+ * Basic taskbar widgets class.
  */
 class TaskbarWidget {
 

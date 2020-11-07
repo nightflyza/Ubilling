@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Administrators Votes/Polls class
+ */
 class PollVoteAdmin {
 
     /**

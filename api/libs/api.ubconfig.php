@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Basic configs abstraction class
+ * Basic Ubilling configs abstraction class
  */
 class UbillingConfig {
 
@@ -106,7 +106,7 @@ class UbillingConfig {
 }
 
 /**
- * Default system message helper
+ * System message helper class
  */
 class UbillingMessageHelper {
 

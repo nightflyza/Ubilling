@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Client side wireless equipment management subsystem
+ */
 class WifiCPE {
 
     /**

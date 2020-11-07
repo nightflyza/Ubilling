@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Alternative tariffication model
+ */
 class PowerTariffs {
 
     /**

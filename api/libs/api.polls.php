@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Polls/Votes management here
+ */
 class Polls {
 
     /**

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON ONU deletion class
+ */
 class OnuDelete extends OnuBase {
 
     /**

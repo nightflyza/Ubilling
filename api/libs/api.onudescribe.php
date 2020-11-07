@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON ONU describe management class
+ */
 class OnuDescribe extends OnuBase {
 
     /**

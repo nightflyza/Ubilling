@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Employee salary accounting implementation
+ */
 class Salary {
 
     /**

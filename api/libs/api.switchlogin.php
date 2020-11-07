@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Siwtches auth data and management basic class
+ */
 class SwitchLogin {
 
     /**

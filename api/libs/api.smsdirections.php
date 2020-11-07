@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Flexible SMS routing implementation
+ */
 class SMSDirections {
     /**
      * UbillingCache instance placeholder

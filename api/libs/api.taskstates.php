@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Performs tasks processing states management
+ * Performs tasks processing states management in taskman
  */
 class TaskStates {
 

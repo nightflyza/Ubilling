@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Surveillance accounting and management implementation
+ */
 class UbillingVisor {
 
     /**

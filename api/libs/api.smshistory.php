@@ -1,13 +1,13 @@
 <?php
 
-/*
-I ain't happy, I'm feeling glad
-I got sunshine in a bag
-I'm useless, but not for long
-The future is coming on
-*/
-
+/**
+  I ain't happy, I'm feeling glad
+  I got sunshine in a bag
+  I'm useless, but not for long
+  The future is coming on
+ */
 class SMSHistory {
+
     const URL_ME = '?module=smshistory';
 
     protected $smsAdvancedEnabled = false;
@@ -25,7 +25,7 @@ class SMSHistory {
      * @return array
      */
     public function getSMSHistoryData($WHEREString = '') {
-        if ( empty($WHEREString) ) {
+        if (empty($WHEREString)) {
             $WHEREString = "WHERE DATE(`date_send`) = CURDATE()";
         }
 
@@ -46,7 +46,7 @@ class SMSHistory {
             $smsDirections = new SMSDirections();
         }
 
-        if ( !empty($QueryData) ) {
+        if (!empty($QueryData)) {
             $data = array();
 
             foreach ($QueryData as $EachRec) {
@@ -56,7 +56,7 @@ class SMSHistory {
                             if ($this->smsAdvancedEnabled) {
                                 $SMSSrvName = $smsDirections->getDirectionNameById($FieldVal);
 
-                                if ( !empty($SMSSrvName) ) {
+                                if (!empty($SMSSrvName)) {
                                     $data[] = (empty($FieldVal)) ? $SMSSrvName . ' (' . __('by default') . ')' : $SMSSrvName;
                                 } else {
                                     $data[] = __('ID not found');
@@ -74,7 +74,7 @@ class SMSHistory {
                             break;
 
                         default:
-                        $data[] = $FieldVal;
+                            $data[] = $FieldVal;
                     }
                 }
 
@@ -111,7 +111,7 @@ class SMSHistory {
                                  {"targets": [' . $CheckCol1 . ', ' . $CheckCol2 . '], "className": "dt-center"}
                                 ],
                  "rowCallback": function(row, data, index) {                   
-                    if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data['. $CheckCol2 . '] == "' . __('Yes') . '" ) {
+                    if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('Yes') . '" ) {
                         $(\'td\', row).css(\'background-color\', \'red\');
                         $(\'td\', row).css(\'color\', \'#FFFF44\');
                     }
@@ -142,7 +142,7 @@ class SMSHistory {
         $columns[] = __('Send status');
         $columns[] = __('Message text');
 
-        return ( wf_JqDtLoader($columns, $AjaxURLStr, false,  __('results'), 100, $opts) );
+        return ( wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts) );
     }
 
     /**
@@ -152,135 +152,135 @@ class SMSHistory {
      */
     public function renderControls() {
         $AjaxURLStr = '' . self::URL_ME . '&ajax=true' . '';
-        $JQDTID     = 'jqdt_' . md5($AjaxURLStr);
-        $QickSelID  = wf_InputId();
+        $JQDTID = 'jqdt_' . md5($AjaxURLStr);
+        $QickSelID = wf_InputId();
         $DateFromID = wf_InputId();
-        $DateToID   = wf_InputId();
-        $ButtonID   = wf_InputId();
+        $DateToID = wf_InputId();
+        $ButtonID = wf_InputId();
         $StatusSelID = wf_InputId();
 
-        $Today      = curdate();
-        $Yesterday  = $this->getDateDiff(curdate(), 'P1D');
-        $WeekAgo    = $this->getDateDiff(curdate(), 'P1W');
-        $MonthAgo   = $this->getDateDiff(curdate(), 'P1M');
+        $Today = curdate();
+        $Yesterday = $this->getDateDiff(curdate(), 'P1D');
+        $WeekAgo = $this->getDateDiff(curdate(), 'P1W');
+        $MonthAgo = $this->getDateDiff(curdate(), 'P1M');
 
-        /*$DateFromPreset   = ( wf_CheckGet(array('smshistdatefrom')) ) ? $_GET['smshistdatefrom'] : curdate();
-        $DateToPreset       = ( wf_CheckGet(array('smshistdateto')) ) ? $_GET['smshistdateto'] : curdate();*/
-        $DateFromPreset     = $Today;
-        $DateToPreset       = $Today;
-        $QuickFilterPreset  = array($Today => __('Today'),
-                                    $Yesterday => __('Yesterday'),
-                                    $WeekAgo => __('Week ago'),
-                                    $MonthAgo => __('Month ago')
-                                    );
+        /* $DateFromPreset   = ( wf_CheckGet(array('smshistdatefrom')) ) ? $_GET['smshistdatefrom'] : curdate();
+          $DateToPreset       = ( wf_CheckGet(array('smshistdateto')) ) ? $_GET['smshistdateto'] : curdate(); */
+        $DateFromPreset = $Today;
+        $DateToPreset = $Today;
+        $QuickFilterPreset = array($Today => __('Today'),
+            $Yesterday => __('Yesterday'),
+            $WeekAgo => __('Week ago'),
+            $MonthAgo => __('Month ago')
+        );
 
         $StatusFilterPreset = array('all' => __('All'),
-                                    'delivered' => __('Delivered'),
-                                    'undelivered' => __('Not delivered'),
-                                    'unknown' => __('Undefined')
-                                    );
+            'delivered' => __('Delivered'),
+            'undelivered' => __('Not delivered'),
+            'unknown' => __('Undefined')
+        );
 
-        $inputs  = wf_tag('h3', false);
+        $inputs = wf_tag('h3', false);
         $inputs .= __('Show columns:');
         $inputs .= wf_tag('h3', true);
-        $cells   = wf_TableCell($inputs);
+        $cells = wf_TableCell($inputs);
 
-        $inputs  = wf_tag('h3', false);
+        $inputs = wf_tag('h3', false);
         $inputs .= __('Filter by:');
         $inputs .= wf_tag('h3', true);
-        $cells  .= wf_TableCell($inputs, '', '', 'colspan="2"');
+        $cells .= wf_TableCell($inputs, '', '', 'colspan="2"');
 
-        $rows    = wf_TableRow($cells);
+        $rows = wf_TableRow($cells);
 
 
-        $inputs  = wf_CheckInput('showdbidclmn', __('Inner DB ID'), true, false, '__showdbidclmn');
-        $cells   = wf_TableCell($inputs);
+        $inputs = wf_CheckInput('showdbidclmn', __('Inner DB ID'), true, false, '__showdbidclmn');
+        $cells = wf_TableCell($inputs);
 
-        $inputs  = wf_tag('font', false, '', '');
+        $inputs = wf_tag('font', false, '', '');
         $inputs .= __('Quick filter for:');
         $inputs .= wf_tag('font', true);
-        $cells  .= wf_TableCell($inputs);
+        $cells .= wf_TableCell($inputs);
 
-        $inputs  = wf_Selector('quickfilter', $QuickFilterPreset, '', $Today, true, false, $QickSelID);
-        $cells  .= wf_TableCell($inputs);
+        $inputs = wf_Selector('quickfilter', $QuickFilterPreset, '', $Today, true, false, $QickSelID);
+        $cells .= wf_TableCell($inputs);
 
-        $rows   .= wf_TableRow($cells);
+        $rows .= wf_TableRow($cells);
 
 
-        $inputs  = wf_CheckInput('showselfidclmn', __('Service message ID'), true, false, '__showselfidclmn');
-        $cells   = wf_TableCell($inputs);
+        $inputs = wf_CheckInput('showselfidclmn', __('Service message ID'), true, false, '__showselfidclmn');
+        $cells = wf_TableCell($inputs);
 
-        $inputs  = wf_tag('font', false, '', '');
+        $inputs = wf_tag('font', false, '', '');
         $inputs .= __('Send date from:');
         $inputs .= wf_tag('font', true);
-        $cells  .= wf_TableCell($inputs);
+        $cells .= wf_TableCell($inputs);
 
-        $inputs  = wf_DatePickerPreset('smshistdatefrom', $DateFromPreset, false, $DateFromID);
-        $cells  .= wf_TableCell($inputs);
+        $inputs = wf_DatePickerPreset('smshistdatefrom', $DateFromPreset, false, $DateFromID);
+        $cells .= wf_TableCell($inputs);
 
-        $rows   .= wf_TableRow($cells);
+        $rows .= wf_TableRow($cells);
 
 
-        $inputs  = wf_CheckInput('showpackidclmn', __('Service packet ID'), true, false, '__showpackidclmn');
-        $cells   = wf_TableCell($inputs);
+        $inputs = wf_CheckInput('showpackidclmn', __('Service packet ID'), true, false, '__showpackidclmn');
+        $cells = wf_TableCell($inputs);
 
-        $inputs  = wf_tag('font', false, '', '');
+        $inputs = wf_tag('font', false, '', '');
         $inputs .= __('Send date to:');
         $inputs .= wf_tag('font', true);
-        $cells  .= wf_TableCell($inputs);
+        $cells .= wf_TableCell($inputs);
 
-        $inputs  = wf_DatePickerPreset('smshistdateto', $DateToPreset, false, $DateToID);
-        $cells  .= wf_TableCell($inputs);
+        $inputs = wf_DatePickerPreset('smshistdateto', $DateToPreset, false, $DateToID);
+        $cells .= wf_TableCell($inputs);
 
-        $rows   .= wf_TableRow($cells);
+        $rows .= wf_TableRow($cells);
 
 
-        $inputs  = wf_CheckInput('shownostatuschkclmn', __('No status check'), true, false, '__shownostatuschkclmn');
-        $cells   = wf_TableCell($inputs);
+        $inputs = wf_CheckInput('shownostatuschkclmn', __('No status check'), true, false, '__shownostatuschkclmn');
+        $cells = wf_TableCell($inputs);
 
-        $inputs  = wf_tag('font', false, '', '');
+        $inputs = wf_tag('font', false, '', '');
         $inputs .= __('Message status');
         $inputs .= wf_tag('font', true);
-        $cells  .= wf_TableCell($inputs);
+        $cells .= wf_TableCell($inputs);
 
-        $inputs  = wf_Selector('statusfilter', $StatusFilterPreset, '', 'all', true, false, $StatusSelID);
-        $cells  .= wf_TableCell($inputs);
+        $inputs = wf_Selector('statusfilter', $StatusFilterPreset, '', 'all', true, false, $StatusSelID);
+        $cells .= wf_TableCell($inputs);
 
-        $rows   .= wf_TableRow($cells);
+        $rows .= wf_TableRow($cells);
 
 
-        $cells   = wf_TableCell('');
-        $inputs  = wf_tag('a', false, 'ubButton', 'style="width:100%; cursor:pointer;" id="' . $ButtonID . '"');
+        $cells = wf_TableCell('');
+        $inputs = wf_tag('a', false, 'ubButton', 'style="width:100%; cursor:pointer;" id="' . $ButtonID . '"');
         $inputs .= __('Show');
         $inputs .= wf_tag('a', true);
-        $cells  .= wf_TableCell($inputs, '', '', 'colspan="2" align="center"');
+        $cells .= wf_TableCell($inputs, '', '', 'colspan="2" align="center"');
 
-        $rows   .= wf_TableRow($cells);
-        $table   = wf_TableBody($rows, '60%', '0', '', '');
+        $rows .= wf_TableRow($cells);
+        $table = wf_TableBody($rows, '60%', '0', '', '');
 
-        $inputs  = wf_Plate($table, '98%', '170px', 'glamour');
+        $inputs = wf_Plate($table, '98%', '170px', 'glamour');
         $inputs .= wf_CleanDiv() . wf_delimiter();
         $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
         $inputs .= wf_JQDTColumnHideShow('__showdbidclmn', 'change', $JQDTID, 0);
         $inputs .= wf_JQDTColumnHideShow('__showselfidclmn', 'change', $JQDTID, ($this->smsAdvancedEnabled) ? 4 : 3);
         $inputs .= wf_JQDTColumnHideShow('__showpackidclmn', 'change', $JQDTID, ($this->smsAdvancedEnabled) ? 5 : 4);
         $inputs .= wf_JQDTColumnHideShow('__shownostatuschkclmn', 'change', $JQDTID, ($this->smsAdvancedEnabled) ? 9 : 8);
-        $inputs .= '$(\'#' . $QickSelID .'\').on("change", function() {
-                        $(\'#' . $DateFromID .'\').datepicker("setDate", $(\'#' . $QickSelID .'\').val());
+        $inputs .= '$(\'#' . $QickSelID . '\').on("change", function() {
+                        $(\'#' . $DateFromID . '\').datepicker("setDate", $(\'#' . $QickSelID . '\').val());
                         
-                        if ( $(\'#' . $QickSelID .' option:selected\').text() == \'' . __('Yesterday') . '\' ) {
-                            $(\'#' . $DateToID .'\').datepicker("setDate", $(\'#' . $QickSelID .'\').val());
+                        if ( $(\'#' . $QickSelID . ' option:selected\').text() == \'' . __('Yesterday') . '\' ) {
+                            $(\'#' . $DateToID . '\').datepicker("setDate", $(\'#' . $QickSelID . '\').val());
                         } else {
-                            $(\'#' . $DateToID .'\').datepicker("setDate", "' . $Today . '");
+                            $(\'#' . $DateToID . '\').datepicker("setDate", "' . $Today . '");
                         }
                     });
                     
-                    $(\'#' . $ButtonID .'\').on("click", function(evt) {
+                    $(\'#' . $ButtonID . '\').on("click", function(evt) {
                         evt.preventDefault();                        
-                        var FromDate  = $(\'#' . $DateFromID .'\').val();
-                        var ToDate    = $(\'#' . $DateToID .'\').val();
-                        var SelStatus = $(\'#' . $StatusSelID .'\').val();
-                        $(\'#' . $JQDTID .'\').DataTable().ajax.url(\''. $AjaxURLStr . '&smshistdatefrom="\'+FromDate+\'"&smshistdateto="\'+ToDate+\'"&msgstatus=\'+SelStatus).load();                        
+                        var FromDate  = $(\'#' . $DateFromID . '\').val();
+                        var ToDate    = $(\'#' . $DateToID . '\').val();
+                        var SelStatus = $(\'#' . $StatusSelID . '\').val();
+                        $(\'#' . $JQDTID . '\').DataTable().ajax.url(\'' . $AjaxURLStr . '&smshistdatefrom="\'+FromDate+\'"&smshistdateto="\'+ToDate+\'"&msgstatus=\'+SelStatus).load();                        
                     });
                    ';
         $inputs .= wf_tag('script', true);
@@ -304,5 +304,7 @@ class SMSHistory {
 
         return $DateObj->format('Y-m-d');
     }
+
 }
+
 ?>

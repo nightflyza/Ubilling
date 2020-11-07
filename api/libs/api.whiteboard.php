@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Just whiteboard. Helps to manage some non-urgent projets. Yep, without markers.
+ */
 class WhiteBoard {
 
     /**

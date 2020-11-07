@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Basic warehouse accounting implementation
+ */
 class Warehouse {
 
     /**

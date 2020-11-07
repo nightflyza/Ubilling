@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Allows to receive some data about IPs and domains
+ */
 class UbillingWhois {
 
     /**

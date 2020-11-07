@@ -1,9 +1,8 @@
 <?php
 
-/*
+/**
  * UKV cable TV accounting implementation
  */
-
 class UkvSystem {
 
     /**

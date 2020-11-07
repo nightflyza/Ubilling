@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PhotoStorage allows to attach images for any kind of items on some scope
+ */
 class PhotoStorage {
 
     /**

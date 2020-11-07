@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * SORM Yahont draft support
+ */
 class SormYahont {
 
     /**

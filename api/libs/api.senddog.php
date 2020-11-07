@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * SMS/Telegram/Email messages sending implementation
+ */
 class SendDog {
 
     /**
@@ -1606,6 +1609,9 @@ class SendDog {
 
 }
 
+/**
+ * Multi-service SendDog implementation
+ */
 class SendDogAdvanced extends SendDog {
 
     /**

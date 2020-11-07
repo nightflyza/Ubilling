@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * User SMS notification class
+ */
 class Reminder {
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * System watchdog base class
+ * Flexible system monitoring aka WatchDog implementation
  */
 class WatchDog {
 
@@ -716,7 +716,7 @@ class WatchDog {
 }
 
 /**
- * Watchdog view controls class
+ * Watchdog tasks management and other interfaces
  */
 class WatchDogInterface {
 

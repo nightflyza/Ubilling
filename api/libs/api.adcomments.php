@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Universal additional comments class
+ * Universal additional comments class which allows attach comments for any items on some scope
  */
 class ADcomments {
 

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Yet another QinQ implementation.
+ */
 class UniversalQINQ {
 
     CONST MODULE = '?module=universalqinq';

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Allows you to be an Saitama!
+ */
 class OnePunch {
 
     /**

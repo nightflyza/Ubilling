@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Switches profitability implementation
+ */
 class SwitchCash {
 
     /**

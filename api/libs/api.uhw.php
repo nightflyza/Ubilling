@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Unknown Hardware Helper
+ */
 class UHW {
 
     /**
@@ -10,7 +13,7 @@ class UHW {
     public function panel() {
         if (!wf_CheckGet(array('username'))) {
             $result = wf_Link('?module=uhw', wf_img('skins/ukv/report.png') . ' ' . __('Usage report'), false, 'ubButton');
-            $result.= wf_Link('?module=uhw&showbrute=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
+            $result .= wf_Link('?module=uhw&showbrute=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
         } else {
             $result = '';
         }
@@ -108,23 +111,23 @@ class UHW {
         $allbrutes = simple_queryall($query);
 
         $tablecells = wf_TableCell(__('ID'));
-        $tablecells.=wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Password'));
-        $tablecells.=wf_TableCell(__('Login'));
-        $tablecells.=wf_TableCell(__('MAC'));
-        $tablecells.=wf_TableCell(__('Actions'));
+        $tablecells .= wf_TableCell(__('Date'));
+        $tablecells .= wf_TableCell(__('Password'));
+        $tablecells .= wf_TableCell(__('Login'));
+        $tablecells .= wf_TableCell(__('MAC'));
+        $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($allbrutes)) {
             foreach ($allbrutes as $io => $each) {
                 $tablecells = wf_TableCell($each['id']);
-                $tablecells.=wf_TableCell($each['date']);
-                $tablecells.=wf_TableCell(strip_tags($each['password']));
-                $tablecells.=wf_TableCell(strip_tags($each['login']));
-                $tablecells.=wf_TableCell($each['mac']);
+                $tablecells .= wf_TableCell($each['date']);
+                $tablecells .= wf_TableCell(strip_tags($each['password']));
+                $tablecells .= wf_TableCell(strip_tags($each['login']));
+                $tablecells .= wf_TableCell($each['mac']);
                 $actlinks = wf_JSAlert('?module=uhw&showbrute=true&delbrute=' . $each['id'], web_delete_icon(), 'Are you serious');
-                $tablecells.=wf_TableCell($actlinks);
-                $tablerows.= wf_TableRow($tablecells, 'row3');
+                $tablecells .= wf_TableCell($actlinks);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
         }
 

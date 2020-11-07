@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Allows to put some switches into groups
+ */
 class SwitchGroups {
     /**
      * Contains default interface module URL

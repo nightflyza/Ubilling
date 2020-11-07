@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Performs deploy of database and config files updates
+ */
 class UbillingUpdateManager {
 
     /**
@@ -372,25 +375,25 @@ class UbillingUpdateManager {
                         if (file_exists($configName)) {
 
                             $currentConfigOptions = rcms_parse_ini_file($configName);
-                            $result.=$this->messages->getStyledMessage(__('Existing config file') . ': ' . $configName, 'success');
+                            $result .= $this->messages->getStyledMessage(__('Existing config file') . ': ' . $configName, 'success');
                             //some logging
                             if (wf_CheckPost(array('applyconfigoptions', 'applyconfirm'))) {
                                 //Initial line break and update header
                                 $configUpdateHeader = "\n";
-                                $configUpdateHeader.=';release ' . $release . ' update' . "\n";
+                                $configUpdateHeader .= ';release ' . $release . ' update' . "\n";
                                 if (is_writable($configName)) {
                                     $canUpdate = true;
                                 } else {
                                     $canUpdate = false;
-                                    $result.=$this->messages->getStyledMessage(__('Permission denied') . ': ' . $configName . '.', 'error');
-                                    $result.=$this->messages->getStyledMessage(__('Trying to set write permissions for') . ' ' . $configName . ' ' . __('to fix this issue') . '.', 'warning');
+                                    $result .= $this->messages->getStyledMessage(__('Permission denied') . ': ' . $configName . '.', 'error');
+                                    $result .= $this->messages->getStyledMessage(__('Trying to set write permissions for') . ' ' . $configName . ' ' . __('to fix this issue') . '.', 'warning');
                                     $this->fixAccessRights($configName);
                                     if (is_writable($configName)) {
                                         $canUpdate = true;
-                                        $result.=$this->messages->getStyledMessage(__('Success! Config file') . ' ' . $configName . ' ' . __('now is writable') . '.', 'success');
+                                        $result .= $this->messages->getStyledMessage(__('Success! Config file') . ' ' . $configName . ' ' . __('now is writable') . '.', 'success');
                                     } else {
                                         $canUpdate = false;
-                                        $result.=$this->messages->getStyledMessage(__('Seems like we failed with making this file writable') . '.', 'error');
+                                        $result .= $this->messages->getStyledMessage(__('Seems like we failed with making this file writable') . '.', 'error');
                                     }
                                 }
                                 //now real put update header
@@ -403,27 +406,27 @@ class UbillingUpdateManager {
                                 foreach ($configOptions as $optionName => $optionContent) {
                                     if (!isset($currentConfigOptions[$optionName])) {
                                         $newOptsCount++;
-                                        $result.=$this->messages->getStyledMessage(__('New option') . ': ' . $optionName . ' ' . __('will be added with value') . ' ' . $optionContent, 'info');
+                                        $result .= $this->messages->getStyledMessage(__('New option') . ': ' . $optionName . ' ' . __('will be added with value') . ' ' . $optionContent, 'info');
                                         if (wf_CheckPost(array('applyconfigoptions', 'applyconfirm'))) {
                                             $saveOptions = $optionName . '=' . $optionContent . "\n";
                                             if (is_writable($configName)) {
                                                 file_put_contents($configName, $saveOptions, FILE_APPEND);
-                                                $result.=$this->messages->getStyledMessage(__('Option added') . ': ' . $optionName . '= ' . $optionContent, 'success');
+                                                $result .= $this->messages->getStyledMessage(__('Option added') . ': ' . $optionName . '= ' . $optionContent, 'success');
                                                 $newOptsCount--;
                                             } else {
-                                                $result.=$this->messages->getStyledMessage(__('New option') . ' ' . $optionName . ' ' . __('not created') . '. ' . __('Permission denied') . '.', 'error');
+                                                $result .= $this->messages->getStyledMessage(__('New option') . ' ' . $optionName . ' ' . __('not created') . '. ' . __('Permission denied') . '.', 'error');
                                             }
                                         }
                                     } else {
-                                        $result.=$this->messages->getStyledMessage(__('Option already exists, will be ignored') . ': ' . $optionName, 'warning');
+                                        $result .= $this->messages->getStyledMessage(__('Option already exists, will be ignored') . ': ' . $optionName, 'warning');
                                     }
                                 }
                             }
                         } else {
-                            $result.=$this->messages->getStyledMessage(__('Wrong config path') . ': ' . $configName, 'error');
+                            $result .= $this->messages->getStyledMessage(__('Wrong config path') . ': ' . $configName, 'error');
                         }
                     } else {
-                        $result.=$this->messages->getStyledMessage(__('Unknown config') . ': ' . $configId, 'error');
+                        $result .= $this->messages->getStyledMessage(__('Unknown config') . ': ' . $configId, 'error');
                     }
                 }
                 //confirmation checkbox notice
@@ -442,16 +445,16 @@ class UbillingUpdateManager {
                     $inputs .= wf_tag('br');
                     $inputs .= wf_Submit(__('Apply'));
                     $result .= wf_Form('', 'POST', $inputs, 'glamour');
-                    $result.= wf_CleanDiv();
+                    $result .= wf_CleanDiv();
                 } else {
-                    $result.=$this->messages->getStyledMessage(__('Everything is fine. All required options for release') . ' ' . $release . ' ' . __('is on their places.'), 'success');
+                    $result .= $this->messages->getStyledMessage(__('Everything is fine. All required options for release') . ' ' . $release . ' ' . __('is on their places.'), 'success');
                 }
             }
-            $result.=wf_CleanDiv();
-            $result.=wf_delimiter();
-            $result.=wf_BackLink(self::URL_ME);
+            $result .= wf_CleanDiv();
+            $result .= wf_delimiter();
+            $result .= wf_BackLink(self::URL_ME);
         } else {
-            $result.= $this->messages->getStyledMessage(__('Wrong release'), 'error');
+            $result .= $this->messages->getStyledMessage(__('Wrong release'), 'error');
             log_register('UPDMGR FAIL CONF RELEASE `' . $release . '`');
         }
 
@@ -466,16 +469,16 @@ class UbillingUpdateManager {
     public function renderVersionInfo() {
         $currentRelease = file_get_contents("RELEASE");
         $updatechecker = wf_tag('br') . wf_tag('div', false, '', 'style="margin-left: 3%;"');
-        $updatechecker.= wf_AjaxLink('?module=updatemanager&checkupdates=true', wf_img('skins/question.png') . ' ' . __('Check updates'), 'lastrelease', false, 'ubButton');
-        $updatechecker.= wf_tag('div', true);
-        $updatechecker.= wf_CleanDiv();
+        $updatechecker .= wf_AjaxLink('?module=updatemanager&checkupdates=true', wf_img('skins/question.png') . ' ' . __('Check updates'), 'lastrelease', false, 'ubButton');
+        $updatechecker .= wf_tag('div', true);
+        $updatechecker .= wf_CleanDiv();
 
         $releaseInfo = wf_tag('style') . '#ubajaxloaderanim { margin-left: 3%; margin-top: 10px; }' . wf_tag('style', true);
-        $releaseInfo.= $updatechecker;
-        $releaseInfo.= $this->messages->getStyledMessage(__('Current Ubilling version') . ': ' . $currentRelease, 'info');
-        $releaseInfo.= wf_AjaxContainer('lastrelease', '', '');
+        $releaseInfo .= $updatechecker;
+        $releaseInfo .= $this->messages->getStyledMessage(__('Current Ubilling version') . ': ' . $currentRelease, 'info');
+        $releaseInfo .= wf_AjaxContainer('lastrelease', '', '');
 
-        $releaseInfo.= wf_AjaxLoader();
+        $releaseInfo .= wf_AjaxLoader();
         return ($releaseInfo);
     }
 
@@ -585,7 +588,7 @@ class UbillingUpdateStuff {
         } else {
             $wgetOptions = '--directory-prefix=' . $directory . basename($url) . ' ';
         }
-        $wgetOptions.= '--no-check-certificate ';
+        $wgetOptions .= '--no-check-certificate ';
         if (file_exists($directory)) {
             if (!is_writable($directory)) {
                 throw new Exception('DOWNLOAD_DIRECTORY_NOT_WRITABLE');

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Powerful SMS sending mechanics there
+ */
 class SMSZilla {
 
     /**

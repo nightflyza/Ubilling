@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Renders events which happens with some switch devices
+ */
 class SwitchHistory {
 
     /**

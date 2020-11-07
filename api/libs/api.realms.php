@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * VLAN management realms class
+ */
 class Realms {
 
     const TABLE_NAME = 'realms';

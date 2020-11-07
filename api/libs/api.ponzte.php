@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * ZTE PON devices management
+ */
 class PonZte {
 
     CONST DESC_PONTYPE = 1;

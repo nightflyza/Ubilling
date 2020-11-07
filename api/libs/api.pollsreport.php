@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Polls/votes report class
+ */
 class PollsReport extends Polls {
 
     /**

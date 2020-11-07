@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Allows to attach some description on PON OLT interfaces
+ */
 class PONIfDesc {
 
     /**

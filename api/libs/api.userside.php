@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Userside integration API
+ * https://www.userside.eu
+ */
 class UserSideApi {
 
     const API_VER = '1.5';

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Universal Telegram bot hooks extendable class
+ */
 class WolfDispatcher {
 
     /**

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Vlan MAC history class
+ */
 class VlanMacHistory {
 
     const MODULE = "vlan_mac_history";
@@ -295,6 +298,9 @@ class VlanMacHistory {
 
 }
 
+/**
+ * VLAN gen - nothing to see here!
+ */
 class VlanGen {
 
     /**
@@ -888,6 +894,9 @@ class VlanGen {
 
 }
 
+/**
+ * VLAN terminator class
+ */
 class VlanTerminator {
 
     const MODULE = 'Vlan Terminator';
@@ -1124,6 +1133,9 @@ class VlanTerminator {
 
 }
 
+/**
+ * Network devices automatic configuration
+ */
 class AutoConfigurator {
 
     const AUTOCONFIG = 'config/autoconfig/';
@@ -1717,6 +1729,9 @@ class AutoConfigurator {
 
 }
 
+/**
+ * PON ONU configuration class
+ */
 class OnuConfigurator {
 
     /**

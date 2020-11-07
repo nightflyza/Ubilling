@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Receipts/Bills printing
+ */
 class PrintReceipt {
     /**
      * Contains array user statuses. Possible values: "debt" / "debtasbalance" / "undebt" / "all"

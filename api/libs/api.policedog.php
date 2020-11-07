@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Allows control apper of some MAC address in billing reality
+ */
 class PoliceDog {
 
     /**

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * User profile loading and rendering class
+ */
 class UserProfile {
 
     /**

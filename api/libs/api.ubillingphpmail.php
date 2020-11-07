@@ -10,6 +10,9 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\OAuth;
 use PHPMailer\PHPMailer\Exception;
 
+/**
+ * Ubilling email sending based on phpmail class
+ */
 class UbillingPHPMail {
     /**
      * Enable SMTP debugging

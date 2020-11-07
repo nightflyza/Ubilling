@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Emails sending basic class
+ */
 class UbillingMail {
 
     /**

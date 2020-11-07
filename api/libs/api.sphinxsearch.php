@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Sphinx database abstraction layer
+ */
 Class SphinxDB {
 
     /**
@@ -169,6 +172,9 @@ Class SphinxDB {
 
 }
 
+/**
+ * Sphinx user-search implementation
+ */
 class SphinxSearch {
 
     /**

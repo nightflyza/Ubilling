@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Basic OpenPayz class
+ * Basic OpenPayz implementation
  */
 class OpenPayz {
 

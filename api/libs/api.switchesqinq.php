@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Switches QinQ management
+ */
 class SwitchesQinQ {
 
     /**

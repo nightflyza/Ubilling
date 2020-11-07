@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * User tags cloud rendering
+ */
 class TagCloud {
 
     /**

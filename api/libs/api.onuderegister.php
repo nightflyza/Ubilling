@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON ONU degegistering class
+ */
 class OnuDeregister extends OnuBase {
 
     /**

@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Ubilling SNMP abstraction class
+ */
 class SNMPHelper {
 
     /**

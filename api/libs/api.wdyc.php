@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Missed calls notification subsystem
+ */
 class WhyDoYouCall {
 
     /**

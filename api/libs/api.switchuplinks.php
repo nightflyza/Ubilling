@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Siwtches uplink parameters management class
+ */
 class SwitchUplinks {
 
     /**

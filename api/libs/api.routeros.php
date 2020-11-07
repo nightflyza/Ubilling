@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Mikrotik API implementation
+ */
 class RouterOS {
     // Socket resource:
     private $socket;

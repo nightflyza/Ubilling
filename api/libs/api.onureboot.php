@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON ONU rebooting class
+ */
 class OnuReboot extends OnuBase {
 
     /**

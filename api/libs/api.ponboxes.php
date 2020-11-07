@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON Boxes allows to place/render some boxes on map
+ */
 class PONBoxes {
 
     /**

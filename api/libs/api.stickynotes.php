@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Administator reminders and notes implementation
+ */
 class StickyNotes {
 
     /**

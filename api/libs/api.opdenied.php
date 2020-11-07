@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OpenPayz access management implementation
+ */
 class OpDenied {
 
     /**

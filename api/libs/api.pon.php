@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON devices management/monitoring support
+ */
 class PONizer {
 
     /**
