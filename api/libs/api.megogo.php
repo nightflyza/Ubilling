@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Megogo OTT service implementation class
+ * Megogo OTT service low-level API
  */
 class MegogoApi {
 
@@ -192,6 +192,9 @@ class MegogoApi {
 
 }
 
+/**
+ * Megogo OTT service implementation class
+ */
 class MegogoInterface {
 
     /**
