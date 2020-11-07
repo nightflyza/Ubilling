@@ -253,6 +253,9 @@ class MaponAPI {
 
 }
 
+/**
+ * Nothing to see here
+ */
 class ApiException extends \Exception {
     
 }

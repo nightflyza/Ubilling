@@ -760,7 +760,7 @@ function web_CitySelectorAc() {
     }
 
     $selector = wf_SelectorAC('citysel', $allcity, '', '', false);
-    $selector.= wf_tag('a', false, '', 'href="?module=city" target="_BLANK"') . web_city_icon() . wf_tag('a', true);
+    $selector .= wf_tag('a', false, '', 'href="?module=city" target="_BLANK"') . web_city_icon() . wf_tag('a', true);
     return ($selector);
 }
 
@@ -801,7 +801,7 @@ function web_StreetSelectorAc($cityid) {
     }
 
     $selector = wf_SelectorAC('streetsel', $allstreets, '', '', false);
-    $selector.= wf_tag('a', false, '', 'href="?module=streets&citypreset=' . $cityid . '" target="_BLANK"') . web_street_icon() . wf_tag('a', true);
+    $selector .= wf_tag('a', false, '', 'href="?module=streets&citypreset=' . $cityid . '" target="_BLANK"') . web_street_icon() . wf_tag('a', true);
 
     return ($selector);
 }
@@ -843,7 +843,7 @@ function web_BuildSelectorAc($streetid) {
     }
 
     $selector = wf_SelectorAC('buildsel', $allbuilds, '', '', false);
-    $selector.= wf_tag('a', false, '', 'href="?module=builds&action=edit&streetid=' . $streetid . '" target="_BLANK"') . web_build_icon() . wf_tag('a', true);
+    $selector .= wf_tag('a', false, '', 'href="?module=builds&action=edit&streetid=' . $streetid . '" target="_BLANK"') . web_build_icon() . wf_tag('a', true);
     return ($selector);
 }
 
@@ -891,10 +891,10 @@ function web_StreetCreateForm($FilterByCityId = 0) {
 
     if (!empty($cities)) {
         $inputs = web_CitySelector($FilterByCityId) . ' ' . __('City') . wf_delimiter();
-        $inputs.=wf_TextInput('newstreetname', __('New Street name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '20');
-        $inputs.=wf_TextInput('newstreetalias', __('New Street alias'), '', true, '20');
-        $inputs.= wf_CheckInput('FormClose', __('Close form after operation'), true, true, $CloseFrmChkID, '__StreetFormCloseChck');
-        $inputs.=wf_Submit(__('Create'));
+        $inputs .= wf_TextInput('newstreetname', __('New Street name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '20');
+        $inputs .= wf_TextInput('newstreetalias', __('New Street alias'), '', true, '20');
+        $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), true, true, $CloseFrmChkID, '__StreetFormCloseChck');
+        $inputs .= wf_Submit(__('Create'));
         $form = wf_Form('?module=streets', 'POST', $inputs, 'glamour __StreetCreateForm', '', $FormID);
         $form .= wf_tag('script', false, '', 'type="text/javascript"');
         $form .= '$("[name=newstreetname]").focus( function() {                    
@@ -973,9 +973,9 @@ function web_StreetEditForm($streetid, $ModalWID) {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_TextInput('editstreetname', __('Street name') . $sup, $streetname, true, '', '', '__StreetEditName');
-    $inputs.= wf_TextInput('editstreetalias', __('Street alias'), $streetalias, true);
-    $inputs.= wf_HiddenInput('', $ModalWID, '', '__StreetEditFormModalWindowID');
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_TextInput('editstreetalias', __('Street alias'), $streetalias, true);
+    $inputs .= wf_HiddenInput('', $ModalWID, '', '__StreetEditFormModalWindowID');
+    $inputs .= wf_Submit(__('Save'));
     $form = wf_Form('?module=streets&action=edit&streetid=' . $streetid . '&cityid=' . $cityid, 'POST', $inputs, 'glamour __StreetEditForm', '', $FormID);
 
     return($form);
@@ -1398,8 +1398,8 @@ function web_BuildAddForm($streetid) {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_TextInput('newbuildnum', __('New build number') . $sup, '', true, 10);
-    $inputs.= wf_CheckInput('FormClose', __('Close form after operation'), true, true, $CloseFrmChkID, '__BuildFormCloseChck');
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), true, true, $CloseFrmChkID, '__BuildFormCloseChck');
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form($AjaxURLStr, 'POST', $inputs, 'glamour __BuildCreateForm', '', $FormID);
     $form .= wf_tag('script', false, '', 'type="text/javascript"');
     $form .= '  $("[name=newbuildnum]").focus( function() {                    
@@ -1473,10 +1473,10 @@ function web_BuildEditForm($buildid, $streetid, $ModalWID) {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = $streetname . " " . $builddata['buildnum'] . wf_tag('hr');
-    $inputs.= wf_TextInput('editbuildnum', __('Building number') . $sup, $builddata['buildnum'], true, '10', '', '__BuildEditName');
-    $inputs.= wf_TextInput('editbuildgeo', 'Geo location', $builddata['geo'], true, '20', 'geo');
-    $inputs.= wf_HiddenInput('', $ModalWID, '', '__BuildEditFormModalWindowID');
-    $inputs.= wf_Submit('Save');
+    $inputs .= wf_TextInput('editbuildnum', __('Building number') . $sup, $builddata['buildnum'], true, '10', '', '__BuildEditName');
+    $inputs .= wf_TextInput('editbuildgeo', 'Geo location', $builddata['geo'], true, '20', 'geo');
+    $inputs .= wf_HiddenInput('', $ModalWID, '', '__BuildEditFormModalWindowID');
+    $inputs .= wf_Submit('Save');
 
     $form = wf_Form('?module=builds&action=editbuild&streetid=' . $streetid . '&buildid=' . $buildid, 'POST', $inputs, 'glamour __BuildEditForm', '', $FormID);
 
@@ -1490,8 +1490,8 @@ function web_BuildEditForm($buildid, $streetid, $ModalWID) {
  */
 function web_AptCreateForm() {
     $inputs = wf_TextInput('entrance', __('Entrance'), '', true);
-    $inputs.= wf_TextInput('floor', __('Floor'), '', true);
-    $inputs.= wf_tag('input', false, '', 'type="text" id="apt" name="apt" style="margin-right: 8px;" onchange="checkapt();"') . __('Apartment') . wf_tag('br');
+    $inputs .= wf_TextInput('floor', __('Floor'), '', true);
+    $inputs .= wf_tag('input', false, '', 'type="text" id="apt" name="apt" style="margin-right: 8px;" onchange="checkapt();"') . __('Apartment') . wf_tag('br');
 
     return($inputs);
 }
@@ -1509,9 +1509,9 @@ function web_CityCreateForm() {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_TextInput('newcityname', __('New City name') . $sup, '', true);
-    $inputs.= wf_TextInput('newcityalias', __('New City alias'), '', true);
-    $inputs.= wf_CheckInput('FormClose', __('Close form after operation'), true, true, $CloseFrmChkID, '__CityFormCloseChck');
-    $inputs.= wf_Submit(__('Create'));
+    $inputs .= wf_TextInput('newcityalias', __('New City alias'), '', true);
+    $inputs .= wf_CheckInput('FormClose', __('Close form after operation'), true, true, $CloseFrmChkID, '__CityFormCloseChck');
+    $inputs .= wf_Submit(__('Create'));
     $form = wf_Form('?module=city', 'POST', $inputs, 'glamour __CityCreateForm', '', $FormID);
     $form .= wf_tag('script', false, '', 'type="text/javascript"');
     $form .= '  $("[name=newcityname]").focus( function() {                    
@@ -1584,9 +1584,9 @@ function web_CityEditForm($cityid, $ModalWID) {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_TextInput('editcityname', __('City name') . $sup, $cityname, true, '', '', '__CityEditName');
-    $inputs.= wf_TextInput('editcityalias', __('City alias'), $cityalias, true);
-    $inputs.= wf_HiddenInput('', $ModalWID, '', '__CityEditFormModalWindowID');
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_TextInput('editcityalias', __('City alias'), $cityalias, true);
+    $inputs .= wf_HiddenInput('', $ModalWID, '', '__CityEditFormModalWindowID');
+    $inputs .= wf_Submit(__('Save'));
 
     $form = wf_Form('?module=city&action=edit&cityid=' . $cityid, 'POST', $inputs, 'glamour __CityEditForm', '', $FormID);
 
@@ -1735,8 +1735,8 @@ function renderCityJSON() {
  */
 function web_AddressExtenCreateForm() {
     $inputs = wf_TextInput('postalcode', __('Postal code'), '', true);
-    $inputs.= wf_TextInput('towndistr', __('Town/District/Region'), '', true);
-    $inputs.= wf_TextArea('addressexten', __('Extended address'), '', true, '47x4');
+    $inputs .= wf_TextInput('towndistr', __('Town/District/Region'), '', true);
+    $inputs .= wf_TextArea('addressexten', __('Extended address'), '', true, '47x4');
 
     return($inputs);
 }
@@ -1767,7 +1767,7 @@ function zb_AddAddressExtenSave($login, $makeEdit, $postalcode = '', $towndistr 
         $tabAddrExten->save(true, true);
 
         log_register('Extended address record changed for user (' . $login . ')');
-    } elseif (!empty($postalcode) or !empty($towndistr) or !empty($addr_exten)) {
+    } elseif (!empty($postalcode) or ! empty($towndistr) or ! empty($addr_exten)) {
         $tabAddrExten->data('login', $login);
         $tabAddrExten->data('postal_code', $postalcode);
         $tabAddrExten->data('town_district', $towndistr);
@@ -1852,8 +1852,8 @@ function zb_AddressExtenGetAllCached() {
     $cacheTime = $ubillingConfig->getAlterParam('ADDRESS_CACHE_TIME') * 60; // in minutes!!!!
 
     $result = $cache->getCallback('ADDRESS_EXTEN_CACHE', function () {
-                  return (zb_AddressExtenGetAll());
-              }, $cacheTime);
+        return (zb_AddressExtenGetAll());
+    }, $cacheTime);
 
     return($result);
 }
@@ -2028,10 +2028,9 @@ function zb_AddressFilterStreet($name) {
     return ($name);
 }
 
-/*
- * Build passport data base class
+/**
+ * Extended Build information base class
  */
-
 class BuildPassport {
 
     private $data = array();
@@ -2121,20 +2120,20 @@ class BuildPassport {
         }
 
         $inputs = wf_HiddenInput('savebuildpassport', $buildid);
-        $inputs.= wf_Selector('powner', $this->ownersArr, __('Owner'), @$currentData['owner'], true);
-        $inputs.= wf_TextInput('pownername', __('Owner name'), @$currentData['ownername'], true, 30);
-        $inputs.= wf_TextInput('pownerphone', __('Owner phone'), @$currentData['ownerphone'], true, 30);
-        $inputs.= wf_TextInput('pownercontact', __('Owner contact person'), @$currentData['ownercontact'], true, 30);
+        $inputs .= wf_Selector('powner', $this->ownersArr, __('Owner'), @$currentData['owner'], true);
+        $inputs .= wf_TextInput('pownername', __('Owner name'), @$currentData['ownername'], true, 30);
+        $inputs .= wf_TextInput('pownerphone', __('Owner phone'), @$currentData['ownerphone'], true, 30);
+        $inputs .= wf_TextInput('pownercontact', __('Owner contact person'), @$currentData['ownercontact'], true, 30);
         $keys = (@$currentData['keys'] == 1) ? true : false;
-        $inputs.= wf_CheckInput('pkeys', __('Keys available'), true, $keys);
-        $inputs.= wf_TextInput('paccessnotices', __('Build access notices'), @$currentData['accessnotices'], true, 40);
-        $inputs.= wf_Selector('pfloors', $this->floorsArr, __('Floors'), @$currentData['floors'], false);
-        $inputs.= wf_Selector('pentrances', $this->entrancesArr, __('Entrances'), @$currentData['entrances'], false);
-        $inputs.= wf_TextInput('papts', __('Apartments'), @$currentData['apts'], true, 5);
+        $inputs .= wf_CheckInput('pkeys', __('Keys available'), true, $keys);
+        $inputs .= wf_TextInput('paccessnotices', __('Build access notices'), @$currentData['accessnotices'], true, 40);
+        $inputs .= wf_Selector('pfloors', $this->floorsArr, __('Floors'), @$currentData['floors'], false);
+        $inputs .= wf_Selector('pentrances', $this->entrancesArr, __('Entrances'), @$currentData['entrances'], false);
+        $inputs .= wf_TextInput('papts', __('Apartments'), @$currentData['apts'], true, 5);
 
-        $inputs.= __('Notes') . wf_tag('br');
-        $inputs.= wf_TextArea('pnotes', '', @$currentData['notes'], true, '50x6');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= __('Notes') . wf_tag('br');
+        $inputs .= wf_TextArea('pnotes', '', @$currentData['notes'], true, '50x6');
+        $inputs .= wf_Submit(__('Save'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);

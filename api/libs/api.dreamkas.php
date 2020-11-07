@@ -2360,7 +2360,9 @@ class DreamKas {
     }
 }
 
-// NOTIFICATIONS AREA
+/**
+ * DreamKas notification area
+ */
 class DreamKasNotifications {
     /**
      * UbillingConfig object placeholder

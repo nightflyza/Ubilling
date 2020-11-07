@@ -513,6 +513,9 @@ class JunGen {
 
 }
 
+/**
+ * JuniperMX NAS COA/POD casting implementation
+ */
 class JunCast {
 
     /**
@@ -710,6 +713,9 @@ class JunCast {
 
 }
 
+/**
+ * JuniperMX NAS accounting data processing
+ */
 class JunAcct {
 
     /**

@@ -484,6 +484,9 @@ class UbillingUpdateManager {
 
 }
 
+/**
+ * Ubilling updates deployment routines
+ */
 class UbillingUpdateStuff {
 
     /**

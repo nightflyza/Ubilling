@@ -279,6 +279,9 @@ class TrinityTvApi {
 
 }
 
+/**
+ * TrinityTV OTT service implementation
+ */
 class TrinityTv {
 
     /**

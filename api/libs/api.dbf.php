@@ -1,7 +1,8 @@
 <?php
 
-/* * **********************************************************
-  DBF reader Class v0.04  by Faro K Rasyid (Orca)
+/**
+ * 
+ *  DBF reader Class v0.04  by Faro K Rasyid (Orca)
   orca75_at_dotgeek_dot_org
   v0.05 by Nicholas Vrtis
   vrtis_at_vrtisworks_dot_com
@@ -45,9 +46,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU  Lesser General Public License for more details.
-
- * ************************************************************ */
-
+ */
 class dbf_class {
 
     var $dbf_num_rec;           //Number of records in the file

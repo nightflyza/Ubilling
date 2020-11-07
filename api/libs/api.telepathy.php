@@ -1,9 +1,8 @@
 <?php
 
-/*
- * Base class prophetic guessing login by the address/surname/realname
+/**
+ * Prophetic guessing login by the address/surname/realname
  */
-
 class Telepathy {
 
     /**
