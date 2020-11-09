@@ -87,7 +87,7 @@ class ubRouting {
      * Returns filtered data
      * 
      * @param type $rawData data to be filtered
-     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb
+     * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float
      * @param string/array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
      * @return mixed/false
@@ -111,6 +111,9 @@ class ubRouting {
                 break;
             case 'nb':
                 return(preg_replace('/\0/s', '', $rawData));
+                break;
+            case 'float':
+                return(preg_replace("#[^0-9.]#Uis", '', $rawData));
                 break;
             case 'fi':
                 if (!empty($callback)) {
@@ -144,6 +147,7 @@ class ubRouting {
                     throw new Exception('EX_CALLBACK_EMPTY');
                 }
                 break;
+
             default :
                 throw new Exception('EX_WRONG_FILTERING_MODE');
                 break;
