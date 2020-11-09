@@ -4,20 +4,13 @@
  * Most Retarded Neural Network ever. Yep, with single neuron.
  */
 class MRNN {
-    /**
-     *  TODO: 
-     * - sigmoid function
-     * - save/load network state
-     * - CLI mode..
-     * - backport to YALF
-     */
 
     /**
      * Initial weight
      *
      * @var float
      */
-    protected $weight = 0.5;
+    protected $weight = 0.01;
 
     /**
      * Last neuron training error
@@ -31,14 +24,14 @@ class MRNN {
      *
      * @var float
      */
-    protected $smoothing = 0.00001;
+    protected $smoothing = 0.0001;
 
     /**
      * Training routine result
      *
      * @var float
      */
-    protected $actualResult = 0.1;
+    protected $actualResult = 0.01;
 
     /**
      * Contains current weight correction
@@ -118,6 +111,17 @@ class MRNN {
     }
 
     /**
+     * Just native sigmoid function
+     * 
+     * @param float $value
+     * 
+     * @return float
+     */
+    protected function sigmoid($value) {
+        return 1 / (1 + exp(-$value));
+    }
+
+    /**
      * Do the neuron train routine
      * 
      * @param float $input
@@ -168,8 +172,9 @@ class MRNN {
                 $neurons = array();
                 $neuronIndex = 0;
                 $prevWeight = $this->weight;
+                $networkName = get_class($this);
                 foreach ($dataSet as $input => $expectedResult) {
-                    $neurons[$neuronIndex] = new MRNN();
+                    $neurons[$neuronIndex] = new $networkName();
                     //optional learning acceleration via  next weight correction
                     if ($accel) {
                         $neurons[$neuronIndex]->setWeight($prevWeight);
@@ -217,15 +222,6 @@ class MRNN {
      */
     protected function getLastError() {
         return($this->lastError);
-    }
-
-    /**
-     * Returns smoothing factor
-     * 
-     * @return float
-     */
-    protected function getSmoothing() {
-        return($this->smoothing);
     }
 
     /**
