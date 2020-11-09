@@ -4,6 +4,6 @@
 error_reporting(E_ALL);
 
 if (cfr('ROOT')) {
-    
-  
+
+
 }
