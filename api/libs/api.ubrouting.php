@@ -113,7 +113,12 @@ class ubRouting {
                 return(preg_replace('/\0/s', '', $rawData));
                 break;
             case 'float':
-                return(preg_replace("#[^0-9.]#Uis", '', $rawData));
+                $filteredResult = preg_replace("#[^0-9.]#Uis", '', $rawData);
+                if (is_numeric($filteredResult)) {
+                    return($filteredResult);
+                } else {
+                    return(false);
+                }
                 break;
             case 'fi':
                 if (!empty($callback)) {
