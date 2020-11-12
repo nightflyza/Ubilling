@@ -112,16 +112,18 @@ if (ubRouting::get('action') == 'fullhostscan') {
             }
         }
 
-        if (!empty($activeIps)) {
-            if (file_exists(DATA_PATH . "dn")) {
-                //directory clanup
-                $oldDnData = rcms_scandir(DATA_PATH . "dn/");
-                if (!empty($oldDnData)) {
-                    foreach ($oldDnData as $deleteFile) {
-                        unlink(DATA_PATH . "dn/" . $deleteFile);
-                    }
+        //renew DN data
+        if (file_exists(DATA_PATH . "dn")) {
+            //directory clanup
+            $oldDnData = rcms_scandir(DATA_PATH . "dn/");
+            if (!empty($oldDnData)) {
+                foreach ($oldDnData as $deleteFile) {
+                    unlink(DATA_PATH . "dn/" . $deleteFile);
                 }
-                //store new DN data
+            }
+
+            //store new DN data
+            if (!empty($activeIps)) {
                 $allUserIps = zb_UserGetAllIPs();
                 $allUserIps = array_flip($allUserIps);
                 foreach ($activeIps as $ix => $aip) {
@@ -129,9 +131,9 @@ if (ubRouting::get('action') == 'fullhostscan') {
                         file_put_contents(DATA_PATH . "dn/" . $allUserIps[$aip], 'alive');
                     }
                 }
-            } else {
-                die('FAIL:NO_CONTENT_DN_EXISTS');
             }
+        } else {
+            die('FAIL:NO_CONTENT_DN_EXISTS');
         }
     }
 
