@@ -1029,8 +1029,10 @@ class PONizer {
             if (!empty($TmpArr)) {
                 // Crete tmp Ubilling PON FDB array
                 foreach ($TmpArr as $io => $each) {
-                    $FDBTmp[$each['index']][$each['FDBnum']]['mac'] = $each['mac'];
-                    $FDBTmp[$each['index']][$each['FDBnum']]['vlan'] = $each['vlan'];
+                    if (count($each) == 4) {
+                        $FDBTmp[$each['index']][$each['FDBnum']]['mac'] = $each['mac'];
+                        $FDBTmp[$each['index']][$each['FDBnum']]['vlan'] = $each['vlan'];
+                    }
                 }
             }
 //mac index preprocessing
