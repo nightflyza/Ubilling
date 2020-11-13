@@ -889,7 +889,7 @@ class UbillingVisor {
                                 $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
                                 $result .= $eachChan['chan'];
                                 $result .= wf_tag('br');
-                                $result .= $this->renderChannelPlayer($streamUrl, '90%', false);
+                                $result .= $this->renderChannelPlayer($streamUrl, '90%', true);
 
                                 $result .= wf_tag('div', false, 'todaysig');
                                 $result .= $channelEditControl;
