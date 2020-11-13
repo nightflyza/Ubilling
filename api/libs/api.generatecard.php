@@ -13,6 +13,7 @@ class GenerateCard {
     public function __construct($nameTemplate)
     {
         $this->im = imagecreatefromjpeg($nameTemplate);
+        putenv('GDFONTPATH=' . realpath('.'));
     }
 
     public function saveImage($name)
