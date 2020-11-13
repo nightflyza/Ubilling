@@ -123,11 +123,13 @@ if (cfr('TASKMANSEARCH')) {
             $inputs .= wf_CheckInput('cb_taskdays', '', false, false);
             $inputs .= wf_TextInput('taskdays', __('Implementation took more days'), '', true, 4);
             $inputs .= wf_CheckInput('cb_taskaddress', '', false, false);
-            $inputs .= wf_TextInput('taskaddress', __('Task address'), '', true, 20);
+            $inputs .= wf_TextInput('taskaddress', __('Address contains'), '', true, 20);
             $inputs .= wf_CheckInput('cb_taskphone', '', false, false);
             $inputs .= wf_TextInput('taskphone', __('Phone'), '', true, 20);
             $inputs .= wf_CheckInput('cb_tasknotes', '', false, false);
             $inputs .= wf_TextInput('tasknotes', __('Notes contains'), '', true, 20);
+            $inputs .= wf_CheckInput('cb_taskjobcontain', '', false, false);
+            $inputs .= wf_TextInput('taskjobcontain', __('Job type contains'), '', true, 20);
             $inputs .= wf_CheckInput('cb_taskjobtype', '', false, false);
             $inputs .= wf_Selector('taskjobtype', $this->allJobtypes, __('Job type'), '', true);
             $inputs .= wf_CheckInput('cb_employee', '', false, false);
@@ -159,7 +161,9 @@ if (cfr('TASKMANSEARCH')) {
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
                 $dateFrom = mysql_real_escape_string($_POST['datefrom']);
                 $dateTo = mysql_real_escape_string($_POST['dateto']);
-                $baseQuery = "SELECT * from `taskman` WHERE `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ";
+                $baseQuery = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
+                                    LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`  
+                                WHERE `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ";
                 $appendQuery = '';
                 //task id
                 if (wf_CheckPost(array('cb_id', 'taskid'))) {
@@ -191,9 +195,16 @@ if (cfr('TASKMANSEARCH')) {
                     $appendQuery .= " AND `phone` LIKE '%" . $taskphone . "%' ";
                 }
 
+                //task note contains
                 if (ubRouting::checkPost(array('cb_tasknotes', 'tasknotes'))) {
                     $tasknotes = ubRouting::post('tasknotes', 'mres');
                     $appendQuery .= " AND `jobnote` LIKE '%" . $tasknotes . "%'";
+                }
+
+                //task job type contains
+                if (ubRouting::checkPost(array('cb_taskjobcontain', 'taskjobcontain'))) {
+                    $taskjobcontain = ubRouting::post('taskjobcontain', 'mres');
+                    $appendQuery .= " AND `jobname` LIKE '%" . $taskjobcontain . "%'";
                 }
 
                 //task job type
