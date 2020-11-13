@@ -51,6 +51,13 @@ if (@$us_config['VISOR_ENABLED']) {
         protected $allAddress = array();
 
         /**
+         * Contains received channel container type
+         *
+         * @var string
+         */
+        protected $chanPreviewContainer = 'mjpeg';
+
+        /**
          * Some default tables names
          */
         const TABLE_USERS = 'visor_users';
@@ -170,6 +177,39 @@ if (@$us_config['VISOR_ENABLED']) {
         }
 
         /**
+         * Returns channel preview container/player based on stream type
+         * 
+         * @param string $streamUrl
+         * @param string $width
+         * @param bool $autoPlay
+         * 
+         * @return string
+         */
+        protected function renderChannelPlayer($streamUrl, $width, $autoPlay = false) {
+            $result = '';
+            // detect type based on URL
+            $this->chanPreviewContainer = 'mjpeg';
+            if (strpos($streamUrl, '/hls/') !== false) {
+                $this->chanPreviewContainer = 'hls';
+            }
+
+            if ($this->chanPreviewContainer == 'mjpeg') {
+                $result .= la_img_sized($streamUrl, '', $width);
+            }
+
+            if ($this->chanPreviewContainer == 'hls') {
+                $autoPlayMode = ($autoPlay) ? 'true' : 'false';
+                $uniqId = 'hlsplayer' . la_InputId();
+                $result .= la_tag('script', false, '', 'src="modules/jsc/playerjs/playerjs.js"') . la_tag('script', true);
+                $result .= la_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . ';"') . la_tag('div', true);
+                $result .= la_tag('script', false);
+                $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
+                $result .= la_tag('script', true);
+            }
+            return($result);
+        }
+
+        /**
          * Gets channels preview as JSON from remote API call
          * 
          * @param string $channelGuid
@@ -215,7 +255,7 @@ if (@$us_config['VISOR_ENABLED']) {
                                     if (!empty($eachUrl)) {
                                         if ($filteredChan) {
                                             $result .= la_tag('div', false, '', 'style="float:left; width:' . $previewWidth . '; margin:5px;"');
-                                            $result .= la_img_sized($eachUrl, '', '90%');
+                                            $result .= $this->renderChannelPlayer($eachUrl, '90%', true);
                                             $result .= la_tag('br');
                                             $result .= la_tag('br');
                                             if (!$channelFilter) {
@@ -223,7 +263,6 @@ if (@$us_config['VISOR_ENABLED']) {
                                                 $result .= la_Link($fullQualUrl, __('View'), false, 'anreadbutton');
                                             }
                                             $result .= la_tag('div', true);
-                                            
                                         }
                                     }
                                 }
@@ -355,7 +394,7 @@ if (@$us_config['VISOR_ENABLED']) {
                         $rows .= la_TableRow($cells, 'row3');
                     }
 
-                    $result .= la_TableBody($rows, '100%', 0,'resp-table');
+                    $result .= la_TableBody($rows, '100%', 0, 'resp-table');
                 }
             }
             return($result);

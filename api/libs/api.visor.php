@@ -160,6 +160,13 @@ class UbillingVisor {
     protected $chanBigPreviewFramerate = 1000;
 
     /**
+     * Global Trassir NVR stream preview container type. Now supported: mjpeg or hls.
+     *
+     * @var string
+     */
+    protected $chanPreviewContainer = 'mjpeg';
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -225,6 +232,10 @@ class UbillingVisor {
 
         if (@$this->altCfg['TRASSIRMGR_ENABLED']) {
             $this->trassirEnabled = true;
+        }
+
+        if (@$this->altCfg['TRASSIRHLS_ENABLED']) {
+            $this->chanPreviewContainer = 'hls';
         }
     }
 
@@ -872,13 +883,13 @@ class UbillingVisor {
                             if ($chanDvrData['type'] == 'trassir') {
                                 $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port']);
 
-                                $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                                $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate);
                                 $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
                                 $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
                                 $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
                                 $result .= $eachChan['chan'];
                                 $result .= wf_tag('br');
-                                $result .= wf_img_sized($streamUrl, '', '90%');
+                                $result .= $this->renderChannelPlayer($streamUrl, '90%', false);
 
                                 $result .= wf_tag('div', false, 'todaysig');
                                 $result .= $channelEditControl;
@@ -2166,13 +2177,13 @@ class UbillingVisor {
                                     }
 
                                     if ($renderChannel) {
-                                        $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                                        $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate);
                                         $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
                                         $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
                                         $result .= $eachChan['name'] . ' / ' . $eachChan['guid'] . ' @ ' . $eachDvr['id'];
                                         $result .= wf_tag('br');
                                         $result .= wf_tag('div', false, '', 'style="overflow:hidden; height:220px; max-height:250px;"');
-                                        $result .= wf_img_sized($streamUrl, '', '90%');
+                                        $result .= $this->renderChannelPlayer($streamUrl, '90%');
                                         $result .= wf_tag('div', true);
                                         $assignedUserId = (isset($this->channelUsers[$eachChan['guid']])) ? $this->channelUsers[$eachChan['guid']] : '';
                                         $assignedUserLabel = (isset($this->allUsers[$assignedUserId])) ? $this->iconVisorUser() . ' ' . $this->allUsers[$assignedUserId]['realname'] : '';
@@ -2259,6 +2270,34 @@ class UbillingVisor {
     }
 
     /**
+     * Returns channel preview container/player based on stream type
+     * 
+     * @param string $streamUrl
+     * @param string $width
+     * @param bool $autoPlay
+     * 
+     * @return string
+     */
+    protected function renderChannelPlayer($streamUrl, $width, $autoPlay = false) {
+        $result = '';
+
+        if ($this->chanPreviewContainer == 'mjpeg') {
+            $result .= wf_img_sized($streamUrl, '', $width);
+        }
+
+        if ($this->chanPreviewContainer == 'hls') {
+            $autoPlayMode = ($autoPlay) ? 'true' : 'false';
+            $uniqId = 'hlsplayer' . wf_InputId();
+            $result .= wf_tag('script', false, '', 'src="modules/jsc/playerjs/playerjs.js"') . wf_tag('script', true);
+            $result .= wf_tag('div', false, '', 'id="' . $uniqId . '" style="width:' . $width . ';"') . wf_tag('div', true);
+            $result .= wf_tag('script', false);
+            $result .= 'var player = new Playerjs({id:"' . $uniqId . '", file:"' . $streamUrl . '", autoplay:' . $autoPlayMode . '});';
+            $result .= wf_tag('script', true);
+        }
+        return($result);
+    }
+
+    /**
      * Renders channel editing form
      * 
      * @param string $channelGuid
@@ -2296,8 +2335,8 @@ class UbillingVisor {
             $dvrData = $this->allDvrs[$dvrId];
             if ($dvrData['type'] == 'trassir') {
                 $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', 'mjpeg', $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
-                $result .= wf_img_sized($channelUrl, '', '60%');
+                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
+                $result .= $this->renderChannelPlayer($channelUrl, '60%', true);
                 $result .= wf_delimiter();
                 //Channel record mode form here
                 $currentRecordMode = $trassir->getChannelRecordMode($channelGuid);
@@ -2419,7 +2458,7 @@ class UbillingVisor {
     }
 
     /**
-     * Returns JSON list of mjpeg URLs of channels assigned for user
+     * Returns JSON list of channel preview URLs of channels assigned for user
      * 
      * @param int $visorId
      * @param bool $maxQual
@@ -2437,9 +2476,9 @@ class UbillingVisor {
                     if ($dvrData['type'] = 'trassir') {
                         $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
                         if (!$maxQual) {
-                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate);
                         } else {
-                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', 'mjpeg', $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
                         }
                         $urlTmp[$each['chan']] = $url;
                     }
