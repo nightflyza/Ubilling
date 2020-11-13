@@ -330,6 +330,7 @@ function web_AgentAssignForm() {
 function web_AgentAssignShow() {
     $allassigns = zb_AgentAssignGetAllData();
     $allahens = zb_ContrAhentGetAllData();
+    $usedStreets = array();
     $agentnames = array();
     if (!empty($allahens)) {
         foreach ($allahens as $io => $eachahen) {
@@ -345,13 +346,14 @@ function web_AgentAssignShow() {
 
     if (!empty($allassigns)) {
         foreach ($allassigns as $io2 => $eachassign) {
-
+            $rowColor = (isset($usedStreets[$eachassign['streetname']])) ? 'ukvbankstadup' : 'row5';
             $cells = wf_TableCell($eachassign['id']);
             $cells .= wf_TableCell(@$agentnames[$eachassign['ahenid']]);
             $cells .= wf_TableCell($eachassign['streetname']);
             $actLinks = wf_JSAlert('?module=contrahens&deleteassign=' . $eachassign['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
             $cells .= wf_TableCell($actLinks);
-            $rows .= wf_TableRow($cells, 'row5');
+            $rows .= wf_TableRow($cells, $rowColor);
+            $usedStreets[$eachassign['streetname']] = $eachassign['ahenid'];
         }
     }
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -1244,7 +1246,7 @@ function zb_AgentStatsRender($mask = '') {
                 $cells .= wf_TableCell($userCount['total']);
                 $cells .= wf_TableCell($userCount['active']);
                 if ($mask) {
-                    $cells .= wf_TableCell(@$maskCounters[$agentId][$mask]['all'].' / '.@$maskCounters[$agentId][$mask]['active']);
+                    $cells .= wf_TableCell(@$maskCounters[$agentId][$mask]['all'] . ' / ' . @$maskCounters[$agentId][$mask]['active']);
                 }
                 $rows .= wf_TableRow($cells, 'row5');
             }
