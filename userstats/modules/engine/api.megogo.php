@@ -184,8 +184,8 @@ class MegogoFrontend {
     public function renderSubscribeForm() {
         $result = '';
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result.=la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
@@ -205,16 +205,16 @@ class MegogoFrontend {
                 $primaryLabel = ($each['primary']) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
                 $tariffInfo = la_tag('div', false, $headerType) . $each['name'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
-                $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
+                $cells .= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
                 $rows = la_TableRow($cells);
                 $cells = la_TableCell(la_tag('b') . __('Free period') . la_tag('b', true));
-                $cells.= la_TableCell($freePeriodLabel);
-                $rows.= la_TableRow($cells);
+                $cells .= la_TableCell($freePeriodLabel);
+                $rows .= la_TableRow($cells);
                 $cells = la_TableCell(la_tag('b') . __('Primary') . la_tag('b', true));
-                $cells.= la_TableCell($primaryLabel);
-                $rows.= la_TableRow($cells);
-                $tariffInfo.=la_TableBody($rows, '100%', 0);
-                $tariffInfo.=$freeAppend;
+                $cells .= la_TableCell($primaryLabel);
+                $rows .= la_TableRow($cells);
+                $tariffInfo .= la_TableBody($rows, '100%', 0);
+                $tariffInfo .= $freeAppend;
 
 
 
@@ -223,19 +223,20 @@ class MegogoFrontend {
                         $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
                         if ($this->checkUserProtection($each['id'])) {
-                            $subscribeControl = la_Link('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), false, 'mgsubcontrol');
+                            $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
+                            $subscribeControl = la_ConfirmDialog('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), $alertText, 'mgsubcontrol','?module=megogo');
                         } else {
                             $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
                         }
                     }
 
 
-                    $tariffInfo.=$subscribeControl;
+                    $tariffInfo .= $subscribeControl;
                 } else {
-                    $tariffInfo.=__('The amount of money in your account is not sufficient to process subscription');
+                    $tariffInfo .= __('The amount of money in your account is not sufficient to process subscription');
                 }
 
-                $result.=la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
+                $result .= la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
             }
         }
         return ($result);
@@ -392,10 +393,10 @@ class MegogoFrontend {
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
         if (!empty($this->allSubscribers)) {
             $cells = la_TableCell(__('Date'));
-            $cells.= la_TableCell(__('Tariff'));
-            $cells.= la_TableCell(__('Active'));
-            $cells.= la_TableCell(__('Primary'));
-            $cells.= la_TableCell(__('Free period'));
+            $cells .= la_TableCell(__('Tariff'));
+            $cells .= la_TableCell(__('Active'));
+            $cells .= la_TableCell(__('Primary'));
+            $cells .= la_TableCell(__('Free period'));
             $rows = la_TableRow($cells, 'row1');
 
             foreach ($this->allSubscribers as $io => $each) {
@@ -404,17 +405,17 @@ class MegogoFrontend {
                     $primaryFlag = ($each['primary']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
                     $activeFlag = ($each['active']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
                     $cells = la_TableCell($each['actdate']);
-                    $cells.= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
-                    $cells.= la_TableCell($activeFlag);
-                    $cells.= la_TableCell($primaryFlag);
-                    $cells.= la_TableCell($freePeriodFlag);
-                    $rows.= la_TableRow($cells, 'row2');
+                    $cells .= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
+                    $cells .= la_TableCell($activeFlag);
+                    $cells .= la_TableCell($primaryFlag);
+                    $cells .= la_TableCell($freePeriodFlag);
+                    $rows .= la_TableRow($cells, 'row2');
                 }
             }
 
             $result = la_TableBody($rows, '100%', 0);
-            $result.= la_tag('br');
-            $result.= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
+            $result .= la_tag('br');
+            $result .= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
         }
         return ($result);
     }

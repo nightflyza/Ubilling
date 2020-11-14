@@ -411,6 +411,7 @@ $lang['def']['Host'] = 'Хост';
 $lang['def']['Port'] = 'Порт';
 $lang['def']['Devices count limit is exceeded'] = 'Ліміт кількості пристроїв вичерпано';
 $lang['def']['I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.']='Я добре подумав і розумію, що активую дану послугу для себе не випадково і повністю осмислено та усвідомлюю всі наслідки.';
-
+$lang['def']['Agree'] = 'Згоден';
+$lang['def']['Cancel'] = 'Відміна';
 
 ?>

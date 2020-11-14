@@ -323,7 +323,8 @@ class OmegaTvFrontend {
                         $subscribeControl = la_Link('?module=omegatv&unsubscribe=' . $each['tariffid'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
                         if ($this->checkUserProtection($each['id'])) {
-                            $subscribeControl = la_Link('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), false, 'mgsubcontrol');
+                            $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
+                            $subscribeControl = la_ConfirmDialog('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), $alertText, 'mgsubcontrol','?module=omegatv');
                         } else {
                             $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
                         }

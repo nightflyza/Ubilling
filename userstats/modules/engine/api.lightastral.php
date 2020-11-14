@@ -887,4 +887,52 @@ function la_JSAlert($url, $title, $alerttext) {
     return ($result);
 }
 
+/**
+ * Returns JS confirmation url with some applied class
+ * 
+ * @param string $url URL if confirmed
+ * @param string $title link title
+ * @param string $alerttext alert text
+ * @param string $functiontorun function name with parameters which must exist on a page
+ *
+ * @return string
+ */
+function la_JSAlertStyled($url, $title, $alerttext, $class = '', $functiontorun = '') {
+    $class = (!empty($class)) ? 'class="' . $class . '"' : '';
+
+    if (empty($functiontorun)) {
+        $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+    } else {
+        $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; }" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns confirmation dialog to navigate to some URL
+ * 
+ * @param string $url
+ * @param string $title
+ * @param string $alerttext
+ * @param string $class
+ * @param string $cancelUrl
+ * 
+ * @return string
+ */
+function la_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = '') {
+    $result = '';
+    $dialog = __($alerttext);
+    $dialog.= la_tag('br');
+    $dialog.= la_tag('center',false);
+    $dialog .= la_Link($url, __('Agree'), false, 'anreadbutton');
+    if ($cancelUrl) {
+        $dialog .= la_Link($cancelUrl, __('Cancel'), false, 'anunreadbutton');
+    }
+    $dialog.= la_tag('center',true);
+    
+    $result .= la_modalAuto($title, __($title), $dialog, $class);
+    return($result);
+}
+
 ?>

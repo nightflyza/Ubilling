@@ -310,7 +310,8 @@ class TrinityTvFrontend {
                         $tariffInfo .= la_Link($this->urlMe . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
-                            $tariffInfo .= la_Link($this->urlMe . '&subscribe=' . $tariff['id'], __('Subscribe'), false, 'trinity-button-s');
+                            $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
+                            $tariffInfo .= la_ConfirmDialog($this->urlMe . '&subscribe=' . $tariff['id'], __('Subscribe'), $alertText, 'trinity-button-s', $this->urlMe);
                         } else {
                             $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
                         }
