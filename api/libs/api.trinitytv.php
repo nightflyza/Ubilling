@@ -938,7 +938,6 @@ class TrinityTv {
 
             // Change the tariff if needed
             if ($currentTariffId != $tariffId) {
-
                 // Create a subscription on the Trinity
                 $response = $this->api->createUser($subscriberId, $tariff['serviceid']);
 
@@ -948,20 +947,19 @@ class TrinityTv {
                 }
             }
 
-            // Trying charge fee and and set active=1
+            // Calculating new tariff fee
+            $tariffFee = $tariff['fee'];
+            $currentDayOfMonth = date("d");
+            $currentMonthDayCount = date("t");
+            $tariffFeeDaily = $this->getDaylyFee($tariffFee);
+            $tariffFee = ($currentMonthDayCount - $currentDayOfMonth) * $tariffFeeDaily;
+
+            // Charging fee to the end of month
+            zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'TRINITYTV:' . $tariffId);
+            log_register('TRINITYTV FEE (' . $userLogin . ') - ' . $tariffFee);
+
+            // Trying activate user if he is not active now.
             if ($this->allSubscribers[$subscriberId]['active'] != 1) {
-
-                // charge fee to the end of month
-                $tariffFee = $tariff['fee'];
-                $currentDayOfMonth = date("d");
-                $currentMonthDayCount = date("t");
-                $tariffFeeDaily = $this->getDaylyFee($tariffFee);
-
-                $tariffFee = ($currentMonthDayCount - $currentDayOfMonth) * $tariffFeeDaily;
-
-                zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'TRINITYTV:' . $tariffId);
-                log_register('TRINITYTV FEE (' . $userLogin . ') -' . $tariffFee);
-
                 simple_update_field(self::TABLE_SUBS, 'active', '1', "WHERE `id`='" . $subscriberId . "'");
                 log_register('TRINITYTV RESURRECT USER (' . $userLogin . ') AS [' . $subscriberId . ']');
             }
@@ -1454,8 +1452,8 @@ class TrinityTv {
                     //and tariff exists
                     if (!empty($tariff)) {
                         // Create Subscriber In Ubilling
-                        $query = "INSERT INTO `" . self::TABLE_SUBS . "` (`login`,`tariffid`,`actdate`) VALUES ";
-                        $query .= "('" . $login_f . "','" . $tariffId . "','" . $curdate . "');";
+                        $query = "INSERT INTO `" . self::TABLE_SUBS . "` (`login`,`tariffid`,`actdate`,`active`) VALUES ";
+                        $query .= "('" . $login_f . "','" . $tariffId . "','" . $curdate . "','1');";
                         nr_query($query);
                         $subscriberID = simple_get_lastid(self::TABLE_SUBS);
 
