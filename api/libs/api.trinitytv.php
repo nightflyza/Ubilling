@@ -1406,6 +1406,13 @@ class TrinityTv {
         return ($result);
     }
 
+    /**
+     * Deletes subscription
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
     public function deleteSubscribtion($login) {
         $result = '';
 
@@ -1432,25 +1439,20 @@ class TrinityTv {
      * @return string
      */
     public function createSubscribtion($login, $tariffId) {
-
         $tariffId = vf($tariffId, 3);
         $login_f = mysql_real_escape_string($login);
         $curdate = curdatetime();
-
         $result = '';
 
         if (isset($this->allUsers[$login])) {
-
             if (isset($this->allTariffs[$tariffId])) {
-
                 $subscriberId = $this->getSubscriberId($login);
+                //not existing subscriber
                 if (empty($subscriberId)) {
-
-                    // Получим свойства тарифа
+                    //getting new tariff data
                     $tariff = $this->getTariffData($tariffId);
-
+                    //and tariff exists
                     if (!empty($tariff)) {
-
                         // Create Subscriber In Ubilling
                         $query = "INSERT INTO `" . self::TABLE_SUBS . "` (`login`,`tariffid`,`actdate`) VALUES ";
                         $query .= "('" . $login_f . "','" . $tariffId . "','" . $curdate . "');";
@@ -1462,7 +1464,7 @@ class TrinityTv {
                         if (isset($response->result) AND $response->result == 'success') {
                             $contractID = $response->contracttrinity;
 
-                            //Запишем contracttrinity в БД
+                            //Push contracttrinity to DB
                             simple_update_field(self::TABLE_SUBS, 'contracttrinity', $contractID, 'WHERE `id`=' . $subscriberID);
                             log_register('TRINITYTV SUBSCRIBER REGISTER (' . $login . ') AS [' . $subscriberID . ']');
                             $this->loadSubscribers();
@@ -1482,7 +1484,6 @@ class TrinityTv {
                         $result .= 'Wrong tariff';
                     }
                 } else {
-
                     // Change tariff AND activate
                     $this->changeTariffs($subscriberId, $tariffId);
                 }
