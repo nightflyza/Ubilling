@@ -168,7 +168,7 @@ if (cfr('TASKMANSEARCH')) {
                 //task id
                 if (wf_CheckPost(array('cb_id', 'taskid'))) {
                     $taskid = vf($_POST['taskid'], 3);
-                    $appendQuery .= " AND `id`='" . $taskid . "' ";
+                    $appendQuery .= " AND `taskman`.`id`='" . $taskid . "' ";
                 }
 
                 //original task admin
