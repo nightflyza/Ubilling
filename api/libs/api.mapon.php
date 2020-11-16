@@ -87,7 +87,7 @@ class MapOn {
      * 
      * @return stdObj
      */
-    protected function getRoutes($dateFrom, $dateTo) {
+    public function getRoutes($dateFrom, $dateTo) {
         $result = $this->api->get('route/list', array(
             'from' => '' . $dateFrom,
             'till' => '' . $dateTo,
