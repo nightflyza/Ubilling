@@ -388,6 +388,23 @@ function ts_GetAllEmployee() {
 }
 
 /**
+ * Returns array of all existing employees as id=>employeeData
+ * 
+ * @return array
+ */
+function ts_GetAllEmployeeData() {
+    $query = "SELECT * from `employee`";
+    $allemployee = simple_queryall($query);
+    $result = array();
+    if (!empty($allemployee)) {
+        foreach ($allemployee as $io => $each) {
+            $result[$each['id']] = $each;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns array of available jobtypes as id=>name
  * 
  * @return array
@@ -3007,8 +3024,8 @@ function ts_GetAllTasksAddress() {
     $result = array();
     $all = simple_queryall("SELECT `id`,`address` from `taskman`");
     if (!empty($all)) {
-        foreach ($all as $io=>$each) {
-            $result[$each['id']]=$each['address'];
+        foreach ($all as $io => $each) {
+            $result[$each['id']] = $each['address'];
         }
     }
     return($result);
