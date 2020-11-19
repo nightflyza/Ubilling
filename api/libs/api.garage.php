@@ -3,6 +3,13 @@
 class Garage {
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all of available cars as id=>carData
      *
      * @var array
@@ -45,7 +52,7 @@ class Garage {
     protected $allEmployee = array();
 
     /**
-     * TODO
+     * Contains all mileages as carid=>date=>mileage (in meters)
      *
      * @var array
      */
@@ -59,6 +66,13 @@ class Garage {
     protected $messages = '';
 
     /**
+     * Database abstraction layer placeholder for cars mileage counters
+     *
+     * @var array
+     */
+    protected $mileage = '';
+
+    /**
      * Contains available fuel types
      *
      * @var array
@@ -66,10 +80,19 @@ class Garage {
     protected $fuelTypes = array();
 
     /**
+     * Mapon service enabled flag
+     *
+     * @var bool
+     */
+    protected $maponEnabled = false;
+
+    /**
      * Some static stuff: routes, tables, etc...
      */
     const TABLE_CARS = 'garage_cars';
     const TABLE_DRIVERS = 'garage_drivers';
+    const TABLE_MILEAGE = 'garage_mileage';
+    const TABLE_MAPONUNITS = 'garage_mapon';
     const URL_ME = '?module=garage';
     const PROUTE_NEWDRIVER = 'newdriveremployeeid';
     const ROUTE_CARS = 'cars';
@@ -78,7 +101,7 @@ class Garage {
     const ROUTE_DRIVERDEL = 'deletedriveremployeeid';
     const ROUTE_CARDEL = 'deletethiscarid';
     const PROUTE_DRIVEREDIT = 'editsomedriver';
-    const PROOUTE_DRIVERCAR = 'driversetcar';
+    const PROUTE_DRIVERCAR = 'driversetcar';
 
     /**
      * Basic car parameters here
@@ -91,6 +114,7 @@ class Garage {
     const PROUTE_CARYEAR = 'caryear';
     const PROUTE_CARPOWER = 'carpower';
     const PROUTE_CARENGINE = 'carengine';
+    const PROUTE_CARCONSUMPTION = 'carfuelconsumption';
     const PROUTE_CARFUELTYPE = 'carfueltype';
     const PROUTE_CARGASTANK = 'cargastank';
     const PROUTE_CARWEIGHT = 'carweight';
@@ -101,11 +125,14 @@ class Garage {
      */
     public function __construct() {
         $this->initMessages();
+        $this->loadConfigs();
         $this->setFuelTypes();
         $this->initCars();
         $this->loadCars();
         $this->initDrivers();
         $this->loadDrivers();
+        $this->initMileage();
+        $this->loadMileage();
         $this->loadEmployee();
     }
 
@@ -116,6 +143,16 @@ class Garage {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Loads required configs for further usage
+     * 
+     * @return void
+     */
+    protected function loadConfigs() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -152,6 +189,27 @@ class Garage {
      */
     protected function loadDrivers() {
         $this->allDrivers = $this->drivers->getAll('employeeid');
+    }
+
+    /**
+     * Inits mileages database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initMileage() {
+        $this->mileage = new NyanORM(self::TABLE_MILEAGE);
+    }
+
+    /**
+     * Loads existing mileage counters from database
+     * 
+     * @return void
+     */
+    protected function loadMileage() {
+        $mileageTmp = $this->mileage->getAll();
+        if (!empty($mileageTmp)) {
+            //TODO
+        }
     }
 
     /**
@@ -252,17 +310,21 @@ class Garage {
      * 
      * @param int $carId
      * 
-     * @return void
+     * @return void/string on error
      */
     public function deleteCar($carId) {
+        $result = '';
         $carId = ubRouting::filters($carId, 'int');
         if (isset($this->allCars[$carId])) {
             if (!$this->isCarProtected($carId)) {
                 $this->cars->where('id', '=', $carId);
                 $this->cars->delete();
                 log_register('GARAGE CAR DELETE [' . $carId . ']');
+            } else {
+                $result .= __('You cant delete a car which have a driver');
             }
         }
+        return($result);
     }
 
     /**
@@ -307,7 +369,7 @@ class Garage {
             $freeCars = array('' => '-');
             $freeCars += $this->getFreeCars();
             $inputs = wf_HiddenInput(self::PROUTE_DRIVEREDIT, $employeeId);
-            $inputs .= wf_Selector(self::PROOUTE_DRIVERCAR, $freeCars, __('Car'), $this->allDrivers[$employeeId]['carid'], false);
+            $inputs .= wf_Selector(self::PROUTE_DRIVERCAR, $freeCars, __('Car'), $this->allDrivers[$employeeId]['carid'], false);
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -398,6 +460,7 @@ class Garage {
         $inputs .= wf_TextInput(self::PROUTE_CARYEAR, __('Year'), '', true, 5, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARPOWER, __('Power') . ' (' . __('hp') . ')', '', true, 5, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARENGINE, __('Engine') . ' (' . __('cc') . ')', '', true, 5, 'digits');
+        $inputs .= wf_TextInput(self::PROUTE_CARCONSUMPTION, __('Fuel consumption'), '', true, 5);
         $inputs .= wf_Selector(self::PROUTE_CARFUELTYPE, $this->fuelTypes, __('Fuel type'), '', true);
         $inputs .= wf_TextInput(self::PROUTE_CARGASTANK, __('Gas tank') . ' (' . __('litre') . ')', '', true, 4, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARWEIGHT, __('Weight') . ' (' . __('kg') . ')', '', true, 4, 'digits');
@@ -425,6 +488,7 @@ class Garage {
                 $this->cars->data('year', ubRouting::post(self::PROUTE_CARYEAR, 'int'));
                 $this->cars->data('power', ubRouting::post(self::PROUTE_CARPOWER, 'int'));
                 $this->cars->data('engine', ubRouting::post(self::PROUTE_CARENGINE, 'int'));
+                $this->cars->data('fuelconsumption', ubRouting::post(self::PROUTE_CARCONSUMPTION, 'float'));
                 $this->cars->data('fueltype', ubRouting::post(self::PROUTE_CARFUELTYPE, 'mres'));
                 $this->cars->data('gastank', ubRouting::post(self::PROUTE_CARGASTANK, 'int'));
                 $this->cars->data('weight', ubRouting::post(self::PROUTE_CARWEIGHT, 'int'));
@@ -449,7 +513,7 @@ class Garage {
             $freeCars = $this->getFreeCars();
             if (!isset($freeCars[$carId])) {
                 $result = true;
-            } 
+            }
         }
         return($result);
     }
@@ -462,15 +526,12 @@ class Garage {
     public function renderCarsList() {
         $result = '';
         if (!empty($this->allCars)) {
-
-            $cells = wf_TableCell(__('ID'));
-            $cells .= wf_TableCell(__('Model'));
+            $cells = wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Number'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allCars as $carId => $carData) {
-                $cells = wf_TableCell($carData['id']);
-                $cells .= wf_TableCell($carData['vendor'] . ' ' . $carData['model']);
+                $cells = wf_TableCell($carData['vendor'] . ' ' . $carData['model']);
                 $cells .= wf_TableCell($carData['number']);
                 $carControls = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_CARDEL . '=' . $carId, web_delete_icon(), $this->messages->getDeleteAlert());
                 $cells .= wf_TableCell($carControls);

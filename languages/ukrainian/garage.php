@@ -21,5 +21,7 @@ $lang['def']['hp'] = 'к/с';
 $lang['def']['Available cars'] = 'Машинки в наявності';
 $lang['def']['Drivers'] = 'Водії';
 $lang['def']['Mileage'] = 'Пробіг';
+$lang['def']['You cant delete a car which have a driver'] = 'Ви не можете видалити машинку, якщо нею хтось кермує';
+$lang['def']['Fuel consumption'] = 'Розхід пального';
 $lang['def'][''] = '';
 $lang['def'][''] = '';

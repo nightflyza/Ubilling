@@ -24,14 +24,19 @@ if (cfr('GARAGE')) {
 
     //editing driver
     if (ubRouting::checkPost($garage::PROUTE_DRIVEREDIT)) {
-        $garage->setDriverCar(ubRouting::post($garage::PROUTE_DRIVEREDIT), ubRouting::post($garage::PROOUTE_DRIVERCAR));
+        $garage->setDriverCar(ubRouting::post($garage::PROUTE_DRIVEREDIT), ubRouting::post($garage::PROUTE_DRIVERCAR));
         ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_DRIVERS . '=true');
     }
 
     //deleting car
     if (ubRouting::checkGet($garage::ROUTE_CARDEL)) {
-        $garage->deleteCar(ubRouting::get($garage::ROUTE_CARDEL));
-        ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_CARS . '=true');
+        $carDeletionResult = $garage->deleteCar(ubRouting::get($garage::ROUTE_CARDEL));
+        if (!$carDeletionResult) {
+            ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_CARS . '=true');
+        } else {
+            show_error($carDeletionResult);
+            show_window('', wf_BackLink($garage::URL_ME . '&' . $garage::ROUTE_CARS . '=true'));
+        }
     }
 
 
