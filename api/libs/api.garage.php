@@ -74,7 +74,9 @@ class Garage {
     const PROUTE_NEWDRIVER = 'newdriveremployeeid';
     const ROUTE_CARS = 'cars';
     const ROUTE_DRIVERS = 'drivers';
+    const ROUTE_MILEAGE = 'mileage';
     const ROUTE_DRIVERDEL = 'deletedriveremployeeid';
+    const ROUTE_CARDEL = 'deletethiscarid';
     const PROUTE_DRIVEREDIT = 'editsomedriver';
     const PROOUTE_DRIVERCAR = 'driversetcar';
 
@@ -246,6 +248,24 @@ class Garage {
     }
 
     /**
+     * Deletes existing car from database
+     * 
+     * @param int $carId
+     * 
+     * @return void
+     */
+    public function deleteCar($carId) {
+        $carId = ubRouting::filters($carId, 'int');
+        if (isset($this->allCars[$carId])) {
+            if (!$this->isCarProtected($carId)) {
+                $this->cars->where('id', '=', $carId);
+                $this->cars->delete();
+                log_register('GARAGE CAR DELETE [' . $carId . ']');
+            }
+        }
+    }
+
+    /**
      * Returns array of cars which not used by another drivers
      * 
      * @return array
@@ -262,11 +282,11 @@ class Garage {
                         }
                     }
                 }
+            }
 
-                if (!empty($carsTmp)) {
-                    foreach ($carsTmp as $carId => $carData) {
-                        $result[$carId] = $carData['vendor'] . ' ' . $carData['model'] . ' ' . $carData['number'];
-                    }
+            if (!empty($carsTmp)) {
+                foreach ($carsTmp as $carId => $carData) {
+                    $result[$carId] = $carData['vendor'] . ' ' . $carData['model'] . ' ' . $carData['number'];
                 }
             }
         }
@@ -356,6 +376,9 @@ class Garage {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
+
+        //new driver creation interface here
+        $result .= wf_tag('br') . wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderDriverCreateForm(), 'ubButton');
         return($result);
     }
 
@@ -426,7 +449,7 @@ class Garage {
             $freeCars = $this->getFreeCars();
             if (!isset($freeCars[$carId])) {
                 $result = true;
-            }
+            } 
         }
         return($result);
     }
@@ -449,14 +472,18 @@ class Garage {
                 $cells = wf_TableCell($carData['id']);
                 $cells .= wf_TableCell($carData['vendor'] . ' ' . $carData['model']);
                 $cells .= wf_TableCell($carData['number']);
-                $cells .= wf_TableCell('TODO');
+                $carControls = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_CARDEL . '=' . $carId, web_delete_icon(), $this->messages->getDeleteAlert());
+                $cells .= wf_TableCell($carControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
 
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result .= $this->messages->getStyledMessage('Nothing to show', 'warning');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
+
+        //creation interface here
+        $result .= wf_tag('br') . wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderCarCreateForm(), 'ubButton');
         return($result);
     }
 
@@ -467,14 +494,9 @@ class Garage {
      */
     public function renderControls() {
         $result = '';
-        if (ubRouting::checkGet(self::ROUTE_CARS)) {
-            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderCarCreateForm(), 'ubButton');
-        }
-        if (ubRouting::checkGet(self::ROUTE_DRIVERS)) {
-            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderDriverCreateForm(), 'ubButton');
-        }
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_CARS . '=true', wf_img('skins/car_small.png') . ' ' . __('Cars'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DRIVERS . '=true', wf_img('skins/driver_small.png') . ' ' . __('Drivers'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MILEAGE . '=true', wf_img('skins/icon_street.gif') . ' ' . __('Mileage'), false, 'ubButton');
         return($result);
     }
 

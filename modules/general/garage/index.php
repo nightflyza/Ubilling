@@ -14,7 +14,7 @@ if (cfr('GARAGE')) {
     //creating new car
     if (ubRouting::checkPost(array($garage::PROUTE_NEWCAR, $garage::PROUTE_CARVENDOR, $garage::PROUTE_CARMODEL))) {
         $garage->createCar();
-        ubRouting::nav($garage::URL_ME);
+        ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_CARS . '=true');
     }
     //deleting driver
     if (ubRouting::checkGet($garage::ROUTE_DRIVERDEL)) {
@@ -26,6 +26,12 @@ if (cfr('GARAGE')) {
     if (ubRouting::checkPost($garage::PROUTE_DRIVEREDIT)) {
         $garage->setDriverCar(ubRouting::post($garage::PROUTE_DRIVEREDIT), ubRouting::post($garage::PROOUTE_DRIVERCAR));
         ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_DRIVERS . '=true');
+    }
+
+    //deleting car
+    if (ubRouting::checkGet($garage::ROUTE_CARDEL)) {
+        $garage->deleteCar(ubRouting::get($garage::ROUTE_CARDEL));
+        ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_CARS . '=true');
     }
 
 

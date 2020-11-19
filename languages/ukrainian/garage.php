@@ -20,6 +20,6 @@ $lang['def']['Electric'] = 'Електричний';
 $lang['def']['hp'] = 'к/с';
 $lang['def']['Available cars'] = 'Машинки в наявності';
 $lang['def']['Drivers'] = 'Водії';
-$lang['def'][''] = '';
+$lang['def']['Mileage'] = 'Пробіг';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
