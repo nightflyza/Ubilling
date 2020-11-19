@@ -72,6 +72,11 @@ class Garage {
     const TABLE_DRIVERS = 'garage_drivers';
     const URL_ME = '?module=garage';
     const PROUTE_NEWDRIVER = 'newdriveremployeeid';
+    const ROUTE_CARS = 'cars';
+    const ROUTE_DRIVERS = 'drivers';
+    const ROUTE_DRIVERDEL = 'deletedriveremployeeid';
+    const PROUTE_DRIVEREDIT = 'editsomedriver';
+    const PROOUTE_DRIVERCAR = 'driversetcar';
 
     /**
      * Basic car parameters here
@@ -182,7 +187,7 @@ class Garage {
      * 
      * @return string
      */
-    public function renderDriverCreateForm() {
+    protected function renderDriverCreateForm() {
         $result = '';
         $params = array();
         if (!empty($this->allActiveEmployee)) {
@@ -225,6 +230,106 @@ class Garage {
     }
 
     /**
+     * Deletes existing driver from database
+     * 
+     * @param int $employeeId
+     * 
+     * @return
+     */
+    public function deleteDriver($employeeId) {
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        if (isset($this->allDrivers)) {
+            $this->drivers->where('employeeid', '=', $employeeId);
+            $this->drivers->delete();
+            log_register('GARAGE DRIVER DELETE [' . $employeeId . ']');
+        }
+    }
+
+    /**
+     * Returns array of cars which not used by another drivers
+     * 
+     * @return array
+     */
+    protected function getFreeCars() {
+        $result = array();
+        if (!empty($this->allCars)) {
+            $carsTmp = $this->allCars;
+            if (!empty($this->allDrivers)) {
+                foreach ($this->allDrivers as $io => $eachDriver) {
+                    if (!empty($eachDriver['carid'])) {
+                        if (isset($carsTmp[$eachDriver['carid']])) {
+                            unset($carsTmp[$eachDriver['carid']]);
+                        }
+                    }
+                }
+
+                if (!empty($carsTmp)) {
+                    foreach ($carsTmp as $carId => $carData) {
+                        $result[$carId] = $carData['vendor'] . ' ' . $carData['model'] . ' ' . $carData['number'];
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders existing driver editing form
+     * 
+     * @param int $employeeId
+     * 
+     * @return string
+     */
+    protected function renderDriverEditFrom($employeeId) {
+        $result = '';
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        if (isset($this->allDrivers[$employeeId])) {
+            $freeCars = array('' => '-');
+            $freeCars += $this->getFreeCars();
+            $inputs = wf_HiddenInput(self::PROUTE_DRIVEREDIT, $employeeId);
+            $inputs .= wf_Selector(self::PROOUTE_DRIVERCAR, $freeCars, __('Car'), $this->allDrivers[$employeeId]['carid'], false);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_NO_DRIVER_EXIST [' . $employeeId . ']', 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Sets some car as occupied by some driver
+     * 
+     * @param int $employeeId
+     * 
+     * @return void
+     */
+    public function setDriverCar($employeeId, $carId) {
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        $carId = ubRouting::filters($carId, 'int');
+        if (isset($this->allDrivers[$employeeId])) {
+            $oldCar = $this->allDrivers[$employeeId]['carid'];
+            if (empty($carId)) {
+                //drop car from the driver
+                $this->drivers->where('employeeid', '=', $employeeId);
+                $this->drivers->data('carid', '0');
+                $this->drivers->save();
+                log_register('GARAGE DRIVER CHANGE CAR [' . $oldCar . '] TO [0]');
+            } else {
+                //set new car to driver
+                $freeCars = $this->getFreeCars();
+                if (isset($freeCars[$carId])) {
+                    $this->drivers->where('employeeid', '=', $employeeId);
+                    $this->drivers->data('carid', $carId);
+                    $this->drivers->save();
+                    log_register('GARAGE DRIVER CHANGE CAR [' . $oldCar . '] TO [' . $carId . ']');
+                } else {
+                    log_register('GARAGE DRIVER CHANGE CAR [' . $oldCar . '] TO [' . $carId . '] FAIL BUSY');
+                }
+            }
+        }
+    }
+
+    /**
      * Renders existing cars drivers
      * 
      * @return string
@@ -232,17 +337,18 @@ class Garage {
     public function renderDriversList() {
         $result = '';
         if (!empty($this->allDrivers)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells .= wf_TableCell(__('Driver'));
+
+            $cells = wf_TableCell(__('Driver'));
             $cells .= wf_TableCell(__('Car'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allDrivers as $employeeId => $eachDriverData) {
-                $cells = wf_TableCell($employeeId);
-                $cells .= wf_TableCell(@$this->allEmployee[$employeeId]);
+                $cells = wf_TableCell(@$this->allEmployee[$employeeId]);
                 $carData = @$this->allCars[$eachDriverData['carid']];
                 $cells .= wf_TableCell(@$carData['vendor'] . ' ' . @$carData['model'] . ' ' . @$carData['number']);
-                $cells .= wf_TableCell('TODO');
+                $actControls = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_DRIVERDEL . '=' . $employeeId, web_delete_icon(), $this->messages->getDeleteAlert());
+                $actControls .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDriverEditFrom($employeeId));
+                $cells .= wf_TableCell($actControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
 
@@ -258,7 +364,7 @@ class Garage {
      * 
      * @return string
      */
-    public function renderCarCreateForm() {
+    protected function renderCarCreateForm() {
         $result = '';
 
         $inputs = wf_HiddenInput(self::PROUTE_NEWCAR, 'true'); //just creation flag
@@ -307,6 +413,25 @@ class Garage {
     }
 
     /**
+     * Checks is car used by someone?
+     * 
+     * @param int $carId
+     * 
+     * @return bool
+     */
+    protected function isCarProtected($carId) {
+        $result = false;
+        $carId = ubRouting::filters($carId, 'int');
+        if (isset($this->allCars[$carId])) {
+            $freeCars = $this->getFreeCars();
+            if (!isset($freeCars[$carId])) {
+                $result = true;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders available cars list
      * 
      * @return string
@@ -332,6 +457,24 @@ class Garage {
         } else {
             $result .= $this->messages->getStyledMessage('Nothing to show', 'warning');
         }
+        return($result);
+    }
+
+    /**
+     * Renders basic controls panel
+     * 
+     * @return string
+     */
+    public function renderControls() {
+        $result = '';
+        if (ubRouting::checkGet(self::ROUTE_CARS)) {
+            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderCarCreateForm(), 'ubButton');
+        }
+        if (ubRouting::checkGet(self::ROUTE_DRIVERS)) {
+            $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderDriverCreateForm(), 'ubButton');
+        }
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_CARS . '=true', wf_img('skins/car_small.png') . ' ' . __('Cars'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DRIVERS . '=true', wf_img('skins/driver_small.png') . ' ' . __('Drivers'), false, 'ubButton');
         return($result);
     }
 

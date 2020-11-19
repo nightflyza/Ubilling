@@ -2,13 +2,13 @@
 
 if (cfr('GARAGE')) {
     $garage = new Garage();
-    deb($garage->renderDriverCreateForm());
-    deb($garage->renderCarCreateForm());
+
+    show_window('', $garage->renderControls());
 
     //creating new driver
     if (ubRouting::checkPost($garage::PROUTE_NEWDRIVER)) {
         $garage->createDriver(ubRouting::post($garage::PROUTE_NEWDRIVER));
-        ubRouting::nav($garage::URL_ME);
+        ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_DRIVERS . '=true');
     }
 
     //creating new car
@@ -16,11 +16,26 @@ if (cfr('GARAGE')) {
         $garage->createCar();
         ubRouting::nav($garage::URL_ME);
     }
+    //deleting driver
+    if (ubRouting::checkGet($garage::ROUTE_DRIVERDEL)) {
+        $garage->deleteDriver(ubRouting::get($garage::ROUTE_DRIVERDEL));
+        ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_DRIVERS . '=true');
+    }
+
+    //editing driver
+    if (ubRouting::checkPost($garage::PROUTE_DRIVEREDIT)) {
+        $garage->setDriverCar(ubRouting::post($garage::PROUTE_DRIVEREDIT), ubRouting::post($garage::PROOUTE_DRIVERCAR));
+        ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_DRIVERS . '=true');
+    }
 
 
+    if (ubRouting::checkGet($garage::ROUTE_CARS)) {
+        show_window(__('Available cars'), $garage->renderCarsList());
+    }
 
-    show_window(__('Existing drivers'), $garage->renderDriversList());
-    show_window(__('Available cars'), $garage->renderCarsList());
+    if (ubRouting::checkGet($garage::ROUTE_DRIVERS)) {
+        show_window(__('Existing drivers'), $garage->renderDriversList());
+    }
 } else {
     show_error(__('Access denied'));
 }

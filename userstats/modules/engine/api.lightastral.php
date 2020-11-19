@@ -836,12 +836,12 @@ function la_modalOpened($title, $content, $width = '', $height = '') {
 
 //setting auto width if not specified
     if ($width == '') {
-        $width = '600';
+        $width = "'auto'";
     }
 
 //setting auto width if not specified
     if ($height == '') {
-        $height = '400';
+        $height = "'auto'";
     }
 
     $dialog = '
@@ -923,14 +923,14 @@ function la_JSAlertStyled($url, $title, $alerttext, $class = '', $functiontorun 
 function la_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = '') {
     $result = '';
     $dialog = __($alerttext);
-    $dialog.= la_tag('br');
-    $dialog.= la_tag('center',false);
+    $dialog .= la_tag('br');
+    $dialog .= la_tag('center', false);
     $dialog .= la_Link($url, __('Agree'), false, 'anreadbutton');
     if ($cancelUrl) {
         $dialog .= la_Link($cancelUrl, __('Cancel'), false, 'anunreadbutton');
     }
-    $dialog.= la_tag('center',true);
-    
+    $dialog .= la_tag('center', true);
+
     $result .= la_modalAuto($title, __($title), $dialog, $class);
     return($result);
 }
