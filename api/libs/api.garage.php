@@ -322,8 +322,12 @@ class Garage {
                 log_register('GARAGE CAR DELETE [' . $carId . ']');
             } else {
                 $result .= __('You cant delete a car which have a driver');
+                log_register('GARAGE CAR DELETE [' . $carId . '] FAIL BUSY');
             }
+        } else {
+            log_register('GARAGE CAR DELETE [' . $carId . '] FAIL NOT_EXISTS');
         }
+
         return($result);
     }
 
@@ -460,7 +464,7 @@ class Garage {
         $inputs .= wf_TextInput(self::PROUTE_CARYEAR, __('Year'), '', true, 5, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARPOWER, __('Power') . ' (' . __('hp') . ')', '', true, 5, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARENGINE, __('Engine') . ' (' . __('cc') . ')', '', true, 5, 'digits');
-        $inputs .= wf_TextInput(self::PROUTE_CARCONSUMPTION, __('Fuel consumption'), '', true, 5);
+        $inputs .= wf_TextInput(self::PROUTE_CARCONSUMPTION, __('Fuel consumption') . ' (' . __('litre') . '/100' . __('km') . ')', '', true, 5);
         $inputs .= wf_Selector(self::PROUTE_CARFUELTYPE, $this->fuelTypes, __('Fuel type'), '', true);
         $inputs .= wf_TextInput(self::PROUTE_CARGASTANK, __('Gas tank') . ' (' . __('litre') . ')', '', true, 4, 'digits');
         $inputs .= wf_TextInput(self::PROUTE_CARWEIGHT, __('Weight') . ' (' . __('kg') . ')', '', true, 4, 'digits');
@@ -519,6 +523,25 @@ class Garage {
     }
 
     /**
+     * Returns car driver employeeId
+     * 
+     * @param int $carId
+     * 
+     * @return int
+     */
+    protected function getCarDriver($carId) {
+        $result = 0;
+        if (!empty($this->allDrivers)) {
+            foreach ($this->allDrivers as $employeeId => $driverData) {
+                if ($driverData['carid'] == $carId) {
+                    $result = $employeeId;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders available cars list
      * 
      * @return string
@@ -528,11 +551,15 @@ class Garage {
         if (!empty($this->allCars)) {
             $cells = wf_TableCell(__('Model'));
             $cells .= wf_TableCell(__('Number'));
+            $cells .= wf_TableCell(__('Driver'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allCars as $carId => $carData) {
                 $cells = wf_TableCell($carData['vendor'] . ' ' . $carData['model']);
                 $cells .= wf_TableCell($carData['number']);
+                $carDriverId = $this->getCarDriver($carId);
+                $driverName = ($carDriverId) ? @$this->allEmployee[$carDriverId] : '';
+                $cells .= wf_TableCell($driverName);
                 $carControls = wf_JSAlert(self::URL_ME . '&' . self::ROUTE_CARDEL . '=' . $carId, web_delete_icon(), $this->messages->getDeleteAlert());
                 $cells .= wf_TableCell($carControls);
                 $rows .= wf_TableRow($cells, 'row5');
