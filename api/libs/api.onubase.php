@@ -50,7 +50,7 @@ class OnuBase {
     /**
      * Placeholder for snmp class
      *
-     * @var pointer
+     * @var object
      */
     protected $snmp = '';
 
@@ -199,10 +199,14 @@ class OnuBase {
         $template = (empty($templateName)) ? $this->oltSnmptemplate : $templateName;
 
         if (file_exists(CONFIG_PATH . "/snmptemplates/" . $template)) {
-            $snmpData = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $this->oltSnmptemplate, true);
-            $this->snmpTemplateParsed = $snmpData;
+            $snmpData = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $template, true);
+        } elseif (file_exists(DATA_PATH . "/documents/mysnmptemplates/" . $template)) {
+            $snmpData = rcms_parse_ini_file(DATA_PATH . "/documents/mysnmptemplates/" . $template, true);
+        } else {
+            log_register('ONUMASTER: ONUBASE SNMP template load  ERROR - no template found');
         }
 
+        $this->snmpTemplateParsed = $snmpData;
         return ($snmpData);
     }
 
