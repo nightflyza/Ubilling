@@ -1,8 +1,5 @@
 <?php
 
-/**
- * PON devices management/monitoring support
- */
 class PONizer {
 
     /**
@@ -14,28 +11,28 @@ class PONizer {
 
     /**
      * List for mac = id
-     * 
+     *
      * @var array
      */
     protected $onuMacIdList = array();
 
     /**
      * List for serial = id
-     * 
-     * @var type 
+     *
+     * @var type
      */
     protected $onuSerialIdList = array();
 
     /**
      * List for mac = oltid
-     * 
+     *
      * @var array
      */
     protected $onuMacOltidList = array();
 
     /**
      * List for serial = oltid
-     * 
+     *
      * @var array
      */
     protected $onuSerialOltidList = array();
@@ -319,7 +316,7 @@ class PONizer {
 
     /**
      * Creates new PONizer object instance
-     * 
+     *
      * @return void
      */
     public function __construct() {
@@ -362,7 +359,7 @@ class PONizer {
 
     /**
      * Loads system alter.ini config into private data property
-     * 
+     *
      * @return void
      */
     protected function loadAlter() {
@@ -371,7 +368,7 @@ class PONizer {
 
     /**
      * Loads all available devices set as OLT
-     * 
+     *
      * @return void
      */
     protected function loadOltDevices() {
@@ -401,7 +398,7 @@ class PONizer {
 
     /**
      * Loads all available snmp models data into private data property
-     * 
+     *
      * @return void
      */
     protected function loadOltModels() {
@@ -417,7 +414,7 @@ class PONizer {
 
     /**
      * Performs snmp templates preprocessing for OLT devices
-     * 
+     *
      * @return void
      */
     protected function loadSnmpTemplates() {
@@ -444,7 +441,7 @@ class PONizer {
 
     /**
      * Creates single instance of SNMPHelper object
-     * 
+     *
      * @return void
      */
     protected function initSNMP() {
@@ -453,7 +450,7 @@ class PONizer {
 
     /**
      * Try to detect ONU id by assigned users login
-     * 
+     *
      * @param string $login
      * @return int/bool
      */
@@ -499,11 +496,11 @@ class PONizer {
 
     /**
      * Parses & stores in cache OLT ONU distances
-     * 
+     *
      * @param int $oltid
      * @param array $distIndex
      * @param array $onuIndex
-     * 
+     *
      * @return void
      */
     protected function distanceParseBd($oltid, $distIndex, $onuIndex) {
@@ -556,11 +553,11 @@ class PONizer {
 
     /**
      * Parses & stores in cache OLT ONU distances
-     * 
+     *
      * @param int $oltid
      * @param array $distIndex
      * @param array $onuIndex
-     * 
+     *
      * @return void
      */
     protected function distanceParseGPBd($oltid, $distIndex, $onuIndex) {
@@ -691,8 +688,8 @@ class PONizer {
                     }
 
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                            $tmpONULastDeregReasonStr .
-                            wf_tag('font', true);
+                        $tmpONULastDeregReasonStr .
+                        wf_tag('font', true);
 
                     $deregTmp[$devIndex] = $tmpONULastDeregReasonStr;
                 }
@@ -755,7 +752,6 @@ class PONizer {
                 }
             }
 
-
 //mac index preprocessing
             foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
@@ -776,15 +772,23 @@ class PONizer {
                     $onuNum = '';
                     if (!empty($intTmp)) {
                         foreach ($intTmp as $intefaceOffset => $interfaceName) {
-                            if ($devId > $intefaceOffset) {
+
+                            // dirty hack for firmware > 1.4.0 - some shitty math used
+                            $recalcIfaceOffset = $intefaceOffset;
+                            if ($recalcIfaceOffset < 100) {
+                                $recalcIfaceOffset = (($recalcIfaceOffset - 10) * 256) + 16779776;
+                            }
+
+                            if ($devId > $recalcIfaceOffset) {
                                 $currentInterface = $intefaceOffset;
-                                $onuNum = $devId - $intefaceOffset;
+                                $onuNum = $devId - $recalcIfaceOffset;
                             }
                         }
 
                         $result[$eachMac] = (isset($intTmp[$currentInterface])) ? $intTmp[$currentInterface] . ':' . $onuNum : __('On ho');
                     }
                 }
+
                 $result = serialize($result);
                 file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
             }
@@ -793,10 +797,10 @@ class PONizer {
 
     /**
      * Parses BDCom uptime data and saves it into uptime cache
-     * 
+     *
      * @param int $oltid
      * @param string $uptimeRaw
-     * 
+     *
      * @return void
      */
     protected function uptimeParseBd($oltid, $uptimeRaw) {
@@ -811,10 +815,10 @@ class PONizer {
 
     /**
      * Parses BDCom temperature data and saves it into uptime cache
-     * 
+     *
      * @param int $oltid
      * @param string $uptimeRaw
-     * 
+     *
      * @return void
      */
     protected function temperatureParseBd($oltid, $tempRaw) {
@@ -1136,12 +1140,12 @@ class PONizer {
 
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
-     * 
+     *
      * @param int   $oltid
      * @param array $sigIndex
      * @param array $macIndex
      * @param array $snmpTemplate
-     * 
+     *
      * @return void
      */
     protected function signalParseBd($oltid, $sigIndex, $macIndex, $snmpTemplate) {
@@ -1208,12 +1212,12 @@ class PONizer {
 
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
-     * 
+     *
      * @param int   $oltid
      * @param array $sigIndex
      * @param array $macIndex
      * @param array $snmpTemplate
-     * 
+     *
      * @return void
      */
     public function signalParseStels($oltid, $sigIndex, $macIndex, $snmpTemplate) {
@@ -1700,8 +1704,8 @@ class PONizer {
 
                 if (!empty($tmpONUPortLLID)) {
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                            $tmpONULastDeregReasonStr .
-                            wf_tag('font', true);
+                        $tmpONULastDeregReasonStr .
+                        wf_tag('font', true);
 
                     $ONUDeRegs[$tmpONUPortLLID] = $tmpONULastDeregReasonStr;
                 }
@@ -1809,7 +1813,7 @@ class PONizer {
                                     $this->temperatureParseBd($oltid, $oltTemperatureRaw);
                                 }
                             }
-//getting MAC index. 
+//getting MAC index.
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
@@ -1847,7 +1851,7 @@ class PONizer {
                             $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
                             $sigIndex = explodeRows($sigIndex);
 
-//ONU distance polling for bdcom devices   
+//ONU distance polling for bdcom devices
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
                                 if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                                     if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
@@ -1896,15 +1900,15 @@ class PONizer {
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
                                 if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
                                     if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
-// processing distance data   
+// processing distance data
                                         $this->distanceParseGPBd($oltid, $distIndex, $onuIndex);
-//processing interfaces data   
+//processing interfaces data
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex);
-//processing FDB data   
+//processing FDB data
                                         $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId);
 
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
-//processing last dereg reason data   
+//processing last dereg reason data
                                             $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
                                         }
                                     }
@@ -1932,13 +1936,13 @@ class PONizer {
                                         $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
                                         $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
                                         $distIndex = explodeRows($distIndex);
+
                                         $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
                                         $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
                                         $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
                                         $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                         $onuIndex = str_replace('.0.0 = ', ' = ', $onuIndex);
                                         $onuIndex = explodeRows($onuIndex);
-
 
                                         $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
                                         $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
@@ -1949,13 +1953,12 @@ class PONizer {
                                 }
                             }
 
-//getting MAC index. 
+//getting MAC index.
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
-
                             $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
@@ -1972,7 +1975,7 @@ class PONizer {
 
 // Stels FDXXXX or V-Solution 1600D devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD'
-                                OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
+                            OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
 
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -2129,7 +2132,7 @@ class PONizer {
 
     /**
      * Returns Available OLT devices ONU counts
-     * 
+     *
      * @return string
      */
     public function getOltOnuCounts() {
@@ -2306,7 +2309,7 @@ class PONizer {
      * Returns model ports count by its id
      *
      * @param int $id
-     * 
+     *
      * @return string
      */
     protected function getModelPorts($id) {
@@ -2365,7 +2368,7 @@ class PONizer {
             if (check_mac_format($mac) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($mac)) {
                     $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
-                            . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                        . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
                     nr_query($query);
                     $result = simple_get_lastid('pononu');
                     log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
@@ -2558,10 +2561,10 @@ class PONizer {
                     $inputs .= __('Try to find user by MAC') . ':';
                     $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
                     $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
-                            __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                            wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
-                            wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
-                            wf_tag('span', true);
+                        __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                        wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
+                        wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                        wf_tag('span', true);
                     $inputs .= wf_tag('div', true);
                     $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
                     $inputs .= wf_tag('div', true);
@@ -2676,9 +2679,9 @@ class PONizer {
 
     /**
      * Returns array of additional ONU assigned users
-     * 
+     *
      * @param int $onuId
-     * 
+     *
      * @return array
      */
     protected function getOnuExtUsers($onuId) {
@@ -2695,9 +2698,9 @@ class PONizer {
 
     /**
      * Deletes existing user binding to ONU by user Id
-     * 
+     *
      * @param int $extUserId
-     * 
+     *
      * @return void
      */
     public function deleteOnuExtUser($extUserId) {
@@ -2712,9 +2715,9 @@ class PONizer {
 
     /**
      * Renders additional user creation form
-     * 
+     *
      * @param int $onuId
-     * 
+     *
      * @return string
      */
     protected function renderOnuExtUserForm($onuId) {
@@ -2731,10 +2734,10 @@ class PONizer {
 
     /**
      * Creates new ONU additional user binding
-     * 
+     *
      * @param int $onuId
      * @param string $login
-     * 
+     *
      * @return void
      */
     public function createOnuExtUser($onuId, $login) {
@@ -2742,17 +2745,17 @@ class PONizer {
         if (isset($this->allOnu[$onuId])) {
             $loginF = mysql_real_escape_string($login);
             $query = "INSERT INTO `pononuextusers` (`id`,`onuid`,`login`) VALUES "
-                    . "(NULL,'" . $onuId . "','" . $loginF . "');";
+                . "(NULL,'" . $onuId . "','" . $loginF . "');";
             nr_query($query);
             log_register('PON EDIT ONU [' . $onuId . '] ASSIGN EXTUSER (' . $login . ')');
         }
     }
 
     /**
-     * Returns styled current ONU signal 
-     * 
+     * Returns styled current ONU signal
+     *
      * @param int $onuId
-     * 
+     *
      * @return string
      */
     protected function renderOnuSignalBig($onuId) {
@@ -3278,7 +3281,7 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+                wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             if ($this->EnableQuickOLTLinks) {
                 if ($this->ponizerUseTabUI) {
@@ -3294,15 +3297,15 @@ class PONizer {
                     $tabClickScript .= wf_tag('script', true);
                 } else {
                     $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%;text-align: right;margin-top: 15px;margin-bottom: 20px"') .
-                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                            wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                            wf_tag('script', false, '', 'type="text/javascript"') .
-                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                        wf_tag('script', false, '', 'type="text/javascript"') .
+                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                             var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                          });' .
-                            wf_tag('script', true) .
-                            wf_tag('div', true);
+                        wf_tag('script', true) .
+                        wf_tag('div', true);
                 }
             } else {
                 $QuickOLTLinkInput = '';
@@ -3356,21 +3359,21 @@ class PONizer {
                 $QickOLTsArray = $this->allOltDevices;
 
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;text-align: right;"') .
-                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                        wf_tag('script', false, '', 'type="text/javascript"') .
-                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                    wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                    wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                    wf_tag('script', false, '', 'type="text/javascript"') .
+                    '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                         $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
                                      });' .
-                        wf_tag('script', true) .
-                        wf_tag('div', true);
+                    wf_tag('script', true) .
+                    wf_tag('div', true);
             } else {
                 $QuickOLTLinkInput = '';
             }
 
             show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                    wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                    $QuickOLTLinkInput);
+                wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                $QuickOLTLinkInput);
         } else {
             return ($result);
         }
@@ -3463,7 +3466,7 @@ class PONizer {
 
                                 //storing PON ifaces descriptions, if not stored yet
                                 if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                        and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
 
                                     $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                                 }
@@ -3604,10 +3607,10 @@ class PONizer {
 
     /**
      * Renders temperature gauge
-     * 
+     *
      * @param float $temperature
      * @param string $title
-     * 
+     *
      * @return string
      */
     protected function renderTemperature($temperature, $title = '') {
@@ -3696,7 +3699,7 @@ class PONizer {
 
     /**
      * Just generates random MAC address to replace invalid ONU MAC
-     * 
+     *
      * @return string
      */
     protected function getRandomMac() {
@@ -4011,7 +4014,7 @@ class PONizer {
 
     /**
      * Renders json formatted data for jquery data tables list
-     * 
+     *
      * @param string $OltId
      * @return void
      */
@@ -4194,7 +4197,7 @@ class PONizer {
 
     /**
      * Renders json formatted data for jquery data tables list
-     * 
+     *
      * @param string $OnuId
      * @return void
      */
@@ -4247,7 +4250,7 @@ class PONizer {
 
     /**
      * Checks is ONU really associated with some OLT
-     * 
+     *
      * @param string $onuMac
      * @param  int $oltId
      * @return bool
@@ -4275,10 +4278,10 @@ class PONizer {
 
     /**
      * Checks is ONU associated with some login or not
-     * 
+     *
      * @param int $onuId
      * @param string $userLogin
-     * 
+     *
      * @return bool
      */
     protected function checkOnuUserAssign($onuId, $userLogin) {
@@ -4316,7 +4319,7 @@ class PONizer {
 
     /**
      * Renders json for current all OLT FDB list
-     * 
+     *
      * @return void
      */
     public function ajaxFdbCacheList() {
@@ -4529,7 +4532,7 @@ class PONizer {
 
     /**
      * Renders ONU search form
-     * 
+     *
      * @return string
      */
     public function renderOnuSearchForm() {
@@ -4571,7 +4574,7 @@ class PONizer {
 
     /**
      * Catches ONU search request and renders some result
-     * 
+     *
      * @return string
      */
     public function renderOnuSearchResult() {
@@ -4637,9 +4640,9 @@ class PONizer {
 
     /**
      * Renders ONU Array just as table list with some controls
-     * 
+     *
      * @param array $onuArray
-     * 
+     *
      * @return string
      */
     protected function renderOnuArray($onuArray) {
@@ -4695,7 +4698,7 @@ class PONizerLegacy extends PONizer {
 
     /**
      * Renders json formatted data for jquery data tables list
-     *     
+     *
      * @return void
      */
     public function ajaxOnuData($OltId = '') {
