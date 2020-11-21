@@ -162,7 +162,7 @@ class rcms_system extends rcms_user {
      * 
      * @return void
      */
-    function initialiseLanguage($language = '', $default = false) {
+    protected function initialiseLanguage($language = '', $default = false) {
         global $lang;
 
         // Loading avaible languages lists
@@ -224,7 +224,7 @@ class rcms_system extends rcms_user {
      * 
      * @return void
      */
-    function initialiseModules($ignore_disable = false) {
+    public function initialiseModules($ignore_disable = false) {
         // Loading modules initializations
         if (!$ignore_disable) {
             if (!$disabled = @parse_ini_file(CONFIG_PATH . 'disable.ini')) {
@@ -256,7 +256,7 @@ class rcms_system extends rcms_user {
      * 
      * @return void
      */
-    function addInfoToHead($info) {
+    public function addInfoToHead($info) {
         $this->config['meta'] = @$this->config['meta'] . $info;
     }
 
@@ -265,7 +265,7 @@ class rcms_system extends rcms_user {
      * 
      * @param string $point
      */
-    function setCurrentPoint($point) {
+    public function setCurrentPoint($point) {
         $this->current_point = $point;
     }
 
@@ -278,7 +278,7 @@ class rcms_system extends rcms_user {
      * 
      * @return bool
      */
-    function defineWindow($title, $data, $align = 'left') {
+    public function defineWindow($title, $data, $align = 'left') {
         if ($title == __('Error')) {
             $title = '<font color="red">' . $title . '</font>';
         }
@@ -300,7 +300,7 @@ class rcms_system extends rcms_user {
      * 
      * @return bool
      */
-    function showWindow($title, $content, $align, $template) {
+    public function showWindow($title, $content, $align, $template) {
         if ($title == '__NOWINDOW__')
             echo $content;
         elseif (is_readable($template))
@@ -311,7 +311,7 @@ class rcms_system extends rcms_user {
     }
 
     /**
-     * Registers preloaded module
+     * Registers preloaded module. Calls from modules definition in module.php
      * 
      * @param string $module
      * @param string $type
@@ -321,7 +321,7 @@ class rcms_system extends rcms_user {
      * 
      * @return void
      */
-    function registerModule($module, $type, $title, $copyright = '', $rights = array()) {
+    public function registerModule($module, $type, $title, $copyright = '', $rights = array()) {
         $this->modules[$type][$module]['title'] = $title;
         $this->modules[$type][$module]['copyright'] = $copyright;
         $this->modules[$type][$module]['rights'] = $rights;
@@ -336,7 +336,7 @@ class rcms_system extends rcms_user {
      * 
      * @return bool
      */
-    function logPut($type, $user, $message) {
+    public function logPut($type, $user, $message) {
         if (!empty($this->config['logging'])) {
             $entry = '---------------------------------' . "\n";
             $entry .= date('H:i:s d-m-Y', time()) . "\n";
@@ -364,7 +364,7 @@ class rcms_system extends rcms_user {
      * 
      * @return bool
      */
-    function logMerge($title, $t_d, $t_m, $t_y, $f_d = 1, $f_m = 1, $f_y = 1980) {
+    public function logMerge($title, $t_d, $t_m, $t_y, $f_d = 1, $f_m = 1, $f_y = 1980) {
         $logs = rcms_scandir($this->logging);
         $f = mktime(0, 0, 0, $f_m, $f_d, $f_y);
         $t = mktime(0, 0, 0, $t_m, $t_d, $t_y);
@@ -406,7 +406,7 @@ class rcms_system extends rcms_user {
      * 
      * @return bool
      */
-    function logMergeByMonth() {
+    public function logMergeByMonth() {
         $logs = rcms_scandir($this->logging);
         $d = date('d');
         $m = date('m');
