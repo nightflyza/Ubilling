@@ -688,8 +688,8 @@ class PONizer {
                     }
 
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                        $tmpONULastDeregReasonStr .
-                        wf_tag('font', true);
+                            $tmpONULastDeregReasonStr .
+                            wf_tag('font', true);
 
                     $deregTmp[$devIndex] = $tmpONULastDeregReasonStr;
                 }
@@ -1704,8 +1704,8 @@ class PONizer {
 
                 if (!empty($tmpONUPortLLID)) {
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                        $tmpONULastDeregReasonStr .
-                        wf_tag('font', true);
+                            $tmpONULastDeregReasonStr .
+                            wf_tag('font', true);
 
                     $ONUDeRegs[$tmpONUPortLLID] = $tmpONULastDeregReasonStr;
                 }
@@ -1975,7 +1975,7 @@ class PONizer {
 
 // Stels FDXXXX or V-Solution 1600D devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD'
-                            OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
+                                OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
 
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -2368,7 +2368,7 @@ class PONizer {
             if (check_mac_format($mac) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($mac)) {
                     $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
-                        . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                            . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
                     nr_query($query);
                     $result = simple_get_lastid('pononu');
                     log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
@@ -2561,10 +2561,10 @@ class PONizer {
                     $inputs .= __('Try to find user by MAC') . ':';
                     $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
                     $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
-                        __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                        wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
-                        wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
-                        wf_tag('span', true);
+                            __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                            wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
+                            wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                            wf_tag('span', true);
                     $inputs .= wf_tag('div', true);
                     $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
                     $inputs .= wf_tag('div', true);
@@ -2745,7 +2745,7 @@ class PONizer {
         if (isset($this->allOnu[$onuId])) {
             $loginF = mysql_real_escape_string($login);
             $query = "INSERT INTO `pononuextusers` (`id`,`onuid`,`login`) VALUES "
-                . "(NULL,'" . $onuId . "','" . $loginF . "');";
+                    . "(NULL,'" . $onuId . "','" . $loginF . "');";
             nr_query($query);
             log_register('PON EDIT ONU [' . $onuId . '] ASSIGN EXTUSER (' . $login . ')');
         }
@@ -3281,7 +3281,7 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             if ($this->EnableQuickOLTLinks) {
                 if ($this->ponizerUseTabUI) {
@@ -3297,15 +3297,15 @@ class PONizer {
                     $tabClickScript .= wf_tag('script', true);
                 } else {
                     $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%;text-align: right;margin-top: 15px;margin-bottom: 20px"') .
-                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                        wf_tag('script', false, '', 'type="text/javascript"') .
-                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                            wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                            wf_tag('script', false, '', 'type="text/javascript"') .
+                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                             var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                          });' .
-                        wf_tag('script', true) .
-                        wf_tag('div', true);
+                            wf_tag('script', true) .
+                            wf_tag('div', true);
                 }
             } else {
                 $QuickOLTLinkInput = '';
@@ -3359,21 +3359,21 @@ class PONizer {
                 $QickOLTsArray = $this->allOltDevices;
 
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;text-align: right;"') .
-                    wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                    wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                    wf_tag('script', false, '', 'type="text/javascript"') .
-                    '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                        wf_tag('script', false, '', 'type="text/javascript"') .
+                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
                                         $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
                                      });' .
-                    wf_tag('script', true) .
-                    wf_tag('div', true);
+                        wf_tag('script', true) .
+                        wf_tag('div', true);
             } else {
                 $QuickOLTLinkInput = '';
             }
 
             show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                $QuickOLTLinkInput);
+                    wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                    $QuickOLTLinkInput);
         } else {
             return ($result);
         }
@@ -3466,7 +3466,7 @@ class PONizer {
 
                                 //storing PON ifaces descriptions, if not stored yet
                                 if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                        and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
 
                                     $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                                 }
