@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ReloadCMS Development Team                                 //
-//   http://reloadcms.sf.net                                                  //
+//   http://reloadcms.com                                                //
 //                                                                            //
 //   This program is distributed in the hope that it will be useful,          //
 //   but WITHOUT ANY WARRANTY, without even the implied warranty of           //
@@ -11,24 +11,118 @@
 //   This product released under GNU General Public License v2                //
 ////////////////////////////////////////////////////////////////////////////////
 
-
+/**
+ * RCMS basic system modules initialization class
+ */
 class rcms_system extends rcms_user {
 
-    var $language = '';
-    var $skin = '';
-    var $config = array();
-    var $results = array();
-    var $data = array();
-    var $modules = array();
-    var $feeds = array();
-    var $cookie_lang = 'reloadcms_lang';
-    var $cookie_skin = 'reloadcms_skin';
-    var $output = array('modules' => array(), 'menus' => array());
-    var $current_point = '';
-    var $logging = LOGS_PATH;
-    var $logging_gz = true;
-    var $url = '';
+    /**
+     * Current language
+     *
+     * @var string
+     */
+    public $language = '';
 
+    /**
+     * Current skin
+     *
+     * @var string
+     */
+    public $skin = '';
+
+    /**
+     * Basic framework configuration as key=>value
+     *
+     * @var array
+     */
+    public $config = array();
+
+    /**
+     * Hmmmm. Maybe its used in i18n engine
+     *
+     * @var array
+     */
+    public $results = array();
+
+    /**
+     * Contains available languages paths etc
+     *
+     * @var array
+     */
+    public $data = array();
+
+    /**
+     * Contains preloaded modules definitions
+     *
+     * @var array
+     */
+    public $modules = array();
+
+    /**
+     * Contains default custom language cookie name
+     *
+     * @var string
+     */
+    public $cookie_lang = 'reloadcms_lang';
+
+    /**
+     * Contains default custom skin cookie name
+     *
+     * @var string
+     */
+    public $cookie_skin = 'reloadcms_skin';
+
+    /**
+     * Something like system output buffers for different menupoints
+     *
+     * @var array
+     */
+    public $output = array('modules' => array(), 'menus' => array());
+
+    /**
+     * Contains current output menupoint
+     *
+     * @var string
+     */
+    public $current_point = '';
+
+    /**
+     * Framework logging path
+     *
+     * @var string
+     */
+    public $logging = LOGS_PATH;
+
+    /**
+     * Use gzip for logs archieving flag
+     *
+     * @var bool
+     */
+    public $logging_gz = true;
+
+    /**
+     * Current request URL there
+     * 
+     * @var string
+     */
+    public $url = '';
+
+    /**
+     * Navigation modifiers here
+     *
+     * @var array
+     */
+    public $navmodifiers = array();
+
+    /**
+     * Doin something awful
+     * 
+     * @global array $lang
+     * @param string $language_select_form
+     * @param string $skin_select_form
+     * 
+     * @return void
+     */
     public function __construct($language_select_form = '', $skin_select_form = '') {
         global $lang;
 
@@ -59,6 +153,15 @@ class rcms_system extends rcms_user {
         $this->initializeUser();
     }
 
+    /**
+     * Loads current locale
+     * 
+     * @global array $lang
+     * @param string $language
+     * @param bool $default
+     * 
+     * @return void
+     */
     function initialiseLanguage($language = '', $default = false) {
         global $lang;
 
@@ -114,6 +217,13 @@ class rcms_system extends rcms_user {
         }
     }
 
+    /**
+     * Preloads available modules definitions
+     * 
+     * @param bool $ignore_disable
+     * 
+     * @return void
+     */
     function initialiseModules($ignore_disable = false) {
         // Loading modules initializations
         if (!$ignore_disable) {
@@ -139,14 +249,35 @@ class rcms_system extends rcms_user {
         }
     }
 
+    /**
+     * Appends some custom meta content to global output
+     * 
+     * @param string $info
+     * 
+     * @return void
+     */
     function addInfoToHead($info) {
         $this->config['meta'] = @$this->config['meta'] . $info;
     }
 
+    /**
+     * Switches current module output point
+     * 
+     * @param string $point
+     */
     function setCurrentPoint($point) {
         $this->current_point = $point;
     }
 
+    /**
+     * Defines new output window in system output buffer
+     * 
+     * @param string $title
+     * @param string $data
+     * @param string $align
+     * 
+     * @return bool
+     */
     function defineWindow($title, $data, $align = 'left') {
         if ($title == __('Error')) {
             $title = '<font color="red">' . $title . '</font>';
@@ -159,6 +290,16 @@ class rcms_system extends rcms_user {
             return false;
     }
 
+    /**
+     * Appends/outputs some window with applied template to output buffer
+     * 
+     * @param string $title
+     * @param string $content
+     * @param string $align
+     * @param string $template
+     * 
+     * @return bool
+     */
     function showWindow($title, $content, $align, $template) {
         if ($title == '__NOWINDOW__')
             echo $content;
@@ -169,16 +310,32 @@ class rcms_system extends rcms_user {
         return true;
     }
 
+    /**
+     * Registers preloaded module
+     * 
+     * @param string $module
+     * @param string $type
+     * @param string $title
+     * @param string $copyright
+     * @param array $rights
+     * 
+     * @return void
+     */
     function registerModule($module, $type, $title, $copyright = '', $rights = array()) {
         $this->modules[$type][$module]['title'] = $title;
         $this->modules[$type][$module]['copyright'] = $copyright;
         $this->modules[$type][$module]['rights'] = $rights;
     }
 
-    function registerFeed($module, $title, $desc, $real = '') {
-        $this->feeds[$module] = array($title, $desc, $real);
-    }
-
+    /**
+     * Puts some record to log
+     * 
+     * @param string $type
+     * @param string $user
+     * @param string $message
+     * 
+     * @return bool
+     */
     function logPut($type, $user, $message) {
         if (!empty($this->config['logging'])) {
             $entry = '---------------------------------' . "\n";
@@ -194,6 +351,19 @@ class rcms_system extends rcms_user {
         return true;
     }
 
+    /**
+     * Merges some system logs
+     * 
+     * @param string $title
+     * @param int $t_d
+     * @param int $t_m
+     * @param int $t_y
+     * @param int $f_d
+     * @param int $f_m
+     * @param int $f_y
+     * 
+     * @return bool
+     */
     function logMerge($title, $t_d, $t_m, $t_y, $f_d = 1, $f_m = 1, $f_y = 1980) {
         $logs = rcms_scandir($this->logging);
         $f = mktime(0, 0, 0, $f_m, $f_d, $f_y);
@@ -231,6 +401,11 @@ class rcms_system extends rcms_user {
         return true;
     }
 
+    /**
+     * Merges system logs by month
+     * 
+     * @return bool
+     */
     function logMergeByMonth() {
         $logs = rcms_scandir($this->logging);
         $d = date('d');
@@ -249,8 +424,6 @@ class rcms_system extends rcms_user {
         return true;
     }
 
-    var $navmodifiers = array();
-
     function registerNavModifier($base, $mod_handler, $help_handler) {
         $this->navmodifiers[$base] = array('m' => $mod_handler, 'h' => $help_handler);
         return true;
@@ -258,6 +431,14 @@ class rcms_system extends rcms_user {
 
 }
 
+/**
+ * Tries to perform string localization with current locale
+ * 
+ * @global array $lang
+ * @param string $string
+ * 
+ * @return string
+ */
 function __($string) {
     global $lang;
     if (!empty($lang['def'][$string])) {
@@ -267,11 +448,29 @@ function __($string) {
     }
 }
 
+/**
+ * Puts some record into system log
+ * 
+ * @global object $system
+ * @param string $type
+ * @param string $user
+ * @param string $message
+ * 
+ * @return bool
+ */
 function rcms_log_put($type, $user, $message) {
     global $system;
     return $system->logPut($type, $user, $message);
 }
 
+/**
+ * Cuts some string to selected lenght
+ * 
+ * @param string $str
+ * @param int $lenght
+ * 
+ * @return string
+ */
 function cut_text($str, $lenght = 25) {
     $str = substr($str, 0, $lenght) . ((strlen($str) > $lenght) ? '...' : '');
     return ($str);
