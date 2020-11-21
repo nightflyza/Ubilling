@@ -38,7 +38,7 @@ class rcms_system extends rcms_user {
     public $config = array();
 
     /**
-     * Hmmmm. Maybe its used in i18n engine
+     * Hmmmm. Maybe its used in i18n engine.. or in user auth...
      *
      * @var array
      */
