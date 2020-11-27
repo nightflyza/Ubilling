@@ -1077,40 +1077,50 @@ class PONizer {
      *
      * @return void
      */
-    protected function FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId) {
+    protected function FDBParseGPBd($oltid, $FDBIndex, $macIndex, $oltModelId) {
         $oltid = vf($oltid, 3);
+        $TmpArr = array();
         $FDBTmp = array();
         $macTmp = array();
         $result = array();
 
 //fdb index preprocessing
-        if ((!empty($FDBIndex)) AND ( !empty($macIndex)) AND ( !empty($FDBDEVIndex))) {
-
-            foreach ($FDBIndex as $io => $eachfdb) {
-                if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '/', $eachfdb)) {
-                    $eachfdb = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $eachfdb);
-                    $line = explode('=', $eachfdb);
-
+        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
+            foreach ($FDBIndex as $io => $eachfdbRaw) {
+                if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '|INTEGER:/', $eachfdbRaw)) {
+                    $eachfdbRaw = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], 'INTEGER:'), '', $eachfdbRaw);
+                    $line = explode('=', $eachfdbRaw);
+//fdb is present
                     if (isset($line[1])) {
-                        $FDBRaw = trim($line[1]); // FDB
                         $devOID = trim($line[0]); // FDB last OID
+                        $lineRaw = trim($line[1]); // FDB
                         $devline = explode('.', $devOID);
-
-                        $devIndex = explode($this->snmpTemplates[$oltModelId]['misc']['FDBDEVVALUE'], $FDBDEVIndex[$io]); // Dev index
-                        $devIndex = trim($devIndex[1]);
-
-                        $FDBvlan = trim($devline[0]); // Vlan
-                        $FDBnum = trim($devline[6]); // Count number of MAC
-
-                        $FDBRaw = str_replace(' ', ':', $FDBRaw);
-                        $FDBRaw = strtolower($FDBRaw);
-
-                        $FDBTmp[$devIndex][$FDBnum]['mac'] = $FDBRaw;
-                        $FDBTmp[$devIndex][$FDBnum]['vlan'] = $FDBvlan;
+                        $FDBvlan = trim($devline[1]); // Vlan
+                        $FDBnum = trim($devline[7]); // Count number of MAC
+                        if (preg_match('/^1/', $devOID)) {
+                            $FDBRaw = str_replace(' ', ':', $lineRaw);
+                            $FDBRaw = strtolower($FDBRaw);
+                            $TmpArr[$devOID]['mac'] = $FDBRaw;
+                            $TmpArr[$devOID]['vlan'] = $FDBvlan;
+                            $TmpArr[$devOID]['FDBnum'] = $FDBnum;
+                        } elseif (preg_match('/^2/', $devOID)) {
+                            $devIndexOid = substr_replace($devOID, '1', 0, 1);
+                            $TmpArr[$devIndexOid]['index'] = $lineRaw;
+                        } else {
+                            continue;
+                        }
                     }
                 }
             }
-
+            if (!empty($TmpArr)) {
+                // Crete tmp Ubilling PON FDB array
+                foreach ($TmpArr as $io => $each) {
+                    if (count($each) == 4) {
+                        $FDBTmp[$each['index']][$each['FDBnum']]['mac'] = $each['mac'];
+                        $FDBTmp[$each['index']][$each['FDBnum']]['vlan'] = $each['vlan'];
+                    }
+                }
+            }
 //mac index preprocessing
             foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
@@ -1123,7 +1133,6 @@ class PONizer {
                     $macTmp[$devIndex] = $macRaw;
                 }
             }
-
 //storing results
             if (!empty($macTmp)) {
                 foreach ($macTmp as $devId => $eachMac) {
@@ -1132,6 +1141,7 @@ class PONizer {
                         $result[$eachMac] = $fdb;
                     }
                 }
+
                 $result = serialize($result);
                 file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
             }
@@ -1879,14 +1889,25 @@ class PONizer {
                                         $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
                                         $FDBIndex = explodeRows($FDBIndex);
 
-                                        $FDBDevIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBDEVINDEX'];
-                                        $FDBDEVIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBDevIndexOid, self::SNMPCACHE);
-                                        $FDBDEVIndex = str_replace($FDBDevIndexOid . '.', '', $FDBDEVIndex);
-                                        $FDBDEVIndex = explodeRows($FDBDEVIndex);
                                     }
                                 }
                             }
+//getting other system data from OLT
+                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
+                                //OLT uptime
+                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+                                    $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
+                                }
 
+                                //OLT temperature
+                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
+                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
+                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
+                                    $this->temperatureParseBd($oltid, $oltTemperatureRaw);
+                                }
+                            }
 //getting MAC index.
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
@@ -1905,7 +1926,7 @@ class PONizer {
 //processing interfaces data
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex);
 //processing FDB data
-                                        $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $FDBDEVIndex, $oltModelId);
+                                        $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $oltModelId);
 
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
 //processing last dereg reason data
