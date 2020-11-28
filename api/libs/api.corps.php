@@ -48,6 +48,13 @@ class Corps {
     protected $taxtypes = array();
 
     /**
+     * Use bank/taxes field names for RF flag
+     *
+     * @var bool
+     */
+    protected $rfCorpsFlag = false;
+
+    /**
      * Contains available document types
      *
      * @var array
@@ -98,6 +105,10 @@ class Corps {
         $this->altCfg = $ubillingConfig->getAlter();
         if (@$this->altCfg['IBAN_ENABLED']) {
             $this->ibanFlag = true;
+        }
+
+        if (@$this->altCfg['RFCORPS']) {
+            $this->rfCorpsFlag = true;
         }
     }
 
@@ -367,19 +378,24 @@ class Corps {
             $cells .= wf_TableCell($this->corps[$id]['bankname']);
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('Bank MFO'), '', 'row2');
+            $mfoLabel = (!$this->rfCorpsFlag) ? __('Bank MFO') : __('Bank BIK');
+            $edrpouLabel = (!$this->rfCorpsFlag) ? __('EDRPOU') : __('OGRN');
+            $ndsNumLabel = (!$this->rfCorpsFlag) ? __('NDS number') : __('INN Number');
+            $innCodeLabel = (!$this->rfCorpsFlag) ? __('INN code') : __('KPP Code');
+
+            $cells = wf_TableCell($mfoLabel, '', 'row2');
             $cells .= wf_TableCell($this->corps[$id]['bankmfo']);
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('EDRPOU'), '', 'row2');
+            $cells = wf_TableCell($edrpouLabel, '', 'row2');
             $cells .= wf_TableCell($this->corps[$id]['edrpou']);
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('NDS number'), '', 'row2');
+            $cells = wf_TableCell($ndsNumLabel, '', 'row2');
             $cells .= wf_TableCell($this->corps[$id]['ndstaxnum']);
             $rows .= wf_TableRow($cells, 'row3');
 
-            $cells = wf_TableCell(__('INN code'), '', 'row2');
+            $cells = wf_TableCell($innCodeLabel, '', 'row2');
             $cells .= wf_TableCell($this->corps[$id]['inncode']);
             $rows .= wf_TableRow($cells, 'row3');
 
@@ -494,10 +510,14 @@ class Corps {
             $bankAccLabel = ($this->ibanFlag) ? __('IBAN') : __('Bank account');
             $inputs .= wf_TextInput('editbankacc', $bankAccLabel, $data['bankacc'], true, '20');
             $inputs .= wf_TextInput('editbankname', __('Bank name'), $data['bankname'], true, '20');
-            $inputs .= wf_TextInput('editbankmfo', __('Bank MFO'), $data['bankmfo'], true, '20');
-            $inputs .= wf_TextInput('editedrpou', __('EDRPOU'), $data['edrpou'], true, '20');
-            $inputs .= wf_TextInput('editndstaxnum', __('NDS number'), $data['ndstaxnum'], true, '20');
-            $inputs .= wf_TextInput('editinncode', __('INN code'), $data['inncode'], true, '20');
+            $mfoLabel = (!$this->rfCorpsFlag) ? __('Bank MFO') : __('Bank BIK');
+            $edrpouLabel = (!$this->rfCorpsFlag) ? __('EDRPOU') : __('OGRN');
+            $ndsNumLabel = (!$this->rfCorpsFlag) ? __('NDS number') : __('INN Number');
+            $innCodeLabel = (!$this->rfCorpsFlag) ? __('INN code') : __('KPP Code');
+            $inputs .= wf_TextInput('editbankmfo', $mfoLabel, $data['bankmfo'], true, '20');
+            $inputs .= wf_TextInput('editedrpou', $edrpouLabel, $data['edrpou'], true, '20');
+            $inputs .= wf_TextInput('editndstaxnum', $ndsNumLabel, $data['ndstaxnum'], true, '20');
+            $inputs .= wf_TextInput('editinncode', $innCodeLabel, $data['inncode'], true, '20');
             $inputs .= wf_Selector('edittaxtype', $this->taxtypes, __('Tax type'), $data['taxtype'], true);
             $inputs .= wf_TextInput('editnotes', __('Notes'), $data['notes'], true, '40');
             $inputs .= wf_Submit(__('Save'));
@@ -531,10 +551,14 @@ class Corps {
             $bankAccLabel = ($this->ibanFlag) ? __('IBAN') : __('Bank account');
             $inputs .= wf_TextInput('addbankacc', $bankAccLabel, '', true, '20');
             $inputs .= wf_TextInput('addbankname', __('Bank name'), '', true, '20');
-            $inputs .= wf_TextInput('addbankmfo', __('Bank MFO'), '', true, '20');
-            $inputs .= wf_TextInput('addedrpou', __('EDRPOU'), '', true, '20');
-            $inputs .= wf_TextInput('addndstaxnum', __('NDS number'), '', true, '20');
-            $inputs .= wf_TextInput('addinncode', __('INN code'), '', true, '20');
+            $mfoLabel = (!$this->rfCorpsFlag) ? __('Bank MFO') : __('Bank BIK');
+            $edrpouLabel = (!$this->rfCorpsFlag) ? __('EDRPOU') : __('OGRN');
+            $ndsNumLabel = (!$this->rfCorpsFlag) ? __('NDS number') : __('INN Number');
+            $innCodeLabel = (!$this->rfCorpsFlag) ? __('INN code') : __('KPP Code');
+            $inputs .= wf_TextInput('addbankmfo', $mfoLabel, '', true, '20');
+            $inputs .= wf_TextInput('addedrpou', $edrpouLabel, '', true, '20');
+            $inputs .= wf_TextInput('addndstaxnum', $ndsNumLabel, '', true, '20');
+            $inputs .= wf_TextInput('addinncode', $innCodeLabel, '', true, '20');
             $inputs .= wf_Selector('addtaxtype', $this->taxtypes, __('Tax type'), '', true);
             $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
             $inputs .= wf_Submit(__('Create'));
@@ -960,10 +984,14 @@ class Corps {
             $bankAccLabel = ($this->ibanFlag) ? __('IBAN') : __('Bank account');
             $inputs .= wf_TextInput('addbankacc', $bankAccLabel, '', true, '20');
             $inputs .= wf_TextInput('addbankname', __('Bank name'), '', true, '20');
-            $inputs .= wf_TextInput('addbankmfo', __('Bank MFO'), '', true, '20');
-            $inputs .= wf_TextInput('addedrpou', __('EDRPOU'), '', true, '20');
-            $inputs .= wf_TextInput('addndstaxnum', __('NDS number'), '', true, '20');
-            $inputs .= wf_TextInput('addinncode', __('INN code'), '', true, '20');
+            $mfoLabel = (!$this->rfCorpsFlag) ? __('Bank MFO') : __('Bank BIK');
+            $edrpouLabel = (!$this->rfCorpsFlag) ? __('EDRPOU') : __('OGRN');
+            $ndsNumLabel = (!$this->rfCorpsFlag) ? __('NDS number') : __('INN Number');
+            $innCodeLabel = (!$this->rfCorpsFlag) ? __('INN code') : __('KPP Code');
+            $inputs .= wf_TextInput('addbankmfo', $mfoLabel, '', true, '20');
+            $inputs .= wf_TextInput('addedrpou', $edrpouLabel, '', true, '20');
+            $inputs .= wf_TextInput('addndstaxnum', $ndsNumLabel, '', true, '20');
+            $inputs .= wf_TextInput('addinncode', $innCodeLabel, '', true, '20');
             $inputs .= wf_Selector('addtaxtype', $this->taxtypes, __('Tax type'), '', true);
             $inputs .= wf_TextInput('addnotes', __('Notes'), '', true, '40');
             $inputs .= wf_Submit(__('Create'));
