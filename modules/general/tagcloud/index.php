@@ -15,7 +15,7 @@ if (cfr('TAGCLOUD')) {
         } elseif (ubRouting::checkGet(array('notags'))) {
             // show users which not have a tag
             $tagCloud->renderNoTagGrid();
-        } elseif (ubRouting::checkGet(array('noemploeetags'))) {
+        } elseif (ubRouting::checkGet(array('noemployeetags'))) {
             // show users which not have a tag
             $tagCloud->renderNoEmployeeTags();
         } else {
