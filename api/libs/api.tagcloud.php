@@ -41,17 +41,17 @@ class TagCloud {
     protected $notags = array();
 
     /**
-     * Contains users that not have emploee tags
+     * Contains users that not have employee tags
      *
      * @var array
      */
-    protected $noEmploeeTags = array();
+    protected $noEmployeeTags = array();
 
     const URL_ME = '?module=tagcloud';
     const URL_GRID = 'gridview=true';
     const URL_REPORT = 'report=true';
     const NO_TAG = 'notags=true';
-    const NO_EMPLOEE_TAG = 'noemploeetags=true';
+    const NO_EMPLOYEE_TAG = 'noemployeetags=true';
 
     public function __construct() {
         $this->loadTags();
@@ -171,18 +171,18 @@ class TagCloud {
         $result.= wf_Link(self::URL_ME . '&' . self::URL_GRID, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::NO_EMPLOEE_TAG, wf_img('skins/track_icon.png') . ' ' . __('No emploee tags'), true, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::NO_EMPLOYEE_TAG, wf_img('skins/menuicons/employee.png') . ' ' . __('No employee tags'), true, 'ubButton');
         $result.= show_window('', $result);
         return ($result);
     }
 
     /**
-     * loads users that no have emploee tags
+     * loads users that no have employee tags
      * 
      * @return void
      */
-    protected function loadNoEmploeeTagss() {
-        $this->noEmploeeTags = $this->getNoEmploeeTagged();
+    protected function loadNoEmployeeTagss() {
+        $this->noEmployeeTags = $this->getNoEmployeeTagged();
     }
 
     /**
@@ -206,11 +206,11 @@ class TagCloud {
     }
 
     /**
-     * Returns array of users that no have emploee tags
+     * Returns array of users that no have employee tags
      * 
      * @return array
      */
-    protected function getNoEmploeeTagged() {
+    protected function getNoEmployeeTagged() {
         $result = array();
         $query = 'SELECT login,employee.id FROM `tags` LEFT JOIN (SELECT `id`,`tagid`,`name` FROM `employee` WHERE `tagid` IS NOT NUll) as employee USING (`tagid`) GROUP by login';
         $resultQuery = simple_queryall($query);
@@ -229,18 +229,18 @@ class TagCloud {
      * 
      * @return void
      */
-    public function renderNoEmploeeTags() {
+    public function renderNoEmployeeTags() {
         $result = '';
         $userArr = array();
         //usage of this in constructor significantly reduces performance
-        $this->loadNoEmploeeTagss();
-        if (!empty($this->noEmploeeTags)) {
-            foreach ($this->noEmploeeTags  as $key => $user) {
+        $this->loadNoEmployeeTagss();
+        if (!empty($this->noEmployeeTags)) {
+            foreach ($this->noEmployeeTags  as $key => $user) {
                 $userArr[] = $user;
             }
         }
         $result.= web_UserArrayShower($userArr);
-        show_window(__('No emploee tags'), $result);
+        show_window(__('No employee tags'), $result);
     }
 
     /**
