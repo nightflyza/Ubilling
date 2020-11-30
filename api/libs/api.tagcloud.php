@@ -40,16 +40,26 @@ class TagCloud {
      */
     protected $notags = array();
 
+    /**
+     * Contains users that not have emploee tags
+     *
+     * @var array
+     */
+    protected $noEmploeeTags = array();
+
     const URL_ME = '?module=tagcloud';
     const URL_GRID = 'gridview=true';
     const URL_REPORT = 'report=true';
     const NO_TAG = 'notags=true';
+    const NO_EMPLOEE_TAG = 'noemploeetags=true';
 
     public function __construct() {
         $this->loadTags();
         $this->loadTagNames();
         $this->loadUserTags();
         $this->tagPowerPreprocessing();
+        $this->panel();
+
     }
 
     /**
@@ -160,8 +170,19 @@ class TagCloud {
         $result = wf_Link(self::URL_ME, wf_img('skins/icon_cloud.png') . ' ' . __('Tag cloud'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_GRID, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), true, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::NO_EMPLOEE_TAG, wf_img('skins/track_icon.png') . ' ' . __('No emploee tags'), true, 'ubButton');
+        $result.= show_window('', $result);
         return ($result);
+    }
+
+    /**
+     * loads users that no have emploee tags
+     * 
+     * @return void
+     */
+    protected function loadNoEmploeeTagss() {
+        $this->noEmploeeTags = $this->getNoEmploeeTagged();
     }
 
     /**
@@ -185,12 +206,50 @@ class TagCloud {
     }
 
     /**
+     * Returns array of users that no have emploee tags
+     * 
+     * @return array
+     */
+    protected function getNoEmploeeTagged() {
+        $result = array();
+        $query = 'SELECT login,employee.id FROM `tags` LEFT JOIN (SELECT `id`,`tagid`,`name` FROM `employee` WHERE `tagid` IS NOT NUll) as employee USING (`tagid`) GROUP by login';
+        $resultQuery = simple_queryall($query);
+        if (!empty($resultQuery)) {
+            foreach ($resultQuery as $key => $raw) {
+                if (empty($raw['id'])) {
+                    $result[] = $raw['login'];
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders tag grid for users that no tagged
+     * 
+     * @return void
+     */
+    public function renderNoEmploeeTags() {
+        $result = '';
+        $userArr = array();
+        //usage of this in constructor significantly reduces performance
+        $this->loadNoEmploeeTagss();
+        if (!empty($this->noEmploeeTags)) {
+            foreach ($this->noEmploeeTags  as $key => $user) {
+                $userArr[] = $user;
+            }
+        }
+        $result.= web_UserArrayShower($userArr);
+        show_window(__('No emploee tags'), $result);
+    }
+
+    /**
      * Renders tag grid for users that no tagged
      * 
      * @return void
      */
     public function renderNoTagGrid() {
-        $result = $this->panel();
+        $result = '';
         $userArr = array();
         //usage of this in constructor significantly reduces performance
         $this->loadNoTagUsers();
@@ -199,7 +258,7 @@ class TagCloud {
                 $userArr[] = $user['login'];
             }
         }
-        $result.=web_UserArrayShower($userArr);
+        $result.= web_UserArrayShower($userArr);
         show_window(__('No tags'), $result);
     }
 
@@ -226,8 +285,7 @@ class TagCloud {
             }
         }
 
-        $result = $this->panel();
-        $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+        $result = wf_TableBody($rows, '100%', '0', 'sortable');
         show_window(__('Tags'), $result);
     }
 
@@ -237,8 +295,7 @@ class TagCloud {
      * @return void
      */
     public function renderTagCloud() {
-        $result = $this->panel();
-        $result.= wf_tag('center');
+        $result = wf_tag('center');
 
         if (!empty($this->alltags)) {
             foreach ($this->alltags as $key => $eachtag) {
@@ -282,7 +339,7 @@ class TagCloud {
      * @return void
      */
     public function renderReport() {
-        $result = $this->panel();
+        $result = '';
         $messages = new UbillingMessageHelper();
         $months = months_array_localized();
         $reportTmp = array();
@@ -340,7 +397,7 @@ class TagCloud {
                 $rows.= wf_TableRow($cells, 'row3');
             }
 
-            $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+            $result.= wf_TableBody($rows, '100%', '0', 'sortable');
             $result.= wf_tag('b') . __('Total') . ':' . wf_tag('b', true) . ' ' . $totalCount;
         }
 

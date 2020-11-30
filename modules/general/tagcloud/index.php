@@ -12,9 +12,12 @@ if (cfr('TAGCLOUD')) {
     if (!wf_CheckGet(array('gridview'))) {
         if (wf_CheckGet(array('report'))) {
             $tagCloud->renderReport();
-        } elseif (isset($_GET['notags']) and ( $_GET['notags']) == TRUE) {
+        } elseif (ubRouting::checkGet(array('notags'))) {
             // show users which not have a tag
             $tagCloud->renderNoTagGrid();
+        } elseif (ubRouting::checkGet(array('noemploeetags'))) {
+            // show users which not have a tag
+            $tagCloud->renderNoEmploeeTags();
         } else {
             //default tag cloud
             $tagCloud->renderTagCloud();
