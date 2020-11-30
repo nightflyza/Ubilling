@@ -909,6 +909,11 @@ div.dhtml_menu div.vert_menu a.active:hover
     background-color: #000000;
     color: #DEE3E7;
     font-size: larger;
+    max-width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .fileeditorarea:hover {
