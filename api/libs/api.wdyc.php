@@ -592,7 +592,7 @@ class WhyDoYouCall {
             $result .= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
             $result .= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
             $result .= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
-            $result .= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%' . wf_tag('br');
+            $result .= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, $totalMissed) . '%' . wf_tag('br');
             $reactTimeStat = (!empty($totalReactTime)) ? zb_formatTime($totalReactTime / ($totalRecalls + $totalUnsucc)) : __('No');
             $result .= __('Reaction time') . ' - ' . $reactTimeStat;
             $result .= wf_tag('br');
