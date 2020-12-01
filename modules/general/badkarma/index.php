@@ -15,6 +15,12 @@ if (cfr('CASH')) {
                 ubRouting::nav($badKarma::URL_ME);
             }
         }
+
+        //mass reset action
+        if (ubRouting::checkGet($badKarma::ROUTE_MASSRESET)) {
+            $badKarma->runMassReset();
+            ubRouting::nav($badKarma::URL_ME);
+        }
         show_window(__('Users with bad karma'), $badKarma->renderReport());
     } else {
         show_error(__('This module is disabled'));

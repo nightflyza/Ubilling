@@ -52,6 +52,7 @@ class BadKarma {
      */
     const URL_PROFILE = '?module=userprofile&username=';
     const URL_ME = '?module=badkarma';
+    const ROUTE_MASSRESET = 'domassreset';
     const ROUTE_FIX = 'fixuserkarma';
     const COLOR_BAD = '#AB0000';
 
@@ -278,6 +279,34 @@ class BadKarma {
     }
 
     /**
+     * Tries to basically fix karma by resseting bad karma users
+     * 
+     * @global object $billing
+     * 
+     * @return void
+     */
+    public function runMassReset() {
+        global $billing;
+        $tmpArr = array();
+        $totalCount = 0;
+        if (!empty($this->allUsersData)) {
+            if (!empty($this->allOnlineUsers)) {
+                foreach ($this->allUsersData as $eachUserLogin => $eachUserData) {
+                    //may this user be just... online?
+                    if ($this->userMustBeOnline($eachUserData)) {
+                        //and he is not?
+                        if (!$this->userIsOnline($eachUserLogin)) {
+                            //tryin to reset
+                            $billing->resetuser($eachUserLogin);
+                            log_register("KARMA MASSRESET User (" . $eachUserLogin . ")");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Renders report of users which possible have an bad karma
      * 
      * @return string
@@ -327,6 +356,14 @@ class BadKarma {
 
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                     $result .= __('Total') . ' ' . $totalCount;
+
+                    //some controls here
+                    if ($totalCount > 0) {
+                        if (cfr('ROOT')) {
+                            $result .= wf_delimiter();
+                            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MASSRESET . '=true', wf_img('skins/refresh.gif') . ' ' . __('Mass reset'), false, 'ubButton');
+                        }
+                    }
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Everything is good'), 'success');
                 }
