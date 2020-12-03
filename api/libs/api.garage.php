@@ -38,14 +38,14 @@ class Garage {
     protected $drivers = '';
 
     /**
-     * Contains all active employee
+     * Contains all active employee as id=>name
      *
      * @var array
      */
     protected $allActiveEmployee = array();
 
     /**
-     * Contains all employee
+     * Contains all employee as id=>name
      *
      * @var array
      */
@@ -102,6 +102,8 @@ class Garage {
     const ROUTE_CARDEL = 'deletethiscarid';
     const PROUTE_DRIVEREDIT = 'editsomedriver';
     const PROUTE_DRIVERCAR = 'driversetcar';
+    const PROUTE_MILEAGEKM = 'newmileagekmeterscount';
+    const PROUTE_MILEAGECAR = 'newmileagecarid';
 
     /**
      * Basic car parameters here
@@ -208,8 +210,74 @@ class Garage {
     protected function loadMileage() {
         $mileageTmp = $this->mileage->getAll();
         if (!empty($mileageTmp)) {
-            //TODO
+            foreach ($mileageTmp as $io => $each) {
+                $dateDay = strtotime($each['date']);
+                $dateDay = date("Y-m-d", $dateDay); //just a day of month
+                $dayMileage = $each['mileage'];
+//                 TODO: take some decision on this
+//                //on many records by same date
+//                if (isset($this->allMileage[$each['carid']][$dateDay])) {
+//                    $dayMileage += $this->allMileage[$each['carid']][$dateDay];
+//                }
+                $this->allMileage[$each['carid']][$dateDay] = $dayMileage;
+            }
         }
+    }
+
+    /**
+     * Renders mileage creation form
+     * 
+     * @return string
+     */
+    public function renderMileageCreateForm() {
+        $result = '';
+        $carsTmp = array();
+        if (!empty($this->allCars)) {
+            foreach ($this->allCars as $io => $each) {
+                $driverId = $this->getCarDriver($each['id']);
+                $driverName = (isset($this->allEmployee[$driverId])) ? $this->allEmployee[$driverId] : '';
+                $carLabel = $each['vendor'] . ' ' . $each['model'] . ' ' . $each['number'] . ' - ' . $driverName;
+                $carsTmp[$each['id']] = $carLabel;
+            }
+        }
+
+        $inputs = wf_Selector(self::PROUTE_MILEAGECAR, $carsTmp, __('Car'), '', true);
+        $inputs .= wf_TextInput(self::PROUTE_MILEAGEKM, __('Mileage') . ' (' . __('km') . ')', '', true, 8, 'digits');
+        $inputs .= wf_Submit(__('Save'));
+
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
+     * Creates new mileage record in database
+     * 
+     * @param int $carId
+     * @param int $mileage
+     * @param bool $inKilometers
+     * 
+     * @return void/string on error
+     */
+    public function createMileage($carId, $mileage, $inKilometers) {
+        $result = '';
+        $newDate = curdatetime();
+        $mileage = ubRouting::filters($mileage, 'int');
+        $carId = ubRouting::filters($carId, 'int');
+        if ($inKilometers) {
+            $mileage = $mileage * 1000; //omg omg, so much math!
+        }
+        if (!empty($mileage) AND ! empty($carId)) {
+            //TODO: add some new >= old check here
+            $this->mileage->data('date', $newDate);
+            $this->mileage->data('carid', $carId);
+            $this->mileage->data('mileage', $mileage);
+            $this->mileage->create();
+            log_register('GARAGE MILEAGE CREATE CAR [' . $carId . '] M `' . $mileage . '`');
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('Car') . ' ' . __('or') . ' ' . __('Mileage') . ' ' . __('is empty');
+        }
+
+        return($result);
     }
 
     /**

@@ -24,4 +24,6 @@ $lang['def']['Mileage'] = 'Пробіг';
 $lang['def']['You cant delete a car which have a driver'] = 'Ви не можете видалити машинку, якщо нею хтось зараз кермує';
 $lang['def']['Fuel consumption'] = 'Розхід пального';
 $lang['def']['km'] = 'км';
+$lang['def']['or'] = 'або';
+$lang['def'][''] = '';
 $lang['def'][''] = '';

@@ -39,13 +39,32 @@ if (cfr('GARAGE')) {
         }
     }
 
+    //creating new mileage record
+    if (ubRouting::checkPost(array($garage::PROUTE_MILEAGECAR, $garage::PROUTE_MILEAGEKM))) {
+        $mileageCreateResult = $garage->createMileage(ubRouting::post($garage::PROUTE_MILEAGECAR), ubRouting::post($garage::PROUTE_MILEAGEKM), true);
+        if (empty($mileageCreateResult)) {
+            ubRouting::nav($garage::URL_ME . '&' . $garage::ROUTE_MILEAGE . '=true');
+        } else {
+            show_error($mileageCreateResult);
+            show_window('', wf_BackLink($garage::URL_ME . '&' . $garage::ROUTE_MILEAGE . '=true'));
+        }
+    }
 
+
+    //rendering cars list
     if (ubRouting::checkGet($garage::ROUTE_CARS)) {
         show_window(__('Available cars'), $garage->renderCarsList());
     }
 
+    //rendering drivers list
     if (ubRouting::checkGet($garage::ROUTE_DRIVERS)) {
         show_window(__('Existing drivers'), $garage->renderDriversList());
+    }
+
+    //rendering mileage stats
+    if (ubRouting::checkGet($garage::ROUTE_MILEAGE)) {
+        show_window(__('Mileage'), 'TODO');
+        deb($garage->renderMileageCreateForm());
     }
 } else {
     show_error(__('Access denied'));
