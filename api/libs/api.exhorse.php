@@ -1027,7 +1027,7 @@ class ExistentialHorse {
      * @return void
      */
     public function cleanupDb() {
-        $query = 'DELETE `ex` FROM `exhorse` AS `ex` LEFT JOIN (SELECT MAX(date) AS mDate FROM `exhorse_tmp` GROUP BY DATE_FORMAT(date,"%Y-%m") ) AS `tmp` ON (`tmp`.`mDate`=`ex`.`date`) WHERE `tmp`.`mDate` IS NULL';
+        $query = 'DELETE `ex` FROM `exhorse` AS `ex` LEFT JOIN (SELECT MAX(date) AS mDate FROM `exhorse` GROUP BY DATE_FORMAT(date,"%Y-%m") ) AS `tmp` ON (`tmp`.`mDate`=`ex`.`date`) WHERE `tmp`.`mDate` IS NULL';
         nr_query($query);
     }
 
