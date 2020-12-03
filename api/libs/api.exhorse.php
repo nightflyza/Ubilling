@@ -1022,18 +1022,27 @@ class ExistentialHorse {
     }
 
     /**
-     * Cleans previous days data if current month day is the last
+     * Cleans previous days data if current month day is the last 
+     * or all previous records for this this month.. i hope.
      * 
      * @return void
      */
     public function cleanupDb() {
-        $curDay = date("d");
-        if ($curDay == date("t")) {
-            $curMonth = date("Y-m");
-            $query = "DELETE FROM `exhorse` WHERE `date` LIKE '" . $curMonth . "-%' AND `date` NOT LIKE '" . $curMonth . "-" . $curDay . "%';";
-            deb($query);
+        //In normal cases - cleanup previous data on last day of month
+        if (!ubRouting::checkGet('ebobo')) {
+            //
+            $curDay = date("d");
+            if ($curDay == date("t")) {
+                $curMonth = date("Y-m");
+                $query = "DELETE FROM `exhorse` WHERE `date` LIKE '" . $curMonth . "-%' AND `date` NOT LIKE '" . $curMonth . "-" . $curDay . "%';";
+                deb($query);
+                nr_query($query);
+                log_register('EXHORSE CLEANUP MONTH `' . $curMonth . '`');
+            }
+        } else {
+            //Pautina mode for some reason
+            $query = 'DELETE `ex` FROM `exhorse` AS `ex` LEFT JOIN (SELECT MAX(date) AS mDate FROM `exhorse` GROUP BY DATE_FORMAT(date,"%Y-%m") ) AS `tmp` ON (`tmp`.`mDate`=`ex`.`date`) WHERE `tmp`.`mDate` IS NULL';
             nr_query($query);
-            log_register('EXHORSE CLEANUP MONTH `' . $curMonth . '`');
         }
     }
 
