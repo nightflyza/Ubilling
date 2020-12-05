@@ -1038,50 +1038,101 @@ class Warehouse {
         $result = '';
         $printFlag = (wf_CheckGet(array('printable'))) ? true : false;
         if (!empty($this->allReserve)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells .= wf_TableCell(__('Creation date'));
-            $cells .= wf_TableCell(__('Warehouse storage'));
-            $cells .= wf_TableCell(__('Category'));
-            $cells .= wf_TableCell(__('Warehouse item type'));
-            $cells .= wf_TableCell(__('Count'));
-            $cells .= wf_TableCell(__('Worker'));
-            if (!$printFlag) {
-                $cells .= wf_TableCell(__('Actions'));
-            }
 
-            $rows = wf_TableRow($cells, 'row1');
+            $columns = array(
+                __('ID'),
+                __('Creation date'),
+                __('Warehouse storage'),
+                __('Category'),
+                __('Warehouse item type'),
+                __('Count'),
+                __('Worker'),
+                __('Actions')
+            );
 
-            foreach ($this->allReserve as $io => $each) {
-                $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
-                $cells = wf_TableCell($each['id']);
-                $cells .= wf_TableCell($this->reserveGetCreationDate($each['id']));
-                $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
-                $cells .= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
-                $cells .= wf_TableCell($itemTypeLink);
-                $cells .= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
-                $cells .= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
-                if (!$printFlag) {
-                    $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
-                    $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
-                    if ($each['count'] > 0) {
-                        if (cfr('WAREHOUSEOUTRESERVE')) {
-                            $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
-                            $actLinks .= wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
-                        }
-                    }
-                    $cells .= wf_TableCell($actLinks);
-                }
-                $rows .= wf_TableRow($cells, 'row5');
-            }
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            $opts = '"order": [[ 0, "desc" ]]';
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_RESERVE . '&reserveajlist=true', false, __('Reserved'), 50, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         if ($printFlag) {
+            //Printable report here
+            if (!empty($this->allReserve)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells .= wf_TableCell(__('Creation date'));
+                $cells .= wf_TableCell(__('Warehouse storage'));
+                $cells .= wf_TableCell(__('Category'));
+                $cells .= wf_TableCell(__('Warehouse item type'));
+                $cells .= wf_TableCell(__('Count'));
+                $cells .= wf_TableCell(__('Worker'));
+
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($this->allReserve as $io => $each) {
+                    $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
+                    $cells = wf_TableCell($each['id']);
+                    $cells .= wf_TableCell($this->reserveGetCreationDate($each['id']));
+                    $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
+                    $cells .= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
+                    $cells .= wf_TableCell($itemTypeLink);
+                    $cells .= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
+                    $cells .= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
+                    if (!$printFlag) {
+                        $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
+                        $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
+                        if ($each['count'] > 0) {
+                            if (cfr('WAREHOUSEOUTRESERVE')) {
+                                $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
+                                $actLinks .= wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
+                            }
+                        }
+                        $cells .= wf_TableCell($actLinks);
+                    }
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            }
             $this->reportPrintable(__('Reserved'), $result);
         } else {
             return ($result);
         }
+    }
+
+    /**
+     * Renders JSON of available reserves list
+     * 
+     * @param int $employeeId
+     * 
+     * @return void
+     */
+    public function reserveListAjaxReply($employeeId = '') {
+        $json = new wf_JqDtHelper();
+        if (!empty($this->allReserve)) {
+            foreach ($this->allReserve as $io => $each) {
+                $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
+                $data[] = $each['id'];
+                $data[] = $this->reserveGetCreationDate($each['id']);
+                $data[] = @$this->allStorages[$each['storageid']];
+                $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
+                $data[] = $itemTypeLink;
+                $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                $data[] = @$this->allEmployee[$each['employeeid']];
+
+                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
+                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
+                if ($each['count'] > 0) {
+                    if (cfr('WAREHOUSEOUTRESERVE')) {
+                        $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
+                        $actLinks .= wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
+                    }
+                }
+                $data[] = $actLinks;
+
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
     }
 
     /**
@@ -1283,7 +1334,7 @@ class Warehouse {
             $colums = array('ID', 'Date', 'Type', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Employee', 'Admin');
             $opts = '"order": [[ 0, "desc" ]]';
             $ajaxUrl = self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true';
-            $result .= wf_JqDtLoader($colums, $ajaxUrl, false, __('Reserve'), 10, $opts);
+            $result .= wf_JqDtLoader($colums, $ajaxUrl, false, __('Reserve'), 50, $opts);
             if (!empty($this->allReserveHistory)) {
                 $result .= wf_delimiter();
                 $result .= $this->reserveHistoryFilterForm();
@@ -3956,7 +4007,7 @@ class Warehouse {
                                         $rows .= wf_TableRow($cells, 'row3');
                                         $totalCount += $eachOp['count'];
                                         $totalPrice += $opPrice;
-                                        $countUnit=$itemUnitType;
+                                        $countUnit = $itemUnitType;
                                     }
                                 }
                             }

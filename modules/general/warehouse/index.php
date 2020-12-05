@@ -225,6 +225,10 @@ if (cfr('WAREHOUSE')) {
                         $warehouse->reserveHistoryPrintFiltered();
                     }
 
+                    if (wf_CheckGet(array('reserveajlist'))) {
+                        $warehouse->reserveListAjaxReply();
+                    }
+
                     if (wf_CheckPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
                         $massReserveResult = $warehouse->reserveMassCreate();
                         //rendering mass reserve results
@@ -232,11 +236,15 @@ if (cfr('WAREHOUSE')) {
                     }
 
                     $reserveControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
-                    $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false);
+                    $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&reshistory=true', wf_img('skins/time_machine.png', __('History')), false) . ' ';
+                    $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
 
                     if (!wf_CheckGet(array('mass'))) {
-                        show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
-                        show_window(__('History'), $warehouse->reserveRenderHistory());
+                        if (wf_CheckGet(array('reshistory'))) {
+                            show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
+                        } else {
+                            show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
+                        }
                     } else {
                         show_window(__('Mass reservation'), $warehouse->reserveMassForm());
                     }
@@ -322,7 +330,7 @@ if (cfr('WAREHOUSE')) {
 
                 if (ubRouting::checkGet('itemtypeoutcomes')) {
                     if (cfr('WAREHOUSEREPORTS')) {
-                        show_window(__('Warehouse item type').' '.__('History'), $warehouse->renderItemtypeOutcomesHistory());
+                        show_window(__('Warehouse item type') . ' ' . __('History'), $warehouse->renderItemtypeOutcomesHistory());
                         $avidity_m = $avidity['M']['FALL'];
                         $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
