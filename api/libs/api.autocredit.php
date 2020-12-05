@@ -41,6 +41,27 @@ class AutoCredit {
     protected $allTariffPrices = array();
 
     /**
+     * Contains available virtual services as tagid=>price
+     *
+     * @var array
+     */
+    protected $allVservices = array();
+
+    /**
+     * Contains all vservices tags assigned for users as login=>tagIds
+     *
+     * @var array
+     */
+    protected $allUserTags = array();
+
+    /**
+     * Contains preprocessed users virtual services prices as login=>price summary
+     *
+     * @var array
+     */
+    protected $allUserServices = array();
+
+    /**
      * Contains alter option name with CF ID
      */
     const OPTION_CFID = 'AUTOCREDIT_CFID';
@@ -53,6 +74,9 @@ class AutoCredit {
         $this->setOptions();
         $this->loadUsers();
         $this->loadTariffs();
+        $this->loadVirtualServices();
+        $this->loadTags();
+        $this->preprocessVservices();
         if (!empty($this->cfId)) {
             $this->loadCfs();
         }
@@ -81,6 +105,57 @@ class AutoCredit {
             $optionRaw = ubRouting::filters($optionRaw, 'int');
             if (!empty($optionRaw)) {
                 $this->cfId = $optionRaw;
+            }
+        }
+    }
+
+    /**
+     * Loads available virtual services and their prices
+     * 
+     * @return void
+     */
+    protected function loadVirtualServices() {
+        $servicesRaw = zb_VserviceGetAllData();
+        if (!empty($servicesRaw)) {
+            foreach ($servicesRaw as $io => $eachService) {
+                $this->allVservices[$eachService['tagid']] = $eachService['price'];
+            }
+        }
+    }
+
+    /**
+     * Loads all tags assigned for users
+     * 
+     * @return void
+     */
+    protected function loadTags() {
+        $tagsDb = new NyanORM('tags');
+        $allTagsRaw = $tagsDb->getAll();
+        if (!empty($allTagsRaw)) {
+            foreach ($allTagsRaw as $io => $each) {
+                if (isset($this->allVservices[$each['tagid']])) {
+                    //only vservices tags
+                    $this->allUserTags[$each['login']][$each['tagid']] = $each['id'];
+                }
+            }
+        }
+    }
+
+    /**
+     * Performs preprocessing of all user virtual services prices into allUserServices prop
+     * 
+     * @return void
+     */
+    protected function preprocessVservices() {
+        if (!empty($this->allUserTags)) {
+            foreach ($this->allUserTags as $eachLogin => $eachUserTags) {
+                $servicesPrice = 0;
+                if (!empty($eachUserTags)) {
+                    foreach ($eachUserTags as $tagId => $tagIndex) {
+                        $servicesPrice += $this->allVservices[$tagId];
+                    }
+                    $this->allUserServices[$eachLogin] = $servicesPrice;
+                }
             }
         }
     }
@@ -177,6 +252,9 @@ class AutoCredit {
                     $userData = $this->allUsers[$userLogin];
                     $userTariff = $userData['Tariff'];
                     $userTariffFee = $this->allTariffPrices[$userTariff];
+                    $userServicesFee = (isset($this->allUserServices[$userLogin])) ? $this->allUserServices[$userLogin] : 0;
+                    $userCreditSumm = $userTariffFee + $userServicesFee;
+
                     if ($dayRaw < 10) {
                         //fixing leading zero
                         $dayRaw = '0' . $dayRaw;
@@ -185,9 +263,9 @@ class AutoCredit {
                     if ($userTariffFee > 0) {
                         //not free tariff
                         if (zb_checkDate($creditExpireDay)) {
-                            $billing->setcredit($userLogin, $userTariffFee);
+                            $billing->setcredit($userLogin, $userCreditSumm);
                             $billing->setcreditexpire($userLogin, $creditExpireDay);
-                            log_register('AUTOCREDIT (' . $userLogin . ') ON `' . $userTariffFee . '` TO `' . $creditExpireDay . '`');
+                            log_register('AUTOCREDIT (' . $userLogin . ') ON `' . $userCreditSumm . '` TO `' . $creditExpireDay . '`');
                             $count++;
                         } else {
                             log_register('AUTOCREDIT (' . $userLogin . ') FAIL WRONG CFDAY `' . $creditExpireDay . '`');
