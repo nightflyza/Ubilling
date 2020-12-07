@@ -1066,6 +1066,7 @@ class ExistentialHorse {
         $riseOfTheNorthStar['total'] = 0;
         $riseOfTheNorthStar['active'] = 0;
         $riseOfTheNorthStar['signups'] = 0;
+        $totalSignups = 0;
 
         //first year month hack
         if (!$allTimeFlag) {
@@ -1205,6 +1206,8 @@ class ExistentialHorse {
                         $signupData = $each['u_signups'];
                     }
 
+                    $totalSignups += $each['u_signups']; //just signups counter for selected period
+
                     $cells .= wf_TableCell($signupData);
                     $rows .= wf_TableRow($cells, 'row3');
                     //chart data
@@ -1220,6 +1223,7 @@ class ExistentialHorse {
 
             $result .= wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
             $result .= wf_TableBody($rows, '100%', 0, '');
+            $result .= __('Total users registered') . ': ' . $totalSignups;
             if ($chartsFlag) {
                 $result .= wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
                 $result .= wf_gchartsLine($usersSignupsChartData, __('Signups'), '100%', '300px', $chartsOptions);
