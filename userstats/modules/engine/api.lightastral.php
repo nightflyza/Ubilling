@@ -853,7 +853,10 @@ $(function() {
                         height: ' . $height . ',
 			modal: true,
                         show: "drop",
-			hide: "fold"
+			hide: "fold",
+                        create: function( event, ui ) {
+                            $(this).css("maxWidth", "800px");
+                        }
 		});
 
 		$( "#opener_' . $wid . '" ).click(function() {
