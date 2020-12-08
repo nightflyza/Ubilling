@@ -1038,7 +1038,6 @@ class Warehouse {
         $result = '';
         $printFlag = (wf_CheckGet(array('printable'))) ? true : false;
         if (!empty($this->allReserve)) {
-
             $columns = array(
                 __('ID'),
                 __('Creation date'),
@@ -1051,10 +1050,16 @@ class Warehouse {
             );
 
             $opts = '"order": [[ 0, "desc" ]]';
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_RESERVE . '&reserveajlist=true', false, __('Reserved'), 50, $opts);
+
+            $callbackUrl = self::URL_ME . '&' . self::URL_RESERVE . '&reserveajlist=true';
+            if (ubRouting::checkGet('empidfilter')) {
+                $callbackUrl .= '&empidfilter=' . ubRouting::get('empidfilter', 'int');
+            }
+            $result = wf_JqDtLoader($columns, $callbackUrl, false, __('Reserved'), 50, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
+
         if ($printFlag) {
             //Printable report here
             if (!empty($this->allReserve)) {
@@ -1076,17 +1081,6 @@ class Warehouse {
                     $cells .= wf_TableCell($itemTypeLink);
                     $cells .= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
                     $cells .= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
-                    if (!$printFlag) {
-                        $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
-                        $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
-                        if ($each['count'] > 0) {
-                            if (cfr('WAREHOUSEOUTRESERVE')) {
-                                $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
-                                $actLinks .= wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
-                            }
-                        }
-                        $cells .= wf_TableCell($actLinks);
-                    }
                     $rows .= wf_TableRow($cells, 'row5');
                 }
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -1106,30 +1100,43 @@ class Warehouse {
      */
     public function reserveListAjaxReply($employeeId = '') {
         $json = new wf_JqDtHelper();
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        
+        $filtered = true;
         if (!empty($this->allReserve)) {
             foreach ($this->allReserve as $io => $each) {
-                $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
-                $data[] = $each['id'];
-                $data[] = $this->reserveGetCreationDate($each['id']);
-                $data[] = @$this->allStorages[$each['storageid']];
-                $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = $itemTypeLink;
-                $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
-                $data[] = @$this->allEmployee[$each['employeeid']];
-
-                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
-                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
-                if ($each['count'] > 0) {
-                    if (cfr('WAREHOUSEOUTRESERVE')) {
-                        $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
-                        $actLinks .= wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
+                if ($employeeId) {
+                    if ($each['employeeid'] == $employeeId) {
+                        $filtered = true;
+                    } else {
+                        $filtered = false;
                     }
                 }
-                $data[] = $actLinks;
 
+                if ($filtered) {
+                    $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
+                    $data[] = $each['id'];
+                    $data[] = $this->reserveGetCreationDate($each['id']);
+                    $data[] = @$this->allStorages[$each['storageid']];
+                    $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
+                    $data[] = $itemTypeLink;
+                    $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                    $employeeLinkUrl = self::URL_ME . '&' . self::URL_RESERVE . '&' . 'empidfilter=' . $each['employeeid'];
+                    $employeeLinkAct = wf_Link($employeeLinkUrl, @$this->allEmployee[$each['employeeid']]);
+                    $data[] = $employeeLinkAct;
+                    $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
+                    $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
+                    if ($each['count'] > 0) {
+                        if (cfr('WAREHOUSEOUTRESERVE')) {
+                            $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
+                            $actLinks .= wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
+                        }
+                    }
+                    $data[] = $actLinks;
 
-                $json->addRow($data);
-                unset($data);
+                    $json->addRow($data);
+                    unset($data);
+                }
             }
         }
         $json->getJson();

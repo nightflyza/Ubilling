@@ -1222,7 +1222,7 @@ class ExistentialHorse {
             }
 
             $result .= wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
-            $result .= wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, '') . ' ';
             $result .= __('Total users registered') . ': ' . $totalSignups;
             if ($chartsFlag) {
                 $result .= wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);

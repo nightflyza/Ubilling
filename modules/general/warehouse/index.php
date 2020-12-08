@@ -226,7 +226,8 @@ if (cfr('WAREHOUSE')) {
                     }
 
                     if (wf_CheckGet(array('reserveajlist'))) {
-                        $warehouse->reserveListAjaxReply();
+                        $resEmpFilter = ubRouting::checkGet('empidfilter') ? ubRouting::get('empidfilter') : '';
+                        $warehouse->reserveListAjaxReply($resEmpFilter);
                     }
 
                     if (wf_CheckPost(array('newmassemployeeid', 'newmassstorageid', 'newmasscreation'))) {
