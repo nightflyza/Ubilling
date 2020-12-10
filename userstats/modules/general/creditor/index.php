@@ -176,7 +176,18 @@ function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc
             }
         }
     }
-    rcms_redirect("index.php");
+}
+
+//Agent actions begins here
+if (ubRouting::checkGet('agentcredit')) {
+    $scAgentResult = array();
+    $agentWasHere = true;
+    $agentOutputFormat = 'xml';
+    if (ubRouting::checkGet('json')) {
+        $agentOutputFormat = 'json';
+    }
+} else {
+    $agentWasHere = false;
 }
 
 // if SC enabled
@@ -220,7 +231,7 @@ if ($us_config['SC_ENABLED']) {
     }
 
     $tariffprice = $tariffFee; //default for month/spread tariffs
-    
+
     if (!@$us_config['SC_DAILY_FIX']) {
         if ($tariffPeriod == 'day') {
             $tariffprice = $tariffFee * date("t"); // now this is price for whole month
@@ -253,12 +264,28 @@ if ($us_config['SC_ENABLED']) {
     if (($cday <= $sc_maxday) AND ( $cday >= $sc_minday)) {
         if (($current_credit <= 0) AND ( $current_credit_expire == 0)) {
             //ok, no credit now
-            // allow user to set it
-            if (!isset($_POST['setcredit'])) {
+            $performCredit = false; //just form
+            $agreementCheck = false; //agreement accept
+            //check web forms
+            if (ubRouting::checkPost('setcredit')) {
+                $performCredit = true;
+                if (ubRouting::checkPost('agree')) {
+                    $agreementCheck = true;
+                }
+            }
+
+            //XML agent callback?
+            if (ubRouting::checkGet('agentcredit')) {
+                $performCredit = true;
+                $agreementCheck = true;
+            }
+
+            // allow user to set it if its required
+            if (!$performCredit) {
                 show_window('', zbs_ShowCreditForm());
             } else {
                 // set credit routine
-                if (isset($_POST['agree'])) {
+                if ($agreementCheck) {
                     //calculate credit expire date
                     $nowTimestamp = time();
                     $creditSeconds = ($sc_term * 86400); //days*secs
@@ -271,53 +298,107 @@ if ($us_config['SC_ENABLED']) {
                                     //additional hack contol enabled
                                     if ($sc_hackhcontrol AND ! zbs_CreditLogCheckHack($user_login)) {
                                         show_window(__('Sorry'), __('You can not take out a credit because you have not paid since the previous time'));
+                                        $scAgentResult = array();
+                                        $scAgentResult[] = array('status' => 10);
+                                        $scAgentResult[] = array('message' => 'not paid previous');
                                     } else {
                                         //additional month contol enabled
                                         if ($sc_monthcontrol) {
                                             if (zbs_CreditLogCheckMonth($user_login)) {
                                                 //check for allow option
                                                 zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                                $scAgentResult = array();
+                                                $scAgentResult[] = array('status' => 0);
+                                                $scAgentResult[] = array('message' => 'success');
+                                                //XMLAgent callback after success
+                                                if (ubRouting::checkGet('agentcredit')) {
+                                                    zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+                                                }
+                                                rcms_redirect("index.php");
                                             } else {
                                                 show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                                $scAgentResult = array();
+                                                $scAgentResult[] = array('status' => 9);
+                                                $scAgentResult[] = array('message' => 'already used in this month');
                                             }
                                         } else {
                                             zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                            $scAgentResult = array();
+                                            $scAgentResult[] = array('status' => 0);
+                                            $scAgentResult[] = array('message' => 'success');
+                                            //XMLAgent callback after success
+                                            if (ubRouting::checkGet('agentcredit')) {
+                                                zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
+                                            }
+                                            rcms_redirect("index.php");
                                         }
                                         //end of self credit main code
                                     }
                                 } else {
                                     show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
+                                    $scAgentResult = array();
+                                    $scAgentResult[] = array('status' => 8);
+                                    $scAgentResult[] = array('message' => 'not allowed on this tariff');
                                 }
                             } else {
                                 //to many money
                                 show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                                $scAgentResult = array();
+                                $scAgentResult[] = array('status' => 5);
+                                $scAgentResult[] = array('message' => 'too much money');
                             }
                         } else {
                             //not allowed to use self credit
                             if ($current_cash < 0) {
                                 show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
+                                $scAgentResult = array();
+                                $scAgentResult[] = array('status' => 6);
+                                $scAgentResult[] = array('message' => 'not enough money');
                             } else {
                                 show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                                $scAgentResult = array();
+                                $scAgentResult[] = array('status' => 5);
+                                $scAgentResult[] = array('message' => 'too much money');
                             }
                         }
                     } else {
                         show_window(__('Sorry'), __('Your account has been frozen'));
+                        $scAgentResult = array();
+                        $scAgentResult[] = array('status' => 4);
+                        $scAgentResult[] = array('message' => 'account frozen');
                     }
                 } else {
                     // agreement check
                     show_window(__('Sorry'), __('You must accept our policy'));
+                    $scAgentResult = array();
+                    $scAgentResult[] = array('status' => 7);
+                    $scAgentResult[] = array('message' => 'unexpected error');
                 }
             }
         } else {
             //you alredy have it 
             show_window(__('Sorry'), __('You already have a credit'));
+            $scAgentResult = array();
+            $scAgentResult[] = array('status' => 3);
+            $scAgentResult[] = array('message' => 'already have a credit');
         }
     } else {
         show_window(__('Sorry'), __('You can take a credit only between') . ' ' . $sc_minday . __(' and ') . $sc_maxday . ' ' . __('days of the month'));
+        $scAgentResult = array();
+        $scAgentResult[] = array('status' => 2);
+        $scAgentResult[] = array('message' => 'wrong day');
     }
 
 //and if disabled :(
 } else {
+    $scAgentResult = array();
+    $scAgentResult[] = array('status' => 1);
+    $scAgentResult[] = array('message' => 'disabled');
     show_window(__('Sorry'), __('Unfortunately self credits is disabled'));
+}
+
+//XMLAgent callback
+if (ubRouting::checkGet('agentcredit')) {
+    zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
 }
 ?>
