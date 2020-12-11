@@ -135,6 +135,8 @@ require_once('api/libs/api.zabbix.php');
 $billing = new ApiBilling();
 $ubillingConfig = new UbillingConfig();
 
+require_once('api/api.autolader.php');
+
 /**
  * Branches access control 
  */
@@ -144,4 +146,3 @@ if (@$globalAlter['BRANCHES_ENABLED']) {
     $branchControl->accessControl();
 }
 
-require_once('api/api.autolader.php');
