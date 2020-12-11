@@ -198,12 +198,13 @@ class ubRouting {
      * Short rcms_redirect replacement
      * 
      * @param string $url URL to perform redirect
+     * @param bool $header Use header redirect instead of JS document.location
      * 
      * @return void
      */
-    public static function nav($url) {
+    public static function nav($url, $header = false) {
         if (!empty($url)) {
-            rcms_redirect($url);
+            rcms_redirect($url, $header);
         }
     }
 

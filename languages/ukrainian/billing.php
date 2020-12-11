@@ -3218,6 +3218,8 @@ $lang['def']['Karma control'] = 'Контроль карми';
 $lang['def']['Karma'] = 'Карма';
 $lang['def']['Bad karma'] = 'Погана карма';
 $lang['def']['Good karma'] = 'Хороша карма';
+$lang['def']['Set user credit for'] = 'Встановити кредит на';
+$lang['def']['days if required'] = 'днів, якщо це потрібно';
 $lang['def'][''] = '';
 
 

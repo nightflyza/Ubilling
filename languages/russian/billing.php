@@ -3197,6 +3197,8 @@ $lang['def']['Karma control'] = 'Контроль кармы';
 $lang['def']['Karma'] = 'Карма';
 $lang['def']['Bad karma'] = 'Плохая карма';
 $lang['def']['Good karma'] = 'Хорошая карма';
+$lang['def']['Set user credit for'] = 'Установить кредит на';
+$lang['def']['days if required'] = 'дней, если это требуется';
 $lang['def'][''] = '';
 
 
