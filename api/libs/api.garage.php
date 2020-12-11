@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Vehicles management and accounting
+ */
 class Garage {
 
     /**

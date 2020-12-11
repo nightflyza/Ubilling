@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * PON devices management/monitoring support
+ */
 class PONizer {
 
     /**
@@ -1888,7 +1891,6 @@ class PONizer {
                                         $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
                                         $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
                                         $FDBIndex = explodeRows($FDBIndex);
-
                                     }
                                 }
                             }
@@ -4708,6 +4710,9 @@ class PONizer {
 
 }
 
+/**
+ * Ponizer legacy all-in-one-page renderer
+ */
 class PONizerLegacy extends PONizer {
 
     protected $json = '';
