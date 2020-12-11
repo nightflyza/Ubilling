@@ -15,6 +15,7 @@ class CumulativeDiscounts {
     protected $discountPayId = 1; // via CUD_PAYID
     protected $discountLimit = 10; //via CUD_PERCENTLIMIT
     protected $customDiscountCfId = ''; //via CUD_CFID
+    protected $cashMode = 'ADD'; //via CUD_OPERATION
     protected $debug = 0; //via CUD_ENABLED
     protected $logPath = '';
     protected $curdate = '';
@@ -54,6 +55,9 @@ class CumulativeDiscounts {
         $this->logPath = DATA_PATH . 'documents/cudiscounts.log';
         $this->setDebug($this->altCfg['CUD_ENABLED']);
         $this->customDiscountCfId = vf($this->altCfg['CUD_CFID'], 3);
+        if (isset($this->altCfg['CUD_OPERATION'])) {
+            $this->cashMode = $this->altCfg['CUD_OPERATION'];
+        }
     }
 
     /**
@@ -229,7 +233,13 @@ class CumulativeDiscounts {
                     if ($tariffPrice != 0) {
                         $discountPercent = $discountData['discount'];
                         $discountPayment = ($tariffPrice / 100) * $discountPercent;
-                        zb_CashAdd($login, $discountPayment, 'add', $this->discountPayId, 'DISCOUNT:' . $discountPercent);
+                        if ($this->cashMode == 'CORR') {
+                            $cashOperation = 'correct';
+                        } else {
+                            $cashOperation = 'add';
+                        }
+
+                        zb_CashAdd($login, $discountPayment, $cashOperation, $this->discountPayId, 'DISCOUNT:' . $discountPercent);
                         $this->debugLog('CUDISCOUNTS PUSH (' . $login . ') PERCENT:' . $discountPercent . ' DAYS:' . $discountData['days'] . ' CASH:' . $discountPayment . ' TARIFF:' . $userTariff);
                     } else {
                         $this->debugLog('CUDISCOUNTS IGNORE (' . $login . ') TARIFF ' . $userTariff . ' ZERO PRICE');
@@ -369,28 +379,28 @@ class CumulativeDiscounts {
         $customDiscount = $this->getCustomDiscount($this->login);
         if (!empty($currentData)) {
             $cells = wf_TableCell(__('Discount'));
-            $cells.= wf_TableCell(__('Day'));
-            $cells.= wf_TableCell(__('Custom discount'));
+            $cells .= wf_TableCell(__('Day'));
+            $cells .= wf_TableCell(__('Custom discount'));
             $rows = wf_TableRow($cells, 'row1');
             $cells = wf_TableCell($currentData['discount'] . '%');
-            $cells.= wf_TableCell($currentData['days']);
+            $cells .= wf_TableCell($currentData['days']);
             if ($customDiscount == 0) {
                 $customDiscount = __('No');
             } else {
                 $customDiscount = $customDiscount . '%';
             }
-            $cells.= wf_TableCell($customDiscount);
-            $rows.=wf_TableRow($cells, 'row3');
-            $result.=wf_TableBody($rows, '100%', 0, 'glamour');
-            $result.=wf_CleanDiv();
-            $result.=wf_delimiter();
+            $cells .= wf_TableCell($customDiscount);
+            $rows .= wf_TableRow($cells, 'row3');
+            $result .= wf_TableBody($rows, '100%', 0, 'glamour');
+            $result .= wf_CleanDiv();
+            $result .= wf_delimiter();
         }
 
         $logData = $this->getLogData();
         if (!empty($logData)) {
             $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Event'));
-            $cells.= wf_TableCell(__('Details'));
+            $cells .= wf_TableCell(__('Event'));
+            $cells .= wf_TableCell(__('Details'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($logData as $io => $each) {
@@ -424,15 +434,15 @@ class CumulativeDiscounts {
                 $params = str_replace('TARIFF', __('Tariff'), $params);
 
                 $cells = wf_TableCell($fc . $each['date'] . $efc);
-                $cells.= wf_TableCell($fc . $each['event'] . $efc);
-                $cells.= wf_TableCell($params);
+                $cells .= wf_TableCell($fc . $each['event'] . $efc);
+                $cells .= wf_TableCell($params);
 
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.= wf_tag('span', false, 'alert_warning') . __('Nothing found') . wf_tag('span', true);
+            $result .= wf_tag('span', false, 'alert_warning') . __('Nothing found') . wf_tag('span', true);
         }
         return ($result);
     }
