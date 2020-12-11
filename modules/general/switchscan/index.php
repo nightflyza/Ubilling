@@ -91,8 +91,8 @@ if (cfr('SWITCHESEDIT')) {
              * А як прийшов із армії додому
              * Тебе побачив і на дупу впав
              */
-            $curNet = (wf_CheckPost(array('searchnetdevs'))) ? $_POST['searchnetdevs'] : '';
-            $curCidr = (wf_CheckPost(array('searchnetcidr'))) ? $_POST['searchnetcidr'] : 21;
+            $curNet = (ubRouting::checkPost('searchnetdevs')) ? ubRouting::post('searchnetdevs') : '';
+            $curCidr = (ubRouting::checkPost('searchnetcidr')) ? ubRouting::post('searchnetcidr', 'int') : 21;
             $inputs = wf_TextInput('searchnetdevs', __('Network') . ' /', $curNet, false, 20);
             $inputs .= wf_Selector('searchnetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
             $inputs .= wf_Submit(__('Search'));
@@ -107,8 +107,8 @@ if (cfr('SWITCHESEDIT')) {
          */
         public function renderFormFree() {
             $result = '';
-            $curNet = (wf_CheckPost(array('freenetdevs'))) ? $_POST['freenetdevs'] : '';
-            $curCidr = (wf_CheckPost(array('freecidr'))) ? $_POST['freenetcidr'] : 21;
+            $curNet = (ubRouting::checkPost('freenetdevs')) ? ubRouting::post('freenetdevs') : '';
+            $curCidr = (ubRouting::checkPost('freecidr')) ? ubRouting::post('freenetcidr', 'int') : 21;
             $inputs = wf_TextInput('freenetdevs', __('Network') . ' /', $curNet, false, 20);
             $inputs .= wf_Selector('freenetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
             $inputs .= wf_Submit(__('Show'));
@@ -247,8 +247,8 @@ if (cfr('SWITCHESEDIT')) {
 
 
     //searching for unknown devices
-    if (wf_CheckPost(array('searchnetdevs', 'searchnetcidr'))) {
-        $extractResult = $scan->extractIpData($_POST['searchnetdevs'], $_POST['searchnetcidr']);
+    if (ubRouting::checkPost(array('searchnetdevs', 'searchnetcidr'))) {
+        $extractResult = $scan->extractIpData(ubRouting::post('searchnetdevs'), ubRouting::post('searchnetcidr'));
         if (empty($extractResult)) {
             show_window(__('Search results'), $scan->searchDevices());
         } else {
@@ -257,8 +257,8 @@ if (cfr('SWITCHESEDIT')) {
     }
 
     //looking for some freee IPs
-    if (wf_CheckPost(array('freenetdevs', 'freenetcidr'))) {
-        $extractResult = $scan->extractIpData($_POST['freenetdevs'], $_POST['freenetcidr']);
+    if (ubRouting::checkPost(array('freenetdevs', 'freenetcidr'))) {
+        $extractResult = $scan->extractIpData(ubRouting::post('freenetdevs'), ubRouting::post('freenetcidr'));
         if (empty($extractResult)) {
             show_window(__('Free IPs'), $scan->lookupFreeIPs());
         } else {
