@@ -266,6 +266,7 @@ if ($us_config['SC_ENABLED']) {
             //ok, no credit now
             $performCredit = false; //just form
             $agreementCheck = false; //agreement accept
+            $justCheckPossibility = false; //possibility check for agentcredit
             //check web forms
             if (ubRouting::checkPost('setcredit')) {
                 $performCredit = true;
@@ -278,6 +279,7 @@ if ($us_config['SC_ENABLED']) {
             if (ubRouting::checkGet('agentcredit')) {
                 $performCredit = true;
                 $agreementCheck = true;
+                $justCheckPossibility = (ubRouting::checkGet('justcheck')) ? true : false;
             }
 
             // allow user to set it if its required
@@ -306,7 +308,9 @@ if ($us_config['SC_ENABLED']) {
                                         if ($sc_monthcontrol) {
                                             if (zbs_CreditLogCheckMonth($user_login)) {
                                                 //check for allow option
-                                                zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                                if (!$justCheckPossibility) {
+                                                    zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                                }
                                                 $scAgentResult = array();
                                                 $scAgentResult[] = array('status' => 0);
                                                 $scAgentResult[] = array('message' => 'success');
@@ -322,7 +326,9 @@ if ($us_config['SC_ENABLED']) {
                                                 $scAgentResult[] = array('message' => 'already used in this month');
                                             }
                                         } else {
-                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                            if (!$justCheckPossibility) {
+                                                zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                            }
                                             $scAgentResult = array();
                                             $scAgentResult[] = array('status' => 0);
                                             $scAgentResult[] = array('message' => 'success');
