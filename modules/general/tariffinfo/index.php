@@ -64,10 +64,12 @@ if (cfr('USERPROFILE')) {
 
                 if ($powerTariffFlag) {
                     $userLogin = ubRouting::get('username');
-                    $cells = wf_TableCell(__('Day'), '', 'row1');
-                    $personalDayOffset = $powerTariffs->getUserOffsetDay($userLogin);
-                    $cells .= wf_TableCell($personalDayOffset);
-                    $rows .= wf_TableRow($cells, 'row2');
+                    if (!empty($userLogin)) {
+                        $cells = wf_TableCell(__('Day'), '', 'row1');
+                        $personalDayOffset = $powerTariffs->getUserOffsetDay($userLogin);
+                        $cells .= wf_TableCell($personalDayOffset);
+                        $rows .= wf_TableRow($cells, 'row2');
+                    }
                 }
             }
 
