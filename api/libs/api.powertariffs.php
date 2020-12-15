@@ -424,7 +424,6 @@ class PowerTariffs {
         $result = 0;
         if (isset($this->allUsers[$userLogin])) {
             $result = $this->allUsers[$userLogin];
-            debarr($result);
         } else {
             $result = -2;
         }
