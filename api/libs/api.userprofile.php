@@ -1432,7 +1432,11 @@ class UserProfile {
             $containerId = ($nextMonth) ? 'TARIFFINFO_CONTAINER' : 'TARIFFINFO_CONTAINERNM';
             if (!empty($tariffName)) {
                 $result .= wf_AjaxLoader();
-                $result .= wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
+                $ajURL = '?module=tariffinfo&tariff=' . $tariffName;
+                if (@$this->alterCfg['PT_ENABLED']) {
+                    $ajURL .= '&username=' . $this->login;
+                }
+                $result .= wf_AjaxLink($ajURL, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
             }
         }
         return ($result);

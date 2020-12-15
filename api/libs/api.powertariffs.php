@@ -116,14 +116,18 @@ class PowerTariffs {
 
     /**
      * Creates new PT instance
+     * 
+     * @param bool $loadAll Load system users and tariffs too.
      */
-    public function __construct() {
+    public function __construct($loadAll = true) {
         $this->initMessages();
         $this->setCurrentDate();
         $this->setCurrentAdmin();
         $this->initPowerBase();
-        $this->loadSystemTariffs();
-        $this->loadSystemUsers();
+        if ($loadAll) {
+            $this->loadSystemTariffs();
+            $this->loadSystemUsers();
+        }
         $this->loadPowerTariffs(); //Go Go Power Rangers
         $this->loadPowerUsers();
     }
@@ -375,6 +379,54 @@ class PowerTariffs {
             log_register('PT DELETE TARIFF [' . $tariffData['id'] . '] NAME `' . $tariffData['tariff'] . '` FEE `' . $tariffData['fee'] . '`');
         } else {
             $result .= 'Tariff not exists';
+        }
+        return($result);
+    }
+
+    /**
+     * Checks is some tariff really have the power?
+     * 
+     * @param string $tariffName
+     * 
+     * @return bool
+     */
+    public function isPowerTariff($tariffName) {
+        $result = false;
+        if (isset($this->allTariffs[$tariffName])) {
+            $result = true;
+        }
+        return($result);
+    }
+
+    /**
+     * Returns existing power tariff price
+     * 
+     * @param string $tariffName
+     * 
+     * @return float
+     */
+    public function getPowerTariffPrice($tariffName) {
+        $result = 0;
+        if ($this->isPowerTariff($tariffName)) {
+            $result = $this->allTariffs[$tariffName]['fee'];
+        }
+        return($result);
+    }
+
+    /**
+     * Returns user personal day offset
+     * 
+     * @param string $userLogin
+     * 
+     * @return int / -2 - not power user issue
+     */
+    public function getUserOffsetDay($userLogin) {
+        $result = 0;
+        if (isset($this->allUsers[$userLogin])) {
+            $result = $this->allUsers[$userLogin];
+            debarr($result);
+        } else {
+            $result = -2;
         }
         return($result);
     }

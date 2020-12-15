@@ -3,16 +3,38 @@
 $result = '';
 if (cfr('USERPROFILE')) {
     if (wf_CheckGet(array('tariff'))) {
-        $tariffName = mysql_real_escape_string($_GET['tariff']);
-        $tariffNameRaw = $_GET['tariff'];
+        $tariffName = ubRouting::get('tariff', 'mres');
+        $tariffNameRaw = ubRouting::get('tariff');
         $tariffInfo = '';
         if ($tariffName == '*_NO_TARIFF_*') {
             $messages = new UbillingMessageHelper();
             $tariffInfo = $messages->getStyledMessage(__('No tariff'), 'warning');
         } else {
-            $tariffPrice = zb_TariffGetPrice($tariffNameRaw);
+            $altCfg = $ubillingConfig->getAlter();
+            $powerTariffFlag = false;
+
+            if (@$altCfg['PT_ENABLED']) {
+                $powerTariffs = new PowerTariffs(false);
+                if ($powerTariffs->isPowerTariff($tariffName)) {
+                    //Thats is power tariff
+                    $powerTariffFlag = true;
+                } else {
+                    //user have an normal tariff
+                    $powerTariffFlag = false;
+                }
+            }
+
+
+
+            if ($powerTariffFlag) {
+                $tariffPrice = $powerTariffs->getPowerTariffPrice($tariffName);
+            } else {
+                $tariffPrice = zb_TariffGetPrice($tariffName);
+            }
+
             $tariffPeriods = zb_TariffGetPeriodsAll();
             $tariffSpeeds = zb_TariffGetAllSpeeds();
+
             $speedDown = (isset($tariffSpeeds[$tariffName])) ? $tariffSpeeds[$tariffName]['speeddown'] : __('No');
             $speedUp = (isset($tariffSpeeds[$tariffName])) ? $tariffSpeeds[$tariffName]['speedup'] : __('No');
 
@@ -34,6 +56,21 @@ if (cfr('USERPROFILE')) {
             $cells .= wf_TableCell($period);
             $rows .= wf_TableRow($cells, 'row2');
 
+            if (@$altCfg['PT_ENABLED']) {
+                $cells = wf_TableCell(__('Power tariff'), '', 'row1');
+                $tariffTypeLabel = ($powerTariffFlag) ? __('Yes') : __('No');
+                $cells .= wf_TableCell($tariffTypeLabel);
+                $rows .= wf_TableRow($cells, 'row2');
+
+                if ($powerTariffFlag) {
+                    $userLogin = ubRouting::get('username');
+                    $cells = wf_TableCell(__('Day'), '', 'row1');
+                    $personalDayOffset = $powerTariffs->getUserOffsetDay($userLogin);
+                    $cells .= wf_TableCell($personalDayOffset);
+                    $rows .= wf_TableRow($cells, 'row2');
+                }
+            }
+
             $tariffInfo = wf_TableBody($rows, '40%', 0, '');
         }
         $result = $tariffInfo;
@@ -44,5 +81,10 @@ if (cfr('USERPROFILE')) {
     $result = __('Access denied');
 }
 
-die($result);
+//rendering results
+if (!ubRouting::checkGet('debug')) {
+    die($result);
+} else {
+    deb($result);
+}
 ?>
