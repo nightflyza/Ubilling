@@ -48,3 +48,4 @@ $lang['def']['Database'] = 'База данных';
 $lang['def']['Archive days'] = 'Дней архива';
 $lang['def']['Model mismatch warning disabled on this DVR'] = 'Отключить предупреждение о несоответствии модели на этом DVR';
 $lang['def']['Cant detect mismatch warning state for camera'] = 'Не могу получить состояние отключенности предупреждений для этой камеры';
+$lang['def']['Tariff will change'] = 'Тариф изменится';

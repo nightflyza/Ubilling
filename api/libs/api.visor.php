@@ -184,6 +184,7 @@ class UbillingVisor {
     const URL_USERVIEW = '&showuser=';
     const URL_CAMPROFILE = '?module=userprofile&username=';
     const URL_CAMVIEW = '&showcamera=';
+    const URL_TARCHANGE = '&tariffchanges=true';
 
     /**
      * Some default database tables names
@@ -422,6 +423,10 @@ class UbillingVisor {
                 $result .= wf_Link(self::URL_ME . self::URL_CHANS, wf_img('skins/play.png') . ' ' . __('Channels'), false, 'ubButton') . ' ';
                 $result .= wf_Link(self::URL_ME . self::URL_HEALTH, wf_img('skins/log_icon_small.png') . ' ' . __('DVR health'), false, 'ubButton') . ' ';
             }
+        }
+
+        if (@$this->altCfg['DDT_ENABLED']) {
+            $result .= wf_Link(self::URL_ME . self::URL_TARCHANGE, wf_img_sized('skins/icon_tariff.gif', '', '16') . ' ' . __('Tariff will change'), false, 'ubButton') . ' ';
         }
         return ($result);
     }
@@ -2004,6 +2009,66 @@ class UbillingVisor {
                     $result++;
                 }
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders tariffs changes report based on DDT log
+     * 
+     * @return string
+     */
+    public function renderTariffChangesReport() {
+        $result = '';
+        $curMonth = curmonth();
+
+        if (@$this->altCfg['DDT_ENABLED']) {
+            $ddtDb = new NyanORM('ddt_users');
+            $allDoomedUsers = $ddtDb->getAll();
+            $reportTmp = array();
+            if (!empty($allDoomedUsers)) {
+                foreach ($allDoomedUsers as $io => $each) {
+                    if (ispos($each['enddate'], $curMonth)) {
+                        if ($this->getCameraIdByLogin($each['login'])) {
+                            $reportTmp[$io] = $each;
+                        }
+                    }
+                }
+
+                //rendering report
+                if (!empty($reportTmp)) {
+                    $cells = wf_TableCell(__('Camera'));
+                    $cells .= wf_TableCell(__('Tariff'));
+                    $cells .= wf_TableCell(__('End date'));
+                    $cells .= wf_TableCell(__('New tariff'));
+                    $cells .= wf_TableCell(__('User'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($reportTmp as $io => $each) {
+                        $cameraUserId = $this->getCameraUser($each['login']);
+                        $cameraUserData = @$this->allUserData[$each['login']];
+
+                        $visorLinkLabel = $this->iconVisorUser() . ' ' . @$this->allUsers[$cameraUserId]['realname'];
+                        $visorUserLink = wf_Link(self::URL_ME . self::URL_USERVIEW . $cameraUserId, $visorLinkLabel);
+
+                        $cameraLinkLabel = web_profile_icon() . ' ' . @$cameraUserData['fulladress'];
+                        $cameraLink = wf_Link(self::URL_CAMPROFILE . $each['login'], $cameraLinkLabel);
+                        $cells = wf_TableCell($cameraLink);
+                        $cells .= wf_TableCell($each['curtariff']);
+                        $cells .= wf_TableCell($each['enddate']);
+                        $cells .= wf_TableCell($each['nexttariff']);
+                        $cells .= wf_TableCell($visorUserLink);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing found'), 'success');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('This module is disabled') . ': ' . __('Doomsday tariffs'), 'error');
         }
         return($result);
     }

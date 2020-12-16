@@ -160,7 +160,7 @@ if (cfr('VISOR')) {
         }
 
         //existing DVR listing
-        if (ubRouting::checkGet(array('dvrs'))) {
+        if (ubRouting::checkGet('dvrs')) {
             show_window(__('DVRs'), $visor->renderDVRsList());
         }
 
@@ -175,8 +175,13 @@ if (cfr('VISOR')) {
         }
 
         //DVRs health
-        if (ubRouting::checkGet(array('health'))) {
+        if (ubRouting::checkGet('health')) {
             show_window(__('DVR health'), $visor->renderDVRsHealth());
+        }
+
+        //Tariff changes detection
+        if (ubRouting::checkGet('tariffchanges')) {
+            show_window(__('Tariff will change'), $visor->renderTariffChangesReport());
         }
     } else {
         show_error(__('This module is disabled'));
