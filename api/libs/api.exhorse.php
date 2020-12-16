@@ -710,8 +710,8 @@ class ExistentialHorse {
                             if (sizeof($each) > 25) {
                                 array_splice($each, 3, 1);
                             }
-                            if (!ispos($each[16], 'out')) {
-                                $startTime = explode(' ', $each[9]);
+                            if (@!ispos($each[16], 'out')) {
+                                @$startTime = explode(' ', $each[9]);
                                 @$startTime = $startTime[1];
                                 //only working time
                                 if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
@@ -731,12 +731,12 @@ class ExistentialHorse {
                              * CFLOWS FIX
                              * ************** */
                             //some flow started for income call
-                            if (!ispos($each['16'], 'out')) {
+                            if (@!ispos($each['16'], 'out')) {
                                 $incomeNumber = $each[1];
                                 if ($each[2] == 'CALLFLOW-START' OR ispos($each[8], 'CALLFLOW-START')) {
                                     $callFlows[$incomeNumber . '|' . $each[11]] = 'NO ANSWER';
                                 } else {
-                                    if (isset($callFlows[$incomeNumber . '|' . $each[11]])) {
+                                    if (isset($callFlows[$incomeNumber . '|' . @$each[11]])) {
                                         $callFlows[$incomeNumber . '|' . $each[11]] = $each[14];
                                     } else {
                                         foreach ($callFlows as $cflowid => $cflowdata) {
