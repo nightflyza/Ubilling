@@ -1171,19 +1171,31 @@ class Warehouse {
                 $cells = wf_TableCell(__('Category'));
                 $cells .= wf_TableCell(__('Warehouse item type'));
                 $cells .= wf_TableCell(__('Expected count') . ' (' . __('Reserved') . ')');
-                $cells .= wf_TableCell(__('Notes'));
+                if (ubRouting::checkGet('invprintable')) {
+                    $cells .= wf_TableCell(__('Notes'));
+                }
 
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($reportTmp as $itemTypeId => $count) {
                     $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemTypeId]['categoryid']]);
                     $cells .= wf_TableCell(@$this->allItemTypeNames[$itemTypeId]);
                     $cells .= wf_TableCell($count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemTypeId]['unit']]);
-                    $cells .= wf_TableCell('');
+                    if (ubRouting::checkGet('invprintable')) {
+                        $cells .= wf_TableCell('');
+                    }
                     $rows .= wf_TableRow($cells, 'row3');
                 }
 
                 $result .= wf_TableBody($rows, '100%', 0, 'sortable');
-                $this->reportPrintable(__('Employee inventory') . ': ' . @$this->allEmployee[$employeeId], $result);
+                if (ubRouting::checkGet('invprintable')) {
+                    //printable inventory report
+                    $this->reportPrintable(__('Employee inventory') . ': ' . @$this->allEmployee[$employeeId], $result);
+                } else {
+                    //normal renderer
+                    $inventoryUrl = self::URL_ME . '&' . self::URL_RESERVE . '&empinventory=' . $employeeId . '&invprintable=true';
+                    $reportControls = wf_Link($inventoryUrl, web_icon_print());
+                    show_window(__('Employee inventory') . ': ' . @$this->allEmployee[$employeeId] . ' ' . $reportControls, $result);
+                }
             } else {
                 show_info(__('Nothing to show'));
             }
