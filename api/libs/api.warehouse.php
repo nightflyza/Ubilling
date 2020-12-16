@@ -1101,7 +1101,7 @@ class Warehouse {
     public function reserveListAjaxReply($employeeId = '') {
         $json = new wf_JqDtHelper();
         $employeeId = ubRouting::filters($employeeId, 'int');
-        
+
         $filtered = true;
         if (!empty($this->allReserve)) {
             foreach ($this->allReserve as $io => $each) {
@@ -1140,6 +1140,56 @@ class Warehouse {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Renders printable per-employee reserves summary.
+     * 
+     * @param int $employeeId
+     * 
+     * @return void
+     */
+    public function reportEmployeeInventrory($employeeId) {
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        $reportTmp = array();
+        $result = '';
+        if (!empty($employeeId)) {
+            $filtered = true;
+            if (!empty($this->allReserve)) {
+                foreach ($this->allReserve as $io => $each) {
+                    if ($each['employeeid'] == $employeeId) {
+                        if (isset($reportTmp[$each['itemtypeid']])) {
+                            $reportTmp[$each['itemtypeid']] += $each['count'];
+                        } else {
+                            $reportTmp[$each['itemtypeid']] = $each['count'];
+                        }
+                    }
+                }
+            }
+
+            if (!empty($reportTmp)) {
+                $cells = wf_TableCell(__('Category'));
+                $cells .= wf_TableCell(__('Warehouse item type'));
+                $cells .= wf_TableCell(__('Expected count') . ' (' . __('Reserved') . ')');
+                $cells .= wf_TableCell(__('Notes'));
+
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($reportTmp as $itemTypeId => $count) {
+                    $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemTypeId]['categoryid']]);
+                    $cells .= wf_TableCell(@$this->allItemTypeNames[$itemTypeId]);
+                    $cells .= wf_TableCell($count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemTypeId]['unit']]);
+                    $cells .= wf_TableCell('');
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                $this->reportPrintable(__('Employee inventory') . ': ' . @$this->allEmployee[$employeeId], $result);
+            } else {
+                show_info(__('Nothing to show'));
+            }
+        } else {
+            show_error(__('Something went wrong') . ' EX_EMPLOYEEID_EMPTY');
+        }
     }
 
     /**

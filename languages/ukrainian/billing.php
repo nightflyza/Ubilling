@@ -3220,6 +3220,8 @@ $lang['def']['Bad karma'] = 'Погана карма';
 $lang['def']['Good karma'] = 'Хороша карма';
 $lang['def']['Set user credit for'] = 'Встановити кредит на';
 $lang['def']['days if required'] = 'днів, якщо це потрібно';
+$lang['def']['Employee inventory'] = 'Інвентаризація працівника';
+$lang['def']['Expected count'] = 'Очікувана кількість';
 $lang['def'][''] = '';
 
 

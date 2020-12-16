@@ -236,15 +236,30 @@ if (cfr('WAREHOUSE')) {
                         show_window('', $massReserveResult);
                     }
 
-                    $reserveControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
+                    $reserveControls = '';
+                    if (ubRouting::checkGet('empidfilter')) {
+                        $inventoryUrl = $warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&empinventory=' . ubRouting::get('empidfilter');
+                        $reserveControls .= wf_Link($inventoryUrl, wf_img('skins/icon_user.gif', __('Employee inventory')), false) . ' ';
+                    } else {
+
+                        $reserveControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
+                    }
+
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&reshistory=true', wf_img('skins/time_machine.png', __('History')), false) . ' ';
+
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
+
+
 
                     if (!wf_CheckGet(array('mass'))) {
                         if (wf_CheckGet(array('reshistory'))) {
                             show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
                         } else {
-                            show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
+                            if (ubRouting::checkGet('empinventory')) {
+                                $warehouse->reportEmployeeInventrory(ubRouting::get('empinventory'));
+                            } else {
+                                show_window(__('Reserved') . ' ' . $reserveControls, $warehouse->reserveRenderList());
+                            }
                         }
                     } else {
                         show_window(__('Mass reservation'), $warehouse->reserveMassForm());
