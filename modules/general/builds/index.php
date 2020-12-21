@@ -89,5 +89,8 @@ if (cfr('BUILDS')) {
            }
         }
     }
+} else {
+  show_error(__('Access denied'));
 }
+
 ?>
