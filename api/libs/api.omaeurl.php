@@ -284,7 +284,7 @@ class OmaeUrl {
      * 
      * @return void
      */
-    protected function setOpt($option, $value) {
+    public function setOpt($option, $value) {
         $this->curlOpts[$option] = $value;
     }
 

@@ -2236,4 +2236,57 @@ function getZabbixProblems($switchIP) {
     return ($problemActions);
 }
 
+/**
+ * Converts string IPv4 address/netmask to a HEX representation:
+ * 192.168.1.1 -> c0a80101
+ * $upperCase       keep in mind it won't make HEX prefix to upper case, like '0x' -> '0X'
+ * $dotSeparated    makes something like: 192.168.1.1 -> c0.a8.01.01
+ * $hexPrefix       makes something like: 192.168.1.1 -> 0xc0a80101
+ *
+ * @param string $ip
+ * @param bool $upperCase
+ * @param bool $dotSeparated
+ * @param bool $hexPrefix
+ *
+ * @return string
+ */
+function multinet_ip2hex($ip, $upperCase = false, $dotSeparated = false, $hexPrefix = false) {
+    $hexIP = '';
+
+    if (!empty($ip)) {
+        if ($ip == '0.0.0.0' and $dotSeparated) {
+            $hexIP = $ip;
+        } else {
+            $hexIP = dechex(ip2long($ip));
+
+            if ($dotSeparated) {
+                $hexIP = trim(chunk_split($hexIP, 2, '.'), '.');
+            }
+
+            if ($upperCase) {
+                $hexIP = strtoupper($hexIP);
+            }
+        }
+
+        if ($hexPrefix) {
+            $hexIP = '0x' . $hexIP;
+        }
+    }
+
+    return ($hexIP);
+}
+
+/**
+ * Tries to get network CIDR from it's description for a given network ID
+ *
+ * @param $netID
+ *
+ * @return string
+ */
+function multinet_get_network_cidr_from_descr($netID) {
+    $networkData = multinet_get_network_params($netID);
+    $networkCIDR = (!empty($networkData['desc']) and ispos($networkData['desc'], '/')) ? substr($networkData['desc'], -2) : '';
+
+    return($networkCIDR);
+}
 ?>

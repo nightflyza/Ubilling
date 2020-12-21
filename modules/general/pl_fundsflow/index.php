@@ -7,7 +7,7 @@ if (cfr('PLFUNDS')) {
 
         $funds = new FundsFlow();
 
-        show_window('', $funds->getOnlineLeftCount($login));
+        show_window('', $funds->getOnlineLeftCount($login, false, $ubillingConfig->getAlterParam('FUNDSFLOW_CONSIDER_VSERVICES')));
 
         $allfees = $funds->getFees($login);
         $allpayments = $funds->getPayments($login);

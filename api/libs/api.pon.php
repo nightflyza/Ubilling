@@ -375,7 +375,7 @@ class PONizer {
      * @return void
      */
     protected function loadOltDevices() {
-        $query = "SELECT `id`,`ip`,`location`,`snmp`,`modelid` from `switches` WHERE `desc` LIKE '%OLT%';";
+        $query = "SELECT `id`,`ip`,`location`,`snmp`,`modelid`, `desc` from `switches` WHERE `desc` LIKE '%OLT%';";
         $raw = simple_queryall($query);
         if (!empty($raw)) {
             foreach ($raw as $io => $each) {
@@ -385,6 +385,7 @@ class PONizer {
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
                     $this->allOltSnmp[$each['id']]['ip'] = $each['ip'];
+                    $this->allOltSnmp[$each['id']]['nofdbquery'] = ispos($each['desc'], 'NOFDBQUERY');
                 }
             }
         }
@@ -691,8 +692,8 @@ class PONizer {
                     }
 
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                            $tmpONULastDeregReasonStr .
-                            wf_tag('font', true);
+                                                $tmpONULastDeregReasonStr .
+                                                wf_tag('font', true);
 
                     $deregTmp[$devIndex] = $tmpONULastDeregReasonStr;
                 }
@@ -1434,6 +1435,114 @@ class PONizer {
     }
 
     /**
+     * Parses & stores to cache ONUs FDB cache (MACs behind ONU)
+     *
+     * @param $oltID
+     * @param $onuMACIndex
+     * @param $fdbIndex
+     * @param $fdbMACIndex
+     * @param $fdbVLANIndex
+     */
+    protected function fdbParseStels($oltID, $onuMACIndex, $fdbIndex, $fdbMACIndex, $fdbVLANIndex) {
+        $macLLIDIndexes = array();
+        $fdbLLIDIndexes = array();
+        $fdbIdxMAC      = array();
+        $fdbIdxVLAN     = array();
+        $fdbCahce       = array();
+
+// processing $onuMACIndex array to get pon port number + ONU LLID => ONU MAC mapping
+        if (!empty($onuMACIndex) and !empty($fdbIndex)) {
+            foreach ($onuMACIndex as $eachIdx => $eachONUMAC) {
+                $line = explode('=', $eachONUMAC);
+// MAC is present
+                if (isset($line[1])) {
+                    $onuMAC         = trim($line[1]);
+                    $tmpIndex       = trim($line[0]);               // pon port number + device index
+                    $tmpIndex       = explode('.', $tmpIndex);
+
+                    $portIndex      = trim($tmpIndex[0]);           // pon port number
+                    $devIndexRaw    = $tmpIndex[1];
+                    $devIndexLLID   = ($devIndexRaw - 1) / 256;     // ONU LLID
+                    $macLLIDIndexes[$portIndex . ':' . $devIndexLLID] = $onuMAC;     // pon port number + ONU LLID => ONU MAC
+                }
+            }
+
+// processing FDBIndex array to get FDB index number => pon port number + ONU LLID mapping
+            foreach ($fdbIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// ONU LLID is present
+                if (isset($line[1])) {
+                    $devLLID    = trim($line[1]);                   // ONU LLID
+                    $tmpIndex   = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex   = explode('.', $tmpIndex);
+
+                    $portIndex  = trim($tmpIndex[0]);               // pon port number
+                    $fdbIdxRaw  = $tmpIndex[1];                     // FDB index number
+                    $fdbLLIDIndexes[$fdbIdxRaw] = $portIndex . ':' . $devLLID;       // FDB index number => pon port number + ONU LLID
+                }
+            }
+
+// processing $fdbMACIndex array to get FDB index number => FDB MAC mapping
+            foreach ($fdbMACIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB MAC is present
+                if (isset($line[1])) {
+                    $fdbMAC     = trim($line[1]);                   // FDB MAC
+                    $tmpIndex   = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex   = explode('.', $tmpIndex);
+
+                    $fdbIdxRaw  = $tmpIndex[1];                     // FDB index number
+                    $fdbIdxMAC[$fdbIdxRaw] = $fdbMAC;               // FDB index number => FDB MAC
+                }
+            }
+
+// processing $fdbVLANIndex array to get FDB index number => FDB VLAN mapping
+            foreach ($fdbVLANIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB VLAN is present
+                if (isset($line[1])) {
+                    $fdbVLAN    = trim($line[1]);                   // FDB VLAN
+                    $tmpIndex   = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex   = explode('.', $tmpIndex);
+
+                    $fdbIdxRaw  = $tmpIndex[1];                     // FDB index number
+                    $fdbIdxVLAN[$fdbIdxRaw] = $fdbVLAN;             // FDB index number => FDB VLAN
+                }
+            }
+
+            if (!empty($macLLIDIndexes) and !empty($fdbLLIDIndexes)) {
+                foreach ($macLLIDIndexes as $eachLLID => $eachONUMAC) {
+                    $onuFDBIdxs = array_keys($fdbLLIDIndexes, $eachLLID);
+
+                    if (!empty($onuFDBIdxs)) {
+                        $tmpFDBArr = array();
+                        $tmpONUMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator($eachONUMAC, array(':', '-', '.', ' '))));
+
+                        foreach ($onuFDBIdxs as $io => $eachIdx) {
+                            $tmpFDBMAC = empty($fdbIdxMAC[$eachIdx]) ? '' : $fdbIdxMAC[$eachIdx];
+
+                            if (empty($tmpFDBMAC) or $tmpFDBMAC == $eachONUMAC) {
+                                continue;
+                            } else {
+                                $tmpFDBMAC  = strtolower(AddMacSeparator(RemoveMacAddressSeparator($tmpFDBMAC, array(':', '-', '.', ' '))));
+                                $tmpFDBVLAN = empty($fdbIdxVLAN[$eachIdx]) ? '' : $fdbIdxVLAN[$eachIdx];
+                                $tmpONUID   = $this->getONUIDByMAC($tmpONUMAC);
+                                $tmpONUID   = (empty($tmpONUID)) ? $eachIdx : $tmpONUID;
+                                $tmpFDBArr[$tmpONUID] = array('mac' => $tmpFDBMAC, 'vlan' => $tmpFDBVLAN);
+                            }
+                        }
+
+                        $fdbCahce[$tmpONUMAC] = $tmpFDBArr;
+                    }
+                }
+            }
+        }
+
+        $fdbCahce = serialize($fdbCahce);
+        file_put_contents(self::FDBCACHE_PATH . $oltID . '_' . self::FDBCACHE_EXT, $fdbCahce);
+    }
+
+    /**
      * Processes V-SOLUTION OLT MAC adresses and returns them in array: LLID=>MAC
      *
      * @param $macIndex
@@ -1717,8 +1826,8 @@ class PONizer {
 
                 if (!empty($tmpONUPortLLID)) {
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                            $tmpONULastDeregReasonStr .
-                            wf_tag('font', true);
+                                                $tmpONULastDeregReasonStr .
+                                                wf_tag('font', true);
 
                     $ONUDeRegs[$tmpONUPortLLID] = $tmpONULastDeregReasonStr;
                 }
@@ -1737,6 +1846,73 @@ class PONizer {
     }
 
     /**
+     * Parses & stores to cache ONUs FDB cache (MACs behind ONU)
+     *
+     * @param $oltID
+     * @param $onuMACIndex
+     * @param $fdbIndex
+     * @param $fdbVLANIndex
+     */
+    protected function fdbParseVSOL($oltID, $onuMACIndex, $fdbIndex, $fdbVLANIndex) {
+        $fdbIdxMAC      = array();
+        $fdbIdxVLAN     = array();
+        $fdbCahce       = array();
+
+        if (!empty($fdbIndex)) {
+// processing FDBIndex array to get FDB MAC => pon port number + ONU LLID mapping
+            foreach ($fdbIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// ONU LLID is present
+                if (isset($line[1])) {
+                    $portLLID = trim(str_replace(array('"', 'EPON0/'), '', $line[1]));        // pon port number + ONU LLID
+                    $portLLID = str_replace(':', '.', $portLLID);
+                    $fdbMAC = trim($this->convertMACDec2Hex($line[0]));                            // FDB MAC in dotted DEC format
+                    $fdbIdxMAC[$fdbMAC] = $portLLID;             // FDB MAC => pon port number + ONU LLID
+                }
+            }
+        }
+
+        if (!empty($fdbVLANIndex)) {
+// processing $fdbVLANIndex array to get FDB MAC => FDB VLAN mapping
+            foreach ($fdbVLANIndex as $each => $eachIdx) {
+                $line = explode('=', $eachIdx);
+// FDB VLAN is present
+                if (isset($line[1])) {
+                    $fdbVLAN = trim($line[1]);                // pon port number + ONU LLID
+                    $fdbMAC = trim($this->convertMACDec2Hex($line[0]));                            // FDB MAC in dotted DEC format
+                    $fdbIdxVLAN[$fdbMAC] = $fdbVLAN;             // FDB MAC => FDB VLAN
+                }
+            }
+        }
+
+        if (!empty($onuMACIndex) and !empty($fdbIdxMAC)) {
+            foreach ($onuMACIndex as $eachLLID => $eachONUMAC) {
+                $onuFDBIdxs = array_keys($fdbIdxMAC, $eachLLID);
+
+                if (!empty($onuFDBIdxs)) {
+                    $tmpFDBArr = array();
+
+                    foreach ($onuFDBIdxs as $io => $eachFDBMAC) {
+                        if (empty($eachFDBMAC) or $eachFDBMAC == $eachONUMAC) {
+                            continue;
+                        } else {
+                            $tmpFDBVLAN = empty($fdbIdxVLAN[$eachFDBMAC]) ? '' : $fdbIdxVLAN[$eachFDBMAC];
+                            $tmpONUID   = $this->getONUIDByMAC($eachONUMAC);
+                            $tmpONUID   = (empty($tmpONUID)) ? $io : $tmpONUID;
+                            $tmpFDBArr[$tmpONUID] = array('mac' => $eachFDBMAC, 'vlan' => $tmpFDBVLAN);
+                        }
+                    }
+
+                    $fdbCahce[$eachONUMAC] = $tmpFDBArr;
+                }
+            }
+        }
+
+        $fdbCahce = serialize($fdbCahce);
+        file_put_contents(self::FDBCACHE_PATH . $oltID . '_' . self::FDBCACHE_EXT, $fdbCahce);
+    }
+
+    /**
      * Performs  OLT device polling with snmp
      *
      * @param int $oltid
@@ -1750,6 +1926,7 @@ class PONizer {
                 $oltCommunity = $this->allOltSnmp[$oltid]['community'];
                 $oltModelId = $this->allOltSnmp[$oltid]['modelid'];
                 $oltIp = $this->allOltSnmp[$oltid]['ip'];
+                $oltNoFDBQ = $this->allOltSnmp[$oltid]['nofdbquery'];
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
 
@@ -1996,9 +2173,9 @@ class PONizer {
                             }
                         }
 
-// Stels FDXXXX or V-Solution 1600D devices polling
-                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD'
-                                OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
+// Stels FD11XX or V-Solution 1600D devices polling
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD' or
+                            $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
 
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -2029,10 +2206,31 @@ class PONizer {
                                             $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
                                             $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                             $onuIndex = explodeRows($onuIndex);
-                                            $this->distanceParseStels($oltid, $distIndex, $onuIndex);
 
-//use same data for ONU interface caching
+                                            $this->distanceParseStels($oltid, $distIndex, $onuIndex);
                                             $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
+
+                                            if (!$oltNoFDBQ) {
+                                                $fdbIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                                                $fdbIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbIndexOID, self::SNMPCACHE);
+                                                $fdbIndex = str_replace($fdbIndexOID . '.', '', $fdbIndex);
+                                                $fdbIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $fdbIndex);
+                                                $fdbIndex = explodeRows($fdbIndex);
+
+                                                $fdbMACIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBMACINDEX'];
+                                                $fdbMACIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbMACIndexOID, self::SNMPCACHE);
+                                                $fdbMACIndex = str_replace($fdbMACIndexOID . '.', '', $fdbMACIndex);
+                                                $fdbMACIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBMACVALUE'], '', $fdbMACIndex);
+                                                $fdbMACIndex = explodeRows($fdbMACIndex);
+
+                                                $fdbVLANIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBVLANINDEX'];
+                                                $fdbVLANIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbVLANIndexOID, self::SNMPCACHE);
+                                                $fdbVLANIndex = str_replace($fdbVLANIndexOID . '.', '', $fdbVLANIndex);
+                                                $fdbVLANIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVLANVALUE'], '', $fdbVLANIndex);
+                                                $fdbVLANIndex = explodeRows($fdbVLANIndex);
+
+                                                $this->fdbParseStels($oltid, $macIndex, $fdbIndex, $fdbMACIndex, $fdbVLANIndex);
+                                            }
                                         }
                                     }
                                 }
@@ -2074,6 +2272,22 @@ class PONizer {
                                     $lastDeregIndex = explodeRows($lastDeregIndex);
 
                                     $this->lastDeregParseVSOL($oltid, $lastDeregIndex, $VSOLMACsProcessed);
+
+                                    if (!$oltNoFDBQ) {
+                                        $fdbIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                                        $fdbIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbIndexOID, self::SNMPCACHE);
+                                        $fdbIndex = str_replace($fdbIndexOID . '.', '', $fdbIndex);
+                                        $fdbIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $fdbIndex);
+                                        $fdbIndex = explodeRows($fdbIndex);
+
+                                        $fdbMACVLANOID = $this->snmpTemplates[$oltModelId]['misc']['FDBVLANINDEX'];
+                                        $fdbVLANIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $fdbMACVLANOID, self::SNMPCACHE);
+                                        $fdbVLANIndex = str_replace($fdbMACVLANOID . '.', '', $fdbVLANIndex);
+                                        $fdbVLANIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVLANVALUE'], '', $fdbVLANIndex);
+                                        $fdbVLANIndex = explodeRows($fdbVLANIndex);
+
+                                        $this->fdbParseVSOL($oltid, $VSOLMACsProcessed, $fdbIndex, $fdbVLANIndex);
+                                    }
                                 }
                             }
                         }
@@ -2390,8 +2604,8 @@ class PONizer {
         if (!empty($mac)) {
             if (check_mac_format($mac) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($mac)) {
-                    $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
-                            . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                    $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) " .
+                                           "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
                     nr_query($query);
                     $result = simple_get_lastid('pononu');
                     log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
@@ -3304,7 +3518,7 @@ class PONizer {
             $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
             $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+                            wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             if ($this->EnableQuickOLTLinks) {
                 if ($this->ponizerUseTabUI) {
@@ -3320,15 +3534,15 @@ class PONizer {
                     $tabClickScript .= wf_tag('script', true);
                 } else {
                     $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%;text-align: right;margin-top: 15px;margin-bottom: 20px"') .
-                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                            wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                            wf_tag('script', false, '', 'type="text/javascript"') .
-                            '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
-                                            var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
-                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
-                                         });' .
-                            wf_tag('script', true) .
-                            wf_tag('div', true);
+                                         wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                                         wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                                         wf_tag('script', false, '', 'type="text/javascript"') .
+                                         '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                                                        var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
+                                                        $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
+                                                     });' .
+                                         wf_tag('script', true) .
+                                         wf_tag('div', true);
                 }
             } else {
                 $QuickOLTLinkInput = '';
@@ -3382,21 +3596,21 @@ class PONizer {
                 $QickOLTsArray = $this->allOltDevices;
 
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px;text-align: right;"') .
-                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                        wf_tag('script', false, '', 'type="text/javascript"') .
-                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
-                                        $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
-                                     });' .
-                        wf_tag('script', true) .
-                        wf_tag('div', true);
+                                     wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                                     wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                                     wf_tag('script', false, '', 'type="text/javascript"') .
+                                     '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {
+                                                    $(\'a[href="#QuickOLTLinkID_\'+$(this).val()+\'"]\').click();
+                                                 });' .
+                                     wf_tag('script', true) .
+                                     wf_tag('div', true);
             } else {
                 $QuickOLTLinkInput = '';
             }
 
             show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                    wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                    $QuickOLTLinkInput);
+                        wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                        $QuickOLTLinkInput);
         } else {
             return ($result);
         }
@@ -3489,7 +3703,7 @@ class PONizer {
 
                                 //storing PON ifaces descriptions, if not stored yet
                                 if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                        and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
 
                                     $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                                 }
@@ -4706,6 +4920,42 @@ class PONizer {
             $result .= wf_tag('b') . __('Total') . ': ' . $count . wf_tag('b', true);
         }
         return($result);
+    }
+
+    /**
+     * Converts MAC from it's DEC representation back to HEX, like
+     * 32.87.175.9.99.125 => 20:57:AF:09:63:7D
+     * or
+     * 52:45:13:39:180:117 => 34:2D:0D:27:B4:75
+     *
+     * @param string $decMAC
+     * @param string $inSeparator
+     * @param string $outSeparator
+     * @param false $reversed   - set to true if DEC MAC is reversed
+     *
+     * @return string
+     */
+    public function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $reversed = false) {
+        $hexMAC = '';
+
+        if (!empty($decMAC)) {
+            $decMACArr = explode($inSeparator, $decMAC);
+            $decMACArr = ($reversed) ? array_reverse($decMACArr) : $decMACArr;
+
+            foreach ($decMACArr as $decOctet) {
+                $hexOctet = ($decOctet == '0' or $decOctet == 0) ? '00' : dechex($decOctet);
+
+                if (strlen($hexOctet) < 2) {
+                    $hexOctet = '0' . $hexOctet;
+                }
+
+                $hexMAC.= $hexOctet;
+            }
+
+            $hexMAC = strtolower_utf8(AddMacSeparator($hexMAC, $outSeparator));
+        }
+
+        return($hexMAC);
     }
 
 }

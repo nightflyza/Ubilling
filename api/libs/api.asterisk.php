@@ -1116,7 +1116,7 @@ class Asterisk {
         }
 
         $query = "SELECT `login`, `Password`, `Cash`, `Credit`, `CreditExpire`, `Passive`, `Down`, `AlwaysOnline`, `Tariff`, 
-                         `tariffs`.`Fee`, `contracts`.`contract`, `phones`.`mobile`, `tAgents`.`agentid`, `tAgents`.`contrname`  
+                         `tariffs`.`Fee`, `tariffs`.`period`, `contracts`.`contract`, `phones`.`mobile`, `tAgents`.`agentid`, `tAgents`.`contrname`  
                     FROM `users` 
                         LEFT JOIN `tariffs` ON (`users`.`Tariff` = `tariffs`.`name`)
                         LEFT JOIN `contracts` USING(`login`)

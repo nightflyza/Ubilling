@@ -99,7 +99,7 @@ if (cfr('BANKSTA2')) {
                                                          mysql_real_escape_string($_POST['bsstrstoreplacewith']),  mysql_real_escape_string($_POST['bsreplacementscnt']),
                                                         (wf_CheckPost(array('bsremovestrs'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['bscolremovestrs']),  mysql_real_escape_string($_POST['bsstrstoremove']),
-                                                         $_POST['bspaymtypeid']
+                                                         $_POST['bspaymtypeid'], $_POST['bssrvidents_col'], (wf_CheckPost(array('bssrvidentspreff'))) ? 1 : 0
                                                         );
                     } else {
                         $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
@@ -117,7 +117,7 @@ if (cfr('BANKSTA2')) {
                                                          mysql_real_escape_string($_POST['fmpstrstoreplacewith']),  mysql_real_escape_string($_POST['fmpstrsreplacecount']),
                                                         (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
                                                          mysql_real_escape_string($_POST['fmpcolsremovestrs']),  mysql_real_escape_string($_POST['fmpstrstoremove']),
-                                                         $_POST['fmppaymtypeid']
+                                                         $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
                                                         );
                     }
                     die();
@@ -158,7 +158,7 @@ if (cfr('BANKSTA2')) {
                                                                $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
                                                                (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
                                                                $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove'],
-                                                               $_POST['fmppaymtypeid']
+                                                               $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
                              );
                          } elseif ($fmpClone) {
                              $Banksta->addFieldsMappingPreset($newFMPName, $_POST['fmpcolrealname'], $_POST['fmpcoladdr'], $_POST['fmpcolpaysum'],
@@ -174,7 +174,7 @@ if (cfr('BANKSTA2')) {
                                                               $_POST['fmpcolsreplacestrs'], $_POST['fmpstrstoreplace'], $_POST['fmpstrstoreplacewith'], $_POST['fmpstrsreplacecount'],
                                                               (wf_CheckPost(array('fmpremovestrs'))) ? 1 : 0,
                                                               $_POST['fmpcolsremovestrs'], $_POST['fmpstrstoremove'],
-                                                              $_POST['fmppaymtypeid']
+                                                              $_POST['fmppaymtypeid'], $_POST['fmpcolsrvidents'], (wf_CheckPost(array('fmpsrvidentspreff'))) ? 1 : 0
                              );
                          }
 

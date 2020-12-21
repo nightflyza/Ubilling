@@ -26,6 +26,7 @@ if ($_GET['action'] == 'asterisk') {
                 $ignoreCache = ubRouting::checkGet('ignorecache');
                 $getMoney = ubRouting::checkGet('getmoney');
                 $addMobile = ubRouting::checkGet('addmobile');
+                $includeVservices = (ubRouting::checkGet('includevsrvs') ? true : $ubillingConfig->getAlterParam('FUNDSFLOW_CONSIDER_VSERVICES'));
                 $maxMobilesAmount = (ubRouting::checkGet('maxmobilesamnt')) ? ubRouting::get('maxmobilesamnt') : 0;
                 $userLogin = (ubRouting::checkGet('login')) ? ubRouting::get('login') : '';
                 $userPasswd = (ubRouting::checkGet('userpass')) ? ubRouting::get('userpass') : '';
@@ -227,6 +228,44 @@ if ($_GET['action'] == 'asterisk') {
                         case 'addusermobile':
                             $result = $asterisk->addUserMobile($userLogin, $number, $maxMobilesAmount);
                             die($result);
+
+                        case 'getonlinedaysleft':
+                        case 'getvservicescount':
+                        case 'getuserspends':
+                            if (empty($userLogin) and !empty($number)) {
+                                $logins = $asterisk->getLoginsByMobile($number, false);
+
+                                if (!empty($logins)) {
+                                    $userLogin = $logins[0];
+                                }
+                            }
+
+                            if ($apiParam == 'getonlinedaysleft') {
+                                $ff = new FundsFlow();
+                                $ff->runDataLoders();
+                                $onlineDaysLeft = $ff->getOnlineLeftCountFast($userLogin, $includeVservices);
+                                die("$onlineDaysLeft");
+                            }
+
+                            $userVsrvs = zb_VservicesGetUsersAll($userLogin, true);
+                            $userVsrvs = empty($userVsrvs[$userLogin]) ? array() : $userVsrvs[$userLogin];
+
+                            if ($apiParam == 'getvservicescount') {
+                                $userVsrvsCnt = (empty($userVsrvs) ? 0 : count($userVsrvs));
+                                die("$userVsrvsCnt");
+                            }
+
+                            $userSpends = array();
+                            $userData   = $asterisk->getUserData($userLogin, '', false, false);
+                            $userData   = empty($userData[$userLogin]) ? array() : $userData[$userLogin];
+
+                            if (!empty($userData)) {
+                                $userSpends[$userData['Tariff']] = array('price' => $userData['Fee'], 'daysperiod' => $userData['period']);
+                            }
+
+                            $userSpends = $userSpends + $userVsrvs;
+                            die(json_encode($userSpends));
+
 
                         default:
                             $askNum->renderReply(true, $ignoreCache, $getMoney);
