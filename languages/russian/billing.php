@@ -3201,6 +3201,16 @@ $lang['def']['Set user credit for'] = 'Установить кредит на';
 $lang['def']['days if required'] = 'дней, если это требуется';
 $lang['def']['Employee inventory'] = 'Инвентаризация сотрудника';
 $lang['def']['Expected count'] = 'Ожидаемое количество';
+$lang['def']['including virtual services'] = 'включая виртуальные сервисы';
+$lang['def']['virtual services'] = 'виртуальные сервисы';
+$lang['def']['Extended info'] = 'Дополнительная информация';
+$lang['def']['Choose service type'] = 'Выберите тип сервиса';
+$lang['def']['Contragent code within payment system'] = 'Код контрагента в платежной системе';
+$lang['def']['Service code within payment system'] = 'Код сервиса в платежной системе';
+$lang['def']['Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'] = 'Выделенное поле с ИД сервисов указанных в опциях BANKSTA2_INETSRV_ALLOTED_IDS и BANKSTA2_CTVSRV_ALLOTED_IDS';
+$lang['def']['Dedicated field with services IDs idents takes precedence over service type telepathy'] = 'ИД сервисов из выделенного поля имеют преимущество перед телепатией сервисов';
+$lang['def']['NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services'] = 'ПРИМЕЧАНИЕ: ИД сервисов из выделенного поля всегда имеют преимущество перед выбранным вручную \'Интернет\' или \'УКВ\' сервисом';
 $lang['def'][''] = '';
+
 
 ?>

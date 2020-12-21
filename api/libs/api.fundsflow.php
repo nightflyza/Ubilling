@@ -760,7 +760,7 @@ class FundsFlow {
      * 
      * @return string
      */
-    public function getOnlineLeftCount($login, $rawDays = false) {
+    public function getOnlineLeftCount($login, $rawDays = false, $includeVServices = false) {
         $userData = zb_UserGetStargazerData($login);
         $balanceExpire = '';
         if (!empty($userData)) {
@@ -772,8 +772,12 @@ class FundsFlow {
             $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
 
             $daysOnLine = 0;
+            $totalVsrvPrice = 0;
 
-
+            if ($includeVServices) {
+                $totalVsrvPrice = zb_VservicesGetUserPricePeriod($login, $tariffPeriod);
+                $tariffFee+= $totalVsrvPrice;
+            }
 
             if (isset($this->alterConf['SPREAD_FEE'])) {
                 if ($this->alterConf['SPREAD_FEE']) {
@@ -832,7 +836,7 @@ class FundsFlow {
                 $balanceExpire .= __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
                 $balanceExpire .= ' ' . $daysLabel . ' ' . __('days') . ' ' . __('of service usage') . ' ';
                 $balanceExpire .= __('or enought till the') . ' ' . $dateLabel . ' ';
-                $balanceExpire .= __('according to the tariff') . ' ' . $userTariff . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
+                $balanceExpire .= __('according to the tariff') . ' ' . $userTariff . (($includeVServices) ? ' + ' . __('virtual services') : '') . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
                 $balanceExpire .= wf_tag('span', true);
             } else {
                 $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true);
@@ -864,12 +868,13 @@ class FundsFlow {
      * 
      * @return int >=0: days left, -1: debt, -2: zero tariff price
      */
-    public function getOnlineLeftCountFast($login) {
+    public function getOnlineLeftCountFast($login, $includeVServices = false) {
         if (isset($this->allUserData[$login])) {
             $userData = $this->allUserData[$login];
         }
 
         $daysOnLine = 0;
+        $totalVsrvPrice = 0;
 
         if (!empty($userData)) {
             $userTariff = $userData['Tariff'];
@@ -879,6 +884,11 @@ class FundsFlow {
                 $tariffData = $this->allTariffsData[$userTariff];
                 $tariffFee = $tariffData['Fee'];
                 $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
+
+                if ($includeVServices) {
+                    $totalVsrvPrice = zb_VservicesGetUserPricePeriod($login, $tariffPeriod);
+                    $tariffFee+= $totalVsrvPrice;
+                }
 
                 if (isset($this->alterConf['SPREAD_FEE'])) {
                     if ($this->alterConf['SPREAD_FEE']) {

@@ -1596,50 +1596,157 @@ class UserProfile {
         $row = '';
 
         if ($this->ubConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')) {
-            if (wf_CheckPost(array('ajax')) and wf_CheckPost(array('action')) == 'BindSMSSrv') {
-                if (wf_CheckPost(array('createrec'))) {
-                    $query = "INSERT INTO `sms_services_relations` (`sms_srv_id`, `user_login`)
-                                  VALUES ('" . $_POST['smssrvid'] . "', '" . $_GET['username'] . "')";
-                    nr_query($query);
+            $usrLogin = $this->userdata['login'];
+            $tabSMSSrvRelations = new NyanORM('sms_services_relations');
+
+            if (ubRouting::checkPost('ajax') and ubRouting::post('action') == 'BindSMSSrv') {
+                $newSMSSrvID = ubRouting::post('smssrvid');
+                $oldSMSSrvID = ubRouting::post('oldsmssrvid');
+
+                if (ubRouting::checkPost('createrec')) {
+                    $tabSMSSrvRelations->dataArr(array('sms_srv_id' => $newSMSSrvID,
+                                                       'user_login' => $usrLogin
+                                                      )
+                                                );
+                    $tabSMSSrvRelations->create();
                 } else {
-                    simple_update_field('sms_services_relations', 'sms_srv_id', $_POST['smssrvid'], "WHERE `user_login`='" . $_GET['username'] . "' ");
+                    $tabSMSSrvRelations->data('sms_srv_id', $newSMSSrvID);
+                    $tabSMSSrvRelations->where('user_login', '=', $usrLogin);
+                    $tabSMSSrvRelations->save();
                 }
 
-                log_register("Prefered SMS service changed from [" . $_POST['oldsmssrvid'] . "] to [" . $_POST['smssrvid'] . "] for user (" . $_GET['username'] . ")");
+                log_register("Prefered SMS service changed from [" . $oldSMSSrvID . "] to [" . $newSMSSrvID . "] for user (" . $usrLogin . ")");
             }
 
-            $preferredSMSSrv = zb_getUsersPreferredSMSService($this->userdata['login']);
+            $preferredSMSSrv = zb_getUsersPreferredSMSService($usrLogin);
             $preferredSMSSrvId = $preferredSMSSrv[0];
 
             $row .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
-                    wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
-                    wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
-                    wf_tag('span', true)
-            );
+                                  wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
+                                  wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
+                                  wf_tag('span', true)
+                                 );
             $row .= wf_tag('script', false, '', 'type="text/javascript"');
             $row .= '$(\'#related_sms_srv\').change(function() {
                             var SMSSrvID = $(this).val(); 
                             var CreateRec = $(\'#related_sms_srv_create\').val();
                             
                             $.ajax({
-                                    type: "POST",
-                                    url: "?module=userprofile&username=' . $this->userdata['login'] . '",
-                                    data: { action: "BindSMSSrv",
-                                            ajax:true,                                            
-                                            smssrvid: SMSSrvID,                                                                                                                 
-                                            ' . (( empty($preferredSMSSrvId) ) ? 'createrec: CreateRec, ' : '') . '
-                                            oldsmssrvid: "' . $preferredSMSSrvId . '"
-                                           },
-                                    success: function() {
-                                                $(\'#sms_srv_change_flag\').text(" ' . __('Changed') . '");
-                                             }
-                                });
-                        });
-                        ';
+                                type: "POST",
+                                url: "?module=userprofile&username=' . $usrLogin . '",
+                                data: { action: "BindSMSSrv",
+                                        ajax: true,                                            
+                                        smssrvid: SMSSrvID,                                                                                                                 
+                                        ' . (( empty($preferredSMSSrvId) ) ? 'createrec: CreateRec, ' : '') . '
+                                        oldsmssrvid: "' . $preferredSMSSrvId . '"
+                                       },
+                                success: function() {
+                                            $(\'#sms_srv_change_flag\').text(" ' . __('Changed') . '");
+                                         }
+                            });
+                     });
+                    ';
             $row .= wf_tag('script', true);
         }
 
         return $row;
+    }
+
+
+    /**
+     * Returns users data export allowance trigger if appropriate alter.ini option is set
+     *
+     * @return string
+     */
+    protected function getDataExportPermissionTrigger() {
+        $row = '';
+
+        if ($this->ubConfig->getAlterParam('USERS_DATA_EXPORT_ON')) {
+            $usrLogin = $this->userdata['login'];
+            $tabDataExportAllowed = new NyanORM('user_dataexport_allowed');
+
+            if (ubRouting::checkPost('ajax') and ubRouting::post('action') == 'ToggleDataExport') {
+                $newTriggerVal = ubRouting::post('newtriggerval');
+                $oldTriggerVal = ubRouting::post('oldtriggerval');
+
+                if (ubRouting::checkPost('createrec')) {
+                    $tabDataExportAllowed->dataArr(array('login' => $usrLogin,
+                                                         'export_allowed' => $newTriggerVal
+                                                        )
+                                                  );
+                    $tabDataExportAllowed->create();
+                } else {
+                    $tabDataExportAllowed->data('export_allowed', $newTriggerVal);
+                    $tabDataExportAllowed->where('login', '=', $usrLogin);
+                    $tabDataExportAllowed->save();
+                }
+
+                log_register("Data export permission changed from [" . $oldTriggerVal . "] to [" . $newTriggerVal . "] for user (" . $usrLogin . ")");
+            }
+
+            $tabDataExportAllowed->selectable('export_allowed');
+            $tabDataExportAllowed->where('login', '=', $usrLogin);
+            $queryResult = $tabDataExportAllowed->getAll();
+            $triggerVal = (isset($queryResult[0])) ? $queryResult[0]['export_allowed'] : '';
+
+            $row .= $this->addRow(__('Data export allowed'),
+                                  wf_tag('span', false, '', 'id="data_export_off"') .
+                                  web_red_led() .
+                                  wf_tag('span', true) .
+                                  wf_tag('span', false, '', 'id="data_export_on"') .
+                                  web_green_led() .
+                                  wf_tag('span', true) .
+                                  wf_nbsp(2) . wf_Selector('dea', array(0 => __('No'), 1 => __('Yes')), '', $triggerVal, false, false, 'DataExportAllowed') .
+                                  wf_HiddenInput('dataexportreccreate', wf_emptyNonZero($triggerVal), 'data_export_rec_create') .
+                                  wf_tag('span', false, '', 'id="data_export_change_flag" style="color: darkred"') .
+                                  wf_tag('span', true)
+                                 );
+            $row .= wf_tag('script', false, '', 'type="text/javascript"');
+            $row .= '
+                    $(document).ready(function() {
+                        var deaVal = $(\'#DataExportAllowed\').val();
+    
+                        if (deaVal == 1) {
+                            $(\'#data_export_off\').hide();
+                            $(\'#data_export_on\').show();
+                        } else {
+                            $(\'#data_export_off\').show();
+                            $(\'#data_export_on\').hide();
+                        }
+                    });
+                                    
+                    $(\'#DataExportAllowed\').change(function() {
+                        var deaVal = $(this).val(); 
+                        var CreateRec = $(\'#data_export_rec_create\').val();
+                        
+                        if (deaVal == 1) {
+                            $(\'#data_export_off\').hide();
+                            $(\'#data_export_on\').show();
+                        } else {
+                            $(\'#data_export_off\').show();
+                            $(\'#data_export_on\').hide();
+                        }
+                        
+                        $.ajax({
+                            type: "POST",
+                            url: "?module=userprofile&username=' . $usrLogin . '",
+                            data: { action: "ToggleDataExport",
+                                    ajax: true,                                            
+                                    newtriggerval: deaVal,                                                                                                                 
+                                    ' . (wf_emptyNonZero($triggerVal) ? 'createrec: CreateRec, ' : '') . '
+                                    oldtriggerval: "' . $triggerVal . '"
+                                   },
+                            success: function() {
+                                        $(\'#data_export_change_flag\').text(" ' . __('Changed') . '");
+                                     }
+                        });
+                     });
+                    ';
+            $row .= wf_tag('script', true);
+
+        }
+
+        return ($row);
     }
 
     /**
@@ -1954,6 +2061,7 @@ class UserProfile {
         $profile .= $this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
 
         $profile .= $this->getSMSserviceSelectorControls();
+        $profile .= $this->getDataExportPermissionTrigger();
 
 //Deal with it available tasks notification
         $profile .= $this->getUserDealWithItNotification();

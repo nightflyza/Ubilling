@@ -848,6 +848,46 @@ function zb_VservicesGetUserPrice($login) {
 }
 
 /**
+ * Returns price total of all virtual services fees assigned to user, considering services fee charge periods
+ * $defaultPeriod - specifies the default period to count the prices for: 'month' or 'day', if certain service has no fee charge period set
+ *
+ * @param string $login
+ * @param string $defaultPeriod
+ *
+ * @return float
+ */
+function zb_VservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
+    $totalVsrvPrice = 0;
+    $allUserVsrvs = zb_VservicesGetUsersAll($login, true);
+    $curMonthDays = date('t');
+
+    if (!empty($allUserVsrvs)) {
+        $allUserVsrvs = $allUserVsrvs[$login];
+
+        foreach ($allUserVsrvs as $eachSrvName => $eachSrvData) {
+            $curVsrvPrice       = $eachSrvData['price'];
+            $curVsrvDaysPeriod  = $eachSrvData['daysperiod'];
+            $dailyVsrvPrice     = 0;
+
+            // getting daily vservice price
+            if (!empty($curVsrvDaysPeriod)) {
+                $dailyVsrvPrice = ($curVsrvDaysPeriod > 1) ? $curVsrvPrice / $curVsrvDaysPeriod : $curVsrvPrice;
+            }
+
+            // if vservice has no charge period set and $dailyVsrvPrice == 0
+            // then virtual service price is considered as for global $defaultPeriod period
+            if ($defaultPeriod == 'month') {
+                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
+            } else {
+                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
+            }
+        }
+    }
+
+    return ($totalVsrvPrice);
+}
+
+/**
  * Returns all users with assigned virtual services as array:
  *         login => array($vServiceName1 => vServicePrice1,
  *                        $vServiceName2 => vServicePrice2,

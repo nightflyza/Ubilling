@@ -133,6 +133,20 @@ class Banksta2 {
     protected $opayzIDAsContract = false;
 
     /**
+     * Placeholder for BANKSTA2_INETSRV_ALLOTED_IDS option
+     *
+     * @var array
+     */
+    protected $inetSrvAllotedIDs = array();
+
+    /**
+     * Placeholder for BANKSTA2_CTVSRV_ALLOTED_IDS option
+     *
+     * @var array
+     */
+    protected $ctvSrvAllotedIDs = array();
+
+    /**
      * Placeholder for file data preprocessed during filePreprocessing()
      *
      * @var array
@@ -152,7 +166,9 @@ class Banksta2 {
                                                 'col_paydate'           => 'bspaydate_col',
                                                 'col_paytime'           => 'bspaytime_col',
                                                 'col_contract'          => 'bscontract_col',
+                                                'col_srvidents'         => 'bssrvidents_col',
                                                 'guess_contract'        => 'bstryguesscontract',
+                                                'srvidents_preffered'   => 'bssrvidentspreff',
                                                 'contract_delim_start'  => 'bscontractdelimstart',
                                                 'contract_delim_end'    => 'bscontractdelimend',
                                                 'contract_min_len'      => 'bscontractminlen',
@@ -251,6 +267,8 @@ class Banksta2 {
         $this->regexKeywordsDelimiter = (wf_getBoolFromVar($this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM'))) ? $this->ubConfig->getAlterParam('BANKSTA2_REGEX_KEYWORDS_DELIM') : ',';
         $this->translateLstChkFieldNames = $this->ubConfig->getAlterParam('BANKSTA2_LSTCHK_FNAMES_TRANSLATE');
         $this->opayzIDAsContract = $this->ubConfig->getAlterParam('BANKSTA2_OPAYZID_AS_CONTRACT');
+        $this->inetSrvAllotedIDs = explode(',', trim($this->ubConfig->getAlterParam('BANKSTA2_INETSRV_ALLOTED_IDS'), "\t\n\r\0\x0B,"));
+        $this->ctvSrvAllotedIDs = explode(',', trim($this->ubConfig->getAlterParam('BANKSTA2_CTVSRV_ALLOTED_IDS'), "\t\n\r\0\x0B,"));
     }
 
 
@@ -667,7 +685,7 @@ class Banksta2 {
     /**
      * Adds new fields mapping preset to DB
      *
-     * @param $fmpName
+     * @param string $fmpName
      * @param string $fmpColRealName
      * @param string $fmpColAddr
      * @param string $fmpColPaySum
@@ -707,7 +725,8 @@ class Banksta2 {
                                            $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
                                            $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
                                            $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
-                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0
+                                           $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0,
+                                           $fmpColSrvIdents = 0, $fmpSrvIdentsPreffered = 0
                                           ) {
 
         $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
@@ -717,17 +736,20 @@ class Banksta2 {
         $fmpColPayDate      = (wf_emptyNonZero($fmpColPayDate) ? 'NONE' : $fmpColPayDate);
         $fmpColPayTime      = (wf_emptyNonZero($fmpColPayTime) ? 'NONE' : $fmpColPayTime);
         $fmpColContract     = (wf_emptyNonZero($fmpColContract) ? 'NONE' : $fmpColContract);
+        $fmpColSrvIdents    = (wf_emptyNonZero($fmpColSrvIdents) ? 'NONE' : $fmpColSrvIdents);
+
 
         $tQuery = "INSERT INTO `" . self::BANKSTA2_PRESETS_TABLE .
                   "` (`presetname`, `col_realname`, `col_address`, `col_paysum`, `col_paypurpose`, `col_paydate`, 
-                            `col_paytime`, `col_contract`, `guess_contract`, `contract_delim_start`, `contract_delim_end`, 
-                            `contract_min_len`, `contract_max_len`, `service_type`, `inet_srv_start_delim`, `inet_srv_end_delim`, `inet_srv_keywords`, 
+                            `col_paytime`, `col_contract`, `col_srvidents`, `guess_contract`, `srvidents_preffered`, 
+                            `contract_delim_start`, `contract_delim_end`, `contract_min_len`, `contract_max_len`, 
+                            `service_type`, `inet_srv_start_delim`, `inet_srv_end_delim`, `inet_srv_keywords`, 
                             `ukv_srv_start_delim`, `ukv_srv_end_delim`, `ukv_srv_keywords`, `skip_row`, `col_skiprow`, `skip_row_keywords`,
                             `replace_strs`, `col_replace_strs`, `strs_to_replace`, `strs_to_replace_with`, `replacements_cnt`,
                             `remove_strs`, `col_remove_strs`, `strs_to_remove`, `payment_type_id`) 
                         VALUES ('" . $fmpName . "', '" . $fmpColRealName . "', '" . $fmpColAddr . "', '" . $fmpColPaySum . "', '" .
-                  $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', " .
-                  $fmpGuessContract . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
+                  $fmpColPayPurpose . "', '" . $fmpColPayDate . "', '" . $fmpColPayTime . "', '" . $fmpColContract . "', '" . $fmpColSrvIdents . "', " .
+                  $fmpGuessContract . ", " . $fmpSrvIdentsPreffered . ", '" . $fmpContractDelimStart . "', '" . $fmpContractDelimEnd . "', " .
                   $fmpContractMinLen . ", " . $fmpContractMaxLen . ", '" . $fmpSrvType . "', '" .
                   $fmpInetStartDelim . "', '" . $fmpInetEndDelim . "', '" . $fmpInetKeywords . "', '" .
                   $fmpUKVDelimStart . "', '" . $fmpUKVDelimEnd . "', '" . $fmpUKVKeywords . "', '" .
@@ -783,7 +805,8 @@ class Banksta2 {
                                             $fmpUKVDelimStart = '', $fmpUKVDelimEnd = '', $fmpUKVKeywords = '',
                                             $fmpSkipRow = 0, $fmpColSkipRow = '', $fmpSkipRowKeywords = '',
                                             $fmpReplaceStrs = 0, $fmpColReplaceStrs = '', $fmpStrsToReplace = '', $fmpStrsToReplaceWith = '', $fmpReplacementsCount = '',
-                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0
+                                            $fmpRemoveStrs = 0, $fmpColRemoveStrs = '', $fmpStrsToRemove = '', $fmpPaymentTypeID = 0,
+                                            $fmpColSrvIdents = 0, $fmpSrvIdentsPreffered = 0
                                            ) {
 
         $fmpColRealName     = (wf_emptyNonZero($fmpColRealName) ? 'NONE' : $fmpColRealName);
@@ -793,6 +816,7 @@ class Banksta2 {
         $fmpColPayDate      = (wf_emptyNonZero($fmpColPayDate) ? 'NONE' : $fmpColPayDate);
         $fmpColPayTime      = (wf_emptyNonZero($fmpColPayTime) ? 'NONE' : $fmpColPayTime);
         $fmpColContract     = (wf_emptyNonZero($fmpColContract) ? 'NONE' : $fmpColContract);
+        $fmpColSrvIdents    = (wf_emptyNonZero($fmpColSrvIdents) ? 'NONE' : $fmpColSrvIdents);
 
         $tQuery = "UPDATE `" . self::BANKSTA2_PRESETS_TABLE . "` SET 
                             `presetname`            = '" . $fmpName . "', 
@@ -803,7 +827,9 @@ class Banksta2 {
                             `col_paydate`           = '" . $fmpColPayDate . "',  
                             `col_paytime`           = '" . $fmpColPayTime . "',  
                             `col_contract`          = '" . $fmpColContract . "',  
-                            `guess_contract`        = " . $fmpGuessContract . ",  
+                            `col_srvidents`         = '" . $fmpColSrvIdents . "',                            
+                            `guess_contract`        = " . $fmpGuessContract . ", 
+                            `srvidents_preffered`   = " . $fmpSrvIdentsPreffered . ",
                             `contract_delim_start`  = '" . $fmpContractDelimStart . "', 
                             `contract_delim_end`    = '" . $fmpContractDelimEnd . "',
                             `contract_min_len`      = " . $fmpContractMinLen . ",
@@ -1028,6 +1054,7 @@ class Banksta2 {
         $strsRemove      = $importOpts['remove_strs'];
         $strsRemoveCols  = ($importOpts['col_remove_strs'] !== 'NONE') ? explode(',', str_replace(' ', '', $importOpts['col_remove_strs'])) : array();
         $strsRemoveChars = (empty($importOpts['strs_to_remove'])) ? '' : preg_quote($importOpts['strs_to_remove']);
+        $srvsIDsIdentsPreff = $importOpts['srvidents_preffered'];
 
         // creating essential regex bodies
         $keywordsStrInet         = '';
@@ -1102,6 +1129,19 @@ class Banksta2 {
             $payment_type_id    = $paymentTypeID;
             $srvTypeMatched     = false;
 
+            // checking and preparing services idents if an appropriate dedicated field specified
+            $serviceIdent = ($importOpts['col_srvidents'] !== 'NONE' and isset($eachRow[$importOpts['col_srvidents']])) ? $eachRow[$importOpts['col_srvidents']] : '';
+
+            if (!empty($serviceIdent) and (!empty($this->inetSrvAllotedIDs[0]) or !empty($this->ctvSrvAllotedIDs[0]))) {
+                if (in_array($serviceIdent, $this->inetSrvAllotedIDs)) {
+                    $service_type = 'Internet';
+                    $srvTypeMatched = true;
+                } elseif (in_array($serviceIdent, $this->ctvSrvAllotedIDs)) {
+                    $service_type = 'UKV';
+                    $srvTypeMatched = true;
+                }
+            }
+
             if (!empty($notes)) {
                 if (empty($contract)) {
                     // if contract guessing enabled and at least one of the delimiters is not empty
@@ -1134,7 +1174,7 @@ class Banksta2 {
                     }
                 }
 
-                if (strtolower($serviceType) == 'telepathy') {
+                if (strtolower($serviceType) == 'telepathy' and !($srvsIDsIdentsPreff and $srvTypeMatched)) {
                     // trying to check for Inet service keywords
                     if (!empty($keywordsStrInet)) {
                         if ($inetSrvDelimS == '' and $inetSrvDelimE == '') {
@@ -1617,6 +1657,7 @@ class Banksta2 {
             $bspaydate_arr      = $rowNumArr;
             $bspaytime_arr      = $rowNumArr + array('NONE' => __('Set to none'));
             $bscontract_arr     = $rowNumArr + array('NONE' => __('Set to none'));
+            $bssrvidents_arr    = $rowNumArr + array('NONE' => __('Set to none'));
 
             //save preset form
             $errorModalWindowId = wf_InputId();
@@ -1671,6 +1712,13 @@ class Banksta2 {
             $inputs.= wf_TextInput('bsukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
             $inputs.= wf_TextInput('bsukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
             $inputs.= wf_tag('div', true);
+            $inputs.= wf_delimiter(0);
+
+            $inputs.= wf_Selector('bssrvidents_col', $bssrvidents_arr, __('Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), '6', true);
+            $inputs.= wf_CheckInput('bssrvidentspreff', __('Dedicated field with services IDs idents takes precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
+            $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 880px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+            $inputs.= __('NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services');
+            $inputs.= wf_tag('h4', true);
             $inputs.= wf_delimiter(0);
 
             $inputs.= wf_CheckInput('bsskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
@@ -2540,6 +2588,13 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimStart');
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_TextInput('fmpcolsrvidents', __('Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), 'NONE', true, '4');
+        $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Dedicated field with services IDs idents takes precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 880px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+        $inputs.= __('NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services');
+        $inputs.= wf_tag('h4', true);
+        $inputs.= wf_delimiter(0);
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, false, 'BankstaSkipRow');
         $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', '', true, '', '', '', 'BankstaSkipRowKeyWordsCol');
@@ -2584,7 +2639,9 @@ class Banksta2 {
         $colPayDate         = (wf_emptyNonZero($fmpData['col_paydate']) ? 'NONE' : $fmpData['col_paydate']);
         $colPayTime         = (wf_emptyNonZero($fmpData['col_paytime']) ? 'NONE' : $fmpData['col_paytime']);
         $colContract        = (wf_emptyNonZero($fmpData['col_contract']) ? 'NONE' : $fmpData['col_contract']);
+        $colSrvIdents       = (wf_emptyNonZero($fmpData['col_srvidents']) ? 'NONE' : $fmpData['col_srvidents']);
         $contractGuessing   = (empty($fmpData['guess_contract'])) ? false : true;
+        $prefferSrvIdents   = (empty($fmpData['srvidents_preffered'])) ? false : true;
         $rowSkipping        = (empty($fmpData['skip_row'])) ? false : true;
         $strReplacing       = (empty($fmpData['replace_strs'])) ? false : true;
         $strRemoving        = (empty($fmpData['remove_strs'])) ? false : true;
@@ -2626,6 +2683,13 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpukvdelimstart', __('UKV service before keywords delimiter string'), $fmpData['ukv_srv_start_delim'], true, '', '', '', 'BankstaUKVDelimStart');
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['ukv_srv_keywords'], true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), $fmpData['ukv_srv_end_delim'], true, '', '', '', 'BankstaUKVDelimEnd');
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_TextInput('fmpcolsrvidents', __('Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), $colSrvIdents, true, '4');
+        $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Dedicated field with services IDs idents takes precedence over service type telepathy'), true, $prefferSrvIdents, 'BankstaSrvIdentsPreff');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 880px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+        $inputs.= __('NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services');
+        $inputs.= wf_tag('h4', true);
+        $inputs.= wf_delimiter(0);
         $inputs.= wf_tag('hr', false, '', 'style="margin-bottom: 11px;"');
         $inputs.= wf_CheckInput('fmpskiprow', __('Skip row processing if specified fields contain keywords below'), true, $rowSkipping, 'BankstaSkipRow');
         $inputs.= wf_TextInput('fmpcolskiprow', __('Fields to check row skipping') . '(' . __('multiple fields must be separated with comas') . ')', $fmpData['col_skiprow'], true, '', '', '', 'BankstaSkipRowKeyWordsCol');
