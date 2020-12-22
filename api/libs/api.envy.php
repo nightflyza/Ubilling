@@ -633,12 +633,12 @@ class Envy {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allDevices as $io => $each) {
-                $switchData = $this->allSwitches[$each['switchid']];
+                $switchData = @$this->allSwitches[$each['switchid']];
                 $cells = wf_TableCell($each['switchid']);
                 $cells .= wf_TableCell($this->getLastConfigDate($each['switchid']));
                 $cells .= wf_TableCell($switchData['ip']);
                 $cells .= wf_TableCell($switchData['location']);
-                $cells .= wf_TableCell($allModelNames[$switchData['modelid']]);
+                $cells .= wf_TableCell(@$allModelNames[$switchData['modelid']]);
                 $cells .= wf_TableCell(web_bool_led($each['active']));
                 $cells .= wf_TableCell($each['login']);
                 $cells .= wf_TableCell($each['password']);
