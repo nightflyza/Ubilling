@@ -13,11 +13,18 @@ class TaskFlow {
     protected $altCfg = array();
 
     /**
-     * Contains array of all available employee from directory
+     * Contains array of all active employee from directory as id=>name
      *
      * @var array
      */
     protected $allActiveEmployee = array();
+
+    /**
+     * Contains array of all available employee from directory as id=>name
+     *
+     * @var array
+     */
+    protected $allEmployee = array();
 
     /**
      * Contains all available job types as id=>name
@@ -126,7 +133,13 @@ class TaskFlow {
      * @return void
      */
     protected function loadEmployee() {
-        $this->allActiveEmployee = ts_GetActiveEmployee();
+        $employeeTmp = ts_GetAllEmployeeData();
+        foreach ($employeeTmp as $io => $each) {
+            $this->allEmployee[$each['id']] = $each['name'];
+            if ($each['active']) {
+                $this->allActiveEmployee[$each['id']] = $each['name'];
+            }
+        }
     }
 
     /**
@@ -391,7 +404,7 @@ class TaskFlow {
                 $cells .= wf_TableCell($taskData['startdate']);
                 $cells .= wf_TableCell($taskData['address']);
                 $cells .= wf_TableCell(@$this->allJobTypes[$taskData['jobtype']]);
-                $cells .= wf_TableCell($this->allActiveEmployee[$taskData['employee']]);
+                $cells .= wf_TableCell($this->allEmployee[$taskData['employee']]);
                 $taskControl = wf_Link(self::URL_TASK . $taskId, web_icon_search() . ' ' . __('Show'), false, 'ubButton', 'target="_BLANK"');
                 $cells .= wf_TableCell($taskControl);
                 $rows .= wf_TableRow($cells, 'row3');
