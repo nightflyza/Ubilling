@@ -104,6 +104,12 @@ if (cfr('ENVY')) {
             $envy->downloadArchiveRecordConfig(ubRouting::get('downloadarchiveid'));
         }
 
+        //archive records cleanup
+        if (ubRouting::checkGet($envy::ROUTE_CLEANUP)) {
+            $envy->cleanupArchive();
+            ubRouting::nav($envy::URL_ME);
+        }
+
         //background archive JSON rendering
         if (ubRouting::checkGet($envy::ROUTE_ARCHIVE_AJ)) {
             $envy->getAjArchive();
@@ -150,6 +156,9 @@ if (cfr('ENVY')) {
                 show_window(__('Previously collected devices configs'), $envy->renderArchive());
                 zb_BillingStats(true);
             }
+
+            //Envy archive cleanup
+            // TODO
         }
     } else {
         show_error(__('This module is disabled'));

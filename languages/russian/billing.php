@@ -3210,6 +3210,7 @@ $lang['def']['Service code within payment system'] = 'Код сервиса в �
 $lang['def']['Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'] = 'Выделенное поле с ИД сервисов указанных в опциях BANKSTA2_INETSRV_ALLOTED_IDS и BANKSTA2_CTVSRV_ALLOTED_IDS';
 $lang['def']['Dedicated field with services IDs idents takes precedence over service type telepathy'] = 'ИД сервисов из выделенного поля имеют преимущество перед телепатией сервисов';
 $lang['def']['NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services'] = 'ПРИМЕЧАНИЕ: ИД сервисов из выделенного поля всегда имеют преимущество перед выбранным вручную \'Интернет\' или \'УКВ\' сервисом';
+$lang['def']['Agree'] = 'Согласен';
 $lang['def'][''] = '';
 
 

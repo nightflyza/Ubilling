@@ -3122,6 +3122,33 @@ function wf_StepsMeter($params, $current) {
 }
 
 /**
+ * Returns confirmation dialog to navigate to some URL
+ * 
+ * @param string $url
+ * @param string $title
+ * @param string $alerttext
+ * @param string $class
+ * @param string $cancelUrl
+ * 
+ * @return string
+ */
+function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = '') {
+    $result = '';
+    $dialog = __($alerttext);
+    $dialog .= wf_tag('br');
+    $dialog .= wf_tag('center', false);
+    $dialog .= wf_Link($url, __('Agree'), false, 'confirmagree');
+    if ($cancelUrl) {
+        $dialog .= wf_Link($cancelUrl, __('Cancel'), false, 'confirmcancel');
+    }
+    $dialog .= wf_tag('center', true);
+
+    $cleanTitle = strip_tags($title);
+    $result .= wf_modalAuto($title, __($cleanTitle), $dialog, $class);
+    return($result);
+}
+
+/**
  * Returns code that plays some sound from existing audio file
  * 
  * @param string $url

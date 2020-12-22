@@ -21,3 +21,4 @@ $lang['def']['Same configs selected'] = 'Выбран один и тот же к
 $lang['def']['No difference between this two configurations'] = 'Нету различий между этими двумя конфигурациями';
 $lang['def']['Something is different in this two configurations'] = 'Что-то различается в этих двух конфигурациях';
 $lang['def']['Latest config'] = 'Последний конфиг';
+$lang['def']['All configs for each of devices will be deletet from the archive except the last one'] = 'Все конфиги из архива, кроме последнего, будут удалены для каждого из устройств';

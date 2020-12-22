@@ -89,6 +89,7 @@ class Envy {
     const ROUTE_ARCHALL = 'archiveall';
     const ROUTE_ARCHIVE_AJ = 'ajarchive';
     const ROUTE_FILTER = 'devicefilter';
+    const ROUTE_CLEANUP = 'cleanuparchive';
 
     /**
      *   ___ _ ____   ___   _ 
@@ -211,6 +212,7 @@ class Envy {
      */
     protected function loadArchive() {
         $this->archive->selectable(array('id', 'date', 'switchid'));
+        $this->archive->orderBy('id', 'ASC'); // must be from old to new due the getLastDate mechanics
         $this->allConfigs = $this->archive->getAll('id');
     }
 
@@ -395,6 +397,8 @@ class Envy {
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SCRIPTS . '=true', wf_img('skins/switch_models.png') . ' ' . __('Scripts'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEVICES . '=true', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Devices'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DIFF . '=true', wf_img('skins/diff_icon.png') . ' ' . __('Changes'), false, 'ubButton') . ' ';
+            $cleanupAlert = __('All configs for each of devices will be deletet from the archive except the last one');
+            $result .= wf_ConfirmDialog(self::URL_ME . '&' . self::ROUTE_CLEANUP . '=true', wf_img('skins/icon_cleanup.png') . ' ' . __('Cleanup'), $cleanupAlert, 'ubButton', self::URL_ME);
         }
 
         if (ubRouting::checkGet(self::ROUTE_SCRIPTS)) {
@@ -1006,6 +1010,28 @@ class Envy {
             }
         }
         return($result);
+    }
+
+    /**
+     * Deletes all records from archive except the last one for each of envy-devices
+     * 
+     * @return void
+     */
+    public function cleanupArchive() {
+        $cleanupCounter = 0;
+        if (!empty($this->allConfigs)) {
+            foreach ($this->allConfigs as $recordId => $archiveData) {
+                $switchId = $archiveData['switchid'];
+                $lastConfigDate = $this->getLastConfigDate($switchId);
+                if ($archiveData['date'] != $lastConfigDate) {
+                    $this->archive->where('id', '=', $recordId);
+                    $this->archive->delete();
+                    log_register('ENVY CLEANUP ARCHIVE RECORD [' . $recordId . '] SWITCHID [' . $switchId . '] DATE `' . $archiveData['date'] . '`');
+                    $cleanupCounter++;
+                }
+            }
+        }
+        log_register('ENVVY ARCHIVE `' . $cleanupCounter . '` RECORDS CLEANED');
     }
 
 //                                    __o__
