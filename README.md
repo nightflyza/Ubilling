@@ -14,7 +14,7 @@ Please visit our official resources:
 
 About Common Vulnerabilities and Exposures (CVE)
 ========
-Special notice, for all of wannabe pentesters /white hats/black hats/1337 h4x0rs etc:
+Special notice, for all of **wannabe** pentesters/white hats/black hats/1337 h4x0rs etc:
 
 If you find that some code or commands are being executed somewhere - this means that the system is working and nothing else. This is the normal functionality of this project, and it is intended for this.
 
