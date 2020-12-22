@@ -22,4 +22,4 @@ Please stop being morons who constantly writes us something like "OMG, we have d
 
 This system is **intended for** the administration of servers, server clusters, and equipment in the telecommunications sector. Yes, under root rights. Yes, with root acces to database. This is the direct purpose of this project. This project has no other purpose. It would be surprising if a system designed to **execute code under root rights** will not do this when an administrator (user) logs in with the necessary rights for this.
 
-Perhaps you are one of those retarded persons who are also surprised by the fact that ssh or telnet executes some commands if you use a username and password for this. Okay then, you can assume that you've found the same serious vulnerability in Ubilling. Your mom proud of you, but you are still retard.
+Perhaps you are one of those retarded persons who are also surprised by the fact that ssh or telnet executes some commands if you use a username and password for this. Okay then, you can assume that you've found the same serious vulnerability in Ubilling. Your mom is proud of you, but you are still retard.
