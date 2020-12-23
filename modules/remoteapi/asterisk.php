@@ -24,7 +24,11 @@
  * With "getuserspends" param you may use "number" or "login" params to search user with one of those.
  *      You may use "includevsrvs" param as well to get all virtual services in addition to main tariff.
  *      Returns info about user's tariff and it's cost and, optionally, similar info about user's virtual services.
- *          Format: array(TarrifName => TariffCost, Vservice1 => Vservice1Cost, Vservice2 => Vservice2Cost, VserviceN => VserviceNCost)
+ *          Format: array(TarrifName => array('price' => TariffCost, 'daysperiod' => TariffChargePeriod),
+ *                        Vservice1 => array('price' => Vservice1Cost, 'daysperiod' => Vservice1ChargePeriod),
+ *                        Vservice2 => array('price' => Vservice2Cost, 'daysperiod' => Vservice2ChargePeriod),
+ *                        VserviceN => array('price' => VserviceNCost, 'daysperiod' => VserviceChargePeriod)
+ *                       )
  *          Tip: "TarrifName => TariffCost" - is always the first element
  */
 
