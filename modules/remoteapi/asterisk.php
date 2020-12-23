@@ -14,9 +14,18 @@
  * With "paycardpay" param you'll need to pass "login", "paycardnum", "paycardcashtype" param as well
  * With "getuserdatabylogin" param you may pass "userpass" param as well to enable user + password verification
  * With "addusermobile" param you'll need to pass "login" param also. Optional "maxmobilesamnt" param can be passed to determine
- * the max mobiles count threshold per user.
+ *      the max mobiles count threshold per user.
  * "getuserdatabymobile" and "getcontractsbymobile" need no additional parameters except the mobile passed in "number" param
- *
+ * With "getvservicescount" param you may use "number" or "login" params to search user with one of those.
+ *      Returns number of virtual services assigned to a certain user.
+ * With "getonlinedaysleft" param you may use "number" or "login" params to search user with one of those.
+ *      You may use "includevsrvs" param as well to involve virtual services cost into "online days left" calculations.
+ *      Returns number of "online days left" for a certain user.
+ * With "getuserspends" param you may use "number" or "login" params to search user with one of those.
+ *      You may use "includevsrvs" param as well to get all virtual services in addition to main tariff.
+ *      Returns info about user's tariff and it's cost and, optionally, similar info about user's virtual services.
+ *          Format: array(TarrifName => TariffCost, Vservice1 => Vservice1Cost, Vservice2 => Vservice2Cost, VserviceN => VserviceNCost)
+ *          Tip: "TarrifName => TariffCost" - is always the first element
  */
 
 if ($_GET['action'] == 'asterisk') {
