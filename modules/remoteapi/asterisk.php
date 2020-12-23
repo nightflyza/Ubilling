@@ -21,7 +21,7 @@
 
 if ($_GET['action'] == 'asterisk') {
     if ($alterconf['ASTERISK_ENABLED']) {
-        if (ubRouting::checkGet('number') or ubRouting::checkGet(array('login', 'userpass'))) {
+        if (ubRouting::checkGet('number') or ubRouting::checkGet('login')) {
             if (ubRouting::checkGet('param')) {
                 $ignoreCache = ubRouting::checkGet('ignorecache');
                 $getMoney = ubRouting::checkGet('getmoney');
