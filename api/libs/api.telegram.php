@@ -392,15 +392,44 @@ class UbillingTelegram {
     }
 
     /**
+     * Preprocess keyboard for sending with directPushMessage
+     * 
+     * @param array $buttonsArray
+     * @param bool $inline
+     * @param bool $resize
+     * @param bool  $oneTime
+     * 
+     * @return type
+     */
+    public function makeKeyboard($buttonsArray, $inline = false, $resize = true, $oneTime = false) {
+        $result = array();
+        if (!empty($buttonsArray)) {
+            if (!$inline) {
+                $result['type'] = 'keyboard';
+
+                $keyboardMarkup = array(
+                    'keyboard' => $buttonsArray,
+                    'resize_keyboard' => $resize,
+                    'one_time_keyboard' => $oneTime
+                );
+
+                $result['markup'] = $keyboardMarkup;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Sends message to some chat id via Telegram API
      * 
-     * @param int $chatid
-     * @param string $message
+     * @param int $chatid remote chatId
+     * @param string $message text message to send
+     * @param array $keyboard keyboard encoded with makeKeyboard method
      * @throws Exception
      * 
      * @return void
      */
-    public function directPushMessage($chatid, $message) {
+    public function directPushMessage($chatid, $message, $keyboard = array()) {
         $data['chat_id'] = $chatid;
         $data['text'] = $message;
 
@@ -411,6 +440,7 @@ class UbillingTelegram {
 
         //default sending method
         $method = 'sendMessage';
+
         //location sending
         if (ispos($message, 'sendLocation:')) {
             $cleanGeo = str_replace('sendLocation:', '', $message);
@@ -472,6 +502,19 @@ class UbillingTelegram {
                 $photoParams .= '&caption=' . $cleanCaption;
             }
             $method = 'sendPhoto' . $photoParams;
+        }
+
+        if (!empty($keyboard)) {
+            if (isset($keyboard['type'])) {
+                if ($keyboard['type'] == 'keyboard') {
+                    $encodedKeyboard = json_encode($keyboard['markup']);
+                    $data['reply_markup'] = $encodedKeyboard;
+                }
+
+                //TODO: inline keyboards
+
+                $method = 'sendMessage';
+            }
         }
 
 
