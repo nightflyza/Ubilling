@@ -1292,14 +1292,48 @@ class MegogoInterface {
                         //delete subscribtion if required count of days past
                         if (time() >= ($freePeriodStart + 86400 * $freePeriodDaysOffset)) {
                             $this->deleteSubscribtion($each['login'], $each['tariffid']);
-                            log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED AFTER `' . $freePeriodDaysOffset . '` DAYS');
+                            log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED AFTER `' . $freePeriodDaysOffset . '` DAYS ON `MP`');
                             $result .= $each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
                         }
                     } else {
                         //just finish free period at the start of new month
                         $this->deleteSubscribtion($each['login'], $each['tariffid']);
-                        log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
+                        log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED ON `MGP`');
                         $result .= $each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs cleanup of expired free subscriptions
+     * 
+     * @return string
+     */
+    public function subscriptionFreeCleanup() {
+        $result = '';
+        $megogoApi = new MegogoApi();
+
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['freeperiod']) {
+                    if ($this->altCfg['MG_SPREAD'] OR @ $this->altCfg['MG_FREEPERIOD_DAYS']) {
+                        $freePeriodStart = strtotime($each['actdate']);
+                        $freePeriodDaysOffset = 30; //default
+                        if (isset($this->altCfg['MG_FREEPERIOD_DAYS'])) {
+                            if ($this->altCfg['MG_FREEPERIOD_DAYS']) {
+                                $freePeriodDaysOffset = $this->altCfg['MG_FREEPERIOD_DAYS']; //custom days limit
+                            }
+                        }
+
+                        //delete subscribtion if required count of days past
+                        if (time() >= ($freePeriodStart + 86400 * $freePeriodDaysOffset)) {
+                            $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                            log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED AFTER `' . $freePeriodDaysOffset . '` DAYS ON `MFC`');
+                            $result .= $each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
+                        }
                     }
                 }
             }

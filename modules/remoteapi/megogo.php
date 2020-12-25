@@ -42,11 +42,23 @@ if ($_GET['action'] == 'mgqueue') {
     }
 }
 
-//Megogo fee processing (monthly)
+//Megogo fee processing (daily/monthly)
 if ($_GET['action'] == 'mgprocessing') {
     if ($alterconf['MG_ENABLED']) {
         $mgIface = new MegogoInterface();
         $mgFeeProcessingResult = $mgIface->subscriptionFeeProcessing();
+        die($mgFeeProcessingResult);
+    } else {
+        die('ERROR: MEGOGO DISABLED');
+    }
+}
+
+
+//Megogo free subscriptions cleanup
+if ($_GET['action'] == 'mgfreecleanup') {
+    if ($alterconf['MG_ENABLED']) {
+        $mgIface = new MegogoInterface();
+        $mgFeeProcessingResult = $mgIface->subscriptionFreeCleanup();
         die($mgFeeProcessingResult);
     } else {
         die('ERROR: MEGOGO DISABLED');
