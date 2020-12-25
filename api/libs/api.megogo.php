@@ -1279,17 +1279,24 @@ class MegogoInterface {
                         }
                     }
                 } else {
-
-                    if ($this->altCfg['MG_SPREAD']) {
+                    //free period subscription
+                    if ($this->altCfg['MG_SPREAD'] OR @ $this->altCfg['MG_FREEPERIOD_DAYS']) {
                         $freePeriodStart = strtotime($each['actdate']);
-                        //delete subscribtion if 30 days past
-                        if (time() > ($freePeriodStart + 86400 * 30)) {
+                        $freePeriodDaysOffset = 30; //default
+                        if (isset($this->altCfg['MG_FREEPERIOD_DAYS'])) {
+                            if ($this->altCfg['MG_FREEPERIOD_DAYS']) {
+                                $freePeriodDaysOffset = $this->altCfg['MG_FREEPERIOD_DAYS']; //custom days limit
+                            }
+                        }
+
+                        //delete subscribtion if required count of days past
+                        if (time() >= ($freePeriodStart + 86400 * $freePeriodDaysOffset)) {
                             $this->deleteSubscribtion($each['login'], $each['tariffid']);
-                            log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
+                            log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED AFTER `' . $freePeriodDaysOffset . '` DAYS');
                             $result .= $each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
                         }
                     } else {
-                        //finish free period at the start of new month
+                        //just finish free period at the start of new month
                         $this->deleteSubscribtion($each['login'], $each['tariffid']);
                         log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
                         $result .= $each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
