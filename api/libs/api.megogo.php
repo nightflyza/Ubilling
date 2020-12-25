@@ -1298,7 +1298,7 @@ class MegogoInterface {
                     } else {
                         //just finish free period at the start of new month
                         $this->deleteSubscribtion($each['login'], $each['tariffid']);
-                        log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED ON `MGP`');
+                        log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED ON `MP`');
                         $result .= $each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
                     }
                 }
