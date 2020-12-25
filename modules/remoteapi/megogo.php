@@ -58,8 +58,8 @@ if ($_GET['action'] == 'mgprocessing') {
 if ($_GET['action'] == 'mgfreecleanup') {
     if ($alterconf['MG_ENABLED']) {
         $mgIface = new MegogoInterface();
-        $mgFeeProcessingResult = $mgIface->subscriptionFreeCleanup();
-        die($mgFeeProcessingResult);
+        $mgFreeCleanupResult = $mgIface->subscriptionFreeCleanup();
+        die($mgFreeCleanupResult);
     } else {
         die('ERROR: MEGOGO DISABLED');
     }
