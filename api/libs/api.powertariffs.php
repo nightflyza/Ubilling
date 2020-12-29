@@ -494,14 +494,15 @@ class PowerTariffs {
                     if ($this->userHavePowerTariff($userData)) {
                         //user is not dead at all
                         if ($this->isUserActive($userData)) {
+                            //write that user as real power users to DB
                             $this->usersDb->data('login', $userLogin);
                             $this->usersDb->data('day', $this->currentDay);
                             $this->usersDb->create();
                             $this->logUser($userLogin, $userData['Tariff'], $this->currentDay);
-                            $realCurrentDay = date("d");
 
                             //charging fee on user detection if required
-                            if ($this->chargeOnRegister AND $realCurrentDay <= $this->maxDay) {
+                            if ($this->chargeOnRegister) {
+                                $realCurrentDay = date("d");
                                 //avoid double tax rates :P
                                 if ($realCurrentDay <= $this->maxDay) {
                                     $tariffData = $this->allTariffs[$userData['Tariff']];
