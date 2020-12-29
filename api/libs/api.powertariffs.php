@@ -576,6 +576,7 @@ class PowerTariffs {
      */
     public function processingFee() {
         if (!empty($this->systemUsers)) {
+            $realCurrentDay = date("d");
             foreach ($this->systemUsers as $userLogin => $userData) {
                 //user is affected by some power tariff
                 if (isset($this->allUsers[$userLogin])) {
@@ -586,7 +587,7 @@ class PowerTariffs {
                         $tariffFee = $tariffData['fee'];
 
                         //now is user personal date for fee charge
-                        if ($userDayOffset == $this->currentDay) {
+                        if ($userDayOffset == $this->currentDay AND $realCurrentDay == $this->currentDay) { // A-A-A!!!!
                             //user is active, and we can charge some fee from him
                             if ($this->isUserActive($userData)) {
                                 //charge some fee from this user
