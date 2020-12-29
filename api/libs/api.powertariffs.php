@@ -498,9 +498,10 @@ class PowerTariffs {
                             $this->usersDb->data('day', $this->currentDay);
                             $this->usersDb->create();
                             $this->logUser($userLogin, $userData['Tariff'], $this->currentDay);
+                            $realCurrentDay = date("d");
+
                             //charging fee on user detection if required
-                            if ($this->chargeOnRegister) {
-                                $realCurrentDay = date("d");
+                            if ($this->chargeOnRegister AND $realCurrentDay <= $this->maxDay) {
                                 //avoid double tax rates :P
                                 if ($realCurrentDay <= $this->maxDay) {
                                     $tariffData = $this->allTariffs[$userData['Tariff']];
@@ -527,7 +528,7 @@ class PowerTariffs {
      */
     protected function chargeFee($userLogin, $fee, $balance) {
         global $billing;
-        $fee = '-' . $fee; //fee is negative i guess?
+        $fee = '-' . abs($fee); //fee is negative i guess?
         $curDateTime = curdatetime(); //fee datetime is changing on each operation
         //charge fee from user balance
         $billing->addcash($userLogin, $fee);
@@ -594,7 +595,7 @@ class PowerTariffs {
                                 $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
                                 //new user balance state after fee charge
                                 $newBalanceState = $userData['Cash'] - $tariffFee;
-                                if ($newBalanceState < '-' . $userData['Credit']) {
+                                if ($newBalanceState < '-' . $userData['Credit']) { //not <= because zero cash is valid value
                                     $this->userBurial($userLogin); //settin offset to zero
                                     $this->logUser($userLogin, $userData['Tariff'], 0); //log user burial
                                 }
