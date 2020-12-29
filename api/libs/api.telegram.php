@@ -399,7 +399,7 @@ class UbillingTelegram {
      * @param bool $resize
      * @param bool  $oneTime
      * 
-     * @return type
+     * @return array
      */
     public function makeKeyboard($buttonsArray, $inline = false, $resize = true, $oneTime = false) {
         $result = array();
@@ -504,6 +504,7 @@ class UbillingTelegram {
             $method = 'sendPhoto' . $photoParams;
         }
 
+        //sending keyboard
         if (!empty($keyboard)) {
             if (isset($keyboard['type'])) {
                 if ($keyboard['type'] == 'keyboard') {
@@ -515,6 +516,20 @@ class UbillingTelegram {
 
                 $method = 'sendMessage';
             }
+        }
+
+        //removing keyboard
+        if (ispos($message, 'removeKeyboard:')) {
+            $keybRemove = array(
+                'remove_keyboard' => true
+            );
+            $encodedMarkup = json_encode($keybRemove);
+            $cleanMessage = str_replace('removeKeyboard:', '', $message);
+            if (empty($cleanMessage)) {
+                $cleanMessage = __('Keyboard deleted');
+            }
+            $data['text'] = $cleanMessage;
+            $data['reply_markup'] = $encodedMarkup;
         }
 
 
