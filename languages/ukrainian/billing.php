@@ -3232,6 +3232,7 @@ $lang['def']['Dedicated field with services IDs idents mapped via BANKSTA2_INETS
 $lang['def']['Dedicated field with services IDs idents takes precedence over service type telepathy'] = 'ІД сервісів з виділеного поля мають перевагу перед телепатією сервісів';
 $lang['def']['NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services'] = 'ПРИМІТКА: ІД сервісів з виділеного поля завжди мають перевагу перед обраним вручну \'Інтернет\' чи \'УКВ\' сервісом';
 $lang['def']['Agree'] = 'Згоден';
+$lang['def']['Tariff contains'] = 'Тариф містить';
 $lang['def'][''] = '';
 
 
