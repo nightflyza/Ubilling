@@ -1652,6 +1652,20 @@ class UserProfile {
         return $row;
     }
 
+    /**
+     * Returns spoiler block with user's active PPPoE session data
+     *
+     * @return string
+     */
+    protected function getROSPPPoESessionData() {
+        $row = '';
+
+        if ($this->ubConfig->getAlterParam('ROS_NAS_PPPOE_SESSION_INFO_IN_PROFLE')) {
+            $row = zb_RenderROSPPPoESessionInfo($this->login, '?module=userprofile');
+        }
+
+        return ($row);
+    }
 
     /**
      * Returns users data export allowance trigger if appropriate alter.ini option is set
@@ -2095,6 +2109,8 @@ class UserProfile {
         $profile .= $this->getVlanOnline();
 //profile qinq controls        
         $profile .= $this->getQinqPairControls();
+// profile RoS PPPoE session info
+        $profile .= $this->getROSPPPoESessionData();
 //profile CPE controls
         $profile .= $this->getUserCpeControls();
 
@@ -2131,7 +2147,6 @@ class UserProfile {
 
         return($profile);
     }
-
 }
 
 ?>

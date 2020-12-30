@@ -1184,6 +1184,11 @@ class DealWithIt {
         $cells .= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '', false));
         $rows .= wf_TableRow($cells, 'row2');
 
+        $cells = wf_TableCell(__('Tariff contains'));
+        $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tariff_contains]', '', false));
+        $cells .= wf_TableCell(wf_TextInput('dealwithit_search[tariff_contains]', '', '', ''));
+        $rows .= wf_TableRow($cells, 'row2');
+
         $cells = wf_TableCell(__('Status'));
         $cells .= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
         $cells .= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '', false));
@@ -1221,6 +1226,11 @@ class DealWithIt {
         $cells_ex = wf_TableCell(__('Tariff'));
         $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tariff]', '', false));
         $cells_ex .= wf_TableCell(wf_Selector('dealwithit_search[ex_tariff]', $tariffs_options, '', '', false));
+        $rows_ex .= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('Tariff contains'));
+        $cells_ex .= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tariff_contains]', '', false));
+        $cells_ex .= wf_TableCell(wf_TextInput('dealwithit_search[ex_tariff_contains]', '', '', ''));
         $rows_ex .= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Status'));
@@ -1282,6 +1292,16 @@ class DealWithIt {
         // Search login by Tariff
         if (isset($search_field['tariff']) and $search_field['tariff'] == 'on') {
             $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . $_POST['dealwithit_search']['tariff'] . "'";
+            $data_tariff = simple_queryall($query);
+            if (!empty($data_tariff)) {
+                foreach ($data_tariff as $login) {
+                    $result[] = $login['login'];
+                }
+            }
+        }
+        // Search login by Tariff contains string
+        if (isset($search_field['tariff_contains']) and $search_field['tariff_contains'] == 'on') {
+            $query = "SELECT `login` FROM `users` WHERE `Tariff` LIKE '%" . $_POST['dealwithit_search']['tariff_contains'] . "%'";
             $data_tariff = simple_queryall($query);
             if (!empty($data_tariff)) {
                 foreach ($data_tariff as $login) {
@@ -1392,6 +1412,16 @@ class DealWithIt {
         //  Exclude login from request by Tariff
         if (isset($exclude_field['ex_tariff']) and $exclude_field['ex_tariff'] == 'on') {
             $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . $_POST['dealwithit_search']['ex_tariff'] . "'";
+            $data_tariff = simple_queryall($query);
+            if (!empty($data_tariff)) {
+                foreach ($data_tariff as $login) {
+                    $result_exclude[] = $login['login'];
+                }
+            }
+        }
+        // Search login by Tariff contains string
+        if (isset($exclude_field['ex_tariff_contains']) and $exclude_field['ex_tariff_contains'] == 'on') {
+            $query = "SELECT `login` FROM `users` WHERE `Tariff` LIKE '%" . $_POST['dealwithit_search']['ex_tariff_contains'] . "%'";
             $data_tariff = simple_queryall($query);
             if (!empty($data_tariff)) {
                 foreach ($data_tariff as $login) {

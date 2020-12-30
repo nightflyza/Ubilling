@@ -2289,4 +2289,24 @@ function multinet_get_network_cidr_from_descr($netID) {
 
     return($networkCIDR);
 }
+
+/**
+ * Simply gathers some network-essential info about user, like netID and NAS data
+ *
+ * @param $login
+ *
+ * @return array
+ */
+function getNASInfoByLogin($login) {
+    $tQuery = "SELECT `login`, `ip`, `tNases`.`netid`, `tNases`.`nasip`, `tNases`.`nastype`, `tNases`.`options`
+                    FROM `users`
+                    LEFT JOIN
+                      (SELECT `nethosts`.`netid`, `nethosts`.`ip`, `nas`.`netid` AS `nas_netid`, `nas`.`nasip`, `nas`.`nastype`, `nas`.`options`
+                        FROM `nethosts`
+                            LEFT JOIN `nas` ON `nas`.`netid` = `nethosts`.`netid`) AS tNases USING(`ip`)                
+                    WHERE  `users`.`login` = '" . $login . "'";
+    $tQueryResult = simple_query($tQuery);
+
+    return ($tQueryResult);
+}
 ?>

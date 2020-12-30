@@ -1,6 +1,13 @@
 <?php
 
 if (cfr('USERPROFILE')) {
+    if ($ubillingConfig->getAlterParam('ROS_NAS_PPPOE_SESSION_INFO_IN_PROFLE')) {
+        if (ubRouting::checkPost('GetPPPoEInfo') and ubRouting::checkPost('usrlogin')) {
+            $infoBlock = zb_GetROSPPPoESessionInfo(ubRouting::post('usrlogin'), wf_getBoolFromVar(ubRouting::post('returnAsHTML'), true), wf_getBoolFromVar(ubRouting::post('returnInSpoiler'), true));
+            die($infoBlock);
+        }
+    }
+
     if (isset($_GET['username'])) {
         $login = vf($_GET['username']);
         $login = trim($login);

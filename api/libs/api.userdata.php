@@ -1015,4 +1015,196 @@ function zb_GetOnlineTabPhonesStr($phone = '', $mobile = '', $extMobiles = array
     return ($phonesStr);
 }
 
+/**
+ * Tries to get user's PPPoE data from Mikrotik NAS via API
+ *
+ * @param $login
+ * @param false $returnHTML
+ * @param false $returnInSpoiler
+ * @param false $spoilerClosed
+ *
+ * @return array|string
+ */
+function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler = false, $spoilerClosed = false) {
+    $nasInfo    = getNASInfoByLogin($login);
+    $pppoeInfo  = array('errorcode'     => 0,
+                        'lastloggedout' => __('Current user login was not found on NAS') . ': ' . $nasInfo['nasip'],
+                        'sessionuptime' => __('No active session was found for current user on NAS') . ': ' . $nasInfo['nasip'],
+                        'lastlinkup'    => __('No data'),
+                        'txmb'          => '0',
+                        'rxmb'          => '0',
+                        'addrlist'      => array(__('No data'))
+                       );
+
+    if (!empty($nasInfo) and $nasInfo['nastype'] == 'mikrotik') {
+        $rosAPI = new RouterOS();
+        $nasOpts = unserialize(base64_decode($nasInfo['options']));
+        $useNewConnType = (isset($nasOpts['use_new_conn_mode']) && $nasOpts['use_new_conn_mode']);
+
+        if ($rosAPI->connect($nasInfo['nasip'], $nasOpts['username'], $nasOpts['password'], $useNewConnType)) {
+            $pppoeSecret = $rosAPI->command('/ppp/secret/print',
+                                            array('.proplist' => '.id,last-logged-out',
+                                                  '?name'     => trim($login)
+                                                 )
+                                           );
+
+            // if such pppoe user even exists
+            if (!empty($pppoeSecret[0]['.id'])) {
+                $pppoeInfo['lastloggedout'] = date('Y-m-d H:i:s', strtotime(str_ireplace('/', ' ', $pppoeSecret[0]['last-logged-out'])));
+
+                $activeSession = $rosAPI->command('/ppp/active/print',
+                                                  array('.proplist' => '.id,uptime',
+                                                        '?name'     => trim($login)
+                                                       )
+                                                 );
+
+                // if an active pppoe session exists for this user
+                if (!empty($activeSession[0]['.id'])) {
+                    $pppoeInfo['sessionuptime'] = $activeSession[0]['uptime'];
+
+                    $ifaceData = $rosAPI->command('/interface/print',
+                                                  array('.proplist' => '.id,last-link-up-time,tx-byte,rx-byte',
+                                                        '?name'     => '<pppoe-' . trim($login) . '>'
+                                                       )
+                                                 );
+
+                    if (!empty($ifaceData[0]['.id'])) {
+                        $pppoeInfo['lastlinkup'] = date('Y-m-d H:i:s', strtotime(str_ireplace('/', ' ', $ifaceData[0]['last-link-up-time'])));
+                        $pppoeInfo['txmb']       = stg_convert_size($ifaceData[0]['tx-byte']);
+                        $pppoeInfo['rxmb']       = stg_convert_size($ifaceData[0]['rx-byte']);
+                    }
+                }
+
+                // getting user's address lists and their status
+                $addrList = $rosAPI->command('/ip/firewall/address-list/print',
+                                             array('.proplist' => '.id,list,disabled',
+                                                  '?comment'  => trim($login),
+                                                  '?address'  => $nasInfo['ip']
+                                                  )
+                                            );
+                if (!empty($addrList)) {
+                    $pppoeInfo['addrlist'] = array();
+
+                    foreach ($addrList as $eachList) {
+                        $pppoeInfo['addrlist'][] = $eachList['list'] . ' -> ' . (wf_getBoolFromVar($eachList['disabled'], true) ? 'disabled' : 'enabled');
+                    }
+                }
+            }
+        } else {
+            $pppoeInfo['errorcode'] = 2;
+        }
+    } else {
+        $pppoeInfo['errorcode'] = 1;
+    }
+
+    if ($returnHTML) {
+        $rows   = '';
+
+        if ($pppoeInfo['errorcode'] !== 0) {
+            $errorStr = ($pppoeInfo['errorcode'] == 1) ? __('User has no network and NAS assigned or user\'s NAS is not of type "Mikrotik"')
+                                                       : __('Unable to connect to user\'s NAS' . ': ' . $nasInfo['nasip']);
+            $cells = wf_TableCell(__('Error while getting data'), '20%', 'row2');
+            $cells.= wf_TableCell($errorStr);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+
+        $cells = wf_TableCell('PPPoE: ' . __('last logged out'), '30%', 'row2');
+        $cells.= wf_TableCell($pppoeInfo['lastloggedout']);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell('PPPoE: ' . __('session uptime'), '30%', 'row2');
+        $cells.= wf_TableCell($pppoeInfo['sessionuptime']);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell('PPPoE: ' . __('last link up time'), '30%', 'row2');
+        $cells.= wf_TableCell($pppoeInfo['lastlinkup']);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell('PPPoE: Tx/Rx, Mb', '30%', 'row2');
+        $cells.= wf_TableCell($pppoeInfo['txmb'] . ' / ' . $pppoeInfo['rxmb']);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Current user\'s address lists'), '30%', 'row2');
+        if (!empty($pppoeInfo['addrlist'])) {
+            $addrList = $pppoeInfo['addrlist'];
+
+            foreach ($addrList as $item) {
+                $cells .= wf_TableCell($item . wf_delimiter(0));
+            }
+        } else {
+            $cells.= '';
+        }
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $table = wf_TableBody($rows, '88%', 0, '', 'style="margin: 0 auto;"');
+
+        if ($returnInSpoiler) {
+            $table = wf_Spoiler($table, 'PPPoE: ' . __('session info'), $spoilerClosed, '', '', '', '', 'style="margin: 10px auto;"');
+        }
+
+        return ($table);
+    } else {
+        return ($pppoeInfo);
+    }
+}
+
+/**
+ * Returns spoiler block with user's active PPPoE session data
+ *
+ * @param $login
+ * @param $moduleURL
+ *
+ * @return string
+ */
+function zb_RenderROSPPPoESessionInfo($login, $moduleURL) {
+    $InfoButtonID = 'InfID_' . $login;
+    $InfoBlockID = 'InfBlck_' . $login;
+
+    $PPPoEInfoBlock = wf_tag('div', false, '', 'id="' . $InfoBlockID . '"');
+    $PPPoEInfoBlock .= '';
+    $PPPoEInfoBlock .= wf_tag('div', true);
+
+    $PPPoEInfoButton = wf_tag('a', false, '', 'href="#" id="' . $InfoButtonID . '" title="' . 'PPPoE: ' . __('get session info for current user') . '"');
+    $PPPoEInfoButton .= wf_tag('img', false, '', 'src="skins/icn_alert_info.png" border="0" style="vertical-align: bottom;"');
+    $PPPoEInfoButton .= wf_tag('a', true);
+    $PPPoEInfoButton .= wf_tag('script', false, '', 'type="text/javascript"');
+    $PPPoEInfoButton .= '$(\'#' . $InfoButtonID . '\').click(function(evt) {
+                            $(\'img\', this).toggleClass("image_rotate");
+                            getPPPoEInfo("' . $login . '", "#' . $InfoBlockID . '", true, false, ' . $InfoButtonID . ');                                        
+                            evt.preventDefault();
+                            return false;                
+                        });';
+    $PPPoEInfoButton .= wf_tag('script', true);
+
+
+    $result = wf_Spoiler($PPPoEInfoBlock, $PPPoEInfoButton . wf_nbsp(2) . 'PPPoE: ' . __('session info'), true, '', '', '', '', 'style="margin: 10px auto;"');
+    $result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $result .= 'function getPPPoEInfo(userLogin, InfoBlckSelector, ReturnHTML = false, InSpoiler = false, RefreshButtonSelector) {
+                        $.ajax({
+                            type: "POST",
+                            url: "' . $moduleURL . '",
+                            data: { GetPPPoEInfo:true, 
+                                    usrlogin:userLogin,
+                                    returnAsHTML:ReturnHTML,
+                                    returnInSpoiler:InSpoiler
+                                  },
+                            success: function(result) {                       
+                                        if ($.type(RefreshButtonSelector) === \'string\') {
+                                            $("#"+RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        } else {
+                                            $(RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        }
+                                        
+                                        var InfoBlck = $(InfoBlckSelector);                                        
+                                        if ( !InfoBlck.length || !(InfoBlck instanceof jQuery)) {return false;}
+                                              
+                                        $(InfoBlck).html(result);
+                                     }
+                        });
+                    }                                   
+                    ';
+    $result .= wf_tag('script', true);
+
+    return $result;
+}
 ?>
