@@ -218,18 +218,22 @@ if (cfr('TASKMAN')) {
             //Task States support
             if (@$altCfg['TASKSTATES_ENABLED']) {
                 $taskData = ts_GetTaskData(ubRouting::get('edittask'));
-                $taskState = $taskData['status'];
-
-                $taskStates = new TaskStates();
-                show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
-                if (ubRouting::checkGet('changestate', 'edittask')) {
-                    $newStateSetResult = $taskStates->setTaskState(ubRouting::get('edittask'), ubRouting::get('changestate'));
-                    if (empty($newStateSetResult)) {
-                        die($taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
-                    } else {
-                        $messages = new UbillingMessageHelper();
-                        die($messages->getStyledMessage($newStateSetResult, 'error'));
+                //existing task?
+                if (!empty($taskData)) {
+                    $taskState = $taskData['status'];
+                    $taskStates = new TaskStates();
+                    show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
+                    if (ubRouting::checkGet('changestate', 'edittask')) {
+                        $newStateSetResult = $taskStates->setTaskState(ubRouting::get('edittask'), ubRouting::get('changestate'));
+                        if (empty($newStateSetResult)) {
+                            die($taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
+                        } else {
+                            $messages = new UbillingMessageHelper();
+                            die($messages->getStyledMessage($newStateSetResult, 'error'));
+                        }
                     }
+                } else {
+                    show_error(__('Something went wrong') . ': TASKID_NOT_EXISTS [' . ubRouting::get('edittask') . ']');
                 }
             }
 
@@ -239,9 +243,13 @@ if (cfr('TASKMAN')) {
                 $photoStorage = new PhotoStorage('TASKMAN', ubRouting::get('edittask'));
                 $renderPhotoControlFlag = true;
                 if (@$altCfg['TASKSTATES_ENABLED']) {
-
-                    if ($taskState) {
-                        //task already closed
+                    if (isset($taskState)) {
+                        if ($taskState) {
+                            //task already closed
+                            $renderPhotoControlFlag = false;
+                        }
+                    } else {
+                        //task not exists
                         $renderPhotoControlFlag = false;
                     }
                 }
