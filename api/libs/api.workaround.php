@@ -2618,7 +2618,7 @@ function zb_TariffGetLiveCount() {
     if (!empty($allusers)) {
         foreach ($allusers as $ia => $eachlogin) {
             if (isset($result[$eachlogin['Tariff']])) {
-                if ($eachlogin['Cash'] >= ('-' . $eachlogin['Credit'])) {
+                if ($eachlogin['Cash'] >= ('-' . $eachlogin['Credit']) AND $eachlogin['Passive'] == 0 AND $eachlogin['Down'] == 0 AND $eachlogin['Passive'] == 0) {
                     $result[$eachlogin['Tariff']]['alive'] = $result[$eachlogin['Tariff']]['alive'] + 1;
                 } else {
                     $result[$eachlogin['Tariff']]['dead'] = $result[$eachlogin['Tariff']]['dead'] + 1;
