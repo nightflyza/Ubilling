@@ -175,7 +175,9 @@ class OeFails {
     protected function getRawData() {
         $this->rawData = $this->cache->get(self::CACHE_KEY, $this->cacheTimeout);
         if (empty($this->rawData)) {
-            $this->rawData = file_get_contents($this->dataSource);
+            $remoteData = new OmaeUrl($this->dataSource);
+            $remoteData->setTimeout(42);
+            $this->rawData = $remoteData->response();
             $this->cache->set(self::CACHE_KEY, $this->rawData, $this->cacheTimeout);
         }
     }
