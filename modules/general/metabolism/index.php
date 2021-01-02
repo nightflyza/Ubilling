@@ -8,6 +8,8 @@ if (cfr('REPORTFINANCE') AND cfr('REPORTSIGNUP')) {
     } else {
         show_window(__('Payments'), $metabolism->renderPayments());
     }
+
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }
