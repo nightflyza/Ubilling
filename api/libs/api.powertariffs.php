@@ -6,6 +6,13 @@
 class PowerTariffs {
 
     /**
+     * System alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Most essential property for this Porno Tariffs mechanics
      *
      * @var int
@@ -14,7 +21,7 @@ class PowerTariffs {
 
     /**
      * Default maximum day of month which will be rounded to 1st.
-     * May be configurable in future.
+     * Configurable with PT_MAXDAY option.
      *
      * @var int 
      */
@@ -115,12 +122,20 @@ class PowerTariffs {
     const ROUTE_EDIT = 'editpt';
 
     /**
+     * Some config options here
+     */
+    const OPTION_MAXDAY = 'PT_MAXDAY';
+    const OPTION_CHARGEON = 'PT_CHARGEONREG';
+
+    /**
      * Creates new PT instance
      * 
      * @param bool $loadAll Load system users and tariffs too.
      */
     public function __construct($loadAll = true) {
         $this->initMessages();
+        $this->loadAlter();
+        $this->setOptions();
         $this->setCurrentDate();
         $this->setCurrentAdmin();
         $this->initPowerBase();
@@ -161,6 +176,37 @@ class PowerTariffs {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Preloads system alter config into protected property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some custom PowerTariffs options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        //custom maximum day of month
+        if (isset($this->altCfg[self::OPTION_MAXDAY])) {
+            if ($this->altCfg[self::OPTION_MAXDAY]) {
+                $this->maxDay = $this->altCfg[self::OPTION_MAXDAY];
+            }
+        }
+
+        //charge on register flag setup
+        if (isset($this->altCfg[self::OPTION_CHARGEON])) {
+            $this->chargeOnRegister = ($this->altCfg[self::OPTION_CHARGEON]) ? true : false;
+        }
     }
 
     /**

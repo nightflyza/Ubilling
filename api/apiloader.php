@@ -129,7 +129,7 @@ require_once('api/libs/api.ubrouting.php');
 require_once('api/libs/api.nyanorm.php');
 require_once('api/libs/api.zabbix.php');
 
-/*
+/**
  * Initial class creation
  */
 $billing = new ApiBilling();
