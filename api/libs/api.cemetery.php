@@ -302,12 +302,11 @@ class Cemetery {
 
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $ia => $each) {
-
                 $chartData[] = array($ia, ($totalCount - $each['active']), ($totalCount - $each['inactive']));
             }
-        }
 
-        $chartsOptions = "
+
+            $chartsOptions = "
             'focusTarget': 'category',
                         'hAxis': {
                         'color': 'none',
@@ -323,7 +322,8 @@ class Cemetery {
                         trigger: 'none'
                     },";
 
-        $result .= wf_gchartsLine($chartData, '', '100%', '300px', $chartsOptions);
+            $result .= wf_gchartsLine($chartData, '', '100%', '300px', $chartsOptions);
+        }
         return ($result);
     }
 
