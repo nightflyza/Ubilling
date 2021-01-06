@@ -843,6 +843,27 @@ class Envy {
         if (!empty($switchId)) {
             if (isset($this->allDevices[$switchId])) {
                 $curdate = curdatetime();
+                $startOffset = ($this->allDevices[$switchId]['cutstart']) ? $this->allDevices[$switchId]['cutstart'] : 0;
+                $endOffset = ($this->allDevices[$switchId]['cutend']) ? $this->allDevices[$switchId]['cutend'] : 0;
+                //Optional data cutting on storing to archive
+                if ($startOffset OR $endOffset) {
+                    $cutTmp = explodeRows($data);
+                    $cuttedData = '';
+                    if (!empty($cutTmp)) {
+                        $totalLines = sizeof($cutTmp);
+                        $lineCount = 0;
+                        foreach ($cutTmp as $lineIndex => $eachLineContent) {
+                            if ($lineCount >= $startOffset AND ( $lineCount < ($totalLines - $endOffset))) {
+                                $cuttedData .= $eachLineContent;
+                            }
+                            $lineCount++;
+                        }
+
+                        //now replacing initial data with cutted data
+                        $data = $cuttedData;
+                    }
+                }
+
                 $data = ubRouting::filters($data, 'mres');
                 $this->archive->data('switchid', $switchId);
                 $this->archive->data('date', $curdate);
