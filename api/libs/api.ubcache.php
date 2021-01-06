@@ -349,7 +349,7 @@ class UbillingCache {
         //files storage
         if ($this->storage == 'files') {
             if (file_exists($this->storagePath . $key)) {
-                unlink($this->storagePath . $key);
+                @unlink($this->storagePath . $key);
             }
         }
 
