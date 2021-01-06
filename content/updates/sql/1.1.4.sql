@@ -1,0 +1,1 @@
+ALTER TABLE `envydevices` ADD `cutstart` INT NULL DEFAULT NULL , ADD `cutend` INT NULL DEFAULT NULL ; 

@@ -437,6 +437,8 @@ class Envy {
                 $inputs .= wf_TextInput('newdevicepassword', __('Password'), '', true, '');
                 $inputs .= wf_TextInput('newdeviceenablepassword', __('Enable password'), '', true, '');
                 $inputs .= wf_TextInput('newdevicecustom1', __('Custom field'), '', true, '');
+                $inputs .= wf_TextInput('newdevicecutstart', __('Lines to cut at start'), '0', true, '');
+                $inputs .= wf_TextInput('newdevicecutend', __('Lines to cut at end'), '0', true, '');
                 $inputs .= wf_CheckInput('newdeviceactive', __('Active'), true, true);
                 $inputs .= wf_delimiter(0);
                 $inputs .= wf_Submit(__('Create'));
@@ -469,6 +471,8 @@ class Envy {
             $inputs .= wf_TextInput('editdevicepassword', __('Password'), $deviceData['password'], true, '');
             $inputs .= wf_TextInput('editdeviceenablepassword', __('Enable password'), $deviceData['enablepassword'], true, '');
             $inputs .= wf_TextInput('editdevicecustom1', __('Custom field'), $deviceData['custom1'], true, '');
+            $inputs .= wf_TextInput('editdevicecutstart', __('Lines to cut at start'), $deviceData['cutstart'], true, '');
+            $inputs .= wf_TextInput('editdevicecutend', __('Lines to cut at end'), $deviceData['cutend'], true, '');
             $inputs .= wf_CheckInput('editdeviceactive', __('Active'), true, $deviceData['active']);
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Save'));
@@ -493,6 +497,9 @@ class Envy {
             $password = ubRouting::post('newdevicepassword', 'mres');
             $enablepassword = ubRouting::post('newdeviceenablepassword', 'mres');
             $custom1 = ubRouting::post('newdevicecustom1', 'mres');
+            $cutstart = ubRouting::post('newdevicecutstart', 'int');
+            $cutend = ubRouting::post('newdevicecutend', 'int');
+
             if (!empty($switchId)) {
                 if (!isset($this->allDevices[$switchId])) {
                     if (isset($this->allSwitches[$switchId])) {
@@ -502,6 +509,8 @@ class Envy {
                         $this->devices->data('password', $password);
                         $this->devices->data('enablepassword', $enablepassword);
                         $this->devices->data('custom1', $custom1);
+                        $this->devices->data('cutstart', $cutstart);
+                        $this->devices->data('cutend', $cutend);
                         $this->devices->create();
                         $newId = $this->devices->getLastId();
                         log_register('ENVY CREATE DEVICE [' . $newId . '] SWITCHID [' . $switchId . ']');
@@ -533,6 +542,9 @@ class Envy {
             $password = ubRouting::post('editdevicepassword', 'mres');
             $enablepassword = ubRouting::post('editdeviceenablepassword', 'mres');
             $custom1 = ubRouting::post('editdevicecustom1', 'mres');
+            $cutstart = ubRouting::post('editdevicecutstart', 'int');
+            $cutend = ubRouting::post('editdevicecutend', 'int');
+
             if (!empty($switchId)) {
                 if (isset($this->allDevices[$switchId])) {
                     if (isset($this->allSwitches[$switchId])) {
@@ -542,6 +554,8 @@ class Envy {
                         $this->devices->data('password', $password);
                         $this->devices->data('enablepassword', $enablepassword);
                         $this->devices->data('custom1', $custom1);
+                        $this->devices->data('cutstart', $cutstart);
+                        $this->devices->data('cutend', $cutend);
                         $this->devices->save();
                         log_register('ENVY EDIT DEVICE [' . $deviceId . '] SWITCHID [' . $switchId . ']');
                     } else {

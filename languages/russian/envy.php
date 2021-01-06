@@ -22,3 +22,5 @@ $lang['def']['No difference between this two configurations'] = 'Нету раз
 $lang['def']['Something is different in this two configurations'] = 'Что-то различается в этих двух конфигурациях';
 $lang['def']['Latest config'] = 'Последний конфиг';
 $lang['def']['All configs for each of devices will be deletet from the archive except the last one'] = 'Все конфиги из архива, кроме последнего, будут удалены для каждого из устройств';
+$lang['def']['Lines to cut at start'] = 'Откусить строк в начале';
+$lang['def']['Lines to cut at end'] = 'Откусить строк в конце';
