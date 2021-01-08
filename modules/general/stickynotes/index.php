@@ -55,9 +55,11 @@ if (cfr('STICKYNOTES')) {
                 }
 
                 //note editing interface
-                if (wf_CheckGet(array('editform'))) {
-                    show_window(__('Edit'), $stickyNotes->editForm($_GET['editform'], true));
-                    show_window('', wf_BackLink($stickyNotes::URL_ME));
+                if (ubRouting::checkGet('editform')) {
+                    $editNoteId = ubRouting::get('editform', 'int');
+                    show_window(__('Edit'), $stickyNotes->editForm($editNoteId, true));
+                    //some controls here
+                    show_window('', wf_BackLink($stickyNotes::URL_ME) . ' ' . $stickyNotes->getEditFormDeleteControls($editNoteId));
                 }
             }
         } else {
