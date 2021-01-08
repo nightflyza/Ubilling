@@ -48,6 +48,13 @@ class StickyNotes {
     protected $cache = '';
 
     /**
+     * Just a flag of preview functionality in notes grid list
+     *
+     * @var bool
+     */
+    protected $notesPreview = true;
+
+    /**
      * Default taskbar notifications caching timeout in seconds
      */
     const CACHE_TIMEOUT = 3600;
@@ -111,6 +118,10 @@ class StickyNotes {
     protected function loadConfig() {
         global $ubillingConfig;
         $this->revelationsFlag = $ubillingConfig->getAlterParam('STICKY_REVELATIONS_ENABLED');
+        $noPreviewOption = $ubillingConfig->getAlterParam('STICKY_NOTES_NOPREVIEW');
+        if ($noPreviewOption) {
+            $this->notesPreview = false;
+        }
     }
 
     /**
@@ -305,8 +316,10 @@ class StickyNotes {
                 $deletingDialog = wf_modalAuto(web_delete_icon(), __('Delete'), $deletingPreview);
                 $actLinks = $deletingDialog;
                 $actLinks .= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
-                $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
-                $actLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
+                if ($this->notesPreview) {
+                    $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
+                    $actLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
+                }
                 $cells .= wf_TableCell($actLinks);
                 $rows .= wf_TableRow($cells, 'row5');
             }
