@@ -1037,7 +1037,7 @@ class TrinityTv {
 
             if (isset($response->result) AND $response->result == 'success') {
 
-                $mac = vf(strtoupper($response->mac)); //alphanumeric
+                @$mac = vf(strtoupper($response->mac)); //alphanumeric
 
                 $query = "INSERT INTO `" . self::TABLE_DEVICES . "` (`login`, `subscriber_id`, `mac`, `created_at`) VALUES ";
                 $query .= "('" . $this->allSubscribers[$subscriberId]['login'] . "', '" . $subscriberId . "','" . $mac . "', NOW() )";
