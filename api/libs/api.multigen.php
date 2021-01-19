@@ -2964,6 +2964,9 @@ class MultiGen {
         $json = new wf_JqDtHelper();
         if ($this->usernamesCachingTimeout) {
             $guessedUsernames = $this->cache->get('MLG_TELEPATHY', $this->usernamesCachingTimeout); //contains already guessed logins by usernames
+            if (empty($guessedUsernames)) {
+                $guessedUsernames = array();
+            }
         } else {
             $guessedUsernames = array();
         }
