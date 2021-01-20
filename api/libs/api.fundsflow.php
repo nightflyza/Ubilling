@@ -463,6 +463,13 @@ class FundsFlow {
                     $cashtype = __('Fee');
                 }
 
+                //manual charged
+                if (ispos($each['note'], 'EXTFEE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Fee');
+                    $cashtype = __('Fee');
+                }
+
                 //notes translation
                 if ($this->alterConf['TRANSLATE_PAYMENTS_NOTES']) {
                     $displaynote = zb_TranslatePaymentNote($each['note'], $allservicenames);
@@ -776,7 +783,7 @@ class FundsFlow {
 
             if ($includeVServices) {
                 $totalVsrvPrice = zb_VservicesGetUserPricePeriod($login, $tariffPeriod);
-                $tariffFee+= $totalVsrvPrice;
+                $tariffFee += $totalVsrvPrice;
             }
 
             if (isset($this->alterConf['SPREAD_FEE'])) {
@@ -887,7 +894,7 @@ class FundsFlow {
 
                 if ($includeVServices) {
                     $totalVsrvPrice = zb_VservicesGetUserPricePeriod($login, $tariffPeriod);
-                    $tariffFee+= $totalVsrvPrice;
+                    $tariffFee += $totalVsrvPrice;
                 }
 
                 if (isset($this->alterConf['SPREAD_FEE'])) {

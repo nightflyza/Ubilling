@@ -1047,6 +1047,10 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $paynote = __('PT') . ' ' . __('Fee');
     }
 
+    if (ispos($paynote, 'EXTFEE')) {
+        $paynote = __('External fee');
+    }
+
     return ($paynote);
 }
 
