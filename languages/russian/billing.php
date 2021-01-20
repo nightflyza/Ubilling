@@ -3212,6 +3212,7 @@ $lang['def']['Dedicated field with services IDs idents takes precedence over ser
 $lang['def']['NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services'] = 'ПРИМЕЧАНИЕ: ИД сервисов из выделенного поля всегда имеют преимущество перед выбранным вручную \'Интернет\' или \'УКВ\' сервисом';
 $lang['def']['Agree'] = 'Согласен';
 $lang['def']['Tariff contains'] = 'Тариф содержит';
+$lang['def']['External fee'] = 'Внешнее начисление';
 $lang['def'][''] = '';
 
 
