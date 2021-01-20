@@ -3289,7 +3289,9 @@ class Warehouse {
                 if ($notesFlag) {
                     $cells .= wf_TableCell(__('Notes'));
                 }
-                $cells .= wf_TableCell(__('Actions'));
+                if (cfr('WAREHOUSEOUT')) {
+                    $cells .= wf_TableCell(__('Actions'));
+                }
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($tmpArr as $io => $each) {
                     @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
@@ -3305,10 +3307,14 @@ class Warehouse {
                     } else {
                         $actLinks = '';
                     }
+
                     if ($notesFlag) {
                         $cells .= wf_TableCell($each['notes']);
                     }
-                    $cells .= wf_TableCell($actLinks);
+
+                    if (cfr('WAREHOUSEOUT')) {
+                        $cells .= wf_TableCell($actLinks);
+                    }
                     $rows .= wf_TableRow($cells, 'row5');
                     $sum = $sum + ($each['price'] * $each['count']);
                     $outcomesCount++;
@@ -3323,7 +3329,9 @@ class Warehouse {
                 if ($notesFlag) {
                     $cells .= wf_TableCell('');
                 }
-                $cells .= wf_TableCell('');
+                if (cfr('WAREHOUSEOUT')) {
+                    $cells .= wf_TableCell('');
+                }
                 $rows .= wf_TableRow($cells, 'row2');
 
                 $result = wf_TableBody($rows, '100%', 0, '');

@@ -3234,6 +3234,7 @@ $lang['def']['NOTE: dedicated field\'s services IDs are always take precedence o
 $lang['def']['Agree'] = 'Згоден';
 $lang['def']['Tariff contains'] = 'Тариф містить';
 $lang['def']['External fee'] = 'Зовнішнє нарахування';
+$lang['def']['right to view materials spent on tasks'] = 'Право переглядати матеріали витрачені на задачі';
 $lang['def'][''] = '';
 
 

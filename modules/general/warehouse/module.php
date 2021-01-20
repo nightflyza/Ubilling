@@ -8,5 +8,6 @@ $this->registerModule($module, 'main', __('Warehouse'), 'Nightfly', array(
     'WAREHOUSERESERVE' => __('right to control warehouse reservation operations'),
     'WAREHOUSEDIR' => __('right to control warehouse directories'),
     'WAREHOUSEREPORTS' => __('right to control warehouse reports'),
+    'WAREVIEW' => __('right to view materials spent on tasks')
 ));
 ?>
