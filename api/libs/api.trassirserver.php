@@ -794,10 +794,11 @@ class TrassirServer {
      * @param string $container should be mjpeg|flv|jpeg|hls
      * @param int $quality jpg container type quality between 0-100 (percents) 
      * @param int $framerate 0 - realtime / 60000 - 1 frame per minute
+     * @param string $customUrl - optional custom preview URL
      * 
      * @return bool|string return url to live video stream or false on failure
      */
-    public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg', $quality = 100, $framerate = 0) {
+    public function getLiveVideoStream($channel, $stream = 'main', $container = 'mjpeg', $quality = 100, $framerate = 0, $customUrl = '') {
         $result = false;
         if ($container == 'mjpeg' OR $container == 'jpeg') {
             $requestUrl = '/get_video?channel=' . $channel . '&container=' . $container . '&stream=' . $stream . '&quality=' . $quality . '%&framerate=' . $framerate;
@@ -807,10 +808,20 @@ class TrassirServer {
         $token = $this->apiRequest($requestUrl, 'sidamp');
         if ($token['success'] == 1) {
             $videoToken = $token['token'];
-            if ($container != 'hls') {
-                $result = $this->httpVideoProtocol . '://' . trim($this->ip) . ':' . $this->httpVideoPort . '/' . $videoToken;
+            if (!empty($customUrl)) {
+                //using custom preview URL
+                if ($container != 'hls') {
+                    $result = $customUrl . '/' . $videoToken;
+                } else {
+                    $result = $customUrl . '/hls/' . $videoToken . '/master.m3u8';
+                }
             } else {
-                $result = $this->sdkProtocol . '://' . trim($this->ip) . ':' . $this->port . '/hls/' . $videoToken . '/master.m3u8';
+                //default case
+                if ($container != 'hls') {
+                    $result = $this->httpVideoProtocol . '://' . trim($this->ip) . ':' . $this->httpVideoPort . '/' . $videoToken;
+                } else {
+                    $result = $this->sdkProtocol . '://' . trim($this->ip) . ':' . $this->port . '/hls/' . $videoToken . '/master.m3u8';
+                }
             }
         }
         return ($result);

@@ -888,7 +888,7 @@ class UbillingVisor {
                             if ($chanDvrData['type'] == 'trassir') {
                                 $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port']);
 
-                                $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                                $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $chanDvrData['customurl']);
                                 $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
                                 $chanEditLabel = web_edit_icon() . ' ' . __('Edit') . ' ' . __('channel');
                                 $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['chan'] . '&dvrid=' . $eachChan['dvrid'], $chanEditLabel);
@@ -1858,6 +1858,7 @@ class UbillingVisor {
         $inputs .= wf_TextInput('newdvrpassword', __('Password'), '', true, 20);
         $inputs .= wf_TextInput('newdvrapikey', __('API key'), '', true, 20);
         $inputs .= wf_TextInput('newdvrcamlimit', __('Cameras limit'), '0', true, 3, 'digits');
+        $inputs .= wf_TextInput('newdvrcustomurl', __('Custom preview URL'), '', true, 20);
         $inputs .= wf_Submit(__('Create'));
 
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1880,6 +1881,7 @@ class UbillingVisor {
             $type = ubRouting::post('newdvrtype', 'mres');
             $apikey = ubRouting::post('newdvrapikey', 'mres');
             $camlimit = ubRouting::post('newdvrcamlimit', 'int');
+            $customurl = ubRouting::post('newdvrcustomurl', 'mres');
 
             $dvrs = new NyanORM(self::TABLE_DVRS);
             $dvrs->data('ip', $ip_f);
@@ -1890,6 +1892,7 @@ class UbillingVisor {
             $dvrs->data('name', $name);
             $dvrs->data('type', $type);
             $dvrs->data('camlimit', $camlimit);
+            $dvrs->data('customurl', $customurl);
             $dvrs->create();
 
             $newId = $dvrs->getLastId();
@@ -1921,6 +1924,7 @@ class UbillingVisor {
             $inputs .= wf_TextInput('editdvrpassword', __('Password'), $dvrData['password'], true, 12);
             $inputs .= wf_TextInput('editdvrapikey', __('API key'), $dvrData['apikey'], true, 20);
             $inputs .= wf_TextInput('editdvrcamlimit', __('Cameras limit'), $dvrData['camlimit'], true, 20);
+            $inputs .= wf_TextInput('editdvrcustomurl', __('Custom preview URL'), $dvrData['customurl'], true, 20);
             $inputs .= wf_tag('br');
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -1950,6 +1954,7 @@ class UbillingVisor {
                 $newType = ubRouting::post('editdvrtype', 'mres');
                 $newApikey = ubRouting::post('editdvrapikey', 'mres');
                 $newCamlimit = ubRouting::post('editdvrcamlimit', 'int');
+                $newCustomUrl = ubRouting::post('editdvrcustomurl', 'mres');
 
                 if ($dvrData['ip'] != $newIp) {
                     simple_update_field(self::TABLE_DVRS, 'ip', $newIp, $where);
@@ -1989,6 +1994,11 @@ class UbillingVisor {
                 if ($dvrData['camlimit'] != $newCamlimit) {
                     simple_update_field(self::TABLE_DVRS, 'camlimit', $newCamlimit, $where);
                     log_register('VISOR DVR [' . $dvrId . '] CHANGE CAMLIMIT `' . $newCamlimit . '`');
+                }
+
+                if ($dvrData['customurl'] != $newCustomUrl) {
+                    simple_update_field(self::TABLE_DVRS, 'customurl', $newCustomUrl, $where);
+                    log_register('VISOR DVR [' . $dvrId . '] CHANGE CUSTOMURL `' . $newCustomUrl . '`');
                 }
             }
         }
@@ -2242,7 +2252,7 @@ class UbillingVisor {
                                     }
 
                                     if ($renderChannel) {
-                                        $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                                        $streamUrl = $dvrGate->getLiveVideoStream($eachChan['guid'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $eachDvr['customurl']);
                                         $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
                                         $channelEditControl = wf_Link(self::URL_ME . self::URL_CHANEDIT . $eachChan['guid'] . '&dvrid=' . $eachDvr['id'], web_edit_icon(__('Edit') . ' ' . __('channel')));
                                         $result .= $eachChan['name'] . ' / ' . $eachChan['guid'] . ' @ ' . $eachDvr['id'];
@@ -2400,7 +2410,7 @@ class UbillingVisor {
             $dvrData = $this->allDvrs[$dvrId];
             if ($dvrData['type'] == 'trassir') {
                 $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
-                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
+                $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate, $dvrData['customurl']);
                 $result .= $this->renderChannelPlayer($channelUrl, '60%', true);
                 $result .= wf_delimiter();
                 //Channel record mode form here
@@ -2541,9 +2551,9 @@ class UbillingVisor {
                     if ($dvrData['type'] = 'trassir') {
                         $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
                         if (!$maxQual) {
-                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate);
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $dvrData['customurl']);
                         } else {
-                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate);
+                            $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate, $dvrData['customurl']);
                         }
                         $urlTmp[$each['chan']] = $url;
                     }

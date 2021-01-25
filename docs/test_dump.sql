@@ -2917,3 +2917,8 @@ CREATE TABLE IF NOT EXISTS `contrahens_extinfo` (
   `internal_paysys_srv_id` varchar(50)  NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- 1.1.4 update
+ALTER TABLE `envydevices` ADD `cutstart` INT NULL DEFAULT NULL , ADD `cutend` INT NULL DEFAULT NULL ; 
+
+ALTER TABLE `visor_dvrs` ADD `customurl` VARCHAR(255) NULL DEFAULT NULL AFTER `camlimit`; 
