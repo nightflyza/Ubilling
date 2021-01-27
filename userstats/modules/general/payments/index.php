@@ -3,11 +3,15 @@
 function zbs_ShowUserPayments($login) {
     $usConfig = zbs_LoadConfig();
     if ($usConfig['PAYMENTS_ENABLED']) {
-        $allpayments = zbs_CashGetUserPayments($login);
+        $positiveFilter = false;
+        if (isset($usConfig['PAYMENTS_ONLYPOSITIVE']) AND $usConfig['PAYMENTS_ONLYPOSITIVE']) {
+            $positiveFilter = true;
+        }
+        $allpayments = zbs_CashGetUserPayments($login, $positiveFilter);
 
         $cells = la_TableCell(__('Date'));
-        $cells.= la_TableCell(__('Sum'));
-        $cells.= la_TableCell(__('Balance before'));
+        $cells .= la_TableCell(__('Sum'));
+        $cells .= la_TableCell(__('Balance before'));
         $rows = la_TableRow($cells, 'row1');
 
         if (!empty($allpayments)) {
@@ -21,9 +25,9 @@ function zbs_ShowUserPayments($login) {
                 }
 
                 $cells = la_TableCell($dateCells);
-                $cells.= la_TableCell($eachpayment['summ']);
-                $cells.= la_TableCell($eachpayment['balance']);
-                $rows.= la_TableRow($cells, 'row2');
+                $cells .= la_TableCell($eachpayment['summ']);
+                $cells .= la_TableCell($eachpayment['balance']);
+                $rows .= la_TableRow($cells, 'row2');
             }
         }
         $result = la_TableBody($rows, '100%', 0);

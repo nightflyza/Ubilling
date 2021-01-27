@@ -1436,11 +1436,17 @@ function zbs_UserShowProfile($login) {
  * Returns payments array for some user
  * 
  * @param string $login
+ * @param bool $onlyPositive
+ * 
  * @return array
  */
-function zbs_CashGetUserPayments($login) {
+function zbs_CashGetUserPayments($login, $onlyPositive = false) {
     $login = vf($login);
-    $query = "SELECT * from `payments` WHERE `login`='" . $login . "' ORDER BY `id` DESC";
+    $additionalFilters = '';
+    if ($onlyPositive) {
+        $additionalFilters .= " AND `summ`>'0' ";
+    }
+    $query = "SELECT * from `payments` WHERE `login`='" . $login . "' " . $additionalFilters . " ORDER BY `id` DESC";
     $allpayments = simple_queryall($query);
     return($allpayments);
 }
