@@ -47,6 +47,7 @@ class SMSHistory {
         }
 
         if (!empty($QueryData)) {
+            $allAddresses = zb_AddressGetFulladdresslistCached();
             $data = array();
 
             foreach ($QueryData as $EachRec) {
@@ -65,7 +66,13 @@ class SMSHistory {
                             break;
 
                         case 'login':
-                            $data[] = ( empty($FieldVal) ) ? '' : wf_Link('?module=userprofile&username=' . $FieldVal, web_profile_icon() . ' ' . $FieldVal, false, '', 'style="color:#000fd4"');
+                            if (empty($FieldVal)) {
+                                $data[] = '';
+                            } else {
+                                $usrAddress = (empty($allAddresses[$FieldVal])) ? '' : $allAddresses[$FieldVal];
+                                $data[] = wf_Link('?module=userprofile&username=' . $FieldVal, web_profile_icon() . ' ' . $FieldVal, false, '', 'style="color:#000fd4"')
+                                          . wf_delimiter(0) . $usrAddress;
+                            }
                             break;
 
                         case 'delivered':

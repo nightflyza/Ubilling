@@ -70,6 +70,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
     }
     $sqlinputs .= wf_TextArea('sqlq', '', $startQuery, true, '80x10');
     $sqlinputs .= wf_CheckInput('tableresult', 'Display query result as table', true, false);
+    $sqlinputs .= wf_CheckInput('truetableresult', 'Display query result as table with fields', true, false);
     $sqlinputs .= wf_Submit('Process query');
     $sqlform = wf_Form('', 'POST', $sqlinputs, 'glamour');
 
@@ -176,9 +177,42 @@ if ($system->checkForRight('SQLCONSOLE')) {
                 }
             } //end of wrong query exeption patch
             if (!empty($query_result)) {
-                if (!isset($_POST['tableresult'])) {
+                $recCount = count($query_result);
+
+                if (!isset($_POST['tableresult']) and !isset($_POST['truetableresult'])) {
                     //raw array result
                     $vdump = var_export($query_result, true);
+                } elseif (isset($_POST['truetableresult'])) {
+                    //show query result as table with fields
+                    $tablecells = '';
+                    $tablerows  = '';
+                    $fieldNames = array_keys($query_result[0]);
+
+                    if (!empty($fieldNames)) {
+                        $fieldsCnt = count($fieldNames);
+
+                        foreach ($fieldNames as $fieldName) {
+                            $tablecells.= wf_TableCell($fieldName);
+                        }
+                        $tablerows.= $tablecells;
+                        $tablecells = '';
+
+                        foreach ($query_result as $eachresult) {
+                            for ($k = 0; $k < $fieldsCnt; $k++) {
+                                $tablecells.= wf_TableCell('');
+                            }
+                            $tablerows .= wf_TableRow($tablecells, 'row1');
+                            $tablecells = '';
+
+                            foreach ($eachresult as $io => $key) {
+                                $tablecells .= wf_TableCell($key);
+                            }
+                            $tablerows .= wf_TableRow($tablecells, 'row3');
+                            $tablecells = '';
+                        }
+                    }
+
+                    $vdump = wf_TableBody($tablerows, '100%', '0', '');
                 } else {
                     //show query result as table
                     $tablerows = '';
@@ -201,7 +235,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             $vdump = __('Empty query');
         }
 
-        show_window(__('Result'), '<pre>' . $vdump . '</pre>');
+        show_window(__('Result'), '<pre>' . $vdump . '</pre>' . wf_delimiter(0) . __('Returned records count') . ': ' . $recCount);
     }
 
 

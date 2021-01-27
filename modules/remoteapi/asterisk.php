@@ -245,6 +245,7 @@ if ($_GET['action'] == 'asterisk') {
                         case 'getonlinedaysleft':
                         case 'getvservicescount':
                         case 'getuserspends':
+                        case 'getcontragentdata':
                             if (empty($userLogin) and !empty($number)) {
                                 $logins = $asterisk->getLoginsByMobile($number, false);
 
@@ -258,6 +259,11 @@ if ($_GET['action'] == 'asterisk') {
                                 $ff->runDataLoders();
                                 $onlineDaysLeft = $ff->getOnlineLeftCountFast($userLogin, $includeVservices);
                                 die("$onlineDaysLeft");
+                            }
+
+                            if ($apiParam == 'getcontragentdata') {
+                                $contragent = zb_AgentAssignedGetData($userLogin);
+                                die(json_encode($contragent));
                             }
 
                             $userVsrvs = zb_VservicesGetUsersAll($userLogin, true);

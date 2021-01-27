@@ -2309,4 +2309,41 @@ function getNASInfoByLogin($login) {
 
     return ($tQueryResult);
 }
+
+/**
+ * Converts MAC from it's DEC representation back to HEX, like
+ * 32.87.175.9.99.125 => 20:57:AF:09:63:7D
+ * or
+ * 52:45:13:39:180:117 => 34:2D:0D:27:B4:75
+ *
+ * @param string $decMAC
+ * @param string $inSeparator
+ * @param string $outSeparator
+ * @param false $reversed   - set to true if DEC MAC is reversed
+ *
+ * @return string
+ */
+function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $reversed = false) {
+    $hexMAC = '';
+
+    if (!empty($decMAC)) {
+        $decMACArr = explode($inSeparator, $decMAC);
+        $decMACArr = ($reversed) ? array_reverse($decMACArr) : $decMACArr;
+
+        foreach ($decMACArr as $decOctet) {
+            $hexOctet = ($decOctet == '0' or $decOctet == 0) ? '00' : dechex($decOctet);
+
+            if (strlen($hexOctet) < 2) {
+                $hexOctet = '0' . $hexOctet;
+            }
+
+            $hexMAC.= $hexOctet;
+        }
+
+        $hexMAC = strtolower_utf8(AddMacSeparator($hexMAC, $outSeparator));
+    }
+
+    return($hexMAC);
+}
+
 ?>

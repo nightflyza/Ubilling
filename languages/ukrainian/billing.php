@@ -3235,6 +3235,9 @@ $lang['def']['Agree'] = 'Згоден';
 $lang['def']['Tariff contains'] = 'Тариф містить';
 $lang['def']['External fee'] = 'Зовнішнє нарахування';
 $lang['def']['right to view materials spent on tasks'] = 'Право переглядати матеріали витрачені на задачі';
+$lang['def']['Display query result as table with fields'] = 'Відображення результату у вигляді таблиці з полями';
+$lang['def']['Returned records count'] = 'Записів повернуто';
+$lang['def']['realtime'] = 'в реальному часі';
 $lang['def'][''] = '';
 
 

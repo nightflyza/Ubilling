@@ -49,6 +49,8 @@ if ($system->checkForRight('ONLINE')) {
                                                 sigColor = \'#ab0000\';
                                             } else if (data > -27 && data < -25) {
                                                 sigColor = \'#FF5500\';
+                                            } else if (data == \'Offline\') {
+                                                sigColor = \'#6500FF\';
                                             } else {
                                                 sigColor = \'#005502\';
                                             }
