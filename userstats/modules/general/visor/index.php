@@ -304,6 +304,7 @@ if (@$us_config['VISOR_ENABLED']) {
             if (!empty($this->myLogin)) {
                 if (!empty($this->myUserData)) {
                     if (!empty($this->myCameras)) {
+                        $totalCamerasPrice = 0;
                         $allPayIds = $this->getAllPaymentIds();
                         $allTariffsFee = zbs_TariffGetAllPrices();
 
@@ -332,8 +333,16 @@ if (@$us_config['VISOR_ENABLED']) {
                                 $cells .= la_TableCell(@$this->allUsers[$cameraLogin]['Cash']);
                                 $cells .= la_TableCell($cameraFee);
                                 $rows .= la_TableRow($cells, 'row3');
+                                $totalCamerasPrice += $cameraFee;
                             }
                         }
+
+                        $totalPriceLabel = __('Total') . ' ' . la_tag('nobr') . $totalCamerasPrice . la_tag('nobr', true) . ' ' . @$this->userstatsCfg['currency'];
+                        $cells = la_TableCell('');
+                        $cells .= la_TableCell('');
+                        $cells .= la_TableCell('');
+                        $cells .= la_TableCell($totalPriceLabel);
+                        $rows .= la_TableRow($cells, 'row1');
                         $result .= la_TableBody($rows, '100%', 0, 'resp-table');
 
                         $myChansCount = $this->getChansCount();
