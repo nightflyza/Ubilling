@@ -132,6 +132,13 @@ class PONizer {
     protected $FDBCache = array();
 
     /**
+     * Contains ONU devices indexes cache as mac => devID
+     *
+     * @var array
+     */
+    protected $onuMACDevIDCache = array();
+
+    /**
      * System alter.ini config stored as key=>value
      *
      * @var array
@@ -281,41 +288,43 @@ class PONizer {
     /**
      * Some predefined paths, etc
      */
-    const SIGCACHE_PATH = 'exports/';
-    const SIGCACHE_EXT = 'OLTSIGNALS';
-    const DISTCACHE_PATH = 'exports/';
-    const DISTCACHE_EXT = 'OLTDISTANCE';
-    const ONUCACHE_PATH = 'exports/';
-    const ONUCACHE_EXT = 'ONUINDEX';
-    const INTCACHE_PATH = 'exports/';
-    const INTCACHE_EXT = 'ONUINTERFACE';
-    const INTDESCRCACHE_EXT = 'OLTINTERFACEDESCR';
-    const FDBCACHE_PATH = 'exports/';
-    const FDBCACHE_EXT = 'OLTFDB';
-    const DEREGCACHE_PATH = 'exports/';
-    const DEREGCACHE_EXT = 'ONUDEREGS';
-    const UPTIME_PATH = 'exports/';
-    const UPTIME_EXT = 'OLTUPTIME';
-    const TEMPERATURE_PATH = 'exports/';
-    const TEMPERATURE_EXT = 'OLTTEMPERATURE';
-    const SNMPCACHE = false;
-    const SNMPPORT = 161;
-    const ONUSIG_PATH = 'content/documents/onusig/';
+    const SIGCACHE_PATH      = 'exports/';
+    const SIGCACHE_EXT       = 'OLTSIGNALS';
+    const DISTCACHE_PATH     = 'exports/';
+    const DISTCACHE_EXT      = 'OLTDISTANCE';
+    const ONUCACHE_PATH      = 'exports/';
+    const ONUCACHE_EXT       = 'ONUINDEX';
+    const INTCACHE_PATH      = 'exports/';
+    const INTCACHE_EXT       = 'ONUINTERFACE';
+    const INTDESCRCACHE_EXT  = 'OLTINTERFACEDESCR';
+    const FDBCACHE_PATH      = 'exports/';
+    const FDBCACHE_EXT       = 'OLTFDB';
+    const DEREGCACHE_PATH    = 'exports/';
+    const DEREGCACHE_EXT     = 'ONUDEREGS';
+    const UPTIME_PATH        = 'exports/';
+    const UPTIME_EXT         = 'OLTUPTIME';
+    const TEMPERATURE_PATH   = 'exports/';
+    const TEMPERATURE_EXT    = 'OLTTEMPERATURE';
+    const MACDEVIDCACHE_PATH = 'exports/';
+    const MACDEVIDCACHE_EXT  = 'ONUMACDEVINDEX';
+    const SNMPCACHE          = false;
+    const SNMPPORT           = 161;
+    const ONUSIG_PATH        = 'content/documents/onusig/';
 
     /**
      * Some routes here
      */
-    const URL_ME = '?module=ponizer';
+    const URL_ME          = '?module=ponizer';
     const URL_USERPROFILE = '?module=userprofile&username=';
 
     /**
      * Views/stats coloring
      */
-    const COLOR_OK = '#005502';
-    const COLOR_AVG = '#FF5500';
-    const COLOR_BAD = '#AB0000';
+    const COLOR_OK    = '#005502';
+    const COLOR_AVG   = '#FF5500';
+    const COLOR_BAD   = '#AB0000';
     const COLOR_NOSIG = '#000000';
-    const NO_SIGNAL = 'Offline';
+    const NO_SIGNAL   = 'Offline';
 
     /**
      * Creates new PONizer object instance
@@ -335,7 +344,6 @@ class PONizer {
         $this->loadOnuExtUsers();
         $this->loadModels();
         $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-
         $this->EnableQuickOLTLinks = $this->ubConfig->getAlterParam('PON_QUICK_OLT_LINKS');
         $this->OLTIndividualRepollAJAX = $this->ubConfig->getAlterParam('PON_OLT_INDIVIDUAL_REPOLL_AJAX');
         $this->ONUChartsSpoilerClosed = $this->ubConfig->getAlterParam('PON_ONU_CHARTS_SPOILER_CLOSED');
@@ -488,7 +496,7 @@ class PONizer {
      */
     protected function getOnuArrayByOltID($OltId = '') {
         $result = array();
-        if (!empty($this->allOnu) and ! empty($OltId)) {
+        if (!empty($this->allOnu) and !empty($OltId)) {
             foreach ($this->allOnu as $io => $each) {
                 if ($each['oltid'] == $OltId) {
                     $result[$io] = $each;
@@ -515,7 +523,7 @@ class PONizer {
         $curDate = curdatetime();
 
 //distance index preprocessing
-        if ((!empty($distIndex)) AND ( !empty($onuIndex))) {
+        if ((!empty($distIndex)) and (!empty($onuIndex))) {
             foreach ($distIndex as $io => $eachdist) {
                 $line = explode('=', $eachdist);
 //distance is present
@@ -572,7 +580,7 @@ class PONizer {
         $curDate = curdatetime();
 
 //distance index preprocessing
-        if ((!empty($distIndex)) AND ( !empty($onuIndex))) {
+        if ((!empty($distIndex)) and (!empty($onuIndex))) {
             foreach ($distIndex as $io => $eachdist) {
                 $line = explode('=', $eachdist);
 //distance is present
@@ -635,7 +643,7 @@ class PONizer {
         $curDate = curdatetime();
 
 //dereg index preprocessing
-        if ((!empty($deregIndex)) AND ( !empty($onuIndex))) {
+        if ((!empty($deregIndex)) and (!empty($onuIndex))) {
             foreach ($deregIndex as $io => $eachdereg) {
                 $line = explode('=', $eachdereg);
 
@@ -743,7 +751,7 @@ class PONizer {
         $result = array();
 
 //distance index preprocessing
-        if ((!empty($intIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($intIndex)) and (!empty($macIndex))) {
             foreach ($intIndex as $io => $eachint) {
                 if (ispos($eachint, 'pon')) {
                     $line = explode('=', $eachint);
@@ -809,7 +817,7 @@ class PONizer {
      */
     protected function uptimeParseBd($oltid, $uptimeRaw) {
         $oltid = ubRouting::filters($oltid, 'int');
-        if (!empty($oltid) AND ! empty($uptimeRaw)) {
+        if (!empty($oltid) and !empty($uptimeRaw)) {
             $uptimeRaw = explode(')', $uptimeRaw);
             $uptimeRaw = $uptimeRaw[1];
             $uptimeRaw = trim($uptimeRaw);
@@ -827,7 +835,7 @@ class PONizer {
      */
     protected function temperatureParseBd($oltid, $tempRaw) {
         $oltid = ubRouting::filters($oltid, 'int');
-        if (!empty($oltid) AND ! empty($tempRaw)) {
+        if (!empty($oltid) and !empty($tempRaw)) {
             $tempRaw = explode(':', $tempRaw);
             $tempRaw = $tempRaw[1];
             $tempRaw = trim($tempRaw);
@@ -875,7 +883,7 @@ class PONizer {
         }
 
 //interface index preprocessing
-        if ((!empty($intIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($intIndex)) and (!empty($macIndex))) {
             foreach ($intIndex as $io => $eachint) {
                 $line = explode('=', $eachint);
 //interface is present
@@ -939,7 +947,7 @@ class PONizer {
         $result = array();
 
 //fdb index preprocessing
-        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($FDBIndex)) and (!empty($macIndex))) {
             foreach ($FDBIndex as $io => $eachfdb) {
                 if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '/', $eachfdb)) {
                     $eachfdb = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $eachfdb);
@@ -1007,7 +1015,7 @@ class PONizer {
         $result = array();
 
 //fdb index preprocessing
-        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($FDBIndex)) and (!empty($macIndex))) {
             foreach ($FDBIndex as $io => $eachfdbRaw) {
                 if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '|INTEGER:/', $eachfdbRaw)) {
                     $eachfdbRaw = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], 'INTEGER:'), '', $eachfdbRaw);
@@ -1089,7 +1097,7 @@ class PONizer {
         $result = array();
 
 //fdb index preprocessing
-        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($FDBIndex)) and (!empty($macIndex))) {
             foreach ($FDBIndex as $io => $eachfdbRaw) {
                 if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '|INTEGER:/', $eachfdbRaw)) {
                     $eachfdbRaw = str_replace(array($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], 'INTEGER:'), '', $eachfdbRaw);
@@ -1155,7 +1163,7 @@ class PONizer {
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
      *
-     * @param int   $oltid
+     * @param int $oltid
      * @param array $sigIndex
      * @param array $macIndex
      * @param array $snmpTemplate
@@ -1170,7 +1178,7 @@ class PONizer {
         $curDate = curdatetime();
 
 //signal index preprocessing
-        if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($sigIndex)) and (!empty($macIndex))) {
             foreach ($sigIndex as $io => $eachsig) {
                 $line = explode('=', $eachsig);
 //signal is present
@@ -1220,6 +1228,11 @@ class PONizer {
 
                 $result = serialize($result);
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+
+                // saving macindex as MAC => devID
+                $macTmp = array_flip($macTmp);
+                $macTmp = serialize($macTmp);
+                file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macTmp);
             }
         }
     }
@@ -1227,7 +1240,7 @@ class PONizer {
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
      *
-     * @param int   $oltid
+     * @param int $oltid
      * @param array $sigIndex
      * @param array $macIndex
      * @param array $snmpTemplate
@@ -1238,12 +1251,14 @@ class PONizer {
         $oltid = vf($oltid, 3);
         $sigTmp = array();
         $macTmp = array();
+        $macDevIdx = array();
         $result = array();
         $curDate = curdatetime();
         $plasticIndexSig = 0;
         $plasticIndexMac = 0;
+
 //signal index preprocessing
-        if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($sigIndex)) and (!empty($macIndex))) {
             foreach ($sigIndex as $io => $eachsig) {
                 $line = explode('=', $eachsig);
 //signal is present
@@ -1252,8 +1267,8 @@ class PONizer {
                     $signalOnuPort = str_replace($snmpTemplate['SIGINDEX'], '', $line[0]);
                     $signalOnuPort = explode('.', $signalOnuPort);
                     $plasticIndexSig = trim($signalOnuPort[1]);
-                    $plasticIndexSig = ($plasticIndexSig * 256) + 1; // realy shitty index
-                    if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
+//                    $plasticIndexSig = ($plasticIndexSig * 256) + 1; // realy shitty index
+                    if ($signalRaw == $snmpTemplate['DOWNVALUE'] or empty($signalRaw)) {
                         $signalRaw = 'Offline';
                     } else {
                         if ($snmpTemplate['OFFSETMODE'] == 'logm') {
@@ -1262,6 +1277,7 @@ class PONizer {
                             }
                         }
                     }
+
                     $sigTmp[$signalOnuPort[0] . ':' . $plasticIndexSig] = $signalRaw;
                 }
             }
@@ -1279,9 +1295,10 @@ class PONizer {
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
                     $macTmp[$macOnuPort[0] . ':' . $plasticIndexMac] = $macRaw;
+                    $macDevIdx[$macRaw] = $macOnuPort[0] . ':' . $plasticIndexMac;
+//                    $macDevIdx[$macRaw] = $macOnuPort[0] . '.' . (($plasticIndexMac - 1) / 256);
                 }
             }
-
 
 
 //storing results
@@ -1298,10 +1315,15 @@ class PONizer {
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
                 }
+
                 $result = serialize($result);
+                $onuTmp = serialize($macTmp);
+                $macDevIdx = serialize($macDevIdx);
 
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
-                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, serialize($macTmp));
+                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $macDevIdx);
+                file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macDevIdx);
             }
         }
     }
@@ -1311,11 +1333,11 @@ class PONizer {
      *
      * @param int $oltid
      * @param array $distIndex
-     * @param array $onuIndex
+     * @param array $macIndex
      *
      * @return void
      */
-    protected function distanceParseStels($oltid, $distIndex, $onuIndex) {
+    protected function distanceParseStels($oltid, $distIndex, $macIndex) {
         $oltid = vf($oltid, 3);
         $distTmp = array();
         $onuTmp = array();
@@ -1323,7 +1345,7 @@ class PONizer {
         $curDate = curdatetime();
 
 //distance index preprocessing
-        if ((!empty($distIndex)) AND ( !empty($onuIndex))) {
+        if ((!empty($distIndex)) and (!empty($macIndex))) {
             foreach ($distIndex as $io => $eachdist) {
                 $line = explode('=', $eachdist);
 //distance is present
@@ -1333,15 +1355,14 @@ class PONizer {
                     $devIndex = explode('.', $devIndex);
                     $portIndex = trim($devIndex[0]);
                     $devIndex = trim($devIndex[1]);
-                    $devIndex = (($devIndex * 256) + 1);
+//                    $devIndex = (($devIndex * 256) + 1);
                     $distTmp[$portIndex . ':' . $devIndex] = $distanceRaw;
                 }
             }
 
 
-
 //mac index preprocessing
-            foreach ($onuIndex as $io => $eachmac) {
+            foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
 //mac is present
                 if (isset($line[1])) {
@@ -1367,8 +1388,6 @@ class PONizer {
                 }
                 $result = serialize($result);
                 file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
-                $onuTmp = serialize($onuTmp);
-                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
             }
         }
     }
@@ -1389,7 +1408,7 @@ class PONizer {
         $result = array();
 
 //distance index preprocessing
-        if ((!empty($intIndex)) AND ( !empty($macIndex))) {
+        if ((!empty($intIndex)) and (!empty($macIndex))) {
             foreach ($intIndex as $io => $eachint) {
                 $line = explode('=', $eachint);
 //distance is present
@@ -1399,7 +1418,7 @@ class PONizer {
                     $devIndex = explode('.', $devIndex);
                     $portIndex = trim($devIndex[0]);
                     $interfaceRaw = $devIndex[0] . ':' . $devIndex[1];
-                    $devIndex = ($devIndex[1] * 256) + 1;
+//                    $devIndex = ($devIndex[1] * 256) + 1;
                     $intTmp[$portIndex . ':' . $devIndex] = $interfaceRaw;
                 }
             }
@@ -1435,6 +1454,69 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $deregIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function lastDeregParseStels($oltid, $deregIndex, $macIndex) {
+        $oltid = vf($oltid, 3);
+        $deregTmp = array();
+        $onuTmp = array();
+        $result = array();
+
+//dereg index preprocessing
+        if ((!empty($deregIndex)) and (!empty($macIndex))) {
+            foreach ($deregIndex as $io => $eachdereg) {
+                $line = explode('=', $eachdereg);
+//dereg is present
+                if (isset($line[1])) {
+                    $deregRaw = trim(trim($line[1]), '"'); // dereg
+                    $devIndex = $line[0];
+                    $devIndex = explode('.', $devIndex);
+                    $portIndex = trim($devIndex[0]);
+                    $devIndex = trim($devIndex[1]);
+//                    $devIndex = (($devIndex * 256) + 1);
+                    $deregTmp[$portIndex . ':' . $devIndex] = $deregRaw;
+                }
+            }
+file_put_contents('zxcv', print_r($deregTmp, true));
+
+//mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+//mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]);
+                    $devIndex = explode('.', $devIndex);
+                    $portIndex = trim($devIndex[0]);
+                    $devIndex = $devIndex[1];
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $onuTmp[$portIndex . ':' . $devIndex] = $macRaw;
+                }
+            }
+
+file_put_contents('qxcv', print_r($onuTmp, true));
+//storing results
+            if (!empty($onuTmp)) {
+                foreach ($onuTmp as $devId => $eachMac) {
+                    if (isset($deregTmp[$devId])) {
+                        $distance = $deregTmp[$devId];
+                        $result[$eachMac] = $distance;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
      * Parses & stores to cache ONUs FDB cache (MACs behind ONU)
      *
      * @param $oltID
@@ -1446,9 +1528,9 @@ class PONizer {
     protected function fdbParseStels($oltID, $onuMACIndex, $fdbIndex, $fdbMACIndex, $fdbVLANIndex) {
         $macLLIDIndexes = array();
         $fdbLLIDIndexes = array();
-        $fdbIdxMAC      = array();
-        $fdbIdxVLAN     = array();
-        $fdbCahce       = array();
+        $fdbIdxMAC = array();
+        $fdbIdxVLAN = array();
+        $fdbCahce = array();
 
 // processing $onuMACIndex array to get pon port number + ONU LLID => ONU MAC mapping
         if (!empty($onuMACIndex) and !empty($fdbIndex)) {
@@ -1456,13 +1538,13 @@ class PONizer {
                 $line = explode('=', $eachONUMAC);
 // MAC is present
                 if (isset($line[1])) {
-                    $onuMAC         = trim($line[1]);
-                    $tmpIndex       = trim($line[0]);               // pon port number + device index
-                    $tmpIndex       = explode('.', $tmpIndex);
+                    $onuMAC = trim($line[1]);
+                    $tmpIndex = trim($line[0]);               // pon port number + device index
+                    $tmpIndex = explode('.', $tmpIndex);
 
-                    $portIndex      = trim($tmpIndex[0]);           // pon port number
-                    $devIndexRaw    = $tmpIndex[1];
-                    $devIndexLLID   = ($devIndexRaw - 1) / 256;     // ONU LLID
+                    $portIndex = trim($tmpIndex[0]);           // pon port number
+                    $devIndexRaw = $tmpIndex[1];
+                    $devIndexLLID = ($devIndexRaw - 1) / 256;     // ONU LLID
                     $macLLIDIndexes[$portIndex . ':' . $devIndexLLID] = $onuMAC;     // pon port number + ONU LLID => ONU MAC
                 }
             }
@@ -1472,12 +1554,12 @@ class PONizer {
                 $line = explode('=', $eachIdx);
 // ONU LLID is present
                 if (isset($line[1])) {
-                    $devLLID    = trim($line[1]);                   // ONU LLID
-                    $tmpIndex   = trim($line[0]);                   // pon port number + FDB index
-                    $tmpIndex   = explode('.', $tmpIndex);
+                    $devLLID = trim($line[1]);                   // ONU LLID
+                    $tmpIndex = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex = explode('.', $tmpIndex);
 
-                    $portIndex  = trim($tmpIndex[0]);               // pon port number
-                    $fdbIdxRaw  = $tmpIndex[1];                     // FDB index number
+                    $portIndex = trim($tmpIndex[0]);               // pon port number
+                    $fdbIdxRaw = $tmpIndex[1];                     // FDB index number
                     $fdbLLIDIndexes[$fdbIdxRaw] = $portIndex . ':' . $devLLID;       // FDB index number => pon port number + ONU LLID
                 }
             }
@@ -1487,11 +1569,11 @@ class PONizer {
                 $line = explode('=', $eachIdx);
 // FDB MAC is present
                 if (isset($line[1])) {
-                    $fdbMAC     = trim($line[1]);                   // FDB MAC
-                    $tmpIndex   = trim($line[0]);                   // pon port number + FDB index
-                    $tmpIndex   = explode('.', $tmpIndex);
+                    $fdbMAC = trim($line[1]);                   // FDB MAC
+                    $tmpIndex = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex = explode('.', $tmpIndex);
 
-                    $fdbIdxRaw  = $tmpIndex[1];                     // FDB index number
+                    $fdbIdxRaw = $tmpIndex[1];                     // FDB index number
                     $fdbIdxMAC[$fdbIdxRaw] = $fdbMAC;               // FDB index number => FDB MAC
                 }
             }
@@ -1501,11 +1583,11 @@ class PONizer {
                 $line = explode('=', $eachIdx);
 // FDB VLAN is present
                 if (isset($line[1])) {
-                    $fdbVLAN    = trim($line[1]);                   // FDB VLAN
-                    $tmpIndex   = trim($line[0]);                   // pon port number + FDB index
-                    $tmpIndex   = explode('.', $tmpIndex);
+                    $fdbVLAN = trim($line[1]);                   // FDB VLAN
+                    $tmpIndex = trim($line[0]);                   // pon port number + FDB index
+                    $tmpIndex = explode('.', $tmpIndex);
 
-                    $fdbIdxRaw  = $tmpIndex[1];                     // FDB index number
+                    $fdbIdxRaw = $tmpIndex[1];                     // FDB index number
                     $fdbIdxVLAN[$fdbIdxRaw] = $fdbVLAN;             // FDB index number => FDB VLAN
                 }
             }
@@ -1524,10 +1606,10 @@ class PONizer {
                             if (empty($tmpFDBMAC) or $tmpFDBMAC == $eachONUMAC) {
                                 continue;
                             } else {
-                                $tmpFDBMAC  = strtolower(AddMacSeparator(RemoveMacAddressSeparator($tmpFDBMAC, array(':', '-', '.', ' '))));
+                                $tmpFDBMAC = strtolower(AddMacSeparator(RemoveMacAddressSeparator($tmpFDBMAC, array(':', '-', '.', ' '))));
                                 $tmpFDBVLAN = empty($fdbIdxVLAN[$eachIdx]) ? '' : $fdbIdxVLAN[$eachIdx];
-                                $tmpONUID   = $this->getONUIDByMAC($tmpONUMAC);
-                                $tmpONUID   = (empty($tmpONUID)) ? $eachIdx : $tmpONUID;
+                                $tmpONUID = $this->getONUIDByMAC($tmpONUMAC);
+                                $tmpONUID = (empty($tmpONUID)) ? $eachIdx : $tmpONUID;
                                 $tmpFDBArr[$tmpONUID] = array('mac' => $tmpFDBMAC, 'vlan' => $tmpFDBVLAN);
                             }
                         }
@@ -1571,19 +1653,19 @@ class PONizer {
                 }
 
 //mac is present
-                if (!empty($tmpONUPortLLID) AND ! empty($tmpONUMAC)) {
+                if (!empty($tmpONUPortLLID) and !empty($tmpONUMAC)) {
                     $ONUsMACs[$tmpONUPortLLID] = $tmpONUMAC;
                 }
             }
         }
 
-        return $ONUsMACs;
+        return ($ONUsMACs);
     }
 
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
      *
-     * @param int   $oltid
+     * @param int $oltid
      * @param array $sigIndex
      * @param array $macIndex
      *
@@ -1595,11 +1677,12 @@ class PONizer {
         $ONUsModulesCurrents = array();
         $ONUsSignals = array();
         $result = array();
+        $macDevID = array();
         $curDate = curdatetime();
         $oltid = vf($oltid, 3);
 
 //signal index preprocessing
-        if ((!empty($sigIndex)) AND ( !empty($macIndexProcessed))) {
+        if ((!empty($sigIndex)) and (!empty($macIndexProcessed))) {
             foreach ($sigIndex as $io => $eachsig) {
                 $line = explode('=', $eachsig);
 
@@ -1653,7 +1736,7 @@ class PONizer {
                         $result[$eachMac] = $signal;
                     }
 
-                    if (empty($signal) OR $signal == 'Offline') {
+                    if (empty($signal) or $signal == 'Offline') {
                         $signal = -9000; //over 9000 offline signal level :P
                     }
 
@@ -1662,9 +1745,11 @@ class PONizer {
             }
 
             $result = serialize($result);
+            $macDevID = serialize(array_flip($macIndexProcessed));
             $macIndexProcessed = serialize($macIndexProcessed);
             file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
             file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macIndexProcessed);
+            file_put_contents(self::MACDEVIDCACHE_PATH . $oltid . '_' . self::MACDEVIDCACHE_EXT, $macDevID);
         }
     }
 
@@ -1679,7 +1764,7 @@ class PONizer {
         $ONUDistances = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND ! empty($DistIndex)) {
+        if (!empty($macIndexProcessed) and !empty($DistIndex)) {
 //last dereg index preprocessing
             foreach ($DistIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
@@ -1738,7 +1823,7 @@ class PONizer {
             }
         }
 
-        if (!empty($macIndexProcessed) AND ! empty($IfaceIndex)) {
+        if (!empty($macIndexProcessed) and !empty($IfaceIndex)) {
 //OLT iface index preprocessing
             foreach ($IfaceIndex as $io => $eachRow) {
                 if (empty($eachRow)) {
@@ -1795,7 +1880,7 @@ class PONizer {
         $ONUDeRegs = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND ! empty($LastDeregIndex)) {
+        if (!empty($macIndexProcessed) and !empty($LastDeregIndex)) {
 //last dereg index preprocessing
             foreach ($LastDeregIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
@@ -1854,9 +1939,9 @@ class PONizer {
      * @param $fdbVLANIndex
      */
     protected function fdbParseVSOL($oltID, $onuMACIndex, $fdbIndex, $fdbVLANIndex) {
-        $fdbIdxMAC      = array();
-        $fdbIdxVLAN     = array();
-        $fdbCahce       = array();
+        $fdbIdxMAC = array();
+        $fdbIdxVLAN = array();
+        $fdbCahce = array();
 
         if (!empty($fdbIndex)) {
 // processing FDBIndex array to get FDB MAC => pon port number + ONU LLID mapping
@@ -1866,7 +1951,7 @@ class PONizer {
                 if (isset($line[1])) {
                     $portLLID = trim(str_replace(array('"', 'EPON0/'), '', $line[1]));        // pon port number + ONU LLID
                     $portLLID = str_replace(':', '.', $portLLID);
-                    $fdbMAC = trim($this->convertMACDec2Hex($line[0]));                            // FDB MAC in dotted DEC format
+                    $fdbMAC = trim(convertMACDec2Hex($line[0]));                            // FDB MAC in dotted DEC format
                     $fdbIdxMAC[$fdbMAC] = $portLLID;             // FDB MAC => pon port number + ONU LLID
                 }
             }
@@ -1879,7 +1964,7 @@ class PONizer {
 // FDB VLAN is present
                 if (isset($line[1])) {
                     $fdbVLAN = trim($line[1]);                // pon port number + ONU LLID
-                    $fdbMAC = trim($this->convertMACDec2Hex($line[0]));                            // FDB MAC in dotted DEC format
+                    $fdbMAC = trim(convertMACDec2Hex($line[0]));                            // FDB MAC in dotted DEC format
                     $fdbIdxVLAN[$fdbMAC] = $fdbVLAN;             // FDB MAC => FDB VLAN
                 }
             }
@@ -1897,8 +1982,8 @@ class PONizer {
                             continue;
                         } else {
                             $tmpFDBVLAN = empty($fdbIdxVLAN[$eachFDBMAC]) ? '' : $fdbIdxVLAN[$eachFDBMAC];
-                            $tmpONUID   = $this->getONUIDByMAC($eachONUMAC);
-                            $tmpONUID   = (empty($tmpONUID)) ? $io : $tmpONUID;
+                            $tmpONUID = $this->getONUIDByMAC($eachONUMAC);
+                            $tmpONUID = (empty($tmpONUID)) ? $io : $tmpONUID;
                             $tmpFDBArr[$tmpONUID] = array('mac' => $eachFDBMAC, 'vlan' => $tmpFDBVLAN);
                         }
                     }
@@ -2020,7 +2105,7 @@ class PONizer {
 //and interface description data
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrIndex);
 //processing FDB data
-                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) AND $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
+                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) and $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
                                             $this->FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId);
                                         } else {
                                             $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
@@ -2189,6 +2274,22 @@ class PONizer {
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
 
+                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
+                                //OLT uptime
+                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+                                    $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
+                                }
+
+                                //OLT temperature
+                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
+                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
+                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
+                                    $this->temperatureParseBd($oltid, $oltTemperatureRaw);
+                                }
+                            }
+
                             if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
                                 $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 //ONU distance polling for stels devices
@@ -2201,14 +2302,22 @@ class PONizer {
                                             $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
                                             $distIndex = explodeRows($distIndex);
 
-                                            $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
+                                            $lastDeregIndexOID = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
+                                            $lastDeregIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastDeregIndexOID, self::SNMPCACHE);
+                                            $lastDeregIndex = str_replace($lastDeregIndexOID . '.', '', $lastDeregIndex);
+                                            $lastDeregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $lastDeregIndex);
+                                            $lastDeregIndex = explodeRows($lastDeregIndex);
+
+/*                                            $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
                                             $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
                                             $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
                                             $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                             $onuIndex = explodeRows($onuIndex);
+*/
 
-                                            $this->distanceParseStels($oltid, $distIndex, $onuIndex);
-                                            $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
+                                            $this->distanceParseStels($oltid, $distIndex, $macIndex);
+//                                            $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
+                                            $this->lastDeregParseStels($oltid, $lastDeregIndex, $macIndex);
 
                                             if (!$oltNoFDBQ) {
                                                 $fdbIndexOID = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
@@ -2377,7 +2486,7 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (isset($result[$each['oltid']])) {
-                    $result[$each['oltid']] ++;
+                    $result[$each['oltid']]++;
                 } else {
                     $result[$each['oltid']] = 1;
                 }
@@ -2605,7 +2714,7 @@ class PONizer {
             if (check_mac_format($mac) or @ $this->snmpTemplates[$modelid]['signal']['SIGNALMODE'] == 'GPBDCOM') {
                 if ($this->checkMacUnique($mac)) {
                     $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) " .
-                                                    "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                             "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
                     nr_query($query);
                     $result = simple_get_lastid('pononu');
                     log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
@@ -2771,7 +2880,7 @@ class PONizer {
             }
         }
 
-        if ($this->onuUknownUserByMACSearchTelepathy and ( empty($UserLogin) or empty($UserIP))) {
+        if ($this->onuUknownUserByMACSearchTelepathy and (empty($UserLogin) or empty($UserIP))) {
             $telepathyArray = $this->getUserByONUMAC($onuMac, $this->onuUknownUserByMACSearchIncrement);
 
             if (!empty($telepathyArray)) {
@@ -2793,15 +2902,15 @@ class PONizer {
                 $inputs .= wf_tag('span', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
                 $inputs .= wf_tag('span', true);
 
-                if (($this->onuUknownUserByMACSearchShow and ( empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
+                if (($this->onuUknownUserByMACSearchShow and (empty($UserLogin) or empty($UserIP))) or $this->onuUknownUserByMACSearchShowAlways) {
                     $inputs .= wf_delimiter(0) . wf_tag('div', false, '', 'style="padding: 2px 8px;"');
                     $inputs .= __('Try to find user by MAC') . ':';
                     $inputs .= wf_tag('div', false, '', 'style="margin-top: 5px;"');
                     $inputs .= wf_nbsp(2) . wf_tag('span', false, '', 'style="width: 444px;display: inline-block;float: left;"') .
-                            __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
-                            wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
-                            wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
-                            wf_tag('span', true);
+                               __('increase/decrease searched MAC address on (use negative value to decrease MAC)') . wf_tag('span', true) .
+                               wf_tag('span', false, '', 'style="display: inline-block;padding: 5px 0;"') .
+                               wf_TextInput('macincrementwith', '', $this->onuUknownUserByMACSearchIncrement, true, '4', '', '__MACIncrementWith') .
+                               wf_tag('span', true);
                     $inputs .= wf_tag('div', true);
                     $inputs .= wf_Link('#', __('Search'), true, 'ubButton __UserByMACSearchBtn', 'style="width: 100%; text-align: center; padding: 6px 0; margin-top: 5px;"');
                     $inputs .= wf_tag('div', true);
@@ -2815,8 +2924,8 @@ class PONizer {
                 $HiddenModalID = 'ModalWindowID_' . wf_InputId();
 
                 $inputs .= wf_tag('br');
-                $inputs .= ( ($RenderedOutside) ? wf_CheckInput('NoRedirect', __('Do not redirect anywhere: just add & close'), true, true, $NoRedirChkID, '__ONUAACFormNoRedirChck') : '' );
-                $inputs .= ( ($PageReloadAfterDone) ? wf_CheckInput('', __('Reload page after action'), true, true, $ReloadChkID, '__ONUAACFormPageReloadChck') : '' );
+                $inputs .= (($RenderedOutside) ? wf_CheckInput('NoRedirect', __('Do not redirect anywhere: just add & close'), true, true, $NoRedirChkID, '__ONUAACFormNoRedirChck') : '');
+                $inputs .= (($PageReloadAfterDone) ? wf_CheckInput('', __('Reload page after action'), true, true, $ReloadChkID, '__ONUAACFormPageReloadChck') : '');
 
                 $inputs .= wf_tag('br');
                 $inputs .= wf_Submit(__('Create'), $SubmitID);
@@ -2982,7 +3091,7 @@ class PONizer {
         if (isset($this->allOnu[$onuId])) {
             $loginF = mysql_real_escape_string($login);
             $query = "INSERT INTO `pononuextusers` (`id`,`onuid`,`login`) VALUES "
-                    . "(NULL,'" . $onuId . "','" . $loginF . "');";
+                     . "(NULL,'" . $onuId . "','" . $loginF . "');";
             nr_query($query);
             log_register('PON EDIT ONU [' . $onuId . '] ASSIGN EXTUSER (' . $login . ')');
         }
@@ -3003,10 +3112,10 @@ class PONizer {
 
             if (isset($this->signalCache[$onuData['mac']])) {
                 $signal = $this->signalCache[$onuData['mac']];
-                if (($signal > 0) OR ( $signal < -27)) {
+                if (($signal > 0) or ($signal < -27)) {
                     $sigColor = self::COLOR_BAD;
                     $sigLabel = 'Bad signal';
-                } elseif ($signal > -27 AND $signal < -25) {
+                } elseif ($signal > -27 and $signal < -25) {
                     $sigColor = self::COLOR_AVG;
                     $sigLabel = 'Mediocre signal';
                 } else {
@@ -3022,10 +3131,10 @@ class PONizer {
                 }
             } elseif (isset($this->signalCache[$onuData['serial']])) {
                 $signal = $this->signalCache[$onuData['serial']];
-                if (($signal > 0) OR ( $signal < -27)) {
+                if (($signal > 0) or ($signal < -27)) {
                     $sigColor = self::COLOR_BAD;
                     $sigLabel = 'Bad signal';
-                } elseif ($signal > -27 AND $signal < -25) {
+                } elseif ($signal > -27 and $signal < -25) {
                     $sigColor = self::COLOR_AVG;
                     $sigLabel = 'Mediocre signal';
                 } else {
@@ -3054,7 +3163,7 @@ class PONizer {
             $result .= __($sigLabel);
             $result .= wf_tag('div', true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3572,14 +3681,14 @@ class PONizer {
             }
 
             if ($this->ponizerUseTabUI) {
-                $tabsList[$QuickOLTLinkID] = array('options' => '',
-                    'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
-                    'additional_data' => $tabClickScript
+                $tabsList[$QuickOLTLinkID] = array('options'         => '',
+                                                   'caption'         => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
+                                                   'additional_data' => $tabClickScript
                 );
 
-                $tabsData[$QuickOLTLinkID] = array('options' => 'style="padding: 0 0 0 2px;"',
-                    'body' => wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
-                    'additional_data' => ''
+                $tabsData[$QuickOLTLinkID] = array('options'         => 'style="padding: 0 0 0 2px;"',
+                                                   'body'            => wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts),
+                                                   'additional_data' => ''
                 );
             } else {
                 $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) . $QuickOLTLinkInput
@@ -3591,7 +3700,7 @@ class PONizer {
             $tabsDivOpts = 'style="border: none;padding: 0;"';
             $tabsLstOpts = 'style="border: none;background: #fff;"';
 
-            if ($this->EnableQuickOLTLinks) {
+            if ($this->EnableQuickOLTLinks and !empty($this->allOltDevices)) {
                 $QuickOLTDDLName = 'QuickOLTDDL_100500';
                 $QickOLTsArray = $this->allOltDevices;
 
@@ -3609,8 +3718,8 @@ class PONizer {
             }
 
             show_window('', $QuickOLTLinkInput . wf_delimiter(0) . wf_TabsCarouselInitLinking() .
-                        wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                        $QuickOLTLinkInput);
+                            wf_TabsGen('ui-tabs', $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                            $QuickOLTLinkInput);
         } else {
             return ($result);
         }
@@ -3651,7 +3760,7 @@ class PONizer {
                 $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
                 $snmpTemplatesMaxPort = @$this->snmpTemplates[$oltModelId]['define']['PON_ONU_PORT_MAX'];
                 $onuMaxCount = (!empty($snmpTemplatesMaxPort)) ? $snmpTemplatesMaxPort : $onuMaxCountConf;
-                if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
+                if ((!empty($oltModelId)) and (!empty($oltPorts)) and (!empty($onuMaxCount))) {
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
                     $oltOnuPonPortMax[$oltId] = $onuMaxCount;
@@ -3678,23 +3787,23 @@ class PONizer {
                                 $cleanInterface = strstr($eachInterface, ':', true);
 
                                 if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
-                                    $oltInterfacesFilled[$oltId][$cleanInterface] ++;
+                                    $oltInterfacesFilled[$oltId][$cleanInterface]++;
                                 } else {
                                     $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
                                 }
 
                                 if (isset($signals[$eachMac])) {
                                     $macSignal = $signals[$eachMac];
-                                    if ((($macSignal > -27) AND ( $macSignal < -25))) {
+                                    if ((($macSignal > -27) and ($macSignal < -25))) {
                                         if (isset($avgSignals[$oltId][$cleanInterface])) {
-                                            $avgSignals[$oltId][$cleanInterface] ++;
+                                            $avgSignals[$oltId][$cleanInterface]++;
                                         } else {
                                             $avgSignals[$oltId][$cleanInterface] = 1;
                                         }
                                     }
-                                    if ((($macSignal > 0) OR ( $macSignal < -27))) {
+                                    if ((($macSignal > 0) or ($macSignal < -27))) {
                                         if (isset($badSignals[$oltId][$cleanInterface])) {
-                                            $badSignals[$oltId][$cleanInterface] ++;
+                                            $badSignals[$oltId][$cleanInterface]++;
                                         } else {
                                             $badSignals[$oltId][$cleanInterface] = 1;
                                         }
@@ -3703,7 +3812,7 @@ class PONizer {
 
                                 //storing PON ifaces descriptions, if not stored yet
                                 if (!isset($oltInterfaceDescrs[$oltId][$cleanInterface])
-                                    and ! empty($ifaceDescrs) and ! empty($ifaceDescrs[$cleanInterface])) {
+                                    and !empty($ifaceDescrs) and !empty($ifaceDescrs[$cleanInterface])) {
 
                                     $oltInterfaceDescrs[$oltId][$cleanInterface] = ' | ' . $ifaceDescrs[$cleanInterface];
                                 }
@@ -3714,7 +3823,7 @@ class PONizer {
             }
         }
 
-        if ((!empty($oltInterfacesFilled)) AND ( !empty($oltOnuFilled))) {
+        if ((!empty($oltInterfacesFilled)) and (!empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
@@ -3732,7 +3841,7 @@ class PONizer {
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($oltOnuPonPortMax[$oltId], $eachInterfaceCount);
 
-                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and ! empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
+                        $oltIfaceDescr = ($this->showPONIfaceDescrStatsTab and !empty($oltInterfaceDescrs[$oltId][$eachInterface])) ? $oltInterfaceDescrs[$oltId][$eachInterface] : '';
 
                         $avgSignalCount = @$avgSignals[$oltId][$eachInterface];
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
@@ -3754,7 +3863,6 @@ class PONizer {
                             $interfaceFillColor = wf_tag('font', false, '', 'color="' . self::COLOR_BAD . '"') . wf_tag('b', false);
                             $interfaceFillColorEnd = wf_tag('b', true) . wf_tag('font', true);
                         }
-
 
 
                         $interfaceFillLabel = $interfaceFillColor . $eachInterfaceCount . ' (' . $eachInterfacePercent . '%)' . $interfaceFillColorEnd;
@@ -3891,7 +3999,7 @@ class PONizer {
           } ';
         $result .= wf_tag('script', true);
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3941,7 +4049,7 @@ class PONizer {
      */
     protected function getRandomMac() {
         $result = 'ff:' . '00' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . '00';
-        return($result);
+        return ($result);
     }
 
     /**
@@ -3956,7 +4064,7 @@ class PONizer {
                 $raw = file_get_contents(self::SIGCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $signal) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
                             $macRandom = $this->getRandomMac();
                             $this->signalCache[$macRandom] = $signal;
@@ -3983,7 +4091,7 @@ class PONizer {
                 $raw = file_get_contents(self::DISTCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $distance) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
                             $macRandom = $this->getRandomMac();
                             $this->distanceCache[$macRandom] = $distance;
@@ -4010,7 +4118,7 @@ class PONizer {
                 $raw = file_get_contents(self::DEREGCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $dereg) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
                             $macRandom = $this->getRandomMac();
                             $this->lastDeregCache[$macRandom] = $dereg;
@@ -4037,7 +4145,7 @@ class PONizer {
                 $raw = file_get_contents(self::INTCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $interface) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
                             $macRandom = $this->getRandomMac();
                             $this->interfaceCache[$macRandom] = $interface;
@@ -4088,7 +4196,7 @@ class PONizer {
                 $raw = file_get_contents(self::FDBCACHE_PATH . $each);
                 $raw = unserialize($raw);
                 foreach ($raw as $oidMac => $FDB) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($oidMac)) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($oidMac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
                             $macRandom = $this->getRandomMac();
                             $this->FDBCache[$macRandom] = $FDB;
@@ -4098,6 +4206,33 @@ class PONizer {
                     }
 
                     $this->FDBCache[$oidMac] = $FDB;
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads ONU MAC cache
+     *
+     * @return void
+     */
+    protected function loadONUMACDevIDCache() {
+        $availCacheData = rcms_scandir(self::MACDEVIDCACHE_PATH, '*_' . self::MACDEVIDCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::MACDEVIDCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                foreach ($raw as $mac => $devID) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
+                        if ($this->replaceInvalidONUMACWithRandom) {
+                            $macRandom = $this->getRandomMac();
+                            $this->interfaceCache[$macRandom] = $devID;
+                        }
+
+                        continue;
+                    }
+
+                    $this->onuMACDevIDCache[$mac] = $devID;
                 }
             }
         }
@@ -4118,7 +4253,7 @@ class PONizer {
                 $oltId = explode('_', $each);
                 $oltId = @vf($oltId[0], 3);
                 foreach ($raw as $index => $mac) {
-                    if ($this->validateONUMACEnabled and ! $this->validateONUMAC($mac)) {
+                    if ($this->validateONUMACEnabled and !$this->validateONUMAC($mac)) {
                         if ($this->replaceInvalidONUMACWithRandom) {
                             $macRandom = $this->getRandomMac();
                             $this->onuIndexCache[$macRandom] = $oltId;
@@ -4166,7 +4301,7 @@ class PONizer {
             }
         }
 
-        return ( ($ReturnAsHTMLSelector) ? wf_Selector($HTMLSelectorName, $UnknownONUList, $HTMLSelectorLabel, $HTMLSelectorSelectedItem, $HTMLSelectorBR, $HTMLSelectorSort, $HTMLSelectorID) : $UnknownONUList );
+        return (($ReturnAsHTMLSelector) ? wf_Selector($HTMLSelectorName, $UnknownONUList, $HTMLSelectorLabel, $HTMLSelectorSelectedItem, $HTMLSelectorBR, $HTMLSelectorSort, $HTMLSelectorID) : $UnknownONUList);
     }
 
     /**
@@ -4346,9 +4481,9 @@ class PONizer {
 //coloring signal
                 if (isset($this->signalCache[$each['mac']])) {
                     $signal = $this->signalCache[$each['mac']];
-                    if (($signal > 0) OR ( $signal < -27)) {
+                    if (($signal > 0) or ($signal < -27)) {
                         $sigColor = self::COLOR_BAD;
-                    } elseif ($signal > -27 AND $signal < -25) {
+                    } elseif ($signal > -27 and $signal < -25) {
                         $sigColor = self::COLOR_AVG;
                     } else {
                         $sigColor = self::COLOR_OK;
@@ -4361,9 +4496,9 @@ class PONizer {
                     }
                 } elseif (isset($this->signalCache[$each['serial']])) {
                     $signal = $this->signalCache[$each['serial']];
-                    if (($signal > 0) OR ( $signal < -27)) {
+                    if (($signal > 0) or ($signal < -27)) {
                         $sigColor = self::COLOR_BAD;
-                    } elseif ($signal > -27 AND $signal < -25) {
+                    } elseif ($signal > -27 and $signal < -25) {
                         $sigColor = self::COLOR_AVG;
                     } else {
                         $sigColor = self::COLOR_OK;
@@ -4385,14 +4520,16 @@ class PONizer {
                 if ($intCacheAvail) {
                     if (isset($this->interfaceCache[$each['mac']])) {
                         $ponInterface = $this->interfaceCache[$each['mac']];
-                    } else if (isset($this->interfaceCache[$each['serial']])) {
-                        $ponInterface = $this->interfaceCache[$each['serial']];
                     } else {
-                        $ponInterface = '';
+                        if (isset($this->interfaceCache[$each['serial']])) {
+                            $ponInterface = $this->interfaceCache[$each['serial']];
+                        } else {
+                            $ponInterface = '';
+                        }
                     }
 
                     $cleanInterface = strstr($ponInterface, ':', true);
-                    $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                    $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and !empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
                     $data[] = $oltIfaceDescr . $ponInterface;
                 }
 
@@ -4404,10 +4541,12 @@ class PONizer {
                 if ($distCacheAvail) {
                     if (isset($this->distanceCache[$each['mac']])) {
                         $data[] = $this->distanceCache[$each['mac']];
-                    } else if (isset($this->distanceCache[$each['serial']])) {
-                        $data[] = $this->distanceCache[$each['serial']];
                     } else {
-                        $data[] = '';
+                        if (isset($this->distanceCache[$each['serial']])) {
+                            $data[] = $this->distanceCache[$each['serial']];
+                        } else {
+                            $data[] = '';
+                        }
                     }
                 }
 
@@ -4489,7 +4628,7 @@ class PONizer {
      * Checks is ONU really associated with some OLT
      *
      * @param string $onuMac
-     * @param  int $oltId
+     * @param int $oltId
      * @return bool
      */
     protected function checkOnuOLTid($onuMac, $oltId) {
@@ -4721,7 +4860,7 @@ class PONizer {
         $query = "SELECT * from `pononu` WHERE `login` != '' and NOT ISNULL(`login`)";
         $allOnuRecs = simple_queryall($query);
 
-        if (!empty($allOnuRecs) and ! empty($availCacheData)) {
+        if (!empty($allOnuRecs) and !empty($availCacheData)) {
             foreach ($availCacheData as $io => $each) {
                 $raw = file_get_contents(self::SIGCACHE_PATH . $each);
                 $raw = unserialize($raw);
@@ -4806,7 +4945,7 @@ class PONizer {
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4833,7 +4972,7 @@ class PONizer {
                 foreach ($this->allOnu as $eachOnuId => $eachOnuData) {
                     if ($macChecked) {
                         $rawMac = str_replace(':', '', $eachOnuData['mac']);
-                        if (ispos($eachOnuData['mac'], $searchQuery) OR ispos($rawMac, $searchQuery)) {
+                        if (ispos($eachOnuData['mac'], $searchQuery) or ispos($rawMac, $searchQuery)) {
                             $resultTmp[$eachOnuId] = $eachOnuData;
                         }
                     }
@@ -4872,7 +5011,7 @@ class PONizer {
         } else {
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
@@ -4919,47 +5058,297 @@ class PONizer {
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             $result .= wf_tag('b') . __('Total') . ': ' . $count . wf_tag('b', true);
         }
-        return($result);
+        return ($result);
     }
 
     /**
-     * Converts MAC from it's DEC representation back to HEX, like
-     * 32.87.175.9.99.125 => 20:57:AF:09:63:7D
-     * or
-     * 52:45:13:39:180:117 => 34:2D:0D:27:B4:75
+     * Tries to return the current "realtime" ONU signal value
      *
-     * @param string $decMAC
-     * @param string $inSeparator
-     * @param string $outSeparator
-     * @param false $reversed   - set to true if DEC MAC is reversed
+     * @param $oltID
+     * @param $onumac
+     *
+     * @return float|int|string
+     */
+    public function getONURealtimeSignal($oltID, $onumac, $getTxSgnal = false) {
+        $signal = '';
+        $oltID  = vf($oltID, 3);
+
+        if (isset($this->allOltDevices[$oltID]) and isset($this->allOltSnmp[$oltID])) {
+            $oltCommunity   = $this->allOltSnmp[$oltID]['community'];
+            $oltModelId     = $this->allOltSnmp[$oltID]['modelid'];
+            $oltIp          = $this->allOltSnmp[$oltID]['ip'];
+            $cacheMACDevID  = array();
+
+            if (isset($this->snmpTemplates[$oltModelId])
+                and isset($this->snmpTemplates[$oltModelId]['signal'])
+                and isset($this->snmpTemplates[$oltModelId]['misc'])
+                and file_exists(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT)) {
+
+                $cacheMACDevID = file_get_contents(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT);
+                $cacheMACDevID = unserialize($cacheMACDevID);
+
+                if (!empty($cacheMACDevID[$onumac])) {
+                    $snmpSignalOIDs = $this->snmpTemplates[$oltModelId]['signal'];
+                    $snmpMiscOIDs   = $this->snmpTemplates[$oltModelId]['misc'];
+                    $onuDevID       = $cacheMACDevID[$onumac];
+
+                    if ($snmpSignalOIDs['SIGNALMODE'] == 'VSOL') {
+                        $sigOIDPart  = ($getTxSgnal) ? '.6.' : '.7.';
+                        $sigIndexOID = $snmpSignalOIDs['SIGINDEX'] . $sigOIDPart . $onuDevID;
+                        $sigIndexVal = $snmpSignalOIDs['SIGVALUE'];
+                    } else {
+                        if ($getTxSgnal) {
+                            $sigIndexOID = $snmpMiscOIDs['ONUTXSIGNAL'] . '.' . $onuDevID;
+                            $sigIndexVal = $snmpMiscOIDs['ONUTXSIGNALVAL'];
+                        } else {
+                            $sigIndexOID = $snmpSignalOIDs['SIGINDEX'] . '.' . $onuDevID;
+                            $sigIndexVal = $snmpSignalOIDs['SIGVALUE'];
+                        }
+                    }
+
+                    $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
+                    $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
+                    $sigIndex = str_replace($sigIndexVal, '', $sigIndex);
+
+                    if (!empty($sigIndex)) {
+                        if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM') {
+                            $line = explode('=', $sigIndex);
+                            //signal is present
+                            if (isset($line[1])) {
+                                $signal = trim($line[1]); // signal level
+
+                                if ($signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                    $signal = 'Offline';
+                                } else {
+                                    if ($snmpSignalOIDs['OFFSETMODE'] == 'div') {
+                                        if ($snmpSignalOIDs['OFFSET']) {
+                                            $signal = $signal / $snmpSignalOIDs['OFFSET'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if ($snmpSignalOIDs['SIGNALMODE'] == 'STELSFD') {
+                            $line = explode('=', $sigIndex);
+                            //signal is present
+                            if (isset($line[1])) {
+                                $signal = trim($line[1]); // signal level
+
+                                if ($signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                    $signal = 'Offline';
+                                } else {
+                                    if ($snmpSignalOIDs['OFFSETMODE'] == 'logm') {
+                                        if ($snmpSignalOIDs['OFFSET']) {
+                                            $signal = round(10 * log10($signal) - $snmpSignalOIDs['OFFSET'], 2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if ($snmpSignalOIDs['SIGNALMODE'] == 'VSOL') {
+                            $signal = trim(substr(stristr(stristr(stristr($sigIndex, '('), ')', true), 'dBm', true), 1));
+                        }
+                    }
+                }
+            }
+        }
+
+        return ($signal);
+    }
+
+    /**
+     * Tries to return some of the extended "realtime" ONU info, like Tx signal, last reg/dereg time, alive time
+     *
+     * @param $oltID
+     * @param $onumac
+     *
+     * @return array
+     */
+    public function getONUExtenInfo($oltID, $onumac) {
+        $result = array();
+        $oltID  = vf($oltID, 3);
+
+        if (isset($this->allOltDevices[$oltID]) and isset($this->allOltSnmp[$oltID])) {
+            $oltCommunity   = $this->allOltSnmp[$oltID]['community'];
+            $oltModelId     = $this->allOltSnmp[$oltID]['modelid'];
+            $oltIp          = $this->allOltSnmp[$oltID]['ip'];
+            $cacheMACDevID  = array();
+
+            if (isset($this->snmpTemplates[$oltModelId])
+                and isset($this->snmpTemplates[$oltModelId]['signal'])
+                and isset($this->snmpTemplates[$oltModelId]['misc'])
+                and file_exists(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT)) {
+
+                if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
+                    return ($result);
+                }
+
+                $cacheMACDevID = file_get_contents(self::MACDEVIDCACHE_PATH . $oltID . '_' . self::MACDEVIDCACHE_EXT);
+                $cacheMACDevID = unserialize($cacheMACDevID);
+
+                if (!empty($cacheMACDevID[$onumac])) {
+                    $snmpDevice     = $this->snmpTemplates[$oltModelId]['define']['DEVICE'];
+                    $snmpSignalOIDs = $this->snmpTemplates[$oltModelId]['signal'];
+                    $snmpMiscOIDs   = $this->snmpTemplates[$oltModelId]['misc'];
+                    $onuDevID       = $cacheMACDevID[$onumac];
+                    $onuIdxDevID    = '';
+                    $lastRegTime    = '';
+                    $lastDeregTime  = '';
+                    $lastAliveTime  = '';
+
+                    if (ispos($snmpDevice, 'OLT P36')) {
+                        $onuIdx = file_get_contents(self::ONUCACHE_PATH . $oltID . '_' . self::ONUCACHE_EXT);
+                        if (!empty($onuIdx)) {
+                            $onuIdx = array_flip(unserialize($onuIdx));
+
+                            if (!empty($onuIdx[$onumac])) {
+                                $onuIdxDevID = $onuIdx[$onumac];
+                            }
+                        }
+                    }
+
+                    if (!empty($snmpMiscOIDs['LASTREGTIME'])) {
+                        if (ispos($snmpDevice, 'OLT P36')) {
+                            $lastRegTimeOID = $snmpMiscOIDs['LASTREGTIME'] . '.' . $onuIdxDevID;
+                        } else {
+                            $lastRegTimeOID = $snmpMiscOIDs['LASTREGTIME'] . '.' . $onuDevID;
+                        }
+                        $lastRegTimeVal = $snmpMiscOIDs['LASTREGTIMEVAL'];
+                        $lastRegTime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastRegTimeOID, self::SNMPCACHE);
+                        $lastRegTime = str_replace($lastRegTimeOID, '', $lastRegTime);
+                        $lastRegTime = str_replace($lastRegTimeVal, '', $lastRegTime);
+                        $lastRegTime = explode('=', $lastRegTime);
+                        $lastRegTime = $lastRegTime[1];
+
+                    }
+
+                    if (!empty($snmpMiscOIDs['LASTDEREGTIME'])) {
+                        if (ispos($snmpDevice, 'OLT P36')) {
+                            $lastDeregTimeOID = $snmpMiscOIDs['LASTDEREGTIME'] . '.' . $onuIdxDevID;
+                        } else {
+                            $lastDeregTimeOID = $snmpMiscOIDs['LASTDEREGTIME'] . '.' . $onuDevID;
+                        }
+                        $lastDeregTimeVal = $snmpMiscOIDs['LASTDEREGTIMEVAL'];
+                        $lastDeregTime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastDeregTimeOID, self::SNMPCACHE);
+                        $lastDeregTime = str_replace($lastDeregTimeOID, '', $lastDeregTime);
+                        $lastDeregTime = str_replace($lastDeregTimeVal, '', $lastDeregTime);
+                        $lastDeregTime = explode('=', $lastDeregTime);
+                        $lastDeregTime = $lastDeregTime[1];
+                    }
+
+                    if (!empty($snmpMiscOIDs['LASTALIVETIME'])) {
+                        $lastAliveTimeOID = $snmpMiscOIDs['LASTALIVETIME'] . '.' . $onuDevID;
+                        $lastAliveTimeVal = $snmpMiscOIDs['LASTALIVETIMEVAL'];
+                        $lastAliveTime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastAliveTimeOID, self::SNMPCACHE);
+                        $lastAliveTime = str_replace($lastAliveTimeOID, '', $lastAliveTime);
+                        $lastAliveTime = str_replace($lastAliveTimeVal, '', $lastAliveTime);
+                        $lastAliveTime = explode('=', $lastAliveTime);
+                        $lastAliveTime = $lastAliveTime[1];
+                    }
+
+                    if (!empty($lastRegTime) or !empty($lastDeregTime) or !empty($lastAliveTime)) {
+                        if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM') {
+                            if (ispos($snmpDevice, '3310')) {
+                                $lastAliveTime = explode(')', $lastAliveTime);
+                                $lastAliveTime = trim($lastAliveTime[1]);
+                            } else {
+                                $lastAliveTime = zb_formatTime($lastAliveTime);
+                            }
+
+                            $lastRegTime    = $this->convertBDCOMTime($lastRegTime);
+                            $lastDeregTime  = $this->convertBDCOMTime($lastDeregTime);
+                        }
+
+                        $result['lastreg']   = trim(trim($lastRegTime), '"');
+                        $result['lastdereg'] = trim(trim($lastDeregTime), '"');
+                        $result['lastalive'] = trim(trim($lastAliveTime), '"');
+                    }
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Tries to return the current "realtime" OLT uptime value
+     *
+     * @param $oltID
+     * @param bool $fromCache
+     *
+     * @return bool|string
+     */
+    public function getOLTUptime($oltID, $fromCache = true) {
+        $oltUptime = '';
+
+        if ($fromCache and file_exists(self::UPTIME_PATH . $oltID . '_' . self::UPTIME_EXT)) {
+            $oltUptime = file_get_contents(self::UPTIME_PATH . $oltID . '_' . self::UPTIME_EXT);
+        } else {
+            $oltID = vf($oltID, 3);
+
+            if (isset($this->allOltDevices[$oltID]) and isset($this->allOltSnmp[$oltID])) {
+                $oltCommunity = $this->allOltSnmp[$oltID]['community'];
+                $oltModelId = $this->allOltSnmp[$oltID]['modelid'];
+                $oltIp = $this->allOltSnmp[$oltID]['ip'];
+
+                if (isset($this->snmpTemplates[$oltModelId]['system'])) {
+                    //OLT uptime
+                    if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                        $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                        $oltUptime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+
+                        if (!empty($oltUptime)) {
+                            $oltUptime = explode(')', $oltUptime);
+                            $oltUptime = $oltUptime[1];
+                            $oltUptime = trim($oltUptime);
+                        }
+                    }
+                }
+            }
+        }
+
+        return ($oltUptime);
+    }
+
+
+    /**
+     * Tries to make BDCOM Reg/Dereg dates human readable
+     *
+     * @param $hexOIDVal
      *
      * @return string
      */
-    public function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $reversed = false) {
-        $hexMAC = '';
+    protected function convertBDCOMTime($hexOIDVal) {
+        $result = '';
 
-        if (!empty($decMAC)) {
-            $decMACArr = explode($inSeparator, $decMAC);
-            $decMACArr = ($reversed) ? array_reverse($decMACArr) : $decMACArr;
+        if (!empty($hexOIDVal)) {
+            $hexOIDVal = substr(str_replace(' ', '', $hexOIDVal), 0, 14);
 
-            foreach ($decMACArr as $decOctet) {
-                $hexOctet = ($decOctet == '0' or $decOctet == 0) ? '00' : dechex($decOctet);
+            $bdcomYear = hexdec(substr($hexOIDVal, 0, 4));
 
-                if (strlen($hexOctet) < 2) {
-                    $hexOctet = '0' . $hexOctet;
-                }
+            $bdcomMonth = hexdec(substr($hexOIDVal, 4, 2));
+            $bdcomMonth = (strlen($bdcomMonth) < 2) ? '0' . $bdcomMonth : $bdcomMonth;
 
-                $hexMAC.= $hexOctet;
-            }
+            $bdcomDay = hexdec(substr($hexOIDVal, 6, 2));
+            $bdcomDay = (strlen($bdcomDay) < 2) ? '0' . $bdcomDay : $bdcomDay;
 
-            $hexMAC = strtolower_utf8(AddMacSeparator($hexMAC, $outSeparator));
+            $bdcomHour = hexdec(substr($hexOIDVal, 8, 2));
+            $bdcomHour = (strlen($bdcomHour) < 2) ? '0' . $bdcomHour : $bdcomHour;
+
+            $bdcomMin = hexdec(substr($hexOIDVal, 10, 2));
+            $bdcomMin = (strlen($bdcomMin) < 2) ? '0' . $bdcomMin : $bdcomMin;
+
+            $bdcomSec = hexdec(substr($hexOIDVal, 12, 2));
+            $bdcomSec = (strlen($bdcomSec) < 2) ? '0' . $bdcomSec : $bdcomSec;
+
+            $result = $bdcomYear . '.' . $bdcomMonth . '.' . $bdcomDay . ' ' . $bdcomHour . ':' . $bdcomMin . ':' . $bdcomSec;
         }
 
-        return($hexMAC);
+        return ($result);
     }
-
 }
-
 /**
  * Ponizer legacy all-in-one-page renderer
  */
