@@ -304,6 +304,7 @@ if (@$us_config['VISOR_ENABLED']) {
             if (!empty($this->myLogin)) {
                 if (!empty($this->myUserData)) {
                     if (!empty($this->myCameras)) {
+                        $currency = @$this->userstatsCfg['currency'];
                         $totalCamerasPrice = 0;
                         $allPayIds = $this->getAllPaymentIds();
                         $allTariffsFee = zbs_TariffGetAllPrices();
@@ -313,7 +314,7 @@ if (@$us_config['VISOR_ENABLED']) {
                             $result .= __('Money for cameras will be charged from your primary account') . ' ' . la_Link('index.php', $primaryAddress) . ' ';
                             $result .= __('if no funds for further cameras functioning') . '. ';
                             $result .= __('Your primary account balance now is') . ' ' . $this->allUsers[$this->myLogin]['Cash'] . ' ';
-                            $result .= $this->userstatsCfg['currency'] . '. ' . __('You can recharge it with following Payment ID') . ': ' . $allPayIds[$this->myLogin];
+                            $result .= $currency . '. ' . __('You can recharge it with following Payment ID') . ': ' . $allPayIds[$this->myLogin];
                             $result .= la_delimiter();
                         }
                         $result .= la_tag('h3') . __('Your cameras') . la_tag('h3', true);
@@ -331,13 +332,13 @@ if (@$us_config['VISOR_ENABLED']) {
                                 $cells = la_TableCell(@$this->allAddress[$cameraLogin]);
                                 $cells .= la_TableCell(@$allPayIds[$cameraLogin]);
                                 $cells .= la_TableCell(@$this->allUsers[$cameraLogin]['Cash']);
-                                $cells .= la_TableCell($cameraFee);
+                                $cells .= la_TableCell($cameraFee . ' ' . $currency);
                                 $rows .= la_TableRow($cells, 'row3');
                                 $totalCamerasPrice += $cameraFee;
                             }
                         }
 
-                        $totalPriceLabel = __('Total') . ' ' . la_tag('nobr') . $totalCamerasPrice . la_tag('nobr', true) . ' ' . @$this->userstatsCfg['currency'];
+                        $totalPriceLabel = __('Total') . ' ' . la_tag('nobr') . $totalCamerasPrice . la_tag('nobr', true) . ' ' . $currency;
                         $cells = la_TableCell('');
                         $cells .= la_TableCell('');
                         $cells .= la_TableCell('');
