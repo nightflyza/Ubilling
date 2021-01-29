@@ -133,6 +133,7 @@ class UbillingPHPMail {
 
         //Tell PHPMailer to use UTF-8 encoding
         $mail->CharSet = "UTF-8";
+        $mail->Debugoutput = 'error_log';
 
         //Enable SMTP debugging
         // SMTP::DEBUG_OFF = off (for production use)
