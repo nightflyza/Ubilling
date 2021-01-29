@@ -1483,7 +1483,6 @@ class PONizer {
                     $deregTmp[$portIndex . ':' . $devIndex] = $deregRaw;
                 }
             }
-file_put_contents('zxcv', print_r($deregTmp, true));
 
 //mac index preprocessing
             foreach ($macIndex as $io => $eachmac) {
@@ -1501,7 +1500,6 @@ file_put_contents('zxcv', print_r($deregTmp, true));
                 }
             }
 
-file_put_contents('qxcv', print_r($onuTmp, true));
 //storing results
             if (!empty($onuTmp)) {
                 foreach ($onuTmp as $devId => $eachMac) {
