@@ -171,6 +171,7 @@ class UbillingPHPMail {
         switch ($this->mailerSMTPSecure) {
             case 1:
                 $mail->SMTPSecure = '';
+                $mail->SMTPAutoTLS = false;
                 break;
 
             case 2:
@@ -183,6 +184,7 @@ class UbillingPHPMail {
 
             default:
                 $mail->SMTPSecure = '';
+                $mail->SMTPAutoTLS = false;
         }
 
         //Whether to use SMTP authentication
@@ -193,7 +195,7 @@ class UbillingPHPMail {
 
         //Password to use for SMTP authentication
         $mail->Password = $this->mailerSMTPPasswd;
-
+file_put_contents('zxcv', print_r($mail, true));
         return ($mail);
     }
 
