@@ -144,7 +144,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
 // SQL console processing
     if (isset($_POST['sqlq'])) {
         $newquery = trim($_POST['sqlq']);
-
+        $recCount = 0; //preventing notices on empty queries
         if (!empty($newquery)) {
             $stripquery = substr($newquery, 0, 70) . '..';
             log_register('SQLCONSOLE ' . $stripquery);
@@ -179,27 +179,27 @@ if ($system->checkForRight('SQLCONSOLE')) {
             if (!empty($query_result)) {
                 $recCount = count($query_result);
 
-                if (!isset($_POST['tableresult']) and !isset($_POST['truetableresult'])) {
+                if (!isset($_POST['tableresult']) and ! isset($_POST['truetableresult'])) {
                     //raw array result
                     $vdump = var_export($query_result, true);
                 } elseif (isset($_POST['truetableresult'])) {
                     //show query result as table with fields
                     $tablecells = '';
-                    $tablerows  = '';
+                    $tablerows = '';
                     $fieldNames = array_keys($query_result[0]);
 
                     if (!empty($fieldNames)) {
                         $fieldsCnt = count($fieldNames);
 
                         foreach ($fieldNames as $fieldName) {
-                            $tablecells.= wf_TableCell($fieldName);
+                            $tablecells .= wf_TableCell($fieldName);
                         }
-                        $tablerows.= $tablecells;
+                        $tablerows .= $tablecells;
                         $tablecells = '';
 
                         foreach ($query_result as $eachresult) {
                             for ($k = 0; $k < $fieldsCnt; $k++) {
-                                $tablecells.= wf_TableCell('');
+                                $tablecells .= wf_TableCell('');
                             }
                             $tablerows .= wf_TableRow($tablecells, 'row1');
                             $tablecells = '';
