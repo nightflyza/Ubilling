@@ -1,4 +1,5 @@
 <?php
+
 require_once ('api/vendor/PHPMailer/PHPMailer.php');
 require_once ('api/vendor/PHPMailer/OAuth.php');
 require_once ('api/vendor/PHPMailer/SMTP.php');
@@ -14,6 +15,7 @@ use PHPMailer\PHPMailer\Exception;
  * Ubilling email sending based on phpmail class
  */
 class UbillingPHPMail {
+
     /**
      * Enable SMTP debugging
      * SMTP::DEBUG_OFF = off (for production use)
@@ -97,15 +99,15 @@ class UbillingPHPMail {
      * Creates new PHPMail queue class instance
      */
     public function __construct() {
-        $this->mailerDebug              = zb_StorageGet('SENDDOG_PHPMAILER_DEBUG');
-        $this->mailerSMTPHost           = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_HOST');
-        $this->mailerSMTPPort           = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_PORT');
-        $this->mailerSMTPSecure         = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_SECURE');
-        $this->mailerSMTPAuth           = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_USEAUTH');
-        $this->mailerSMTPUser           = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_USER');
-        $this->mailerSMTPPasswd         = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_PASSWD');
-        $this->mailerSMTPDefaultFrom    = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_DEFAULTFROM');
-        $this->mailerAttachPath         = zb_StorageGet('SENDDOG_PHPMAILER_ATTACHMENTS_PATH');
+        $this->mailerDebug = zb_StorageGet('SENDDOG_PHPMAILER_DEBUG');
+        $this->mailerSMTPHost = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_HOST');
+        $this->mailerSMTPPort = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_PORT');
+        $this->mailerSMTPSecure = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_SECURE');
+        $this->mailerSMTPAuth = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_USEAUTH');
+        $this->mailerSMTPUser = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_USER');
+        $this->mailerSMTPPasswd = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_PASSWD');
+        $this->mailerSMTPDefaultFrom = zb_StorageGet('SENDDOG_PHPMAILER_SMTP_DEFAULTFROM');
+        $this->mailerAttachPath = zb_StorageGet('SENDDOG_PHPMAILER_ATTACHMENTS_PATH');
 
         $this->phpMailer = $this->initPHPMailer();
     }
@@ -163,7 +165,6 @@ class UbillingPHPMail {
         // use
         // $mail->Host = gethostbyname('smtp.gmail.com');
         // if your network does not support SMTP over IPv6
-
         //Set the SMTP port number - 587 for authenticated TLS, a.k.a. RFC4409 SMTP submission
         $mail->Port = $this->mailerSMTPPort;
 
@@ -196,7 +197,7 @@ class UbillingPHPMail {
 
         //Password to use for SMTP authentication
         $mail->Password = $this->mailerSMTPPasswd;
-file_put_contents('zxcv', print_r($mail, true));
+
         return ($mail);
     }
 
@@ -214,8 +215,7 @@ file_put_contents('zxcv', print_r($mail, true));
      *
      * @return bool
      */
-    public function sendEmail($email, $subject, $message, $attachPath = '', $bodyAsHTML = false,
-                              $fromField = '', $customHeaders = array(), $module = '') {
+    public function sendEmail($email, $subject, $message, $attachPath = '', $bodyAsHTML = false, $fromField = '', $customHeaders = array(), $module = '') {
         $result = false;
         $email = trim($email);
         $subject = trim($subject);
@@ -335,7 +335,6 @@ file_put_contents('zxcv', print_r($mail, true));
         return ($result);
     }
 
-
     /**
      * Directly sends email message to recepient using PHP mail function.
      *
@@ -349,8 +348,7 @@ file_put_contents('zxcv', print_r($mail, true));
      *
      * @return void
      */
-    public function directPushEmail($email, $subject, $message, $attachPath,
-                                    $bodyAsHTML = false, $from = '', $customHeaders = array()) {
+    public function directPushEmail($email, $subject, $message, $attachPath, $bodyAsHTML = false, $from = '', $customHeaders = array()) {
 
         $fromField = (empty($from)) ? $this->mailerSMTPDefaultFrom : $from;
         //Set who the message is to be sent from
@@ -358,7 +356,6 @@ file_put_contents('zxcv', print_r($mail, true));
 
         //Set an alternative reply-to address
         //$this->phpMailer->addReplyTo('replyto@example.com', 'First Last');
-
         //Set who the message is to be sent to
         $this->phpMailer->addAddress($email);
 
@@ -398,4 +395,5 @@ file_put_contents('zxcv', print_r($mail, true));
             log_register('UPHPEML Error: ' . $this->phpMailer->ErrorInfo);
         }
     }
+
 }
