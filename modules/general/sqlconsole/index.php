@@ -145,6 +145,8 @@ if ($system->checkForRight('SQLCONSOLE')) {
     if (isset($_POST['sqlq'])) {
         $newquery = trim($_POST['sqlq']);
         $recCount = 0; //preventing notices on empty queries
+        $vdump = ''; //used for storing query executing result
+        $query_result = array(); //executed query result shall to be there
         if (!empty($newquery)) {
             $stripquery = substr($newquery, 0, 70) . '..';
             log_register('SQLCONSOLE ' . $stripquery);
@@ -157,7 +159,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             }
             if ($queried === false) {
                 ob_end_clean();
-                return show_window('SQL ' . __('Result'), wf_tag('b') . __('Wrong query') . ':' . wf_tag('b', true) . wf_delimiter() . $newquery);
+                return(show_error(wf_tag('b') . __('Wrong query') . ': ' . wf_tag('b', true) . $newquery));
             } else {
                 if (!extension_loaded('mysql')) {
                     while (@$row = mysqli_fetch_assoc($queried)) {
@@ -228,14 +230,24 @@ if ($system->checkForRight('SQLCONSOLE')) {
                     }
                     $vdump = wf_TableBody($tablerows, '100%', '0', '');
                 }
-            } else {
-                $vdump = __('Query returned empty result');
             }
-        } else {
-            $vdump = __('Empty query');
         }
 
-        show_window(__('Result'), '<pre>' . $vdump . '</pre>' . wf_delimiter(0) . __('Returned records count') . ': ' . $recCount);
+        show_window(__('Result'), wf_tag('pre') . $vdump . wf_tag('pre', 'true'));
+        //rendering query status here
+        if (empty($newquery)) {
+            show_warning(__('Empty query'));
+        } else {
+            if ($queried !== false) {
+                show_info(__('SQL Query') . ': ' . $newquery);
+            }
+
+            if (empty($query_result)) {
+                show_warning(__('Query returned empty result'));
+            } else {
+                show_success(__('Returned records count') . ': ' . $recCount);
+            }
+        }
     }
 
 
