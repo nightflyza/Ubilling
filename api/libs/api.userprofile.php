@@ -418,14 +418,29 @@ class UserProfile {
 
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
-                if (isset($eachplugin['need_option'])) {
-                    if (@$this->alterCfg[$eachplugin['need_option']]) {
-                        $result .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                        $result .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
-                        $result .= wf_tag('br') . __($eachplugin['name']);
-                        $result .= wf_tag('div', true);
+                $renderable = true;
+                //checks for required pluging rights
+
+                if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
+                    if (cfr($eachplugin['need_right'])) {
+                        $renderable = true;
+                    } else {
+                        $renderable = false;
                     }
-                } else {
+                }
+
+                //checking for required options
+                if ($renderable) { //avoiding additional check
+                    if (isset($eachplugin['need_option'])) {
+                        if (@$this->alterCfg[$eachplugin['need_option']]) {
+                            $renderable = true;
+                        } else {
+                            $renderable = false;
+                        }
+                    }
+                }
+
+                if ($renderable) {
                     $result .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
                     $result .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
                     $result .= wf_tag('br') . __($eachplugin['name']);
@@ -1039,8 +1054,7 @@ class UserProfile {
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW') and isset($onu_data['oltid'])) {
                     $pon = ($this->ubConfig->getAlterParam('PON_OLT_UPTIME_IN_PROFILE')
                             or $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')
-                            or $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE'))
-                            ? new PONizer() : null;
+                            or $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) ? new PONizer() : null;
 
                     $onuAdditionalData .= wf_TableCell(__('OLT'), '30%', 'row2');
 
@@ -1127,7 +1141,9 @@ class UserProfile {
                     }
                 }
 
-                if (empty($raw)) { $raw = array(); }
+                if (empty($raw)) {
+                    $raw = array();
+                }
 
                 foreach ($raw as $mac => $signal) {
                     if ($mac == $onu_data['mac'] or $mac == $onu_data['serial']) {
@@ -1150,21 +1166,21 @@ class UserProfile {
 
                 $cells = wf_TableCell(__('ONU Signal') . $realtimeStr, '30%', 'row2');
                 $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true)
-                          . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
+                        . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
                 $rows .= wf_TableRow($cells, 'row3');
 
                 if ($this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) {
-                    $lastRegTime    = '';
-                    $lastDeregTime  = '';
-                    $lastAliveTime  = '';
-                    $onuMAC         = (empty($onu_data['serial'])) ? $onu_data['mac'] : $onu_data['serial'];
-                    $onuTXSignal    = $pon->getONURealtimeSignal($onu_data['oltid'], $onuMAC, true);
-                    $extenInfo      = $pon->getONUExtenInfo($onu_data['oltid'], $onuMAC);
+                    $lastRegTime = '';
+                    $lastDeregTime = '';
+                    $lastAliveTime = '';
+                    $onuMAC = (empty($onu_data['serial'])) ? $onu_data['mac'] : $onu_data['serial'];
+                    $onuTXSignal = $pon->getONURealtimeSignal($onu_data['oltid'], $onuMAC, true);
+                    $extenInfo = $pon->getONUExtenInfo($onu_data['oltid'], $onuMAC);
 
                     if (!empty($extenInfo)) {
-                        $lastRegTime    = $extenInfo['lastreg'];
-                        $lastDeregTime  = $extenInfo['lastdereg'];
-                        $lastAliveTime  = $extenInfo['lastalive'];
+                        $lastRegTime = $extenInfo['lastreg'];
+                        $lastDeregTime = $extenInfo['lastdereg'];
+                        $lastAliveTime = $extenInfo['lastalive'];
                     }
 
                     $onuAdditionalData = wf_TableCell(__('ONU TX signal'), '30%', 'row2');
@@ -1670,9 +1686,9 @@ class UserProfile {
 
                 if (ubRouting::checkPost('createrec')) {
                     $tabSMSSrvRelations->dataArr(array('sms_srv_id' => $newSMSSrvID,
-                                                       'user_login' => $usrLogin
-                                                      )
-                                                );
+                        'user_login' => $usrLogin
+                            )
+                    );
                     $tabSMSSrvRelations->create();
                 } else {
                     $tabSMSSrvRelations->data('sms_srv_id', $newSMSSrvID);
@@ -1687,10 +1703,10 @@ class UserProfile {
             $preferredSMSSrvId = $preferredSMSSrv[0];
 
             $row .= $this->addRow(__('Preferred SMS service'), wf_Selector('sms_srv', zb_getSMSServicesList(), '', $preferredSMSSrvId, false, false, 'related_sms_srv') .
-                                  wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
-                                  wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
-                                  wf_tag('span', true)
-                                 );
+                    wf_HiddenInput('sms_srv_create', empty($preferredSMSSrvId), 'related_sms_srv_create') .
+                    wf_tag('span', false, '', 'id="sms_srv_change_flag" style="color: darkred"') .
+                    wf_tag('span', true)
+            );
             $row .= wf_tag('script', false, '', 'type="text/javascript"');
             $row .= '$(\'#related_sms_srv\').change(function() {
                             var SMSSrvID = $(this).val(); 
@@ -1750,9 +1766,9 @@ class UserProfile {
 
                 if (ubRouting::checkPost('createrec')) {
                     $tabDataExportAllowed->dataArr(array('login' => $usrLogin,
-                                                         'export_allowed' => $newTriggerVal
-                                                        )
-                                                  );
+                        'export_allowed' => $newTriggerVal
+                            )
+                    );
                     $tabDataExportAllowed->create();
                 } else {
                     $tabDataExportAllowed->data('export_allowed', $newTriggerVal);
@@ -1768,18 +1784,17 @@ class UserProfile {
             $queryResult = $tabDataExportAllowed->getAll();
             $triggerVal = (isset($queryResult[0])) ? $queryResult[0]['export_allowed'] : '';
 
-            $row .= $this->addRow(__('Data export allowed'),
-                                  wf_tag('span', false, '', 'id="data_export_off"') .
-                                  web_red_led() .
-                                  wf_tag('span', true) .
-                                  wf_tag('span', false, '', 'id="data_export_on"') .
-                                  web_green_led() .
-                                  wf_tag('span', true) .
-                                  wf_nbsp(2) . wf_Selector('dea', array(0 => __('No'), 1 => __('Yes')), '', $triggerVal, false, false, 'DataExportAllowed') .
-                                  wf_HiddenInput('dataexportreccreate', wf_emptyNonZero($triggerVal), 'data_export_rec_create') .
-                                  wf_tag('span', false, '', 'id="data_export_change_flag" style="color: darkred"') .
-                                  wf_tag('span', true)
-                                 );
+            $row .= $this->addRow(__('Data export allowed'), wf_tag('span', false, '', 'id="data_export_off"') .
+                    web_red_led() .
+                    wf_tag('span', true) .
+                    wf_tag('span', false, '', 'id="data_export_on"') .
+                    web_green_led() .
+                    wf_tag('span', true) .
+                    wf_nbsp(2) . wf_Selector('dea', array(0 => __('No'), 1 => __('Yes')), '', $triggerVal, false, false, 'DataExportAllowed') .
+                    wf_HiddenInput('dataexportreccreate', wf_emptyNonZero($triggerVal), 'data_export_rec_create') .
+                    wf_tag('span', false, '', 'id="data_export_change_flag" style="color: darkred"') .
+                    wf_tag('span', true)
+            );
             $row .= wf_tag('script', false, '', 'type="text/javascript"');
             $row .= '
                     $(document).ready(function() {
@@ -1822,7 +1837,6 @@ class UserProfile {
                      });
                     ';
             $row .= wf_tag('script', true);
-
         }
 
         return ($row);
@@ -2212,6 +2226,7 @@ class UserProfile {
 
         return($profile);
     }
+
 }
 
 ?>
