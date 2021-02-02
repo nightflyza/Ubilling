@@ -2759,7 +2759,7 @@ class Warehouse {
             }
 
             //displayed maximum items count
-            $maxItemCount = ($fromReserve) ? $reserveData['count'] : ($itemRemainsStorage - $isReserved);
+            $maxItemCount = ($fromReserve) ? @$reserveData['count'] : ($itemRemainsStorage - $isReserved);
 
             //form construct
             $inputs = wf_AjaxLoader();
@@ -3278,6 +3278,101 @@ class Warehouse {
         $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
         if (!empty($this->allOutcoming)) {
             $tmpArr = $this->allOutcoming;
+            if (!empty($tmpArr)) {
+                $cells = wf_TableCell(__('Date'));
+                $cells .= wf_TableCell(__('Warehouse storage'));
+                $cells .= wf_TableCell(__('Category'));
+                $cells .= wf_TableCell(__('Warehouse item type'));
+                $cells .= wf_TableCell(__('Count'));
+                $cells .= wf_TableCell(__('Price'));
+                $cells .= wf_TableCell(__('Sum'));
+                if ($notesFlag) {
+                    $cells .= wf_TableCell(__('Notes'));
+                }
+                if (cfr('WAREHOUSEOUT')) {
+                    $cells .= wf_TableCell(__('Actions'));
+                }
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($tmpArr as $io => $each) {
+                    @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                    $cells = wf_TableCell($each['date']);
+                    $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
+                    $cells .= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
+                    $cells .= wf_TableCell(@$this->allItemTypeNames[$each['itemtypeid']]);
+                    $cells .= wf_TableCell($each['count'] . ' ' . $itemUnit);
+                    $cells .= wf_TableCell($each['price']);
+                    $cells .= wf_TableCell($each['price'] * $each['count']);
+                    if (cfr('WAREHOUSEOUT')) {
+                        $actLinks = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'], wf_img_sized('skins/whoutcoming_icon.png', '', '12') . ' ' . __('Show'));
+                    } else {
+                        $actLinks = '';
+                    }
+
+                    if ($notesFlag) {
+                        $cells .= wf_TableCell($each['notes']);
+                    }
+
+                    if (cfr('WAREHOUSEOUT')) {
+                        $cells .= wf_TableCell($actLinks);
+                    }
+                    $rows .= wf_TableRow($cells, 'row5');
+                    $sum = $sum + ($each['price'] * $each['count']);
+                    $outcomesCount++;
+                }
+                $cells = wf_TableCell(__('Total') . ': ' . $outcomesCount);
+                $cells .= wf_TableCell('');
+                $cells .= wf_TableCell('');
+                $cells .= wf_TableCell('');
+                $cells .= wf_TableCell('');
+                $cells .= wf_TableCell('');
+                $cells .= wf_TableCell($sum);
+                if ($notesFlag) {
+                    $cells .= wf_TableCell('');
+                }
+                if (cfr('WAREHOUSEOUT')) {
+                    $cells .= wf_TableCell('');
+                }
+                $rows .= wf_TableRow($cells, 'row2');
+
+                $result = wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders materials list spent on some tasks from array
+     * 
+     * @param array $tasksArr
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function userSpentMaterialsReport($tasksArr = array(), $userLogin = '') {
+
+        $result = '';
+        $tmpArr = array();
+        $sum = 0;
+        $outcomesCount = 0;
+        $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
+        if (!empty($this->allOutcoming)) {
+            //prefiltering outcome operations
+            foreach ($this->allOutcoming as $io => $each) {
+                //filter by taskId
+                if ($each['desttype'] == 'task' AND isset($tasksArr[$each['destparam']])) {
+                    $tmpArr[] = $each;
+                }
+
+                //filter by direct user outcome operation
+                if ($userLogin) {
+                    if ($each['desttype'] == 'user' AND $each['destparam'] == $userLogin) {
+                        $tmpArr[] = $each;
+                    }
+                }
+            }
+            //rendering result
             if (!empty($tmpArr)) {
                 $cells = wf_TableCell(__('Date'));
                 $cells .= wf_TableCell(__('Warehouse storage'));

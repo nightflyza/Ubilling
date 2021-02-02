@@ -3217,6 +3217,8 @@ $lang['def']['right to view materials spent on tasks'] = 'Право просм�
 $lang['def']['Display query result as table with fields'] = 'Отображение результата в виде таблицы с полями';
 $lang['def']['Returned records count'] = 'Возвращено записей';
 $lang['def']['realtime'] = 'в реальном времени';
+$lang['def']['Warehouse lookup'] = 'Поиск по складу';
+$lang['def']['right to lookup warehouse items spent for user'] = 'Право искать ТМЦ ушедшие на пользователя';
 $lang['def'][''] = '';
 
 

@@ -1,4 +1,5 @@
 <?php
+
 // misc
 $lang['def']['Taskbar'] = 'Панель задач';
 $lang['def']['Internet users'] = 'Користувачі';
@@ -3238,7 +3239,7 @@ $lang['def']['right to view materials spent on tasks'] = 'Право перег�
 $lang['def']['Display query result as table with fields'] = 'Відображення результату у вигляді таблиці з полями';
 $lang['def']['Returned records count'] = 'Записів повернуто';
 $lang['def']['realtime'] = 'в реальному часі';
+$lang['def']['Warehouse lookup'] = 'Пошук по складу';
+$lang['def']['right to lookup warehouse items spent for user'] = 'Право знаходити ТМЦ витрачені на користувача';
 $lang['def'][''] = '';
-
-
 ?>

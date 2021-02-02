@@ -1181,10 +1181,13 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
  * Renders list of all previous user tasks by all time
  * 
  * @param string $login
+ * @param string $address
+ * @param bool $noFixedWidth
+ * @param bool $arrayResult
  * 
- * @return string
+ * @return string/array
  */
-function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false) {
+function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false, $arrayResult = false) {
     $result = '';
     $userTasks = array();
     $telepathyTasks = array();
@@ -1238,16 +1241,20 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
         //cache update
         $cache->set('ADDRESSTELEPATHY', $addressLoginsCache, 2592000);
 
-        if (!empty($userTasks)) {
-            foreach ($userTasks as $io => $each) {
-                $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
-                $taskColor = ($each['status']) ? 'donetask' : 'undone';
-                $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
-                $result .= wf_tag('div', false, $taskColor, $divStyle);
-                $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']] . ' ' . $telepathyFlag;
-                $result .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
-                $result .= wf_tag('div', true);
+        if (!$arrayResult) {
+            if (!empty($userTasks)) {
+                foreach ($userTasks as $io => $each) {
+                    $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
+                    $taskColor = ($each['status']) ? 'donetask' : 'undone';
+                    $divStyle = ($noFixedWidth) ? 'style="padding: 2px; margin: 2px;"' : 'style="width:400px;"';
+                    $result .= wf_tag('div', false, $taskColor, $divStyle);
+                    $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']] . ' ' . $telepathyFlag;
+                    $result .= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
+                    $result .= wf_tag('div', true);
+                }
             }
+        } else {
+            $result = $userTasks;
         }
     }
 
