@@ -2121,7 +2121,9 @@ class UserProfile {
 //Always online flag row
         $profile .= $this->addRow(__('Always Online'), web_trigger($this->userdata['AlwaysOnline']));
 //Detail stats flag row
-        $profile .= $this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
+        if (@$this->alterCfg['DSTAT_ENABLED']) {
+            $profile .= $this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
+        }
 //Frozen aka passive flag row
         //passive time detection
         $passiveTimeLabel = '';
