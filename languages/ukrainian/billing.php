@@ -3241,5 +3241,6 @@ $lang['def']['Returned records count'] = 'Записів повернуто';
 $lang['def']['realtime'] = 'в реальному часі';
 $lang['def']['Warehouse lookup'] = 'Пошук по складу';
 $lang['def']['right to lookup warehouse items spent for user'] = 'Право знаходити ТМЦ витрачені на користувача';
+$lang['def']['Day of week'] = 'День тижня';
 $lang['def'][''] = '';
 ?>

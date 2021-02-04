@@ -1780,6 +1780,28 @@ function months_array($number = null) {
 }
 
 /**
+ * Returns localized array of days of week as dayNumber=>dayName
+ * 
+ * @param bool $any add any day of week as 1488 number of day
+ * 
+ * @return array
+ */
+function daysOfWeek($any = false) {
+    $result = array();
+    if ($any) {
+        $result[1488] = __('Any');
+    }
+    $result[1] = rcms_date_localise('Monday');
+    $result[2] = rcms_date_localise('Tuesday');
+    $result[3] = rcms_date_localise('Wednesday');
+    $result[4] = rcms_date_localise('Thursday');
+    $result[5] = rcms_date_localise('Friday');
+    $result[6] = rcms_date_localise('Saturday');
+    $result[7] = rcms_date_localise('Sunday');
+    return($result);
+}
+
+/**
  * Retuns all months with names without begin zeros
  * 
  * @return array

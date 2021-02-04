@@ -3219,6 +3219,7 @@ $lang['def']['Returned records count'] = 'Возвращено записей';
 $lang['def']['realtime'] = 'в реальном времени';
 $lang['def']['Warehouse lookup'] = 'Поиск по складу';
 $lang['def']['right to lookup warehouse items spent for user'] = 'Право искать ТМЦ ушедшие на пользователя';
+$lang['def']['Day of week'] = 'День недели';
 $lang['def'][''] = '';
 
 

@@ -395,10 +395,12 @@ class StickyNotes {
     public function renderRevelationsList() {
         $result = '';
         $messages = new UbillingMessageHelper();
+        $daysOfWeek = daysOfWeek(true);
         if (!empty($this->allRevelations)) {
             $cells = wf_TableCell(__('Creation date'));
             $cells .= wf_TableCell(__('Day') . ' ' . __('From'));
             $cells .= wf_TableCell(__('Day') . ' ' . __('To'));
+            $cells .= wf_TableCell(__('Day of week'));
             $cells .= wf_TableCell(__('Status'));
             $cells .= wf_TableCell(__('Text'));
             $cells .= wf_TableCell(__('Actions'));
@@ -407,8 +409,10 @@ class StickyNotes {
                 $cells = wf_TableCell($each['createdate']);
                 $dayFrom = (!empty($each['dayfrom'])) ? $each['dayfrom'] : '';
                 $dayTo = (!empty($each['dayto'])) ? $each['dayto'] : '';
+                $dayWeek = (!empty($each['dayweek'])) ? $each['dayweek'] : 1488; //any day of week
                 $cells .= wf_TableCell($dayFrom);
                 $cells .= wf_TableCell($dayTo);
+                $cells .= wf_TableCell($daysOfWeek[$dayWeek]);
                 $cells .= wf_TableCell(web_bool_led($each['active']));
                 $previewContent = nl2br($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN));
                 $cells .= wf_TableCell($previewContent);
@@ -464,10 +468,11 @@ class StickyNotes {
      * @param int $activity
      * @param string $text
      * @param string $showTo
+     * @param int $dayWeek
      * 
      * @return void
      */
-    protected function createRevelation($dayFrom, $dayTo, $activity, $text, $showTo) {
+    protected function createRevelation($dayFrom, $dayTo, $activity, $text, $showTo, $dayWeek) {
         $owner = $this->myLogin;
         $createDate = curdatetime();
         $text = strip_tags($text);
@@ -486,9 +491,12 @@ class StickyNotes {
             $dayTo = 'NULL';
         }
 
+        if ($dayWeek == 1488) {
+            $dayWeek = 0; //replace any day of week to zero
+        }
 
-        $query = "INSERT INTO `stickyrevelations` (`id`, `owner`, `showto`,`createdate`, `dayfrom`,`dayto`, `active`, `text`) "
-                . "VALUES (NULL, '" . $owner . "', '" . $showTo . "' ,'" . $createDate . "', " . $dayFrom . ", " . $dayTo . " , '" . $activity . "', '" . $text . "');";
+        $query = "INSERT INTO `stickyrevelations` (`id`, `owner`, `showto`,`createdate`, `dayfrom`,`dayto`,`dayweek` ,`active`, `text`) "
+                . "VALUES (NULL, '" . $owner . "', '" . $showTo . "' ,'" . $createDate . "', " . $dayFrom . ", " . $dayTo . " , '" . $dayWeek . "', '" . $activity . "', '" . $text . "');";
         nr_query($query);
         $this->flushCache();
     }
@@ -592,6 +600,7 @@ class StickyNotes {
      * @return string
      */
     protected function revelationCreateForm() {
+        $daysWeek = daysOfWeek(true);
         $days = array('' => '-');
         for ($i = 1; $i <= 31; $i++) {
             $days[$i] = $i;
@@ -606,7 +615,8 @@ class StickyNotes {
         $inputs .= wf_CheckInput('newrevelationactive', __('Active'), true, true);
         $inputs .= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
         $inputs .= wf_Selector('newrevelationdayfrom', $days, __('From'), '', false) . ' ';
-        $inputs .= wf_Selector('newrevelationdayto', $days, __('To'), '', false) . ' ';
+        $inputs .= wf_Selector('newrevelationdayto', $days, __('To'), '', true) . ' ';
+        $inputs .= wf_Selector('newrevelationdayweek', $daysWeek, __('Day of week'), '', true);
         $inputs .= wf_tag('br');
         if (!empty($alladmins)) {
             foreach ($alladmins as $io => $eachAdmin) {
@@ -632,12 +642,14 @@ class StickyNotes {
         $messages = new UbillingMessageHelper();
 
         if (isset($this->allRevelations[$id])) {
+            $daysWeek = daysOfWeek(true);
             $days = array('' => '-');
             for ($i = 1; $i <= 31; $i++) {
                 $days[$i] = $i;
             }
 
             $revData = $this->allRevelations[$id];
+            $revDayWeek = (!empty($revData['dayweek'])) ? $revData['dayweek'] : 1488; //zero value in database
 
             $alladmins = rcms_scandir(USERS_PATH);
             $adminNames = ts_GetAllEmployeeLoginsCached();
@@ -649,7 +661,8 @@ class StickyNotes {
             $inputs .= wf_CheckInput('editrevelationactive', __('Active'), true, $revData['active']);
             $inputs .= wf_tag('label') . __('Remind only between this days of month') . ' ' . wf_tag('label', true) . ' ';
             $inputs .= wf_Selector('editrevelationdayfrom', $days, __('From'), $revData['dayfrom'], false) . ' ';
-            $inputs .= wf_Selector('editrevelationdayto', $days, __('To'), $revData['dayto'], false) . ' ';
+            $inputs .= wf_Selector('editrevelationdayto', $days, __('To'), $revData['dayto'], true) . ' ';
+            $inputs .= wf_Selector('editrevelationdayweek', $daysWeek, __('Day of week'), $revData['dayweek'], true);
             $inputs .= wf_tag('br');
             if (!empty($alladmins)) {
                 foreach ($alladmins as $io => $eachAdmin) {
@@ -702,6 +715,16 @@ class StickyNotes {
                     log_register("REVELATION CHANGED DAYTO [" . $revelationId . "] ON " . $dayTo . "");
                 }
 
+                $dayWeek = ubRouting::post('editrevelationdayweek', 'int');
+                if ($dayWeek == 1488) {
+                    $dayWeek = 0; //any day of week
+                }
+                $oldDayWeek = $revelationData['dayweek'];
+                if ($dayWeek != $oldDayWeek) {
+                    simple_update_field('stickyrevelations', 'dayweek', $dayWeek, $where);
+                    log_register("REVELATION CHANGED DAYWEEK [" . $revelationId . "] ON " . $dayWeek . "");
+                }
+
                 //activity flag
                 $activity = (isset($_POST['editrevelationactive'])) ? 1 : 0;
                 $oldActivity = $revelationData['active'];
@@ -736,6 +759,10 @@ class StickyNotes {
         if (wf_CheckPost(array('newrevelationtext'))) {
             $dayFrom = (!empty($_POST['newrevelationdayfrom'])) ? $_POST['newrevelationdayfrom'] : '';
             $dayTo = (!empty($_POST['newrevelationdayto'])) ? $_POST['newrevelationdayto'] : '';
+            $dayWeek = ubRouting::post('newrevelationdayweek', 'int');
+            if ($dayWeek == 1488) {
+                $dayWeek = 0; //any day of week
+            }
             $showTo = '';
             if (!empty($_POST['newrevelationshowto'])) {
                 foreach ($_POST['newrevelationshowto'] as $io => $each) {
@@ -744,7 +771,7 @@ class StickyNotes {
             }
             $activity = (isset($_POST['newrevelationactive'])) ? 1 : 0;
             $text = $_POST['newrevelationtext'];
-            $this->createRevelation($dayFrom, $dayTo, $activity, $text, $showTo);
+            $this->createRevelation($dayFrom, $dayTo, $activity, $text, $showTo, $dayWeek);
 
             $newId = simple_get_lastid('stickyrevelations');
             log_register("REVELATION CREATE [" . $newId . "]");
@@ -1027,6 +1054,11 @@ class StickyNotes {
             foreach ($this->allRevelations as $io => $each) {
                 $needToShow = false;
                 $curDay = date("j");
+                $curDayOfWeek = date("w");
+                if ($curDayOfWeek == 0) {
+                    $curDayOfWeek = 7; //thats is sunday!
+                }
+
                 if (!empty($each['dayfrom']) AND ( !empty($each['dayto']))) {
                     if (($curDay >= $each['dayfrom']) AND ( $curDay <= $each['dayto'])) {
                         $needToShow = true;
@@ -1048,6 +1080,26 @@ class StickyNotes {
 
                 if (empty($each['dayfrom']) AND ( empty($each['dayto']))) {
                     $needToShow = true;
+                }
+
+                if (!empty($each['dayweek'])) {
+                    if (empty($each['dayfrom']) AND empty($each['dayto'])) {
+                        //just check for day of week on empty dates
+                        if ($curDayOfWeek == $each['dayweek']) {
+                            $needToShow = true;
+                        } else {
+                            $needToShow = false;
+                        }
+                    } else {
+                        //or guess is day-time interval valid
+                        if ($needToShow) {
+                            if ($curDayOfWeek == $each['dayweek']) {
+                                $needToShow = true;
+                            } else {
+                                $needToShow = false; //now is wrong day :(
+                            }
+                        }
+                    }
                 }
 
                 if ($needToShow) {
