@@ -166,7 +166,8 @@ class AskoziaMonitor {
                     //need to run converter
                     if (!empty($downloadableName)) {
                         //original file is already located
-                        $newFilePath = $this->convertedPath . $origFileName . '.ogg';
+                        $newFileExtension = (ubRouting::checkGet('mp3')) ? '.mp3' : '.ogg';
+                        $newFilePath = $this->convertedPath . $origFileName . $newFileExtension;
                         $command = $this->ffmpegPath . ' -y -i ' . $downloadableName . ' ' . $newFilePath . ' 2>> ' . $this->converterLogPath;
                         shell_exec($command);
                         $downloadableName = $newFilePath;
@@ -400,6 +401,7 @@ class AskoziaMonitor {
                 $result .= wf_Link('#', $iconPlay, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').play()"') . ' ';
                 $result .= wf_Link('#', $iconPause, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').pause()"') . ' ';
                 $result .= wf_Link($playableUrl, wf_img('skins/icon_ogg.png', __('Download') . ' ' . __('as OGG'))) . ' ';
+                $result .= wf_Link($playableUrl.'&mp3=true', wf_img('skins/icon_mp3.png', __('Download') . ' ' . __('as MP3'))) . ' ';
             } else {
                 $result .= wf_Link('#', wf_img('skins/factorcontrol.png', __('ffmpeg is not installed. Web player and converter not available.'))) . ' ';
             }
