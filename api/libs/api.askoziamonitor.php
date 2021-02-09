@@ -76,6 +76,13 @@ class AskoziaMonitor {
     protected $convertedPath = 'exports/';
 
     /**
+     * ffmpeg log path
+     *
+     * @var string
+     */
+    protected $converterLogPath = 'exports/voiceconvert.log';
+
+    /**
      * Default icons path
      */
     const ICON_PATH = 'skins/calls/';
@@ -160,7 +167,7 @@ class AskoziaMonitor {
                     if (!empty($downloadableName)) {
                         //original file is already located
                         $newFilePath = $this->convertedPath . $origFileName . '.ogg';
-                        $command = $this->ffmpegPath . ' -y -i ' . $downloadableName . ' ' . $newFilePath;
+                        $command = $this->ffmpegPath . ' -y -i ' . $downloadableName . ' ' . $newFilePath . ' 2>> ' . $this->converterLogPath;
                         shell_exec($command);
                         $downloadableName = $newFilePath;
                     }
