@@ -62,6 +62,20 @@ class AskoziaMonitor {
     protected $ffmpegPath = '';
 
     /**
+     * Basic ffmpeg path to search. May be configurable in future.
+     *
+     * @var string
+     */
+    protected $baseConverterPath = '/usr/local/bin/ffmpeg';
+
+    /**
+     * File path for converted voice files
+     *
+     * @var string
+     */
+    protected $convertedPath = 'exports/';
+
+    /**
      * Default icons path
      */
     const ICON_PATH = 'skins/calls/';
@@ -83,6 +97,7 @@ class AskoziaMonitor {
      */
     public function __construct() {
         $this->loadConfig();
+        $this->detectFfmpeg();
     }
 
     /**
@@ -99,16 +114,14 @@ class AskoziaMonitor {
     }
 
     /**
-     * Detects is ffmpeg installed on local system and sets ffmpegFlag and path properties.
+     * Detects is ffmpeg available on local system and sets ffmpegFlag and path properties.
      * 
      * @return void
      */
     protected function detectFfmpeg() {
-        $command = 'which ffmpeg';
-        $rawLocation = shell_exec($command);
-        if (!empty($rawLocation)) {
+        if (file_exists($this->baseConverterPath)) {
             $this->ffmpegFlag = true;
-            $this->ffmpegPath = trim($rawLocation);
+            $this->ffmpegPath = $this->baseConverterPath;
         }
     }
 
@@ -122,22 +135,45 @@ class AskoziaMonitor {
     }
 
     /**
-     * Catches file download
+     * Catches file download or convert request
      * 
      * @return void
      */
     public function catchFileDownload() {
-        if (wf_CheckGet(array('dlaskcall'))) {
+        if (ubRouting::checkGet('dlaskcall')) {
+            $origFileName = ubRouting::get('dlaskcall');
+            $downloadableName = '';
             //voice records
-            if (file_exists($this->voicePath . $_GET['dlaskcall'])) {
-                zb_DownloadFile($this->voicePath . $_GET['dlaskcall'], 'default');
+            if (file_exists($this->voicePath . $origFileName)) {
+                $downloadableName = $this->voicePath . $origFileName;
             } else {
                 //archive download
-                if (file_exists($this->archivePath . $_GET['dlaskcall'])) {
-                    zb_DownloadFile($this->archivePath . $_GET['dlaskcall'], 'default');
-                } else {
-                    show_error(__('File not exist') . ': ' . $_GET['dlaskcall']);
+                if (file_exists($this->archivePath . $origFileName)) {
+                    $downloadableName = $this->archivePath . $origFileName;
                 }
+            }
+
+            //voice files converter installed?
+            if ($this->ffmpegFlag) {
+                if (ubRouting::checkGet('playable')) {
+                    //need to run converter
+                    if (!empty($downloadableName)) {
+                        //original file is already located
+                        $newFilePath = $this->convertedPath . $origFileName . '.ogg';
+                        $command = $this->ffmpegPath . ' -y -i ' . $downloadableName . ' ' . $newFilePath;
+                        shell_exec($command);
+                        $downloadableName = $newFilePath;
+                    }
+                }
+            } else {
+                show_error(__('ffmpeg is not installed. Web player and converter not available.'));
+            }
+
+            //file download processing
+            if (!empty($downloadableName)) {
+                zb_DownloadFile($downloadableName, 'default');
+            } else {
+                show_error(__('File not exist') . ': ' . $origFileName);
             }
         }
     }
@@ -348,15 +384,20 @@ class AskoziaMonitor {
     protected function getSoundcontrols($fileUrl) {
         $result = '';
         if (!empty($fileUrl)) {
-            $sampleUrl = 'modules/jsc/sounds/meabeab.mp3';
-
-            $iconPlay = wf_img('skins/play.png', __('Play'));
-            $iconPause = wf_img('skins/pause.png', __('Pause'));
-            $playerId = 'player_' . wf_InputId();
-            $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $sampleUrl . '" preload=none') . wf_tag('audio', true);
-            $result .= wf_Link('#', $iconPlay, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').play()"');
-            $result .= wf_Link('#', $iconPause, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').pause()"');
-            $result .= wf_Link($fileUrl, wf_img('skins/icon_download.png', __('Download')));
+            if ($this->ffmpegFlag) {
+                $playableUrl = $fileUrl . '&playable=true';
+                $iconPlay = wf_img('skins/play.png', __('Play'));
+                $iconPause = wf_img('skins/pause.png', __('Pause'));
+                $playerId = 'player_' . wf_InputId();
+                $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" preload=none') . wf_tag('audio', true);
+                $result .= wf_Link('#', $iconPlay, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').play()"') . ' ';
+                $result .= wf_Link('#', $iconPause, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').pause()"') . ' ';
+                $result .= wf_Link($playableUrl, wf_img('skins/icon_ogg.png', __('Download') . ' ' . __('as OGG'))) . ' ';
+            } else {
+                $result .= wf_Link('#', wf_img('skins/factorcontrol.png', __('ffmpeg is not installed. Web player and converter not available.'))) . ' ';
+            }
+            //basic download control
+            $result .= wf_Link($fileUrl, wf_img('skins/icon_download.png', __('Download') . ' ' . __('as is')));
         }
 
         return ($result);

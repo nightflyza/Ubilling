@@ -3220,6 +3220,10 @@ $lang['def']['realtime'] = 'в реальном времени';
 $lang['def']['Warehouse lookup'] = 'Поиск по складу';
 $lang['def']['right to lookup warehouse items spent for user'] = 'Право искать ТМЦ ушедшие на пользователя';
 $lang['def']['Day of week'] = 'День недели';
+$lang['def']['ffmpeg is not installed. Web player and converter not available.'] = 'ffmpeg не установлен. Веб плеер и конвертер не доступны.';
+$lang['def']['as is'] = 'как есть';
+$lang['def']['as MP3'] = 'как MP3';
+$lang['def']['as OGG'] = 'как OGG';
 $lang['def'][''] = '';
 
 
