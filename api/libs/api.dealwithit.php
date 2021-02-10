@@ -1009,9 +1009,8 @@ class DealWithIt {
      */
     protected function renderUsersSearchResults($logins) {
         $result = '';
-
         if (!empty($logins)) {
-
+            $availableUsers = zb_UserGetAllStargazerDataAssoc();
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Login'));
             $cells .= wf_TableCell(__('Address'));
@@ -1052,41 +1051,44 @@ class DealWithIt {
             }
 
             foreach ($logins as $login) {
-                //finance check
-                $cash = $user_data_arr[$login]['Cash'];
-                $credit = $user_data_arr[$login]['Credit'];
-                $passive = $user_data_arr[$login]['Passive'];
-                $tariff = $user_data_arr[$login]['Tariff'];
-                $ip = $user_data_arr[$login]['ip'];
-                // Display user status
-                $act = '<img src=skins/icon_active.gif>' . __('Yes');
-                if ($cash < '-' . $credit) {
-                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
-                }
-                $act .= $passive ? '<br> <img src=skins/icon_passive.gif>' . __('Freezed') : '';
-
-                $cells = wf_TableCell($id);
-                $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
-                $cells .= wf_TableCell(@$allAddress[$login]);
-                $cells .= wf_TableCell(@$allRealNames[$login]);
-                $cells .= wf_TableCell($ip);
-                $cells .= wf_TableCell($tariff);
-                $cells .= wf_TableCell($act);
-                $cells .= wf_TableCell($cash);
-                $cells .= wf_TableCell($credit);
-                if (isset($tmpArr[$login])) {
-                    $cells_temp = '';
-                    foreach ($tmpArr[$login] as $task) {
-                        $actionIcon = (isset($this->actionIcons[$task])) ? wf_img_sized($this->actionIcons[$task], $this->actionNames[$task], '12', '12') . ' ' : '';
-                        $cells_temp .= $actionIcon . $this->actionNames[$task] . wf_tag('br');
+                //is this user real?
+                if (isset($availableUsers[$login])) {
+                    //finance check
+                    $cash = $user_data_arr[$login]['Cash'];
+                    $credit = $user_data_arr[$login]['Credit'];
+                    $passive = $user_data_arr[$login]['Passive'];
+                    $tariff = $user_data_arr[$login]['Tariff'];
+                    $ip = $user_data_arr[$login]['ip'];
+                    // Display user status
+                    $act = '<img src=skins/icon_active.gif>' . __('Yes');
+                    if ($cash < '-' . $credit) {
+                        $act = '<img src=skins/icon_inactive.gif>' . __('No');
                     }
-                    $cells .= wf_TableCell($cells_temp);
-                } else {
-                    $cells .= wf_TableCell('');
+                    $act .= $passive ? '<br> <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+
+                    $cells = wf_TableCell($id);
+                    $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
+                    $cells .= wf_TableCell(@$allAddress[$login]);
+                    $cells .= wf_TableCell(@$allRealNames[$login]);
+                    $cells .= wf_TableCell($ip);
+                    $cells .= wf_TableCell($tariff);
+                    $cells .= wf_TableCell($act);
+                    $cells .= wf_TableCell($cash);
+                    $cells .= wf_TableCell($credit);
+                    if (isset($tmpArr[$login])) {
+                        $cells_temp = '';
+                        foreach ($tmpArr[$login] as $task) {
+                            $actionIcon = (isset($this->actionIcons[$task])) ? wf_img_sized($this->actionIcons[$task], $this->actionNames[$task], '12', '12') . ' ' : '';
+                            $cells_temp .= $actionIcon . $this->actionNames[$task] . wf_tag('br');
+                        }
+                        $cells .= wf_TableCell($cells_temp);
+                    } else {
+                        $cells .= wf_TableCell('');
+                    }
+                    $cells .= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $id++;
                 }
-                $cells .= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
-                $rows .= wf_TableRow($cells, 'row3');
-                $id++;
             }
 
             $result .= wf_AjaxLoader();
