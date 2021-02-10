@@ -397,11 +397,13 @@ class AskoziaMonitor {
                 $iconPlay = wf_img('skins/play.png', __('Play'));
                 $iconPause = wf_img('skins/pause.png', __('Pause'));
                 $playerId = 'player_' . wf_InputId();
+                $playControlId = 'controller_' . wf_InputId();
                 $result .= wf_tag('audio', false, '', 'id="' . $playerId . '" src="' . $playableUrl . '" preload=none') . wf_tag('audio', true);
-                $result .= wf_Link('#', $iconPlay, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').play()"') . ' ';
-                $result .= wf_Link('#', $iconPause, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').pause()"') . ' ';
+                $playController = 'document.getElementById(\'' . $playerId . '\').play();';
+                $result .= wf_Link('#', $iconPlay, false, '', 'id="' . $playControlId . '" onclick="' . $playController . '"') . ' ';
+                $result .= wf_Link('#', $iconPause, false, '', 'onclick="document.getElementById(\'' . $playerId . '\').pause();"') . ' ';
                 $result .= wf_Link($playableUrl, wf_img('skins/icon_ogg.png', __('Download') . ' ' . __('as OGG'))) . ' ';
-                $result .= wf_Link($playableUrl.'&mp3=true', wf_img('skins/icon_mp3.png', __('Download') . ' ' . __('as MP3'))) . ' ';
+                $result .= wf_Link($playableUrl . '&mp3=true', wf_img('skins/icon_mp3.png', __('Download') . ' ' . __('as MP3'))) . ' ';
             } else {
                 $result .= wf_Link('#', wf_img('skins/factorcontrol.png', __('ffmpeg is not installed. Web player and converter not available.'))) . ' ';
             }
