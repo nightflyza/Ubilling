@@ -105,11 +105,16 @@ if (cfr('TASKMAN')) {
     //deleting task 
     if (isset($_GET['deletetask'])) {
         $delid = vf($_GET['deletetask'], 3);
-        ts_DeleteTask($delid);
-        //flushing darkvoid after task deletion
-        $darkVoid = new DarkVoid();
-        $darkVoid->flushCache();
-        rcms_redirect("?module=taskman");
+        if (cfr('TASKMANDELETE')) {
+            ts_DeleteTask($delid);
+            //flushing darkvoid after task deletion
+            $darkVoid = new DarkVoid();
+            $darkVoid->flushCache();
+            rcms_redirect("?module=taskman");
+        } else {
+            show_error(__('Access denied'));
+            log_register('TASKMAN DELETE ACCESS FAIL [' . $delid . '] ADMIN {' . whoami() . '}');
+        }
     }
 
     if (!wf_CheckGet(array('probsettings'))) {
@@ -212,63 +217,85 @@ if (cfr('TASKMAN')) {
                 }
             }
 
-            //display task change form aka task profile
-            ts_TaskChangeForm($_GET['edittask']);
+            //start task body rendering
+            $taskData = ts_GetTaskData(ubRouting::get('edittask'));
 
-            //Task States support
-            if (@$altCfg['TASKSTATES_ENABLED']) {
-                $taskData = ts_GetTaskData(ubRouting::get('edittask'));
-                //existing task?
-                if (!empty($taskData)) {
-                    $taskState = $taskData['status'];
-                    $taskStates = new TaskStates();
-                    show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
-                    if (ubRouting::checkGet('changestate', 'edittask')) {
-                        $newStateSetResult = $taskStates->setTaskState(ubRouting::get('edittask'), ubRouting::get('changestate'));
-                        if (empty($newStateSetResult)) {
-                            die($taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
-                        } else {
-                            $messages = new UbillingMessageHelper();
-                            die($messages->getStyledMessage($newStateSetResult, 'error'));
-                        }
+            //access restrictions here
+            $taskAccess = true;
+            $cursedFlag = ts_isMeBranchCursed();
+            if ($cursedFlag) {
+                $taskAccess = false;
+                $taskEmployeeId = $taskData['employee'];
+                $myLogin = whoami();
+                $myEmployeeId = ts_GetEmployeeByLogin($myLogin);
+                if (!empty($myEmployeeId)) {
+                    if ($taskEmployeeId == $myEmployeeId) {
+                        $taskAccess = true;
                     }
-                } else {
-                    show_error(__('Something went wrong') . ': TASKID_NOT_EXISTS [' . ubRouting::get('edittask') . ']');
                 }
             }
 
+            if ($taskAccess) {
+                //display task change form aka task profile
+                ts_TaskChangeForm($_GET['edittask']);
 
-            //photostorage integration
-            if ($altCfg['PHOTOSTORAGE_ENABLED']) {
-                $photoStorage = new PhotoStorage('TASKMAN', ubRouting::get('edittask'));
-                $renderPhotoControlFlag = true;
+                //Task States support
                 if (@$altCfg['TASKSTATES_ENABLED']) {
-                    if (isset($taskState)) {
-                        if ($taskState) {
-                            //task already closed
-                            $renderPhotoControlFlag = false;
+                    //existing task?
+                    if (!empty($taskData)) {
+                        $taskState = $taskData['status'];
+                        $taskStates = new TaskStates();
+                        show_window(__('Task state'), $taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
+                        if (ubRouting::checkGet('changestate', 'edittask')) {
+                            $newStateSetResult = $taskStates->setTaskState(ubRouting::get('edittask'), ubRouting::get('changestate'));
+                            if (empty($newStateSetResult)) {
+                                die($taskStates->renderStatePanel(ubRouting::get('edittask'), $taskState));
+                            } else {
+                                $messages = new UbillingMessageHelper();
+                                die($messages->getStyledMessage($newStateSetResult, 'error'));
+                            }
                         }
                     } else {
-                        //task not exists
-                        $renderPhotoControlFlag = false;
+                        show_error(__('Something went wrong') . ': TASKID_NOT_EXISTS [' . ubRouting::get('edittask') . ']');
                     }
                 }
 
-                if ($renderPhotoControlFlag) {
-                    $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . ubRouting::get('edittask'), wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
-                    $photostorageControl .= wf_delimiter();
-                } else {
-                    $messages = new UbillingMessageHelper();
-                    $photostorageControl = $messages->getStyledMessage(__('You cant attach images for already closed task'), 'warning') . wf_delimiter();
-                }
-                $photosList = $photoStorage->renderImagesRaw();
-                show_window(__('Photostorage'), $photostorageControl . $photosList);
-            }
 
-            //additional comments 
-            if ($altCfg['ADCOMMENTS_ENABLED']) {
-                $adcomments = new ADcomments('TASKMAN');
-                show_window(__('Additional comments'), $adcomments->renderComments($_GET['edittask']));
+                //photostorage integration
+                if ($altCfg['PHOTOSTORAGE_ENABLED']) {
+                    $photoStorage = new PhotoStorage('TASKMAN', ubRouting::get('edittask'));
+                    $renderPhotoControlFlag = true;
+                    if (@$altCfg['TASKSTATES_ENABLED']) {
+                        if (isset($taskState)) {
+                            if ($taskState) {
+                                //task already closed
+                                $renderPhotoControlFlag = false;
+                            }
+                        } else {
+                            //task not exists
+                            $renderPhotoControlFlag = false;
+                        }
+                    }
+
+                    if ($renderPhotoControlFlag) {
+                        $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . ubRouting::get('edittask'), wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                        $photostorageControl .= wf_delimiter();
+                    } else {
+                        $messages = new UbillingMessageHelper();
+                        $photostorageControl = $messages->getStyledMessage(__('You cant attach images for already closed task'), 'warning') . wf_delimiter();
+                    }
+                    $photosList = $photoStorage->renderImagesRaw();
+                    show_window(__('Photostorage'), $photostorageControl . $photosList);
+                }
+
+                //additional comments 
+                if ($altCfg['ADCOMMENTS_ENABLED']) {
+                    $adcomments = new ADcomments('TASKMAN');
+                    show_window(__('Additional comments'), $adcomments->renderComments($_GET['edittask']));
+                }
+            } else {
+                show_error(__('Access denied'));
+                log_register('TASKMAN TASK ACCESS FAIL [' . ubRouting::get('edittask') . '] ADMIN {' . whoami() . '}');
             }
         }
     } else {
