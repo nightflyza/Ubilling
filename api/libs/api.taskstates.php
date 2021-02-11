@@ -78,6 +78,8 @@ class TaskStates {
      * Creates new task states instance
      * 
      * @param bool $loadDb Load states from DB
+     * 
+     * @return void
      */
     public function __construct($loadStatesDb = true) {
         $this->setMyLogin();

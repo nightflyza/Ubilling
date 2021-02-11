@@ -3224,6 +3224,7 @@ $lang['def']['ffmpeg is not installed. Web player and converter not available.']
 $lang['def']['as is'] = 'как есть';
 $lang['def']['as MP3'] = 'как MP3';
 $lang['def']['as OGG'] = 'как OGG';
+$lang['def']['No state'] = 'Нет состояния';
 $lang['def'][''] = '';
 
 

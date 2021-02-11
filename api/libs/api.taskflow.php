@@ -62,6 +62,13 @@ class TaskFlow {
     protected $allWarehouseOutcomes = array();
 
     /**
+     * Taskman database abstraction layer
+     *
+     * @var object
+     */
+    protected $taskmanDb = '';
+
+    /**
      * System message helper instance placeholder
      *
      * @var object
@@ -88,12 +95,15 @@ class TaskFlow {
     const URL_ME = '?module=taskflow';
     const URL_TASK = '?module=taskman&edittask=';
     const URL_ADVICE = 'http://fucking-great-advice.ru/api/random';
+    const ROUTE_EMREPORT = 'employeereport';
     const PROUTE_STATE = 'searchtaskstate';
     const PROUTE_PHOTO = 'searchtaskphoto';
     const PROUTE_WAREHOUSE = 'searchtaskwarehouse';
     const PROUTE_ADCOMMENTS = 'searchtaskadcomments';
     const PROUTE_EMPLOYEE = 'searchtaskemployee';
     const PROUTE_STARTSEARCH = 'searchtaskbegin';
+    const PROUTE_DATESTART = 'datestart';
+    const PROUTE_DATEEND = 'dateend';
     const VAL_YES = 'yes';
     const VAL_NO = 'no';
     const VAL_ANY = 'any';
@@ -189,6 +199,15 @@ class TaskFlow {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Inits taskman database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initTaskmanDb() {
+        $this->taskmanDb = new NyanORM('taskman');
     }
 
     /**
@@ -446,6 +465,120 @@ class TaskFlow {
         } else {
             $result .= $cachedData;
         }
+        return($result);
+    }
+
+    /**
+     * Renders employee report search form
+     * 
+     * @return string
+     */
+    public function renderEmployeeReportForm() {
+        $result = '';
+
+        $dateStart = (ubRouting::checkPost(self::PROUTE_DATESTART)) ? ubRouting::post(self::PROUTE_DATESTART, 'mres') : date("Y-m-" . '01');
+        $dateEnd = (ubRouting::checkPost(self::PROUTE_DATEEND)) ? ubRouting::post(self::PROUTE_DATEEND, 'mres') : curdate();
+
+        $inputs = wf_DatePickerPreset(self::PROUTE_DATESTART, $dateStart) . ' ' . __('From');
+        $inputs .= wf_DatePickerPreset(self::PROUTE_DATEEND, $dateEnd) . ' ' . __('To') . ' ';
+        $inputs .= wf_Submit('Search');
+
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
+     * Performs employee report data preprocessing
+     * 
+     * @return string
+     */
+    public function getrEmployeeReportData() {
+        $result = array();
+        if (!empty($this->allActiveEmployee)) {
+            $this->initTaskmanDb();
+            $dateStart = (ubRouting::checkPost(self::PROUTE_DATESTART)) ? ubRouting::post(self::PROUTE_DATESTART, 'mres') : date("Y-m-" . '01');
+            $dateEnd = (ubRouting::checkPost(self::PROUTE_DATEEND)) ? ubRouting::post(self::PROUTE_DATEEND, 'mres') : curdate();
+
+            $allStateTypes = $this->taskStates->getStateTypes();
+            //setting date filter
+            $this->taskmanDb->whereRaw("`startdate` BETWEEN '" . $dateStart . "' AND '" . $dateEnd . "'");
+            //getting tasks planned for this period
+            $allTasks = $this->taskmanDb->getAll();
+
+            //preparing report data
+            if (!empty($allTasks)) {
+                foreach ($allTasks as $io => $each) {
+                    $taskState = $this->taskStates->getTaskState($each['id']);
+                    if (isset($result[$each['employee']])) {
+                        $result[$each['employee']]['TOTALTASKS'] ++;
+                    } else {
+                        //prefilling report data array
+                        $result[$each['employee']]['TOTALTASKS'] = 1;
+                        $result[$each['employee']]['NOSTATE'] = 0;
+                        if (!empty($allStateTypes)) {
+                            foreach ($allStateTypes as $stateType => $typeName) {
+                                $result[$each['employee']][$stateType] = 0;
+                            }
+                        }
+                    }
+
+                    //task state is set
+                    if (!empty($taskState)) {
+                        @$result[$each['employee']][$taskState] ++;
+                    } else {
+                        $result[$each['employee']]['NOSTATE'] ++;
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders task states report around employee
+     * 
+     * @return string
+     */
+    public function renderEmployeeReport() {
+        $result = '';
+        if (!empty($this->allActiveEmployee)) {
+            $reportData = $this->getrEmployeeReportData();
+            if (!empty($reportData)) {
+                $allStateTypes = $this->taskStates->getStateTypes();
+                $allStateIcons = $this->taskStates->getStateIcons();
+
+                $cells = wf_TableCell(__('Employee'));
+                foreach ($allStateTypes as $eachStateId => $eachStateName) {
+                    $stateIcon = $allStateIcons[$eachStateId];
+                    $cells .= wf_TableCell(wf_img_sized($stateIcon, $eachStateName, '10', '10') . ' ' . $eachStateName);
+                }
+                $cells .= wf_TableCell(__('Total'));
+                $cells .= wf_TableCell(__('No state'));
+
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($reportData as $employeeId => $stateStats) {
+                    $cells = wf_TableCell($this->allEmployee[$employeeId]);
+                    foreach ($allStateTypes as $eachStateId => $eachStateName) {
+                        $cells .= wf_TableCell($stateStats[$eachStateId]);
+                    }
+                    $cells .= wf_TableCell($stateStats['TOTALTASKS']);
+                    $cells .= wf_TableCell($stateStats['NOSTATE']);
+
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('No job types and employee available'), 'warning');
+        }
+
+        $result .= wf_delimiter();
+        $result .= wf_BackLink(self::URL_ME);
+
         return($result);
     }
 
