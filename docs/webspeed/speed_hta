@@ -32,7 +32,7 @@
     Header set Cache-Control "max-age=216000, private"
   </filesMatch>
   <filesMatch "\.(x?html?|php)$">
-    Header set Cache-Control "max-age=60, private, must-revalidate"
+    Header set Cache-Control "max-age=1, no-store, no-cache, private, must-revalidate"
   </filesMatch>
 </ifModule>
 
