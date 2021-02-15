@@ -126,6 +126,9 @@ class PowerTariffs {
      */
     const OPTION_MAXDAY = 'PT_MAXDAY';
     const OPTION_CHARGEON = 'PT_CHARGEONREG';
+    const PROUTE_EDITOFFSET = 'newptdayoffset';
+    const PROUTE_AGREE = 'newptdayoffsetagree';
+    const ROUTE_BACK = '?module=pl_pt';
 
     /**
      * Creates new PT instance
@@ -615,6 +618,91 @@ class PowerTariffs {
         $this->usersDb->data('day', $this->currentDay); //set offset day to current
         $this->usersDb->where('login', '=', $userLogin);
         $this->usersDb->save();
+    }
+
+    /**
+     * Renders user day offset modification form
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderUserOffsetEditForm($userLogin) {
+        $result = '';
+        if (isset($this->allUsers[$userLogin])) {
+            $currentOffset = $this->allUsers[$userLogin];
+            $daysParams = array();
+            for ($i = 1; $i < $this->maxDay; $i++) {
+                $daysParams[$i] = $i;
+            }
+
+            $inputs = wf_Selector(self::PROUTE_EDITOFFSET, $daysParams, __('Day'), $currentOffset, false) . ' ';
+            $inputs .= wf_CheckInput(self::PROUTE_AGREE, __('I`m ready'), false, false) . ' ';
+            $inputs .= wf_Submit(__('Save'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= $this->messages->getStyledMessage(__('Current day of fee') . ': ' . $currentOffset, 'info') . wf_delimiter(0);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('This is user without power tariff'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Saves new user offset day in database
+     * 
+     * @param string $userLogin
+     * @param int $day
+     * 
+     * @return void
+     */
+    public function saveUserOffsetDay($userLogin, $day) {
+        $userLoginF = ubRouting::filters($userLogin, 'mres');
+        $day = ubRouting::filters($day, 'int');
+        if (!empty($day)) {
+            if (isset($this->systemUsers[$userLogin])) {
+                $userData = $this->systemUsers[$userLogin];
+                $userTariff = $userData['Tariff'];
+                $this->usersDb->where('login', '=', $userLoginF);
+                $this->usersDb->data('day', $day);
+                $this->usersDb->save();
+                log_register('PT USER (' . $userLogin . ') SET DAY `' . $day . '`');
+                $this->logUser($userLogin, $userTariff, $day);
+            }
+        }
+    }
+
+    /**
+     * Renders powertariffs internal log data for some user
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderPowerUserLog($userLogin) {
+        $result = '';
+        $userLoginF = ubRouting::filters($userLogin, 'mres');
+        $this->journalDb->where('login', '=', $userLoginF);
+        $this->journalDb->orderBy('id', 'DESC');
+        $allEvents = $this->journalDb->getAll();
+        if (!empty($allEvents)) {
+            $cells = wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Day'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($allEvents as $io => $each) {
+                $cells = wf_TableCell($each['date']);
+                $cells .= wf_TableCell($each['tariff']);
+                $cells .= wf_TableCell($each['day']);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
     }
 
     /**
