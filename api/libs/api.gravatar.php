@@ -21,21 +21,56 @@ function gravatar_GetUrl($email) {
 /**
  * Function that shows avatar by user email
  * 
+ * @global object $ubillingConfig
  * @param string $email  user email
  * @param int $size   user avatar size
+ * 
  * @return string
  */
 function gravatar_GetAvatar($email, $size = '') {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $cachePath = DATA_PATH . 'avatars/';
+    $gravatarOption = $ubillingConfig->getAlterParam('GRAVATAR_DEFAULT');
+    $gravatarCacheTime = $ubillingConfig->getAlterParam('GRAVATAR_CACHETIME');
     $getsize = ($size != '') ? '?s=' . $size : '';
-    if (isset($altercfg['GRAVATAR_DEFAULT'])) {
-        $default = $altercfg['GRAVATAR_DEFAULT'];
-    } else {
-        $default = 'monsterid';
+    //option not set
+    if (!$gravatarOption) {
+        $gravatarOption = 'monsterid';
     }
 
     $url = gravatar_GetUrl($email);
-    $result = wf_img(($url . $getsize . '&d=' . $default));
+    $fullUrl = $url . $getsize . '&d=' . $gravatarOption;
+
+
+    //avatar caching to local FS.
+    if ($gravatarCacheTime) {
+        $cacheTime = time() - ($gravatarCacheTime * 86400); //Expire time. Option in days.
+        $avatarHash = md5($fullUrl) . '.jpg';
+        $fullCachedPath = $cachePath . $avatarHash;
+        $updateCache = true;
+        if (file_exists($fullCachedPath)) {
+            $updateCache = false;
+            if ((filemtime($fullCachedPath) > $cacheTime)) {
+                $updateCache = false;
+            } else {
+                $updateCache = true;
+            }
+        } else {
+            $updateCache = true;
+        }
+
+        if ($updateCache) {
+            $gravatarApi = new OmaeUrl($fullUrl);
+            $remoteAvatar = $gravatarApi->response();
+            if (!empty($remoteAvatar)) {
+                file_put_contents($fullCachedPath, $remoteAvatar);
+            }
+        }
+
+        $fullUrl = $fullCachedPath;
+    }
+
+    $result = wf_img($fullUrl);
     return ($result);
 }
 
