@@ -79,11 +79,13 @@ class UbillingCache {
     /**
      * Creates new UbillingCache instance
      * 
+     * @param string $storageType overrides cache storage set in config files.
+     * 
      * @return void
      */
-    public function __construct() {
+    public function __construct($storageType = '') {
         $this->loadAlter();
-        $this->setOptions();
+        $this->setOptions($storageType);
         $this->initStorageServerCache();
     }
 
@@ -102,13 +104,20 @@ class UbillingCache {
     /**
      * Sets object storage mode
      * 
+     * @param string $storageType overrides cache storage set in config files.
+     * 
      * @return void
      */
-    protected function setOptions() {
+    protected function setOptions($storageType = '') {
         if (isset($this->altCfg['UBCACHE_STORAGE'])) {
             $this->storage = $this->altCfg['UBCACHE_STORAGE'];
         } else {
             $this->storage = 'fake';
+        }
+
+        //override storage type from constructor
+        if (!empty($storageType)) {
+            $this->storage = $storageType;
         }
 
         if (@$this->altCfg['UBCACHE_DEBUG']) {
