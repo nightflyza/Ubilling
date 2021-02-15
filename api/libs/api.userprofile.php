@@ -1886,6 +1886,10 @@ class UserProfile {
 
                         if (abs($cashAfterCharge) >= $currentUserCredit) {
                             $nextUserCredit = abs($cashAfterCharge);
+                            //prevent bad-karma
+                            if (!is_int($nextUserCredit)) {
+                                $nextUserCredit = $nextUserCredit + 1;
+                            }
                         }
                         //charge some money
                         zb_CashAdd($this->login, '-' . $chargeSumm, $chargeType, 1, 'ECHARGE:' . $note);
