@@ -108,7 +108,12 @@ if (cfr('COVID')) {
              * @return void
              */
             protected function initCache() {
-                $this->cache = new UbillingCache('files'); //force files storage due bid data size
+                $cacheEngine = $this->altCfg['UBCACHE_STORAGE'];
+                // force files storage due big data size and preventing cache keys misses.
+                if ($cacheEngine == 'memcached') {
+                    $cacheEngine = 'files';
+                }
+                $this->cache = new UbillingCache($cacheEngine);
             }
 
             /**

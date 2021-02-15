@@ -73,7 +73,15 @@ class UbillingCache {
      */
     protected $memcached = ''; // single memcached object
 
+    /**
+     * Cache keys prefix
+     */
+
     const CACHE_PREFIX = 'UBCACHE_';
+
+    /**
+     * Default cache log path for debug mode
+     */
     const LOG_PATH = 'exports/cache.log';
 
     /**
