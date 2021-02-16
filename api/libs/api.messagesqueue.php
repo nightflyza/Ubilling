@@ -48,9 +48,10 @@ class MessagesQueue {
     protected $json = '';
 
     /**
-     * Base module url
+     * Base module URL and another routes here
      */
     const URL_ME = '?module=tsmsqueue';
+    const ROUTE_SMSFLUSH = 'flushallsms';
 
     public function __construct() {
         $this->initMessages();
@@ -99,11 +100,11 @@ class MessagesQueue {
         $result = '';
         if (!empty($data)) {
             $smsDataCells = wf_TableCell(__('Mobile'), '', 'row2');
-            $smsDataCells.= wf_TableCell($data['number']);
+            $smsDataCells .= wf_TableCell($data['number']);
             $smsDataRows = wf_TableRow($smsDataCells, 'row3');
             $smsDataCells = wf_TableCell(__('Message'), '', 'row2');
-            $smsDataCells.= wf_TableCell($data['message']);
-            $smsDataRows.= wf_TableRow($smsDataCells, 'row3');
+            $smsDataCells .= wf_TableCell($data['message']);
+            $smsDataRows .= wf_TableRow($smsDataCells, 'row3');
             $result = wf_TableBody($smsDataRows, '100%', '0', 'glamour');
         }
         return ($result);
@@ -120,14 +121,14 @@ class MessagesQueue {
         $result = '';
         if (!empty($data)) {
             $dataCells = wf_TableCell(__('Email'), '', 'row2');
-            $dataCells.= wf_TableCell($data['email']);
+            $dataCells .= wf_TableCell($data['email']);
             $dataRows = wf_TableRow($dataCells, 'row3');
             $dataCells = wf_TableCell(__('Subject'), '', 'row2');
-            $dataCells.= wf_TableCell($data['subj']);
-            $dataRows.= wf_TableRow($dataCells, 'row3');
+            $dataCells .= wf_TableCell($data['subj']);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
             $dataCells = wf_TableCell(__('Message'), '', 'row2');
-            $dataCells.= wf_TableCell($data['message']);
-            $dataRows.= wf_TableRow($dataCells, 'row3');
+            $dataCells .= wf_TableCell($data['message']);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
             $result = wf_TableBody($dataRows, '100%', '0', 'glamour');
         }
         return ($result);
@@ -145,11 +146,11 @@ class MessagesQueue {
         if (!empty($data)) {
             $messageText = nl2br($data['message']);
             $dataCells = wf_TableCell(__('Chat ID'), '', 'row2');
-            $dataCells.= wf_TableCell($data['chatid']);
+            $dataCells .= wf_TableCell($data['chatid']);
             $dataRows = wf_TableRow($dataCells, 'row3');
-            $dataCells = wf_TableCell(__('Message'), '', 'row2','valign="top"');
-            $dataCells.= wf_TableCell($messageText);
-            $dataRows.= wf_TableRow($dataCells, 'row3');
+            $dataCells = wf_TableCell(__('Message'), '', 'row2', 'valign="top"');
+            $dataCells .= wf_TableCell($messageText);
+            $dataRows .= wf_TableRow($dataCells, 'row3');
             $result = wf_TableBody($dataRows, '100%', '0', 'glamour');
         }
         return ($result);
@@ -169,9 +170,9 @@ class MessagesQueue {
             } else {
                 $columns = array('Date', 'Mobile', 'Actions');
             }
-            $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajaxsms=true', false, __('SMS'), 100, '"order": [[ 0, "desc" ]]');
+            $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajaxsms=true', false, __('SMS'), 100, '"order": [[ 0, "desc" ]]');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
     }
@@ -192,7 +193,7 @@ class MessagesQueue {
              */
             foreach ($smsQueue as $io => $each) {
                 $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->smsPreview($each), '');
-                $actLinks.= wf_JSAlert(self::URL_ME . '&deletesms=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks .= wf_JSAlert(self::URL_ME . '&deletesms=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['date'];
                 $data[] = $each['number'];
 
@@ -218,9 +219,9 @@ class MessagesQueue {
         $queueCount = $this->email->getQueueCount();
         if ($queueCount > 0) {
             $columns = array('Date', 'Email', 'Actions');
-            $result.=wf_JqDtLoader($columns, self::URL_ME . '&showqueue=email&ajaxmail=true', false, __('Email'), 100, '"order": [[ 0, "desc" ]]');
+            $result .= wf_JqDtLoader($columns, self::URL_ME . '&showqueue=email&ajaxmail=true', false, __('Email'), 100, '"order": [[ 0, "desc" ]]');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
     }
@@ -235,7 +236,7 @@ class MessagesQueue {
         if (!empty($queue)) {
             foreach ($queue as $io => $each) {
                 $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->emailPreview($each), '');
-                $actLinks.= wf_JSAlert(self::URL_ME . '&showqueue=email&deleteemail=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks .= wf_JSAlert(self::URL_ME . '&showqueue=email&deleteemail=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['date'];
                 $data[] = $each['email'];
                 $data[] = $actLinks;
@@ -256,9 +257,9 @@ class MessagesQueue {
         $queueCount = $this->telegram->getQueueCount();
         if ($queueCount > 0) {
             $columns = array('Date', 'Chat ID', 'Actions');
-            $result.=wf_JqDtLoader($columns, self::URL_ME . '&showqueue=telegram&ajaxtelegram=true', false, __('Message'), 100, '"order": [[ 0, "desc" ]]');
+            $result .= wf_JqDtLoader($columns, self::URL_ME . '&showqueue=telegram&ajaxtelegram=true', false, __('Message'), 100, '"order": [[ 0, "desc" ]]');
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
     }
@@ -273,7 +274,7 @@ class MessagesQueue {
         if (!empty($queue)) {
             foreach ($queue as $io => $each) {
                 $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->telegramPreview($each), '');
-                $actLinks.= wf_JSAlert(self::URL_ME . '&showqueue=telegram&deletetelegram=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks .= wf_JSAlert(self::URL_ME . '&showqueue=telegram&deletetelegram=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $data[] = $each['date'];
                 $data[] = $each['chatid'];
                 $data[] = $actLinks;
@@ -289,11 +290,41 @@ class MessagesQueue {
      * 
      * @param string $filename Existing sms filename
      * 
-     * @return int 0 - ok
+     * @return int 0 - ok, 1 - deletion unsuccessful, 2 - file not found 
      */
     public function deleteSms($filename) {
         $result = $this->sms->deleteSms($filename);
+
         return ($result);
+    }
+
+    /**
+     * Flushes all available messages from SMS queue
+     * 
+     * @return void
+     */
+    public function flushSmsQueue() {
+        $allMessages = $this->sms->getQueueData();
+        $cleanupCount = 0;
+        if (!empty($allMessages)) {
+            foreach ($allMessages as $io => $each) {
+                $deletionResult = $this->sms->deleteSms($each['filename']);
+                if ($deletionResult == 0) {
+                    $cleanupCount++;
+                    log_register('USMS FLUSH MESSAGE `' . $each['filename'] . '` FOR `' . $each['number'] . '`');
+                }
+            }
+        }
+        log_register('USMS FLUSHED `' . $cleanupCount . '` MESSAGES');
+    }
+    
+    /**
+     * Returns SMS queue messages count
+     * 
+     * @return int
+     */
+    public function getSmsQueueCount() {
+        return($this->sms->getQueueCount());
     }
 
     /**
@@ -327,10 +358,10 @@ class MessagesQueue {
      */
     public function renderPanel($phpMailerOn = false) {
         $result = '';
-        $result.= wf_Link(self::URL_ME, wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS in queue'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&showqueue=email', wf_img('skins/icon_mail.gif') . ' ' . __('Emails in queue'), false, 'ubButton');
-        $result.= ($phpMailerOn) ? wf_Link(self::URL_ME . '&showqueue=phpmail', wf_img('skins/icon_mail.gif') . ' PHPMailer: ' . __('Emails in queue'), false, 'ubButton') : '';
-        $result.= wf_Link(self::URL_ME . '&showqueue=telegram', wf_img_sized('skins/icon_telegram_small.png', '', '10', '10') . ' ' . __('Telegram messages queue'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME, wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS in queue'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&showqueue=email', wf_img('skins/icon_mail.gif') . ' ' . __('Emails in queue'), false, 'ubButton');
+        $result .= ($phpMailerOn) ? wf_Link(self::URL_ME . '&showqueue=phpmail', wf_img('skins/icon_mail.gif') . ' PHPMailer: ' . __('Emails in queue'), false, 'ubButton') : '';
+        $result .= wf_Link(self::URL_ME . '&showqueue=telegram', wf_img_sized('skins/icon_telegram_small.png', '', '10', '10') . ' ' . __('Telegram messages queue'), false, 'ubButton');
         return ($result);
     }
 
@@ -342,9 +373,9 @@ class MessagesQueue {
     public function smsCreateForm() {
         $result = '';
         $inputs = wf_TextInput('newsmsnumber', __('Mobile'), '', true, '20');
-        $inputs.= wf_TextArea('newsmsmessage', '', '', true, '30x5');
-        $inputs.= wf_CheckInput('newsmstranslit', __('Forced transliteration'), true, true);
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextArea('newsmsmessage', '', '', true, '30x5');
+        $inputs .= wf_CheckInput('newsmstranslit', __('Forced transliteration'), true, true);
+        $inputs .= wf_Submit(__('Create'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new SMS')), __('Create new SMS'), $form, '');
         return ($result);
@@ -377,9 +408,9 @@ class MessagesQueue {
     public function emailCreateForm() {
         $result = '';
         $inputs = wf_TextInput('newemailaddress', __('Email'), '', true, '20');
-        $inputs.= wf_TextInput('newemailsubj', __('Subject'), '', true, '40');
-        $inputs.= wf_TextArea('newemailmessage', '', '', true, '50x10');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextInput('newemailsubj', __('Subject'), '', true, '40');
+        $inputs .= wf_TextArea('newemailmessage', '', '', true, '50x10');
+        $inputs .= wf_Submit(__('Create'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new email')), __('Create new email'), $form, '');
         return ($result);
@@ -413,8 +444,8 @@ class MessagesQueue {
     public function telegramCreateForm() {
         $result = '';
         $inputs = wf_TextInput('newtelegramchatid', __('Chat ID'), '', true, '20');
-        $inputs.= wf_TextArea('newtelegrammessage', '', '', true, '50x10');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextArea('newtelegrammessage', '', '', true, '50x10');
+        $inputs .= wf_Submit(__('Create'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new Telegram message')), __('Create new Telegram message'), $form, '');
         return ($result);
@@ -568,7 +599,7 @@ class MessagesQueue {
     public function createPHPMail($email, $subj, $message, $attachPath = '', $bodyAsHTML = false, $from = '') {
         $result = '';
 
-        if ((!empty($email)) AND (!empty($message)) AND (!empty($subj))) {
+        if ((!empty($email)) AND ( !empty($message)) AND ( !empty($subj))) {
             $this->phpMail->sendEmail($email, $subj, $message, $attachPath, $bodyAsHTML, $from, array(), 'TQUEUE');
         } else {
             $result = __('Not all of required fields are filled');
@@ -593,6 +624,7 @@ class MessagesQueue {
 
         return ($result);
     }
+
 }
 
 ?>

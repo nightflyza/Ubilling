@@ -3226,6 +3226,7 @@ $lang['def']['as MP3'] = 'как MP3';
 $lang['def']['as OGG'] = 'как OGG';
 $lang['def']['No state'] = 'Нет состояния';
 $lang['def']['Profile plugin'] = 'Плагин профиля';
+$lang['def']['Flush all queue'] = 'Очистить всю очередь';
 $lang['def'][''] = '';
 
 

@@ -1,8 +1,9 @@
 <?php
+
 if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
     if (cfr('SENDDOG')) {
         $phpMailerOn = ($ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_ENABLED')
-                        and $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON'));
+                and $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON'));
 
         $messagesQueue = new MessagesQueue();
         show_window('', $messagesQueue->renderPanel($phpMailerOn));
@@ -24,7 +25,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                 if (ubRouting::checkPost(array('newemailaddress', 'newemailmessage'))) {
                     $emailSendResult = $messagesQueue->createEmail(ubRouting::post('newemailaddress'), ubRouting::post('newemailsubj'), ubRouting::post('newemailmessage'));
                     if (empty($emailSendResult)) {
-                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=email');
+                        ubRouting::nav($messagesQueue::URL_ME . '&showqueue=email');
                     } else {
                         show_error($emailSendResult);
                     }
@@ -35,7 +36,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                     $deletionResult = $messagesQueue->deleteEmail(ubRouting::get('deleteemail'));
                     if ($deletionResult == 0) {
                         log_register('UEML DELETE EMAIL `' . ubRouting::get('deleteemail') . '`');
-                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=email');
+                        ubRouting::nav($messagesQueue::URL_ME . '&showqueue=email');
                     } else {
                         if ($deletionResult == 2) {
                             show_error(__('Not existing item'));
@@ -61,18 +62,16 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                 if (ubRouting::checkPost(array('newemailaddress', 'newemailmessage'))) {
                     $bodyAsHTML = (ubRouting::checkPost('newmailbodyashtml', false)) ? wf_getBoolFromVar(ubRouting::post('newmailbodyashtml')) : false;
 
-                    if ( isset($_FILES['newmailattach']) ) {
+                    if (isset($_FILES['newmailattach'])) {
                         $attachPath = $messagesQueue->uploadAttach();
                     } else {
                         $attachPath = '';
                     }
 
-                    $emailSendResult = $messagesQueue->createPHPMail(ubRouting::post('newemailaddress'), ubRouting::post('newemailsubj'),
-                                                                     ubRouting::post('newemailmessage'), $attachPath, $bodyAsHTML,
-                                                                     ubRouting::post('newemailfrom'));
+                    $emailSendResult = $messagesQueue->createPHPMail(ubRouting::post('newemailaddress'), ubRouting::post('newemailsubj'), ubRouting::post('newemailmessage'), $attachPath, $bodyAsHTML, ubRouting::post('newemailfrom'));
 
                     if (empty($emailSendResult)) {
-                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=phpmail');
+                        ubRouting::nav($messagesQueue::URL_ME . '&showqueue=phpmail');
                     } else {
                         show_error($emailSendResult);
                     }
@@ -83,7 +82,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                     $deletionResult = $messagesQueue->deletePHPMail(ubRouting::get('deletephpmail'));
                     if ($deletionResult == 0) {
                         log_register('UPHPEML DELETE EMAIL `' . ubRouting::get('deletephpmail') . '`');
-                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=phpmail');
+                        ubRouting::nav($messagesQueue::URL_ME . '&showqueue=phpmail');
                     } else {
                         if ($deletionResult == 2) {
                             show_error(__('Not existing item'));
@@ -109,7 +108,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                 if (ubRouting::checkPost('newtelegramchatid')) {
                     $telegramSendResult = $messagesQueue->createTelegram(ubRouting::post('newtelegramchatid'), ubRouting::post('newtelegrammessage'));
                     if (empty($telegramSendResult)) {
-                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=telegram');
+                        ubRouting::nav($messagesQueue::URL_ME . '&showqueue=telegram');
                     } else {
                         show_error($telegramSendResult);
                     }
@@ -120,7 +119,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                     $deletionResult = $messagesQueue->deleteTelegram(ubRouting::get('deletetelegram'));
                     if ($deletionResult == 0) {
                         log_register('UTLG DELETE MESSAGE `' . ubRouting::get('deletetelegram') . '`');
-                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=telegram');
+                        ubRouting::nav($messagesQueue::URL_ME . '&showqueue=telegram');
                     } else {
                         if ($deletionResult == 2) {
                             show_error(__('Not existing item'));
@@ -139,7 +138,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
             if (ubRouting::checkPost(array('newsmsnumber', 'newsmsmessage'))) {
                 $smsSendResult = $messagesQueue->createSMS(ubRouting::post('newsmsnumber'), ubRouting::post('newsmsmessage'));
                 if (empty($smsSendResult)) {
-                    rcms_redirect($messagesQueue::URL_ME);
+                    ubRouting::nav($messagesQueue::URL_ME);
                 } else {
                     show_error($smsSendResult);
                 }
@@ -151,7 +150,7 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                     log_register('USMS DELETE MESSAGE `' . ubRouting::get('deletesms') . '`');
                     $darkVoid = new DarkVoid();
                     $darkVoid->flushCache();
-                    rcms_redirect($messagesQueue::URL_ME);
+                    ubRouting::nav($messagesQueue::URL_ME);
                 } else {
                     if ($deletionResult == 2) {
                         show_error(__('Not existing item'));
@@ -163,8 +162,27 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                 }
             }
 
-            //render sms queue
-            show_window(__('SMS in queue') . ' ' . $messagesQueue->smsCreateForm(), $messagesQueue->renderSmsQueue());
+            //flushing all SMS queue
+            if (ubRouting::checkGet($messagesQueue::ROUTE_SMSFLUSH)) {
+                $messagesQueue->flushSmsQueue();
+                ubRouting::nav($messagesQueue::URL_ME);
+            }
+
+            //render sms queue and some controls
+            $smsControls = $messagesQueue->smsCreateForm();
+            if (cfr('ROOT')) {
+                $smsQueueCount = $messagesQueue->getSmsQueueCount();
+
+                if ($smsQueueCount) {
+                    //cleanup controls
+                    $messages = new UbillingMessageHelper();
+                    $flushUrl = $messagesQueue::URL_ME . '&' . $messagesQueue::ROUTE_SMSFLUSH . '=true';
+                    $flushNotice = __('Flush all queue') . '? ' . $messages->getDeleteAlert();
+                    $smsControls .= wf_ConfirmDialog($flushUrl, wf_img('skins/icon_cleanup.png', __('Flush all queue')), $flushNotice, '', $messagesQueue::URL_ME);
+                }
+            }
+
+            show_window(__('SMS in queue') . ' ' . $smsControls, $messagesQueue->renderSmsQueue());
         }
     } else {
         show_error(__('Access denied'));

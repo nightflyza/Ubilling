@@ -60,7 +60,7 @@ class UbillingSMS {
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
                 $storedata .= 'MESSAGE="' . $message . '"' . "\n";
                 file_put_contents($filename, $storedata);
-                log_register('USMS SEND SMS `' . $number . '`' . $module);
+                log_register('USMS SEND SMS `' . $number . '` AS `' . $queueId . '` ' . $module);
                 $result = $queueId;
             }
         }
