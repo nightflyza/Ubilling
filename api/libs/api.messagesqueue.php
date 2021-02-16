@@ -52,6 +52,7 @@ class MessagesQueue {
      */
     const URL_ME = '?module=tsmsqueue';
     const ROUTE_SMSFLUSH = 'flushallsms';
+    const ROUTE_TLGFLUSH = 'flushalltelegram';
 
     public function __construct() {
         $this->initMessages();
@@ -311,13 +312,13 @@ class MessagesQueue {
                 $deletionResult = $this->sms->deleteSms($each['filename']);
                 if ($deletionResult == 0) {
                     $cleanupCount++;
-                    log_register('USMS FLUSH MESSAGE `' . $each['filename'] . '` FOR `' . $each['number'] . '`');
+                    log_register('USMS FLUSH MESSAGE FOR `' . $each['number'] . '` AS `' . $each['filename'] . '`');
                 }
             }
         }
         log_register('USMS FLUSHED `' . $cleanupCount . '` MESSAGES');
     }
-    
+
     /**
      * Returns SMS queue messages count
      * 
@@ -349,6 +350,35 @@ class MessagesQueue {
     public function deleteTelegram($filename) {
         $result = $this->telegram->deleteMessage($filename);
         return ($result);
+    }
+
+    /**
+     * Flushes all available messages from SMS queue
+     * 
+     * @return void
+     */
+    public function flushTelegramQueue() {
+        $allMessages = $this->telegram->getQueueData();
+        $cleanupCount = 0;
+        if (!empty($allMessages)) {
+            foreach ($allMessages as $io => $each) {
+                $deletionResult = $this->telegram->deleteMessage($each['filename']);
+                if ($deletionResult == 0) {
+                    $cleanupCount++;
+                    log_register('UTLG FLUSH MESSAGE FOR `' . $each['chatid'] . '` AS `' . $each['filename'] . '`');
+                }
+            }
+        }
+        log_register('UTLG FLUSHED `' . $cleanupCount . '` MESSAGES');
+    }
+
+    /**
+     * Returns Telegram messages queue count
+     * 
+     * @return int
+     */
+    public function getTelegramQueueCount() {
+        return($this->telegram->getQueueCount());
     }
 
     /**

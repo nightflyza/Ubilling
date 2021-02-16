@@ -131,8 +131,25 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                     }
                 }
 
-                //render telegram queue
-                show_window(__('Telegram messages queue') . ' ' . $messagesQueue->telegramCreateForm(), $messagesQueue->renderTelegramQueue());
+                //flushing all Telegram queue
+                if (ubRouting::checkGet($messagesQueue::ROUTE_TLGFLUSH)) {
+                    $messagesQueue->flushTelegramQueue();
+                    ubRouting::nav($messagesQueue::URL_ME . '&showqueue=telegram');
+                }
+
+                //render telegram queue and some controls
+                $telegramControls = $messagesQueue->telegramCreateForm();
+                if (cfr('ROOT')) {
+                    $telegramQueueCount = $messagesQueue->getTelegramQueueCount();
+                    if ($telegramQueueCount) {
+                        //cleanup controls
+                        $messages = new UbillingMessageHelper();
+                        $flushUrl = $messagesQueue::URL_ME . '&showqueue=telegram&' . $messagesQueue::ROUTE_TLGFLUSH . '=true';
+                        $flushNotice = __('Flush all queue') . '? ' . $messages->getDeleteAlert();
+                        $telegramControls .= wf_ConfirmDialog($flushUrl, wf_img('skins/icon_cleanup.png', __('Flush all queue')), $flushNotice, '', $messagesQueue::URL_ME . '&showqueue=telegram');
+                    }
+                }
+                show_window(__('Telegram messages queue') . ' ' . $telegramControls, $messagesQueue->renderTelegramQueue());
             }
         } else {
             if (ubRouting::checkPost(array('newsmsnumber', 'newsmsmessage'))) {

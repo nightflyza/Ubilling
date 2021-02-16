@@ -134,11 +134,12 @@ class UbillingTelegram {
                 $message = zb_TranslitString($message);
             }
             $message = trim($message);
-            $filename = self::QUEUE_PATH . 'tlg_' . zb_rand_string(8);
+            $queueId = 'tlg_' . zb_rand_string(8);
+            $filename = self::QUEUE_PATH . $queueId;
             $storedata = 'CHATID="' . $chatid . '"' . "\n";
             $storedata .= 'MESSAGE="' . $message . '"' . "\n";
             file_put_contents($filename, $storedata);
-            log_register('UTLG SEND MESSAGE `' . $chatid . '`' . $module);
+            log_register('UTLG SEND MESSAGE FOR `' . $chatid . '` AS `' . $queueId . '` ' . $module);
             $result = true;
         }
         return ($result);
