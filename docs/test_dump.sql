@@ -2981,19 +2981,6 @@ CREATE TABLE IF NOT EXISTS `ins_homereq` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
-
-CREATE TABLE IF NOT EXISTS `ins_homereq` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `date` datetime NOT NULL,
-  `login` varchar(64) DEFAULT NULL,
-  `address` varchar(200) NOT NULL,
-  `realname` varchar(200) NOT NULL,
-  `mobile` varchar(64) NOT NULL,
-  `email` varchar(64) NOT NULL,
-  `state` tinyint(1) NOT NULL,
-PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
 CREATE TABLE `youtv_subscribers` (
   `id` int(11) NOT NULL,
   `date` datetime NOT NULL,
@@ -3044,7 +3031,7 @@ ALTER TABLE `callmeback` ADD `statedate` DATETIME NULL DEFAULT NULL AFTER `state
 ALTER TABLE `callmeback` ADD `admin` VARCHAR(200) NULL DEFAULT NULL AFTER `statedate`;
 
 -- 1.2.0 update
-CREATE TABLE IF NOT EXISTS `ext_contras_recs` (
+
 CREATE TABLE IF NOT EXISTS `extcontras` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `contras_id` int(11) NOT NULL,
