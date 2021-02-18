@@ -83,7 +83,22 @@ class CobainsShotgun {
     }
 
     /**
-     * Render report
+     * Extracts username from square brackets
+     * 
+     * @param string $string
+     * 
+     * @return string
+     */
+    public function extractUserName($string) {
+        $result = '';
+        if (preg_match('!\[(.*?)\]!si', $string, $tmpArr)) {
+            $result = $tmpArr[1];
+        }
+        return($result);
+    }
+
+    /**
+     * Render the report. What did you expect?
      * 
      * @return string
      */
@@ -94,12 +109,17 @@ class CobainsShotgun {
         if (!empty($rawData)) {
             foreach ($rawData as $io => $eachLine) {
                 if (!empty($eachLine)) {
-                    $userName = zb_ExtractMacAddress($eachLine);
+                    $userName = $this->extractUserName($eachLine);
+                    $userMac = zb_ExtractMacAddress($eachLine);
+                    if (empty($userName)) {
+                        $userName = __('Empty') . ' / ' . $userMac;
+                    }
                     if (!empty($userName)) {
                         //prefill attempts counters
                         if (!isset($usernameCounters[$userName])) {
                             $usernameCounters[$userName]['ok'] = 0;
                             $usernameCounters[$userName]['fail'] = 0;
+                            $usernameCounters[$userName]['mac'] = $userMac;
                         }
 
                         //counting attempts for each username
@@ -114,12 +134,14 @@ class CobainsShotgun {
 
             if (!empty($usernameCounters)) {
                 $cells = wf_TableCell(__('Username') . ' ' . __('Radius'));
+                $cells .= wf_TableCell(__('MAC'));
                 $cells .= wf_TableCell(__('Success'));
                 $cells .= wf_TableCell(__('Failed'));
                 $cells .= wf_TableCell(__('Total'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($usernameCounters as $eachUserName => $eachStats) {
                     $cells = wf_TableCell($eachUserName);
+                    $cells .= wf_TableCell($eachStats['mac']);
                     $cells .= wf_TableCell($eachStats['ok']);
                     $cells .= wf_TableCell($eachStats['fail']);
                     $cells .= wf_TableCell($eachStats['ok'] + $eachStats['fail']);
