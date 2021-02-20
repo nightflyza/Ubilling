@@ -76,6 +76,13 @@ class EventView {
     protected $cacheTimeout = 3600;
 
     /**
+     * Zen-mode refresh timeout in milliseconds
+     *
+     * @var int
+     */
+    protected $zenTimeout = 3000;
+
+    /**
      * Predefined tables,routes, URLs, etc...
      */
     const TABLE_DATASOURCE = 'weblogs';
@@ -85,6 +92,7 @@ class EventView {
     const ROUTE_LIMIT = 'onpage';
     const ROUTE_STATS = 'eventstats';
     const ROUTE_ZEN = 'zenmode';
+    const ROUTE_AJAXZEN = 'aj';
     const ROUTE_DROPCACHE = 'forcecache';
     const PROUTE_FILTERADMIN = 'eventadmin';
     const PROUTE_FILTEREVENTTEXT = 'eventsearch';
@@ -330,9 +338,15 @@ class EventView {
      */
     public function renderEventsReport() {
         $result = '';
-        $result .= $this->renderEventLimits();
-        $result .= wf_delimiter(0);
-        $result .= $this->renderSearchForm();
+        $zenMode = ubRouting::checkGet(self::ROUTE_ZEN) ? true : false;
+
+        if (!$zenMode) {
+            $result .= $this->renderEventLimits();
+            $result .= wf_delimiter(0);
+            $result .= $this->renderSearchForm();
+        } else {
+            $this->eventLimit = 50;
+        }
 
         $allEvents = $this->getAllEventsFiltered();
 
@@ -384,6 +398,7 @@ class EventView {
         $result = '';
         $result .= wf_Link(self::URL_ME, wf_img('skins/log_icon_small.png', __('Events')) . ' ' . __('Events'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_STATS . '=true', web_icon_charts() . ' ' . __('Stats'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZEN . '=true', wf_img('skins/zen.png', __('Zen')) . ' ' . __('Zen'), false, 'ubButton') . ' ';
         return($result);
     }
 
@@ -551,6 +566,41 @@ class EventView {
         }
 
         return($result);
+    }
+
+    /**
+     * Renders zen container
+     * 
+     * @return string
+     */
+    public function renderZenContainer() {
+        $result = '';
+        $container = 'zencontainer' . wf_InputId();
+        $result .= wf_AjaxLoader();
+        $result .= wf_AjaxContainer($container, '', $this->renderEventsReport());
+        $dataUrl = self::URL_ME . '&' . self::ROUTE_ZEN . '=true' . '&' . self::ROUTE_AJAXZEN . '=true';
+        $result .= wf_tag('script');
+        $result .= '$(document).ready(function() {
+                        setInterval(function(){ 
+                            $.get("' . $dataUrl . '", function(data) {
+                                $("#' . $container . '").html(data);
+                        });
+                    }, ' . $this->zenTimeout . ');
+                });
+                ';
+
+        $result .= wf_tag('script', true);
+        return($result);
+    }
+
+    /**
+     * Render Zen-mode background results
+     * 
+     * @return void
+     */
+    public function renderZenAjData() {
+        $result = $this->renderEventsReport();
+        die($result);
     }
 
 }

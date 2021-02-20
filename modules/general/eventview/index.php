@@ -6,11 +6,18 @@ if (cfr('EVENTVIEW')) {
     show_window('', $eventView->renderControls());
 
     if (!ubRouting::checkGet($eventView::ROUTE_STATS)) {
-        show_window(__('Last events'), $eventView->renderEventsReport());
-        zb_BillingStats(true);
+        if (ubRouting::checkGet($eventView::ROUTE_ZEN)) {
+            if (ubRouting::checkGet($eventView::ROUTE_AJAXZEN)) {
+                $eventView->renderZenAjData();
+            }
+            show_window(__('Zen'), $eventView->renderZenContainer());
+        } else {
+            show_window(__('Last events'), $eventView->renderEventsReport());
+        }
     } else {
         show_window(__('Month actions stats'), $eventView->renderEventStats());
     }
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }
