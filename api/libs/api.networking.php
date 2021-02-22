@@ -1710,6 +1710,7 @@ function zb_BandwidthdGenLinks($ip) {
     $nasid = zb_NasGetByNet($netid);
     $nasdata = zb_NasGetData($nasid);
     $nastype = ($mlgUseMikrotikGraphs) ? 'mikrotik' : $nasdata['nastype'];
+
     $zbxAllGraphs = array();
 
     if ($zbxGraphsEnabled) {
@@ -1775,6 +1776,25 @@ function zb_BandwidthdGenLinks($ip) {
             $urls['months'] = $bandwidthd_url . '/' . $ip . '-3-S.png';
             $urls['yearr'] = $bandwidthd_url . '/' . $ip . '-4-R.png';
             $urls['years'] = $bandwidthd_url . '/' . $ip . '-4-S.png';
+        }
+//MikroTik Multigen Hotspot users
+        if (ispos($bandwidthd_url, 'mlghs')) {
+            $bandwidthd_url = str_replace('mlghs', 'graphs/queue/', $bandwidthd_url);
+            $allUserMacs = zb_UserGetAllIpMACs();
+            if (isset($allUserMacs[$ip])) {
+                $userMac = $allUserMacs[$ip];
+                $userMacUpper = strtoupper($userMac);
+                $queueName = '<hotspot-' . $userMacUpper . '/';
+
+                $urls['dayr'] = $bandwidthd_url . $queueName . '>/daily.gif';
+                $urls['days'] = null;
+                $urls['weekr'] = $bandwidthd_url . $queueName . '>/weekly.gif';
+                $urls['weeks'] = null;
+                $urls['monthr'] = $bandwidthd_url . $queueName . '>/monthly.gif';
+                $urls['months'] = null;
+                $urls['yearr'] = $bandwidthd_url . $queueName . '>/yearly.gif';
+                $urls['years'] = null;
+            }
         }
     }
 
@@ -2207,25 +2227,25 @@ function getZabbixProblems($switchIP) {
 
     if (!empty($switchIP) AND ! empty($zbxAuthToken)) {
         /* Selectd problem level severities
-            Possible values:
-             0 - not classified;
-             1 - informational;
-             2 - warning;
-             3 - medium;
-             4 - high;
-             5 - emergency.
-        */
+          Possible values:
+          0 - not classified;
+          1 - informational;
+          2 - warning;
+          3 - medium;
+          4 - high;
+          5 - emergency.
+         */
         if ($ubillingConfig->getAlterParam('ZABBIX_PROBLEM_SEVERITIES')) {
             $severities = explode(',', $ubillingConfig->getAlterParam('ZABBIX_PROBLEM_SEVERITIES'));
         } else {
-            $severities = array('0','1','2','3','4','5');
+            $severities = array('0', '1', '2', '3', '4', '5');
         }
 
         $reqParams = array('filter' => array('ip' => $switchIP));
         $zbxHostData = json_decode($zbx->runQuery('host.get', $reqParams), true);
         if (!empty($zbxHostData['result'])) {
             $zbxHostID = $zbxHostData['result'][0]['hostid'];
-            $reqParams = array('hostids' => $zbxHostID, 'severities' => $severities, "selectAcknowledges"  => "extend");
+            $reqParams = array('hostids' => $zbxHostID, 'severities' => $severities, "selectAcknowledges" => "extend");
             $zbxProblemActions = json_decode($zbx->runQuery('problem.get', $reqParams), true);
             if (!empty($zbxProblemActions['result'])) {
                 $problemActions = $zbxProblemActions['result'];
@@ -2337,7 +2357,7 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
                 $hexOctet = '0' . $hexOctet;
             }
 
-            $hexMAC.= $hexOctet;
+            $hexMAC .= $hexOctet;
         }
 
         $hexMAC = strtolower_utf8(AddMacSeparator($hexMAC, $outSeparator));
