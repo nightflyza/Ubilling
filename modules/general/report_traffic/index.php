@@ -70,27 +70,48 @@ if (cfr('REPORTTRAFFIC')) {
                     case 'local':
                     case 'radius':
                     case 'rscriptd':
-                        // Extention:
-                        $ext = '.png';
+                        //normal bandwidthd
+                        if (!ispos($bwd, 'mlghs')) {
+                            // Extention:
+                            $ext = '.png';
 
-                        // Links:
-                        $d_day = $bwd . 'Total-1-R' . $ext;
-                        $d_week = $bwd . 'Total-2-R' . $ext;
-                        $d_month = $bwd . 'Total-3-R' . $ext;
-                        $d_year = $bwd . 'Total-4-R' . $ext;
-                        $u_day = $bwd . 'Total-1-S' . $ext;
-                        $u_week = $bwd . 'Total-2-S' . $ext;
-                        $u_month = $bwd . 'Total-3-S' . $ext;
-                        $u_year = $bwd . 'Total-4-S' . $ext;
+                            // Links:
+                            $d_day = $bwd . 'Total-1-R' . $ext;
+                            $d_week = $bwd . 'Total-2-R' . $ext;
+                            $d_month = $bwd . 'Total-3-R' . $ext;
+                            $d_year = $bwd . 'Total-4-R' . $ext;
+                            $u_day = $bwd . 'Total-1-S' . $ext;
+                            $u_week = $bwd . 'Total-2-S' . $ext;
+                            $u_month = $bwd . 'Total-3-S' . $ext;
+                            $u_year = $bwd . 'Total-4-S' . $ext;
 
-                        // Modals:
-                        $width = 940;
-                        $height = 666;
-                        $daygraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
-                        $weekgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
-                        $monthgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
-                        $yeargraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_year)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_year));
-                        $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+                            // Modals:
+                            $width = 940;
+                            $height = 666;
+                            $daygraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_day)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_day));
+                            $weekgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_week)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_week));
+                            $monthgraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_month)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_month));
+                            $yeargraph = __('Downloaded') . wf_img(zb_BandwidthdImgLink($d_year)) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img(zb_BandwidthdImgLink($u_year));
+                            $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
+                        } else {
+                            //Multigen Mikrotik hotspot
+                            $bwd = str_replace('mlghs', 'graphs/iface/bridge', $bwd);
+
+                            $ext = '.gif';
+                            $daily = $bwd . '/daily' . $ext;
+                            $weekly = $bwd . '/weekly' . $ext;
+                            $monthly = $bwd . '/monthly' . $ext;
+                            $yearly = $bwd . '/yearly' . $ext;
+
+                            // Modals:
+                            $width = 530;
+                            $height = 250;
+                            $daygraph = wf_img(zb_BandwidthdImgLink($daily));
+                            $weekgraph = wf_img(zb_BandwidthdImgLink($weekly));
+                            $monthgraph = wf_img(zb_BandwidthdImgLink($monthly));
+                            $yeargraph = wf_img(zb_BandwidthdImgLink($yearly));
+                            $graphLegend = '';
+                        }
                         break;
                     case 'mikrotik':
                         if (!ispos($bwd, 'pppoe')) {
@@ -115,7 +136,7 @@ if (cfr('REPORTTRAFFIC')) {
                                 $graphLegend = '';
                                 break;
                             } else {
-                                show_window(__('Error'), __('For NAS') . ' `' . $nas['nasname'] . '` ' . __('was not set correct graph interface'));
+                                show_error(__('For NAS') . ' `' . $nas['nasname'] . '` ' . __('was not set correct graph interface'));
                             }
                         } else {
                             $width = 530;
