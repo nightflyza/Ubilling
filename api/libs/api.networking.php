@@ -1784,7 +1784,7 @@ function zb_BandwidthdGenLinks($ip) {
             if (isset($allUserMacs[$ip])) {
                 $userMac = $allUserMacs[$ip];
                 $userMacUpper = strtoupper($userMac);
-                $queueName = '<hotspot-' . urlencode($userMacUpper) . '/';
+                $queueName = '<hotspot-' . urlencode($userMacUpper);
 
                 $urls['dayr'] = $bandwidthd_url . $queueName . '>/daily.gif';
                 $urls['days'] = null;
