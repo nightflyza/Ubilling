@@ -1778,8 +1778,8 @@ function zb_BandwidthdGenLinks($ip) {
             $urls['years'] = $bandwidthd_url . '/' . $ip . '-4-S.png';
         }
 //MikroTik Multigen Hotspot users
-        if (ispos($bandwidthd_url, 'mlghs')) {
-            $bandwidthd_url = str_replace('mlghs', 'graphs/queue/', $bandwidthd_url);
+        if (ispos($bandwidthd_url, 'mlgmths')) {
+            $bandwidthd_url = str_replace('mlgmths', 'graphs/queue/', $bandwidthd_url);
             $allUserMacs = zb_UserGetAllIpMACs();
             if (isset($allUserMacs[$ip])) {
                 $userMac = $allUserMacs[$ip];
@@ -1793,6 +1793,27 @@ function zb_BandwidthdGenLinks($ip) {
                 $urls['monthr'] = $bandwidthd_url . $queueName . '>/monthly.gif';
                 $urls['months'] = null;
                 $urls['yearr'] = $bandwidthd_url . $queueName . '>/yearly.gif';
+                $urls['years'] = null;
+            }
+        }
+//MikroTik Multigen PPP
+        if (ispos($bandwidthd_url, 'mlgmtppp')) {
+            $bandwidthd_url = str_replace('mlgmtppp', 'graphs/queue/', $bandwidthd_url);
+
+            $alluserips = zb_UserGetAllIPs();
+            $alluserips = array_flip($alluserips);
+
+            if (isset($alluserips[$ip])) {
+                $userLogin = $alluserips[$ip];
+                $queueName = urlencode('<pppoe-' . $userLogin.'>');
+
+                $urls['dayr'] = $bandwidthd_url . $queueName . '/daily.gif';
+                $urls['days'] = null;
+                $urls['weekr'] = $bandwidthd_url . $queueName . '/weekly.gif';
+                $urls['weeks'] = null;
+                $urls['monthr'] = $bandwidthd_url . $queueName . '/monthly.gif';
+                $urls['months'] = null;
+                $urls['yearr'] = $bandwidthd_url . $queueName . '/yearly.gif';
                 $urls['years'] = null;
             }
         }

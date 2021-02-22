@@ -71,7 +71,7 @@ if (cfr('REPORTTRAFFIC')) {
                     case 'radius':
                     case 'rscriptd':
                         //normal bandwidthd
-                        if (!ispos($bwd, 'mlghs')) {
+                        if (!ispos($bwd, 'mlgmths') AND !ispos($bwd, 'mlgmtppp')) {
                             // Extention:
                             $ext = '.png';
 
@@ -95,7 +95,8 @@ if (cfr('REPORTTRAFFIC')) {
                             $graphLegend = wf_tag('br') . wf_img('skins/bwdlegend.gif');
                         } else {
                             //Multigen Mikrotik hotspot
-                            $bwd = str_replace('mlghs', 'graphs/iface/bridge', $bwd);
+                            $bwd = str_replace('mlgmths', 'graphs/iface/bridge', $bwd);
+                            $bwd = str_replace('mlgmtppp', 'graphs/iface/bridge', $bwd);
 
                             $ext = '.gif';
                             $daily = $bwd . '/daily' . $ext;
