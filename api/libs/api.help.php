@@ -37,7 +37,7 @@ function web_HelpIconShow() {
             if (cfr('PROCRAST')) {
                 $help_chapter .= wf_delimiter() . wf_Link('?module=procrast', wf_img('skins/gamepad.png', __('Procrastination helper')));
             }
-            $result = wf_modal(wf_img_sized("skins/help.gif", __('Context help'), 20), __('Context help'), $help_chapter, '', '600', '300');
+            $result = wf_modal(wf_img_sized("skins/help.gif", __('Context help'), 20), __('Context help'), $help_chapter, '', '800', '300');
         }
     }
     return ($result);
