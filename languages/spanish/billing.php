@@ -3165,5 +3165,6 @@ $lang['def']['Uplink parameters is not set']='Propiedades de enlace ascendente n
 $lang['def']['Uplink parameters']='Propiedades de enlace ascendente';
 $lang['def']['Uplink'] = 'Аплинк';
 $lang['def']['Hataraku Maou-sama!'] = 'Tareas estadísticas por administrador';
+$lang['def']['Graphs URL'] = 'URL de ancho de banda';
 
 ?>
