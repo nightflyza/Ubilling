@@ -4,10 +4,17 @@ $altCfg = $ubillingConfig->getAlter();
 if ($altCfg['NASMON_ENABLED']) {
     if (cfr('NASMON')) {
         $nasMon = new NasMon();
-        $nasMonControls = wf_Link($nasMon::URL_ME . '&refresh=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
-        if (wf_CheckGet(array('refresh'))) {
+        $nasMonControls = '';
+        $refreshAppend = '';
+        if (ubRouting::checkGet('callback')) {
+            $nasMonControls .= wf_BackLink('?module=nas');
+            $refreshAppend .= '&callback=nas';
+        }
+        $nasMonControls .= wf_Link($nasMon::URL_ME . '&refresh=true' . $refreshAppend, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+
+        if (ubRouting::checkGet('refresh')) {
             $nasMon->saveCheckResults();
-            rcms_redirect($nasMon::URL_ME);
+            ubRouting::nav($nasMon::URL_ME . $refreshAppend);
         }
         show_window('', $nasMonControls);
         show_window(__('NAS servers state'), $nasMon->renderList());
@@ -17,4 +24,3 @@ if ($altCfg['NASMON_ENABLED']) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>

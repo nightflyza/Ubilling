@@ -38,7 +38,7 @@ if (cfr('NAS')) {
         'IP',
         'NAS name',
         'NAS type',
-        'Bandwidthd URL'
+        'Graphs URL'
     );
     $keys = array('id',
         'netid',
@@ -52,21 +52,21 @@ if (cfr('NAS')) {
         $radiusControls = '';
         if ($altCfg['FREERADIUS_ENABLED']) {
             $freeRadiusClientsData = web_FreeRadiusListClients();
-            $radiusControls.= wf_modal(web_icon_extended(__('FreeRADIUS NAS parameters')), __('FreeRADIUS NAS parameters'), $freeRadiusClientsData, '', '600', '300');
+            $radiusControls .= wf_modal(web_icon_extended(__('FreeRADIUS NAS parameters')), __('FreeRADIUS NAS parameters'), $freeRadiusClientsData, '', '600', '300');
         }
 
         if ($altCfg['JUNGEN_ENABLED']) {
             $juniperRadiusClientData = web_JuniperListClients();
-            $radiusControls.= ' ' . wf_modal(web_icon_extended(__('Juniper NAS parameters')), __('Juniper NAS parameters'), $juniperRadiusClientData, '', '600', '300');
+            $radiusControls .= ' ' . wf_modal(web_icon_extended(__('Juniper NAS parameters')), __('Juniper NAS parameters'), $juniperRadiusClientData, '', '600', '300');
         }
 
         if ($altCfg['MULTIGEN_ENABLED']) {
             $multigenRadiusClientData = web_MultigenListClients();
-            $radiusControls.= ' ' . wf_modal(web_icon_extended(__('Multigen NAS parameters')), __('Multigen NAS parameters'), $multigenRadiusClientData, '', '600', '300');
+            $radiusControls .= ' ' . wf_modal(web_icon_extended(__('Multigen NAS parameters')), __('Multigen NAS parameters'), $multigenRadiusClientData, '', '600', '300');
         }
 
         if ($altCfg['NASMON_ENABLED']) {
-            $radiusControls.=' ' . wf_Link('?module=report_nasmon', wf_img_sized('skins/icon_stats.gif', __('NAS servers state'), '16', '16'));
+            $radiusControls .= ' ' . wf_Link('?module=report_nasmon&callback=nas', wf_img_sized('skins/icon_stats.gif', __('NAS servers state'), '16', '16'));
         }
         show_window(__('Network Access Servers') . ' ' . $radiusControls, web_GridEditorNas($titles, $keys, $allnas, 'nas'));
         show_window(__('Add new'), web_NasAddForm());
@@ -148,11 +148,11 @@ if (cfr('NAS')) {
 
 
         $editinputs = multinet_network_selector($currentnetid) . "<br>";
-        $editinputs.=wf_Selector('editnastype', $nastypes, 'NAS type', $currentnastype, true);
-        $editinputs.=wf_TextInput('editnasip', 'IP', $currentnasip, true, '15', 'ip');
-        $editinputs.=wf_TextInput('editnasname', 'NAS name', $currentnasname, true, '15');
-        $editinputs.=wf_TextInput('editnasbwdurl', 'Bandwidthd URL', $currentbwdurl, true, '25');
-        $editinputs.=wf_Submit('Save');
+        $editinputs .= wf_Selector('editnastype', $nastypes, 'NAS type', $currentnastype, true);
+        $editinputs .= wf_TextInput('editnasip', 'IP', $currentnasip, true, '15', 'ip');
+        $editinputs .= wf_TextInput('editnasname', 'NAS name', $currentnasname, true, '15');
+        $editinputs .= wf_TextInput('editnasbwdurl', 'Graphs URL', $currentbwdurl, true, '25');
+        $editinputs .= wf_Submit('Save');
         $editform = wf_Form('', 'POST', $editinputs, 'glamour');
         show_window(__('Edit') . ' NAS', $editform);
         show_window('', wf_BackLink("?module=nas"));

@@ -2197,7 +2197,7 @@ function web_NasAddForm() {
     $inputs .= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
     $inputs .= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
     $inputs .= wf_TextInput('newnasname', __('NAS name'), '', true);
-    $inputs .= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
+    $inputs .= wf_TextInput('newbandw', __('Graphs URL'), '', true);
     $inputs .= wf_Submit(__('Create'));
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
@@ -2535,8 +2535,9 @@ function web_UserTraffStats($login) {
         $result .= wf_TableBody($bwrows, '', '0', '');
         $result .= wf_delimiter();
     } else {
-        $messages = new UbillingMessageHelper();
-        $result .= $messages->getStyledMessage(__('No user graphs because no NAS with bandwidthd for his network'), 'info');
+        // Commented to save useful space for normal data. TODO: take a decision about this notification in future.
+        //$messages = new UbillingMessageHelper();
+        //$result .= $messages->getStyledMessage(__('No user graphs because no NAS with bandwidthd for his network'), 'info');
     }
     // End of per-user graphs buttons
     // Traffic statistic by previous months:

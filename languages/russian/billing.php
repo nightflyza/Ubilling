@@ -3228,6 +3228,7 @@ $lang['def']['No state'] = 'Нет состояния';
 $lang['def']['Profile plugin'] = 'Плагин профиля';
 $lang['def']['Flush all queue'] = 'Очистить всю очередь';
 $lang['def']['Zen'] = 'Дзэн';
+$lang['def']['Graphs URL'] = 'Ссылка на графики';
 $lang['def'][''] = '';
 
 

@@ -1805,7 +1805,7 @@ function zb_BandwidthdGenLinks($ip) {
 
             if (isset($alluserips[$ip])) {
                 $userLogin = $alluserips[$ip];
-                $queueName = urlencode('<pppoe-' . $userLogin.'>');
+                $queueName = urlencode('<pppoe-' . $userLogin . '>');
 
                 $urls['dayr'] = $bandwidthd_url . $queueName . '/daily.gif';
                 $urls['days'] = null;
@@ -1814,6 +1814,27 @@ function zb_BandwidthdGenLinks($ip) {
                 $urls['monthr'] = $bandwidthd_url . $queueName . '/monthly.gif';
                 $urls['months'] = null;
                 $urls['yearr'] = $bandwidthd_url . $queueName . '/yearly.gif';
+                $urls['years'] = null;
+            }
+        }
+
+//MikroTik Multigen DHCP
+        if (ispos($bandwidthd_url, 'mlgmtdhcp')) {
+            $bandwidthd_url = str_replace('mlgmtdhcp', 'graphs/queue/', $bandwidthd_url);
+
+            $allUserMacs = zb_UserGetAllIpMACs();
+            if (isset($allUserMacs[$ip])) {
+                $userMac = $allUserMacs[$ip];
+                $userMacUpper = strtoupper($userMac);
+                $queueName = 'dhcp-ds<' . urlencode($userMacUpper);
+
+                $urls['dayr'] = $bandwidthd_url . $queueName . '>/daily.gif';
+                $urls['days'] = null;
+                $urls['weekr'] = $bandwidthd_url . $queueName . '>/weekly.gif';
+                $urls['weeks'] = null;
+                $urls['monthr'] = $bandwidthd_url . $queueName . '>/monthly.gif';
+                $urls['months'] = null;
+                $urls['yearr'] = $bandwidthd_url . $queueName . '>/yearly.gif';
                 $urls['years'] = null;
             }
         }
