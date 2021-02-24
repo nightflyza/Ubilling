@@ -75,13 +75,7 @@ class EventView {
      */
     protected $cacheTimeout = 3600;
 
-    /**
-     * Zen-mode refresh timeout in milliseconds
-     *
-     * @var int
-     */
-    protected $zenTimeout = 3000;
-
+  
     /**
      * Predefined tables,routes, URLs, etc...
      */
@@ -92,7 +86,6 @@ class EventView {
     const ROUTE_LIMIT = 'onpage';
     const ROUTE_STATS = 'eventstats';
     const ROUTE_ZEN = 'zenmode';
-    const ROUTE_AJAXZEN = 'aj';
     const ROUTE_DROPCACHE = 'forcecache';
     const PROUTE_FILTERADMIN = 'eventadmin';
     const PROUTE_FILTEREVENTTEXT = 'eventsearch';
@@ -566,41 +559,6 @@ class EventView {
         }
 
         return($result);
-    }
-
-    /**
-     * Renders zen container
-     * 
-     * @return string
-     */
-    public function renderZenContainer() {
-        $result = '';
-        $container = 'zencontainer' . wf_InputId();
-        $result .= wf_AjaxLoader();
-        $result .= wf_AjaxContainer($container, '', $this->renderEventsReport());
-        $dataUrl = self::URL_ME . '&' . self::ROUTE_ZEN . '=true' . '&' . self::ROUTE_AJAXZEN . '=true';
-        $result .= wf_tag('script');
-        $result .= '$(document).ready(function() {
-                        setInterval(function(){ 
-                            $.get("' . $dataUrl . '", function(data) {
-                                $("#' . $container . '").html(data);
-                        });
-                    }, ' . $this->zenTimeout . ');
-                });
-                ';
-
-        $result .= wf_tag('script', true);
-        return($result);
-    }
-
-    /**
-     * Render Zen-mode background results
-     * 
-     * @return void
-     */
-    public function renderZenAjData() {
-        $result = $this->renderEventsReport();
-        die($result);
     }
 
 }
