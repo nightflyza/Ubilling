@@ -286,7 +286,37 @@ class HlsTV {
      * @return array
      */
     public function getDeviceList() {
-        $result = $this->pushApiRequest('device/list');
+        $result = array();
+        $tmp = $this->pushApiRequest('device/list');
+
+        //devices is now in items key
+        if (isset($tmp['result'])) {
+            if (isset($tmp['result']['items'])) {
+                if (!empty($tmp['result']['items'])) {
+                    foreach ($tmp['result']['items'] as $io => $each) {
+                        $result['result'][] = $each;
+                    }
+                }
+            }
+        }
+
+        //shitty pagination processing here
+        if (isset($tmp['result']['pages_count'])) {
+            if ($tmp['result']['pages_count'] > 1) {
+                $pagesCount = $tmp['result']['pages_count'];
+                for ($i = 1; $i <= $pagesCount; $i++) {
+                    $tmp = $this->pushApiRequest('device/list', array('page' => $i));
+                    if (isset($tmp['result']['items'])) {
+                        if (!empty($tmp['result']['items'])) {
+                            foreach ($tmp['result']['items'] as $io => $each) {
+                                $result['result'][] = $each;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return ($result);
     }
 
