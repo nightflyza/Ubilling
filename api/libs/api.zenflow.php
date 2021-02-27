@@ -95,7 +95,6 @@ class ZenFlow {
             $container = 'zencontainer_' . $this->flowId;
             $requestUrl = $_SERVER['REQUEST_URI'];
             if (!empty($requestUrl)) {
-                $result .= wf_AjaxLoader();
                 $result .= wf_AjaxContainer($container, '', $this->content);
                 $dataUrl = $requestUrl;
                 if (!ubRouting::checkGet(self::ROUTE_ZENFLOW)) {
