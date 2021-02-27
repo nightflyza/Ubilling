@@ -767,9 +767,9 @@ class OmegaTV {
     public function renderDevicesList() {
         $result = '';
         $allDevices = $this->hls->getDeviceList();
-        if (isset($allDevices['result'])) {
-            if (!empty($allDevices['result'])) {
-                $allDevices = $allDevices['result'];
+        if (isset($allDevices['result']['items'])) {
+            if (!empty($allDevices['result']['items'])) {
+                $allDevices = $allDevices['result']['items'];
                 $cells = wf_TableCell(__('Uniq'));
                 $cells .= wf_TableCell(__('Model'));
                 $cells .= wf_TableCell(__('Registration'));
