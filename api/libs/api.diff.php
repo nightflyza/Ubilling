@@ -1,15 +1,14 @@
 <?php
 
 /**
-  A class containing a diff implementation
-
-  Created by Kate Morley - http://iamkate.com/ - and released under the terms of
-  the CC0 1.0 Universal legal code:
-
-  http://creativecommons.org/publicdomain/zero/1.0/legalcode
-
+ * A class containing a diff implementation
+ *
+ * Created by Kate Morley - http://iamkate.com/ - and released under the terms of
+ * the CC0 1.0 Universal legal code:
+ *
+ * http://creativecommons.org/publicdomain/zero/1.0/legalcode
+ *
  */
-// A class containing functions for computing diffs and formatting the output.
 class Diff {
 
     // define the constants
