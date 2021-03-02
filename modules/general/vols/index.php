@@ -417,7 +417,7 @@ if (cfr('VOLS')) {
                 id: " . $line['id'] . ",
                 hintContent: '" . $line['point_start'] . " -> " . $line['point_end'] . ", " . $line['length'] . "'
             }, {
-                strokeColor: '" . $line['param_color'] . "',
+                strokeColor: '" . str_replace('#', '', trim($line['param_color'])) . "ff',
                 strokeWidth:  " . $line['param_width'] . "
             })
         );
@@ -438,7 +438,7 @@ if (cfr('VOLS')) {
             id: " . $polyline['id'] . ",
             hintContent: '" . $polyline['description'] . "'
         }, {
-            strokeColor: '" . $polyline['param_color'] . "',
+            strokeColor: '" . str_replace('#', '', trim($polyline['param_color'])) . "ff',
             strokeWidth:  " . $polyline['param_width'] . "
         });
         " . self::MAP_VAR . ".geoObjects.add( newPolyline );
