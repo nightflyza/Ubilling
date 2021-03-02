@@ -1083,6 +1083,7 @@ class UserSideApi {
         $allRealNames = zb_UserGetAllRealnames();
         $allContracts = zb_UserGetAllContracts();
         $allUserTags = $this->getAllUsersTags();
+
         $allUserNotes = zb_UserGetAllNotes();
         $allPaymentIds = $this->getAllUserPaymentIds();
         $allAddresBindings = $this->getAllAddressList();
@@ -1093,6 +1094,24 @@ class UserSideApi {
         $allNetworks = $this->getNetworksData();
         $allRegData = $this->getUserRegData();
         $scanData = array();
+        $hiddenDeadUsers = array();
+
+        if (@$this->altCfg['DEAD_HIDE'] AND @ $this->altCfg['DEAD_HIDE_USERSIDE']) {
+            $deadTagId = @$this->altCfg['DEAD_TAGID'];
+            if (!empty($deadTagId)) {
+                if (!empty($allUserTags)) {
+                    foreach ($allUserTags as $dTagLogin => $dTagData) {
+                        if (!empty($dTagData)) {
+                            foreach ($dTagData as $dTagIndex => $dTagId) {
+                                if ($dTagId == $deadTagId) {
+                                    $hiddenDeadUsers[$dTagLogin] = $dTagId;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         if (!empty($allContracts)) {
             $allContracts = array_flip($allContracts);
@@ -1112,171 +1131,173 @@ class UserSideApi {
 
         if (!empty($scanData)) {
             foreach ($scanData as $userLogin => $userData) {
-                $result[$userLogin]['id'] = $userLogin;
-                $result[$userLogin]['login'] = $userLogin;
-                $result[$userLogin]['full_name'] = @$allRealNames[$userLogin];
-                $result[$userLogin]['flag_corporate'] = 0;
+                if (!isset($hiddenDeadUsers[$userLogin])) {
+                    $result[$userLogin]['id'] = $userLogin;
+                    $result[$userLogin]['login'] = $userLogin;
+                    $result[$userLogin]['full_name'] = @$allRealNames[$userLogin];
+                    $result[$userLogin]['flag_corporate'] = 0;
 
-                if ($userData['TariffChange']) {
-                    $curMonth = date('n');
-                    $curYear = date('Y');
-                    $firstDayNextMonth = ($curMonth == 12) ? mktime(0, 0, 0, 0, 0, $curYear + 1) : mktime(0, 0, 0, $curMonth + 1, 1);
-                    $firstDayNextMonth = date("Y-m-d", $firstDayNextMonth);
-                } else {
-                    $firstDayNextMonth = '';
-                }
-                $result[$userLogin]['tariff']['current'][0]['id'] = $userData['Tariff'];
-                if ($firstDayNextMonth) {
-                    $result[$userLogin]['tariff']['current'][0]['date_finish'] = $firstDayNextMonth;
-                }
-
-                if ($userData['TariffChange']) {
-                    $result[$userLogin]['tariff']['new'][0]['id'] = $userData['TariffChange'];
-                    $result[$userLogin]['tariff']['new'][0]['date_start'] = $firstDayNextMonth;
-                }
-
-                $userContract = @$allContracts[$userLogin];
-                if ($userContract) {
-                    $result[$userLogin]['agreement'][0]['number'] = $userContract;
-                    $contractDate = @$allContractDates[$userContract];
-                    if ($contractDate) {
-                        $result[$userLogin]['agreement'][0]['date'] = $contractDate;
-                    }
-                }
-
-                $result[$userLogin]['account_number'] = @$allPaymentIds[$userLogin]; // yep, this is something like Payment ID
-
-                if (isset($allUserTags[$userLogin])) {
-                    foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
-                        $result[$userLogin]['group'][$tagIo] = $eachTagid;
-                    }
-                }
-
-                $userNotes = @$allUserNotes[$userLogin];
-                if ($userNotes) {
-                    $result[$userLogin]['comment'] = $userNotes;
-                }
-                $result[$userLogin]['balance'] = $userData['Cash'];
-                $result[$userLogin]['credit'] = $userData['Credit'];
-
-                $userState = 5; // work
-                if ($userData['Cash'] < '-' . $userData['Credit']) {
-                    $userState = 1; //nomoney
-                }
-                if ($userData['Passive'] == 1) {
-                    $userState = 2; // pause
-                }
-                if ($userData['Down'] == 1) {
-                    $userState = 3; // disable
-                }
-                if ($userData['Tariff'] == '*_NO_TARIFF_*') {
-                    $userState = 4; // new
-                }
-                $result[$userLogin]['state_id'] = $userState;
-
-                if (isset($allRegData[$userLogin])) {
-                    $result[$userLogin]['date_create'] = $allRegData[$userLogin];
-                    $result[$userLogin]['date_connect'] = $allRegData[$userLogin];
-                } else {
-                    $result[$userLogin]['date_create'] = '';
-                    $result[$userLogin]['date_connect'] = '';
-                }
-
-                if ($this->altCfg['DN_FULLHOSTSCAN']) {
-                    $dnFilePath = DATA_PATH . 'dn/' . $userLogin;
-                    if (file_exists($dnFilePath)) {
-                        $actTimestamp = filemtime($dnFilePath);
-                        $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $actTimestamp);
+                    if ($userData['TariffChange']) {
+                        $curMonth = date('n');
+                        $curYear = date('Y');
+                        $firstDayNextMonth = ($curMonth == 12) ? mktime(0, 0, 0, 0, 0, $curYear + 1) : mktime(0, 0, 0, $curMonth + 1, 1);
+                        $firstDayNextMonth = date("Y-m-d", $firstDayNextMonth);
                     } else {
-                        $result[$userLogin]['date_activity'] = '';
+                        $firstDayNextMonth = '';
                     }
-                } else {
-                    $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $userData['LastActivityTime']);
-                }
-
-
-                $result[$userLogin]['traffic']['month']['up'] = $userData['U0'];
-                $result[$userLogin]['traffic']['month']['down'] = $userData['D0'];
-                $result[$userLogin]['discount'] = 0; // TODO: to many discount models at this time
-
-
-                $userApartmentId = @$allAddresBindings[$userLogin];
-                if ($userApartmentId) {
-                    $aptData = $allAptData[$userApartmentId];
-                    $result[$userLogin]['address'][0]['type'] = 'connect';
-                    $result[$userLogin]['address'][0]['house_id'] = $aptData['buildid'];
-                    $result[$userLogin]['address'][0]['apartment']['id'] = $userApartmentId;
-                    $result[$userLogin]['address'][0]['apartment']['full_name'] = $aptData['apt'];
-                    $result[$userLogin]['address'][0]['apartment']['number'] = vf($aptData['apt'], 3);
-                    if ($aptData['entrance']) {
-                        $result[$userLogin]['address'][0]['entrance'] = $aptData['entrance'];
+                    $result[$userLogin]['tariff']['current'][0]['id'] = $userData['Tariff'];
+                    if ($firstDayNextMonth) {
+                        $result[$userLogin]['tariff']['current'][0]['date_finish'] = $firstDayNextMonth;
                     }
-                    if ($aptData['floor']) {
-                        $result[$userLogin]['address'][0]['floor'] = $aptData['floor'];
+
+                    if ($userData['TariffChange']) {
+                        $result[$userLogin]['tariff']['new'][0]['id'] = $userData['TariffChange'];
+                        $result[$userLogin]['tariff']['new'][0]['date_start'] = $firstDayNextMonth;
                     }
-                }
 
-
-                $userPhoneData = @$allPhones[$userLogin];
-                if (!empty($userPhoneData)) {
-                    if (isset($userPhoneData['phone'])) {
-                        $result[$userLogin]['phone'][0]['number'] = $userPhoneData['phone'];
-                        $result[$userLogin]['phone'][0]['flag_main'] = 0;
-                    }
-                    if (isset($userPhoneData['mobile'])) {
-                        $result[$userLogin]['phone'][1]['number'] = $userPhoneData['mobile'];
-                        $result[$userLogin]['phone'][1]['flag_main'] = 1;
-                    }
-                }
-
-                $userEmail = @$allEmails[$userLogin];
-                if ($userEmail) {
-                    $result[$userLogin]['email'][0]['address'] = $userEmail;
-                    $result[$userLogin]['email'][0]['flag_main'] = 1;
-                }
-
-                $userIp = $userData['IP'];
-                $userIp = ip2int($userIp);
-                $result[$userLogin]['ip_mac'][0]['ip'] = $userIp;
-                $nethostsData = @$allNethosts[$userData['IP']];
-                if (!empty($nethostsData)) {
-                    $subnetId = $nethostsData['netid'];
-                    $userMac = $nethostsData['mac'];
-                    $userMac = str_replace(':', '', $userMac);
-                    $userMac = strtolower($userMac); // mac lowercased withot delimiters
-                    $result[$userLogin]['ip_mac'][0]['mac'] = $userMac;
-                    $result[$userLogin]['ip_mac'][0]['ip_net'] = @$allNetworks[$subnetId]['desc'];
-                }
-
-                if (isset($allUserTags[$userLogin])) {
-                    foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
-                        $result[$userLogin]['tag'][$eachTagid]['id'] = $eachTagid;
-                        $result[$userLogin]['tag'][$eachTagid]['date_add'] = '';
-                    }
-                }
-
-                if (isset($allUserTags[$userLogin])) {
-                    $srvCount = 0;
-                    foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
-                        if (isset($this->serviceTagMappings[$eachTagid])) {
-                            $serviceId = $this->serviceTagMappings[$eachTagid];
-                            if (isset($result[$userLogin]['service'][$serviceId])) {
-                                $srvCount++;
-                            } else {
-                                $srvCount = 0;
-                            }
-                            $result[$userLogin]['service'][$serviceId][$srvCount]['cost'] = $this->vServices[$serviceId]['price'];
-                            $result[$userLogin]['service'][$serviceId][$srvCount]['date_add'] = '';
-                            $result[$userLogin]['service'][$serviceId][$srvCount]['comment'] = '';
+                    $userContract = @$allContracts[$userLogin];
+                    if ($userContract) {
+                        $result[$userLogin]['agreement'][0]['number'] = $userContract;
+                        $contractDate = @$allContractDates[$userContract];
+                        if ($contractDate) {
+                            $result[$userLogin]['agreement'][0]['date'] = $contractDate;
                         }
                     }
-                }
 
-                if (isset($this->allCfData[$userLogin])) {
-                    $result[$userLogin]['additional_data'] = $this->allCfData[$userLogin];
-                }
+                    $result[$userLogin]['account_number'] = @$allPaymentIds[$userLogin]; // yep, this is something like Payment ID
 
-                $result[$userLogin]['password'] = $userData['Password'];
+                    if (isset($allUserTags[$userLogin])) {
+                        foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
+                            $result[$userLogin]['group'][$tagIo] = $eachTagid;
+                        }
+                    }
+
+                    $userNotes = @$allUserNotes[$userLogin];
+                    if ($userNotes) {
+                        $result[$userLogin]['comment'] = $userNotes;
+                    }
+                    $result[$userLogin]['balance'] = $userData['Cash'];
+                    $result[$userLogin]['credit'] = $userData['Credit'];
+
+                    $userState = 5; // work
+                    if ($userData['Cash'] < '-' . $userData['Credit']) {
+                        $userState = 1; //nomoney
+                    }
+                    if ($userData['Passive'] == 1) {
+                        $userState = 2; // pause
+                    }
+                    if ($userData['Down'] == 1) {
+                        $userState = 3; // disable
+                    }
+                    if ($userData['Tariff'] == '*_NO_TARIFF_*') {
+                        $userState = 4; // new
+                    }
+                    $result[$userLogin]['state_id'] = $userState;
+
+                    if (isset($allRegData[$userLogin])) {
+                        $result[$userLogin]['date_create'] = $allRegData[$userLogin];
+                        $result[$userLogin]['date_connect'] = $allRegData[$userLogin];
+                    } else {
+                        $result[$userLogin]['date_create'] = '';
+                        $result[$userLogin]['date_connect'] = '';
+                    }
+
+                    if ($this->altCfg['DN_FULLHOSTSCAN']) {
+                        $dnFilePath = DATA_PATH . 'dn/' . $userLogin;
+                        if (file_exists($dnFilePath)) {
+                            $actTimestamp = filemtime($dnFilePath);
+                            $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $actTimestamp);
+                        } else {
+                            $result[$userLogin]['date_activity'] = '';
+                        }
+                    } else {
+                        $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $userData['LastActivityTime']);
+                    }
+
+
+                    $result[$userLogin]['traffic']['month']['up'] = $userData['U0'];
+                    $result[$userLogin]['traffic']['month']['down'] = $userData['D0'];
+                    $result[$userLogin]['discount'] = 0; // TODO: to many discount models at this time
+
+
+                    $userApartmentId = @$allAddresBindings[$userLogin];
+                    if ($userApartmentId) {
+                        $aptData = $allAptData[$userApartmentId];
+                        $result[$userLogin]['address'][0]['type'] = 'connect';
+                        $result[$userLogin]['address'][0]['house_id'] = $aptData['buildid'];
+                        $result[$userLogin]['address'][0]['apartment']['id'] = $userApartmentId;
+                        $result[$userLogin]['address'][0]['apartment']['full_name'] = $aptData['apt'];
+                        $result[$userLogin]['address'][0]['apartment']['number'] = vf($aptData['apt'], 3);
+                        if ($aptData['entrance']) {
+                            $result[$userLogin]['address'][0]['entrance'] = $aptData['entrance'];
+                        }
+                        if ($aptData['floor']) {
+                            $result[$userLogin]['address'][0]['floor'] = $aptData['floor'];
+                        }
+                    }
+
+
+                    $userPhoneData = @$allPhones[$userLogin];
+                    if (!empty($userPhoneData)) {
+                        if (isset($userPhoneData['phone'])) {
+                            $result[$userLogin]['phone'][0]['number'] = $userPhoneData['phone'];
+                            $result[$userLogin]['phone'][0]['flag_main'] = 0;
+                        }
+                        if (isset($userPhoneData['mobile'])) {
+                            $result[$userLogin]['phone'][1]['number'] = $userPhoneData['mobile'];
+                            $result[$userLogin]['phone'][1]['flag_main'] = 1;
+                        }
+                    }
+
+                    $userEmail = @$allEmails[$userLogin];
+                    if ($userEmail) {
+                        $result[$userLogin]['email'][0]['address'] = $userEmail;
+                        $result[$userLogin]['email'][0]['flag_main'] = 1;
+                    }
+
+                    $userIp = $userData['IP'];
+                    $userIp = ip2int($userIp);
+                    $result[$userLogin]['ip_mac'][0]['ip'] = $userIp;
+                    $nethostsData = @$allNethosts[$userData['IP']];
+                    if (!empty($nethostsData)) {
+                        $subnetId = $nethostsData['netid'];
+                        $userMac = $nethostsData['mac'];
+                        $userMac = str_replace(':', '', $userMac);
+                        $userMac = strtolower($userMac); // mac lowercased withot delimiters
+                        $result[$userLogin]['ip_mac'][0]['mac'] = $userMac;
+                        $result[$userLogin]['ip_mac'][0]['ip_net'] = @$allNetworks[$subnetId]['desc'];
+                    }
+
+                    if (isset($allUserTags[$userLogin])) {
+                        foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
+                            $result[$userLogin]['tag'][$eachTagid]['id'] = $eachTagid;
+                            $result[$userLogin]['tag'][$eachTagid]['date_add'] = '';
+                        }
+                    }
+
+                    if (isset($allUserTags[$userLogin])) {
+                        $srvCount = 0;
+                        foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
+                            if (isset($this->serviceTagMappings[$eachTagid])) {
+                                $serviceId = $this->serviceTagMappings[$eachTagid];
+                                if (isset($result[$userLogin]['service'][$serviceId])) {
+                                    $srvCount++;
+                                } else {
+                                    $srvCount = 0;
+                                }
+                                $result[$userLogin]['service'][$serviceId][$srvCount]['cost'] = $this->vServices[$serviceId]['price'];
+                                $result[$userLogin]['service'][$serviceId][$srvCount]['date_add'] = '';
+                                $result[$userLogin]['service'][$serviceId][$srvCount]['comment'] = '';
+                            }
+                        }
+                    }
+
+                    if (isset($this->allCfData[$userLogin])) {
+                        $result[$userLogin]['additional_data'] = $this->allCfData[$userLogin];
+                    }
+
+                    $result[$userLogin]['password'] = $userData['Password'];
+                }
             }
         }
 
