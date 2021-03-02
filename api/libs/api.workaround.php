@@ -3437,8 +3437,11 @@ function zb_BillingStats($quiet = false) {
                 $curlStats = curl_init($statsurl);
                 curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
-                curl_setopt($curlStats, CURLOPT_TIMEOUT, 5);
+                curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
                 $output = curl_exec($curlStats);
+                if ($output !== false) {
+                    show_window('', trim($output));
+                }
                 curl_close($curlStats);
             }
         }
