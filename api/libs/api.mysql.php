@@ -26,7 +26,9 @@ if (!extension_loaded('mysql')) {
         exit;
     }
 
-    $loginDB = new mysqli($db_config['server'], $db_config['username'], $db_config['password'], $db_config['db']);
+    $dbport = (empty($db_config['port'])) ? 3306 : $db_config['port'];
+
+    $loginDB = new mysqli($db_config['server'], $db_config['username'], $db_config['password'], $db_config['db'], $dbport);
 
     if ($loginDB->connect_error) {
         die('Connection error (' . $loginDB->connect_errno . ') '
@@ -209,7 +211,9 @@ if (!extension_loaded('mysql')) {
                     return false;
                 }
 
-                $this->connection = @mysql_connect($this->db_config['server'], $this->db_config['username'], $this->db_config['password']);
+                $dbport = (empty($this->db_config['port'])) ? 3306 : $this->db_config['port'];
+
+                $this->connection = @mysql_connect($this->db_config['server'] . ':' . $dbport, $this->db_config['username'], $this->db_config['password']);
             }
 
             if (empty($this->connection)) {

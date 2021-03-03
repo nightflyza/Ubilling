@@ -1,7 +1,9 @@
 <?php
 $config=parse_ini_file(dirname(__FILE__)."/config");
+$dbport = (empty($this->config['port'])) ? 3306 : $this->config['port'];
+
 if (extension_loaded('mysqli')) {
-    $loginDB = new mysqli($config['host'], $config['username'], $config['password'], $config['database']);
+    $loginDB = new mysqli($config['host'], $config['username'], $config['password'], $config['database'], $dbport);
     function DB_query($query) {
         global $loginDB;
         $result = $loginDB->query($query);
@@ -17,7 +19,7 @@ if (extension_loaded('mysqli')) {
         return($result);
     }
 } else {
-    $link = mysql_connect($config['host'], $config['username'], $config['password']);
+    $link = mysql_connect($config['host'] . ':' . $dbport, $config['username'], $config['password']);
     mysql_select_db($config['database']);
     function DB_query($query) {
         $result = mysql_query($query);
