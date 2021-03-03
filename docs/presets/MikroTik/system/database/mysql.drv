@@ -28,9 +28,11 @@
 
         private function connect() {
             if ( !empty($this->config) ) {
+                $dbport = (empty($this->config['port'])) ? 3306 : $this->config['port'];
+
                 if (extension_loaded('mysqli')) {
                     $this->log->message(__CLASS__, "Use extension: MySQLi", 'debug');
-                    $this->identifier = new mysqli($this->config['hostname'], $this->config['username'], $this->config['password'], $this->config['database']);
+                    $this->identifier = new mysqli($this->config['hostname'], $this->config['username'], $this->config['password'], $this->config['database'], $dbport);
                     if ($this->identifier->connect_error) {
                         $this->log->message(__CLASS__, 'Connection error (' . $this->identifier->connect_errno . ') ' . $this->identifier->connect_error, 'error');
                     } else {
@@ -39,7 +41,7 @@
                     }
                 } else {
                     $this->log->message(__CLASS__, "Use extension: MySQL", 'debug');
-                    $this->identifier = mysql_connect($this->config['hostname'], $this->config['username'], $this->config['password']);
+                    $this->identifier = mysql_connect($this->config['hostname'] . ':' . $dbport, $this->config['username'], $this->config['password']);
                     if ( $this->identifier ) {
                         if ( mysql_select_db($this->config['database'], $this->identifier) ) {
                             $this->connected = TRUE;
