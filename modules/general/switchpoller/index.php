@@ -121,6 +121,8 @@ if (cfr('SWITCHPOLL')) {
      * @param string $fdbSwitchFilter
      */
     function web_FDBTableShowDataTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
+        global $ubillingConfig;
+        $fdbExtenInfo = $ubillingConfig->getAlterParam('SW_FDB_EXTEN_INFO');
         $filter = '';
         $macfilter = '';
         $result = '';
@@ -132,7 +134,12 @@ if (cfr('SWITCHPOLL')) {
         $mainControls = FDBArchive::renderNavigationPanel();
         show_window('', $mainControls);
 
-        $columns = array('Switch IP', 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        if ($fdbExtenInfo) {
+            $columns = array('Switch IP', 'Port', __('Port description'), 'VLAN', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        } else {
+            $columns = array('Switch IP', 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        }
+
         $result .= wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
         show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);

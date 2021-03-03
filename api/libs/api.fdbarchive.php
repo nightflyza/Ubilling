@@ -76,6 +76,11 @@ class FDBArchive {
     protected $daysRotate = 0;
 
     /**
+     * Placeholder for SW_FDB_EXTEN_INFO alter.ini option
+     */
+    protected $fdbExtenInfo = false;
+
+    /**
      * Contains default FDB caches storage path
      */
     const PATH_CACHE = 'exports/';
@@ -84,6 +89,16 @@ class FDBArchive {
      * Contains default switches FDB cache record postfix
      */
     const EXT_SWITCHES = '_fdb';
+
+    /**
+     * Contains default switches FDB VLAN cache record postfix
+     */
+    const EXT_SWITCHES_VLAN = '_vlan';
+
+    /**
+     * Contains default switches FDB ports descriptions cache record postfix
+     */
+    const EXT_SWITCHES_PORTDESCR = '_portdescr';
 
     /**
      * Contains default PON OLT FDB cache record postfix
@@ -129,6 +144,7 @@ class FDBArchive {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+
         if (isset($this->altCfg['FDBARCHIVE_MAX_AGE'])) {
             if (!empty($this->altCfg['FDBARCHIVE_MAX_AGE'])) {
                 if (is_numeric($this->altCfg['FDBARCHIVE_MAX_AGE'])) {
@@ -136,6 +152,8 @@ class FDBArchive {
                 }
             }
         }
+
+        $this->fdbExtenInfo = $ubillingConfig->getAlterParam('SW_FDB_EXTEN_INFO');
     }
 
     /**
@@ -313,7 +331,19 @@ class FDBArchive {
         if (!empty($allCachedData)) {
             foreach ($allCachedData as $cacheIndex => $cacheFile) {
                 $rawData = file_get_contents(self::PATH_CACHE . $cacheFile);
+
                 if (!empty($rawData)) {
+                    $rawDataVLAN       = array();
+                    $rawDataPortDescr  = array();
+
+                    if (file_exists(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_VLAN)) {
+                        $rawDataVLAN = file_get_contents(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_VLAN);
+                    }
+
+                    if (file_exists(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_PORTDESCR)) {
+                        $rawDataPortDescr = file_get_contents(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_PORTDESCR);
+                    }
+
                     $switchIp = $this->extractSwitchIP($cacheFile);
                     $switchId = $this->getSwitchId($switchIp);
                     //filling new archive record
@@ -321,6 +351,8 @@ class FDBArchive {
                     $this->archive->data('devid', $switchId);
                     $this->archive->data('devip', $switchIp);
                     $this->archive->data('data', $rawData);
+                    $this->archive->data('datavlan', $rawDataVLAN);
+                    $this->archive->data('dataportdescr', $rawDataPortDescr);
                     $this->archive->data('pon', '0');
                     $this->archive->create();
                 }
@@ -370,7 +402,11 @@ class FDBArchive {
             $macFilter .= '&switchidfilter=' . ubRouting::get('switchidfilter');
         }
 
-        $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        if ($this->fdbExtenInfo) {
+            $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', __('Port description'), 'VLAN', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        } else {
+            $columns = array('Date', __('Switch') . ' / ' . __('OLT'), 'Port', 'Location', 'MAC', __('User') . ' / ' . __('Device'));
+        }
         $opts = '"order": [[ 0, "desc" ]]';
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $macFilter . $switchIdFilter, false, 'Objects', 100, $opts);
         return($result);
@@ -450,8 +486,28 @@ class FDBArchive {
             //normal switch data
             if ($archiveRecord['pon'] != 1) {
                 $fdbData = @unserialize($archiveRecord['data']);
+
                 if (!empty($fdbData)) {
+                    $fdbDataVLAN      = array();
+                    $fdbDataPortDescr = array();
+
+                    if ($this->fdbExtenInfo) {
+                        $fdbDataVLAN = @unserialize($archiveRecord['datavlan']);
+                        $fdbDataPortDescr = @unserialize($archiveRecord['dataportdescr']);
+                    }
+
                     foreach ($fdbData as $eachMac => $eachPort) {
+                        // if we have MACs stored along with VLANs (separated with underscore '_')
+                        // - we need to extract MAC portion
+                        $eachMAC_VLAN = '';
+
+                        if (ispos($eachMac, '_')) {
+                            // storing original value in "MAC_VLAN" representation
+                            $eachMAC_VLAN = $eachMac;
+                            // storing only extracted MAC portion
+                            $eachMac = substr($eachMac, 0, stripos($eachMac, '_'));
+                        }
+
                         $filtered = true;
                         //basic user MAC filtering
                         if ($macFilter) {
@@ -474,6 +530,23 @@ class FDBArchive {
                             $data[] = $recordDate;
                             $data[] = $recordIp;
                             $data[] = $eachPort;
+
+                            if ($this->fdbExtenInfo) {
+                                $eachPortDescr  = '';
+                                $eachVLAN       = '';
+
+                                if (!empty($fdbDataPortDescr[$eachPort])) {
+                                    $eachPortDescr = $fdbDataPortDescr[$eachPort];
+                                }
+
+                                if (!empty($fdbDataVLAN[$eachMAC_VLAN])) {
+                                    $eachVLAN = $fdbDataVLAN[$eachMAC_VLAN];
+                                }
+
+                                $data[] = $eachPortDescr;
+                                $data[] = $eachVLAN;
+                            }
+
                             $data[] = $switchLink;
                             $data[] = $eachMac;
                             $data[] = $this->getEntityControl($eachMac);
@@ -484,6 +557,7 @@ class FDBArchive {
                     }
                 }
             } else {
+                //PON FDB data
                 $fdbData = @unserialize($archiveRecord['data']);
                 if (!empty($fdbData)) {
                     foreach ($fdbData as $eachMacPon => $eachOnuData) {
@@ -513,6 +587,12 @@ class FDBArchive {
                                     $data[] = $recordDate;
                                     $data[] = $recordIp;
                                     $data[] = $this->getOnuHandle($eachMacPon);
+
+                                    if ($this->fdbExtenInfo) {
+                                        $data[] = '';
+                                        $data[] = @$onuFdb['vlan'];
+                                    }
+
                                     $data[] = $switchLink;
                                     $data[] = $onuFdb['mac'];
                                     $data[] = $this->getEntityControl($eachMacPon);
@@ -555,6 +635,7 @@ class FDBArchive {
                 $this->parseData($each, $macFilter, $switchIdFilter);
             }
         }
+
         $this->json->getJson();
     }
 

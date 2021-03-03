@@ -3251,6 +3251,8 @@ $lang['def']['Profile plugin'] = 'Плагін профілю';
 $lang['def']['Flush all queue'] = 'Очистити всю чергу';
 $lang['def']['Zen'] = 'Дзен';
 $lang['def']['Graphs URL'] = 'Посилання на графіки';
+$lang['def']['Port description'] = 'Опис порту';
 $lang['def'][''] = '';
+
 
 ?>
