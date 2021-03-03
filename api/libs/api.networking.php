@@ -2408,4 +2408,55 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
     return($hexMAC);
 }
 
+/**
+ * Makes "our standard truncate" of the raw SNMPWalk output, removing OID portion, OID value,
+ * leading and trailing dots and spaces
+ *
+ * @param string $snmpData
+ * @param string $oid
+ * @param array|string $oidValue
+ * @param false $returnAsStr
+ *
+ * @return array|string
+ */
+function trimSNMPOutput($snmpData, $oid,
+                        $oidValue = array('Counter32:',
+                                          'Counter64:',
+                                          'Gauge32:',
+                                          'Gauge64:',
+                                          'INTEGER:',
+                                          'STRING:',
+                                          'OID:',
+                                          'Timeticks:',
+                                          'Hex-STRING:',
+                                          'Network Address:'
+                                          ),
+                        $returnAsStr = false) {
+    $result = '';
+
+    if (!empty($snmpData)) {
+        if (!is_array($oidValue)) {
+            $oidValue = explode(',', $oidValue);
+        }
+
+        // removing OID portion
+        $snmpData = str_replace($oid, '', $snmpData);
+        // removing VALUE portion
+        $snmpData = str_replace($oidValue, '', $snmpData);
+        // trimming leading and trailing dots and spaces
+        $snmpData = trim($snmpData, '. \n\r\t');
+
+        if (!$returnAsStr) {
+            $snmpData = explode('=', $snmpData);
+            // trimming possible extra spaces
+            $snmpData[0] = trim($snmpData[0]);
+            $snmpData[1] = trim($snmpData[1]);
+        }
+
+        $result = $snmpData;
+    }
+
+    return ($result);
+}
+
 ?>

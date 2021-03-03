@@ -5115,7 +5115,7 @@ class PONizer {
                             if (isset($line[1])) {
                                 $signal = trim($line[1]); // signal level
 
-                                if ($signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                if (empty($signal)  or !is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
                                     $signal = 'Offline';
                                 } else {
                                     if ($snmpSignalOIDs['OFFSETMODE'] == 'div') {
@@ -5133,7 +5133,7 @@ class PONizer {
                             if (isset($line[1])) {
                                 $signal = trim($line[1]); // signal level
 
-                                if ($signal == $snmpSignalOIDs['DOWNVALUE']) {
+                                if (empty($signal) or !is_numeric($signal) or $signal == $snmpSignalOIDs['DOWNVALUE']) {
                                     $signal = 'Offline';
                                 } else {
                                     if ($snmpSignalOIDs['OFFSETMODE'] == 'logm') {
@@ -5248,12 +5248,14 @@ class PONizer {
 
                     if (!empty($lastRegTime) or !empty($lastDeregTime) or !empty($lastAliveTime)) {
                         if ($snmpSignalOIDs['SIGNALMODE'] == 'BDCOM') {
-                            if (ispos($snmpDevice, '3310')) {
+                            /*if (ispos($snmpDevice, '3310')) {
                                 $lastAliveTime = explode(')', $lastAliveTime);
                                 $lastAliveTime = trim($lastAliveTime[1]);
                             } else {
                                 $lastAliveTime = zb_formatTime($lastAliveTime);
-                            }
+                            }*/
+
+                            $lastAliveTime = zb_formatTime($lastAliveTime);
 
                             $lastRegTime    = $this->convertBDCOMTime($lastRegTime);
                             $lastDeregTime  = $this->convertBDCOMTime($lastDeregTime);
@@ -5318,7 +5320,7 @@ class PONizer {
      *
      * @return string
      */
-    protected function convertBDCOMTime($hexOIDVal) {
+    public function convertBDCOMTime($hexOIDVal) {
         $result = '';
 
         if (!empty($hexOIDVal)) {

@@ -1,0 +1,144 @@
+[define]
+DEVICE=Mikrotik-CRS326_SW_SFP
+POLLMODE=cumulative
+SFPSTARTPORT=25
+SFPENDPORT=26
+FDB=true
+FDB_MODE=sw_cumulative
+FDB_ALLOW_ONLY_PORTS=
+FDB_IGNORE_PORTS=
+
+[PORTIFACE]
+PORTINDEX=".1.3.6.1.2.1.2.2.1.1"
+PORTDESCR=".1.3.6.1.2.1.2.2.1.2"
+PORTALIAS=".1.3.6.1.2.1.31.1.1.1.18"
+
+[PORT.1D_FDB]
+PORTTABLE=".1.3.6.1.2.1.17.4.3.1.2"
+PORTSTATUS=".1.3.6.1.2.1.17.4.3.1.3"
+
+[PORT.1Q_FDB]
+PORTTABLE=".1.3.6.1.2.1.17.7.1.2.2.1.2"
+PORTSTATUS=".1.3.6.1.2.1.17.7.1.2.2.1.3"
+
+[PORTSTATE]
+NAME="Port states"
+OIDS=".1.3.6.1.2.1.2.2.1.8"
+PARSER=sp_parse_zyportstates
+
+[PORTDESC]
+; just a placeholder
+NAME="Desc"
+
+[PORTTX]
+NAME="Bytes transmitted"
+OIDS=".1.3.6.1.2.1.2.2.1.16"
+PARSER=sp_parse_zyportbytes
+
+[PORTRX]
+NAME="Bytes received"
+OIDS=".1.3.6.1.2.1.2.2.1.10"
+PARSER=sp_parse_zyportbytes
+
+[PORTERRTX]
+NAME="TX errors"
+OIDS=".1.3.6.1.2.1.2.2.1.20"
+PARSER=sp_parse_zyportbytes
+
+[PORTERRRX]
+NAME="RX errors"
+OIDS=".1.3.6.1.2.1.2.2.1.14"
+PARSER=sp_parse_zyportbytes
+
+[PORTMULTTX]
+NAME="Multicast TX"
+OIDS=".1.3.6.1.2.1.31.1.1.1.12"
+PARSER=sp_parse_zyportbytes
+
+[PORTMULTRX]
+NAME="Multicast RX"
+OIDS=".1.3.6.1.2.1.31.1.1.1.8"
+PARSER=sp_parse_zyportbytes
+
+[PORTBRODTX]
+NAME="Broadcast TX"
+OIDS=".1.3.6.1.2.1.31.1.1.1.13"
+PARSER=sp_parse_zyportbytes
+
+[PORTBRODRX]
+NAME="Broadcast RX"
+OIDS=".1.3.6.1.2.1.31.1.1.1.9"
+PARSER=sp_parse_zyportbytes
+
+[SFPWAVELENGTH]
+NAME="SFP wave length"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.5"
+DIV=100
+UNITS="nm"
+PARSER=sp_parse_division_units
+
+[SFPTEMP]
+NAME="SFP temperature"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.6"
+UNITS="C"
+PARSER=sp_parse_division_units
+
+[SFPVOLTAGE]
+NAME="SFP voltage"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.7"
+DIV=1000
+UNITS="V"
+PARSER=sp_parse_division_units
+
+[SFPCURRENT]
+NAME="SFP current"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.8"
+UNITS="mA"
+PARSER=sp_parse_division_units
+
+[SFPTXPOWER]
+NAME="SFP TX power"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.9"
+DIV=1000
+UNITS="dBm"
+PARSER=sp_parse_division_units
+
+[SFPRXPOWER]
+NAME="SFP RX power"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.10"
+DIV=1000
+UNITS="dBm"
+PARSER=sp_parse_division_units
+
+[CPU USE]
+NAME="CPU use"
+SECTPOLLMODE="noncumulative"
+OIDS=".1.3.6.1.2.1.25.3.3.1.2.1"
+UNITS="%"
+PARSER=sp_parse_division_units_noport
+
+[CPU TEMP]
+NAME="CPU temperature"
+SECTPOLLMODE="noncumulative"
+OIDS=".1.3.6.1.4.1.14988.1.1.3.11.0"
+DIV=10
+UNITS="C"
+PARSER=sp_parse_division_units_noport
+
+[UPTIME]
+NAME="Uptime"
+SECTPOLLMODE="noncumulative"
+OIDS=".1.3.6.1.2.1.1.3.0"
+PARSER=sp_parse_raw_trim_tab
+
+[SYSTEM VERSION]
+NAME="System version"
+SECTPOLLMODE="noncumulative"
+OIDS=".1.3.6.1.4.1.14988.1.1.7.4.0"
+PARSER=sp_parse_raw_trim_tab
+
+[SYSTEM LICENCE]
+NAME="System licence level"
+SECTPOLLMODE="noncumulative"
+OIDS=".1.3.6.1.4.1.14988.1.1.4.3.0"
+PARSER=sp_parse_raw_trim_tab
