@@ -465,7 +465,7 @@ function sp_parse_division_units_noport($data, $divBy = '', $units = '') {
         if (!empty($units)) {
             $value = $value . ' ' . $units;
         }
-file_put_contents('qqzxcvv', $units . "\n", FILE_APPEND);
+
         $cells = wf_TableCell($value);
         $rows = wf_TableRow($cells, 'row3');
         $result = wf_TableBody($rows, '100%', 0, '');
@@ -1053,7 +1053,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                         } else {
                                             $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '"' . $sectionDivBy . $sectionUnits . ');';
                                         }
-file_put_contents('zxcvv', '$sectionResult.=' . $sectionParser . '("' . $rawData . '"' . $sectionDivBy . $sectionUnits . ');' . "\n", FILE_APPEND);
+
                                         eval($parseCode);
                                     } else {
                                         $sectionResult = '';
