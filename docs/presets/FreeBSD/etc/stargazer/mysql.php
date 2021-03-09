@@ -1,6 +1,6 @@
 <?php
-$config=parse_ini_file(dirname(__FILE__)."/config");
-$dbport = (empty($this->config['port'])) ? 3306 : $this->config['port'];
+$config = parse_ini_file(dirname(__FILE__)."/config");
+$dbport = (empty($config['port'])) ? 3306 : $config['port'];
 
 if (extension_loaded('mysqli')) {
     $loginDB = new mysqli($config['host'], $config['username'], $config['password'], $config['database'], $dbport);
