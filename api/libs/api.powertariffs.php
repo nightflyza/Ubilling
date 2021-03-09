@@ -615,7 +615,11 @@ class PowerTariffs {
      * @return void
      */
     protected function userResurrect($userLogin) {
-        $this->usersDb->data('day', $this->currentDay); //set offset day to current
+        $newOffsetDay = date("d");
+        if ($newOffsetDay >= $this->maxDay) {
+            $newOffsetDay = $this->maxDay - 1;
+        }
+        $this->usersDb->data('day', $newOffsetDay); //set offset day to current with round to "next month" if required
         $this->usersDb->where('login', '=', $userLogin);
         $this->usersDb->save();
     }
