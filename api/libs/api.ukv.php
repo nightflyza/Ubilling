@@ -3870,8 +3870,8 @@ class UkvSystem {
             $searchFees = mysql_real_escape_string($_GET['showfees']);
             $payments_q = "SELECT * from `ukv_payments` WHERE `date` LIKE '" . $searchFees . "%' AND `note` LIKE 'UKVFEE:%' ORDER BY `id` DESC";
             $allPayments = simple_queryall($payments_q);
-            if (!empty($allPayments)) {
 
+            if (!empty($allPayments)) {
                 $cells = wf_TableCell(__('ID'));
                 $cells .= wf_TableCell(__('Date'));
                 $cells .= wf_TableCell(__('Cash'));
@@ -3881,15 +3881,17 @@ class UkvSystem {
 
                 foreach ($allPayments as $io => $eachPayment) {
                     if ($eachPayment['summ'] < 0) {
+                        $userLink = wf_Link(self::URL_USERS_PROFILE . $eachPayment['userid'], web_profile_icon() . ' ', false);
+                        $userAddress = $this->userGetFullAddress($eachPayment['userid']);
+                        $userRealName = (empty($this->users[$eachPayment['userid']])) ? $eachPayment['userid'] . ' - ' . __('Unknown user') : $this->users[$eachPayment['userid']]['realname'];
+
                         $cells = wf_TableCell($eachPayment['id']);
                         $cells .= wf_TableCell($eachPayment['date']);
                         $cells .= wf_TableCell($eachPayment['summ']);
-                        $userLink = wf_Link(self::URL_USERS_PROFILE . $eachPayment['userid'], web_profile_icon() . ' ', false);
-                        $userAddress = $this->userGetFullAddress($eachPayment['userid']);
                         $cells .= wf_TableCell($userLink . $userAddress);
-                        $userRealName = $this->users[$eachPayment['userid']]['realname'];
                         $cells .= wf_TableCell($userRealName);
                         $rowsf .= wf_TableRow($cells, 'row3');
+
                         $feesCount++;
                         $feesSumm = $feesSumm + $eachPayment['summ'];
                         $csvData .= $eachPayment['id'] . ';' . $eachPayment['date'] . ';' . $eachPayment['summ'] . ';' . $userAddress . ';' . $userRealName . "\r" . "\n";

@@ -1578,7 +1578,7 @@ class SendDog {
      *
      * @return bool|mixed|string
      */
-    public function cutInternationalsFromPhoneNum($PhoneNumber) {
+    public static function cutInternationalsFromPhoneNum($PhoneNumber) {
 // if we have users phones in DB like "0991234567" and some function/module
 // appended "+38" or "+7" to the beginning of it and if we need to remove that prefix
 // for MYSQL "LIKE" to search properly

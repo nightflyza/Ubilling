@@ -1,7 +1,7 @@
 <?php
 
 /**
- * DreamKas service interraction class
+ * DreamKas service interaction class
  */
 class DreamKas {
     /**

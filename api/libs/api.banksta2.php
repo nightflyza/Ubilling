@@ -1326,6 +1326,7 @@ class Banksta2 {
      * Push bank statement payments for users that have been found
      *
      * @param $paymentsToPush
+     * @param bool $refiscalize
      *
      * @return void
      */
@@ -1380,6 +1381,7 @@ class Banksta2 {
         }
 
         if (!empty($paymentsToPush)) {
+
             $ukv = new UkvSystem();
             $allParentUsers = ($checkForCorpUsers and !$refiscalize) ? cu_GetAllParentUsers() : array();
 
@@ -1714,9 +1716,9 @@ class Banksta2 {
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter(0);
 
-            $inputs.= wf_Selector('bssrvidents_col', $bssrvidents_arr, __('Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), '6', true);
-            $inputs.= wf_CheckInput('bssrvidentspreff', __('Dedicated field with services IDs idents takes precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
-            $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 880px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+            $inputs.= wf_Selector('bssrvidents_col', $bssrvidents_arr, __('Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), '6', true);
+            $inputs.= wf_CheckInput('bssrvidentspreff', __('Services IDs identifiers from the dedicated field take precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
+            $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 980px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
             $inputs.= __('NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services');
             $inputs.= wf_tag('h4', true);
             $inputs.= wf_delimiter(0);
@@ -2260,15 +2262,19 @@ class Banksta2 {
                     $submitCaption = __('Process current bank statement');
                 }
 
-                $formID = wf_InputId();
+                $formID     = wf_InputId();
+                $submitID   = wf_InputId();
                 $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstapaymentsfiscalize', '') : '';
-                $cashInputs.= wf_Submit($submitCaption);
+                $cashInputs.= wf_Submit($submitCaption, $submitID);
                 $result.= wf_Form('', 'POST', $cashInputs, 'glamour', '', $formID);
 
                 if ($dreamkasEnabled) {
                     $result.= wf_tag('script', false, '', 'type="text/javascript"');
                     $result.= '
                                 $(\'#' . $formID . '\').submit(function(evt) {
+                                    $(\'#' . $submitID . '\').attr("disabled", "disabled");
+                                    $(\'#' . $submitID . '\').val("' . __('Form processing in progress') . '...' . '");
+                                    
                                     fiscalizationArr = {};
                               ';
                     $result.= ($refiscalize) ? '' : 'fiscalRecsIDsList = JSON.parse(atob($(\'[name="bankstafiscalrecsidslist"]\').val()));';
@@ -2290,6 +2296,15 @@ class Banksta2 {
                                     });
                                     
                                     $(\'[name="bankstapaymentsfiscalize"]\').val(btoa(JSON.stringify(fiscalizationArr)));
+                                });
+                              ';
+                    $result.= wf_tag('script', true);
+                } else {
+                    $result.= wf_tag('script', false, '', 'type="text/javascript"');
+                    $result.= '
+                                $(\'#' . $formID . '\').submit(function(evt) {
+                                    $(\'#' . $submitID . '\').attr("disabled", "disabled");
+                                    $(\'#' . $submitID . '\').val("' . __('Form processing in progress') . '...' . '");
                                 });
                               ';
                     $result.= wf_tag('script', true);
@@ -2589,9 +2604,9 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', '', true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), '', true, '', '', '', 'BankstaUKVDelimEnd');
         $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('fmpcolsrvidents', __('Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), 'NONE', true, '4');
-        $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Dedicated field with services IDs idents takes precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
-        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 880px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+        $inputs.= wf_TextInput('fmpcolsrvidents', __('Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), 'NONE', true, '4');
+        $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Services IDs identifiers from the dedicated field take precedence over service type telepathy'), true, false, 'BankstaSrvIdentsPreff');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 980px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services');
         $inputs.= wf_tag('h4', true);
         $inputs.= wf_delimiter(0);
@@ -2684,9 +2699,9 @@ class Banksta2 {
         $inputs.= wf_TextInput('fmpukvkeywords', __('UKV service determination keywords') . ', ' . __('separated with') . ' BANKSTA2_REGEX_KEYWORDS_DELIM', $fmpData['ukv_srv_keywords'], true, '40', '', '', 'BankstaUKVKeyWords');
         $inputs.= wf_TextInput('fmpukvdelimend', __('UKV service after keywords delimiter string'), $fmpData['ukv_srv_end_delim'], true, '', '', '', 'BankstaUKVDelimEnd');
         $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput('fmpcolsrvidents', __('Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), $colSrvIdents, true, '4');
-        $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Dedicated field with services IDs idents takes precedence over service type telepathy'), true, $prefferSrvIdents, 'BankstaSrvIdentsPreff');
-        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 880px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
+        $inputs.= wf_TextInput('fmpcolsrvidents', __('Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'), $colSrvIdents, true, '4');
+        $inputs.= wf_CheckInput('fmpsrvidentspreff', __('Services IDs identifiers from the dedicated field take precedence over service type telepathy'), true, $prefferSrvIdents, 'BankstaSrvIdentsPreff');
+        $inputs.= wf_tag('h4', false, '', 'style="font-weight: 400; width: 980px; padding: 2px 0 8px 28px; color: #666; margin-block-end: 0; margin-block-start: 0;"');
         $inputs.= __('NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services');
         $inputs.= wf_tag('h4', true);
         $inputs.= wf_delimiter(0);
