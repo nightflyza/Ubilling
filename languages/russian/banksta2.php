@@ -103,5 +103,9 @@ $lang['def']['Char replacing'] = 'Замена символов';
 $lang['def']['Char removing'] = 'Удаление символов';
 $lang['def']['Processing canceled'] = 'Исключено из обработки';
 $lang['def']['Custom payment type ID for this bank statement'] = 'Кастомный ID типа оплат для этой выписки';
+$lang['def']['Form processing in progress'] = 'Обработка формы';
+$lang['def']['Number of the dedicated field which contains services IDs identifiers mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'] = 'Номер выделенного поля, которое содержит ID сервисов указанных в опциях BANKSTA2_INETSRV_ALLOTED_IDS и BANKSTA2_CTVSRV_ALLOTED_IDS';
+$lang['def']['Services IDs identifiers from the dedicated field take precedence over service type telepathy'] = 'ID сервисов из выделенного поля имеют преимущество перед телепатией сервисов';
+$lang['def']['NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services'] = 'ПРИМЕЧАНИЕ: ID сервисов из выделенного поля всегда имеют преимущество перед выбранным вручную \'Интернет\' или \'УКВ\' сервисом';
 $lang['def'][''] = '';
 ?>

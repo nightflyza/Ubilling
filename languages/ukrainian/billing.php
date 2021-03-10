@@ -3229,9 +3229,6 @@ $lang['def']['Extended info'] = 'Додаткова інформація';
 $lang['def']['Choose service type'] = 'Оберіть тип сервісу';
 $lang['def']['Contragent code within payment system'] = 'Код контрагента в платіжній системі';
 $lang['def']['Service code within payment system'] = 'Код сервісу в платіжній системі';
-$lang['def']['Dedicated field with services IDs idents mapped via BANKSTA2_INETSRV_ALLOTED_IDS and BANKSTA2_CTVSRV_ALLOTED_IDS'] = 'Виділене поле з ІД сервісів вказаних в опціях BANKSTA2_INETSRV_ALLOTED_IDS и BANKSTA2_CTVSRV_ALLOTED_IDS';
-$lang['def']['Dedicated field with services IDs idents takes precedence over service type telepathy'] = 'ІД сервісів з виділеного поля мають перевагу перед телепатією сервісів';
-$lang['def']['NOTE: dedicated field\'s services IDs are always take precedence over manually chosen \'Internet\' or \'UKV\' services'] = 'ПРИМІТКА: ІД сервісів з виділеного поля завжди мають перевагу перед обраним вручну \'Інтернет\' чи \'УКВ\' сервісом';
 $lang['def']['Agree'] = 'Згоден';
 $lang['def']['Tariff contains'] = 'Тариф містить';
 $lang['def']['External fee'] = 'Зовнішнє нарахування';
@@ -3252,6 +3249,7 @@ $lang['def']['Flush all queue'] = 'Очистити всю чергу';
 $lang['def']['Zen'] = 'Дзен';
 $lang['def']['Graphs URL'] = 'Посилання на графіки';
 $lang['def']['Port description'] = 'Опис порту';
+$lang['def']['Unknown user'] = 'Невідомий користувач';
 $lang['def'][''] = '';
 
 

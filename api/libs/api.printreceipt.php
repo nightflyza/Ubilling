@@ -407,11 +407,13 @@ class PrintReceipt {
 
         } else {
             $query = "SELECT * FROM 
-                          ( SELECT `ukv_users`.`id` AS login, `ukv_users`.*, `ukv_tariffs`.`tariffname`, `ukv_tariffs`.`price` AS `tariffprice`,
-                                   " . $tag_query_str . "  
+                          ( SELECT `ukv_users`.`id` AS login, `ukv_users`.*, `ukv_users`.`regdate` AS `contractdate`, `ukv_tariffs`.`tariffname`, `ukv_tariffs`.`price` AS `tariffprice`,
+                                   " . $tag_query_str . "
+                                   " . $addrexten_query . "
                                    " . $debtAsBalance . " AS `debtasbalance`                                   
                                     FROM `ukv_users` 
                                         LEFT JOIN `ukv_tariffs` ON `ukv_users`.`tariffid` = `ukv_tariffs`.`id` "
+                                        . $addrexten_join
                                         . $tag_join_str . ") AS tmpQ " .
                           $whereClause . " ORDER BY `street` ASC, `build` ASC";
         }

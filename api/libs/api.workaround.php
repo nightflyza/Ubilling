@@ -1996,9 +1996,11 @@ function web_PaymentsShowGraph($year) {
  * @param bool $delete
  * @param bool $edit
  * @param string $prefix
+ * @param string $extaction
+ * @param string $extbutton
  * @return string
  */
-function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '') {
+function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '', $extaction = '', $extbutton = '') {
 
     //headers
     $cells = '';
@@ -2030,7 +2032,13 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
                 $editcontrol = '';
             }
 
-            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
+            if (!empty($extaction)) {
+                $extencontrol = wf_Link('?module=' . $module . '&' . $prefix . $extaction . '=' . $eachdata['id'], $extbutton, false);
+            } else {
+                $extencontrol = '';
+            }
+
+            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol . ' ' . $extencontrol);
             $rows .= wf_TableRow($cells, 'row5');
         }
     }
@@ -2969,6 +2977,7 @@ function translit_string($var) {
  * 
  * @param string $string
  * @param string $search
+ *
  * @return bool
  */
 function ispos($string, $search) {
@@ -2976,6 +2985,32 @@ function ispos($string, $search) {
         return(false);
     } else {
         return(true);
+    }
+}
+
+/**
+ * Checks for substring in string
+ *
+ * @param string $string
+ * @param string|array $search
+ *
+ * @return bool
+ */
+function ispos_array($string, $search) {
+    if (is_array($search)) {
+        foreach ($search as $eachStr) {
+            if (strpos($string, $eachStr) !== false) {
+                return (true);
+            }
+        }
+
+        return(false);
+    } else {
+        if (strpos($string, $search) === false) {
+            return(false);
+        } else {
+            return(true);
+        }
     }
 }
 
