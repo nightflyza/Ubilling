@@ -123,6 +123,7 @@ function zb_ContrAhentGetAllData() {
  * @return string
  */
 function zb_ContrAhentShow() {
+    global $ubillingConfig;
     $allcontr = zb_ContrAhentGetAllData();
 
     // construct needed editor
@@ -152,7 +153,14 @@ function zb_ContrAhentShow() {
         'phone',
         'contrname'
     );
-    $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true);
+
+    if ($ubillingConfig->getAlterParam('AGENTS_EXTINFO_ON')) {
+        $extactbutton = wf_img('skins/icons/articlepost.png', __('Extended info'));
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true, '', 'extinfo', $extactbutton);
+    } else {
+        $result = web_GridEditor($titles, $keys, $allcontr, 'contrahens', true, true);
+    }
+
     return($result);
 }
 
@@ -1260,4 +1268,137 @@ function zb_AgentStatsRender($mask = '') {
     return($result);
 }
 
+/**
+ * Returns extended agent info filtered by $recID or $agentID.
+ * If no $recID or $agentID parameter given - all available records returned.
+ *
+ * @param string $recID
+ * @param string $agentID
+ * @param false $getBaseAgentInfo
+ *
+ * @return array
+ */
+function zb_GetAgentExtInfo($recID = '', $agentID = '', $getBaseAgentInfo = false) {
+    $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
+
+    if ($getBaseAgentInfo) {
+        $tabAgentExtInfo->selectable(array('`contrahens_extinfo`.*', '`contrahens`.`contrname`'));
+        $tabAgentExtInfo->joinOn('LEFT', 'contrahens', " `contrahens_extinfo`.`agentid` = `contrahens`.`id` ");
+    }
+
+    if (!empty($recID)) {
+        $tabAgentExtInfo->where('id', '=', $recID);
+    }
+
+    if (!empty($agentID)) {
+        $tabAgentExtInfo->where('agentid', '=', $agentID);
+    }
+
+    $result = $tabAgentExtInfo->getAll();
+
+    return ($result);
+}
+
+
+function zb_CreateAgentExtInfoRec($extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
+    $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
+    $tabAgentExtInfo->dataArr(array(
+                                  'agentid'                => $extinfoAgentID,
+                                  'service_type'           => $extinfoSrvType,
+                                  'internal_paysys_name'   => $extinfoPaySysName,
+                                  'internal_paysys_id'     => $extinfoPaySysID,
+                                  'internal_paysys_srv_id' => $extinfoPaySysSrvID
+                                   )
+                             );
+
+    $tabAgentExtInfo->create();
+}
+
+function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $extinfoPaySysName = '', $extinfoPaySysID = '', $extinfoPaySysSrvID = '') {
+    $tabAgentExtInfo = new NyanORM('contrahens_extinfo');
+    $tabAgentExtInfo->dataArr(array(
+                                    'id'                     => $recID,
+                                    'agentid'                => $extinfoAgentID,
+                                    'service_type'           => $extinfoSrvType,
+                                    'internal_paysys_name'   => $extinfoPaySysName,
+                                    'internal_paysys_id'     => $extinfoPaySysID,
+                                    'internal_paysys_srv_id' => $extinfoPaySysSrvID
+                                   )
+                             );
+    $tabAgentExtInfo->where('id', '=', $recID);
+    $tabAgentExtInfo->save();
+}
+
+/**
+ * Returns extended agent info edit form
+ *
+ * @param string $recID
+ *
+ * @return string
+ */
+function zb_AgentEditExtInfoForm($recID = '') {
+    $extinfoData        = (empty($recID) ? array() : zb_GetAgentExtInfo($recID));
+    $extinfoEditMode    = !empty($extinfoData);
+    $extinfoRecID       = '';
+    $extinfoAgentID     = ubRouting::checkGet('extinfo') ? ubRouting::get('extinfo') : '';
+    $extinfoSrvType     = '';
+    $extinfoPaySysName  = '';
+    $extinfoPaySysID    = '';
+    $extinfoPaySysSrvID = '';
+
+    if ($extinfoEditMode) {
+        $extinfoRecID       = $extinfoData[0]['id'];
+        $extinfoAgentID     = $extinfoData[0]['agentid'];
+        $extinfoSrvType     = $extinfoData[0]['service_type'];
+        $extinfoPaySysName  = $extinfoData[0]['internal_paysys_name'];
+        $extinfoPaySysID    = $extinfoData[0]['internal_paysys_id'];
+        $extinfoPaySysSrvID = $extinfoData[0]['internal_paysys_srv_id'];
+    }
+
+    $inputs = wf_Selector('extinfsrvtype', array('Internet' => __('Internet'), 'UKV' => __('UKV')), __('Choose service type'), $extinfoSrvType, true);
+    $inputs.= wf_TextInput('extinfintpaysysname', __('Payment system name'), $extinfoPaySysName, true);
+    $inputs.= wf_TextInput('extinfintpaysysid', __('Contragent code within payment system'), $extinfoPaySysID, true);
+    $inputs.= wf_TextInput('extinfintpaysyssrvid', __('Service code within payment system'), $extinfoPaySysSrvID, true);
+    $inputs.= wf_HiddenInput('extinfrecid', $extinfoRecID);
+    $inputs.= wf_HiddenInput('extinfagentid', $extinfoAgentID);
+    $inputs.= wf_HiddenInput('extinfeditmode', $extinfoEditMode);
+    $inputs .= wf_Submit(($extinfoEditMode) ? __('Edit') : __('Create'));
+
+    $result = wf_Form("", 'POST', $inputs, 'glamour');
+
+    return($result);
+}
+
+/**
+ * Returns all available extended agent info for a particular $agentID
+ *
+ * @param $agentID
+ *
+ * @return string
+ */
+function zb_RenderAgentExtInfoTable($agentID) {
+    $extinfoData = zb_GetAgentExtInfo('', $agentID, true);
+
+    // construct needed editor
+    $titles = array(
+        'ID',
+        'Contrahent name',
+        'Service type',
+        'Payment system name',
+        'Contragent code within payment system',
+        'Service code within payment system'
+    );
+    $keys = array(
+        'id',
+        'contrname',
+        'service_type',
+        'internal_paysys_name',
+        'internal_paysys_id',
+        'internal_paysys_srv_id'
+    );
+
+    $result = web_GridEditor($titles, $keys, $extinfoData, 'contrahens&extinfo=' . $agentID, true, true);
+
+    return($result);
+}
 ?>

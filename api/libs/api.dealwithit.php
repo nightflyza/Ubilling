@@ -1126,6 +1126,7 @@ class DealWithIt {
             'active' => __('Active'),
             'AlwaysOnline' => __('Always Online'),
             'inactive' => __('Inactive'),
+            'down' => __('Disconnected'),
             'frozen' => __('Frozen'),
         );
         // Load tariffs
@@ -1323,6 +1324,9 @@ class DealWithIt {
                         $where = "`AlwaysOnline` ='1'";
                         break;
                     case 'inactive':
+                        $where = "`Cash` < -`Credit`  ";
+                        break;
+                    case 'down':
                         $where = "`Down` ='1'";
                         break;
                     case 'frozen':
@@ -1443,6 +1447,9 @@ class DealWithIt {
                         $where = "`AlwaysOnline` ='1'";
                         break;
                     case 'inactive':
+                        $where = "`Cash` < -`Credit`  ";
+                        break;
+                    case 'down':
                         $where = "`Down` ='1'";
                         break;
                     case 'frozen':
