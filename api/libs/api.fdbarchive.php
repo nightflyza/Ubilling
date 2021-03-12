@@ -333,8 +333,8 @@ class FDBArchive {
                 $rawData = file_get_contents(self::PATH_CACHE . $cacheFile);
 
                 if (!empty($rawData)) {
-                    $rawDataVLAN       = array();
-                    $rawDataPortDescr  = array();
+                    $rawDataVLAN       = '';
+                    $rawDataPortDescr  = '';
 
                     if (file_exists(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_VLAN)) {
                         $rawDataVLAN = file_get_contents(self::PATH_CACHE . $cacheFile . self::EXT_SWITCHES_VLAN);
