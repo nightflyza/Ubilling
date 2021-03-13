@@ -202,11 +202,14 @@ function zb_SwitchModelGetData($modelid) {
  * Returns switch model selector
  * 
  * @param string $selectname Name of input element
+ * @param array $allmodels available models array
  * @return string
  */
-function web_SwitchModelSelector($selectname = 'switchmodelid') {
+function web_SwitchModelSelector($selectname = 'switchmodelid', $allmodels = array()) {
     $tmpArr = array();
-    $allmodels = zb_SwitchModelsGetAll();
+    if (empty($allmodels)) {
+        $allmodels = zb_SwitchModelsGetAll();
+    }
     if (!empty($allmodels)) {
         foreach ($allmodels as $io => $each) {
             $tmpArr[$each['id']] = $each['modelname'];
@@ -317,28 +320,35 @@ function web_SwitchFormAdd() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $swGroupsEnabled = $ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
-    $addinputs = wf_TextInput('newip', 'IP', '', true, 20);
-    $addinputs .= wf_TextInput('newlocation', 'Location', '', true, 30);
-    $addinputs .= wf_TextInput('newdesc', 'Description', '', true, 30);
-    $addinputs .= wf_TextInput('newsnmp', 'SNMP community', '', true, 20);
-    $addinputs .= wf_TextInput('newsnmpwrite', 'SNMP write community', '', true, 20);
-    if ($altCfg['SWITCHES_EXTENDED']) {
-        $addinputs .= wf_TextInput('newswid', 'Switch ID', '', true, 20);
-    }
-    $addinputs .= wf_TextInput('newgeo', 'Geo location', '', true, 20, 'geo');
-    $addinputs .= web_SwitchModelSelector('newswitchmodel');
-    $addinputs .= wf_tag('br');
-    $addinputs .= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '');
-    $addinputs .= wf_tag('br');
+    $equipmentModels = zb_SwitchModelsGetAll();
+    if (!empty($equipmentModels)) {
+        $addinputs = wf_TextInput('newip', 'IP', '', true, 20);
+        $addinputs .= wf_TextInput('newlocation', 'Location', '', true, 30);
+        $addinputs .= wf_TextInput('newdesc', 'Description', '', true, 30);
+        $addinputs .= wf_TextInput('newsnmp', 'SNMP community', '', true, 20);
+        $addinputs .= wf_TextInput('newsnmpwrite', 'SNMP write community', '', true, 20);
+        if ($altCfg['SWITCHES_EXTENDED']) {
+            $addinputs .= wf_TextInput('newswid', 'Switch ID', '', true, 20);
+        }
+        $addinputs .= wf_TextInput('newgeo', 'Geo location', '', true, 20, 'geo');
+        $addinputs .= web_SwitchModelSelector('newswitchmodel', $equipmentModels);
+        $addinputs .= wf_tag('br');
+        $addinputs .= web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '');
+        $addinputs .= wf_tag('br');
 
-    if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
-        $switchGroups = new SwitchGroups();
-        $addinputs .= $switchGroups->renderSwitchGroupsSelector('newswgroup') . wf_delimiter();
-    }
+        if (cfr('SWITCHGROUPS') and $swGroupsEnabled) {
+            $switchGroups = new SwitchGroups();
+            $addinputs .= $switchGroups->renderSwitchGroupsSelector('newswgroup') . wf_delimiter();
+        }
 
-    $addinputs .= wf_tag('br');
-    $addinputs .= wf_Submit('Save');
-    $addform = wf_Form("", 'POST', $addinputs, 'glamour');
+        $addinputs .= wf_tag('br');
+        $addinputs .= wf_Submit('Save');
+        $addform = wf_Form("", 'POST', $addinputs, 'glamour');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $errorNotice = __('Equipment models') . ': ' . __('Not exists');
+        $addform = $messages->getStyledMessage($errorNotice, 'error');
+    }
     return($addform);
 }
 
