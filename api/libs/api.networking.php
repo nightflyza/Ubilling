@@ -1913,11 +1913,17 @@ function zb_NewMacShow() {
             }
         }
         $un_arr = array_unique($allarp);
+
         if (!empty($un_arr)) {
+            if (@$alter_config['NMREVERSE']) {
+                //revert array due usability reasons 
+                $un_arr = array_reverse($un_arr);
+            }
             if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
                 //adding ajax loader
                 $result .= wf_AjaxLoader();
             }
+
             foreach ($un_arr as $io => $eachmac) {
                 if (zb_checkMacFree($eachmac, $allusedMacs)) {
                     $cells = wf_TableCell(@$eachmac);
@@ -2419,19 +2425,17 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  *
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid,
-                        $oidValue = array('Counter32:',
-                                          'Counter64:',
-                                          'Gauge32:',
-                                          'Gauge64:',
-                                          'INTEGER:',
-                                          'STRING:',
-                                          'OID:',
-                                          'Timeticks:',
-                                          'Hex-STRING:',
-                                          'Network Address:'
-                                          ),
-                        $returnAsStr = false) {
+function trimSNMPOutput($snmpData, $oid, $oidValue = array('Counter32:',
+    'Counter64:',
+    'Gauge32:',
+    'Gauge64:',
+    'INTEGER:',
+    'STRING:',
+    'OID:',
+    'Timeticks:',
+    'Hex-STRING:',
+    'Network Address:'
+), $returnAsStr = false) {
     $result = '';
 
     if (!empty($snmpData)) {

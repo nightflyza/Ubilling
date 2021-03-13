@@ -365,12 +365,17 @@ function zb_NewMacSelect($name = 'newmac') {
                 }
             }
         }
+
         $unique_nmarr = array_unique($nmarr);
         if (!empty($unique_nmarr)) {
             foreach ($unique_nmarr as $newmac) {
                 if (zb_checkMacFree($newmac, $allUsedMacs)) {
                     $resultArr[$newmac] = $newmac;
                 }
+            }
+            //revert array due usability reasons (i hope).
+            if (@$alter_conf['NMREVERSE']) {
+                $resultArr = array_reverse($resultArr);
             }
         }
     }
