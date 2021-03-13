@@ -40,22 +40,31 @@ if (cfr('PROCRAST')) {
                 $jsCode = file_get_contents('modules/jsc/procrastdata/2048/2048.html');
                 show_window(__('2048'), $jsCode);
                 break;
-            case 'isaac':
-                $jsCode = file_get_contents('modules/jsc/procrastdata/isaac.html');
-                show_window(__('The Binding of Isaac'), $jsCode);
-                break;
-             case 'robotunicorn':
-                $jsCode = file_get_contents('modules/jsc/procrastdata/robotunicorn.html');
-                show_window(__('Robot unicorn attack'), $jsCode);
-                break;
             case 'motox3m':
                 $jsCode = file_get_contents('modules/jsc/procrastdata/motox3m.html');
                 show_window(__('Moto X3M'), $jsCode, 'center');
                 break;
-            case 'happywheels':
-                $jsCode = file_get_contents('modules/jsc/procrastdata/happywheels.html');
-                show_window(__('Happy Wheels'), $jsCode, 'center');
+            case 'astray':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/astray/run.html');
+                show_window(__('Astray'), $jsCode, 'center');
                 break;
+            case 'hextris':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/hextris/run.html');
+                show_window(__('Hextris'), $jsCode, 'center');
+                break;
+              case 'duckhunt':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/duckhunt.html');
+                show_window(__('Duck hunt'), $jsCode, 'center');
+                break;
+             case 'circus':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/circus.html');
+                show_window(__('Circus Charlie'), $jsCode, 'center');
+                break;
+              case 'pixeldefense':
+                $jsCode = file_get_contents('modules/jsc/procrastdata/pixeldefense.html');
+                show_window(__('PixelDefense'), $jsCode, 'center');
+                break;
+          
         }
         show_window('', wf_BackLink('?module=procrast'));
     } else {
@@ -63,10 +72,12 @@ if (cfr('PROCRAST')) {
         $applicationArr = array(
             'tetris' => __('Tetris'),
             '2048' => __('2048'),
-            'isaac' => __('The Binding of Isaac'),
-            'robotunicorn' => __('Robot Unicorn Attack'),
+            'astray' => __('Astray'),
+            'hextris' => __('Hextris'),
+            'duckhunt' => __('Duck hunt'),
             'motox3m' => __('Moto X3M'),
-            'happywheels' => __('Happy Wheels')
+            'circus' => __('Circus Charlie'),
+            'pixeldefense' => __('PixelDefense'),
         );
 
 
