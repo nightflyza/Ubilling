@@ -72,6 +72,18 @@ if ($altCfg['PON_ENABLED']) {
             ubRouting::nav($pon::URL_ME);
         }
 
+        //burial of some ONU
+        if (ubRouting::checkGet('onuburial')) {
+            $pon->onuBurial(ubRouting::get('onuburial'));
+            ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuburial'));
+        }
+
+        //resurrection of some ONU
+        if (ubRouting::checkGet('onuresurrect')) {
+            $pon->onuResurrect(ubRouting::get('onuresurrect'));
+            ubRouting::nav($pon::URL_ME . '&editonu=' . ubRouting::get('onuresurrect'));
+        }
+
         //assigning ONU with some user
         if (ubRouting::checkPost(array('assignonulogin', 'assignonuid'))) {
             $pon->onuAssign(ubRouting::post('assignonuid'), ubRouting::post('assignonulogin'));

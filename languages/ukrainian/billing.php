@@ -1946,7 +1946,7 @@ $lang['def']['Empty file'] = 'Порожній файл';
 $lang['def']['Show duplicates'] = 'Показати дублікати';
 $lang['def']['PON support enabled'] = 'Підтримка PON увімкнена';
 $lang['def']['PONizer'] = 'ПОНізатор';
-$lang['def']['right to control PONizer'] = 'Право керувати ПОНізатором';
+$lang['def']['right to use PONizer'] = 'Право користуватись ПОНізатором';
 $lang['def']['Is Cumulative discounts enabled'] = 'Накопичувальні знижки увімкнено';
 $lang['def']['Cumulative discounts period'] = 'Періодичність накопичувальних знижок у днях';
 $lang['def']['Cumulative discounts percent per alive period'] = 'Відсоток знижки що встановлюється при проходженні періоду';
@@ -3250,7 +3250,12 @@ $lang['def']['Zen'] = 'Дзен';
 $lang['def']['Graphs URL'] = 'Посилання на графіки';
 $lang['def']['Port description'] = 'Опис порту';
 $lang['def']['Unknown user'] = 'Невідомий користувач';
-$lang['def'][''] = '';
 
+//rev 7922
 
+$lang['def']['right to delete PON ONUs'] = 'Право видаляти ONU з ПОНізатора';
+$lang['def']['Bury this ONU'] = 'Похоронити цю ONU';
+$lang['def']['Buried'] = 'Похоронено';
+$lang['def']['Resurrect this ONU'] = 'Воскресити цю ONU';
+$lang['def']['After resurrection device will be marked as not belonging to anyone'] = 'Після воскресіння пристрій буде позначено як нічий';
 ?>
