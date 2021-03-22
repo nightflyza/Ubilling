@@ -478,7 +478,7 @@ class PONBoxes {
                     if (!empty($onuUser)) {
                         //fast and dirty address search
                         $allUserAddress = zb_AddressGetFulladdresslistCached();
-                        $onuUserAddress = $allUserAddress[$onuUser];
+                        $onuUserAddress = @$allUserAddress[$onuUser];
 
                         if ($eachLink['address'] == $onuUserAddress) {
                             $result[$eachLink['boxid']] = $eachLink['id'];
