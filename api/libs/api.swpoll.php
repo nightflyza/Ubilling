@@ -790,6 +790,56 @@ function sp_SnmpParseFdb($portTable) {
 }
 
 /**
+ * Parsing of FDB port table SNMP raw data from Cisco 3xx
+ * 
+ * @param   $portTable raw SNMP data
+ * 
+ * @return  array
+ */
+function sp_SnmpParseFdbCisEb($portTable) {
+    $portData = array();
+    $arr_PortTable = explodeRows($portTable);
+    if (!empty($arr_PortTable)) {
+        foreach ($arr_PortTable as $eachEntry) {
+            if (!empty($eachEntry)) {
+                $eachEntry = str_replace('.1.3.6.1.2.1.17.4.3.1.2', '', $eachEntry);
+                $cleanMac = '';
+                $rawMac = explode('=', $eachEntry);
+
+                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                if (count($parts) == 7) {
+                    $cleanMac = call_user_func_array('sprintf', $parts);
+                    $port = ubRouting::filters($rawMac[1], 'int');
+                    //A-A-A!!!!111
+                    $portReplaceTable = array(
+                        1 => 49,
+                        2 => 50,
+                        27 => 51,
+                        28 => 52,
+                    );
+
+                    //combo ports offset
+                    if (isset($portReplaceTable[$port])) {
+                        $port = $portReplaceTable[$port];
+                    } else {
+                        if ($port < 27) {
+                            $port = $port - 2;
+                        }
+
+                        if ($port > 28) {
+                            $port = $port - 4;
+                        }
+                    }
+
+                    $portData[strtolower($cleanMac)] = $port;
+                }
+            }
+        }
+    }
+    return ($portData);
+}
+
+/**
  * Parsing of FDB port table SNMP raw data for some exotic Dlink switches
  * 
  * @param   $portTable raw SNMP data
@@ -1268,6 +1318,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $flpOid = '.1.3.6.1.2.1.17.7.1.2.3.1.2';
                         $portTable = $snmp->walk($ip, $community, $flpOid, true);
                     }
+
+                    //cisco ebobo parser
+                    if ($deviceFdbMode == 'ciscoebobo') {
+                        $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true);
+                    }
                 }
 
                 if (!empty($portTable)) {
@@ -1307,6 +1362,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         //foxgate - its you again? Oo
                         if ($deviceFdbMode == 'flp') {
                             $portData = sp_SnmpParseFdbFlp($portTable, $flpOid);
+                        }
+
+                        //cisco 3xx series giga-port fucking issue
+                        if ($deviceFdbMode == 'ciscoebobo') {
+                            $portData = sp_SnmpParseFdbCisEb($portTable, '.1.3.6.1.2.1.17.4.3.1.2');
                         }
                     }
 

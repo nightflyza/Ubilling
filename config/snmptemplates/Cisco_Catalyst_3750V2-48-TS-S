@@ -3,7 +3,7 @@
 [define]
 DEVICE="Cisco Catalyst 3750V2-48-TS-S"
 FDB=true
-FDB_MODE=default
+FDB_MODE=ciscoebobo
 FDB_IGNORE_PORTS="52"
 
 [PORTSTATE]
