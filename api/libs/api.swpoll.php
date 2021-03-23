@@ -1867,6 +1867,7 @@ function zb_SanitizeSNMPValue($data) {
         $data = explode('=', $data);
         if (isset($data[1])) {
             $result = str_ireplace($dataTypes, '', $data[1]);
+            $result = trim($result);
         }
     }
 
