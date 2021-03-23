@@ -3161,6 +3161,64 @@ function wf_doSound($url) {
 }
 
 /**
+ * Renders temperature gauge
+ *
+ * @param float $temperature
+ * @param string $title
+ * @param string $options
+ *
+ * @return string
+ */
+function wf_renderTemperature($temperature, $title = '', $options = '') {
+    $result = '';
+    $gaugeId = wf_InputId();
+
+    if (empty($options)) {
+        $options = ' max: 100,
+                     min: 0,
+                     width: 280, height: 280,
+                     greenFrom: 10, greenTo: 60,
+                     yellowFrom:60, yellowTo: 70,
+                     redFrom: 70, redTo: 100,
+                     minorTicks: 5';
+    }
+
+    $containerStyle = 'width: 300px; height: 300px; float:left; ';
+    $result .= wf_tag('div', false, '', 'style="' . $containerStyle . '"');
+    $result .= wf_tag('div', false, '', 'id="temperature_div' . $gaugeId . '"');
+    $result .= wf_tag('div', true);
+    $result .= wf_tag('center') . wf_tag('b') . $title . wf_tag('b', true) . wf_tag('center', true);
+    $result .= wf_tag('div', true);
+
+    $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
+    $result .= wf_tag('script');
+
+    $result .= 'google.charts.load(\'current\', {\'packages\':[\'gauge\']});
+          google.charts.setOnLoadCallback(drawChart);
+
+          function drawChart() {
+
+            var data = google.visualization.arrayToDataTable([
+              [\'Label\', \'Value\'],
+              [\'°C\', ' . $temperature . ']
+
+            ]);
+
+            var options = {
+             ' . $options . '
+            };
+
+            var chart = new google.visualization.Gauge(document.getElementById(\'temperature_div' . $gaugeId . '\'));
+
+            chart.draw(data, options);
+        
+          } ';
+    $result .= wf_tag('script', true);
+
+    return ($result);
+}
+
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {
