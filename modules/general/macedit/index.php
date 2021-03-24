@@ -58,7 +58,7 @@ if (cfr('MAC')) {
                 //show error when MAC is in usage
                 show_error(__('This MAC is currently used'));
                 //debuglog
-                log_register("MACDUPLICATE TRY (" . $login . ")");
+                log_register('MACDUPLICATE TRY (' . $login . ') `' . $mac . '`');
             }
         }
 
