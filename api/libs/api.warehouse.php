@@ -1587,6 +1587,7 @@ class Warehouse {
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
             $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Warehouse item type') . ' ' . __('History'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', wf_img_sized('skins/shopping_cart_small.png') . ' ' . __('Purchases'), false, 'ubButton');
             $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
@@ -3116,6 +3117,7 @@ class Warehouse {
     public function summaryReport() {
         $result = '';
         if ($_SERVER['QUERY_STRING'] == 'module=warehouse') {
+            $curMonth = curmonth();
             $result .= $this->reserveAlert();
 
             if (empty($this->allCategories)) {
@@ -3146,6 +3148,17 @@ class Warehouse {
                 $result .= $this->messages->getStyledMessage(__('No incoming operations yet'), 'warning');
             } else {
                 $result .= $this->messages->getStyledMessage(__('Total incoming operations') . ': ' . sizeof($this->allIncoming), 'success');
+
+                $monthInCount = 0;
+                $monthInSumm = 0;
+                foreach ($this->allIncoming as $io => $each) {
+                    if (ispos($each['date'], $curMonth)) {
+                        $monthInCount++;
+                        $monthInSumm += $each['price'] * $each['count'];
+                    }
+                }
+                $monthTotalsLabel = __('Current month') . ': ' . $monthInCount . ' ' . __('Incoming operations') . ' ' . __('on') . ' ' . zb_CashBigValueFormat($monthInSumm) . ' ' . __('money');
+                $result .= $this->messages->getStyledMessage($monthTotalsLabel, 'success');
             }
 
             if (empty($this->allOutcoming)) {
@@ -4199,6 +4212,67 @@ class Warehouse {
             }
         } else {
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders per year purchases report
+     * 
+     * @return string
+     */
+    public function renderPurchasesReport() {
+        $result = '';
+        $tmpResult = array();
+        $totalSumm = 0;
+        $showYear = (ubRouting::checkPost('purchasesyear')) ? ubRouting::post('purchasesyear', 'int') . '-' : curyear() . '-';
+        if (!empty($this->allIncoming)) {
+
+            foreach ($this->allIncoming as $io => $each) {
+                if (ispos($each['date'], $showYear)) {
+                    $opMonth = strtotime($each['date']);
+                    $opMonth = date("m", $opMonth);
+                    $opPrice = $each['price'] * $each['count'];
+
+                    if (isset($tmpResult[$opMonth])) {
+                        $tmpResult[$opMonth]['count'] ++;
+                        $tmpResult[$opMonth]['price'] += $opPrice;
+                    } else {
+                        $tmpResult[$opMonth]['count'] = 1;
+                        $tmpResult[$opMonth]['price'] = $opPrice;
+                    }
+                    $totalSumm += $opPrice;
+                }
+            }
+
+            if (!empty($tmpResult)) {
+                $monthArr = months_array_localized();
+
+                $cells = wf_TableCell('');
+                $cells .= wf_TableCell(__('Month'));
+                $cells .= wf_TableCell(__('Count'));
+                $cells .= wf_TableCell(__('Sum'));
+                $cells .= wf_TableCell(__('Visual'), '50%');
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($monthArr as $monthNum => $monthName) {
+                    if (isset($tmpResult[$monthNum])) {
+                        $monthCount = $tmpResult[$monthNum]['count'];
+                        $monthSumm = $tmpResult[$monthNum]['price'];
+                    } else {
+                        $monthCount = 0;
+                        $monthSumm = 0;
+                    }
+                    $cells = wf_TableCell($monthNum);
+                    $cells .= wf_TableCell($monthName);
+                    $cells .= wf_TableCell($monthCount);
+                    $cells .= wf_TableCell($monthSumm);
+                    $cells .= wf_TableCell(web_bar($monthSumm, $totalSumm));
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return($result);
     }

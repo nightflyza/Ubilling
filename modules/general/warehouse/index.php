@@ -353,6 +353,16 @@ if (cfr('WAREHOUSE')) {
                         show_error(__('Access denied'));
                     }
                 }
+
+                if (ubRouting::checkGet('purchases')) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        show_window(__('Purchases') , $warehouse->renderPurchasesReport());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
             }
 
 

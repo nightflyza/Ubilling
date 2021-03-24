@@ -3236,6 +3236,7 @@ $lang['def']['Buried'] = 'Похоронено';
 $lang['def']['Resurrect this ONU'] = 'Воскресить эту ONU';
 $lang['def']['After resurrection device will be marked as not belonging to anyone'] = 'После воскрешения это устройство будет помечено как ничейное';
 $lang['def']['Parser'] = 'Парсер';
+$lang['def']['Purchases'] = 'Покупки';
 $lang['def'][''] = '';
 
 ?>
