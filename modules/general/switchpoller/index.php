@@ -7,13 +7,13 @@ if (cfr('SWITCHPOLL')) {
     /**
      * Returns FDB cache lister MAC filters setup form
      * 
+     * @param string $currentFilters
+     * 
      * @return string
      */
-    function web_FDBTableFiltersForm() {
-        $currentFilters = '';
-        $oldFilters = zb_StorageGet('FDBCACHEMACFILTERS');
-        if (!empty($oldFilters)) {
-            $currentFilters = base64_decode($oldFilters);
+    function web_FDBTableFiltersForm($currentFilters) {
+        if (!empty($currentFilters)) {
+            $currentFilters = base64_decode($currentFilters);
         }
 
         $inputs = __('One MAC address per line') . wf_tag('br');
@@ -128,7 +128,12 @@ if (cfr('SWITCHPOLL')) {
         $result = '';
         $filter = (!empty($fdbSwitchFilter)) ? '&swfilter=' . $fdbSwitchFilter : '';
         $macfilter = (!empty($fdbMacFilter)) ? '&macfilter=' . $fdbMacFilter : '';
-        $filtersForm = wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
+        $currentFilters = zb_StorageGet('FDBCACHEMACFILTERS');
+
+        $filtersForm = wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm($currentFilters), '');
+        if (!empty($currentFilters)) {
+            $filtersForm .= ' ' . wf_img('skins/filter_icon.png', __('Filters'));
+        }
         $logControls = web_FDBTableLogControl();
 
         $mainControls = FDBArchive::renderNavigationPanel();
