@@ -4226,6 +4226,11 @@ class Warehouse {
         $tmpResult = array();
         $totalSumm = 0;
         $showYear = (ubRouting::checkPost('purchasesyear')) ? ubRouting::post('purchasesyear', 'int') . '-' : curyear() . '-';
+
+        $inputs = wf_YearSelectorPreset('purchasesyear', __('Year'), false, $showYear, false) . ' ';
+        $inputs .= wf_Submit(__('Show'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+
         if (!empty($this->allIncoming)) {
 
             foreach ($this->allIncoming as $io => $each) {
@@ -4246,8 +4251,10 @@ class Warehouse {
             }
 
             if (!empty($tmpResult)) {
-                $monthArr = months_array_localized();
+                $yearTotalCount = 0;
+                $yearTotalSumm = 0;
 
+                $monthArr = months_array_localized();
                 $cells = wf_TableCell('');
                 $cells .= wf_TableCell(__('Month'));
                 $cells .= wf_TableCell(__('Count'));
@@ -4258,18 +4265,31 @@ class Warehouse {
                     if (isset($tmpResult[$monthNum])) {
                         $monthCount = $tmpResult[$monthNum]['count'];
                         $monthSumm = $tmpResult[$monthNum]['price'];
+                        $yearTotalCount += $monthCount;
+                        $yearTotalSumm += $monthSumm;
                     } else {
                         $monthCount = 0;
                         $monthSumm = 0;
                     }
+
                     $cells = wf_TableCell($monthNum);
                     $cells .= wf_TableCell($monthName);
                     $cells .= wf_TableCell($monthCount);
-                    $cells .= wf_TableCell($monthSumm);
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($monthSumm));
                     $cells .= wf_TableCell(web_bar($monthSumm, $totalSumm));
                     $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+
+                $cells = wf_TableCell('');
+                $cells .= wf_TableCell(__('Total'));
+                $cells .= wf_TableCell($yearTotalCount);
+                $cells .= wf_TableCell(zb_CashBigValueFormat($yearTotalSumm));
+                $cells .= wf_TableCell('');
+                $rows .= wf_TableRow($cells, 'row2');
+
+                $result .= wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
