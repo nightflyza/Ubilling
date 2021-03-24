@@ -92,7 +92,7 @@ function sp_parse_eping_temp($data) {
     if (!empty($data)) {
         $rawValue = zb_SanitizeSNMPValue($data);
         if (!empty($rawValue)) {
-            $result = ($rawValue / 100) . ' °C' . wf_tag('br');
+            $result = ($rawValue / 10) . ' °C' . wf_tag('br');
         }
     } else {
         $result = __('Empty reply received');
@@ -112,7 +112,7 @@ function sp_parse_eping_temp_gauge($data) {
     if (!empty($data)) {
         $rawValue = zb_SanitizeSNMPValue($data);
         if (!empty($rawValue)) {
-            $degrees = $rawValue / 100;
+            $degrees = $rawValue / 10;
             $options = 'max: 40,
                         min: 10,
                         width: 280, height: 280,
