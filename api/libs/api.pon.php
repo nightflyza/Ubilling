@@ -3295,21 +3295,23 @@ class PONizer {
                 }
             }
 
-            //user cleanup control
+            //ONU burial or resurrection controls
             if (!empty($this->allOnu[$onuId]['login'])) {
-                if ($this->allOnu[$onuId]['login'] != 'dead') {
-                    //this ONU is owned by some user. Burial controls here.
-                    $burCancelUrl = self::URL_ME . '&editonu=' . $onuId;
-                    $burConfirmUrl = self::URL_ME . '&onuburial=' . $onuId;
-                    $burAlertLabel = __('Bury this ONU') . '? ' . $messages->getEditAlert();
-                    $result .= wf_ConfirmDialog($burConfirmUrl, wf_img('skins/skull.png') . __('Bury this ONU'), $burAlertLabel, 'ubButton', $burCancelUrl);
-                } else {
-                    //this ONU is already buried. Ressurection controls here.
-                    $resCancelUrl = self::URL_ME . '&editonu=' . $onuId;
-                    $resConfirmUrl = self::URL_ME . '&onuresurrect=' . $onuId;
-                    $resAlertLabel = __('Resurrect this ONU') . '? ' . $messages->getEditAlert() . ' ';
-                    $resAlertLabel .= __('After resurrection device will be marked as not belonging to anyone') . '.';
-                    $result .= wf_ConfirmDialog($resConfirmUrl, wf_img('skins/pigeon_icon.png') . ' ' . __('Resurrect this ONU'), $resAlertLabel, 'ubButton', $resCancelUrl);
+                if (@$this->altCfg['ONU_BURIAL_ENABLED']) {
+                    if ($this->allOnu[$onuId]['login'] != 'dead') {
+                        //this ONU is owned by some user. Burial controls here.
+                        $burCancelUrl = self::URL_ME . '&editonu=' . $onuId;
+                        $burConfirmUrl = self::URL_ME . '&onuburial=' . $onuId;
+                        $burAlertLabel = __('Bury this ONU') . '? ' . $messages->getEditAlert();
+                        $result .= wf_ConfirmDialog($burConfirmUrl, wf_img('skins/skull.png') . __('Bury this ONU'), $burAlertLabel, 'ubButton', $burCancelUrl);
+                    } else {
+                        //this ONU is already buried. Ressurection controls here.
+                        $resCancelUrl = self::URL_ME . '&editonu=' . $onuId;
+                        $resConfirmUrl = self::URL_ME . '&onuresurrect=' . $onuId;
+                        $resAlertLabel = __('Resurrect this ONU') . '? ' . $messages->getEditAlert() . ' ';
+                        $resAlertLabel .= __('After resurrection device will be marked as not belonging to anyone') . '.';
+                        $result .= wf_ConfirmDialog($resConfirmUrl, wf_img('skins/pigeon_icon.png') . ' ' . __('Resurrect this ONU'), $resAlertLabel, 'ubButton', $resCancelUrl);
+                    }
                 }
             }
 
@@ -4457,6 +4459,7 @@ class PONizer {
         $allRealnames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
         $allTariffs = zb_TariffsGetAllUsers();
+        $burialEnabled = @$this->altCfg['ONU_BURIAL_ENABLED'];
 
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
@@ -4508,124 +4511,134 @@ class PONizer {
 
         if (!empty($OnuByOLT)) {
             foreach ($OnuByOLT as $io => $each) {
-                $userTariff = '';
-                $ONUIsOffline = false;
-
-                if (!empty($each['login'])) {
-                    $userLogin = trim($each['login']);
-                    if (isset($allAddress[$userLogin])) {
-                        $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $allAddress[$userLogin], false);
-                    } else {
-                        $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(), false) . ' ' . $userLogin;
+                $renderThisOnu = true;
+                //not show buried ONUs
+                if ($burialEnabled) {
+                    if ($each['login'] == 'dead') {
+                        $renderThisOnu = false;
                     }
+                }
 
-                    @$userRealName = $allRealnames[$userLogin];
+                if ($renderThisOnu) {
+                    $userTariff = '';
+                    $ONUIsOffline = false;
+
+                    if (!empty($each['login'])) {
+                        $userLogin = trim($each['login']);
+                        if (isset($allAddress[$userLogin])) {
+                            $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $allAddress[$userLogin], false);
+                        } else {
+                            $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(), false) . ' ' . $userLogin;
+                        }
+
+                        @$userRealName = $allRealnames[$userLogin];
 
 //tariff data
-                    if (isset($allTariffs[$userLogin])) {
-                        $userTariff = $allTariffs[$userLogin];
+                        if (isset($allTariffs[$userLogin])) {
+                            $userTariff = $allTariffs[$userLogin];
+                        }
+                    } else {
+                        $userLink = '';
+                        $userRealName = '';
                     }
-                } else {
-                    $userLink = '';
-                    $userRealName = '';
-                }
 //checking adcomments availability
-                if ($adc) {
-                    $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
-                } else {
-                    $indicatorIcon = '';
-                }
+                    if ($adc) {
+                        $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
+                    } else {
+                        $indicatorIcon = '';
+                    }
 
-                $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
-                $actLinks .= ' ' . $indicatorIcon;
+                    $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
+                    $actLinks .= ' ' . $indicatorIcon;
 
 //coloring signal
-                if (isset($this->signalCache[$each['mac']])) {
-                    $signal = $this->signalCache[$each['mac']];
-                    if (($signal > 0) or ( $signal < -27)) {
-                        $sigColor = self::COLOR_BAD;
-                    } elseif ($signal > -27 and $signal < -25) {
-                        $sigColor = self::COLOR_AVG;
-                    } else {
-                        $sigColor = self::COLOR_OK;
-                    }
-
-                    if ($signal == self::NO_SIGNAL) {
-                        $ONUIsOffline = true;
-                        $signal = __('No');
-                        $sigColor = self::COLOR_NOSIG;
-                    }
-                } elseif (isset($this->signalCache[$each['serial']])) {
-                    $signal = $this->signalCache[$each['serial']];
-                    if (($signal > 0) or ( $signal < -27)) {
-                        $sigColor = self::COLOR_BAD;
-                    } elseif ($signal > -27 and $signal < -25) {
-                        $sigColor = self::COLOR_AVG;
-                    } else {
-                        $sigColor = self::COLOR_OK;
-                    }
-
-                    if ($signal == self::NO_SIGNAL) {
-                        $ONUIsOffline = true;
-                        $signal = __('No');
-                        $sigColor = self::COLOR_NOSIG;
-                    }
-                } else {
-                    $ONUIsOffline = true;
-                    $signal = __('No');
-                    $sigColor = self::COLOR_NOSIG;
-                }
-
-                $data[] = $each['id'];
-
-                if ($intCacheAvail) {
-                    if (isset($this->interfaceCache[$each['mac']])) {
-                        $ponInterface = $this->interfaceCache[$each['mac']];
-                    } else {
-                        if (isset($this->interfaceCache[$each['serial']])) {
-                            $ponInterface = $this->interfaceCache[$each['serial']];
+                    if (isset($this->signalCache[$each['mac']])) {
+                        $signal = $this->signalCache[$each['mac']];
+                        if (($signal > 0) or ( $signal < -27)) {
+                            $sigColor = self::COLOR_BAD;
+                        } elseif ($signal > -27 and $signal < -25) {
+                            $sigColor = self::COLOR_AVG;
                         } else {
-                            $ponInterface = '';
+                            $sigColor = self::COLOR_OK;
+                        }
+
+                        if ($signal == self::NO_SIGNAL) {
+                            $ONUIsOffline = true;
+                            $signal = __('No');
+                            $sigColor = self::COLOR_NOSIG;
+                        }
+                    } elseif (isset($this->signalCache[$each['serial']])) {
+                        $signal = $this->signalCache[$each['serial']];
+                        if (($signal > 0) or ( $signal < -27)) {
+                            $sigColor = self::COLOR_BAD;
+                        } elseif ($signal > -27 and $signal < -25) {
+                            $sigColor = self::COLOR_AVG;
+                        } else {
+                            $sigColor = self::COLOR_OK;
+                        }
+
+                        if ($signal == self::NO_SIGNAL) {
+                            $ONUIsOffline = true;
+                            $signal = __('No');
+                            $sigColor = self::COLOR_NOSIG;
+                        }
+                    } else {
+                        $ONUIsOffline = true;
+                        $signal = __('No');
+                        $sigColor = self::COLOR_NOSIG;
+                    }
+
+                    $data[] = $each['id'];
+
+                    if ($intCacheAvail) {
+                        if (isset($this->interfaceCache[$each['mac']])) {
+                            $ponInterface = $this->interfaceCache[$each['mac']];
+                        } else {
+                            if (isset($this->interfaceCache[$each['serial']])) {
+                                $ponInterface = $this->interfaceCache[$each['serial']];
+                            } else {
+                                $ponInterface = '';
+                            }
+                        }
+
+                        $cleanInterface = strstr($ponInterface, ':', true);
+                        $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                        $data[] = $oltIfaceDescr . $ponInterface;
+                    }
+
+                    $data[] = $this->getModelName($each['onumodelid']);
+                    $data[] = $each['ip'];
+                    $data[] = $each['mac'];
+                    $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
+
+                    if ($distCacheAvail) {
+                        if (isset($this->distanceCache[$each['mac']])) {
+                            $data[] = $this->distanceCache[$each['mac']];
+                        } else {
+                            if (isset($this->distanceCache[$each['serial']])) {
+                                $data[] = $this->distanceCache[$each['serial']];
+                            } else {
+                                $data[] = '';
+                            }
                         }
                     }
 
-                    $cleanInterface = strstr($ponInterface, ':', true);
-                    $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
-                    $data[] = $oltIfaceDescr . $ponInterface;
-                }
-
-                $data[] = $this->getModelName($each['onumodelid']);
-                $data[] = $each['ip'];
-                $data[] = $each['mac'];
-                $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
-
-                if ($distCacheAvail) {
-                    if (isset($this->distanceCache[$each['mac']])) {
-                        $data[] = $this->distanceCache[$each['mac']];
-                    } else {
-                        if (isset($this->distanceCache[$each['serial']])) {
-                            $data[] = $this->distanceCache[$each['serial']];
+                    if ($lastDeregCacheAvail) {
+                        if ($ONUIsOffline) {
+                            $data[] = @$this->lastDeregCache[$each['mac']];
                         } else {
                             $data[] = '';
                         }
                     }
+
+                    $data[] = $userLink;
+                    $data[] = $userRealName;
+                    $data[] = $userTariff;
+                    $data[] = $actLinks;
+
+                    $json->addRow($data);
+                    unset($data);
                 }
-
-                if ($lastDeregCacheAvail) {
-                    if ($ONUIsOffline) {
-                        $data[] = @$this->lastDeregCache[$each['mac']];
-                    } else {
-                        $data[] = '';
-                    }
-                }
-
-                $data[] = $userLink;
-                $data[] = $userRealName;
-                $data[] = $userTariff;
-                $data[] = $actLinks;
-
-                $json->addRow($data);
-                unset($data);
             }
         }
 
