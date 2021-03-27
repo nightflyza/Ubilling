@@ -70,7 +70,7 @@ class ProstoTV {
      * 
      * @param string $name
      * 
-     * @return string
+     * @return int
      */
     public function __get($name) {
         switch ($name) {
@@ -136,7 +136,7 @@ class ProstoTV {
      * @param string $resource
      * @param array $data
      * 
-     * @return boolean
+     * @return array/boolean on error
      */
     protected function request($method, $resource, $data = array()) {
         if (!$this->token && ($method != 'POST' || $resource != '/tokens')) {
