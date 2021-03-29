@@ -3260,5 +3260,6 @@ $lang['def']['Resurrect this ONU'] = 'Воскресити цю ONU';
 $lang['def']['After resurrection device will be marked as not belonging to anyone'] = 'Після воскресіння пристрій буде позначено як нічий';
 $lang['def']['Parser'] = 'Парсер';
 $lang['def']['Purchases'] = 'Покупки';
+$lang['def']['ProstoTV'] = 'Просто ТВ';
 
 ?>

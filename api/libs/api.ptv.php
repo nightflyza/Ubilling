@@ -43,7 +43,7 @@ class PTV {
     protected $allUserData = array();
 
     /**
-     * Contains all subscribers data as login=>subscriberId
+     * Contains all subscribers data as login=>subscriberData
      *
      * @var array
      */
@@ -57,17 +57,30 @@ class PTV {
     protected $subscribersDb = '';
 
     /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    /**
      * Predefined routes, options etc.
      */
     const OPTION_LOGIN = 'PTV_LOGIN';
     const OPTION_PASSWORD = 'PTV_PASSWORD';
     const TABLE_SUBSCRIBERS = 'ptv_subscribers';
     const UNDEF = 'undefined_';
+    const URL_ME = '?module=prostotv';
+    const URL_USERPROFILE = '?module=userprofile&username=';
+    const ROUTE_SUBLIST = 'subscribers';
+    const ROUTE_SUBAJ = 'ajaxlist';
+    const ROUTE_SUBVIEW = 'showsubscriber';
 
     /**
      * Creates new PTV instance
      */
     public function __construct() {
+        $this->initMessages();
         $this->loadConfig();
         $this->setOptions();
         $this->initApi();
@@ -96,6 +109,15 @@ class PTV {
     protected function setOptions() {
         $this->login = $this->altCfg[self::OPTION_LOGIN];
         $this->password = $this->altCfg[self::OPTION_PASSWORD];
+    }
+
+    /**
+     * Inits system message helper
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -274,6 +296,74 @@ class PTV {
         if ($this->isValidSubscriber($subscriberId)) {
             $this->api->delete('/objects/' . $subscriberId . '/playlists/' . $playListId);
         }
+    }
+
+    /**
+     * Renders available subscribers JSON list
+     * 
+     * @return void
+     */
+    public function renderSubsribersAjReply() {
+        $json = new wf_JqDtHelper();
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $userLogin => $eachSub) {
+                if (isset($this->allUserData[$userLogin])) {
+                    $data[] = $eachSub['subscriberid'];
+                    $data[] = $eachSub['date'];
+                    $userAddress = @$this->allUserData[$userLogin]['fulladress'];
+                    $userRealName = @$this->allUserData[$userLogin]['realname'];
+                    $profileLink = wf_Link(self::URL_USERPROFILE . $userLogin, web_profile_icon());
+                    $subViewUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
+                    $actLinks = wf_Link($subViewUrl, web_edit_icon());
+                    $data[] = $profileLink . ' ' . $userAddress;
+                    $data[] = $userRealName;
+                    $data[] = $actLinks;
+                    $json->addRow($data);
+                    unset($data);
+                }
+            }
+        }
+        $json->getJson();
+    }
+
+    /**
+     * Renders existing subscribers list container
+     * 
+     * @return string
+     */
+    public function renderSubscribersList() {
+        $result = '';
+        $columns = array('ID', 'Date', 'Address', 'Real Name', 'Actions');
+        $opts = '"order": [[ 1, "desc" ]]';
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_SUBAJ . '=true', false, __('Subscriptions'), 50, $opts);
+        return($result);
+    }
+
+    /**
+     * Renders basic subscriber profile
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderSubscriber($userLogin) {
+        $result = '';
+        if (isset($this->allUserData[$userLogin])) {
+            if (isset($this->allSubscribers[$userLogin])) {
+                $subscriberId = $this->allSubscribers[$userLogin]['subscriberid'];
+                $subData = $this->getUserData($userLogin);
+                if ($subData != false) {
+                    $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': EX_SUBSCRIBER_NOT_EXISTS', 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists'), 'error');
+        }
+        return($result);
     }
 
 }
