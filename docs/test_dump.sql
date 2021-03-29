@@ -2927,3 +2927,13 @@ ALTER TABLE `stickyrevelations` ADD `dayweek` INT NULL DEFAULT NULL AFTER `dayto
 
 ALTER TABLE `fdbarchive` ADD `datavlan` longtext NULL DEFAULT NULL AFTER `data`;
 ALTER TABLE `fdbarchive` ADD `dataportdescr` longtext NULL DEFAULT NULL AFTER `datavlan`;
+
+-- 1.1.6 update
+
+CREATE TABLE IF NOT EXISTS `ptv_subscribers` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `date` DATETIME NOT NULL,
+  `subscriberid` INT(11) NOT NULL,
+  `login` VARCHAR(64) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
