@@ -80,6 +80,7 @@ class PTV {
     const ROUTE_PLCREATE = 'createplaylist';
     const ROUTE_PLDEL = 'deleteplaylist';
     const ROUTE_SUBID = 'subscriberid';
+    const ROUTE_DEVCREATE = 'createdevice';
 
     /**
      * Through the darkness of future past
@@ -315,6 +316,24 @@ class PTV {
     }
 
     /**
+     * Creates some device for subscriber
+     * 
+     * @param int $subscriberId
+     * 
+     * @return array/bool
+     */
+    public function createDevice($subscriberId) {
+        $result = false;
+        if ($this->isValidSubscriber($subscriberId)) {
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+
+            $result = $this->api->post('objects/' . $subscriberId . '/devices');
+            log_register('PTV DEVICE CREATE SUB (' . $userLogin . ') AS [' . $subscriberId . ']');
+        }
+        return($result);
+    }
+
+    /**
      * Deletes some subscriber`s playlist
      * 
      * @param int $subscriberId
@@ -449,8 +468,8 @@ class PTV {
                         $cells .= wf_TableCell(__('URL'));
                         $cells .= wf_TableCell(__('Device'));
                         $cells .= wf_TableCell(__('Actions'));
-
                         $rows = wf_TableRow($cells, 'row1');
+
                         foreach ($subData['playlists'] as $io => $eachPlaylist) {
                             $cells = wf_TableCell($eachPlaylist['id']);
                             $cells .= wf_TableCell($eachPlaylist['created']);
@@ -465,7 +484,7 @@ class PTV {
                             $plDelControls = wf_ConfirmDialog($plDeleteUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', $subProfileUrl);
                             $cells .= wf_TableCell($plDelControls);
 
-                            $rows .= wf_TableRow($cells, 'row3');
+                            $rows .= wf_TableRow($cells, 'row5');
                         }
                         $result .= wf_tag('b') . __('Playlists') . wf_tag('b', true) . wf_delimiter(0);
                         $result .= wf_TableBody($rows, '100%', 0, '');
@@ -473,11 +492,38 @@ class PTV {
                         $result .= $this->messages->getStyledMessage(__('This user have no any playlists'), 'warning');
                     }
 
+                    if (!empty($subData['devices'])) {
+                        $cells = wf_TableCell(__('ID'));
+                        $cells .= wf_TableCell(__('Created'));
+                        $cells .= wf_TableCell(__('Updated'));
+                        $cells .= wf_TableCell(__('Login'));
+                        $cells .= wf_TableCell(__('Password'));
+                        $cells .= wf_TableCell(__('Device'));
+                        $cells .= wf_TableCell(__('IP'));
+                        $cells .= wf_TableCell(__('Actions'));
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($subData['devices'] as $io => $eachDevice) {
+                            $cells = wf_TableCell($eachDevice['id']);
+                            $cells .= wf_TableCell($eachDevice['created']);
+                            $cells .= wf_TableCell($eachDevice['updated']);
+                            $cells .= wf_TableCell($eachDevice['login']);
+                            $cells .= wf_TableCell($eachDevice['password']);
+                            $cells .= wf_TableCell($eachDevice['device']);
+                            $cells .= wf_TableCell($eachDevice['ip']);
+                            $cells .= wf_TableCell('TODO');
+                            $rows.= wf_TableRow($cells, 'row5');
+                        }
+                        $result .= wf_tag('b') . __('Devices') . wf_tag('b', true) . wf_delimiter(0);
+                        $result .= wf_TableBody($rows, '100%', 0, '');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('This user have no any devices'), 'warning');
+                    }
+
                     //some user controls
                     $result .= wf_delimiter(0);
                     $result .= $this->renderSubscriberControls($subscriberId);
 
-                    //debug info
+                    //debug info TODO: remove it
                    // $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
@@ -505,7 +551,11 @@ class PTV {
             $plCreateUrl = self::URL_ME . '&' . self::ROUTE_PLCREATE . '=' . $subscriberId;
             $subProfileUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
             $plCreateLabel = web_icon_create() . ' ' . __('Just create new playlist');
-            $result .= wf_ConfirmDialog($plCreateUrl, $plCreateLabel, $this->messages->getEditAlert(), 'ubButton', $subProfileUrl);
+            $result .= wf_ConfirmDialog($plCreateUrl, $plCreateLabel, __('Just create new playlist') . '? ' . $this->messages->getEditAlert(), 'ubButton', $subProfileUrl);
+
+            $devCreateUrl = self::URL_ME . '&' . self::ROUTE_DEVCREATE . '=' . $subscriberId;
+            $devCreateLabel = wf_img('skins/switch_models.png') . ' ' . __('Create new device');
+            $result .= wf_ConfirmDialog($devCreateUrl, $devCreateLabel, __('Create new device') . '? ' . $this->messages->getEditAlert(), 'ubButton', $subProfileUrl);
         }
         return($result);
     }

@@ -18,6 +18,19 @@ if (cfr('PROSTOTV')) {
             show_window(__('Subscriptions'), $ptv->renderSubscribersList());
         }
 
+
+        //new device creation
+        if (ubRouting::checkGet($ptv::ROUTE_DEVCREATE)) {
+            $subscriberId = ubRouting::get($ptv::ROUTE_DEVCREATE, 'int');
+            $userLogin = $ptv->getSubscriberLogin($subscriberId);
+            if ($userLogin) {
+                $ptv->createDevice($subscriberId);
+                ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_SUBVIEW . '=' . $userLogin);
+            } else {
+                show_error(__('Something went wrong') . ': ' . __('User not exists') . ' [' . $subscriberId . ']');
+            }
+        }
+
         //new playlist creation
         if (ubRouting::checkGet($ptv::ROUTE_PLCREATE)) {
             $subscriberId = ubRouting::get($ptv::ROUTE_PLCREATE, 'int');

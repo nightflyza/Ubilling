@@ -5,4 +5,4 @@ $lang['def']['This user have no any playlists'] = 'В цього користу�
 $lang['def']['Playlists'] = 'Плейлисти';
 $lang['def']['Genres'] = 'Жанри';
 $lang['def']['TV guide'] = 'ТБ гід';
-$lang['def'][''] = '';
+$lang['def']['This user have no any devices'] = 'В цього користувача немає пристроїв';
