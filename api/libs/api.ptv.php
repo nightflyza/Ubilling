@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ProstoTV abstraction layer
+ * ProstoTV Ubilling abstraction layer
  * 
  * https://docs.api.prosto.tv/
  */
@@ -70,14 +70,22 @@ class PTV {
     const OPTION_PASSWORD = 'PTV_PASSWORD';
     const TABLE_SUBSCRIBERS = 'ptv_subscribers';
     const UNDEF = 'undefined_';
+    const NEW_WINDOW = 'TARGET="_BLANK"';
     const URL_ME = '?module=prostotv';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const ROUTE_SUBLIST = 'subscribers';
     const ROUTE_SUBAJ = 'ajaxlist';
     const ROUTE_SUBVIEW = 'showsubscriber';
+    const ROUTE_TARIFFS = 'tariffs';
+    const ROUTE_PLCREATE = 'createplaylist';
+    const ROUTE_PLDEL = 'deleteplaylist';
+    const ROUTE_SUBID = 'subscriberid';
 
     /**
-     * Creates new PTV instance
+     * Through the darkness of future past
+     * The magician longs to see.
+     * One chanse out between two worlds
+     * Fire walk with me
      */
     public function __construct() {
         $this->initMessages();
@@ -270,6 +278,25 @@ class PTV {
     }
 
     /**
+     * Returns existing subscriber user login by its ID
+     * 
+     * @param int $subscriberId
+     * 
+     * @return string/bool
+     */
+    public function getSubscriberLogin($subscriberId) {
+        $result = false;
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['subscriberid'] == $subscriberId) {
+                    $result = $each['login'];
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Creates new playlist for some subscriber
      * 
      * @param int $subscriberId
@@ -279,7 +306,10 @@ class PTV {
     public function createPlayList($subscriberId) {
         $result = false;
         if ($this->isValidSubscriber($subscriberId)) {
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+
             $result = $this->api->post('objects/' . $subscriberId . '/playlists');
+            log_register('PTV PLAYLIST CREATE SUB (' . $userLogin . ') AS [' . $subscriberId . ']');
         }
         return($result);
     }
@@ -294,7 +324,9 @@ class PTV {
      */
     public function deletePlaylist($subscriberId, $playListId) {
         if ($this->isValidSubscriber($subscriberId)) {
+            $userLogin = $this->getSubscriberLogin($subscriberId);
             $this->api->delete('/objects/' . $subscriberId . '/playlists/' . $playListId);
+            log_register('PTV PLAYLIST DELETE SUB (' . $userLogin . ') AS [' . $subscriberId . ']');
         }
     }
 
@@ -352,8 +384,101 @@ class PTV {
             if (isset($this->allSubscribers[$userLogin])) {
                 $subscriberId = $this->allSubscribers[$userLogin]['subscriberid'];
                 $subData = $this->getUserData($userLogin);
+                $userData = $this->allUserData[$userLogin];
+                $subProfileUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
                 if ($subData != false) {
-                    $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
+                    $cells = wf_TableCell(__('Address'), '', 'row2');
+                    $cells .= wf_TableCell(wf_Link(self::URL_USERPROFILE . $userLogin, web_profile_icon() . ' ' . $userData['fulladress']));
+                    $rows = wf_TableRow($cells, 'row3');
+
+
+                    $cells = wf_TableCell(__('Cash'), '', 'row2');
+                    $cells .= wf_TableCell($userData['Cash']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+
+                    $cells = wf_TableCell(__('Credit'), '', 'row2');
+                    $cells .= wf_TableCell($userData['Credit']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+
+                    $cells = wf_TableCell(__('Password'), '', 'row2');
+                    $cells .= wf_TableCell($userData['Password']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+
+                    $cells = wf_TableCell(__('IP'), '', 'row2');
+                    $cells .= wf_TableCell($userData['ip']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+
+                    $cells = wf_TableCell(__('ID'), '30%', 'row2');
+                    $cells .= wf_TableCell($subData['id']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Status'), '', 'row2');
+                    $cells .= wf_TableCell(__($subData['status']));
+                    $rows .= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('ProstoTV') . ' ' . __('Balance'), '', 'row2');
+                    $cells .= wf_TableCell($subData['balance']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Bonus'), '', 'row2');
+                    $cells .= wf_TableCell($subData['bonus']);
+                    $rows .= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Profile') . ' ' . __('EBS'), '', 'row2');
+                    $cells .= wf_TableCell(wf_Link($subData['ebs_url'], wf_img('skins/arrow_right_green.png') . ' ' . __('Show'), false, '', self::NEW_WINDOW));
+                    $rows .= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Date'), '', 'row2');
+                    $cells .= wf_TableCell($subData['date_create']);
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $result .= wf_TableBody($rows, '100%', 0, '');
+
+
+
+                    if (!empty($subData['playlists'])) {
+                        $cells = wf_TableCell(__('ID'));
+                        $cells .= wf_TableCell(__('Created'));
+                        $cells .= wf_TableCell(__('Updated'));
+                        $cells .= wf_TableCell(__('Genres'));
+                        $cells .= wf_TableCell(__('TV guide'));
+                        $cells .= wf_TableCell(__('IP'));
+                        $cells .= wf_TableCell(__('URL'));
+                        $cells .= wf_TableCell(__('Device'));
+                        $cells .= wf_TableCell(__('Actions'));
+
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($subData['playlists'] as $io => $eachPlaylist) {
+                            $cells = wf_TableCell($eachPlaylist['id']);
+                            $cells .= wf_TableCell($eachPlaylist['created']);
+                            $cells .= wf_TableCell($eachPlaylist['updated']);
+                            $cells .= wf_TableCell(web_bool_led($eachPlaylist['genres']));
+                            $cells .= wf_TableCell(web_bool_led($eachPlaylist['tv_guide']));
+                            $cells .= wf_TableCell($eachPlaylist['ip']);
+                            $urlControls = wf_Link($eachPlaylist['url'], $eachPlaylist['url'], false, '', self::NEW_WINDOW);
+                            $cells .= wf_TableCell($urlControls);
+                            $cells .= wf_TableCell($eachPlaylist['device_id']);
+                            $plDeleteUrl = self::URL_ME . '&' . self::ROUTE_PLDEL . '=' . $eachPlaylist['id'] . '&' . self::ROUTE_SUBID . '=' . $subscriberId;
+                            $plDelControls = wf_ConfirmDialog($plDeleteUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', $subProfileUrl);
+                            $cells .= wf_TableCell($plDelControls);
+
+                            $rows .= wf_TableRow($cells, 'row3');
+                        }
+                        $result .= wf_tag('b') . __('Playlists') . wf_tag('b', true) . wf_delimiter(0);
+                        $result .= wf_TableBody($rows, '100%', 0, '');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('This user have no any playlists'), 'warning');
+                    }
+
+                    //some user controls
+                    $result .= wf_delimiter(0);
+                    $result .= $this->renderSubscriberControls($subscriberId);
+
+                    //debug info
+                   // $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
                 }
@@ -363,6 +488,49 @@ class PTV {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists'), 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Returns some subscriber controls
+     * 
+     * @param int $subscriberId
+     * 
+     * @return string
+     */
+    protected function renderSubscriberControls($subscriberId) {
+        $result = '';
+        if ($this->isValidSubscriber($subscriberId)) {
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+            $plCreateUrl = self::URL_ME . '&' . self::ROUTE_PLCREATE . '=' . $subscriberId;
+            $subProfileUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
+            $plCreateLabel = web_icon_create() . ' ' . __('Just create new playlist');
+            $result .= wf_ConfirmDialog($plCreateUrl, $plCreateLabel, $this->messages->getEditAlert(), 'ubButton', $subProfileUrl);
+        }
+        return($result);
+    }
+
+    /**
+     * Renders basic user registration form
+     * 
+     * @return string
+     */
+    protected function renderUserRegisterForm() {
+        $result = '';
+        //TODO
+        return($result);
+    }
+
+    /**
+     * Renders primary module controls
+     * 
+     * @return string
+     */
+    public function renderPanel() {
+        $result = '';
+        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Users registration'), __('Users registration'), $this->renderUserRegisterForm(), 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SUBLIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_TARIFFS . '=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
         return($result);
     }
 
