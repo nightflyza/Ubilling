@@ -4,21 +4,6 @@ if (cfr('PROSTOTV')) {
     if ($ubillingConfig->getAlterParam('PTV_ENABLED')) {
         $ptv = new PTV();
 
-
-        //rendering available subscribers list data
-        if (ubRouting::checkGet($ptv::ROUTE_SUBAJ)) {
-            $ptv->renderSubsribersAjReply();
-        }
-
-        //main module controls
-        show_window(__('ProstoTV'), $ptv->renderPanel());
-
-        //rendering subscribers list container
-        if (ubRouting::checkGet($ptv::ROUTE_SUBLIST)) {
-            show_window(__('Subscriptions'), $ptv->renderSubscribersList());
-        }
-
-
         //new device creation
         if (ubRouting::checkGet($ptv::ROUTE_DEVCREATE)) {
             $subscriberId = ubRouting::get($ptv::ROUTE_DEVCREATE, 'int');
@@ -56,9 +41,32 @@ if (cfr('PROSTOTV')) {
             }
         }
 
+        //new subscriber register
+        if (ubRouting::checkPost($ptv::PROUTE_SUBREG)) {
+            $userLogin = ubRouting::post($ptv::PROUTE_SUBREG, 'mres');
+            $regResult = $ptv->userRegister($userLogin);
+            if ($regResult) {
+                ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_SUBVIEW . '=' . $userLogin);
+            }
+        }
+
+
+        //main module controls
+        show_window(__('ProstoTV'), $ptv->renderPanel());
+
         //render existing subscriber by its login
         if (ubRouting::checkGet($ptv::ROUTE_SUBVIEW)) {
             show_window(__('User profile') . ' ' . __('ProstoTV'), $ptv->renderSubscriber(ubRouting::get($ptv::ROUTE_SUBVIEW)));
+        }
+
+        //rendering available subscribers list data
+        if (ubRouting::checkGet($ptv::ROUTE_SUBAJ)) {
+            $ptv->renderSubsribersAjReply();
+        }
+
+        //rendering subscribers list container
+        if (ubRouting::checkGet($ptv::ROUTE_SUBLIST)) {
+            show_window(__('Subscriptions'), $ptv->renderSubscribersList());
         }
 
         zb_BillingStats(true);

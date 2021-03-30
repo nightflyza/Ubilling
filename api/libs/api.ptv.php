@@ -81,6 +81,7 @@ class PTV {
     const ROUTE_PLDEL = 'deleteplaylist';
     const ROUTE_SUBID = 'subscriberid';
     const ROUTE_DEVCREATE = 'createdevice';
+    const PROUTE_SUBREG = 'registersubscriber';
 
     /**
      * Through the darkness of future past
@@ -457,74 +458,17 @@ class PTV {
                     $result .= wf_TableBody($rows, '100%', 0, '');
 
 
+                    //append playlists
+                    $result .= $this->renderPlaylists($subData);
+                    //append devices
+                    $result .= $this->renderDevices($subData);
 
-                    if (!empty($subData['playlists'])) {
-                        $cells = wf_TableCell(__('ID'));
-                        $cells .= wf_TableCell(__('Created'));
-                        $cells .= wf_TableCell(__('Updated'));
-                        $cells .= wf_TableCell(__('Genres'));
-                        $cells .= wf_TableCell(__('TV guide'));
-                        $cells .= wf_TableCell(__('IP'));
-                        $cells .= wf_TableCell(__('URL'));
-                        $cells .= wf_TableCell(__('Device'));
-                        $cells .= wf_TableCell(__('Actions'));
-                        $rows = wf_TableRow($cells, 'row1');
-
-                        foreach ($subData['playlists'] as $io => $eachPlaylist) {
-                            $cells = wf_TableCell($eachPlaylist['id']);
-                            $cells .= wf_TableCell($eachPlaylist['created']);
-                            $cells .= wf_TableCell($eachPlaylist['updated']);
-                            $cells .= wf_TableCell(web_bool_led($eachPlaylist['genres']));
-                            $cells .= wf_TableCell(web_bool_led($eachPlaylist['tv_guide']));
-                            $cells .= wf_TableCell($eachPlaylist['ip']);
-                            $urlControls = wf_Link($eachPlaylist['url'], $eachPlaylist['url'], false, '', self::NEW_WINDOW);
-                            $cells .= wf_TableCell($urlControls);
-                            $cells .= wf_TableCell($eachPlaylist['device_id']);
-                            $plDeleteUrl = self::URL_ME . '&' . self::ROUTE_PLDEL . '=' . $eachPlaylist['id'] . '&' . self::ROUTE_SUBID . '=' . $subscriberId;
-                            $plDelControls = wf_ConfirmDialog($plDeleteUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', $subProfileUrl);
-                            $cells .= wf_TableCell($plDelControls);
-
-                            $rows .= wf_TableRow($cells, 'row5');
-                        }
-                        $result .= wf_tag('b') . __('Playlists') . wf_tag('b', true) . wf_delimiter(0);
-                        $result .= wf_TableBody($rows, '100%', 0, '');
-                    } else {
-                        $result .= $this->messages->getStyledMessage(__('This user have no any playlists'), 'warning');
-                    }
-
-                    if (!empty($subData['devices'])) {
-                        $cells = wf_TableCell(__('ID'));
-                        $cells .= wf_TableCell(__('Created'));
-                        $cells .= wf_TableCell(__('Updated'));
-                        $cells .= wf_TableCell(__('Login'));
-                        $cells .= wf_TableCell(__('Password'));
-                        $cells .= wf_TableCell(__('Device'));
-                        $cells .= wf_TableCell(__('IP'));
-                        $cells .= wf_TableCell(__('Actions'));
-                        $rows = wf_TableRow($cells, 'row1');
-                        foreach ($subData['devices'] as $io => $eachDevice) {
-                            $cells = wf_TableCell($eachDevice['id']);
-                            $cells .= wf_TableCell($eachDevice['created']);
-                            $cells .= wf_TableCell($eachDevice['updated']);
-                            $cells .= wf_TableCell($eachDevice['login']);
-                            $cells .= wf_TableCell($eachDevice['password']);
-                            $cells .= wf_TableCell($eachDevice['device']);
-                            $cells .= wf_TableCell($eachDevice['ip']);
-                            $cells .= wf_TableCell('TODO');
-                            $rows.= wf_TableRow($cells, 'row5');
-                        }
-                        $result .= wf_tag('b') . __('Devices') . wf_tag('b', true) . wf_delimiter(0);
-                        $result .= wf_TableBody($rows, '100%', 0, '');
-                    } else {
-                        $result .= $this->messages->getStyledMessage(__('This user have no any devices'), 'warning');
-                    }
-
-                    //some user controls
+                    //some user controls here
                     $result .= wf_delimiter(0);
                     $result .= $this->renderSubscriberControls($subscriberId);
 
                     //debug info TODO: remove it
-                   // $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
+                    // $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
                 }
@@ -533,6 +477,96 @@ class PTV {
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('User not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     *  Renders devices of some subscriber
+     * 
+     * @param array $subData
+     * 
+     * @return string
+     */
+    protected function renderDevices($subData) {
+        $result = '';
+        if (!empty($subData['devices'])) {
+            $subscriberId = $subData['id'];
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+            $subProfileUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Created'));
+            $cells .= wf_TableCell(__('Updated'));
+            $cells .= wf_TableCell(__('Login'));
+            $cells .= wf_TableCell(__('Password'));
+            $cells .= wf_TableCell(__('Device'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($subData['devices'] as $io => $eachDevice) {
+                $cells = wf_TableCell($eachDevice['id']);
+                $cells .= wf_TableCell($eachDevice['created']);
+                $cells .= wf_TableCell($eachDevice['updated']);
+                $cells .= wf_TableCell($eachDevice['login']);
+                $cells .= wf_TableCell($eachDevice['password']);
+                $cells .= wf_TableCell($eachDevice['device']);
+                $cells .= wf_TableCell($eachDevice['ip']);
+                $cells .= wf_TableCell('TODO');
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            $result .= wf_tag('b') . __('Devices') . wf_tag('b', true) . wf_delimiter(0);
+            $result .= wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('This user have no any devices'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
+     * Renders playlists of some subscriber
+     * 
+     * @param array $subData
+     * 
+     * @return string
+     */
+    protected function renderPlaylists($subData) {
+        $result = '';
+        if (!empty($subData['playlists'])) {
+            $subscriberId = $subData['id'];
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+            $subProfileUrl = self::URL_ME . '&' . self::ROUTE_SUBVIEW . '=' . $userLogin;
+
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Created'));
+            $cells .= wf_TableCell(__('Updated'));
+            $cells .= wf_TableCell(__('Genres'));
+            $cells .= wf_TableCell(__('TV guide'));
+            $cells .= wf_TableCell(__('IP'));
+            $cells .= wf_TableCell(__('URL'));
+            $cells .= wf_TableCell(__('Device'));
+            $cells .= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($subData['playlists'] as $io => $eachPlaylist) {
+                $cells = wf_TableCell($eachPlaylist['id']);
+                $cells .= wf_TableCell($eachPlaylist['created']);
+                $cells .= wf_TableCell($eachPlaylist['updated']);
+                $cells .= wf_TableCell(web_bool_led($eachPlaylist['genres']));
+                $cells .= wf_TableCell(web_bool_led($eachPlaylist['tv_guide']));
+                $cells .= wf_TableCell($eachPlaylist['ip']);
+                $urlControls = wf_Link($eachPlaylist['url'], $eachPlaylist['url'], false, '', self::NEW_WINDOW);
+                $cells .= wf_TableCell($urlControls);
+                $cells .= wf_TableCell($eachPlaylist['device_id']);
+                $plDeleteUrl = self::URL_ME . '&' . self::ROUTE_PLDEL . '=' . $eachPlaylist['id'] . '&' . self::ROUTE_SUBID . '=' . $subscriberId;
+                $plDelControls = wf_ConfirmDialog($plDeleteUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', $subProfileUrl);
+                $cells .= wf_TableCell($plDelControls);
+
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+            $result .= wf_tag('b') . __('Playlists') . wf_tag('b', true) . wf_delimiter(0);
+            $result .= wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('This user have no any playlists'), 'warning');
         }
         return($result);
     }
@@ -567,7 +601,9 @@ class PTV {
      */
     protected function renderUserRegisterForm() {
         $result = '';
-        //TODO
+        $inputs = wf_TextInput(self::PROUTE_SUBREG, __('Login'), '', false, 20);
+        $inputs .= wf_Submit(__('Register'));
+        $result .= wf_Form("", 'POST', $inputs, 'glamour');
         return($result);
     }
 
