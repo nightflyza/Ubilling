@@ -2415,28 +2415,34 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
 }
 
 /**
- * Makes "our standard truncate" of the raw SNMPWalk output, removing OID portion, OID value,
- * leading and trailing dots and spaces
+ * Makes "our standard truncate" of the raw SNMPWalk output,
+ * removing OID portion, OID value, leading and trailing dots and spaces
+ * TIP: if you need to trim some $snmpData without OID portion already
+ * - just set $oid parameter to an empty string
  *
  * @param string $snmpData
  * @param string $oid
- * @param array|string $oidValue
  * @param false $returnAsStr
  *
+ * @param array|string $oidValue
  * @return array|string
  */
-function trimSNMPOutput($snmpData, $oid, $oidValue = array('Counter32:',
-    'Counter64:',
-    'Gauge32:',
-    'Gauge64:',
-    'INTEGER:',
-    'STRING:',
-    'OID:',
-    'Timeticks:',
-    'Hex-STRING:',
-    'Network Address:'
-), $returnAsStr = false) {
-    $result = '';
+function trimSNMPOutput($snmpData,
+                        $oid,
+                        $returnAsStr = false,
+                        $oidValue = array('Counter32:',
+                                          'Counter64:',
+                                          'Gauge32:',
+                                          'Gauge64:',
+                                          'INTEGER:',
+                                          'STRING:',
+                                          'OID:',
+                                          'Timeticks:',
+                                          'Hex-STRING:',
+                                          'Network Address:'
+                                         )
+                       ) {
+    $result = ($returnAsStr) ? '' : array('', '');
 
     if (!empty($snmpData)) {
         if (!is_array($oidValue)) {
@@ -2452,9 +2458,12 @@ function trimSNMPOutput($snmpData, $oid, $oidValue = array('Counter32:',
 
         if (!$returnAsStr) {
             $snmpData = explode('=', $snmpData);
-            // trimming possible extra spaces
-            $snmpData[0] = trim($snmpData[0]);
-            $snmpData[1] = trim($snmpData[1]);
+
+            if (isset($snmpData[1])) {
+                // trimming possible extra spaces
+                $snmpData[0] = trim($snmpData[0]);
+                $snmpData[1] = trim($snmpData[1]);
+            }
         }
 
         $result = $snmpData;

@@ -12,7 +12,7 @@ class SmsPilot extends SMSServiceApi {
         );
 
         //$result = wf_BackLink(self::URL_ME, '', true);
-        $result = $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance . ' RUR', 'info');
+        $result = $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance . ' RUR', 'info');
         //return $result;
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }

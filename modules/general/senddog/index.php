@@ -40,7 +40,7 @@ if (cfr('SENDDOG')) {
                                                 ubRouting::post('smssrvapiimplementation'), ubRouting::post('smssrvdefault'));
                         die();
                     } else {
-                        $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
+                        $errormes = $sendDog->getUBMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
                                                                                                 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                         die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                     }
@@ -52,7 +52,7 @@ if (cfr('SENDDOG')) {
             if ( ubRouting::checkPost('action')) {
                 if (ubRouting::post('action') == 'RefreshBindingsCache') {
                     $sendDog->getSmsQueueInstance()->smsDirections->refreshCacheForced();
-                    $messageWindow = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
+                    $messageWindow = $sendDog->getUBMsgHelperInstance()->getStyledMessage( __('SMS services cache bindings updated succesfuly'),
                                                                                                 'success', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                     die(wf_modalAutoForm('', $messageWindow, ubRouting::post('modalWindowId'), '', true));
                 }
@@ -72,7 +72,7 @@ if (cfr('SENDDOG')) {
                                                          ubRouting::post('smssrvapiimplementation'), ubRouting::post('smssrvdefault'));
                                 die();
                             } else {
-                                $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
+                                $errormes = $sendDog->getUBMsgHelperInstance()->getStyledMessage( __('SMS service with such name already exists with ID: ') . $foundSrvId,
                                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"' );
                                 die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                             }
@@ -87,7 +87,7 @@ if (cfr('SENDDOG')) {
                                 $sendDog->deleteSmsService(ubRouting::post('smssrvid'));
                                 die();
                             } else {
-                                $errormes = $sendDog->getUbillingMsgHelperInstance()->getStyledMessage( __('Can not remove SMS which has existing relations on users or other entities'),
+                                $errormes = $sendDog->getUBMsgHelperInstance()->getStyledMessage( __('Can not remove SMS which has existing relations on users or other entities'),
                                                                                                         'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"' );
                                 die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
                             }
@@ -169,6 +169,9 @@ if (cfr('SENDDOG')) {
                         break;
                     case 'alphasmsbalance':
                         show_window(__('ALPHASMS') . ' ' . __('Balance'), $sendDog->renderAlpasmsBalance());
+                        break;
+                    case 'mobipacebalance':
+                        show_window(__('MOBIPACE') . ' ' . __('Balance'), $sendDog->renderMobipaceBalance());
                         break;
                     case 'telegramcontacts':
                         show_window(__('Telegram bot contacts'), $sendDog->renderTelegramContacts());

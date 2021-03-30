@@ -31,7 +31,7 @@ class RedSms extends SMSServiceApi {
         }
 
         //$result.= wf_BackLink(self::URL_ME, '', true);
-        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage($ballance, $msgType);
+        $result.= $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage($ballance, $msgType);
         //return ($result);
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }

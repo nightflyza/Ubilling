@@ -25,7 +25,7 @@ class SmsFly extends SMSServiceApi {
         curl_close($ch);
 
         //$result.= wf_BackLink($this->sendDog->getBaseUrl(), '', true);
-        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
+        $result.= $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
         //return ($result);
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
