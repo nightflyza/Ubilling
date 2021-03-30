@@ -18,7 +18,7 @@ class MobiClubSms extends SMSServiceApi {
         $response = curl_exec($curl);
         curl_close($curl);
 
-        $result.= $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
+        $result.= $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
         //return ($result);
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }

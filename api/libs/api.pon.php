@@ -3166,9 +3166,9 @@ class PONizer {
 
     /**
      * Performs burial of some ONU
-     * 
+     *
      * @param int $onuId
-     * 
+     *
      * @return void
      */
     public function onuBurial($onuId) {
@@ -3183,9 +3183,9 @@ class PONizer {
 
     /**
      * Performs resurrection of some buried ONU
-     * 
+     *
      * @param int $onuId
-     * 
+     *
      * @return void
      */
     public function onuResurrect($onuId) {
@@ -5291,10 +5291,8 @@ class PONizer {
                         }
                         $lastRegTimeVal = $snmpMiscOIDs['LASTREGTIMEVAL'];
                         $lastRegTime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastRegTimeOID, self::SNMPCACHE);
-                        $lastRegTime = str_replace($lastRegTimeOID, '', $lastRegTime);
-                        $lastRegTime = str_replace($lastRegTimeVal, '', $lastRegTime);
-                        $lastRegTime = explode('=', $lastRegTime);
-                        $lastRegTime = $lastRegTime[1];
+                        $lastRegTime = trimSNMPOutput($lastRegTime, $lastRegTimeOID);
+                        $lastRegTime = (empty($lastRegTime[1]) ? '' : $lastRegTime[1]);
                     }
 
                     if (!empty($snmpMiscOIDs['LASTDEREGTIME'])) {
@@ -5305,20 +5303,16 @@ class PONizer {
                         }
                         $lastDeregTimeVal = $snmpMiscOIDs['LASTDEREGTIMEVAL'];
                         $lastDeregTime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastDeregTimeOID, self::SNMPCACHE);
-                        $lastDeregTime = str_replace($lastDeregTimeOID, '', $lastDeregTime);
-                        $lastDeregTime = str_replace($lastDeregTimeVal, '', $lastDeregTime);
-                        $lastDeregTime = explode('=', $lastDeregTime);
-                        $lastDeregTime = $lastDeregTime[1];
+                        $lastDeregTime = trimSNMPOutput($lastDeregTime, $lastDeregTimeOID);
+                        $lastDeregTime = empty($lastDeregTime[1]) ? '' : $lastDeregTime[1];
                     }
 
                     if (!empty($snmpMiscOIDs['LASTALIVETIME'])) {
                         $lastAliveTimeOID = $snmpMiscOIDs['LASTALIVETIME'] . '.' . $onuDevID;
                         $lastAliveTimeVal = $snmpMiscOIDs['LASTALIVETIMEVAL'];
                         $lastAliveTime = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $lastAliveTimeOID, self::SNMPCACHE);
-                        $lastAliveTime = str_replace($lastAliveTimeOID, '', $lastAliveTime);
-                        $lastAliveTime = str_replace($lastAliveTimeVal, '', $lastAliveTime);
-                        $lastAliveTime = explode('=', $lastAliveTime);
-                        $lastAliveTime = $lastAliveTime[1];
+                        $lastAliveTime = trimSNMPOutput($lastAliveTime, $lastAliveTimeOID);
+                        $lastAliveTime = empty($lastAliveTime[1]) ? '' : $lastAliveTime[1];
                     }
 
                     if (!empty($lastRegTime) or ! empty($lastDeregTime) or ! empty($lastAliveTime)) {
@@ -5330,6 +5324,7 @@ class PONizer {
                               $lastAliveTime = zb_formatTime($lastAliveTime);
                               } */
 
+                            $lastAliveTime = (empty($lastAliveTime) or !is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 
                             $lastRegTime = $this->convertBDCOMTime($lastRegTime);

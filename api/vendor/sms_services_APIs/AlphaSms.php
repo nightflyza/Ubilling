@@ -8,7 +8,7 @@ class AlphaSms extends SMSServiceApi {
     public function getBalance() {
         $balance = '';
         $balance = $this->execute('balance');
-        $result = $this->instanceSendDog->getUbillingMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance['balance'] . ' UAN', 'info');
+        $result = $this->instanceSendDog->getUBMsgHelperInstance()->getStyledMessage(__('Current account balance') . ': ' . $balance['balance'] . ' UAN', 'info');
         die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
     }
 

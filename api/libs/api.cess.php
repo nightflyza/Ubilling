@@ -1326,7 +1326,7 @@ function zb_EditAgentExtInfoRec($recID, $extinfoAgentID, $extinfoSrvType = '', $
                                    )
                              );
     $tabAgentExtInfo->where('id', '=', $recID);
-    $tabAgentExtInfo->save();
+    $tabAgentExtInfo->save(true, true);
 }
 
 /**
