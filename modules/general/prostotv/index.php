@@ -51,6 +51,8 @@ if (cfr('PROSTOTV')) {
         }
 
 
+
+
         //main module controls
         show_window(__('ProstoTV'), $ptv->renderPanel());
 
@@ -67,6 +69,11 @@ if (cfr('PROSTOTV')) {
         //rendering subscribers list container
         if (ubRouting::checkGet($ptv::ROUTE_SUBLIST)) {
             show_window(__('Subscriptions'), $ptv->renderSubscribersList());
+        }
+
+        //some available bunldes rendering
+        if (ubRouting::checkGet($ptv::ROUTE_TARIFFS)) {
+            debarr($ptv->renderBundles());
         }
 
         zb_BillingStats(true);

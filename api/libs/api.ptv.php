@@ -392,6 +392,25 @@ class PTV {
     }
 
     /**
+     * Renders subscriber services
+     * 
+     * @param array $subData
+     * 
+     * @return string
+     */
+    protected function renderServices($subData) {
+        $result = '';
+        if (!empty($subData['services'])) {
+            foreach ($subData['services'] as $io => $each) {
+                $result .= $each;
+            }
+        } else {
+            $result .= __('No tariff');
+        }
+        return($result);
+    }
+
+    /**
      * Renders basic subscriber profile
      * 
      * @param string $userLogin
@@ -410,53 +429,34 @@ class PTV {
                     $cells = wf_TableCell(__('Address'), '', 'row2');
                     $cells .= wf_TableCell(wf_Link(self::URL_USERPROFILE . $userLogin, web_profile_icon() . ' ' . $userData['fulladress']));
                     $rows = wf_TableRow($cells, 'row3');
-
-
-                    $cells = wf_TableCell(__('Cash'), '', 'row2');
-                    $cells .= wf_TableCell($userData['Cash']);
-                    $rows .= wf_TableRow($cells, 'row3');
-
-
-                    $cells = wf_TableCell(__('Credit'), '', 'row2');
-                    $cells .= wf_TableCell($userData['Credit']);
-                    $rows .= wf_TableRow($cells, 'row3');
-
-
-                    $cells = wf_TableCell(__('Password'), '', 'row2');
-                    $cells .= wf_TableCell($userData['Password']);
-                    $rows .= wf_TableRow($cells, 'row3');
-
-
-                    $cells = wf_TableCell(__('IP'), '', 'row2');
-                    $cells .= wf_TableCell($userData['ip']);
-                    $rows .= wf_TableRow($cells, 'row3');
-
-
                     $cells = wf_TableCell(__('ID'), '30%', 'row2');
                     $cells .= wf_TableCell($subData['id']);
                     $rows .= wf_TableRow($cells, 'row3');
-
+                    $cells = wf_TableCell(__('Cash'), '', 'row2');
+                    $cells .= wf_TableCell($userData['Cash']);
+                    $rows .= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Credit'), '', 'row2');
+                    $cells .= wf_TableCell($userData['Credit']);
+                    $rows .= wf_TableRow($cells, 'row3');
+//                    $cells = wf_TableCell(__('Password'), '', 'row2');
+//                    $cells .= wf_TableCell($userData['Password']);
+//                    $rows .= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('IP'), '', 'row2');
+                    $cells .= wf_TableCell($userData['ip']);
+                    $rows .= wf_TableRow($cells, 'row3');
                     $cells = wf_TableCell(__('Status'), '', 'row2');
                     $cells .= wf_TableCell(__($subData['status']));
                     $rows .= wf_TableRow($cells, 'row3');
-
-                    $cells = wf_TableCell(__('ProstoTV') . ' ' . __('Balance'), '', 'row2');
-                    $cells .= wf_TableCell($subData['balance']);
-                    $rows .= wf_TableRow($cells, 'row3');
-
-                    $cells = wf_TableCell(__('Bonus'), '', 'row2');
-                    $cells .= wf_TableCell($subData['bonus']);
-                    $rows .= wf_TableRow($cells, 'row3');
-
                     $cells = wf_TableCell(__('Profile') . ' ' . __('EBS'), '', 'row2');
                     $cells .= wf_TableCell(wf_Link($subData['ebs_url'], wf_img('skins/arrow_right_green.png') . ' ' . __('Show'), false, '', self::NEW_WINDOW));
                     $rows .= wf_TableRow($cells, 'row3');
-
                     $cells = wf_TableCell(__('Date'), '', 'row2');
                     $cells .= wf_TableCell($subData['date_create']);
                     $rows .= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Tariffs'), '', 'row2');
+                    $cells .= wf_TableCell($this->renderServices($subData));
+                    $rows .= wf_TableRow($cells, 'row3');
                     $result .= wf_TableBody($rows, '100%', 0, '');
-
 
                     //append playlists
                     $result .= $this->renderPlaylists($subData);
@@ -468,7 +468,7 @@ class PTV {
                     $result .= $this->renderSubscriberControls($subscriberId);
 
                     //debug info TODO: remove it
-                    // $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
+                    $result .= wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
                 } else {
                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
                 }
@@ -617,6 +617,13 @@ class PTV {
         $result .= wf_modalAuto(web_icon_create() . ' ' . __('Users registration'), __('Users registration'), $this->renderUserRegisterForm(), 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SUBLIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_TARIFFS . '=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
+        return($result);
+    }
+
+    public function renderBundles() {
+        $result = '';
+        //TODO:
+        $result = $this->api->get('/search/bundles');
         return($result);
     }
 
