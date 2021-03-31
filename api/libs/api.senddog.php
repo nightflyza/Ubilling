@@ -2078,6 +2078,9 @@ class SendDogAdvanced extends SendDog {
     const API_IMPL_PATH = 'api/vendor/sms_services_APIs/';
 
     public function __construct() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+
         $this->loadAltCfg();
         $this->initSmsQueue();
         $this->initMessages();
