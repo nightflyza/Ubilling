@@ -59,7 +59,7 @@ if (cfr('USERSEARCH')) {
     //CF search
     if (isset($_POST['cfquery'])) {
         $search_query = $_POST['cfquery'];
-        if (sizeof($search_query) > 0) {
+        if (strlen($search_query) > 0) {
             $found_users = zb_UserSearchCF($_POST['cftypeid'], $search_query);
             show_window(__('Search results') . ' - ' . __('Additional profile fields'), web_UserArrayShower($found_users));
         }

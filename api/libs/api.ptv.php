@@ -255,6 +255,7 @@ class PTV {
                 $this->subscribersDb->data('date', curdatetime());
                 $this->subscribersDb->data('subscriberid', $newId);
                 $this->subscribersDb->data('login', $userLogin);
+                $this->subscribersDb->data('active', '1');
                 $this->subscribersDb->create();
 
                 log_register('PTV SUB REGISTER (' . $userLogin . ') AS [' . $newId . ']');
@@ -526,7 +527,8 @@ class PTV {
                     $cells .= wf_TableCell($userData['ip']);
                     $rows .= wf_TableRow($cells, 'row3');
                     $cells = wf_TableCell(__('Status'), '', 'row2');
-                    $cells .= wf_TableCell(__($subData['status']));
+                    $actLed = ($this->allSubscribers[$userLogin]['active']) ? wf_img_sized('skins/icon_active.gif', '', 10) : wf_img_sized('skins/icon_inactive.gif', '', 10);
+                    $cells .= wf_TableCell($actLed . ' ' . __($subData['status']));
                     $rows .= wf_TableRow($cells, 'row3');
                     $cells = wf_TableCell(__('Profile') . ' ' . __('EBS'), '', 'row2');
                     $cells .= wf_TableCell(wf_Link($subData['ebs_url'], wf_img('skins/arrow_right_green.png') . ' ' . __('Show'), false, '', self::NEW_WINDOW));

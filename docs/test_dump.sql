@@ -2933,6 +2933,7 @@ ALTER TABLE `fdbarchive` ADD `dataportdescr` longtext NULL DEFAULT NULL AFTER `d
 CREATE TABLE IF NOT EXISTS `ptv_subscribers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` datetime NOT NULL,
+  `active` tinyint(1) DEFAULT NULL,
   `subscriberid` int(11) NOT NULL,
   `login` varchar(64) NOT NULL,
   `maintariff` int(11) DEFAULT NULL,
@@ -2950,4 +2951,3 @@ CREATE TABLE IF NOT EXISTS `ptv_tariffs` (
   `fee` DOUBLE NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
