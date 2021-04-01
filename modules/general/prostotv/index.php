@@ -65,31 +65,9 @@ if (cfr('PROSTOTV')) {
             }
         }
 
-
-
-
-        //main module controls
-        show_window(__('ProstoTV'), $ptv->renderPanel());
-
-        //render existing subscriber by its login
-        if (ubRouting::checkGet($ptv::ROUTE_SUBVIEW)) {
-            show_window(__('User profile') . ' ' . __('ProstoTV'), $ptv->renderSubscriber(ubRouting::get($ptv::ROUTE_SUBVIEW)));
-        }
-
         //rendering available subscribers list data
         if (ubRouting::checkGet($ptv::ROUTE_SUBAJ)) {
             $ptv->renderSubsribersAjReply();
-        }
-
-        //rendering subscribers list container
-        if (ubRouting::checkGet($ptv::ROUTE_SUBLIST)) {
-            show_window(__('Subscriptions'), $ptv->renderSubscribersList());
-        }
-
-        //some available bunldes rendering
-        if (ubRouting::checkGet($ptv::ROUTE_BUNDLES)) {
-            show_window(__('Available tariffs'), $ptv->renderBundles());
-            show_window('', wf_BackLink($ptv::URL_ME . '&' . $ptv::ROUTE_TARIFFS . '=true'));
         }
 
         //new tariff creation
@@ -102,7 +80,46 @@ if (cfr('PROSTOTV')) {
             }
         }
 
-        //created tariffs  rendering
+        //subscriber primary tariff editing
+        if (ubRouting::checkPost(array($ptv::PROUTE_TARIFFEDITSUBID, $ptv::PROUTE_SETMAINTARIFFID))) {
+            $userLogin = $ptv->getSubscriberLogin(ubRouting::post($ptv::PROUTE_TARIFFEDITSUBID));
+            $ptv->setMainTariff(ubRouting::post($ptv::PROUTE_TARIFFEDITSUBID), ubRouting::post($ptv::PROUTE_SETMAINTARIFFID));
+            ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_SUBVIEW . '=' . $userLogin);
+        }
+
+        //black magic redirect here
+        if (ubRouting::checkGet($ptv::ROUTE_SUBLOOKUP)) {
+            $userLogin = ubRouting::get($ptv::ROUTE_SUBLOOKUP);
+            $subscriberId = $ptv->getSubscriberId($userLogin);
+            if ($subscriberId) {
+                ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_SUBVIEW . '=' . $userLogin);
+            } else {
+                show_error(__('This user account is not associated with any existing ProstoTV subscriber'));
+                show_window('', web_UserControls($userLogin));
+            }
+        } else {
+            //main module controls
+            show_window(__('ProstoTV'), $ptv->renderPanel());
+        }
+
+        //render existing subscriber by its login
+        if (ubRouting::checkGet($ptv::ROUTE_SUBVIEW)) {
+            show_window(__('User profile') . ' ' . __('ProstoTV'), $ptv->renderSubscriber(ubRouting::get($ptv::ROUTE_SUBVIEW)));
+        }
+
+
+        //rendering subscribers list container
+        if (ubRouting::checkGet($ptv::ROUTE_SUBLIST)) {
+            show_window(__('Subscriptions'), $ptv->renderSubscribersList());
+        }
+
+        //some available bunldes rendering
+        if (ubRouting::checkGet($ptv::ROUTE_BUNDLES)) {
+            show_window(__('Available tariffs'), $ptv->renderBundles());
+            show_window('', wf_BackLink($ptv::URL_ME . '&' . $ptv::ROUTE_TARIFFS . '=true'));
+        }
+
+        //available tariffs list rendering
         if (ubRouting::checkGet($ptv::ROUTE_TARIFFS)) {
             show_window(__('Tariffs'), $ptv->renderTariffs());
         }

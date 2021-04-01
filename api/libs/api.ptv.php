@@ -105,6 +105,9 @@ class PTV {
     const PROUTE_CREATETARIFFNAME = 'newtariffname';
     const PROUTE_CREATETARIFFCHANS = 'newtariffchans';
     const PROUTE_CREATETARIFFFEE = 'newtarifffee';
+    const PROUTE_TARIFFEDITSUBID = 'changetariffsubscriberid';
+    const PROUTE_SETMAINTARIFFID = 'changemaintariffserviceid';
+    const PROUTE_SETADDTARIFFID = 'changeaddionaltariffs';
 
     /**
      * Through the darkness of future past
@@ -337,6 +340,21 @@ class PTV {
                     $result = $each['login'];
                 }
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns subscripber ID by some of the users login
+     * 
+     * @param string $userLogin
+     * 
+     * @return int/bool
+     */
+    public function getSubscriberId($userLogin) {
+        $result = false;
+        if (isset($this->allSubscribers[$userLogin])) {
+            $result = $this->allSubscribers[$userLogin]['subscriberid'];
         }
         return($result);
     }
@@ -634,6 +652,79 @@ class PTV {
     }
 
     /**
+     * Renders users tariff change form
+     * 
+     * @param int $subscriberId
+     * 
+     * @return string
+     */
+    protected function renderTariffEditForm($subscriberId) {
+        $result = '';
+        if (!empty($this->allTariffs)) {
+            $mainTariffsArr = array();
+            $additionalTariffsArr = array();
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+            $currentMainTariff = $this->allSubscribers[$userLogin]['maintariff'];
+            foreach ($this->allTariffs as $io => $each) {
+                if ($each['main']) {
+                    $mainTariffsArr[$each['serviceid']] = $each['name'];
+                } else {
+                    $additionalTariffsArr[$each['serviceid']] = $each['name'];
+                }
+            }
+
+            if (!empty($mainTariffsArr)) {
+                $inputs = wf_HiddenInput(self::PROUTE_TARIFFEDITSUBID, $subscriberId);
+                $inputs .= wf_Selector(self::PROUTE_SETMAINTARIFFID, $mainTariffsArr, __('Primary') . ' ' . __('Tariff'), $currentMainTariff, true);
+
+
+                $inputs .= wf_Submit(__('Save'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Tariffs') . ': ' . __('Not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Sets primary tariff for some subscriber
+     * 
+     * @param int $subscriberId
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function setMainTariff($subscriberId, $tariffId) {
+        $tariffId = ubRouting::filters($tariffId, 'int');
+        $subscriberId = ubRouting::filters($subscriberId, 'int');
+        if ($this->isValidSubscriber($subscriberId)) {
+            $userLogin = $this->getSubscriberLogin($subscriberId);
+            $currentTariff = $this->allSubscribers[$userLogin]['maintariff'];
+            //deleting old service if required
+            if ($currentTariff) {
+                if ($currentTariff != $tariffId) {
+                    $this->api->delete('/objects/' . $subscriberId . '/services/' . $currentTariff);
+                    log_register('PTV SUB (' . $userLogin . ') UNSET TARIFF [' . $tariffId . '] AS [' . $subscriberId . ']');
+                }
+            }
+
+            if ($currentTariff != $tariffId) {
+                //database update
+                $this->subscribersDb->data('maintariff', $tariffId);
+                $this->subscribersDb->where('subscriberid', '=', $subscriberId);
+                $this->subscribersDb->save();
+
+                //push to service API
+                $this->api->post('/objects/' . $subscriberId . '/services', array('id' => $tariffId, 'auto_renewal' => 1));
+
+                //put log record
+                log_register('PTV SUB (' . $userLogin . ') SET TARIFF [' . $tariffId . '] AS [' . $subscriberId . ']');
+            }
+        }
+    }
+
+    /**
      * Returns some subscriber controls
      * 
      * @param int $subscriberId
@@ -653,6 +744,9 @@ class PTV {
             $devCreateUrl = self::URL_ME . '&' . self::ROUTE_DEVCREATE . '=' . $subscriberId;
             $devCreateLabel = wf_img('skins/switch_models.png') . ' ' . __('Create new device');
             $result .= wf_ConfirmDialog($devCreateUrl, $devCreateLabel, __('Create new device') . '? ' . $this->messages->getEditAlert(), 'ubButton', $subProfileUrl) . ' ';
+
+            $result .= wf_modalAuto(wf_img('skins/icon_tariff.gif') . ' ' . __('Edit tariff'), __('Tariff'), $this->renderTariffEditForm($subscriberId), 'ubButton');
+
             if (!empty($subData)) {
                 $userScheme = wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
                 $result .= wf_modal(wf_img('skins/brain.png') . ' ' . __('User inside'), __('User inside'), $userScheme, 'ubButton', '800', '600');
@@ -817,6 +911,17 @@ class PTV {
         }
 
         return($result);
+    }
+
+    /**
+     * Performs fee processing of all registered subscribers
+     * 
+     * @return void
+     */
+    public function feeProcessing() {
+        if (!empty($this->allSubscribers)) {
+            //TODO
+        }
     }
 
 }

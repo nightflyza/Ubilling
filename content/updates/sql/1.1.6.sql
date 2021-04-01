@@ -1,10 +1,13 @@
 CREATE TABLE IF NOT EXISTS `ptv_subscribers` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `date` DATETIME NOT NULL,
-  `subscriberid` INT(11) NOT NULL,
-  `login` VARCHAR(64) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `subscriberid` int(11) NOT NULL,
+  `login` varchar(64) NOT NULL,
+  `maintariff` int(11) DEFAULT NULL,
+  `addtariffs` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
 
 CREATE TABLE IF NOT EXISTS `ptv_tariffs` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
