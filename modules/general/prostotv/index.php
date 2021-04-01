@@ -47,6 +47,21 @@ if (cfr('PROSTOTV')) {
             $regResult = $ptv->userRegister($userLogin);
             if ($regResult) {
                 ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_SUBVIEW . '=' . $userLogin);
+            } else {
+                show_error(__('Something went wrong') . ': ' . __('User not exists'));
+            }
+        }
+
+        //device deletion
+        if (ubRouting::checkGet(array($ptv::ROUTE_DEVDEL, $ptv::ROUTE_SUBID))) {
+            $subscriberId = ubRouting::get($ptv::ROUTE_SUBID, 'int');
+            $deviceId = ubRouting::get($ptv::ROUTE_DEVDEL, 'mres');
+            $userLogin = $ptv->getSubscriberLogin($subscriberId);
+            if ($userLogin) {
+                $ptv->deleteDevice($subscriberId, $deviceId);
+                ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_SUBVIEW . '=' . $userLogin);
+            } else {
+                show_error(__('Something went wrong') . ': ' . __('User not exists') . ' [' . $subscriberId . ']');
             }
         }
 
@@ -72,8 +87,24 @@ if (cfr('PROSTOTV')) {
         }
 
         //some available bunldes rendering
+        if (ubRouting::checkGet($ptv::ROUTE_BUNDLES)) {
+            show_window(__('Available tariffs'), $ptv->renderBundles());
+            show_window('', wf_BackLink($ptv::URL_ME . '&' . $ptv::ROUTE_TARIFFS . '=true'));
+        }
+
+        //new tariff creation
+        if (ubRouting::checkPost(array($ptv::PROUTE_CREATETARIFFNAME, $ptv::PROUTE_CREATETARIFFID))) {
+            $tariffCreateResult = $ptv->createTariff();
+            if (!$tariffCreateResult) {
+                ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_TARIFFS . '=true');
+            } else {
+                show_error($tariffCreateResult);
+            }
+        }
+
+        //created tariffs  rendering
         if (ubRouting::checkGet($ptv::ROUTE_TARIFFS)) {
-            debarr($ptv->renderBundles());
+            show_window(__('Tariffs'), $ptv->renderTariffs());
         }
 
         zb_BillingStats(true);
