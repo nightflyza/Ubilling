@@ -110,10 +110,10 @@ class PTV {
     const PROUTE_SETADDTARIFFID = 'changeaddionaltariffs';
 
     /**
-     * Through the darkness of future past
-     * The magician longs to see.
-     * One chanse out between two worlds
-     * Fire walk with me
+     * Тільки б забути про власний кінець,
+     * Тільки б не чути власних сердець.
+     * Тільки б надалі від себе втекти,
+     * І що найкраще сховати сліди.
      */
     public function __construct() {
         $this->initMessages();
@@ -707,7 +707,7 @@ class PTV {
             if ($currentTariff) {
                 if ($currentTariff != $tariffId) {
                     $this->api->delete('/objects/' . $subscriberId . '/services/' . $currentTariff);
-                    log_register('PTV SUB (' . $userLogin . ') UNSET TARIFF [' . $tariffId . '] AS [' . $subscriberId . ']');
+                    log_register('PTV SUB (' . $userLogin . ') UNSET TARIFF [' . $currentTariff . '] AS [' . $subscriberId . ']');
                 }
             }
 
@@ -922,7 +922,23 @@ class PTV {
      */
     public function feeProcessing() {
         if (!empty($this->allSubscribers)) {
-            //TODO
+            foreach ($this->allSubscribers as $io => $eachSub) {
+                $userLogin=$eachSub['login'];
+                $subscriberId=$eachSub['subscriberid'];
+                $userFee=0;
+                if (isset($this->allUserData[$userLogin])) {
+                    $userCash=$this->allUserData[$userLogin]['Cash'];
+                    //user is active now
+                    if ($eachSub['active']) {
+
+                    } else {
+                        //user is buried now
+                        
+                    }
+                } else {
+                    log_register('PTV CHARGE ('.$userLogin.') AS ['.$eachSub.'] FAIL MISS');
+                }
+            }
         }
     }
 
