@@ -2435,7 +2435,13 @@ class PONizer {
                 if (!$quiet) {
                     print('POLLING:' . $oltid . ' ' . $each . "\n");
                 }
-                $this->pollOltSignal($oltid);
+                if (@!$this->altCfg['HERD_OF_PONIES']) {
+                    $this->pollOltSignal($oltid);
+                } else {
+                    //starting herd of apocalypse pony here!
+                    $pipes = array();
+                    proc_close(proc_open('/bin/ubapi "herd&oltid=' . $oltid . '"&', array(), $pipes));
+                }
             }
         }
     }
@@ -5324,7 +5330,7 @@ class PONizer {
                               $lastAliveTime = zb_formatTime($lastAliveTime);
                               } */
 
-                            $lastAliveTime = (empty($lastAliveTime) or !is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
+                            $lastAliveTime = (empty($lastAliveTime) or ! is_numeric($lastAliveTime)) ? 0 : $lastAliveTime;
                             $lastAliveTime = zb_formatTime($lastAliveTime);
 
                             $lastRegTime = $this->convertBDCOMTime($lastRegTime);
