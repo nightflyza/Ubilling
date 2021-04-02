@@ -310,6 +310,7 @@ class PONizer {
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
+    const POLL_STATS='exports/PONY_';
 
     /**
      * Some routes here
@@ -2012,6 +2013,7 @@ class PONizer {
                 $oltNoFDBQ = $this->allOltSnmp[$oltid]['nofdbquery'];
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
+                        $pollingStart=time();
 
                         /**
                          *  BDCOM/Eltex devices polling
@@ -2416,6 +2418,25 @@ class PONizer {
                             $ztePoller->ponType = 'GPON';
                             $ztePoller->huaweiPollGpon();
                         }
+
+                        //filling OLT polling stats
+                        $pollingEnd=time();
+                        $cachedStats = array();
+                        $statsPath = self::POLL_STATS . $oltid;
+                        if (file_exists($statsPath)) {
+                            $cacheRaw = file_get_contents($statsPath);
+                            if (!empty($cacheRaw)) {
+                                $cachedStats = unserialize($cacheRaw);
+                            }
+                        }
+
+                        $cachedStats['start'] = $pollingStart;
+                        $cachedStats['end'] = $pollingEnd;
+                        if (!empty($cachedStats)) {
+                            $cachedStats = serialize($cachedStats);
+                            file_put_contents($statsPath, $cachedStats);
+                        }
+
                     }
                 }
             }
@@ -3988,11 +4009,22 @@ class PONizer {
                         $oltUptime = file_get_contents(self::UPTIME_PATH . $oltId . '_' . self::UPTIME_EXT);
                         $result .= __('Uptime') . ': ' . $oltUptime;
                     }
-
+                    //getting temperature
                     if (file_exists(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT)) {
                         $oltTemperature = file_get_contents(self::TEMPERATURE_PATH . $oltId . '_' . self::TEMPERATURE_EXT);
                         $oltsTemps[$oltId] = $oltTemperature; //filling temp array
                         $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . '  °C';
+                    }
+                    
+                    //rendering polling stats
+                    if (file_exists(self::POLL_STATS.$oltId)) {
+                        $pollStatsRaw=file_get_contents(self::POLL_STATS.$oltId);
+                        if (!empty($pollStatsRaw)) {
+                            $pollStats=unserialize($pollStatsRaw);
+                            $result.=wf_tag('br').__('SNMP query').': '.__('from').' '.date("Y-m-d H:i:s",$pollStats['start']);
+                            $result.=' '.__('to').' '.date("Y-m-d H:i:s",$pollStats['end']);
+                            $result.=' ('.zb_formatTime(($pollStats['end']-$pollStats['start'])).')';
+                        }
                     }
                     $result .= wf_delimiter(0);
                 }
