@@ -310,7 +310,7 @@ class PONizer {
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
-    const POLL_STATS='exports/PONY_';
+    const POLL_STATS = 'exports/PONY_';
 
     /**
      * Some routes here
@@ -2013,7 +2013,7 @@ class PONizer {
                 $oltNoFDBQ = $this->allOltSnmp[$oltid]['nofdbquery'];
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
-                        $pollingStart=time();
+                        $pollingStart = time();
 
                         /**
                          *  BDCOM/Eltex devices polling
@@ -2420,23 +2420,13 @@ class PONizer {
                         }
 
                         //filling OLT polling stats
-                        $pollingEnd=time();
-                        $cachedStats = array();
+                        $pollingEnd = time();
                         $statsPath = self::POLL_STATS . $oltid;
-                        if (file_exists($statsPath)) {
-                            $cacheRaw = file_get_contents($statsPath);
-                            if (!empty($cacheRaw)) {
-                                $cachedStats = unserialize($cacheRaw);
-                            }
-                        }
-
+                        $cachedStats = array();
                         $cachedStats['start'] = $pollingStart;
                         $cachedStats['end'] = $pollingEnd;
-                        if (!empty($cachedStats)) {
-                            $cachedStats = serialize($cachedStats);
-                            file_put_contents($statsPath, $cachedStats);
-                        }
-
+                        $cachedStats = serialize($cachedStats);
+                        file_put_contents($statsPath, $cachedStats);
                     }
                 }
             }
@@ -2461,7 +2451,7 @@ class PONizer {
                 } else {
                     //starting herd of apocalypse pony here!
                     $pipes = array();
-                    proc_close(proc_open('/bin/ubapi "herd&oltid=' . $oltid . '"&', array(), $pipes));
+                    proc_close(proc_open('/bin/ubapi "herd&oltid=' . $oltid . '"> /dev/null 2>/dev/null &', array(), $pipes));
                 }
             }
         }
@@ -3838,6 +3828,7 @@ class PONizer {
         } else {
             $statsControls .= wf_Link(self::URL_ME . '&oltstats=true', wf_img('skins/notemperature.png') . ' ' . __('Temperature'), false, 'ubButton');
         }
+        $statsControls .= wf_Link(self::URL_ME . '&oltstats=true&pollstats=true', wf_img('skins/log_icon_small.png') . ' ' . __('Devices polling stats'), false, 'ubButton');
 
         $result = '';
         $result .= $statsControls;
@@ -4015,22 +4006,12 @@ class PONizer {
                         $oltsTemps[$oltId] = $oltTemperature; //filling temp array
                         $result .= ' / ' . __('Temperature') . ': ' . $oltTemperature . '  °C';
                     }
-                    
-                    //rendering polling stats
-                    if (file_exists(self::POLL_STATS.$oltId)) {
-                        $pollStatsRaw=file_get_contents(self::POLL_STATS.$oltId);
-                        if (!empty($pollStatsRaw)) {
-                            $pollStats=unserialize($pollStatsRaw);
-                            $result.=wf_tag('br').__('SNMP query').': '.__('from').' '.date("Y-m-d H:i:s",$pollStats['start']);
-                            $result.=' '.__('to').' '.date("Y-m-d H:i:s",$pollStats['end']);
-                            $result.=' ('.zb_formatTime(($pollStats['end']-$pollStats['start'])).')';
-                        }
-                    }
+
                     $result .= wf_delimiter(0);
                 }
             }
 
-
+            //temperature gauges here
             if (ubRouting::checkGet('temperature')) {
                 $result = $statsControls . wf_tag('br');
                 if (!empty($oltsTemps)) {
@@ -4039,6 +4020,42 @@ class PONizer {
                         $result .= $this->renderTemperature($oltTempValue, $this->allOltDevices[$oltTempId]);
                     }
                     $result .= wf_CleanDiv();
+                } else {
+                    $messages = new UbillingMessageHelper();
+                    $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+                }
+            }
+
+            //or OLT polling timing stats
+            if (ubRouting::checkGet('pollstats')) {
+                if (!empty($this->allOltDevices)) {
+                    $totalTime = 0;
+                    $cells = wf_TableCell(__('OLT'));
+                    $cells .= wf_TableCell(__('from'));
+                    $cells .= wf_TableCell(__('to'));
+                    $cells .= wf_TableCell(__('time'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($this->allOltDevices as $oltId => $eachDevice) {
+                        $pollStatsPath = self::POLL_STATS . $oltId;
+                        if (file_exists($pollStatsPath)) {
+                            $pollStatsRaw = file_get_contents($pollStatsPath);
+                            if (!empty($pollStatsRaw)) {
+                                $pollStats = unserialize($pollStatsRaw);
+                                $devPollTime = $pollStats['end'] - $pollStats['start'];
+                                $totalTime += $devPollTime;
+                                $cells = wf_TableCell($eachDevice);
+                                $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['start']));
+                                $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['end']));
+                                $cells .= wf_TableCell(zb_formatTime($devPollTime));
+                                $rows .= wf_TableRow($cells, 'row5');
+                            }
+                        }
+                    }
+
+                    $result = $statsControls;
+                    $result .= wf_tag('h3') . __('SNMP query') . wf_tag('h3', true);
+                    $result .= wf_TableBody($rows, '100%', 0, '');
+                    $result .= __('Total') . ' ' . __('time') . ': ' . zb_formatTime($totalTime);
                 } else {
                     $messages = new UbillingMessageHelper();
                     $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
