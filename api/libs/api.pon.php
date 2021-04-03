@@ -4030,6 +4030,7 @@ class PONizer {
             if (ubRouting::checkGet('pollstats')) {
                 if (!empty($this->allOltDevices)) {
                     $totalTime = 0;
+                    $devicesPolled = 0;
                     $cells = wf_TableCell(__('OLT'));
                     $cells .= wf_TableCell(__('from'));
                     $cells .= wf_TableCell(__('to'));
@@ -4040,6 +4041,7 @@ class PONizer {
                         if (file_exists($pollStatsPath)) {
                             $pollStatsRaw = file_get_contents($pollStatsPath);
                             if (!empty($pollStatsRaw)) {
+                                $devicesPolled++;
                                 $pollStats = unserialize($pollStatsRaw);
                                 $devPollTime = $pollStats['end'] - $pollStats['start'];
                                 $totalTime += $devPollTime;
@@ -4055,7 +4057,9 @@ class PONizer {
                     $result = $statsControls;
                     $result .= wf_tag('h3') . __('SNMP query') . wf_tag('h3', true);
                     $result .= wf_TableBody($rows, '100%', 0, '');
-                    $result .= __('Total') . ' ' . __('time') . ': ' . zb_formatTime($totalTime);
+                    $result.= wf_delimiter(0);
+                    $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime) . wf_tag('br');
+                    $result .= wf_tag('b') . __('Total') . ' ' . __('OLT') . ': ' . wf_tag('b', true) . $devicesPolled . wf_tag('br');
                 } else {
                     $messages = new UbillingMessageHelper();
                     $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
