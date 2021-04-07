@@ -67,12 +67,10 @@ function sp_parse_power($data) {
     $result = '';
     if (!empty($data)) {
         $rawValue = zb_SanitizeSNMPValue($data);
-        if (!empty($rawValue)) {
-            if ($rawValue) {
-                $result = wf_img('skins/lighton.png') . wf_tag('br');
-            } else {
-                $result = wf_img('skins/lightoff.png') . wf_tag('br');
-            }
+        if ($rawValue) {
+            $result = wf_img('skins/lighton.png') . wf_tag('br');
+        } else {
+            $result = wf_img('skins/lightoff.png') . wf_tag('br');
         }
     } else {
         $result = __('Empty reply received');
