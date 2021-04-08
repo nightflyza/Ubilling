@@ -2754,9 +2754,10 @@ class Salary {
     public function renderYearReport() {
         $result = '';
         $monthArr = months_array_localized();
-        $showYear = (wf_CheckPost(array('showyear'))) ? vf($_POST['showyear'], 3) : curyear();
+        $showYear = (ubRouting::checkPost('showyear')) ? ubRouting::post('showyear', 'int') : curyear();
         $yearSummaryArr = array();
         $employeSummaryArr = array();
+        $jobTypesSummaryArr = array();
 
         $totalJobPrices = 0;
 
@@ -2799,6 +2800,15 @@ class Salary {
                             $employeSummaryArr[$each['employeeid']][$monthNum] = 0;
                         }
                         $employeSummaryArr[$each['employeeid']][$month] += $jobPrice;
+                    }
+//filling jobtypes summary
+                    if (isset($jobTypesSummaryArr[$each['jobtypeid']][$month])) {
+                        $jobTypesSummaryArr[$each['jobtypeid']][$month] += $jobPrice;
+                    } else {
+                        foreach ($monthArr as $monthNum => $monthName) {
+                            $jobTypesSummaryArr[$each['jobtypeid']][$monthNum] = 0;
+                        }
+                        $jobTypesSummaryArr[$each['jobtypeid']][$month] = $jobPrice;
                     }
                 }
             }
@@ -2850,6 +2860,76 @@ class Salary {
                 }
                 $result .= wf_tag('h3') . __('Employee') . wf_tag('h3', true);
                 $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+//rendering jobtypes year summary
+            if (!empty($jobTypesSummaryArr)) {
+                $cells = wf_TableCell('');
+                foreach ($monthArr as $monthNum => $monthName) {
+                    $cells .= wf_TableCell($monthName);
+                }
+                $cells .= wf_TableCell(__('Total'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($jobTypesSummaryArr as $jobtypeId => $each) {
+                    $jobTypePriceTotal = 0;
+                    $cells = wf_TableCell(@$this->allJobtypes[$jobtypeId]);
+                    foreach ($monthArr as $ia => $mn) {
+                        $cells .= wf_TableCell(zb_CashBigValueFormat($each[$ia]));
+                        $jobTypePriceTotal += $each[$ia];
+                    }
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($jobTypePriceTotal));
+                    $rows .= wf_TableRow($cells, 'row5');
+                }
+                $result .= wf_tag('h3') . __('Job types') . wf_tag('h3', true);
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+//and visual charts for jobtypes
+                $chartsOptions = "
+                     
+            'focusTarget': 'category',
+                        'hAxis': {
+                        
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },
+                    legend: { position: 'right',  orientation: 'vertical', aligment: 'end' },";
+                $charsData = array();
+                $columns = array();
+                $columns[] = __('Date');
+
+                $jobsInYear = array();
+
+
+                foreach ($jobTypesSummaryArr as $jobTypeId => $each) {
+                    $columns[] = $this->allJobtypes[$jobTypeId];
+
+                    foreach ($each as $mn => $jtsumm) {
+                        $jobsInYear[$showYear . '-' . $mn][$jobTypeId] = $jtsumm;
+                    }
+                }
+
+                $charsData[] = $columns;
+                $columns = array();
+                if (!empty($jobsInYear)) {
+                    foreach ($jobsInYear as $date => $jobStats) {
+                        $columns = array();
+                        $columns[] = $date;
+                        foreach ($jobStats as $jobtypeId => $jtsumm) {
+                            $columns[] = $jtsumm;
+                        }
+                        $charsData[] = $columns;
+                    }
+                }
+
+                $result .= wf_gchartsLine($charsData, __('Job types') . ' ' . $showYear, '100%', '400px', $chartsOptions);
             }
         } else {
             $messages = new UbillingMessageHelper();

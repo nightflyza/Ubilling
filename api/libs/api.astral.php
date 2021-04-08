@@ -2542,8 +2542,8 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
         var options = {
           title: \'' . $title . '\',
           curveType: \'function\',
+          legend: { position: \'bottom\' },
            ' . $options . '
-          legend: { position: \'bottom\' }
         };
 
         var chart = new google.visualization.LineChart(document.getElementById(\'' . $containerId . '\'));
