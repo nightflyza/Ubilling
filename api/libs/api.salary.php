@@ -2819,9 +2819,9 @@ class Salary {
                     $cells = wf_TableCell($io);
                     $cells .= wf_TableCell($each['monthname']);
                     $cells .= wf_TableCell($each['jobscount']);
-                    $cells .= wf_TableCell($each['paid']);
-                    $cells .= wf_TableCell($each['unpaid']);
-                    $cells .= wf_TableCell($each['total']);
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($each['paid']));
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($each['unpaid']));
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($each['total']));
                     $cells .= wf_TableCell(web_bar($each['total'], $totalJobPrices), '', '', 'sorttable_customkey="' . $each['total'] . '"');
                     $rows .= wf_TableRow($cells, 'row3');
                 }
@@ -2842,10 +2842,10 @@ class Salary {
                     $employeeSalaryTotal = 0;
                     $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeId]);
                     foreach ($monthArr as $ia => $mn) {
-                        $cells .= wf_TableCell($each[$ia]);
+                        $cells .= wf_TableCell(zb_CashBigValueFormat($each[$ia]));
                         $employeeSalaryTotal += $each[$ia];
                     }
-                    $cells .= wf_TableCell($employeeSalaryTotal);
+                    $cells .= wf_TableCell(zb_CashBigValueFormat($employeeSalaryTotal));
                     $rows .= wf_TableRow($cells, 'row5');
                 }
                 $result .= wf_tag('h3') . __('Employee') . wf_tag('h3', true);
