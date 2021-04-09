@@ -1198,6 +1198,60 @@ function zbs_CUDShow($login, $us_config) {
 }
 
 /**
+ * Renders form for change user password
+ * 
+ * @param string $login
+ * @return string
+ */
+function zbs_UserChangePassword($login) {
+    $result = '';
+    if (isset($login)) {
+        // change password  if need
+        if (la_CheckPost(array('newpassword','confirmnewpassword'))) {
+            if ($_POST['newpassword'] == $_POST['confirmnewpassword']) {
+                $current_password = zbs_UserGetStargazerData($login);
+                $current_password = $current_password['Password'];
+                if ($current_password == $_POST['upassword']) {
+                    $password = $_POST['newpassword'];
+                    $password = vf($password);
+                    $password = preg_replace('#[^a-z0-9A-Z\-_\.]#Uis', '', $password);
+                    $password = preg_replace('/\0/s', '', $password);
+                    if (strlen($password) >= 5) {
+                        billing_setpassword($login, $password);
+                        log_register('CHANGE Password (' . $login . ') ON `' . $password . '` BY USER' );
+                        // After change pass need login again for set cookies
+                        rcms_redirect("index.php");
+                    } else {
+                        $content = __('Password must contain 5 and more characters');
+                        $result .= la_modalOpened(__('Error'), $content, 300, 200);
+                    }
+                } else {
+                    $content = __('Incorrect current password');
+                    $result .= la_modalOpened(__('Error'), $content, 300, 200);
+                }
+            } else {
+                $content = __('Passwords do not match');
+                $result .= la_modalOpened(__('Error'), $content, 300, 200);
+            }
+        }
+
+// Edit form construct
+        $inputs = la_tag('label') . __('Current password') . la_tag('label', true) . la_tag('br');
+        $inputs .= la_PasswordInput('upassword', '', '', true) . la_tag('br');
+        $inputs .= la_tag('label') . __('New password') . la_tag('label', true) . la_tag('br');
+        $inputs .= la_PasswordInput('newpassword', '', '', true);
+        $inputs .= la_tag('label') . __('Confirm new password') . la_tag('label', true) . la_tag('br');
+        $inputs .= la_PasswordInput('confirmnewpassword', '', '', true) . la_tag('br');
+        $inputs .= la_Submit(__('Change password'));
+
+        $form = la_Form('index.php', "POST", $inputs, 'glamour');
+        $result .= la_modal(__('Change password'), __('Change password'), $form, '', 300, 370);
+
+    }
+    return ($result);
+}
+
+/**
  * Renders user profile
  * 
  * @param string $login
@@ -1216,6 +1270,11 @@ function zbs_UserShowProfile($login) {
     $passive = $userdata['Passive'];
     $down = $userdata['Down'];
     $userpassword = $userdata['Password'];
+    // Allow user change password
+    // With this option we hide current password user
+    if (isset($us_config['PASSWORD_CHANGE']) and $us_config['PASSWORD_CHANGE'] == 1) {
+        $userpassword = zbs_UserChangePassword($login);
+    }
     $skinPath = zbs_GetCurrentSkinPath($us_config);
     $iconsPath = $skinPath . 'iconz/';
 
@@ -1830,6 +1889,18 @@ function billing_settariffnm($login, $tariff) {
  */
 function billing_freeze($login) {
     executor('-u' . $login . ' -i 1');
+}
+
+/**
+ * Set password to stargazer user
+ * @param string $login stargazer user login
+ * @param string $password  password string
+ * 
+ * @return void
+ */
+function billing_setpassword($login, $password) {
+    executor('-u' . $login . ' -o ' . $password);
+    ;
 }
 
 /**

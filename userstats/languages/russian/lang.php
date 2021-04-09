@@ -413,4 +413,11 @@ $lang['def']['I have thought well and understand that I activate this service fo
 $lang['def']['Agree'] = 'Согласен';
 $lang['def']['Cancel'] = 'Отмена';
 
+$lang['def']['Change password'] = 'Сменить пароль';
+$lang['def']['Current password'] = 'Текущий пароль';
+$lang['def']['New password'] = 'Новый пароль';
+$lang['def']['Confirm new password'] = 'Подтвердите новый пароль';
+$lang['def']['Password must contain 5 and more characters'] = 'Пароль должен содержать 5 и более символов';
+$lang['def']['Incorrect current password'] = 'Неверный текущий пароль';
+$lang['def']['Passwords do not match'] = 'Пароли не соответствуют';
 ?>
