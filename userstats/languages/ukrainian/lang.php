@@ -418,7 +418,7 @@ $lang['def']['Change password'] = 'Змінити пароль';
 $lang['def']['Current password'] = 'Поточний пароль';
 $lang['def']['New password'] = 'Новий пароль';
 $lang['def']['Confirm new password'] = 'Підтвердіть новий пароль';
-$lang['def']['Password must contain 5 and more characters'] = 'Пароль повинен містити 5 і більше символів';
+$lang['def']['Password must contain 5 and more characters'] = 'Пароль повинен містити 5 чи більше символів';
 $lang['def']['Incorrect current password'] = 'Невірний поточний пароль';
-$lang['def']['Passwords do not match'] = 'Паролі не відповідають';
+$lang['def']['Passwords do not match'] = 'Паролі не співпадають';
 ?>
