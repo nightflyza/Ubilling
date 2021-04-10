@@ -420,5 +420,5 @@ $lang['def']['New password'] = 'Новий пароль';
 $lang['def']['Confirm new password'] = 'Підтвердіть новий пароль';
 $lang['def']['Password must contain 5 and more characters'] = 'Пароль повинен містити 5 чи більше символів';
 $lang['def']['Incorrect current password'] = 'Невірний поточний пароль';
-$lang['def']['Passwords do not match'] = 'Паролі не співпадають';
+$lang['def']['Passwords do not match'] = 'Паролі не збігаються';
 ?>
