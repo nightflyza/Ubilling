@@ -421,4 +421,8 @@ $lang['def']['Confirm new password'] = 'Підтвердіть новий пар
 $lang['def']['Password must contain 5 and more characters'] = 'Пароль повинен містити 5 чи більше символів';
 $lang['def']['Incorrect current password'] = 'Невірний поточний пароль';
 $lang['def']['Passwords do not match'] = 'Паролі не збігаються';
+$lang['def']['ProstoTV'] = 'Просто ТВ';
+$lang['def']['No subscriptions yet'] = 'Наразі немає передплат';
+
+
 ?>

@@ -420,4 +420,6 @@ $lang['def']['Confirm new password'] = 'Подтвердите новый пар
 $lang['def']['Password must contain 5 and more characters'] = 'Пароль должен содержать 5 и более символов';
 $lang['def']['Incorrect current password'] = 'Неверный текущий пароль';
 $lang['def']['Passwords do not match'] = 'Пароли не соответствуют';
+$lang['def']['ProstoTV'] = 'Просто ТВ';
+$lang['def']['No subscriptions yet'] = 'Еще нету никаких подписок';
 ?>

@@ -99,6 +99,7 @@ class PTV {
     const ROUTE_DEVCREATE = 'createdevice';
     const ROUTE_DEVDEL = 'deletedevice';
     const ROUTE_SUBLOOKUP = 'username';
+    const ROUTE_TARDEL = 'deletetariff';
     const PROUTE_SUBREG = 'registersubscriber';
     const PROUTE_CREATETARIFFID = 'newtariffserviceid';
     const PROUTE_CREATETARIFFMAIN = 'newtariffmainflag';
@@ -110,10 +111,13 @@ class PTV {
     const PROUTE_SETADDTARIFFID = 'changeaddionaltariffs';
 
     /**
-     * Тільки б забути про власний кінець,
-     * Тільки б не чути власних сердець.
-     * Тільки б надалі від себе втекти,
-     * І що найкраще сховати сліди.
+     * I keep my eyes low, looking for my rival
+     * Eyes Low
+     * Playing with the rifle
+     * White dope
+     * Feeling homicidal
+     * Ride slow
+     * Fucking up your spinal
      */
     public function __construct() {
         $this->initMessages();
@@ -660,7 +664,7 @@ class PTV {
      * 
      * @return string
      */
-    protected function renderTariffEditForm($subscriberId) {
+    protected function renderUserTariffEditForm($subscriberId) {
         $result = '';
         if (!empty($this->allTariffs)) {
             $mainTariffsArr = array();
@@ -747,7 +751,7 @@ class PTV {
             $devCreateLabel = wf_img('skins/switch_models.png') . ' ' . __('Create new device');
             $result .= wf_ConfirmDialog($devCreateUrl, $devCreateLabel, __('Create new device') . '? ' . $this->messages->getEditAlert(), 'ubButton', $subProfileUrl) . ' ';
 
-            $result .= wf_modalAuto(wf_img('skins/icon_tariff.gif') . ' ' . __('Edit tariff'), __('Tariff'), $this->renderTariffEditForm($subscriberId), 'ubButton');
+            $result .= wf_modalAuto(wf_img('skins/icon_tariff.gif') . ' ' . __('Edit tariff'), __('Tariff'), $this->renderUserTariffEditForm($subscriberId), 'ubButton');
 
             if (!empty($subData)) {
                 $userScheme = wf_tag('pre') . print_r($subData, true) . wf_tag('pre', true);
@@ -881,6 +885,56 @@ class PTV {
     }
 
     /**
+     * Deletes existing tariff from database
+     * 
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function deleteTariff($tariffId) {
+        $result = '';
+        $tariffId = ubRouting::filters($tariffId, 'int');
+        if (isset($this->allTariffs[$tariffId])) {
+            if ($this->isTariffProtected($tariffId)) {
+                $result = __('Tariff is used by some users');
+            } else {
+                $tariffData = $this->allTariffs[$tariffId];
+                $tariffName = $tariffData['name'];
+                $tariffFee = $tariffData['fee'];
+                $this->tariffsDb->where('serviceid', '=', $tariffId);
+                $this->tariffsDb->delete();
+                log_register('PTV TARIFF DELETE `' . $tariffName . '` AS [' . $tariffId . '] FEE `' . $tariffFee . '`');
+            }
+        } else {
+            $result .= __('Tariff not exists');
+        }
+
+        return($result);
+    }
+
+    /**
+     * Checks is some tariff protected of usage by some user
+     * 
+     * @param int $tariffId
+     * 
+     * @return bool
+     */
+    protected function isTariffProtected($tariffId) {
+        $result = false;
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['maintariff'] == $tariffId) {
+                    $result = true;
+                }
+                if (ispos($each['addtariffs'], $tariffId)) {
+                    $result = true;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders list of tariffs available for users
      * 
      * @return string
@@ -904,7 +958,10 @@ class PTV {
                 $cells .= wf_TableCell(web_bool_led($each['main']));
                 $cells .= wf_TableCell($each['chans']);
                 $cells .= wf_TableCell($each['fee']);
-                $cells .= wf_TableCell('TODO');
+                $tariffsCancelUrl = self::URL_ME . '&' . self::ROUTE_TARIFFS . '=true';
+                $tariffsDeleteUrl = self::URL_ME . '&' . self::ROUTE_TARDEL . '=' . $each['serviceid'];
+                $tariffControls = wf_ConfirmDialog($tariffsDeleteUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', $tariffsCancelUrl);
+                $cells .= wf_TableCell($tariffControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
@@ -923,23 +980,62 @@ class PTV {
     public function feeProcessing() {
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $io => $eachSub) {
-                $userLogin=$eachSub['login'];
-                $subscriberId=$eachSub['subscriberid'];
-                $userFee=0;
+                $userLogin = $eachSub['login'];
+                $subscriberId = $eachSub['subscriberid'];
+                $userFee = 0;
                 if (isset($this->allUserData[$userLogin])) {
-                    $userCash=$this->allUserData[$userLogin]['Cash'];
+                    $userCash = $this->allUserData[$userLogin]['Cash'];
                     //user is active now
                     if ($eachSub['active']) {
-
+                        //TODO
                     } else {
                         //user is buried now
-                        
                     }
                 } else {
-                    log_register('PTV CHARGE ('.$userLogin.') AS ['.$eachSub.'] FAIL MISS');
+                    log_register('PTV CHARGE (' . $userLogin . ') AS [' . $eachSub . '] FAIL MISS');
                 }
             }
         }
+    }
+
+    /**
+     * Renders JSON reply for some userstats frontend requests
+     * 
+     * @param array $reply
+     * 
+     * @return void
+     */
+    protected function jsonRenderReply($reply) {
+        $reply = json_encode($reply);
+        die($reply);
+    }
+
+    /**
+     * Renders user subscription data for some login
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function usReplyUserData($userLogin) {
+        $reply = array();
+        if (isset($this->allSubscribers[$userLogin])) {
+            $reply = $this->allSubscribers[$userLogin];
+        }
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Renders available tariffs list
+     * 
+     * @return void
+     */
+    public function usReplyTariffs() {
+        $reply = array();
+        if (!empty($this->allTariffs)) {
+            $reply= $this->allTariffs;
+        }
+        $this->jsonRenderReply($reply);
     }
 
 }

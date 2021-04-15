@@ -2,7 +2,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ReloadCMS Development Team                                 //
-//   http://reloadcms.sf.net                                                  //
+//   http://reloadcms.com                                                  //
 //                                                                            //
 //   This program is distributed in the hope that it will be useful,          //
 //   but WITHOUT ANY WARRANTY, without even the implied warranty of           //
@@ -25,7 +25,7 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '16');
+define('RCMS_VERSION_C', '17');
 if (!defined('RCMS_ROOT_PATH')) {
     die('Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.'); //23:4
 }
@@ -34,7 +34,7 @@ if (is_file(RCMS_ROOT_PATH . 'CURRENT'))
 else
     define('RCMS_VERSION_SUFFIX', '');
 define('RCMS_LINK', 'http://reloadcms.com/main/');
-define('RCMS_COPYRIGHT', '&copy; 2020');
+define('RCMS_COPYRIGHT', '&copy; 2021');
 define('RCMS_POWERED', 'RCMS Framework');
 
 // Main paths

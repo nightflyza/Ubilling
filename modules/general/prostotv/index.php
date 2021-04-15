@@ -80,6 +80,17 @@ if (cfr('PROSTOTV')) {
             }
         }
 
+        //deleting existing tariff
+        if (ubRouting::checkGet($ptv::ROUTE_TARDEL)) {
+            $tariffDeletionResult = $ptv->deleteTariff(ubRouting::get($ptv::ROUTE_TARDEL));
+            if (!$tariffDeletionResult) {
+                ubRouting::nav($ptv::URL_ME . '&' . $ptv::ROUTE_TARIFFS . '=true');
+            } else {
+                show_error($tariffDeletionResult);
+            }
+        }
+
+
         //subscriber primary tariff editing
         if (ubRouting::checkPost(array($ptv::PROUTE_TARIFFEDITSUBID, $ptv::PROUTE_SETMAINTARIFFID))) {
             $userLogin = $ptv->getSubscriberLogin(ubRouting::post($ptv::PROUTE_TARIFFEDITSUBID));
