@@ -422,4 +422,6 @@ $lang['def']['Incorrect current password'] = 'Неверный текущий п
 $lang['def']['Passwords do not match'] = 'Пароли не соответствуют';
 $lang['def']['ProstoTV'] = 'Просто ТВ';
 $lang['def']['No subscriptions yet'] = 'Еще нету никаких подписок';
+$lang['def']['Playlists'] = 'Плейлисты';
+$lang['def']['Download'] = 'Скачать';
 ?>

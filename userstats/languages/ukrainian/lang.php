@@ -423,6 +423,7 @@ $lang['def']['Incorrect current password'] = 'Невірний поточний 
 $lang['def']['Passwords do not match'] = 'Паролі не збігаються';
 $lang['def']['ProstoTV'] = 'Просто ТВ';
 $lang['def']['No subscriptions yet'] = 'Наразі немає передплат';
-
+$lang['def']['Playlists'] = 'Плейлисти';
+$lang['def']['Download'] = 'Завантажити';
 
 ?>

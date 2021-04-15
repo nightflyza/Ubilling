@@ -11,7 +11,29 @@ if (@$us_config['PROSTOTV_ENABLED']) {
     if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 )) {
         $ptvIf = new PTVInterface($userLogin);
 
+        if (ubRouting::checkGet('newdev')) {
+            $ptvIf->createNewDevice();
+            ubRouting::nav($ptvIf::URL_ME);
+        }
+
+        if (ubRouting::checkGet('deldev')) {
+            $ptvIf->deleteDevice(ubRouting::get('deldev'));
+            ubRouting::nav($ptvIf::URL_ME);
+        }
+
+        if (ubRouting::checkGet('newpl')) {
+            $ptvIf->createPlaylist();
+            ubRouting::nav($ptvIf::URL_ME);
+        }
+
+        if (ubRouting::checkGet('delpl')) {
+            $ptvIf->deletePlaylist(ubRouting::get('delpl'));
+            ubRouting::nav($ptvIf::URL_ME);
+        }
+
         show_window(__('Your subscriptions'), $ptvIf->renderSubscriptionDetails());
+        show_window(__('Devices'), $ptvIf->renderDevices());
+        show_window(__('Playlists'), $ptvIf->renderPlaylists());
         show_window(__('Available subscribtions'), $ptvIf->renderSubscribeForm());
     } else {
         show_window(__('Sorry'), __('You can not use this service'));

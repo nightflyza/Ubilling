@@ -1026,6 +1026,19 @@ class PTV {
     }
 
     /**
+     * Renders subscriber full data
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function usReplyUserFullData($userLogin) {
+        $reply = array();
+        $reply = $this->getUserData($userLogin);
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
      * Renders available tariffs list
      * 
      * @return void
@@ -1033,7 +1046,12 @@ class PTV {
     public function usReplyTariffs() {
         $reply = array();
         if (!empty($this->allTariffs)) {
-            $reply= $this->allTariffs;
+            //TODO: support of additional tariffs
+            foreach ($this->allTariffs as $io => $each) {
+                if ($each['main']) {
+                    $reply[$io] = $each;
+                }
+            }
         }
         $this->jsonRenderReply($reply);
     }
