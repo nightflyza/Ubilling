@@ -2446,12 +2446,20 @@ class PONizer {
                 if (!$quiet) {
                     print('POLLING:' . $oltid . ' ' . $each . "\n");
                 }
+
                 if (@!$this->altCfg['HERD_OF_PONIES']) {
                     $this->pollOltSignal($oltid);
                 } else {
                     //starting herd of apocalypse pony here!
+                    $herdTimeout = 0;
+                    if ($this->altCfg['HERD_OF_PONIES'] > 1) {
+                        $herdTimeout = ubRouting::filters($this->altCfg['HERD_OF_PONIES'], 'int');
+                    }
                     $pipes = array();
                     proc_close(proc_open('/bin/ubapi "herd&oltid=' . $oltid . '"> /dev/null 2>/dev/null &', array(), $pipes));
+                    if ($herdTimeout) {
+                        sleep($herdTimeout);
+                    }
                 }
             }
         }
@@ -4057,7 +4065,7 @@ class PONizer {
                     $result = $statsControls;
                     $result .= wf_tag('h3') . __('SNMP query') . wf_tag('h3', true);
                     $result .= wf_TableBody($rows, '100%', 0, '');
-                    $result.= wf_delimiter(0);
+                    $result .= wf_delimiter(0);
                     $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime) . wf_tag('br');
                     $result .= wf_tag('b') . __('Total') . ' ' . __('OLT') . ': ' . wf_tag('b', true) . $devicesPolled . wf_tag('br');
                 } else {

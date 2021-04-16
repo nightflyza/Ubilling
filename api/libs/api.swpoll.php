@@ -1010,6 +1010,7 @@ function sp_SnmpParseFdbCumulative($portTable, $statusTable, $portOID, $statusOI
  */
 function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite = '', $quiet = false, $allswitchmacs = array()) {
     global $ubillingConfig;
+    $pollingStart = time();
     if (isset($alltemplates[$deviceTemplate])) {
         $currentTemplate = $alltemplates[$deviceTemplate];
 
@@ -1574,6 +1575,14 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             }
         }
     }
+    //filling device polling stats
+    $pollingEnd = time();
+    $statsPath = 'exports/HORDE_' . $ip;
+    $cachedStats = array();
+    $cachedStats['start'] = $pollingStart;
+    $cachedStats['end'] = $pollingEnd;
+    $cachedStats = serialize($cachedStats);
+    file_put_contents($statsPath, $cachedStats);
 }
 
 /**

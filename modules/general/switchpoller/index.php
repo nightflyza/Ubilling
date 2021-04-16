@@ -116,6 +116,47 @@ if (cfr('SWITCHPOLL')) {
     }
 
     /**
+     * Renders horde stats control if horde enabled
+     * 
+     * @return string
+     */
+    function web_HordeStatsControl() {
+        global $ubillingConfig;
+        $result = '';
+        if ($ubillingConfig->getAlterParam('HORDE_OF_SWITCHES')) {
+            $stats = '';
+            $hordePath = 'exports/';
+            $allHordeStats = rcms_scandir($hordePath, '*HORDE_*');
+            if (!empty($allHordeStats)) {
+                $cells = wf_TableCell(__('IP'));
+                $cells .= wf_TableCell(__('from'));
+                $cells .= wf_TableCell(__('to'));
+                $cells .= wf_TableCell(__('time'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($allHordeStats as $io => $eachStat) {
+                    $devIp = zb_ExtractIpAddress($eachStat);
+                    $statData = file_get_contents($hordePath . $eachStat);
+                    if (!empty($statData)) {
+                        $statData = unserialize($statData);
+                        $pollTime = $statData['end'] - $statData['start'];
+                        $cells = wf_TableCell($devIp);
+                        $cells .= wf_TableCell(date("Y-m-d H:i:s", $statData['start']));
+                        $cells .= wf_TableCell(date("Y-m-d H:i:s", $statData['end']));
+                        $cells .= wf_TableCell(zb_formatTime($pollTime));
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+                }
+                $stats .= wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $messages = new UbillingMessageHelper();
+                $stats .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+            $result .= ' ' . wf_modal(wf_img('skins/orc_small.png', __('Devices polling stats')), __('Devices polling stats'), $stats, '', '800', '600');
+        }
+        return($result);
+    }
+
+    /**
      * Shows current FDB cache list container
      * 
      * @param string $fdbSwitchFilter
@@ -135,6 +176,7 @@ if (cfr('SWITCHPOLL')) {
             $filtersForm .= ' ' . wf_img('skins/filter_icon.png', __('Filters'));
         }
         $logControls = web_FDBTableLogControl();
+        $logControls .= web_HordeStatsControl();
 
         $mainControls = FDBArchive::renderNavigationPanel();
         show_window('', $mainControls);
