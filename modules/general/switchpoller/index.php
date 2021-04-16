@@ -127,6 +127,8 @@ if (cfr('SWITCHPOLL')) {
             $stats = '';
             $hordePath = 'exports/';
             $allHordeStats = rcms_scandir($hordePath, '*HORDE_*');
+            $totalCount = 0;
+            $totalTime = 0;
             if (!empty($allHordeStats)) {
                 $cells = wf_TableCell(__('IP'));
                 $cells .= wf_TableCell(__('from'));
@@ -144,9 +146,13 @@ if (cfr('SWITCHPOLL')) {
                         $cells .= wf_TableCell(date("Y-m-d H:i:s", $statData['end']));
                         $cells .= wf_TableCell(zb_formatTime($pollTime));
                         $rows .= wf_TableRow($cells, 'row5');
+                        $totalCount++;
+                        $totalTime += $pollTime;
                     }
                 }
                 $stats .= wf_TableBody($rows, '100%', 0, '');
+                $stats .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime) . wf_delimiter(0);
+                $stats .= wf_tag('b') . __('Devices') . ': ' . wf_tag('b', true) . $totalCount . wf_delimiter(0);
             } else {
                 $messages = new UbillingMessageHelper();
                 $stats .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
