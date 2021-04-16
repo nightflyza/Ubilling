@@ -236,9 +236,9 @@ class PTV {
                 $userRealName = $userData['realname'];
                 $userRealNameParts = explode(' ', $userRealName);
                 if (sizeof($userRealNameParts == 3)) {
-                    $firstName = $userRealNameParts[1];
-                    $middleName = $userRealNameParts[2];
-                    $lastName = $userRealNameParts[0];
+                    $firstName = @$userRealNameParts[1];
+                    $middleName = @$userRealNameParts[2];
+                    $lastName = @$userRealNameParts[0];
                 } else {
                     $firstName = self::UNDEF . $userLogin;
                     $middleName = self::UNDEF . $userLogin;
@@ -718,6 +718,7 @@ class PTV {
             if ($currentTariff != $tariffId) {
                 //database update
                 $this->subscribersDb->data('maintariff', $tariffId);
+                $this->subscribersDb->data('active', 1);
                 $this->subscribersDb->where('subscriberid', '=', $subscriberId);
                 $this->subscribersDb->save();
 
@@ -1054,6 +1055,52 @@ class PTV {
             }
         }
         $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Just deactivates service fro user account
+     * 
+     * @param int $subscriberId
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function usUnsubscribe($subscriberId, $tariffId) {
+        $reply = array();
+        $userLogin = $this->getSubscriberLogin($subscriberId);
+        $this->api->delete('/objects/' . $subscriberId . '/services/' . $tariffId);
+        $this->subscribersDb->data('active', '0');
+        $this->subscribersDb->data('maintariff', '0');
+        $this->subscribersDb->where('subscriberid', '=', $subscriberId);
+        $this->subscribersDb->save();
+        log_register('PTV SUB (' . $userLogin . ') UNSET TARIFF [' . $tariffId . '] AS [' . $subscriberId . ']');
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Subscribes user to some service
+     * 
+     * @param string $subscriberId
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function usSubscribe($userLogin, $tariffId) {
+        if (isset($this->allTariffs[$tariffId])) {
+            //may be thats new user?
+            $subscriberId = $this->getSubscriberId($userLogin);
+            if (!$this->isValidSubscriber($subscriberId)) {
+                $this->userRegister($userLogin);
+                //update subscriberId
+                $this->loadSubscribers();
+                $subscriberId = $this->getSubscriberId($userLogin);
+            }
+
+            //just switch tariff
+            if ($this->isValidSubscriber($subscriberId)) {
+                $this->setMainTariff($subscriberId, $tariffId);
+            }
+        }
     }
 
 }

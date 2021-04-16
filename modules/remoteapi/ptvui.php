@@ -30,6 +30,14 @@ if (ubRouting::get('action') == 'ptvui') {
         if (ubRouting::checkGet(array('delpl', 'subid'))) {
             $ptv->deletePlaylist(ubRouting::get('subid', 'int'), ubRouting::get('delpl'));
         }
+
+        if (ubRouting::checkGet(array('unsub', 'subid'))) {
+            $ptv->usUnsubscribe(ubRouting::get('subid', 'int'), ubRouting::get('unsub', 'int'));
+        }
+
+        if (ubRouting::checkGet(array('subserv', 'sublogin'))) {
+            $ptv->usSubscribe(ubRouting::get('sublogin'), ubRouting::get('subserv', 'int'));
+        }
     } else {
         $replyError = array('error' => 'ERROR: PTV_DISABLED');
         die(json_encode($replyError));

@@ -31,9 +31,22 @@ if (@$us_config['PROSTOTV_ENABLED']) {
             ubRouting::nav($ptvIf::URL_ME);
         }
 
+        if (ubRouting::checkGet('unsubscribe')) {
+            $ptvIf->unsubscribe(ubRouting::get('unsubscribe'));
+            ubRouting::nav($ptvIf::URL_ME);
+        }
+
+        if (ubRouting::checkGet('subscribe')) {
+            $ptvIf->subscribe(ubRouting::get('subscribe'));
+            ubRouting::nav($ptvIf::URL_ME);
+        }
+
         show_window(__('Your subscriptions'), $ptvIf->renderSubscriptionDetails());
-        show_window(__('Devices'), $ptvIf->renderDevices());
-        show_window(__('Playlists'), $ptvIf->renderPlaylists());
+        $userUseService = $ptvIf->userUseService();
+        if ($userUseService) {
+            show_window(__('Devices'), $ptvIf->renderDevices());
+            show_window(__('Playlists'), $ptvIf->renderPlaylists());
+        }
         show_window(__('Available subscribtions'), $ptvIf->renderSubscribeForm());
     } else {
         show_window(__('Sorry'), __('You can not use this service'));

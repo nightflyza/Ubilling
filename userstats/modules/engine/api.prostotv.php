@@ -149,6 +149,30 @@ class PTVInterface {
     }
 
     /**
+     * Returns current subscriberId or void if user is unregistered yet.
+     * 
+     * @return int/void
+     */
+    public function getSubscriberId() {
+        return($this->subscriberId);
+    }
+
+    /**
+     * Checks is user use service?
+     * 
+     * @return bool
+     */
+    public function userUseService() {
+        $result = false;
+        if (!empty($this->subscriberData)) {
+            if ($this->subscriberData['maintariff']) {
+                $result = true;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns available tariffs data
      * 
      * @return array
@@ -206,7 +230,7 @@ class PTVInterface {
     public function renderSubscriptionDetails() {
         $result = '';
         if (!empty($this->subscriberData)) {
-            $mainTariff = $this->tariffsData[$this->subscriberData['maintariff']];
+            $mainTariff = @$this->tariffsData[$this->subscriberData['maintariff']];
 
             $cells = la_TableCell(__('Active'));
             $cells .= la_TableCell(__('Tariff'));
@@ -465,6 +489,30 @@ class PTVInterface {
      */
     public function deletePlaylist($playlistId) {
         $request = 'delpl=' . $playlistId . '&subid=' . $this->subscriberId;
+        $this->getRemoteData($request);
+    }
+
+    /**
+     * Deactivates user service due deleting of tariff
+     * 
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function unsubscribe($tariffId) {
+        $request = 'unsub=' . $tariffId . '&subid=' . $this->subscriberId;
+        $this->getRemoteData($request);
+    }
+
+    /**
+     * Activates new service for user
+     * 
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function subscribe($tariffId) {
+        $request = 'subserv=' . $tariffId . '&sublogin=' . $this->myLogin;
         $this->getRemoteData($request);
     }
 
