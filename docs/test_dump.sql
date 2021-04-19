@@ -3045,6 +3045,7 @@ ALTER TABLE `callmeback` ADD `admin` VARCHAR(200) NULL DEFAULT NULL AFTER `state
 
 -- 1.2.0 update
 CREATE TABLE IF NOT EXISTS `ext_contras_recs` (
+CREATE TABLE IF NOT EXISTS `extcontras` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `contras_id` int(11) NOT NULL,
   `contract_id` int(11) NOT NULL,
@@ -3054,7 +3055,7 @@ CREATE TABLE IF NOT EXISTS `ext_contras_recs` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `ext_contras` (
+CREATE TABLE IF NOT EXISTS `extcontras_profiles` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `edrpo` varchar(100) DEFAULT NULL,
@@ -3063,8 +3064,8 @@ CREATE TABLE IF NOT EXISTS `ext_contras` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `ext_contras_contracts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT
+CREATE TABLE IF NOT EXISTS `extcontras_contracts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `date_start` datetime NOT NULL,
   `date_end` datetime DEFAULT NULL,
   `filename` varchar(255) DEFAULT NULL,
@@ -3076,7 +3077,7 @@ CREATE TABLE IF NOT EXISTS `ext_contras_contracts` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `ext_contras_address` (
+CREATE TABLE IF NOT EXISTS `extcontras_address` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `address` varchar(255) NOT NULL,
   `summ`  double DEFAULT 0,
@@ -3085,18 +3086,20 @@ CREATE TABLE IF NOT EXISTS `ext_contras_address` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `ext_contras_periods` (
+CREATE TABLE IF NOT EXISTS `extcontras_periods` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `period_nam` varchar(100) NOT NULL,
+  `period_name` varchar(100) NOT NULL,
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `ext_contras_money` (
+CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `contras_rec_id` int(11) NOT NULL,
   `accrual_id` int(11) DEFAULT NULL,
   `date` datetime NOT NULL,
   `summ_accrual` double DEFAULT 0,
   `summ_payment` double DEFAULT 0,
+  `to_us` tinyint(1) DEFAULT 0,
+  `from_us` tinyint(1) DEFAULT 0,
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
