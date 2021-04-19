@@ -14,7 +14,7 @@ if (cfr('PON')) {
 
             //new box creation
             if (ubRouting::checkPost($boxes::PROUTE_NEWBOXNAME)) {
-                $creationResult = $boxes->createBox(ubRouting::post($boxes::PROUTE_NEWBOXNAME), ubRouting::post($boxes::PROUTE_NEWBOXGEO));
+                $creationResult = $boxes->createBox(ubRouting::post($boxes::PROUTE_NEWBOXNAME), ubRouting::post($boxes::PROUTE_NEWBOEXTENINFO), ubRouting::post($boxes::PROUTE_NEWBOXGEO));
                 if (empty($creationResult)) {
                     ubRouting::nav($boxes::URL_ME);
                 } else {
@@ -24,7 +24,12 @@ if (cfr('PON')) {
 
             //existing box editing
             if (ubRouting::checkPost($boxes::ROUTE_BOXEDIT)) {
-                $savingResult = $boxes->saveBox();
+                if (ubRouting::checkPost($boxes::ROUTE_SPLITTERADD)) {
+                    $savingResult = $boxes->addSplitter();
+                } else {
+                    $savingResult = $boxes->saveBox();
+                }
+
                 if (empty($savingResult)) {
                     ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . ubRouting::post($boxes::ROUTE_BOXEDIT));
                 } else {
@@ -52,6 +57,16 @@ if (cfr('PON')) {
                 }
             }
 
+            //existing splitter deletion
+            if (ubRouting::checkGet($boxes::ROUTE_SPLITTERDEL)) {
+                $splitterDelResult = $boxes->deleteLink(ubRouting::get($boxes::ROUTE_SPLITTERDEL), true);
+                if (empty($splitterDelResult)) {
+                    ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . ubRouting::get($boxes::ROUTE_BOXNAV));
+                } else {
+                    show_error($splitterDelResult);
+                }
+            }
+
             //fast box navigation
             //default module controls panel
             show_window('', $boxes->renderControls());
@@ -69,6 +84,10 @@ if (cfr('PON')) {
             } else {
                 //boxes editing interface
                 show_window(__('Edit'), $boxes->renderBoxEditForm(ubRouting::get($boxes::ROUTE_BOXEDIT)));
+                show_window(__('Schemes and images'), $boxes->renderBoxImageControls(ubRouting::get($boxes::ROUTE_BOXEDIT)));
+                show_window(__('Splitters/couplers in this box'), $boxes->renderSplittersControls(ubRouting::get($boxes::ROUTE_BOXEDIT))
+                            . $boxes->renderSplittersList(ubRouting::get($boxes::ROUTE_BOXEDIT))
+                            );
                 show_window(__('Links'), $boxes->renderBoxLinksList(ubRouting::get($boxes::ROUTE_BOXEDIT)));
             }
         } else {

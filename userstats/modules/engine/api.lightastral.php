@@ -578,6 +578,22 @@ function la_delimiter($count = 1) {
 }
 
 /**
+ * Returns some count of non-breaking space symbols
+ *
+ * @param int $count
+ *
+ * @return string
+ */
+function la_nbsp($count = 1) {
+    $result = '';
+    for ($i = 0; $i < $count; $i++) {
+        $result .= '&nbsp;';
+    }
+    return ($result);
+}
+
+
+/**
  * Returns some html styled tag
  * 
  * @param string $tag HTML tag entity

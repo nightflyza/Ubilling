@@ -86,11 +86,11 @@ class ubRouting {
     /**
      * Returns filtered data
      * 
-     * @param type $rawData data to be filtered
+     * @param mixed $rawData data to be filtered
      * @param string $filtering filtering options. Possible values: raw, int, mres, callback, fi, vf, nb, float
-     * @param string/array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
+     * @param string|array/filter name $callback callback function name or names array to filter variable value. Or const filter name of php.net/filter
      * 
-     * @return mixed/false
+     * @return mixed|false
      * 
      * @throws Exception
      */

@@ -20,6 +20,13 @@ class PONBoxes {
     protected $allLinks = array();
 
     /**
+     * Contains all available ponboxes splitters links as linkid=>boxid
+     *
+     * @var array
+     */
+    protected $allSplittersLinks = array();
+
+    /**
      * Database abstraction layer with ponboxes
      *
      * @var object
@@ -34,6 +41,13 @@ class PONBoxes {
     protected $links = '';
 
     /**
+     * Database abstraction layer with ponboxes splitters links
+     *
+     * @var object
+     */
+    protected $splittersLinks = '';
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -41,29 +55,64 @@ class PONBoxes {
     protected $messages = '';
 
     /**
+     * System image storage placeholder
+     *
+     * @var object
+     */
+    protected $photoStorage = null;
+
+    /**
+     * Pre-defined list pf splitters and couplers
+     *
+     * @var string[]
+     */
+    protected $splittersTypesList = array('Coupler 5:95' => 'Coupler 5:95',
+                                          'Coupler 10:90' => 'Coupler 10:90',
+                                          'Coupler 15:85' => 'Coupler 15:85',
+                                          'Coupler 20:80' => 'Coupler 20:80',
+                                          'Coupler 25:75' => 'Coupler 25:75',
+                                          'Coupler 30:70' => 'Coupler 30:70',
+                                          'Coupler 35:65' => 'Coupler 35:65',
+                                          'Coupler 40:60' => 'Coupler 40:60',
+                                          'Coupler 45:55' => 'Coupler 45:55',
+                                          'Coupler 50:50' => 'Coupler 50:50',
+                                          'Splitter 1 x 2' => 'Splitter 1 x 2',
+                                          'Splitter 1 x 4' => 'Splitter 1 x 4',
+                                          'Splitter 1 x 8' => 'Splitter 1 x 8',
+                                          'Splitter 1 x 16' => 'Splitter 1 x 8',
+                                          'Splitter 1 x 32' => 'Splitter 1 x 32',
+                                          'Splitter 1 x 64' => 'Splitter 1 x 64'
+    );
+
+    /**
      * Routes, static defines etc
      */
-    const URL_ME = '?module=ponboxes';
-    const PROUTE_NEWBOXNAME = 'newboxname';
-    const PROUTE_NEWBOXGEO = 'newboxgeo';
-    const PROUTE_NEWLINKBOX = 'newlinkboxid';
-    const PROUTE_NEWLINKTYPE = 'newlinktype';
-    const PROUTE_NEWLINKONU = 'newlinkonu';
-    const ROUTE_BOXLIST = 'ajboxes';
-    const ROUTE_BOXNAV = 'boxidnav';
-    const ROUTE_MAP = 'boxmap';
-    const ROUTE_BOXEDIT = 'editboxid';
-    const ROUTE_BOXDEL = 'deleteboxid';
-    const ROUTE_LINKDEL = 'deletelinkid';
-    const TABLE_BOXES = 'ponboxes';
-    const TABLE_LINKS = 'ponboxeslinks';
-    const TABLE_PONONU = 'pononu';
+    const URL_ME                = '?module=ponboxes';
+    const PROUTE_NEWBOXNAME     = 'newboxname';
+    const PROUTE_NEWBOEXTENINFO = 'newboxexteninfo';
+    const PROUTE_NEWBOXGEO      = 'newboxgeo';
+    const PROUTE_NEWLINKBOX     = 'newlinkboxid';
+    const PROUTE_NEWLINKTYPE    = 'newlinktype';
+    const PROUTE_NEWLINKONU     = 'newlinkonu';
+    const ROUTE_BOXLIST         = 'ajboxes';
+    const ROUTE_BOXNAV          = 'boxidnav';
+    const ROUTE_MAP             = 'boxmap';
+    const ROUTE_BOXEDIT         = 'editboxid';
+    const ROUTE_BOXDEL          = 'deleteboxid';
+    const ROUTE_LINKDEL         = 'deletelinkid';
+    const ROUTE_SPLITTERADD     = 'addboxsplitters';
+    const ROUTE_SPLITTERDEL     = 'delboxsplitters';
+    const TABLE_BOXES           = 'ponboxes';
+    const TABLE_LINKS           = 'ponboxeslinks';
+    const TABLE_SPLITTERSLINKS  = 'ponboxes_splitters';
+    const TABLE_PONONU          = 'pononu';
+    const PHOTOSTORAGE_SCOPE    = 'PONBOXES';
 
     /**
      * Creates new PONBoxes instance
-     * 
+     *
      * @param bool $loadFullData
-     * 
+     *
      * @return void
      */
     public function __construct($loadFullData = false) {
@@ -72,12 +121,13 @@ class PONBoxes {
         if ($loadFullData) {
             $this->loadBoxes();
             $this->loadLinks();
+            $this->loadSplittersLinks();
         }
     }
 
     /**
      * Inits system message helper instance
-     * 
+     *
      * @return void
      */
     protected function initMessages() {
@@ -85,13 +135,24 @@ class PONBoxes {
     }
 
     /**
+     * Inits system image storage placeholder
+     *
+     * @return void
+     */
+    protected function initPhotoStorage() {
+        $this->photoStorage = new PhotoStorage();
+        //$this->photoStorage->set
+    }
+
+    /**
      * Inits all required database abstraction layers for further usage
-     * 
+     *
      * @return void
      */
     protected function initDatabase() {
         $this->boxes = new NyanORM(self::TABLE_BOXES);
         $this->links = new NyanORM(self::TABLE_LINKS);
+        $this->splittersLinks = new NyanORM(self::TABLE_SPLITTERSLINKS);
         //            .               ,.
         //           T."-._..---.._,-"/|
         //           l|"-.  _.v._   (" |
@@ -118,7 +179,7 @@ class PONBoxes {
 
     /**
      * Loads all available boxes from database
-     * 
+     *
      * @return void
      */
     protected function loadBoxes() {
@@ -127,29 +188,33 @@ class PONBoxes {
 
     /**
      * Loads all available boxes to something links from database
-     * 
+     *
      * @return void
      */
     protected function loadLinks() {
         $this->allLinks = $this->links->getAll('id');
     }
 
+    protected function loadSplittersLinks() {
+        $this->allSplittersLinks = $this->splittersLinks->getAll('id');
+    }
+
     /**
      * Renders all available boxes list container
-     * 
+     *
      * @return string
      */
     public function renderBoxesList() {
         $result = '';
-        $columns = array('ID', 'Name', 'Location', 'Actions');
+        $columns = array('ID', 'Name', 'Additional info', 'Location', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&' . self::ROUTE_BOXLIST . '=true', false, __('boxes'), 100, $opts);
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders JSON data with all available PON boxes list and some controls
-     * 
+     *
      * @return void
      */
     public function ajBoxesList() {
@@ -158,6 +223,7 @@ class PONBoxes {
             foreach ($this->allBoxes as $io => $each) {
                 $data[] = $each['id'];
                 $data[] = $each['name'];
+                $data[] = $each['exten_info'];
                 $data[] = $each['geo'];
                 $boxActs = '';
                 $boxActs .= wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon());
@@ -171,24 +237,25 @@ class PONBoxes {
 
     /**
      * Renders new pon box creation form. Its obvious.
-     * 
+     *
      * @return string
      */
     protected function renderBoxCreateForm() {
         $result = '';
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = wf_TextInput('newboxname', __('Name') . $sup, '', true, 20);
+        $inputs .= wf_TextInput('newboxexteninfo', __('Additional info'), '', true, 20);
         $inputs .= wf_TextInput('newboxgeo', __('Location'), '', true, 20, 'geo');
         $inputs .= wf_Submit(__('Create'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders existing box editing form aka "Box profile"
-     * 
+     *
      * @param int $boxId
-     * 
+     *
      * @return string
      */
     public function renderBoxEditForm($boxId) {
@@ -199,6 +266,7 @@ class PONBoxes {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
             $inputs = wf_HiddenInput('editboxid', $boxId);
             $inputs .= wf_TextInput('editboxname', __('Name') . $sup, $boxData['name'], true, 20);
+            $inputs .= wf_TextInput('editboxexteninfo', __('Additional info'), $boxData['exten_info'], true, 20);
             $inputs .= wf_TextInput('editboxgeo', __('Location'), $boxData['geo'], true, 20, 'geo');
             $inputs .= wf_Submit(__('Save'));
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
@@ -211,12 +279,12 @@ class PONBoxes {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Saves box data if required
-     * 
+     *
      * @return void/string on error
      */
     public function saveBox() {
@@ -225,6 +293,8 @@ class PONBoxes {
             $boxId = ubRouting::post('editboxid', 'int');
             $newBoxName = ubRouting::post('editboxname');
             $newBoxNameF = ubRouting::filters($newBoxName, 'mres');
+            $newBoxExtenInfo = ubRouting::post('editboxexteninfo');
+            $newBoxExtenInfoF = ubRouting::filters($newBoxExtenInfo, 'mres');
             $newBoxGeoF = ubRouting::post('editboxgeo', 'mres');
             if (isset($this->allBoxes[$boxId])) {
                 $boxData = $this->allBoxes[$boxId];
@@ -241,6 +311,13 @@ class PONBoxes {
                     }
                 }
 
+                if ($newBoxExtenInfoF != $boxData['exten_info']) {
+                    $this->boxes->data('exten_info', $newBoxExtenInfoF);
+                    $this->boxes->where('id', '=', $boxId);
+                    $this->boxes->save();
+                    log_register('PONBOX CHANGE BOX [' . $boxId . '] EXTEN INFO');
+                }
+
                 if ($newBoxGeoF != $boxData['geo']) {
                     $this->boxes->data('geo', $newBoxGeoF);
                     $this->boxes->where('id', '=', $boxId);
@@ -251,14 +328,14 @@ class PONBoxes {
                 $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
-     * Check is box name alredy user or not?
-     * 
+     * Check is box name already used or not?
+     *
      * @param string $boxName
-     * 
+     *
      * @return bool
      */
     protected function isBoxNameFree($boxName) {
@@ -271,24 +348,26 @@ class PONBoxes {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Creates new PON box in database
-     * 
+     *
      * @param string $name
      * @param string $geo
-     * 
+     *
      * @return void/string on error
      */
-    public function createBox($name, $geo = '') {
+    public function createBox($name, $extenInfo = '', $geo = '') {
         $result = '';
         $nameF = ubRouting::filters($name, 'mres');
+        $extenInfoF = ubRouting::filters($extenInfo, 'mres');
         $geoF = ubRouting::filters($geo, 'mres');
         if (!empty($nameF)) {
             if ($this->isBoxNameFree($nameF)) {
                 $this->boxes->data('name', $nameF);
+                $this->boxes->data('exten_info', $extenInfoF);
                 $this->boxes->data('geo', $geoF);
                 $this->boxes->create();
                 $newId = $this->boxes->getLastId();
@@ -299,30 +378,30 @@ class PONBoxes {
         } else {
             $result .= __('All fields marked with an asterisk are mandatory');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders default controls panel
-     * 
+     *
      * @return string
      */
     public function renderControls() {
         $result = '';
         $result .= wf_modalAuto(web_icon_create() . ' ' . __('Create'), __('Create'), $this->renderBoxCreateForm(), 'ubButton') . ' ';
-        if (ubRouting::checkGet(self::ROUTE_MAP) OR ubRouting::checkGet(self::ROUTE_BOXEDIT)) {
+        if (ubRouting::checkGet(self::ROUTE_MAP) or ubRouting::checkGet(self::ROUTE_BOXEDIT)) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('List'), false, 'ubButton');
         } else {
             $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true', wf_img('skins/ponmap_icon.png') . ' ' . __('Map'), false, 'ubButton');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Check is box protected wit some existing links
-     * 
+     *
      * @param int $boxId
-     * 
+     *
      * @return bool
      */
     protected function isBoxProtected($boxId) {
@@ -336,14 +415,14 @@ class PONBoxes {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Deletes existing PON box from database
-     * 
+     *
      * @param int $boxId
-     * 
+     *
      * @return void/string on error
      */
     public function deleteBox($boxId) {
@@ -361,36 +440,50 @@ class PONBoxes {
         } else {
             $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Delete link from database
-     * 
+     *
      * @param int $linkId
-     * 
+     * @param bool $deleteSplitter
+     *
      * @return void/string on error
      */
-    public function deleteLink($linkId) {
+    public function deleteLink($linkId, $deleteSplitter = false) {
         $linkId = ubRouting::filters($linkId, 'int');
         $result = '';
-        if (isset($this->allLinks[$linkId])) {
-            $linkData = $this->allLinks[$linkId];
-            $this->links->where('id', '=', $linkId);
-            $this->links->delete();
-            log_register('PONBOX DELETE LINK [' . $linkId . '] BOX [' . $linkData['boxid'] . ']');
+
+        if ($deleteSplitter) {
+            if (isset($this->allSplittersLinks[$linkId])) {
+                $linkData = $this->allSplittersLinks[$linkId];
+                $this->splittersLinks->where('id', '=', $linkId);
+                $this->splittersLinks->delete();
+                log_register('PONBOX DELETE SPLITTER [' . $linkId . '] BOX [' . $linkData['boxid'] . ']');
+            } else {
+                $result .= __('Something went wrong') . ': ' . __('Splitter') . ' [' . $linkId . '] ' . __('Not exists');
+            }
         } else {
-            $result .= __('Something went wrong') . ': ' . __('Link') . ' [' . $linkId . '] ' . __('Not exists');
+            if (isset($this->allLinks[$linkId])) {
+                $linkData = $this->allLinks[$linkId];
+                $this->links->where('id', '=', $linkId);
+                $this->links->delete();
+                log_register('PONBOX DELETE LINK [' . $linkId . '] BOX [' . $linkData['boxid'] . ']');
+            } else {
+                $result .= __('Something went wrong') . ': ' . __('Link') . ' [' . $linkId . '] ' . __('Not exists');
+            }
         }
-        return($result);
+
+        return ($result);
     }
 
     /**
      * Renders available boxes map
-     * 
-     * @global object $ubillingConfig
-     * 
+     *
      * @return string
+     * @global object $ubillingConfig
+     *
      */
     public function renderBoxesMap() {
         global $ubillingConfig;
@@ -410,33 +503,37 @@ class PONBoxes {
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Creates box->entity link in database
-     * 
+     *
      * @param int $boxId existing PON Box ID
-     * @param string $type link type: login,address,onuid
-     * @param string $param link parameter
-     * 
+     * @param string $type link type: login, address, login+address, onuid
+     * @param array $param link parameter
+     *
      * @return void/string on error
      */
     protected function createLink($boxId, $type, $param) {
         $result = '';
+        $useField = array();
         $boxId = ubRouting::filters($boxId, 'int');
-        $paramF = ubRouting::filters($param, 'mres');
+
         if (isset($this->allBoxes[$boxId])) {
             $saveLink = true;
             switch ($type) {
                 case 'login':
-                    $useField = 'login';
+                    $useField = array('login');
                     break;
                 case 'address':
-                    $useField = 'address';
+                    $useField = array('address');
+                    break;
+                case 'loginaddress':
+                    $useField = array('login', 'address');
                     break;
                 case 'onuid':
-                    $useField = 'onuid';
+                    $useField = array('onuid');
                     break;
                 default:
                     $saveLink = false;
@@ -445,23 +542,29 @@ class PONBoxes {
             }
 
             if ($saveLink) {
+                $fieldsCount = count($useField);
                 $this->links->data('boxid', $boxId);
-                $this->links->data($useField, $paramF);
+
+                for ($i = 0; $i < $fieldsCount; $i++) {
+                    $paramF = ubRouting::filters($param[$i], 'mres');
+                    $this->links->data($useField[$i], $paramF);
+                }
+
                 $this->links->create();
                 $newId = $this->links->getLastId();
-                log_register('PONBOX CREATE LINK [' . $newId . '] BOX [' . $boxId . '] TYPE `' . $type . '`  TO `' . $param . '`');
+                log_register('PONBOX CREATE LINK [' . $newId . '] BOX [' . $boxId . '] TYPE `' . $type . '`  TO `' . implode(', ', $param) . '`');
             }
         } else {
             $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Search some linked boxes for this ONU
-     * 
+     *
      * @param array $onuData
-     * 
+     *
      * @return array
      */
     public function getLinkedBoxes($onuData) {
@@ -469,9 +572,10 @@ class PONBoxes {
         if (!empty($onuData)) {
             $onuId = $onuData['id'];
             $onuUser = $onuData['login'];
+
             if (!empty($this->allLinks)) {
                 foreach ($this->allLinks as $io => $eachLink) {
-                    if ($eachLink['onuid'] == $onuData) {
+                    if ($eachLink['onuid'] == $onuId) {
                         $result[$eachLink['boxid']] = $eachLink['boxid'];
                     }
 
@@ -484,7 +588,7 @@ class PONBoxes {
                             $result[$eachLink['boxid']] = $eachLink['id'];
                         }
 
-                        //direct login seach
+                        //direct login search
                         if ($eachLink['login'] == $onuUser) {
                             $result[$eachLink['boxid']] = $eachLink['id'];
                         }
@@ -492,60 +596,75 @@ class PONBoxes {
                 }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders linked lined boxes list
-     * 
+     *
      * @param array $boxesArray
-     * 
+     * @param bool $userProfile
+     *
      * @return string
      */
-    public function renderLinkedBoxes($boxesArray) {
+    public function renderLinkedBoxes($boxesArray, $userProfile = false) {
         $result = '';
         if (!empty($boxesArray)) {
             foreach ($boxesArray as $boxId => $linkId) {
                 $boxName = $this->allBoxes[$boxId]['name'];
                 $boxLink = wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $boxId, $boxName);
-                $result .= $this->messages->getStyledMessage(__('Box') . ': ' . $boxLink, 'success');
+
+                if ($userProfile) {
+                    $result .= wf_tag('span', false, '', 'style="color: #32510F; font-size: 14px;"') . $boxLink . wf_delimiter(0) . wf_tag('span', true);
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Box') . ': ' . $boxLink, 'success');
+                }
             }
         } else {
-            $result .= $this->messages->getStyledMessage(__('PON Boxes') . ': ' . __('Nothing to show'), 'info');
+            if ($userProfile) {
+                $result .= wf_tag('span', false, '', 'style="color: #32510F"; font-size: 14px;') . __('PON Boxes') . ': ' . __('Nothing to show') . wf_tag('span', true);
+            } else {
+                $result .= $this->messages->getStyledMessage(__('PON Boxes') . ': ' . __('Nothing to show'), 'info');
+            }
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Returns linked entity control link
-     * 
+     *
      * @param array $linkData
-     * 
+     *
      * @return string
      */
     protected function getLinkEntityControl($linkData) {
         $result = '';
         if (!empty($linkData)) {
-            if (!empty($linkData['login'])) {
-                $result .= wf_Link('?module=userprofile&username=' . $linkData['login'], web_profile_icon() . ' ' . $linkData['login']);
-            }
+            if (!empty($linkData['login']) and !empty($linkData['address'])) {
+                $result .= wf_Link('?module=userprofile&username=' . $linkData['login'], web_profile_icon() . ' ' . $linkData['login'])
+                           . wf_img('skins/icon_build.gif', __('Address')) . ' ' . $linkData['address'];
+            } else {
+                if (!empty($linkData['login'])) {
+                    $result .= wf_Link('?module=userprofile&username=' . $linkData['login'], web_profile_icon() . ' ' . $linkData['login']);
+                }
 
-            if (!empty($linkData['onuid'])) {
-                $result .= wf_Link('?module=ponizer&editonu=' . $linkData['onuid'], wf_img('skins/switch_models.png', __('ONU')) . ' ' . $linkData['onuid']);
-            }
+                if (!empty($linkData['onuid'])) {
+                    $result .= wf_Link('?module=ponizer&editonu=' . $linkData['onuid'], wf_img('skins/switch_models.png', __('ONU')) . ' ' . $linkData['onuid']);
+                }
 
-            if (!empty($linkData['address'])) {
-                $result .= wf_img('skins/icon_build.gif', __('Address')) . ' ' . $linkData['address'];
+                if (!empty($linkData['address'])) {
+                    $result .= wf_img('skins/icon_build.gif', __('Address')) . ' ' . $linkData['address'];
+                }
             }
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders existing POB Box links of any type
-     * 
+     *
      * @param int $boxId
-     * 
+     *
      * @return string
      */
     public function renderBoxLinksList($boxId) {
@@ -582,14 +701,14 @@ class PONBoxes {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
         }
-        return($result);
+        return ($result);
     }
 
     /**
      * Renders box assign form. With some ONU or another ONU params
-     * 
+     *
      * @param array $onuData
-     * 
+     *
      * @return string
      */
     public function renderBoxAssignForm($onuData) {
@@ -606,31 +725,34 @@ class PONBoxes {
                 }
                 $inputs .= wf_HiddenInput(self::PROUTE_NEWLINKONU, $onuId);
                 $inputs .= wf_Selector(self::PROUTE_NEWLINKBOX, $boxesTmp, __('box'), '', false, false) . ' ';
+                $inputs .= wf_nbsp(2);
+
                 if (!empty($onuUserName)) {
                     $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('ONU'), 'onuid', false, true) . ' ';
                     $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('User'), 'login', false, false) . ' ';
                     $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('Address'), 'address', false, false) . ' ';
+                    $inputs .= wf_RadioInput(self::PROUTE_NEWLINKTYPE, __('Login') . ' + ' . __('Address'), 'loginaddress', false, false) . ' ';
                 } else {
                     $inputs .= wf_HiddenInput(self::PROUTE_NEWLINKTYPE, 'onuid');
                 }
 
-
+                $inputs .= wf_nbsp(2);
                 $inputs .= wf_Submit(__('Create new PON box link'));
                 $result .= wf_Form('', 'POST', $inputs, 'glamour');
             }
         }
 
 
-        return($result);
+        return ($result);
     }
 
     /**
      * Create PON box link with some ONU by some type in database
-     * 
+     *
      * @param int $boxId
      * @param int $onuId
      * @param string $linkType
-     * 
+     *
      * @return void/string on error
      */
     public function createLinkONU($boxId, $onuId, $linkType) {
@@ -646,10 +768,10 @@ class PONBoxes {
                 $onuData = $onuData[0];
                 //trying to create link
                 if ($linkType == 'onuid') {
-                    $result .= $this->createLink($boxId, $linkType, $onuId);
+                    $result .= $this->createLink($boxId, $linkType, array($onuId));
                 }
 
-                if ($linkType == 'login' OR $linkType == 'address') {
+                if ($linkType == 'login' or $linkType == 'address' or $linkType == 'loginaddress') {
                     $userLogin = trim($onuData['login']);
                     if (!empty($userLogin)) {
                         $userData = zb_UserGetAllData($userLogin);
@@ -657,15 +779,23 @@ class PONBoxes {
                             $userAddress = $userData[$userLogin]['fulladress'];
                             //login linking
                             if ($linkType == 'login') {
-                                $result .= $this->createLink($boxId, $linkType, $userLogin);
+                                $result .= $this->createLink($boxId, $linkType, array($userLogin));
                             }
                             //address linking
                             if ($linkType == 'address') {
                                 if (!empty($userAddress)) {
-                                    $result .= $this->createLink($boxId, $linkType, $userAddress);
+                                    $result .= $this->createLink($boxId, $linkType, array($userAddress));
                                 } else {
                                     $result .= __('Something went wrong') . ': ' . __('Address') . ' ' . __('Empty');
                                 }
+                            }
+                            //login and address linking
+                            if ($linkType == 'loginaddress') {
+                                if (empty($userAddress)) {
+                                    $userAddress = __('User is a hobo');
+                                }
+
+                                $result .= $this->createLink($boxId, $linkType, array($userLogin, $userAddress));
                             }
                         } else {
                             $result .= __('Something went wrong') . ': ' . __('User') . ' (' . $userLogin . ') ' . __('Not exists');
@@ -679,7 +809,131 @@ class PONBoxes {
             $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
         }
 
-        return($result);
+        return ($result);
     }
 
+    /**
+     * Renders splitters adding controls
+     *
+     * @param $boxID
+     *
+     * @return string
+     */
+    public function renderSplittersControls($boxID) {
+        $inputs = __('Place a splitter/coupler in this box') . ':' . wf_nbsp();
+        $inputs .= wf_Selector(self::ROUTE_SPLITTERADD, $this->splittersTypesList, '');
+        $inputs .= wf_HiddenInput(self::ROUTE_BOXEDIT, $boxID);
+        $inputs .= wf_Submit(__('Append'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour') . wf_delimiter(0);
+        return ($result);
+    }
+
+    /**
+     * Renders splitters list
+     *
+     * @param $boxID
+     *
+     * @return string
+     *
+     * @throws Exception
+     */
+    public function renderSplittersList($boxID) {
+        $result = '';
+        $boxID = ubRouting::filters($boxID, 'int');
+        if (isset($this->allBoxes[$boxID])) {
+            if (!empty($this->allSplittersLinks)) {
+                $curBoxSplitters = array();
+                foreach ($this->allSplittersLinks as $io => $each) {
+                    if ($each['boxid'] == $boxID) {
+                        $curBoxSplitters[] = $each;
+                    }
+                }
+
+                if (!empty($curBoxSplitters)) {
+                    $cells = wf_TableCell(__('Splitter') . ' / ' . __('Coupler'));
+                    $cells .= wf_TableCell(__('Actions'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($curBoxSplitters as $io => $each) {
+                        $cells = wf_TableCell($each['splitter']);
+                        $delLinkUrl = self::URL_ME . '&' . self::ROUTE_SPLITTERDEL . '=' . $each['id'] . '&' . self::ROUTE_BOXNAV . '=' . $each['boxid'];
+                        $actLinks = wf_JSAlert($delLinkUrl, web_delete_icon(), $this->messages->getDeleteAlert());
+                        $cells .= wf_TableCell($actLinks);
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $result .= wf_TableBody($rows, '50%', 0, 'sortable');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxID . '] ' . __('Not exists'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Adds a splitter to PON box
+     *
+     * @return string
+     *
+     * @throws Exception
+     */
+    public function addSplitter() {
+        $result = '';
+
+        if (ubRouting::checkPost(array(self::ROUTE_BOXEDIT, self::ROUTE_SPLITTERADD))) {
+            $boxID = ubRouting::post(self::ROUTE_BOXEDIT, 'int');
+            $newSplitterName = ubRouting::post(self::ROUTE_SPLITTERADD);
+            $newSplitterNameF = ubRouting::filters($newSplitterName, 'mres');
+
+            if (isset($this->allBoxes[$boxID])) {
+                $this->splittersLinks->data('splitter', $newSplitterNameF);
+                $this->splittersLinks->data('boxid', $boxID);
+                $this->splittersLinks->create();
+                log_register('PONBOX ADD SPLITTER TO BOX [' . $boxID . '] TYPE `' . $newSplitterName . '`');
+            } else {
+                $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxID . '] ' . __('Not exists');
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Generates a crosslink warning when a certain ONU is linked to several PON boxes
+     *
+     * @param false $userProfile
+     *
+     * @return string
+     */
+    public function renderCrossLinkWarning($userProfile = false) {
+        $result = '';
+        $message = __('More then one ponbox link exists for current ONU - does it live in separate multiverses?');
+
+        if ($userProfile) {
+            $result = wf_tag('span', false, '', 'style="color: #796616; font-size: 14px;"') . $message . wf_tag('span', true);
+        } else {
+            $result = $this->messages->getStyledMessage($message, 'warning');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Rendering images processing form and controls
+     *
+     * @param $boxID
+     *
+     * @return string
+     */
+    public function renderBoxImageControls($boxID) {
+        $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $boxID);
+        $inputs = $photoStorage->renderUploadForm(true, base64_encode(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $boxID));
+        $inputs .= $photoStorage->renderImagesList();
+        return ($inputs);
+    }
 }

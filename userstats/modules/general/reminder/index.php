@@ -185,9 +185,29 @@ if ($us_config['REMINDER_ENABLED']) {
         show_window('', zbs_ShowChangeMobileForm());
     }
     if ($check) {
-        $license_text = __("You already enabled payments sms reminder") . ". " . __('You will be reminded within') . ' ' . $days . ' ' . __('days') . ' ' . __('until the expiration of the service') . '. ';
+        $license_text = __("You already enabled payments sms reminder") . ". ";
+
+        if ($us_config['REMINDER_ENABLED'] != 2) {
+            $license_text.= la_delimiter() . __('You will be reminded within') . ' ' . $days . ' ' . __('days') . ' ' . __('until the expiration of the service') . '. ';
+        }
+
+        if (!empty($us_config['REMINDER_CONSIDER_CREDIT'])) {
+            $daysCredit = (empty($us_config['REMINDER_DAYS_THRESHOLD_CREDIT'])) ? $days : $us_config['REMINDER_DAYS_THRESHOLD_CREDIT'];
+            $license_text.= la_delimiter(0) . __('You will be reminded within') . ' ' . $daysCredit . ' ' . __('days') . ' ' . __('before the credit expire date') . '. ';
+        }
+
+        if (!empty($us_config['REMINDER_CONSIDER_CAP'])) {
+            $daysCAP = (empty($us_config['REMINDER_DAYS_THRESHOLD_CAP'])) ? $days : $us_config['REMINDER_DAYS_THRESHOLD_CAP'];
+            $license_text.= la_delimiter(0) . __('You will be reminded within') . ' ' . $daysCAP . ' ' . __('days') . ' ' . __('before inactiveness penalty will be applied') . '. ';
+        }
+
+        if (!empty($us_config['REMINDER_CONSIDER_FROZEN'])) {
+            $daysFrozen = (empty($us_config['REMINDER_DAYS_THRESHOLD_FROZEN'])) ? $days : $us_config['REMINDER_DAYS_THRESHOLD_FROZEN'];
+            $license_text.= la_delimiter(0) . __('You will be reminded within') . ' ' . $daysFrozen . ' ' . __('days') . ' ' . __('before available freeze days run out') . '. ';
+        }
+
         if ($turnOffable) {
-            $license_text.= __("Disable payments sms reminder") . "?";
+            $license_text.= la_delimiter(2) . __("Disable payments sms reminder") . "?";
         }
 
         show_window(__("Reminder"), $license_text);

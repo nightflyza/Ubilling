@@ -15,7 +15,8 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
             
             //catch file upload request
             if (wf_CheckGet(array('uploadfilephoto'))) {
-                $photoStorage->catchFileUpload();
+                $customBackLink = ubRouting::get('custombacklink');
+                $photoStorage->catchFileUpload($customBackLink);
             }
             
             //catch file download

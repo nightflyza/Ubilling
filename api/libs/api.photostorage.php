@@ -420,7 +420,7 @@ class PhotoStorage {
      * 
      * @return void
      */
-    public function catchFileUpload() {
+    public function catchFileUpload($customBackLink = '') {
         if (wf_CheckGet(array('uploadfilephoto'))) {
             if (!empty($this->scope)) {
                 $allowedExtensions = array("jpg", "gif", "png", "jpeg");
@@ -441,7 +441,15 @@ class PhotoStorage {
                     if (file_exists($newSavePath)) {
                         $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
                         $this->registerImage($newFilename);
-                        rcms_redirect(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename);
+
+                        // forwarding $customBackLink back to renderUploadForm() routine
+                        if (empty($customBackLink)) {
+                            $customBackLink = '';
+                        } else {
+                            $customBackLink = '&custombacklink=' . $customBackLink;
+                        }
+
+                        rcms_redirect(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename . $customBackLink);
                     } else {
                         $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
                     }
@@ -459,13 +467,21 @@ class PhotoStorage {
 
     /**
      * Returns file upload form
-     * 
+     *
+     * @param bool $noBackLink
+     *
      * @return string
      */
-    public function renderUploadForm() {
-        $postUrl = self::UPLOAD_URL_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId;
+    public function renderUploadForm($embedded = false, $customBackLink = '') {
+        // forwarding $customBackLink to catchFileUpload() routine
+        if (!empty($customBackLink)) {
+            $customBackLink = '&custombacklink=' . $customBackLink;
+        }
+
+        $postUrl = self::UPLOAD_URL_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId . $customBackLink;
         $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
         $inputs .= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload"');
+        //$inputs .= wf_HiddenInput('custombacklink', $customBackLink);
         $inputs .= wf_Submit(__('Upload'));
         $inputs .= wf_tag('form', true);
 
@@ -477,7 +493,16 @@ class PhotoStorage {
             $result .= wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
             $result .= wf_delimiter();
         }
-        $result .= wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
+
+        if (!$embedded) {
+            // checking for forwarded $customBackLink from catchFileUpload() routine
+            if (ubRouting::checkGet('custombacklink')) {
+                $result .= wf_BackLink(base64_decode(ubRouting::get('custombacklink')));
+            } else {
+                $result .= wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
+            }
+        }
+
         return ($result);
     }
 
