@@ -2925,6 +2925,7 @@ ALTER TABLE `visor_dvrs` ADD `customurl` VARCHAR(255) NULL DEFAULT NULL AFTER `c
 
 ALTER TABLE `stickyrevelations` ADD `dayweek` INT NULL DEFAULT NULL AFTER `dayto`;
 
+-- 1.1.5 update
 ALTER TABLE `fdbarchive` ADD `datavlan` longtext NULL DEFAULT NULL AFTER `data`;
 ALTER TABLE `fdbarchive` ADD `dataportdescr` longtext NULL DEFAULT NULL AFTER `datavlan`;
 
@@ -2941,7 +2942,6 @@ CREATE TABLE IF NOT EXISTS `ptv_subscribers` (
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
-
 CREATE TABLE IF NOT EXISTS `ptv_tariffs` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `serviceid` INT(11) NOT NULL,
@@ -2951,3 +2951,17 @@ CREATE TABLE IF NOT EXISTS `ptv_tariffs` (
   `fee` DOUBLE NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `ponboxes_splitters` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `boxid` int(11) NOT NULL,
+  `splitter` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `ponboxes` MODIFY `name` varchar(200) NULL DEFAULT NULL;
+ALTER TABLE `ponboxes` ADD `exten_info` varchar(250) NULL DEFAULT NULL AFTER `name`;
+
+ALTER TABLE sms_history ADD INDEX (srvmsgself_id) USING BTREE;
+ALTER TABLE sms_history ADD INDEX (srvmsgself_id) USING BTREE;
+ALTER TABLE sms_history ADD INDEX (date_statuschk) USING BTREE;

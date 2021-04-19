@@ -6,7 +6,7 @@
 
 /**
  * Raw SNMP data parser
- * 
+ *
  * @return string
  */
 function sp_parse_raw($data) {
@@ -21,9 +21,9 @@ function sp_parse_raw($data) {
 
 /**
  * Raw SNMP data parser with value types cleanup
- * 
+ *
  * @param string $data
- * 
+ *
  * @return string
  */
 function sp_parse_raw_sanitized($data) {
@@ -38,9 +38,9 @@ function sp_parse_raw_sanitized($data) {
 
 /**
  * Returns human readable uptime converted from seconds value
- * 
+ *
  * @param string $data
- * 
+ *
  * @return string
  */
 function sp_parse_time_seconds($data) {
@@ -58,9 +58,9 @@ function sp_parse_time_seconds($data) {
 
 /**
  * Returns LED of electrical power state.
- * 
+ *
  * @param string $data
- * 
+ *
  * @return string
  */
 function sp_parse_power($data) {
@@ -80,9 +80,9 @@ function sp_parse_power($data) {
 
 /**
  * Returns temperature value from equicom ping3 as text
- * 
+ *
  * @param string $data
- * 
+ *
  * @return string
  */
 function sp_parse_eping_temp($data) {
@@ -100,9 +100,9 @@ function sp_parse_eping_temp($data) {
 
 /**
  * Returns temperature value from equicom ping3 as gauge
- * 
+ *
  * @param string $data
- * 
+ *
  * @return string
  */
 function sp_parse_eping_temp_gauge($data) {
@@ -518,9 +518,9 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
     $result = __('Empty reply received');
 
     if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
-    ) {
+        and !ispos($data, 'No Such Object available')
+        and !ispos($data, 'No more variables left')
+        ) {
 
         $data = trimSNMPOutput($data, '');
 
@@ -560,9 +560,9 @@ function sp_parse_division_units_noport($data, $divBy = '', $units = '') {
     $result = __('Empty reply received');
 
     if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
-    ) {
+        and !ispos($data, 'No Such Object available')
+        and !ispos($data, 'No more variables left')
+        ) {
 
         $data = trimSNMPOutput($data, '');
         $value = $data[1];
@@ -594,9 +594,9 @@ function sp_parse_mikrotik_poe($data) {
     $result = __('Empty reply received');
 
     if (!empty($data)
-            and ! ispos($data, 'No Such Object available')
-            and ! ispos($data, 'No more variables left')
-    ) {
+        and !ispos($data, 'No Such Object available')
+        and !ispos($data, 'No more variables left')
+        ) {
         $data = trimSNMPOutput($data, '');
 
         $portnum = substr($data[0], -2);
@@ -673,12 +673,12 @@ function sp_parse_sw_port_descr($data) {
     if (!empty($data)) {
         foreach ($data as $eachPort => $eachDescr) {
             $portnum = $eachPort;
-            $descr = $eachDescr;
+            $descr   = $eachDescr;
 
-            $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+            $cells  = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
             $cells .= wf_TableCell($descr);
-            $rows = wf_TableRow($cells, 'row3');
-            $result .= wf_TableBody($rows, '100%', 0, '');
+            $rows   = wf_TableRow($cells, 'row3');
+            $result.= wf_TableBody($rows, '100%', 0, '');
         }
 
         return ($result);
@@ -789,9 +789,9 @@ function sp_SnmpParseFdb($portTable) {
 
 /**
  * Parsing of FDB port table SNMP raw data from Cisco 3xx
- * 
+ *
  * @param   $portTable raw SNMP data
- * 
+ *
  * @return  array
  */
 function sp_SnmpParseFdbCisEb($portTable) {
@@ -937,9 +937,9 @@ function sp_SnmpParseFdbFlp($portTable, $oid) {
  * @return array
  */
 function sp_SnmpParseFdbCumulative($portTable, $statusTable, $portOID, $statusOID, $dot1Q = false) {
-    $portData = array();
-    $statusData = array();
-    $arr_PortTable = explodeRows($portTable);
+    $portData       = array();
+    $statusData     = array();
+    $arr_PortTable  = explodeRows($portTable);
     $arr_StatusTale = explodeRows($statusTable);
 
     if (!empty($arr_StatusTale)) {
@@ -970,9 +970,9 @@ function sp_SnmpParseFdbCumulative($portTable, $statusTable, $portOID, $statusOI
                     if ($dot1Q) {
                         // extracting VLAN portion from OID
                         $vlanNum = substr($tmpArr[0], 0, stripos($tmpArr[0], '.'));
-                        $rawMAC = substr($tmpArr[0], strlen($vlanNum) + 1);
+                        $rawMAC  = substr($tmpArr[0], strlen($vlanNum) + 1);
                     } else {
-                        $rawMAC = $tmpArr[0];
+                        $rawMAC  = $tmpArr[0];
                     }
 
                     $cleanMAC = convertMACDec2Hex($rawMAC);
@@ -1016,21 +1016,21 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
         if (!empty($currentTemplate)) {
             $deviceDescription = $currentTemplate['define']['DEVICE'];
-            $deviceFdb = $currentTemplate['define']['FDB'];
-            $deviceMAC = (isset($currentTemplate['define']['MAC'])) ? $currentTemplate['define']['MAC'] : 'false';
-            $pollMode = (isset($currentTemplate['define']['POLLMODE'])) ? $currentTemplate['define']['POLLMODE'] : '';
-            $sfpStartPort = (empty($currentTemplate['define']['SFPSTARTPORT'])) ? 1 : $currentTemplate['define']['SFPSTARTPORT'];
-            $sfpEndPort = (empty($currentTemplate['define']['SFPENDPORT'])) ? '' : $currentTemplate['define']['SFPENDPORT'];
-            $poeStartPort = (empty($currentTemplate['define']['POESTARTPORT'])) ? 1 : $currentTemplate['define']['POESTARTPORT'];
-            $poeEndPort = (empty($currentTemplate['define']['POEENDPORT'])) ? '' : $currentTemplate['define']['POEENDPORT'];
-            $sectionResult = '';
-            $sectionName = '';
-            $finalResult = '';
-            $tempArray = array();
-            $portIdxArr = array();
-            $portDescrArr = array();
-            $alterCfg = $ubillingConfig->getAlter();
-            $snmp = new SNMPHelper();
+            $deviceFdb      = $currentTemplate['define']['FDB'];
+            $deviceMAC      = (isset($currentTemplate['define']['MAC'])) ? $currentTemplate['define']['MAC'] : 'false';
+            $pollMode       = (isset($currentTemplate['define']['POLLMODE'])) ? $currentTemplate['define']['POLLMODE'] : '';
+            $sfpStartPort   = (empty($currentTemplate['define']['SFPSTARTPORT'])) ? 1 : $currentTemplate['define']['SFPSTARTPORT'];
+            $sfpEndPort     = (empty($currentTemplate['define']['SFPENDPORT'])) ? '' : $currentTemplate['define']['SFPENDPORT'];
+            $poeStartPort   = (empty($currentTemplate['define']['POESTARTPORT'])) ? 1 : $currentTemplate['define']['POESTARTPORT'];
+            $poeEndPort     = (empty($currentTemplate['define']['POEENDPORT'])) ? '' : $currentTemplate['define']['POEENDPORT'];
+            $sectionResult  = '';
+            $sectionName    = '';
+            $finalResult    = '';
+            $tempArray      = array();
+            $portIdxArr     = array();
+            $portDescrArr   = array();
+            $alterCfg       = $ubillingConfig->getAlter();
+            $snmp           = new SNMPHelper();
 
             //selecting FDB processing mode
             if (isset($currentTemplate['define']['FDB_MODE'])) {
@@ -1066,14 +1066,14 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             }
 
             // cumulative mode iface processing
-            if ($pollMode == 'cumulative' and ! empty($currentTemplate['portiface'])) {
-                $portIdxOID = trim($currentTemplate['portiface']['PORTINDEX']);
-                $portDescrOID = trim($currentTemplate['portiface']['PORTDESCR']);
-                $portAliasOID = trim($currentTemplate['portiface']['PORTALIAS']);
+            if ($pollMode == 'cumulative' and !empty($currentTemplate['portiface'])) {
+                $portIdxOID     = trim($currentTemplate['portiface']['PORTINDEX']);
+                $portDescrOID   = trim($currentTemplate['portiface']['PORTDESCR']);
+                $portAliasOID   = trim($currentTemplate['portiface']['PORTALIAS']);
 
                 // get ports indexes
                 $rawDataPrtIdx = $snmp->walk($ip, $community, $portIdxOID, true);
-                $portIdxArr = sp_parse_sw_port_idx($rawDataPrtIdx, $portIdxOID);
+                $portIdxArr    = sp_parse_sw_port_idx($rawDataPrtIdx, $portIdxOID);
 
                 // get ports aliases and ports descrs: if empty alias - we will use descr
                 $rawDataPrtDescr = $snmp->walk($ip, $community, $portDescrOID, true);
@@ -1104,7 +1104,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
                         // $tmpAliasArr[0] - iface/port index
                         // $tmpAliasArr[1] - iface/port alias
-                        if (!empty($tmpAliasArr[0]) and ( !isset($portDescrArr[$tmpAliasArr[0]]) or empty($portDescrArr[$tmpAliasArr[0]]))) {
+                        if (!empty($tmpAliasArr[0]) and (!isset($portDescrArr[$tmpAliasArr[0]]) or empty($portDescrArr[$tmpAliasArr[0]]))) {
                             // if nothing was found in port description section for current port index
                             if (!empty($tmpAliasArr[1])) {
                                 $portDescrArr[$tmpAliasArr[0]] = $tmpAliasArr[1];
@@ -1145,10 +1145,10 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $sectionSetOids = array();
                     }
 
-                    $sectionDivBy = (empty($eachpoll['DIV'])) ? ', ""' : ', "' . $eachpoll['DIV'] . '"';
-                    $sectionUnits = (empty($eachpoll['UNITS'])) ? ', ""' : ', "' . $eachpoll['UNITS'] . '"';
+                    $sectionDivBy   = (empty($eachpoll['DIV'])) ? ', ""' : ', "' . $eachpoll['DIV'] . '"';
+                    $sectionUnits   = (empty($eachpoll['UNITS'])) ? ', ""' : ', "' . $eachpoll['UNITS'] . '"';
                     @$sectionParser = $eachpoll['PARSER'];
-                    $sectionResult = '';
+                    $sectionResult  = '';
 
                     //yeah, lets set some oids to this shit
                     if (!empty($sectionSetOids)) {
@@ -1156,7 +1156,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $eachSetOidRaw = trim($eachSetOid);
                             $eachSetOidRaw = explode('|', $eachSetOidRaw);
                             //all three parts of set squense present
-                            if ((isset($eachSetOidRaw[0])) and ( isset($eachSetOidRaw[1])) and ( isset($eachSetOidRaw[2]))) {
+                            if ((isset($eachSetOidRaw[0])) and (isset($eachSetOidRaw[1])) and (isset($eachSetOidRaw[2]))) {
                                 $setDataTmp[0] = array('oid' => $eachSetOidRaw[0], 'type' => $eachSetOidRaw[1], 'value' => $eachSetOidRaw[2]);
                                 if (!empty($communitywrite)) {
                                     $runSet = $snmp->set($ip, $communitywrite, $setDataTmp);
@@ -1166,7 +1166,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     }
 
 
-                    if ($section == 'portdesc' and $pollMode == 'cumulative' and ! empty($portDescrArr)) {
+                    if ($section == 'portdesc' and $pollMode == 'cumulative' and !empty($portDescrArr)) {
                         $sectionResult = sp_parse_sw_port_descr($portDescrArr);
                     } else {
                         //now parse each oid
@@ -1174,20 +1174,24 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             // in cumulative mode we are not aware of ports amount
                             // so, need to fulfill each section OID with port number
                             // and populate $sectionOids array with OID for each port, like in conservative mode
-                            if ($pollMode == 'cumulative' and $sectionPollMode != 'noncumulative' and ! empty($portIdxArr)) {
-                                $tmpOID = $sectionOids[0];
-                                $sectionOids = array();
-                                $isSFPSection = ispos($section, 'sfp');
-                                $sfpEndPort = ($isSFPSection and empty($sfpEndPort)) ? count($portIdxArr) : $sfpEndPort;
-                                $isPOESection = ispos($section, 'poe');
-                                $poeEndPort = ($isPOESection and empty($poeEndPort)) ? count($portIdxArr) : $poeEndPort;
+                            if ( $pollMode == 'cumulative' and $sectionPollMode != 'noncumulative' and !empty($portIdxArr)) {
+                                $tmpOID         = $sectionOids[0];
+                                $sectionOids    = array();
+                                $isSFPSection   = ispos($section, 'sfp');
+                                $sfpEndPort     = ($isSFPSection and empty($sfpEndPort)) ? $portIdxArr[count($portIdxArr)] : $sfpEndPort;
+                                $isPOESection   = ispos($section, 'poe');
+                                $poeEndPort     = ($isPOESection and empty($poeEndPort)) ? $portIdxArr[count($portIdxArr)] : $poeEndPort;
 
                                 foreach ($portIdxArr as $eachPort) {
-                                    if ($isSFPSection and ( $eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
+                                    if (empty($eachPort)) {
                                         continue;
                                     }
 
-                                    if ($isPOESection and ( $eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
+                                    if ($isSFPSection and ($eachPort < $sfpStartPort or $eachPort > $sfpEndPort)) {
+                                        continue;
+                                    }
+
+                                    if ($isPOESection and ($eachPort < $poeStartPort or $eachPort > $poeEndPort)) {
                                         continue;
                                     }
 
@@ -1215,6 +1219,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                                 $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '"' . $sectionDivBy . $sectionUnits . ');';
                                             }
 
+                                            // actual parser processing
                                             eval($parseCode);
                                         } else {
                                             $sectionResult = __('Parser') . ' "' . $sectionParser . '" ' . __('Not exists');
@@ -1248,15 +1253,15 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             //parsing data from FDB table
             //
             if ($deviceFdb == 'true') {
-                $portData = array();
-                $vlanData = array();
-                $portTable = '';
-                $statusTable = '';
-                $portTabOID = '';
-                $portTabOIDVal = '';
-                $statusOID = '';
-                $statusOIDVal = '';
-                $dot1Q = false;
+                $portData       = array();
+                $vlanData       = array();
+                $portTable      = '';
+                $statusTable    = '';
+                $portTabOID     = '';
+                $portTabOIDVal  = '';
+                $statusOID      = '';
+                $statusOIDVal   = '';
+                $dot1Q          = false;
                 $snmp->setBackground(false); // need to process data with system + background
 
                 if ($deviceFdbMode == 'default') {
@@ -1264,32 +1269,32 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true);
                 } elseif ($deviceFdbMode == 'sw_cumulative') {
                     if (!empty($currentTemplate['port.1d_fdb'])) {
-                        $portTabOID = trim($currentTemplate['port.1d_fdb']['PORTTABLE']);
-                        $statusOID = trim($currentTemplate['port.1d_fdb']['PORTSTATUS']);
-                        $portTable = $snmp->walk($ip, $community, $portTabOID, true);
-                        $statusTable = $snmp->walk($ip, $community, $statusOID, true);
+                        $portTabOID     = trim($currentTemplate['port.1d_fdb']['PORTTABLE']);
+                        $statusOID      = trim($currentTemplate['port.1d_fdb']['PORTSTATUS']);
+                        $portTable      = $snmp->walk($ip, $community, $portTabOID, true);
+                        $statusTable    = $snmp->walk($ip, $community, $statusOID, true);
                     }
 
                     if (!empty($currentTemplate['port.1q_fdb'])) {
-                        $portQTabOID = trim($currentTemplate['port.1q_fdb']['PORTTABLE']);
-                        $statusQOID = trim($currentTemplate['port.1q_fdb']['PORTSTATUS']);
-                        $portQTable = $snmp->walk($ip, $community, $portQTabOID, true);
-                        $statusQTable = $snmp->walk($ip, $community, $statusQOID, true);
+                        $portQTabOID    = trim($currentTemplate['port.1q_fdb']['PORTTABLE']);
+                        $statusQOID     = trim($currentTemplate['port.1q_fdb']['PORTSTATUS']);
+                        $portQTable     = $snmp->walk($ip, $community, $portQTabOID, true);
+                        $statusQTable   = $snmp->walk($ip, $community, $statusQOID, true);
                     }
 
                     // if dot1Q table is not empty - we prefer it's data
                     // as it's usually more detailed and contains VLAN data
-                    if (!empty($portQTable) and ! empty($statusQTable)
-                            and ! ispos($portQTable, 'No Such Object available')
-                            and ! ispos($statusQTable, 'No Such Object available')
-                            and ! ispos($portQTable, 'No more variables left')
-                            and ! ispos($statusQTable, 'No more variables left')) {
+                    if (!empty($portQTable) and !empty($statusQTable)
+                        and !ispos($portQTable, 'No Such Object available')
+                        and !ispos($statusQTable, 'No Such Object available')
+                        and !ispos($portQTable, 'No more variables left')
+                        and !ispos($statusQTable, 'No more variables left')) {
 
-                        $dot1Q = true;
-                        $portTabOID = $portQTabOID;
-                        $statusOID = $statusQOID;
-                        $portTable = $portQTable;
-                        $statusTable = $statusQTable;
+                        $dot1Q          = true;
+                        $portTabOID     = $portQTabOID;
+                        $statusOID      = $statusQOID;
+                        $portTable      = $portQTable;
+                        $statusTable    = $statusQTable;
                     }
                 } else {
                     if ($deviceFdbMode == 'dlp') {
@@ -1331,10 +1336,10 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     } elseif ($deviceFdbMode == 'sw_cumulative') {
                         $portData = sp_SnmpParseFdbCumulative($portTable, $statusTable, $portTabOID, $statusOID, $dot1Q);
 
-                        if ($dot1Q and ! empty($portData)) {
+                        if ($dot1Q and !empty($portData)) {
                             // saving array to temp var for further processing
                             $tmpPortData = $portData;
-                            $portData = array();
+                            $portData    = array();
 
                             // separating port and vlan data to different arrays
                             foreach ($tmpPortData as $eachMAC => $eachData) {
@@ -1479,8 +1484,8 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $cells .= wf_TableCell($eachPort);
 
                         if ($fdbExtenInfo) {
-                            $eachPortDescr = '';
-                            $eachVLAN = '';
+                            $eachPortDescr  = '';
+                            $eachVLAN       = '';
 
                             if (!empty($portDescrArr[$eachPort])) {
                                 $eachPortDescr = $portDescrArr[$eachPort];
@@ -1850,9 +1855,9 @@ function sn_SnmpParseDeviceMAC($data) {
 
 /**
  * Cleans data types from raw SNMP request data. Returns only filtered value.
- * 
+ *
  * @param string $data
- * 
+ *
  * @return string
  */
 function zb_SanitizeSNMPValue($data) {

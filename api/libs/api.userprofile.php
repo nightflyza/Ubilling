@@ -1199,6 +1199,25 @@ class UserProfile {
                     $rows .= wf_TableRow($onuAdditionalData, 'row3');
                 }
 
+                if ($this->ubConfig->getAlterParam('PONBOXES_ENABLED')) {
+                    $ponBoxes = new PONBoxes(true);
+
+                    $tmpONUData = $onu_data;
+                    $tmpONUData['login'] = $this->login;
+                    $crossLinkWarning = '';
+                    $cells = wf_TableCell(__('PON box'), '30%', 'row2');
+
+                    //rendering associated boxes
+                    $linkedBoxes = $ponBoxes->getLinkedBoxes($tmpONUData);
+
+                    if (count($linkedBoxes) > 1) {
+                        $crossLinkWarning = $ponBoxes->renderCrossLinkWarning(true) . wf_delimiter(0);
+                    }
+
+                    $cells .= wf_TableCell($crossLinkWarning . $ponBoxes->renderLinkedBoxes($linkedBoxes, true));
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+
                 $result = wf_TableBody($rows, '100%', '0');
             }
         }
