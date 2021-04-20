@@ -1282,7 +1282,8 @@ function zbs_UserShowProfile($login) {
     if (isset($us_config['PUBLIC_OFFER'])) {
         if (!empty($us_config['PUBLIC_OFFER'])) {
             $publicOfferUrl = $us_config['PUBLIC_OFFER'];
-            $contract = la_Link($publicOfferUrl, __('Public offer'), false, '');
+            $publicOfferCaption = (empty($us_config['PUBLIC_OFFER_CAPTION']) ? __('Public offer') : $us_config['PUBLIC_OFFER_CAPTION']);
+            $contract = la_Link($publicOfferUrl, $publicOfferCaption, false, '');
         }
     }
 
