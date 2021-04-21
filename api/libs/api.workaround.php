@@ -3517,7 +3517,7 @@ function crc16($string) {
  */
 function zb_MacVendorSearchmac($mac) {
     // searchmac.com API request
-    $url = 'http://searchmac.com/api/raw/' . $mac;
+    $url = 'http://searchmac.com/api/v2/' . $mac;
     @$rawdata = file_get_contents($url);
     if (!empty($rawdata)) {
         $result = $rawdata;
