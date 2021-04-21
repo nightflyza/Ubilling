@@ -336,10 +336,10 @@ class Reminder {
                         . $frozenJOIN
                     . $whereString;
 
-file_put_contents('qxcv', $query);
+
 
             $tmp = simple_queryall($query);
-file_put_contents('zxcv', print_r($tmp, true));
+
 
             if (!empty($tmp)) {
                 $this->AllLogin = $tmp;
