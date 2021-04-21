@@ -285,9 +285,24 @@ function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $oldd
     $altconf = $ubillingConfig->getAlter();
     //mac vendor search
     if ($altconf['MACVEN_ENABLED']) {
-        $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
-        $vendorframe .= wf_tag('iframe', true);
-        $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+        $optionState = $altconf['MACVEN_ENABLED'];
+        switch ($optionState) {
+            case 1:
+                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $olddata . '&username=';
+                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                break;
+            case 2:
+                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
+                $vendorframe .= wf_tag('iframe', true);
+                $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+                break;
+            case 3:
+                $lookupUrl = '?module=macvendor&raw=true&mac=' . $olddata;
+                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                break;
+        }
     } else {
         $lookuplink = '';
     }
@@ -401,9 +416,24 @@ function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress,
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['MACVEN_ENABLED']) {
-        $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
-        $vendorframe .= wf_tag('iframe', true);
-        $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+        $optionState = $alterconf['MACVEN_ENABLED'];
+        switch ($optionState) {
+            case 1:
+                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $olddata . '&username=';
+                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                break;
+            case 2:
+                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
+                $vendorframe .= wf_tag('iframe', true);
+                $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+                break;
+            case 3:
+                $lookupUrl = '?module=macvendor&raw=true&mac=' . $olddata;
+                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
+                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
+                break;
+        }
     } else {
         $lookuplink = '';
     }
