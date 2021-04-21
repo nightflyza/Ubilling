@@ -59,9 +59,11 @@ class OmegaTvFrontend {
     protected $apiKey = '';
 
     /**
-     * Default maximum devices per user count
+     * Contains some configurable amount of maximum count of devices/playlists per user
+     *
+     * @var int
      */
-    const MAX_DEVICES = 3;
+    protected $maxDevices = 3;
 
     public function __construct() {
         $this->loadUsConfig();
@@ -88,6 +90,9 @@ class OmegaTvFrontend {
     protected function setOptions() {
         $this->apiUrl = $this->usConfig['API_URL'];
         $this->apiKey = $this->usConfig['API_KEY'];
+        if (isset($this->usConfig['OM_MAXDEV'])) {
+            $this->maxDevices= $this->usConfig['OM_MAXDEV'];
+        }
     }
 
     /**
@@ -243,7 +248,7 @@ class OmegaTvFrontend {
             }
 
             //maximum devices limit
-            if ($devCount < self::MAX_DEVICES) {
+            if ($devCount < $this->maxDevices) {
                 //new device activation
                 if (la_CheckGet(array('getcode'))) {
                     $actCode = $this->getDeviceActivationCode();
@@ -255,6 +260,8 @@ class OmegaTvFrontend {
                     $newPlControl = la_Link('?module=omegatv&newplaylist=true', __('Add playlist'));
                     $result .= $actCodeControl . ' / ' . $newPlControl;
                 }
+            } else {
+                $result .= __('Devices count limit is exceeded');
             }
         }
         return ($result);
@@ -324,7 +331,7 @@ class OmegaTvFrontend {
                     } else {
                         if ($this->checkUserProtection($each['id'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $subscribeControl = la_ConfirmDialog('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), $alertText, 'mgsubcontrol','?module=omegatv');
+                            $subscribeControl = la_ConfirmDialog('?module=omegatv&subscribe=' . $each['tariffid'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=omegatv');
                         } else {
                             $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
                         }
