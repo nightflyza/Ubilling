@@ -1718,10 +1718,10 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter, $fdbVLANData_raw = a
                         } else {
                             if (isset($allswitchmacs[$mac])) {
                                 @$switchAddress = $allswitchmacs[$mac]['location'];
-                                @$switchId = $allswitchmacs[$mac]['id'];
-                                @$switchIp = $allswitchmacs[$mac]['ip'];
-                                $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIp;
-                                $userlink = wf_Link('?module=switches&edit=' . $switchId, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
+                                @$switchIdL = $allswitchmacs[$mac]['id'];
+                                @$switchIpL = $allswitchmacs[$mac]['ip'];
+                                $switchLabel = (!empty($switchAddress)) ? $switchAddress : $switchIpL;
+                                $userlink = wf_Link('?module=switches&edit=' . $switchIdL, wf_img_sized('skins/menuicons/switches.png', __('Switch'), 11, 13) . ' ' . $switchLabel);
                             } else {
                                 $userlink = '';
                             }
