@@ -1009,7 +1009,7 @@ $lang['def']['Dead switches'] = 'Мертвые свичи';
 $lang['def']['Switches are okay, everything is fine - I guarantee'] = 'Свичи в порядке, все отлично - гарантирую';
 $lang['def']['All switches alive'] = 'Свичи в порядке';
 $lang['def']['Taskbar notify for dead switches'] = 'Панель задач уведомляет о мертвых свитчах';
-$lang['def']['Switches ping cache timeout'] = 'Время задержки между обновлениями кеша опроса свитчей';
+$lang['def']['Switches ping cache timeout'] = 'Время задержки между обновлениями кэша опроса свитчей';
 
 //rev 1786
 $lang['def']['User inside'] = 'Внутренности пользователя';
@@ -1290,7 +1290,7 @@ $lang['def']['Payment systems %'] = 'Удержано платежными си�
 $lang['def']['Our final profit'] = 'Наш конечный доход';
 
 //rev 2482
-$lang['def']['Cache state at time'] = 'Из кеша состоянием на';
+$lang['def']['Cache state at time'] = 'Из кэша состоянием на';
 $lang['def']['Search by payment sum'] = 'Поиск по сумме платежа';
 $lang['def']['Default cash type'] = 'Тип оплат по умолчанию';
 $lang['def']['Set as default cash type'] = 'Установить как тип оплаты по умолчанию';
@@ -1315,7 +1315,7 @@ $lang['def']['CPU usage'] = 'Загрузка CPU';
 $lang['def']['Memory usage'] = 'Занято памяти';
 $lang['def']['SNMP query'] = 'Опрос при помощи SNMP';
 $lang['def']['right to query switches via SNMP'] = 'Право опроса свичей при помощи SNMP';
-$lang['def']['Time to store SNMP raw data cache'] = 'Время в минутах, хранения сырых SNMP данных в кеше';
+$lang['def']['Time to store SNMP raw data cache'] = 'Время в минутах, хранения сырых SNMP данных в кэше';
 
 //rev 2609
 $lang['def']['Receive errors'] = 'Ошибок получения';
@@ -1346,7 +1346,7 @@ $lang['def']['Generate job performed for this task'] = 'Породить вып�
 $lang['def']['Switch IP'] = 'IP свитча';
 $lang['def']['Port'] = 'Порт';
 $lang['def']['entries'] = 'записей';
-$lang['def']['Current FDB cache'] = 'Текущий кеш FDB';
+$lang['def']['Current FDB cache'] = 'Текущий кэш FDB';
 
 // MikroTik NAS Select:
 $lang['def']['Select NAS'] = 'Выберите сервер доступа';
@@ -1449,7 +1449,7 @@ $lang['def']['Total calls'] = 'Звонков всего';
 $lang['def']['Calls history'] = 'История звонков';
 $lang['def']['right to use askozia integration'] = 'Право использовать модуль интеграции с AskoziaPBX';
 $lang['def']['Administrator login'] = 'Логин администратора';
-$lang['def']['Cache time'] = 'Время кеширования';
+$lang['def']['Cache time'] = 'Время кэширования';
 $lang['def']['AskoziaPBX URL'] = 'Ссылка на AskoziaPBX';
 $lang['def']['AskoziaPBX support enabled'] = 'Поддержка AskoziaPBX';
 $lang['def']['AskoziaPBX integration now disabled'] = 'Поддержка интеграции с AskoziaPBX сейчас отключена';
@@ -1594,7 +1594,7 @@ $lang['def']['Previous alerts'] = 'Предыдущие срабатывания
 $lang['def']['Enable parsing of .docx documents'] = 'Включить поддержку парсинга документов в формате .docx';
 $lang['def']['value-added tax rate percent for document templates'] = 'Ставка НДС для шаблонов документов';
 $lang['def']['additional services printable within documents'] = 'Дополнительные услуги доступные для шаблонов документов';
-$lang['def']['Full address list caching time'] = 'Время кеширования полного списка адресов';
+$lang['def']['Full address list caching time'] = 'Время кэширования полного списка адресов';
 $lang['def']['Enable parsing of check in docx format'] = 'Поддержка чеков в формате .docx';
 $lang['def']['As calendar'] = 'В виде календаря';
 $lang['def']['Previous user tickets'] = 'Предыдущие тикеты пользователя';
@@ -1767,7 +1767,7 @@ $lang['def']['Show street input as combobox'] = 'Показывать поле �
 $lang['def']['Display email field'] = 'Показывать поле ввода электропочты';
 $lang['def']['Render spambots protection traps'] = 'Использовать защиту от спамботов';
 $lang['def']['City and streets hide lists'] = 'Список скрываемых городов и улиц';
-$lang['def']['Database connections caching'] = 'Кеширование выборок из БД';
+$lang['def']['Database connections caching'] = 'Кэширование выборок из БД';
 
 // rev 3908
 $lang['def']['Taskbar personal sticky notes'] = 'Персональные заметки на панели задач';
@@ -1868,7 +1868,7 @@ $lang['def']['images list preview height'] = 'Высота превью изоб
 $lang['def']['Administrator logins that can edit payments'] = 'Администраторы которые могут редактировать платежи';
 $lang['def']['GlobalSearch enabled'] = 'Глобальный поиск включен';
 $lang['def']['GlobalSearch fields'] = 'Поля глобального поиска';
-$lang['def']['GlobalSearch caching timeout in minutes'] = 'Время кеширования глобального поиска';
+$lang['def']['GlobalSearch caching timeout in minutes'] = 'Время кэширования глобального поиска';
 
 //rev 4200
 $lang['def']['Bankstatement type'] = 'Тип выписки';
@@ -1971,8 +1971,8 @@ $lang['def']['Force deletion'] = 'Все равно удалить';
 $lang['def']['Replacement'] = 'Замена';
 $lang['def']['Switch replacement'] = 'Замена свитча';
 $lang['def']['removed from'] = 'сняли с';
-$lang['def']['System cache storage'] = 'Хранилище системного кеша';
-$lang['def']['From cache'] = 'Из кеша';
+$lang['def']['System cache storage'] = 'Хранилище системного кэша';
+$lang['def']['From cache'] = 'Из кэша';
 $lang['def']['of service usage'] = 'использования услуги';
 $lang['def']['or enought till the'] = 'или достаточно до';
 $lang['def']['indebtedness'] = 'задолженность';
@@ -2395,7 +2395,7 @@ $lang['def']['Wanted MAC detected'] = 'Разыскиваемый MAC обнар
 $lang['def']['No wanted MAC DHCP requests detected'] = 'Запросов к DHCP от разыскиваемых MAC не обнаружено';
 $lang['def']['DHCP request from'] = 'DHCP запрос от';
 $lang['def']['Wanted MAC occurs in FDB'] = 'Разыскиваемый MAC замечен в FDB';
-$lang['def']['No wanted MAC in FDB cache detected'] = 'Появлений разыскиваемых MAC в кеше FDB не обнаружено';
+$lang['def']['No wanted MAC in FDB cache detected'] = 'Появлений разыскиваемых MAC в кэше FDB не обнаружено';
 $lang['def']['Wanted MAC occurs in event logs'] = 'Разыскиваемый MAC замечен в логе событий';
 $lang['def']['No wanted MAC in event logs detected'] = 'Разыскиваемых MAC в логе событий не обнаружено';
 $lang['def']['Wanted MAC occurs in PON ONU devices'] = 'Разыскиваемый MAC замечен среди устройств PON ONU';
@@ -2582,11 +2582,11 @@ $lang['def']['Missed calls that require your response'] = 'Пропущенны�
 $lang['def']['Last call time'] = 'Последняя попытка дозвониться';
 $lang['def']['Number of attempts to call'] = 'Попыток дозвониться';
 $lang['def']['No missed calls at this time'] = 'На данный момент, нету пропущенных звонков';
-$lang['def']['No unanswered calls cache available'] = 'Нету кеша пропущенных звонков';
+$lang['def']['No unanswered calls cache available'] = 'Нету кэша пропущенных звонков';
 $lang['def']['users tried to contact you but could not'] = 'номеров пытались до вас дозвониться, но так и не дождались ответа';
 $lang['def']['Delayed per-user actions profile indication'] = 'Индикация наличия отложенных задач для пользователей в профиле';
 $lang['def']['We tried to call back these numbers, and sometimes it even happened'] = 'Мы пытались перезвонить этим номерам, и иногда это даже получилось';
-$lang['def']['No recalled calls cache available'] = 'Нету кеша перезвоненных звонков';
+$lang['def']['No recalled calls cache available'] = 'Нету кэша перезвоненных звонков';
 $lang['def']['No recalled calls at this time'] = 'Нету перезвоненных звонков на данный момент';
 $lang['def']['Calls'] = 'Звонки';
 $lang['def']['Missed calls'] = 'Пропущенных звонков';
@@ -2824,7 +2824,7 @@ $lang['def']['Cache cleanup'] = 'Очистить кэш';
 $lang['def']['Go to OLT'] = 'Перейти к OLT';
 $lang['def']['Refresh data for this OLT'] = 'Обновить данные для этой OLT';
 $lang['def']['Last dereg reason'] = 'Причина последней дерегистрации';
-$lang['def']['Cache efficiency'] = 'Эффективность кеша';
+$lang['def']['Cache efficiency'] = 'Эффективность кэша';
 $lang['def']['Psycho-Pass'] = 'Психо-паспорт';
 $lang['def']['Scan for free IPs'] = 'Поиск свободных IP';
 $lang['def']['Free IPs'] = 'Свободные IP';
@@ -3139,7 +3139,7 @@ $lang['def']['Money transactions that may was not processed'] = 'Денежны�
 $lang['def']['Unprocessed payments repair'] = 'Исправление необработанных платежей';
 $lang['def']['Bearing'] = 'Азимут';
 $lang['def']['History of switch life'] = 'История жизни свитча';
-$lang['def']['FDB cache'] = 'Кеш FDB';
+$lang['def']['FDB cache'] = 'Кэш FDB';
 $lang['def']['View full'] = 'Просмотреть полностью';
 $lang['def']['Our profit'] = 'Наша прибыль';
 $lang['def']['Payouts for Megogo'] = 'Выплаты для Megogo';
