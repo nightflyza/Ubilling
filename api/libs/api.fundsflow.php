@@ -387,6 +387,12 @@ class FundsFlow {
                     $operation = __('Service') . ' ' . __('OmegaTV');
                 }
 
+                //ProstoTV fees
+                if (ispos($each['note'], 'PROSTOTV:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('ProstoTV');
+                }
+
                 //Self crediting fees
                 if (ispos($each['note'], 'SCFEE')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');

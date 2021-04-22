@@ -974,6 +974,29 @@ class PTV {
     }
 
     /**
+     * Charges some tariff fee from user account
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function chargeUserFee($userLogin, $tariffId) {
+        if (isset($this->allUserData[$userLogin])) {
+            if (isset($this->allTariffs[$tariffId])) {
+                $subscriberId = $this->getSubscriberId($userLogin);
+                $tariffFee = $this->allTariffs[$tariffId]['fee'];
+                zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'PROSTOTV:' . $tariffId);
+                log_register('PTV CHARGE TARIFF [' . $tariffId . '] FEE `' . $tariffFee . '` FOR (' . $userLogin . ') AS [' . $subscriberId . ']');
+            } else {
+                log_register('PTV CHARGE FAIL NOTARIFF [' . $tariffId . '] FOR (' . $userLogin . ') AS [' . $subscriberId . ']');
+            }
+        } else {
+            log_register('PTV CHARGE FAIL NOUSER (' . $userLogin . ')');
+        }
+    }
+
+    /**
      * Performs fee processing of all registered subscribers
      * 
      * @return void
@@ -986,11 +1009,9 @@ class PTV {
                 $userFee = 0;
                 if (isset($this->allUserData[$userLogin])) {
                     $userCash = $this->allUserData[$userLogin]['Cash'];
-                    //user is active now
+                    //user subscription is active now
                     if ($eachSub['active']) {
-                        //TODO
-                    } else {
-                        //user is buried now
+                        $this->chargeUserFee($eachSub['login'], $eachSub['maintariff']);
                     }
                 } else {
                     log_register('PTV CHARGE (' . $userLogin . ') AS [' . $eachSub . '] FAIL MISS');
@@ -1100,6 +1121,9 @@ class PTV {
             if ($this->isValidSubscriber($subscriberId)) {
                 $this->setMainTariff($subscriberId, $tariffId);
             }
+
+            //charge tariff fee after
+            $this->chargeUserFee($userLogin, $tariffId);
         }
     }
 
