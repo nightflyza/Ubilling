@@ -62,6 +62,13 @@ class ApacheZen {
     protected $tail = '';
 
     /**
+     * Dynamic view-port default style
+     * 
+     * @var string
+     */
+    protected $renderStyle = 'font-family: monospace;';
+
+    /**
      * owls are not what they seem
      */
     public function __construct() {
@@ -118,11 +125,11 @@ class ApacheZen {
                 $resultRaw = array_reverse($resultRaw);
                 if (!empty($resultRaw)) {
                     foreach ($resultRaw as $io => $eachLine) {
-                        $cells = wf_TableCell($eachLine);
+                        $cells = wf_TableCell(htmlentities(strip_tags($eachLine)));
                         $rows .= wf_TableRow($cells, 'row5');
                     }
                 }
-                $result .= wf_TableBody($rows, '100%', 0, '', 'style="font-family: monospace;"');
+                $result .= wf_TableBody($rows, '100%', 0, '', 'style="' . $this->renderStyle . '"');
             } else {
                 $messages = new UbillingMessageHelper();
                 $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
