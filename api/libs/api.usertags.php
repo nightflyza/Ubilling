@@ -6,7 +6,9 @@
 
 /**
  * Returns array of user assigned tags as login=>array of tags with their names
- * 
+ *
+ * @param string $login
+ *
  * @return array
  */
 function zb_UserGetAllTags($login = '') {
@@ -22,6 +24,41 @@ function zb_UserGetAllTags($login = '') {
             }
         }
     }
+    return ($result);
+}
+
+/**
+ * Returns array of user assigned tags as login => array($dbID => $tagID)
+ *
+ * This function ensures the uniqueness of selected tags assigned to user
+ * if user has one and the same tag assigned multiple times for some reason
+ *
+ * @param string $login
+ * @param string $whereTagID
+ *
+ * @return array
+ */
+function zb_UserGetAllTagsUnique($login = '', $whereTagID = '') {
+    $result = array();
+    $queryWhere = (empty($login)) ? '' : " WHERE `login` = '" . $login . "'";
+
+    if (!empty($whereTagID)) {
+        if (empty($queryWhere)) {
+            $queryWhere = " WHERE `tagid` IN(" . $whereTagID .")";
+        } else {
+            $queryWhere.= " AND `tagid` IN(" . $whereTagID .")";
+        }
+    }
+
+    $query = "SELECT * from `tags`" . $queryWhere;
+    $allTags = simple_queryall($query);
+
+    if (!empty($allTags)) {
+        foreach ($allTags as $io => $each) {
+            $result[$each['login']][$each['id']] = $each['tagid'];
+        }
+    }
+
     return ($result);
 }
 
@@ -864,7 +901,7 @@ function zb_VservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
     if (!empty($allUserVsrvs)) {
         $allUserVsrvs = $allUserVsrvs[$login];
 
-        foreach ($allUserVsrvs as $eachSrvName => $eachSrvData) {
+        foreach ($allUserVsrvs as $eachTagDBID => $eachSrvData) {
             $curVsrvPrice       = $eachSrvData['price'];
             $curVsrvDaysPeriod  = $eachSrvData['daysperiod'];
             $dailyVsrvPrice     = 0;
@@ -889,24 +926,27 @@ function zb_VservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
 
 /**
  * Returns all users with assigned virtual services as array:
- *         login => array($vServiceName1 => vServicePrice1,
- *                        $vServiceName2 => vServicePrice2,
- *                        $vServiceNameN => vServicePriceN
- *                       )
+ *         login => array($tagDBID => vServicePrice1)
+ *
  * if $includePeriod is true returned array will look like this:
- *          login => array($vServiceName1 => array('price' => vServicePrice1, 'daysperiod' => vServicePeriod1),
- *                        $vServiceName2 => array('price' => vServicePrice2, 'daysperiod' => vServicePeriod2),
- *                        $vServiceNameN => array('price' => vServicePriceN, 'daysperiod' => vServicePeriodN),
- *                       )
+ *          login => array($tagDBID => array('price' => vServicePrice1, 'daysperiod' => vServicePeriod1))
+ *
+ * if $includeVSrvName is true 'vsrvname' => tagname is added to the end of the array
  *
  * @param string $login
  * @param bool $includePeriod
+ * @param bool $includeVSrvName
  *
  * @return array
  */
-function zb_VservicesGetUsersAll($login = '', $includePeriod = false) {
+function zb_VservicesGetUsersAll($login = '', $includePeriod = false, $includeVSrvName = false) {
     $result = array();
-    $allUserTags = zb_UserGetAllTags($login);
+    $allTagNames = array();
+    $allUserTags = zb_UserGetAllTagsUnique($login);
+
+    if ($includeVSrvName) {
+        $allTagNames = stg_get_alltagnames();
+    }
 
     //user have some tags assigned
     if (!empty($allUserTags)) {
@@ -915,9 +955,13 @@ function zb_VservicesGetUsersAll($login = '', $includePeriod = false) {
         foreach ($allUserTags as $eachLogin => $data) {
             $tmpArr = array();
 
-            foreach ($data as $tagId => $tagName) {
-                if (isset($vservicePrices[$tagId])) {
-                    $tmpArr[$tagName] = $vservicePrices[$tagId];
+            foreach ($data as $tagDBID => $tagID) {
+                if (isset($vservicePrices[$tagID])) {
+                    if ($includeVSrvName) {
+                        $tmpArr[$tagDBID] = $vservicePrices[$tagID] + array('vsrvname' => $allTagNames[$tagID]);
+                    } else {
+                        $tmpArr[$tagDBID] = $vservicePrices[$tagID];
+                    }
                 }
             }
 

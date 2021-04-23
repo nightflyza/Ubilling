@@ -156,12 +156,21 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     $tariffData = zbs_UserGetTariffData($userTariff);
     $tariffFee = $tariffData['Fee'];
     $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
+    $includeVServices = (!empty($us_config['ONLINELEFT_CONSIDER_VSERVICES']));
+    $vservicesPeriodON = (!empty($us_config['VSERVICES_CONSIDER_PERIODS']));
 
     $daysOnLine = 0;
     $balanceExpire = '';
+    $totalVsrvPrice = 0;
 
     if ($userBalance >= 0) {
+        // check if tariff has no zero price and is not free
         if ($tariffFee > 0) {
+            if ($includeVServices) {
+                $totalVsrvPrice = ($vservicesPeriodON) ? zbs_vservicesGetUserPricePeriod($login, $tariffPeriod) : zbs_vservicesGetUserPrice($login);
+                $tariffFee += $totalVsrvPrice;
+            }
+
             //spread fee
             if ($us_config['ONLINELEFT_SPREAD'] != 0) {
                 if ($tariffPeriod == 'month') {
@@ -204,9 +213,22 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
             case 'date':
                 $balanceExpire = ", " . __('enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
                 break;
+            case 'mixed':
+                $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days')
+                               . ", " . __('till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));;
+                break;
             default:
                 $balanceExpire = NULL;
                 break;
+        }
+
+        if ($includeVServices and !empty($totalVsrvPrice) and !empty($balanceExpire)) {
+            if ($us_config['ROUND_PROFILE_CASH']) {
+                $totalVsrvPrice = web_roundValue($totalVsrvPrice, 2);
+            }
+
+            $balanceExpire.= la_delimiter(0) . '(' . __('including additional services') . ' ' . $totalVsrvPrice . ' ' . $us_config['currency']
+                             . ' / ' . __($tariffPeriod) . ')';
         }
     } else {
         //fast credit control id debt
@@ -1116,53 +1138,223 @@ function zbs_getUserTags($login) {
 }
 
 /**
- * Renders list of associated with user virtual services 
- * 
+ * Returns array of user assigned tags as login => array($dbID => $tagID)
+ *
+ * This function ensures the uniqueness of selected tags assigned to user
+ * if user has one and the same tag assigned multiple times for some reason
+ *
+ * @param string $login
+ * @param string $whereTagID
+ *
+ * @return array
+ */
+function zbs_UserGetAllTagsUnique($login = '', $whereTagID = '') {
+    $result = array();
+    $queryWhere = (empty($login)) ? '' : " WHERE `login` = '" . $login . "'";
+
+    if (!empty($whereTagID)) {
+        if (empty($queryWhere)) {
+            $queryWhere = " WHERE `tagid` IN(" . $whereTagID .")";
+        } else {
+            $queryWhere.= " AND `tagid` IN(" . $whereTagID .")";
+        }
+    }
+
+    $query = "SELECT * from `tags`" . $queryWhere;
+    $allTags = simple_queryall($query);
+
+    if (!empty($allTags)) {
+        foreach ($allTags as $io => $each) {
+            $result[$each['login']][$each['id']] = $each['tagid'];
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns total cost of all additional services.
+ *
+ * @param string $login user's login
+ *
+ * @return float for all virtual services if such exists for user
+ */
+function zbs_vservicesGetUserPrice($login) {
+    $price = 0;
+
+    $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
+    $alltags = simple_queryall($tag_query);
+
+    $VS_query = "SELECT * FROM `vservices`";
+    $allVS = simple_queryall($VS_query);
+
+    if (!empty($alltags)) {
+        foreach ($alltags as $io => $eachtag) {
+            foreach ($allVS as $each => $eachSrv) {
+                if ($eachtag['tagid'] == $eachSrv['tagid']) {
+                    $price += $eachSrv['price'];
+                }
+            }
+        }
+    }
+
+    return($price);
+}
+
+/**
+ * Returns array of all available virtual services as tagid => array('price' => $price, 'period' => $period);
+ *
+ * @return array
+ */
+function zbs_vservicesGetAllPricesPeriods() {
+    $result = array();
+    $query = "SELECT * from `vservices`";
+    $all = simple_queryall($query);
+
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['tagid']] = array('price' => $each['price'], 'daysperiod' => $each['charge_period_days']);
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Returns price total of all virtual services fees assigned to user, considering services fee charge periods
+ * $defaultPeriod - specifies the default period to count the prices for: 'month' or 'day', if certain service has no fee charge period set
+ *
+ * @param string $login
+ * @param string $defaultPeriod
+ *
+ * @return float
+ */
+function zbs_vservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
+    $totalVsrvPrice = 0;
+    $allUserVsrvs = zbs_vservicesGetUsersAll($login, true);
+    $curMonthDays = date('t');
+
+    if (!empty($allUserVsrvs)) {
+        $allUserVsrvs = $allUserVsrvs[$login];
+
+        foreach ($allUserVsrvs as $eachTagDBID => $eachSrvData) {
+            $curVsrvPrice       = $eachSrvData['price'];
+            $curVsrvDaysPeriod  = $eachSrvData['daysperiod'];
+            $dailyVsrvPrice     = 0;
+
+            // getting daily vservice price
+            if (!empty($curVsrvDaysPeriod)) {
+                $dailyVsrvPrice = ($curVsrvDaysPeriod > 1) ? $curVsrvPrice / $curVsrvDaysPeriod : $curVsrvPrice;
+            }
+
+            // if vservice has no charge period set and $dailyVsrvPrice == 0
+            // then virtual service price is considered as for global $defaultPeriod period
+            if ($defaultPeriod == 'month') {
+                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
+            } else {
+                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
+            }
+        }
+    }
+
+    return ($totalVsrvPrice);
+}
+
+/**
+ * Returns all users with assigned virtual services as array:
+ *         login => array($tagDBID => vServicePrice1)
+ *
+ * if $includePeriod is true returned array will look like this:
+ *          login => array($tagDBID => array('price' => vServicePrice1, 'daysperiod' => vServicePeriod1))
+ *
+ * if $includeVSrvName is true 'vsrvname' => tagname is added to the end of the array
+ *
+ * @param string $login
+ * @param bool $includePeriod
+ * @param bool $includeVSrvName
+ *
+ * @return array
+ */
+function zbs_vservicesGetUsersAll($login = '', $includePeriod = false, $includeVSrvName = false) {
+    $result = array();
+    $allTagNames = array();
+    $allUserTags = zbs_UserGetAllTagsUnique($login);
+
+    if ($includeVSrvName) {
+        $allTagNames = zbs_getTagNames();
+    }
+
+    //user have some tags assigned
+    if (!empty($allUserTags)) {
+        $vservicePrices = ($includePeriod) ? zbs_vservicesGetAllPricesPeriods() : zbs_getVservicesAll();
+
+        foreach ($allUserTags as $eachLogin => $data) {
+            $tmpArr = array();
+
+            foreach ($data as $tagDBID => $tagID) {
+                if (isset($vservicePrices[$tagID])) {
+                    if ($includeVSrvName) {
+                        $tmpArr[$tagDBID] = $vservicePrices[$tagID] + array('vsrvname' => $allTagNames[$tagID]);
+                    } else {
+                        $tmpArr[$tagDBID] = $vservicePrices[$tagID];
+                    }
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                $result[$eachLogin] = $tmpArr;
+            }
+        }
+    }
+
+    return ($result);
+}
+
+/**
+ * Renders list of associated with user virtual services
+ *
  * @param string $login
  * @param string $currency
- * 
+ *
  * @return string
  */
 function zbs_vservicesShow($login, $currency) {
     global $us_config;
     $result = '';
-    $userservices = array();
-    $allservices = zbs_getVservicesAll(); // tagid => price
-    if (!empty($allservices)) {
-        $usertags = zbs_getUserTags($login); // tagid=>dbid
-        if (!empty($usertags)) {
-            foreach ($usertags as $eachtagid => $dbid) {
-                //is associated tags services?
-                if (isset($allservices[$eachtagid])) {
-                    $userservices[$eachtagid] = $dbid;
+    $vservicesPeriodON = (!empty($us_config['VSERVICES_CONSIDER_PERIODS']));
+    $userServices = zbs_vservicesGetUsersAll($login, true, true);
+
+    //yep, this user have some services assigned
+    if (!empty($userServices)) {
+        $userServices = $userServices[$login];
+
+        $cells = la_TableCell(__('Service'), '60%');
+        $cells .= la_TableCell(__('Terms'));
+        $rows = la_TableRow($cells, 'row1');
+
+        foreach ($userServices as $eachDBID => $eachsSrvice) {
+            if ($vservicesPeriodON) {
+                if ($eachsSrvice['price'] >= 0) {
+                    $servicePrice = __('Price') . ' ' . $eachsSrvice['price'] . ' ' . $currency . ' / ' . $eachsSrvice['daysperiod'] . ' ' . __('day');
+                } else {
+                    $servicePrice = __('Bonus') . ' ' . abs($eachsSrvice['price']) . ' ' . $currency . ' / ' . $eachsSrvice['daysperiod'] . ' ' . __('day');
+                }
+            } else {
+                if ($eachsSrvice['price'] >= 0) {
+                    $servicePrice = __('Price') . ' ' . $eachsSrvice['price'] . ' ' . $currency;
+                } else {
+                    $servicePrice = __('Bonus') . ' ' . abs($eachsSrvice['price']) . ' ' . $currency;
                 }
             }
 
-            //yep, this user have some services assigned
-            if (!empty($userservices)) {
-                $tagnames = zbs_getTagNames(); //tagid => name
-
-                $cells = la_TableCell(__('Service'), '60%');
-                $cells .= la_TableCell(__('Terms'));
-                $rows = la_TableRow($cells, 'row1');
-
-                foreach ($userservices as $eachservicetagid => $dbid) {
-
-                    if ($allservices[$eachservicetagid] >= 0) {
-                        $servicePrice = __('Price') . ' ' . @$allservices[$eachservicetagid] . ' ' . $currency;
-                    } else {
-                        $servicePrice = __('Bonus') . ' ' . abs(@$allservices[$eachservicetagid]) . ' ' . $currency;
-                    }
-                    $cells = la_TableCell(@$tagnames[$eachservicetagid]);
-                    $cells .= la_TableCell($servicePrice);
-                    $rows .= la_TableRow($cells, 'row3');
-                }
-
-                $result .= la_tag('br');
-                $result .= la_tag('h3') . __('Additional services') . la_tag('h3', true);
-                $result .= la_TableBody($rows, '100%', 0);
-            }
+            $cells = la_TableCell($eachsSrvice['vsrvname']);
+            $cells .= la_TableCell($servicePrice);
+            $rows .= la_TableRow($cells, 'row3');
         }
+
+        $result .= la_tag('br');
+        $result .= la_tag('h3') . __('Additional services') . la_tag('h3', true);
+        $result .= la_TableBody($rows, '100%', 0);
     }
 
     if ($us_config['VSERVICES_SHOW'] == 2) {

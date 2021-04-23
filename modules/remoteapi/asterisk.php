@@ -266,7 +266,7 @@ if ($_GET['action'] == 'asterisk') {
                                 die(json_encode($contragent));
                             }
 
-                            $userVsrvs = zb_VservicesGetUsersAll($userLogin, true);
+                            $userVsrvs = zb_VservicesGetUsersAll($userLogin, true, true);
                             $userVsrvs = empty($userVsrvs[$userLogin]) ? array() : $userVsrvs[$userLogin];
 
                             if ($apiParam == 'getvservicescount') {
@@ -282,7 +282,14 @@ if ($_GET['action'] == 'asterisk') {
                                 $userSpends[$userData['Tariff']] = array('price' => $userData['Fee'], 'daysperiod' => $userData['period']);
                             }
 
-                            $userSpends = $userSpends + $userVsrvs;
+                            if (!empty($userVsrvs)) {
+                                foreach ($userVsrvs as $eachID => $eachSrv) {
+                                    $vsrvName = $eachSrv['vsrvname'];
+                                    $vsrvTmpArr = array('price' => $eachSrv['price'], 'daysperiod' => $eachSrv['daysperiod']);
+                                    $userSpends[$vsrvName] = $vsrvTmpArr;
+                                }
+                            }
+
                             die(json_encode($userSpends));
 
 

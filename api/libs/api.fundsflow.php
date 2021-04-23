@@ -965,15 +965,46 @@ class FundsFlow {
      * 
      * @return void
      */
-    public function makeFreezeMonthFee() {
+    public function makeFreezeMonthFee($debug2log = false) {
         $cost = $this->alterConf['FREEZEMONTH_COST'];
         $cashType = $this->alterConf['FREEZEMONTH_CASHTYPE'];
-        if (!empty($this->allUserData)) {
-            foreach ($this->allUserData as $eachUser) {
+        $processedUsers = 0;
+
+        if (!empty($this->alterConf['FREEZEMONTH_ONLY_TAG'])) {
+            log_register('FROZEN FEE CHARGE PROCESSING ONLY TAGS: ' . $this->alterConf['FREEZEMONTH_ONLY_TAG']);
+            $allUsersWithFMOTag = zb_UserGetAllTagsUnique('', $this->alterConf['FREEZEMONTH_ONLY_TAG']);
+            $allUserData = array_intersect_key($this->allUserData, $allUsersWithFMOTag);
+        } else {
+            $allUserData = $this->allUserData;
+        }
+
+        if (!empty($this->alterConf['FREEZEMONTH_EXCLUDE_TAG'])) {
+            log_register('FROZEN FEE CHARGE EXCLUDING TAGS: ' . $this->alterConf['FREEZEMONTH_EXCLUDE_TAG']);
+            $allUsersWithFMETag = zb_UserGetAllTagsUnique('', $this->alterConf['FREEZEMONTH_EXCLUDE_TAG']);
+            $allUserData = array_diff_key($allUserData, $allUsersWithFMETag);
+        }
+
+        if (!empty($allUserData)) {
+            if ($debug2log) {
+                log_register('FROZEN FEE CHARGE PROCESSING STARTED');
+            }
+
+            foreach ($allUserData as $eachUser) {
                 if ($eachUser['Passive'] == 1) {
-                    zb_CashAdd($eachUser['login'], -1 * $cost, 'add', $cashType, 'FROZEN:' . $cost);
+                    zb_CashAdd($eachUser['login'], -1 * $cost, 'add', $cashType, 'FROZEN FEE CHARGE:' . $cost);
+                    $processedUsers++;
+
+                    if ($debug2log) {
+                        log_register('FROZEN FEE CHARGE AMOUNT ' . -1 * $cost . ' FOR USER (' . $eachUser['login'] . ')');
+                    }
                 }
             }
+        } elseif ($debug2log) {
+            log_register('FROZEN FEE CHARGE PROCESSING: NO USERS TO PROCESS FOUND');
+        }
+
+        if ($debug2log) {
+            log_register('FROZEN FEE CHARGE PROCESSING FINISHED FOR ' . $processedUsers . ' USERS');
         }
     }
 
