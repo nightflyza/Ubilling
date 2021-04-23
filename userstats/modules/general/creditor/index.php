@@ -7,30 +7,22 @@ $us_config = zbs_LoadConfig();
 /**
  * Returns total cost of all additional services. Needs SC_VSCREDIT=1 in userstats.ini
  * 
- * @param type $login user's login
- * @return price for all virtual services if such exists for user
+ * @param string $login user's login
+ * @param array $tariffData
+ *
+ * @return float|int for all virtual services if such exists for user
  */
-function zbs_VServicesGetPrice($login) {
+function zbs_VServicesGetPrice($login, $tariffData) {
     $us_config = zbs_LoadConfig();
     $price = 0;
+
     if (isset($us_config['SC_VSCREDIT'])) {
         if ($us_config['SC_VSCREDIT']) {
-            $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
-            $alltags = simple_queryall($tag_query);
-            $VS_query = "SELECT * FROM `vservices`";
-            $allVS = simple_queryall($VS_query);
-
-            if (!empty($alltags)) {
-                foreach ($alltags as $io => $eachtag) {
-                    foreach ($allVS as $each => $ia) {
-                        if ($eachtag['tagid'] == $ia['tagid']) {
-                            $price += $ia['price'];
-                        }
-                    }
-                }
-            }
+            $vservicesPeriodON = (!empty($us_config['VSERVICES_CONSIDER_PERIODS']));
+            $price = ($vservicesPeriodON) ? zbs_vservicesGetUserPricePeriod($login, $tariffData['Fee']) : zbs_vservicesGetUserPrice($login);
         }
     }
+
     return($price);
 }
 
@@ -211,7 +203,12 @@ if ($us_config['SC_ENABLED']) {
     $sc_monthcontrol = $us_config['SC_MONTHCONTROL'];
     $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND ! empty($us_config['SC_HACKCONTROL'])) ? true : false;
     $sc_allowed = array();
-    $vs_price = zbs_VServicesGetPrice($user_login);
+
+    //getting some tariff data
+    $tariffData = zbs_UserGetTariffData($tariff);
+
+    $vs_price = zbs_VServicesGetPrice($user_login, $tariffData);
+
 //allowed tariffs option
     if (isset($us_config['SC_TARIFFSALLOWED'])) {
         if (!empty($us_config['SC_TARIFFSALLOWED'])) {
@@ -219,9 +216,6 @@ if ($us_config['SC_ENABLED']) {
             $sc_allowed = array_flip($sc_allowed);
         }
     }
-
-//getting some tariff data
-    $tariffData = zbs_UserGetTariffData($tariff);
 
     $tariffFee = $tariffData['Fee'];
     if (isset($tariffData['period'])) {

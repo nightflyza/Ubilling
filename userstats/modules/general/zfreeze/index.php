@@ -9,6 +9,7 @@ $FreezingAvailable = true;
 if ($us_config['AF_ENABLED']) {
     // freeze options
     $freezeprice = $us_config['AF_FREEZPRICE'];
+    $freezepriceperiod = (empty($us_config['AF_FREEZPRICE_PERIOD'])) ? '' : $us_config['AF_FREEZPRICE_PERIOD'];
     $allowed_tariffs_raw = $us_config['AF_TARIFFSALLOWED'];
     $allowed_tariffs = explode(',', $allowed_tariffs_raw);
     $allowed_any_tariff = (isset($us_config['AF_TARIFF_ALLOW_ANY'])) ? $us_config['AF_TARIFF_ALLOW_ANY'] : 0;
@@ -100,8 +101,8 @@ if ($us_config['AF_ENABLED']) {
 
                     //show some forms and notices
                     $af_message = __('Service "account freeze" will allow you to suspend the charge of the monthly fee during your long absence - such as holidays or vacations. The cost of this service is:') . ' ';
-                    $af_message.=la_tag('b') . $freezeprice . ' ' . $af_currency . la_tag('b', true) . '. ';
-                    $af_message.=__('Be aware that access to the network will be limited to immediately after you confirm your desire to freeze the account. To unfreeze the account you need to contact the nearest office.');
+                    $af_message.= la_tag('b') . $freezeprice . ' ' . $af_currency . ' ' . $freezepriceperiod . la_tag('b', true) . '. ';
+                    $af_message.= __('Be aware that access to the network will be limited to immediately after you confirm your desire to freeze the account. To unfreeze the account you need to contact the nearest office.');
                     // terms of service
                     show_window(__('Account freezing'), $af_message . $inputs);
 

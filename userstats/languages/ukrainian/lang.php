@@ -428,5 +428,9 @@ $lang['def']['ProstoTV'] = 'Просто ТВ';
 $lang['def']['No subscriptions yet'] = 'Наразі немає передплат';
 $lang['def']['Playlists'] = 'Плейлисти';
 $lang['def']['Download'] = 'Завантажити';
-
+$lang['def']['year'] = 'рік';
+$lang['def']['month'] = 'місяць';
+$lang['def']['day'] = 'день';
+$lang['def']['till the'] = 'до';
+$lang['def']['including additional services'] = 'включаючи додаткові послуги';
 ?>

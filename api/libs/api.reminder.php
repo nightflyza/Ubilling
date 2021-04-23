@@ -336,10 +336,7 @@ class Reminder {
                         . $frozenJOIN
                     . $whereString;
 
-
-
             $tmp = simple_queryall($query);
-
 
             if (!empty($tmp)) {
                 $this->AllLogin = $tmp;
