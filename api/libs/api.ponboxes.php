@@ -77,9 +77,11 @@ class PONBoxes {
                                           'Coupler 45:55' => 'Coupler 45:55',
                                           'Coupler 50:50' => 'Coupler 50:50',
                                           'Splitter 1 x 2' => 'Splitter 1 x 2',
+                                          'Splitter 1 x 3' => 'Splitter 1 x 3',
                                           'Splitter 1 x 4' => 'Splitter 1 x 4',
+                                          'Splitter 1 x 6' => 'Splitter 1 x 6',
                                           'Splitter 1 x 8' => 'Splitter 1 x 8',
-                                          'Splitter 1 x 16' => 'Splitter 1 x 8',
+                                          'Splitter 1 x 16' => 'Splitter 1 x 16',
                                           'Splitter 1 x 32' => 'Splitter 1 x 32',
                                           'Splitter 1 x 64' => 'Splitter 1 x 64'
     );
