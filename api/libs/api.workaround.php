@@ -3548,7 +3548,11 @@ function crc16($string) {
 function zb_MacVendorSearchmac($mac) {
     // searchmac.com API request
     $url = 'http://searchmac.com/api/v2/' . $mac;
-    @$rawdata = file_get_contents($url);
+    $ubVer = file_get_contents('RELEASE');
+    $agent = 'Ubilling/' . trim($ubVer);
+    $api = new OmaeUrl($url);
+    $api->setUserAgent($agent);
+    $rawdata = $api->response();
     if (!empty($rawdata)) {
         $result = $rawdata;
     } else {
