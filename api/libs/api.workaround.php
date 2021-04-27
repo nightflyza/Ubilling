@@ -3549,7 +3549,7 @@ function zb_MacVendorSearchmac($mac) {
     // searchmac.com API request
     $url = 'http://searchmac.com/api/v2/' . $mac;
     $ubVer = file_get_contents('RELEASE');
-    $agent = 'Ubilling/' . trim($ubVer);
+    $agent = 'MacVenUbilling/' . trim($ubVer);
     $api = new OmaeUrl($url);
     $api->setUserAgent($agent);
     $rawdata = $api->response();
