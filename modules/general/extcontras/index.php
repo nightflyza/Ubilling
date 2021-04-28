@@ -3,7 +3,68 @@ if (cfr('EXTCONTRAS')) {
     if ($ubillingConfig->getAlterParam('EXTCONTRAS_FINANCE_ON')) {
         $ExtContras = new ExtContras();
 
-        show_window(__('External contragents: finances'), $ExtContras->renderMainControls());
+        show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
+
+        if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
+            show_window(__('Counterparties profiles dictionary'),
+                        $ExtContras->renderDictCreateButton($ExtContras::ROUTE_PROFILE_ACTS,
+                                                        __('Create counterparty profile'))
+                        );
+        }
+
+        if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
+            show_window(__('Periods dictionary'),
+                        $ExtContras->renderDictCreateButton($ExtContras::ROUTE_PERIOD_ACTS,
+                                                        __('Create period'))
+                        );
+        }
+
+        // todo: try to make this routine below reusable
+        if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
+            if(ubRouting::checkPost($ExtContras::ROUTE_EDIT_REC_ID)) {
+                $recID      = ubRouting::post($ExtContras::ROUTE_EDIT_REC_ID);
+                $recEdit    = ubRouting::checkPost($ExtContras::ROUTE_EDIT_ACTION, false);
+                $recClone   = ubRouting::checkPost($ExtContras::ROUTE_CLONE_ACTION, false);
+
+                if ($recEdit or $recClone) {
+                    if (ubRouting::checkPost($ExtContras::CTRL_PROFILE_NAME)) {
+                        $profName = ubRouting::post($ExtContras::CTRL_PROFILE_NAME);
+
+                        if ($recClone) {
+                            $foundProfID = $ExtContras->checkRecExists($ExtContras::TABLE_ECPROFILES,
+                                                                       $ExtContras::DBFLD_PROFILE_NAME,
+                                                                       $profName);
+                        } else {
+                            $foundProfID = $ExtContras->checkRecExists($ExtContras::TABLE_ECPROFILES,
+                                                                       $ExtContras::DBFLD_PROFILE_NAME,
+                                                                       $profName, $recID);
+                        }
+
+                        if (empty($foundProfID)) {
+                            if ($recEdit) {
+                                $ExtContras->profileCreadit(ubRouting::post($ExtContras::ROUTE_EDIT_REC_ID));
+                            } elseif ($recClone) {
+                                $ExtContras->profileCreadit();
+                            }
+                        } else {
+                            die($ExtContras->renderErrorMsg(__('Error'), __('Profile with such name already exists with ID: ') . $foundProfID));
+                        }
+                    }
+
+                    die($ExtContras->profileWebForm($recEdit, $recClone, $recID));
+                }
+            } elseif (ubRouting::checkPost($ExtContras::ROUTE_CREATE_ACTION)) {
+                $ExtContras->profileCreadit();
+            } else {
+                die($ExtContras->profileWebForm());
+            }
+
+            ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPROFILES . '=true');
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_PERIOD_ACTS)) {
+            die($ExtContras->periodWebForm());
+        }
 
 /*        if (wf_CheckGet(array('bankstalist'))) {
             show_window(__('Previously loaded bank statements'), $Banksta->renderBStatementsJQDT());
