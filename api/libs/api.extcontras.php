@@ -122,21 +122,40 @@ class ExtContras {
     protected $ecReadOnlyAccess = false;
 
     /**
-     * Routes, static defines etc
+     * Routes, static defines, etc
      */
     const URL_ME = '?module=extcontras';
-    const URL_DICTPROFILES  = 'dictprofiles=true';
-    const URL_DICTCONTRACTS = 'dictcontracts=true';
-    const URL_DICTADDRESS   = 'dictaddress=true';
-    const URL_DICTPERIODS   = 'dictperiods=true';
-    const URL_FINOPERATIONS = 'finoperations=true';
-    const INP_PERIODSELECT  = 'periodselector';
-    const ROUTE_BOXLIST = 'ajboxes';
-    const ROUTE_BOXNAV = 'boxidnav';
-    const ROUTE_MAP = 'boxmap';
-    const ROUTE_BOXEDIT = 'editboxid';
-    const ROUTE_BOXDEL = 'deleteboxid';
-    const ROUTE_LINKDEL = 'deletelinkid';
+    const URL_DICTPROFILES  = 'dictprofiles';
+    const URL_DICTCONTRACTS = 'dictcontracts';
+    const URL_DICTADDRESS   = 'dictaddress';
+    const URL_DICTPERIODS   = 'dictperiods';
+    const URL_FINOPERATIONS = 'finoperations';
+
+
+    const CTRL_PROFILE_NAME     = 'profname';
+    const CTRL_PROFILE_EDRPO    = 'profedrpo';
+    const CTRL_PROFILE_CONTACT  = 'profcontact';
+    const CTRL_PROFILE_MAIL     = 'profmail';
+
+    const DBFLD_COMMON_ID       = 'id';
+    const DBFLD_PROFILE_NAME    = 'name';
+    const DBFLD_PROFILE_EDRPO   = 'edrpo';
+    const DBFLD_PROFILE_CONTACT = 'contact';
+    const DBFLD_PROFILE_MAIL    = 'email';
+
+
+    const CTRL_PERIOD_SELECTOR  = 'prdselector';
+    const CTRL_PERIOD_NAME      = 'prdname';
+    const DBFLD_PERIOD_NAME     = 'period_name';
+
+
+    const ROUTE_CREATE_ACTION   = 'doCreate';
+    const ROUTE_EDIT_ACTION     = 'makeEdit';
+    const ROUTE_EDIT_REC_ID     = 'editRecID';
+    const ROUTE_CLONE_ACTION    = 'makeclone';
+    const ROUTE_PROFILE_ACTS    = 'profileacts';
+    const ROUTE_PERIOD_ACTS     = 'periodacts';
+
     const TABLE_EXTCONTRAS      = 'extcontras';
     const TABLE_ECPROFILES      = 'extcontras_profiles';
     const TABLE_ECCONTRACTS     = 'extcontras_contracts';
@@ -177,42 +196,42 @@ class ExtContras {
     }
 
     /**
-     * Gets external contragents records from DB
+     * Gets external counterparties records from DB
      */
     protected function loadExtContras() {
         $this->allExtContras = $this->dbExtContras->getAll('id');
     }
 
     /**
-     * Gets external contragents profiles records from DB
+     * Gets external counterparties profiles records from DB
      */
     protected function loadECProfiles() {
         $this->allECProfiles = $this->dbECProfiles->getAll('id');
     }
 
     /**
-     * Gets external contragents contracts records from DB
+     * Gets external counterparties contracts records from DB
      */
     protected function loadECContracts() {
         $this->allECContracts = $this->dbECContracts->getAll('id');
     }
 
     /**
-     * Gets external contragents addresses records from DB
+     * Gets external counterparties addresses records from DB
      */
     protected function loadECAddresses() {
         $this->allECAddresses = $this->dbECAddress->getAll('id');
     }
 
     /**
-     * Gets external contragents periods records from DB
+     * Gets external counterparties periods records from DB
      */
     protected function loadECPeriods() {
         $this->allECPeriods = $this->dbECPeriods->getAll('id');
     }
 
     /**
-     * Gets external contragents money records from DB
+     * Gets external counterparties money records from DB
      */
     protected function loadECMoney() {
         $this->allECMoney = $this->dbECMoney->getAll('id');
@@ -236,18 +255,18 @@ class ExtContras {
      * @return string
      */
     public function renderMainControls() {
-        $result = '';
+        $inputs = '';
 
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS, wf_img_sized('skins/ukv/dollar.png') . ' ' . __('Financial operations'), false, 'ubButton');
+        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS, wf_img_sized('skins/ukv/dollar.png') . ' ' . __('External counterparties list'), false, 'ubButton');
 
         // dictionaries form
-        $dictControls = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES, wf_img_sized('skins/extcontrasprofiles.png') . ' ' . __('Profiles dictionary'), false, 'ubButton');
-        $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS, wf_img_sized('skins/corporate_small.png') . ' ' . __('Contracts dictionary'), false, 'ubButton');
-        $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTADDRESS, wf_img_sized('skins/extcontrasaddr.png') . ' ' . __('Address dictionary'), false, 'ubButton');
-        $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS, wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
-        $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
+        $dictControls = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true', wf_img_sized('skins/extcontrasprofiles.png') . ' ' . __('Counterparties profiles dictionary'), false, 'ubButton');
+        $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true', wf_img_sized('skins/corporate_small.png') . ' ' . __('Contracts dictionary'), false, 'ubButton');
+        $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTADDRESS . '=true', wf_img_sized('skins/extcontrasaddr.png') . ' ' . __('Address dictionary'), false, 'ubButton');
+        $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true', wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
+        $inputs.= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
 
-        return ($result);
+        return ($inputs);
     }
 
     /**
@@ -264,14 +283,132 @@ class ExtContras {
             }
         }
 
-        return (wf_Selector(self::INP_PERIODSELECT, $tmpArray, __('Select period')));
+        return (wf_Selector(self::CTRL_PERIOD_SELECTOR, $tmpArray, __('Select period')));
     }
 
-    public function periodAdd() {
+
+    public function renderDictCreateButton($routeURL, $title) {
+        $linkID = wf_InputId();
+        $dynamicOpener = wf_Link('#', web_add_icon() . ' ' . $title, false, 'ubButton', 'id="' . $linkID . '"')
+                         . wf_JSAjaxModalOpener(self::URL_ME, array($routeURL => 'true'), $linkID, true, 'POST');
+
+        return ($dynamicOpener);
+    }
+
+    public function renderErrorMsg($title, $message) {
+        $errormes = $this->messages->getStyledMessage($message, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+        return(wf_modalAutoForm($title, $errormes, ubRouting::post('errfrmid'), '', true));
+    }
+
+    public function profileCreadit($profileID = 0) {
+/*
+        $prfName    = ubRouting::post(self::CTRL_PROFILE_NAME);
+        $prfContact = ubRouting::post(self::CTRL_PROFILE_CONTACT);
+        $prfEDRPO   = ubRouting::post(self::CTRL_PROFILE_EDRPO);
+        $prfEmail   = ubRouting::post(self::CTRL_PROFILE_MAIL);
+
+'fi', FILTER_VALIDATE_BOOLEAN
+ */
+        $this->dbECProfiles->setDebug(true, true);
+file_put_contents('zxcv', print_r($_POST, true));
+        $this->dbECProfiles->data(self::DBFLD_PROFILE_NAME, ubRouting::post(self::CTRL_PROFILE_NAME));
+        $this->dbECProfiles->data(self::DBFLD_PROFILE_CONTACT, ubRouting::post(self::CTRL_PROFILE_CONTACT));
+        $this->dbECProfiles->data(self::DBFLD_PROFILE_EDRPO, ubRouting::post(self::CTRL_PROFILE_EDRPO));
+        $this->dbECProfiles->data(self::DBFLD_PROFILE_MAIL, ubRouting::post(self::CTRL_PROFILE_MAIL));
+
+        if (!empty($profileID)) {
+            $this->dbECProfiles->where(self::DBFLD_COMMON_ID, '=', $profileID);
+            $this->dbECProfiles->save(true, true);
+        } else {
+            $this->dbECProfiles->create();
+        }
+    }
+
+    public function profileWebForm($editAction = false, $cloneAction = false, $profileID = 0) {
+        $winID      = ubRouting::post('modalWindowId');
+        $winBodyID  = ubRouting::post('modalWindowBodyId');
+        $inputs     = '';
+        $prfName    = '';
+        $prfContact = '';
+        $prfEDRPO   = '';
+        $prfEmail   = '';
+
+        if (($editAction or $cloneAction) and !empty($this->allECProfiles[$profileID])) {
+            $profile    = $this->allECProfiles[$profileID];
+            $prfName    = $profile[self::DBFLD_PROFILE_NAME];
+            $prfContact = $profile[self::DBFLD_PROFILE_CONTACT];
+            $prfEDRPO   = $profile[self::DBFLD_PROFILE_EDRPO];
+            $prfEmail   = $profile[self::DBFLD_PROFILE_MAIL];
+        }
+
+        $submitCapt = ($editAction) ? __('Edit') : ($cloneAction) ? __('Clone') : __('Create');
+        $formCapt   = ($editAction) ? __('Edit counterparty profile') :
+                      ($cloneAction) ? __('Clone counterparty profile') :
+                      __('Create counterparty profile');
+
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name'), $prfName, true);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_CONTACT, __('Contact data'), $prfContact, true);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_EDRPO, __('EDRPO/INN'), $prfEDRPO, true);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, true);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
+
+        if ($editAction) {
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_ACTION, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $profileID);
+        } else {
+            $inputs.= wf_HiddenInput(self::ROUTE_CREATE_ACTION, 'true');
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true','POST', $inputs, 'glamour');
+        $inputs = wf_modalAutoForm($formCapt, $inputs, $winID, $winBodyID, true);
+
+        return ($inputs);
+    }
+
+    public function profileEdit() {
 
     }
 
-    public function periodAddForm() {
+    public function profileEditForm() {
+
+    }
+
+    public function periodCreate() {
+
+    }
+
+    public function periodWebForm($editAction = false, $periodID = 0) {
+        $winID      = ubRouting::post('modalWindowId');
+        $winBodyID  = ubRouting::post('modalWindowBodyId');
+        $inputs     = '';
+        $prdName    = '';
+
+        if ($editAction and !empty($this->allECPeriods[$periodID])) {
+            $period  = $this->allECProfiles[$periodID];
+            $prdName = $period[self::DBFLD_PERIOD_NAME];
+        }
+
+        $submitCapt = ($editAction) ? __('Edit') : __('Create');
+        $formCapt   = ($editAction) ? __('Edit period') : __('Create period');
+
+        $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name'), $prdName, true);
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= ($editAction) ? wf_HiddenInput(self::ROUTE_EDIT_ACTION, true) : '';
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true','POST', $inputs, 'glamour');
+        $inputs = wf_modalAutoForm($formCapt, $inputs, $winID, $winBodyID, true);
+
+        return ($inputs);
+    }
+
+    public function periodEdit($periodID) {
+
+    }
+
+    public function periodEditForm() {
+        $inputs = '';
 
     }
 
@@ -281,5 +418,30 @@ class ExtContras {
 
     public function periodIsProtected() {
 
+    }
+
+    /**
+     * Returns true if record with such field value already exists
+     *
+     * @param $dbEntity
+     * @param $dbFieldName
+     * @param $dbFieldVal
+     * @param int $excludeRecID record ID to make exclusion on. For record editing purposes generally
+     *
+     * @return mixed|string
+     */
+    public function checkRecExists($dbEntity, $dbFieldName, $dbFieldVal, $excludeRecID = 0) {
+        $result = '';
+        $dbEntity->selectable('id');
+        $dbEntity->where($dbFieldName, '=', $dbFieldVal);
+
+        if (!empty($excludeRecID)) {
+            $dbEntity->where('id', '!=', $excludeRecID);
+        }
+
+        $result = $dbEntity->getAll();
+        $result = empty($result) ? '' : $result[0]['id'];
+
+        return ($result);
     }
 }
