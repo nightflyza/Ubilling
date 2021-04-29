@@ -5130,8 +5130,9 @@ class PONizer {
                 //processing some search
                 foreach ($this->allOnu as $eachOnuId => $eachOnuData) {
                     if ($macChecked) {
-                        $rawMac = str_replace(':', '', $eachOnuData['mac']);
-                        if (ispos($eachOnuData['mac'], $searchQuery) or ispos($rawMac, $searchQuery)) {
+                        $rawMac = str_replace(array(':', '.', '-'), '', $eachOnuData['mac']);
+                        $macSearchQuery = str_replace(array(':', '.', '-'), '', $searchQuery);
+                        if (ispos($eachOnuData['mac'], $searchQuery) or ispos($rawMac, $macSearchQuery)) {
                             $resultTmp[$eachOnuId] = $eachOnuData;
                         }
                     }
