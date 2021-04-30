@@ -107,7 +107,6 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
     $result .= $newline . "\n";
     return ($result);
@@ -140,7 +139,6 @@ function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
     $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
     $result .= $newline . "\n";
     return ($result);
@@ -230,7 +228,6 @@ function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
     $result = '<input type="radio" name="' . $name . '" value="' . $value . '"  id="' . $inputid . '" ' . $check . '>' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
     $result .= $newline . "\n";
     return ($result);
@@ -266,7 +263,6 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlI
     $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' />';
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
     $result .= $newline . "\n";
     return ($result);
@@ -300,7 +296,6 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
     $result = '<textarea name="' . $name . '" ' . $input_size . ' id="' . $inputid . '">' . $value . '</textarea>' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
     $result .= $newline . "\n";
     return ($result);
@@ -396,7 +391,6 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
         ' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
     $result .= $newline . "\n";
     return ($result);

@@ -432,4 +432,10 @@ $lang['def']['month'] = 'месяц';
 $lang['def']['day'] = 'день';
 $lang['def']['till the'] = 'до';
 $lang['def']['including additional services'] = 'включая дополнительные услуги';
-?>
+$lang['def']['Insurance'] = 'Страхование';
+$lang['def']['Insure now'] = 'Застраховать сейчас';
+$lang['def']['Home insurance'] = 'Страхование жилища';
+$lang['def']['The mobile number format can be'] = 'Формат мобильного должен быть';
+$lang['def']['This field can only contain email address'] = 'Это поле может содержать только электронную почту';
+$lang['def']['All fields are mandatory'] = 'Все поля обязательны для заполнения';
+$lang['def']['Thank you. Your request is awaiting processing. Expect your email policy soon.'] = 'Спасибо. Ваш запрос ожидает обработку. Ожидайте ваш полис вскоре по электронной почте.';

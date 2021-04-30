@@ -433,4 +433,12 @@ $lang['def']['month'] = 'місяць';
 $lang['def']['day'] = 'день';
 $lang['def']['till the'] = 'до';
 $lang['def']['including additional services'] = 'включаючи додаткові послуги';
-?>
+$lang['def']['Insurance'] = 'Страхування';
+$lang['def']['Insure now'] = 'Застрахувати зараз';
+$lang['def']['Home insurance'] = 'Страхування оселі';
+$lang['def']['The mobile number format can be'] = 'Формат стільникового має бути';
+$lang['def']['This field can only contain email address'] = 'Це поле може містити тільки електронну пошту';
+$lang['def']['All fields are mandatory'] = 'Усі поля є обов`язковими для заповнення';
+$lang['def']['Thank you. Your request is awaiting processing. Expect your email policy soon.'] = 'Дякуємо. Ваш запит очікує на обробку. Очікуйте ваш поліс незабаром електронною поштою.';
+$lang['def'][''] = '';
+
