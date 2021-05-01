@@ -32,10 +32,10 @@ if (@$us_config['INSURANCE_ENABLED']) {
         public function renderHomeInsuranceReq() {
             $result = '';
             $inputs = la_HiddenInput('newhinsrequest', 'true');
-            $inputs .= la_TextInput('newhinsaddress', __('Address'), '', true, 25);
-            $inputs .= la_TextInput('newhinsrealname', __('Real Name'), '', true, 25);
-            $inputs .= la_TextInput('newhinsmobile', __('Mobile'), '', true, 15, 'mobile');
-            $inputs .= la_TextInput('newhinsremail', __('Email'), '', true, 15, 'email');
+            $inputs .= la_TextInput('newhinsaddress', __('Address'), '', true, 25). la_delimiter(0);
+            $inputs .= la_TextInput('newhinsrealname', __('Real Name'), '', true, 25). la_delimiter(0);
+            $inputs .= la_TextInput('newhinsmobile', __('Mobile'), '', true, 15, 'mobile'). la_delimiter(0);
+            $inputs .= la_TextInput('newhinsremail', __('Email'), '', true, 15, 'email'). la_delimiter(0);
             $inputs .= la_Submit(__('Insure now'));
             $result .= la_Form('', 'POST', $inputs, 'glamour');
             return($result);

@@ -173,6 +173,7 @@ class UserProfile {
     const MAIN_PLUGINS_SIZE = '64';
     const MAIN_OVERLAY_DISTANCE = '150px';
     const MAIN_TABLE_STYLE = 'style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2"';
+    const URL_PROFILE = '?module=userprofile&username=';
 
     /**
      * Creates an user profile object instance and sets/preloads all of required data
