@@ -34,4 +34,6 @@ if (cfr('INSURANCE')) {
     } else {
         show_error(__('This module is disabled'));
     }
+} else {
+    show_error(__('Access denied'));
 }

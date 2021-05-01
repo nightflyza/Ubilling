@@ -58,13 +58,20 @@ class Insurance {
     const ROUTE_HINSDONE = 'sethinsdone';
     const ROUTE_HINSUNDONE = 'sethinsundone';
 
-    public function __construct() {
-        $this->initMessages();
-        $this->loadConfigs();
-        $this->loadUserData();
+    /**
+     * Creates new zastrahuy bratuhu zastrahuy
+     * 
+     * @param bool $loadAllData
+     */
+    public function __construct($loadAllData = true) {
         $this->initDatabaseLayers();
-        $this->loadHinsRequests();
-        $this->initAdComments();
+        if ($loadAllData) {
+            $this->initMessages();
+            $this->loadConfigs();
+            $this->loadUserData();
+            $this->loadHinsRequests();
+            $this->initAdComments();
+        }
     }
 
     /**
@@ -264,6 +271,8 @@ class Insurance {
             $this->hinsDb->data('state', 1);
             $this->hinsDb->where('id', '=', $requestId);
             $this->hinsDb->save();
+            $darkVoid = new DarkVoid();
+            $darkVoid->flushCache();
             log_register('INSURANCE HINS [' . $requestId . '] DONE');
         }
     }
@@ -281,8 +290,21 @@ class Insurance {
             $this->hinsDb->data('state', 0);
             $this->hinsDb->where('id', '=', $requestId);
             $this->hinsDb->save();
+            $darkVoid = new DarkVoid();
+            $darkVoid->flushCache();
             log_register('INSURANCE HINS [' . $requestId . '] UNDONE');
         }
+    }
+
+    /**
+     * Returns count of unprocessed home insurance requests
+     * 
+     * @return int
+     */
+    public function getUnprocessedHinsReqCount() {
+        $this->hinsDb->where('state', '=', 0);
+        $result = $this->hinsDb->getFieldsCount();
+        return($result);
     }
 
 }

@@ -348,9 +348,19 @@ class DarkVoid {
             }
         }
 
+        //Dreamkas notification
         if ($this->ubConfig->getAlterParam('DREAMKAS_ENABLED') and $this->ubConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED')) {
             $dsNotifyFront = new DreamKasNotifications();
             $this->alerts .= $dsNotifyFront->renderWidget();
+        }
+
+        if ($this->ubConfig->getAlterParam('INSURANCE_ENABLED')) {
+            $insurance = new Insurance(false);
+            $hinsReqCount = $insurance->getUnprocessedHinsReqCount();
+            if ($hinsReqCount > 0) {
+                $insuranceRequestsAlert = $hinsReqCount . ' ' . __('insurance requests waiting for your reaction');
+                $this->alerts .= wf_Link($insurance::URL_ME, wf_img('skins/insurance_notify.png', $insuranceRequestsAlert));
+            }
         }
 
         //appending some debug string to validate cache expire
