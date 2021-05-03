@@ -162,7 +162,7 @@ class NyanORM {
      * @param string $tableName table name (for example switches)
      * @param string $using field to use for USING expression
      * @param bool $noTabNameEnclosure do not enclose table name with ``
-     * 
+     *
      * @throws MEOW_JOIN_WRONG_TYPE 
      * 
      * @return void
@@ -199,7 +199,7 @@ class NyanORM {
      * @param string $tableName
      * @param string $on
      * @param bool $noTabNameEnclosure
-     * 
+     *
      * @throws MEOW_JOIN_WRONG_TYPE
      * 
      * @return void

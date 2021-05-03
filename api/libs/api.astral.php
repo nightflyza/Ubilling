@@ -50,7 +50,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
     }
 
     $form = '
-        <form action="' . $action . '" method="' . $method . '" ' . $form_class . 'id="' . $FrmID . '"' . $target . '>
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . ' id="' . $FrmID . '" ' . $target . '>
         ' . $form_legend . '
         ' . $inputs . '
         </form>
@@ -1395,7 +1395,7 @@ function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '', 
 	});
 	</script>
         
-        <input type="text" id="' . $inputid . '" name="' . $field . '" value="' . $date . '" size="10"' . $class . '>
+        <input type="text" id="' . $inputid . '" name="' . $field . '" value="' . $date . '" size="10" ' . $class . '>
         ';
     return($result);
 }
