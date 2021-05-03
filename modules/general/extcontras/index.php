@@ -5,23 +5,49 @@ if (cfr('EXTCONTRAS')) {
 
         show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_PROFILE_JSON)){
+            $ExtContras->profileRenderListJSON();
+        }
+
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
+            /*show_window(__('Counterparties profiles dictionary'),
+                        $ExtContras->renderAjaxDynWinButton($ExtContras::URL_ME,
+                                                            array($ExtContras::ROUTE_PROFILE_ACTS => 'true'),
+                                                            __('Create counterparty profile'), web_add_icon(),
+                                                            'ubButton')
+                        . wf_delimiter() . $ExtContras->profileRenderJQDT()
+                       );
+            */
             show_window(__('Counterparties profiles dictionary'),
-                        $ExtContras->renderDictCreateButton($ExtContras::ROUTE_PROFILE_ACTS,
-                                                        __('Create counterparty profile'))
-                        );
+                        $ExtContras->profileWebForm(false)
+                        . wf_delimiter() . $ExtContras->profileRenderJQDT()
+                       );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
             show_window(__('Periods dictionary'),
-                        $ExtContras->renderDictCreateButton($ExtContras::ROUTE_PERIOD_ACTS,
-                                                        __('Create period'))
-                        );
+                        $ExtContras->renderAjaxDynWinButton($ExtContras::URL_ME,
+                                                            array($ExtContras::ROUTE_PERIOD_ACTS => 'true'),
+                                                            __('Create period'), web_add_icon(),
+                                                            'ubButton')
+                       );
         }
 
-        // todo: try to make this routine below reusable
+        // todo: try to make this routine below reusable - make a separate method which called when
+        // todo: $ExtContras::ROUTE_****_ACTS is present and covers all rec checks, edit&append routines
+        // todo: and web forms displaying
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
-            if(ubRouting::checkPost($ExtContras::ROUTE_EDIT_REC_ID)) {
+file_put_contents('axcv', '');
+            $showResult = $ExtContras->processCRUDs('profileWebForm', 'profileCreadit',
+                                                    'Profile', $ExtContras::CTRL_PROFILE_NAME,
+                                                    $ExtContras::TABLE_ECPROFILES,
+                                                    $ExtContras::DBFLD_PROFILE_NAME
+                                                   );
+file_put_contents('axcv', $showResult . "\n\n");
+            if (!empty($showResult)) {
+                die($showResult);
+            }
+/*            if(ubRouting::checkPost($ExtContras::ROUTE_EDIT_REC_ID)) {
                 $recID      = ubRouting::post($ExtContras::ROUTE_EDIT_REC_ID);
                 $recEdit    = ubRouting::checkPost($ExtContras::ROUTE_EDIT_ACTION, false);
                 $recClone   = ubRouting::checkPost($ExtContras::ROUTE_CLONE_ACTION, false);
@@ -57,13 +83,23 @@ if (cfr('EXTCONTRAS')) {
                 $ExtContras->profileCreadit();
             } else {
                 die($ExtContras->profileWebForm());
-            }
+            }*/
 
             ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPROFILES . '=true');
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PERIOD_ACTS)) {
-            die($ExtContras->periodWebForm());
+            $showResult = $ExtContras->processCRUDs('periodWebForm', 'periodCreadit',
+                                                    'Period', $ExtContras::CTRL_PERIOD_NAME,
+                                                    $ExtContras::TABLE_ECPERIODS,
+                                                    $ExtContras::DBFLD_PERIOD_NAME
+                                                   );
+
+            if (!empty($showResult)) {
+                die($showResult);
+            }
+
+            ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPERIODS . '=true');
         }
 
 /*        if (wf_CheckGet(array('bankstalist'))) {

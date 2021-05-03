@@ -45,6 +45,13 @@ class ExtContras {
     protected $dbECMoney = null;
 
     /**
+     * Contains all DB entities objects in array($tableName => $dbEntity)
+     *
+     * @var array
+     */
+    protected $dbEntitiesAll = array();
+
+    /**
      * Contains all extcontras records from DB as ecid => ecdata
      *
      * @var array
@@ -122,6 +129,13 @@ class ExtContras {
     protected $ecReadOnlyAccess = false;
 
     /**
+     * Placeholder for mandatory fields SUP mark
+     *
+     * @var string
+     */
+    protected $supFrmFldMark = '';
+
+    /**
      * Routes, static defines, etc
      */
     const URL_ME = '?module=extcontras';
@@ -149,12 +163,17 @@ class ExtContras {
     const DBFLD_PERIOD_NAME     = 'period_name';
 
 
-    const ROUTE_CREATE_ACTION   = 'doCreate';
-    const ROUTE_EDIT_ACTION     = 'makeEdit';
+    const ROUTE_ACTION_CREATE   = 'doCreate';
+    const ROUTE_ACTION_EDIT     = 'doEdit';
+    const ROUTE_ACTION_CLONE    = 'doClone';
+    const ROUTE_ACTION_DELETE   = 'doRemove';
     const ROUTE_EDIT_REC_ID     = 'editRecID';
-    const ROUTE_CLONE_ACTION    = 'makeclone';
+    const ROUTE_DELETE_REC_ID   = 'deleteRecID';
     const ROUTE_PROFILE_ACTS    = 'profileacts';
+    const ROUTE_PROFILE_JSON    = 'profilelistjson';
     const ROUTE_PERIOD_ACTS     = 'periodacts';
+    const ROUTE_PERIOD_JSON     = 'periodlistjson';
+
 
     const TABLE_EXTCONTRAS      = 'extcontras';
     const TABLE_ECPROFILES      = 'extcontras_profiles';
@@ -162,6 +181,13 @@ class ExtContras {
     const TABLE_ECADDRESS       = 'extcontras_address';
     const TABLE_ECPERIODS       = 'extcontras_periods';
     const TABLE_ECMONEY         = 'extcontras_money';
+
+    const MISC_CLASS_MWID_CTRL      = '__FormModalWindowID';
+    const MISC_CLASS_SUBMITFORM     = '__FormModalSubmit';
+    const MISC_CLASS_EMPTYVALCHECK  = '__EmptyCheckControl';
+    const MISC_JS_DEL_FUNC_NAME     = 'deleteRec';
+    const MISC_ERRFORM_ID_PARAM     = 'errfrmid';
+
 
     public function __construct() {
         global $ubillingConfig;
@@ -172,6 +198,8 @@ class ExtContras {
         $this->loadOptions();
         $this->initDBEntities();
         $this->loadAllData();
+
+        $this->supFrmFldMark = wf_tag('sup') . '*' . wf_tag('sup', true);
     }
 
     /**
@@ -179,11 +207,39 @@ class ExtContras {
      */
     protected function initDBEntities() {
         $this->dbExtContras  = new NyanORM(self::TABLE_EXTCONTRAS);
+        $this->dbEntitiesAll[self::TABLE_EXTCONTRAS]  = $this->dbExtContras;
+
         $this->dbECProfiles  = new NyanORM(self::TABLE_ECPROFILES);
+        $this->dbEntitiesAll[self::TABLE_ECPROFILES]  = $this->dbECProfiles;
+
         $this->dbECContracts = new NyanORM(self::TABLE_ECCONTRACTS);
+        $this->dbEntitiesAll[self::TABLE_ECCONTRACTS] = $this->dbECContracts;
+
         $this->dbECAddress   = new NyanORM(self::TABLE_ECADDRESS);
+        $this->dbEntitiesAll[self::TABLE_ECADDRESS]   = $this->dbECAddress;
+
         $this->dbECPeriods   = new NyanORM(self::TABLE_ECPERIODS);
+        $this->dbEntitiesAll[self::TABLE_ECPERIODS]   = $this->dbECPeriods;
+
         $this->dbECMoney     = new NyanORM(self::TABLE_ECMONEY);
+        $this->dbEntitiesAll[self::TABLE_ECMONEY]     = $this->dbECMoney;
+    }
+
+    /**
+     * Returns DB entity object by table name
+     *
+     * @param $dbEntityName
+     *
+     * @return object|null
+     */
+    public function getDBEntity($dbEntityName) {
+        $result = null;
+
+        if (!empty($this->dbEntitiesAll[$dbEntityName])) {
+            $result = $this->dbEntitiesAll[$dbEntityName];
+        }
+
+        return ($result);
     }
 
     /**
@@ -249,6 +305,76 @@ class ExtContras {
         $this->loadECMoney();
     }
 
+    public function processCRUDs($webFormMethod, $dataManipulatingMethod,
+                                 $crudEntityName = '', $postFrmCtrlValToChk = '',
+                                 $dbTabName = '', $dbTabFieldName = '') {
+
+        $methodExistenceError = '';
+
+        if (!method_exists($this, $webFormMethod)) {
+            $methodExistenceError.= wf_nbsp(2) . wf_tag('b') . $webFormMethod . wf_tag('b', true);
+        }
+
+        if (!method_exists($this, $dataManipulatingMethod)) {
+            $methodExistenceError.= wf_nbsp(2) . wf_tag('b') . $dataManipulatingMethod . wf_tag('b', true);
+        }
+
+        if (!empty($methodExistenceError)) {
+            return($this->renderWebMsg(__('Error'),
+                                       __('CRUDs processing: possible try to call to non-existent method') . ':'
+                                       . $methodExistenceError,
+                                       'error'));
+        }
+
+        if(ubRouting::checkPost(self::ROUTE_EDIT_REC_ID)
+           and !(empty($postFrmCtrlValToChk) or empty($dbTabName) or empty($dbTabFieldName))) {
+
+            $recID      = ubRouting::post(self::ROUTE_EDIT_REC_ID);
+            $recEdit    = ubRouting::checkPost(self::ROUTE_ACTION_EDIT, false);
+            $recClone   = ubRouting::checkPost(self::ROUTE_ACTION_CLONE, false);
+            $dbEntity   = $this->getDBEntity($dbTabName);
+
+            if (!empty($dbEntity) and ($recEdit or $recClone)) {
+                if (ubRouting::checkPost($postFrmCtrlValToChk)) {
+                    $postValToChk = ubRouting::post($postFrmCtrlValToChk);
+                    $recExistArrayChk = array($dbTabFieldName => array('operator' => '=',
+                                                                       'fieldval' => $postValToChk));
+                    if ($recClone) {
+                        $foundProfID = $dbEntity->checkRecExists($recExistArrayChk);
+                    } else {
+                        $foundProfID = $dbEntity->checkRecExists($recExistArrayChk, $recID);
+                    }
+
+                    if (empty($foundProfID)) {
+                        if ($recEdit) {
+                            //$this->profileCreadit($recID);
+                            call_user_func_array(array($this, $dataManipulatingMethod), array($recID));
+                        } elseif ($recClone) {
+                            call_user_func_array(array($this, $dataManipulatingMethod), array());
+                        }
+                    } else {
+                        $crudEntityName = empty($crudEntityName) ? 'Entity' : $crudEntityName;
+                        return($this->renderWebMsg(__('Error'), __($crudEntityName) . ' ' . __('with such name already exists with ID: ') . $foundProfID));
+                    }
+                }
+
+                //die($this->profileWebForm($recEdit, $recClone, $recID));
+                return(call_user_func_array(array($this, $webFormMethod), array(true, $recID, $recEdit, $recClone)));
+            }
+        } elseif (ubRouting::checkPost(self::ROUTE_ACTION_CREATE)) {
+            call_user_func_array(array($this, $dataManipulatingMethod), array());
+        } elseif (ubRouting::checkPost(self::ROUTE_ACTION_DELETE)) {
+            if(ubRouting::checkPost(self::ROUTE_DELETE_REC_ID)) {
+
+            }
+        } else {
+            return(call_user_func_array(array($this, $webFormMethod), array(false)));
+        }
+
+        return (0);
+        //ubRouting::nav(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true');
+    }
+
     /**
      * Renders main module controls
      *
@@ -259,7 +385,7 @@ class ExtContras {
 
         $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS, wf_img_sized('skins/ukv/dollar.png') . ' ' . __('External counterparties list'), false, 'ubButton');
 
-        // dictionaries form
+        // dictionaries forms
         $dictControls = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true', wf_img_sized('skins/extcontrasprofiles.png') . ' ' . __('Counterparties profiles dictionary'), false, 'ubButton');
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true', wf_img_sized('skins/corporate_small.png') . ' ' . __('Contracts dictionary'), false, 'ubButton');
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTADDRESS . '=true', wf_img_sized('skins/extcontrasaddr.png') . ' ' . __('Address dictionary'), false, 'ubButton');
@@ -287,17 +413,17 @@ class ExtContras {
     }
 
 
-    public function renderDictCreateButton($routeURL, $title) {
+    public function renderAjaxDynWinButton($ajaxURL, $ajaxDataArr, $title = '', $icon = '', $linkCSSClass = '') {
         $linkID = wf_InputId();
-        $dynamicOpener = wf_Link('#', web_add_icon() . ' ' . $title, false, 'ubButton', 'id="' . $linkID . '"')
-                         . wf_JSAjaxModalOpener(self::URL_ME, array($routeURL => 'true'), $linkID, true, 'POST');
+        $dynamicOpener = wf_Link('#', $icon . ' ' . $title, false, $linkCSSClass, 'id="' . $linkID . '"')
+                         . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, 'POST');
 
         return ($dynamicOpener);
     }
 
-    public function renderErrorMsg($title, $message) {
-        $errormes = $this->messages->getStyledMessage($message, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-        return(wf_modalAutoForm($title, $errormes, ubRouting::post('errfrmid'), '', true));
+    public function renderWebMsg($title, $message, $style = 'info') {
+        $errormes = $this->messages->getStyledMessage($message, $style, 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+        return(wf_modalAutoForm($title, $errormes, ubRouting::post('errfrmid'), '', true, 'true'));
     }
 
     public function profileCreadit($profileID = 0) {
@@ -324,14 +450,14 @@ file_put_contents('zxcv', print_r($_POST, true));
         }
     }
 
-    public function profileWebForm($editAction = false, $cloneAction = false, $profileID = 0) {
-        $winID      = ubRouting::post('modalWindowId');
-        $winBodyID  = ubRouting::post('modalWindowBodyId');
+    public function profileWebForm($modal = true, $profileID = 0, $editAction = false, $cloneAction = false) {
         $inputs     = '';
         $prfName    = '';
         $prfContact = '';
         $prfEDRPO   = '';
         $prfEmail   = '';
+        $modalWinID      = ubRouting::post('modalWindowId');
+        $modalWinBodyID  = ubRouting::post('modalWindowBodyId');
 
         if (($editAction or $cloneAction) and !empty($this->allECProfiles[$profileID])) {
             $profile    = $this->allECProfiles[$profileID];
@@ -346,24 +472,118 @@ file_put_contents('zxcv', print_r($_POST, true));
                       ($cloneAction) ? __('Clone counterparty profile') :
                       __('Create counterparty profile');
 
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name'), $prfName, true);
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_CONTACT, __('Contact data'), $prfContact, true);
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_EDRPO, __('EDRPO/INN'), $prfEDRPO, true);
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, true);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name') . $this->supFrmFldMark, $prfName, true, '', '',
+                               self::MISC_CLASS_EMPTYVALCHECK, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_CONTACT, __('Contact data'), $prfContact, true, '', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_EDRPO, __('EDRPO/INN') . $this->supFrmFldMark, $prfEDRPO, true, '', '',
+                               self::MISC_CLASS_EMPTYVALCHECK, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, true, '', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
         $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
 
         if ($editAction) {
-            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_ACTION, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
             $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $profileID);
         } else {
-            $inputs.= wf_HiddenInput(self::ROUTE_CREATE_ACTION, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_CREATE, 'true');
         }
 
-        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true','POST', $inputs, 'glamour');
-        $inputs = wf_modalAutoForm($formCapt, $inputs, $winID, $winBodyID, true);
+        if ($modal and !empty($modalWinID)) {
+            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true','POST',
+                          $inputs, 'glamour ' . self::MISC_CLASS_SUBMITFORM);
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
+        }
 
         return ($inputs);
+    }
+
+    public function profileRenderJQDT() {
+        $ajaxURLStr = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
+        $jqdtID = 'jqdt_' . md5($ajaxURLStr);
+        $errorModalWindowID = wf_InputId();
+        $columns = array();
+        $opts = '"order": [[ 0, "asc" ]]';
+
+        $columns[] = __('ID');
+        $columns[] = __('Profile name');
+        $columns[] = __('EDRPO');
+        $columns[] = __('Contact');
+        $columns[] = __('E-mail');
+        $columns[] = __('Actions');
+
+        $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
+
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        $result.= wf_JSEmptyFunc();
+        $result.= wf_JSElemInsertedCatcherFunc();
+        $result.= wf_jsAjaxFormSubmit(self::MISC_CLASS_SUBMITFORM, self::MISC_CLASS_MWID_CTRL,
+                                      $jqdtID, self::MISC_CLASS_EMPTYVALCHECK, self::MISC_ERRFORM_ID_PARAM);
+        $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
+        $result.= wf_tag('script', true);
+
+        return($result);
+    }
+
+    public function profileRenderListJSON() {
+        $this->loadECProfiles();
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECProfiles)) {
+            $data = array();
+
+            foreach ($this->allECProfiles as $eachRecID) {
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    $data[] = $fieldVal;
+                }
+
+                // gathering the delete ajax data query
+                $tmpDeleteQuery = '\'&' . self::ROUTE_PROFILE_ACTS  . '= true' .
+                                  '&' . self::ROUTE_ACTION_DELETE . '= true' .
+                                  '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
+
+                //$linkId1 = wf_InputId();
+                //$linkId2 = wf_InputId();
+                $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
+                         self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ')');
+                $actions.= wf_nbsp(2);
+                $actions.= $this->renderAjaxDynWinButton(self::URL_ME,
+                                                         array(self::ROUTE_PROFILE_ACTS => 'true',
+                                                               self::ROUTE_ACTION_EDIT => 'true',
+                                                               self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
+                                                         '', web_edit_icon()
+                                                        );
+                $actions.= wf_nbsp(2);
+                $actions.= $this->renderAjaxDynWinButton(self::URL_ME,
+                                                         array(self::ROUTE_PROFILE_ACTS => 'true',
+                                                            self::ROUTE_ACTION_CLONE => 'true',
+                                                            self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
+                                                         '', web_clone_icon()
+                                                        );
+file_put_contents('qxcv', print_r($actions, true));
+                /*
+                $actions.= wf_Link('#', web_edit_icon(), false, '', 'id="' . $linkId1 . '"') . wf_nbsp();
+                $actions.= wf_Link('#', web_clone_icon(), false, '', 'id="' . $linkId2 . '"') . wf_nbsp();
+                $actions.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpedit' => 'true', 'fmpid' => $fmpID), $linkId1, true, 'POST');
+                $actions.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpclone' => 'true', 'fmpid' => $fmpID), $linkId2, true, 'POST');
+*/
+                $data[] = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+//file_put_contents('qxcv', $json->extractJson());
+        $json->getJson();
     }
 
     public function profileEdit() {
@@ -374,11 +594,11 @@ file_put_contents('zxcv', print_r($_POST, true));
 
     }
 
-    public function periodCreate() {
+    public function periodCreadit() {
 
     }
 
-    public function periodWebForm($editAction = false, $periodID = 0) {
+    public function periodWebForm($periodID = 0, $editAction = false, $cloneAction = false) {
         $winID      = ubRouting::post('modalWindowId');
         $winBodyID  = ubRouting::post('modalWindowBodyId');
         $inputs     = '';
@@ -395,7 +615,7 @@ file_put_contents('zxcv', print_r($_POST, true));
         $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name'), $prdName, true);
 
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
-        $inputs.= ($editAction) ? wf_HiddenInput(self::ROUTE_EDIT_ACTION, true) : '';
+        $inputs.= ($editAction) ? wf_HiddenInput(self::ROUTE_ACTION_EDIT, true) : '';
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true','POST', $inputs, 'glamour');
         $inputs = wf_modalAutoForm($formCapt, $inputs, $winID, $winBodyID, true);
@@ -418,30 +638,5 @@ file_put_contents('zxcv', print_r($_POST, true));
 
     public function periodIsProtected() {
 
-    }
-
-    /**
-     * Returns true if record with such field value already exists
-     *
-     * @param $dbEntity
-     * @param $dbFieldName
-     * @param $dbFieldVal
-     * @param int $excludeRecID record ID to make exclusion on. For record editing purposes generally
-     *
-     * @return mixed|string
-     */
-    public function checkRecExists($dbEntity, $dbFieldName, $dbFieldVal, $excludeRecID = 0) {
-        $result = '';
-        $dbEntity->selectable('id');
-        $dbEntity->where($dbFieldName, '=', $dbFieldVal);
-
-        if (!empty($excludeRecID)) {
-            $dbEntity->where('id', '!=', $excludeRecID);
-        }
-
-        $result = $dbEntity->getAll();
-        $result = empty($result) ? '' : $result[0]['id'];
-
-        return ($result);
     }
 }
