@@ -1368,7 +1368,7 @@ $lang['def']['MikroTik extended configuration'] = 'Розширене налаш
 $lang['def']['No NAS was selected to add options!'] = 'Не вказан сервер доступу, для котрого необхідно вказати опції!';
 // Block 1: Authorization Data
 $lang['def']['Authorization Data'] = 'Параметри авторізації';
-$lang['def']['username'] = 'Им`я користувача';
+$lang['def']['username'] = 'Ім`я користувача';
 $lang['def']['password'] = 'Пароль';
 // Block 2: Interface settings
 $lang['def']['Interface settings'] = 'Налаштування інтерфейсів';
