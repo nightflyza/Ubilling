@@ -4,7 +4,8 @@ if (cfr('EXTCONTRAS')) {
         $ExtContras = new ExtContras();
 
         show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
-
+file_put_contents('zxcv', '');
+file_put_contents('axcv', '');
         if (ubRouting::checkGet($ExtContras::ROUTE_PROFILE_JSON)){
             $ExtContras->profileRenderListJSON();
         }
@@ -37,16 +38,22 @@ if (cfr('EXTCONTRAS')) {
         // todo: $ExtContras::ROUTE_****_ACTS is present and covers all rec checks, edit&append routines
         // todo: and web forms displaying
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
-file_put_contents('axcv', '');
-            $showResult = $ExtContras->processCRUDs('profileWebForm', 'profileCreadit',
-                                                    'Profile', $ExtContras::CTRL_PROFILE_NAME,
+
+            $dataArray = array($ExtContras::DBFLD_PROFILE_NAME => ubRouting::post($ExtContras::CTRL_PROFILE_NAME),
+                               $ExtContras::DBFLD_PROFILE_CONTACT => ubRouting::post($ExtContras::CTRL_PROFILE_CONTACT),
+                               $ExtContras::DBFLD_PROFILE_EDRPO => ubRouting::post($ExtContras::CTRL_PROFILE_EDRPO),
+                               $ExtContras::DBFLD_PROFILE_MAIL => ubRouting::post($ExtContras::CTRL_PROFILE_MAIL)
+                              );
+file_put_contents('zxcv', print_r($_POST, true) . "\n", FILE_APPEND);
+            $showResult = $ExtContras->processCRUDs('profileWebForm', $dataArray,'Profile',
+                                                    $ExtContras::CTRL_PROFILE_NAME,
                                                     $ExtContras::TABLE_ECPROFILES,
                                                     $ExtContras::DBFLD_PROFILE_NAME
                                                    );
-file_put_contents('axcv', $showResult . "\n\n");
-            if (!empty($showResult)) {
-                die($showResult);
-            }
+file_put_contents('axcv', $showResult . "\n\n", FILE_APPEND);
+            //if (!empty($showResult)) {
+            die($showResult);
+            //}
 /*            if(ubRouting::checkPost($ExtContras::ROUTE_EDIT_REC_ID)) {
                 $recID      = ubRouting::post($ExtContras::ROUTE_EDIT_REC_ID);
                 $recEdit    = ubRouting::checkPost($ExtContras::ROUTE_EDIT_ACTION, false);
@@ -85,7 +92,7 @@ file_put_contents('axcv', $showResult . "\n\n");
                 die($ExtContras->profileWebForm());
             }*/
 
-            ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPROFILES . '=true');
+            //ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPROFILES . '=true');
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PERIOD_ACTS)) {
