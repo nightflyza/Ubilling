@@ -383,7 +383,7 @@ class Asterisk {
     /**
      * Delete aliase for number on Ubstorage
      * 
-     * @return string
+     * @return void
      */
     public function AsteriskDeleteAlias($deleteAliasNum) {
         $newStoreAliases = $this->NumAliases;
@@ -401,7 +401,7 @@ class Asterisk {
     /**
      * Create aliases for number on Ubstorage
      * 
-     * @return string
+     * @return void
      */
     public function AsteriskCreateAlias($newAliasNum, $newAliasName) {
         $newStoreAliases = $this->NumAliases;
@@ -418,7 +418,7 @@ class Asterisk {
     /**
      * Update parametrs for Asterisk configs on Ubstorage
      * 
-     * @return string
+     * @return void
      */
     public function AsteriskUpdateConfig($newhost, $newdb, $newtable, $newlogin, $newpassword, $newcachetime = '2592000', $dopmobile = '') {
         zb_StorageSet('ASTERISK_HOST', $newhost);
@@ -557,7 +557,7 @@ class Asterisk {
     /**
      * Gets Login by caller number from DB
      * 
-     * @return array('number'=>login))
+     * @return void
      */
     protected function AsteriskGetLoginByNumberQuery() {
         if (!isset($this->result_LoginByNumber) and empty($this->result_LoginByNumber)) {
@@ -669,7 +669,7 @@ class Asterisk {
      * 
      * @param string $number - number
      * 
-     * @return string
+     * @return array
      */
     protected function AsteriskGetLoginByNumber($number) {
 
@@ -703,11 +703,7 @@ class Asterisk {
      * Gets Asterisk CDR data from database and manage cache
      * Load AsteriskGetLoginByNumberQuery,  AsteriskGetUserAllRealnames, AsteriskGetFulladdress
      * 
-     * @param string $from - start date
-     * @param string $to  - end date
-     * @param string $user_login  - login if not empty
-     * 
-     * @return void
+     * @return mixed
      */
     protected function AsteriskGetCDR() {
         $result = '';
@@ -811,10 +807,8 @@ class Asterisk {
 
         if (empty($this->recordingsPath)) {
             $columns = array('#', 'ID', 'Time', 'From', 'Real Name', 'Address', 'To', 'Type', 'Status', 'Talk time');
-            $playerInit = '';
         } else {
             $columns = array('#', 'ID', 'Time', 'From', 'Real Name', 'Address', 'To', 'Type', 'Status', 'Talk time', 'Call recording');
-            $playerInit = $this->initPlayer();
         }
 
         if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
@@ -830,14 +824,14 @@ class Asterisk {
         $user_login = isset($_GET['username']) ? '&username=' . vf($_GET['username']) : '';
 
         $opts = '"order": [[ 0, "asc" ]]';
-        $result = $playerInit . wf_JqDtLoader($columns, '?module=asterisk&ajax=true&datefrom=' . $from . '&dateto=' . $to . $user_login . $countnum, false, 'Calls', 100, $opts);
+        $result = wf_JqDtLoader($columns, '?module=asterisk&ajax=true&datefrom=' . $from . '&dateto=' . $to . $user_login . $countnum, false, 'Calls', 100, $opts);
         return ($result);
     }
 
     /**
      * Parse Asterisk RAW CDR data
      *
-     * @return string
+     * @return void
      */
     public function ajaxAvaibleCDR() {
         $cdrData = $this->AsteriskGetCDR();
@@ -847,7 +841,7 @@ class Asterisk {
         if (!empty($cdrData)) {
             $totalTime = 0;
             $callsCounter = 0;
-            $allVoiceFiles = (empty($this->recordingsPath)) ? array() : $this->getCallsDir();
+            $allVoiceFiles = (empty($this->recordingsPath)) ? array() : $this->getCallsRecords();
 
             foreach ($cdrData as $io => $each) {
                 if (!$this->getFullCDRCELData and isset($cdrData[$io - 1]['src'])) {
@@ -935,12 +929,19 @@ class Asterisk {
                 $data[] = $speekTime;
 
                 if (!empty($this->recordingsPath)) {
-                    if (isset($each['app_data']) and in_array($each['app_data'], $allVoiceFiles)) {
-                        $fileUrl = self::URL_ME . '&astercallrecs=' . urlencode($each['app_data']);
-                        $data[] = $this->getSoundcontrols($fileUrl);
-                    } elseif (isset($each['recordingfile']) and in_array($each['recordingfile'], $allVoiceFiles)) {
-                        $fileUrl = self::URL_ME . '&astercallrecs=' . urlencode($each['recordingfile']);
-                        $data[] = $this->getSoundcontrols($fileUrl);
+                    if (isset($each['app_data']) and array_key_exists($each['app_data'], $allVoiceFiles)) {
+                        $callrecPath = $allVoiceFiles[$each['app_data']] . $each['app_data'];
+                        $fileUrl = self::URL_ME . '&astercallrecs=' . urlencode($callrecPath);
+                        $data[] = $this->getSoundcontrolsHTML5($fileUrl, $callrecPath);
+                    } elseif (isset($each['recordingfile']) and array_key_exists($each['recordingfile'], $allVoiceFiles)) {
+                        $callrecPath = $allVoiceFiles[$each['recordingfile']] . $each['recordingfile'];
+                        $fileUrl = self::URL_ME . '&astercallrecs=' . urlencode($callrecPath);
+                        $data[] = $this->getSoundcontrolsHTML5($fileUrl, $callrecPath);
+                    } elseif (isset($each['filename']) and array_key_exists($each['filename'], $allVoiceFiles)) {
+                        $callrecPath = $allVoiceFiles[$each['filename']] . $each['filename'];
+                        // То, что в each - это название столбца, в моём случае у меня всё было в filename
+                        $fileUrl = self::URL_ME . '&astercallrecs=' . urlencode($callrecPath);
+                        $data[] = $this->getSoundcontrolsHTML5($fileUrl, $callrecPath);
                     } else {
                         $data[] = '';
                     }
@@ -962,6 +963,7 @@ class Asterisk {
                         $data[] = wf_Link(self::URL_ME . '&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false);
                     }
                 }
+
                 $json->addRow($data);
                 unset($data);
             }
@@ -972,6 +974,7 @@ class Asterisk {
 
     /**
      * Inits gsm/wav player for further usage
+     * @DEPRECATED
      *
      * @return string
      */
@@ -985,6 +988,7 @@ class Asterisk {
 
     /**
      * Returns controls for some recorded call file
+     * @DEPRECATED
      *
      * @param string $fileUrl
      *
@@ -1002,6 +1006,22 @@ class Asterisk {
         return ($result);
     }
 
+
+    protected function getSoundcontrolsHTML5($fileUrl, $filename) {
+        $result = '';
+
+        if (!empty($fileUrl)) {
+            $playableUrl = $fileUrl . '&playable=true';
+            $playerId = 'player_' . wf_InputId();
+
+            if ($filename != "" && file_exists($filename)) {
+                $result.= wf_tag('audio', false, '', 'controls id="' . $playerId . '" src="' . $playableUrl . '" preload="none" style="width: 300px;"');
+                $result.= wf_tag('audio', true);
+            }
+        }
+
+        return ($result);
+    }
     /**
      * Catches file download
      *
@@ -1009,7 +1029,7 @@ class Asterisk {
      */
     public function catchFileDownload() {
         if (wf_CheckGet(array('astercallrecs'))) {
-            zb_DownloadFile($this->recordingsPath . $_GET['astercallrecs'], 'default');
+            zb_DownloadFile(ubRouting::get('astercallrecs'), 'default');
         }
     }
 
@@ -1018,7 +1038,7 @@ class Asterisk {
      *
      * @return array
      */
-    protected function getCallsDir() {
+    protected function getCallsRecords() {
         $result = array();
         $exp = '/^' . str_replace('*', '(.*)', str_replace('.', '\\.', $this->recordingsFormat)) . '$/';
 
@@ -1027,14 +1047,15 @@ class Asterisk {
         foreach ($rii as $file) {
             if (!$file->isDir()) {
                 if (!empty($this->recordingsFormat) and preg_match($exp, $file->getPathname())) {
-                    $result[] = str_ireplace($this->recordingsPath, '', $file->getPathname());
+                    $dirPath = rtrim($file->getPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+                    $result[$file->getFilename()] = $dirPath;
                 } else {
-                    $result[] = str_ireplace($this->recordingsPath, '', $file->getPathname());
+                    $dirPath = rtrim($file->getPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+                    $result[$file->getFilename()] = $dirPath;
                 }
             }
         }
 
-        //$result = rcms_scandir($this->voicePath, $this->callsFormat, 'file');
         return ($result);
     }
 
@@ -1198,7 +1219,6 @@ class Asterisk {
         $result = ($returnJSON) ? json_encode($result) : $result;
         return ($result);
     }
-
 }
 
 ?>
