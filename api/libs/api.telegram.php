@@ -416,6 +416,18 @@ class UbillingTelegram {
 
                 $result['markup'] = $keyboardMarkup;
             }
+
+            if ($inline) {
+                $result['type'] = 'inline';
+//                $keyboardMarkup = array(
+//                    'keyboard' => $buttonsArray,
+//                    'resize_keyboard' => $resize,
+//                    'one_time_keyboard' => $oneTime
+//                );
+                $keyboardMarkup = $buttonsArray;
+
+                $result['markup'] = $keyboardMarkup;
+            }
         }
         return($result);
     }
@@ -513,7 +525,11 @@ class UbillingTelegram {
                     $data['reply_markup'] = $encodedKeyboard;
                 }
 
-                //TODO: inline keyboards
+                if ($keyboard['type'] == 'inline') {
+                    $encodedKeyboard = json_encode(array('inline_keyboard' => $keyboard['markup']));
+                    $data['reply_markup'] = $encodedKeyboard;
+                    $data['parse_mode'] = 'HTML';
+                }
 
                 $method = 'sendMessage';
             }
