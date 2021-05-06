@@ -27,10 +27,10 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
             show_window(__('Periods dictionary'),
-                        $ExtContras->renderAjaxDynWinButton($ExtContras::URL_ME,
-                                                            array($ExtContras::ROUTE_PERIOD_ACTS => 'true'),
-                                                            __('Create period'), web_add_icon(),
-                                                            'ubButton')
+                        wf_jsAjaxDynamicWindowButton($ExtContras::URL_ME,
+                                                     array($ExtContras::ROUTE_PERIOD_ACTS => 'true'),
+                                                     __('Create period'), web_add_icon(),
+                                                     'ubButton')
                        );
         }
 
