@@ -307,6 +307,21 @@ class ExtContras {
         $this->loadECMoney();
     }
 
+    /**
+     *  Ash oghum durbatulûk, ash oghum gimbatul,
+     *  Ash oghum thrakatulûk, agh burzum-ishi krimpatul.
+     *
+     * @param $webFormMethod
+     * @param $dataArray
+     * @param string $crudEntityName
+     * @param string $postFrmCtrlValToChk
+     * @param string $dbTabName
+     * @param string $dbTabFieldName
+     *
+     * @return mixed|string
+     *
+     * @throws Exception
+     */
     public function processCRUDs($webFormMethod, $dataArray,
                                  $crudEntityName = '', $postFrmCtrlValToChk = '',
                                  $dbTabName = '', $dbTabFieldName = '') {
@@ -321,10 +336,6 @@ class ExtContras {
         if (!method_exists($this, $webFormMethod)) {
             $entityExistenceError.= wf_nbsp(2) . wf_tag('b') . $webFormMethod . wf_tag('b', true);
         }
-
-        /*if (!method_exists($this, $dataManipulatingMethod)) {
-            $entityExistenceError.= wf_nbsp(2) . wf_tag('b') . $dataManipulatingMethod . wf_tag('b', true);
-        }*/
 
         if (!empty($entityExistenceError)) {
             return($this->renderWebMsg(__('Error'),
@@ -353,11 +364,8 @@ class ExtContras {
 
                     if (empty($foundProfID)) {
                         if ($recEdit) {
-                            //$this->profileCreadit($recID);
-                            //call_user_func_array(array($this, $dataManipulatingMethod), array($recID));
                             $this->recordCreateEdit($dbEntity, $dataArray, $recID);
                         } elseif ($recClone) {
-                            //call_user_func_array(array($this, $dataManipulatingMethod), array());
                             $this->recordCreateEdit($dbEntity, $dataArray);
                         }
                     } else {
@@ -365,13 +373,10 @@ class ExtContras {
                         return($this->renderWebMsg(__('Error'), __($crudEntityName) . ' ' . __('with such name already exists with ID: ') . $foundProfID));
                     }
                 } else {
-
-                    //die($this->profileWebForm($recEdit, $recClone, $recID));
                     return (call_user_func_array(array($this, $webFormMethod), array(true, $recID, $recEdit, $recClone)));
                 }
             }
         } elseif (ubRouting::checkPost(self::ROUTE_ACTION_CREATE)) {
-            //call_user_func_array(array($this, $dataManipulatingMethod), array());
             $this->recordCreateEdit($dbEntity, $dataArray);
         } elseif (ubRouting::checkPost(self::ROUTE_ACTION_DELETE)) {
             if(ubRouting::checkPost(self::ROUTE_DELETE_REC_ID)) {
@@ -382,7 +387,6 @@ class ExtContras {
         }
 
         return ('');
-        //ubRouting::nav(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true');
     }
 
     /**
@@ -422,20 +426,28 @@ class ExtContras {
         return (wf_Selector(self::CTRL_PERIOD_SELECTOR, $tmpArray, __('Select period')));
     }
 
-
-    public function renderAjaxDynWinButton($ajaxURL, $ajaxDataArr, $title = '', $icon = '', $linkCSSClass = '') {
-        $linkID = wf_InputId();
-        $dynamicOpener = wf_Link('#', $icon . ' ' . $title, false, $linkCSSClass, 'id="' . $linkID . '"')
-                         . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, 'POST');
-
-        return ($dynamicOpener);
-    }
-
+    /**
+     * Returns modal window with some message and pre-defined DOM ID
+     *
+     * @param $title
+     * @param $message
+     * @param string $style
+     *
+     * @return string
+     */
     public function renderWebMsg($title, $message, $style = 'info') {
         $errormes = $this->messages->getStyledMessage($message, $style, 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-        return(wf_modalAutoForm($title, $errormes, ubRouting::post('errfrmid'), '', true, 'true'));
+        return(wf_modalAutoForm($title, $errormes, ubRouting::post(self::MISC_ERRFORM_ID_PARAM), '', true, 'true'));
     }
 
+    /**
+     * Cumulative method for creating and editing some DB records
+     *
+     * @param $dbEntity
+     * @param $dataArray
+     *
+     * @param int $recordID
+     */
     public function recordCreateEdit($dbEntity, $dataArray, $recordID = 0) {
         $dbEntity->dataArr($dataArray);
 
@@ -458,30 +470,16 @@ class ExtContras {
         log_register(get_class($this) . ': REMOVED record ID: ' . $recordID . ' from table `' . $dbEntity->getTableName() . '`');
     }
 
-//    public function profileCreadit($profileID = 0) {
-/*
-        $prfName    = ubRouting::post(self::CTRL_PROFILE_NAME);
-        $prfContact = ubRouting::post(self::CTRL_PROFILE_CONTACT);
-        $prfEDRPO   = ubRouting::post(self::CTRL_PROFILE_EDRPO);
-        $prfEmail   = ubRouting::post(self::CTRL_PROFILE_MAIL);
-
-'fi', FILTER_VALIDATE_BOOLEAN
-
-        $this->dbECProfiles->setDebug(true, true);
-file_put_contents('zxcv', print_r($_POST, true));
-        $this->dbECProfiles->data(self::DBFLD_PROFILE_NAME, ubRouting::post(self::CTRL_PROFILE_NAME));
-        $this->dbECProfiles->data(self::DBFLD_PROFILE_CONTACT, ubRouting::post(self::CTRL_PROFILE_CONTACT));
-        $this->dbECProfiles->data(self::DBFLD_PROFILE_EDRPO, ubRouting::post(self::CTRL_PROFILE_EDRPO));
-        $this->dbECProfiles->data(self::DBFLD_PROFILE_MAIL, ubRouting::post(self::CTRL_PROFILE_MAIL));
-
-        if (!empty($profileID)) {
-            $this->dbECProfiles->where(self::DBFLD_COMMON_ID, '=', $profileID);
-            $this->dbECProfiles->save(true, true);
-        } else {
-            $this->dbECProfiles->create();
-        }
-    }
-*/
+    /**
+     * Returns a profile-editor web form
+     *
+     * @param bool $modal
+     * @param int $profileID
+     * @param bool $editAction
+     * @param bool $cloneAction
+     *
+     * @return string
+     */
     public function profileWebForm($modal = true, $profileID = 0, $editAction = false, $cloneAction = false) {
         $inputs     = '';
         $prfName    = '';
@@ -547,6 +545,11 @@ file_put_contents('zxcv', print_r($_POST, true));
         return ($inputs);
     }
 
+    /**
+     * Renders JQDT for profiles dictionary
+     *
+     * @return string
+     */
     public function profileRenderJQDT() {
         $ajaxURLStr = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
         $jqdtID = 'jqdt_' . md5($ajaxURLStr);
@@ -566,16 +569,24 @@ file_put_contents('zxcv', print_r($_POST, true));
         $result.= wf_tag('script', false, '', 'type="text/javascript"');
         $result.= wf_JSEmptyFunc();
         $result.= wf_JSElemInsertedCatcherFunc();
+
+        // putting a "form submitting catcher" JS code to process multiple modal and static forms
+        // with one piece of code and ajax requests
         $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
                    '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
                    '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
                    self::MISC_ERRFORM_ID_PARAM);
+
+        // putting a piece of JS code to perform records delete action
         $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
         $result.= wf_tag('script', true);
 
         return($result);
     }
 
+    /**
+     * Renders JSON for profile's dictionary JQDT
+     */
     public function profileRenderListJSON() {
         $this->loadECProfiles();
         $json = new wf_JqDtHelper();
@@ -593,38 +604,29 @@ file_put_contents('zxcv', print_r($_POST, true));
                                   '&' . self::ROUTE_ACTION_DELETE . '= true' .
                                   '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
 
-                //$linkId1 = wf_InputId();
-                //$linkId2 = wf_InputId();
                 $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
                          self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ')');
                 $actions.= wf_nbsp(2);
-                $actions.= $this->renderAjaxDynWinButton(self::URL_ME,
+                $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                          array(self::ROUTE_PROFILE_ACTS => 'true',
                                                                self::ROUTE_ACTION_EDIT => 'true',
                                                                self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
                                                          '', web_edit_icon()
                                                         );
                 $actions.= wf_nbsp(2);
-                $actions.= $this->renderAjaxDynWinButton(self::URL_ME,
+                $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                          array(self::ROUTE_PROFILE_ACTS => 'true',
-                                                            self::ROUTE_ACTION_CLONE => 'true',
-                                                            self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
+                                                               self::ROUTE_ACTION_CLONE => 'true',
+                                                               self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
                                                          '', web_clone_icon()
                                                         );
-file_put_contents('qxcv', print_r($actions, true));
-                /*
-                $actions.= wf_Link('#', web_edit_icon(), false, '', 'id="' . $linkId1 . '"') . wf_nbsp();
-                $actions.= wf_Link('#', web_clone_icon(), false, '', 'id="' . $linkId2 . '"') . wf_nbsp();
-                $actions.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpedit' => 'true', 'fmpid' => $fmpID), $linkId1, true, 'POST');
-                $actions.= wf_JSAjaxModalOpener(self::URL_ME, array('fmpclone' => 'true', 'fmpid' => $fmpID), $linkId2, true, 'POST');
-*/
                 $data[] = $actions;
 
                 $json->addRow($data);
                 unset($data);
             }
         }
-//file_put_contents('qxcv', $json->extractJson());
+
         $json->getJson();
     }
 
