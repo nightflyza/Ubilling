@@ -62,6 +62,13 @@ class WolfDispatcher {
     protected $debugFlag = false;
 
     /**
+     * Current conversation client chatId
+     *
+     * @var int
+     */
+    protected $chatId = '';
+
+    /**
      * Creates new dispatcher instance
      * 
      * @param string $token
@@ -313,6 +320,7 @@ class WolfDispatcher {
     public function listen() {
         $this->receivedData = $this->telegram->getHookData();
         if (!empty($this->receivedData)) {
+            @$this->chatId = $this->receivedData['chat']['id'];
             $this->reactInput();
         }
         return($this->receivedData);
