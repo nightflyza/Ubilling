@@ -439,3 +439,5 @@ $lang['def']['The mobile number format can be'] = 'Формат мобильно
 $lang['def']['This field can only contain email address'] = 'Это поле может содержать только электронную почту';
 $lang['def']['All fields are mandatory'] = 'Все поля обязательны для заполнения';
 $lang['def']['Thank you. Your request is awaiting processing. Expect your email policy soon.'] = 'Спасибо. Ваш запрос ожидает обработку. Ожидайте ваш полис вскоре по электронной почте.';
+$lang['def']['Connect to bot'] = 'Соединиться с ботом';
+$lang['def']['Telegram bot'] = 'Telegram бот';

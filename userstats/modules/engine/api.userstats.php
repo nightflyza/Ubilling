@@ -215,20 +215,21 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
                 break;
             case 'mixed':
                 $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days')
-                               . ", " . __('till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));;
+                        . ", " . __('till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
+                ;
                 break;
             default:
                 $balanceExpire = NULL;
                 break;
         }
 
-        if ($includeVServices and !empty($totalVsrvPrice) and !empty($balanceExpire)) {
+        if ($includeVServices and ! empty($totalVsrvPrice) and ! empty($balanceExpire)) {
             if ($us_config['ROUND_PROFILE_CASH']) {
                 $totalVsrvPrice = web_roundValue($totalVsrvPrice, 2);
             }
 
-            $balanceExpire.= la_delimiter(0) . '(' . __('including additional services') . ' ' . $totalVsrvPrice . ' ' . $us_config['currency']
-                             . ' / ' . __($tariffPeriod) . ')';
+            $balanceExpire .= la_delimiter(0) . '(' . __('including additional services') . ' ' . $totalVsrvPrice . ' ' . $us_config['currency']
+                    . ' / ' . __($tariffPeriod) . ')';
         }
     } else {
         //fast credit control id debt
@@ -1154,9 +1155,9 @@ function zbs_UserGetAllTagsUnique($login = '', $whereTagID = '') {
 
     if (!empty($whereTagID)) {
         if (empty($queryWhere)) {
-            $queryWhere = " WHERE `tagid` IN(" . $whereTagID .")";
+            $queryWhere = " WHERE `tagid` IN(" . $whereTagID . ")";
         } else {
-            $queryWhere.= " AND `tagid` IN(" . $whereTagID .")";
+            $queryWhere .= " AND `tagid` IN(" . $whereTagID . ")";
         }
     }
 
@@ -1238,9 +1239,9 @@ function zbs_vservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
         $allUserVsrvs = $allUserVsrvs[$login];
 
         foreach ($allUserVsrvs as $eachTagDBID => $eachSrvData) {
-            $curVsrvPrice       = $eachSrvData['price'];
-            $curVsrvDaysPeriod  = $eachSrvData['daysperiod'];
-            $dailyVsrvPrice     = 0;
+            $curVsrvPrice = $eachSrvData['price'];
+            $curVsrvDaysPeriod = $eachSrvData['daysperiod'];
+            $dailyVsrvPrice = 0;
 
             // getting daily vservice price
             if (!empty($curVsrvDaysPeriod)) {
@@ -1250,9 +1251,9 @@ function zbs_vservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
             // if vservice has no charge period set and $dailyVsrvPrice == 0
             // then virtual service price is considered as for global $defaultPeriod period
             if ($defaultPeriod == 'month') {
-                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
+                $totalVsrvPrice += (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
             } else {
-                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
+                $totalVsrvPrice += (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
             }
         }
     }
@@ -1399,7 +1400,7 @@ function zbs_UserChangePassword($login) {
     $result = '';
     if (isset($login)) {
         // change password  if need
-        if (la_CheckPost(array('newpassword','confirmnewpassword'))) {
+        if (la_CheckPost(array('newpassword', 'confirmnewpassword'))) {
             if ($_POST['newpassword'] == $_POST['confirmnewpassword']) {
                 $current_password = zbs_UserGetStargazerData($login);
                 $current_password = $current_password['Password'];
@@ -1410,7 +1411,7 @@ function zbs_UserChangePassword($login) {
                     $password = preg_replace('/\0/s', '', $password);
                     if (strlen($password) >= 5) {
                         billing_setpassword($login, $password);
-                        log_register('CHANGE Password (' . $login . ') ON `' . $password . '` BY USER' );
+                        log_register('CHANGE Password (' . $login . ') ON `' . $password . '` BY USER');
                         // After change pass need login again for set cookies
                         rcms_redirect("index.php");
                     } else {
@@ -1438,7 +1439,6 @@ function zbs_UserChangePassword($login) {
 
         $form = la_Form('index.php', "POST", $inputs, 'glamour');
         $result .= la_modal(__('Change password'), __('Change password'), $form, '', 300, 370);
-
     }
     return ($result);
 }
@@ -1669,6 +1669,15 @@ function zbs_UserShowProfile($login) {
     $profile .= la_TableCell(__('Account state'), '', 'row1');
     $profile .= la_TableCell($passive_state . $down_state);
     $profile .= la_tag('tr', true);
+
+    if (@$us_config['TG_BOTNAME']) {
+        $tgBotName = $us_config['TG_BOTNAME'];
+        $tgBotUrl = 'https://t.me/' . $tgBotName . '/?start=' . $login . '-' . md5($userdata['Password']);
+        $profile .= la_tag('tr');
+        $profile .= la_TableCell(__('Telegram bot'), '', 'row1');
+        $profile .= la_TableCell(la_Link($tgBotUrl, __('Connect to bot').'!'));
+        $profile .= la_tag('tr', true);
+    }
 
     $profile .= zbs_CUDShow($login, $us_config);
 

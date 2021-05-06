@@ -440,5 +440,6 @@ $lang['def']['The mobile number format can be'] = 'Формат стільник
 $lang['def']['This field can only contain email address'] = 'Це поле може містити тільки електронну пошту';
 $lang['def']['All fields are mandatory'] = 'Усі поля є обов`язковими для заповнення';
 $lang['def']['Thank you. Your request is awaiting processing. Expect your email policy soon.'] = 'Дякуємо. Ваш запит очікує на обробку. Очікуйте ваш поліс незабаром електронною поштою.';
-$lang['def'][''] = '';
+$lang['def']['Connect to bot'] = 'З`єднатись з ботом';
+$lang['def']['Telegram bot'] = 'Telegram бот';
 
