@@ -3063,32 +3063,6 @@ function ispos_array($string, $search) {
 }
 
 /**
- * Checks for substring in string
- *
- * @param string $string
- * @param string|array $search
- *
- * @return bool
- */
-function ispos_array($string, $search) {
-    if (is_array($search)) {
-        foreach ($search as $eachStr) {
-            if (strpos($string, $eachStr) !== false) {
-                return (true);
-            }
-        }
-
-        return(false);
-    } else {
-        if (strpos($string, $search) === false) {
-            return(false);
-        } else {
-            return(true);
-        }
-    }
-}
-
-/**
  * Encodes numbers as letters as backarray
  * 
  * @param int $data
