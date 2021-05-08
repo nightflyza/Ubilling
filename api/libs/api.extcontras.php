@@ -573,9 +573,9 @@ class ExtContras {
         // putting a "form submitting catcher" JS code to process multiple modal and static forms
         // with one piece of code and ajax requests
         $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
-                   '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
-                   '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
-                   self::MISC_ERRFORM_ID_PARAM);
+                                      '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
+                                      '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
+                                      self::MISC_ERRFORM_ID_PARAM);
 
         // putting a piece of JS code to perform records delete action
         $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
@@ -605,7 +605,7 @@ class ExtContras {
                                   '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
 
                 $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
-                         self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ')');
+                         self::URL_ME . '/' . self::URL_DICTPROFILES);
                 $actions.= wf_nbsp(2);
                 $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                          array(self::ROUTE_PROFILE_ACTS => 'true',
@@ -642,29 +642,129 @@ class ExtContras {
 
     }
 
-    public function periodWebForm($periodID = 0, $editAction = false, $cloneAction = false) {
-        $winID      = ubRouting::post('modalWindowId');
-        $winBodyID  = ubRouting::post('modalWindowBodyId');
+    public function periodWebForm($modal = true, $periodID = 0, $editAction = false) {
         $inputs     = '';
         $prdName    = '';
+        $modalWinID     = ubRouting::post('modalWindowId');
+        $modalWinBodyID = ubRouting::post('modalWindowBodyId');
+
+        if ($modal) {
+            $formClass = self::MISC_CLASS_SUBMITFORM_MODAL;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK_MODAL;
+        } else {
+            $formClass = self::MISC_CLASS_SUBMITFORM;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
+        }
 
         if ($editAction and !empty($this->allECPeriods[$periodID])) {
-            $period  = $this->allECProfiles[$periodID];
+            $period  = $this->allECPeriods[$periodID];
             $prdName = $period[self::DBFLD_PERIOD_NAME];
         }
 
         $submitCapt = ($editAction) ? __('Edit') : __('Create');
         $formCapt   = ($editAction) ? __('Edit period') : __('Create period');
 
-        $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name'), $prdName, true);
+        $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
-        $inputs.= ($editAction) ? wf_HiddenInput(self::ROUTE_ACTION_EDIT, true) : '';
+        $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name') . $this->supFrmFldMark, $prdName, true, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
 
-        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true','POST', $inputs, 'glamour');
-        $inputs = wf_modalAutoForm($formCapt, $inputs, $winID, $winBodyID, true);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_HiddenInput(self::ROUTE_PERIOD_ACTS, 'true');
+
+        if ($editAction) {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $periodID);
+        } else {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_CREATE, 'true');
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true','POST', $inputs, 'glamour ' . $formClass);
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
+        }
 
         return ($inputs);
+    }
+
+    /**
+     * Renders JQDT for period dictionary
+     *
+     * @return string
+     */
+    public function periodRenderJQDT() {
+        $ajaxURLStr = '' . self::URL_ME . '&' . self::ROUTE_PERIOD_JSON . '=true';
+        $jqdtID = 'jqdt_' . md5($ajaxURLStr);
+        $errorModalWindowID = wf_InputId();
+        $columns = array();
+        $opts = '"order": [[ 0, "asc" ]]';
+
+        $columns[] = __('ID');
+        $columns[] = __('Period name');
+        $columns[] = __('Actions');
+
+        $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
+
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        $result.= wf_JSEmptyFunc();
+        $result.= wf_JSElemInsertedCatcherFunc();
+
+        // putting a "form submitting catcher" JS code to process multiple modal and static forms
+        // with one piece of code and ajax requests
+        $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
+                                      '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
+                                      '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
+                                      self::MISC_ERRFORM_ID_PARAM);
+
+        // putting a piece of JS code to perform records delete action
+        $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
+        $result.= wf_tag('script', true);
+
+        return($result);
+    }
+
+    /**
+     * Renders JSON for period's dictionary JQDT
+     */
+    public function periodRenderListJSON() {
+        $this->loadECPeriods();
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECPeriods)) {
+            $data = array();
+
+            foreach ($this->allECPeriods as $eachRecID) {
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    $data[] = $fieldVal;
+                }
+
+                // gathering the delete ajax data query
+                $tmpDeleteQuery = '\'&' . self::ROUTE_PERIOD_ACTS  . '= true' .
+                                  '&' . self::ROUTE_ACTION_DELETE . '= true' .
+                                  '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
+
+                $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
+                          self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ')');
+                $actions.= wf_nbsp(2);
+                $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
+                                                        array(self::ROUTE_PERIOD_ACTS => 'true',
+                                                              self::ROUTE_ACTION_EDIT => 'true',
+                                                              self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
+                                                        '', web_edit_icon()
+                                                       );
+                $data[] = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
     }
 
     public function periodEdit($periodID) {
