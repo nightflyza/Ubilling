@@ -10,6 +10,10 @@ file_put_contents('axcv', '');
             $ExtContras->profileRenderListJSON();
         }
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_PERIOD_JSON)){
+            $ExtContras->periodRenderListJSON();
+        }
+
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
             /*show_window(__('Counterparties profiles dictionary'),
                         $ExtContras->renderAjaxDynWinButton($ExtContras::URL_ME,
@@ -27,30 +31,24 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
             show_window(__('Periods dictionary'),
-                        wf_jsAjaxDynamicWindowButton($ExtContras::URL_ME,
-                                                     array($ExtContras::ROUTE_PERIOD_ACTS => 'true'),
-                                                     __('Create period'), web_add_icon(),
-                                                     'ubButton')
+                        $ExtContras->periodWebForm(false)
+                        . wf_delimiter() . $ExtContras->periodRenderJQDT()
                        );
         }
 
-        // todo: try to make this routine below reusable - make a separate method which called when
-        // todo: $ExtContras::ROUTE_****_ACTS is present and covers all rec checks, edit&append routines
-        // todo: and web forms displaying
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
-
             $dataArray = array($ExtContras::DBFLD_PROFILE_NAME => ubRouting::post($ExtContras::CTRL_PROFILE_NAME),
                                $ExtContras::DBFLD_PROFILE_CONTACT => ubRouting::post($ExtContras::CTRL_PROFILE_CONTACT),
                                $ExtContras::DBFLD_PROFILE_EDRPO => ubRouting::post($ExtContras::CTRL_PROFILE_EDRPO),
                                $ExtContras::DBFLD_PROFILE_MAIL => ubRouting::post($ExtContras::CTRL_PROFILE_MAIL)
                               );
-file_put_contents('zxcv', print_r($_POST, true) . "\n", FILE_APPEND);
+//file_put_contents('zxcv', print_r($_POST, true) . "\n", FILE_APPEND);
             $showResult = $ExtContras->processCRUDs('profileWebForm', $dataArray,'Profile',
                                                     $ExtContras::CTRL_PROFILE_NAME,
                                                     $ExtContras::TABLE_ECPROFILES,
                                                     $ExtContras::DBFLD_PROFILE_NAME
                                                    );
-file_put_contents('axcv', $showResult . "\n\n", FILE_APPEND);
+//file_put_contents('axcv', $showResult . "\n\n", FILE_APPEND);
             //if (!empty($showResult)) {
             die($showResult);
             //}
@@ -96,17 +94,17 @@ file_put_contents('axcv', $showResult . "\n\n", FILE_APPEND);
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PERIOD_ACTS)) {
-            $showResult = $ExtContras->processCRUDs('periodWebForm', 'periodCreadit',
-                                                    'Period', $ExtContras::CTRL_PERIOD_NAME,
+            $dataArray = array($ExtContras::DBFLD_PERIOD_NAME => ubRouting::post($ExtContras::CTRL_PERIOD_NAME));
+
+            $showResult = $ExtContras->processCRUDs('periodWebForm', $dataArray, 'Period',
+                                                    $ExtContras::CTRL_PERIOD_NAME,
                                                     $ExtContras::TABLE_ECPERIODS,
                                                     $ExtContras::DBFLD_PERIOD_NAME
                                                    );
 
-            if (!empty($showResult)) {
-                die($showResult);
-            }
+            die($showResult);
 
-            ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPERIODS . '=true');
+//            ubRouting::nav($ExtContras::URL_ME . '&' . $ExtContras::URL_DICTPERIODS . '=true');
         }
 
 /*        if (wf_CheckGet(array('bankstalist'))) {
