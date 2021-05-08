@@ -600,12 +600,17 @@ class ExtContras {
                 }
 
                 // gathering the delete ajax data query
-                $tmpDeleteQuery = '\'&' . self::ROUTE_PROFILE_ACTS  . '= true' .
-                                  '&' . self::ROUTE_ACTION_DELETE . '= true' .
+                $tmpDeleteQuery = '\'&' . self::ROUTE_PROFILE_ACTS  . '=true' .
+                                  '&' . self::ROUTE_ACTION_DELETE . '=true' .
                                   '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
 
-                $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
-                         self::URL_ME . '/' . self::URL_DICTPROFILES);
+                $deleteDialogWID = 'dialog-modal_' . wf_inputid();
+                $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID .'\').dialog(\'close\') ';
+
+                $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
+                                               self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
+                                                $deleteDialogCloseFunc, $deleteDialogWID);
+
                 $actions.= wf_nbsp(2);
                 $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                          array(self::ROUTE_PROFILE_ACTS => 'true',
@@ -744,9 +749,16 @@ class ExtContras {
                 }
 
                 // gathering the delete ajax data query
-                $tmpDeleteQuery = '\'&' . self::ROUTE_PERIOD_ACTS  . '= true' .
-                                  '&' . self::ROUTE_ACTION_DELETE . '= true' .
+                $tmpDeleteQuery = '\'&' . self::ROUTE_PERIOD_ACTS  . '=true' .
+                                  '&' . self::ROUTE_ACTION_DELETE . '=true' .
                                   '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
+
+                $deleteDialogWID = 'dialog-modal_' . wf_inputid();
+                $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID .'\').dialog(\'close\') ';
+
+                $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
+                                              self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
+                                              $deleteDialogCloseFunc, $deleteDialogWID);
 
                 $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
                           self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ')');
