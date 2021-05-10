@@ -115,6 +115,13 @@ class ExtContras {
     protected $fileStorage = null;
 
     /**
+     * Placeholder for FILESTORAGE_ENABLED alter.ini option
+     *
+     * @var bool
+     */
+    protected $fileStorageEnabled = false;
+
+    /**
      * Placeholder for EXTCONTRAS_EDIT_ALLOWED_DAYS alter.ini option
      *
      * @var int
@@ -145,22 +152,65 @@ class ExtContras {
     const URL_DICTPERIODS   = 'dictperiods';
     const URL_FINOPERATIONS = 'finoperations';
 
+    const DBFLD_COMMON_ID       = 'id';
 
     const CTRL_PROFILE_NAME     = 'profname';
     const CTRL_PROFILE_EDRPO    = 'profedrpo';
     const CTRL_PROFILE_CONTACT  = 'profcontact';
     const CTRL_PROFILE_MAIL     = 'profmail';
 
-    const DBFLD_COMMON_ID       = 'id';
     const DBFLD_PROFILE_NAME    = 'name';
     const DBFLD_PROFILE_EDRPO   = 'edrpo';
     const DBFLD_PROFILE_CONTACT = 'contact';
     const DBFLD_PROFILE_MAIL    = 'email';
 
+    const CTRL_CTRCT_DTSTART    = 'ctrctdtstart';
+    const CTRL_CTRCT_DTEND      = 'ctrctdtend';
+    const CTRL_CTRCT_FILENAME   = 'ctrctfilename';
+    const CTRL_CTRCT_NUMBER     = 'ctrctnumber';
+    const CTRL_CTRCT_SUBJECT    = 'ctrctsubject';
+    const CTRL_CTRCT_AUTOPRLNG  = 'ctrctautoprolong';
+    const CTRL_CTRCT_FULLSUM    = 'ctrctfullsum';
+    const CTRL_CTRCT_NOTES      = 'ctrctnotes';
+
+    const DBFLD_CTRCT_DTSTART   = 'date_start';
+    const DBFLD_CTRCT_DTEND     = 'date_end';
+    const DBFLD_CTRCT_FILENAME  = 'filename';
+    const DBFLD_CTRCT_NUMBER    = 'number';
+    const DBFLD_CTRCT_SUBJECT   = 'subject';
+    const DBFLD_CTRCT_AUTOPRLNG = 'autoprolong';
+    const DBFLD_CTRCT_FULLSUM   = 'fullsum';
+    const DBFLD_CTRCT_NOTES     = 'notes';
+
+    const CTRL_ADDRESS_ADDR     = 'addraddress';
+    const CTRL_ADDRESS_SUM      = 'addrsumm';
+    const CTRL_ADDRESS_CTNOTES  = 'addrctrctnotes';
+    const CTRL_ADDRESS_NOTES    = 'addrnotes';
+
+    const DBFLD_ADDRESS_ADDR    = 'address';
+    const DBFLD_ADDRESS_SUM     = 'summ';
+    const DBFLD_ADDRESS_CTNOTES = 'contract_notes';
+    const DBFLD_ADDRESS_NOTES   = 'notes';
 
     const CTRL_PERIOD_SELECTOR  = 'prdselector';
     const CTRL_PERIOD_NAME      = 'prdname';
     const DBFLD_PERIOD_NAME     = 'period_name';
+
+    const CTRL_MONEY_CONTRASID  = 'moneycontrasrecid';
+    const CTRL_MONEY_ACCRUALID  = 'moneyaccrualid';
+    const CTRL_MONEY_DATE       = 'moneydate';
+    const CTRL_MONEY_SUMACCRUAL = 'moneysummaccrual';
+    const CTRL_MONEY_SUNPAYMENT = 'moneysummpayment';
+    const CTRL_MONEY_TOUS       = 'moneytous';
+    const CTRL_MONEY_FROMUS     = 'moneyfromus';
+
+    const DBFLD_MONEY_CONTRASID = 'contras_rec_id';
+    const DBFLD_MONEY_ACCRUALID = 'accrual_id';
+    const DBFLD_MONEY_DATE      = 'date';
+    const DBFLD_MONEY_SMACCRUAL = 'summ_accrual';
+    const DBFLD_MONEY_SMPAYMENT = 'summ_payment';
+    const DBFLD_MONEY_TOUS      = 'to_us';
+    const DBFLD_MONEY_FROMUS    = 'from_us';
 
 
     const ROUTE_ACTION_CREATE   = 'doCreate';
@@ -169,10 +219,18 @@ class ExtContras {
     const ROUTE_ACTION_DELETE   = 'doRemove';
     const ROUTE_EDIT_REC_ID     = 'editRecID';
     const ROUTE_DELETE_REC_ID   = 'deleteRecID';
+    const ROUTE_CONTRAS_ACTS    = 'contrasacts';
+    const ROUTE_CONTRAS_JSON    = 'contraslistjson';
     const ROUTE_PROFILE_ACTS    = 'profileacts';
     const ROUTE_PROFILE_JSON    = 'profilelistjson';
+    const ROUTE_CONTRACTS_ACTS  = 'contractacts';
+    const ROUTE_CONTRACTS_JSON  = 'contractlistjson';
+    const ROUTE_ADDRESS_ACTS    = 'addressacts';
+    const ROUTE_ADDRESS_JSON    = 'addresslistjson';
     const ROUTE_PERIOD_ACTS     = 'periodacts';
     const ROUTE_PERIOD_JSON     = 'periodlistjson';
+    const ROUTE_FINOPS_ACTS     = 'finopsacts';
+    const ROUTE_FINOPS_JSON     = 'finopslistjson';
 
 
     const TABLE_EXTCONTRAS      = 'extcontras';
@@ -182,6 +240,7 @@ class ExtContras {
     const TABLE_ECPERIODS       = 'extcontras_periods';
     const TABLE_ECMONEY         = 'extcontras_money';
 
+    const MISC_FILESTORAGE_SCOPE         = 'EXCONTRAS';
     const MISC_CLASS_MWID_CTRL           = '__FormModalWindowID';
     const MISC_CLASS_SUBMITFORM          = '__FormSubmit';
     const MISC_CLASS_SUBMITFORM_MODAL    = '__FormSubmitModal';
@@ -195,11 +254,14 @@ class ExtContras {
         global $ubillingConfig;
         $this->ubConfig     = $ubillingConfig;
         $this->messages     = new UbillingMessageHelper();
-        $this->fileStorage  = new FileStorage();
 
         $this->loadOptions();
         $this->initDBEntities();
         $this->loadAllData();
+
+        if ($this->fileStorageEnabled) {
+            $this->fileStorage = new FileStorage(self::MISC_FILESTORAGE_SCOPE);
+        }
 
         $this->supFrmFldMark = wf_tag('sup') . '*' . wf_tag('sup', true);
     }
@@ -248,9 +310,10 @@ class ExtContras {
      * Loads alter.ini options
      */
     protected function loadOptions() {
-        $this->ecEditablePreiod = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
-        $this->ecEditablePreiod = empty($this->ecEditablePreiod) ? 60 : $this->ecEditablePreiod;
-        $this->ecReadOnlyAccess = (!cfr('EXTCONTRASRW'));
+        $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
+        $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
+        $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? 60 : $this->ecEditablePreiod;
+        $this->ecReadOnlyAccess   = (!cfr('EXTCONTRASRW'));
     }
 
     /**
@@ -635,17 +698,109 @@ class ExtContras {
         $json->getJson();
     }
 
-    public function profileEdit() {
+    /**
+     * Returns a profile-editor web form
+     *
+     * @param bool $modal
+     * @param int $contractID
+     * @param bool $editAction
+     * @param bool $cloneAction
+     *
+     * @return string
+     */
+    public function contractWebForm($modal = true, $contractID = 0, $editAction = false, $cloneAction = false) {
+        $inputs             = '';
+        $ctrctDTStart       = '';
+        $ctrctDTEnd         = '';
+        $ctrctFileName      = '';
+        $ctrctNumber        = '';
+        $ctrctSubject       = '';
+        $ctrctAutoProlong   = '';
+        $ctrctFullSum       = '';
+        $ctrctNotes         = '';
+        $modalWinID     = ubRouting::post('modalWindowId');
+        $modalWinBodyID = ubRouting::post('modalWindowBodyId');
 
+        if ($modal) {
+            $formClass = self::MISC_CLASS_SUBMITFORM_MODAL;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK_MODAL;
+        } else {
+            $formClass = self::MISC_CLASS_SUBMITFORM;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
+        }
+
+        if (($editAction or $cloneAction) and !empty($this->allECProfiles[$contractID])) {
+            $contract           = $this->allECContracts[$contractID];
+            $ctrctDTStart       = $contract[self::DBFLD_CTRCT_DTSTART];
+            $ctrctDTEnd         = $contract[self::DBFLD_CTRCT_DTEND];
+            $ctrctFileName      = $contract[self::DBFLD_CTRCT_FILENAME];
+            $ctrctNumber        = $contract[self::DBFLD_CTRCT_NUMBER];
+            $ctrctSubject       = $contract[self::DBFLD_CTRCT_SUBJECT];
+            $ctrctAutoProlong   = ubRouting::filters($contract[self::DBFLD_CTRCT_AUTOPRLNG], 'fi', FILTER_VALIDATE_BOOLEAN);
+            $ctrctFullSum       = $contract[self::DBFLD_CTRCT_FULLSUM];
+            $ctrctNotes         = $contract[self::DBFLD_CTRCT_NOTES];
+        }
+
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = ($editAction) ? __('Edit counterparty contract') :
+            (($cloneAction) ? __('Clone counterparty contract') :
+                __('Create counterparty contract'));
+
+        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+
+        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTSTART, $ctrctDTStart, true, '', $emptyCheckClass);
+        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+        $inputs.= wf_nbsp(2) . __('Date start');
+        $inputs.= wf_tag('span', true) . wf_nbsp(4);
+
+        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTEND, $ctrctDTEnd, true, '', $emptyCheckClass);
+        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+        $inputs.= wf_nbsp(2) . __('Date end');
+        $inputs.= wf_tag('span', true) . wf_nbsp(4);
+
+        $inputs.= wf_CheckInput(self::CTRL_CTRCT_AUTOPRLNG, __('Autoprolong'), true, $ctrctAutoProlong, '', '');
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_NUMBER, __('Contract number') . $this->supFrmFldMark, $ctrctNumber, false, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_nbsp(4);
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_FULLSUM, __('Contract full sum'), $ctrctFullSum, true, '4', 'finance',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_SUBJECT, __('Contract subject'), $ctrctSubject, true, '70', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_NOTES, __('Contract notes'), $ctrctNotes, true, '70', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+
+        if ($editAction and $this->fileStorageEnabled) {
+            $this->fileStorage->setItemid($contractID);
+            $inputs .= $this->fileStorage->renderFilesPreview(true);
+        }
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
+
+//CTRL_CTRCT_FILENAME
+
+        if ($editAction) {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $contractID);
+        } else {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_CREATE, 'true');
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true','POST',
+                          $inputs, 'glamour ' . $formClass);
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
+        }
+
+        return ($inputs);
     }
 
-    public function profileEditForm() {
-
-    }
-
-    public function periodCreadit() {
-
-    }
 
     public function periodWebForm($modal = true, $periodID = 0, $editAction = false) {
         $inputs     = '';
@@ -777,22 +932,5 @@ class ExtContras {
         }
 
         $json->getJson();
-    }
-
-    public function periodEdit($periodID) {
-
-    }
-
-    public function periodEditForm() {
-        $inputs = '';
-
-    }
-
-    public function periodListRender() {
-
-    }
-
-    public function periodIsProtected() {
-
     }
 }
