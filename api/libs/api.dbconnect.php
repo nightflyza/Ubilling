@@ -8,6 +8,7 @@ error_reporting(E_ALL ^ E_DEPRECATED); //hide some deprecated warnings on 5.6 :(
 class DbConnect {
 
     var $host = '';
+    var $dbport = 3306;
     var $user = '';
     var $password = '';
     var $database = '';
@@ -16,9 +17,15 @@ class DbConnect {
     var $result = false;
     var $error_reporting = false;
 
-    public function __construct($host, $user, $password, $database, $error_reporting = true, $persistent = false) {
+    public function __construct($host, $user, $password, $database, $error_reporting = true, $persistent = false, $port = 3306) {
+        $dbport = (empty($port) ? 3306 : $port);
 
-        $this->host = $host;
+        if (!ispos($host, ':')) {
+            $this->host = $host . ':' . $dbport;
+        } else {
+            $this->host = $host;
+        }
+
         $this->user = $user;
         $this->password = $password;
         $this->database = $database;
