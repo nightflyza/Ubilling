@@ -164,22 +164,20 @@ class ExtContras {
     const DBFLD_PROFILE_CONTACT = 'contact';
     const DBFLD_PROFILE_MAIL    = 'email';
 
+    const CTRL_CTRCT_CONTRACT   = 'ctrctcontract';
     const CTRL_CTRCT_DTSTART    = 'ctrctdtstart';
     const CTRL_CTRCT_DTEND      = 'ctrctdtend';
-    const CTRL_CTRCT_FILENAME   = 'ctrctfilename';
-    const CTRL_CTRCT_NUMBER     = 'ctrctnumber';
     const CTRL_CTRCT_SUBJECT    = 'ctrctsubject';
     const CTRL_CTRCT_AUTOPRLNG  = 'ctrctautoprolong';
     const CTRL_CTRCT_FULLSUM    = 'ctrctfullsum';
     const CTRL_CTRCT_NOTES      = 'ctrctnotes';
 
+    const DBFLD_CTRCT_CONTRACT  = 'contract';
     const DBFLD_CTRCT_DTSTART   = 'date_start';
     const DBFLD_CTRCT_DTEND     = 'date_end';
-    const DBFLD_CTRCT_FILENAME  = 'filename';
-    const DBFLD_CTRCT_NUMBER    = 'number';
     const DBFLD_CTRCT_SUBJECT   = 'subject';
     const DBFLD_CTRCT_AUTOPRLNG = 'autoprolong';
-    const DBFLD_CTRCT_FULLSUM   = 'fullsum';
+    const DBFLD_CTRCT_FULLSUM   = 'full_sum';
     const DBFLD_CTRCT_NOTES     = 'notes';
 
     const CTRL_ADDRESS_ADDR     = 'addraddress';
@@ -223,8 +221,8 @@ class ExtContras {
     const ROUTE_CONTRAS_JSON    = 'contraslistjson';
     const ROUTE_PROFILE_ACTS    = 'profileacts';
     const ROUTE_PROFILE_JSON    = 'profilelistjson';
-    const ROUTE_CONTRACTS_ACTS  = 'contractacts';
-    const ROUTE_CONTRACTS_JSON  = 'contractlistjson';
+    const ROUTE_CONTRACT_ACTS   = 'contractacts';
+    const ROUTE_CONTRACT_JSON   = 'contractlistjson';
     const ROUTE_ADDRESS_ACTS    = 'addressacts';
     const ROUTE_ADDRESS_JSON    = 'addresslistjson';
     const ROUTE_PERIOD_ACTS     = 'periodacts';
@@ -371,6 +369,90 @@ class ExtContras {
     }
 
     /**
+     * Returns typical JQDT with or without JS code for interacting with modals and dynamic modals
+     *
+     * @param $ajaxURL
+     * @param $columnsArr
+     * @param string $columnsOpts
+     * @param bool $stdJSForCRUDs
+     *
+     * @return string
+     */
+    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true) {
+        $result     = '';
+        $ajaxURLStr = $ajaxURL;
+        $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
+        $columns    = $columnsArr;
+        $opts       = (empty($columnsOpts) ? '"order": [[ 0, "asc" ]]' : $columnsOpts);
+
+        $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
+
+        if ($stdJSForCRUDs) {
+            $result .= wf_tag('script', false, '', 'type="text/javascript"');
+            $result .= wf_JSEmptyFunc();
+            $result .= wf_JSElemInsertedCatcherFunc();
+
+            // putting a "form submitting catcher" JS code to process multiple modal and static forms
+            // with one piece of code and ajax requests
+            $result .= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
+                                           '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
+                                           '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
+                                           self::MISC_ERRFORM_ID_PARAM);
+
+            // putting a piece of JS code to perform records delete action
+            $result .= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
+            $result .= wf_tag('script', true);
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns typical JQDT "actions" controls, like "Delete", "Edit", "Clone"
+     *
+     * @param $recID
+     * @param $routeActs
+     * @param bool $cloneButtonON
+     *
+     * @return string
+     */
+    protected function getStdJSONActions($recID, $routeActs, $cloneButtonON = false) {
+        $actions = '';
+
+        // gathering the delete ajax data query
+        $tmpDeleteQuery = '\'&' . $routeActs  . '=true' .
+                          '&' . self::ROUTE_ACTION_DELETE . '=true' .
+                          '&' . self::ROUTE_DELETE_REC_ID . '=' . $recID . '\'';
+
+        $deleteDialogWID = 'dialog-modal_' . wf_inputid();
+        $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID .'\').dialog(\'close\') ';
+
+        $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
+                                      self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
+                                      $deleteDialogCloseFunc, $deleteDialogWID);
+
+        $actions .= wf_nbsp(2);
+        $actions .= wf_jsAjaxDynamicWindowButton(self::URL_ME,
+                                                 array($routeActs => 'true',
+                                                       self::ROUTE_ACTION_EDIT => 'true',
+                                                       self::ROUTE_EDIT_REC_ID => $recID),
+                                                 '', web_edit_icon()
+                                                );
+
+        if ($cloneButtonON) {
+            $actions .= wf_nbsp(2);
+            $actions .= wf_jsAjaxDynamicWindowButton(self::URL_ME,
+                                                     array($routeActs => 'true',
+                                                           self::ROUTE_ACTION_CLONE => 'true',
+                                                           self::ROUTE_EDIT_REC_ID => $recID),
+                                                     '', web_clone_icon()
+                                                    );
+        }
+
+        return ($actions);
+    }
+
+    /**
      *  Ash oghum durbatulûk, ash oghum gimbatul,
      *  Ash oghum thrakatulûk, agh burzum-ishi krimpatul.
      *
@@ -387,10 +469,11 @@ class ExtContras {
      */
     public function processCRUDs($webFormMethod, $dataArray,
                                  $crudEntityName = '', $postFrmCtrlValToChk = '',
-                                 $dbTabName = '', $dbTabFieldName = '') {
+                                 $dbTabName = '', $dbTabFieldName = '', $checkUniqOnCreate = true) {
 
         $entityExistenceError = '';
         $dbEntity = $this->getDBEntity($dbTabName);
+        $crudEntityName = empty($crudEntityName) ? 'Entity' : $crudEntityName;
 
         if (empty($dbEntity)) {
             $entityExistenceError.= wf_nbsp(2) . wf_tag('b') . $dbTabName . wf_tag('b', true);
@@ -420,27 +503,42 @@ class ExtContras {
                     $recExistArrayChk = array($dbTabFieldName => array('operator' => '=',
                                                                        'fieldval' => $postValToChk));
                     if ($recClone) {
-                        $foundProfID = $dbEntity->checkRecExists($recExistArrayChk);
+                        $foundRecID = $dbEntity->checkRecExists($recExistArrayChk);
                     } else {
-                        $foundProfID = $dbEntity->checkRecExists($recExistArrayChk, $recID);
+                        $foundRecID = $dbEntity->checkRecExists($recExistArrayChk, $recID);
                     }
 
-                    if (empty($foundProfID)) {
+                    if (empty($foundRecID)) {
                         if ($recEdit) {
                             $this->recordCreateEdit($dbEntity, $dataArray, $recID);
                         } elseif ($recClone) {
                             $this->recordCreateEdit($dbEntity, $dataArray);
                         }
                     } else {
-                        $crudEntityName = empty($crudEntityName) ? 'Entity' : $crudEntityName;
-                        return($this->renderWebMsg(__('Error'), __($crudEntityName) . ' ' . __('with such name already exists with ID: ') . $foundProfID));
+                        return($this->renderWebMsg(__('Error'), __($crudEntityName) . ' ' . __('with such name already exists with ID: ') . $foundRecID, 'error'));
                     }
                 } else {
                     return (call_user_func_array(array($this, $webFormMethod), array(true, $recID, $recEdit, $recClone)));
                 }
             }
         } elseif (ubRouting::checkPost(self::ROUTE_ACTION_CREATE)) {
-            $this->recordCreateEdit($dbEntity, $dataArray);
+            if ($checkUniqOnCreate and !(empty($postFrmCtrlValToChk) or empty($dbTabName) or empty($dbTabFieldName))) {
+                if (ubRouting::checkPost($postFrmCtrlValToChk)) {
+                    $postValToChk = ubRouting::post($postFrmCtrlValToChk);
+                    $recExistArrayChk = array($dbTabFieldName => array('operator' => '=',
+                                                                       'fieldval' => $postValToChk));
+
+                    $foundRecID = $dbEntity->checkRecExists($recExistArrayChk);
+
+                    if (empty($foundRecID)) {
+                        $this->recordCreateEdit($dbEntity, $dataArray);
+                    } else {
+                        return($this->renderWebMsg(__('Error'), __($crudEntityName) . ' ' . __('with such name already exists with ID: ') . $foundRecID, 'error'));
+                    }
+                }
+            } else {
+                $this->recordCreateEdit($dbEntity, $dataArray);
+            }
         } elseif (ubRouting::checkPost(self::ROUTE_ACTION_DELETE)) {
             if(ubRouting::checkPost(self::ROUTE_DELETE_REC_ID)) {
                 $this->recordDelete($dbEntity, ubRouting::post(self::ROUTE_DELETE_REC_ID));
@@ -614,11 +712,7 @@ class ExtContras {
      * @return string
      */
     public function profileRenderJQDT() {
-        $ajaxURLStr = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
-        $jqdtID = 'jqdt_' . md5($ajaxURLStr);
-        $errorModalWindowID = wf_InputId();
-        $columns = array();
-        $opts = '"order": [[ 0, "asc" ]]';
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
 
         $columns[] = __('ID');
         $columns[] = __('Profile name');
@@ -627,22 +721,7 @@ class ExtContras {
         $columns[] = __('E-mail');
         $columns[] = __('Actions');
 
-        $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
-
-        $result.= wf_tag('script', false, '', 'type="text/javascript"');
-        $result.= wf_JSEmptyFunc();
-        $result.= wf_JSElemInsertedCatcherFunc();
-
-        // putting a "form submitting catcher" JS code to process multiple modal and static forms
-        // with one piece of code and ajax requests
-        $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
-                                      '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
-                                      '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
-                                      self::MISC_ERRFORM_ID_PARAM);
-
-        // putting a piece of JS code to perform records delete action
-        $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
-        $result.= wf_tag('script', true);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns);
 
         return($result);
     }
@@ -662,33 +741,8 @@ class ExtContras {
                     $data[] = $fieldVal;
                 }
 
-                // gathering the delete ajax data query
-                $tmpDeleteQuery = '\'&' . self::ROUTE_PROFILE_ACTS  . '=true' .
-                                  '&' . self::ROUTE_ACTION_DELETE . '=true' .
-                                  '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
-
-                $deleteDialogWID = 'dialog-modal_' . wf_inputid();
-                $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID .'\').dialog(\'close\') ';
-
-                $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
-                                               self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
-                                                $deleteDialogCloseFunc, $deleteDialogWID);
-
-                $actions.= wf_nbsp(2);
-                $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
-                                                         array(self::ROUTE_PROFILE_ACTS => 'true',
-                                                               self::ROUTE_ACTION_EDIT => 'true',
-                                                               self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
-                                                         '', web_edit_icon()
-                                                        );
-                $actions.= wf_nbsp(2);
-                $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
-                                                         array(self::ROUTE_PROFILE_ACTS => 'true',
-                                                               self::ROUTE_ACTION_CLONE => 'true',
-                                                               self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
-                                                         '', web_clone_icon()
-                                                        );
-                $data[] = $actions;
+                $actions = $this->getStdJSONActions($eachRecID['id'], self::ROUTE_PROFILE_ACTS, true);
+                $data[]  = $actions;
 
                 $json->addRow($data);
                 unset($data);
@@ -712,8 +766,7 @@ class ExtContras {
         $inputs             = '';
         $ctrctDTStart       = '';
         $ctrctDTEnd         = '';
-        $ctrctFileName      = '';
-        $ctrctNumber        = '';
+        $ctrctContract        = '';
         $ctrctSubject       = '';
         $ctrctAutoProlong   = '';
         $ctrctFullSum       = '';
@@ -729,12 +782,11 @@ class ExtContras {
             $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
         }
 
-        if (($editAction or $cloneAction) and !empty($this->allECProfiles[$contractID])) {
+        if (($editAction or $cloneAction) and !empty($this->allECContracts[$contractID])) {
             $contract           = $this->allECContracts[$contractID];
             $ctrctDTStart       = $contract[self::DBFLD_CTRCT_DTSTART];
             $ctrctDTEnd         = $contract[self::DBFLD_CTRCT_DTEND];
-            $ctrctFileName      = $contract[self::DBFLD_CTRCT_FILENAME];
-            $ctrctNumber        = $contract[self::DBFLD_CTRCT_NUMBER];
+            $ctrctContract      = $contract[self::DBFLD_CTRCT_CONTRACT];
             $ctrctSubject       = $contract[self::DBFLD_CTRCT_SUBJECT];
             $ctrctAutoProlong   = ubRouting::filters($contract[self::DBFLD_CTRCT_AUTOPRLNG], 'fi', FILTER_VALIDATE_BOOLEAN);
             $ctrctFullSum       = $contract[self::DBFLD_CTRCT_FULLSUM];
@@ -750,16 +802,16 @@ class ExtContras {
 
         $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTSTART, $ctrctDTStart, true, '', $emptyCheckClass);
         $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
-        $inputs.= wf_nbsp(2) . __('Date start');
+        $inputs.= wf_nbsp(2) . __('Date start') . $this->supFrmFldMark;
         $inputs.= wf_tag('span', true) . wf_nbsp(4);
 
         $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTEND, $ctrctDTEnd, true, '', $emptyCheckClass);
         $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
-        $inputs.= wf_nbsp(2) . __('Date end');
+        $inputs.= wf_nbsp(2) . __('Date end') . $this->supFrmFldMark;
         $inputs.= wf_tag('span', true) . wf_nbsp(4);
 
         $inputs.= wf_CheckInput(self::CTRL_CTRCT_AUTOPRLNG, __('Autoprolong'), true, $ctrctAutoProlong, '', '');
-        $inputs.= wf_TextInput(self::CTRL_CTRCT_NUMBER, __('Contract number') . $this->supFrmFldMark, $ctrctNumber, false, '', '',
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_CONTRACT, __('Contract number') . $this->supFrmFldMark, $ctrctContract, false, '', '',
                                $emptyCheckClass, '', '', false, $ctrlsLblStyle);
         $inputs.= wf_nbsp(4);
         $inputs.= wf_TextInput(self::CTRL_CTRCT_FULLSUM, __('Contract full sum'), $ctrctFullSum, true, '4', 'finance',
@@ -770,15 +822,8 @@ class ExtContras {
                                '', '', '', false, $ctrlsLblStyle);
         $inputs.= wf_delimiter(0);
 
-        if ($editAction and $this->fileStorageEnabled) {
-            $this->fileStorage->setItemid($contractID);
-            $inputs .= $this->fileStorage->renderFilesPreview(true);
-        }
-
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
-        $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
-
-//CTRL_CTRCT_FILENAME
+        $inputs.= wf_HiddenInput(self::ROUTE_CONTRACT_ACTS, 'true');
 
         if ($editAction) {
             $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
@@ -794,6 +839,18 @@ class ExtContras {
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true','POST',
                           $inputs, 'glamour ' . $formClass);
 
+        if ($editAction and $this->fileStorageEnabled) {
+            $this->fileStorage->setItemid($contractID);
+
+            $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+            $inputs.= wf_tag('h3');
+            $inputs.= __('Uploaded files');
+            $inputs.= wf_tag('h3', true);
+            $inputs.= $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                                                             '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'));
+            $inputs.= wf_tag('span', true);
+        }
+
         if ($modal and !empty($modalWinID)) {
             $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
         }
@@ -801,6 +858,63 @@ class ExtContras {
         return ($inputs);
     }
 
+    /**
+     * Renders JQDT for contracts dictionary
+     *
+     * @return string
+     */
+    public function contractRenderJQDT() {
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRACT_JSON . '=true';
+
+        $columns[] = __('ID');
+        $columns[] = __('Contract');
+        $columns[] = __('Date start');
+        $columns[] = __('Date end');
+        $columns[] = __('Contract subject');
+        $columns[] = __('Full sum');
+        $columns[] = __('Autoprolong');
+        $columns[] = __('Notes');
+        $columns[] = __('Uploaded files');
+        $columns[] = __('Actions');
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns);
+
+        return($result);
+    }
+
+    /**
+     * Renders JSON for contract's dictionary JQDT
+     */
+    public function contractRenderListJSON() {
+        $this->loadECProfiles();
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECContracts)) {
+            $data = array();
+
+            foreach ($this->allECContracts as $eachRecID) {
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    if ($fieldName == self::DBFLD_CTRCT_AUTOPRLNG) {
+                        $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
+                    } else {
+                        $data[] = $fieldVal;
+                    }
+                }
+
+                $this->fileStorage->setItemid($eachRecID['id']);
+                $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                                                                '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'));
+
+                $actions = $this->getStdJSONActions($eachRecID['id'], self::ROUTE_CONTRACT_ACTS, true);
+                $data[]  = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
 
     public function periodWebForm($modal = true, $periodID = 0, $editAction = false) {
         $inputs     = '';
@@ -858,32 +972,13 @@ class ExtContras {
      * @return string
      */
     public function periodRenderJQDT() {
-        $ajaxURLStr = '' . self::URL_ME . '&' . self::ROUTE_PERIOD_JSON . '=true';
-        $jqdtID = 'jqdt_' . md5($ajaxURLStr);
-        $errorModalWindowID = wf_InputId();
-        $columns = array();
-        $opts = '"order": [[ 0, "asc" ]]';
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PERIOD_JSON . '=true';
 
         $columns[] = __('ID');
         $columns[] = __('Period name');
         $columns[] = __('Actions');
 
-        $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
-
-        $result.= wf_tag('script', false, '', 'type="text/javascript"');
-        $result.= wf_JSEmptyFunc();
-        $result.= wf_JSElemInsertedCatcherFunc();
-
-        // putting a "form submitting catcher" JS code to process multiple modal and static forms
-        // with one piece of code and ajax requests
-        $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
-                                      '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
-                                      '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
-                                      self::MISC_ERRFORM_ID_PARAM);
-
-        // putting a piece of JS code to perform records delete action
-        $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
-        $result.= wf_tag('script', true);
+        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns);
 
         return($result);
     }
@@ -903,28 +998,8 @@ class ExtContras {
                     $data[] = $fieldVal;
                 }
 
-                // gathering the delete ajax data query
-                $tmpDeleteQuery = '\'&' . self::ROUTE_PERIOD_ACTS  . '=true' .
-                                  '&' . self::ROUTE_ACTION_DELETE . '=true' .
-                                  '&' . self::ROUTE_DELETE_REC_ID . '=' . $eachRecID['id'] . '\'';
-
-                $deleteDialogWID = 'dialog-modal_' . wf_inputid();
-                $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID .'\').dialog(\'close\') ';
-
-                $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
-                                              self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
-                                              $deleteDialogCloseFunc, $deleteDialogWID);
-
-                $actions = wf_JSAlert('#', web_delete_icon(), $this->messages->getDeleteAlert(),
-                          self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ')');
-                $actions.= wf_nbsp(2);
-                $actions.= wf_jsAjaxDynamicWindowButton(self::URL_ME,
-                                                        array(self::ROUTE_PERIOD_ACTS => 'true',
-                                                              self::ROUTE_ACTION_EDIT => 'true',
-                                                              self::ROUTE_EDIT_REC_ID => $eachRecID['id']),
-                                                        '', web_edit_icon()
-                                                       );
-                $data[] = $actions;
+                $actions = $this->getStdJSONActions($eachRecID['id'], self::ROUTE_PERIOD_ACTS);
+                $data[]  = $actions;
 
                 $json->addRow($data);
                 unset($data);

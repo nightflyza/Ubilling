@@ -10,6 +10,10 @@ file_put_contents('axcv', '');
             $ExtContras->profileRenderListJSON();
         }
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_CONTRACT_JSON)) {
+            $ExtContras->contractRenderListJSON();
+        }
+
         if (ubRouting::checkGet($ExtContras::ROUTE_PERIOD_JSON)){
             $ExtContras->periodRenderListJSON();
         }
@@ -23,9 +27,9 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::URL_DICTCONTRACTS)) {
             show_window(__('Counterparties contracts dictionary'),
-                $ExtContras->contractWebForm(false)
-                //. wf_delimiter() . $ExtContras->profileRenderJQDT()
-            );
+                        $ExtContras->contractWebForm(false)
+                        . wf_delimiter() . $ExtContras->contractRenderJQDT()
+                       );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
@@ -36,16 +40,39 @@ file_put_contents('axcv', '');
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
-            $dataArray = array($ExtContras::DBFLD_PROFILE_NAME => ubRouting::post($ExtContras::CTRL_PROFILE_NAME),
-                               $ExtContras::DBFLD_PROFILE_CONTACT => ubRouting::post($ExtContras::CTRL_PROFILE_CONTACT),
-                               $ExtContras::DBFLD_PROFILE_EDRPO => ubRouting::post($ExtContras::CTRL_PROFILE_EDRPO),
-                               $ExtContras::DBFLD_PROFILE_MAIL => ubRouting::post($ExtContras::CTRL_PROFILE_MAIL)
+            $dataArray = array($ExtContras::DBFLD_PROFILE_NAME      => ubRouting::post($ExtContras::CTRL_PROFILE_NAME),
+                               $ExtContras::DBFLD_PROFILE_CONTACT   => ubRouting::post($ExtContras::CTRL_PROFILE_CONTACT),
+                               $ExtContras::DBFLD_PROFILE_EDRPO     => ubRouting::post($ExtContras::CTRL_PROFILE_EDRPO),
+                               $ExtContras::DBFLD_PROFILE_MAIL      => ubRouting::post($ExtContras::CTRL_PROFILE_MAIL)
                               );
 
             $showResult = $ExtContras->processCRUDs('profileWebForm', $dataArray,'Profile',
                                                     $ExtContras::CTRL_PROFILE_NAME,
                                                     $ExtContras::TABLE_ECPROFILES,
-                                                    $ExtContras::DBFLD_PROFILE_NAME
+                                                    $ExtContras::DBFLD_PROFILE_NAME,
+                                                    true
+                                                   );
+            die($showResult);
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_CONTRACT_ACTS)) {
+            $autoprlngChk = ubRouting::post($ExtContras::CTRL_CTRCT_AUTOPRLNG, 'fi', FILTER_VALIDATE_BOOLEAN);
+            $autoprlngChk = (empty($autoprlngChk) ? 0 : 1);
+
+            $dataArray = array($ExtContras::DBFLD_CTRCT_CONTRACT    => ubRouting::post($ExtContras::CTRL_CTRCT_CONTRACT),
+                               $ExtContras::DBFLD_CTRCT_DTSTART     => ubRouting::post($ExtContras::CTRL_CTRCT_DTSTART),
+                               $ExtContras::DBFLD_CTRCT_DTEND       => ubRouting::post($ExtContras::CTRL_CTRCT_DTEND),
+                               $ExtContras::DBFLD_CTRCT_SUBJECT     => ubRouting::post($ExtContras::CTRL_CTRCT_SUBJECT),
+                               $ExtContras::DBFLD_CTRCT_FULLSUM     => ubRouting::post($ExtContras::CTRL_CTRCT_FULLSUM),
+                               $ExtContras::DBFLD_CTRCT_NOTES       => ubRouting::post($ExtContras::CTRL_CTRCT_NOTES),
+                               $ExtContras::DBFLD_CTRCT_AUTOPRLNG   => $autoprlngChk
+                              );
+
+            $showResult = $ExtContras->processCRUDs('contractWebForm', $dataArray,'Contract',
+                                                    $ExtContras::CTRL_CTRCT_CONTRACT,
+                                                    $ExtContras::TABLE_ECCONTRACTS,
+                                                    $ExtContras::DBFLD_CTRCT_CONTRACT,
+                                                    true
                                                    );
             die($showResult);
         }
@@ -56,7 +83,8 @@ file_put_contents('axcv', '');
             $showResult = $ExtContras->processCRUDs('periodWebForm', $dataArray, 'Period',
                                                     $ExtContras::CTRL_PERIOD_NAME,
                                                     $ExtContras::TABLE_ECPERIODS,
-                                                    $ExtContras::DBFLD_PERIOD_NAME
+                                                    $ExtContras::DBFLD_PERIOD_NAME,
+                                                    true
                                                    );
             die($showResult);
         }

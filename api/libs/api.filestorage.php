@@ -274,7 +274,7 @@ class FileStorage {
      * 
      * @return string
      */
-    protected function backUrlHelper() {
+    protected function backUrlHelper($customBackLinkURL = '') {
         $result = '';
         if ($this->scope == 'USERPROFILE') {
             $result = web_UserControls($this->itemId);
@@ -296,6 +296,14 @@ class FileStorage {
         if ($this->scope == 'WAREHOUSEINCOME') {
             $incomeId = ubRouting::filters($this->itemId, 'int');
             $result = wf_BackLink(Warehouse::URL_ME . '&' . Warehouse::URL_VIEWERS . '&showinid=' . $incomeId);
+        }
+
+        if (ubRouting::checkGet('callback') and empty($result)) {
+            $result = wf_BackLink(base64_decode(ubRouting::get('callback')));
+        }
+
+        if (!empty($customBackLinkURL)) {
+            $result = wf_BackLink($customBackLinkURL);
         }
 
         return ($result);
@@ -380,7 +388,7 @@ class FileStorage {
      * 
      * @return string
      */
-    public function renderFilesList() {
+    public function renderFilesList($customBackLinkURL = '') {
         if (empty($this->allFiles)) {
             $this->loadAllFiles();
         }
@@ -404,7 +412,7 @@ class FileStorage {
 
         $result .= wf_CleanDiv();
         $result .= wf_delimiter();
-        $result .= $this->backUrlHelper();
+        $result .= $this->backUrlHelper($customBackLinkURL);
         return ($result);
     }
 

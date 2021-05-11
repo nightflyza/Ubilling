@@ -3066,13 +3066,12 @@ PRIMARY KEY (`id`)
 
 CREATE TABLE IF NOT EXISTS `extcontras_contracts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `contract` varchar(150) DEFAULT NULL,
   `date_start` datetime NOT NULL,
   `date_end` datetime DEFAULT NULL,
-  `filename` varchar(255) DEFAULT NULL,
-  `number` varchar(150) DEFAULT NULL,
   `subject` varchar(255) DEFAULT NULL,
-  `autoprolong` tinyint(3) DEFAULT 1,
   `full_sum` double DEFAULT 0,
+  `autoprolong` tinyint(3) DEFAULT 1,
   `notes` varchar(255) DEFAULT NULL,
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
