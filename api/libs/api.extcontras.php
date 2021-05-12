@@ -378,7 +378,7 @@ class ExtContras {
      *
      * @return string
      */
-    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true) {
+    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true, $customJSCode = '') {
         $result     = '';
         $ajaxURLStr = $ajaxURL;
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
@@ -386,7 +386,27 @@ class ExtContras {
         $opts       = (empty($columnsOpts) ? '"order": [[ 0, "asc" ]]' : $columnsOpts);
 
         $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
+// todo:
+// var table = $('[id ^= "jqdt_"] [class = "dataTable"]').dataTable();
 
+// $(document).ready( function () {
+//  var table = $('#example').DataTable({
+//     "initComplete": function(settings, json) {
+//        var api = this.api();
+//        var row = api.row(function ( idx, data, node ) {
+//           return data[1] == 'Director';
+//        } );
+//        if (row.length > 0) {
+//          row.select()
+//          .show()
+//          .draw(false);
+//        }
+//
+//    },
+//
+//  });
+//
+//} );
         if ($stdJSForCRUDs) {
             $result .= wf_tag('script', false, '', 'type="text/javascript"');
             $result .= wf_JSEmptyFunc();
@@ -404,19 +424,26 @@ class ExtContras {
             $result .= wf_tag('script', true);
         }
 
+        if (!empty($customJSCode)) {
+            $result .= wf_tag('script', false, '', 'type="text/javascript"');
+            $result .= $customJSCode;
+            $result .= wf_tag('script', true);
+        }
+
         return ($result);
     }
 
     /**
      * Returns typical JQDT "actions" controls, like "Delete", "Edit", "Clone"
      *
-     * @param $recID
-     * @param $routeActs
+     * @param int $recID
+     * @param string $routeActs
      * @param bool $cloneButtonON
+     * @param string $customControls
      *
      * @return string
      */
-    protected function getStdJSONActions($recID, $routeActs, $cloneButtonON = false) {
+    protected function getStdJQDTActions($recID, $routeActs, $cloneButtonON = false, $customControls = '') {
         $actions = '';
 
         // gathering the delete ajax data query
@@ -448,6 +475,8 @@ class ExtContras {
                                                      '', web_clone_icon()
                                                     );
         }
+
+        $actions.= $customControls;
 
         return ($actions);
     }
@@ -711,7 +740,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function profileRenderJQDT() {
+    public function profileRenderJQDT($customJSCode = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
 
         $columns[] = __('ID');
@@ -721,7 +750,7 @@ class ExtContras {
         $columns[] = __('E-mail');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
 
         return($result);
     }
@@ -741,7 +770,7 @@ class ExtContras {
                     $data[] = $fieldVal;
                 }
 
-                $actions = $this->getStdJSONActions($eachRecID['id'], self::ROUTE_PROFILE_ACTS, true);
+                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_PROFILE_ACTS, true);
                 $data[]  = $actions;
 
                 $json->addRow($data);
@@ -752,8 +781,9 @@ class ExtContras {
         $json->getJson();
     }
 
+
     /**
-     * Returns a profile-editor web form
+     * Returns a contract-editor web form
      *
      * @param bool $modal
      * @param int $contractID
@@ -863,7 +893,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function contractRenderJQDT() {
+    public function contractRenderJQDT($customJSCode = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRACT_JSON . '=true';
 
         $columns[] = __('ID');
@@ -877,7 +907,7 @@ class ExtContras {
         $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
 
         return($result);
     }
@@ -905,7 +935,128 @@ class ExtContras {
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
                                                                 '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'));
 
-                $actions = $this->getStdJSONActions($eachRecID['id'], self::ROUTE_CONTRACT_ACTS, true);
+                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_CONTRACT_ACTS, true);
+                $data[]  = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
+
+    /**
+     * Returns a address-editor web form
+     *
+     * @param bool $modal
+     * @param int $addressID
+     * @param bool $editAction
+     * @param bool $cloneAction
+     *
+     * @return string
+     */
+    public function addressWebForm($modal = true, $addressID = 0, $editAction = false, $cloneAction = false) {
+        $inputs     = '';
+        $addrAddress    = '';
+        $addrSum = '';
+        $addrCtrctNotes   = '';
+        $addrNotes   = '';
+        $modalWinID     = ubRouting::post('modalWindowId');
+        $modalWinBodyID = ubRouting::post('modalWindowBodyId');
+
+        if ($modal) {
+            $formClass = self::MISC_CLASS_SUBMITFORM_MODAL;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK_MODAL;
+        } else {
+            $formClass = self::MISC_CLASS_SUBMITFORM;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
+        }
+
+        if (($editAction or $cloneAction) and !empty($this->allECAddresses[$addressID])) {
+            $address        = $this->allECAddresses[$addressID];
+            $addrAddress    = $address[self::DBFLD_ADDRESS_ADDR];
+            $addrSum        = $address[self::DBFLD_ADDRESS_SUM];
+            $addrCtrctNotes = $address[self::DBFLD_ADDRESS_CTNOTES];
+            $addrNotes      = $address[self::DBFLD_ADDRESS_NOTES];
+        }
+
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = ($editAction) ? __('Edit counterparty address') :
+                      (($cloneAction) ? __('Clone counterparty address') :
+                      __('Create counterparty address'));
+
+        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_ADDR, __('Address') . $this->supFrmFldMark, $addrAddress, true, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_SUM, __('Sum'), $addrSum, true, '', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_CTNOTES, __('Contract notes'), $addrCtrctNotes, true, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_NOTES, __('Notes'), $addrNotes, true, '', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_HiddenInput(self::ROUTE_ADDRESS_ACTS, 'true');
+
+        if ($editAction) {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $addressID);
+        } else {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_CREATE, 'true');
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTADDRESS . '=true','POST',
+                          $inputs, 'glamour ' . $formClass);
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
+        }
+
+        return ($inputs);
+    }
+
+    /**
+     * Renders JQDT for address dictionary
+     *
+     * @return string
+     */
+    public function addressRenderJQDT($customJSCode = '') {
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_ADDRESS_JSON . '=true';
+
+        $columns[] = __('ID');
+        $columns[] = __('Address');
+        $columns[] = __('Contract sum');
+        $columns[] = __('Contract notes');
+        $columns[] = __('Address notes');
+        $columns[] = __('Actions');
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+
+        return($result);
+    }
+
+    /**
+     * Renders JSON for address's dictionary JQDT
+     */
+    public function addressRenderListJSON() {
+        $this->loadECProfiles();
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECAddresses)) {
+            $data = array();
+
+            foreach ($this->allECAddresses as $eachRecID) {
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    $data[] = $fieldVal;
+                }
+
+                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_ADDRESS_ACTS, true);
                 $data[]  = $actions;
 
                 $json->addRow($data);
@@ -938,7 +1089,7 @@ class ExtContras {
         $submitCapt = ($editAction) ? __('Edit') : __('Create');
         $formCapt   = ($editAction) ? __('Edit period') : __('Create period');
 
-        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+        $ctrlsLblStyle = 'style="line-height: 3.4em"';
 
         $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name') . $this->supFrmFldMark, $prdName, true, '', '',
                                $emptyCheckClass, '', '', false, $ctrlsLblStyle);
@@ -971,14 +1122,14 @@ class ExtContras {
      *
      * @return string
      */
-    public function periodRenderJQDT() {
+    public function periodRenderJQDT($customJSCode = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PERIOD_JSON . '=true';
 
         $columns[] = __('ID');
         $columns[] = __('Period name');
         $columns[] = __('Actions');
 
-        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns);
+        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
 
         return($result);
     }
@@ -998,7 +1149,7 @@ class ExtContras {
                     $data[] = $fieldVal;
                 }
 
-                $actions = $this->getStdJSONActions($eachRecID['id'], self::ROUTE_PERIOD_ACTS);
+                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_PERIOD_ACTS);
                 $data[]  = $actions;
 
                 $json->addRow($data);

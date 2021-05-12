@@ -14,6 +14,10 @@ file_put_contents('axcv', '');
             $ExtContras->contractRenderListJSON();
         }
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_ADDRESS_JSON)) {
+            $ExtContras->addressRenderListJSON();
+        }
+
         if (ubRouting::checkGet($ExtContras::ROUTE_PERIOD_JSON)){
             $ExtContras->periodRenderListJSON();
         }
@@ -30,6 +34,13 @@ file_put_contents('axcv', '');
                         $ExtContras->contractWebForm(false)
                         . wf_delimiter() . $ExtContras->contractRenderJQDT()
                        );
+        }
+
+        if (ubRouting::checkGet($ExtContras::URL_DICTADDRESS)) {
+            show_window(__('Counterparties addresses dictionary'),
+                $ExtContras->addressWebForm(false)
+                . wf_delimiter() . $ExtContras->addressRenderJQDT()
+            );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
@@ -72,6 +83,22 @@ file_put_contents('axcv', '');
                                                     $ExtContras::CTRL_CTRCT_CONTRACT,
                                                     $ExtContras::TABLE_ECCONTRACTS,
                                                     $ExtContras::DBFLD_CTRCT_CONTRACT,
+                                                    true
+                                                   );
+            die($showResult);
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_ADDRESS_ACTS)) {
+            $dataArray = array($ExtContras::DBFLD_ADDRESS_ADDR      => ubRouting::post($ExtContras::CTRL_ADDRESS_ADDR),
+                               $ExtContras::DBFLD_ADDRESS_SUM       => ubRouting::post($ExtContras::CTRL_ADDRESS_SUM),
+                               $ExtContras::DBFLD_ADDRESS_CTNOTES   => ubRouting::post($ExtContras::CTRL_ADDRESS_CTNOTES),
+                               $ExtContras::DBFLD_ADDRESS_NOTES     => ubRouting::post($ExtContras::CTRL_ADDRESS_NOTES)
+                            );
+
+            $showResult = $ExtContras->processCRUDs('addressWebForm', $dataArray,'Address',
+                                                    $ExtContras::CTRL_ADDRESS_ADDR,
+                                                    $ExtContras::TABLE_ECADDRESS,
+                                                    $ExtContras::DBFLD_ADDRESS_ADDR,
                                                     true
                                                    );
             die($showResult);
