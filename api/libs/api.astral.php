@@ -2429,7 +2429,7 @@ function wf_JQDTColumnTotalSumJS() {
                 if ( typeof b === \'string\' ) {
                     b = b.replace(/[^\d.-]/g, \'\') * 1;
                 }
-         
+                         
                 return a + b;
             }, 0 );
         } );
