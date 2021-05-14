@@ -283,7 +283,7 @@ class PONizer {
      *
      * @var string
      */
-    protected $onuOfflineSignalLevel = '';
+    protected $onuOfflineSignalLevel = '-9000';
 
     /**
      * PON interfaces object placeholder
@@ -365,7 +365,7 @@ class PONizer {
         $this->showPONIfaceDescrMainTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_MAINTAB');
         $this->showPONIfaceDescrStatsTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_STATSTAB');
         $this->ponIfDescribe = $this->ubConfig->getAlterParam('PON_IFDESC');
-        $this->onuOfflineSignalLevel = $this->ubConfig->getAlterParam('PON_ONU_OFFLINE_SIGNAL');
+        $this->onuOfflineSignalLevel = $this->ubConfig->getAlterParam('PON_ONU_OFFLINE_SIGNAL', $this->onuOfflineSignalLevel);
 
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();

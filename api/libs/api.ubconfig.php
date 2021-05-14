@@ -38,7 +38,7 @@ class UbillingConfig {
      * Parameter getter for alterCfg
      * Returns $parameter from alter.ini or FALSE if parameter not defined
      * May return $retValIfParamEmptyOrNotExists value, instead of searched $parameter
-     * if searched $parameter is empty(BUT NOT NULL) or not defined
+     * if searched $parameter is FALSE (but NOT NULL) or not defined
      *
      * @param mixed $param
      * @param mixed $retValIfParamEmptyOrNotExists
@@ -48,7 +48,7 @@ class UbillingConfig {
     public function getAlterParam($param = false, $retValIfParamEmptyOrNotExists = null) {
         $alterParam = ($param and isset($this->alterCfg[$param])) ? $this->alterCfg[$param] : false;
 
-        if (empty($alterParam) and !is_null($retValIfParamEmptyOrNotExists)) {
+        if ($alterParam === false and !is_null($retValIfParamEmptyOrNotExists)) {
             $alterParam = $retValIfParamEmptyOrNotExists;
         }
 
