@@ -170,7 +170,8 @@ class UbillingUpdateManager {
      * @return MySQLDB
      */
     protected function ConnectDB() {
-        $this->DBConnection = new DbConnect($this->mySqlCfg['server'], $this->mySqlCfg['username'], $this->mySqlCfg['password'], $this->mySqlCfg['db'], true);
+        $dbport = (empty($this->mySqlCfg['port']) ? '' : $this->mySqlCfg['port']);
+        $this->DBConnection = new DbConnect($this->mySqlCfg['server'], $this->mySqlCfg['username'], $this->mySqlCfg['password'], $this->mySqlCfg['db'], true, false, $dbport);
     }
 
     /**

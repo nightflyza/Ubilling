@@ -279,6 +279,13 @@ class PONizer {
     protected $ponIfDescribe = false;
 
     /**
+     * Placeholder for PON_ONU_OFFLINE_SIGNAL alter.ini option
+     *
+     * @var string
+     */
+    protected $onuOfflineSignalLevel = '-9000';
+
+    /**
      * PON interfaces object placeholder
      *
      * @var object
@@ -358,6 +365,8 @@ class PONizer {
         $this->showPONIfaceDescrMainTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_MAINTAB');
         $this->showPONIfaceDescrStatsTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_STATSTAB');
         $this->ponIfDescribe = $this->ubConfig->getAlterParam('PON_IFDESC');
+        $this->onuOfflineSignalLevel = $this->ubConfig->getAlterParam('PON_ONU_OFFLINE_SIGNAL', $this->onuOfflineSignalLevel);
+
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
         }
@@ -1221,7 +1230,7 @@ class PONizer {
 //signal history filling
                         $historyFile = self::ONUSIG_PATH . md5($eachMac);
                         if ($signal == 'Offline') {
-                            $signal = -9000; //over 9000 offline signal level :P
+                            $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
                         }
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
@@ -1311,7 +1320,7 @@ class PONizer {
 //signal history filling
                         $historyFile = self::ONUSIG_PATH . md5($eachMac);
                         if ($signal == 'Offline') {
-                            $signal = -9000; //over 9000 offline signal level :P
+                            $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
                         }
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
@@ -1736,7 +1745,7 @@ class PONizer {
                     }
 
                     if (empty($signal) or $signal == 'Offline') {
-                        $signal = -9000; //over 9000 offline signal level :P
+                        $signal = $this->onuOfflineSignalLevel; //over 9000 offline signal level :P
                     }
 
                     file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
