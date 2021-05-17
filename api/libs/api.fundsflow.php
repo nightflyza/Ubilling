@@ -393,6 +393,13 @@ class FundsFlow {
                     $operation = __('Service') . ' ' . __('ProstoTV');
                 }
 
+                //YouTV fees
+                if (ispos($each['note'], 'YOUTV:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('YouTV');
+                }
+
+
                 //Self crediting fees
                 if (ispos($each['note'], 'SCFEE')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
