@@ -23,7 +23,7 @@ class DbConnect {
         if (!ispos($host, ':')) {
             $this->host = $host . ':' . $dbport;
         } else {
-        $this->host = $host;
+            $this->host = $host;
         }
 
         $this->user = $user;
