@@ -67,48 +67,55 @@ class PONBoxes {
      * @var string[]
      */
     protected $splittersTypesList = array('Coupler 5:95' => 'Coupler 5:95',
-                                          'Coupler 10:90' => 'Coupler 10:90',
-                                          'Coupler 15:85' => 'Coupler 15:85',
-                                          'Coupler 20:80' => 'Coupler 20:80',
-                                          'Coupler 25:75' => 'Coupler 25:75',
-                                          'Coupler 30:70' => 'Coupler 30:70',
-                                          'Coupler 35:65' => 'Coupler 35:65',
-                                          'Coupler 40:60' => 'Coupler 40:60',
-                                          'Coupler 45:55' => 'Coupler 45:55',
-                                          'Coupler 50:50' => 'Coupler 50:50',
-                                          'Splitter 1 x 2' => 'Splitter 1 x 2',
-                                          'Splitter 1 x 3' => 'Splitter 1 x 3',
-                                          'Splitter 1 x 4' => 'Splitter 1 x 4',
-                                          'Splitter 1 x 6' => 'Splitter 1 x 6',
-                                          'Splitter 1 x 8' => 'Splitter 1 x 8',
-                                          'Splitter 1 x 16' => 'Splitter 1 x 16',
-                                          'Splitter 1 x 32' => 'Splitter 1 x 32',
-                                          'Splitter 1 x 64' => 'Splitter 1 x 64'
+        'Coupler 10:90' => 'Coupler 10:90',
+        'Coupler 15:85' => 'Coupler 15:85',
+        'Coupler 20:80' => 'Coupler 20:80',
+        'Coupler 25:75' => 'Coupler 25:75',
+        'Coupler 30:70' => 'Coupler 30:70',
+        'Coupler 35:65' => 'Coupler 35:65',
+        'Coupler 40:60' => 'Coupler 40:60',
+        'Coupler 45:55' => 'Coupler 45:55',
+        'Coupler 50:50' => 'Coupler 50:50',
+        'Splitter 1 x 2' => 'Splitter 1 x 2',
+        'Splitter 1 x 3' => 'Splitter 1 x 3',
+        'Splitter 1 x 4' => 'Splitter 1 x 4',
+        'Splitter 1 x 6' => 'Splitter 1 x 6',
+        'Splitter 1 x 8' => 'Splitter 1 x 8',
+        'Splitter 1 x 16' => 'Splitter 1 x 16',
+        'Splitter 1 x 32' => 'Splitter 1 x 32',
+        'Splitter 1 x 64' => 'Splitter 1 x 64'
     );
+
+    /**
+     * Contains preloaded users address array
+     *
+     * @var array
+     */
+    protected $allUserAddress = array();
 
     /**
      * Routes, static defines etc
      */
-    const URL_ME                = '?module=ponboxes';
-    const PROUTE_NEWBOXNAME     = 'newboxname';
+    const URL_ME = '?module=ponboxes';
+    const PROUTE_NEWBOXNAME = 'newboxname';
     const PROUTE_NEWBOEXTENINFO = 'newboxexteninfo';
-    const PROUTE_NEWBOXGEO      = 'newboxgeo';
-    const PROUTE_NEWLINKBOX     = 'newlinkboxid';
-    const PROUTE_NEWLINKTYPE    = 'newlinktype';
-    const PROUTE_NEWLINKONU     = 'newlinkonu';
-    const ROUTE_BOXLIST         = 'ajboxes';
-    const ROUTE_BOXNAV          = 'boxidnav';
-    const ROUTE_MAP             = 'boxmap';
-    const ROUTE_BOXEDIT         = 'editboxid';
-    const ROUTE_BOXDEL          = 'deleteboxid';
-    const ROUTE_LINKDEL         = 'deletelinkid';
-    const ROUTE_SPLITTERADD     = 'addboxsplitters';
-    const ROUTE_SPLITTERDEL     = 'delboxsplitters';
-    const TABLE_BOXES           = 'ponboxes';
-    const TABLE_LINKS           = 'ponboxeslinks';
-    const TABLE_SPLITTERSLINKS  = 'ponboxes_splitters';
-    const TABLE_PONONU          = 'pononu';
-    const PHOTOSTORAGE_SCOPE    = 'PONBOXES';
+    const PROUTE_NEWBOXGEO = 'newboxgeo';
+    const PROUTE_NEWLINKBOX = 'newlinkboxid';
+    const PROUTE_NEWLINKTYPE = 'newlinktype';
+    const PROUTE_NEWLINKONU = 'newlinkonu';
+    const ROUTE_BOXLIST = 'ajboxes';
+    const ROUTE_BOXNAV = 'boxidnav';
+    const ROUTE_MAP = 'boxmap';
+    const ROUTE_BOXEDIT = 'editboxid';
+    const ROUTE_BOXDEL = 'deleteboxid';
+    const ROUTE_LINKDEL = 'deletelinkid';
+    const ROUTE_SPLITTERADD = 'addboxsplitters';
+    const ROUTE_SPLITTERDEL = 'delboxsplitters';
+    const TABLE_BOXES = 'ponboxes';
+    const TABLE_LINKS = 'ponboxeslinks';
+    const TABLE_SPLITTERSLINKS = 'ponboxes_splitters';
+    const TABLE_PONONU = 'pononu';
+    const PHOTOSTORAGE_SCOPE = 'PONBOXES';
 
     /**
      * Creates new PONBoxes instance
@@ -121,6 +128,7 @@ class PONBoxes {
         $this->initMessages();
         $this->initDatabase();
         if ($loadFullData) {
+            $this->loadAllAddress();
             $this->loadBoxes();
             $this->loadLinks();
             $this->loadSplittersLinks();
@@ -144,6 +152,15 @@ class PONBoxes {
     protected function initPhotoStorage() {
         $this->photoStorage = new PhotoStorage();
         //$this->photoStorage->set
+    }
+
+    /**
+     * Loads all users address data into protected property
+     * 
+     * @return void
+     */
+    protected function loadAllAddress() {
+        $this->allUserAddress = zb_AddressGetFulladdresslistCached();
     }
 
     /**
@@ -577,15 +594,19 @@ class PONBoxes {
 
             if (!empty($this->allLinks)) {
                 foreach ($this->allLinks as $io => $eachLink) {
+                    //ONU ID link search
                     if ($eachLink['onuid'] == $onuId) {
                         $result[$eachLink['boxid']] = $eachLink['boxid'];
                     }
 
+                    // This is the water.
+                    // And this is the well.
+                    // Drink full and descend.
+                    // The horse is the white of the eyes and dark within.
+                    
                     if (!empty($onuUser)) {
-                        //fast and dirty address search
-                        $allUserAddress = zb_AddressGetFulladdresslistCached();
-                        $onuUserAddress = @$allUserAddress[$onuUser];
-
+                        //address search
+                        $onuUserAddress = @$this->allUserAddress[$onuUser];
                         if ($eachLink['address'] == $onuUserAddress) {
                             $result[$eachLink['boxid']] = $eachLink['id'];
                         }
@@ -642,9 +663,9 @@ class PONBoxes {
     protected function getLinkEntityControl($linkData) {
         $result = '';
         if (!empty($linkData)) {
-            if (!empty($linkData['login']) and !empty($linkData['address'])) {
+            if (!empty($linkData['login']) and ! empty($linkData['address'])) {
                 $result .= wf_Link('?module=userprofile&username=' . $linkData['login'], web_profile_icon() . ' ' . $linkData['login'])
-                           . wf_img('skins/icon_build.gif', __('Address')) . ' ' . $linkData['address'];
+                        . wf_img('skins/icon_build.gif', __('Address')) . ' ' . $linkData['address'];
             } else {
                 if (!empty($linkData['login'])) {
                     $result .= wf_Link('?module=userprofile&username=' . $linkData['login'], web_profile_icon() . ' ' . $linkData['login']);
@@ -938,4 +959,5 @@ class PONBoxes {
         $inputs .= $photoStorage->renderImagesList();
         return ($inputs);
     }
+
 }
