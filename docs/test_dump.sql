@@ -3078,6 +3078,20 @@ CREATE TABLE IF NOT EXISTS `extcontras_periods` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `extcontras_invoices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `contras_rec_id` int(11) NOT NULL,
+  `internal_number` varchar(150) DEFAULT '',
+  `invoice_number` varchar(150) NOT NULL,
+  `date` datetime NOT NULL,
+  `summ` double DEFAULT 0,
+  `summ_vat` double DEFAULT 0,
+  `notes` varchar(250) DEFAULT '',
+  `incoming` tinyint(1) DEFAULT 0,
+  `outgoing` tinyint(1) DEFAULT 0,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `contras_rec_id` int(11) NOT NULL,
@@ -3085,7 +3099,7 @@ CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `date` datetime NOT NULL,
   `summ_accrual` double DEFAULT 0,
   `summ_payment` double DEFAULT 0,
-  `to_us` tinyint(1) DEFAULT 0,
-  `from_us` tinyint(1) DEFAULT 0,
+  `incoming` tinyint(1) DEFAULT 0,
+  `outgoing` tinyint(1) DEFAULT 0,
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;

@@ -45,11 +45,25 @@ class ExtContras {
     protected $dbECMoney = null;
 
     /**
+     * Database abstraction layer with for `extcontras_invoices` table
+     *
+     * @var object
+     */
+    protected $dbECInvoices = null;
+
+    /**
      * Contains all DB entities objects in array($tableName => $dbEntity)
      *
      * @var array
      */
     protected $dbEntitiesAll = array();
+
+    /**
+     * Contains all data entities objects in array($tableName => $dataEntity)
+     *
+     * @var array
+     */
+    public $dataEntitiesAll = array();
 
     /**
      * Contains all extcontras records from DB as ecid => ecdata
@@ -63,7 +77,7 @@ class ExtContras {
      *
      * @var array
      */
-    protected $allECProfiles = array();
+    public $allECProfiles = array();
 
     /**
      * Contains all extcontras contracts records from DB eccontractid => eccontractdata
@@ -94,11 +108,25 @@ class ExtContras {
     protected $allECMoney = array();
 
     /**
+     * Contains all extcontras invoices records from DB ecinvoiceid => ecinvoicedata
+     *
+     * @var array
+     */
+    protected $allECInvoices = array();
+
+    /**
      * System config object placeholder
      *
      * @var null
      */
     protected $ubConfig = null;
+
+    /**
+     * UbillingCache instance placeholder
+     *
+     * @var null
+     */
+    protected $ubCache = null;
 
     /**
      * System message helper object placeholder
@@ -129,6 +157,13 @@ class ExtContras {
     protected $ecEditablePreiod = 60;
 
     /**
+     * Placeholder for EXTCONTRAS_CACHE_LIFETIME from alter.ini
+     *
+     * @var int
+     */
+    protected $cacheLifeTime = 1800;
+
+    /**
      * Placeholder for cfr('EXTCONTRASRO')
      *
      * @var bool
@@ -145,12 +180,15 @@ class ExtContras {
     /**
      * Routes, static defines, etc
      */
+    const SAY_MY_NAME = 'CONTRAS';
+
     const URL_ME = '?module=extcontras';
-    const URL_DICTPROFILES  = 'dictprofiles';
-    const URL_DICTCONTRACTS = 'dictcontracts';
-    const URL_DICTADDRESS   = 'dictaddress';
-    const URL_DICTPERIODS   = 'dictperiods';
-    const URL_FINOPERATIONS = 'finoperations';
+    const URL_DICTPROFILES      = 'dictprofiles';
+    const URL_DICTCONTRACTS     = 'dictcontracts';
+    const URL_DICTADDRESS       = 'dictaddress';
+    const URL_DICTPERIODS       = 'dictperiods';
+    const URL_FINOPERATIONS     = 'finoperations';
+    const URL_INVOICES          = 'invoices';
 
     const DBFLD_COMMON_ID       = 'id';
 
@@ -158,6 +196,7 @@ class ExtContras {
     const CTRL_PROFILE_EDRPO    = 'profedrpo';
     const CTRL_PROFILE_CONTACT  = 'profcontact';
     const CTRL_PROFILE_MAIL     = 'profmail';
+    const CTRL_PROFILE_SELECTOR = 'profdropdown';
 
     const DBFLD_PROFILE_NAME    = 'name';
     const DBFLD_PROFILE_EDRPO   = 'edrpo';
@@ -171,6 +210,7 @@ class ExtContras {
     const CTRL_CTRCT_AUTOPRLNG  = 'ctrctautoprolong';
     const CTRL_CTRCT_FULLSUM    = 'ctrctfullsum';
     const CTRL_CTRCT_NOTES      = 'ctrctnotes';
+    const CTRL_CTRCT_SELECTOR   = 'ctrctdropdown';
 
     const DBFLD_CTRCT_CONTRACT  = 'contract';
     const DBFLD_CTRCT_DTSTART   = 'date_start';
@@ -184,14 +224,15 @@ class ExtContras {
     const CTRL_ADDRESS_SUM      = 'addrsumm';
     const CTRL_ADDRESS_CTNOTES  = 'addrctrctnotes';
     const CTRL_ADDRESS_NOTES    = 'addrnotes';
+    const CTRL_ADDRESS_SELECTOR = 'addrdropdown';
 
     const DBFLD_ADDRESS_ADDR    = 'address';
     const DBFLD_ADDRESS_SUM     = 'summ';
     const DBFLD_ADDRESS_CTNOTES = 'contract_notes';
     const DBFLD_ADDRESS_NOTES   = 'notes';
 
-    const CTRL_PERIOD_SELECTOR  = 'prdselector';
     const CTRL_PERIOD_NAME      = 'prdname';
+    const CTRL_PERIOD_SELECTOR  = 'prddropdown';
     const DBFLD_PERIOD_NAME     = 'period_name';
 
     const CTRL_MONEY_CONTRASID  = 'moneycontrasrecid';
@@ -199,16 +240,34 @@ class ExtContras {
     const CTRL_MONEY_DATE       = 'moneydate';
     const CTRL_MONEY_SUMACCRUAL = 'moneysummaccrual';
     const CTRL_MONEY_SUNPAYMENT = 'moneysummpayment';
-    const CTRL_MONEY_TOUS       = 'moneytous';
-    const CTRL_MONEY_FROMUS     = 'moneyfromus';
+    const CTRL_MONEY_INOUT      = 'moneyinout';
 
     const DBFLD_MONEY_CONTRASID = 'contras_rec_id';
     const DBFLD_MONEY_ACCRUALID = 'accrual_id';
     const DBFLD_MONEY_DATE      = 'date';
     const DBFLD_MONEY_SMACCRUAL = 'summ_accrual';
     const DBFLD_MONEY_SMPAYMENT = 'summ_payment';
-    const DBFLD_MONEY_TOUS      = 'to_us';
-    const DBFLD_MONEY_FROMUS    = 'from_us';
+    const DBFLD_MONEY_INCOMING  = 'incoming';
+    const DBFLD_MONEY_OUTGOING  = 'outgoing';
+
+    const CTRL_INVOICES_CONTRASID       = 'invocontrasrecid';
+    const CTRL_INVOICES_INTERNAL_NUM    = 'invointernalnum';
+    const CTRL_INVOICES_INVOICE_NUM     = 'invoicenum';
+    const CTRL_INVOICES_DATE            = 'invodate';
+    const CTRL_INVOICES_SUM             = 'invosumm';
+    const CTRL_INVOICES_SUM_VAT         = 'invosummvat';
+    const CTRL_INVOICES_NOTES           = 'invonotes';
+    const CTRL_INVOICES_IN_OUT          = 'invoinout';
+
+    const DBFLD_INVOICES_CONTRASID      = 'contras_rec_id';
+    const DBFLD_INVOICES_INTERNAL_NUM   = 'internal_number';
+    const DBFLD_INVOICES_INVOICE_NUM    = 'invoice_number';
+    const DBFLD_INVOICES_DATE           = 'date';
+    const DBFLD_INVOICES_SUM            = 'summ';
+    const DBFLD_INVOICES_SUM_VAT        = 'summ_vat';
+    const DBFLD_INVOICES_NOTES          = 'notes';
+    const DBFLD_INVOICES_INCOMING       = 'incoming';
+    const DBFLD_INVOICES_OUTGOING       = 'outgoing';
 
 
     const ROUTE_ACTION_CREATE   = 'doCreate';
@@ -229,6 +288,9 @@ class ExtContras {
     const ROUTE_PERIOD_JSON     = 'periodlistjson';
     const ROUTE_FINOPS_ACTS     = 'finopsacts';
     const ROUTE_FINOPS_JSON     = 'finopslistjson';
+    const ROUTE_INVOICES_ACTS   = 'invoicesacts';
+    const ROUTE_INVOICES_JSON   = 'invoiceslistjson';
+    const ROUTE_FORCECACHE_UPD  = 'extcontrasforcecacheupdate';
 
 
     const TABLE_EXTCONTRAS      = 'extcontras';
@@ -237,6 +299,7 @@ class ExtContras {
     const TABLE_ECADDRESS       = 'extcontras_address';
     const TABLE_ECPERIODS       = 'extcontras_periods';
     const TABLE_ECMONEY         = 'extcontras_money';
+    const TABLE_ECINVOICES      = 'extcontras_invoices';
 
     const MISC_FILESTORAGE_SCOPE         = 'EXCONTRAS';
     const MISC_CLASS_MWID_CTRL           = '__FormModalWindowID';
@@ -250,8 +313,9 @@ class ExtContras {
 
     public function __construct() {
         global $ubillingConfig;
-        $this->ubConfig     = $ubillingConfig;
-        $this->messages     = new UbillingMessageHelper();
+        $this->ubConfig = $ubillingConfig;
+        $this->ubCache  = new UbillingCache();
+        $this->messages = new UbillingMessageHelper();
 
         $this->loadOptions();
         $this->initDBEntities();
@@ -269,22 +333,32 @@ class ExtContras {
      */
     protected function initDBEntities() {
         $this->dbExtContras  = new NyanORM(self::TABLE_EXTCONTRAS);
-        $this->dbEntitiesAll[self::TABLE_EXTCONTRAS]  = $this->dbExtContras;
+        $this->dbEntitiesAll[self::TABLE_EXTCONTRAS]    = $this->dbExtContras;
+        $this->dataEntitiesAll[self::TABLE_EXTCONTRAS]  = 'allExtContras';
 
         $this->dbECProfiles  = new NyanORM(self::TABLE_ECPROFILES);
-        $this->dbEntitiesAll[self::TABLE_ECPROFILES]  = $this->dbECProfiles;
+        $this->dbEntitiesAll[self::TABLE_ECPROFILES]    = $this->dbECProfiles;
+        $this->dataEntitiesAll[self::TABLE_ECPROFILES]  = 'allECProfiles';
 
         $this->dbECContracts = new NyanORM(self::TABLE_ECCONTRACTS);
-        $this->dbEntitiesAll[self::TABLE_ECCONTRACTS] = $this->dbECContracts;
+        $this->dbEntitiesAll[self::TABLE_ECCONTRACTS]   = $this->dbECContracts;
+        $this->dataEntitiesAll[self::TABLE_ECCONTRACTS] = 'allECContracts';
 
         $this->dbECAddress   = new NyanORM(self::TABLE_ECADDRESS);
-        $this->dbEntitiesAll[self::TABLE_ECADDRESS]   = $this->dbECAddress;
+        $this->dbEntitiesAll[self::TABLE_ECADDRESS]     = $this->dbECAddress;
+        $this->dataEntitiesAll[self::TABLE_ECADDRESS]   = 'allECAddresses';
 
         $this->dbECPeriods   = new NyanORM(self::TABLE_ECPERIODS);
-        $this->dbEntitiesAll[self::TABLE_ECPERIODS]   = $this->dbECPeriods;
+        $this->dbEntitiesAll[self::TABLE_ECPERIODS]     = $this->dbECPeriods;
+        $this->dataEntitiesAll[self::TABLE_ECPERIODS]   = 'allECPeriods';
 
         $this->dbECMoney     = new NyanORM(self::TABLE_ECMONEY);
-        $this->dbEntitiesAll[self::TABLE_ECMONEY]     = $this->dbECMoney;
+        $this->dbEntitiesAll[self::TABLE_ECMONEY]       = $this->dbECMoney;
+        $this->dataEntitiesAll[self::TABLE_ECMONEY]     = 'allECMoney';
+
+        $this->dbECInvoices  = new NyanORM(self::TABLE_ECINVOICES);
+        $this->dbEntitiesAll[self::TABLE_ECINVOICES]    = $this->dbECInvoices;
+        $this->dataEntitiesAll[self::TABLE_ECINVOICES]  = 'allECInvoices';
     }
 
     /**
@@ -305,67 +379,84 @@ class ExtContras {
     }
 
     /**
+     * Returns data entity object by table name
+     *
+     * @param $dataEntityName
+     *
+     * @return mixed|null
+     */
+    public function getDataEntity($dataEntityName) {
+        $result = null;
+
+        if (!empty($this->dataEntitiesAll[$dataEntityName])) {
+            $result = $this->dataEntitiesAll[$dataEntityName];
+        }
+
+        return ($result);
+    }
+
+    /**
      * Loads alter.ini options
      */
     protected function loadOptions() {
         $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
         $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
         $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? 60 : $this->ecEditablePreiod;
+        $this->cacheLifeTime      = $this->ubConfig->getAlterParam('EXTCONTRAS_CACHE_LIFETIME', 1800);
         $this->ecReadOnlyAccess   = (!cfr('EXTCONTRASRW'));
     }
 
-    /**
-     * Gets external counterparties records from DB
+     /**
+     * Loads data from a DB table or UB cache
+     *
+     * @param $tableName
+     * @param $cacheKey
+     * @param bool $forceDBLoad
+     *
+     * @return mixed
      */
-    protected function loadExtContras() {
-        $this->allExtContras = $this->dbExtContras->getAll('id');
+    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false) {
+log_register('tableName ' . $tableName);
+        $cacheKey       = strtoupper($cacheKey);
+        $dbInstance     = $this->getDBEntity($tableName);
+        $dataInstance   = $this->getDataEntity($tableName);
+        $thisInstance   = $this;
+log_register('cacheKey ' . $cacheKey);
+log_register('dataInstance ' . $dataInstance);
+log_register('dbInstance ' . print_r($dbInstance, true));
+
+if ($tableName == 'extcontras_address') {$dbInstance->setDebug(true, true); }
+
+        if ($forceDBLoad) {
+            $this->$dataInstance = $dbInstance->getAll('id');
+            $this->ubCache->set($cacheKey, $this->$dataInstance, $this->cacheLifeTime);
+        } else {
+            $this->$dataInstance = $this->ubCache->getCallback($cacheKey, function () use ($thisInstance, $tableName, $cacheKey) {
+                                                                return ($thisInstance->loadDataFromTableCached($tableName, $cacheKey, true));
+                                                            }, $this->cacheLifeTime);
+        }
+log_register('dataInstance inner ' . print_r($this->$dataInstance, true));
+        return ($this->$dataInstance);
     }
 
-    /**
-     * Gets external counterparties profiles records from DB
-     */
-    protected function loadECProfiles() {
-        $this->allECProfiles = $this->dbECProfiles->getAll('id');
-    }
-
-    /**
-     * Gets external counterparties contracts records from DB
-     */
-    protected function loadECContracts() {
-        $this->allECContracts = $this->dbECContracts->getAll('id');
-    }
-
-    /**
-     * Gets external counterparties addresses records from DB
-     */
-    protected function loadECAddresses() {
-        $this->allECAddresses = $this->dbECAddress->getAll('id');
-    }
-
-    /**
-     * Gets external counterparties periods records from DB
-     */
-    protected function loadECPeriods() {
-        $this->allECPeriods = $this->dbECPeriods->getAll('id');
-    }
-
-    /**
-     * Gets external counterparties money records from DB
-     */
-    protected function loadECMoney() {
-        $this->allECMoney = $this->dbECMoney->getAll('id');
-    }
-
-    /**
+     /**
      * Unified data loader
      */
-    protected function loadAllData() {
-        $this->loadExtContras();
-        $this->loadECProfiles();
-        $this->loadECContracts();
-        $this->loadECAddresses();
-        $this->loadECPeriods();
-        $this->loadECMoney();
+    protected function loadAllData($forceDBLoad = false) {
+        $this->loadDataFromTableCached(self::TABLE_EXTCONTRAS, self::TABLE_EXTCONTRAS, $forceDBLoad);
+        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES, $forceDBLoad);
+        $this->loadDataFromTableCached(self::TABLE_ECCONTRACTS, self::TABLE_ECCONTRACTS, $forceDBLoad);
+        $this->loadDataFromTableCached(self::TABLE_ECADDRESS, self::TABLE_ECADDRESS, $forceDBLoad);
+        $this->loadDataFromTableCached(self::TABLE_ECPERIODS, self::TABLE_ECPERIODS, $forceDBLoad);
+        $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, $forceDBLoad);
+        $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES, $forceDBLoad);
+    }
+
+    /**
+     * Forcibly updates cached data
+     */
+    public function refreshCacheForced() {
+        $this->loadAllData(true);
     }
 
     /**
@@ -375,6 +466,7 @@ class ExtContras {
      * @param $columnsArr
      * @param string $columnsOpts
      * @param bool $stdJSForCRUDs
+     * @param string $customJSCode
      *
      * @return string
      */
@@ -491,7 +583,7 @@ class ExtContras {
      * @param string $postFrmCtrlValToChk
      * @param string $dbTabName
      * @param string $dbTabFieldName
-     *
+     * @param bool $checkUniqOnCreate
      * @return mixed|string
      *
      * @throws Exception
@@ -587,7 +679,8 @@ class ExtContras {
     public function renderMainControls() {
         $inputs = '';
 
-        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS, wf_img_sized('skins/ukv/dollar.png') . ' ' . __('External counterparties list'), false, 'ubButton');
+        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true', wf_img_sized('skins/ukv/dollar.png') . ' ' . __('External counterparties list'), false, 'ubButton');
+        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_INVOICES . '=true', wf_img_sized('skins/menuicons/receipt_small.png') . ' ' . __('Invoices list'), false, 'ubButton');
 
         // dictionaries forms
         $dictControls = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true', wf_img_sized('skins/extcontrasprofiles.png') . ' ' . __('Counterparties profiles dictionary'), false, 'ubButton');
@@ -595,8 +688,48 @@ class ExtContras {
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTADDRESS . '=true', wf_img_sized('skins/extcontrasaddr.png') . ' ' . __('Address dictionary'), false, 'ubButton');
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true', wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
         $inputs.= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
+        $inputs.= wf_jsAjaxDynamicWindowButton(self::URL_ME, array(self::ROUTE_FORCECACHE_UPD => 'true'), wf_img('skins/refresh.gif') . ' ' . __('Refresh cache data'), '', 'ubButton');
 
         return ($inputs);
+    }
+
+    /**
+     * Returns dropdown selector control
+     *
+     * @param $selectorData
+     * @param $dbFiledName
+     * @param $ctrlName
+     * @param $ctrlLabel
+     * @param string $selected
+     * @param bool $br
+     * @param bool $sort
+     * @param string $ctrlID
+     * @param string $ctrlClass
+     * @param string $options
+     *
+     * @return string
+     */
+    public function renderWebSelector($selectorData, $dbFiledName, $ctrlName, $ctrlLabel, $selected = '',
+                                      $br = false, $sort = false, $ctrlID = '', $ctrlClass = '', $options = '') {
+        $tmpArray = array();
+
+        if (!empty($selectorData)) {
+            foreach ($selectorData as $eachID => $eachRec) {
+                $tmpValue = '';
+
+                if (is_array($dbFiledName)) {
+                    foreach ($dbFiledName as $eachdbFieldName) {
+                        $tmpValue.= $eachRec[$eachdbFieldName] . ' ';
+                    }
+                } else {
+                    $tmpValue = $eachRec[$dbFiledName];
+                }
+
+                $tmpArray[$eachID] = trim($tmpValue);
+            }
+        }
+
+        return (wf_Selector($ctrlName, $tmpArray, $ctrlLabel));
     }
 
     /**
@@ -604,7 +737,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function renderPeriodSelector() {
+    public function renderWebSelectorPeriod() {
         $tmpArray = array();
 
         if (!empty($this->allECPeriods)) {
@@ -651,11 +784,14 @@ class ExtContras {
 
             log_register(get_class($this) . ': ADDED new record to `' . $dbEntity->getTableName() . '`');
         }
+
+        $this->loadDataFromTableCached($dbEntity->getTableName(true), $dbEntity->getTableName(true), true);
     }
 
     public function recordDelete($dbEntity, $recordID) {
         $dbEntity->where(self::DBFLD_COMMON_ID, '=', $recordID);
         $dbEntity->delete();
+        $this->loadDataFromTableCached($dbEntity->getTableName(true), $dbEntity->getTableName(true), true);
 
         log_register(get_class($this) . ': REMOVED record ID: ' . $recordID . ' from table `' . $dbEntity->getTableName() . '`');
     }
@@ -738,6 +874,8 @@ class ExtContras {
     /**
      * Renders JQDT for profiles dictionary
      *
+     * @param string $customJSCode
+     *
      * @return string
      */
     public function profileRenderJQDT($customJSCode = '') {
@@ -759,7 +897,7 @@ class ExtContras {
      * Renders JSON for profile's dictionary JQDT
      */
     public function profileRenderListJSON() {
-        $this->loadECProfiles();
+        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allECProfiles)) {
@@ -870,7 +1008,7 @@ class ExtContras {
                           $inputs, 'glamour ' . $formClass);
 
         if ($editAction and $this->fileStorageEnabled) {
-            $this->fileStorage->setItemid($contractID);
+            $this->fileStorage->setItemid(self::URL_DICTCONTRACTS . $contractID);
 
             $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
             $inputs.= wf_tag('h3');
@@ -890,6 +1028,8 @@ class ExtContras {
 
     /**
      * Renders JQDT for contracts dictionary
+     *
+     * @param string $customJSCode
      *
      * @return string
      */
@@ -916,7 +1056,7 @@ class ExtContras {
      * Renders JSON for contract's dictionary JQDT
      */
     public function contractRenderListJSON() {
-        $this->loadECProfiles();
+        $this->loadDataFromTableCached(self::TABLE_ECCONTRACTS, self::TABLE_ECCONTRACTS);
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allECContracts)) {
@@ -931,7 +1071,7 @@ class ExtContras {
                     }
                 }
 
-                $this->fileStorage->setItemid($eachRecID['id']);
+                $this->fileStorage->setItemid(self::URL_DICTCONTRACTS . $eachRecID['id']);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
                                                                 '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'));
 
@@ -1024,6 +1164,8 @@ class ExtContras {
     /**
      * Renders JQDT for address dictionary
      *
+     * @param string $customJSCode
+     *
      * @return string
      */
     public function addressRenderJQDT($customJSCode = '') {
@@ -1045,7 +1187,7 @@ class ExtContras {
      * Renders JSON for address's dictionary JQDT
      */
     public function addressRenderListJSON() {
-        $this->loadECProfiles();
+        $this->loadDataFromTableCached(self::TABLE_ECADDRESS, self::TABLE_ECADDRESS);
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allECAddresses)) {
@@ -1120,6 +1262,8 @@ class ExtContras {
     /**
      * Renders JQDT for period dictionary
      *
+     * @param string $customJSCode
+     *
      * @return string
      */
     public function periodRenderJQDT($customJSCode = '') {
@@ -1138,7 +1282,7 @@ class ExtContras {
      * Renders JSON for period's dictionary JQDT
      */
     public function periodRenderListJSON() {
-        $this->loadECPeriods();
+        $this->loadDataFromTableCached(self::TABLE_ECPERIODS, self::TABLE_ECPERIODS);
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allECPeriods)) {
@@ -1157,6 +1301,197 @@ class ExtContras {
             }
         }
 
+        $json->getJson();
+    }
+
+    /**
+     * Returns a contract-editor web form
+     *
+     * @param bool $modal
+     * @param int $invoiceID
+     * @param bool $editAction
+     * @param bool $cloneAction
+     *
+     * @return string
+     */
+    public function invoiceWebForm($modal = true, $invoiceID = 0, $editAction = false, $cloneAction = false) {
+        $inputs             = '';
+        $invoContrasID      = 1;
+        $invoInternalNum    = '';
+        $invoNumber         = '';
+        $invoDate           = '';
+        $invoSum            = '';
+        $invoSumVAT         = '';
+        $invoNotes          = '';
+        $invoIncoming       = '';
+        $invoOutgoing       = '';
+        $modalWinID     = ubRouting::post('modalWindowId');
+        $modalWinBodyID = ubRouting::post('modalWindowBodyId');
+
+        if ($modal) {
+            $formClass = self::MISC_CLASS_SUBMITFORM_MODAL;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK_MODAL;
+        } else {
+            $formClass = self::MISC_CLASS_SUBMITFORM;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
+        }
+
+        if (($editAction or $cloneAction) and !empty($this->allECInvoices[$invoiceID])) {
+            $invoice            = $this->allECInvoices[$invoiceID];
+            $invoContrasID      = $invoice[self::DBFLD_INVOICES_CONTRASID];
+            $invoInternalNum    = $invoice[self::DBFLD_INVOICES_INTERNAL_NUM];
+            $invoNumber         = $invoice[self::DBFLD_INVOICES_INVOICE_NUM];
+            $invoDate           = $invoice[self::DBFLD_INVOICES_DATE];
+            $invoSum            = $invoice[self::DBFLD_INVOICES_SUM];
+            $invoSumVAT         = $invoice[self::DBFLD_INVOICES_SUM_VAT];
+            $invoNotes          = $invoice[self::DBFLD_INVOICES_NOTES];
+            $invoIncoming       = ubRouting::filters($invoice[self::DBFLD_INVOICES_INCOMING], 'fi', FILTER_VALIDATE_BOOLEAN);
+            $invoOutgoing       = ubRouting::filters($invoice[self::DBFLD_INVOICES_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = ($editAction) ? __('Edit counterparty contract') :
+            (($cloneAction) ? __('Clone counterparty contract') :
+                __('Create counterparty contract'));
+
+        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_INVOICE_NUM, __('Invoice number') . $this->supFrmFldMark, $invoNumber, false, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_nbsp(4);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_INTERNAL_NUM, __('Invoice internal number'), $invoInternalNum, false, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= wf_DatePickerPreset(self::CTRL_INVOICES_DATE, $invoDate, true, '', $emptyCheckClass);
+        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+        $inputs.= wf_nbsp(2) . __('Invoice date') . $this->supFrmFldMark;
+        $inputs.= wf_tag('span', true);
+
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_SUM, __('Invoice sum') . $this->supFrmFldMark, $invoSum, false, '4', 'finance',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_SUM_VAT, __('Invoice VAT sum'), $invoSumVAT, false, '4', 'finance',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(1);
+
+        //$inputs.= $this->renderWebSelector($this->allExtContras, self::DBFLD_CON)
+        $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME, self::DBFLD_PROFILE_CONTACT),
+                                           self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID,
+                                           false, true, '', '', $ctrlsLblStyle);
+
+        $inputs.= wf_delimiter(1);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_NOTES, __('Invoice notes'), $invoNotes, true, '70', '',
+                               '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= wf_tag('span', false, 'glamour', 'style="text-align: center; width: 95%;"');
+        $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Incoming invoice'), 'incoming', false, $invoIncoming);
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Outgoing invoice'), 'outgoing', true, $invoOutgoing);
+        $inputs.= wf_tag('span', true);
+        $inputs.= wf_delimiter(3);
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_HiddenInput(self::ROUTE_INVOICES_ACTS, 'true');
+
+        if ($editAction) {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $invoiceID);
+        } else {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_CREATE, 'true');
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_INVOICES . '=true','POST',
+                          $inputs, 'glamour ' . $formClass);
+
+        if ($editAction and $this->fileStorageEnabled) {
+            $this->fileStorage->setItemid(self::URL_INVOICES . $invoiceID);
+
+            $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+            $inputs.= wf_tag('h3');
+            $inputs.= __('Uploaded files');
+            $inputs.= wf_tag('h3', true);
+            $inputs.= $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                                                             '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
+            $inputs.= wf_tag('span', true);
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
+        }
+
+        return ($inputs);
+    }
+
+    /**
+     * Renders JQDT for invoices list
+     *
+     * @param string $customJSCode
+     *
+     * @return string
+     */
+    public function invoiceRenderJQDT($customJSCode = '') {
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_INVOICES_JSON . '=true';
+
+        $columns[] = __('ID');
+        $columns[] = __('Counterparty');
+        $columns[] = __('Internal number');
+        $columns[] = __('Invoice number');
+        $columns[] = __('Invoice date');
+        $columns[] = __('Sum total');
+        $columns[] = __('Sum VAT');
+        $columns[] = __('Notes');
+        $columns[] = __('Incoming');
+        $columns[] = __('Outgoing');
+        $columns[] = __('Uploaded files');
+        $columns[] = __('Actions');
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+
+        return($result);
+    }
+
+    /**
+     * Renders JSON for invoices JQDT
+     */
+    public function invoiceRenderListJSON() {
+        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
+        $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES);
+        $json = new wf_JqDtHelper();
+log_register(print_r($this->allECInvoices, true));
+log_register(print_r($this->allECProfiles, true));
+        if (!empty($this->allECInvoices)) {
+            $data = array();
+
+            foreach ($this->allECInvoices as $eachRecID) {
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    if ($fieldName == self::DBFLD_INVOICES_CONTRASID) {
+                        $data[] = (empty($this->allECProfiles[$fieldVal]) ? '' : $this->allECProfiles[$fieldVal][self::DBFLD_PROFILE_NAME]);
+                    } elseif ($fieldName == self::DBFLD_INVOICES_INCOMING or $fieldName == self::DBFLD_INVOICES_OUTGOING) {
+                        $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
+                    } else {
+                        $data[] = $fieldVal;
+                    }
+                }
+
+                $this->fileStorage->setItemid(self::URL_INVOICES . $eachRecID['id']);
+                $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                                                                 '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
+
+                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_INVOICES_ACTS, true);
+                $data[]  = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+log_register($json->extractJson());
         $json->getJson();
     }
 }

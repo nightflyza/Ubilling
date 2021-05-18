@@ -6,6 +6,12 @@ if (cfr('EXTCONTRAS')) {
         show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
 file_put_contents('zxcv', '');
 file_put_contents('axcv', '');
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_FORCECACHE_UPD)) {
+            $ExtContras->refreshCacheForced();
+            die($ExtContras->renderWebMsg(__('Info'), __('Cache data updated succesfuly'), 'info'));
+        }
+
         if (ubRouting::checkGet($ExtContras::ROUTE_PROFILE_JSON)){
             $ExtContras->profileRenderListJSON();
         }
@@ -20,6 +26,10 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::ROUTE_PERIOD_JSON)){
             $ExtContras->periodRenderListJSON();
+        }
+
+        if (ubRouting::checkGet($ExtContras::ROUTE_INVOICES_JSON)){
+            $ExtContras->invoiceRenderListJSON();
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
@@ -48,6 +58,13 @@ file_put_contents('axcv', '');
                         $ExtContras->periodWebForm(false)
                         . wf_delimiter() . $ExtContras->periodRenderJQDT()
                        );
+        }
+
+        if (ubRouting::checkGet($ExtContras::URL_INVOICES)) {
+            show_window(__('Invoices'),
+                        $ExtContras->invoiceWebForm(false)
+                        . wf_delimiter() . $ExtContras->invoiceRenderJQDT()
+            );
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
@@ -111,6 +128,30 @@ file_put_contents('axcv', '');
                                                     $ExtContras::CTRL_PERIOD_NAME,
                                                     $ExtContras::TABLE_ECPERIODS,
                                                     $ExtContras::DBFLD_PERIOD_NAME,
+                                                    true
+                                                   );
+            die($showResult);
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_INVOICES_ACTS)) {
+            $invoIncoming = (ubRouting::post($ExtContras::CTRL_INVOICES_IN_OUT) == 'incoming') ? 1 : 0;
+            $invoOutgoing = (ubRouting::post($ExtContras::CTRL_INVOICES_IN_OUT) == 'outgoing') ? 1 : 0;
+
+            $dataArray = array($ExtContras::DBFLD_INVOICES_CONTRASID    => ubRouting::post($ExtContras::CTRL_INVOICES_CONTRASID),
+                               $ExtContras::DBFLD_INVOICES_INTERNAL_NUM => ubRouting::post($ExtContras::CTRL_INVOICES_INTERNAL_NUM),
+                               $ExtContras::DBFLD_INVOICES_INVOICE_NUM  => ubRouting::post($ExtContras::CTRL_INVOICES_INVOICE_NUM),
+                               $ExtContras::DBFLD_INVOICES_DATE         => ubRouting::post($ExtContras::CTRL_INVOICES_DATE),
+                               $ExtContras::DBFLD_INVOICES_SUM          => ubRouting::post($ExtContras::CTRL_INVOICES_SUM),
+                               $ExtContras::DBFLD_INVOICES_SUM_VAT      => ubRouting::post($ExtContras::CTRL_INVOICES_SUM_VAT),
+                               $ExtContras::DBFLD_INVOICES_NOTES        => ubRouting::post($ExtContras::CTRL_INVOICES_NOTES),
+                               $ExtContras::DBFLD_INVOICES_INCOMING     => $invoIncoming,
+                               $ExtContras::DBFLD_INVOICES_OUTGOING     => $invoOutgoing
+                              );
+
+            $showResult = $ExtContras->processCRUDs('invoiceWebForm', $dataArray,'Invoice',
+                                                    $ExtContras::CTRL_INVOICES_INVOICE_NUM,
+                                                    $ExtContras::TABLE_ECINVOICES,
+                                                    $ExtContras::DBFLD_INVOICES_INVOICE_NUM,
                                                     true
                                                    );
             die($showResult);
