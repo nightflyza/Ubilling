@@ -9,22 +9,34 @@ if (@$us_config['YOUTV_ENABLED']) {
     $userData = zbs_UserGetStargazerData($userLogin);
     //Check for user active state
     if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 )) {
-        $ytvIf = new YTVInterface($userLogin);
 
-        if (ubRouting::checkGet('unsubscribe')) {
-            $ytvIf->unsubscribe(ubRouting::get('unsubscribe'));
-            ubRouting::nav($ytvIf::URL_ME);
+        if(mb_strlen($userData['Password']) >= 6 AND !empty($userData['Email'])){
+            $ytvIf = new YTVInterface($userLogin);
+
+            if (ubRouting::checkGet('unsubscribe')) {
+                $ytvIf->unsubscribe(ubRouting::get('unsubscribe'));
+                ubRouting::nav($ytvIf::URL_ME);
+            }
+
+            if (ubRouting::checkGet('subscribe')) {
+                $ytvIf->subscribe(ubRouting::get('subscribe'));
+                ubRouting::nav($ytvIf::URL_ME);
+            }
+
+            show_window(__('Your subscriptions'), $ytvIf->renderSubscriptionDetails());
+            $userUseService = $ytvIf->userUseService();
+
+            show_window(__('Available subscribtions'), $ytvIf->renderSubscribeForm());
+
+            $info  = $ytvIf->renderInfoForm();
+
+            if(!empty($info)){
+                show_window(__('Info YouTV'), $info);
+            }
+
+        } else {
+            show_window(__('Sorry'), __('You can not use this service. Password must be at least 6 characters long and filled in email.'));
         }
-
-        if (ubRouting::checkGet('subscribe')) {
-            $ytvIf->subscribe(ubRouting::get('subscribe'));
-            ubRouting::nav($ytvIf::URL_ME);
-        }
-
-        show_window(__('Your subscriptions'), $ytvIf->renderSubscriptionDetails());
-        $userUseService = $ytvIf->userUseService();
-
-        show_window(__('Available subscribtions'), $ytvIf->renderSubscribeForm());
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }
