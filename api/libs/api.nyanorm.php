@@ -814,12 +814,13 @@ class NyanORM {
      *              'cmprlogic' - is optional and can contain 'OR' keyword to point
      *              the need to use NyanORM's orWhere(). No need to use it for 'AND' logical clause
      *              as it is used by DEFAULT and will be ignored
-     * @param int $excludeRecID record ID to make exclusion on. For record editing purposes generally
-     * @param string $primaryKey name of the table's primary key
+     * @param int $excludeRecID record ID to make exclusion on (e.g. for finding possible duplicates). For record editing purposes generally.
+     * @param bool $flushSelectable
+     * @param string $primaryKey name of the table's primary key field
      *
      * @return mixed|string returns the primary key value(ID usually) if rec found or empty string
      */
-    public function checkRecExists($dbFilterArr, $excludeRecID = 0, $primaryKey = '') {
+    public function checkRecExists($dbFilterArr, $excludeRecID = 0, $flushSelectable = true, $primaryKey = '') {
         $result = '';
         $primaryKey = (empty($primaryKey)) ? $this->defaultPk : $primaryKey;
         $this->selectable($primaryKey);
@@ -840,6 +841,10 @@ class NyanORM {
 
         $result = $this->getAll();
         $result = empty($result) ? '' : $result[0][$primaryKey];
+
+        if ($flushSelectable) {
+            $this->flushSelectable();
+        }
 
         return ($result);
     }
