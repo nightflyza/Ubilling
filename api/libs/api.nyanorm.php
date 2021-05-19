@@ -259,7 +259,6 @@ class NyanORM {
      */
     protected function destroyAllStructs() {
         $this->flushData();
-        $this->flushSelectable();
         $this->flushWhere();
         $this->flushOrder();
         $this->flushLimit();
