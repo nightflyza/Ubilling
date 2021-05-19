@@ -2,7 +2,7 @@
 
 /**
  * YouTV Ubilling abstraction layer
- * 
+ *
  * https://documenter.getpostman.com/view/13165103/TVYAhgRP#4807007c-a159-4210-9f61-d51807aa36ee
  */
 class YTV {
@@ -141,9 +141,9 @@ class YTV {
 
     /**
      * Preloads required configs into protected props
-     * 
+     *
      * @global object $ubillingConfig
-     * 
+     *
      * @return void
      */
     protected function loadConfig() {
@@ -153,7 +153,7 @@ class YTV {
 
     /**
      * Sets required properties via config options
-     * 
+     *
      * @return void
      */
     protected function setOptions() {
@@ -164,7 +164,7 @@ class YTV {
 
     /**
      * Inits system message helper
-     * 
+     *
      * @return void
      */
     protected function initMessages() {
@@ -173,7 +173,7 @@ class YTV {
 
     /**
      * Inits low-level API for further usage
-     * 
+     *
      * @return void
      */
     protected function initApi() {
@@ -183,7 +183,7 @@ class YTV {
 
     /**
      * Inits subscribers database abstraction layer
-     * 
+     *
      * @return void
      */
     protected function initSubscribersDb() {
@@ -192,7 +192,7 @@ class YTV {
 
     /**
      * Inits tariffs database abstraction layer
-     * 
+     *
      * @return void
      */
     protected function initTariffsDb() {
@@ -201,7 +201,7 @@ class YTV {
 
     /**
      * Loads available subscribers from database
-     * 
+     *
      * @return void
      */
     protected function loadSubscribers() {
@@ -210,7 +210,7 @@ class YTV {
 
     /**
      * Loads available tariffs from database
-     * 
+     *
      * @return void
      */
     protected function loadTariffs() {
@@ -219,7 +219,7 @@ class YTV {
 
     /**
      * Loads available system users data
-     * 
+     *
      * @return void
      */
     protected function loadUserData() {
@@ -309,9 +309,9 @@ class YTV {
 
     /**
      * Checks is some subscriberId associated with registered user?
-     * 
+     *
      * @param int $subscriberId
-     * 
+     *
      * @return bool
      */
     public function isValidSubscriber($subscriberId) {
@@ -330,9 +330,9 @@ class YTV {
 
     /**
      * Returns existing subscriber user login by its ID
-     * 
+     *
      * @param int $subscriberId
-     * 
+     *
      * @return string/bool
      */
     public function getSubscriberLogin($subscriberId) {
@@ -349,9 +349,9 @@ class YTV {
 
     /**
      * Returns subscripber ID by some of the users login
-     * 
+     *
      * @param string $userLogin
-     * 
+     *
      * @return int/bool
      */
     public function getSubscriberId($userLogin) {
@@ -368,7 +368,7 @@ class YTV {
 
     /**
      * Renders available subscribers JSON list
-     * 
+     *
      * @return void
      */
     public function renderSubsribersAjReply() {
@@ -397,7 +397,7 @@ class YTV {
 
     /**
      * Renders existing subscribers list container
-     * 
+     *
      * @return string
      */
     public function renderSubscribersList() {
@@ -410,9 +410,9 @@ class YTV {
 
     /**
      * Renders subscriber services
-     * 
+     *
      * @param array $subData
-     * 
+     *
      * @return string
      */
     protected function renderServices($subData) {
@@ -441,9 +441,9 @@ class YTV {
 
     /**
      * Renders basic subscriber profile
-     * 
+     *
      * @param string $userLogin
-     * 
+     *
      * @return string
      */
     public function renderSubscriber($userLogin) {
@@ -492,9 +492,9 @@ class YTV {
 
     /**
      * Renders users tariff change form
-     * 
+     *
      * @param int $subscriberId
-     * 
+     *
      * @return string
      */
     protected function renderUserTariffEditForm($subscriberId) {
@@ -529,10 +529,10 @@ class YTV {
 
     /**
      * Sets primary tariff for some subscriber
-     * 
+     *
      * @param int $subscriberId
      * @param int $tariffId
-     * 
+     *
      * @return void
      */
     public function setMainTariff($subscriberId, $tariffId) {
@@ -565,10 +565,10 @@ class YTV {
 
     /**
      * Returns some subscriber controls
-     * 
+     *
      * @param int $subscriberId
      * @param array $subData
-     * 
+     *
      * @return string
      */
     protected function renderSubscriberControls($subscriberId, $subData = array()) {
@@ -587,7 +587,7 @@ class YTV {
 
     /**
      * Renders basic user registration form
-     * 
+     *
      * @return string
      */
     protected function renderUserRegisterForm() {
@@ -601,7 +601,7 @@ class YTV {
 
     /**
      * Renders primary module controls
-     * 
+     *
      * @return string
      */
     public function renderPanel() {
@@ -615,7 +615,7 @@ class YTV {
 
     /**
      * Renders new tariff creation form
-     * 
+     *
      * @return string
      */
     protected function renderTariffCreateForm() {
@@ -635,7 +635,7 @@ class YTV {
 
     /**
      * Creates new tariff in database
-     * 
+     *
      * @return void/string on error
      */
     public function createTariff() {
@@ -676,9 +676,9 @@ class YTV {
 
     /**
      * Deletes existing tariff from database
-     * 
+     *
      * @param int $tariffId
-     * 
+     *
      * @return void/string on error
      */
     public function deleteTariff($tariffId) {
@@ -704,9 +704,9 @@ class YTV {
 
     /**
      * Checks is some tariff protected of usage by some user
-     * 
+     *
      * @param int $tariffId
-     * 
+     *
      * @return bool
      */
     protected function isTariffProtected($tariffId) {
@@ -726,7 +726,7 @@ class YTV {
 
     /**
      * Renders list of tariffs available for users
-     * 
+     *
      * @return string
      */
     public function renderTariffs() {
@@ -763,10 +763,10 @@ class YTV {
 
     /**
      * Charges some tariff fee from user account
-     * 
+     *
      * @param string $userLogin
      * @param int $tariffId
-     * 
+     *
      * @return void
      */
     public function chargeUserFee($userLogin, $tariffId) {
@@ -787,7 +787,7 @@ class YTV {
 
     /**
      * Performs fee processing of all registered subscribers
-     * 
+     *
      * @return void
      */
     public function feeProcessing() {
@@ -797,7 +797,13 @@ class YTV {
                 if (isset($this->allUserData[$userLogin])) {
                     //user subscription is active now
                     if ($eachSub['active']) {
-                        $this->chargeUserFee($eachSub['login'], $eachSub['maintariff']);
+                        if (($this->allUserData[$userLogin]['Passive'] == 0) and ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit'])) {
+                            // можно снимать деньги
+                            $this->chargeUserFee($eachSub['login'], $eachSub['maintariff']);
+                        } else {
+                            // бомж, блокируем активную подписку
+                            $this->usUnsubscribe($eachSub['subscriberid'], $eachSub['maintariff']);
+                        }
                     }
                 } else {
                     log_register('YouTV CHARGE (' . $userLogin . ') AS [' . $eachSub . '] FAIL MISS');
@@ -808,9 +814,9 @@ class YTV {
 
     /**
      * Renders JSON reply for some userstats frontend requests
-     * 
+     *
      * @param array $reply
-     * 
+     *
      * @return void
      */
     protected function jsonRenderReply($reply) {
@@ -820,9 +826,9 @@ class YTV {
 
     /**
      * Renders user subscription data for some login
-     * 
+     *
      * @param string $userLogin
-     * 
+     *
      * @return void
      */
     public function usReplyUserData($userLogin) {
@@ -835,9 +841,9 @@ class YTV {
 
     /**
      * Renders subscriber full data
-     * 
+     *
      * @param string $userLogin
-     * 
+     *
      * @return void
      */
     public function usReplyUserFullData($userLogin) {
@@ -847,7 +853,7 @@ class YTV {
 
     /**
      * Renders available tariffs list
-     * 
+     *
      * @return void
      */
     public function usReplyTariffs() {
@@ -864,10 +870,10 @@ class YTV {
 
     /**
      * Just deactivates service for user account
-     * 
+     *
      * @param int $subscriberId
      * @param int $tariffId
-     * 
+     *
      * @return void
      */
     public function usUnsubscribe($subscriberId, $tariffId) {
@@ -886,10 +892,10 @@ class YTV {
 
     /**
      * Subscribes user to some service
-     * 
+     *
      * @param string $subscriberId
      * @param int $tariffId
-     * 
+     *
      * @return void
      */
     public function usSubscribe($userLogin, $tariffId) {
