@@ -799,4 +799,68 @@ class NyanORM {
         return ($field);
     }
 
+    /**
+     * Returns true if record with such fields values already exists in current table
+     *
+     * @param array $dbFilterArr    represents structure, like:
+     *        array($fieldname => array('operator' => $opStr,
+     *                                  'fieldval' => $fldVal,
+     *                                  'cmprlogic' => 'OR'
+     *                                 ))
+     *        where:
+     *              $opStr - is one of the permitted in MYSQL WHERE clause, like:
+     *              >, =, <, IS NOT, LIKE, IN, etc
+     *              $fldVal - represents the field value to compare against
+     *              'cmprlogic' - is optional and can contain 'OR' keyword to point
+     *              the need to use NyanORM's orWhere(). No need to use it for 'AND' logical clause
+     *              as it is used by DEFAULT and will be ignored
+     * @param int $excludeRecID record ID to make exclusion on (e.g. for finding possible duplicates). For record editing purposes generally.
+     * @param bool $flushSelectable
+     * @param string $primaryKey name of the table's primary key field
+     *
+     * @return mixed|string returns the primary key value(ID usually) if rec found or empty string
+     */
+    public function checkRecExists($dbFilterArr, $excludeRecID = 0, $flushSelectable = true, $primaryKey = '') {
+        $result = '';
+        $primaryKey = (empty($primaryKey)) ? $this->defaultPk : $primaryKey;
+        $this->selectable($primaryKey);
+
+        foreach ($dbFilterArr as $dbFieldName => $fieldData) {
+            if (!empty($fieldData['operator'])) {
+                if (!empty($fieldData['cmprlogic']) and strtoupper($fieldData['cmprlogic']) == 'OR') {
+                    $this->orWhere($dbFieldName, $fieldData['operator'], $fieldData['fieldval']);
+                } else {
+                    $this->where($dbFieldName, $fieldData['operator'], $fieldData['fieldval']);
+                }
+            }
+        }
+
+        if (!empty($excludeRecID)) {
+            $this->where($primaryKey, '!=', $excludeRecID);
+        }
+
+        $result = $this->getAll();
+        $result = empty($result) ? '' : $result[0][$primaryKey];
+
+        if ($flushSelectable) {
+            $this->flushSelectable();
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Simple getter for tableName property
+     *
+     * @param $trimQuotes
+     *
+     * @return string
+     */
+    public function getTableName($trimQuotes = false) {
+        if ($trimQuotes) {
+            return (trim($this->tableName, '"`\''));
+        } else {
+            return ($this->tableName);
+        }
+    }
 }
