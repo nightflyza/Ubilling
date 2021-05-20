@@ -443,3 +443,7 @@ $lang['def']['Thank you. Your request is awaiting processing. Expect your email 
 $lang['def']['Connect to bot'] = 'З`єднатись з ботом';
 $lang['def']['Telegram bot'] = 'Telegram бот';
 
+$lang['def']['You can not use this service. Password must be at least 6 characters long and filled in email.'] = 'Ви не можете користуватися цією послугою. У Вас повинен бути заповнений адрес електронної пошти та пароль складатися не менше ніж з 6 символів.';
+$lang['def']['Authorization data'] = 'Дані для авторизації';
+$lang['def']['Convenient applications'] = 'Зручні додатки';
+$lang['def']['Modern youtv applications for various devices.'] = 'Сучасні додатки youtv для різних пристроїв.';
