@@ -441,3 +441,8 @@ $lang['def']['All fields are mandatory'] = 'Все поля обязательн
 $lang['def']['Thank you. Your request is awaiting processing. Expect your email policy soon.'] = 'Спасибо. Ваш запрос ожидает обработку. Ожидайте ваш полис вскоре по электронной почте.';
 $lang['def']['Connect to bot'] = 'Соединиться с ботом';
 $lang['def']['Telegram bot'] = 'Telegram бот';
+
+$lang['def']['You can not use this service. Password must be at least 6 characters long and filled in email.'] = 'Вы не можете пользоваться этой услугой. У Вас должен быть заполнен адрес электронной почты и пароль состоять не менее чем из 6 символов.';
+$lang['def']['Authorization data'] = 'Данные для авторизации';
+$lang['def']['Convenient applications'] = 'Удобные приложения';
+$lang['def']['Modern youtv applications for various devices.'] = 'Современные приложения youtv для различных устройств.';
