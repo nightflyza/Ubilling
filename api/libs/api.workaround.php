@@ -5417,7 +5417,7 @@ function zb_checkDate($date) {
     @$year = $explode[0];
     @$month = $explode[1];
     @$day = $explode[2];
-    $result = checkdate($month, $day, $year);
+    $result = @checkdate($month, $day, $year);
     return ($result);
 }
 
