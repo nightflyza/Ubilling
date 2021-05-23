@@ -4,12 +4,17 @@ if (cfr('EXTCONTRAS')) {
         $ExtContras = new ExtContras();
 
         show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
+
 file_put_contents('zxcv', '');
 file_put_contents('axcv', '');
 
         if (ubRouting::checkPost($ExtContras::ROUTE_FORCECACHE_UPD)) {
             $ExtContras->refreshCacheForced();
             die($ExtContras->renderWebMsg(__('Info'), __('Cache data updated succesfuly'), 'info'));
+        }
+
+        if (ubRouting::checkGet($ExtContras::ROUTE_CONTRAS_JSON)){
+            $ExtContras->extcontrasRenderListJSON();
         }
 
         if (ubRouting::checkGet($ExtContras::ROUTE_PROFILE_JSON)){
@@ -30,6 +35,14 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::ROUTE_INVOICES_JSON)){
             $ExtContras->invoiceRenderListJSON();
+        }
+
+
+        if (ubRouting::checkGet($ExtContras::URL_EXTCONTRAS)) {
+            show_window(__('Counterparties list'),
+                $ExtContras->extcontrasWebForm(false)
+                . wf_delimiter() . $ExtContras->extcontrasRenderJQDT()
+            );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
@@ -74,12 +87,12 @@ file_put_contents('axcv', '');
                                $ExtContras::DBFLD_PROFILE_MAIL      => ubRouting::post($ExtContras::CTRL_PROFILE_MAIL)
                               );
 
-            $showResult = $ExtContras->processCRUDs('profileWebForm', $dataArray,'Profile',
-                                                    $ExtContras::CTRL_PROFILE_NAME,
-                                                    $ExtContras::TABLE_ECPROFILES,
-                                                    $ExtContras::DBFLD_PROFILE_NAME,
-                                                    true
-                                                   );
+            $chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_PROFILE_NAME, '=',
+                                                                      ubRouting::post($ExtContras::CTRL_PROFILE_NAME));
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECPROFILES, $ExtContras::CTRL_PROFILE_NAME,
+                                                    'profileWebForm',true, $chkUniqArray,
+                                                    'Profile');
             die($showResult);
         }
 
@@ -96,12 +109,12 @@ file_put_contents('axcv', '');
                                $ExtContras::DBFLD_CTRCT_AUTOPRLNG   => $autoprlngChk
                               );
 
-            $showResult = $ExtContras->processCRUDs('contractWebForm', $dataArray,'Contract',
-                                                    $ExtContras::CTRL_CTRCT_CONTRACT,
-                                                    $ExtContras::TABLE_ECCONTRACTS,
-                                                    $ExtContras::DBFLD_CTRCT_CONTRACT,
-                                                    true
-                                                   );
+            $chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_CTRCT_CONTRACT, '=',
+                                                                    ubRouting::post($ExtContras::CTRL_CTRCT_CONTRACT));
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECCONTRACTS, $ExtContras::CTRL_CTRCT_CONTRACT,
+                                                    'contractWebForm',true, $chkUniqArray,
+                                                    'Contract');
             die($showResult);
         }
 
@@ -112,25 +125,25 @@ file_put_contents('axcv', '');
                                $ExtContras::DBFLD_ADDRESS_NOTES     => ubRouting::post($ExtContras::CTRL_ADDRESS_NOTES)
                             );
 
-            $showResult = $ExtContras->processCRUDs('addressWebForm', $dataArray,'Address',
-                                                    $ExtContras::CTRL_ADDRESS_ADDR,
-                                                    $ExtContras::TABLE_ECADDRESS,
-                                                    $ExtContras::DBFLD_ADDRESS_ADDR,
-                                                    true
-                                                   );
+            $chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_ADDRESS_ADDR, '=',
+                                                                    ubRouting::post($ExtContras::CTRL_ADDRESS_ADDR));
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECADDRESS, $ExtContras::CTRL_ADDRESS_ADDR,
+                                                    'addressWebForm', true, $chkUniqArray,
+                                                    'Address');
             die($showResult);
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PERIOD_ACTS)) {
             $dataArray = array($ExtContras::DBFLD_PERIOD_NAME => ubRouting::post($ExtContras::CTRL_PERIOD_NAME));
 
-            $showResult = $ExtContras->processCRUDs('periodWebForm', $dataArray, 'Period',
-                                                    $ExtContras::CTRL_PERIOD_NAME,
-                                                    $ExtContras::TABLE_ECPERIODS,
-                                                    $ExtContras::DBFLD_PERIOD_NAME,
-                                                    true
-                                                   );
-            die($showResult);
+            $chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_PERIOD_NAME, '=',
+                                                                    ubRouting::post($ExtContras::CTRL_PERIOD_NAME));
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECPERIODS, $ExtContras::CTRL_PERIOD_NAME,
+                                                    'periodWebForm', true, $chkUniqArray,
+                                                    'Period');
+           die($showResult);
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_INVOICES_ACTS)) {
@@ -148,12 +161,29 @@ file_put_contents('axcv', '');
                                $ExtContras::DBFLD_INVOICES_OUTGOING     => $invoOutgoing
                               );
 
-            $showResult = $ExtContras->processCRUDs('invoiceWebForm', $dataArray,'Invoice',
-                                                    $ExtContras::CTRL_INVOICES_INVOICE_NUM,
-                                                    $ExtContras::TABLE_ECINVOICES,
-                                                    $ExtContras::DBFLD_INVOICES_INVOICE_NUM,
-                                                    true
-                                                   );
+            $chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_INVOICES_INVOICE_NUM, '=',
+                                                                    ubRouting::post($ExtContras::CTRL_INVOICES_INVOICE_NUM));
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECINVOICES, $ExtContras::CTRL_INVOICES_INVOICE_NUM,
+                                                    'invoiceWebForm', true, $chkUniqArray,
+                                                    'Invoice');
+            die($showResult);
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_CONTRAS_ACTS)) {
+            $dataArray = array($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID  => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_PROFILE_ID),
+                               $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_CONTRACT_ID),
+                               $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID  => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_ADDRESS_ID),
+                               $ExtContras::DBFLD_EXTCONTRAS_PERIOD_ID   => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_PERIOD_ID),
+                               $ExtContras::DBFLD_EXTCONTRAS_PAYDAY      => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_PAYDAY)
+                            );
+
+            //$chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_INVOICES_INVOICE_NUM, '=',
+            //                                                        ubRouting::post($ExtContras::CTRL_INVOICES_INVOICE_NUM));
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_EXTCONTRAS, $ExtContras::CTRL_EXTCONTRAS_PAYDAY,
+                                                    'extcontrasWebForm', false, array(),
+                                                    'External counterparty');
             die($showResult);
         }
     } else {
