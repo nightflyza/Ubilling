@@ -863,4 +863,43 @@ class NyanORM {
             return ($this->tableName);
         }
     }
+
+    /**
+     * Returns model's base table structure
+     *
+     * @param bool $fieldNamesOnly
+     * @param bool $excludeIDField
+     * @param bool $addLeadingTabName
+     * @param bool $makeFieldAliases
+     * @param string $fieldAliasSeparator
+     *
+     * @return array
+     */
+    public function getTableStructure($fieldNamesOnly = false, $excludeIDField = false, $addLeadingTabName = false,
+                                      $makeFieldAliases = false, $fieldAliasSeparator = '') {
+        $result = array();
+        $query = 'DESCRIBE ' . $this->tableName;
+        $tableStructure = simple_queryall($query);
+
+        if (!empty($tableStructure)) {
+            if ($fieldNamesOnly) {
+                foreach ($tableStructure as $io => $eachField) {
+                    if ($excludeIDField and $eachField['Field'] == $this->defaultPk) {
+                        continue;
+                    }
+
+                    // create field alias using combination of  $this->tableName + $fieldAliasSeparator + $eachField['Field']?
+                    $fieldName = ($makeFieldAliases) ? $eachField['Field'] . ' AS ' . $this->tableName . $fieldAliasSeparator . $eachField['Field']
+                        : $eachField['Field'];
+
+                    // append leading table name with dot to the field name to explicitly distinguish fields in a query?
+                    $result[] = ($addLeadingTabName) ? $this->tableName . '.' . $fieldName : $fieldName;
+                }
+            } else {
+                $result = $tableStructure;
+            }
+        }
+
+        return ($result);
+    }
 }
