@@ -2667,10 +2667,16 @@ class Warehouse {
                 $tasksTmp = array();
                 $allJobTypes = ts_GetAllJobtypes();
                 $allUndoneTasks = ts_GetUndoneTasksArray();
+                $taskOutDateFlag = (@$this->altCfg['WAREHOUSE_TASKOUTDATE']) ? true : false;
+
                 if (!empty($allUndoneTasks)) {
                     foreach ($allUndoneTasks as $io => $each) {
                         $taskJobType = (isset($allJobTypes[$each['jobtype']])) ? $allJobTypes[$each['jobtype']] : __('Something went wrong') . ': EX_NO_JOBTYPEID';
-                        $tasksTmp[$io] = $each['address'] . ' - ' . $taskJobType;
+                        $jobLabel = $each['address'] . ' - ' . $taskJobType;
+                        if ($taskOutDateFlag) {
+                            $jobLabel .= ' ' . $each['startdate'];
+                        }
+                        $tasksTmp[$io] = $jobLabel;
                     }
                 }
                 $result .= wf_Selector('newoutdestparam', $tasksTmp, __('Undone tasks'), '', false);
