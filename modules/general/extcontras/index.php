@@ -48,7 +48,7 @@ file_put_contents('axcv', '');
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
             show_window(__('Counterparties profiles dictionary'),
                         $ExtContras->profileWebForm(false)
-                        . wf_delimiter() . $ExtContras->profileRenderJQDT()
+                        . wf_delimiter() . $ExtContras->profileRenderJQDT(ubRouting::get($ExtContras::MISC_MARKROW_URL))
                        );
         }
 
