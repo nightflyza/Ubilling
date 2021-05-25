@@ -70,7 +70,7 @@ class ExtContras {
      *
      * @var array
      */
-    public $dataEntitiesAll = array();
+    protected $dataEntitiesAll = array();
 
     /**
      * Placeholder for $dbExtContras DB table field structure
@@ -140,7 +140,7 @@ class ExtContras {
      *
      * @var array
      */
-    public $allECProfiles = array();
+    protected $allECProfiles = array();
 
     /**
      * Contains all extcontras contracts records from DB eccontractid => eccontractdata
@@ -386,6 +386,7 @@ class ExtContras {
     const MISC_CLASS_EMPTYVALCHECK_MODAL = '__EmptyCheckControlModal';
     const MISC_JS_DEL_FUNC_NAME          = 'deleteRec';
     const MISC_ERRFORM_ID_PARAM          = 'errfrmid';
+    const MISC_MARKROW_URL               = 'markrowid';
 
 
     public function __construct() {
@@ -404,6 +405,17 @@ class ExtContras {
         }
 
         $this->supFrmFldMark = wf_tag('sup') . '*' . wf_tag('sup', true);
+    }
+
+    /**
+     * Loads alter.ini options
+     */
+    protected function loadOptions() {
+        $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
+        $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
+        $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? 60 : $this->ecEditablePreiod;
+        $this->cacheLifeTime      = $this->ubConfig->getAlterParam('EXTCONTRAS_CACHE_LIFETIME', 1800);
+        $this->ecReadOnlyAccess   = (!cfr('EXTCONTRASRW'));
     }
 
     /**
@@ -478,14 +490,16 @@ class ExtContras {
     }
 
     /**
-     * Loads alter.ini options
+     * Loads DB tables fields structures to a class properties
      */
-    protected function loadOptions() {
-        $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
-        $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
-        $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? 60 : $this->ecEditablePreiod;
-        $this->cacheLifeTime      = $this->ubConfig->getAlterParam('EXTCONTRAS_CACHE_LIFETIME', 1800);
-        $this->ecReadOnlyAccess   = (!cfr('EXTCONTRASRW'));
+    protected function loadDBTableStructs() {
+        $this->dbExtContrasStruct   = $this->dbExtContras->getTableStructure(true, false, true, true);
+        $this->dbECProfilesStruct   = $this->dbECProfiles->getTableStructure(true, false, true, true);
+        $this->dbECContractsStruct  = $this->dbECContracts->getTableStructure(true, false, true, true);
+        $this->dbECAddressStruct    = $this->dbECAddress->getTableStructure(true, false, true, true);
+        $this->dbECPeriodsStruct    = $this->dbECPeriods->getTableStructure(true, false, true, true);
+        $this->dbECMoneyStruct      = $this->dbECMoney->getTableStructure(true, false, true, true);
+        $this->dbECInvoicesStruct   = $this->dbECInvoices->getTableStructure(true, false, true, true);
     }
 
      /**
@@ -495,34 +509,30 @@ class ExtContras {
      * @param string $cacheKey
      * @param bool $forceDBLoad
      * @param bool $flushNyanParams
+     * @param string $assocByField
      * @param string $dataEntity
      *
      * @return mixed
      */
-    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true, $dataEntity = '') {
+    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true, $assocByField = '', $dataEntity = '') {
+
         $cacheKey       = strtoupper($cacheKey);
         $dbInstance     = $this->getDBEntity($tableName);
+        $flushParams    = $flushNyanParams;
+        $assocByField   = (empty($assocByField) ? 'id' : $assocByField);
         $dataInstance   = (empty($dataEntity) ? $this->getDataEntity($tableName) : $dataEntity);
         $thisInstance   = $this;
-        $flushParams    = $flushNyanParams;
-if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
-    file_put_contents('qqxcv', print_r($dbInstance, true), FILE_APPEND);
-    file_put_contents('qqzzxcv', print_r($cacheKey, true), FILE_APPEND);
-}
+
         if ($forceDBLoad) {
-            $this->$dataInstance = $dbInstance->getAll('id', $flushParams);
-if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
-    file_put_contents('zzzzxcv', print_r($this->$dataInstance, true), FILE_APPEND);
-}
+            $this->$dataInstance = $dbInstance->getAll($assocByField, $flushParams);
             $this->ubCache->set($cacheKey, $this->$dataInstance, $this->cacheLifeTime);
         } else {
-            $this->$dataInstance = $this->ubCache->getCallback($cacheKey, function () use ($thisInstance, $tableName, $cacheKey, $flushParams) {
-                                                                    return ($thisInstance->loadDataFromTableCached($tableName, $cacheKey, true, $flushParams));
+            $this->$dataInstance = $this->ubCache->getCallback($cacheKey, function () use ($thisInstance, $tableName, $cacheKey, $flushParams, $assocByField) {
+                                                                    return ($thisInstance->loadDataFromTableCached($tableName, $cacheKey, true,
+                                                                                                                   $flushParams, $assocByField));
                                                                 }, $this->cacheLifeTime);
         }
-if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
-    file_put_contents('qxcv', print_r($this->$dataInstance, true), FILE_APPEND);
-}
+
         return ($this->$dataInstance);
     }
 
@@ -533,23 +543,24 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
      */
     protected function loadExtContrasExtenData($forceDBLoad = false) {
         $selectable = array_merge($this->dbExtContrasStruct, $this->dbECProfilesStruct, $this->dbECContractsStruct, $this->dbECAddressStruct, $this->dbECPeriodsStruct);
-        $this->dbExtContrasExten->setDebug(true, true);
+
         $this->dbExtContrasExten->selectable($selectable);
         $this->dbExtContrasExten->joinOn();
         $this->dbExtContrasExten->joinOn('LEFT', self::TABLE_ECPROFILES,
-            self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_PROFILE_ID
-            . ' = ' . self::TABLE_ECPROFILES . '.' . self::DBFLD_COMMON_ID);
+                                        self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_PROFILE_ID
+                                        . ' = ' . self::TABLE_ECPROFILES . '.' . self::DBFLD_COMMON_ID);
         $this->dbExtContrasExten->joinOn('LEFT', self::TABLE_ECCONTRACTS,
-            self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_CONTRACT_ID
-            . ' = ' . self::TABLE_ECCONTRACTS . '.' . self::DBFLD_COMMON_ID);
+                                        self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_CONTRACT_ID
+                                        . ' = ' . self::TABLE_ECCONTRACTS . '.' . self::DBFLD_COMMON_ID);
         $this->dbExtContrasExten->joinOn('LEFT', self::TABLE_ECADDRESS,
-            self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_ADDRESS_ID
-            . ' = ' . self::TABLE_ECADDRESS . '.' . self::DBFLD_COMMON_ID);
+                                        self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_ADDRESS_ID
+                                        . ' = ' . self::TABLE_ECADDRESS . '.' . self::DBFLD_COMMON_ID);
         $this->dbExtContrasExten->joinOn('LEFT', self::TABLE_ECPERIODS,
-            self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_PERIOD_ID
-            . ' = ' . self::TABLE_ECPERIODS . '.' . self::DBFLD_COMMON_ID);
+                                        self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_PERIOD_ID
+                                        . ' = ' . self::TABLE_ECPERIODS . '.' . self::DBFLD_COMMON_ID);
 
-        $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad, false);
+        $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad,
+                                       false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID);
     }
 
     /**
@@ -567,25 +578,21 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
     }
 
     /**
-     * Loads DB tables fields structures to a class properties
-     */
-    protected function loadDBTableStructs() {
-        $this->dbExtContrasStruct   = $this->dbExtContras->getTableStructure(true, false, true, true);
-        $this->dbECProfilesStruct   = $this->dbECProfiles->getTableStructure(true, false, true, true);
-        $this->dbECContractsStruct  = $this->dbECContracts->getTableStructure(true, false, true, true);
-        $this->dbECAddressStruct    = $this->dbECAddress->getTableStructure(true, false, true, true);
-        $this->dbECPeriodsStruct    = $this->dbECPeriods->getTableStructure(true, false, true, true);
-        $this->dbECMoneyStruct      = $this->dbECMoney->getTableStructure(true, false, true, true);
-        $this->dbECInvoicesStruct   = $this->dbECInvoices->getTableStructure(true, false, true, true);
-    }
-
-    /**
      * Forcibly updates cached data
      */
     public function refreshCacheForced() {
         $this->loadAllData(true);
     }
 
+    /**
+     * Returns prepared filtering array for NyanORM checkRecExists() method
+     *
+     * @param $dbTabField
+     * @param $operator
+     * @param $dbFieldValue
+     *
+     * @return array
+     */
     public function createCheckUniquenessArray($dbTabField, $operator, $dbFieldValue) {
         $tmpArray = array($dbTabField => array('operator' => $operator,
                                                'fieldval' => $dbFieldValue)
@@ -593,6 +600,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
 
         return ($tmpArray);
     }
+
     /**
      * Returns typical JQDT with or without JS code for interacting with modals and dynamic modals
      *
@@ -600,18 +608,25 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
      * @param $columnsArr
      * @param string $columnsOpts
      * @param bool $stdJSForCRUDs
+     * @param string|int $markRowForID
      * @param string $customJSCode
      *
      * @return string
      */
-    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true, $customJSCode = '') {
+    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true, $markRowForID = '', $customJSCode = '') {
         $result     = '';
         $ajaxURLStr = $ajaxURL;
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
         $columns    = $columnsArr;
         $opts       = (empty($columnsOpts) ? '"order": [[ 0, "asc" ]]' : $columnsOpts);
 
-        $result = wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
+        if (!empty($markRowForID)) {
+            $result .= wf_tag('script', false, '', 'type="text/javascript"');
+            $result.= wf_JQDTRowShowPluginJS();
+            $result .= wf_tag('script', true);
+        }
+
+        $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
 // todo:
 // var table = $('[id ^= "jqdt_"] [class = "dataTable"]').dataTable();
 
@@ -647,6 +662,11 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
 
             // putting a piece of JS code to perform records delete action
             $result .= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
+
+            if (!empty($markRowForID)) {
+                $result.= wf_JQDTMarkRow(0, $markRowForID);
+            }
+
             $result .= wf_tag('script', true);
         }
 
@@ -790,9 +810,63 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
         } elseif ($recCreate) {
             $this->recordCreateEdit($dbEntity, $dataArray);
         } elseif ($recDelete) {
-// TODO: implement record "protection" check
             if(ubRouting::checkPost(self::ROUTE_DELETE_REC_ID)) {
-                $this->recordDelete($dbEntity, ubRouting::post(self::ROUTE_DELETE_REC_ID));
+                $delRecID         = ubRouting::post(self::ROUTE_DELETE_REC_ID);
+                $tmpUniqArray     = array();
+                $delRecProtected  = false;
+                $protectionChkArr = array();
+                $protectionChkTab = '';
+                $protectionChkFld = '';
+
+                if (ubRouting::checkPost(self::ROUTE_PROFILE_ACTS)) {
+                    $protectionChkFld   = self::DBFLD_EXTCONTRAS_PROFILE_ID;
+                    $protectionChkTab   = self::TABLE_EXTCONTRAS;
+                    $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
+                }
+
+                if (ubRouting::checkPost(self::ROUTE_CONTRACT_ACTS)) {
+                    $protectionChkFld = self::DBFLD_EXTCONTRAS_CONTRACT_ID;
+                    $protectionChkTab = self::TABLE_EXTCONTRAS;
+                    $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
+                }
+
+                if (ubRouting::checkPost(self::ROUTE_ADDRESS_ACTS)) {
+                    $protectionChkFld = self::DBFLD_EXTCONTRAS_ADDRESS_ID;
+                    $protectionChkTab = self::TABLE_EXTCONTRAS;
+                    $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
+                }
+
+                if (ubRouting::checkPost(self::ROUTE_PERIOD_ACTS)) {
+                    $protectionChkFld = self::DBFLD_EXTCONTRAS_PERIOD_ID;
+                    $protectionChkTab = self::TABLE_EXTCONTRAS;
+                    $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
+                }
+
+                if (ubRouting::checkPost(self::ROUTE_CONTRAS_ACTS)) {
+                    $protectionChkFld = self::DBFLD_INVOICES_CONTRASID;
+                    $protectionChkTab = self::TABLE_ECINVOICES;
+                    $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
+
+                    $protectionChkFld = self::DBFLD_MONEY_CONTRASID;
+                    $protectionChkTab = self::TABLE_ECMONEY;
+                    $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
+                }
+
+                foreach ($protectionChkArr as $tmpArray) {
+                    foreach ($tmpArray as $table => $field) {
+                        $tmpUniqArray = $this->createCheckUniquenessArray($field, '=', $delRecID);
+                        $protectionChkTab = $this->getDBEntity($table);
+                        $delRecProtected = $protectionChkTab->checkRecExists($tmpUniqArray);
+                    }
+                }
+
+                if (empty($delRecProtected)) {
+                    $this->recordDelete($dbEntity, $delRecID);
+                } else {
+                    return($this->renderWebMsg(__('Warning'),
+                           __('CRUDs processing: can\'t delete record because it\'s ID: [' . $delRecID . '] is used in: `' . $protectionChkTab->getTableName() . '` table'),
+                           'warning'));
+                }
             }
         } else {
             return(call_user_func_array(array($this, $webFormMethod), array(false)));
@@ -887,7 +961,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
      *
      * @param int $recordID
      */
-    public function recordCreateEdit($dbEntity, $dataArray, $recordID = 0) {
+    protected function recordCreateEdit($dbEntity, $dataArray, $recordID = 0) {
         $dbEntity->dataArr($dataArray);
 
         if (!empty($recordID)) {
@@ -904,13 +978,14 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
         $this->loadDataFromTableCached($dbEntity->getTableName(true), $dbEntity->getTableName(true), true);
     }
 
-    public function recordDelete($dbEntity, $recordID) {
+    protected function recordDelete($dbEntity, $recordID) {
         $dbEntity->where(self::DBFLD_COMMON_ID, '=', $recordID);
         $dbEntity->delete();
         $this->loadDataFromTableCached($dbEntity->getTableName(true), $dbEntity->getTableName(true), true);
 
         log_register(get_class($this) . ': REMOVED record ID: ' . $recordID . ' from table `' . $dbEntity->getTableName() . '`');
     }
+
 
     /**
      * Returns a profile-editor web form
@@ -994,7 +1069,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
      *
      * @return string
      */
-    public function profileRenderJQDT($customJSCode = '') {
+    public function profileRenderJQDT($markRowForID = '', $customJSCode = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1004,7 +1079,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
         $columns[] = __('E-mail');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $markRowForID, $customJSCode);
 
         return($result);
     }
@@ -1637,19 +1712,20 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
             $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
         }
 
-        if (($editAction or $cloneAction) and !empty($this->allExtContras[$extContrasID])) {
-            $extContra          = $this->allExtContras[$extContrasID];
-            $contrasProfileID   = $extContra[self::DBFLD_EXTCONTRAS_PROFILE_ID];
-            $contrasContractID  = $extContra[self::DBFLD_EXTCONTRAS_CONTRACT_ID];
-            $contrasAddressID   = $extContra[self::DBFLD_EXTCONTRAS_ADDRESS_ID];
-            $contrasPeriodID    = $extContra[self::DBFLD_EXTCONTRAS_PERIOD_ID];
-            $contrasPayDay      = $extContra[self::DBFLD_EXTCONTRAS_PAYDAY];
+        if (($editAction or $cloneAction) and !empty($this->allExtContrasExten[$extContrasID])) {
+            $extContra          = $this->allExtContrasExten[$extContrasID];
+            $contrasProfileID   = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PROFILE_ID];
+            $contrasContractID  = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_CONTRACT_ID];
+            $contrasAddressID   = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_ADDRESS_ID];
+            $contrasPeriodID    = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PERIOD_ID];
+            $contrasPayDay      = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
+file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         }
 
         $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt   = ($editAction) ? __('Edit counterparty contract') :
-            (($cloneAction) ? __('Clone counterparty contract') :
-                __('Create counterparty contract'));
+                        (($cloneAction) ? __('Clone counterparty contract') :
+                        __('Create counterparty contract'));
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
@@ -1665,7 +1741,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
         $inputs.= $this->renderWebSelector($this->allECPeriods, array(self::DBFLD_PERIOD_NAME),
                                            self::CTRL_EXTCONTRAS_PERIOD_ID, __('Period') . $this->supFrmFldMark, $contrasPeriodID,
                                            true, true, '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, true, '', '',
+        $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, true, '4', 'digits',
                                $emptyCheckClass, '', '', false, $ctrlsLblStyle);
         $inputs.= wf_delimiter(0);
 
@@ -1702,7 +1778,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
      */
     public function extcontrasRenderJQDT($customJSCode = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
-
+// TODO: make column opts to mark 'Payday' with colors according to current date and, maybe, payment status
         $columns[] = __('ID');
         $columns[] = __('EDRPO');
         $columns[] = __('Counterparty');
@@ -1752,7 +1828,9 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
                 }
 */
                 $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
-                $data[] = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO];
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true'
+                                  . '&' . self::MISC_MARKROW_URL . '=' . $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID],
+                                  $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO]);
                 $data[] = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
@@ -1767,7 +1845,7 @@ if ($tableName == self::TABLE_EXTCONTRASEXTEN) {
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
                     '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
 */
-                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_CONTRAS_ACTS, true);
+                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $json->addRow($data);
