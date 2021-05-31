@@ -37,11 +37,19 @@ file_put_contents('axcv', '');
             $ExtContras->invoiceRenderListJSON();
         }
 
+        if (ubRouting::checkPost($ExtContras::URL_EXTCONTRAS_COLORS)) {
+            $ExtContras->setTableGridColorOpts();
+        }
+
+        if (ubRouting::checkGet($ExtContras::URL_EXTCONTRAS_COLORS)) {
+            show_window(__('Counterparties table coloring settings'), $ExtContras->extcontrasColorSettings());
+        }
 
         if (ubRouting::checkGet($ExtContras::URL_EXTCONTRAS)) {
-            show_window(__('Counterparties list'),
-                $ExtContras->extcontrasWebForm(false)
-                . wf_delimiter() . $ExtContras->extcontrasRenderJQDT()
+            show_window(__('Counterparties list') . wf_nbsp(4)
+                        . wf_Link($ExtContras::URL_ME . '&' . $ExtContras::URL_EXTCONTRAS_COLORS . '=true', wf_img_sized('skins/color-picker.png', __('Coloring settings config'), '22', '22', 'vertical-align: middle;')),
+                        $ExtContras->extcontrasWebForm(false)
+                        . wf_delimiter() . $ExtContras->extcontrasRenderJQDT()
             );
         }
 
