@@ -247,6 +247,7 @@ class ExtContras {
 
     const URL_ME = '?module=extcontras';
     const URL_EXTCONTRAS        = 'extcontraslist';
+    const URL_EXTCONTRAS_COLORS = 'extcontrascolors';
     const URL_DICTPROFILES      = 'dictprofiles';
     const URL_DICTCONTRACTS     = 'dictcontracts';
     const URL_DICTADDRESS       = 'dictaddress';
@@ -344,6 +345,13 @@ class ExtContras {
     const DBFLD_EXTCONTRAS_ADDRESS_ID   = 'address_id';
     const DBFLD_EXTCONTRAS_PERIOD_ID    = 'period_id';
     const DBFLD_EXTCONTRAS_PAYDAY       = 'payday';
+
+    const CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND  = 'EC_PAYEDTHISMONTH_BKGND';
+    const CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND  = 'EC_PAYEDTHISMONTH_FRGND';
+    const CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND = 'EC_FIVEDAYSTILLPAY_BKGND';
+    const CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND = 'EC_FIVEDAYSTILLPAY_FRGND';
+    const CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND  = 'EC_PAYMENTEXPIRED_BKGND';
+    const CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND  = 'EC_PAYMENTEXPIRED_FRGND';
 
 
     const ROUTE_ACTION_CREATE   = 'doCreate';
@@ -602,6 +610,18 @@ class ExtContras {
     }
 
     /**
+     * Saves counterparties list coloring
+     */
+    public function setTableGridColorOpts() {
+        zb_StorageSet(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, ubRouting::post(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND));
+        zb_StorageSet(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, ubRouting::post(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND));
+        zb_StorageSet(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, ubRouting::post(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND));
+        zb_StorageSet(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, ubRouting::post(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND));
+        zb_StorageSet(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, ubRouting::post(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND));
+        zb_StorageSet(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, ubRouting::post(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND));
+    }
+
+    /**
      * Returns typical JQDT with or without JS code for interacting with modals and dynamic modals
      *
      * @param $ajaxURL
@@ -627,27 +647,7 @@ class ExtContras {
         }
 
         $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
-// todo:
-// var table = $('[id ^= "jqdt_"] [class = "dataTable"]').dataTable();
 
-// $(document).ready( function () {
-//  var table = $('#example').DataTable({
-//     "initComplete": function(settings, json) {
-//        var api = this.api();
-//        var row = api.row(function ( idx, data, node ) {
-//           return data[1] == 'Director';
-//        } );
-//        if (row.length > 0) {
-//          row.select()
-//          .show()
-//          .draw(false);
-//        }
-//
-//    },
-//
-//  });
-//
-//} );
         if ($stdJSForCRUDs) {
             $result .= wf_tag('script', false, '', 'type="text/javascript"');
             $result .= wf_JSEmptyFunc();
@@ -1778,7 +1778,7 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
      */
     public function extcontrasRenderJQDT($customJSCode = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
-// TODO: make column opts to mark 'Payday' with colors according to current date and, maybe, payment status
+
         $columns[] = __('ID');
         $columns[] = __('EDRPO');
         $columns[] = __('Counterparty');
@@ -1791,6 +1791,35 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         $columns[] = __('Period');
         $columns[] = __('Payday');
         $columns[] = __('Actions');
+        $columns[] = __('Payed this month');
+        $columns[] = __('5 days till payday');
+        $columns[] = __('Payment expired');
+
+// TODO: make column opts to mark 'Payday' with colors according to current date and, maybe, payment status
+
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": [12, 13, 14], "visible": false} ],
+            
+            "rowCallback": function(row, data, index) {                   
+                if ( data[12] == "1" {
+                    $(\'td\', row).css(\'background-color\', \'#4f7318\');
+                    $(\'td\', row).css(\'color\', \'white\');
+                } 
+                
+                
+                
+                if ( data[' . $CheckCol1 . '] == "' . __('Yes') . '" && data[' . $CheckCol2 . '] == "' . __('Yes') . '") {
+                    $(\'td\', row).css(\'background-color\', \'#4f7318\');
+                    $(\'td\', row).css(\'color\', \'white\');
+                }
+                
+                if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('No') . '") {
+                    $(\'td\', row).css(\'background-color\', \'#FFFF00\');
+                    $(\'td\', row).css(\'color\', \'#4800FF\');
+                }
+            }
+            ';
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
 
@@ -1854,5 +1883,28 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         }
 
         $json->getJson();
+    }
+
+    /**
+     * Renders counterparties table coloring settings form
+     *
+     * @return string
+     */
+    public function extcontrasColorSettings() {
+        $inputs = '';
+
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, __('Already payed this month background'), '#4f7318', true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, __('Already payed this month foreground'), '#ffffff', true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, __('5 days left till payday background'), '#ffff00', true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, __('5 days left till payday background'), '#4800ff', true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Already payed this month background'), '#9e1313', true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Already payed this month background'), '#ffff44', true, '7');
+        $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"');
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS_COLORS . '=true','POST',
+                            $inputs, 'glamour');
+
+        return ($inputs);
     }
 }
