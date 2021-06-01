@@ -47,45 +47,48 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::URL_EXTCONTRAS)) {
             show_window(__('Counterparties list') . wf_nbsp(4)
-                        . wf_Link($ExtContras::URL_ME . '&' . $ExtContras::URL_EXTCONTRAS_COLORS . '=true', wf_img_sized('skins/color-picker.png', __('Coloring settings config'), '22', '22', 'vertical-align: middle;')),
+                        . wf_Link($ExtContras::URL_ME . '&' . $ExtContras::URL_EXTCONTRAS_COLORS . '=true',
+                                  wf_img_sized('skins/color-picker.png', __('Coloring settings config'),
+                                         '22', '22', 'vertical-align: middle;'),
+                                  false, 'ubButton', 'style="display: inline; padding: 3px 7px; vertical-align: middle;"'),
                         $ExtContras->extcontrasWebForm(false)
                         . wf_delimiter() . $ExtContras->extcontrasRenderJQDT()
-            );
+                        );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {
             show_window(__('Counterparties profiles dictionary'),
                         $ExtContras->profileWebForm(false)
-                        . wf_delimiter() . $ExtContras->profileRenderJQDT(ubRouting::get($ExtContras::MISC_MARKROW_URL))
+                        . wf_delimiter() . $ExtContras->profileRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
                        );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTCONTRACTS)) {
             show_window(__('Counterparties contracts dictionary'),
                         $ExtContras->contractWebForm(false)
-                        . wf_delimiter() . $ExtContras->contractRenderJQDT()
+                        . wf_delimiter() . $ExtContras->contractRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
                        );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTADDRESS)) {
             show_window(__('Counterparties addresses dictionary'),
-                $ExtContras->addressWebForm(false)
-                . wf_delimiter() . $ExtContras->addressRenderJQDT()
-            );
+                        $ExtContras->addressWebForm(false)
+                        . wf_delimiter() . $ExtContras->addressRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
+                        );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPERIODS)) {
             show_window(__('Periods dictionary'),
                         $ExtContras->periodWebForm(false)
-                        . wf_delimiter() . $ExtContras->periodRenderJQDT()
+                        . wf_delimiter() . $ExtContras->periodRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
                        );
         }
 
         if (ubRouting::checkGet($ExtContras::URL_INVOICES)) {
             show_window(__('Invoices'),
                         $ExtContras->invoiceWebForm(false)
-                        . wf_delimiter() . $ExtContras->invoiceRenderJQDT()
-            );
+                        . wf_delimiter() . $ExtContras->invoiceRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
+                        );
         }
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
