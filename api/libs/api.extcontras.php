@@ -241,6 +241,48 @@ class ExtContras {
     protected $supFrmFldMark = '';
 
     /**
+     * Background color for records which have payments in current month
+     *
+     * @var string
+     */
+    protected $payedThisMonthBKGND = '';
+
+    /**
+     * Foreground color for records which have payments in current month
+     *
+     * @var string
+     */
+    protected $payedThisMonthFRGND = '';
+
+    /**
+     * Background color for records which need to be payed during next 5 days
+     *
+     * @var string
+     */
+    protected $fiveDaysTillPayBKGND = '';
+
+    /**
+     * Foreground color for records which need to be payed during next 5 days
+     *
+     * @var string
+     */
+    protected $fiveDaysTillPayFRGND = '';
+
+    /**
+     * Background color for records which payday has passed already
+     *
+     * @var string
+     */
+    protected $paymentExpiredBKGND = '';
+
+    /**
+     * Foreground color for records which payday has passed already
+     *
+     * @var string
+     */
+    protected $paymentExpiredFRGND = '';
+
+    /**
      * Routes, static defines, etc
      */
     const SAY_MY_NAME = 'CONTRAS';
@@ -407,6 +449,7 @@ class ExtContras {
         $this->initDBEntities();
         $this->loadDBTableStructs();
         $this->loadAllData();
+        $this->getTableGridColorOpts();
 
         if ($this->fileStorageEnabled) {
             $this->fileStorage = new FileStorage(self::MISC_FILESTORAGE_SCOPE);
@@ -610,7 +653,7 @@ class ExtContras {
     }
 
     /**
-     * Saves counterparties list coloring
+     * Saves counterparties list coloring to ubStorage
      */
     public function setTableGridColorOpts() {
         zb_StorageSet(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, ubRouting::post(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND));
@@ -622,18 +665,68 @@ class ExtContras {
     }
 
     /**
+     * Loads counterparties list coloring to class properties
+     */
+    public function getTableGridColorOpts() {
+        $this->payedThisMonthBKGND = zb_StorageGet(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND);
+        $this->payedThisMonthBKGND = (empty($this->payedThisMonthBKGND) ? '#4f7318' : $this->payedThisMonthBKGND);
+
+        $this->payedThisMonthFRGND = zb_StorageGet(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND);
+        $this->payedThisMonthFRGND = (empty($this->payedThisMonthFRGND) ? '#ffffff' : $this->payedThisMonthFRGND);
+
+        $this->fiveDaysTillPayBKGND = zb_StorageGet(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND);
+        $this->fiveDaysTillPayBKGND = (empty($this->fiveDaysTillPayBKGND) ? '#ffff00' : $this->fiveDaysTillPayBKGND);
+
+        $this->fiveDaysTillPayFRGND = zb_StorageGet(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND);
+        $this->fiveDaysTillPayFRGND = (empty($this->fiveDaysTillPayFRGND) ? '#4800ff' : $this->fiveDaysTillPayFRGND);
+
+        $this->paymentExpiredBKGND = zb_StorageGet(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND);
+        $this->paymentExpiredBKGND = (empty($this->paymentExpiredBKGND) ? '#9e1313' : $this->paymentExpiredBKGND);
+
+        $this->paymentExpiredFRGND = zb_StorageGet(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND);
+        $this->paymentExpiredFRGND = (empty($this->paymentExpiredFRGND) ? '#ffff44' : $this->paymentExpiredFRGND);
+    }
+    /**
+     * Searches for any occurrences of current month payments for a certain counterparty ID
+     *
+     * @param $ecRecID
+     *
+     * @return string
+     */
+    protected function checkCurMonthPaymExists($ecRecID) {
+        $result = '';
+
+        if (!empty($ecRecID) and !empty($this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PAYDAY])) {
+            $tmpECPayDay    = $this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PAYDAY];
+            $curMonthStart  = date('Y-m-') . '01';
+            $curMonthEnd    = date('Y-m-') . $tmpECPayDay;
+
+            $this->dbECMoney->selectable('id');
+            $this->dbECMoney->where('contras_rec_id', '=', $ecRecID);
+            $this->dbECMoney->where('summ_payment', '!=', 0);
+            $this->dbECMoney->whereRaw(' `date` BETWEEN ' . $curMonthStart . ' AND ' . $curMonthEnd . ' + INTERVAL 1 DAY ');
+            $result = $this->dbECMoney->getAll('id');
+        }
+
+        return ($result);
+    }
+
+    /**
      * Returns typical JQDT with or without JS code for interacting with modals and dynamic modals
      *
      * @param $ajaxURL
      * @param $columnsArr
      * @param string $columnsOpts
      * @param bool $stdJSForCRUDs
-     * @param string|int $markRowForID
      * @param string $customJSCode
+     * @param string $truncateURL
+     * @param string $truncateParam
      *
+     * @param string|int $markRowForID
      * @return string
      */
-    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true, $markRowForID = '', $customJSCode = '') {
+    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true,
+                                                $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '') {
         $result     = '';
         $ajaxURLStr = $ajaxURL;
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
@@ -641,39 +734,39 @@ class ExtContras {
         $opts       = (empty($columnsOpts) ? '"order": [[ 0, "asc" ]]' : $columnsOpts);
 
         if (!empty($markRowForID)) {
-            $result .= wf_tag('script', false, '', 'type="text/javascript"');
+            $result.= wf_tag('script', false, '', 'type="text/javascript"');
             $result.= wf_JQDTRowShowPluginJS();
-            $result .= wf_tag('script', true);
+            $result.= wf_tag('script', true);
         }
 
         $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
 
         if ($stdJSForCRUDs) {
-            $result .= wf_tag('script', false, '', 'type="text/javascript"');
-            $result .= wf_JSEmptyFunc();
-            $result .= wf_JSElemInsertedCatcherFunc();
+            $result.= wf_tag('script', false, '', 'type="text/javascript"');
+            $result.= wf_JSEmptyFunc();
+            $result.= wf_JSElemInsertedCatcherFunc();
 
             // putting a "form submitting catcher" JS code to process multiple modal and static forms
             // with one piece of code and ajax requests
-            $result .= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
+            $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
                                            '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
                                            '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
                                            self::MISC_ERRFORM_ID_PARAM);
 
             // putting a piece of JS code to perform records delete action
-            $result .= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
+            $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
 
             if (!empty($markRowForID)) {
-                $result.= wf_JQDTMarkRow(0, $markRowForID);
+                $result.= wf_JQDTMarkRow(0, $markRowForID, $truncateURL, $truncateParam);
             }
 
-            $result .= wf_tag('script', true);
+            $result.= wf_tag('script', true);
         }
 
         if (!empty($customJSCode)) {
-            $result .= wf_tag('script', false, '', 'type="text/javascript"');
-            $result .= $customJSCode;
-            $result .= wf_tag('script', true);
+            $result.= wf_tag('script', false, '', 'type="text/javascript"');
+            $result.= $customJSCode;
+            $result.= wf_tag('script', true);
         }
 
         return ($result);
@@ -1066,10 +1159,11 @@ class ExtContras {
      * Renders JQDT for profiles dictionary
      *
      * @param string $customJSCode
+     * @param string $markRowForID
      *
      * @return string
      */
-    public function profileRenderJQDT($markRowForID = '', $customJSCode = '') {
+    public function profileRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1079,7 +1173,9 @@ class ExtContras {
         $columns[] = __('E-mail');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $markRowForID, $customJSCode);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_DICTPROFILES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1221,10 +1317,11 @@ class ExtContras {
      * Renders JQDT for contracts dictionary
      *
      * @param string $customJSCode
+     * @param string $markRowForID
      *
      * @return string
      */
-    public function contractRenderJQDT($customJSCode = '') {
+    public function contractRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRACT_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1238,7 +1335,9 @@ class ExtContras {
         $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+                                    self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1356,10 +1455,11 @@ class ExtContras {
      * Renders JQDT for address dictionary
      *
      * @param string $customJSCode
+     * @param string $markRowForID
      *
      * @return string
      */
-    public function addressRenderJQDT($customJSCode = '') {
+    public function addressRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_ADDRESS_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1369,7 +1469,9 @@ class ExtContras {
         $columns[] = __('Address notes');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+                                    self::URL_ME . '&' . self::URL_DICTADDRESS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1454,17 +1556,20 @@ class ExtContras {
      * Renders JQDT for period dictionary
      *
      * @param string $customJSCode
+     * @param string $markRowForID
      *
      * @return string
      */
-    public function periodRenderJQDT($customJSCode = '') {
+    public function periodRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PERIOD_JSON . '=true';
 
         $columns[] = __('ID');
         $columns[] = __('Period name');
         $columns[] = __('Actions');
 
-        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+                                              self::URL_ME . '&' . self::URL_DICTPERIODS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                                self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1623,10 +1728,11 @@ class ExtContras {
      * Renders JQDT for invoices list
      *
      * @param string $customJSCode
+     * @param string $markRowForID
      *
      * @return string
      */
-    public function invoiceRenderJQDT($customJSCode = '') {
+    public function invoiceRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_INVOICES_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1642,7 +1748,9 @@ class ExtContras {
         $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+                                    self::URL_ME . '&' . self::URL_INVOICES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1773,10 +1881,10 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
      * Renders JQDT for external counterparty list
      *
      * @param string $customJSCode
-     *
+     * @param string $markRowForID
      * @return string
      */
-    public function extcontrasRenderJQDT($customJSCode = '') {
+    public function extcontrasRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1795,33 +1903,35 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         $columns[] = __('5 days till payday');
         $columns[] = __('Payment expired');
 
+        $this->getTableGridColorOpts();
 // TODO: make column opts to mark 'Payday' with colors according to current date and, maybe, payment status
 
         $opts = '
             "order": [[ 0, "desc" ]],
             "columnDefs": [ {"targets": [12, 13, 14], "visible": false} ],
             
-            "rowCallback": function(row, data, index) {                   
-                if ( data[12] == "1" {
-                    $(\'td\', row).css(\'background-color\', \'#4f7318\');
-                    $(\'td\', row).css(\'color\', \'white\');
+            "rowCallback": function(row, data, index) {                               
+                if ( data[12] == "1" ) {
+                    $(\'td\', row).css(\'background-color\', \'' . $this->payedThisMonthBKGND . '\');
+                    $(\'td\', row).css(\'color\', \'' . $this->payedThisMonthFRGND . '\');
                 } 
                 
+                if ( data[13] == "1" ) {
+                    $(\'td\', row).css(\'background-color\', \'' . $this->fiveDaysTillPayBKGND . '\');
+                    $(\'td\', row).css(\'color\', \'' . $this->fiveDaysTillPayFRGND . '\');
+                } 
                 
-                
-                if ( data[' . $CheckCol1 . '] == "' . __('Yes') . '" && data[' . $CheckCol2 . '] == "' . __('Yes') . '") {
-                    $(\'td\', row).css(\'background-color\', \'#4f7318\');
-                    $(\'td\', row).css(\'color\', \'white\');
-                }
-                
-                if ( data[' . $CheckCol1 . '] == "' . __('No') . '" && data[' . $CheckCol2 . '] == "' . __('No') . '") {
-                    $(\'td\', row).css(\'background-color\', \'#FFFF00\');
-                    $(\'td\', row).css(\'color\', \'#4800FF\');
-                }
+                if ( data[14] == "1" ) {
+                    $(\'td\', row).css(\'background-color\', \'' . $this->paymentExpiredBKGND . '\');
+                    $(\'td\', row).css(\'color\', \'' . $this->paymentExpiredFRGND . '\');
+                } 
             }
+            
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
+                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1852,8 +1962,6 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
                     } else {
                         $data[] = $fieldVal;
                     }
-
-
                 }
 */
                 $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
@@ -1877,6 +1985,12 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
                 $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
+                $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID]);
+
+                $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
+                $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
+                $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
+
                 $json->addRow($data);
                 unset($data);
             }
@@ -1891,14 +2005,16 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
      * @return string
      */
     public function extcontrasColorSettings() {
+        $this->getTableGridColorOpts();
+
         $inputs = '';
 
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, __('Already payed this month background'), '#4f7318', true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, __('Already payed this month foreground'), '#ffffff', true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, __('5 days left till payday background'), '#ffff00', true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, __('5 days left till payday background'), '#4800ff', true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Already payed this month background'), '#9e1313', true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Already payed this month background'), '#ffff44', true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, __('Already payed this month background'), $this->payedThisMonthBKGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, __('Already payed this month foreground'), $this->payedThisMonthFRGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, __('5 days left till payday background'), $this->fiveDaysTillPayBKGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, __('5 days left till payday background'), $this->fiveDaysTillPayFRGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Already payed this month background'), $this->paymentExpiredBKGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Already payed this month background'), $this->paymentExpiredFRGND, true, '7');
         $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"');
 
