@@ -560,7 +560,7 @@ class TrinityTvFrontend {
     protected function renderDeviceByCodeAddForm() {
         $result = '';
         $inputs = la_HiddenInput('device', 'true');
-        $inputs .= la_TextInput('code', __('Code'), '', true, 20);
+        $inputs .= la_TextInput('code', __('Code'), '', true, 20, 'digits');
         $inputs .= la_Submit(__('Assign device'));
         $result .= la_Form('', 'POST', $inputs, 'glamour');
         return ($result);
