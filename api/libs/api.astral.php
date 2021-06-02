@@ -71,11 +71,14 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  string $class class of the element
  * @param  string $ctrlID id of the element
  * @param  string $options
+ * @param  bool   $labelLeftSide
+ * @param  string $labelOpts
  *
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '', $ctrlID = '', $options = '') {
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '',
+                      $ctrlID = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
     $inputid = ( empty($ctrlID) ) ? wf_InputId() : $ctrlID;
     $opts = ( empty($options) ) ? '' : $options;
 
@@ -106,7 +109,14 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $opts . ' ' . $pattern . '>' . "\n";
     if ($label != '') {
-        $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        $labelOpts = (empty($labelOpts) ? '' : $labelOpts);
+        $labelStr = '<label for="' . $inputid . '" ' . $labelOpts . '>' . __($label) . '</label>';
+
+        if ($labelLeftSide) {
+            $result = $labelStr . ' ' . $result . "\n";
+        } else {
+            $result .= ' ' . $labelStr . "\n";
+        }
     }
     $result .= $newline . "\n";
     return ($result);
@@ -353,9 +363,9 @@ function wf_Submit($value, $CtrlID = '', $options = '') {
  *
  * @return string
  */
-function wf_SubmitClassed($value, $class = '', $name = '', $caption = '', $CtrlID = '') {
+function wf_SubmitClassed($value, $class = '', $name = '', $caption = '', $CtrlID = '', $options = '') {
     $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
-    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '" id="' . $SubmitID . '">';
+    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '" id="' . $SubmitID . '" ' . $options . '>';
     $result .= $caption;
     $result .= '</button>';
     return ($result);
@@ -406,11 +416,16 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @param bool    $br append new line
  * @param bool    $sort alphabetical sorting of params array by value
  * @param string  $CtrlID id of the element
+ * @param string  $CtrlClass
+ * @param string  $options
+ * @param bool    $labelLeftSide
+ * @param string  $labelOpts
  * 
  * @return  string
  *
  */
-function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false, $CtrlID = '', $CtrlClass = '', $options = '') {
+function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false,
+                     $CtrlID = '', $CtrlClass = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
 
     $inputid = ( empty($CtrlID) ) ? wf_InputId() : $CtrlID;
     $inputclass = ( empty($CtrlClass) ) ? '' : ' class="' . $CtrlClass . '"';
@@ -432,7 +447,14 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort 
 
     $result .= '</select>' . "\n";
     if ($label != '') {
-        $result .= '<label for="' . $inputid . '">' . __($label) . '</label>';
+        $labelOpts = (empty($labelOpts) ? '' : $labelOpts);
+        $labelStr = '<label for="' . $inputid . '" ' . $labelOpts . '>' . __($label) . '</label>';
+
+        if ($labelLeftSide) {
+            $result = $labelStr . ' ' . $result . "\n";
+        } else {
+            $result .= ' ' . $labelStr . "\n";
+        }
     }
     $result .= $newline . "\n";
     return ($result);
@@ -1068,12 +1090,13 @@ $(function() {
  * @param string $title modal window title
  * @param string $content modal window content
  * @param string $linkclass link class
+ * @param string $windowID
  *
  * @return string
  *  
  */
-function wf_modalAuto($link, $title, $content, $linkclass = '') {
-    $wid = wf_inputid();
+function wf_modalAuto($link, $title, $content, $linkclass = '', $windowID = '') {
+    $wid = (empty($windowID) ? 'dialog-modal_' . wf_inputid() : $windowID);
 
 //setting link class
     if ($linkclass != '') {
@@ -1088,7 +1111,7 @@ function wf_modalAuto($link, $title, $content, $linkclass = '') {
     $dialog = '
 <script type="text/javascript">
 $(function() {
-		$( "#dialog-modal_' . $wid . '" ).dialog({
+		$( "#' . $wid . '" ).dialog({
 			autoOpen: false,
 			width: \'auto\',
             height: \'auto\',
@@ -1098,13 +1121,13 @@ $(function() {
 		});
 
 		$( "#opener_' . $wid . '" ).click(function() {
-			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+			$( "#' . $wid . '" ).dialog( "open" );
             return false;
 		});
 	});
 </script>
 
-<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+<div id="' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
 	<p>
     ' . $content . '
     </p>
@@ -1923,9 +1946,12 @@ function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '') 
                     submit: true,
                     color:  "' . (!empty($value) ? $value : "#f57601" ) . '",
                     onSubmit: function(hsb,hex,rgb,el) {
-                        var hex_str = $("div.colpick_hex_field > input").val();
+                        var colpickID = $(el).colpick().data("colpickId");
+                        var hex_str = $("#" + colpickID + " div.colpick_hex_field > input").val();
+                        
                         $(el).val("#" + hex_str);
                         $(el).colpickHide();
+                        $(el).focus();
                     }
                 });
             });
@@ -2167,7 +2193,6 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     $result .= '<input type="text" id="' . $name . '_autocomplete" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
     if ($label != '') {
         $result .= ' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
-        ;
     }
 
     $result .= $newline . "\n";
@@ -2354,6 +2379,109 @@ function wf_JQDTColumnHideShow($CallerObjID, $CallerObjEvent, $JQDTID, $ColIndex
                 ';
 
     return $JSCode;
+}
+
+/**
+ * Returns a JS snippet for .row().show() plugin
+ *
+ * @return string
+ */
+function wf_JQDTRowShowPluginJS() {
+    $jsCode = '
+        $.fn.dataTable.Api.register(\'row().show()\', function() {
+            var page_info = this.table().page.info();
+            // Get row index
+            var new_row_index = this.index();
+            // Row position
+            var row_position = this.table()
+                .rows({ search: \'applied\' })[0]
+                .indexOf(new_row_index);
+            // Already on right page ?
+            if ((row_position >= page_info.start && row_position < page_info.end) || row_position < 0) {
+                // Return row object
+                return this;
+            }
+            // Find page number
+            var page_to_display = Math.floor(row_position / this.table().page.len());
+            // Go to that page
+            this.table().page(page_to_display);
+            // Return row object
+            return this;
+        });
+        
+    ';
+
+    return ($jsCode);
+}
+
+/**
+ * Returns a JS snippet for column footer sum() plugin
+ *
+ * @return string
+ */
+function wf_JQDTColumnTotalSumJS() {
+    $jsCode = '
+        jQuery.fn.dataTable.Api.register( \'sum()\', function ( ) {
+            return this.flatten().reduce( function ( a, b ) {
+                if ( typeof a === \'string\' ) {
+                    a = a.replace(/[^\d.-]/g, \'\') * 1;
+                }
+                if ( typeof b === \'string\' ) {
+                    b = b.replace(/[^\d.-]/g, \'\') * 1;
+                }
+         
+                return a + b;
+            }, 0 );
+        } );
+        
+    ';
+
+    return ($jsCode);
+}
+
+/**
+ * Returns a JS snippet for markdown the row with searched value
+ *
+ * @param string|int $columnNum
+ * @param string $searchVal
+ * @param string $truncateURL
+ * @param string $truncateParam
+ *
+ * @return string
+ */
+function wf_JQDTMarkRow($columnNum, $searchVal, $truncateURL = '', $truncateParam = '') {
+    $truncateJSCode = '';
+
+    if (!empty($truncateURL) and !empty($truncateParam)) {
+        $truncateJSCode = '
+            var urlObject = new URLSearchParams(\'' . $truncateURL . '\');
+            
+            if (urlObject.has(\'' . $truncateParam . '\')) {
+                urlObject.delete(\'' . $truncateParam . '\');
+                var truncatedURL = urlObject.toString();
+                window.history.replaceState({}, document.title, "/?" + truncatedURL);
+            }            
+            ';
+
+    }
+
+    $result = '
+        $(document).ready( function () {
+            var table = $(\'[id ^= "jqdt_"][role = "grid"]\').DataTable();
+            table.on( \'init\', function () {
+                var row = table.row(function ( idx, data, node ) {
+                               return data[' . $columnNum . '] == \'' . $searchVal . '\';
+                           });
+    
+                if (row.length > 0) {
+                    row.select().show().draw(false);
+                }
+            });
+            ' . $truncateJSCode . '            
+        });
+        ';
+
+    return ($result);
 }
 
 /**
@@ -2796,6 +2924,145 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
 }
 
 /**
+ * Returns JS for a link which will be responsible for opening an assigned modal window
+ *
+ * @param $ajaxURL
+ * @param $ajaxDataArr
+ * @param string $title
+ * @param string $icon
+ * @param string $linkCSSClass
+ *
+ * @return string
+ */
+function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '', $queryType = 'POST') {
+    $linkID = wf_InputId();
+    $dynamicOpener = wf_Link('#', $icon . ' ' . $title, false, $linkCSSClass, 'id="' . $linkID . '"')
+                    . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, $queryType);
+
+    return ($dynamicOpener);
+}
+
+/**
+ * Inserts JS-code to process submitting of multiple dynamically or statically created MODAL FORMS via AJAX call
+ * To work properly, requires wf_JSEmptyFunc() and wf_JSElemInsertedCatcherFunc() routines to be inserted on a page beforehand.
+ * Also it's better to pass a JQUERY DataTable ID to be able to update a certain JQDT records
+ *
+ * @param string $submitFormClasses (need to be passed with leading dot, several classes may be passed )
+ * @param string $submitFormIDCtrlClass (need to be passed with leading dot)
+ * @param string $jqdtID
+ * @param string $emptyValueCheckClasses (need to be passed with leading dot)
+ * @param string $errorFormIDParamName
+ *
+ * @return string
+ */
+function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID = '', $emptyValueCheckClasses = '', $errorFormIDParamName = '') {
+    $result = '';
+    $emptyValueCheckClasses   = (empty($emptyValueCheckClasses) ? '__EmptyCheckControl' : $emptyValueCheckClasses);
+    $errorFormIDParamName = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
+    $errorModalWindowId = wf_InputId();
+
+    $result.= ' 
+        function checkEmptyVal(ctrlClassName) {
+            $(document).on("focus keydown", ctrlClassName, function(evt) {
+                $(document).find(ctrlClassName).each(function(indx, element){
+                    if ( $(element).hasClass(\'__MandatoryEmpty\') ) {  
+                        $(element).val("");
+                        $(element).css("border-color", "");
+                        $(element).css("color", "");
+                        $(element).toggleClass(\'__MandatoryEmpty\');
+                    }
+                });
+            });
+        }
+                    
+        // for already inserted elements on page load
+        checkEmptyVal(\'' . $emptyValueCheckClasses . '\');
+        
+        // for newly inserted elements after page load 
+        onElementInserted(\'body\', \'' . $emptyValueCheckClasses . '\', function(element) {
+            checkEmptyVal(\'' . $emptyValueCheckClasses . '\');
+        });
+                
+        $(document).on("submit", "' . $submitFormClasses . '", function(evt) {
+            evt.preventDefault();
+            var emptyCheckClass     = \'' . $emptyValueCheckClasses . '\';
+            var mandatoryFldsEmpty  = false;
+            
+            $(this).find(emptyCheckClass).each(function(indx, element){
+                if ( empty($(element).val()) ) {
+                    $(element).css("border-color", "red");
+                    $(element).css("color", "grey");
+                    $(element).val("' . __('Mandatory field') . '");
+                    $(element).toggleClass(\'__MandatoryEmpty\');
+                    
+                    mandatoryFldsEmpty = true
+                }
+            });
+            
+            if (!mandatoryFldsEmpty) {
+                var FrmAction   = $(this).attr("action");
+                var FrmData     = $(this).serialize() + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\';                        
+            
+                $.ajax({
+                    type: "POST",
+                    url: FrmAction,
+                    data: FrmData,
+                    success: function(result) {
+                                if ( !empty(result) ) {                                            
+                                    $(document.body).append(result);                                                
+                                    $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
+                                } else {'
+                                    . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
+                                    '$( \'#\'+$("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
+                                }
+                            }                        
+                });
+            }
+        });
+                
+        ';
+
+    return ($result);
+}
+
+/**
+ * Returns a simple wrapper for a JS function with ajax request which can be used later for multiple "callers"
+ * e.g. - to delete record from DB or whatever
+ *
+ * @param $funcName
+ * @param string $jqdtID
+ * @param string $errorFormIDParamName
+ * @param string $queryType
+ *
+ * @return string
+ */
+function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $errorFormIDParamName = '', $queryType = 'POST') {
+    $errorFormIDParamName = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
+    $errorModalWindowId = wf_InputId();
+    $result = '';
+    $result.= '
+        function ' . $funcName . '(ajaxURL, ajaxData) {
+            var ajaxData = ajaxData + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\'                    
+        
+            $.ajax({
+                    type: "' . $queryType . '",
+                    url: ajaxURL,
+                    data: ajaxData,
+                    success: function(result) {                                    
+                                if ( !empty(result) ) {                                            
+                                    $(document.body).append(result);
+                                    $(\'#\'+' . $errorFormIDParamName . ').dialog("open");
+                                }'
+                                . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
+                             '}
+            });
+        }
+                                              
+        ';
+
+    return ($result);
+}
+/**
  * Generates tabbed UI for almost any data.
  *
  * @param $tabsDivID - ID of the main tab div
@@ -2892,24 +3159,25 @@ function wf_TabsCarouselInitLinking() {
  */
 function wf_JSEmptyFunc() {
     $Result = '
-                function empty (mixed_var) {
-                    // version: 909.322
-                    // discuss at: http://phpjs.org/functions/empty
-                    
-                    var key;
-                    if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
-                        return true;
-                    }
-                    
-                    if (typeof mixed_var == \'object\') {
-                        for (key in mixed_var) {
-                            return false;
-                        }                        
-                        return true;
-                    }                    
+        function empty (mixed_var) {
+            // version: 909.322
+            // discuss at: http://phpjs.org/functions/empty
+            
+            var key;
+            if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
+                return true;
+            }
+            
+            if (typeof mixed_var == \'object\') {
+                for (key in mixed_var) {
                     return false;
-                }
-              ';
+                }                        
+                return true;
+            }                    
+            return false;
+        }
+        
+      ';
 
     return ($Result);
 }
@@ -2940,34 +3208,35 @@ function wf_nbsp($count = 1) {
  */
 function wf_JSElemInsertedCatcherFunc() {
     $Result = '
-                function onElementInserted(containerSelector, elementSelector, callback) {
-                    var onMutationsObserved = function(mutations) {
-                        mutations.forEach(function(mutation) {                            
-                            if (mutation.addedNodes.length) {
-                                var elements = $(mutation.addedNodes).find(elementSelector);
-                                
-                                if (elements.length <= 0) {
-                                    elements = $(mutation.addedNodes).closest(elementSelector);
-                                }
-                            
-                                for (var i = 0, len = elements.length; i < len; i++) {
-                                    callback(elements[i]);
-                                }
-                            }
-                            
-                            if (mutation.type == \'attributes\' && (\'.\' + $(mutation.target).attr(\'class\') == elementSelector)) {
-                                callback(mutation.target);
-                            }
-                        });
-                    };
-                
-                    var target = $(containerSelector)[0];
-                    var config = { childList: true, subtree: true, attributes: true};
-                    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-                    var observer = new MutationObserver(onMutationsObserved);    
-                    observer.observe(target, config);                    
-                }
-             ';
+        function onElementInserted(containerSelector, elementSelector, callback) {
+            var onMutationsObserved = function(mutations) {
+                mutations.forEach(function(mutation) {                            
+                    if (mutation.addedNodes.length) {
+                        var elements = $(mutation.addedNodes).find(elementSelector);
+                        
+                        if (elements.length <= 0) {
+                            elements = $(mutation.addedNodes).closest(elementSelector);
+                        }
+                    
+                        for (var i = 0, len = elements.length; i < len; i++) {
+                            callback(elements[i]);
+                        }
+                    }
+                    
+                    if (mutation.type == \'attributes\' && (\'.\' + $(mutation.target).attr(\'class\') == elementSelector)) {
+                        callback(mutation.target);
+                    }
+                });
+            };
+        
+            var target = $(containerSelector)[0];
+            var config = { childList: true, subtree: true, attributes: true};
+            var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+            var observer = new MutationObserver(onMutationsObserved);    
+            observer.observe(target, config);                    
+        }
+        
+        ';
 
     return $Result;
 }
@@ -3139,6 +3408,39 @@ function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = ''
 
     $cleanTitle = strip_tags($title);
     $result .= wf_modalAuto($title, __($cleanTitle), $dialog, $class);
+    return($result);
+}
+
+/**
+ * Returns confirmation dialog to navigate to some URL
+ *
+ * @param string $url
+ * @param string $title
+ * @param string $alerttext
+ * @param string $class
+ * @param string $cancelUrl
+ *
+ * @return string
+ */
+function wf_ConfirmDialogJS($url, $title, $alerttext, $class = '', $cancelUrl = '', $funcRunAgree = '', $funcRunCancel = '', $modalWinID = '') {
+    $result = '';
+    $modalWinID = (empty($modalWinID) ? 'dialog-modal_' . wf_InputId() : $modalWinID);
+    $funcRunAgree = (empty($funcRunAgree) ? '' : ' onclick="' . $funcRunAgree . '; return false; "');
+    $funcRunCancel = (empty($funcRunCancel) ? '' : ' onclick="' . $funcRunCancel . '; return false; "');
+
+    $dialog = __($alerttext);
+    $dialog .= wf_tag('br');
+    $dialog .= wf_tag('center', false);
+    $dialog .= wf_Link($url, __('Agree'), false, 'confirmagree', $funcRunAgree);
+
+    if (!empty($cancelUrl) or !empty($funcRunCancel)) {
+        $dialog .= wf_Link($cancelUrl, __('Cancel'), false, 'confirmcancel', $funcRunCancel);
+    }
+
+    $dialog .= wf_tag('center', true);
+
+    $cleanTitle = strip_tags($title);
+    $result .= wf_modalAuto($title, __($cleanTitle), $dialog, $class, $modalWinID);
     return($result);
 }
 

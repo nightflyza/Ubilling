@@ -161,12 +161,13 @@ class NyanORM {
      * @param string $joinExpression LEFT or RIGHT or whatever you need type of JOIN
      * @param string $tableName table name (for example switches)
      * @param string $using field to use for USING expression
+     * @param bool $noTabNameEnclosure do not enclose table name with ``
      * 
      * @throws MEOW_JOIN_WRONG_TYPE 
      * 
      * @return void
      */
-    public function join($joinExpression = '', $tableName = '', $using = '') {
+    public function join($joinExpression = '', $tableName = '', $using = '', $noTabNameEnclosure = false) {
         if (!empty($joinExpression) and ! empty($tableName) and ! empty($using)) {
             $joinExpression = trim($joinExpression);
             switch ($joinExpression) {
@@ -180,7 +181,11 @@ class NyanORM {
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($using)) {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
+                if ($noTabNameEnclosure) {
+                    $this->join[] = $joinExpression . " JOIN " . $tableName . " USING (" . $using . ")";
+                } else {
+                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` USING (" . $using . ")";
+                }
             }
         } else {
             $this->flushJoin();
@@ -193,12 +198,13 @@ class NyanORM {
      * @param string $joinExpression
      * @param string $tableName
      * @param string $on
+     * @param bool $noTabNameEnclosure
      * 
      * @throws MEOW_JOIN_WRONG_TYPE
      * 
      * @return void
      */
-    public function joinOn($joinExpression = '', $tableName = '', $on = '') {
+    public function joinOn($joinExpression = '', $tableName = '', $on = '', $noTabNameEnclosure = false) {
         if (!empty($joinExpression) and ! empty($tableName) and ! empty($on)) {
             $joinExpression = trim($joinExpression);
             switch ($joinExpression) {
@@ -212,7 +218,11 @@ class NyanORM {
                     throw new Exception('MEOW_JOIN_WRONG_TYPE');
             }
             if (is_string($joinExpression) and is_string($tableName) and is_string($on)) {
-                $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
+                if ($noTabNameEnclosure) {
+                    $this->join[] = $joinExpression . " JOIN " . $tableName . " ON (" . $on . ")";
+                } else {
+                    $this->join[] = $joinExpression . " JOIN `" . $tableName . "` ON (" . $on . ")";
+                }
             }
         } else {
             $this->flushJoin();
