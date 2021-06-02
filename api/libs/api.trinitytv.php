@@ -255,8 +255,10 @@ class TrinityTvApi {
             file_put_contents(self::LOG_PATH, '>>>>>QUERY>>>>>' . "\n", FILE_APPEND);
             file_put_contents(self::LOG_PATH, print_r($url, true) . "\n", FILE_APPEND);
         }
-
-        $response = file_get_contents($url);
+        /**
+         * Masked notices output, due 500 errors on some requests.
+         */
+        $response = @file_get_contents($url);
 
         if ($this->debug) {
             file_put_contents(self::LOG_PATH, '<<<<<RESPONSE<<<<<' . "\n", FILE_APPEND);
