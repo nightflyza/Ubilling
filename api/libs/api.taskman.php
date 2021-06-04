@@ -1392,11 +1392,11 @@ function ts_ShowPanel() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $branchCurseFlag = ts_isMeBranchCursed();
-
-    $createform = ts_TaskCreateForm();
+    
     $tools = '';
     $result = '';
     if (!$branchCurseFlag) {
+        $createform = ts_TaskCreateForm();
         $result .= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
     }
     $result .= wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
