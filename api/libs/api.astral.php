@@ -3573,6 +3573,127 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
 }
 
 /**
+ * Returns simple pre-formatted date-or-time range picker.
+ * For example - for filtering form.
+ *
+ * @param bool $inTable
+ * @param bool $vertical
+ * @param bool $dateIsON
+ * @param bool $timeIsON
+ * @param string $dateStart
+ * @param string $dateEnd
+ * @param string $dpStartInpName
+ * @param string $dpEndInpName
+ * @param string $timeStart
+ * @param string $timeEnd
+ * @param string $tpStartInpName
+ * @param string $tpEndInpName
+ *
+ * @return string
+ */
+function wf_DatesTimesRangeFilter($inTable = true, $tableRowsOnly = false, $vertical = false,
+                                  $dateIsON = true, $timeIsON = false,
+                                  $dateStart = '', $dateEnd = '', $dpStartInpName = '', $dpEndInpName = '',
+                                  $timeStart = '', $timeEnd = '', $tpStartInpName = '', $tpEndInpName = ''
+                                 ) {
+    $inputs = '';
+    $cells  = '';
+    $rows   = '';
+
+    if ($dateIsON) {
+        $dpStartInpName         = (empty($dpStartInpName) ? 'datestartfilter' : $dpStartInpName);
+        $dpEndInpName           = (empty($dpEndInpName) ? 'dateendfilter' : $dpEndInpName);
+        $datepickerStart        = wf_DatePickerPreset($dpStartInpName, $dateStart, true);
+        $datepickerEnd          = wf_DatePickerPreset($dpEndInpName, $dateEnd, true);
+        $datepickerStartCapt    = __('Date from:');
+        $datepickerEndCapt      = __('Date to:');
+    }
+
+    if ($timeIsON) {
+        $tpStartInpName         = (empty($tpStartInpName) ? 'timestartfilter' : $tpStartInpName);
+        $tpEndInpName           = (empty($tpEndInpName) ? 'timeendfilter' : $tpEndInpName);
+        $timepickerStart        = wf_TimePickerPreset($tpStartInpName, $timeStart);
+        $timepickerEnd          = wf_TimePickerPreset($tpEndInpName, $timeEnd);
+        $timepickerStartCapt    = __('Time from:');
+        $timepickerEndCapt      = __('Time to:');
+    }
+
+    if ($inTable) {
+        if ($dateIsON) {
+            $cells.= wf_TableCell($datepickerStartCapt);
+            $cells.= wf_TableCell($datepickerStart);
+        }
+
+        if ($timeIsON) {
+            if ($dateIsON) {
+                $cells.= wf_nbsp(4);
+            }
+
+            $cells.= wf_TableCell($timepickerStartCapt);
+            $cells.= wf_TableCell($timepickerStart);
+        }
+
+
+        if ($vertical) {
+            $rows = wf_TableRow($cells);
+            $cells = '';
+        }
+
+        if ($dateIsON) {
+            $cells .= wf_TableCell($datepickerEndCapt);
+            $cells .= wf_TableCell($datepickerEnd);
+        }
+
+        if ($timeIsON) {
+            if ($dateIsON) {
+                $cells.= wf_nbsp(4);
+            }
+
+            $cells.= wf_TableCell($timepickerEndCapt);
+            $cells.= wf_TableCell($timepickerEnd);
+        }
+
+        $rows.= wf_TableRow($cells);
+
+        if ($tableRowsOnly) {
+            $inputs = $rows;
+        } else {
+            $inputs = wf_TableBody($rows, 'auto', '0', '', '');
+        }
+    } else {
+        if ($dateIsON) {
+            $inputs.= $datepickerStartCapt . wf_nbsp(2) . $datepickerStart;
+        }
+
+        if ($timeIsON) {
+            if ($dateIsON) {
+                $inputs.= wf_nbsp(4);
+            }
+
+            $inputs.= $timepickerStartCapt . wf_nbsp(2) . $timepickerStart;
+        }
+
+        if ($vertical) {
+            $inputs.= wf_delimiter();
+        }
+
+        if ($dateIsON) {
+            $inputs.= $datepickerEndCapt . wf_nbsp(2) . $datepickerEnd;
+        }
+
+        if ($timeIsON) {
+            if ($dateIsON) {
+                $inputs.= wf_nbsp(4);
+            }
+
+            $inputs.= $timepickerEndCapt . wf_nbsp(2) . $timepickerEnd;
+        }
+    }
+
+    return($inputs);
+}
+
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {
