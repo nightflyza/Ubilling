@@ -437,6 +437,9 @@ class ExtContras {
     const MISC_JS_DEL_FUNC_NAME          = 'deleteRec';
     const MISC_ERRFORM_ID_PARAM          = 'errfrmid';
     const MISC_MARKROW_URL               = 'markrowid';
+    const MISC_WEBFILTER_DATE_START      = 'datefilterstart';
+    const MISC_WEBFILTER_DATE_END        = 'datefilterend';
+    const MISC_WEBFILTER_PAYDAY          = 'paydayfilter';
 
 
     public function __construct() {
@@ -591,8 +594,9 @@ class ExtContras {
      * Loads extended external counterparties data
      *
      * @param bool $forceDBLoad
+     * @param string $whereRaw
      */
-    protected function loadExtContrasExtenData($forceDBLoad = false) {
+    protected function loadExtContrasExtenData($forceDBLoad = false, $whereRaw = '') {
         $selectable = array_merge($this->dbExtContrasStruct, $this->dbECProfilesStruct, $this->dbECContractsStruct, $this->dbECAddressStruct, $this->dbECPeriodsStruct);
 
         $this->dbExtContrasExten->selectable($selectable);
@@ -609,6 +613,10 @@ class ExtContras {
         $this->dbExtContrasExten->joinOn('LEFT', self::TABLE_ECPERIODS,
                                         self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_PERIOD_ID
                                         . ' = ' . self::TABLE_ECPERIODS . '.' . self::DBFLD_COMMON_ID);
+
+        if (!empty($whereRaw)) {
+            $this->dbExtContrasExten->whereRaw($whereRaw);
+        }
 
         $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad,
                                        false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID);
@@ -686,6 +694,43 @@ class ExtContras {
         $this->paymentExpiredFRGND = zb_StorageGet(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND);
         $this->paymentExpiredFRGND = (empty($this->paymentExpiredFRGND) ? '#ffff44' : $this->paymentExpiredFRGND);
     }
+
+
+    /*public function getDateRangeFilterForm($dateStart = '', $dateEnd = '', $inTable = true, $vertical = false) {
+        $inputs = '';
+        $rows   = '';
+        $datepeakerStart     = wf_DatePickerPreset(self::MISC_DATE_FILTER_START, $dateStart, true);
+        $datepeakerEnd       = wf_DatePickerPreset(self::MISC_DATE_FILTER_END, $dateEnd, true);
+        $datepeakerStartCapt = __('Send date from:');
+        $datepeakerEndCapt   = __('Send date to:');
+
+        if ($inTable) {
+            $cells = wf_TableCell($datepeakerStartCapt);
+            $cells.= wf_TableCell($datepeakerStart);
+
+            if ($vertical) {
+                $rows = wf_TableRow($cells);
+                $cells = '';
+            }
+
+            $cells.= wf_TableCell($datepeakerEndCapt);
+            $cells.= wf_TableCell($datepeakerEnd);
+
+            $rows .= wf_TableRow($cells);
+            $inputs = wf_TableBody($rows, 'auto', '0', '', '');
+        } else {
+            $inputs.= $datepeakerStartCapt . wf_nbsp(2) . $datepeakerStart;
+
+            if ($vertical) {
+                $inputs.= wf_delimiter();
+            }
+
+            $inputs.= $datepeakerEndCapt . wf_nbsp(2) . $datepeakerEnd;
+        }
+
+        return($inputs);
+    }*/
+
     /**
      * Searches for any occurrences of current month payments for a certain counterparty ID
      *
@@ -1601,6 +1646,43 @@ class ExtContras {
     }
 
     /**
+     * Returns a filter web form for invoices main form
+     *
+     * @return string
+     */
+    public function invoiceFilterWebForm() {
+        $inputs = wf_tag('h3', false);
+        $inputs.= __('Filter by:');
+        $inputs.= wf_tag('h3', true);
+        $rows   = wf_DatesTimesRangeFilter(true, true, true, true, false,
+                                           ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
+                            self::MISC_WEBFILTER_DATE_START, self::MISC_WEBFILTER_DATE_END
+                                          );
+
+        $inputs.= wf_TableBody($rows, 'auto');
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
+
+        $inputs.= '
+                    $(form).on("submit", function() {
+                        preventDefault;
+                        
+                        $.ajax{url: invoiceJSONURL,
+                               type: POST, 
+                               data: bla-bla-bla, 
+                        } succes: function (reload jqdt) !!!!!!!!!!!!!!!!!!! 
+                    })        
+                ';
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::ROUTE_INVOICES_JSON . '=true','POST', $inputs, 'glamour');
+        $inputs = wf_Plate($inputs, '', '', 'glamour');
+
+        return ($inputs);
+    }
+
+
+    /**
      * Returns a contract-editor web form
      *
      * @param bool $modal
@@ -1673,7 +1755,7 @@ class ExtContras {
         $inputs.= wf_delimiter(0);
 
         //$inputs.= $this->renderWebSelector($this->allExtContras, self::DBFLD_CON)
-        $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::DBFLD_PROFILE_NAME, self::DBFLD_PROFILE_CONTACT),
+        $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME, self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT),
                                            self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID,true, true);
 
         $inputs.= wf_delimiter(0);
@@ -1758,8 +1840,12 @@ class ExtContras {
     /**
      * Renders JSON for invoices JQDT
      */
-    public function invoiceRenderListJSON() {
+    public function invoiceRenderListJSON($whereRaw = '') {
         $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
+
+        if (!empty($whereRaw)) {
+            $this->dbECInvoices->whereRaw($whereRaw);
+        }
         $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES);
         $json = new wf_JqDtHelper();
 
@@ -1790,6 +1876,32 @@ class ExtContras {
         }
 
         $json->getJson();
+    }
+
+    /**
+     * Returns a filter web form for extcontras main form
+     *
+     * @return string
+     */
+    public function extcontrasFilterWebForm() {
+        $inputs = wf_tag('h3', false);
+        $inputs.= __('Filter by:');
+        $inputs.= wf_tag('h3', true);
+        $rows   = wf_DatesTimesRangeFilter(true, true, true, true, false,
+                                           ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
+                            self::MISC_WEBFILTER_DATE_START, self::MISC_WEBFILTER_DATE_END
+                                          );
+
+        $cells  = wf_TableCell(__('Payday:'));
+        $cells .= wf_TableCell(wf_TextInput(self::MISC_WEBFILTER_PAYDAY, '', ubRouting::post(self::MISC_WEBFILTER_PAYDAY), true, 4, 'digits'));
+        $rows  .= wf_TableRow($cells);
+        $inputs.= wf_TableBody($rows, 'auto');
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
+        $inputs = wf_Plate($inputs, '', '', 'glamour');
+
+        return ($inputs);
     }
 
     /**
@@ -1827,7 +1939,6 @@ class ExtContras {
             $contrasAddressID   = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_ADDRESS_ID];
             $contrasPeriodID    = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PERIOD_ID];
             $contrasPayDay      = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
-file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         }
 
         $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
@@ -1904,7 +2015,6 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         $columns[] = __('Payment expired');
 
         $this->getTableGridColorOpts();
-// TODO: make column opts to mark 'Payday' with colors according to current date and, maybe, payment status
 
         $opts = '
             "order": [[ 0, "desc" ]],
@@ -2013,8 +2123,9 @@ file_put_contents('qxcv', $contrasPayDay . "\n", FILE_APPEND);
         $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, __('Already payed this month foreground'), $this->payedThisMonthFRGND, true, '7');
         $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, __('5 days left till payday background'), $this->fiveDaysTillPayBKGND, true, '7');
         $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, __('5 days left till payday background'), $this->fiveDaysTillPayFRGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Already payed this month background'), $this->paymentExpiredBKGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Already payed this month background'), $this->paymentExpiredFRGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Payment expired background'), $this->paymentExpiredBKGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Payment expired foreground'), $this->paymentExpiredFRGND, true, '7');
+        $inputs.= wf_delimiter(0);
         $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"');
 

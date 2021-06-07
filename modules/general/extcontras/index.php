@@ -34,7 +34,18 @@ file_put_contents('axcv', '');
         }
 
         if (ubRouting::checkGet($ExtContras::ROUTE_INVOICES_JSON)){
-            $ExtContras->invoiceRenderListJSON();
+            $whereRaw = '';
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+            }
+
+            $ExtContras->invoiceRenderListJSON($whereRaw);
         }
 
         if (ubRouting::checkPost($ExtContras::URL_EXTCONTRAS_COLORS)) {
@@ -51,8 +62,9 @@ file_put_contents('axcv', '');
                                   wf_img_sized('skins/color-picker.png', __('Coloring settings config'),
                                          '22', '22', 'vertical-align: middle;'),
                                   false, 'ubButton', 'style="display: inline; padding: 3px 7px; vertical-align: middle;"'),
-                        $ExtContras->extcontrasWebForm(false)
-                        . wf_delimiter() . $ExtContras->extcontrasRenderJQDT()
+                        wf_Plate($ExtContras->extcontrasWebForm(false), '', '', '', 'margin-right: 30px;')
+                        . $ExtContras->extcontrasFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
+                        . $ExtContras->extcontrasRenderJQDT()
                         );
         }
 
@@ -86,8 +98,9 @@ file_put_contents('axcv', '');
 
         if (ubRouting::checkGet($ExtContras::URL_INVOICES)) {
             show_window(__('Invoices'),
-                        $ExtContras->invoiceWebForm(false)
-                        . wf_delimiter() . $ExtContras->invoiceRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
+                        wf_Plate($ExtContras->invoiceWebForm(false), '', '', '', 'margin-right: 30px;')
+                        . $ExtContras->invoiceFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
+                        . $ExtContras->invoiceRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
                         );
         }
 
