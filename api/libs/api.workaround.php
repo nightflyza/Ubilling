@@ -3789,7 +3789,7 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
 function web_FileEditorForm($path, $content) {
     $result = '';
     $inputs = wf_HiddenInput('editfilepath', $path);
-    $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30"');
+    $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30" spellcheck="false"');
     $inputs .= $content;
     $inputs .= wf_tag('textarea', true);
     $inputs .= wf_tag('br');

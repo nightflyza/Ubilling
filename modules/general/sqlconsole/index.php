@@ -101,13 +101,15 @@ if ($system->checkForRight('SQLCONSOLE')) {
 //php console grid assemble
     $phpcells = wf_TableCell($phpform, '50%', '', 'valign="top"');
     if (wf_CheckGet(array('scriptadd'))) {
+
         //show script creation form
         if ($punchScriptsAvail) {
             $punchCreateForm = $onePunch->renderCreateForm();
         } else {
             $punchCreateForm = '';
         }
-        $phpcells .= wf_TableCell($punchCreateForm, '50%', '', 'valign="top"');
+        //override devconsole forms with script creation interface
+        $phpcells = wf_TableCell($punchCreateForm, '100%', '', 'valign="top"');
     } else {
         if (wf_CheckGet(array('editscript'))) {
             //show scripts edit form
@@ -116,7 +118,8 @@ if ($system->checkForRight('SQLCONSOLE')) {
             } else {
                 $punchEditForm = '';
             }
-            $phpcells .= wf_TableCell($punchEditForm, '50%', '', 'valign="top"');
+            //override devconsole forms with script editing interface
+            $phpcells = wf_TableCell($punchEditForm, '100%', '', 'valign="top"');
         } else {
             //show scripts list
             if ($punchScriptsAvail) {
@@ -138,7 +141,15 @@ if ($system->checkForRight('SQLCONSOLE')) {
     if (!isset($_GET['devconsole'])) {
         show_window(__('SQL Console'), $sqlform);
     } else {
-        show_window(__('Developer Console'), $phpgrid);
+        $devConWindowTitle = __('Developer Console');
+        if (ubRouting::checkGet('editscript')) {
+            $devConWindowTitle .= ': ' . __('Edit') . ' ' . __('One-Punch') . ' ' . __('Script');
+        }
+
+        if (ubRouting::checkGet('scriptadd')) {
+            $devConWindowTitle .= ': ' . __('Create') . ' ' . __('One-Punch') . ' ' . __('Script');
+        }
+        show_window($devConWindowTitle, $phpgrid);
     }
 
 // SQL console processing

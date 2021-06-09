@@ -93,12 +93,15 @@ class OnePunch {
         $contentPreset = (wf_CheckPost(array('newscriptcontent'))) ? $_POST['newscriptcontent'] : '';
         // sanjou! hisshou! shijou saikyou
         // nan dattenda? FURASUTOREESHON ore wa tomaranai
-        $inputs.= wf_TextInput('newscriptname', __('Name'), $namePreset, true, 30);
-        $inputs.= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
-        $inputs.= wf_TextArea('newscriptcontent', '', $contentPreset, true, '80x15');
-        $inputs.= wf_Submit(__('Create'));
-        $result.= wf_Form('', 'POST', $inputs, 'glamour');
-        $result.= wf_BackLink(self::URL_DEVCON);
+        $inputs .= wf_TextInput('newscriptname', __('Name'), $namePreset, true, 30);
+        $inputs .= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
+        $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="newscriptcontent" cols="145" rows="30" spellcheck="false"');
+        $inputs .= $contentPreset;
+        $inputs .= wf_tag('textarea', true);
+        $inputs .= wf_Submit(__('Create'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_delimiter();
+        $result .= wf_BackLink(self::URL_DEVCON);
         return ($result);
     }
 
@@ -119,14 +122,17 @@ class OnePunch {
             $aliasPreset = $scriptData['alias'];
             $contentPreset = $scriptData['content'];
             $scriptId = $scriptData['id'];
-            $inputs.= wf_HiddenInput('editscriptid', $scriptId);
-            $inputs.= wf_HiddenInput('editscriptoldalias', $aliasPreset);
-            $inputs.= wf_TextInput('editscriptname', __('Name'), $namePreset, true, 30);
-            $inputs.= wf_TextInput('editscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
-            $inputs.= wf_TextArea('editscriptcontent', '', $contentPreset, true, '80x15');
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=wf_BackLink(self::URL_DEVCON);
+            $inputs .= wf_HiddenInput('editscriptid', $scriptId);
+            $inputs .= wf_HiddenInput('editscriptoldalias', $aliasPreset);
+            $inputs .= wf_TextInput('editscriptname', __('Name'), $namePreset, true, 30);
+            $inputs .= wf_TextInput('editscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
+            $inputs .= wf_tag('textarea', false, 'fileeditorarea', 'name="editscriptcontent" cols="145" rows="30" spellcheck="false"');
+            $inputs .= $contentPreset;
+            $inputs .= wf_tag('textarea', true);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_delimiter();
+            $result .= wf_BackLink(self::URL_DEVCON);
         }
         return ($result);
     }
@@ -147,11 +153,11 @@ class OnePunch {
         $content = mysql_real_escape_string($content);
         if ($this->checkAlias($alias)) {
             $query = "INSERT INTO `punchscripts` (`id`,`alias`,`name`,`content`) VALUES ";
-            $query.="(NULL,'" . $alias . "' ,'" . $name . "','" . $content . "');";
+            $query .= "(NULL,'" . $alias . "' ,'" . $name . "','" . $content . "');";
             nr_query($query);
             log_register('ONEPUNCH CREATE ALIAS `' . $alias . '`');
         } else {
-            $result.=__('Something went wrong') . ': ' . __('Script with this alias already exists');
+            $result .= __('Something went wrong') . ': ' . __('Script with this alias already exists');
             log_register('ONEPUNCH ALIAS `' . $alias . '` FAIL');
         }
         return ($result);
@@ -172,7 +178,7 @@ class OnePunch {
             nr_query($query);
             log_register('ONEPUNCH DELETE ALIAS `' . $alias . '`');
         } else {
-            $result.=__('Something went wrong') . ': ' . __('Script with this alias not exists');
+            $result .= __('Something went wrong') . ': ' . __('Script with this alias not exists');
         }
         return ($result);
     }
@@ -251,25 +257,25 @@ class OnePunch {
         $result = '';
         if (!empty($this->punchScripts)) {
             $cells = wf_TableCell(__('Name'));
-            $cells.= wf_TableCell(__('Alias'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Alias'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->punchScripts as $io => $each) {
                 $runLink = wf_JSAlert(self::URL_DEVCON . '&runscript=' . $each['alias'], $each['name'], 'Insert this template into PHP console');
                 $cells = wf_TableCell($runLink);
-                $cells.= wf_TableCell($each['alias']);
+                $cells .= wf_TableCell($each['alias']);
                 $actLinks = wf_JSAlert(self::URL_DEVCON . '&delscript=' . $each['alias'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_JSAlert(self::URL_DEVCON . '&editscript=' . $each['alias'], web_edit_icon(), $this->messages->getEditAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $actLinks .= wf_JSAlert(self::URL_DEVCON . '&editscript=' . $each['alias'], web_edit_icon(), $this->messages->getEditAlert());
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.=$this->messages->getStyledMessage(__('No available code templates'), 'warning');
-            $result.=wf_tag('br');
-            $result.=wf_JSAlertStyled(self::URL_DEVCON . '&importoldcodetemplates=true', wf_img('skins/shovel.png') . ' ' . __('Import old code templates if available'), $this->messages->getEditAlert(), 'ubButton');
-            $result.=wf_tag('br');
+            $result .= $this->messages->getStyledMessage(__('No available code templates'), 'warning');
+            $result .= wf_tag('br');
+            $result .= wf_JSAlertStyled(self::URL_DEVCON . '&importoldcodetemplates=true', wf_img('skins/shovel.png') . ' ' . __('Import old code templates if available'), $this->messages->getEditAlert(), 'ubButton');
+            $result .= wf_tag('br');
         }
         return ($result);
     }
@@ -285,7 +291,7 @@ class OnePunch {
         $alias = vf($alias);
         $result = '';
         if (isset($this->punchScripts[$alias])) {
-            $result.=$this->punchScripts[$alias]['content'];
+            $result .= $this->punchScripts[$alias]['content'];
         }
         return ($result);
     }
