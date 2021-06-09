@@ -565,10 +565,11 @@ class ExtContras {
      * @param bool $flushNyanParams
      * @param string $assocByField
      * @param string $dataEntity
+     * @param bool $cachingDisabled
      *
      * @return mixed
      */
-    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true, $assocByField = '', $dataEntity = '') {
+    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true, $assocByField = '', $dataEntity = '', $cachingDisabled = false) {
 
         $cacheKey       = strtoupper($cacheKey);
         $dbInstance     = $this->getDBEntity($tableName);
@@ -579,7 +580,12 @@ class ExtContras {
 
         if ($forceDBLoad) {
             $this->$dataInstance = $dbInstance->getAll($assocByField, $flushParams);
-            $this->ubCache->set($cacheKey, $this->$dataInstance, $this->cacheLifeTime);
+
+            if ($cachingDisabled) {
+                $this->ubCache->delete($cacheKey);
+            } else {
+                $this->ubCache->set($cacheKey, $this->$dataInstance, $this->cacheLifeTime);
+            }
         } else {
             $this->$dataInstance = $this->ubCache->getCallback($cacheKey, function () use ($thisInstance, $tableName, $cacheKey, $flushParams, $assocByField) {
                                                                     return ($thisInstance->loadDataFromTableCached($tableName, $cacheKey, true,
@@ -779,9 +785,7 @@ class ExtContras {
         $opts       = (empty($columnsOpts) ? '"order": [[ 0, "asc" ]]' : $columnsOpts);
 
         if (!empty($markRowForID)) {
-            $result.= wf_tag('script', false, '', 'type="text/javascript"');
-            $result.= wf_JQDTRowShowPluginJS();
-            $result.= wf_tag('script', true);
+            $result.= wf_EncloseWithJSTags(wf_JQDTRowShowPluginJS());
         }
 
         $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
@@ -809,9 +813,7 @@ class ExtContras {
         }
 
         if (!empty($customJSCode)) {
-            $result.= wf_tag('script', false, '', 'type="text/javascript"');
-            $result.= $customJSCode;
-            $result.= wf_tag('script', true);
+            $result.= wf_EncloseWithJSTags($customJSCode);
         }
 
         return ($result);
@@ -1651,6 +1653,10 @@ class ExtContras {
      * @return string
      */
     public function invoiceFilterWebForm() {
+        $ajaxURLStr = self::URL_ME . '&' . self::ROUTE_INVOICES_JSON . '=true';
+        $formID     = 'Form_' . wf_InputId();
+        $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
+
         $inputs = wf_tag('h3', false);
         $inputs.= __('Filter by:');
         $inputs.= wf_tag('h3', true);
@@ -1664,19 +1670,10 @@ class ExtContras {
 
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
 
-        $inputs.= '
-                    $(form).on("submit", function() {
-                        preventDefault;
-                        
-                        $.ajax{url: invoiceJSONURL,
-                               type: POST, 
-                               data: bla-bla-bla, 
-                        } succes: function (reload jqdt) !!!!!!!!!!!!!!!!!!! 
-                    })        
-                ';
-
-        $inputs = wf_Form(self::URL_ME . '&' . self::ROUTE_INVOICES_JSON . '=true','POST', $inputs, 'glamour');
+        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour', '', $formID);
         $inputs = wf_Plate($inputs, '', '', 'glamour');
+
+        $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
 
         return ($inputs);
     }
@@ -1755,7 +1752,10 @@ class ExtContras {
         $inputs.= wf_delimiter(0);
 
         //$inputs.= $this->renderWebSelector($this->allExtContras, self::DBFLD_CON)
-        $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME, self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT),
+        $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO,
+                                                                            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
+                                                                            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
+                                                                           ),
                                            self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID,true, true);
 
         $inputs.= wf_delimiter(0);
@@ -1846,7 +1846,10 @@ class ExtContras {
         if (!empty($whereRaw)) {
             $this->dbECInvoices->whereRaw($whereRaw);
         }
-        $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES);
+
+        $this->dbECInvoices->setDebug(true, true);
+        $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES,
+                                       !empty($whereRaw), true,'', '', !empty($whereRaw));
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allECInvoices)) {
@@ -1855,7 +1858,10 @@ class ExtContras {
             foreach ($this->allECInvoices as $eachRecID) {
                 foreach ($eachRecID as $fieldName => $fieldVal) {
                     if ($fieldName == self::DBFLD_INVOICES_CONTRASID) {
-                        $data[] = (empty($this->allECProfiles[$fieldVal]) ? '' : $this->allECProfiles[$fieldVal][self::DBFLD_PROFILE_NAME]);
+                        $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
+                                    : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
+                                    . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
+                                  );
                     } elseif ($fieldName == self::DBFLD_INVOICES_INCOMING or $fieldName == self::DBFLD_INVOICES_OUTGOING) {
                         $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
                     } else {
