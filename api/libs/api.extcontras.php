@@ -434,6 +434,7 @@ class ExtContras {
     const MISC_CLASS_SUBMITFORM_MODAL    = '__FormSubmitModal';
     const MISC_CLASS_EMPTYVALCHECK       = '__EmptyCheckControl';
     const MISC_CLASS_EMPTYVALCHECK_MODAL = '__EmptyCheckControlModal';
+    const MISC_CLASS_DPICKER_MODAL_INIT  = '__DatePickerModalInit';
     const MISC_JS_DEL_FUNC_NAME          = 'deleteRec';
     const MISC_ERRFORM_ID_PARAM          = 'errfrmid';
     const MISC_MARKROW_URL               = 'markrowid';
@@ -624,6 +625,8 @@ class ExtContras {
             $this->dbExtContrasExten->whereRaw($whereRaw);
         }
 
+$this->dbExtContrasExten->setDebug(true,true);
+
         $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad,
                                        false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID);
     }
@@ -792,15 +795,14 @@ class ExtContras {
 
         if ($stdJSForCRUDs) {
             $result.= wf_tag('script', false, '', 'type="text/javascript"');
-            $result.= wf_JSEmptyFunc();
-            $result.= wf_JSElemInsertedCatcherFunc();
 
             // putting a "form submitting catcher" JS code to process multiple modal and static forms
             // with one piece of code and ajax requests
             $result.= wf_jsAjaxFormSubmit('.' . self::MISC_CLASS_SUBMITFORM . ', .' . self::MISC_CLASS_SUBMITFORM_MODAL,
-                                           '.' . self::MISC_CLASS_MWID_CTRL, $jqdtID,
-                                           '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
-                                           self::MISC_ERRFORM_ID_PARAM);
+                                          '.' . self::MISC_CLASS_MWID_CTRL,
+                                          $jqdtID,
+                                          '.' . self::MISC_CLASS_EMPTYVALCHECK . ', .' . self::MISC_CLASS_EMPTYVALCHECK_MODAL,
+                                          self::MISC_ERRFORM_ID_PARAM);
 
             // putting a piece of JS code to perform records delete action
             $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
@@ -867,6 +869,30 @@ class ExtContras {
         return ($actions);
     }
 
+    /**
+     * Simply returns JS snippet for datepicker init on dynamic modal forms
+     *
+     * @return string
+     */
+    protected function getDatePickerModalInitJS() {
+        $result = '                                
+            onElementInserted("body", ".' . self::MISC_CLASS_DPICKER_MODAL_INIT . '", function(element) {
+                $(".' . self::MISC_CLASS_DPICKER_MODAL_INIT . '").datepicker({
+                    showOn: "both",
+                    buttonImage: "skins/icon_calendar.gif",
+                    buttonImageOnly: true,
+                                dateFormat:  "yy-mm-dd",
+                                showAnim: "slideDown",
+                                changeMonth: true,
+                                yearRange: "-100:+100",
+                                changeYear: true
+                });
+            });
+                
+            ';
+
+        return($result);
+    }
     /**
      *  Ash oghum durbatulûk, ash oghum gimbatul,
      *  Ash oghum thrakatulûk, agh burzum-ishi krimpatul.
@@ -1023,7 +1049,8 @@ class ExtContras {
     public function renderMainControls() {
         $inputs = '';
 
-        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true', wf_img_sized('skins/ukv/dollar.png') . ' ' . __('External counterparties list'), false, 'ubButton');
+        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true', wf_img_sized('skins/extcontrasfin.png', '', '16', '16') . ' ' . __('External counterparties list'), false, 'ubButton');
+        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true', wf_img_sized('skins/ukv/dollar.png') . ' ' . __('Finance operations'), false, 'ubButton');
         $inputs.= wf_Link(self::URL_ME . '&' . self::URL_INVOICES . '=true', wf_img_sized('skins/menuicons/receipt_small.png') . ' ' . __('Invoices list'), false, 'ubButton');
 
         // dictionaries forms
@@ -1033,6 +1060,7 @@ class ExtContras {
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true', wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
         $inputs.= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
         $inputs.= wf_jsAjaxDynamicWindowButton(self::URL_ME, array(self::ROUTE_FORCECACHE_UPD => 'true'), wf_img('skins/refresh.gif') . ' ' . __('Refresh cache data'), '', 'ubButton');
+        $inputs.= wf_EncloseWithJSTags( wf_JSEmptyFunc() . wf_JSElemInsertedCatcherFunc() . $this->getDatePickerModalInitJS());
 
         return ($inputs);
     }
@@ -1220,7 +1248,15 @@ class ExtContras {
         $columns[] = __('E-mail');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode, $markRowForID,
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": [0, 2, 5], "className": "dt-center dt-head-center"},
+                            {"targets": [5], "orderable": false},
+                            {"targets": [5], "width": "85px"}
+                          ]
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode, $markRowForID,
                                       self::URL_ME . '&' . self::URL_DICTPROFILES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                     self::MISC_MARKROW_URL);
 
@@ -1302,12 +1338,14 @@ class ExtContras {
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTSTART, $ctrctDTStart, true, '', $emptyCheckClass);
+        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTSTART, $ctrctDTStart, true, '',
+                             $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
         $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
         $inputs.= wf_nbsp(2) . __('Date start') . $this->supFrmFldMark;
         $inputs.= wf_tag('span', true) . wf_nbsp(4);
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTEND, $ctrctDTEnd, true, '', $emptyCheckClass);
+        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTEND, $ctrctDTEnd, true, '',
+                             $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
         $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
         $inputs.= wf_nbsp(2) . __('Date end') . $this->supFrmFldMark;
         $inputs.= wf_tag('span', true) . wf_nbsp(4);
@@ -1382,7 +1420,16 @@ class ExtContras {
         $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": [4, 7], "className": "dt-left dt-head-center"},
+                            {"targets": ["_all"], "className": "dt-center dt-head-center"},
+                            {"targets": [8, 9], "orderable": false},
+                            {"targets": [8, 9], "width": "85px"}
+                          ]
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                       self::MISC_MARKROW_URL);
 
@@ -1516,7 +1563,15 @@ class ExtContras {
         $columns[] = __('Address notes');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": [0, 2, 5], "className": "dt-center dt-head-center"},
+                            {"targets": [5], "orderable": false},
+                            {"targets": [5], "width": "85px"}
+                          ]
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_DICTADDRESS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                       self::MISC_MARKROW_URL);
 
@@ -1614,7 +1669,15 @@ class ExtContras {
         $columns[] = __('Period name');
         $columns[] = __('Actions');
 
-        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": ["_all"], "className": "dt-center dt-head-center"},
+                            {"targets": [2], "orderable": false},
+                            {"targets": [2], "width": "85px"}
+                          ]
+            ';
+
+        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                               self::URL_ME . '&' . self::URL_DICTPERIODS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                                 self::MISC_MARKROW_URL);
 
@@ -1738,7 +1801,8 @@ class ExtContras {
                                '', '', '', false, $ctrlsLblStyle);
         $inputs.= wf_delimiter(0);
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_INVOICES_DATE, $invoDate, true, '', $emptyCheckClass);
+        $inputs.= wf_DatePickerPreset(self::CTRL_INVOICES_DATE, $invoDate, true, '',
+                              $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
         $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
         $inputs.= wf_nbsp(2) . __('Invoice date') . $this->supFrmFldMark;
         $inputs.= wf_tag('span', true);
@@ -1751,7 +1815,6 @@ class ExtContras {
                                '', '', '', false, $ctrlsLblStyle);
         $inputs.= wf_delimiter(0);
 
-        //$inputs.= $this->renderWebSelector($this->allExtContras, self::DBFLD_CON)
         $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO,
                                                                             self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
                                                                             self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
@@ -1830,15 +1893,25 @@ class ExtContras {
         $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, '', true, $customJSCode,
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": [1, 7], "className": "dt-left dt-head-center"},
+                            {"targets": ["_all"], "className": "dt-center dt-head-center"},
+                            {"targets": [10, 11], "orderable": false},
+                            {"targets": [10, 11], "width": "85px"}
+                          ]
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_INVOICES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                       self::MISC_MARKROW_URL);
-
         return($result);
     }
 
     /**
      * Renders JSON for invoices JQDT
+     *
+     * @param string $whereRaw
      */
     public function invoiceRenderListJSON($whereRaw = '') {
         $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
@@ -1847,7 +1920,6 @@ class ExtContras {
             $this->dbECInvoices->whereRaw($whereRaw);
         }
 
-        $this->dbECInvoices->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES,
                                        !empty($whereRaw), true,'', '', !empty($whereRaw));
         $json = new wf_JqDtHelper();
@@ -1890,6 +1962,10 @@ class ExtContras {
      * @return string
      */
     public function extcontrasFilterWebForm() {
+        $ajaxURLStr = self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
+        $formID     = 'Form_' . wf_InputId();
+        $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
+
         $inputs = wf_tag('h3', false);
         $inputs.= __('Filter by:');
         $inputs.= wf_tag('h3', true);
@@ -1905,7 +1981,11 @@ class ExtContras {
         $inputs.= wf_delimiter(0);
 
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
+
+        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour', '', $formID);
         $inputs = wf_Plate($inputs, '', '', 'glamour');
+
+        $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
 
         return ($inputs);
     }
@@ -2009,6 +2089,7 @@ class ExtContras {
         $columns[] = __('Counterparty');
         $columns[] = __('Contract');
         $columns[] = __('Contract subject');
+        $columns[] = __('Contract date start');
         $columns[] = __('Contract sum');
         $columns[] = __('Address');
         $columns[] = __('Address contract notes');
@@ -2024,8 +2105,13 @@ class ExtContras {
 
         $opts = '
             "order": [[ 0, "desc" ]],
-            "columnDefs": [ {"targets": [12, 13, 14], "visible": false} ],
-            
+            "columnDefs": [ {"targets": [13, 14, 15], "visible": false},
+                            {"targets": [7, 8], "className": "dt-left dt-head-center"},
+                            {"targets": ["_all"], "className": "dt-center dt-head-center"},
+                            {"targets": [12], "orderable": false},
+                            {"targets": [12], "width": "85px"}                            
+                          ],
+          
             "rowCallback": function(row, data, index) {                               
                 if ( data[12] == "1" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->payedThisMonthBKGND . '\');
@@ -2054,9 +2140,12 @@ class ExtContras {
 
     /**
      * Renders JSON for external counterparty JQDT
+     *
+     * @param string $whereRaw
+     *
      */
-    public function extcontrasRenderListJSON() {
-        $this->loadExtContrasExtenData(true);
+    public function extcontrasRenderListJSON($whereRaw = '') {
+        $this->loadExtContrasExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allExtContrasExten)) {
@@ -2086,6 +2175,7 @@ class ExtContras {
                                   $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO]);
                 $data[] = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT];
+                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
                 $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR];
