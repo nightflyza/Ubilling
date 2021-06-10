@@ -14,7 +14,23 @@ file_put_contents('axcv', '');
         }
 
         if (ubRouting::checkGet($ExtContras::ROUTE_CONTRAS_JSON)){
-            $ExtContras->extcontrasRenderListJSON();
+            $whereRaw = '';
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_PAYDAY)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS  . '`.`' . $ExtContras::DBFLD_EXTCONTRAS_PAYDAY . "` = " . ubRouting::post($ExtContras::MISC_WEBFILTER_PAYDAY);
+            }
+
+            $ExtContras->extcontrasRenderListJSON($whereRaw);
         }
 
         if (ubRouting::checkGet($ExtContras::ROUTE_PROFILE_JSON)){
