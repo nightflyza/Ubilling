@@ -960,7 +960,13 @@ class Warehouse {
         if (isset($this->allReserve[$reserveId])) {
             $reserveData = $this->allReserve[$reserveId];
             $oldCount = $reserveData['count'];
-            @$newCount = $oldCount - $count;
+            if (empty($oldCount)) {
+                $oldCount = 0;
+            }
+            if (empty($count)) {
+                $count = 0;
+            }
+            $newCount = $oldCount - $count;
             $newCountF = mysql_real_escape_string($newCount);
             $where = " WHERE `id`='" . $reserveId . "';";
             if ($newCountF > 0) {
