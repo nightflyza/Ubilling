@@ -2773,6 +2773,10 @@ class Warehouse {
 
             //displayed maximum items count
             $maxItemCount = ($fromReserve) ? @$reserveData['count'] : ($itemRemainsStorage - $isReserved);
+            //fix deleted reserve issue
+            if (empty($maxItemCount)) {
+                $maxItemCount = 0;
+            }
 
             //form construct
             $inputs = wf_AjaxLoader();
@@ -2781,9 +2785,9 @@ class Warehouse {
             $inputs .= wf_AjaxContainer('ajoutdestselcontainer', '', $this->outcomindAjaxDestSelector('task'));
             $inputs .= wf_HiddenInput('newoutitemtypeid', $itemtypeid);
             $inputs .= wf_HiddenInput('newoutstorageid', $storageid);
-            $inputs .= wf_TextInput('newoutcount', $itemUnit . ' (' . __('maximum') . ' ' . $maxItemCount . ')', '', true, '4');
+            $inputs .= wf_TextInput('newoutcount', $itemUnit . ' (' . __('maximum') . ' ' . $maxItemCount . ')', '', true, '4', 'finance');
             $midPriceLabel = ($this->recPriceFlag) ? __('recommended') : __('middle price');
-            $inputs .= wf_TextInput('newoutprice', __('Price') . ' (' . $midPriceLabel . ': ' . $this->getIncomeMiddlePrice($itemtypeid) . ')', '', true, '4');
+            $inputs .= wf_TextInput('newoutprice', __('Price') . ' (' . $midPriceLabel . ': ' . $this->getIncomeMiddlePrice($itemtypeid) . ')', '', true, '4', 'finance');
             if ($fromReserve) {
                 $inputs .= wf_HiddenInput('newoutfromreserve', $reserveid);
                 $notesPreset = ' ' . __('from reserved on') . ' ' . @$this->allEmployee[$reserveData['employeeid']];
@@ -2951,7 +2955,12 @@ class Warehouse {
                 @$itemRemains = $allItemRemains[$itemtypeid];
                 $itemsReserved = $this->reserveGet($storageid, $itemtypeid);
                 if ($fromReserve) {
-                    $realRemains = $reserveData['count'];
+                    if (!empty($reserveData)) {
+                        $realRemains = $reserveData['count'];
+                    } else {
+                        //reserve deleted?
+                        $realRemains = 0;
+                    }
                 } else {
                     $realRemains = $itemRemains - $itemsReserved;
                 }
