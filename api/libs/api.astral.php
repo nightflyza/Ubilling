@@ -25,11 +25,13 @@ function wf_InputId() {
  * @param  string $class  class for form
  * @param  string $legend form legend
  * @param  string $CtrlID
+ * @param  string $target
+ * @param  string $opts
  *
  * @return  string
  *
  */
-function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID = '', $target = '') {
+function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID = '', $target = '', $opts = '') {
     $FrmID = ( (empty($CtrlID)) ? 'Form_' . wf_InputId() : $CtrlID );
 
     if ($class != '') {
@@ -50,7 +52,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
     }
 
     $form = '
-        <form action="' . $action . '" method="' . $method . '" ' . $form_class . ' id="' . $FrmID . '" ' . $target . '>
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . ' id="' . $FrmID . '" ' . $target . ' ' . $opts . '>
         ' . $form_legend . '
         ' . $inputs . '
         </form>
@@ -3120,6 +3122,53 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $errorFormIDParamName = ''
 
     return ($result);
 }
+
+/**
+ * JS snippet for a filtering form for JQDT. Needs a bit of specifical handling
+ *
+ * @param $ajaxURLStr
+ * @param $formID
+ * @param $jqdtID
+ *
+ * @return string
+ */
+function wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID) {
+    $result = '
+        $(\'#' . $formID . '\').submit(function(evt) {
+            evt.preventDefault();
+             
+            $.ajax({
+                url: "' . $ajaxURLStr . '",
+                type: "POST",                    
+                data: $(\'#' . $formID . '\').serialize(),
+                success: function(reqResult) {
+                            var json = jQuery.parseJSON(reqResult);
+                            var table = $(\'#' . $jqdtID . '\').DataTable(); 
+                            table.clear(); //clear the current data
+                            table.rows.add(json[\'aaData\']).draw();
+                         }
+            });
+        });
+
+        ';
+
+    return ($result);
+}
+
+/**
+ * Simply encloses a JS snippet with a 'script' open/close tags
+ *
+ * @param string $content
+ *
+ * @return string
+ */
+function wf_EncloseWithJSTags($content) {
+    $result = wf_tag('script', false, '', 'type="text/javascript"');
+    $result.= $content;
+    $result.= wf_tag('script', true);
+    return ($result);
+}
+
 /**
  * Generates tabbed UI for almost any data.
  *
@@ -3577,6 +3626,8 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
  * For example - for filtering form.
  *
  * @param bool $inTable
+ * @param bool $tableCellsOnly
+ * @param bool $tableRowsOnly
  * @param bool $vertical
  * @param bool $dateIsON
  * @param bool $timeIsON
@@ -3591,8 +3642,8 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
  *
  * @return string
  */
-function wf_DatesTimesRangeFilter($inTable = true, $tableRowsOnly = false, $vertical = false,
-                                  $dateIsON = true, $timeIsON = false,
+function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tableRowsOnly = false,
+                                  $vertical = false, $dateIsON = true, $timeIsON = false,
                                   $dateStart = '', $dateEnd = '', $dpStartInpName = '', $dpEndInpName = '',
                                   $timeStart = '', $timeEnd = '', $tpStartInpName = '', $tpEndInpName = ''
                                  ) {
@@ -3637,6 +3688,8 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableRowsOnly = false, $vert
         if ($vertical) {
             $rows = wf_TableRow($cells);
             $cells = '';
+        } else {
+            $cells .= wf_TableCell(wf_nbsp(2));
         }
 
         if ($dateIsON) {
@@ -3653,11 +3706,13 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableRowsOnly = false, $vert
             $cells.= wf_TableCell($timepickerEnd);
         }
 
-        $rows.= wf_TableRow($cells);
-
-        if ($tableRowsOnly) {
+        if ($tableCellsOnly) {
+            $inputs = $cells;
+        } elseif ($tableRowsOnly) {
+            $rows.= wf_TableRow($cells);
             $inputs = $rows;
         } else {
+            $rows.= wf_TableRow($cells);
             $inputs = wf_TableBody($rows, 'auto', '0', '', '');
         }
     } else {

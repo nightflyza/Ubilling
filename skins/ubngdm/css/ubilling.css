@@ -1166,48 +1166,6 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 
-.form-grid-6cols {
-    display: grid;
-    grid-template-columns: repeat(6, auto);
-    grid-gap: 10px;
-    padding: 15px;
-}
-
-.form-grid-6cols .full-width-occupy,
-.form-grid-6cols button {
-    grid-column-start: 1;
-    grid-column-end: 7;
-}
-
-.form-grid-6cols .col-2-3-occupy {
-    grid-column-start: 2;
-    grid-column-end: 4;
-}
-
-.form-grid-6cols .col-5-6-occupy {
-    grid-column-start: 5;
-    grid-column-end: 7;
-}
-
-.form-grid-6cols .right-two-thirds-occupy {
-    grid-column-start: 2;
-    grid-column-end: 7;
-}
-
-.form-grid-6cols button {
-    margin-top: 7px;
-}
-
-.form-grid-6cols label {
-    line-height: 1.7em;
-    margin-right: 0.5em;
-}
-
-.form-grid-6cols-label-right label {
-    text-align: right;
-}
-
-
 .form-grid-3r-1c {
     display: grid;
     grid-template-columns: minmax(max-content, auto);
@@ -1219,16 +1177,4 @@ div.dhtml_menu div.vert_menu a.active:hover
 .form-grid-3r-1c button {
     grid-column-start: 1;
     grid-column-end: 2;
-}
-
-.dataTable tbody td.details-control:not(thead td.details-control) {
-    background: url('../../details_open.png') no-repeat center center;
-    cursor: pointer;
-    width: 40px;
-}
-
-.dataTable tbody tr.shown td.details-control:not(thead td.details-control) {
-    background: url('../../details_close.png') no-repeat center center;
-    cursor: pointer;
-    width: 40px;
 }

@@ -1292,4 +1292,48 @@ div.dhtml_menu div.vert_menu a.active:hover
     cursor: pointer;
     width: 40px;
 }
-        
+
+.form-grid-3cols {
+    display: grid;
+    grid-template-columns: 1fr max-content max-content;
+    grid-gap: 10px;
+    padding: 15px;
+}
+
+.form-grid-3cols .full-width-occupy,
+.form-grid-3cols button {
+    grid-column-start: 1;
+    grid-column-end: 4;
+}
+
+.form-grid-3cols .right-two-thirds-occupy {
+    grid-column-start: 2;
+    grid-column-end: 4;
+}
+
+.form-grid-3cols button {
+    margin-top: 7px;
+}
+
+.form-grid-3cols label {
+    line-height: 1.7em;
+    margin-right: 0.5em;
+}
+
+.form-grid-3cols-label-right label {
+    text-align: right;
+}
+
+
+.form-grid-3r-1c {
+    display: grid;
+    grid-template-columns: minmax(max-content, auto);
+    grid-template-rows: repeat(3, 1fr);
+    grid-gap: 5px;
+    padding: 15px;
+}
+
+.form-grid-3r-1c button {
+    grid-column-start: 1;
+    grid-column-end: 2;
+}

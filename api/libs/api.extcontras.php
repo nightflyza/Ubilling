@@ -344,18 +344,26 @@ class ExtContras {
 
     const CTRL_MONEY_CONTRASID  = 'moneycontrasrecid';
     const CTRL_MONEY_ACCRUALID  = 'moneyaccrualid';
+    const CTRL_MONEY_INVOICEID  = 'moneyinvoiceid';
+    const CTRL_MONEY_PURPOSE    = 'moneypurpose';
     const CTRL_MONEY_DATE       = 'moneydate';
+    const CTRL_MONEY_DATE_EDIT  = 'moneydateedit';
     const CTRL_MONEY_SUMACCRUAL = 'moneysummaccrual';
     const CTRL_MONEY_SUNPAYMENT = 'moneysummpayment';
     const CTRL_MONEY_INOUT      = 'moneyinout';
+    const CTRL_MONEY_PAYNOTES   = 'moneypaynotes';
 
     const DBFLD_MONEY_CONTRASID = 'contras_rec_id';
     const DBFLD_MONEY_ACCRUALID = 'accrual_id';
+    const DBFLD_MONEY_INVOICEID = 'invoice_id';
+    const DBFLD_MONEY_PURPOSE   = 'purpose';
     const DBFLD_MONEY_DATE      = 'date';
+    const DBFLD_MONEY_DATE_EDIT = 'date_edit';
     const DBFLD_MONEY_SMACCRUAL = 'summ_accrual';
     const DBFLD_MONEY_SMPAYMENT = 'summ_payment';
     const DBFLD_MONEY_INCOMING  = 'incoming';
     const DBFLD_MONEY_OUTGOING  = 'outgoing';
+    const DBFLD_MONEY_PAYNOTES  = 'paynotes';
 
     const CTRL_INVOICES_CONTRASID       = 'invocontrasrecid';
     const CTRL_INVOICES_INTERNAL_NUM    = 'invointernalnum';
@@ -365,6 +373,7 @@ class ExtContras {
     const CTRL_INVOICES_SUM_VAT         = 'invosummvat';
     const CTRL_INVOICES_NOTES           = 'invonotes';
     const CTRL_INVOICES_IN_OUT          = 'invoinout';
+    const CTRL_INVOICES_SELECTOR        = 'invodropdown';
 
     const DBFLD_INVOICES_CONTRASID      = 'contras_rec_id';
     const DBFLD_INVOICES_INTERNAL_NUM   = 'internal_number';
@@ -1195,18 +1204,15 @@ $this->dbExtContrasExten->setDebug(true,true);
                       (($cloneAction) ? __('Clone counterparty profile') :
                       __('Create counterparty profile'));
 
-        $ctrlsLblStyle = 'style="line-height: 2.2em"';
-
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name') . $this->supFrmFldMark, $prfName, true, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_CONTACT, __('Contact data'), $prfContact, true, '', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_EDRPO, __('EDRPO/INN') . $this->supFrmFldMark, $prfEDRPO, true, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, true, '', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name') . $this->supFrmFldMark, $prfName, false, '', '',
+                               $emptyCheckClass, '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_CONTACT, __('Contact data'), $prfContact, false, '', '',
+                               '', '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_EDRPO, __('EDRPO/INN') . $this->supFrmFldMark, $prfEDRPO, false, '', '',
+                               $emptyCheckClass, '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, false, '', '',
+                               '', '', '', true);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
         $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
 
         if ($editAction) {
@@ -1221,7 +1227,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true','POST',
-                          $inputs, 'glamour ' . $formClass);
+                          $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right ' . $formClass);
 
         if ($modal and !empty($modalWinID)) {
             $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
@@ -1335,34 +1341,43 @@ $this->dbExtContrasExten->setDebug(true,true);
         $formCapt   = ($editAction) ? __('Edit counterparty contract') :
             (($cloneAction) ? __('Clone counterparty contract') :
                 __('Create counterparty contract'));
+        $datepickerID1 = wf_InputId();
+        $datepickerID2 = wf_InputId();
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTSTART, $ctrctDTStart, true, '',
+        $inputs.= wf_tag('label', false, '', 'for="' . $datepickerID1 . '"');
+        $inputs.= __('Date start') . $this->supFrmFldMark;
+        $inputs.= wf_tag('label', true);
+        $inputs.= wf_tag('span', false);
+        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTSTART, $ctrctDTStart, true, $datepickerID1,
                              $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
-        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
-        $inputs.= wf_nbsp(2) . __('Date start') . $this->supFrmFldMark;
-        $inputs.= wf_tag('span', true) . wf_nbsp(4);
+        $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTEND, $ctrctDTEnd, true, '',
+        $inputs.= wf_tag('span', false);
+        $inputs.= wf_tag('label', false, '', 'for="' . $datepickerID2 . '"');
+        $inputs.= __('Date end') . $this->supFrmFldMark;
+        $inputs.= wf_tag('label', true);
+        $inputs.= wf_DatePickerPreset(self::CTRL_CTRCT_DTEND, $ctrctDTEnd, true, $datepickerID2,
                              $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
-        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
-        $inputs.= wf_nbsp(2) . __('Date end') . $this->supFrmFldMark;
-        $inputs.= wf_tag('span', true) . wf_nbsp(4);
+        $inputs.= wf_nbsp(14);
+        $inputs.= wf_CheckInput(self::CTRL_CTRCT_AUTOPRLNG, __('Autoprolong'), false, $ctrctAutoProlong, '', '');
+        $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_CheckInput(self::CTRL_CTRCT_AUTOPRLNG, __('Autoprolong'), true, $ctrctAutoProlong, '', '');
         $inputs.= wf_TextInput(self::CTRL_CTRCT_CONTRACT, __('Contract number') . $this->supFrmFldMark, $ctrctContract, false, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_nbsp(4);
-        $inputs.= wf_TextInput(self::CTRL_CTRCT_FULLSUM, __('Contract full sum'), $ctrctFullSum, true, '4', 'finance',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_CTRCT_SUBJECT, __('Contract subject'), $ctrctSubject, true, '70', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_CTRCT_NOTES, __('Contract notes'), $ctrctNotes, true, '70', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+                               $emptyCheckClass, '', '', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_tag('span', false);
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_FULLSUM, __('Contract full sum'), $ctrctFullSum, false, '4', 'finance',
+                               '', '', '', true);
+        $inputs.= wf_tag('span', true);
+
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_SUBJECT, __('Contract subject'), $ctrctSubject, false, '70', '',
+                               'right-two-thirds-occupy', '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_CTRCT_NOTES, __('Contract notes'), $ctrctNotes, false, '70', '',
+                               'right-two-thirds-occupy', '', '', true);
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
         $inputs.= wf_HiddenInput(self::ROUTE_CONTRACT_ACTS, 'true');
 
         if ($editAction) {
@@ -1377,7 +1392,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true','POST',
-                          $inputs, 'glamour ' . $formClass);
+                          $inputs, 'glamour form-grid-3cols form-grid-3cols-label-right ' . $formClass);
 
         if ($editAction and $this->fileStorageEnabled) {
             $this->fileStorage->setItemid(self::URL_DICTCONTRACTS . $contractID);
@@ -1510,18 +1525,15 @@ $this->dbExtContrasExten->setDebug(true,true);
                       (($cloneAction) ? __('Clone counterparty address') :
                       __('Create counterparty address'));
 
-        $ctrlsLblStyle = 'style="line-height: 2.2em"';
-
-        $inputs.= wf_TextInput(self::CTRL_ADDRESS_ADDR, __('Address') . $this->supFrmFldMark, $addrAddress, true, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_ADDRESS_SUM, __('Sum'), $addrSum, true, '', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_ADDRESS_CTNOTES, __('Contract notes'), $addrCtrctNotes, true, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_ADDRESS_NOTES, __('Notes'), $addrNotes, true, '', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_ADDR, __('Address') . $this->supFrmFldMark, $addrAddress, false, '', '',
+                               $emptyCheckClass, '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_SUM, __('Sum'), $addrSum, false, '', '',
+                               '', '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_CTNOTES, __('Contract notes'), $addrCtrctNotes, false, '', '',
+                               $emptyCheckClass, '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_ADDRESS_NOTES, __('Notes'), $addrNotes, false, '', '',
+                               '', '', '', true);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
         $inputs.= wf_HiddenInput(self::ROUTE_ADDRESS_ACTS, 'true');
 
         if ($editAction) {
@@ -1536,7 +1548,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_DICTADDRESS . '=true','POST',
-                          $inputs, 'glamour ' . $formClass);
+                          $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right ' . $formClass);
 
         if ($modal and !empty($modalWinID)) {
             $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
@@ -1626,10 +1638,10 @@ $this->dbExtContrasExten->setDebug(true,true);
         $submitCapt = ($editAction) ? __('Edit') : __('Create');
         $formCapt   = ($editAction) ? __('Edit period') : __('Create period');
 
-        $ctrlsLblStyle = 'style="line-height: 3.4em"';
+        $ctrlsLblStyle = 'style="line-height: 3.4em; margin-right: 0.5em;"';
 
         $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name') . $this->supFrmFldMark, $prdName, true, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+                               $emptyCheckClass, '', '', true, $ctrlsLblStyle);
 
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
         $inputs.= wf_HiddenInput(self::ROUTE_PERIOD_ACTS, 'true');
@@ -1723,19 +1735,15 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs = wf_tag('h3', false);
         $inputs.= __('Filter by:');
         $inputs.= wf_tag('h3', true);
-        $rows   = wf_DatesTimesRangeFilter(true, true, true, true, false,
+        $rows   = wf_DatesTimesRangeFilter(true, true,false, false, true, false,
                                            ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
                             self::MISC_WEBFILTER_DATE_START, self::MISC_WEBFILTER_DATE_END
                                           );
 
         $inputs.= wf_TableBody($rows, 'auto');
-        $inputs.= wf_delimiter(0);
-
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
 
-        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour', '', $formID);
-        $inputs = wf_Plate($inputs, '', '', 'glamour');
-
+        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour form-grid-3r-1c', '', $formID, '', 'style="margin-top: 110px;"');
         $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
 
         return ($inputs);
@@ -1743,7 +1751,7 @@ $this->dbExtContrasExten->setDebug(true,true);
 
 
     /**
-     * Returns a contract-editor web form
+     * Returns a invoice-editor web form
      *
      * @param bool $modal
      * @param int $invoiceID
@@ -1788,52 +1796,54 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit counterparty contract') :
-            (($cloneAction) ? __('Clone counterparty contract') :
-                __('Create counterparty contract'));
+        $formCapt   = ($editAction) ? __('Edit invoice') :
+            (($cloneAction) ? __('Clone invoice') :
+                __('Create invoice'));
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
+        $datepickerID = wf_InputId();
 
         $inputs.= wf_TextInput(self::CTRL_INVOICES_INVOICE_NUM, __('Invoice number') . $this->supFrmFldMark, $invoNumber, false, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_nbsp(4);
-        $inputs.= wf_TextInput(self::CTRL_INVOICES_INTERNAL_NUM, __('Invoice internal number'), $invoInternalNum, false, '', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+                               $emptyCheckClass, '', '', true);
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_INVOICES_DATE, $invoDate, true, '',
-                              $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
-        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
-        $inputs.= wf_nbsp(2) . __('Invoice date') . $this->supFrmFldMark;
+        $inputs.= wf_tag('span', false);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_INTERNAL_NUM, __('Invoice internal number'), $invoInternalNum, false, '', '',
+                               '', '', '', true);
         $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_nbsp(8);
+        $inputs.= wf_tag('label', false, '', 'for="' . $datepickerID . '"');
+        $inputs.= __('Invoice date') . $this->supFrmFldMark;
+        $inputs.= wf_tag('label', true);
+        $inputs.= wf_tag('span', false);
+        $inputs.= wf_DatePickerPreset(self::CTRL_INVOICES_DATE, $invoDate, true, $datepickerID,
+                             $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
+        $inputs.= wf_tag('span', true);
+
+        $inputs.= wf_tag('span', false);
         $inputs.= wf_TextInput(self::CTRL_INVOICES_SUM, __('Invoice sum') . $this->supFrmFldMark, $invoSum, false, '4', 'finance',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_nbsp(8);
-        $inputs.= wf_TextInput(self::CTRL_INVOICES_SUM_VAT, __('Invoice VAT sum'), $invoSumVAT, true, '4', 'finance',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+                               $emptyCheckClass, '', '', true);
+        $inputs.= wf_nbsp(6);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_SUM_VAT, __('Invoice VAT sum'), $invoSumVAT, false, '4', 'finance',
+                               '', '', '', true);
+        $inputs.= wf_tag('span', true);
 
         $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO,
                                                                             self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
                                                                             self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
                                                                            ),
-                                           self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID,true, true);
+                                           self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID,false, true,
+                                           '', 'right-two-thirds-occupy', '', true);
 
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput(self::CTRL_INVOICES_NOTES, __('Invoice notes'), $invoNotes, true, '70', '',
-                               '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+        $inputs.= wf_TextInput(self::CTRL_INVOICES_NOTES, __('Invoice notes'), $invoNotes, false, '70', '',
+                               'right-two-thirds-occupy', '', '', true);
 
-        $inputs.= wf_tag('span', false, 'glamour', 'style="text-align: center; width: 95%;"');
+        $inputs.= wf_tag('span', false, 'glamour full-width-occupy', 'style="text-align: center; width: 97%;"');
         $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Incoming invoice'), 'incoming', false, $invoIncoming);
         $inputs.= wf_nbsp(8);
-        $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Outgoing invoice'), 'outgoing', true, $invoOutgoing);
+        $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Outgoing invoice'), 'outgoing', false, $invoOutgoing);
         $inputs.= wf_tag('span', true);
-        $inputs.= wf_delimiter(3);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
         $inputs.= wf_HiddenInput(self::ROUTE_INVOICES_ACTS, 'true');
 
         if ($editAction) {
@@ -1848,7 +1858,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_INVOICES . '=true','POST',
-                          $inputs, 'glamour ' . $formClass);
+                          $inputs, 'glamour form-grid-3cols form-grid-3cols-label-right ' . $formClass);
 
         if ($editAction and $this->fileStorageEnabled) {
             $this->fileStorage->setItemid(self::URL_INVOICES . $invoiceID);
@@ -1888,7 +1898,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         $columns[] = __('Sum total');
         $columns[] = __('Sum VAT');
         $columns[] = __('Notes');
-        $columns[] = __('Incoming');
+        $columns[] = __('Ingoing');
         $columns[] = __('Outgoing');
         $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
@@ -1914,7 +1924,7 @@ $this->dbExtContrasExten->setDebug(true,true);
      * @param string $whereRaw
      */
     public function invoiceRenderListJSON($whereRaw = '') {
-        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
+        //$this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
 
         if (!empty($whereRaw)) {
             $this->dbECInvoices->whereRaw($whereRaw);
@@ -1969,22 +1979,20 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs = wf_tag('h3', false);
         $inputs.= __('Filter by:');
         $inputs.= wf_tag('h3', true);
-        $rows   = wf_DatesTimesRangeFilter(true, true, true, true, false,
+        $cells  = wf_DatesTimesRangeFilter(true, true, false, false, true, false,
                                            ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
                             self::MISC_WEBFILTER_DATE_START, self::MISC_WEBFILTER_DATE_END
                                           );
 
-        $cells  = wf_TableCell(__('Payday:'));
+        $cells .= wf_TableCell(wf_nbsp(2));
+        $cells .= wf_TableCell(__('Payday:'));
         $cells .= wf_TableCell(wf_TextInput(self::MISC_WEBFILTER_PAYDAY, '', ubRouting::post(self::MISC_WEBFILTER_PAYDAY), true, 4, 'digits'));
-        $rows  .= wf_TableRow($cells);
+        $rows  = wf_TableRow($cells);
         $inputs.= wf_TableBody($rows, 'auto');
-        $inputs.= wf_delimiter(0);
 
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
 
-        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour', '', $formID);
-        $inputs = wf_Plate($inputs, '', '', 'glamour');
-
+        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour form-grid-3r-1c', '', $formID, '', 'style="margin-top: 105px;"');
         $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
 
         return ($inputs);
@@ -2028,29 +2036,26 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit counterparty contract') :
-                        (($cloneAction) ? __('Clone counterparty contract') :
-                        __('Create counterparty contract'));
-
-        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+        $formCapt   = ($editAction) ? __('Edit counterparty record') :
+                        (($cloneAction) ? __('Clone counterparty record') :
+                        __('Create counterparty record'));
 
         $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME, self::DBFLD_PROFILE_CONTACT),
                                            self::CTRL_EXTCONTRAS_PROFILE_ID, __('Counterparty profile') . $this->supFrmFldMark, $contrasProfileID,
-                                           true, true, '', '', '', false, $ctrlsLblStyle);
+                                           false, true, '', '', '', true);
         $inputs.= $this->renderWebSelector($this->allECContracts, array(self::DBFLD_CTRCT_CONTRACT, self::DBFLD_CTRCT_SUBJECT, self::DBFLD_CTRCT_FULLSUM),
                                            self::CTRL_EXTCONTRAS_CONTRACT_ID, __('Contract') . $this->supFrmFldMark, $contrasContractID,
-                                           true, true, '', '', '', false, $ctrlsLblStyle);
+                                           false, true, '', '', '', true);
         $inputs.= $this->renderWebSelector($this->allECAddresses, array(self::DBFLD_ADDRESS_ADDR, self::DBFLD_ADDRESS_SUM),
                                            self::CTRL_EXTCONTRAS_ADDRESS_ID, __('Address') . $this->supFrmFldMark, $contrasAddressID,
-                                           true, true, '', '', '', false, $ctrlsLblStyle);
+                                           false, true, '', '', '', true);
         $inputs.= $this->renderWebSelector($this->allECPeriods, array(self::DBFLD_PERIOD_NAME),
                                            self::CTRL_EXTCONTRAS_PERIOD_ID, __('Period') . $this->supFrmFldMark, $contrasPeriodID,
-                                           true, true, '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, true, '4', 'digits',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+                                           false, true, '', '', '', true);
+        $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, false, '4', 'digits',
+                               $emptyCheckClass, '', '', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
         $inputs.= wf_HiddenInput(self::ROUTE_CONTRAS_ACTS, 'true');
 
         if ($editAction) {
@@ -2065,7 +2070,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true','POST',
-                          $inputs, 'glamour ' . $formClass);
+                          $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right ' . $formClass);
 
         if ($modal and !empty($modalWinID)) {
             $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
@@ -2229,5 +2234,225 @@ $this->dbExtContrasExten->setDebug(true,true);
                             $inputs, 'glamour');
 
         return ($inputs);
+    }
+
+    /**
+     * Returns a invoice-editor web form
+     *
+     * @param bool $modal
+     * @param int $finopID
+     * @param bool $editAction
+     * @param bool $cloneAction
+     *
+     * @return string
+     */
+    public function finopsWebForm($modal = true, $finopID = 0, $editAction = false, $cloneAction = false) {
+        $inputs             = '';
+        $finopContrasID     = 1;
+        $finopAccrualID     = '';
+        $finopInvoiceID     = '';
+        $finopPurpose       = '';
+//        $finopDate          = '';
+//        $finopDateEdit      = '';
+        $finopSumAccrual    = '';
+        $finopSumPayment    = '';
+        $finopNotes         = '';
+        $finopIncoming      = '';
+        $finopOutgoing      = '';
+        $modalWinID     = ubRouting::post('modalWindowId');
+        $modalWinBodyID = ubRouting::post('modalWindowBodyId');
+
+        if ($modal) {
+            $formClass = self::MISC_CLASS_SUBMITFORM_MODAL;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK_MODAL;
+        } else {
+            $formClass = self::MISC_CLASS_SUBMITFORM;
+            $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
+        }
+
+        if (($editAction or $cloneAction) and !empty($this->allECMoney[$finopID])) {
+            $finoperation       = $this->allECMoney[$finopID];
+            $finopContrasID     = $finoperation[self::DBFLD_MONEY_CONTRASID];
+            $finopAccrualID     = $finoperation[self::DBFLD_MONEY_ACCRUALID];
+            $finopInvoiceID     = $finoperation[self::DBFLD_MONEY_INVOICEID];
+            $finopPurpose       = $finoperation[self::DBFLD_MONEY_PURPOSE];
+//            $finopDate          = $finoperation[self::DBFLD_MONEY_DATE];
+//            $finopDateEdit      = $finoperation[self::DBFLD_MONEY_DATE_EDIT];
+            $finopSumAccrual    = $finoperation[self::DBFLD_MONEY_SMACCRUAL];
+            $finopSumPayment    = $finoperation[self::DBFLD_MONEY_SMPAYMENT];
+            $finopNotes         = $finoperation[self::DBFLD_MONEY_PAYNOTES];
+            $finopIncoming      = ubRouting::filters($finoperation[self::DBFLD_MONEY_INCOMING], 'fi', FILTER_VALIDATE_BOOLEAN);
+            $finopOutgoing      = ubRouting::filters($finoperation[self::DBFLD_MONEY_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = ($editAction) ? __('Edit financial operation') :
+            (($cloneAction) ? __('Clone financial operation') :
+                __('Create financial operation'));
+
+        $ctrlsLblStyle = 'style="line-height: 2.2em"';
+
+        $inputs.= wf_TextInput(self::CTRL_MONEY_PURPOSE, __('Operation purpose') . $this->supFrmFldMark, $finopPurpose, false, '', '',
+                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_nbsp(4);
+        $inputs.= wf_TextInput(self::CTRL_MONEY_INTERNAL_NUM, __('Invoice internal number'), $finopAccrualID, false, '', '',
+            '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= wf_DatePickerPreset(self::CTRL_MONEY_DATE, $invoDate, true, '',
+            $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
+        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+        $inputs.= wf_nbsp(2) . __('Invoice date') . $this->supFrmFldMark;
+        $inputs.= wf_tag('span', true);
+
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_TextInput(self::CTRL_MONEY_SUM, __('Invoice sum') . $this->supFrmFldMark, $invoSum, false, '4', 'finance',
+            $emptyCheckClass, '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_TextInput(self::CTRL_MONEY_SUM_VAT, __('Invoice VAT sum'), $invoSumVAT, true, '4', 'finance',
+            '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO,
+            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
+            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
+        ),
+            self::CTRL_MONEY_CONTRASID, __('Counterparty'), $finopContrasID,true, true);
+
+        $inputs.= wf_delimiter(0);
+        $inputs.= wf_TextInput(self::CTRL_MONEY_NOTES, __('Invoice notes'), $invoNotes, true, '70', '',
+            '', '', '', false, $ctrlsLblStyle);
+        $inputs.= wf_delimiter(0);
+
+        $inputs.= wf_tag('span', false, 'glamour', 'style="text-align: center; width: 95%;"');
+        $inputs.= wf_RadioInput(self::CTRL_MONEY_IN_OUT, __('Incoming invoice'), 'incoming', false, $invoIncoming);
+        $inputs.= wf_nbsp(8);
+        $inputs.= wf_RadioInput(self::CTRL_MONEY_IN_OUT, __('Outgoing invoice'), 'outgoing', true, $invoOutgoing);
+        $inputs.= wf_tag('span', true);
+        $inputs.= wf_delimiter(3);
+
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_HiddenInput(self::ROUTE_MONEY_ACTS, 'true');
+
+        if ($editAction) {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
+            $inputs.= wf_HiddenInput(self::ROUTE_EDIT_REC_ID, $finopID);
+        } else {
+            $inputs.= wf_HiddenInput(self::ROUTE_ACTION_CREATE, 'true');
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+        }
+
+        $inputs = wf_Form(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true','POST',
+            $inputs, 'glamour ' . $formClass);
+
+        if ($editAction and $this->fileStorageEnabled) {
+            $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $finopID);
+
+            $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
+            $inputs.= wf_tag('h3');
+            $inputs.= __('Uploaded files');
+            $inputs.= wf_tag('h3', true);
+            $inputs.= $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
+            $inputs.= wf_tag('span', true);
+        }
+
+        if ($modal and !empty($modalWinID)) {
+            $inputs = wf_modalAutoForm($formCapt, $inputs, $modalWinID, $modalWinBodyID, true);
+        }
+
+        return ($inputs);
+    }
+
+    /**
+     * Renders JQDT for external counterparty finance operations list
+     *
+     * @param string $customJSCode
+     * @param string $markRowForID
+     * @return string
+     */
+    public function finopsRenderJQDT($customJSCode = '', $markRowForID = '') {
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true';
+
+        $columns[] = __('ID');
+        $columns[] = __('Counterparty');
+        $columns[] = __('Leading finance operation');
+        $columns[] = __('Operation date');
+        $columns[] = __('Accrual sum');
+        $columns[] = __('Payment sum');
+        $columns[] = __('Ingoing');
+        $columns[] = __('Outgoing');
+        $columns[] = __('Actions');
+
+        $opts = '
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [ {"targets": [1, 2], "className": "dt-left dt-head-center"},
+                            {"targets": ["_all"], "className": "dt-center dt-head-center"},
+                            {"targets": [8], "orderable": false},
+                            {"targets": [8], "width": "85px"}                            
+                          ]                                      
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
+            self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+            self::MISC_MARKROW_URL);
+
+        return($result);
+    }
+
+
+    /**
+     * Renders JSON for finance operations JQDT
+     *
+     * @param string $whereRaw
+     */
+    public function finopsRenderListJSON($whereRaw = '') {
+        //$this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
+
+        if (!empty($whereRaw)) {
+            $this->dbECMoney->whereRaw($whereRaw);
+        }
+
+        $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY,
+                                       !empty($whereRaw), true,'', '', !empty($whereRaw));
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECInvoices)) {
+            $data = array();
+
+            foreach ($this->allECMoney as $eachRecID) {
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    if ($fieldName == self::DBFLD_MONEY_CONTRASID) {
+                        $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
+                            : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
+                            . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
+                        );
+                    } elseif ($fieldName == self::DBFLD_MONEY_ACCRUALID) {
+                        $data[] = (empty($this->allECMoney[$fieldVal]) ? ''
+                                  : $this->allECMoney[$fieldVal][self::DBFLD_MONEY_PURPOSE]
+                                  . $this->allECMoney[$fieldVal][self::DBFLD_MONEY_PAYNOTES]);
+                    } elseif ($fieldName == self::DBFLD_MONEY_INCOMING or $fieldName == self::DBFLD_MONEY_OUTGOING) {
+                        $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
+                    } else {
+                        $data[] = $fieldVal;
+                    }
+                }
+
+                $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID['id']);
+                $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                          '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
+
+                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_FINOPS_ACTS, true);
+                $data[]  = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
     }
 }

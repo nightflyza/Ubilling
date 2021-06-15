@@ -64,6 +64,21 @@ file_put_contents('axcv', '');
             $ExtContras->invoiceRenderListJSON($whereRaw);
         }
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_JSON)){
+            $whereRaw = '';
+
+            /*if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+            }*/
+
+            $ExtContras->finopsRenderListJSON($whereRaw);
+        }
+
         if (ubRouting::checkPost($ExtContras::URL_EXTCONTRAS_COLORS)) {
             $ExtContras->setTableGridColorOpts();
         }
@@ -119,6 +134,8 @@ file_put_contents('axcv', '');
                         . $ExtContras->invoiceRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
                         );
         }
+
+
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
             $dataArray = array($ExtContras::DBFLD_PROFILE_NAME      => ubRouting::post($ExtContras::CTRL_PROFILE_NAME),
