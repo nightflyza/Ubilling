@@ -3039,7 +3039,12 @@ CREATE TABLE IF NOT EXISTS `extcontras` (
   `address_id` int(11) NOT NULL,
   `period_id` int(11) NOT NULL,
   `payday` tinyint(3) DEFAULT NULL,
-PRIMARY KEY (`id`)
+PRIMARY KEY (`id`),
+KEY `contras_id` (`contras_id`),
+KEY `contract_id` (`contract_id`),
+KEY `address_id` (`address_id`),
+KEY `period_id` (`period_id`),
+KEY `payday` (`payday`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `extcontras_profiles` (
@@ -3048,7 +3053,10 @@ CREATE TABLE IF NOT EXISTS `extcontras_profiles` (
   `edrpo` varchar(100) DEFAULT NULL,
   `contact` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-PRIMARY KEY (`id`)
+PRIMARY KEY (`id`),
+KEY `name` (`name`),
+KEY `edrpo` (`edrpo`),
+KEY `contact` (`contact`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `extcontras_contracts` (
@@ -3060,7 +3068,12 @@ CREATE TABLE IF NOT EXISTS `extcontras_contracts` (
   `full_sum` double DEFAULT 0,
   `autoprolong` tinyint(3) DEFAULT 1,
   `notes` varchar(255) DEFAULT NULL,
-PRIMARY KEY (`id`)
+PRIMARY KEY (`id`),
+KEY `contract` (`contract`),
+KEY `date_start` (`date_start`),
+KEY `date_end` (`date_end`),
+KEY `subject` (`subject`),
+KEY `full_sum` (`full_sum`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `extcontras_address` (
@@ -3089,17 +3102,32 @@ CREATE TABLE IF NOT EXISTS `extcontras_invoices` (
   `notes` varchar(250) DEFAULT '',
   `incoming` tinyint(1) DEFAULT 0,
   `outgoing` tinyint(1) DEFAULT 0,
-PRIMARY KEY (`id`)
+PRIMARY KEY (`id`),
+KEY `contras_rec_id` (`contras_rec_id`),
+KEY `invoice_number` (`invoice_number`),
+KEY `date` (`date`),
+KEY `summ` (`summ`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `contras_rec_id` int(11) NOT NULL,
   `accrual_id` int(11) DEFAULT NULL,
+  `invoice_id` int(11) DEFAULT NULL,
+  `purpose` varchar(255) NOT NULL DEFAULT '',
   `date` datetime NOT NULL,
+  `date_edit` datetime NOT NULL,
   `summ_accrual` double DEFAULT 0,
   `summ_payment` double DEFAULT 0,
   `incoming` tinyint(1) DEFAULT 0,
   `outgoing` tinyint(1) DEFAULT 0,
-PRIMARY KEY (`id`)
+  `paynotes` varchar(255) NOT NULL DEFAULT '',
+PRIMARY KEY (`id`),
+KEY `contras_rec_id` (`contras_rec_id`),
+KEY `accrual_id` (`accrual_id`),
+KEY `purpose` (`purpose`),
+KEY `date` (`date`),
+KEY `date_edit` (`date_edit`),
+KEY `summ_accrual` (`summ_accrual`),
+KEY `summ_payment` (`summ_payment`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
