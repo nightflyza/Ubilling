@@ -9,8 +9,9 @@ if (@$us_config['YOUTV_ENABLED']) {
     $userData = zbs_UserGetStargazerData($userLogin);
     //Check for user active state
     if (($userData['Passive'] == 0) AND ( $userData['Down'] == 0 )) {
+        $userEmail= zbs_UserGetEmail($userLogin);
 
-        if(mb_strlen($userData['Password']) >= 6 AND !empty($userData['Email'])){
+        if(mb_strlen($userData['Password']) >= 6 AND !empty($userEmail)){
             $ytvIf = new YTVInterface($userLogin);
 
             if (ubRouting::checkGet('unsubscribe')) {
