@@ -135,6 +135,14 @@ file_put_contents('axcv', '');
                         );
         }
 
+        if (ubRouting::checkGet($ExtContras::URL_FINOPERATIONS)) {
+            show_window(__('Financial operations'),
+                wf_Plate($ExtContras->finopsWebForm(false), '', '', '', 'margin-right: 30px;')
+                . $ExtContras->finopsFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
+                . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
+            );
+        }
+
 
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
