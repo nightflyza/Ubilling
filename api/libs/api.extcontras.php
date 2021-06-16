@@ -349,7 +349,7 @@ class ExtContras {
     const CTRL_MONEY_DATE       = 'moneydate';
     const CTRL_MONEY_DATE_EDIT  = 'moneydateedit';
     const CTRL_MONEY_SUMACCRUAL = 'moneysummaccrual';
-    const CTRL_MONEY_SUNPAYMENT = 'moneysummpayment';
+    const CTRL_MONEY_SUMPAYMENT = 'moneysummpayment';
     const CTRL_MONEY_INOUT      = 'moneyinout';
     const CTRL_MONEY_PAYNOTES   = 'moneypaynotes';
 
@@ -579,7 +579,8 @@ class ExtContras {
      *
      * @return mixed
      */
-    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true, $assocByField = '', $dataEntity = '', $cachingDisabled = false) {
+    public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true,
+                                            $assocByField = '', $dataEntity = '', $cachingDisabled = false) {
 
         $cacheKey       = strtoupper($cacheKey);
         $dbInstance     = $this->getDBEntity($tableName);
@@ -1082,20 +1083,22 @@ $this->dbExtContrasExten->setDebug(true,true);
      * @param $ctrlName
      * @param $ctrlLabel
      * @param string $selected
+     * @param bool $blankFirstRow
      * @param bool $br
      * @param bool $sort
      * @param string $ctrlID
      * @param string $ctrlClass
      * @param string $options
-     * @param bool   $labelLeftSide
+     * @param bool $labelLeftSide
      * @param string $labelOpts
      *
      * @return string
      */
-    public function renderWebSelector($selectorData, $dbFiledName, $ctrlName, $ctrlLabel, $selected = '',
-                                      $br = false, $sort = false, $ctrlID = '', $ctrlClass = '',
-                                      $options = '', $labelLeftSide = false, $labelOpts = '') {
-        $tmpArray = array();
+    public function renderWebSelector($selectorData, $dbFiledName, $ctrlName, $ctrlLabel,
+                                      $selected = '', $blankFirstRow = false, $br = false,
+                                      $sort = false, $ctrlID = '', $ctrlClass = '', $options = '',
+                                      $labelLeftSide = false, $labelOpts = '') {
+        $tmpArray = ($blankFirstRow) ? array('0' => '----') : array();
 
         if (!empty($selectorData)) {
             foreach ($selectorData as $eachID => $eachRec) {
@@ -1749,7 +1752,6 @@ $this->dbExtContrasExten->setDebug(true,true);
         return ($inputs);
     }
 
-
     /**
      * Returns a invoice-editor web form
      *
@@ -1762,7 +1764,7 @@ $this->dbExtContrasExten->setDebug(true,true);
      */
     public function invoiceWebForm($modal = true, $invoiceID = 0, $editAction = false, $cloneAction = false) {
         $inputs             = '';
-        $invoContrasID      = 1;
+        $invoContrasID      = 0;
         $invoInternalNum    = '';
         $invoNumber         = '';
         $invoDate           = '';
@@ -1831,8 +1833,8 @@ $this->dbExtContrasExten->setDebug(true,true);
                                                                             self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
                                                                             self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
                                                                            ),
-                                           self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID,false, true,
-                                           '', 'right-two-thirds-occupy', '', true);
+                                  self::CTRL_INVOICES_CONTRASID, __('Counterparty'), $invoContrasID, true, false,
+                                      true, '', 'right-two-thirds-occupy', '', true);
 
         $inputs.= wf_TextInput(self::CTRL_INVOICES_NOTES, __('Invoice notes'), $invoNotes, false, '70', '',
                                'right-two-thirds-occupy', '', '', true);
@@ -2040,18 +2042,21 @@ $this->dbExtContrasExten->setDebug(true,true);
                         (($cloneAction) ? __('Clone counterparty record') :
                         __('Create counterparty record'));
 
-        $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME, self::DBFLD_PROFILE_CONTACT),
-                                           self::CTRL_EXTCONTRAS_PROFILE_ID, __('Counterparty profile') . $this->supFrmFldMark, $contrasProfileID,
-                                           false, true, '', '', '', true);
-        $inputs.= $this->renderWebSelector($this->allECContracts, array(self::DBFLD_CTRCT_CONTRACT, self::DBFLD_CTRCT_SUBJECT, self::DBFLD_CTRCT_FULLSUM),
-                                           self::CTRL_EXTCONTRAS_CONTRACT_ID, __('Contract') . $this->supFrmFldMark, $contrasContractID,
-                                           false, true, '', '', '', true);
-        $inputs.= $this->renderWebSelector($this->allECAddresses, array(self::DBFLD_ADDRESS_ADDR, self::DBFLD_ADDRESS_SUM),
-                                           self::CTRL_EXTCONTRAS_ADDRESS_ID, __('Address') . $this->supFrmFldMark, $contrasAddressID,
-                                           false, true, '', '', '', true);
-        $inputs.= $this->renderWebSelector($this->allECPeriods, array(self::DBFLD_PERIOD_NAME),
-                                           self::CTRL_EXTCONTRAS_PERIOD_ID, __('Period') . $this->supFrmFldMark, $contrasPeriodID,
-                                           false, true, '', '', '', true);
+        $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME,
+                                                                       self::DBFLD_PROFILE_CONTACT),
+                                  self::CTRL_EXTCONTRAS_PROFILE_ID, __('Counterparty profile') . $this->supFrmFldMark,
+                                           $contrasProfileID, false, false, true, '', '', '', true);
+        $inputs.= $this->renderWebSelector($this->allECContracts, array(self::DBFLD_CTRCT_CONTRACT,
+                                                                        self::DBFLD_CTRCT_SUBJECT,
+                                                                        self::DBFLD_CTRCT_FULLSUM),
+                                  self::CTRL_EXTCONTRAS_CONTRACT_ID, __('Contract') . $this->supFrmFldMark,
+                                           $contrasContractID, false, false, true, '', '', '', true);
+        $inputs.= $this->renderWebSelector($this->allECAddresses, array(self::DBFLD_ADDRESS_ADDR,
+                                                                        self::DBFLD_ADDRESS_SUM),
+                                  self::CTRL_EXTCONTRAS_ADDRESS_ID, __('Address') . $this->supFrmFldMark,
+                                           $contrasAddressID, false, false, true, '', '', '', true);
+        $inputs.= $this->renderWebSelector($this->allECPeriods, array(self::DBFLD_PERIOD_NAME), self::CTRL_EXTCONTRAS_PERIOD_ID,
+                                  __('Period') . $this->supFrmFldMark, $contrasPeriodID, false, false, true, '', '', '', true);
         $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, false, '4', 'digits',
                                $emptyCheckClass, '', '', true);
 
@@ -2237,6 +2242,33 @@ $this->dbExtContrasExten->setDebug(true,true);
     }
 
     /**
+     * Returns a filter web form for invoices main form
+     *
+     * @return string
+     */
+    public function finopsFilterWebForm() {
+        $ajaxURLStr = self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true';
+        $formID     = 'Form_' . wf_InputId();
+        $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
+
+        $inputs = wf_tag('h3', false);
+        $inputs.= __('Filter by:');
+        $inputs.= wf_tag('h3', true);
+        $rows   = wf_DatesTimesRangeFilter(true, true,false, false, true, false,
+                                           ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
+                                           self::MISC_WEBFILTER_DATE_START, self::MISC_WEBFILTER_DATE_END
+                                          );
+
+        $inputs.= wf_TableBody($rows, 'auto');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
+
+        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour form-grid-3r-1c', '', $formID, '', 'style="margin-top: 107px;"');
+        $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
+
+        return ($inputs);
+    }
+
+    /**
      * Returns a invoice-editor web form
      *
      * @param bool $modal
@@ -2248,17 +2280,16 @@ $this->dbExtContrasExten->setDebug(true,true);
      */
     public function finopsWebForm($modal = true, $finopID = 0, $editAction = false, $cloneAction = false) {
         $inputs             = '';
-        $finopContrasID     = 1;
-        $finopAccrualID     = '';
-        $finopInvoiceID     = '';
+        $finopContrasID     = 0;
+        $finopAccrualID     = 0;
+        $finopInvoiceID     = 0;
         $finopPurpose       = '';
-//        $finopDate          = '';
-//        $finopDateEdit      = '';
         $finopSumAccrual    = '';
         $finopSumPayment    = '';
         $finopNotes         = '';
         $finopIncoming      = '';
         $finopOutgoing      = '';
+        $finopAccruals      = array();
         $modalWinID     = ubRouting::post('modalWindowId');
         $modalWinBodyID = ubRouting::post('modalWindowBodyId');
 
@@ -2276,14 +2307,15 @@ $this->dbExtContrasExten->setDebug(true,true);
             $finopAccrualID     = $finoperation[self::DBFLD_MONEY_ACCRUALID];
             $finopInvoiceID     = $finoperation[self::DBFLD_MONEY_INVOICEID];
             $finopPurpose       = $finoperation[self::DBFLD_MONEY_PURPOSE];
-//            $finopDate          = $finoperation[self::DBFLD_MONEY_DATE];
-//            $finopDateEdit      = $finoperation[self::DBFLD_MONEY_DATE_EDIT];
             $finopSumAccrual    = $finoperation[self::DBFLD_MONEY_SMACCRUAL];
             $finopSumPayment    = $finoperation[self::DBFLD_MONEY_SMPAYMENT];
             $finopNotes         = $finoperation[self::DBFLD_MONEY_PAYNOTES];
             $finopIncoming      = ubRouting::filters($finoperation[self::DBFLD_MONEY_INCOMING], 'fi', FILTER_VALIDATE_BOOLEAN);
             $finopOutgoing      = ubRouting::filters($finoperation[self::DBFLD_MONEY_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         }
+
+        $this->dbECMoney->whereRaw(" " . self::DBFLD_MONEY_SMACCRUAL . " != 0");
+        $finopAccruals = $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY);
 
         $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt   = ($editAction) ? __('Edit financial operation') :
@@ -2293,46 +2325,50 @@ $this->dbExtContrasExten->setDebug(true,true);
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
         $inputs.= wf_TextInput(self::CTRL_MONEY_PURPOSE, __('Operation purpose') . $this->supFrmFldMark, $finopPurpose, false, '', '',
-                               $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_nbsp(4);
-        $inputs.= wf_TextInput(self::CTRL_MONEY_INTERNAL_NUM, __('Invoice internal number'), $finopAccrualID, false, '', '',
-            '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+                               $emptyCheckClass . ' right-two-thirds-occupy', '', '', true);
 
-        $inputs.= wf_DatePickerPreset(self::CTRL_MONEY_DATE, $invoDate, true, '',
-            $emptyCheckClass . ' ' . self::MISC_CLASS_DPICKER_MODAL_INIT);
-        $inputs.= wf_tag('span', false, '', $ctrlsLblStyle);
-        $inputs.= wf_nbsp(2) . __('Invoice date') . $this->supFrmFldMark;
-        $inputs.= wf_tag('span', true);
+        //$inputs.= wf_tag('span', false);
+        $inputs.= wf_TextInput(self::CTRL_MONEY_SUMACCRUAL, __('Accrual sum'), $finopSumAccrual, false, '', 'finance',
+                               'col-2-3-occupy', '', '', true);
+        //$inputs.= wf_tag('span', true);
 
-        $inputs.= wf_nbsp(8);
-        $inputs.= wf_TextInput(self::CTRL_MONEY_SUM, __('Invoice sum') . $this->supFrmFldMark, $invoSum, false, '4', 'finance',
-            $emptyCheckClass, '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_nbsp(8);
-        $inputs.= wf_TextInput(self::CTRL_MONEY_SUM_VAT, __('Invoice VAT sum'), $invoSumVAT, true, '4', 'finance',
-            '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+        //$inputs.= wf_tag('span', false);
+        $inputs.= wf_TextInput(self::CTRL_MONEY_SUMPAYMENT, __('Payment sum'), $finopSumPayment, false, '', 'finance',
+                               'col-5-6-occupy', '', '', true);
+        //$inputs.= wf_tag('span', true);
 
         $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO,
-            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
-            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
-        ),
-            self::CTRL_MONEY_CONTRASID, __('Counterparty'), $finopContrasID,true, true);
+                                                                            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
+                                                                            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
+                                                                           ),
+                                  self::CTRL_MONEY_CONTRASID, __('Counterparty'), $finopContrasID, true, false, true,
+                                      '', '', '', true);
 
-        $inputs.= wf_delimiter(0);
-        $inputs.= wf_TextInput(self::CTRL_MONEY_NOTES, __('Invoice notes'), $invoNotes, true, '70', '',
-            '', '', '', false, $ctrlsLblStyle);
-        $inputs.= wf_delimiter(0);
+        $inputs.= $this->renderWebSelector($this->allECInvoices, array(self::DBFLD_INVOICES_INVOICE_NUM,
+                                                                       self::DBFLD_INVOICES_DATE,
+                                                                       self::DBFLD_INVOICES_SUM
+                                                                      ),
+                                  self::CTRL_MONEY_INVOICEID, __('Invoice'), $finopInvoiceID, true, false, true,
+                                      '', '', '', true);
 
-        $inputs.= wf_tag('span', false, 'glamour', 'style="text-align: center; width: 95%;"');
-        $inputs.= wf_RadioInput(self::CTRL_MONEY_IN_OUT, __('Incoming invoice'), 'incoming', false, $invoIncoming);
+        $inputs.= $this->renderWebSelector($finopAccruals, array(self::DBFLD_MONEY_PURPOSE,
+                                                                 self::DBFLD_MONEY_SMACCRUAL,
+                                                                 self::DBFLD_MONEY_DATE
+                                                                ),
+                                  self::CTRL_MONEY_ACCRUALID, __('Accrual'), $finopAccrualID, true, false, true,
+                                      '', '', '', true);
+
+        $inputs.= wf_TextInput(self::CTRL_MONEY_PAYNOTES, __('Invoice notes'), $finopNotes, false, '70', '',
+                    'right-two-thirds-occupy', '', '', true);
+
+        $inputs.= wf_tag('span', false, 'glamour full-width-occupy', 'style="text-align: center; width: 98%;"');
+        $inputs.= wf_RadioInput(self::CTRL_MONEY_INOUT, __('Incoming payment'), 'incoming', false, $finopIncoming);
         $inputs.= wf_nbsp(8);
-        $inputs.= wf_RadioInput(self::CTRL_MONEY_IN_OUT, __('Outgoing invoice'), 'outgoing', true, $invoOutgoing);
+        $inputs.= wf_RadioInput(self::CTRL_MONEY_INOUT, __('Outgoing payment'), 'outgoing', false, $finopOutgoing);
         $inputs.= wf_tag('span', true);
-        $inputs.= wf_delimiter(3);
 
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
-        $inputs.= wf_HiddenInput(self::ROUTE_MONEY_ACTS, 'true');
+        $inputs.= wf_HiddenInput(self::ROUTE_FINOPS_ACTS, 'true');
 
         if ($editAction) {
             $inputs.= wf_HiddenInput(self::ROUTE_ACTION_EDIT, 'true');
@@ -2346,7 +2382,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         }
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true','POST',
-            $inputs, 'glamour ' . $formClass);
+            $inputs, 'glamour form-grid-6cols form-grid-6cols-label-right ' . $formClass);
 
         if ($editAction and $this->fileStorageEnabled) {
             $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $finopID);
@@ -2379,8 +2415,10 @@ $this->dbExtContrasExten->setDebug(true,true);
 
         $columns[] = __('ID');
         $columns[] = __('Counterparty');
+        $columns[] = __('Invoice');
         $columns[] = __('Leading finance operation');
         $columns[] = __('Operation date');
+        $columns[] = __('Edit date');
         $columns[] = __('Accrual sum');
         $columns[] = __('Payment sum');
         $columns[] = __('Ingoing');
@@ -2389,10 +2427,10 @@ $this->dbExtContrasExten->setDebug(true,true);
 
         $opts = '
             "order": [[ 0, "desc" ]],
-            "columnDefs": [ {"targets": [1, 2], "className": "dt-left dt-head-center"},
+            "columnDefs": [ {"targets": [1, 2, 3], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [8], "orderable": false},
-                            {"targets": [8], "width": "85px"}                            
+                            {"targets": [10], "orderable": false},
+                            {"targets": [10], "width": "85px"}                            
                           ]                                      
             ';
 
@@ -2427,14 +2465,20 @@ $this->dbExtContrasExten->setDebug(true,true);
                 foreach ($eachRecID as $fieldName => $fieldVal) {
                     if ($fieldName == self::DBFLD_MONEY_CONTRASID) {
                         $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
-                            : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
-                            . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
+                                  : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
+                                    . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
                         );
+                    } elseif ($fieldName == self::DBFLD_MONEY_INVOICEID) {
+                        $data[] = (empty($this->allECInvoices[$fieldVal]) ? ''
+                                  : $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_INVOICE_NUM]
+                                    . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_DATE]
+                                    . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_SUM]);
                     } elseif ($fieldName == self::DBFLD_MONEY_ACCRUALID) {
                         $data[] = (empty($this->allECMoney[$fieldVal]) ? ''
                                   : $this->allECMoney[$fieldVal][self::DBFLD_MONEY_PURPOSE]
-                                  . $this->allECMoney[$fieldVal][self::DBFLD_MONEY_PAYNOTES]);
-                    } elseif ($fieldName == self::DBFLD_MONEY_INCOMING or $fieldName == self::DBFLD_MONEY_OUTGOING) {
+                                    . $this->allECMoney[$fieldVal][self::DBFLD_MONEY_SMACCRUAL]
+                                    . $this->allECMoney[$fieldVal][self::DBFLD_MONEY_DATE]);
+                    }  elseif ($fieldName == self::DBFLD_MONEY_INCOMING or $fieldName == self::DBFLD_MONEY_OUTGOING) {
                         $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
                     } else {
                         $data[] = $fieldVal;
