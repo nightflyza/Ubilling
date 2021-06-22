@@ -601,11 +601,14 @@ function dhcp_get_data_by_netid($netid) {
  * 
  * @param int $netid
  * @param string $confname
+ * @param bool $ddns
+ * @param array $loginIps
  * 
  * @return void
  */
-function handle_dhcp_rebuild_static($netid, $confname) {
+function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps = array()) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
+
 // check haz it .conf name or not?
     if (!empty($confname)) {
         $confpath = 'multinet/' . $confname;
@@ -613,7 +616,17 @@ function handle_dhcp_rebuild_static($netid, $confname) {
         $result = '';
         if (!empty($allhosts)) {
             foreach ($allhosts as $io => $eachhost) {
-                $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
+                //default IP based hosts
+                if (!$ddns) {
+                    $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
+                } else {
+                    if (isset($loginIps[$eachhost['ip']])) {
+                        $dhcphostname = $loginIps[$eachhost['ip']];
+                    } else {
+                        $dhcphostname = 'unknown' . zb_rand_string(8);
+                    }
+                }
+
                 $result .= '
    host ' . $dhcphostname . ' {
    hardware ethernet ' . $eachhost['mac'] . ';
@@ -1002,40 +1015,58 @@ function multinet_rebuild_globalconf() {
     file_write_contents("multinet/dhcpd.conf", $globconf);
 }
 
+/**
+ * Performs rebuild of all networks handlers due their type
+ * 
+ * @return void
+ */
 function multinet_rebuild_all_handlers() {
+    global $ubillingConfig;
+    $ddnsFlag = $ubillingConfig->getAlterParam('DHCP_DDNS_ENABLED');
+    if ($ddnsFlag) {
+        $loginIps = zb_UserGetAllIPs();
+        $loginIps = array_flip($loginIps); //IP=>login
+        $useDdns = true;
+    } else {
+        $loginIps = array();
+        $useDdns = false;
+    }
     $allnets = multinet_get_all_networks();
     if (!empty($allnets)) {
         foreach ($allnets as $io => $eachnet) {
-            if ($eachnet['nettype'] == 'dhcpstatic') {
-                $dhcpdata = dhcp_get_data_by_netid($eachnet['id']);
-                handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname']);
-//deb('REBUILD NETWORK:'.$eachnet['id'].'|'.$dhcpdata['confname']);
-            }
-            if ($eachnet['nettype'] == 'dhcp82') {
-                $dhcpdata82 = dhcp_get_data_by_netid($eachnet['id']);
-                handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
-            }
+            switch ($eachnet['nettype']) {
+                case 'dhcpstatic':
+                    $dhcpdata = dhcp_get_data_by_netid($eachnet['id']);
+                    handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname'], $useDdns, $loginIps);
+                    break;
 
-            if ($eachnet['nettype'] == 'dhcp82_vpu') {
-                $dhcpdata82_vpu = dhcp_get_data_by_netid($eachnet['id']);
-                handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
-            }
+                case 'dhcp82':
+                    $dhcpdata82 = dhcp_get_data_by_netid($eachnet['id']);
+                    handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
+                    break;
 
-            if ($eachnet['nettype'] == 'dhcp82_bdcom') {
-                $dhcpdata82_bdcom = dhcp_get_data_by_netid($eachnet['id']);
-                handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
-            }
+                case 'dhcp82_vpu':
+                    $dhcpdata82_vpu = dhcp_get_data_by_netid($eachnet['id']);
+                    handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
+                    break;
 
-            if ($eachnet['nettype'] == 'dhcp82_zte') {
-                $dhcpdata82_zte = dhcp_get_data_by_netid($eachnet['id']);
-                handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
-            }
+                case 'dhcp82_bdcom':
+                    $dhcpdata82_bdcom = dhcp_get_data_by_netid($eachnet['id']);
+                    handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+                    break;
 
-            if ($eachnet['nettype'] == 'pppstatic') {
-                handle_ppp_rebuild_static($eachnet['id']);
-            }
-            if ($eachnet['nettype'] == 'pppdynamic') {
-                handle_ppp_rebuild_dynamic($eachnet['id']);
+                case 'dhcp82_zte':
+                    $dhcpdata82_zte = dhcp_get_data_by_netid($eachnet['id']);
+                    handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+                    break;
+
+                case 'pppstatic':
+                    handle_ppp_rebuild_static($eachnet['id']);
+                    break;
+
+                case 'pppdynamic':
+                    handle_ppp_rebuild_dynamic($eachnet['id']);
+                    break;
             }
         }
     }
@@ -1043,7 +1074,6 @@ function multinet_rebuild_all_handlers() {
     multinet_rebuild_globalconf();
     //restarting dhcpd
     multinet_RestartDhcp();
-    //debarr(dhcp_get_data_by_netid(5));
 }
 
 /**
@@ -2427,21 +2457,18 @@ function convertMACDec2Hex($decMAC, $inSeparator = '.', $outSeparator = ':', $re
  * @param array|string $oidValue
  * @return array|string
  */
-function trimSNMPOutput($snmpData,
-                        $oid,
-                        $returnAsStr = false,
-                        $oidValue = array('Counter32:',
-                                          'Counter64:',
-                                          'Gauge32:',
-                                          'Gauge64:',
-                                          'INTEGER:',
-                                          'STRING:',
-                                          'OID:',
-                                          'Timeticks:',
-                                          'Hex-STRING:',
-                                          'Network Address:'
-                                         )
-                       ) {
+function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array('Counter32:',
+    'Counter64:',
+    'Gauge32:',
+    'Gauge64:',
+    'INTEGER:',
+    'STRING:',
+    'OID:',
+    'Timeticks:',
+    'Hex-STRING:',
+    'Network Address:'
+)
+) {
     $result = ($returnAsStr) ? '' : array('', '');
 
     if (!empty($snmpData)) {
