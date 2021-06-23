@@ -399,6 +399,12 @@ class FundsFlow {
                     $operation = __('Service') . ' ' . __('YouTV');
                 }
 
+                //TrinityTV/SweetTV fees
+                if (ispos($each['note'], 'TRINITYTV:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('TrinityTV');
+                }
+
 
                 //Self crediting fees
                 if (ispos($each['note'], 'SCFEE')) {
