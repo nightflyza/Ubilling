@@ -146,7 +146,9 @@
                     $totaltime = $mtime[0] + $mtime[1] - $starttime;
                     print('GT:' . round($totaltime, 3));
                     print(' QC: ' . $query_counter);
-                    ?></p>
+                    ?>
+                </p>
+                <br/>
             </footer>
         </aside><!-- end of sidebar -->
 
