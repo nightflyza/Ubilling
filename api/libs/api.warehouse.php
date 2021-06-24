@@ -3564,14 +3564,17 @@ class Warehouse {
 
             if (!empty($allRemains)) {
                 foreach ($allRemains as $itemtypeId => $count) {
-                    $reservedCount = $this->reserveGet($storageId, $itemtypeId);
-                    $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']]);
-                    $cells .= wf_TableCell(@$this->allItemTypeNames[$itemtypeId]);
-                    $itemUnit = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
-                    $cells .= wf_TableCell(($count - $reservedCount) . ' ' . $itemUnit);
-                    $cells .= wf_TableCell($reservedCount . ' ' . $itemUnit);
-                    $cells .= wf_TableCell($count . ' ' . $itemUnit);
-                    $rows .= wf_TableRow($cells, 'row3');
+                    //hide itemtypes with zero ramains
+                    if ($count > 0) {
+                        $reservedCount = $this->reserveGet($storageId, $itemtypeId);
+                        $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']]);
+                        $cells .= wf_TableCell(@$this->allItemTypeNames[$itemtypeId]);
+                        $itemUnit = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+                        $cells .= wf_TableCell(($count - $reservedCount) . ' ' . $itemUnit);
+                        $cells .= wf_TableCell($reservedCount . ' ' . $itemUnit);
+                        $cells .= wf_TableCell($count . ' ' . $itemUnit);
+                        $rows .= wf_TableRow($cells, 'row3');
+                    }
                 }
             }
 
