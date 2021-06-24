@@ -3262,5 +3262,10 @@ $lang['def']['Parser'] = 'Парсер';
 $lang['def']['Purchases'] = 'Покупки';
 $lang['def']['Devices polling stats'] = 'Статистика опиту обладнання';
 
+//rev 8008
+$lang['def']['All together'] = 'Усе разом';
+$lang['def']['Only tasks'] = 'Тільки задачі';
+$lang['def']['Only user'] = 'Тільки користувач';
+
 
 ?>

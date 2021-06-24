@@ -3391,18 +3391,25 @@ class Warehouse {
         $sum = 0;
         $outcomesCount = 0;
         $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
+        $onlyTaskFilterFlag = (ubRouting::checkGet('onlytasks')) ? true : false;
+        $onlyUserFilterFlag = (ubRouting::checkGet('onlyuser')) ? true : false;
         if (!empty($this->allOutcoming)) {
             //prefiltering outcome operations
             foreach ($this->allOutcoming as $io => $each) {
-                //filter by taskId
-                if ($each['desttype'] == 'task' AND isset($tasksArr[$each['destparam']])) {
-                    $tmpArr[] = $each;
+
+                if (!$onlyUserFilterFlag) {
+                    //filter by taskId
+                    if ($each['desttype'] == 'task' AND isset($tasksArr[$each['destparam']])) {
+                        $tmpArr[] = $each;
+                    }
                 }
 
-                //filter by direct user outcome operation
-                if ($userLogin) {
-                    if ($each['desttype'] == 'user' AND $each['destparam'] == $userLogin) {
-                        $tmpArr[] = $each;
+                if (!$onlyTaskFilterFlag) {
+                    //filter by direct user outcome operation
+                    if ($userLogin) {
+                        if ($each['desttype'] == 'user' AND $each['destparam'] == $userLogin) {
+                            $tmpArr[] = $each;
+                        }
                     }
                 }
             }
@@ -3462,11 +3469,22 @@ class Warehouse {
                     $cells .= wf_TableCell('');
                 }
                 $rows .= wf_TableRow($cells, 'row2');
-
                 $result = wf_TableBody($rows, '100%', 0, '');
             } else {
                 $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
             }
+
+            //append some controls here
+            $result .= wf_delimiter(0);
+            $filterLabelAll = wf_img('skins/icon_ok.gif') . ' ' . __('All together');
+            $filterUrlAll = '?module=warehouselookup&username=' . $userLogin;
+            $result .= wf_Link($filterUrlAll, $filterLabelAll, false, 'ubButton') . ' ';
+            $filterLabelTasks = wf_img('skins/icon_calendar.gif') . ' ' . __('Only tasks');
+            $filterUrlTasks = '?module=warehouselookup&username=' . $userLogin . '&onlytasks=true';
+            $result .= wf_Link($filterUrlTasks, $filterLabelTasks, false, 'ubButton') . ' ';
+            $filterLabelUser = wf_img('skins/icons/userprofile.png') . ' ' . __('Only user');
+            $filterUrlUser = '?module=warehouselookup&username=' . $userLogin . '&onlyuser=true';
+            $result .= wf_Link($filterUrlUser, $filterLabelUser, false, 'ubButton') . ' ';
         }
         return ($result);
     }

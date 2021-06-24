@@ -3238,6 +3238,11 @@ $lang['def']['After resurrection device will be marked as not belonging to anyon
 $lang['def']['Parser'] = 'Парсер';
 $lang['def']['Purchases'] = 'Покупки';
 $lang['def']['Devices polling stats'] = 'Статистика опроса оборудования';
-$lang['def'][''] = '';
 
+//rev 8008
+$lang['def']['All together'] = 'Все вместе';
+$lang['def']['Only tasks'] = 'Только задачи';
+$lang['def']['Only user'] = 'Только пользователь';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 ?>
