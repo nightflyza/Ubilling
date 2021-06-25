@@ -295,6 +295,23 @@ function multinet_get_all_networks() {
 }
 
 /**
+ * Returns unprocessed array of available networks with their data as netid=>netdata
+ * 
+ * @return array
+ */
+function multinet_get_all_networks_assoc() {
+    $result = array();
+    $query = "SELECT * from `networks`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['id']] = $each;
+        }
+    }
+    return($result);
+}
+
+/**
  * Returns selector of available networks types
  * 
  * @param string $curnettype
@@ -344,7 +361,7 @@ function multinet_show_networks_create_form() {
         $inputs .= wf_HiddenInput('use_radius', '0');
     }
     $inputs .= wf_Submit(__('Create'));
-    $form = wf_Form("", 'POST', $inputs, 'glamour');
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
 
     show_window(__('Add network'), $form);
 }
@@ -356,6 +373,7 @@ function multinet_show_networks_create_form() {
  */
 function multinet_show_available_services() {
     $allservices = multinet_get_services();
+    $allNetworkParams = multinet_get_all_networks_assoc();
 
     $tablecells = wf_TableCell(__('ID'));
     $tablecells .= wf_TableCell(__('Network'));
@@ -365,7 +383,7 @@ function multinet_show_available_services() {
 
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
-            $netdesc = multinet_get_network_params($eachservice['netid']);
+            $netdesc = $allNetworkParams[$eachservice['netid']];
             $tablecells = wf_TableCell($eachservice['id']);
             $tablecells .= wf_TableCell($netdesc['desc']);
             $tablecells .= wf_TableCell($eachservice['desc']);
@@ -597,22 +615,49 @@ function dhcp_get_data_by_netid($netid) {
 }
 
 /**
+ * Returns all dhcp handlers data as netid=>dhcpdata
+ * 
+ * @return array
+ */
+function dhcp_get_all_data_assoc() {
+    $result = array();
+    $query = "SELECT * from `dhcp`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['netid']] = $each;
+        }
+    }
+    return($result);
+}
+
+/**
  * Rebuilds dhcp subnet config with some static hosts
  * 
  * @param int $netid
  * @param string $confname
  * @param bool $ddns
  * @param array $loginIps
+ * @param array $allNetHosts
  * 
  * @return void
  */
-function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps = array()) {
+function handle_dhcp_rebuild_static($netid, $confname, $ddns = false, $loginIps = array(), $allNetHosts = array()) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
+
 
 // check haz it .conf name or not?
     if (!empty($confname)) {
+        $allhosts = array();
+        if (!empty($allNetHosts)) {
+            foreach ($allNetHosts as $io => $each) {
+                if ($each['netid'] == $netid) {
+                    $allhosts[] = $each;
+                }
+            }
+        }
         $confpath = 'multinet/' . $confname;
-        $allhosts = simple_queryall($query);
+        //$allhosts = simple_queryall($query);
         $result = '';
         if (!empty($allhosts)) {
             foreach ($allhosts as $io => $eachhost) {
@@ -944,10 +989,11 @@ function multinet_cidr2mask($mask_bits) {
  */
 function multinet_rebuild_globalconf() {
     global $ubillingConfig;
+    
     $global_template = file_get_contents("config/dhcp/global.template");
     $subnets_template = file_get_contents("config/dhcp/subnets.template");
-    $alldhcpsubnets_q = "SELECT `id`,`netid` from `dhcp` ORDER BY `id` ASC";
-    $alldhcpsubnets = simple_queryall($alldhcpsubnets_q);
+    $alldhcpsubnets = dhcp_get_all_data_assoc();
+    $allNetsData = multinet_get_all_networks_assoc();
     $allMembers_q = "SELECT `ip` from `nethosts` WHERE `option` != 'NULL'";
     $allMembers = simple_queryall($allMembers_q);
     $membersMacroContent = '';
@@ -985,7 +1031,7 @@ function multinet_rebuild_globalconf() {
     $subnets = '';
     if (!empty($alldhcpsubnets)) {
         foreach ($alldhcpsubnets as $io => $eachnet) {
-            $netdata = multinet_get_network_params($eachnet['netid']);
+            $netdata = $allNetsData[$eachnet['netid']];
             $templatedata['{STARTIP}'] = $netdata['startip'];
             $templatedata['{ENDIP}'] = $netdata['endip'];
             $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
@@ -993,7 +1039,7 @@ function multinet_rebuild_globalconf() {
             $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
             $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
             $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
-            $dhcpdata = dhcp_get_data_by_netid($eachnet['netid']);
+            $dhcpdata = $alldhcpsubnets[$eachnet['netid']];
             if (isset($dhcpdata['confname'])) {
                 $templatedata['{HOSTS}'] = $dhcpdata['confname'];
 // check if override?
@@ -1016,6 +1062,23 @@ function multinet_rebuild_globalconf() {
 }
 
 /**
+ * Returns array of all available nethosts as id=>nethostdata
+ * 
+ * @return array
+ */
+function multinet_nethosts_get_all() {
+    $result = array();
+    $query = "SELECT * from `nethosts`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['id']] = $each;
+        }
+    }
+    return($result);
+}
+
+/**
  * Performs rebuild of all networks handlers due their type
  * 
  * @return void
@@ -1031,32 +1094,38 @@ function multinet_rebuild_all_handlers() {
         $loginIps = array();
         $useDdns = false;
     }
-    $allnets = multinet_get_all_networks();
+
+    $allnets = multinet_get_all_networks_assoc(); //all networks basic params
+    $allDhcpData = dhcp_get_all_data_assoc(); //all networks dhcpd data
+    $allNethosts = multinet_nethosts_get_all(); //all available user nethosts data
+
     if (!empty($allnets)) {
         foreach ($allnets as $io => $eachnet) {
             switch ($eachnet['nettype']) {
                 case 'dhcpstatic':
-                    $dhcpdata = dhcp_get_data_by_netid($eachnet['id']);
-                    handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname'], $useDdns, $loginIps);
+                    if (isset($allDhcpData[$eachnet['id']])) {
+                        $dhcpdata = $allDhcpData[$eachnet['id']];
+                        handle_dhcp_rebuild_static($eachnet['id'], @$dhcpdata['confname'], $useDdns, $loginIps, $allNethosts);
+                    }
                     break;
 
                 case 'dhcp82':
-                    $dhcpdata82 = dhcp_get_data_by_netid($eachnet['id']);
+                    $dhcpdata82 = $allDhcpData[$eachnet['id']];
                     handle_dhcp_rebuild_option82($eachnet['id'], $dhcpdata82['confname']);
                     break;
 
                 case 'dhcp82_vpu':
-                    $dhcpdata82_vpu = dhcp_get_data_by_netid($eachnet['id']);
+                    $dhcpdata82_vpu = $allDhcpData[$eachnet['id']];
                     handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
                     break;
 
                 case 'dhcp82_bdcom':
-                    $dhcpdata82_bdcom = dhcp_get_data_by_netid($eachnet['id']);
+                    $dhcpdata82_bdcom = $allDhcpData[$eachnet['id']];
                     handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
                     break;
 
                 case 'dhcp82_zte':
-                    $dhcpdata82_zte = dhcp_get_data_by_netid($eachnet['id']);
+                    $dhcpdata82_zte = $allDhcpData[$eachnet['id']];
                     handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
                     break;
 
