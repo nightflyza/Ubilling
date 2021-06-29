@@ -61,9 +61,17 @@ class MegogoApi {
      */
     protected $urlAuth = '';
 
+    /**
+     * Web-auth data database abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $credentialsDb = '';
+
     public function __construct() {
         $this->loadAlter();
         $this->setOptions();
+        $this->initCredentials();
     }
 
     /**
@@ -89,11 +97,18 @@ class MegogoApi {
 
         $this->urlAuth = 'http://megogo.net/auth/by_partners/';
 
-        $this->urlCms = 'https://cms.qa.megogo.net/'; // TODO: delete qa. subdomain
-        $this->urlApi = 'http://billing.qa.megogo.net/partners/'; // TODO: delete qa. subdomain
         //Production
         $this->urlCms = 'https://cms.megogo.net/';
         $this->urlApi = 'http://billing.megogo.net/partners/';
+    }
+
+    /**
+     * Performs init of credentials database abscration layer
+     * 
+     * @return void
+     */
+    protected function initCredentials() {
+        $this->credentialsDb = new NyanORM('mg_credentials');
     }
 
     /**
@@ -102,33 +117,57 @@ class MegogoApi {
      * @param login $login
      * @param string $password
      * 
-     * @return array/void on error
+     * @return void/string on error
      */
     public function registerWebUser($login, $password) {
         $result = '';
+        //is partner pseudo-mail domain set?
         if (!empty($this->ispDomain)) {
             if (!empty($login) AND ! empty($password)) {
-                $userId = $this->prefix . $login;
-                $queryUrl = $this->urlApi . $this->partnerId . '/user/changeCredentials';
-                $requestArr = array(
-                    'isdn' => '{' . $userId . '}',
-                    'email' => $login . '@' . $this->ispDomain,
-                    'password' => $password
-                );
+                if (strlen($password) >= 6) {
+                    $userId = $this->prefix . $login;
+                    $queryUrl = $this->urlApi . $this->partnerId . '/user/changeCredentials';
+                    $pseudoMail = $login . '@' . $this->ispDomain;
+                    $requestArr = array(
+                        'isdn' => '{' . $userId . '}',
+                        'email' => $pseudoMail,
+                        'password' => $password
+                    );
 
-                $requestJson = json_encode($requestArr);
-                $ch = curl_init($queryUrl);
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $requestJson);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-                $resultRaw = curl_exec($ch);
-                if (!empty($resultRaw)) {
-                    $resultRaw = json_decode($resultRaw, true);
-                    if (isset($resultRaw['successful']) AND $resultRaw['successful'] == 1) {
-                        $result = $requestArr;
+                    $requestJson = json_encode($requestArr);
+                    $ch = curl_init($queryUrl);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $requestJson);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+                    $resultRaw = curl_exec($ch);
+                    if (!empty($resultRaw)) {
+                        //nothing to see here
+                        $resultRaw = json_decode($resultRaw, true);
                     }
+
+                    //log auth data to credentials db
+                    $this->credentialsDb->where('login', '=', $login);
+                    $currentCredentials = $this->credentialsDb->getAll();
+                    if (empty($currentCredentials)) {
+                        $this->credentialsDb->data('isdn', $userId);
+                        $this->credentialsDb->data('login', $login);
+                        $this->credentialsDb->data('email', $pseudoMail);
+                        $this->credentialsDb->data('password', $password);
+                        $this->credentialsDb->create();
+                    } else {
+                        $this->credentialsDb->where('login', '=', $login);
+                        $this->credentialsDb->data('isdn', $userId);
+                        $this->credentialsDb->data('login', $login);
+                        $this->credentialsDb->data('email', $pseudoMail);
+                        $this->credentialsDb->data('password', $password);
+                        $this->credentialsDb->save();
+                    }
+                } else {
+                    $result .= 'Password must be at least 6 characters long';
                 }
+            } else {
+                $result .= 'Empty password';
             }
         }
         return($result);
@@ -479,7 +518,7 @@ class MegogoInterface {
      * @param string $login
      * @param int $tariffid
      * 
-     * @return void/strin on error
+     * @return void/string on error
      */
     public function createSubscribtion($login, $tariffid) {
         $curdatetime = curdatetime();
@@ -505,9 +544,14 @@ class MegogoInterface {
                         $userSystemData = $this->allUsers[$login];
                         //TODO: remove following IF statement or replace with normal mechanics
                         if (!empty($userSystemData['Password'])) {
-//                            $webRegisterResult = $mgApi->registerWebUser($login, $userSystemData['Password']);
-//                            file_put_contents('exports/mgreg.log', print_r($webRegisterResult, true));
+                            $webRegisterResult = $mgApi->registerWebUser($login, $userSystemData['Password']);
+                            if (!empty($webRegisterResult)) {
+                                $result = $webRegisterResult;
+                            }
+                        } else {
+                            $result = 'Empty password';
                         }
+
                         log_register('MEGOGO ACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
 
                         //force fee

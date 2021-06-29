@@ -446,3 +446,9 @@ $lang['def']['You can not use this service. Password must be at least 6 characte
 $lang['def']['Authorization data'] = 'Данные для авторизации';
 $lang['def']['Convenient applications'] = 'Удобные приложения';
 $lang['def']['Modern youtv applications for various devices.'] = 'Современные приложения youtv для различных устройств.';
+
+$lang['def']['Password must be at least 6 characters long']='Пароль должен состоять не менее чем из 6-ти символов';
+$lang['def']['Empty password'] = 'Пустой пароль';
+$lang['def']['Your login and password to usage with MEGOGO are'] = 'Ваши логин и пароль сервиса MEGOGO';
+$lang['def']['To start using the MEGOGO service, click the button'] = 'Для начала использования сервиса MEGOGO нажмите кнопку';
+$lang['def']['Continue'] = 'Продолжить';

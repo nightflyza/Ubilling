@@ -58,6 +58,13 @@ class MegogoFrontend {
      */
     protected $apiKey = '';
 
+    /**
+     * Web-auth data database abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $credentialsDb = '';
+
     public function __construct() {
         $this->loadUsConfig();
         $this->setOptions();
@@ -65,6 +72,7 @@ class MegogoFrontend {
         $this->loadTariffs();
         $this->loadSubscribers();
         $this->loadHistory();
+        $this->initCredentials();
     }
 
     /**
@@ -123,6 +131,15 @@ class MegogoFrontend {
                 $this->allSubscribers[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Performs init of credentials database abscration layer
+     * 
+     * @return void
+     */
+    protected function initCredentials() {
+        $this->credentialsDb = new NyanORM('mg_credentials');
     }
 
     /**
@@ -224,7 +241,7 @@ class MegogoFrontend {
                     } else {
                         if ($this->checkUserProtection($each['id'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $subscribeControl = la_ConfirmDialog('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), $alertText, 'mgsubcontrol','?module=megogo');
+                            $subscribeControl = la_ConfirmDialog('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=megogo');
                         } else {
                             $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
                         }
@@ -416,8 +433,31 @@ class MegogoFrontend {
             $result = la_TableBody($rows, '100%', 0);
             $result .= la_tag('br');
             $result .= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
+            $result .= $this->renderCredentials();
         }
         return ($result);
+    }
+
+    /**
+     * Renders user credentials for web-auth on megogo service
+     * 
+     * @return string/void
+     */
+    protected function renderCredentials() {
+        $result = '';
+        $this->credentialsDb->where('login', '=', $this->userLogin);
+        $userCredentials = $this->credentialsDb->getAll();
+        if (!empty($userCredentials)) {
+            $userCredentials = $userCredentials[0];
+            $result .= la_tag('div', false, '', 'style="border:1px solid; text-align:center;"');
+            $result .= __('Your login and password to usage with MEGOGO are') . ' ' . la_delimiter(1);
+            $result .= __('Login') . ': ' . la_tag('b') . $userCredentials['email'] . la_tag('b', true) . la_tag('br');
+            $result .= __('Password') . ': ' . la_tag('b') . $userCredentials['password'] . la_tag('b', true) . la_delimiter(1);
+            $result .= __('To start using the MEGOGO service, click the button') . ' ' . la_Link('http://megogo.net/ru/login', 'Continue', false, 'anreadbutton', 'target=_blank');
+            $result .= la_delimiter(1);
+            $result .= la_tag('div', true);
+        }
+        return($result);
     }
 
 }
