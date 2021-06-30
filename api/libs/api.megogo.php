@@ -131,7 +131,7 @@ class MegogoApi {
                     $queryUrl = $this->urlApi . $this->partnerId . '/user/changeCredentials';
                     $pseudoMail = $login . '@' . $this->ispDomain;
                     $requestArr = array(
-                        'isdn' => '{' . $userId . '}',
+                        'isdn' => $userId,
                         'email' => $pseudoMail,
                         'password' => $password
                     );
@@ -1152,12 +1152,12 @@ class MegogoInterface {
                 $controls .= wf_Link($baseUrl . '&maction=activate', web_bool_led(1) . ' ' . __('Activate subscription'), true, 'ubButton') . wf_tag('br');
                 $controls .= wf_Link($baseUrl . '&maction=deactivate', web_bool_led(0) . ' ' . __('Deactivate subscription'), true, 'ubButton') . wf_tag('br');
                 if (@$this->altCfg['MG_DOMAIN']) {
-                $controls .= wf_Link($baseUrl . '&maction=newcredentials', wf_img('skins/icon_key.gif') . ' ' . __('User registration') . ' ' . __('on') . ' ' . __('Megogo.net'), true, 'ubButton') . wf_tag('br');
+                    $controls .= wf_Link($baseUrl . '&maction=newcredentials', wf_img('skins/icon_key.gif') . ' ' . __('User registration') . ' ' . __('on') . ' ' . __('Megogo.net'), true, 'ubButton') . wf_tag('br');
                 } else {
-                    $result.= $this->messages->getStyledMessage(__('Missed config option').' MG_DOMAIN', 'error');
-                    $result.= wf_delimiter();
-                } 
-                
+                    $result .= $this->messages->getStyledMessage(__('Missed config option') . ' MG_DOMAIN', 'error');
+                    $result .= wf_delimiter();
+                }
+
                 $controls .= wf_JSAlertStyled($baseUrl . '&maction=delete', web_delete_icon() . ' ' . __('Delete subscription'), $this->messages->getDeleteAlert(), 'ubButton');
                 $result .= $controls;
             }
