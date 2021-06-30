@@ -453,7 +453,7 @@ class MegogoFrontend {
             $result .= __('Your login and password to usage with MEGOGO are') . ' ' . la_delimiter(1);
             $result .= __('Login') . ': ' . la_tag('b') . $userCredentials['email'] . la_tag('b', true) . la_tag('br');
             $result .= __('Password') . ': ' . la_tag('b') . $userCredentials['password'] . la_tag('b', true) . la_delimiter(1);
-            $result .= __('To start using the MEGOGO service, click the button') . ' ' . la_Link('http://megogo.net/ru/login', 'Continue', false, 'anreadbutton', 'target=_blank');
+            $result .= __('To start using the MEGOGO service, click the button') . ' ' . la_Link('http://megogo.net/login', 'Continue', false, 'anreadbutton', 'target=_blank');
             $result .= la_delimiter(1);
             $result .= la_tag('span', true);
         }

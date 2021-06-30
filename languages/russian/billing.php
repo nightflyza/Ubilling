@@ -3244,5 +3244,6 @@ $lang['def']['All together'] = 'Все вместе';
 $lang['def']['Only tasks'] = 'Только задачи';
 $lang['def']['Only user'] = 'Только пользователь';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
+
+
 ?>

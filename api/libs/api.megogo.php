@@ -121,6 +121,8 @@ class MegogoApi {
      */
     public function registerWebUser($login, $password) {
         $result = '';
+        $login = trim($login);
+        $password = trim($password);
         //is partner pseudo-mail domain set?
         if (!empty($this->ispDomain)) {
             if (!empty($login) AND ! empty($password)) {
@@ -1131,11 +1133,25 @@ class MegogoInterface {
             $result = wf_TableBody($rows, '100%', 0, '');
             $result .= wf_delimiter();
 
+            $credentialsDb = new NyanORM('mg_credentials');
+            $credentialsDb->where('login', '=', $subData['login']);
+            $userCredentials = $credentialsDb->getAll();
+            if (!empty($userCredentials)) {
+                $userCredentials = $userCredentials[0];
+                $userCredentialsLabel = 'megogo.net ' . __('Login') . ': ' . $userCredentials['email'] . ' / ' . __('Password') . ': ' . $userCredentials['password'];
+                $result .= $this->messages->getStyledMessage($userCredentialsLabel, 'info');
+                $result .= wf_delimiter();
+            } else {
+                $result .= $this->messages->getStyledMessage(__('User have no authorization data for megogo.net'), 'warning');
+                $result .= wf_delimiter();
+            }
+
             if (cfr('ROOT')) {
                 $controls = wf_Link($baseUrl . '&maction=subscribe', web_bool_star(1) . ' ' . __('Subscribe with Megogo API'), true, 'ubButton') . wf_tag('br');
                 $controls .= wf_Link($baseUrl . '&maction=unsubscribe', web_bool_star(0) . ' ' . __('Unubscribe with Megogo API'), true, 'ubButton') . wf_tag('br');
                 $controls .= wf_Link($baseUrl . '&maction=activate', web_bool_led(1) . ' ' . __('Activate subscription'), true, 'ubButton') . wf_tag('br');
                 $controls .= wf_Link($baseUrl . '&maction=deactivate', web_bool_led(0) . ' ' . __('Deactivate subscription'), true, 'ubButton') . wf_tag('br');
+                $controls .= wf_Link($baseUrl . '&maction=newcredentials', wf_img('skins/icon_key.gif') . ' ' . __('User registration') . ' ' . __('on') . ' ' . __('Megogo.net'), true, 'ubButton') . wf_tag('br');
                 $controls .= wf_JSAlertStyled($baseUrl . '&maction=delete', web_delete_icon() . ' ' . __('Delete subscription'), $this->messages->getDeleteAlert(), 'ubButton');
                 $result .= $controls;
             }
@@ -1187,6 +1203,19 @@ class MegogoInterface {
                     case 'delete':
                         nr_query("DELETE FROM `mg_subscribers` WHERE `id`='" . $subId . "';");
                         log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        break;
+                    case 'newcredentials':
+                        $userLogin = $subData['login'];
+                        $userData = zb_UserGetAllData($userLogin);
+                        if (!empty($userData)) {
+                            $userPassword = $userData[$userLogin]['Password'];
+                            $mgApi = new MegogoApi();
+                            $newCredResult = $mgApi->registerWebUser($userLogin, $userPassword);
+                            if (!empty($newCredResult)) {
+                                $result .= $this->messages->getStyledMessage($newCredResult, 'error');
+                            }
+                            log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        }
                         break;
                 }
             } else {
