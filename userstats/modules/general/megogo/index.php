@@ -30,11 +30,12 @@ if (@$us_config['MG_ENABLED']) {
             }
         }
 
-        //view button if is some subscriptions here
+        //render available subscriptions and auth data
         if ($megogo->haveSubscribtions()) {
             show_window(__('Your subscriptions'), $megogo->renderSubscribtions());
-            show_window('', la_Link($megogo->getAuthButtonURL(), __('Go to MEGOGO'), true, 'mgviewcontrol'));
-            show_window('', la_tag('br'));
+            show_window(__('Authorization data'), $megogo->renderCredentials());
+            // following mechanics is deprecated and will be deleted in future releases.
+            //show_window('', la_Link($megogo->getAuthButtonURL(), __('Go to MEGOGO'), true, 'mgviewcontrol'));
         }
 
 

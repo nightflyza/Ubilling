@@ -430,10 +430,9 @@ class MegogoFrontend {
                 }
             }
 
-            $result = la_TableBody($rows, '100%', 0);
+            $result = la_TableBody($rows, '100%', 0,'resp-table');
             $result .= la_tag('br');
-            $result .= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
-            $result .= $this->renderCredentials();
+            //$result .= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
         }
         return ($result);
     }
@@ -443,19 +442,20 @@ class MegogoFrontend {
      * 
      * @return string/void
      */
-    protected function renderCredentials() {
+    public function renderCredentials() {
         $result = '';
         $this->credentialsDb->where('login', '=', $this->userLogin);
         $userCredentials = $this->credentialsDb->getAll();
         if (!empty($userCredentials)) {
             $userCredentials = $userCredentials[0];
-            $result .= la_tag('div', false, '', 'style="border:1px solid; text-align:center;"');
+            $containerStyle='style="border:1px solid; text-align:center; width:100%; display:block;"';
+            $result .= la_tag('span', false, 'resp-table',$containerStyle);
             $result .= __('Your login and password to usage with MEGOGO are') . ' ' . la_delimiter(1);
             $result .= __('Login') . ': ' . la_tag('b') . $userCredentials['email'] . la_tag('b', true) . la_tag('br');
             $result .= __('Password') . ': ' . la_tag('b') . $userCredentials['password'] . la_tag('b', true) . la_delimiter(1);
             $result .= __('To start using the MEGOGO service, click the button') . ' ' . la_Link('http://megogo.net/ru/login', 'Continue', false, 'anreadbutton', 'target=_blank');
             $result .= la_delimiter(1);
-            $result .= la_tag('div', true);
+            $result .= la_tag('span', true);
         }
         return($result);
     }
