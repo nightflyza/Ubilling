@@ -335,7 +335,7 @@ class UbillingBranches {
 
         if (!empty($nameF)) {
             $query = "INSERT INTO `branches` (`id`,`name`) VALUES ";
-            $query.="(NULL,'" . $nameF . "');";
+            $query .= "(NULL,'" . $nameF . "');";
             nr_query($query);
             $newId = simple_get_lastid('branches');
             log_register('BRANCH CREATE [' . $newId . '] `' . $name . '`');
@@ -441,7 +441,7 @@ class UbillingBranches {
             if (!empty($adminF)) {
                 if (!$this->isAdminBranchAssigned($branchId, $admin)) {
                     $query = "INSERT INTO `branchesadmins` (`id`,`branchid`,`admin`) VALUES";
-                    $query.="(NULL,'" . $branchId . "','" . $adminF . "');";
+                    $query .= "(NULL,'" . $branchId . "','" . $adminF . "');";
                     nr_query($query);
                     log_register('BRANCH ASSIGN [' . $branchId . '] ADMIN {' . $admin . '}');
                 }
@@ -495,7 +495,7 @@ class UbillingBranches {
         if (isset($this->branches[$branchId])) {
             if (!empty($loginF)) {
                 $query = "INSERT INTO `branchesusers` (`id`,`branchid`,`login`) VALUES ";
-                $query.="(NULL,'" . $branchId . "','" . $loginF . "');";
+                $query .= "(NULL,'" . $branchId . "','" . $loginF . "');";
                 nr_query($query);
                 log_register('BRANCH ASSIGN [' . $branchId . '] USER (' . $login . ')');
             } else {
@@ -714,7 +714,7 @@ class UbillingBranches {
         if (isset($this->branches[$branchId])) {
             if (!empty($cityId)) {
                 $query = "INSERT INTO `branchescities` (`id`,`branchid`,`cityid`) VALUES ";
-                $query.="(NULL,'" . $branchId . "','" . $cityId . "');";
+                $query .= "(NULL,'" . $branchId . "','" . $cityId . "');";
                 nr_query($query);
                 log_register('BRANCH ASSIGN [' . $branchId . '] CITY [' . $cityId . ']');
             } else {
@@ -764,7 +764,7 @@ class UbillingBranches {
         if (isset($this->branches[$branchId])) {
             if (!empty($tariff)) {
                 $query = "INSERT INTO `branchestariffs` (`id`,`branchid`,`tariff`) VALUES ";
-                $query.="(NULL,'" . $branchId . "','" . $tariffF . "');";
+                $query .= "(NULL,'" . $branchId . "','" . $tariffF . "');";
                 nr_query($query);
                 log_register('BRANCH ASSIGN [' . $branchId . '] TARIFF `' . $tariff . '`');
             } else {
@@ -814,7 +814,7 @@ class UbillingBranches {
         if (isset($this->branches[$branchId])) {
             if (!empty($serviceId)) {
                 $query = "INSERT INTO `branchesservices` (`id`,`branchid`,`serviceid`) VALUES ";
-                $query.="(NULL,'" . $branchId . "','" . $serviceId . "');";
+                $query .= "(NULL,'" . $branchId . "','" . $serviceId . "');";
                 nr_query($query);
                 log_register('BRANCH ASSIGN [' . $branchId . '] SERVICE [' . $serviceId . ']');
             } else {
@@ -860,19 +860,19 @@ class UbillingBranches {
         //hide control panel on user branch editing
         if (!wf_CheckGet(array('userbranch'))) {
             if (cfr('BRANCHES')) {
-                $result.=wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
+                $result .= wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
                 if (cfr('BRANCHESREG')) {
-                    $result.=wf_Link('?module=userreg&branchesback=true', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
+                    $result .= wf_Link('?module=userreg&branchesback=true', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
                 }
                 if (cfr('BRANCHESFINREP')) {
-                    $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
+                    $result .= wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
                 }
                 if (cfr('BRANCHESSIGREP')) {
-                    $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
+                    $result .= wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
                 }
             }
             if (cfr('BRANCHESCONF')) {
-                $result.=wf_Link(self::URL_ME . '&settings=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
+                $result .= wf_Link(self::URL_ME . '&settings=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
             }
         }
         return ($result);
@@ -885,11 +885,25 @@ class UbillingBranches {
      */
     public function renderUserList() {
         $result = '';
+        //basic columns set
+        $columns = array('Full address', 'Real Name', 'Branch', 'IP', 'Tariff', 'Active', 'Traffic', 'Balance', 'Credit');
+
+        //some optional data columns here
         if ($this->altCfg['DN_ONLINE_DETECT']) {
-            $columns = array('Full address', 'Real Name', 'Branch', 'IP', 'Tariff', 'Active', 'Online', 'Traffic', 'Balance', 'Credit');
-        } else {
-            $columns = array('Full address', 'Real Name', 'Branch', 'IP', 'Tariff', 'Active', 'Traffic', 'Balance', 'Credit');
+            $trafficIndex = array_search('Traffic', $columns);
+            zb_array_insert($columns, $trafficIndex, 'Online');
         }
+
+        if ($this->altCfg['ONLINE_SHOW_CONTRACT_FIELD']) {
+            $nameIndex = array_search('Real Name', $columns);
+            zb_array_insert($columns, $nameIndex, 'Contract');
+        }
+
+        if (@$this->altCfg['ONLINE_SHOW_PHONES']) {
+            $ipIndex = array_search('IP', $columns);
+            zb_array_insert($columns, $ipIndex, 'Phones');
+        }
+
         $result = wf_JqDtLoader($columns, self::URL_ME . '&userlist=true&ajaxuserlist=true', false, __('Users'), 50, '');
         return ($result);
     }
@@ -935,22 +949,39 @@ class UbillingBranches {
             $allAddress = zb_AddressGetFulladdresslistCached();
             $allRealNames = zb_UserGetAllRealnames();
             $allUserData = zb_UserGetAllStargazerDataAssoc();
-            $dnFlag = $this->altCfg['DN_ONLINE_DETECT'] ? true : false;
+            $dnFlag = ($this->altCfg['DN_ONLINE_DETECT']) ? true : false;
+            $contractFlag = ($this->altCfg['ONLINE_SHOW_CONTRACT_FIELD']) ? true : false;
+            $phonesFlag = (@$this->altCfg['ONLINE_SHOW_PHONES']) ? true : false;
+
+            if ($contractFlag) {
+                $allContracts = zb_UserGetAllLoginContracts();
+            }
+
+            if ($phonesFlag) {
+                $allUserPhones = zb_GetAllOnlineTabPhones();
+            }
+
             foreach ($this->branchesLogins as $login => $branchId) {
                 if ($this->isMyUser($login)) {
                     if (isset($allUserData[$login])) {
                         $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
-                        $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon()) . ' ';
+                        $userLinks .= wf_Link(self::URL_USERPROFILE . $login, web_profile_icon()) . ' ';
                         if ($this->altCfg['FAST_CASH_LINK']) {
-                            $userLinks.=wf_Link(self::URL_ADDCASH . $login . '#cashfield', web_cash_icon()) . ' ';
+                            $userLinks .= wf_Link(self::URL_ADDCASH . $login . '#cashfield', web_cash_icon()) . ' ';
                         }
                         @$userAddress = $allAddress[$login];
                         @$userRealName = $allRealNames[$login];
                         $activeFlag = ($allUserData[$login]['Cash'] >= -$allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
 
                         $data[] = $userLinks . ' ' . $userAddress;
+                        if ($contractFlag) {
+                            $data[] = @$allContracts[$login];
+                        }
                         $data[] = $userRealName;
                         $data[] = $this->getBranchName($branchId);
+                        if ($phonesFlag) {
+                            $data[] = @$allUserPhones[$login];
+                        }
                         $data[] = $allUserData[$login]['IP'];
                         $data[] = $allUserData[$login]['Tariff'];
                         $data[] = $activeFlag;
@@ -987,27 +1018,27 @@ class UbillingBranches {
         $allservicenames = zb_VservicesGetAllNamesLabeled();
 
         $inputs = wf_YearSelector('yearsel', __('Year') . ' ', false);
-        $inputs.= wf_Selector('monthsel', $monthArr, __('Month') . ' ', date("m"), false);
-        $inputs.=wf_Submit(__('Payments by month'));
+        $inputs .= wf_Selector('monthsel', $monthArr, __('Month') . ' ', date("m"), false);
+        $inputs .= wf_Submit(__('Payments by month'));
         $monthForm = wf_Form('', 'POST', $inputs, 'glamour');
-        $monthForm.=wf_CleanDiv();
+        $monthForm .= wf_CleanDiv();
 
 
         $inputsDate = wf_DatePickerPreset('datesel', curdate());
-        $inputsDate.= wf_Submit(__('Payments by date'));
+        $inputsDate .= wf_Submit(__('Payments by date'));
         $dateForm = wf_Form('', 'POST', $inputsDate, 'glamour');
-        $dateForm.= wf_CleanDiv();
+        $dateForm .= wf_CleanDiv();
 
         $controlCells = wf_TableCell($monthForm);
-        $controlCells.= wf_TableCell($dateForm);
+        $controlCells .= wf_TableCell($dateForm);
         $controlRows = wf_TableRow($controlCells);
-        $result.= wf_TableBody($controlRows, '60%', 0, '');
+        $result .= wf_TableBody($controlRows, '60%', 0, '');
 
         $filterDate = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : curyear();
         if (wf_CheckPost(array('monthsel'))) {
-            $filterDate.='-' . vf($_POST['monthsel'], 3);
+            $filterDate .= '-' . vf($_POST['monthsel'], 3);
         } else {
-            $filterDate.='-' . date("m");
+            $filterDate .= '-' . date("m");
         }
 
         $whereFilter = "WHERE `date` LIKE '" . $filterDate . "-%' ";
@@ -1021,49 +1052,49 @@ class UbillingBranches {
 
         if (!empty($all)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Cash'));
-            $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Full address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Branch'));
-            $cells.= wf_TableCell(__('Cash type'));
-            $cells.= wf_TableCell(__('Notes'));
-            $cells.= wf_TableCell(__('Admin'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Cash'));
+            $cells .= wf_TableCell(__('Login'));
+            $cells .= wf_TableCell(__('Full address'));
+            $cells .= wf_TableCell(__('Real Name'));
+            $cells .= wf_TableCell(__('Branch'));
+            $cells .= wf_TableCell(__('Cash type'));
+            $cells .= wf_TableCell(__('Notes'));
+            $cells .= wf_TableCell(__('Admin'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($all as $io => $each) {
                 if (isset($this->branchesLogins[$each['login']])) {
                     if ($this->isMyUser($each['login'])) {
                         $cells = wf_TableCell($each['id']);
-                        $cells.= wf_TableCell($each['date']);
-                        $cells.= wf_TableCell($each['summ']);
+                        $cells .= wf_TableCell($each['date']);
+                        $cells .= wf_TableCell($each['summ']);
                         $loginLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon() . ' ' . $each['login']);
-                        $cells.= wf_TableCell($loginLink);
-                        $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                        $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                        $cells.= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
-                        $cells.= wf_TableCell(__($paymentTypes[$each['cashtypeid']]));
-                        $cells.= wf_TableCell(zb_TranslatePaymentNote($each['note'], $allservicenames));
-                        $cells.= wf_TableCell($each['admin']);
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($loginLink);
+                        $cells .= wf_TableCell(@$allAddress[$each['login']]);
+                        $cells .= wf_TableCell(@$allRealNames[$each['login']]);
+                        $cells .= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
+                        $cells .= wf_TableCell(__($paymentTypes[$each['cashtypeid']]));
+                        $cells .= wf_TableCell(zb_TranslatePaymentNote($each['note'], $allservicenames));
+                        $cells .= wf_TableCell($each['admin']);
+                        $rows .= wf_TableRow($cells, 'row3');
                         if ($each['summ'] > 0) {
-                            $totalSumm+=$each['summ'];
+                            $totalSumm += $each['summ'];
                             $totalCount++;
                         }
                     }
                 }
             }
 
-            $result.=wf_tag('h3') . __('Payments by') . ' ' . $filterDate . wf_tag('h3', true);
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-            $result.=wf_tag('b');
-            $result.=__('Total money') . ': ' . $totalSumm;
-            $result.=wf_tag('br');
-            $result.=__('Payments count') . ': ' . $totalCount;
-            $result.= wf_tag('b', true);
+            $result .= wf_tag('h3') . __('Payments by') . ' ' . $filterDate . wf_tag('h3', true);
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_tag('b');
+            $result .= __('Total money') . ': ' . $totalSumm;
+            $result .= wf_tag('br');
+            $result .= __('Payments count') . ': ' . $totalCount;
+            $result .= wf_tag('b', true);
         } else {
-            $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
     }
@@ -1108,51 +1139,51 @@ class UbillingBranches {
                 }
             }
 
-            $result.=$this->messages->getStyledMessage(__('Today signups') . ': ' . wf_tag('b') . $todayCount . wf_tag('b', true), 'info');
+            $result .= $this->messages->getStyledMessage(__('Today signups') . ': ' . wf_tag('b') . $todayCount . wf_tag('b', true), 'info');
             $inputs = wf_YearSelector('yearsel', 'Year') . ' ';
-            $inputs.= wf_Submit(__('Show'));
-            $result.= wf_delimiter();
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
-            $result.=wf_CleanDiv();
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_delimiter();
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_CleanDiv();
 
             $cells = wf_TableCell('');
-            $cells.= wf_TableCell(__('Month'));
-            $cells.= wf_TableCell(__('Signups'));
-            $cells.= wf_TableCell(__('Visual'));
+            $cells .= wf_TableCell(__('Month'));
+            $cells .= wf_TableCell(__('Signups'));
+            $cells .= wf_TableCell(__('Visual'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($yearTmp as $eachMonth => $monthCount) {
                 $cells = wf_TableCell($eachMonth);
-                $cells.= wf_TableCell($monthNames[$eachMonth]);
-                $cells.= wf_TableCell($monthCount);
-                $cells.= wf_TableCell(web_bar($monthCount, $yearCount));
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($monthNames[$eachMonth]);
+                $cells .= wf_TableCell($monthCount);
+                $cells .= wf_TableCell(web_bar($monthCount, $yearCount));
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result.=wf_tag('br') . wf_tag('b') . __('User signups by year') . ' ' . $showYear . wf_tag('b', true) . wf_tag('br');
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-            $result.= wf_tag('b') . __('Total') . ': ' . $yearCount . wf_tag('b', true);
+            $result .= wf_tag('br') . wf_tag('b') . __('User signups by year') . ' ' . $showYear . wf_tag('b', true) . wf_tag('br');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_tag('b') . __('Total') . ': ' . $yearCount . wf_tag('b', true);
 
             if (!empty($monthSignupsTmp)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.= wf_TableCell(__('Date'));
-                $cells.= wf_TableCell(__('Administrator'));
-                $cells.= wf_TableCell(__('Login'));
-                $cells.= wf_TableCell(__('Branch'));
-                $cells.= wf_TableCell(__('Full address'));
+                $cells .= wf_TableCell(__('Date'));
+                $cells .= wf_TableCell(__('Administrator'));
+                $cells .= wf_TableCell(__('Login'));
+                $cells .= wf_TableCell(__('Branch'));
+                $cells .= wf_TableCell(__('Full address'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($monthSignupsTmp as $io => $each) {
                     $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($each['date']);
-                    $cells.= wf_TableCell($each['admin']);
-                    $cells.= wf_TableCell($each['login']);
-                    $cells.= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
+                    $cells .= wf_TableCell($each['date']);
+                    $cells .= wf_TableCell($each['admin']);
+                    $cells .= wf_TableCell($each['login']);
+                    $cells .= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
                     $userLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon()) . ' ';
-                    $cells.= wf_TableCell($userLink . $each['address']);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($userLink . $each['address']);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result.=wf_tag('br') . wf_tag('b') . __('Current month user signups') . wf_tag('b', true) . wf_tag('br');
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_tag('br') . wf_tag('b') . __('Current month user signups') . wf_tag('b', true) . wf_tag('br');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             }
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
@@ -1174,12 +1205,12 @@ class UbillingBranches {
         $result = '';
         if (isset($this->branches[$branchId])) {
             $inputs = wf_HiddenInput('editbranch', 'true');
-            $inputs.= wf_HiddenInput('editbranchid', $branchId);
-            $inputs.= wf_TextInput('editbranchname', __('Name'), $this->branches[$branchId]['name'], true);
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_HiddenInput('editbranchid', $branchId);
+            $inputs .= wf_TextInput('editbranchname', __('Name'), $this->branches[$branchId]['name'], true);
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
-            $result.= self::EX_NO_BRANCH;
+            $result .= self::EX_NO_BRANCH;
         }
         return ($result);
     }
@@ -1193,30 +1224,30 @@ class UbillingBranches {
         $result = '';
         if (!empty($this->branches)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Name'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Name'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->branches as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['name']);
+                $cells .= wf_TableCell($each['name']);
                 $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletebranch=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $actControls.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderBranchEditForm($each['id']), '') . ' ';
+                $actControls .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderBranchEditForm($each['id']), '') . ' ';
 
-                $cells.= wf_TableCell($actControls);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($actControls);
+                $rows .= wf_TableRow($cells, 'row3');
             }
-            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.=$this->messages->getStyledMessage(__('No branches available'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('No branches available'), 'warning');
         }
 
         $inputs = wf_HiddenInput('newbranch', 'true');
-        $inputs.= wf_TextInput('newbranchname', __('New branch name'), '', false) . ' ';
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextInput('newbranchname', __('New branch name'), '', false) . ' ';
+        $inputs .= wf_Submit(__('Create'));
         $createForm = wf_Form('', 'POST', $inputs, 'glamour');
 
-        $result.=$createForm;
+        $result .= $createForm;
 
         return ($result);
     }
@@ -1231,22 +1262,22 @@ class UbillingBranches {
         if (!empty($this->branches)) {
             if (!empty($this->branchesAdmins)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.= wf_TableCell(__('Branch'));
-                $cells.= wf_TableCell(__('Admin'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Branch'));
+                $cells .= wf_TableCell(__('Admin'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($this->branchesAdmins as $io => $each) {
                     $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($this->getBranchName($each['branchid']));
-                    $cells.= wf_TableCell($each['admin']);
+                    $cells .= wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells .= wf_TableCell($each['admin']);
                     $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deleteadmin=' . $each['admin'] . '&adminbranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                    $cells.= wf_TableCell($actControls);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($actControls);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('No branches admins available'), 'warning');
-                $result.= wf_tag('br');
+                $result .= $this->messages->getStyledMessage(__('No branches admins available'), 'warning');
+                $result .= wf_tag('br');
             }
 
             //admin assign form
@@ -1266,9 +1297,9 @@ class UbillingBranches {
             }
 
             $inputs = wf_Selector('newadminbranch', $branchesTmp, __('Branch'), '', false) . ' ';
-            $inputs.=wf_Selector('newadminlogin', $adminsTmp, __('Admin'), '', false) . ' ';
-            $inputs.=wf_Submit(__('Assign'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('newadminlogin', $adminsTmp, __('Admin'), '', false) . ' ';
+            $inputs .= wf_Submit(__('Assign'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -1285,21 +1316,21 @@ class UbillingBranches {
         if (!empty($this->branches)) {
             if (!empty($this->branchesCities)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.=wf_TableCell(__('Branch'));
-                $cells.= wf_TableCell(__('City'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Branch'));
+                $cells .= wf_TableCell(__('City'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($this->branchesCities as $io => $each) {
                     $cells = wf_TableCell($io);
-                    $cells.=wf_TableCell($this->getBranchName($each['branchid']));
-                    $cells.= wf_TableCell($this->allCityNames[$each['cityid']]);
+                    $cells .= wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells .= wf_TableCell($this->allCityNames[$each['cityid']]);
                     $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletecity=' . $each['cityid'] . '&citybranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                    $cells.= wf_TableCell($actControls);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($actControls);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('No branches cities assigns available'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('No branches cities assigns available'), 'warning');
             }
 
             //assign form
@@ -1311,9 +1342,9 @@ class UbillingBranches {
             }
 
             $inputs = wf_Selector('newcitybranchid', $branchesTmp, __('Branch'), '', false) . ' ';
-            $inputs.= wf_Selector('newcityid', $this->allCityNames, __('City'), '', false) . ' ';
-            $inputs.= wf_Submit(__('Assign'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('newcityid', $this->allCityNames, __('City'), '', false) . ' ';
+            $inputs .= wf_Submit(__('Assign'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -1330,21 +1361,21 @@ class UbillingBranches {
         if (!empty($this->branches)) {
             if (!empty($this->branchesTariffs)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.=wf_TableCell(__('Branch'));
-                $cells.= wf_TableCell(__('Tariff'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Branch'));
+                $cells .= wf_TableCell(__('Tariff'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($this->branchesTariffs as $io => $each) {
                     $cells = wf_TableCell($io);
-                    $cells.=wf_TableCell($this->getBranchName($each['branchid']));
-                    $cells.= wf_TableCell($each['tariff']);
+                    $cells .= wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells .= wf_TableCell($each['tariff']);
                     $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletetariff=' . $each['tariff'] . '&tariffbranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                    $cells.= wf_TableCell($actControls);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($actControls);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('No branches tariffs assigns available'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('No branches tariffs assigns available'), 'warning');
             }
 
             //assign form
@@ -1362,9 +1393,9 @@ class UbillingBranches {
             }
 
             $inputs = wf_Selector('newtariffbranchid', $branchesTmp, __('Branch'), '', false) . ' ';
-            $inputs.= wf_Selector('newtariffname', $tariffsTmp, __('Tariff'), '', false) . ' ';
-            $inputs.= wf_Submit(__('Assign'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('newtariffname', $tariffsTmp, __('Tariff'), '', false) . ' ';
+            $inputs .= wf_Submit(__('Assign'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -1381,21 +1412,21 @@ class UbillingBranches {
         if (!empty($this->branches)) {
             if (!empty($this->branchesServices)) {
                 $cells = wf_TableCell(__('ID'));
-                $cells.=wf_TableCell(__('Branch'));
-                $cells.= wf_TableCell(__('Service'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Branch'));
+                $cells .= wf_TableCell(__('Service'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($this->branchesServices as $io => $each) {
                     $cells = wf_TableCell($io);
-                    $cells.=wf_TableCell($this->getBranchName($each['branchid']));
-                    $cells.= wf_TableCell($this->allServices[$each['serviceid']]);
+                    $cells .= wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells .= wf_TableCell($this->allServices[$each['serviceid']]);
                     $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deleteservice=' . $each['serviceid'] . '&servicebranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                    $cells.= wf_TableCell($actControls);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell($actControls);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
-                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                $result .= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result.=$this->messages->getStyledMessage(__('No branches services assigns available'), 'warning');
+                $result .= $this->messages->getStyledMessage(__('No branches services assigns available'), 'warning');
             }
 
             //assign form
@@ -1408,9 +1439,9 @@ class UbillingBranches {
 
 
             $inputs = wf_Selector('newservicebranchid', $branchesTmp, __('Branch'), '', false) . ' ';
-            $inputs.= wf_Selector('newserviceid', $this->allServices, __('Service'), '', false) . ' ';
-            $inputs.= wf_Submit(__('Assign'));
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('newserviceid', $this->allServices, __('Service'), '', false) . ' ';
+            $inputs .= wf_Submit(__('Assign'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
@@ -1423,16 +1454,16 @@ class UbillingBranches {
     public function renderSettingsBranches() {
         $result = '';
         if (cfr('BRANCHESCONF')) {
-            $result.= wf_tag('h3') . __('Branches') . wf_tag('h3', true);
-            $result.=$this->renderBranchesConfigForm();
-            $result.= wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
-            $result.=$this->renderAdminConfigForm();
-            $result.= wf_tag('h3') . __('Cities') . wf_tag('h3', true);
-            $result.=$this->renderCitiesConfigForm();
-            $result.= wf_tag('h3') . __('Tariffs') . wf_tag('h3', true);
-            $result.=$this->renderTariffsConfigForm();
-            $result.= wf_tag('h3') . __('Services') . wf_tag('h3', true);
-            $result.=$this->renderServicesConfigForm();
+            $result .= wf_tag('h3') . __('Branches') . wf_tag('h3', true);
+            $result .= $this->renderBranchesConfigForm();
+            $result .= wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
+            $result .= $this->renderAdminConfigForm();
+            $result .= wf_tag('h3') . __('Cities') . wf_tag('h3', true);
+            $result .= $this->renderCitiesConfigForm();
+            $result .= wf_tag('h3') . __('Tariffs') . wf_tag('h3', true);
+            $result .= $this->renderTariffsConfigForm();
+            $result .= wf_tag('h3') . __('Services') . wf_tag('h3', true);
+            $result .= $this->renderServicesConfigForm();
         } else {
             $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
@@ -1498,30 +1529,30 @@ class UbillingBranches {
         $currentBranchName = $this->getBranchName($currentBranchId);
 
         $cells = wf_TableCell(__('User'), '', 'row2');
-        $cells.= wf_TableCell(@$allUserAddress[$userLogin] . ' (' . $userLogin . ')');
+        $cells .= wf_TableCell(@$allUserAddress[$userLogin] . ' (' . $userLogin . ')');
         $rows = wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Current branch'), '', 'row2');
-        $cells.= wf_TableCell($currentBranchName);
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($currentBranchName);
+        $rows .= wf_TableRow($cells, 'row3');
 
         $branchControls = $this->branchSelector('newuserbranchid', $currentBranchId);
         if (cfr('ROOT')) {
-            $branchControls.= ' ' . wf_CheckInput('newuserbranchdelete', __('Delete branch'), false, false);
+            $branchControls .= ' ' . wf_CheckInput('newuserbranchdelete', __('Delete branch'), false, false);
         }
         $cells = wf_TableCell(__('New branch'), '', 'row2');
-        $cells.= wf_TableCell($branchControls);
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($branchControls);
+        $rows .= wf_TableRow($cells, 'row3');
 
 
 
         $inputs = wf_TableBody($rows, '100%', 0, '');
-        $inputs.= wf_HiddenInput('newuserbranchlogin', $userLogin);
-        $inputs.= wf_Submit(__('Change'));
+        $inputs .= wf_HiddenInput('newuserbranchlogin', $userLogin);
+        $inputs .= wf_Submit(__('Change'));
 
-        $result.= wf_Form('', 'POST', $inputs, '');
-        $result.=wf_delimiter();
-        $result.=web_UserControls($userLogin);
+        $result .= wf_Form('', 'POST', $inputs, '');
+        $result .= wf_delimiter();
+        $result .= web_UserControls($userLogin);
         return ($result);
     }
 
