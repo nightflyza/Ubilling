@@ -910,6 +910,7 @@ class TrinityTv {
 
         $inputs = '';
         $inputs .= wf_Selector('changebasetariff', $baseTariffs, __('Tariff'), $subcribersData['tariffid'], true);
+        $inputs .= wf_CheckInput('dontchargefeenow', __('Dont charge fee now'), true, true);
         $inputs .= wf_tag('br');
         $inputs .= wf_Submit(__('Save'));
 
@@ -922,10 +923,12 @@ class TrinityTv {
      * Performs editing of user tariffs
      *
      * @param int $subscriberId
+     * @param int $tariffId
+     * @param bool $chargeFee
      *
      * @return void
      */
-    public function changeTariffs($subscriberId, $tariffId) {
+    public function changeTariffs($subscriberId, $tariffId, $chargeFee = true) {
         $tariffId = vf($tariffId, 3);
 
         $subscriberId = vf($subscriberId, 3);
@@ -949,16 +952,23 @@ class TrinityTv {
                 }
             }
 
-            // Calculating new tariff fee
-            $tariffFee = $tariff['fee'];
-            $currentDayOfMonth = date("d");
-            $currentMonthDayCount = date("t");
-            $tariffFeeDaily = $this->getDaylyFee($tariffFee);
-            $tariffFee = ($currentMonthDayCount - $currentDayOfMonth) * $tariffFeeDaily;
+            //do something awful with user balance
+            if ($chargeFee) {
+                // Calculating new tariff fee
+                $tariffFee = $tariff['fee'];
+                $currentDayOfMonth = date("d");
+                $currentMonthDayCount = date("t");
+                $tariffFeeDaily = $this->getDaylyFee($tariffFee);
+                $tariffFee = ($currentMonthDayCount - $currentDayOfMonth) * $tariffFeeDaily;
 
-            // Charging fee to the end of month
-            zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'TRINITYTV:' . $tariffId);
-            log_register('TRINITYTV FEE (' . $userLogin . ') - ' . $tariffFee);
+                // Charging fee to the end of month
+                zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'TRINITYTV:' . $tariffId);
+                log_register('TRINITYTV FEE (' . $userLogin . ') - ' . $tariffFee);
+            } else {
+                //just log this change as zero charge
+                zb_CashAdd($userLogin, '-0', 'add', 1, 'TRINITYTV:' . $tariffId);
+                log_register('TRINITYTV FEE (' . $userLogin . ') - 0');
+            }
 
             // Trying activate user if he is not active now.
             if ($this->allSubscribers[$subscriberId]['active'] != 1) {

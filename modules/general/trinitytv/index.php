@@ -91,8 +91,8 @@ if (cfr('TRINITYTV')) {
 
             //user tariff editing
             if (wf_CheckPost(array('changebasetariff'))) {
-
-                $interface->changeTariffs($_GET['subscriberid'], $_POST['changebasetariff']);
+                $chargeFeeNow = (ubRouting::checkPost('dontchargefeenow')) ? false : true;
+                $interface->changeTariffs($_GET['subscriberid'], $_POST['changebasetariff'], $chargeFeeNow);
                 rcms_redirect($interface::URL_SUBSCRIBER . $_GET['subscriberid']);
             }
 
