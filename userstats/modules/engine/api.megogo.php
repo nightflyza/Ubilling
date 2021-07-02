@@ -239,11 +239,19 @@ class MegogoFrontend {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
                         $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
-                        if ($this->checkUserProtection($each['id'])) {
+                        $userProtection = $this->checkUserProtection($each['id']);
+                        if ($userProtection) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
                             $subscribeControl = la_ConfirmDialog('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), $alertText, 'mgsubcontrol', '?module=megogo');
                         } else {
-                            $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
+                            //money issues
+                            if ($userProtection === false) {
+                                $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
+                            }
+                            //tariff isnt allowed
+                            if ($userProtection === 0) {
+                                $subscribeControl = __('Your tariff does not provide this service');
+                            }
                         }
                     }
 
@@ -354,7 +362,8 @@ class MegogoFrontend {
      * Checks is user protected from his own stupidity?
      * 
      * @param int $tariffId
-     * @return bool
+     * 
+     * @return bool/int true - everything is ok, false - lack of money / 0 - tariff issues
      */
     protected function checkUserProtection($tariffId) {
         $tariffId = vf($tariffId, 3);
@@ -393,7 +402,7 @@ class MegogoFrontend {
                 $tariffsAllowed = array_flip($tariffsAllowed);
                 $userTariff = $this->allUsers[$this->userLogin]['Tariff'];
                 if (!isset($tariffsAllowed[$userTariff])) {
-                    $result = false;
+                    $result = 0;
                 }
             }
         }
@@ -430,7 +439,7 @@ class MegogoFrontend {
                 }
             }
 
-            $result = la_TableBody($rows, '100%', 0,'resp-table');
+            $result = la_TableBody($rows, '100%', 0, 'resp-table');
             $result .= la_tag('br');
             //$result .= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
         }
@@ -448,8 +457,8 @@ class MegogoFrontend {
         $userCredentials = $this->credentialsDb->getAll();
         if (!empty($userCredentials)) {
             $userCredentials = $userCredentials[0];
-            $containerStyle='style="border:1px solid; text-align:center; width:100%; display:block;"';
-            $result .= la_tag('span', false, 'resp-table',$containerStyle);
+            $containerStyle = 'style="border:1px solid; text-align:center; width:100%; display:block;"';
+            $result .= la_tag('span', false, 'resp-table', $containerStyle);
             $result .= __('Your login and password to usage with MEGOGO are') . ' ' . la_delimiter(1);
             $result .= __('Login') . ': ' . la_tag('b') . $userCredentials['email'] . la_tag('b', true) . la_tag('br');
             $result .= __('Password') . ': ' . la_tag('b') . $userCredentials['password'] . la_tag('b', true) . la_delimiter(1);
