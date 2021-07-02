@@ -3267,5 +3267,8 @@ $lang['def']['All together'] = 'Усе разом';
 $lang['def']['Only tasks'] = 'Тільки задачі';
 $lang['def']['Only user'] = 'Тільки користувач';
 $lang['def']['Dont charge fee now'] = 'Не нараховувати абонплату зараз';
+$lang['def']['IP authorization'] = 'Авторизація по IP';
+$lang['def']['Allow userstats authorization only with login and password'] = 'Дозволити авторизуватись в кабінеті тільки за логіном та паролем';
+$lang['def']['Users with IP authorization denied'] = 'Користувачі з забороною авторизації по IP';
 
 ?>

@@ -32,7 +32,8 @@ $us_access = zbs_GetUserStatsDeniedAll();
 
 if (!empty($us_access)) {
     if (isset($us_access[$user_login])) {
-        die('Access denied');
+        $accDeniedBody = file_get_contents('modules/jsc/youshallnotpass.html');
+        die($accDeniedBody);
     }
 }
 

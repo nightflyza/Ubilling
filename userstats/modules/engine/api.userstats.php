@@ -61,10 +61,17 @@ function zbs_UserDetectIp($debug = false) {
 
     //trying to find user by IP, than if failed - login based auth.
     if ($glob_conf['auth'] == 'both') {
+        $authorizedByIp = false;
         $ipCheck = $_SERVER['REMOTE_ADDR'];
-        if (zbs_UserGetLoginByIp($ipCheck)) {
-            $ip = $ipCheck;
-        } else {
+        $remoteUserLogin = zbs_UserGetLoginByIp($ipCheck);
+        if ($remoteUserLogin) {
+            if (isIpAuthAllowed($remoteUserLogin)) {
+                $ip = $ipCheck;
+                $authorizedByIp = true;
+            }
+        }
+
+        if (!$authorizedByIp) {
             if ((isset($_COOKIE['ulogin'])) AND ( isset($_COOKIE['upassword']))) {
                 $ulogin = trim(vf($_COOKIE['ulogin']));
                 $upassword = trim(vf($_COOKIE['upassword']));
@@ -78,6 +85,24 @@ function zbs_UserDetectIp($debug = false) {
     }
 
     return($ip);
+}
+
+/**
+ * Checks is user allowed for automated IP auth
+ * 
+ * @param string $login
+ * 
+ * @return bool
+ */
+function isIpAuthAllowed($login) {
+    $result = true;
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT * from `ipauth_denied` WHERE `login`='" . $login . "'";
+    $denied = simple_query($query);
+    if (!empty($denied)) {
+        $result = false;
+    }
+    return($result);
 }
 
 /**
@@ -1675,7 +1700,7 @@ function zbs_UserShowProfile($login) {
         $tgBotUrl = 'https://t.me/' . $tgBotName . '/?start=' . $login . '-' . md5($userdata['Password']);
         $profile .= la_tag('tr');
         $profile .= la_TableCell(__('Telegram bot'), '', 'row1');
-        $profile .= la_TableCell(la_Link($tgBotUrl, __('Connect to bot').'!'));
+        $profile .= la_TableCell(la_Link($tgBotUrl, __('Connect to bot') . '!'));
         $profile .= la_tag('tr', true);
     }
 

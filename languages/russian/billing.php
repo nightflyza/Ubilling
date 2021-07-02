@@ -3244,7 +3244,9 @@ $lang['def']['All together'] = 'Все вместе';
 $lang['def']['Only tasks'] = 'Только задачи';
 $lang['def']['Only user'] = 'Только пользователь';
 $lang['def']['Dont charge fee now'] = 'Не начислять абонплату сейчас';
-$lang['def'][''] = '';
+$lang['def']['IP authorization'] = 'Авторизация по IP';
+$lang['def']['Allow userstats authorization only with login and password'] = 'Разрешить авторизацию в кабинете только по логину и паролю';
+$lang['def']['Users with IP authorization denied'] = 'Пользователи с запрещенной авторизацией по IP';
 $lang['def'][''] = '';
 
 

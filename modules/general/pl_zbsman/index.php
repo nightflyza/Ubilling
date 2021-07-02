@@ -196,13 +196,35 @@ if (cfr('ZBSMAN')) {
         }
 
         //userstats permissions
-        if (!ubRouting::checkGet('showzbsdenied') AND ! ubRouting::checkGet('showopdenied')) {
+        if (!ubRouting::checkGet('showzbsdenied') AND ! ubRouting::checkGet('showopdenied') AND ! ubRouting::checkGet('showipauthdenied')) {
             $zbsDeniedControls = wf_Link('?module=pl_zbsman&username=' . $login . '&showzbsdenied=true', web_icon_charts('Who?'));
             show_window(__('Userstats access controls') . ' ' . $zbsDeniedControls, web_ZbsManEditForm($login));
         } else {
             if (ubRouting::checkGet('showzbsdenied')) {
                 show_window('', wf_BackLink('?module=pl_zbsman&username=' . $login));
                 web_ZbsManUserLists();
+            }
+        }
+
+        //IP auth management
+        $ipAuthDenied = new IpAuthDenied();
+        //changing state if required
+        if (ubRouting::checkPost($ipAuthDenied::PROUTE_DENY_LOGIN)) {
+            $ipAuthDenied->setUserDenyState(ubRouting::post($ipAuthDenied::PROUTE_DENY_LOGIN), ubRouting::checkPost($ipAuthDenied::PROUTE_DENY_FLAG));
+            ubRouting::nav("?module=pl_zbsman&username=" . $login);
+        }
+
+
+        //render form
+        if (!ubRouting::checkGet('showzbsdenied') AND ! ubRouting::checkGet('showopdenied') AND ! ubRouting::checkGet('showipauthdenied')) {
+            $ipAuthDeniedControls = wf_Link('?module=pl_zbsman&username=' . $login . '&showipauthdenied=true', web_icon_charts('Who?'));
+            show_window(__('IP authorization') . ' ' . $ipAuthDeniedControls, $ipAuthDenied->renderModifyForm($login));
+        } else {
+            //render denied list
+            if (ubRouting::checkGet('showipauthdenied')) {
+                $allIpAuthDenied = $ipAuthDenied->getAllDenied();
+                show_window('', wf_BackLink('?module=pl_zbsman&username=' . $login));
+                show_window(__('Users with IP authorization denied'), web_UserArrayShower($allIpAuthDenied));
             }
         }
 
@@ -217,7 +239,7 @@ if (cfr('ZBSMAN')) {
             }
 
             //render form
-            if (!ubRouting::checkGet('showzbsdenied') AND ! ubRouting::checkGet('showopdenied')) {
+            if (!ubRouting::checkGet('showzbsdenied') AND ! ubRouting::checkGet('showopdenied') AND ! ubRouting::checkGet('showipauthdenied')) {
                 $opDeniedControls = wf_Link('?module=pl_zbsman&username=' . $login . '&showopdenied=true', web_icon_charts('Who?'));
                 show_window(__('OpenPayz access') . ' ' . $opDeniedControls, $opDenied->renderModifyForm($login));
             } else {
