@@ -283,9 +283,11 @@ class BadKarma {
      * 
      * @global object $billing
      * 
+     * @param bool $guard
+     * 
      * @return void
      */
-    public function runMassReset() {
+    public function runMassReset($guard = false) {
         global $billing;
         $tmpArr = array();
         $totalCount = 0;
@@ -298,7 +300,11 @@ class BadKarma {
                         if (!$this->userIsOnline($eachUserLogin)) {
                             //tryin to reset
                             $billing->resetuser($eachUserLogin);
-                            log_register("KARMA MASSRESET User (" . $eachUserLogin . ")");
+                            $type = 'MASSRESET';
+                            if ($guard) {
+                                $type = 'GUARDRESET';
+                            }
+                            log_register('KARMA ' . $type . ' User (' . $eachUserLogin . ')');
                         }
                     }
                 }
