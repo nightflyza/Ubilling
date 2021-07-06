@@ -303,6 +303,10 @@ div.dhtml_menu div.vert_menu a.active:hover
     color: #777777;
 }
 
+.ubButton:disabled {
+    color: rgba(16, 16, 16, 0.3);
+}
+
 /* glamour forms =) */
 
 .glamour label {	
@@ -1379,3 +1383,14 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-column-start: 1;
     grid-column-end: 2;
 }
+
+.dataTable tbody td.details-control {
+    background: url('../../details_open.png') no-repeat center center;
+    cursor: pointer;
+}
+
+.dataTable tbody tr.shown td.details-control {
+    background: url('../../details_close.png') no-repeat center center;
+    cursor: pointer;
+}
+

@@ -220,6 +220,13 @@ class ExtContras {
     protected $ecEditablePreiod = 60;
 
     /**
+     *  Placeholder for EXTCONTRAS_INVOICE_ON alter.ini option
+     *
+     * @var int
+     */
+    protected $ecInvoicesON = 1;
+
+    /**
      * Placeholder for EXTCONTRAS_CACHE_LIFETIME from alter.ini
      *
      * @var int
@@ -423,6 +430,7 @@ class ExtContras {
     const ROUTE_PERIOD_JSON     = 'periodlistjson';
     const ROUTE_FINOPS_ACTS     = 'finopsacts';
     const ROUTE_FINOPS_JSON     = 'finopslistjson';
+    const ROUTE_FINOPS_DETAILS  = 'finopsdetails';
     const ROUTE_INVOICES_ACTS   = 'invoicesacts';
     const ROUTE_INVOICES_JSON   = 'invoiceslistjson';
     const ROUTE_FORCECACHE_UPD  = 'extcontrasforcecacheupdate';
@@ -476,9 +484,10 @@ class ExtContras {
      */
     protected function loadOptions() {
         $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
-        $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
-        $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? 60 : $this->ecEditablePreiod;
         $this->cacheLifeTime      = $this->ubConfig->getAlterParam('EXTCONTRAS_CACHE_LIFETIME', 1800);
+        $this->ecInvoicesON       = $this->ubConfig->getAlterParam('EXTCONTRAS_INVOICE_ON', 1);
+        $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
+        $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? (60 * 86400) : ($this->ecEditablePreiod * 86400); // Option is in days
         $this->ecReadOnlyAccess   = (!cfr('EXTCONTRASRW'));
     }
 
@@ -635,8 +644,6 @@ class ExtContras {
             $this->dbExtContrasExten->whereRaw($whereRaw);
         }
 
-$this->dbExtContrasExten->setDebug(true,true);
-
         $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad,
                                        false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID);
     }
@@ -790,7 +797,8 @@ $this->dbExtContrasExten->setDebug(true,true);
      * @return string
      */
     protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true,
-                                                $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '') {
+                                                $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '',
+                                                $addDetailsProcessingJS = false, $dpAjaxURL = '', $columnIdx = '') {
         $result     = '';
         $ajaxURLStr = $ajaxURL;
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
@@ -818,7 +826,11 @@ $this->dbExtContrasExten->setDebug(true,true);
             $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
 
             if (!empty($markRowForID)) {
-                $result.= wf_JQDTMarkRow(0, $markRowForID, $truncateURL, $truncateParam);
+                $result.= wf_JQDTMarkRowJS(0, $markRowForID, $truncateURL, $truncateParam);
+            }
+
+            if ($addDetailsProcessingJS and !empty($dpAjaxURL) and !wf_emptyNonZero($columnIdx)) {
+                $result.= wf_JQDTDetailsClickProcessingJS($dpAjaxURL, $columnIdx, $jqdtID);
             }
 
             $result.= wf_tag('script', true);
@@ -842,19 +854,24 @@ $this->dbExtContrasExten->setDebug(true,true);
      * @return string
      */
     protected function getStdJQDTActions($recID, $routeActs, $cloneButtonON = false, $customControls = '') {
+        $curTimeStamp = strtotime(curdate());
+// todo: cladify about closed editing period - is it for financial operations only? - or for counterparties too?
+// !!!!!!!!!!!!!!!!!
         $actions = '';
 
-        // gathering the delete ajax data query
-        $tmpDeleteQuery = '\'&' . $routeActs  . '=true' .
-                          '&' . self::ROUTE_ACTION_DELETE . '=true' .
-                          '&' . self::ROUTE_DELETE_REC_ID . '=' . $recID . '\'';
+        if (!$this->ecReadOnlyAccess) {
+            // gathering the delete ajax data query
+            $tmpDeleteQuery = '\'&' . $routeActs . '=true' .
+                              '&' . self::ROUTE_ACTION_DELETE . '=true' .
+                              '&' . self::ROUTE_DELETE_REC_ID . '=' . $recID . '\'';
 
-        $deleteDialogWID = 'dialog-modal_' . wf_inputid();
-        $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID .'\').dialog(\'close\') ';
+            $deleteDialogWID = 'dialog-modal_' . wf_inputid();
+            $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID . '\').dialog(\'close\') ';
 
-        $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
-                                      self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
-                                      $deleteDialogCloseFunc, $deleteDialogWID);
+            $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
+                self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
+                $deleteDialogCloseFunc, $deleteDialogWID);
+        }
 
         $actions .= wf_nbsp(2);
         $actions .= wf_jsAjaxDynamicWindowButton(self::URL_ME,
@@ -864,7 +881,7 @@ $this->dbExtContrasExten->setDebug(true,true);
                                                  '', web_edit_icon()
                                                 );
 
-        if ($cloneButtonON) {
+        if ($cloneButtonON and !$this->ecReadOnlyAccess) {
             $actions .= wf_nbsp(2);
             $actions .= wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                      array($routeActs => 'true',
@@ -1061,7 +1078,7 @@ $this->dbExtContrasExten->setDebug(true,true);
 
         $inputs.= wf_Link(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true', wf_img_sized('skins/extcontrasfin.png', '', '16', '16') . ' ' . __('External counterparties list'), false, 'ubButton');
         $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true', wf_img_sized('skins/ukv/dollar.png') . ' ' . __('Finance operations'), false, 'ubButton');
-        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_INVOICES . '=true', wf_img_sized('skins/menuicons/receipt_small.png') . ' ' . __('Invoices list'), false, 'ubButton');
+        $inputs.= ($this->ecInvoicesON ? wf_Link(self::URL_ME . '&' . self::URL_INVOICES . '=true', wf_img_sized('skins/menuicons/receipt_small.png') . ' ' . __('Invoices list'), false, 'ubButton') : '');
 
         // dictionaries forms
         $dictControls = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true', wf_img_sized('skins/extcontrasprofiles.png') . ' ' . __('Counterparties profiles dictionary'), false, 'ubButton');
@@ -1202,10 +1219,11 @@ $this->dbExtContrasExten->setDebug(true,true);
             $prfEmail   = $profile[self::DBFLD_PROFILE_MAIL];
         }
 
-        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit counterparty profile') :
-                      (($cloneAction) ? __('Clone counterparty profile') :
-                      __('Create counterparty profile'));
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt       = ($editAction) ? __('Edit counterparty profile') :
+                          (($cloneAction) ? __('Clone counterparty profile') :
+                          __('Create counterparty profile'));
 
         $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name') . $this->supFrmFldMark, $prfName, false, '', '',
                                $emptyCheckClass, '', '', true);
@@ -1215,7 +1233,7 @@ $this->dbExtContrasExten->setDebug(true,true);
                                $emptyCheckClass, '', '', true);
         $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, false, '', '',
                                '', '', '', true);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
 
         if ($editAction) {
@@ -1340,10 +1358,11 @@ $this->dbExtContrasExten->setDebug(true,true);
             $ctrctNotes         = $contract[self::DBFLD_CTRCT_NOTES];
         }
 
-        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit counterparty contract') :
-            (($cloneAction) ? __('Clone counterparty contract') :
-                __('Create counterparty contract'));
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt       = ($editAction) ? __('Edit counterparty contract') :
+                          (($cloneAction) ? __('Clone counterparty contract') :
+                          __('Create counterparty contract'));
         $datepickerID1 = wf_InputId();
         $datepickerID2 = wf_InputId();
 
@@ -1380,7 +1399,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs.= wf_TextInput(self::CTRL_CTRCT_NOTES, __('Contract notes'), $ctrctNotes, false, '70', '',
                                'right-two-thirds-occupy', '', '', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_CONTRACT_ACTS, 'true');
 
         if ($editAction) {
@@ -1439,17 +1458,18 @@ $this->dbExtContrasExten->setDebug(true,true);
         $columns[] = __('Actions');
 
         $opts = '
-            "order": [[ 0, "desc" ]],
-            "columnDefs": [ {"targets": [4, 7], "className": "dt-left dt-head-center"},
+            "order": [[ 1, "desc" ]],
+            "columnDefs": [                         
+                            {"targets": [4, 7], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
                             {"targets": [8, 9], "orderable": false},
                             {"targets": [8, 9], "width": "85px"}
-                          ]
+                          ]              
             ';
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL);
+                                      self::MISC_MARKROW_URL, '', true);
 
         return($result);
     }
@@ -1523,10 +1543,11 @@ $this->dbExtContrasExten->setDebug(true,true);
             $addrNotes      = $address[self::DBFLD_ADDRESS_NOTES];
         }
 
-        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit counterparty address') :
-                      (($cloneAction) ? __('Clone counterparty address') :
-                      __('Create counterparty address'));
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt       = ($editAction) ? __('Edit counterparty address') :
+                          (($cloneAction) ? __('Clone counterparty address') :
+                          __('Create counterparty address'));
 
         $inputs.= wf_TextInput(self::CTRL_ADDRESS_ADDR, __('Address') . $this->supFrmFldMark, $addrAddress, false, '', '',
                                $emptyCheckClass, '', '', true);
@@ -1536,7 +1557,7 @@ $this->dbExtContrasExten->setDebug(true,true);
                                $emptyCheckClass, '', '', true);
         $inputs.= wf_TextInput(self::CTRL_ADDRESS_NOTES, __('Notes'), $addrNotes, false, '', '',
                                '', '', '', true);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_ADDRESS_ACTS, 'true');
 
         if ($editAction) {
@@ -1638,15 +1659,16 @@ $this->dbExtContrasExten->setDebug(true,true);
             $prdName = $period[self::DBFLD_PERIOD_NAME];
         }
 
-        $submitCapt = ($editAction) ? __('Edit') : __('Create');
-        $formCapt   = ($editAction) ? __('Edit period') : __('Create period');
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : __('Create');
+        $formCapt       = ($editAction) ? __('Edit period') : __('Create period');
 
         $ctrlsLblStyle = 'style="line-height: 3.4em; margin-right: 0.5em;"';
 
         $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name') . $this->supFrmFldMark, $prdName, true, '', '',
                                $emptyCheckClass, '', '', true, $ctrlsLblStyle);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"; ' . $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_PERIOD_ACTS, 'true');
 
         if ($editAction) {
@@ -1797,10 +1819,11 @@ $this->dbExtContrasExten->setDebug(true,true);
             $invoOutgoing       = ubRouting::filters($invoice[self::DBFLD_INVOICES_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         }
 
-        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit invoice') :
-            (($cloneAction) ? __('Clone invoice') :
-                __('Create invoice'));
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt       = ($editAction) ? __('Edit invoice') :
+                          (($cloneAction) ? __('Clone invoice') :
+                          __('Create invoice'));
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
         $datepickerID = wf_InputId();
@@ -1845,7 +1868,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Outgoing invoice'), 'outgoing', false, $invoOutgoing);
         $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_INVOICES_ACTS, 'true');
 
         if ($editAction) {
@@ -2037,10 +2060,11 @@ $this->dbExtContrasExten->setDebug(true,true);
             $contrasPayDay      = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
         }
 
-        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit counterparty record') :
-                        (($cloneAction) ? __('Clone counterparty record') :
-                        __('Create counterparty record'));
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt       = ($editAction) ? __('Edit counterparty record') :
+                          (($cloneAction) ? __('Clone counterparty record') :
+                          __('Create counterparty record'));
 
         $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME,
                                                                        self::DBFLD_PROFILE_CONTACT),
@@ -2060,7 +2084,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, false, '4', 'digits',
                                $emptyCheckClass, '', '', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_CONTRAS_ACTS, 'true');
 
         if ($editAction) {
@@ -2092,8 +2116,10 @@ $this->dbExtContrasExten->setDebug(true,true);
      * @return string
      */
     public function extcontrasRenderJQDT($customJSCode = '', $markRowForID = '') {
-        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
+        $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
 
+        $columns[] = '';
         $columns[] = __('ID');
         $columns[] = __('EDRPO');
         $columns[] = __('Counterparty');
@@ -2110,18 +2136,23 @@ $this->dbExtContrasExten->setDebug(true,true);
         $columns[] = __('Payed this month');
         $columns[] = __('5 days till payday');
         $columns[] = __('Payment expired');
+        $columns[] = __('Filter for details');
 
         $this->getTableGridColorOpts();
 
         $opts = '
-            "order": [[ 0, "desc" ]],
-            "columnDefs": [ {"targets": [13, 14, 15], "visible": false},
+            "columnDefs": [ 
+                            {"targets": [0], "className": "details-control"},
+                            {"targets": [0], "orderable": false},
+                            {"targets": [0], "data": null},
+                            {"targets": [0], "defaultContent": ""},
+                            {"targets": [14, 15, 16, 17], "visible": false},
                             {"targets": [7, 8], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
                             {"targets": [12], "orderable": false},
                             {"targets": [12], "width": "85px"}                            
                           ],
-          
+            "order": [[ 1, "desc" ]],
             "rowCallback": function(row, data, index) {                               
                 if ( data[12] == "1" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->payedThisMonthBKGND . '\');
@@ -2143,7 +2174,7 @@ $this->dbExtContrasExten->setDebug(true,true);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL);
+                                    self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 17);
 
         return($result);
     }
@@ -2179,16 +2210,27 @@ $this->dbExtContrasExten->setDebug(true,true);
                     }
                 }
 */
-                $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
+                $curRecID       = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
+                $profileRecID   = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID];
+                $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
+                $addrRedID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
+
+                $data[] = '';
+                $data[] = $curRecID;
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true'
-                                  . '&' . self::MISC_MARKROW_URL . '=' . $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID],
+                                  . '&' . self::MISC_MARKROW_URL . '=' . $profileRecID,
                                   $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO]);
                 $data[] = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME];
-                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT];
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
+                                  . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
+                                  $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
-                $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR];
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
+                                  . '&' . self::MISC_MARKROW_URL . '=' . $addrRedID,
+                                  $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
+
                 $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_CTNOTES];
                 $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_SUM];
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
@@ -2198,14 +2240,18 @@ $this->dbExtContrasExten->setDebug(true,true);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
                     '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
 */
+
+//TODO: create "Add finops button" which would fill some form fields already
                 $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
-                $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID]);
+                $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID);
 
                 $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
                 $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
+                //$data[] = json_encode(array(self::DBFLD_COMMON_ID => $curRecID));
+                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID;
 
                 $json->addRow($data);
                 unset($data);
@@ -2233,7 +2279,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Payment expired foreground'), $this->paymentExpiredFRGND, true, '7');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"; disabled="' . $this->ecReadOnlyAccess . '"');
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS_COLORS . '=true','POST',
                             $inputs, 'glamour');
@@ -2317,10 +2363,11 @@ $this->dbExtContrasExten->setDebug(true,true);
         $this->dbECMoney->whereRaw(" " . self::DBFLD_MONEY_SMACCRUAL . " != 0");
         $finopAccruals = $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY);
 
-        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt   = ($editAction) ? __('Edit financial operation') :
-            (($cloneAction) ? __('Clone financial operation') :
-                __('Create financial operation'));
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt       = ($editAction) ? __('Edit financial operation') :
+                          (($cloneAction) ? __('Clone financial operation') :
+                          __('Create financial operation'));
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
@@ -2344,21 +2391,25 @@ $this->dbExtContrasExten->setDebug(true,true);
                                   self::CTRL_MONEY_CONTRASID, __('Counterparty'), $finopContrasID, true, false, true,
                                       '', '', '', true);
 
-        $inputs.= $this->renderWebSelector($this->allECInvoices, array(self::DBFLD_INVOICES_INVOICE_NUM,
-                                                                       self::DBFLD_INVOICES_DATE,
-                                                                       self::DBFLD_INVOICES_SUM
-                                                                      ),
-                                  self::CTRL_MONEY_INVOICEID, __('Invoice'), $finopInvoiceID, true, false, true,
-                                      '', '', '', true);
+        if ($this->ecInvoicesON) {
+            $inputs.= $this->renderWebSelector($this->allECInvoices, array(self::DBFLD_INVOICES_INVOICE_NUM,
+                                                                            self::DBFLD_INVOICES_DATE,
+                                                                            self::DBFLD_INVOICES_SUM
+                                                                           ),
+                                    self::CTRL_MONEY_INVOICEID, __('Invoice'), $finopInvoiceID, true, false, true,
+                                    '', '', '', true);
+        } else {
+            $inputs.= wf_nbsp(4);
+        }
 
         $inputs.= $this->renderWebSelector($finopAccruals, array(self::DBFLD_MONEY_PURPOSE,
                                                                  self::DBFLD_MONEY_SMACCRUAL,
                                                                  self::DBFLD_MONEY_DATE
                                                                 ),
                                   self::CTRL_MONEY_ACCRUALID, __('Accrual'), $finopAccrualID, true, false, true,
-                                      '', '', '', true);
+                                      '', ($this->ecInvoicesON ? ''  : 'col-5-6-occupy'), '', true);
 
-        $inputs.= wf_TextInput(self::CTRL_MONEY_PAYNOTES, __('Invoice notes'), $finopNotes, false, '70', '',
+        $inputs.= wf_TextInput(self::CTRL_MONEY_PAYNOTES, __('Payment notes'), $finopNotes, false, '70', '',
                     'right-two-thirds-occupy', '', '', true);
 
         $inputs.= wf_tag('span', false, 'glamour full-width-occupy', 'style="text-align: center; width: 98%;"');
@@ -2367,7 +2418,7 @@ $this->dbExtContrasExten->setDebug(true,true);
         $inputs.= wf_RadioInput(self::CTRL_MONEY_INOUT, __('Outgoing payment'), 'outgoing', false, $finopOutgoing);
         $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"; ' . $submitDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_FINOPS_ACTS, 'true');
 
         if ($editAction) {
@@ -2410,19 +2461,22 @@ $this->dbExtContrasExten->setDebug(true,true);
      * @param string $markRowForID
      * @return string
      */
-    public function finopsRenderJQDT($customJSCode = '', $markRowForID = '') {
-        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true';
+    public function finopsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '') {
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true' . $detailsFilter;
 
         $columns[] = __('ID');
         $columns[] = __('Counterparty');
         $columns[] = __('Invoice');
-        $columns[] = __('Leading finance operation');
+        $columns[] = __('Leading financial operation');
+        $columns[] = __('Operation purpose');
         $columns[] = __('Operation date');
         $columns[] = __('Edit date');
         $columns[] = __('Accrual sum');
         $columns[] = __('Payment sum');
         $columns[] = __('Ingoing');
         $columns[] = __('Outgoing');
+        $columns[] = __('Payment notes');
+        $columns[] = __('Uploaded files');
         $columns[] = __('Actions');
 
         $opts = '
@@ -2437,6 +2491,11 @@ $this->dbExtContrasExten->setDebug(true,true);
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
             self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
             self::MISC_MARKROW_URL);
+
+        if (!empty($detailsFilter)) {
+            $jqdtID = 'jqdt_' . md5($ajaxURL);
+            $result.= wf_HiddenInput('detailJQDT', $jqdtID, 'detailJQDTID');
+        }
 
         return($result);
     }
@@ -2458,7 +2517,7 @@ $this->dbExtContrasExten->setDebug(true,true);
                                        !empty($whereRaw), true,'', '', !empty($whereRaw));
         $json = new wf_JqDtHelper();
 
-        if (!empty($this->allECInvoices)) {
+        if (!empty($this->allECMoney)) {
             $data = array();
 
             foreach ($this->allECMoney as $eachRecID) {

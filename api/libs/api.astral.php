@@ -2486,6 +2486,50 @@ function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncatePa
     return ($result);
 }
 
+
+function wf_JQDTDetailsClickProcessingJS($ajaxURL, $colIndex, $jqdtID, $ajaxMethod = 'POST', $jsFuncName = 'showDetailsData') {
+    $result = '
+$(document).ready(function() {    
+    $(\'#' . $jqdtID . ' tbody\').on(\'click\', \'td.details-control\', function () {
+        var table = $(\'#' . $jqdtID . '\').DataTable();
+        var tr = $(this).closest(\'tr\');
+        var row = table.row( tr );
+        var rowIdx = row.index();
+        var ajaxData = table.cell(rowIdx, ' . $colIndex . ').data();
+ 
+        if ( row.child.isShown() ) {
+            row.child.hide();
+            tr.removeClass(\'shown\');
+        }
+        else {
+            row.child( ' . $jsFuncName . '(row.data(), ajaxData) ).show();
+            tr.addClass(\'shown\');
+        }
+    } );
+        
+    function ' . $jsFuncName . ' ( rowData, ajaxData ) {
+        var div = $(\'<div/>\')
+                  .addClass( \'detailsLoading\' )
+                  .text( \'Loading...\' );
+     
+        $.ajax( {
+            type: "' . $ajaxMethod . '",
+            url: \'' . $ajaxURL . '\',
+            data: ajaxData,            
+            success: function ( reqResult ) {
+                div.html( reqResult ).removeClass( \'loading\' );
+                div.css({"margin-top":"5px", "margin-left":"10px", "margin-bottom":"10px"});
+            }
+        } );
+     
+        return div;
+    }
+} );    
+    ';
+
+    return ($result);
+}
+
 /**
  * Retruns a JS snippet for processing JQDT "details" functional
  *
@@ -3071,9 +3115,15 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
                                 if ( !empty(result) ) {                                            
                                     $(document.body).append(result);                                                
                                     $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
-                                } else {'
-                                    . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
-                                    '$( \'#\'+$("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
+                                } else {
+                                    var detailsJQDTToReload = $(\'#detailJQDTID\');
+                                    if (!empty(detailsJQDTToReload)) {
+                                        $(\'#\' + detailsJQDTToReload.val()).DataTable().ajax.reload();
+                                    } else {
+                                        ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
+                                    '
+                                    }
+                                    $( \'#\'+$("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
                                 }
                             }                        
                 });
@@ -3124,7 +3174,7 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $errorFormIDParamName = ''
 }
 
 /**
- * JS snippet for a filtering form for JQDT. Needs a bit of specifical handling
+ * JS snippet for a filtering form for JQDT. Needs a bit of specific handling
  *
  * @param $ajaxURLStr
  * @param $formID

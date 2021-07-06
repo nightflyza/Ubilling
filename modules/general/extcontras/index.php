@@ -5,8 +5,8 @@ if (cfr('EXTCONTRAS')) {
 
         show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
 
-file_put_contents('zxcv', '');
-file_put_contents('axcv', '');
+//file_put_contents('zxcv', '');
+//file_put_contents('axcv', '');
 
         if (ubRouting::checkPost($ExtContras::ROUTE_FORCECACHE_UPD)) {
             $ExtContras->refreshCacheForced();
@@ -64,19 +64,30 @@ file_put_contents('axcv', '');
             $ExtContras->invoiceRenderListJSON($whereRaw);
         }
 
-        if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_JSON)){
+        if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_JSON)) {
             $whereRaw = '';
 
-            /*if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
-                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            if (ubRouting::checkGet($ExtContras::DBFLD_COMMON_ID)) {
+                $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_CONTRASID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID);
+            } else {
+                /*if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                    $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+                }
+
+                if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                    $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                    $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+                }*/
             }
 
-            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
-                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
-                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
-            }*/
-
             $ExtContras->finopsRenderListJSON($whereRaw);
+        }
+
+        if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_DETAILS)) {
+            if (ubRouting::checkPost($ExtContras::DBFLD_COMMON_ID)) {
+                $detailsFilter = '&' . $ExtContras::DBFLD_COMMON_ID . '=' . ubRouting::post($ExtContras::DBFLD_COMMON_ID);
+                die($ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter));
+            }
         }
 
         if (ubRouting::checkPost($ExtContras::URL_EXTCONTRAS_COLORS)) {
@@ -249,6 +260,36 @@ file_put_contents('axcv', '');
             $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_EXTCONTRAS, $ExtContras::CTRL_EXTCONTRAS_PAYDAY,
                                                     'extcontrasWebForm', false, array(),
                                                     'External counterparty');
+            die($showResult);
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_FINOPS_ACTS)) {
+            $moneyDateValue = curdatetime();
+
+            if (ubRouting::checkPost($ExtContras::ROUTE_ACTION_CREATE)) {
+                $moneyDateField = $ExtContras::DBFLD_MONEY_DATE;
+            } else {
+                $moneyDateField = $ExtContras::DBFLD_MONEY_DATE_EDIT;
+            }
+
+            $finopIncoming = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'incoming') ? 1 : 0;
+            $finopOutgoing = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'outgoing') ? 1 : 0;
+
+            $dataArray = array($ExtContras::DBFLD_MONEY_CONTRASID   => ubRouting::post($ExtContras::CTRL_MONEY_CONTRASID),
+                               $ExtContras::DBFLD_MONEY_INVOICEID   => ubRouting::post($ExtContras::CTRL_MONEY_INVOICEID),
+                               $ExtContras::DBFLD_MONEY_ACCRUALID   => ubRouting::post($ExtContras::CTRL_MONEY_ACCRUALID),
+                               $ExtContras::DBFLD_MONEY_PURPOSE     => ubRouting::post($ExtContras::CTRL_MONEY_PURPOSE),
+                               $ExtContras::DBFLD_MONEY_SMACCRUAL   => ubRouting::post($ExtContras::CTRL_MONEY_SUMACCRUAL),
+                               $ExtContras::DBFLD_MONEY_SMPAYMENT   => ubRouting::post($ExtContras::CTRL_MONEY_SUMPAYMENT),
+                               $ExtContras::DBFLD_MONEY_PAYNOTES    => ubRouting::post($ExtContras::CTRL_MONEY_PAYNOTES),
+                               $ExtContras::DBFLD_MONEY_INCOMING    => $finopIncoming,
+                               $ExtContras::DBFLD_MONEY_OUTGOING    => $finopOutgoing,
+                               $moneyDateField => $moneyDateValue
+                              );
+
+            $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECMONEY, $ExtContras::CTRL_MONEY_PURPOSE,
+                'finopsWebForm', false, array(),
+                'Financial operation');
             die($showResult);
         }
     } else {
