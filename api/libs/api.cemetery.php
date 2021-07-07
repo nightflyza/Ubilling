@@ -237,7 +237,7 @@ class Cemetery {
          * Sowie affengeil Teil drei, die auf'm Affenfelsen rammeln
          * Ich komm auf deine Party und ich kotze auf's Buffet
          */
-        if (!cfr('NECROMANCY')) {
+        if (cfr('NECROMANCY')) {
             if ($this->isUserDead($login)) {
                 $inputs = wf_HiddenInput('cemeterysetasundead', $login);
                 $inputs .= wf_Submit(__('Set user connected'));
