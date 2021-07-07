@@ -3248,6 +3248,10 @@ $lang['def']['IP authorization'] = 'Авторизация по IP';
 $lang['def']['Allow userstats authorization only with login and password'] = 'Разрешить авторизацию в кабинете только по логину и паролю';
 $lang['def']['Users with IP authorization denied'] = 'Пользователи с запрещенной авторизацией по IP';
 $lang['def']['right for burial and resurrection of users'] = 'Право на захоронение и воскрешение пользователей';
+$lang['def']['right to use YouTV'] = 'Право использовать YouTV';
+$lang['def']['right to use ProstoTV'] = 'Право использовать ProstoTV';
+$lang['def']['right to manage cars garage'] = 'Право управлять машинками в гараже';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>

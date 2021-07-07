@@ -3271,5 +3271,8 @@ $lang['def']['IP authorization'] = 'Авторизація по IP';
 $lang['def']['Allow userstats authorization only with login and password'] = 'Дозволити авторизуватись в кабінеті тільки за логіном та паролем';
 $lang['def']['Users with IP authorization denied'] = 'Користувачі з забороною авторизації по IP';
 $lang['def']['right for burial and resurrection of users'] = 'Право на поховання та воскрешання користувачів';
+$lang['def']['right to use YouTV'] = 'Право використовувати YouTV';
+$lang['def']['right to use ProstoTV'] = 'Право використовувати ProstoTV';
+$lang['def']['right to manage cars garage'] = 'Право керувати машинками у гаражі';
 
 ?>
