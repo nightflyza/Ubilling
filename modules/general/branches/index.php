@@ -121,6 +121,7 @@ if (cfr('BRANCHES') OR cfr('BRANCHESUSERMOD')) {
                 }
 
                 show_window(__('Configuration'), $branch->renderSettingsBranches());
+                zb_BillingStats(true);
             } else {
                 show_error(__('Access denied'));
             }
