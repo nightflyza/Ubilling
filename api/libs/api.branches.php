@@ -1537,7 +1537,7 @@ class UbillingBranches {
         $rows .= wf_TableRow($cells, 'row3');
 
         $branchControls = $this->branchSelector('newuserbranchid', $currentBranchId);
-        if (cfr('ROOT')) {
+        if (cfr('ROOT') OR cfr('BRANCHESUSERMOD')) {
             $branchControls .= ' ' . wf_CheckInput('newuserbranchdelete', __('Delete branch'), false, false);
         }
         $cells = wf_TableCell(__('New branch'), '', 'row2');
@@ -1581,7 +1581,7 @@ class UbillingBranches {
                         }
                     }
                 } else {
-                    if (cfr('ROOT')) {
+                    if (cfr('ROOT') OR cfr('BRANCHESUSERMOD')) {
                         $this->userDeleteBranch($userLogin);
                         rcms_redirect(self::URL_ME . '&userbranch=' . $userLogin);
                     } else {

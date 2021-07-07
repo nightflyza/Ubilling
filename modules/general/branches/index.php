@@ -1,11 +1,14 @@
 <?php
 
-if (cfr('BRANCHES')) {
+if (cfr('BRANCHES') OR cfr('BRANCHESUSERMOD')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['BRANCHES_ENABLED']) {
         $branch = new UbillingBranches();
 
-        show_window('', $branch->panel());
+        if (cfr('BRANCHES')) {
+            //dont show empty panel
+            show_window('', $branch->panel());
+        }
 
         //user branches assign * management interface
         if (wf_CheckGet(array('userbranch'))) {
@@ -128,4 +131,3 @@ if (cfr('BRANCHES')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

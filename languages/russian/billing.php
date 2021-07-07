@@ -3251,7 +3251,7 @@ $lang['def']['right for burial and resurrection of users'] = 'Право на з
 $lang['def']['right to use YouTV'] = 'Право использовать YouTV';
 $lang['def']['right to use ProstoTV'] = 'Право использовать ProstoTV';
 $lang['def']['right to manage cars garage'] = 'Право управлять машинками в гараже';
-$lang['def'][''] = '';
+$lang['def']['right to switch existing user branches'] = 'Право изменять филиал существующим пользователям';
 $lang['def'][''] = '';
 
 ?>
