@@ -3247,7 +3247,7 @@ $lang['def']['Dont charge fee now'] = 'Не начислять абонплат�
 $lang['def']['IP authorization'] = 'Авторизация по IP';
 $lang['def']['Allow userstats authorization only with login and password'] = 'Разрешить авторизацию в кабинете только по логину и паролю';
 $lang['def']['Users with IP authorization denied'] = 'Пользователи с запрещенной авторизацией по IP';
+$lang['def']['right for burial and resurrection of users'] = 'Право на захоронение и воскрешение пользователей';
 $lang['def'][''] = '';
-
 
 ?>

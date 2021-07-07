@@ -1497,12 +1497,12 @@ class UserProfile {
 //integrated controller
                 if (wf_CheckPost(array('cemeterysetasundead'))) {
                     $cemetery->setUndead($_POST['cemeterysetasundead']);
-                    rcms_redirect('?module=userprofile&username=' . $this->login);
+                    rcms_redirect(self::URL_PROFILE . $this->login);
                 }
 
                 if (wf_CheckPost(array('cemeterysetasdead'))) {
                     $cemetery->setDead($_POST['cemeterysetasdead']);
-                    rcms_redirect('?module=userprofile&username=' . $this->login);
+                    rcms_redirect(self::URL_PROFILE . $this->login);
                 }
 
 //activity view

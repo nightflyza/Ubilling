@@ -231,13 +231,13 @@ class Cemetery {
         }
 
         /**
-          Ich trink Dutzende von Dosenbier und schalte meinen Fernseher an
-          Todesmöpse ohne Gnade, Todesmöpse greifen an
-          Super dicke titten, ey die wabbeln und die schwabbeln
-          Sowie affengeil Teil drei, die auf'm Affenfelsen rammeln
-          Ich komm auf deine Party und ich kotze auf's Buffet
+         * Ich trink Dutzende von Dosenbier und schalte meinen Fernseher an
+         * Todesmöpse ohne Gnade, Todesmöpse greifen an
+         * Super dicke titten, ey die wabbeln und die schwabbeln
+         * Sowie affengeil Teil drei, die auf'm Affenfelsen rammeln
+         * Ich komm auf deine Party und ich kotze auf's Buffet
          */
-        if (cfr('USERREG')) {
+        if (!cfr('NECROMANCY')) {
             if ($this->isUserDead($login)) {
                 $inputs = wf_HiddenInput('cemeterysetasundead', $login);
                 $inputs .= wf_Submit(__('Set user connected'));
