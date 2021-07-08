@@ -2985,10 +2985,10 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
  *
  * @return string
  */
-function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false, $jqdtToRefreshID = '') {
+function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click',
+                              $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false) {
 
     $inputId = (empty($controlId)) ? wf_InputId() : $controlId;
-    $jqdtRefreshCode = (empty($jqdtToRefreshID)) ? '' : '$(\'#' . $jqdtToRefreshID . '\').DataTable().ajax.reload();';
     $modalWindowId = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
     $modalWindowBodyId = 'modalWindowBodyId:"body_dialog-modal_' . $inputId . '"';
     $preventDefault = ($noPreventDefault) ? "" : "\nevt.preventDefault();";
@@ -2996,10 +2996,23 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
 
     $ajaxData = '';
     foreach ($dataArray as $io => $each) {
-        $ajaxData .= $io . ':"' . $each . '", ';
+        if (is_array($each)) {
+            $ajaxData.= $io . ':' . json_encode($each) . ', ';
+        } else {
+            $ajaxData.= $io . ':"' . $each . '", ';
+        }
+    }
+
+    if ($updNestedJQDT) {
+        $findJQDTToUpdate = 'var closestJQDTID = $(this).parent().parent().next("tr").find(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");';
+    } else {
+        $findJQDTToUpdate = 'var closestJQDTID = $(this).closest(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");';
     }
 
     $result = '$(\'#' . $inputId . '\').' . $jsEvent . '(function(evt) {
+console.log($(this).attr("id"));    
+                ' . $findJQDTToUpdate . '  
+                
                   $.ajax({
                       type: "' . $queryType . '",
                       url: "' . $ajaxURL . '",
@@ -3009,8 +3022,9 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
             . '},
                       success: function(ajaxresult) {
                                   $(document.body).append(ajaxresult);
-                                  $(\'#dialog-modal_' . $inputId . '\').dialog("open");
-                                  ' . $jqdtRefreshCode . '
+                                  $(\'#dialog-modal_' . $inputId . '\').append(\'<input type="hidden" name="closestJQDT" value="\' + closestJQDTID + \'" id="closestJQDTID">\');
+                                  
+                                  $(\'#dialog-modal_' . $inputId . '\').dialog("open");                                  
                                }
                   });'
             . $preventDefault
@@ -3038,10 +3052,12 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
  *
  * @return string
  */
-function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '', $queryType = 'POST') {
+function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '', $queryType = 'POST',
+                                      $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false) {
     $linkID = wf_InputId();
     $dynamicOpener = wf_Link('#', $icon . ' ' . $title, false, $linkCSSClass, 'id="' . $linkID . '"')
-                    . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, $queryType);
+                    . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, $queryType,
+                                           $jsEvent, $noPreventDefault, $noReturnFalse, $updNestedJQDT);
 
     return ($dynamicOpener);
 }
@@ -3104,9 +3120,9 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
             });
             
             if (!mandatoryFldsEmpty) {
-                var FrmAction   = $(this).attr("action");
-                var FrmData     = $(this).serialize() + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\';                        
-            
+                var FrmAction       = $(this).attr("action");
+                var FrmData         = $(this).serialize() + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\';                        
+                
                 $.ajax({
                     type: "POST",
                     url: FrmAction,
@@ -3116,9 +3132,9 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
                                     $(document.body).append(result);                                                
                                     $( \'#' . $errorModalWindowId . '\' ).dialog("open");                                                
                                 } else {
-                                    var detailsJQDTToReload = $(\'#detailJQDTID\');
-                                    if (!empty(detailsJQDTToReload)) {
-                                        $(\'#\' + detailsJQDTToReload.val()).DataTable().ajax.reload();
+                                    var customJQDTToReload = $(\'#closestJQDTID\').val();
+                                    if (!empty(customJQDTToReload)) {
+                                        $(\'#\' + customJQDTToReload).DataTable().ajax.reload();
                                     } else {
                                         ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
                                     '

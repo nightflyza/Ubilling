@@ -413,6 +413,7 @@ class ExtContras {
 
 
     const ROUTE_ACTION_CREATE   = 'doCreate';
+    const ROUTE_ACTION_PREFILL  = 'doPrefill';
     const ROUTE_ACTION_EDIT     = 'doEdit';
     const ROUTE_ACTION_CLONE    = 'doClone';
     const ROUTE_ACTION_DELETE   = 'doRemove';
@@ -458,6 +459,7 @@ class ExtContras {
     const MISC_WEBFILTER_DATE_START      = 'datefilterstart';
     const MISC_WEBFILTER_DATE_END        = 'datefilterend';
     const MISC_WEBFILTER_PAYDAY          = 'paydayfilter';
+    const MISC_PREFILL_DATA              = 'prefilldata';
 
 
     public function __construct() {
@@ -855,8 +857,7 @@ class ExtContras {
      */
     protected function getStdJQDTActions($recID, $routeActs, $cloneButtonON = false, $customControls = '') {
         $curTimeStamp = strtotime(curdate());
-// todo: cladify about closed editing period - is it for financial operations only? - or for counterparties too?
-// !!!!!!!!!!!!!!!!!
+
         $actions = '';
 
         if (!$this->ecReadOnlyAccess) {
@@ -869,8 +870,8 @@ class ExtContras {
             $deleteDialogCloseFunc = ' $(\'#' . $deleteDialogWID . '\').dialog(\'close\') ';
 
             $actions = wf_ConfirmDialogJS('#', web_delete_icon(), $this->messages->getDeleteAlert(), '', '#',
-                self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
-                $deleteDialogCloseFunc, $deleteDialogWID);
+                             self::MISC_JS_DEL_FUNC_NAME . '(\'' . self::URL_ME . '\',' . $tmpDeleteQuery . ');' . $deleteDialogCloseFunc,
+                                          $deleteDialogCloseFunc, $deleteDialogWID);
         }
 
         $actions .= wf_nbsp(2);
@@ -937,8 +938,8 @@ class ExtContras {
      * @throws Exception
      */
     public function processCRUDs($dataArray, $dbTabName, $postFrmCtrlValToChk, $webFormMethod,
-                                 $checkUniqueness = true, $checkUniqArray = array(),
-                                 $crudEntityName = '') {
+                                 $checkUniqueness = true, $checkUniqArray = array(),$crudEntityName = '',
+                                 $prefillFieldsData = array(), $createFormModality = false, $editFormModality = true) {
 
         $recID              = ubRouting::post(self::ROUTE_EDIT_REC_ID);
         $recEdit            = ubRouting::checkPost(self::ROUTE_ACTION_EDIT, false);
@@ -998,7 +999,7 @@ class ExtContras {
                     $this->recordCreateEdit($dbEntity, $dataArray);
                 }
             }  else {
-                return (call_user_func_array(array($this, $webFormMethod), array(true, $recID, $recEdit, $recClone)));
+                return (call_user_func_array(array($this, $webFormMethod), array($editFormModality, $recID, $recEdit, $recClone)));
             }
         } elseif ($recCreate) {
             $this->recordCreateEdit($dbEntity, $dataArray);
@@ -1062,7 +1063,7 @@ class ExtContras {
                 }
             }
         } else {
-            return(call_user_func_array(array($this, $webFormMethod), array(false)));
+            return(call_user_func_array(array($this, $webFormMethod), array($createFormModality, 0, false, false, $prefillFieldsData)));
         }
 
         return ('');
@@ -1194,7 +1195,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function profileWebForm($modal = true, $profileID = 0, $editAction = false, $cloneAction = false) {
+    public function profileWebForm($modal = true, $profileID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
         $inputs     = '';
         $prfName    = '';
         $prfContact = '';
@@ -1327,7 +1328,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function contractWebForm($modal = true, $contractID = 0, $editAction = false, $cloneAction = false) {
+    public function contractWebForm($modal = true, $contractID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
         $inputs             = '';
         $ctrctDTStart       = '';
         $ctrctDTEnd         = '';
@@ -1518,7 +1519,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function addressWebForm($modal = true, $addressID = 0, $editAction = false, $cloneAction = false) {
+    public function addressWebForm($modal = true, $addressID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
         $inputs     = '';
         $addrAddress    = '';
         $addrSum = '';
@@ -1784,7 +1785,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function invoiceWebForm($modal = true, $invoiceID = 0, $editAction = false, $cloneAction = false) {
+    public function invoiceWebForm($modal = true, $invoiceID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
         $inputs             = '';
         $invoContrasID      = 0;
         $invoInternalNum    = '';
@@ -2033,7 +2034,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function extcontrasWebForm($modal = true, $extContrasID = 0, $editAction = false, $cloneAction = false) {
+    public function extcontrasWebForm($modal = true, $extContrasID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
         $inputs             = '';
         $contrasProfileID   = 1;
         $contrasContractID  = '';
@@ -2118,7 +2119,8 @@ class ExtContras {
     public function extcontrasRenderJQDT($customJSCode = '', $markRowForID = '') {
         $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
         $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
-
+// todo: clarify about closed editing period - is it for financial operations only? - or for counterparties too?
+// !!!!!!!!!!!!!!!!!
         $columns[] = '';
         $columns[] = __('ID');
         $columns[] = __('EDRPO');
@@ -2133,6 +2135,7 @@ class ExtContras {
         $columns[] = __('Period');
         $columns[] = __('Payday');
         $columns[] = __('Actions');
+        $columns[] = __('Add financial operation');
         $columns[] = __('Payed this month');
         $columns[] = __('5 days till payday');
         $columns[] = __('Payment expired');
@@ -2146,11 +2149,11 @@ class ExtContras {
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},
-                            {"targets": [14, 15, 16, 17], "visible": false},
+                            {"targets": [15, 16, 17, 18], "visible": false},
                             {"targets": [7, 8], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [12], "orderable": false},
-                            {"targets": [12], "width": "85px"}                            
+                            {"targets": [13], "orderable": false},
+                            {"targets": [13], "width": "85px"}                            
                           ],
             "order": [[ 1, "desc" ]],
             "rowCallback": function(row, data, index) {                               
@@ -2174,7 +2177,7 @@ class ExtContras {
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                    self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 17);
+                                    self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 18);
 
         return($result);
     }
@@ -2244,6 +2247,14 @@ class ExtContras {
 //TODO: create "Add finops button" which would fill some form fields already
                 $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
+
+                $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
+                                                        array(self::ROUTE_FINOPS_ACTS => 'true',
+                                                              self::ROUTE_ACTION_PREFILL => 'true',
+                                                              self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID)
+                                                             ),
+                                                         '', web_add_icon(), '', 'POST', 'click', false, false, true
+                                                       );
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID);
 
@@ -2324,7 +2335,7 @@ class ExtContras {
      *
      * @return string
      */
-    public function finopsWebForm($modal = true, $finopID = 0, $editAction = false, $cloneAction = false) {
+    public function finopsWebForm($modal = true, $finopID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
         $inputs             = '';
         $finopContrasID     = 0;
         $finopAccrualID     = 0;
@@ -2346,7 +2357,8 @@ class ExtContras {
             $formClass = self::MISC_CLASS_SUBMITFORM;
             $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
         }
-
+file_put_contents('zzzxcv', print_r($_POST, true));
+file_put_contents('zzxcv', print_r($prefillFieldsData, true));
         if (($editAction or $cloneAction) and !empty($this->allECMoney[$finopID])) {
             $finoperation       = $this->allECMoney[$finopID];
             $finopContrasID     = $finoperation[self::DBFLD_MONEY_CONTRASID];
@@ -2358,6 +2370,8 @@ class ExtContras {
             $finopNotes         = $finoperation[self::DBFLD_MONEY_PAYNOTES];
             $finopIncoming      = ubRouting::filters($finoperation[self::DBFLD_MONEY_INCOMING], 'fi', FILTER_VALIDATE_BOOLEAN);
             $finopOutgoing      = ubRouting::filters($finoperation[self::DBFLD_MONEY_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
+        } elseif (!empty($prefillFieldsData)) {
+            $finopContrasID     = $prefillFieldsData[self::CTRL_MONEY_CONTRASID];
         }
 
         $this->dbECMoney->whereRaw(" " . self::DBFLD_MONEY_SMACCRUAL . " != 0");
@@ -2461,7 +2475,7 @@ class ExtContras {
      * @param string $markRowForID
      * @return string
      */
-    public function finopsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '') {
+    public function finopsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true' . $detailsFilter;
 
         $columns[] = __('ID');
@@ -2483,12 +2497,12 @@ class ExtContras {
             "order": [[ 0, "desc" ]],
             "columnDefs": [ {"targets": [1, 2, 3], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [10], "orderable": false},
-                            {"targets": [10], "width": "85px"}                            
+                            {"targets": [12, 13], "orderable": false},
+                            {"targets": [12], "width": "85px"}
                           ]                                      
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
             self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
             self::MISC_MARKROW_URL);
 
