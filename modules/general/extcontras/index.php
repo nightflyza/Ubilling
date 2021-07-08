@@ -86,7 +86,7 @@ if (cfr('EXTCONTRAS')) {
         if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_DETAILS)) {
             if (ubRouting::checkPost($ExtContras::DBFLD_COMMON_ID)) {
                 $detailsFilter = '&' . $ExtContras::DBFLD_COMMON_ID . '=' . ubRouting::post($ExtContras::DBFLD_COMMON_ID);
-                die($ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter));
+                die($ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false));
             }
         }
 
@@ -272,6 +272,14 @@ if (cfr('EXTCONTRAS')) {
                 $moneyDateField = $ExtContras::DBFLD_MONEY_DATE_EDIT;
             }
 
+            if (ubRouting::checkPost($ExtContras::ROUTE_ACTION_PREFILL)) {
+                $prefillData = ubRouting::post($ExtContras::MISC_PREFILL_DATA);
+                $createModality = true;
+            } else {
+                $prefillData = array();
+                $createModality = false;
+            }
+
             $finopIncoming = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'incoming') ? 1 : 0;
             $finopOutgoing = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'outgoing') ? 1 : 0;
 
@@ -289,7 +297,7 @@ if (cfr('EXTCONTRAS')) {
 
             $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECMONEY, $ExtContras::CTRL_MONEY_PURPOSE,
                 'finopsWebForm', false, array(),
-                'Financial operation');
+                'Financial operation', $prefillData, $createModality);
             die($showResult);
         }
     } else {
