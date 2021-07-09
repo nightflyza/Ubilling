@@ -681,7 +681,7 @@ if ($system->checkForRight('ONLINE')) {
     if (!$hp_mode) {
         show_warning(__('ONLINE_HP_MODE=0 no more supported. Use 1 - safe or 2 - fast for large databases modes.'));
     } else {
-        show_window(__('Users online'), renderUserListContainer());
+        show_window(__('Users'), renderUserListContainer());
     }
 } else {
     show_error(__('Access denied'));

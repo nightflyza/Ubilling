@@ -3275,5 +3275,7 @@ $lang['def']['right to use YouTV'] = 'Право використовувати 
 $lang['def']['right to use ProstoTV'] = 'Право використовувати ProstoTV';
 $lang['def']['right to manage cars garage'] = 'Право керувати машинками у гаражі';
 $lang['def']['right to switch existing user branches'] = 'Право змінювати філіал існуючим користувачам';
+$lang['def']['right to view users list'] = 'Право переглядати список користувачів';
+$lang['def']['Subscribers'] = 'Абоненти';
 
 ?>

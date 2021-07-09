@@ -115,7 +115,7 @@ class UbillingTaskbar {
      */
     protected function setCategories() {
         $this->categories['widgets'] = '';
-        $this->categories['iusers'] = __('Internet users');
+        $this->categories['iusers'] = __('Subscribers');
         $this->categories['instruments'] = __('Instruments');
         $this->categories['equipment'] = __('Equipment');
         $this->categories['reports'] = __('Reports');
