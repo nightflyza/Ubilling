@@ -2217,6 +2217,7 @@ class ExtContras {
                 $profileRecID   = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID];
                 $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
                 $addrRedID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
+                $contractSum    = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
 
                 $data[] = '';
                 $data[] = $curRecID;
@@ -2229,7 +2230,7 @@ class ExtContras {
                                   $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
-                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
+                $data[] = $contractSum;
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
                                   . '&' . self::MISC_MARKROW_URL . '=' . $addrRedID,
                                   $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
@@ -2244,14 +2245,15 @@ class ExtContras {
                     '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
 */
 
-//TODO: create "Add finops button" which would fill some form fields already
                 $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                         array(self::ROUTE_FINOPS_ACTS => 'true',
                                                               self::ROUTE_ACTION_PREFILL => 'true',
-                                                              self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID)
+                                                              self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
+                                                                                               self::CTRL_MONEY_SUMPAYMENT => $contractSum
+                                                                                              )
                                                              ),
                                                          '', web_add_icon(), '', 'POST', 'click', false, false, true
                                                        );
@@ -2357,8 +2359,7 @@ class ExtContras {
             $formClass = self::MISC_CLASS_SUBMITFORM;
             $emptyCheckClass = self::MISC_CLASS_EMPTYVALCHECK;
         }
-file_put_contents('zzzxcv', print_r($_POST, true));
-file_put_contents('zzxcv', print_r($prefillFieldsData, true));
+
         if (($editAction or $cloneAction) and !empty($this->allECMoney[$finopID])) {
             $finoperation       = $this->allECMoney[$finopID];
             $finopContrasID     = $finoperation[self::DBFLD_MONEY_CONTRASID];
@@ -2372,6 +2373,7 @@ file_put_contents('zzxcv', print_r($prefillFieldsData, true));
             $finopOutgoing      = ubRouting::filters($finoperation[self::DBFLD_MONEY_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         } elseif (!empty($prefillFieldsData)) {
             $finopContrasID     = $prefillFieldsData[self::CTRL_MONEY_CONTRASID];
+            $finopSumPayment    = $prefillFieldsData[self::CTRL_MONEY_SUMPAYMENT];
         }
 
         $this->dbECMoney->whereRaw(" " . self::DBFLD_MONEY_SMACCRUAL . " != 0");
