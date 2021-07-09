@@ -3277,5 +3277,6 @@ $lang['def']['right to manage cars garage'] = 'Право керувати ма�
 $lang['def']['right to switch existing user branches'] = 'Право змінювати філіал існуючим користувачам';
 $lang['def']['right to view users list'] = 'Право переглядати список користувачів';
 $lang['def']['Subscribers'] = 'Абоненти';
+$lang['def']['Unknown MACs'] = 'Невідомі МАКи';
 
 ?>
