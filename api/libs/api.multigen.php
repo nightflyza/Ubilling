@@ -3133,7 +3133,8 @@ class MultiGen {
         $result .= wf_tag('br');
         if (!empty($userLogin)) {
             $result .= wf_BackLink(self::URL_PROFILE . $userLogin);
-            $result .= wf_Link(self::URL_ME . '&manualpod=true&username=' . $userLogin, wf_img('skins/skull.png') . ' ' . __('Terminate user session'), true, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&userattributes=true&username=' . $userLogin, wf_img('skins/dna_icon.png') . ' ' . __('User attributes'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&manualpod=true&username=' . $userLogin, wf_img('skins/skull.png') . ' ' . __('Terminate user session'), false, 'ubButton') . ' ';
         } else {
             if (!wf_CheckGet(array('lastsessions'))) {
                 $result .= wf_Link(self::URL_ME . '&lastsessions=true', wf_img('skins/clock.png') . ' ' . __('Last sessions'), false, 'ubButton');
@@ -3193,6 +3194,127 @@ class MultiGen {
     }
 
     /**
+     * Renders actual user attributes data in all available scenarios.
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderUserAttributes($userLogin) {
+        $result = '';
+        $tmpArr = array();
+        if (empty($this->allUserData)) {
+            //preloading userdata
+            $this->loadUserData();
+            //loading data required for QinQ users
+            if ((isset($this->altCfg[self::OPTION_SWASSIGN])) AND ( isset($this->altCfg[self::OPTION_QINQ]))) {
+                if (($this->altCfg[self::OPTION_SWASSIGN]) AND ( $this->altCfg[self::OPTION_QINQ])) {
+                    $this->loadSwitches();
+                    $this->loadSwithchAssigns();
+                    $this->loadAllQinQ();
+                }
+            }
+        }
+
+
+        if (isset($this->allUserData[$userLogin])) {
+            $userData = $this->allUserData[$userLogin];
+            $allPossibleUserNames = $this->getAllUserNames();
+
+            if (isset($allPossibleUserNames[$userLogin])) {
+                if (!empty($allPossibleUserNames[$userLogin])) {
+                    $possibleUserNames = $allPossibleUserNames[$userLogin];
+                    if (!empty($this->scenarios)) {
+                        foreach ($this->scenarios as $scenarioId => $scenarioName) {
+                            $scenarioTable = self::SCENARIO_PREFIX . $scenarioId;
+                            $scenarioDb = new NyanORM($scenarioTable);
+                            foreach ($possibleUserNames as $io => $eachPossibleUserName) {
+                                $scenarioDb->orWhere('username', '=', $eachPossibleUserName);
+                            }
+                            $tmpArr[$scenarioId] = $scenarioDb->getAll();
+                        }
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('cant read scenarios'), 'error');
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('cant detect username for') . ' ' . $userLogin, 'error');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('cant detect username for') . ' ' . $userLogin, 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('User not exists') . ': ' . $userLogin, 'error');
+        }
+
+        //render available attributes data
+        if (!empty($tmpArr)) {
+            foreach ($tmpArr as $scenarioId => $attributes) {
+                $result .= wf_tag('h3') . __('Scenario') . ' ' . $scenarioId . wf_tag('h3', true);
+                if (!empty($attributes)) {
+                    if (isset($attributes[0])) {
+                        $scenarioColumns = array_keys($attributes[0]);
+                        $cells = '';
+                        //list available data colums
+                        foreach ($scenarioColumns as $io => $each) {
+                            $cells .= wf_TableCell($each);
+                        }
+                        $cells .= wf_TableCell(__('Actions'));
+                        $rows = wf_TableRow($cells, 'row1');
+
+                        //list available user attributes
+                        foreach ($attributes as $io => $eachAttribute) {
+                            $cells = '';
+                            foreach ($eachAttribute as $column => $value) {
+                                $cells .= wf_TableCell($value);
+                            }
+                            $delControl = self::URL_ME . '&userattributes=true&username=' . $userLogin . '&delattr=' . $eachAttribute['id'] . '&delscenario=' . $scenarioId;
+                            $delCancelControl = self::URL_ME . '&userattributes=true&username=' . $userLogin;
+                            $attrControls = wf_ConfirmDialogJS($delControl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', $delCancelControl);
+                            $cells .= wf_TableCell($attrControls);
+                            $rows .= wf_TableRow($cells, 'row5');
+                        }
+
+                        $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('cant detect data columns'), 'warning');
+                    }
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Nothing found'), 'info');
+                }
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
+
+        $result .= wf_delimiter(0);
+        $result .= wf_BackLink(self::URL_ME . '&username=' . $userLogin);
+
+        return($result);
+    }
+
+    /**
+     * Deletes some user attribute from some scenario by its ID
+     * 
+     * @param int $attributeId
+     * @param string $scenario
+     * 
+     * @return void/string on error
+     */
+    public function deleteUserAttribute($attributeId, $scenario) {
+        $result = '';
+        if (isset($this->scenarios[$scenario])) {
+            $scenarioTable = self::SCENARIO_PREFIX . $scenario;
+            $scenarioDb = new NyanORM($scenarioTable);
+            $scenarioDb->where('id', '=', $attributeId);
+            $scenarioDb->delete();
+            log_register('MULTIGEN DELETE SCENARIO `' . $scenario . '` ATTRIBUTE [' . $attributeId . ']');
+        } else {
+            $result .= __('Something went wrong') . ': ' . __('Scenario') . ' ' . $scenario . ' ' . __('Not exists');
+        }
+        return($result);
+    }
+
+    /**
      * Executes manual PoD sending if its possilble
      * 
      * @return void/string on error
@@ -3246,7 +3368,7 @@ class MultiGen {
                 $result .= __('User not exists') . ': ' . $userLogin;
             }
         } else {
-            
+            //what?
         }
         return ($result);
     }

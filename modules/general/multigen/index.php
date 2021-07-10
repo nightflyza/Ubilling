@@ -118,7 +118,7 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
                 $multigen->renderAcctStatsAjList();
             }
 
-            if (!wf_CheckGet(array('manualpod'))) {
+            if (!wf_CheckGet(array('manualpod')) AND ! wf_CheckGet(array('userattributes'))) {
                 if (!wf_CheckGet(array('lastsessions'))) {
                     //ignored in lastsessions
                     $dateFormControls = $multigen->renderDateSerachControls();
@@ -128,16 +128,35 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
                 show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
             } else {
                 //manual POD
-                if (wf_CheckPost(array('manualpod'))) {
-                    $manualPodResult = $multigen->runManualPod();
-                    if (empty($manualPodResult)) {
-                        rcms_redirect($multigen::URL_ME . '&manualpod=true&username=' . $_GET['username']);
-                    } else {
-                        show_error($manualPodResult);
+                if (wf_CheckGet(array('manualpod'))) {
+
+                    if (wf_CheckPost(array('manualpod'))) {
+                        $manualPodResult = $multigen->runManualPod();
+                        if (empty($manualPodResult)) {
+                            rcms_redirect($multigen::URL_ME . '&manualpod=true&username=' . $_GET['username']);
+                        } else {
+                            show_error($manualPodResult);
+                        }
                     }
+
+                    show_window(__('Terminate user session'), $multigen->renderManualPodForm($_GET['username']));
                 }
 
-                show_window(__('Terminate user session'), $multigen->renderManualPodForm($_GET['username']));
+                //render user attributes
+                if (ubRouting::checkGet(array('userattributes', 'username'))) {
+                    //attribute deletion from some scenario
+                    if (ubRouting::checkGet(array('delattr', 'delscenario'))) {
+                        $attrDeletionResult = $multigen->deleteUserAttribute(ubRouting::get('delattr', 'int'), ubRouting::get('delscenario', 'mres'));
+                        if (empty($attrDeletionResult)) {
+                            ubRouting::nav($multigen::URL_ME . '&userattributes=true&username=' . ubRouting::get('username', 'mres'));
+                        } else {
+                            show_error($attrDeletionResult);
+                        }
+                    }
+
+                    //render users attributes list
+                    show_window(__('User attributes'), $multigen->renderUserAttributes(ubRouting::get('username', 'mres')));
+                }
             }
         }
 

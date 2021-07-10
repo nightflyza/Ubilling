@@ -40,6 +40,4 @@ $lang['def']['Last sessions'] = 'Последние сессии';
 $lang['def']['cant detect username for'] = 'не получилось определить юзернейм для';
 $lang['def']['Multigen sessions'] = 'Сессии КучаГен-а';
 $lang['def']['Show only unfinished'] = 'Показывать только незавершенные';
-
-
-
+$lang['def']['cant detect data columns'] = 'не могу определить структуру данных';
