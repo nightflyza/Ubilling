@@ -93,17 +93,36 @@ if ($altCfg['MAPON_ENABLED']) {
                     }
                 }
 
+                //additional layers here
+                if (ubRouting::checkGet('layerswitches')) {
+                    $placemarks .= sm_MapDrawSwitches();
+                }
+
+                if (ubRouting::checkGet('layerbuilds')) {
+                    $placemarks .= um_MapDrawBuilds();
+                }
+
+                if (ubRouting::checkGet('layertasks')) {
+                    $taskmap = new TasksMap();
+                    $placemarks .= $taskmap->getPlacemarks($taskmap->getTodayTasks());
+                }
+
+
                 //render map
-                $container = generic_MapContainer();
+                $container = generic_MapContainer('100%','650px');
                 $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, '', $mapsConfig['LANG']);
                 show_window(__('Cars'), $container);
 
                 //render controls
                 $controls = '';
-                $controls .= wf_Link('?module=mapon', wf_img('skins/icon_last_small.png') . ' ' . __('Last'), false, 'ubButton') . ' ';
-                $controls .= wf_Link('?module=mapon&alldayroutes=true', wf_img('skins/icon_routes_small.png') . ' ' . __('Today'), false, 'ubButton');
+                $controls .= wf_Link('?module=mapon', wf_img('skins/icon_last_small.png') . ' ' . __('Last trip'), false, 'ubButton') . ' ';
+                $controls .= wf_Link('?module=mapon&alldayroutes=true', wf_img('skins/icon_routes_small.png') . ' ' . __('Today trips'), false, 'ubButton');
+                $controls .= wf_Link('?module=mapon&layerswitches=true', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+                $controls .= wf_Link('?module=mapon&layerbuilds=true', wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+                $controls .= wf_Link('?module=mapon&layertasks=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks map'), false, 'ubButton');
 
                 show_window('', $controls);
+                zb_BillingStats(true);
             } else {
                 show_warning(__('Nothing to show'));
             }

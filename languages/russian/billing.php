@@ -3255,7 +3255,9 @@ $lang['def']['right to switch existing user branches'] = 'Право измен�
 $lang['def']['right to view users list'] = 'Право просматривать список пользователей';
 $lang['def']['Subscribers'] = 'Абоненты';
 $lang['def']['Unknown MACs'] = 'Неизвестные МАКи';
-$lang['def'][''] = '';
+$lang['def']['Last trip'] = 'Последняя поездка';
+$lang['def']['Today trips'] = 'Сегодняшние поездки';
+
 
 
 ?>

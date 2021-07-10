@@ -15,9 +15,9 @@
  */
 function generic_MapContainer($width = '', $height = '', $id = '') {
     $width = (!empty($width)) ? $width : '100%';
-    $height = (!empty($height)) ? $height : '800px;';
+    $height = (!empty($height)) ? $height : '800px';
     $id = (!empty($id)) ? $id : 'ubmap';
-    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width: 100%; height:800px;"');
+    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:'.$width.'; height:'.$height.';"');
     $result .= wf_tag('div', true);
     return ($result);
 }

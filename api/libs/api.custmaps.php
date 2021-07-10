@@ -202,7 +202,7 @@ class CustomMaps {
      * @return string
      */
     protected function mapContainer() {
-        $container = generic_MapContainer('1000', '800', 'custmap');
+        $container = generic_MapContainer('100%', '800px', 'custmap');
         return ($container);
     }
 

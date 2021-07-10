@@ -510,7 +510,7 @@ class PONBoxes {
         $result = '';
         if (!empty($this->allBoxes)) {
             $mapContainer = 'ponboxmap';
-            $result .= generic_MapContainer('100%', '800px;', $mapContainer);
+            $result .= generic_MapContainer('100%', '800px', $mapContainer);
             $placemarks = '';
             $editor = '';
             foreach ($this->allBoxes as $io => $each) {

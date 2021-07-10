@@ -251,7 +251,7 @@ class UbillingWhois {
         if ((!empty($this->geoData->latitude)) AND ( !empty($this->geoData->longitude))) {
             global $ubillingConfig;
             $ymconf = $ubillingConfig->getYmaps();
-            $result = generic_MapContainer('100%', '400px;', 'ubmap');
+            $result = generic_MapContainer('100%', '400px', 'ubmap');
             $placemarks = generic_MapAddMark($this->geoData->latitude . ',' . $this->geoData->longitude, @$this->geoData->city);
             $result .= generic_MapInit($this->geoData->latitude . ',' . $this->geoData->longitude, 8, $ymconf['TYPE'], $placemarks, '', $ymconf['LANG'], 'ubmap');
         }
