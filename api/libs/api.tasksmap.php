@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Tasks manager map-view rendering class
+ */
 class TasksMap {
 
     /**
