@@ -1384,13 +1384,15 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-column-end: 2;
 }
 
-.dataTable tbody td.details-control {
+.dataTable tbody td.details-control:not(thead td.details-control) {
     background: url('../../details_open.png') no-repeat center center;
     cursor: pointer;
+    width: 40px;
 }
 
-.dataTable tbody tr.shown td.details-control {
+.dataTable tbody tr.shown td.details-control:not(thead td.details-control) {
     background: url('../../details_close.png') no-repeat center center;
     cursor: pointer;
+    width: 40px;
 }
 
