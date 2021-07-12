@@ -52,6 +52,13 @@ class ExtContras {
     protected $dbECMoney = null;
 
     /**
+     * Database abstraction layer with for `money` table + data JOINed from `extcontras` table
+     *
+     * @var object
+     */
+    protected $dbECMoneyExten = null;
+
+    /**
      * Database abstraction layer with for `extcontras_invoices` table
      *
      * @var object
@@ -169,6 +176,13 @@ class ExtContras {
      * @var array
      */
     protected $allECMoney = array();
+
+    /**
+     * Contains all extcontras money records from DB as ececmoneyid => ecmoneydata + data JOINed from `extcontras` table
+     *
+     * @var array
+     */
+    protected $allECMoneyExten = array();
 
     /**
      * Contains all extcontras invoices records from DB ecinvoiceid => ecinvoicedata
@@ -412,29 +426,31 @@ class ExtContras {
     const CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND  = 'EC_PAYMENTEXPIRED_FRGND';
 
 
-    const ROUTE_ACTION_CREATE   = 'doCreate';
-    const ROUTE_ACTION_PREFILL  = 'doPrefill';
-    const ROUTE_ACTION_EDIT     = 'doEdit';
-    const ROUTE_ACTION_CLONE    = 'doClone';
-    const ROUTE_ACTION_DELETE   = 'doRemove';
-    const ROUTE_EDIT_REC_ID     = 'editRecID';
-    const ROUTE_DELETE_REC_ID   = 'deleteRecID';
-    const ROUTE_CONTRAS_ACTS    = 'contrasacts';
-    const ROUTE_CONTRAS_JSON    = 'contraslistjson';
-    const ROUTE_PROFILE_ACTS    = 'profileacts';
-    const ROUTE_PROFILE_JSON    = 'profilelistjson';
-    const ROUTE_CONTRACT_ACTS   = 'contractacts';
-    const ROUTE_CONTRACT_JSON   = 'contractlistjson';
-    const ROUTE_ADDRESS_ACTS    = 'addressacts';
-    const ROUTE_ADDRESS_JSON    = 'addresslistjson';
-    const ROUTE_PERIOD_ACTS     = 'periodacts';
-    const ROUTE_PERIOD_JSON     = 'periodlistjson';
-    const ROUTE_FINOPS_ACTS     = 'finopsacts';
-    const ROUTE_FINOPS_JSON     = 'finopslistjson';
-    const ROUTE_FINOPS_DETAILS  = 'finopsdetails';
-    const ROUTE_INVOICES_ACTS   = 'invoicesacts';
-    const ROUTE_INVOICES_JSON   = 'invoiceslistjson';
-    const ROUTE_FORCECACHE_UPD  = 'extcontrasforcecacheupdate';
+    const ROUTE_ACTION_CREATE       = 'doCreate';
+    const ROUTE_ACTION_PREFILL      = 'doPrefill';
+    const ROUTE_ACTION_EDIT         = 'doEdit';
+    const ROUTE_ACTION_CLONE        = 'doClone';
+    const ROUTE_ACTION_DELETE       = 'doRemove';
+    const ROUTE_EDIT_REC_ID         = 'editRecID';
+    const ROUTE_DELETE_REC_ID       = 'deleteRecID';
+    const ROUTE_CONTRAS_ACTS        = 'contrasacts';
+    const ROUTE_CONTRAS_JSON        = 'contraslistjson';
+    const ROUTE_PROFILE_ACTS        = 'profileacts';
+    const ROUTE_PROFILE_JSON        = 'profilelistjson';
+    const ROUTE_CONTRACT_ACTS       = 'contractacts';
+    const ROUTE_CONTRACT_JSON       = 'contractlistjson';
+    const ROUTE_ADDRESS_ACTS        = 'addressacts';
+    const ROUTE_ADDRESS_JSON        = 'addresslistjson';
+    const ROUTE_PERIOD_ACTS         = 'periodacts';
+    const ROUTE_PERIOD_JSON         = 'periodlistjson';
+    const ROUTE_FINOPS_ACTS         = 'finopsacts';
+    const ROUTE_FINOPS_JSON         = 'finopslistjson';
+    const ROUTE_FINOPS_DETAILS      = 'finopsdetails';
+    const ROUTE_INVOICES_ACTS       = 'invoicesacts';
+    const ROUTE_INVOICES_JSON       = 'invoiceslistjson';
+    const ROUTE_FORCECACHE_UPD      = 'extcontrasforcecacheupdate';
+    const ROUTE_CNTRCT_ADDR_DETAIL  = 'contrascontractaddressdetails';
+    const ROUTE_CNTRCT_ADDR_JSON    = 'contrascontractaddressjson';
 
 
     const TABLE_EXTCONTRAS      = 'extcontras';
@@ -444,6 +460,7 @@ class ExtContras {
     const TABLE_ECADDRESS       = 'extcontras_address';
     const TABLE_ECPERIODS       = 'extcontras_periods';
     const TABLE_ECMONEY         = 'extcontras_money';
+    const TABLE_ECMONEYEXTEN    = 'extcontras_moneyexten';
     const TABLE_ECINVOICES      = 'extcontras_invoices';
 
     const MISC_FILESTORAGE_SCOPE         = 'EXCONTRAS';
@@ -525,6 +542,10 @@ class ExtContras {
         $this->dbEntitiesAll[self::TABLE_ECMONEY]       = $this->dbECMoney;
         $this->dataEntitiesAll[self::TABLE_ECMONEY]     = 'allECMoney';
 
+        $this->dbECMoneyExten = new NyanORM(self::TABLE_ECMONEY);
+        $this->dbEntitiesAll[self::TABLE_ECMONEYEXTEN]    = $this->dbECMoneyExten;
+        $this->dataEntitiesAll[self::TABLE_ECMONEYEXTEN]  = 'allECMoneyExten';
+
         $this->dbECInvoices  = new NyanORM(self::TABLE_ECINVOICES);
         $this->dbEntitiesAll[self::TABLE_ECINVOICES]    = $this->dbECInvoices;
         $this->dataEntitiesAll[self::TABLE_ECINVOICES]  = 'allECInvoices';
@@ -587,11 +608,13 @@ class ExtContras {
      * @param string $assocByField
      * @param string $dataEntity
      * @param bool $cachingDisabled
+     * @param bool $distinctSelectON
      *
      * @return mixed
      */
     public function loadDataFromTableCached($tableName, $cacheKey, $forceDBLoad = false, $flushNyanParams = true,
-                                            $assocByField = '', $dataEntity = '', $cachingDisabled = false) {
+                                            $assocByField = '', $dataEntity = '', $cachingDisabled = false,
+                                            $distinctSelectON = false) {
 
         $cacheKey       = strtoupper($cacheKey);
         $dbInstance     = $this->getDBEntity($tableName);
@@ -601,7 +624,7 @@ class ExtContras {
         $thisInstance   = $this;
 
         if ($forceDBLoad) {
-            $this->$dataInstance = $dbInstance->getAll($assocByField, $flushParams);
+            $this->$dataInstance = $dbInstance->getAll($assocByField, $flushParams, $distinctSelectON);
 
             if ($cachingDisabled) {
                 $this->ubCache->delete($cacheKey);
@@ -609,9 +632,10 @@ class ExtContras {
                 $this->ubCache->set($cacheKey, $this->$dataInstance, $this->cacheLifeTime);
             }
         } else {
-            $this->$dataInstance = $this->ubCache->getCallback($cacheKey, function () use ($thisInstance, $tableName, $cacheKey, $flushParams, $assocByField) {
-                                                                    return ($thisInstance->loadDataFromTableCached($tableName, $cacheKey, true,
-                                                                                                                   $flushParams, $assocByField));
+            $this->$dataInstance = $this->ubCache->getCallback($cacheKey, function () use ($thisInstance, $tableName, $cacheKey, $flushParams, $assocByField,
+                                                                                           $dataInstance, $cachingDisabled, $distinctSelectON) {
+                                                                    return ($thisInstance->loadDataFromTableCached($tableName, $cacheKey, true,$flushParams,
+                                                                                                                   $assocByField, $dataInstance, $cachingDisabled, $distinctSelectON));
                                                                 }, $this->cacheLifeTime);
         }
 
@@ -623,8 +647,10 @@ class ExtContras {
      *
      * @param bool $forceDBLoad
      * @param string $whereRaw
+     * @param bool $distinctSelectON
+     *
      */
-    protected function loadExtContrasExtenData($forceDBLoad = false, $whereRaw = '') {
+    protected function loadExtContrasExtenData($forceDBLoad = false, $whereRaw = '', $distinctSelectON = false) {
         $selectable = array_merge($this->dbExtContrasStruct, $this->dbECProfilesStruct, $this->dbECContractsStruct, $this->dbECAddressStruct, $this->dbECPeriodsStruct);
 
         $this->dbExtContrasExten->selectable($selectable);
@@ -645,9 +671,36 @@ class ExtContras {
         if (!empty($whereRaw)) {
             $this->dbExtContrasExten->whereRaw($whereRaw);
         }
-
+//$this->dbExtContrasExten->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad,
-                                       false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID);
+                                       false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID,
+                             '', !empty($whereRaw), $distinctSelectON);
+    }
+
+    /**
+     * Loads extended external counterparties data
+     *
+     * @param bool $forceDBLoad
+     * @param string $whereRaw
+     * @param bool $distinctSelectON
+     *
+     */
+    public function loadFinopsExtenData($forceDBLoad = false, $whereRaw = '', $distinctSelectON = false) {
+        $selectable = array_merge($this->dbECMoneyStruct, $this->dbExtContrasStruct);
+
+        $this->dbECMoneyExten->selectable($selectable);
+        $this->dbECMoneyExten->joinOn();
+        $this->dbECMoneyExten->joinOn('INNER', self::TABLE_EXTCONTRAS,
+                                      self::TABLE_ECMONEY . '.' . self::DBFLD_MONEY_CONTRASID
+                                      . ' = ' . self::TABLE_EXTCONTRAS . '.' . self::DBFLD_COMMON_ID);
+
+        if (!empty($whereRaw)) {
+            $this->dbECMoneyExten->whereRaw($whereRaw);
+        }
+//$this->dbECMoneyExten->setDebug(true, true);
+        $this->loadDataFromTableCached(self::TABLE_ECMONEYEXTEN, self::TABLE_ECMONEYEXTEN, $forceDBLoad,
+                        false, self::TABLE_ECMONEY . self::DBFLD_COMMON_ID,
+                             '', !empty($whereRaw), $distinctSelectON);
     }
 
     /**
@@ -662,6 +715,7 @@ class ExtContras {
         $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, $forceDBLoad);
         $this->loadDataFromTableCached(self::TABLE_ECINVOICES, self::TABLE_ECINVOICES, $forceDBLoad);
         $this->loadExtContrasExtenData($forceDBLoad);
+        $this->loadFinopsExtenData($forceDBLoad);
     }
 
     /**
@@ -800,7 +854,8 @@ class ExtContras {
      */
     protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true,
                                                 $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '',
-                                                $addDetailsProcessingJS = false, $dpAjaxURL = '', $columnIdx = '') {
+                                                $addDetailsProcessingJS = false, $dpAjaxURL = '', $dpColumnIdx = '',
+                                                $dpJSFuncName = 'showDetailsData', $dpAjaxMethod = 'POST') {
         $result     = '';
         $ajaxURLStr = $ajaxURL;
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
@@ -831,11 +886,11 @@ class ExtContras {
                 $result.= wf_JQDTMarkRowJS(0, $markRowForID, $truncateURL, $truncateParam);
             }
 
-            if ($addDetailsProcessingJS and !empty($dpAjaxURL) and !wf_emptyNonZero($columnIdx)) {
-                $result.= wf_JQDTDetailsClickProcessingJS($dpAjaxURL, $columnIdx, $jqdtID);
-            }
-
             $result.= wf_tag('script', true);
+        }
+
+        if ($addDetailsProcessingJS and !empty($dpAjaxURL) and !wf_emptyNonZero($dpColumnIdx)) {
+            $result.= wf_EncloseWithJSTags(wf_JQDTDetailsClickProcessingJS($dpAjaxURL, $dpColumnIdx, $jqdtID, $dpAjaxMethod, $dpJSFuncName));
         }
 
         if (!empty($customJSCode)) {
@@ -1263,10 +1318,12 @@ class ExtContras {
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
      *
      * @return string
      */
-    public function profileRenderJQDT($customJSCode = '', $markRowForID = '') {
+    public function profileRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PROFILE_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1441,10 +1498,12 @@ class ExtContras {
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
      *
      * @return string
      */
-    public function contractRenderJQDT($customJSCode = '', $markRowForID = '') {
+    public function contractRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_CONTRACT_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1587,10 +1646,12 @@ class ExtContras {
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
      *
      * @return string
      */
-    public function addressRenderJQDT($customJSCode = '', $markRowForID = '') {
+    public function addressRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_ADDRESS_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1697,10 +1758,12 @@ class ExtContras {
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
      *
      * @return string
      */
-    public function periodRenderJQDT($customJSCode = '', $markRowForID = '') {
+    public function periodRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_PERIOD_JSON . '=true';
 
         $columns[] = __('ID');
@@ -1910,10 +1973,12 @@ class ExtContras {
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
      *
      * @return string
      */
-    public function invoiceRenderJQDT($customJSCode = '', $markRowForID = '') {
+    public function invoiceRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_INVOICES_JSON . '=true';
 
         $columns[] = __('ID');
@@ -2110,21 +2175,141 @@ class ExtContras {
     }
 
     /**
-     * Renders JQDT for external counterparty list
+     * Renders main top-level JQDT for external counterparty list
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
+     *
      * @return string
      */
-    public function extcontrasRenderJQDT($customJSCode = '', $markRowForID = '') {
+    public function extcontrasRenderMainJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
-        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_CNTRCT_ADDR_DETAIL . '=true';
 // todo: clarify about closed editing period - is it for financial operations only? - or for counterparties too?
 // !!!!!!!!!!!!!!!!!
         $columns[] = '';
         $columns[] = __('ID');
         $columns[] = __('EDRPO');
         $columns[] = __('Counterparty');
+        $columns[] = __('Contact');
+        $columns[] = __('E-mail');
+        $columns[] = __('Rec fore color');
+        $columns[] = __('Rec back color');
+        $columns[] = __('Filter for details');
+
+        $this->getTableGridColorOpts();
+
+        $opts = '
+            "columnDefs": [ 
+                            {"targets": [0], "className": "details-control"},
+                            {"targets": [0], "orderable": false},
+                            {"targets": [0], "data": null},
+                            {"targets": [0], "defaultContent": ""},
+                            {"targets": [6, 7, 8], "visible": false},                            
+                            {"targets": ["_all"], "className": "dt-center dt-head-center"}                                              
+                          ],
+            "order": [[ 1, "desc" ]],
+            "rowCallback": function(row, data, index) {                               
+                if ( data[6] != "" ) {                    
+                    $(\'td\', row).css(\'color\', data[6]);
+                } 
+                
+                if ( data[7] != "" ) {
+                    $(\'td\', row).css(\'background-color\', data[7]);
+                } 
+            }
+            
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
+                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 8);
+
+        return($result);
+    }
+
+    /**
+     * Renders JSON for external counterparty JQDT
+     *
+     * @param string $whereRaw
+     *
+     */
+    public function extcontrasRenderListJSON($whereRaw = '') {
+        if (!empty($whereRaw)) {
+            $this->dbECProfiles->whereRaw($whereRaw);
+        }
+
+        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES,
+                                       !empty($whereRaw), true,'', '', !empty($whereRaw));
+
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECProfiles)) {
+            $data = array();
+            $tmpExtContrasRecs = $this->loadDataFromTableCached(self::TABLE_EXTCONTRAS, self::TABLE_EXTCONTRAS);
+
+            foreach ($this->allECProfiles as $eachRecID) {
+                $profileRecID = $eachRecID[self::DBFLD_COMMON_ID];
+                $recForeColor = '';
+                $recBackColor = '';
+
+                if (!empty($tmpExtContrasRecs)) {
+                    foreach ($tmpExtContrasRecs as $eachID => $eachData) {
+                        if ($eachData[self::DBFLD_EXTCONTRAS_PROFILE_ID] == $profileRecID) {
+                            $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($eachData[self::DBFLD_COMMON_ID]);
+
+                            if ($eachData[self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) {
+                                $recForeColor = $this->fiveDaysTillPayFRGND;
+                                $recBackColor = $this->fiveDaysTillPayBKGND;
+                            }
+
+                            if (date('j') > $eachData[self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) {
+                                $recForeColor = $this->paymentExpiredFRGND;
+                                $recBackColor = $this->paymentExpiredBKGND;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                $data[] = '';
+                $data[] = $profileRecID;
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true'
+                                  . '&' . self::MISC_MARKROW_URL . '=' . $profileRecID,
+                                  $eachRecID[self::DBFLD_PROFILE_EDRPO]);
+                $data[] = $eachRecID[self::DBFLD_PROFILE_NAME];
+                $data[] = $eachRecID[self::DBFLD_PROFILE_CONTACT];
+                $data[] = $eachRecID[self::DBFLD_PROFILE_MAIL];
+                $data[] = $recForeColor;
+                $data[] = $recBackColor;
+                $data[] = '&' . self::DBFLD_EXTCONTRAS_PROFILE_ID . '=' . $profileRecID;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
+
+    /**
+     * Renders second-level contract-address JQDT for external counterparty list
+     *
+     * @param string $customJSCode
+     * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
+     *
+     * @return string
+     */
+    public function extcontrasRenderCntrctAddrJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
+        $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_CNTRCT_ADDR_JSON . '=true' . $detailsFilter;
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
+
+        $columns[] = '';
+        $columns[] = __('ID');
         $columns[] = __('Contract');
         $columns[] = __('Contract subject');
         $columns[] = __('Contract date start');
@@ -2141,33 +2326,31 @@ class ExtContras {
         $columns[] = __('Payment expired');
         $columns[] = __('Filter for details');
 
-        $this->getTableGridColorOpts();
-
         $opts = '
             "columnDefs": [ 
                             {"targets": [0], "className": "details-control"},
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
-                            {"targets": [0], "defaultContent": ""},
-                            {"targets": [15, 16, 17, 18], "visible": false},
-                            {"targets": [7, 8], "className": "dt-left dt-head-center"},
+                            {"targets": [0], "defaultContent": ""},                           
+                            {"targets": [13, 14, 15, 16], "visible": false},                     
+                            {"targets": [3, 6, 7], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [13], "orderable": false},
-                            {"targets": [13], "width": "85px"}                            
+                            {"targets": [12], "width": "85px"},
+                            {"targets": [11, 12], "orderable": false}                                                        
                           ],
             "order": [[ 1, "desc" ]],
             "rowCallback": function(row, data, index) {                               
-                if ( data[12] == "1" ) {
+                if ( data[13] == "1" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->payedThisMonthBKGND . '\');
                     $(\'td\', row).css(\'color\', \'' . $this->payedThisMonthFRGND . '\');
                 } 
                 
-                if ( data[13] == "1" ) {
+                if ( data[14] == "1" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->fiveDaysTillPayBKGND . '\');
                     $(\'td\', row).css(\'color\', \'' . $this->fiveDaysTillPayFRGND . '\');
                 } 
                 
-                if ( data[14] == "1" ) {
+                if ( data[15] == "1" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->paymentExpiredBKGND . '\');
                     $(\'td\', row).css(\'color\', \'' . $this->paymentExpiredFRGND . '\');
                 } 
@@ -2175,20 +2358,19 @@ class ExtContras {
             
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                    self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 18);
-
+                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 16, 'showDetailsData22');
         return($result);
     }
 
     /**
-     * Renders JSON for external counterparty JQDT
+     * Renders JSON for external counterparty contract-address JQDT
      *
      * @param string $whereRaw
      *
      */
-    public function extcontrasRenderListJSON($whereRaw = '') {
+    public function cntrctsaddrRenderListJSON($whereRaw = '') {
         $this->loadExtContrasExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
 
@@ -2196,77 +2378,52 @@ class ExtContras {
             $data = array();
 
             foreach ($this->allExtContrasExten as $eachRecID) {
-/*                $fldCntr = 0;
 
-                foreach ($eachRecID as $fieldName => $fieldVal) {
-                    switch ($fldCntr) {
-                        case 0:
-
-                            $fldCntr++;
-                    }
-                    if ($fieldName == self::DBFLD_INVOICES_CONTRASID) {
-                        (empty($this->allECProfiles[$fieldVal]) ? '' : $this->allECProfiles[$fieldVal][self::DBFLD_PROFILE_NAME]);
-                    } elseif ($fieldName == self::DBFLD_INVOICES_INCOMING or $fieldName == self::DBFLD_INVOICES_OUTGOING) {
-                        $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
-                    } else {
-                        $data[] = $fieldVal;
-                    }
-                }
-*/
                 $curRecID       = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
-                $profileRecID   = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID];
                 $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
-                $addrRedID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
+                $addrRecID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
                 $contractSum    = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
 
                 $data[] = '';
                 $data[] = $curRecID;
-                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTPROFILES . '=true'
-                                  . '&' . self::MISC_MARKROW_URL . '=' . $profileRecID,
-                                  $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO]);
-                $data[] = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME];
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
-                                  . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
-                                  $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
+                                    . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
+                                    $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
                 $data[] = $contractSum;
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
-                                  . '&' . self::MISC_MARKROW_URL . '=' . $addrRedID,
-                                  $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
+                                    . '&' . self::MISC_MARKROW_URL . '=' . $addrRecID,
+                                    $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
 
                 $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_CTNOTES];
                 $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_SUM];
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
 
-/*                $this->fileStorage->setItemid(self::URL_INVOICES . $eachRecID['id']);
-                $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                    '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
-*/
-
                 $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                         array(self::ROUTE_FINOPS_ACTS => 'true',
-                                                              self::ROUTE_ACTION_PREFILL => 'true',
-                                                              self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
-                                                                                               self::CTRL_MONEY_SUMPAYMENT => $contractSum
-                                                                                              )
-                                                             ),
-                                                         '', web_add_icon(), '', 'POST', 'click', false, false, true
-                                                       );
+                                                            self::ROUTE_ACTION_PREFILL => 'true',
+                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
+                                                                                             self::CTRL_MONEY_SUMPAYMENT => $contractSum
+                                                                                            )
+                                                        ),
+                                                        '', web_add_icon(), '', 'POST', 'click', false, false, true
+                                                    );
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID);
 
                 $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
                 $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
-                //$data[] = json_encode(array(self::DBFLD_COMMON_ID => $curRecID));
-                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID;
-
+                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID
+                          . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
+                          . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
                 $json->addRow($data);
+
                 unset($data);
             }
         }
@@ -2281,6 +2438,7 @@ class ExtContras {
      */
     public function extcontrasColorSettings() {
         $this->getTableGridColorOpts();
+        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
 
         $inputs = '';
 
@@ -2292,7 +2450,7 @@ class ExtContras {
         $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Payment expired foreground'), $this->paymentExpiredFRGND, true, '7');
         $inputs.= wf_delimiter(0);
         $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"; disabled="' . $this->ecReadOnlyAccess . '"');
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"; ' . $submitDisabled);
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS_COLORS . '=true','POST',
                             $inputs, 'glamour');
@@ -2475,14 +2633,25 @@ class ExtContras {
      *
      * @param string $customJSCode
      * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
+     *
      * @return string
      */
     public function finopsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true' . $detailsFilter;
+        $colTargets1 = '[1, 2]';
+        $colTargets2 = '[11, 12]';
 
         $columns[] = __('ID');
         $columns[] = __('Counterparty');
-        $columns[] = __('Invoice');
+
+        if ($this->ecInvoicesON) {
+            $columns[] = __('Invoice');
+            $colTargets1 = '[1, 2, 3]';
+            $colTargets2 = '[12, 13]';
+        }
+
         $columns[] = __('Leading financial operation');
         $columns[] = __('Operation purpose');
         $columns[] = __('Operation date');
@@ -2497,25 +2666,18 @@ class ExtContras {
 
         $opts = '
             "order": [[ 0, "desc" ]],
-            "columnDefs": [ {"targets": [1, 2, 3], "className": "dt-left dt-head-center"},
+            "columnDefs": [ {"targets": ' . $colTargets1 . ', "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [12, 13], "orderable": false},
-                            {"targets": [12], "width": "85px"}
+                            {"targets": ' . $colTargets2 . ', "orderable": false},
+                            {"targets": ' . $colTargets2 . ', "width": "85px"}
                           ]                                      
             ';
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
-            self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-            self::MISC_MARKROW_URL);
-
-        if (!empty($detailsFilter)) {
-            $jqdtID = 'jqdt_' . md5($ajaxURL);
-            $result.= wf_HiddenInput('detailJQDT', $jqdtID, 'detailJQDTID');
-        }
-
+                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL);
         return($result);
     }
-
 
     /**
      * Renders JSON for finance operations JQDT
@@ -2523,8 +2685,6 @@ class ExtContras {
      * @param string $whereRaw
      */
     public function finopsRenderListJSON($whereRaw = '') {
-        //$this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES);
-
         if (!empty($whereRaw)) {
             $this->dbECMoney->whereRaw($whereRaw);
         }
@@ -2544,10 +2704,12 @@ class ExtContras {
                                     . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
                         );
                     } elseif ($fieldName == self::DBFLD_MONEY_INVOICEID) {
-                        $data[] = (empty($this->allECInvoices[$fieldVal]) ? ''
-                                  : $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_INVOICE_NUM]
-                                    . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_DATE]
-                                    . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_SUM]);
+                        if ($this->ecInvoicesON) {
+                            $data[] = (empty($this->allECInvoices[$fieldVal]) ? ''
+                                       : $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_INVOICE_NUM]
+                                        . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_DATE]
+                                        . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_SUM]);
+                        }
                     } elseif ($fieldName == self::DBFLD_MONEY_ACCRUALID) {
                         $data[] = (empty($this->allECMoney[$fieldVal]) ? ''
                                   : $this->allECMoney[$fieldVal][self::DBFLD_MONEY_PURPOSE]
@@ -2560,11 +2722,70 @@ class ExtContras {
                     }
                 }
 
-                $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID['id']);
+                $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[self::DBFLD_COMMON_ID]);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
                           '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
 
-                $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_FINOPS_ACTS, true);
+                $actions = $this->getStdJQDTActions($eachRecID[self::DBFLD_COMMON_ID], self::ROUTE_FINOPS_ACTS, true);
+                $data[]  = $actions;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
+
+    /**
+     * Renders JSON for finance operations nested JQDT
+     *
+     * @param string $whereRaw
+     */
+    public function finopsRenderNestedListJSON($whereRaw = '') {
+        $this->loadFinopsExtenData(true, $whereRaw);
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allECMoneyExten)) {
+            $data = array();
+
+            foreach ($this->allECMoneyExten as $eachRecID) {
+                $curRecIDFld = self::TABLE_ECMONEY . self::DBFLD_COMMON_ID;
+
+                foreach ($eachRecID as $fieldName => $fieldVal) {
+                    $tmpFldName  = str_replace(self::TABLE_ECMONEY, '', $fieldName);
+
+                    if ($tmpFldName == self::DBFLD_MONEY_CONTRASID) {
+                        $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
+                            : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
+                            . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
+                        );
+                    } elseif ($tmpFldName == self::DBFLD_MONEY_INVOICEID) {
+                        if ($this->ecInvoicesON) {
+                            $data[] = (empty($this->allECInvoices[$fieldVal]) ? ''
+                                       : $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_INVOICE_NUM]
+                                        . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_DATE]
+                                        . $this->allECInvoices[$fieldVal][self::DBFLD_INVOICES_SUM]);
+                        }
+                    } elseif ($tmpFldName == self::DBFLD_MONEY_ACCRUALID) {
+                        $data[] = (empty($this->allECMoney[$fieldVal]) ? ''
+                            : $this->allECMoney[$fieldVal][self::DBFLD_MONEY_PURPOSE]
+                            . $this->allECMoney[$fieldVal][self::DBFLD_MONEY_SMACCRUAL]
+                            . $this->allECMoney[$fieldVal][self::DBFLD_MONEY_DATE]);
+                    }  elseif ($tmpFldName == self::DBFLD_MONEY_INCOMING or $tmpFldName == self::DBFLD_MONEY_OUTGOING) {
+                        $data[] = (empty($fieldVal) ? web_red_led() : web_green_led());
+                    }  elseif (ispos($tmpFldName, 'extcontras')) {
+                        continue;
+                    } else {
+                        $data[] = $fieldVal;
+                    }
+                }
+
+                $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[$curRecIDFld]);
+                $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
+                                                        '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
+
+                $actions = $this->getStdJQDTActions($eachRecID[$curRecIDFld], self::ROUTE_FINOPS_ACTS, true);
                 $data[]  = $actions;
 
                 $json->addRow($data);

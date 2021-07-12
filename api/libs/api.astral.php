@@ -2487,38 +2487,41 @@ function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncatePa
 }
 
 
-function wf_JQDTDetailsClickProcessingJS($ajaxURL, $colIndex, $jqdtID, $ajaxMethod = 'POST', $jsFuncName = 'showDetailsData') {
+function wf_JQDTDetailsClickProcessingJS($ajaxURL, $colIndex, $jqdtID, $ajaxMethod = 'POST',
+                                         $jsFuncName = 'showDetailsData', $divContainerCSS = '') {
+    $divCSS = (empty($divContainerCSS) ? '{"margin-top":"5px", "margin-left":"10px", "margin-bottom":"10px"}' : $divContainerCSS);
     $result = '
 $(document).ready(function() {    
-    $(\'#' . $jqdtID . ' tbody\').on(\'click\', \'td.details-control\', function () {
+    $(\'#' . $jqdtID . ' tbody\').on(\'click\', \'td.details-control\', function (evt) {
+        evt.stopPropagation();
         var table = $(\'#' . $jqdtID . '\').DataTable();
         var tr = $(this).closest(\'tr\');
         var row = table.row( tr );
         var rowIdx = row.index();
         var ajaxData = table.cell(rowIdx, ' . $colIndex . ').data();
- 
+        
         if ( row.child.isShown() ) {
             row.child.hide();
             tr.removeClass(\'shown\');
         }
         else {
-            row.child( ' . $jsFuncName . '(row.data(), ajaxData) ).show();
+            row.child( ' . $jsFuncName . '(row.data(), ajaxData, \''. $ajaxURL . '\', \''. $ajaxMethod . '\') ).show();
             tr.addClass(\'shown\');
         }
     } );
         
-    function ' . $jsFuncName . ' ( rowData, ajaxData ) {
+    function ' . $jsFuncName . ' ( rowData, ajaxData, ajaxURL, ajaxMethod ) {
         var div = $(\'<div/>\')
                   .addClass( \'detailsLoading\' )
                   .text( \'Loading...\' );
      
         $.ajax( {
-            type: "' . $ajaxMethod . '",
-            url: \'' . $ajaxURL . '\',
+            type: ajaxMethod,
+            url: ajaxURL,
             data: ajaxData,            
             success: function ( reqResult ) {
                 div.html( reqResult ).removeClass( \'loading\' );
-                div.css({"margin-top":"5px", "margin-left":"10px", "margin-bottom":"10px"});
+                div.css(' . $divCSS . ');
             }
         } );
      

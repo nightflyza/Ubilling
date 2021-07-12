@@ -5,9 +5,6 @@ if (cfr('EXTCONTRAS')) {
 
         show_window(__('External counterparties: finances'), $ExtContras->renderMainControls());
 
-//file_put_contents('zxcv', '');
-//file_put_contents('axcv', '');
-
         if (ubRouting::checkPost($ExtContras::ROUTE_FORCECACHE_UPD)) {
             $ExtContras->refreshCacheForced();
             die($ExtContras->renderWebMsg(__('Info'), __('Cache data updated succesfuly'), 'info'));
@@ -66,9 +63,18 @@ if (cfr('EXTCONTRAS')) {
 
         if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_JSON)) {
             $whereRaw = '';
+            $useExtenData = false;
 
-            if (ubRouting::checkGet($ExtContras::DBFLD_COMMON_ID)) {
-                $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_CONTRASID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID);
+            if (ubRouting::checkGet($ExtContras::DBFLD_COMMON_ID)
+                and ubRouting::checkGet($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
+                and ubRouting::checkGet($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID)) {
+
+                $useExtenData = true;
+                $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_CONTRASID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID)
+                            . " AND `" . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
+                            . " AND `" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
+
+                $ExtContras->finopsRenderNestedListJSON($whereRaw);
             } else {
                 /*if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
                     $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
@@ -83,10 +89,29 @@ if (cfr('EXTCONTRAS')) {
             $ExtContras->finopsRenderListJSON($whereRaw);
         }
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_CNTRCT_ADDR_JSON)) {
+            $whereRaw = '';
+
+            if (ubRouting::checkGet($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID)) {
+                $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID);
+            }
+
+            $ExtContras->cntrctsaddrRenderListJSON($whereRaw);
+        }
+
         if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_DETAILS)) {
             if (ubRouting::checkPost($ExtContras::DBFLD_COMMON_ID)) {
-                $detailsFilter = '&' . $ExtContras::DBFLD_COMMON_ID . '=' . ubRouting::post($ExtContras::DBFLD_COMMON_ID);
+                $detailsFilter = '&' . $ExtContras::DBFLD_COMMON_ID . '=' . ubRouting::post($ExtContras::DBFLD_COMMON_ID)
+                                 . '&' . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
+                                 . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
                 die($ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false));
+            }
+        }
+
+        if (ubRouting::checkGet($ExtContras::ROUTE_CNTRCT_ADDR_DETAIL)) {
+            if (ubRouting::checkPost($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID)) {
+                $detailsFilter = '&' . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID);
+                die($ExtContras->extcontrasRenderCntrctAddrJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false));
             }
         }
 
@@ -106,7 +131,7 @@ if (cfr('EXTCONTRAS')) {
                                   false, 'ubButton', 'style="display: inline; padding: 3px 7px; vertical-align: middle;"'),
                         wf_Plate($ExtContras->extcontrasWebForm(false), '', '', '', 'margin-right: 30px;')
                         . $ExtContras->extcontrasFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
-                        . $ExtContras->extcontrasRenderJQDT()
+                        . $ExtContras->extcontrasRenderMainJQDT()
                         );
         }
 
