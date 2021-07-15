@@ -450,7 +450,7 @@ class ProfileDocuments {
         $id = vf($id, 3);
         $query = "DELETE from `docxtemplates` WHERE `id`='" . $id . "';";
         nr_query($query);
-        log_register("PLDOCS DEL TEMPLATE [" . $id . "]");
+        log_register("PLDOCS UNREG TEMPLATE [" . $id . "]");
     }
 
     /**
@@ -461,7 +461,22 @@ class ProfileDocuments {
      * @return void
      */
     public function deleteTemplate($id) {
-        $id = vf($id, 3);
+        $id = ubRouting::filters($id, 'int');
+        $templatesDb = new NyanORM('docxtemplates');
+        $templatesDb->where('id', '=', $id);
+        $templateData = $templatesDb->getAll('id');
+        if (!empty($templateData)) {
+            $templateFileToDelete = $templateData[$id]['path'];
+            if (file_exists(self::TEMPLATES_PATH . $templateFileToDelete)) {
+                rcms_delete_files(self::TEMPLATES_PATH . $templateFileToDelete);
+                log_register('PLDOCS DELETE TEMPLATE [' . $id . ']');
+            } else {
+                log_register('PLDOCS DELETE TEMPLATE [' . $id . '] FAIL `' . $templateFileToDelete . '` NOT_EXISTS');
+            }
+        } else {
+            log_register('PLDOCS DELETE TEMPLATE [' . $id . '] FAIL NO_DB_REC');
+        }
+
         $this->unregisterTemplateDB($id);
     }
 
