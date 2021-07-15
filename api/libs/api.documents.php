@@ -674,6 +674,31 @@ class ProfileDocuments {
     }
 
     /**
+     * Deletes specified document from filesystem documents storage
+     * 
+     * @param int $documentId
+     * 
+     * @return void
+     */
+    protected function deleteDocument($documentId) {
+        $documentId = ubRouting::filters($documentId, 'int');
+        $documentsDb = new NyanORM('docxdocuments');
+        $documentsDb->where('id', '=', $documentId);
+        $documentData = $documentsDb->getAll('id');
+        if (!empty($documentData)) {
+            $fileToDelete = $documentData[$documentId]['path'];
+            if (file_exists(self::DOCUMENTS_PATH . $fileToDelete)) {
+                rcms_delete_files(self::DOCUMENTS_PATH . $fileToDelete);
+                log_register('PLDOCS DELETE DOCUMENT [' . $documentId . ']');
+            } else {
+                log_register('PLDOCS DELETE DOCUMENT [' . $documentId . '] FAIL `' . $fileToDelete . '` NOT_EXISTS');
+            }
+        } else {
+            log_register('PLDOCS DELETE DOCUMENT [' . $documentId . '] FAIL NO_DB_REC');
+        }
+    }
+
+    /**
      * kills document in database
      * 
      * @param int $documentid - existing document ID
@@ -682,10 +707,12 @@ class ProfileDocuments {
      */
     public function unregisterDocument($documentid) {
         $documentid = vf($documentid, 3);
-
+        //FS cleanup
+        $this->deleteDocument($documentid);
+        //database index cleanup
         $query = "DELETE FROM `docxdocuments` WHERE `id`='" . $documentid . "'";
         nr_query($query);
-        log_register("PLDOCS DEL DOCUMENT [" . $documentid . "]");
+        log_register("PLDOCS UNREG DOCUMENT [" . $documentid . "]");
     }
 
     /**
