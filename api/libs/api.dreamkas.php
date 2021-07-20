@@ -447,6 +447,8 @@ class DreamKas {
         $tQueryResult = simple_queryall($tQuery);
 
         if (!empty($tQueryResult)) {
+            $this->localFiscalOperations = array();
+
             foreach ($tQueryResult as $eachRec) {
                 $this->localFiscalOperations[$eachRec['operation_id']] = $eachRec;
             }
@@ -470,6 +472,27 @@ class DreamKas {
         if (!empty($tQueryResult)) {
             foreach ($tQueryResult as $eachRec) {
                 $result = base64_decode($eachRec['operation_body']);
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns the all actual data of fiscal operation
+     *
+     * @param $operationID
+     *
+     * @return false|string
+     */
+    public function getFiscalOperationLocalData($operationID) {
+        $tQuery = "SELECT * FROM `dreamkas_operations` WHERE `operation_id` = '" . $operationID . "'";
+        $tQueryResult = simple_queryall($tQuery);
+        $result = '';
+
+        if (!empty($tQueryResult)) {
+            foreach ($tQueryResult as $eachRec) {
+                $result = $eachRec;
             }
         }
 
@@ -1060,6 +1083,9 @@ class DreamKas {
      * Check fiscalizing routine
      *
      * @param $preparedCheckDataJSON
+     * @param int $banksta2RecID
+     * @param string $repeatedFiscopID
+     *
      */
     public function fiscalizeCheck($preparedCheckDataJSON, $banksta2RecID = 0, $repeatedFiscopID = '') {
         $tmpMessageStr = '';
@@ -1072,6 +1098,7 @@ class DreamKas {
             $checkEmail = (isset($tArr['attributes']['email'])) ? ' email: [' . $tArr['attributes']['email'] . '] ' : '';
             $checkPhone = (isset($tArr['attributes']['phone'])) ? ' phone: [' . $tArr['attributes']['phone'] . '] ' : '';
             $urlString = self::URL_API . 'receipts';
+            $banksta2LogStr = '';
 
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_POST, true);
@@ -1097,10 +1124,11 @@ class DreamKas {
 
                     if (!empty($banksta2RecID)) {
                         $this->setBS2Relations($banksta2RecID, $result['id'], $fiscopReceiptID);
+                        $banksta2LogStr = ' BANKSTA2 record ID: ' . $banksta2RecID;
                     }
 
                     $tmpMessageType = 'info';
-                    $tmpMessageStr = 'DREAMKAS CHECK FISCALAZING: operation added with ID [' . $result['id'] . ']. Check total sum: [' . $checkTotalPrice . ']. Check contacts: ' . $checkPhone . $checkEmail;
+                    $tmpMessageStr = 'DREAMKAS CHECK FISCALAZING: operation added with ID [' . $result['id'] . ']. Check total sum: [' . $checkTotalPrice . ']. Check contacts: ' . $checkPhone . $checkEmail . $banksta2LogStr;
                 } else {
                     $tmpMessageType = 'error';
                     $tmpMessageStr = 'DREAMKAS CHECK FISCALAZING ERROR. Check total sum: [' . $checkTotalPrice . ']. Check contacts: ' . $checkPhone . $checkEmail . ' SERVER ERROR MESSAGE: ' . $this->errorToString($result);
@@ -1215,15 +1243,17 @@ class DreamKas {
      * @param $serviceType
      * @param $processingBanksta2
      * @param $bankstaRecID
+     * @param $bankstaRecProcessed
      *
      * @return string
      */
-    public function web_FiscalizePaymentCtrls($serviceType, $processingBanksta2 = false, $bankstaRecID = '') {
+    public function web_FiscalizePaymentCtrls($serviceType, $processingBanksta2 = false, $bankstaRecID = '', $bankstaRecProcessed = false) {
         $selectSellPositionID = (isset($this->sellPos2SrvTypeMapping[strtolower($serviceType)]['goods_id'])) ? $this->sellPos2SrvTypeMapping[strtolower($serviceType)]['goods_id'] : '';
+        $processedClassMark = ($bankstaRecProcessed ? ' __BankstaRecProcessed ' : '');
 
         if ($processingBanksta2) {
             $cells = wf_TableCell(__('Fiscalize this payment?') . wf_nbsp() .
-                                  wf_CheckInput('fiscalizepayment_' . $bankstaRecID, '', false, $this->alwaysFiscalizeAll, 'FiscalizeManualPaym_' . $bankstaRecID), '', 'row2');
+                                  wf_CheckInput('fiscalizepayment_' . $bankstaRecID, '', false, $this->alwaysFiscalizeAll, 'FiscalizeManualPaym_' . $bankstaRecID, $processedClassMark), '', 'row2');
             $cells .= wf_TableCell(__('Choose cash machine') . wf_nbsp() .
                                    $this->getSelectorWebControl($this->cashMachines4Selector, 'drscashmachines_' . $bankstaRecID, $this->defaultCashMachineID, 'DreamkasCashMachineSelector_' . $bankstaRecID, '__DreamkasCashMachineSelector'), '', 'row2', '', '3');
             $cells .= wf_TableCell(__('Choose tax type') . wf_nbsp() .
@@ -1331,6 +1361,31 @@ class DreamKas {
         return ($row);
     }
 
+    public function web_FiscalOperationDetailsTableRow($bs2RecID) {
+        $row = '';
+
+        if (empty($this->bs2RelationsUnProcessed)) {
+            $this->getBS2RelationsUnProcessed();
+        }
+
+        if (isset($this->bs2RelationsUnProcessed[$bs2RecID])) {
+            $fiscopID = $this->bs2RelationsUnProcessed[$bs2RecID]['operation_id'];
+            $fiscopData = $this->getFiscalOperationLocalData($fiscopID);
+            $fiscopStatus = $fiscopData['status'];
+            $fiscopDateCreate = $fiscopData['date_create'];
+
+            $cells = wf_TableCell(wf_tag('b', false) . '#' . $bs2RecID .':' . wf_tag('b', true) . wf_nbsp(4)
+                                  . __('Fiscal operation ID') . ':' . wf_nbsp(2) . $fiscopID
+                                  . wf_nbsp(8) . __('Creation date') . ':' . wf_nbsp(2) . $fiscopDateCreate
+                                  . wf_nbsp(8) . __('Current status') . ':' . wf_nbsp(2) . $fiscopStatus,
+                                  '', '', 'style="border: solid #b84c04; border-width: 1px; padding: 4px;"', '11');
+
+            $row = wf_TableRow($cells);
+        }
+
+        return ($row);
+    }
+
     /**
      * Returns main buttons controls for Dreamkas
      *
@@ -1362,10 +1417,13 @@ class DreamKas {
         $ajaxUrlStr = self::URL_ME . '&foperationslistajax=true';
         $jqdtId = 'jqdt_' . md5($ajaxUrlStr);
 
+        $dateFrom = (ubRouting::checkGet('fopsdatefrom', false) ? ubRouting::get('fopsdatefrom') : date('Y-m-d', strtotime(curdate() . "-1 day")));
+        $dateTo = (ubRouting::checkGet('fopsdateto', false) ? ubRouting::get('fopsdateto') : curdate());
+
         // filter controls for dates
-        $inputs = wf_DatePicker('fopsdatefrom');
+        $inputs = wf_DatePickerPreset('fopsdatefrom', $dateFrom);
         $inputs .= __('Creation date from') . wf_nbsp(3);
-        $inputs .= wf_DatePicker('fopsdateto');
+        $inputs .= wf_DatePickerPreset('fopsdateto', $dateTo);
         $inputs .= __('Creation date to') . wf_nbsp(4);
         $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Show'));
         $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -1373,6 +1431,7 @@ class DreamKas {
                     $(\'#' . $formID . '\').submit(function(evt) {
                         evt.preventDefault();
                         var FrmData = $(\'#' . $formID . '\').serialize();
+
                         $(\'#' . $jqdtId . '\').DataTable().ajax.url(\'' . $ajaxUrlStr . '\' + \'&\' + FrmData).load();  
                         $(\'#' . $jqdtId . '\').DataTable().ajax.url(\'' . $ajaxUrlStr . '\');
                     });
@@ -1700,15 +1759,18 @@ class DreamKas {
 
     /**
      * JSON for fiscal operations JQDT
+     *
+     * @param string $dateFrom
+     * @param string $dateTo
      */
     public function renderFiscalOperationsListJSON($dateFrom = '', $dateTo = '') {
         $json = new wf_JqDtHelper();
 
         $whereStr = '';
         if (!empty($dateFrom) and !empty($dateTo)) {
-            $whereStr = " `date_create` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "  23:59:59' ";
+            $whereStr = " `date_create` BETWEEN '" . $dateFrom . " 00:00:00' AND '" . $dateTo . "  23:59:59' ";
         } elseif (!empty($dateFrom) and empty($dateTo)) {
-            $whereStr = " `date_create` >= '" . $dateFrom . "  23:59:59' ";
+            $whereStr = " `date_create` >= '" . $dateFrom . "  00:00:00' ";
         } elseif (empty($dateFrom) and !empty($dateTo)) {
             $whereStr = " `date_create` <= '" . $dateTo . "  23:59:59' ";
         }
@@ -1723,7 +1785,6 @@ class DreamKas {
             $ajaxURLStr = self::URL_ME . '&foperationslistajax=true';
             $JQDTId = 'jqdt_' . md5($ajaxURLStr);
             $data = array();
-            //$fopsData = $fopsData['data'];
 
             foreach ($fopsData as $eachFOperation) {
                 $fiscopID = $eachFOperation['operation_id'];

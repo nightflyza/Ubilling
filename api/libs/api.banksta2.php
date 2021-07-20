@@ -2235,7 +2235,8 @@ class Banksta2 {
 
                         if (empty($dreamkasCtrls)) {
                             $addFiscalizePaymentCtrlsJS = true;
-                            $dreamkasCtrls = $DreamKas->web_FiscalizePaymentCtrls($serviceType, true, $eachRec['id']);
+                            $dreamkasCtrls = $DreamKas->web_FiscalizePaymentCtrls($serviceType, true, $eachRec['id'], $recProcessed);
+                            $dreamkasCtrls.= $DreamKas->web_FiscalOperationDetailsTableRow($eachRec['id']);
                         }
 
                         $rows.= $dreamkasCtrls;
@@ -2248,54 +2249,110 @@ class Banksta2 {
 
             if (!empty($cashPairs) or $refiscalize) {
                 $cashInputs = '';
+                $formID     = wf_InputId();
+                $submitID   = wf_InputId();
+                $submitID2  = wf_InputId();
+                $fiscalizeallChkID      = wf_InputId();
+                $submitCaption          = __('Process current bank statement');
+                $submitCaption2         = __('Re-fiscalize payments');
+                $fiscalizeallChkCapt    = __('Check to fiscalize all');
+                $unfiscalizeallChkCapt  = __('Clear check to fiscalize all');
 
-                if ($refiscalize) {
-                    $submitCaption = __('Re-fiscalize payments');
-                    $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush', base64_encode(serialize('refiscalize')));
-                    $cashInputs.= wf_HiddenInput('bankstaneedrefiscalize', 'true');
-                } else {
+                if ($dreamkasEnabled and (!empty($cashPairs) or $refiscalize)) {
+                    //$cashInputs.= wf_delimiter(0);
+                    $cashInputs.= wf_CheckInput('fiscalizeall', $fiscalizeallChkCapt, false, false, $fiscalizeallChkID);
+                    $cashInputs.= wf_delimiter();
+                }
+
+                if (!empty($cashPairs)) {
                     $cashPairs = serialize($cashPairs);
                     $cashPairs = base64_encode($cashPairs);
                     $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush', $cashPairs);
-                    $cashInputs.= wf_HiddenInput('bankstaneedrefiscalize', 'false');
                     $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstafiscalrecsidslist', base64_encode(json_encode($fiscalRecsIDsList))) : '';
-                    $submitCaption = __('Process current bank statement');
+                    $cashInputs.= wf_Submit($submitCaption, $submitID);
+                    $cashInputs.= wf_nbsp(4);
+                } else {
+                    $cashInputs.= wf_HiddenInput('bankstaneedpaymentspush', base64_encode(serialize('dummy_dump')));
                 }
 
-                $formID     = wf_InputId();
-                $submitID   = wf_InputId();
+                if ($refiscalize) {
+                    $cashInputs.= wf_Submit($submitCaption2, $submitID2);
+                    $cashInputs.= wf_nbsp(2);
+                }
+
+                $cashInputs.= wf_HiddenInput('bankstaneedrefiscalize', 'false');
                 $cashInputs.= ($dreamkasEnabled) ? wf_HiddenInput('bankstapaymentsfiscalize', '') : '';
-                $cashInputs.= wf_Submit($submitCaption, $submitID);
+
                 $result.= wf_Form('', 'POST', $cashInputs, 'glamour', '', $formID);
 
                 if ($dreamkasEnabled) {
                     $result.= wf_tag('script', false, '', 'type="text/javascript"');
+                    $result.= wf_JSEmptyFunc();
                     $result.= '
+                                $(\'#' . $fiscalizeallChkID . '\').change(function() {
+                                    var checkVal = $(this).is(\':checked\');
+                                    $(\'[name^="fiscalizepayment_"]\').prop("checked", checkVal);
+                                    
+                                    if (checkVal) {
+                                        $(\'label[for="' . $fiscalizeallChkID . '"]\').html(\'' . $unfiscalizeallChkCapt . '\');
+                                    } else {
+                                        $(\'label[for="' . $fiscalizeallChkID . '"]\').html(\'' . $fiscalizeallChkCapt . '\');
+                                    } 
+                                });
+                    
+                                $(\'#' . $submitID2 . '\').on("click mouseup keyup", function(evt) {                                    
+                                    $(\'[name="bankstaneedrefiscalize"]\').val("true");
+                                }); 
+                    
                                 $(\'#' . $formID . '\').submit(function(evt) {
                                     $(\'#' . $submitID . '\').attr("disabled", "disabled");
                                     $(\'#' . $submitID . '\').val("' . __('Form processing in progress') . '...' . '");
+                                    $(\'#' . $submitID2 . '\').attr("disabled", "disabled");
+                                    $(\'#' . $submitID2 . '\').val("' . __('Form processing in progress') . '...' . '");
                                     
-                                    fiscalizationArr = {};
+                                    var fiscalizationArr = {};
+                                    var refiscalize = ( $(\'[name="bankstaneedrefiscalize"]\').val() === "true" );
+                           
                               ';
-                    $result.= ($refiscalize) ? '' : 'fiscalRecsIDsList = JSON.parse(atob($(\'[name="bankstafiscalrecsidslist"]\').val()));';
-                    $result.= '         $(\'[name^="fiscalizepayment_"]\').each(function(chkindex, chkelement) {
+
+                    $result.= '     if (!refiscalize) {
+                                        fiscalRecsIDsList = JSON.parse(atob($(\'[name="bankstafiscalrecsidslist"]\').val()));
+                                    }
+                                                        
+                              ';
+                    $result.= '     $(\'[name^="fiscalizepayment_"]\').each(function(chkindex, chkelement) {
                      
                                         if ($(chkelement).is(\':checked\')) {
                                             checkCtrlID = $(chkelement).attr("id").substring($(chkelement).attr("id").indexOf(\'_\') + 1);
-                                        ';
-                    $result.= ($refiscalize) ? '' : 'if ($.inArray(checkCtrlID, fiscalRecsIDsList) != -1) {';
-                    $result.= '                 fiscalizationArr[checkCtrlID] = {};
                                                 
+                                        ';
+
+                    $result.= '             if ( (refiscalize && $(chkelement).hasClass(\'__BankstaRecProcessed\'))  
+                                                || (!refiscalize && $.inArray(checkCtrlID, fiscalRecsIDsList) != -1) ) {
+                    
+                                                fiscalizationArr[checkCtrlID] = {};
+                                                    
                                                 fiscalizationArr[checkCtrlID][\'drscashmachineid\'] = $(\'[name=drscashmachines_\'+checkCtrlID+\']\').val();
                                                 fiscalizationArr[checkCtrlID][\'drstaxtype\'] = $(\'[name=drstaxtypes_\'+checkCtrlID+\']\').val();
                                                 fiscalizationArr[checkCtrlID][\'drspaymtype\'] = $(\'[name=drspaymtypes_\'+checkCtrlID+\']\').val();
                                                 fiscalizationArr[checkCtrlID][\'drssellingpos\'] = $(\'[name=drssellpos_\'+checkCtrlID+\']\').val();
-                                            ';
-                    $result.= ($refiscalize) ? '' : '}';
+                                            }
+                                        ';
+
                     $result.= '         }
                                     });
-                                    
-                                    $(\'[name="bankstapaymentsfiscalize"]\').val(btoa(JSON.stringify(fiscalizationArr)));
+                   
+                                    if (refiscalize && empty(fiscalizationArr)) {
+                                        evt.preventDefault();
+                                        $(\'#' . $submitID . '\').removeAttr("disabled");
+                                        $(\'#' . $submitID . '\').val("' . $submitCaption . '");
+                                        $(\'#' . $submitID2 . '\').removeAttr("disabled");
+                                        $(\'#' . $submitID2 . '\').val("' . $submitCaption2 . '");
+                                        alert(\'' . __('No records to re-fiscalize chosen') . '\');
+                                        return false; 
+                                    }
+                                             
+                                    $(\'[name="bankstapaymentsfiscalize"]\').val(btoa(JSON.stringify(fiscalizationArr)));                                    
                                 });
                               ';
                     $result.= wf_tag('script', true);

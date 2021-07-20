@@ -509,20 +509,22 @@ class NyanORM {
 
     /**
      * Returns all records of current database object instance
-     * 
+     *
      * @param string $assocByField field name to automatically make it as index key in results array
      * @param bool $flushParams flush all query parameters like where, order, limit and other after execution?
-     * 
+     * @param bool $distinctON add "DISTINCT" keyword for a "SELECT" clause
+     *
      * @return array
      */
-    public function getAll($assocByField = '', $flushParams = true) {
+    public function getAll($assocByField = '', $flushParams = true, $distinctON = false) {
         $joinString = $this->buildJoinString();
         $whereString = $this->buildWhereString();
         $orderString = $this->buildOrderString();
         $limitString = $this->buildLimitString();
         $selectableString = $this->buildSelectableString();
+        $distinct = ($distinctON ? ' DISTINCT ' : '');
         //building some dummy query
-        $query = "SELECT " . $selectableString . " from `" . $this->tableName . "` "; //base query
+        $query = "SELECT " . $distinct . $selectableString . " from `" . $this->tableName . "` "; //base query
         $query .= $joinString . $whereString . $orderString . $limitString; //optional parameters
         $this->debugLog($query);
         $result = simple_queryall($query);

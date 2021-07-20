@@ -420,7 +420,7 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @param string  $options
  * @param bool    $labelLeftSide
  * @param string  $labelOpts
- * 
+ *
  * @return  string
  *
  */
@@ -2449,7 +2449,7 @@ function wf_JQDTColumnTotalSumJS() {
  *
  * @return string
  */
-function wf_JQDTMarkRow($columnNum, $searchVal, $truncateURL = '', $truncateParam = '') {
+function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncateParam = '') {
     $truncateJSCode = '';
 
     if (!empty($truncateURL) and !empty($truncateParam)) {
@@ -2480,6 +2480,64 @@ function wf_JQDTMarkRow($columnNum, $searchVal, $truncateURL = '', $truncatePara
             ' . $truncateJSCode . '            
         });
         ';
+
+    return ($result);
+}
+
+/**
+ * Retruns a JS snippet for processing JQDT "details" functional
+ *
+ * @param $ajaxURL                  - URL to retrive data into "details" DIV
+ * @param $colIndex                 - above-level JQDT column index to get the AJAX data from
+ * @param $jqdtID                   - above-level JQDT DOM ID
+ * @param string $ajaxMethod
+ * @param string $jsFuncName        - JS function name which will be called on processing the "details click"
+ * @param string $divContainerCSS   - some CSS for "details" DIV
+ *
+ * @return string
+ */
+function wf_JQDTDetailsClickProcessingJS($ajaxURL, $colIndex, $jqdtID, $ajaxMethod = 'POST',
+                                         $jsFuncName = 'showDetailsData', $divContainerCSS = '') {
+    $divCSS = (empty($divContainerCSS) ? '{"margin-top":"5px", "margin-left":"10px", "margin-bottom":"10px"}' : $divContainerCSS);
+    $result = '
+$(document).ready(function() {    
+    $(\'#' . $jqdtID . ' tbody\').on(\'click\', \'td.details-control\', function (evt) {
+        evt.stopPropagation();
+        var table = $(\'#' . $jqdtID . '\').DataTable();
+        var tr = $(this).closest(\'tr\');
+        var row = table.row( tr );
+        var rowIdx = row.index();
+        var ajaxData = table.cell(rowIdx, ' . $colIndex . ').data();
+        
+        if ( row.child.isShown() ) {
+            row.child.hide();
+            tr.removeClass(\'shown\');
+        }
+        else {
+            row.child( ' . $jsFuncName . '(row.data(), ajaxData, \''. $ajaxURL . '\', \''. $ajaxMethod . '\') ).show();
+            tr.addClass(\'shown\');
+        }
+    } );
+        
+    function ' . $jsFuncName . ' ( rowData, ajaxData, ajaxURL, ajaxMethod ) {
+        var div = $(\'<div/>\')
+                  .addClass( \'detailsLoading\' )
+                  .text( \'Loading...\' );
+     
+        $.ajax( {
+            type: ajaxMethod,
+            url: ajaxURL,
+            data: ajaxData,            
+            success: function ( reqResult ) {
+                div.html( reqResult ).removeClass( \'loading\' );
+                div.css(' . $divCSS . ');
+            }
+        } );
+     
+        return div;
+    }
+} );    
+    ';
 
     return ($result);
 }

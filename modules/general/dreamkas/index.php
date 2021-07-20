@@ -38,10 +38,8 @@ if (cfr('DREAMKAS')) {
             }
 
             if (wf_CheckGet(array('foperationslistajax'))) {
-                //$dateFrom = (wf_CheckGet(array('fopsdatefrom'))) ? $_GET['fopsdatefrom'] : date('Y-m-d', strtotime(curdate() . "-1 day"));
-                //$dateTo = (wf_CheckGet(array('fopsdateto'))) ? $_GET['fopsdateto'] : curdate();
-                $dateFrom = (wf_CheckGet(array('fopsdatefrom'))) ? $_GET['fopsdatefrom'] : '';
-                $dateTo = (wf_CheckGet(array('fopsdateto'))) ? $_GET['fopsdateto'] : '';
+                $dateFrom = (ubRouting::checkGet('fopsdatefrom', false) ? ubRouting::get('fopsdatefrom') : date('Y-m-d', strtotime(curdate() . "-1 day")));
+                $dateTo = (ubRouting::checkGet('fopsdateto', false) ? ubRouting::get('fopsdateto') : curdate());
 
                 $DreamKas->renderFiscalOperationsListJSON($dateFrom, $dateTo);
             }

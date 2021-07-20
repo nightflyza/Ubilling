@@ -3280,5 +3280,6 @@ $lang['def']['Subscribers'] = 'Абоненти';
 $lang['def']['Unknown MACs'] = 'Невідомі МАКи';
 $lang['def']['Last trip'] = 'Остання поїздка';
 $lang['def']['Today trips'] = 'Сьогодняшні поїздки';
+$lang['def']['Port negotiation'] = 'Швидкість узгодження';
 
 ?>
