@@ -3126,6 +3126,8 @@ function ts_GetAllTasksQuickData() {
 }
 
 function ts_AdvFiltersControls($extraTrailingSpace = true) {
+    $whoami = whoami();
+    $employeeid = ts_GetEmployeeByLogin($whoami);
     $alljobtypes = ts_GetAllJobtypes();
     $alljobtypes = array('0' => __('Any')) + $alljobtypes;
     $selectedjobtype = ( wf_CheckPost(array('filtertaskjobtypeexact')) ) ? $_POST['filtertaskjobtypeexact'] : '';
@@ -3133,6 +3135,9 @@ function ts_AdvFiltersControls($extraTrailingSpace = true) {
     $addresscontains = ( wf_CheckPost(array('filtertaskaddr')) ) ? $_POST['filtertaskaddr'] : '';
     $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
     $phonecontains = ( wf_CheckPost(array('filtertaskphone')) ) ? $_POST['filtertaskphone'] : '';
+
+    // dirty hack for situations when admin is not in employee list
+    $tmpStyleStr = (empty($employeeid) ? 'style="float:right; margin: 8px 10px 5px 0px;"' : 'style="float: left; margin: 5px 10px 5px 0;"' );
 
     $inputs = wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
     $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
@@ -3149,7 +3154,7 @@ function ts_AdvFiltersControls($extraTrailingSpace = true) {
     $inputs .= wf_tag('span', true);
     $inputs .= wf_delimiter();
 
-    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
+    $inputs .= wf_tag('span', false, '', $tmpStyleStr);
     $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
     $inputs .= __('Address contains');
     $inputs .= wf_tag('h3', true);

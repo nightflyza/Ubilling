@@ -77,5 +77,10 @@ $lang['def']['right to control Dreamkas cash operations'] = 'Право упра
 $lang['def']['Last edit date'] = 'Последний раз редактировалось';
 $lang['def']['Mapped to service'] = 'Привязано к услуге';
 $lang['def']['Repeated operation ID'] = 'ID повторённой операции';
+$lang['def']['No records to re-fiscalize chosen'] = 'Не выбрано записей для повторной фискализации';
+$lang['def']['Check to fiscalize all'] = 'Выбрать все доступные для фискализации записи';
+$lang['def']['Clear check to fiscalize all'] = 'Снять выбор всех доступных для фискализации записей';
+$lang['def']['Creation date'] = 'Дата создания';
+$lang['def']['Current status'] = 'Текущий статус';
 $lang['def'][''] = '';
 

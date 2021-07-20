@@ -167,7 +167,9 @@ class MobiClubSms extends SMSServiceApi {
             $messagesIDs = array();
 
             foreach ($checkMessages as $io => $eachmessage) {
-                $messagesIDs[] = $eachmessage['srvmsgself_id'];
+                if (!empty($eachmessage['srvmsgself_id'])) {
+                    $messagesIDs[] = $eachmessage['srvmsgself_id'];
+                }
             }
 
             $messagesIdsList = implode(';', $messagesIDs);

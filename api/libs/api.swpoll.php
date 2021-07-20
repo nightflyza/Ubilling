@@ -515,7 +515,7 @@ function sp_parse_eltex_battery($data) {
  * @return mixed|string
  */
 function sp_parse_division_units($data, $divBy = '', $units = '') {
-    $result = __('Empty reply received');
+    $result = '';
 
     if (!empty($data)
         and !ispos($data, 'No Such Object available')
@@ -541,6 +541,11 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
         $cells .= wf_TableCell($value);
         $rows = wf_TableRow($cells, 'row3');
         $result = wf_TableBody($rows, '100%', 0, '');
+    } else {
+        $cells = wf_TableCell('', '24', '', 'style="height:20px;"');
+        $cells .= wf_TableCell(__('Empty reply received'));
+        $rows = wf_TableRow($cells, 'row3');
+        $result = wf_TableBody($rows, '100%', 0, '');
     }
 
     return ($result);
@@ -557,7 +562,7 @@ function sp_parse_division_units($data, $divBy = '', $units = '') {
  * @return mixed|string
  */
 function sp_parse_division_units_noport($data, $divBy = '', $units = '') {
-    $result = __('Empty reply received');
+    $result = '';
 
     if (!empty($data)
         and !ispos($data, 'No Such Object available')
@@ -576,6 +581,11 @@ function sp_parse_division_units_noport($data, $divBy = '', $units = '') {
         }
 
         $cells = wf_TableCell($value);
+        $rows = wf_TableRow($cells, 'row3');
+        $result = wf_TableBody($rows, '100%', 0, '');
+    } else {
+        $cells = wf_TableCell('', '24', '', 'style="height:20px;"');
+        $cells .= wf_TableCell(__('Empty reply received'));
         $rows = wf_TableRow($cells, 'row3');
         $result = wf_TableBody($rows, '100%', 0, '');
     }
