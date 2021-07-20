@@ -1931,11 +1931,21 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
  * @param string $value input pre setted data
  * @param bool   $br add line break after input?
  * @param string $size size of element
- * 
+ * @param string $changeCtrlColorID ID of the control which color will be changed to selected color
+ * @param string $changeCtrlColorCSSProp the CSS3 color-property which will be assigned to selected color
+ *                                       (like: background-color, border-color, etc)
+ *
  * @return string
  */
-function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '') {
+function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '', $changeCtrlColorID = '', $changeCtrlColorCSSProp = '') {
     $id = wf_InputId();
+
+    if (!empty($changeCtrlColorID) and !empty($changeCtrlColorCSSProp)) {
+        $changeCtrlColorJS = ' $(\'#' . $changeCtrlColorID . '\').css("' . $changeCtrlColorCSSProp .'", "#" + hex_str);';
+    } else {
+        $changeCtrlColorJS = '';
+    }
+
     $css = '
             <link rel="stylesheet" href="modules/jsc/colpick/colpick.css" type="text/css"/>';
     $js = '
@@ -1954,11 +1964,28 @@ function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '') 
                         $(el).val("#" + hex_str);
                         $(el).colpickHide();
                         $(el).focus();
+                    ' . $changeCtrlColorJS . '
+                    },
+                    onChange: function(hsb,hex,rgb,el) {
+                        var hex_str = hex;
+                    ' . $changeCtrlColorJS . '
                     }
                 });
             });
             </script>
         ';
+
+    if (!empty($changeCtrlColorJS)) {
+        $tmpJS = '
+                $(document).ready(function() {
+                    var colpickID = $("#' . $id . '").colpick().data("colpickId");
+                    var hex_str = $("#" + colpickID + " div.colpick_hex_field > input").val();
+                ' . $changeCtrlColorJS . '
+                });
+                ';
+        $js.= wf_EncloseWithJSTags($tmpJS);
+    }
+
     $size = (!empty($size) ) ? 'size="' . $size . '"' : null;
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" id="' . $id . '" ' . $size . '>' . "\n";
     $result .= (!empty($label) ) ? '<label for="' . $id . '">' . __($label) . '</label>' : null;

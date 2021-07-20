@@ -449,8 +449,12 @@ class ExtContras {
     const ROUTE_INVOICES_ACTS       = 'invoicesacts';
     const ROUTE_INVOICES_JSON       = 'invoiceslistjson';
     const ROUTE_FORCECACHE_UPD      = 'extcontrasforcecacheupdate';
-    const ROUTE_CNTRCT_ADDR_DETAIL  = 'contrascontractaddressdetails';
-    const ROUTE_CNTRCT_ADDR_JSON    = 'contrascontractaddressjson';
+    const ROUTE_2LVL_CNTRCTS_DETAIL = 'contras2lvlcntrctsdetails';
+    const ROUTE_2LVL_CNTRCTS_JSON   = 'contras2lvlcntrctsjson';
+    const ROUTE_2LVL_ADDRS_DETAIL   = 'contras2lvladdrsdetails';
+    const ROUTE_2LVL_ADDRS_JSON     = 'contras2lvladdrsjson';
+    const ROUTE_3LVL_ADDRS_DETAIL   = 'contras3lvladdrsdetails';
+    const ROUTE_3LVL_ADDR_JSON      = 'contras3lvladdrsjson';
 
 
     const TABLE_EXTCONTRAS      = 'extcontras';
@@ -2139,12 +2143,12 @@ class ExtContras {
         $inputs.= $this->renderWebSelector($this->allECContracts, array(self::DBFLD_CTRCT_CONTRACT,
                                                                         self::DBFLD_CTRCT_SUBJECT,
                                                                         self::DBFLD_CTRCT_FULLSUM),
-                                  self::CTRL_EXTCONTRAS_CONTRACT_ID, __('Contract') . $this->supFrmFldMark,
-                                           $contrasContractID, false, false, true, '', '', '', true);
+                                  self::CTRL_EXTCONTRAS_CONTRACT_ID, __('Contract'),
+                                           $contrasContractID, true, false, true, '', '', '', true);
         $inputs.= $this->renderWebSelector($this->allECAddresses, array(self::DBFLD_ADDRESS_ADDR,
                                                                         self::DBFLD_ADDRESS_SUM),
-                                  self::CTRL_EXTCONTRAS_ADDRESS_ID, __('Address') . $this->supFrmFldMark,
-                                           $contrasAddressID, false, false, true, '', '', '', true);
+                                  self::CTRL_EXTCONTRAS_ADDRESS_ID, __('Address'),
+                                           $contrasAddressID, true, false, true, '', '', '', true);
         $inputs.= $this->renderWebSelector($this->allECPeriods, array(self::DBFLD_PERIOD_NAME), self::CTRL_EXTCONTRAS_PERIOD_ID,
                                   __('Period') . $this->supFrmFldMark, $contrasPeriodID, false, false, true, '', '', '', true);
         $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, false, '4', 'digits',
@@ -2186,7 +2190,7 @@ class ExtContras {
      */
     public function extcontrasRenderMainJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_CONTRAS_JSON . '=true';
-        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_CNTRCT_ADDR_DETAIL . '=true';
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_2LVL_CNTRCTS_DETAIL . '=true';
 // todo: clarify about closed editing period - is it for financial operations only? - or for counterparties too?
 // !!!!!!!!!!!!!!!!!
         $columns[] = '';
@@ -2304,8 +2308,136 @@ class ExtContras {
      *
      * @return string
      */
-    public function extcontrasRenderCntrctAddrJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
-        $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_CNTRCT_ADDR_JSON . '=true' . $detailsFilter;
+    public function ecRender2ndLvlContractsJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
+        $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_2LVL_CNTRCTS_JSON . '=true' . $detailsFilter;
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
+
+        $columns[] = '';
+        $columns[] = __('ID');
+        $columns[] = __('Contract');
+        $columns[] = __('Contract subject');
+        $columns[] = __('Contract date start');
+        $columns[] = __('Contract sum');  //5
+        $columns[] = __('Period');
+        $columns[] = __('Payday');
+        $columns[] = __('Actions');     //8
+        $columns[] = __('Add financial operation');
+        $columns[] = __('Payed this month');
+        $columns[] = __('5 days till payday');
+        $columns[] = __('Payment expired');
+        $columns[] = __('Filter for details');      //13
+
+        $opts = '
+            "columnDefs": [ 
+                            {"targets": [0], "className": "details-control"},
+                            {"targets": [0], "orderable": false},
+                            {"targets": [0], "data": null},
+                            {"targets": [0], "defaultContent": ""},                           
+                            {"targets": [10, 11, 12, 13], "visible": false},                     
+                            {"targets": [3], "className": "dt-left dt-head-center"},
+                            {"targets": ["_all"], "className": "dt-center dt-head-center"},
+                            {"targets": [8], "width": "85px"},
+                            {"targets": [8, 9], "orderable": false}                                                        
+                          ],
+            "order": [[ 1, "desc" ]],
+            "rowCallback": function(row, data, index) {                               
+                if ( data[11] == "1" ) {
+                    $(\'td\', row).css(\'background-color\', \'' . $this->payedThisMonthBKGND . '\');
+                    $(\'td\', row).css(\'color\', \'' . $this->payedThisMonthFRGND . '\');
+                } 
+                
+                if ( data[12] == "1" ) {
+                    $(\'td\', row).css(\'background-color\', \'' . $this->fiveDaysTillPayBKGND . '\');
+                    $(\'td\', row).css(\'color\', \'' . $this->fiveDaysTillPayFRGND . '\');
+                } 
+                
+                if ( data[13] == "1" ) {
+                    $(\'td\', row).css(\'background-color\', \'' . $this->paymentExpiredBKGND . '\');
+                    $(\'td\', row).css(\'color\', \'' . $this->paymentExpiredFRGND . '\');
+                } 
+            }
+            
+            ';
+
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
+                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 13, 'showDetailsData22');
+        return($result);
+    }
+
+    /**
+     * Renders JSON for external counterparty contract-address JQDT
+     *
+     * @param string $whereRaw
+     *
+     */
+    public function ecRender2ndLvlContractsListJSON($whereRaw = '') {
+        $this->loadExtContrasExtenData(true, $whereRaw);
+        $json = new wf_JqDtHelper();
+
+        if (!empty($this->allExtContrasExten)) {
+            $data = array();
+
+            foreach ($this->allExtContrasExten as $eachRecID) {
+
+                $curRecID       = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
+                $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
+                $addrRecID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
+                $contractSum    = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
+
+                $data[] = '';
+                $data[] = $curRecID;
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
+                                    . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
+                                    $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
+                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
+                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
+                $data[] = $contractSum;
+                $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
+                $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
+
+                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
+                $data[]  = $actions;
+
+                $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
+                                                        array(self::ROUTE_FINOPS_ACTS => 'true',
+                                                            self::ROUTE_ACTION_PREFILL => 'true',
+                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
+                                                                                             self::CTRL_MONEY_SUMPAYMENT => $contractSum
+                                                                                            )
+                                                        ),
+                                                        '', web_add_icon(), '', 'POST', 'click', false, false, true
+                                                    );
+
+                $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID);
+
+                $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
+                $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
+                $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
+                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID
+                          . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
+                          . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
+                $json->addRow($data);
+
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
+
+    /**
+     * Renders third-level contract-address JQDT for external counterparty list
+     *
+     * @param string $customJSCode
+     * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool $stdJSForCRUDs
+     *
+     * @return string
+     */
+    public function ecRender2ndLvlAddressJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
+        $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_3LVL_ADDR_JSON . '=true' . $detailsFilter;
         $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
 
         $columns[] = '';
@@ -2359,8 +2491,8 @@ class ExtContras {
             ';
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 16, 'showDetailsData22');
+            self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+            self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 16, 'showDetailsData22');
         return($result);
     }
 
@@ -2370,7 +2502,7 @@ class ExtContras {
      * @param string $whereRaw
      *
      */
-    public function cntrctsaddrRenderListJSON($whereRaw = '') {
+    public function ecRender2ndLvlAddressListJSON($whereRaw = '') {
         $this->loadExtContrasExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
 
@@ -2387,17 +2519,11 @@ class ExtContras {
                 $data[] = '';
                 $data[] = $curRecID;
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
-                                    . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
-                                    $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
+                    . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
+                    $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
                 $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
                 $data[] = $contractSum;
-                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
-                                    . '&' . self::MISC_MARKROW_URL . '=' . $addrRecID,
-                                    $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
-
-                $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_CTNOTES];
-                $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_SUM];
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
 
@@ -2405,14 +2531,14 @@ class ExtContras {
                 $data[]  = $actions;
 
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
-                                                        array(self::ROUTE_FINOPS_ACTS => 'true',
-                                                            self::ROUTE_ACTION_PREFILL => 'true',
-                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
-                                                                                             self::CTRL_MONEY_SUMPAYMENT => $contractSum
-                                                                                            )
-                                                        ),
-                                                        '', web_add_icon(), '', 'POST', 'click', false, false, true
-                                                    );
+                    array(self::ROUTE_FINOPS_ACTS => 'true',
+                        self::ROUTE_ACTION_PREFILL => 'true',
+                        self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
+                            self::CTRL_MONEY_SUMPAYMENT => $contractSum
+                        )
+                    ),
+                    '', web_add_icon(), '', 'POST', 'click', false, false, true
+                );
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID);
 
@@ -2420,8 +2546,8 @@ class ExtContras {
                 $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID
-                          . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
-                          . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
+                    . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
+                    . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
                 $json->addRow($data);
 
                 unset($data);
@@ -2441,13 +2567,38 @@ class ExtContras {
         $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
 
         $inputs = '';
+        $tmpStyle = 'style="float: right; width: 80px; height: 20px; border: 2px solid rgba(100, 100, 100, .8); border-radius: 4px; ';
 
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, __('Already payed this month background'), $this->payedThisMonthBKGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, __('Already payed this month foreground'), $this->payedThisMonthFRGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, __('5 days left till payday background'), $this->fiveDaysTillPayBKGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, __('5 days left till payday background'), $this->fiveDaysTillPayFRGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Payment expired background'), $this->paymentExpiredBKGND, true, '7');
-        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Payment expired foreground'), $this->paymentExpiredFRGND, true, '7');
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, __('Already payed this month background'), $this->payedThisMonthBKGND,
+                            false, '7', self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND, 'background-color');
+        $inputs.= wf_nbsp(4) . wf_tag('span', false, '', 'id="' . self::CTRL_ECCOLOR_PAYEDTHISMONTH_BKGND . '" ' . $tmpStyle . $this->payedThisMonthBKGND . ';"')
+                  . wf_tag('span', true) . wf_delimiter(1);
+
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, __('Already payed this month foreground'), $this->payedThisMonthFRGND,
+                            false, '7', self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND, 'background-color');
+        $inputs.= wf_nbsp(4) . wf_tag('span', false, '', 'id="' . self::CTRL_ECCOLOR_PAYEDTHISMONTH_FRGND . '" ' . $tmpStyle . $this->payedThisMonthBKGND . ';"')
+                  . wf_tag('span', true) . wf_delimiter(1);
+
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, __('5 days left till payday background'), $this->fiveDaysTillPayBKGND,
+                            false, '7', self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND, 'background-color');
+        $inputs.= wf_nbsp(4) . wf_tag('span', false, '', 'id="' . self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_BKGND . '" ' . $tmpStyle . $this->payedThisMonthBKGND . ';"')
+                 . wf_tag('span', true) . wf_delimiter(1);
+
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, __('5 days left till payday background'), $this->fiveDaysTillPayFRGND,
+                            false, '7', self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND, 'background-color');
+        $inputs.= wf_nbsp(4) . wf_tag('span', false, '', 'id="' . self::CTRL_ECCOLOR_FIVEDAYSTILLPAY_FRGND . '" ' . $tmpStyle . $this->payedThisMonthBKGND . ';"')
+                 . wf_tag('span', true) . wf_delimiter(1);
+
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, __('Payment expired background'), $this->paymentExpiredBKGND,
+                            false, '7', self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND, 'background-color');
+        $inputs.= wf_nbsp(4) . wf_tag('span', false, '', 'id="' . self::CTRL_ECCOLOR_PAYMENTEXPIRED_BKGND . '" ' . $tmpStyle . $this->payedThisMonthBKGND . ';"')
+                 . wf_tag('span', true) . wf_delimiter(1);
+
+        $inputs.= wf_ColPicker(self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, __('Payment expired foreground'), $this->paymentExpiredFRGND,
+                            false, '7', self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND, 'background-color');
+        $inputs.= wf_nbsp(4) . wf_tag('span', false, '', 'id="' . self::CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND . '" ' . $tmpStyle . $this->payedThisMonthBKGND . ';"')
+                 . wf_tag('span', true) . wf_delimiter(1);
+
         $inputs.= wf_delimiter(0);
         $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"; ' . $submitDisabled);
@@ -2479,7 +2630,7 @@ class ExtContras {
         $inputs.= wf_TableBody($rows, 'auto');
         $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', 'style="width: 100%"');
 
-        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour form-grid-3r-1c', '', $formID, '', 'style="margin-top: 107px;"');
+        $inputs = wf_Form($ajaxURLStr,'POST', $inputs, 'glamour form-grid-3r-1c', '', $formID, '', 'style="margin-top: 10px;"');
         $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
 
         return ($inputs);
