@@ -88,7 +88,7 @@ function uhw_FindMac($ip) {
 
     //$raw = shell_exec($sudo_path . ' ' . $cat_path . ' ' . $logpath . ' | ' . $grep_path . ' "' . $unknown_lease . $ip . ' " | ' . $tail_path . ' -n1');
     if (!empty($raw)) {
-        $mac_detect = uhw_MacParse(preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $raw[$macField]));        
+        $mac_detect = uhw_MacParse(preg_replace('/([a-f0-9]{2})(?![\s\]\/])([\.\:\-]?)/', '\1:', $raw[$macField]));
         if ($mac_detect) {
             return ($mac_detect);
         }
@@ -332,8 +332,39 @@ function uhw_LogBrute($password, $mac, $login = '') {
     nr_query($query);
 }
 
-function uhw_ChangeMac($nethost_id, $newmac) {
+function uhw_ChangeMac($nethost_id, $newmac, $oldmac) {
+    $uconf = uhw_LoadConfig();
     $newmac = strtolower($newmac);
+    $oldmac = strtolower($oldmac);
+    switch ($uconf['MAC_FORMAT']) {
+        case 'MAC':
+            $mlg_mac = $newmac;
+            $mlg_old_mac = $oldmac;
+            break;
+        case 'MACFDL':
+            $mlg_mac = transformMacDotted($newmac);
+            $mlg_old_mac = transformMacDotted($oldmac);
+            break;
+        case 'MACFML':
+            $mlg_mac = str_replace('.', '-', $this->transformMacDotted($newmac));
+            $mlg_old_mac = str_replace('.', '-', $this->transformMacDotted($oldmac));
+            break;
+        case 'MACTMU':
+            $mlg_mac = transformMacMinused($newmac, true);
+            $mlg_old_mac = transformMacMinused($oldmac, true);
+            break;
+        case 'MACTML':
+            $mlg_mac = transformMacMinused($newmac, false);
+            $mlg_old_mac = transformMacMinused($oldmac, false);
+            break;
+        default :
+            $mlg_mac = $newmac;
+            $mlg_old_mac = $oldmac;
+            break;
+    }
+    simple_update_field('mlg_check', 'username', $mlg_mac, 'WHERE `username`="' . $mlg_old_mac . '"');
+    simple_update_field('mlg_reply', 'username', $mlg_mac, 'WHERE `username`="' . $mlg_old_mac . '"');
+    simple_update_field('mlg_groupreply', 'username', $mlg_mac, 'WHERE `username`="' . $mlg_old_mac . '"');
     simple_update_field('nethosts', 'mac', $newmac, "WHERE `id`='" . $nethost_id . "'");
 }
 
@@ -359,6 +390,19 @@ function uhw_RemoteApiPush($url, $serial, $action, $param = '') {
     $context = stream_context_create($opts);
 
     @$result = file_get_contents($url . '?' . $getdata, false, $context);
+    return ($result);
+}
+
+function transformMacDotted($mac) {
+    $result = implode(".", str_split(str_replace(":", "", $mac), 4));
+    return ($result);
+}
+
+function transformMacMinused($mac, $caps = false) {
+    $result = str_replace(':', '-', $mac);
+    if ($caps) {
+        $result = strtoupper($result);
+    }
     return ($result);
 }
 
