@@ -33,6 +33,32 @@ function zb_rand_digits($size = 4) {
 }
 
 /**
+ * Returns some easy-to-remember password proposal
+ * 
+ * @param int $len
+ * 
+ * @return string
+ */
+function zb_PasswordGenerate($len = 8) {
+    $result = '';
+    if ($len >= 6 && ( $len % 2 ) !== 0) {
+        $len = 8;
+    }
+    $length = $len - 2; // Makes room for a two-digit number on the end
+    $conso = array('b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z');
+    $vocal = array('a', 'e', 'i', 'u');
+    srand((double) microtime() * 1000000);
+    $max = $length / 2;
+    for ($i = 1; $i <= $max; $i ++) {
+        $result .= $conso[rand(0, sizeof($conso) - 1)];
+        $result .= $vocal[rand(0, sizeof($vocal) - 1)];
+    }
+    $result .= rand(10, 99);
+
+    return ($result);
+}
+
+/**
  * Returns array of apartments located in some build
  * 
  * @param int $buildid
@@ -500,17 +526,31 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
  * @return string
  */
 function zb_RegPasswordProposal() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
+    $password_proposal = '';
     if ((isset($alterconf['PASSWORD_GENERATION_LENGHT'])) AND ( isset($alterconf['PASSWORD_TYPE']))) {
-        if ($alterconf['PASSWORD_TYPE']) {
-            $password = zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']);
-        } else {
-            $password = zb_rand_digits($alterconf['PASSWORD_GENERATION_LENGHT']);
+        $passwordsType = (isset($alterconf['PASSWORD_TYPE'])) ? $alterconf['PASSWORD_TYPE'] : 1;
+        $passwordsLenght = (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) ? $alterconf['PASSWORD_GENERATION_LENGHT'] : 8;
+
+        switch ($passwordsType) {
+            case 0:
+                $password_proposal = zb_rand_digits($passwordsLenght);
+                break;
+            case 1:
+                $password_proposal = zb_rand_string($passwordsLenght);
+                break;
+            case 2:
+                $password_proposal = zb_PasswordGenerate($passwordsLenght);
+                break;
+            default :
+                $password_proposal = zb_rand_string(8);
+                break;
         }
     } else {
         die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
     }
-    return ($password);
+    return ($password_proposal);
 }
 
 /**
