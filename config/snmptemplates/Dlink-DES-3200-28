@@ -1,9 +1,8 @@
-
 [define]
 DEVICE=DES-3200-28
 FDB=true
 FDB_MODE=dlp
-FDB_IGNORE_PORTS="25,26,27,28"
+FDB_IGNORE_PORTS="0,25,26,27,28"
 MAC=true
 MAC_MODE=default
 

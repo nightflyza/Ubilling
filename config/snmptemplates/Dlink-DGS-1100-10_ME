@@ -1,9 +1,8 @@
-
 [define]
 DEVICE=DGS-1100-10_ME
 FDB=true
 FDB_MODE=dlp
-FDB_IGNORE_PORTS=""
+FDB_IGNORE_PORTS="9,10"
 MAC=true
 MAC_MODE=default
 

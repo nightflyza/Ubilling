@@ -1,9 +1,8 @@
-
 [define]
 DEVICE=Dlink-DES-3200-18
 FDB=true
 FDB_MODE=dlp
-FDB_IGNORE_PORTS="17,18"
+FDB_IGNORE_PORTS="0,17,18"
 MAC=true
 MAC_MODE=default
 
