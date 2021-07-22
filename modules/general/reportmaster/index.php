@@ -18,8 +18,8 @@ if (cfr('REPORTMASTER')) {
      */
     function web_ReportMasterShow($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
         $report_name = __($report_name) . ' ' . wf_tag('a', false, '', 'href="?module=reportmaster&view=' . $reportfile . '&printable=true" target="_BLANK"');
-        $report_name.= wf_img('skins/printer_small.gif', __('Print'));
-        $report_name.= wf_tag('a', true);
+        $report_name .= wf_img('skins/printer_small.gif', __('Print'));
+        $report_name .= wf_tag('a', true);
 
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
@@ -29,45 +29,45 @@ if (cfr('REPORTMASTER')) {
 
         $result = wf_tag('table', false, '', 'width="100%" class="sortable" border="0"');
 
-        $result.=wf_tag('tr', false, 'row1');
+        $result .= wf_tag('tr', false, 'row1');
 
         foreach ($titles as $eachtitle) {
-            $result.=wf_tag('td') . __($eachtitle) . wf_tag('td', true);
+            $result .= wf_tag('td') . __($eachtitle) . wf_tag('td', true);
         }
 
         if ($address) {
-            $result.=wf_tag('td') . __('Full address') . wf_tag('td', true);
+            $result .= wf_tag('td') . __('Full address') . wf_tag('td', true);
         }
 
         if ($realnames) {
-            $result.=wf_tag('td') . __('Real Name') . wf_tag('td', true);
+            $result .= wf_tag('td') . __('Real Name') . wf_tag('td', true);
         }
 
-        $result.=wf_tag('tr', true);
+        $result .= wf_tag('tr', true);
 
         if (!empty($alldata)) {
             foreach ($alldata as $io => $eachdata) {
                 $i++;
-                $result.=wf_tag('tr', false, 'row3');
+                $result .= wf_tag('tr', false, 'row3');
 
                 foreach ($keys as $eachkey) {
                     if (array_key_exists($eachkey, $eachdata)) {
-                        $result.=wf_tag('td') . $eachdata[$eachkey] . wf_tag('td', true);
+                        $result .= wf_tag('td') . $eachdata[$eachkey] . wf_tag('td', true);
                     }
                 }
                 if ($address) {
-                    $result.=wf_tag('td') . @$alladdress[$eachdata['login']] . wf_tag('td', true);
+                    $result .= wf_tag('td') . @$alladdress[$eachdata['login']] . wf_tag('td', true);
                 }
                 if ($realnames) {
-                    $result.=wf_tag('td') . wf_Link('?module=userprofile&username=' . $eachdata['login'], web_profile_icon() . ' ' . @$allrealnames[$eachdata['login']]) . wf_tag('td', true);
+                    $result .= wf_tag('td') . wf_Link('?module=userprofile&username=' . $eachdata['login'], web_profile_icon() . ' ' . @$allrealnames[$eachdata['login']]) . wf_tag('td', true);
                     ;
                 }
-                $result.=wf_tag('tr', true);
+                $result .= wf_tag('tr', true);
             }
         }
-        $result.=wf_tag('table', true);
+        $result .= wf_tag('table', true);
         if ($rowcount) {
-            $result.=wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
+            $result .= wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
             ;
         }
         show_window($report_name, $result);
@@ -92,7 +92,7 @@ if (cfr('REPORTMASTER')) {
         $alladdress = zb_AddressGetFulladdresslist();
         $i = 0;
         $result = wf_tag('style', false, '', ' type="text/css"');
-        $result.= '
+        $result .= '
         table.printrm {
 	border-width: 1px;
 	border-spacing: 2px;
@@ -118,42 +118,42 @@ if (cfr('REPORTMASTER')) {
 	-moz-border-radius: ;
         }
         ';
-        $result.=wf_tag('style', true);
-        $result.=wf_tag('table', false, 'printrm', 'width="100%"');
-        $result.=wf_tag('tr');
+        $result .= wf_tag('style', true);
+        $result .= wf_tag('table', false, 'printrm', 'width="100%"');
+        $result .= wf_tag('tr');
 
         foreach ($titles as $eachtitle) {
-            $result.=wf_tag('td') . __($eachtitle) . wf_tag('td', true);
+            $result .= wf_tag('td') . __($eachtitle) . wf_tag('td', true);
         }
         if ($address) {
-            $result.=wf_tag('td') . __('Full address') . wf_tag('td', true);
+            $result .= wf_tag('td') . __('Full address') . wf_tag('td', true);
         }
         if ($realnames) {
-            $result.=wf_tag('td') . __('Real Name') . wf_tag('td', true);
+            $result .= wf_tag('td') . __('Real Name') . wf_tag('td', true);
         }
-        $result.= wf_tag('tr', true);
+        $result .= wf_tag('tr', true);
 
         if (!empty($alldata)) {
             foreach ($alldata as $io => $eachdata) {
                 $i++;
-                $result.=wf_tag('tr');
+                $result .= wf_tag('tr');
                 foreach ($keys as $eachkey) {
                     if (array_key_exists($eachkey, $eachdata)) {
-                        $result.=wf_tag('td') . $eachdata[$eachkey] . wf_tag('td', true);
+                        $result .= wf_tag('td') . $eachdata[$eachkey] . wf_tag('td', true);
                     }
                 }
                 if ($address) {
-                    $result.=wf_tag('td') . @$alladdress[$eachdata['login']] . wf_tag('td', true);
+                    $result .= wf_tag('td') . @$alladdress[$eachdata['login']] . wf_tag('td', true);
                 }
                 if ($realnames) {
-                    $result.=wf_tag('td') . @$allrealnames[$eachdata['login']] . wf_tag('td', true);
+                    $result .= wf_tag('td') . @$allrealnames[$eachdata['login']] . wf_tag('td', true);
                 }
-                $result.=wf_tag('tr', true);
+                $result .= wf_tag('tr', true);
             }
         }
-        $result.=wf_tag('table', true);
+        $result .= wf_tag('table', true);
         if ($rowcount) {
-            $result.=wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
+            $result .= wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
         }
         print($report_name . $result);
         die();
@@ -183,17 +183,21 @@ if (cfr('REPORTMASTER')) {
 
 
         $cells = wf_TableCell(__('Report name'));
-        $cells.= wf_TableCell(__('Actions'));
+        if (cfr('REPORTMASTERADM')) {
+            $cells .= wf_TableCell(__('Actions'));
+        }
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($allreports)) {
             foreach ($allreports as $eachreport) {
                 $report_template = rcms_parse_ini_file($reports_path . $eachreport);
                 $cells = wf_TableCell(wf_Link('?module=reportmaster&view=' . $eachreport, __($report_template['REPORT_NAME'])));
-                $actControls = wf_JSAlert('?module=reportmaster&delete=' . $eachreport, web_delete_icon(), $messages->getDeleteAlert());
-                $actControls.= wf_JSAlert('?module=reportmaster&edit=' . $eachreport, web_edit_icon(), $messages->getEditAlert());
-                $cells.= wf_TableCell($actControls);
-                $rows.= wf_TableRow($cells, 'row3');
+                if (cfr('REPORTMASTERADM')) {
+                    $actControls = wf_JSAlert('?module=reportmaster&delete=' . $eachreport, web_delete_icon(), $messages->getDeleteAlert());
+                    $actControls .= wf_JSAlert('?module=reportmaster&edit=' . $eachreport, web_edit_icon(), $messages->getEditAlert());
+                    $cells .= wf_TableCell($actControls);
+                }
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
@@ -266,13 +270,13 @@ if (cfr('REPORTMASTER')) {
      */
     function web_ReportMasterShowAddForm() {
         $inputs = wf_TextInput('newreportname', __('Report name'), '', true, 40);
-        $inputs.= wf_TextInput('newsqlquery', __('SQL Query'), '', true, 40);
-        $inputs.= wf_TextInput('newdatakeys', __('Data keys, separated by comma'), '', true, 40);
-        $inputs.= wf_TextInput('newfieldnames', __('Field names, separated by comma'), '', true, 40);
-        $inputs.= web_RMTriggerSelector('newaddr') . ' ' . __('Show full address by login key') . wf_tag('br');
-        $inputs.= web_RMTriggerSelector('newrnames') . ' ' . __('Show Real Names by login key') . wf_tag('br');
-        $inputs.= web_RMTriggerSelector('newrowcount') . ' ' . __('Show data query row count') . wf_tag('br');
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextInput('newsqlquery', __('SQL Query'), '', true, 40);
+        $inputs .= wf_TextInput('newdatakeys', __('Data keys, separated by comma'), '', true, 40);
+        $inputs .= wf_TextInput('newfieldnames', __('Field names, separated by comma'), '', true, 40);
+        $inputs .= web_RMTriggerSelector('newaddr') . ' ' . __('Show full address by login key') . wf_tag('br');
+        $inputs .= web_RMTriggerSelector('newrnames') . ' ' . __('Show Real Names by login key') . wf_tag('br');
+        $inputs .= web_RMTriggerSelector('newrowcount') . ' ' . __('Show data query row count') . wf_tag('br');
+        $inputs .= wf_Submit(__('Create'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
 
         show_window(__('Create new report'), $form);
@@ -288,13 +292,13 @@ if (cfr('REPORTMASTER')) {
         $report_template = rcms_parse_ini_file($reports_path . $reportfile);
 
         $inputs = wf_TextInput('editreportname', __('Report name'), $report_template['REPORT_NAME'], true, 40);
-        $inputs.= wf_TextInput('editsqlquery', __('SQL Query'), $report_template['REPORT_QUERY'], true, 40);
-        $inputs.= wf_TextInput('editdatakeys', __('Data keys, separated by comma'), $report_template['REPORT_KEYS'], true, 40);
-        $inputs.= wf_TextInput('editfieldnames', __('Field names, separated by comma'), $report_template['REPORT_FIELD_NAMES'], true, 40);
-        $inputs.= web_RMTriggerSelector('editaddr', $report_template['REPORT_ADDR']) . ' ' . __('Show full address by login key') . wf_tag('br');
-        $inputs.= web_RMTriggerSelector('editrnames', $report_template['REPORT_RNAMES']) . ' ' . __('Show Real Names by login key') . wf_tag('br');
-        $inputs.= web_RMTriggerSelector('editrowcount', $report_template['REPORT_ROW_COUNT']) . ' ' . __('Show data query row count') . wf_tag('br');
-        $inputs.= wf_Submit(__('Save'));
+        $inputs .= wf_TextInput('editsqlquery', __('SQL Query'), $report_template['REPORT_QUERY'], true, 40);
+        $inputs .= wf_TextInput('editdatakeys', __('Data keys, separated by comma'), $report_template['REPORT_KEYS'], true, 40);
+        $inputs .= wf_TextInput('editfieldnames', __('Field names, separated by comma'), $report_template['REPORT_FIELD_NAMES'], true, 40);
+        $inputs .= web_RMTriggerSelector('editaddr', $report_template['REPORT_ADDR']) . ' ' . __('Show full address by login key') . wf_tag('br');
+        $inputs .= web_RMTriggerSelector('editrnames', $report_template['REPORT_RNAMES']) . ' ' . __('Show Real Names by login key') . wf_tag('br');
+        $inputs .= web_RMTriggerSelector('editrowcount', $report_template['REPORT_ROW_COUNT']) . ' ' . __('Show data query row count') . wf_tag('br');
+        $inputs .= wf_Submit(__('Save'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         show_window(__('Edit report'), $form);
     }
@@ -384,7 +388,7 @@ if (cfr('REPORTMASTER')) {
         $out_charset = 'windows-1251';
         /////////////////////
         if (!empty($allusers)) {
-            $result.=__('Login') . $delimiter . __('Password') . $delimiter . __('IP') . $delimiter . __('MAC') . $delimiter . __('Tariff') . $delimiter . __('Cash') . $delimiter . __('Credit') . $delimiter . __('Credit expire') . $delimiter . __('Address') . $delimiter . __('Real Name') . $delimiter . __('Contract') . $delimiter . __('AlwaysOnline') . $delimiter . __('Disabled') . $delimiter . __('User passive') . "\n";
+            $result .= __('Login') . $delimiter . __('Password') . $delimiter . __('IP') . $delimiter . __('MAC') . $delimiter . __('Tariff') . $delimiter . __('Cash') . $delimiter . __('Credit') . $delimiter . __('Credit expire') . $delimiter . __('Address') . $delimiter . __('Real Name') . $delimiter . __('Contract') . $delimiter . __('AlwaysOnline') . $delimiter . __('Disabled') . $delimiter . __('User passive') . "\n";
             foreach ($allusers as $io => $eachuser) {
                 //credit expirity
                 if ($eachuser['CreditExpire'] != 0) {
@@ -399,7 +403,7 @@ if (cfr('REPORTMASTER')) {
                     $usermac = '';
                 }
 
-                $result.=$eachuser['login'] . $delimiter . $eachuser['Password'] . $delimiter . $eachuser['IP'] . $delimiter . $usermac . $delimiter . $eachuser['Tariff'] . $delimiter . $eachuser['Cash'] . $delimiter . $eachuser['Credit'] . $delimiter . $creditexpire . $delimiter . @$alladdress[$eachuser['login']] . $delimiter . @$allrealnames[$eachuser['login']] . $delimiter . @$allcontracts[$eachuser['login']] . $delimiter . $eachuser['AlwaysOnline'] . $delimiter . $eachuser['Down'] . $delimiter . $eachuser['Passive'] . "\n";
+                $result .= $eachuser['login'] . $delimiter . $eachuser['Password'] . $delimiter . $eachuser['IP'] . $delimiter . $usermac . $delimiter . $eachuser['Tariff'] . $delimiter . $eachuser['Cash'] . $delimiter . $eachuser['Credit'] . $delimiter . $creditexpire . $delimiter . @$alladdress[$eachuser['login']] . $delimiter . @$allrealnames[$eachuser['login']] . $delimiter . @$allcontracts[$eachuser['login']] . $delimiter . $eachuser['AlwaysOnline'] . $delimiter . $eachuser['Down'] . $delimiter . $eachuser['Passive'] . "\n";
             }
             if ($in_charset != $out_charset) {
                 //not contains unicode symbols
@@ -426,7 +430,7 @@ if (cfr('REPORTMASTER')) {
         $export_link = '';
     }
 
-    $newreport_link = wf_Link('?module=reportmaster&add=true', web_add_icon(), false);
+    $newreport_link = (cfr('REPORTMASTERADM')) ? wf_Link('?module=reportmaster&add=true', web_add_icon(), false) : '';
     $action_links = ' ' . $export_link . ' ' . $newreport_link;
     show_window(__('Available reports') . $action_links, web_ReportMasterShowReportsList());
 
