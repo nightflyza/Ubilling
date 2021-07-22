@@ -72,7 +72,7 @@ $uconf = uhw_LoadConfig();
                                                                             //almost done, now we need too change mac in nethosts
                                                                             //and call rebuild handlers and user reset API calls
                                                                             $oldmac = uhw_NethostGetMac($nethost_id);
-                                                                            uhw_ChangeMac($nethost_id, $usermac);
+                                                                            uhw_ChangeMac($nethost_id, $usermac, $oldmac);
                                                                             uhw_LogSelfact($trypassword, $userlogin, $tryip, $nethost_id, $oldmac, $usermac);
                                                                             uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'reset', $userlogin);
                                                                             uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'handlersrebuild');
