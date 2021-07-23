@@ -2249,12 +2249,12 @@ function zbs_CashAdd($login, $cash, $note) {
     $cashtype = 0;
     $note = mysql_real_escape_string($note);
     $date = curdatetime();
-    $balance = zb_CashGetUserBalance($login);
+    $balance = zbs_CashGetUserBalance($login);
     billing_addcash($login, $cash);
     $query = "INSERT INTO `payments` ( `id` , `login` , `date` , `balance` , `summ` , `cashtypeid` , `note` )
-              VALUES (NULL , '" . $login . "', '" . $date . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . $note . ");";
+              VALUES (NULL , '" . $login . "', '" . $date . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . $note . "');";
     nr_query($query);
-    log_register("BALANCECHANGE (" . $login . ') ON ' . $cash);
+    log_register("BALANCEADD (" . $login . ') ON ' . $cash);
 }
 
 /**
