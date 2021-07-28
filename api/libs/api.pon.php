@@ -1200,7 +1200,11 @@ class PONizer {
                     } else {
                         if ($snmpTemplate['OFFSETMODE'] == 'div') {
                             if ($snmpTemplate['OFFSET']) {
-                                $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
+                                if (is_numeric($signalRaw)) {
+                                    $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
+                                } else {
+                                    $signalRaw = 'Fail';
+                                }
                             }
                         }
                     }
