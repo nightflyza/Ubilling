@@ -71,12 +71,17 @@ $uconf = uhw_LoadConfig();
                                                                         if ($nethost_id) {
                                                                             //almost done, now we need too change mac in nethosts
                                                                             //and call rebuild handlers and user reset API calls
+                                                                            if ($usConfig['POD_ENABLED'] and $usConfig['POD_DOUBLEKILL']) {
+                                                                                uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'multigenpod', $userlogin);
+                                                                            }
                                                                             $oldmac = uhw_NethostGetMac($nethost_id);
                                                                             uhw_ChangeMac($nethost_id, $usermac, $oldmac);
                                                                             uhw_LogSelfact($trypassword, $userlogin, $tryip, $nethost_id, $oldmac, $usermac);
                                                                             uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'reset', $userlogin);
                                                                             uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'handlersrebuild');
-
+                                                                            if ($usConfig['POD_ENABLED']) {
+                                                                                uhw_RemoteApiPush($uconf['UBILLING_REMOTE'], $uconf['UBILLING_SERIAL'], 'multigenpod', $userlogin);
+                                                                            }
                                                                             print(uhw_modal_open($uconf['SUP_SELFACT'], $uconf['SUP_SELFACTDONE'], '400', '300'));
                                                                         } else {
                                                                             print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_STRANGE'] . ' NO_NHID', '400', '300'));
