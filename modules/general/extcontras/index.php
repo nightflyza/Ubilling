@@ -70,7 +70,7 @@ if (cfr('EXTCONTRAS')) {
                 and ubRouting::checkGet($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID)) {
 
                 $useExtenData = true;
-                $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_CONTRASID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID)
+                $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_PROFILEID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID)
                             . " AND `" . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
                             . " AND `" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
 
@@ -308,7 +308,9 @@ if (cfr('EXTCONTRAS')) {
             $finopIncoming = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'incoming') ? 1 : 0;
             $finopOutgoing = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'outgoing') ? 1 : 0;
 
-            $dataArray = array($ExtContras::DBFLD_MONEY_CONTRASID   => ubRouting::post($ExtContras::CTRL_MONEY_CONTRASID),
+            $dataArray = array($ExtContras::DBFLD_MONEY_PROFILEID   => ubRouting::post($ExtContras::CTRL_MONEY_PROFILEID),
+                               $ExtContras::DBFLD_MONEY_CNTRCTID    => ubRouting::post($ExtContras::CTRL_MONEY_CNTRCTID),
+                               $ExtContras::DBFLD_MONEY_ADDRESSID   => ubRouting::post($ExtContras::CTRL_MONEY_ADDRESSID),
                                $ExtContras::DBFLD_MONEY_INVOICEID   => ubRouting::post($ExtContras::CTRL_MONEY_INVOICEID),
                                $ExtContras::DBFLD_MONEY_ACCRUALID   => ubRouting::post($ExtContras::CTRL_MONEY_ACCRUALID),
                                $ExtContras::DBFLD_MONEY_PURPOSE     => ubRouting::post($ExtContras::CTRL_MONEY_PURPOSE),

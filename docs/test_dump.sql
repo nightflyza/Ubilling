@@ -3111,7 +3111,9 @@ KEY `summ` (`summ`)
 
 CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `contras_rec_id` int(11) NOT NULL,
+  `profile_id` int(11) NOT NULL,
+  `contract_id` int(11) DEFAULT NULL,
+  `address_id` int(11) DEFAULT NULL,
   `accrual_id` int(11) DEFAULT NULL,
   `invoice_id` int(11) DEFAULT NULL,
   `purpose` varchar(255) NOT NULL DEFAULT '',
@@ -3131,3 +3133,7 @@ KEY `date_edit` (`date_edit`),
 KEY `summ_accrual` (`summ_accrual`),
 KEY `summ_payment` (`summ_payment`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- alter table extcontras_money change contras_rec_id `profile_id` int(11) NOT NULL;
+-- alter table extcontras_money add `contract_id` int(11) DEFAULT NULL after profile_id;
+-- alter table extcontras_money add `address_id` int(11) DEFAULT NULL after contract_id;
