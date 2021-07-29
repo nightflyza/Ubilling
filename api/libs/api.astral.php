@@ -3040,7 +3040,6 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
     }
 
     $result = '$(\'#' . $inputId . '\').' . $jsEvent . '(function(evt) {
-console.log($(this).attr("id"));    
                 ' . $findJQDTToUpdate . '  
                 
                   $.ajax({
@@ -3252,6 +3251,90 @@ function wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID) {
 }
 
 /**
+ * Returns a JS-snippet for a regular selector-control cascade filtering by pre-prepared data
+ * The point is:
+ *      we have a hidden input with a predefined data, like:
+ *          valueInAboveLevelSelector1 => correspondingValueInChildSelector1
+ *          valueInAboveLevelSelector1 => correspondingValueInChildSelector2
+ *          valueInAboveLevelSelector1 => correspondingValueInChildSelector3
+ *          valueInAboveLevelSelector2 => correspondingValueInChildSelector1
+ *          valueInAboveLevelSelector2 => correspondingValueInChildSelector2
+ *          valueInAboveLevelSelector2 => correspondingValueInChildSelector3
+ *          valueInAboveLevelSelector2 => correspondingValueInChildSelector4
+ *          valueInAboveLevelSelectorN => correspondingValueInChildSelectorNN
+ *          ..................................................................
+ *
+ *      When a user selects a value in AboveLevelSelector we take that array from hidden input and walk through it -
+ *      when we find a key equal to selected in AboveLevelSelector value - we take that element in a variable
+ *      to build a new contents for a child selector. And the same for each key which equals to selected from AboveLevelSelector value
+
+ *
+ *
+ * @param string $webSelectorID
+ * @param string $webSelectorIDToFilter
+ * @param string $filterDataElemID
+ * @param string $filterFuncName
+ * @param bool   $blankFirstRow
+ * @param string $blankFirstRowVal
+ * @param string $blankFirstRowDispVal
+ *
+ * @return string
+ */
+/*function wf_jsWebSelectorFilter($webSelectorID, $webSelectorIDToFilter, $filterDataElemID,
+                                $webSelChangeFuncName = '', $filterFuncName = '',
+                                $blankFirstRow = false, $blankFirstRowVal = '0', $blankFirstRowDispVal = '----') {
+
+    $webSelChangeFuncName   = (empty($webSelChangeFuncName) ? 'funcChange_' . $webSelectorIDToFilter : $webSelChangeFuncName);
+    $filterFuncName         = (empty($filterFuncName) ? 'funcFilter_' . $webSelectorIDToFilter : $filterFuncName);
+    $webSelectRunChange     = (empty($webSelectorIDToFilter) ? "" : "$('#" . $webSelectorIDToFilter . "').change();");
+    $firstRowBlank          = ($blankFirstRow ? "var newselect = '<option value=\"" . $blankFirstRowVal . "\">" . $blankFirstRowDispVal . "</option>';" : "");
+*/
+
+
+function wf_jsWebSelectorFilter() {
+    $result = '
+    
+    function filterWebDropdown(search_keyword, filterListVals, webSelectRun2ChangeID, 
+                               firstRowBlank = true, blankRowVal = "0", blankRowDispVal = "----") {
+                               
+        if ( !empty(filterListVals.length) ) {
+            var search_array = JSON.parse(atob(filterListVals));
+        } else {
+            return;
+        }
+       
+        var newselect = ""; 
+        
+        if (firstRowBlank) {
+            newselect = \'<option value="\' + blankRowVal + \'">\' + blankRowDispVal + \'</option>\';
+        }
+        
+        if (search_keyword.length > 0 && search_keyword.trim() !== blankRowDispVal) {
+            for (var key in search_array) {
+                if ( key.trim() !== "" && key.toLowerCase() == search_keyword.toLowerCase() ) {
+                    var foundVal = search_array[key];
+      
+                    for (var foundKey in foundVal) {            
+                        var foundKeyVal = foundVal[foundKey];
+
+                        for (var dbID in foundKeyVal) {
+                            newselect = newselect + \'<option value="\' + dbID + \'">\' + foundKeyVal[dbID] + \'</option>\';
+                        }
+                    }
+                }  
+            }
+        }
+        
+        $(\'#\' + webSelectRun2ChangeID).html(newselect);     
+        $(\'#\' + webSelectRun2ChangeID).change();                    
+    }
+    
+    ';
+
+    return ($result);
+}
+
+/**
  * Simply encloses a JS snippet with a 'script' open/close tags
  *
  * @param string $content
@@ -3403,7 +3486,15 @@ function wf_nbsp($count = 1) {
 /**
  * Returns JS onElementInserted() func which allow to make any actions for
  * dynamically created objects right after the moment of it's creation
- * elementSelector MUST be a class selector, like '.SomeMyClass'
+ * elementSelector MUST be a 'class' or 'id' selector, like '.SomeMyClass' or '#SomeMyID'
+ *
+ * This code and it's function call must exist on a page BEFORE dynamic elements loaded
+ * The 'class' or 'id' selectors which will be used in dynamically loaded content
+ * must be known BEFORE the content loaded - so avoid of generating some random IDs on-the-fly,
+ * just when that content is loaded or in any other way
+ *
+ * DO NOT include this code or it's function call(like any other JS code)
+ * to a dynamically loaded content - as it WON'T WORK that way
  *
  * Source code: https://stackoverflow.com/a/38517525
  *
@@ -3415,26 +3506,28 @@ function wf_JSElemInsertedCatcherFunc() {
             var onMutationsObserved = function(mutations) {
                 mutations.forEach(function(mutation) {                            
                     if (mutation.addedNodes.length) {
-                        var elements = $(mutation.addedNodes).find(elementSelector);
-                        
-                        if (elements.length <= 0) {
-                            elements = $(mutation.addedNodes).closest(elementSelector);
+                        var foundElements = $(mutation.addedNodes).find(elementSelector);
+                          
+                        if (foundElements.length <= 0) {
+                            foundElements = $(mutation.addedNodes).closest(elementSelector);
                         }
                     
-                        for (var i = 0, len = elements.length; i < len; i++) {
-                            callback(elements[i]);
+                        for (var i = 0, len = foundElements.length; i < len; i++) {
+                            callback(foundElements[i]);
                         }
                     }
                     
-                    if (mutation.type == \'attributes\' && (\'.\' + $(mutation.target).attr(\'class\') == elementSelector)) {
-                        callback(mutation.target);
+                    if (mutation.type === \'attributes\' && ( (\'.\' + $(mutation.target).attr(\'class\') == elementSelector) 
+                                                          || (\'#\' + $(mutation.target).attr(\'id\') == elementSelector) )) {
+                          
+                        callback(mutation.target);                      
                     }
                 });
             };
         
             var target = $(containerSelector)[0];
-            var config = { childList: true, subtree: true, attributes: true};
-            var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+            var config = { childList: true, subtree: true, attributes: true, attributeFilter: ["id", "class"]};
+            var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
             var observer = new MutationObserver(onMutationsObserved);    
             observer.observe(target, config);                    
         }

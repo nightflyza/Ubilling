@@ -192,6 +192,20 @@ class ExtContras {
     protected $allECInvoices = array();
 
     /**
+     * Contains selector control filtering array for a contracts dropdown selector
+     *
+     * @var array
+     */
+    protected $selectfiltECContractsAll = array();
+
+    /**
+     * Contains selector control filtering array for an address dropdown selector
+     *
+     * @var array
+     */
+    protected $selectfiltECAddressAll = array();
+
+    /**
      * System config object placeholder
      *
      * @var null
@@ -363,7 +377,9 @@ class ExtContras {
     const CTRL_PERIOD_SELECTOR  = 'prddropdown';
     const DBFLD_PERIOD_NAME     = 'period_name';
 
-    const CTRL_MONEY_CONTRASID  = 'moneycontrasrecid';
+    const CTRL_MONEY_PROFILEID  = 'moneyprofileid';
+    const CTRL_MONEY_CNTRCTID   = 'moneycontractid';
+    const CTRL_MONEY_ADDRESSID  = 'moneyaddressid';
     const CTRL_MONEY_ACCRUALID  = 'moneyaccrualid';
     const CTRL_MONEY_INVOICEID  = 'moneyinvoiceid';
     const CTRL_MONEY_PURPOSE    = 'moneypurpose';
@@ -374,7 +390,9 @@ class ExtContras {
     const CTRL_MONEY_INOUT      = 'moneyinout';
     const CTRL_MONEY_PAYNOTES   = 'moneypaynotes';
 
-    const DBFLD_MONEY_CONTRASID = 'contras_rec_id';
+    const DBFLD_MONEY_PROFILEID = 'profile_id';
+    const DBFLD_MONEY_CNTRCTID  = 'contract_id';
+    const DBFLD_MONEY_ADDRESSID = 'address_id';
     const DBFLD_MONEY_ACCRUALID = 'accrual_id';
     const DBFLD_MONEY_INVOICEID = 'invoice_id';
     const DBFLD_MONEY_PURPOSE   = 'purpose';
@@ -651,11 +669,17 @@ class ExtContras {
      *
      * @param bool $forceDBLoad
      * @param string $whereRaw
+     * @param string $orderBy
+     * @param string $orderDir
      * @param bool $distinctSelectON
      *
      */
-    protected function loadExtContrasExtenData($forceDBLoad = false, $whereRaw = '', $distinctSelectON = false) {
+    protected function loadExtContrasExtenData($forceDBLoad = false, $whereRaw = '', $orderBy = '', $orderDir = 'ASC', $distinctSelectON = false) {
         $selectable = array_merge($this->dbExtContrasStruct, $this->dbECProfilesStruct, $this->dbECContractsStruct, $this->dbECAddressStruct, $this->dbECPeriodsStruct);
+
+        if (!$forceDBLoad) {
+            $forceDBLoad = (empty($whereRaw) and empty($orderBy) and empty($distinctSelectON));
+        }
 
         $this->dbExtContrasExten->selectable($selectable);
         $this->dbExtContrasExten->joinOn();
@@ -675,6 +699,11 @@ class ExtContras {
         if (!empty($whereRaw)) {
             $this->dbExtContrasExten->whereRaw($whereRaw);
         }
+
+        if (!empty($orderBy)) {
+            $this->dbExtContrasExten->orderBy($orderBy, $orderDir);
+        }
+
 //$this->dbExtContrasExten->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_EXTCONTRASEXTEN, self::TABLE_EXTCONTRASEXTEN, $forceDBLoad,
                                        false, self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID,
@@ -686,25 +715,55 @@ class ExtContras {
      *
      * @param bool $forceDBLoad
      * @param string $whereRaw
+     * @param string $orderBy
+     * @param string $orderDir
      * @param bool $distinctSelectON
      *
      */
-    public function loadFinopsExtenData($forceDBLoad = false, $whereRaw = '', $distinctSelectON = false) {
+    public function loadFinopsExtenData($forceDBLoad = false, $whereRaw = '', $orderBy = '', $orderDir = 'ASC', $distinctSelectON = false) {
         $selectable = array_merge($this->dbECMoneyStruct, $this->dbExtContrasStruct);
+        if (!$forceDBLoad) {
+            $forceDBLoad = (empty($whereRaw) and empty($orderBy) and empty($distinctSelectON));
+        }
 
         $this->dbECMoneyExten->selectable($selectable);
         $this->dbECMoneyExten->joinOn();
         $this->dbECMoneyExten->joinOn('INNER', self::TABLE_EXTCONTRAS,
-                                      self::TABLE_ECMONEY . '.' . self::DBFLD_MONEY_CONTRASID
+                                      self::TABLE_ECMONEY . '.' . self::DBFLD_MONEY_PROFILEID
                                       . ' = ' . self::TABLE_EXTCONTRAS . '.' . self::DBFLD_COMMON_ID);
 
         if (!empty($whereRaw)) {
             $this->dbECMoneyExten->whereRaw($whereRaw);
         }
+
+        if (!empty($orderBy)) {
+            $this->dbExtContrasExten->orderBy($orderBy, $orderDir);
+        }
+
 //$this->dbECMoneyExten->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_ECMONEYEXTEN, self::TABLE_ECMONEYEXTEN, $forceDBLoad,
                         false, self::TABLE_ECMONEY . self::DBFLD_COMMON_ID,
                              '', !empty($whereRaw), $distinctSelectON);
+    }
+
+    /**
+     * Retrieves data for contracts web selector control filtering
+     */
+    protected function loadWebSelFilterData() {
+        $this->loadExtContrasExtenData(false, '', self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PROFILE_ID);
+
+        foreach ($this->allExtContrasExten as $eachID => $eachRec) {
+            $tmpProfileID   = $eachRec[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PROFILE_ID];
+            $tmpContractID  = $eachRec[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_CONTRACT_ID];
+            $tmpAddressID   = $eachRec[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_ADDRESS_ID];
+
+            $this->selectfiltECContractsAll[$tmpProfileID][] = array($tmpContractID => $eachRec[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT] . ' ' .
+                                                                                       $eachRec[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT] . ' ' .
+                                                                                       $eachRec[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM]);
+
+            $this->selectfiltECAddressAll[$tmpContractID][] = array($tmpAddressID => $eachRec[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR] . ' ' .
+                                                                                     $eachRec[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_SUM]);
+        }
     }
 
     /**
@@ -991,6 +1050,9 @@ class ExtContras {
      * @param bool      $checkUniqueness
      * @param array     $checkUniqArray
      * @param string    $crudEntityName
+     * @param array     $prefillFieldsData
+     * @param bool      $createFormModality
+     * @param bool      $editFormModality
      *
      * @return mixed
      *
@@ -1017,7 +1079,7 @@ class ExtContras {
         if (!method_exists($this, $webFormMethod)) {
             $entityExistError.= wf_nbsp(2) . wf_tag('b') . $webFormMethod . wf_tag('b', true);
         }
-
+// todo: check uniqueness of extrcontras recs by profile_id + contract_id + addr_id
         // checking record uniqueness upon criteria, if needed
         if ($checkUniqueness and !$recDelete) {
             if (empty($checkUniqArray)) {
@@ -1100,7 +1162,7 @@ class ExtContras {
                     $protectionChkTab = self::TABLE_ECINVOICES;
                     $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
 
-                    $protectionChkFld = self::DBFLD_MONEY_CONTRASID;
+                    $protectionChkFld = self::DBFLD_MONEY_PROFILEID;
                     $protectionChkTab = self::TABLE_ECMONEY;
                     $protectionChkArr[] = array($protectionChkTab => $protectionChkFld);
                 }
@@ -1147,6 +1209,11 @@ class ExtContras {
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true', wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
         $inputs.= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
         $inputs.= wf_jsAjaxDynamicWindowButton(self::URL_ME, array(self::ROUTE_FORCECACHE_UPD => 'true'), wf_img('skins/refresh.gif') . ' ' . __('Refresh cache data'), '', 'ubButton');
+
+//        $ecProfilesWebSelClass  = '__ECProfiles_webselfilt';
+//        $ecContractsWebSelClass = '__ECContracts_webselfilt';
+
+
         $inputs.= wf_EncloseWithJSTags( wf_JSEmptyFunc() . wf_JSElemInsertedCatcherFunc() . $this->getDatePickerModalInitJS());
 
         return ($inputs);
@@ -1168,14 +1235,23 @@ class ExtContras {
      * @param string $options
      * @param bool $labelLeftSide
      * @param string $labelOpts
+     * @param array $filterData
+     * @param string $filterDataElemID
+     * @param string $blankFirstRowVal
+     * @param string $blankFirstRowDispVal
      *
      * @return string
      */
     public function renderWebSelector($selectorData, $dbFiledName, $ctrlName, $ctrlLabel,
                                       $selected = '', $blankFirstRow = false, $br = false,
                                       $sort = false, $ctrlID = '', $ctrlClass = '', $options = '',
-                                      $labelLeftSide = false, $labelOpts = '') {
-        $tmpArray = ($blankFirstRow) ? array('0' => '----') : array();
+                                      $labelLeftSide = false, $labelOpts = '',
+                                      $filterData = array(), $filterDataElemID = '',
+                                      $blankFirstRowVal = '0', $blankFirstRowDispVal = '----') {
+
+        $result     = '';
+        $ctrlID     = (empty($ctrlID) ? wf_InputId() : $ctrlID);
+        $tmpArray   = ($blankFirstRow ? array($blankFirstRowVal => $blankFirstRowDispVal) : array());
 
         if (!empty($selectorData)) {
             foreach ($selectorData as $eachID => $eachRec) {
@@ -1193,7 +1269,14 @@ class ExtContras {
             }
         }
 
-        return (wf_Selector($ctrlName, $tmpArray, $ctrlLabel, $selected, $br, $sort, $ctrlID, $ctrlClass, $options, $labelLeftSide, $labelOpts));
+        $result = wf_Selector($ctrlName, $tmpArray, $ctrlLabel, $selected, $br, $sort, $ctrlID, $ctrlClass, $options, $labelLeftSide, $labelOpts);
+
+        if (!empty($filterData)) {
+            $filterDataElemID   = (empty($filterDataElemID) ? 'selector_filter_' . wf_InputId() : $filterDataElemID);
+            $result.= wf_HiddenInput($filterDataElemID, base64_encode(json_encode($filterData)), $filterDataElemID);
+        }
+
+        return ($result);
     }
 
     /**
@@ -1220,6 +1303,7 @@ class ExtContras {
      */
     protected function recordCreateEdit($dbEntity, $dataArray, $recordID = 0) {
         $dbEntity->dataArr($dataArray);
+$dbEntity->setDebug(true, true);
 
         if (!empty($recordID)) {
             $dbEntity->where(self::DBFLD_COMMON_ID, '=', $recordID);
@@ -1393,7 +1477,7 @@ class ExtContras {
         $inputs             = '';
         $ctrctDTStart       = '';
         $ctrctDTEnd         = '';
-        $ctrctContract        = '';
+        $ctrctContract      = '';
         $ctrctSubject       = '';
         $ctrctAutoProlong   = '';
         $ctrctFullSum       = '';
@@ -2402,7 +2486,7 @@ class ExtContras {
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                         array(self::ROUTE_FINOPS_ACTS => 'true',
                                                             self::ROUTE_ACTION_PREFILL => 'true',
-                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
+                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $curRecID,
                                                                                              self::CTRL_MONEY_SUMPAYMENT => $contractSum
                                                                                             )
                                                         ),
@@ -2533,8 +2617,8 @@ class ExtContras {
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
                     array(self::ROUTE_FINOPS_ACTS => 'true',
                         self::ROUTE_ACTION_PREFILL => 'true',
-                        self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_CONTRASID => $curRecID,
-                            self::CTRL_MONEY_SUMPAYMENT => $contractSum
+                        self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $curRecID,
+                                                         self::CTRL_MONEY_SUMPAYMENT => $contractSum
                         )
                     ),
                     '', web_add_icon(), '', 'POST', 'click', false, false, true
@@ -2639,16 +2723,21 @@ class ExtContras {
     /**
      * Returns a invoice-editor web form
      *
-     * @param bool $modal
-     * @param int $finopID
-     * @param bool $editAction
-     * @param bool $cloneAction
+     * @param bool  $modal
+     * @param int   $finopID
+     * @param bool  $editAction
+     * @param bool  $cloneAction
+     * @param array $prefillFieldsData
      *
      * @return string
      */
     public function finopsWebForm($modal = true, $finopID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
+        $this->loadWebSelFilterData();
+
         $inputs             = '';
-        $finopContrasID     = 0;
+        $finopProfileID     = 0;
+        $finopContractID    = 0;
+        $finopAddressID     = 0;
         $finopAccrualID     = 0;
         $finopInvoiceID     = 0;
         $finopPurpose       = '';
@@ -2671,7 +2760,9 @@ class ExtContras {
 
         if (($editAction or $cloneAction) and !empty($this->allECMoney[$finopID])) {
             $finoperation       = $this->allECMoney[$finopID];
-            $finopContrasID     = $finoperation[self::DBFLD_MONEY_CONTRASID];
+            $finopProfileID     = $finoperation[self::DBFLD_MONEY_PROFILEID];
+            $finopContractID    = $finoperation[self::DBFLD_MONEY_CNTRCTID];
+            $finopAddressID     = $finoperation[self::DBFLD_MONEY_ADDRESSID];
             $finopAccrualID     = $finoperation[self::DBFLD_MONEY_ACCRUALID];
             $finopInvoiceID     = $finoperation[self::DBFLD_MONEY_INVOICEID];
             $finopPurpose       = $finoperation[self::DBFLD_MONEY_PURPOSE];
@@ -2681,20 +2772,38 @@ class ExtContras {
             $finopIncoming      = ubRouting::filters($finoperation[self::DBFLD_MONEY_INCOMING], 'fi', FILTER_VALIDATE_BOOLEAN);
             $finopOutgoing      = ubRouting::filters($finoperation[self::DBFLD_MONEY_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         } elseif (!empty($prefillFieldsData)) {
-            $finopContrasID     = $prefillFieldsData[self::CTRL_MONEY_CONTRASID];
+            $finopProfileID     = $prefillFieldsData[self::CTRL_MONEY_PROFILEID];
             $finopSumPayment    = $prefillFieldsData[self::CTRL_MONEY_SUMPAYMENT];
         }
 
         $this->dbECMoney->whereRaw(" " . self::DBFLD_MONEY_SMACCRUAL . " != 0");
-        $finopAccruals = $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY);
+        $finopAccruals = $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, true);
+        $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, true);
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
-        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt       = ($editAction) ? __('Edit financial operation') :
-                          (($cloneAction) ? __('Clone financial operation') :
-                          __('Create financial operation'));
+        $ecProfilesWebSelID     = ($modal ? 'Modal' : '') . 'ECProfiles_';
+        $ecContractsWebSelID    = ($modal ? 'Modal' : '') . 'ECContracts_';
+        $ecAddressWebSelID      = ($modal ? 'Modal' : '') . 'ECAddress_';
+        $contractsFilterDataID  = ($modal ? 'Modal' : '') . 'ContractFilterData_';
+        $addressFilterDataID    = ($modal ? 'Modal' : '') . 'AddressFilterData_';
+        $editDBValProfileID     = 'ModalDBValProfile_';
+        $editDBValContractID    = 'ModalDBValContract_';
+        $editDBValAddressID     = 'ModalDBValAddress_';
+
+        $submitDisabled         = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $submitCapt             = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt               = ($editAction) ? __('Edit financial operation') :
+                                  (($cloneAction) ? __('Clone financial operation') :
+                                  __('Create financial operation'));
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
+
+        $inputs.= wf_EncloseWithJSTags(wf_jsWebSelectorFilter());
+
+        if ($editAction or $cloneAction) {
+            $inputs.= wf_HiddenInput($editDBValProfileID . 'nm', $finopProfileID, $editDBValProfileID);
+            $inputs.= wf_HiddenInput($editDBValContractID . 'nm', $finopContractID, $editDBValContractID);
+            $inputs.= wf_HiddenInput($editDBValAddressID . 'nm', $finopAddressID, $editDBValAddressID);
+        }
 
         $inputs.= wf_TextInput(self::CTRL_MONEY_PURPOSE, __('Operation purpose') . $this->supFrmFldMark, $finopPurpose, false, '', '',
                                $emptyCheckClass . ' right-two-thirds-occupy', '', '', true);
@@ -2704,17 +2813,72 @@ class ExtContras {
                                'col-2-3-occupy', '', '', true);
         //$inputs.= wf_tag('span', true);
 
-        //$inputs.= wf_tag('span', false);
         $inputs.= wf_TextInput(self::CTRL_MONEY_SUMPAYMENT, __('Payment sum'), $finopSumPayment, false, '', 'finance',
                                'col-5-6-occupy', '', '', true);
-        //$inputs.= wf_tag('span', true);
 
-        $inputs.= $this->renderWebSelector($this->allExtContrasExten, array(self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO,
-                                                                            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME,
-                                                                            self::TABLE_ECPROFILES . self::DBFLD_PROFILE_CONTACT
-                                                                           ),
-                                  self::CTRL_MONEY_CONTRASID, __('Counterparty'), $finopContrasID, true, false, true,
-                                      '', '', '', true);
+        $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_EDRPO,
+                                                                       self::DBFLD_PROFILE_NAME,
+                                                                       self::DBFLD_PROFILE_CONTACT
+                                                                      ),
+                                           self::CTRL_MONEY_PROFILEID, __('Counterparty'), $finopProfileID,
+                                           true, false, true, $ecProfilesWebSelID, '',
+                                           '', true, '',
+                                           $this->selectfiltECContractsAll, $contractsFilterDataID);
+
+        $inputs.= $this->renderWebSelector($this->allECContracts, array(self::DBFLD_CTRCT_CONTRACT,
+                                                                        self::DBFLD_CTRCT_SUBJECT,
+                                                                        self::DBFLD_CTRCT_FULLSUM
+                                                                       ),
+                                           self::CTRL_MONEY_CNTRCTID, __('Contract'), $finopContractID,
+                                           true, false, true, $ecContractsWebSelID, '',
+                                           '', true, '',
+                                           $this->selectfiltECAddressAll, $addressFilterDataID);
+
+        $inputs.= $this->renderWebSelector($this->allECAddresses, array(self::DBFLD_ADDRESS_ADDR,
+                                                                        self::DBFLD_ADDRESS_SUM
+                                                                       ),
+                                           self::CTRL_MONEY_ADDRESSID, __('Address'), $finopAddressID,
+                                           true, false, true, $ecAddressWebSelID, '',
+                                           '', true);
+
+        if (!$modal) {
+            $tmpWebSelJS = '
+        $(function() {
+            onElementInserted("body", "#Modal' . $ecProfilesWebSelID . '", function(element) {
+                $("#Modal' . $ecProfilesWebSelID . '").on("change", function(evt) {
+                    filterWebDropdown($(this).val(), $(\'#Modal' . $contractsFilterDataID . '\').val(), \'Modal' . $ecContractsWebSelID . '\', true);
+                }); 
+                
+                $("#Modal' . $ecProfilesWebSelID . '").val($("#' . $editDBValProfileID . '").val());
+            });
+            
+            onElementInserted("body", "#Modal' . $ecContractsWebSelID . '", function(element) {        
+                $("#Modal' . $ecContractsWebSelID . '").on("change", function(evt) {
+                    filterWebDropdown($(this).val(), $(\'#Modal' . $addressFilterDataID . '\').val(), \'Modal' . $ecAddressWebSelID . '\', true);
+                });
+                
+                $("#Modal' . $ecContractsWebSelID . '").val($("#' . $editDBValContractID . '").val());
+                $("#Modal' . $ecAddressWebSelID . '").val($("#' . $editDBValAddressID . '").val());
+            });
+        
+            $(\'#' . $ecProfilesWebSelID . '\').on("change", function(evt) {
+                filterWebDropdown($(this).val(), $(\'#' . $contractsFilterDataID . '\').val(), \'' . $ecContractsWebSelID . '\', true);
+            });
+            
+            $(\'#' . $ecContractsWebSelID . '\').on("change", function(evt) {
+                filterWebDropdown($(this).val(), $(\'#' . $addressFilterDataID . '\').val(), \'' . $ecAddressWebSelID . '\', true);
+            });
+            
+            $(\'#' . $ecProfilesWebSelID . '\').change();
+            $(\'#' . $ecContractsWebSelID . '\').change();
+        });
+        
+            ';
+        } else {
+            $tmpWebSelJS = '';
+        }
+
+        $inputs.= wf_EncloseWithJSTags($tmpWebSelJS . "\n");
 
         if ($this->ecInvoicesON) {
             $inputs.= $this->renderWebSelector($this->allECInvoices, array(self::DBFLD_INVOICES_INVOICE_NUM,
@@ -2722,9 +2886,7 @@ class ExtContras {
                                                                             self::DBFLD_INVOICES_SUM
                                                                            ),
                                     self::CTRL_MONEY_INVOICEID, __('Invoice'), $finopInvoiceID, true, false, true,
-                                    '', '', '', true);
-        } else {
-            $inputs.= wf_nbsp(4);
+                                    '', 'col-2-3-occupy', '', true);
         }
 
         $inputs.= $this->renderWebSelector($finopAccruals, array(self::DBFLD_MONEY_PURPOSE,
@@ -2732,10 +2894,10 @@ class ExtContras {
                                                                  self::DBFLD_MONEY_DATE
                                                                 ),
                                   self::CTRL_MONEY_ACCRUALID, __('Accrual'), $finopAccrualID, true, false, true,
-                                      '', ($this->ecInvoicesON ? ''  : 'col-5-6-occupy'), '', true);
+                                      '', ($this->ecInvoicesON ? 'col-5-6-occupy' : 'col-2-3-occupy'), '', true);
 
         $inputs.= wf_TextInput(self::CTRL_MONEY_PAYNOTES, __('Payment notes'), $finopNotes, false, '70', '',
-                    'right-two-thirds-occupy', '', '', true);
+                               ($this->ecInvoicesON ? 'right-two-thirds-occupy' : 'col-5-6-occupy'), '', '', true);
 
         $inputs.= wf_tag('span', false, 'glamour full-width-occupy', 'style="text-align: center; width: 98%;"');
         $inputs.= wf_RadioInput(self::CTRL_MONEY_INOUT, __('Incoming payment'), 'incoming', false, $finopIncoming);
@@ -2792,7 +2954,7 @@ class ExtContras {
     public function finopsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true' . $detailsFilter;
         $colTargets1 = '[1, 2]';
-        $colTargets2 = '[11, 12]';
+        $colTargets2 = '[13, 14]';
 
         $columns[] = __('ID');
         $columns[] = __('Counterparty');
@@ -2800,9 +2962,11 @@ class ExtContras {
         if ($this->ecInvoicesON) {
             $columns[] = __('Invoice');
             $colTargets1 = '[1, 2, 3]';
-            $colTargets2 = '[12, 13]';
+            $colTargets2 = '[14, 15]';
         }
 
+        $columns[] = __('Contract');
+        $columns[] = __('Address');
         $columns[] = __('Leading financial operation');
         $columns[] = __('Operation purpose');
         $columns[] = __('Operation date');
@@ -2849,11 +3013,21 @@ class ExtContras {
 
             foreach ($this->allECMoney as $eachRecID) {
                 foreach ($eachRecID as $fieldName => $fieldVal) {
-                    if ($fieldName == self::DBFLD_MONEY_CONTRASID) {
-                        $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
-                                  : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
-                                    . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
-                        );
+                    if ($fieldName == self::DBFLD_MONEY_PROFILEID) {
+                        $data[] = (empty($this->allECProfiles[$fieldVal]) ? ''
+                                  : $this->allECProfiles[$fieldVal][self::DBFLD_PROFILE_EDRPO] . ' '
+                                    . $this->allECProfiles[$fieldVal][self::DBFLD_PROFILE_NAME]
+                                  );
+                    } elseif ($fieldName == self::DBFLD_MONEY_CNTRCTID) {
+                        $data[] = (empty($this->allECContracts[$fieldVal]) ? ''
+                                  : $this->allECContracts[$fieldVal][self::DBFLD_CTRCT_CONTRACT] . ' '
+                                    . $this->allECContracts[$fieldVal][self::DBFLD_CTRCT_FULLSUM]
+                                  );
+                    } elseif ($fieldName == self::DBFLD_MONEY_ADDRESSID) {
+                        $data[] = (empty($this->allECAddresses[$fieldVal]) ? ''
+                                  : $this->allECAddresses[$fieldVal][self::DBFLD_ADDRESS_ADDR] . ' '
+                                      . $this->allECAddresses[$fieldVal][self::DBFLD_ADDRESS_SUM]
+                                  );
                     } elseif ($fieldName == self::DBFLD_MONEY_INVOICEID) {
                         if ($this->ecInvoicesON) {
                             $data[] = (empty($this->allECInvoices[$fieldVal]) ? ''
@@ -2906,7 +3080,7 @@ class ExtContras {
                 foreach ($eachRecID as $fieldName => $fieldVal) {
                     $tmpFldName  = str_replace(self::TABLE_ECMONEY, '', $fieldName);
 
-                    if ($tmpFldName == self::DBFLD_MONEY_CONTRASID) {
+                    if ($tmpFldName == self::DBFLD_MONEY_PROFILEID) {
                         $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
                             : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
                             . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
