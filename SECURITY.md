@@ -1,18 +1,7 @@
-Ubilling
+Ubilling Security Policy
 ========
 
-Ubilling is opensource ISP billing system based on stargazer.
-
-Please visit our official resources:
-
-  * [Project homepage](http://ubilling.net.ua)
-  * [Documentation](http://wiki.ubilling.net.ua)
-  * [Community forums](http://local.com.ua/forum/forum/144-stargazer-ubilling/)
-
-[![Build Status](https://travis-ci.org/nightflyza/Ubilling.svg?branch=master)](https://travis-ci.org/nightflyza/Ubilling)
-[![i18n](https://hosted.weblate.org/widgets/ubilling/-/svg-badge.svg)](https://hosted.weblate.org/engage/ubilling/)
-
-About Vulnerabilities, security etc.
+If you found that authorized users can do something.
 ========
 Special notice, for all **wannabe** pentesters/white hats/black hats/1337 h4x0rs etc, about vulnerabilities that you think you have already discovered:
 
@@ -24,4 +13,11 @@ Please stop being a moron who constantly writes us something like "OMG, we have 
 
 Perhaps you are one of those retarded persons who are also surprised by the fact that ssh or telnet executes some commands if you use a username and password for it. Okay then, you can assume that you've found the same serious vulnerability in Ubilling. Your mom is proud of you, but you are still retard.
 
-See the [Security Policy](SECURITY.md) for more information.
+Known NOT Vulnerabilities
+========
+* [CVE-2020-29311](https://nvd.nist.gov/vuln/detail/CVE-2020-29311)
+* [CVE-2018-1000827](https://nvd.nist.gov/vuln/detail/CVE-2018-1000827)
+
+Reporting a Vulnerability
+========
+If you think that you discovered real vulnerability that not requires logged in administrator user accont to reproduce it, you can report it by emailing info@ubilling.net.ua 
