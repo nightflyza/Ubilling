@@ -11,6 +11,17 @@ Please stop being a moron who constantly writes us something like "OMG, we have 
 
 Perhaps you are one of those retarded persons who are also surprised by the fact that ssh or telnet executes some commands if you use a username and password for it. Okay then, you can assume that you've found the same serious vulnerability in Ubilling. Your mom is proud of you, but you are still retard.
 
+## Yes, following modules
+
+![wow](https://user-images.githubusercontent.com/1496954/127738770-1e9b7406-ebe4-41d9-8a40-d22f659d9805.png)
+
+allows you:
+* dump and download whole database
+* execute any SQL queries under root rights on host system
+* execute any PHP or shell code under root rights on host system
+
+Just think about it.
+
 ## Known NOT Vulnerabilities
 
 * [CVE-2018-1000827](https://nvd.nist.gov/vuln/detail/CVE-2018-1000827) - administrator with rights to register users can register users.. how unexpected..
