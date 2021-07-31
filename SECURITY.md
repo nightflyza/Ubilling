@@ -29,4 +29,4 @@ If you think that you discovered real vulnerability that not requires logged in 
 * you will not discover anything that we do not know about.. maybe.
 * but maybe you will satisfy your curiosity
 
-## Sorry if everything that you read above seems unacceptable or rude to you, but we are really tired of the fact that every day someone tells us that the project is doing what it was designed for.
+## Sorry if something that you read above seems unacceptable or rude to you, but we are really tired of the fact that every day someone tells us that the project is doing what it was designed for.
