@@ -13,7 +13,6 @@ Perhaps you are one of those retarded persons who are also surprised by the fact
 
 ## Known NOT Vulnerabilities
 
-* 
 * [CVE-2018-1000827](https://nvd.nist.gov/vuln/detail/CVE-2018-1000827) - administrator with rights to register users can register users.. how unexpected..
 * [CVE-2020-29311](https://nvd.nist.gov/vuln/detail/CVE-2020-29311) - administrator with root rights can execute some code under root rights... WOW...
 * ["Tasks manager CSRF"](https://www.huntr.dev/bounties/8cfc8b16-b5ac-4e9c-a56b-97317efbaa0a/) - administrator with rights to create tasks can create some tasks.. amazing..
@@ -30,4 +29,4 @@ If you think that you discovered real vulnerability that not requires logged in 
 * you will not discover anything that we do not know about.. maybe.
 * but maybe you will satisfy your curiosity
 
-**Sorry if everything that you read above seems unacceptable or rude to you, but we are really tired of the fact that every day someone tells us that the project is doing what it was designed for. **
+## Sorry if everything that you read above seems unacceptable or rude to you, but we are really tired of the fact that every day someone tells us that the project is doing what it was designed for.
