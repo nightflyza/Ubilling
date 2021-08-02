@@ -269,6 +269,13 @@ class ExtContras {
     protected $ecReadOnlyAccess = false;
 
     /**
+     * Contains HTML attribute to disable from's submit buttons on read only access
+     *
+     * @var string
+     */
+    protected $submitBtnDisabled = '';
+
+    /**
      * Placeholder for mandatory fields SUP mark
      *
      * @var string
@@ -444,35 +451,36 @@ class ExtContras {
     const CTRL_ECCOLOR_PAYMENTEXPIRED_FRGND  = 'EC_PAYMENTEXPIRED_FRGND';
 
 
-    const ROUTE_ACTION_CREATE       = 'doCreate';
-    const ROUTE_ACTION_PREFILL      = 'doPrefill';
-    const ROUTE_ACTION_EDIT         = 'doEdit';
-    const ROUTE_ACTION_CLONE        = 'doClone';
-    const ROUTE_ACTION_DELETE       = 'doRemove';
-    const ROUTE_EDIT_REC_ID         = 'editRecID';
-    const ROUTE_DELETE_REC_ID       = 'deleteRecID';
-    const ROUTE_CONTRAS_ACTS        = 'contrasacts';
-    const ROUTE_CONTRAS_JSON        = 'contraslistjson';
-    const ROUTE_PROFILE_ACTS        = 'profileacts';
-    const ROUTE_PROFILE_JSON        = 'profilelistjson';
-    const ROUTE_CONTRACT_ACTS       = 'contractacts';
-    const ROUTE_CONTRACT_JSON       = 'contractlistjson';
-    const ROUTE_ADDRESS_ACTS        = 'addressacts';
-    const ROUTE_ADDRESS_JSON        = 'addresslistjson';
-    const ROUTE_PERIOD_ACTS         = 'periodacts';
-    const ROUTE_PERIOD_JSON         = 'periodlistjson';
-    const ROUTE_FINOPS_ACTS         = 'finopsacts';
-    const ROUTE_FINOPS_JSON         = 'finopslistjson';
-    const ROUTE_FINOPS_DETAILS      = 'finopsdetails';
-    const ROUTE_INVOICES_ACTS       = 'invoicesacts';
-    const ROUTE_INVOICES_JSON       = 'invoiceslistjson';
-    const ROUTE_FORCECACHE_UPD      = 'extcontrasforcecacheupdate';
-    const ROUTE_2LVL_CNTRCTS_DETAIL = 'contras2lvlcntrctsdetails';
-    const ROUTE_2LVL_CNTRCTS_JSON   = 'contras2lvlcntrctsjson';
-    const ROUTE_2LVL_ADDRS_DETAIL   = 'contras2lvladdrsdetails';
-    const ROUTE_2LVL_ADDRS_JSON     = 'contras2lvladdrsjson';
-    const ROUTE_3LVL_ADDRS_DETAIL   = 'contras3lvladdrsdetails';
-    const ROUTE_3LVL_ADDR_JSON      = 'contras3lvladdrsjson';
+    const ROUTE_ACTION_CREATE           = 'doCreate';
+    const ROUTE_ACTION_PREFILL          = 'doPrefill';
+    const ROUTE_ACTION_EDIT             = 'doEdit';
+    const ROUTE_ACTION_CLONE            = 'doClone';
+    const ROUTE_ACTION_DELETE           = 'doRemove';
+    const ROUTE_EDIT_REC_ID             = 'editRecID';
+    const ROUTE_DELETE_REC_ID           = 'deleteRecID';
+    const ROUTE_CONTRAS_ACTS            = 'contrasacts';
+    const ROUTE_CONTRAS_JSON            = 'contraslistjson';
+    const ROUTE_PROFILE_ACTS            = 'profileacts';
+    const ROUTE_PROFILE_JSON           = 'profilelistjson';
+    const ROUTE_CONTRACT_ACTS          = 'contractacts';
+    const ROUTE_CONTRACT_JSON          = 'contractlistjson';
+    const ROUTE_ADDRESS_ACTS           = 'addressacts';
+    const ROUTE_ADDRESS_JSON           = 'addresslistjson';
+    const ROUTE_PERIOD_ACTS            = 'periodacts';
+    const ROUTE_PERIOD_JSON            = 'periodlistjson';
+    const ROUTE_FINOPS_ACTS            = 'finopsacts';
+    const ROUTE_FINOPS_JSON            = 'finopslistjson';
+    const ROUTE_FINOPS_DETAILS_CNTRCTS = 'finopsdetailscontracts';
+    const ROUTE_FINOPS_DETAILS_ADDRESS = 'finopsdetailsaddress';
+    const ROUTE_INVOICES_ACTS          = 'invoicesacts';
+    const ROUTE_INVOICES_JSON          = 'invoiceslistjson';
+    const ROUTE_FORCECACHE_UPD         = 'extcontrasforcecacheupdate';
+    const ROUTE_2LVL_CNTRCTS_DETAIL    = 'contras2lvlcntrctsdetails';
+    const ROUTE_2LVL_CNTRCTS_JSON      = 'contras2lvlcntrctsjson';
+    const ROUTE_2LVL_ADDRS_DETAIL      = 'contras2lvladdrsdetails';
+    const ROUTE_2LVL_ADDRS_JSON        = 'contras2lvladdrsjson';
+    const ROUTE_3LVL_ADDRS_DETAIL      = 'contras3lvladdrsdetails';
+    const ROUTE_3LVL_ADDR_JSON          = 'contras3lvladdrsjson';
 
 
     const TABLE_EXTCONTRAS      = 'extcontras';
@@ -499,6 +507,14 @@ class ExtContras {
     const MISC_WEBFILTER_DATE_END        = 'datefilterend';
     const MISC_WEBFILTER_PAYDAY          = 'paydayfilter';
     const MISC_PREFILL_DATA              = 'prefilldata';
+    const MISC_WEBSEL_PROFILES           = 'WebSelECProfiles_';
+    const MISC_WEBSEL_CONTRACTS          = 'WebSelECContracts_';
+    const MISC_WEBSEL_ADDRESS            = 'WebSelECAddress_';
+    const MISC_WEBSEL_FILTDATA_CONTRACTS = 'WebSelContractFilterData_';
+    const MISC_WEBSEL_FILTDATA_ADDRESS   = 'WebSelAddressFilterData_';
+    const MISC_WEBSEL_DBVAL_PROFILE_ID   = 'ModalDBValProfile_';
+    const MISC_WEBSEL_DBVAL_CONTRACTS_ID = 'ModalDBValContract_';
+    const MISC_WEBSEL_DBVAL_ADDRESS_ID   = 'ModalDBValAddress_';
 
 
     public function __construct() {
@@ -530,6 +546,7 @@ class ExtContras {
         $this->ecEditablePreiod   = $this->ubConfig->getAlterParam('EXTCONTRAS_EDIT_ALLOWED_DAYS');
         $this->ecEditablePreiod   = empty($this->ecEditablePreiod) ? (60 * 86400) : ($this->ecEditablePreiod * 86400); // Option is in days
         $this->ecReadOnlyAccess   = (!cfr('EXTCONTRASRW'));
+        $this->submitBtnDisabled  = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
     }
 
     /**
@@ -730,7 +747,7 @@ class ExtContras {
         $this->dbECMoneyExten->joinOn();
         $this->dbECMoneyExten->joinOn('INNER', self::TABLE_EXTCONTRAS,
                                       self::TABLE_ECMONEY . '.' . self::DBFLD_MONEY_PROFILEID
-                                      . ' = ' . self::TABLE_EXTCONTRAS . '.' . self::DBFLD_COMMON_ID);
+                                      . ' = ' . self::TABLE_EXTCONTRAS . '.' . self::DBFLD_EXTCONTRAS_PROFILE_ID);
 
         if (!empty($whereRaw)) {
             $this->dbECMoneyExten->whereRaw($whereRaw);
@@ -740,7 +757,7 @@ class ExtContras {
             $this->dbExtContrasExten->orderBy($orderBy, $orderDir);
         }
 
-//$this->dbECMoneyExten->setDebug(true, true);
+$this->dbECMoneyExten->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_ECMONEYEXTEN, self::TABLE_ECMONEYEXTEN, $forceDBLoad,
                         false, self::TABLE_ECMONEY . self::DBFLD_COMMON_ID,
                              '', !empty($whereRaw), $distinctSelectON);
@@ -891,11 +908,11 @@ class ExtContras {
             $curMonthStart  = date('Y-m-') . '01';
             $curMonthEnd    = date('Y-m-') . $tmpECPayDay;
 
-            $this->dbECMoney->selectable('id');
-            $this->dbECMoney->where('contras_rec_id', '=', $ecRecID);
-            $this->dbECMoney->where('summ_payment', '!=', 0);
-            $this->dbECMoney->whereRaw(' `date` BETWEEN ' . $curMonthStart . ' AND ' . $curMonthEnd . ' + INTERVAL 1 DAY ');
-            $result = $this->dbECMoney->getAll('id');
+            $this->dbECMoney->selectable(self::DBFLD_COMMON_ID);
+            $this->dbECMoney->where(self::DBFLD_MONEY_PROFILEID, '=', $ecRecID);
+            $this->dbECMoney->where(self::DBFLD_MONEY_SMPAYMENT, '!=', 0);
+            $this->dbECMoney->whereRaw(' `' . self::DBFLD_MONEY_DATE . '` BETWEEN "' . $curMonthStart . '" AND "' . $curMonthEnd . '" + INTERVAL 1 DAY ');
+            $result = $this->dbECMoney->getAll(self::DBFLD_COMMON_ID);
         }
 
         return ($result);
@@ -1363,7 +1380,6 @@ $dbEntity->setDebug(true, true);
             $prfEmail   = $profile[self::DBFLD_PROFILE_MAIL];
         }
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
         $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt       = ($editAction) ? __('Edit counterparty profile') :
                           (($cloneAction) ? __('Clone counterparty profile') :
@@ -1377,7 +1393,7 @@ $dbEntity->setDebug(true, true);
                                $emptyCheckClass, '', '', true);
         $inputs.= wf_TextInput(self::CTRL_PROFILE_MAIL, __('E-mail'), $prfEmail, false, '', '',
                                '', '', '', true);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_PROFILE_ACTS, 'true');
 
         if ($editAction) {
@@ -1504,7 +1520,6 @@ $dbEntity->setDebug(true, true);
             $ctrctNotes         = $contract[self::DBFLD_CTRCT_NOTES];
         }
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
         $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt       = ($editAction) ? __('Edit counterparty contract') :
                           (($cloneAction) ? __('Clone counterparty contract') :
@@ -1545,7 +1560,7 @@ $dbEntity->setDebug(true, true);
         $inputs.= wf_TextInput(self::CTRL_CTRCT_NOTES, __('Contract notes'), $ctrctNotes, false, '70', '',
                                'right-two-thirds-occupy', '', '', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_CONTRACT_ACTS, 'true');
 
         if ($editAction) {
@@ -1691,7 +1706,6 @@ $dbEntity->setDebug(true, true);
             $addrNotes      = $address[self::DBFLD_ADDRESS_NOTES];
         }
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
         $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt       = ($editAction) ? __('Edit counterparty address') :
                           (($cloneAction) ? __('Clone counterparty address') :
@@ -1705,7 +1719,7 @@ $dbEntity->setDebug(true, true);
                                $emptyCheckClass, '', '', true);
         $inputs.= wf_TextInput(self::CTRL_ADDRESS_NOTES, __('Notes'), $addrNotes, false, '', '',
                                '', '', '', true);
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_ADDRESS_ACTS, 'true');
 
         if ($editAction) {
@@ -1809,7 +1823,6 @@ $dbEntity->setDebug(true, true);
             $prdName = $period[self::DBFLD_PERIOD_NAME];
         }
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
         $submitCapt     = ($editAction) ? __('Edit') : __('Create');
         $formCapt       = ($editAction) ? __('Edit period') : __('Create period');
 
@@ -1818,7 +1831,7 @@ $dbEntity->setDebug(true, true);
         $inputs.= wf_TextInput(self::CTRL_PERIOD_NAME, __('Name') . $this->supFrmFldMark, $prdName, true, '', '',
                                $emptyCheckClass, '', '', true, $ctrlsLblStyle);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"; ' . $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"; ' . $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_PERIOD_ACTS, 'true');
 
         if ($editAction) {
@@ -1971,7 +1984,6 @@ $dbEntity->setDebug(true, true);
             $invoOutgoing       = ubRouting::filters($invoice[self::DBFLD_INVOICES_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         }
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
         $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt       = ($editAction) ? __('Edit invoice') :
                           (($cloneAction) ? __('Clone invoice') :
@@ -2020,7 +2032,7 @@ $dbEntity->setDebug(true, true);
         $inputs.= wf_RadioInput(self::CTRL_INVOICES_IN_OUT, __('Outgoing invoice'), 'outgoing', false, $invoOutgoing);
         $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_INVOICES_ACTS, 'true');
 
         if ($editAction) {
@@ -2214,11 +2226,21 @@ $dbEntity->setDebug(true, true);
             $contrasPayDay      = $extContra[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
         }
 
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
+        $ecProfilesWebSelID     = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_PROFILES;
+        $ecContractsWebSelID    = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_CONTRACTS;
+        $ecAddressWebSelID      = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_ADDRESS;
+        $contractsFilterDataID  = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_FILTDATA_CONTRACTS;
+        $addressFilterDataID    = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_FILTDATA_ADDRESS;
+        $editDBValProfileID     = self::MISC_WEBSEL_DBVAL_PROFILE_ID;
+        $editDBValContractID    = self::MISC_WEBSEL_DBVAL_CONTRACTS_ID;
+        $editDBValAddressID     = self::MISC_WEBSEL_DBVAL_ADDRESS_ID;
+
         $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt       = ($editAction) ? __('Edit counterparty record') :
                           (($cloneAction) ? __('Clone counterparty record') :
                           __('Create counterparty record'));
+
+        $inputs.= wf_EncloseWithJSTags(wf_jsWebSelectorFilter());
 
         $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME,
                                                                        self::DBFLD_PROFILE_CONTACT),
@@ -2238,7 +2260,7 @@ $dbEntity->setDebug(true, true);
         $inputs.= wf_TextInput(self::CTRL_EXTCONTRAS_PAYDAY, __('Payday') . $this->supFrmFldMark, $contrasPayDay, false, '4', 'digits',
                                $emptyCheckClass, '', '', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_CONTRAS_ACTS, 'true');
 
         if ($editAction) {
@@ -2249,9 +2271,36 @@ $dbEntity->setDebug(true, true);
         }
 
         if ($modal and !empty($modalWinID)) {
-            $inputs .= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
+            $inputs.= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
         }
 
+        if (!$modal) {
+            $tmpWebSelJS = '
+        $(function() {
+            onElementInserted("body", "#Modal' . $ecProfilesWebSelID . '", function(element) {
+                $("#Modal' . $ecProfilesWebSelID . '").on("click change", function(evt) {
+                    filterWebDropdown($(this).val(), $(\'#Modal' . $contractsFilterDataID . '\').val(), \'Modal' . $ecContractsWebSelID . '\', true);
+                }); 
+                
+                $("#Modal' . $ecProfilesWebSelID . '").val($("#' . $editDBValProfileID . '").val()).change();
+            });
+            
+            onElementInserted("body", "#Modal' . $ecContractsWebSelID . '", function(element) {        
+                $("#Modal' . $ecContractsWebSelID . '").on("click change", function(evt) {
+                    filterWebDropdown($(this).val(), $(\'#Modal' . $addressFilterDataID . '\').val(), \'Modal' . $ecAddressWebSelID . '\', true);
+                });
+                
+                $("#Modal' . $ecContractsWebSelID . '").val($("#' . $editDBValContractID . '").val()).change();
+                $("#Modal' . $ecAddressWebSelID . '").val($("#' . $editDBValAddressID . '").val()).change();
+            });
+        });
+            
+        ';
+        } else {
+            $tmpWebSelJS = '';
+        }
+
+        $inputs.= wf_EncloseWithJSTags($tmpWebSelJS);
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true','POST',
                           $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right ' . $formClass);
 
@@ -2295,7 +2344,7 @@ $dbEntity->setDebug(true, true);
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},
-                            {"targets": [6, 7, 8], "visible": false},                            
+                            {"targets": [6, 7, 8], "visible": true},                            
                             {"targets": ["_all"], "className": "dt-center dt-head-center"}                                              
                           ],
             "order": [[ 1, "desc" ]],
@@ -2328,7 +2377,7 @@ $dbEntity->setDebug(true, true);
         if (!empty($whereRaw)) {
             $this->dbECProfiles->whereRaw($whereRaw);
         }
-
+//file_put_contents('qxcv', print_r($whereRaw, true));
         $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES,
                                        !empty($whereRaw), true,'', '', !empty($whereRaw));
 
@@ -2351,6 +2400,7 @@ $dbEntity->setDebug(true, true);
                             if ($eachData[self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) {
                                 $recForeColor = $this->fiveDaysTillPayFRGND;
                                 $recBackColor = $this->fiveDaysTillPayBKGND;
+                                break;
                             }
 
                             if (date('j') > $eachData[self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) {
@@ -2394,7 +2444,7 @@ $dbEntity->setDebug(true, true);
      */
     public function ecRender2ndLvlContractsJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_2LVL_CNTRCTS_JSON . '=true' . $detailsFilter;
-        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS_CNTRCTS . '=true';
 
         $columns[] = '';
         $columns[] = __('ID');
@@ -2417,7 +2467,7 @@ $dbEntity->setDebug(true, true);
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},                           
-                            {"targets": [10, 11, 12, 13], "visible": false},                     
+                            {"targets": [10, 11, 12, 13], "visible": true},                     
                             {"targets": [3], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
                             {"targets": [8], "width": "85px"},
@@ -2445,7 +2495,8 @@ $dbEntity->setDebug(true, true);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 13, 'showDetailsData22');
+                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 13,
+                                    'showDetailsData13');
         return($result);
     }
 
@@ -2465,12 +2516,13 @@ $dbEntity->setDebug(true, true);
             foreach ($this->allExtContrasExten as $eachRecID) {
 
                 $curRecID       = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
+                $profileRecID   = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID];
                 $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
                 $addrRecID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
                 $contractSum    = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
 
                 $data[] = '';
-                $data[] = $curRecID;
+                $data[] = $contractRecID;
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
                                     . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
                                     $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
@@ -2486,7 +2538,9 @@ $dbEntity->setDebug(true, true);
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                         array(self::ROUTE_FINOPS_ACTS => 'true',
                                                             self::ROUTE_ACTION_PREFILL => 'true',
-                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $curRecID,
+                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $profileRecID,
+                                                                                             self::CTRL_MONEY_CNTRCTID   => $contractRecID,
+                                                                                             self::CTRL_MONEY_ADDRESSID  => $addrRecID,
                                                                                              self::CTRL_MONEY_SUMPAYMENT => $contractSum
                                                                                             )
                                                         ),
@@ -2498,7 +2552,7 @@ $dbEntity->setDebug(true, true);
                 $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
                 $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
-                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID
+                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $profileRecID
                           . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
                           . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
                 $json->addRow($data);
@@ -2522,37 +2576,32 @@ $dbEntity->setDebug(true, true);
      */
     public function ecRender2ndLvlAddressJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_3LVL_ADDR_JSON . '=true' . $detailsFilter;
-        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS . '=true';
-
+        $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS_ADDRESS . '=true';
+file_put_contents('zxcv', $detailsFilter . "\n", 8);
         $columns[] = '';
         $columns[] = __('ID');
-        $columns[] = __('Contract');
-        $columns[] = __('Contract subject');
-        $columns[] = __('Contract date start');
-        $columns[] = __('Contract sum');
         $columns[] = __('Address');
         $columns[] = __('Address contract notes');
-        $columns[] = __('Address sum');
+        $columns[] = __('Address sum');     //4
         $columns[] = __('Period');
         $columns[] = __('Payday');
-        $columns[] = __('Actions');
+        $columns[] = __('Actions');     // 7
         $columns[] = __('Add financial operation');
         $columns[] = __('Payed this month');
         $columns[] = __('5 days till payday');
         $columns[] = __('Payment expired');
-        $columns[] = __('Filter for details');
-
+        $columns[] = __('Filter for details');  //12
         $opts = '
             "columnDefs": [ 
                             {"targets": [0], "className": "details-control"},
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},                           
-                            {"targets": [13, 14, 15, 16], "visible": false},                     
-                            {"targets": [3, 6, 7], "className": "dt-left dt-head-center"},
+                            {"targets": [9, 10, 11, 12], "visible": true},                     
+                            {"targets": [4, 5, 6], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [12], "width": "85px"},
-                            {"targets": [11, 12], "orderable": false}                                                        
+                            {"targets": [7], "width": "85px"},
+                            {"targets": [7, 8], "orderable": false}                                                        
                           ],
             "order": [[ 1, "desc" ]],
             "rowCallback": function(row, data, index) {                               
@@ -2575,8 +2624,9 @@ $dbEntity->setDebug(true, true);
             ';
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
-            self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-            self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 16, 'showDetailsData22');
+                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 12,
+                                    'showDetailsData12');
         return($result);
     }
 
@@ -2589,25 +2639,24 @@ $dbEntity->setDebug(true, true);
     public function ecRender2ndLvlAddressListJSON($whereRaw = '') {
         $this->loadExtContrasExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
-
+file_put_contents('qqqxcv', $whereRaw . "\n", 8);
         if (!empty($this->allExtContrasExten)) {
             $data = array();
 
             foreach ($this->allExtContrasExten as $eachRecID) {
-
                 $curRecID       = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
+                $profileRecID   = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID];
                 $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
                 $addrRecID      = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_COMMON_ID];
-                $contractSum    = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_FULLSUM];
+                $addressSum     = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_SUM];
 
                 $data[] = '';
-                $data[] = $curRecID;
+                $data[] = $addrRecID;
                 $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
-                    . '&' . self::MISC_MARKROW_URL . '=' . $contractRecID,
-                    $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_CONTRACT]);
-                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_SUBJECT];
-                $data[] = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_CTRCT_DTSTART];
-                $data[] = $contractSum;
+                                  . '&' . self::MISC_MARKROW_URL . '=' . $addrRecID,
+                                  $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
+                $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_NOTES];
+                $data[] = $addressSum;
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY];
 
@@ -2615,21 +2664,23 @@ $dbEntity->setDebug(true, true);
                 $data[]  = $actions;
 
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
-                    array(self::ROUTE_FINOPS_ACTS => 'true',
-                        self::ROUTE_ACTION_PREFILL => 'true',
-                        self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $curRecID,
-                                                         self::CTRL_MONEY_SUMPAYMENT => $contractSum
-                        )
-                    ),
-                    '', web_add_icon(), '', 'POST', 'click', false, false, true
-                );
+                                                        array(self::ROUTE_FINOPS_ACTS => 'true',
+                                                            self::ROUTE_ACTION_PREFILL => 'true',
+                                                            self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $profileRecID,
+                                                                                             self::CTRL_MONEY_CNTRCTID   => $contractRecID,
+                                                                                             self::CTRL_MONEY_ADDRESSID  => $addrRecID,
+                                                                                             self::CTRL_MONEY_SUMPAYMENT => $addressSum
+                                                                                            )
+                                                        ),
+                                                        '', web_add_icon(), '', 'POST', 'click', false, false, true
+                                                        );
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID);
 
                 $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
                 $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
-                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $curRecID
+                $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $profileRecID
                     . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
                     . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
                 $json->addRow($data);
@@ -2648,7 +2699,6 @@ $dbEntity->setDebug(true, true);
      */
     public function extcontrasColorSettings() {
         $this->getTableGridColorOpts();
-        $submitDisabled = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
 
         $inputs = '';
         $tmpStyle = 'style="float: right; width: 80px; height: 20px; border: 2px solid rgba(100, 100, 100, .8); border-radius: 4px; ';
@@ -2685,7 +2735,7 @@ $dbEntity->setDebug(true, true);
 
         $inputs.= wf_delimiter(0);
         $inputs.= wf_HiddenInput(self::URL_EXTCONTRAS_COLORS, 'true');
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"; ' . $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', __('Save'), '', 'style="width: 100%"; ' . $this->submitBtnDisabled);
 
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS_COLORS . '=true','POST',
                             $inputs, 'glamour');
@@ -2780,16 +2830,15 @@ $dbEntity->setDebug(true, true);
         $finopAccruals = $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, true);
         $this->loadDataFromTableCached(self::TABLE_ECMONEY, self::TABLE_ECMONEY, true);
 
-        $ecProfilesWebSelID     = ($modal ? 'Modal' : '') . 'ECProfiles_';
-        $ecContractsWebSelID    = ($modal ? 'Modal' : '') . 'ECContracts_';
-        $ecAddressWebSelID      = ($modal ? 'Modal' : '') . 'ECAddress_';
-        $contractsFilterDataID  = ($modal ? 'Modal' : '') . 'ContractFilterData_';
-        $addressFilterDataID    = ($modal ? 'Modal' : '') . 'AddressFilterData_';
-        $editDBValProfileID     = 'ModalDBValProfile_';
-        $editDBValContractID    = 'ModalDBValContract_';
-        $editDBValAddressID     = 'ModalDBValAddress_';
+        $ecProfilesWebSelID     = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_PROFILES;
+        $ecContractsWebSelID    = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_CONTRACTS;
+        $ecAddressWebSelID      = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_ADDRESS;
+        $contractsFilterDataID  = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_FILTDATA_CONTRACTS;
+        $addressFilterDataID    = ($modal ? 'Modal' : '') . self::MISC_WEBSEL_FILTDATA_ADDRESS;
+        $editDBValProfileID     = self::MISC_WEBSEL_DBVAL_PROFILE_ID;
+        $editDBValContractID    = self::MISC_WEBSEL_DBVAL_CONTRACTS_ID;
+        $editDBValAddressID     = self::MISC_WEBSEL_DBVAL_ADDRESS_ID;
 
-        $submitDisabled         = ($this->ecReadOnlyAccess ? 'disabled="true"' : '');
         $submitCapt             = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
         $formCapt               = ($editAction) ? __('Edit financial operation') :
                                   (($cloneAction) ? __('Clone financial operation') :
@@ -2845,20 +2894,20 @@ $dbEntity->setDebug(true, true);
             $tmpWebSelJS = '
         $(function() {
             onElementInserted("body", "#Modal' . $ecProfilesWebSelID . '", function(element) {
-                $("#Modal' . $ecProfilesWebSelID . '").on("change", function(evt) {
+                $("#Modal' . $ecProfilesWebSelID . '").on("click change", function(evt) {
                     filterWebDropdown($(this).val(), $(\'#Modal' . $contractsFilterDataID . '\').val(), \'Modal' . $ecContractsWebSelID . '\', true);
                 }); 
                 
-                $("#Modal' . $ecProfilesWebSelID . '").val($("#' . $editDBValProfileID . '").val());
+                $("#Modal' . $ecProfilesWebSelID . '").val($("#' . $editDBValProfileID . '").val()).change();
             });
             
             onElementInserted("body", "#Modal' . $ecContractsWebSelID . '", function(element) {        
-                $("#Modal' . $ecContractsWebSelID . '").on("change", function(evt) {
+                $("#Modal' . $ecContractsWebSelID . '").on("click change", function(evt) {
                     filterWebDropdown($(this).val(), $(\'#Modal' . $addressFilterDataID . '\').val(), \'Modal' . $ecAddressWebSelID . '\', true);
                 });
                 
-                $("#Modal' . $ecContractsWebSelID . '").val($("#' . $editDBValContractID . '").val());
-                $("#Modal' . $ecAddressWebSelID . '").val($("#' . $editDBValAddressID . '").val());
+                $("#Modal' . $ecContractsWebSelID . '").val($("#' . $editDBValContractID . '").val()).change();
+                $("#Modal' . $ecAddressWebSelID . '").val($("#' . $editDBValAddressID . '").val()).change();
             });
         
             $(\'#' . $ecProfilesWebSelID . '\').on("change", function(evt) {
@@ -2905,7 +2954,7 @@ $dbEntity->setDebug(true, true);
         $inputs.= wf_RadioInput(self::CTRL_MONEY_INOUT, __('Outgoing payment'), 'outgoing', false, $finopOutgoing);
         $inputs.= wf_tag('span', true);
 
-        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"; ' . $submitDisabled);
+        $inputs.= wf_SubmitClassed(true, 'ubButton', '', $submitCapt, '', 'style="width: 100%"; ' . $this->submitBtnDisabled);
         $inputs.= wf_HiddenInput(self::ROUTE_FINOPS_ACTS, 'true');
 
         if ($editAction) {
@@ -2953,6 +3002,7 @@ $dbEntity->setDebug(true, true);
      */
     public function finopsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_JSON . '=true' . $detailsFilter;
+
         $colTargets1 = '[1, 2]';
         $colTargets2 = '[13, 14]';
 
@@ -3070,17 +3120,17 @@ $dbEntity->setDebug(true, true);
     public function finopsRenderNestedListJSON($whereRaw = '') {
         $this->loadFinopsExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
-
+file_put_contents('qxcv', $whereRaw . "\n", 8);
         if (!empty($this->allECMoneyExten)) {
             $data = array();
-
+//todo: check if the previous JSON statement suits here
             foreach ($this->allECMoneyExten as $eachRecID) {
                 $curRecIDFld = self::TABLE_ECMONEY . self::DBFLD_COMMON_ID;
 
                 foreach ($eachRecID as $fieldName => $fieldVal) {
                     $tmpFldName  = str_replace(self::TABLE_ECMONEY, '', $fieldName);
 
-                    if ($tmpFldName == self::DBFLD_MONEY_PROFILEID) {
+                    /*if ($tmpFldName == self::DBFLD_MONEY_PROFILEID) {
                         $data[] = (empty($this->allExtContrasExten[$fieldVal]) ? ''
                             : $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_EDRPO] . ' '
                             . $this->allExtContrasExten[$fieldVal][self::TABLE_ECPROFILES . self::DBFLD_PROFILE_NAME]
@@ -3103,7 +3153,7 @@ $dbEntity->setDebug(true, true);
                         continue;
                     } else {
                         $data[] = $fieldVal;
-                    }
+                    }*/
                 }
 
                 $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[$curRecIDFld]);
