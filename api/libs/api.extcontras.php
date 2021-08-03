@@ -1,5 +1,7 @@
 <?php
-
+// - Вы делоете платежов?
+// - Нет, просто показываю.
+// - Кросивое...
 
 class ExtContras {
     /**
@@ -757,7 +759,7 @@ class ExtContras {
             $this->dbExtContrasExten->orderBy($orderBy, $orderDir);
         }
 
-$this->dbECMoneyExten->setDebug(true, true);
+//$this->dbECMoneyExten->setDebug(true, true);
         $this->loadDataFromTableCached(self::TABLE_ECMONEYEXTEN, self::TABLE_ECMONEYEXTEN, $forceDBLoad,
                         false, self::TABLE_ECMONEY . self::DBFLD_COMMON_ID,
                              '', !empty($whereRaw), $distinctSelectON);
@@ -934,6 +936,7 @@ $this->dbECMoneyExten->setDebug(true, true);
      */
     protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true,
                                                 $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '',
+                                                $addTotalsFooter = false, $TotalsColumns = array(),
                                                 $addDetailsProcessingJS = false, $dpAjaxURL = '', $dpColumnIdx = '',
                                                 $dpJSFuncName = 'showDetailsData', $dpAjaxMethod = 'POST') {
         $result     = '';
@@ -946,7 +949,57 @@ $this->dbECMoneyExten->setDebug(true, true);
             $result.= wf_EncloseWithJSTags(wf_JQDTRowShowPluginJS());
         }
 
+        if ($addTotalsFooter and !empty($TotalsColumns)) {
+            $result.= wf_EncloseWithJSTags(wf_JQDTColumnTotalSumJS());
+
+            $opts.= '
+                ,
+                "drawCallback": function () {
+                    var api = this.api();
+                    var footerHTML = "";
+            ';
+
+            foreach ($TotalsColumns as $colNum) {
+                $opts.= '
+                    let curPageSum' . $colNum . ' = api.column( ' . $colNum . ', {page:"current"} ).data().sum();
+                    let curPageTotal' . $colNum . ' = api.column( ' . $colNum . ' ).data().sum();
+console.log(curPageSum' . $colNum . ');
+console.log(curPageTotal' . $colNum . ');
+                    footerHTML+= " " + curPageSum' . $colNum . ' + "  ( " + curPageTotal' . $colNum . ' + " )"
+console.log(footerHTML);                    
+                    $( api.column(' . $colNum . ').footer() ).html( "wdewdwedwe" );
+console.log($( api.table().footer() ).html()); 
+                    ';
+            }
+
+            $opts.= ' 
+                    $( api.table().footer() ).html( footerHTML );
+                }
+            
+            ';
+        }
+
         $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
+
+        if ($addTotalsFooter and !empty($TotalsColumns)) {
+            $result.= wf_tag('script', false, '', 'type="text/javascript"');
+            $result.= '
+            $(function() {
+                var table = $(\'#' . $jqdtID . '\').DataTable();
+                var footer = $(\'<tfoot style="line-height: 2.2em;"></tfoot>\').appendTo("#' . $jqdtID . '");
+                var footertr = $("<tr></tr>").appendTo(footer);
+console.log(table);                
+                //Add footer cells
+                var columnsCount = table.columns().count();
+console.log(columnsCount);                                
+                for (var i = 0; i < columnsCount; i++) {
+                    $("<th></th>").appendTo(footertr);
+                }
+            });
+            
+            ';
+            $result.= wf_tag('script', true);
+        }
 
         if ($stdJSForCRUDs) {
             $result.= wf_tag('script', false, '', 'type="text/javascript"');
@@ -965,6 +1018,8 @@ $this->dbECMoneyExten->setDebug(true, true);
             if (!empty($markRowForID)) {
                 $result.= wf_JQDTMarkRowJS(0, $markRowForID, $truncateURL, $truncateParam);
             }
+file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
+
 
             $result.= wf_tag('script', true);
         }
@@ -1320,7 +1375,7 @@ $this->dbECMoneyExten->setDebug(true, true);
      */
     protected function recordCreateEdit($dbEntity, $dataArray, $recordID = 0) {
         $dbEntity->dataArr($dataArray);
-$dbEntity->setDebug(true, true);
+//$dbEntity->setDebug(true, true);
 
         if (!empty($recordID)) {
             $dbEntity->where(self::DBFLD_COMMON_ID, '=', $recordID);
@@ -1632,7 +1687,7 @@ $dbEntity->setDebug(true, true);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', true);
+                                      self::MISC_MARKROW_URL, '', false, '', true);
 
         return($result);
     }
@@ -2282,7 +2337,8 @@ $dbEntity->setDebug(true, true);
                     filterWebDropdown($(this).val(), $(\'#Modal' . $contractsFilterDataID . '\').val(), \'Modal' . $ecContractsWebSelID . '\', true);
                 }); 
                 
-                $("#Modal' . $ecProfilesWebSelID . '").val($("#' . $editDBValProfileID . '").val()).change();
+                let tmpDBValue = (empty($("#' . $editDBValProfileID . '").val()) ? "0" : $("#' . $editDBValProfileID . '").val());                 
+                $("#Modal' . $ecProfilesWebSelID . '").val(tmpDBValue).change();
             });
             
             onElementInserted("body", "#Modal' . $ecContractsWebSelID . '", function(element) {        
@@ -2290,8 +2346,11 @@ $dbEntity->setDebug(true, true);
                     filterWebDropdown($(this).val(), $(\'#Modal' . $addressFilterDataID . '\').val(), \'Modal' . $ecAddressWebSelID . '\', true);
                 });
                 
-                $("#Modal' . $ecContractsWebSelID . '").val($("#' . $editDBValContractID . '").val()).change();
-                $("#Modal' . $ecAddressWebSelID . '").val($("#' . $editDBValAddressID . '").val()).change();
+                let tmpDBValue = (empty($("#' . $editDBValContractID . '").val()) ? "0" : $("#' . $editDBValContractID . '").val());
+                $("#Modal' . $ecContractsWebSelID . '").val(tmpDBValue).change();
+                
+                tmpDBValue = (empty($("#' . $editDBValAddressID . '").val()) ? "0" : $("#' . $editDBValAddressID . '").val()) ;
+                $("#Modal' . $ecAddressWebSelID . '").val(tmpDBValue).change();
             });
         });
             
@@ -2344,7 +2403,7 @@ $dbEntity->setDebug(true, true);
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},
-                            {"targets": [6, 7, 8], "visible": true},                            
+                            {"targets": [6, 7, 8], "visible": false},                            
                             {"targets": ["_all"], "className": "dt-center dt-head-center"}                                              
                           ],
             "order": [[ 1, "desc" ]],
@@ -2362,7 +2421,8 @@ $dbEntity->setDebug(true, true);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                    self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 8);
+                                      self::MISC_MARKROW_URL, '', false, '',
+                              true, $ajaxURLDetails, 8);
 
         return($result);
     }
@@ -2377,7 +2437,7 @@ $dbEntity->setDebug(true, true);
         if (!empty($whereRaw)) {
             $this->dbECProfiles->whereRaw($whereRaw);
         }
-//file_put_contents('qxcv', print_r($whereRaw, true));
+
         $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES,
                                        !empty($whereRaw), true,'', '', !empty($whereRaw));
 
@@ -2467,7 +2527,7 @@ $dbEntity->setDebug(true, true);
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},                           
-                            {"targets": [10, 11, 12, 13], "visible": true},                     
+                            {"targets": [10, 11, 12, 13], "visible": false},                     
                             {"targets": [3], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
                             {"targets": [8], "width": "85px"},
@@ -2495,8 +2555,8 @@ $dbEntity->setDebug(true, true);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 13,
-                                    'showDetailsData13');
+                                      self::MISC_MARKROW_URL, '', false, '',
+                              true, $ajaxURLDetails, 13,'showDetailsData13');
         return($result);
     }
 
@@ -2577,7 +2637,7 @@ $dbEntity->setDebug(true, true);
     public function ecRender2ndLvlAddressJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL        = '' . self::URL_ME . '&' . self::ROUTE_3LVL_ADDR_JSON . '=true' . $detailsFilter;
         $ajaxURLDetails = '' . self::URL_ME . '&' . self::ROUTE_FINOPS_DETAILS_ADDRESS . '=true';
-file_put_contents('zxcv', $detailsFilter . "\n", 8);
+
         $columns[] = '';
         $columns[] = __('ID');
         $columns[] = __('Address');
@@ -2597,7 +2657,7 @@ file_put_contents('zxcv', $detailsFilter . "\n", 8);
                             {"targets": [0], "orderable": false},
                             {"targets": [0], "data": null},
                             {"targets": [0], "defaultContent": ""},                           
-                            {"targets": [9, 10, 11, 12], "visible": true},                     
+                            {"targets": [9, 10, 11, 12], "visible": false},                     
                             {"targets": [4, 5, 6], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
                             {"targets": [7], "width": "85px"},
@@ -2625,8 +2685,8 @@ file_put_contents('zxcv', $detailsFilter . "\n", 8);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', true, $ajaxURLDetails, 12,
-                                    'showDetailsData12');
+                                      self::MISC_MARKROW_URL, '', false, '',
+                              true, $ajaxURLDetails, 12,'showDetailsData12');
         return($result);
     }
 
@@ -2639,7 +2699,7 @@ file_put_contents('zxcv', $detailsFilter . "\n", 8);
     public function ecRender2ndLvlAddressListJSON($whereRaw = '') {
         $this->loadExtContrasExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
-file_put_contents('qqqxcv', $whereRaw . "\n", 8);
+
         if (!empty($this->allExtContrasExten)) {
             $data = array();
 
@@ -2681,8 +2741,8 @@ file_put_contents('qqqxcv', $whereRaw . "\n", 8);
                 $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $profileRecID
-                    . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
-                    . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
+                          . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
+                          . '&' . self::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . $addrRecID;
                 $json->addRow($data);
 
                 unset($data);
@@ -3022,7 +3082,7 @@ file_put_contents('qqqxcv', $whereRaw . "\n", 8);
         $columns[] = __('Operation date');
         $columns[] = __('Edit date');
         $columns[] = __('Accrual sum');
-        $columns[] = __('Payment sum');
+        $columns[] = __('Payment sum');     //9
         $columns[] = __('Ingoing');
         $columns[] = __('Outgoing');
         $columns[] = __('Payment notes');
@@ -3040,7 +3100,7 @@ file_put_contents('qqqxcv', $whereRaw . "\n", 8);
 
         $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL);
+                                      self::MISC_MARKROW_URL, '', true, array(9));
         return($result);
     }
 
@@ -3099,7 +3159,7 @@ file_put_contents('qqqxcv', $whereRaw . "\n", 8);
 
                 $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[self::DBFLD_COMMON_ID]);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                          '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
+                                                        '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
 
                 $actions = $this->getStdJQDTActions($eachRecID[self::DBFLD_COMMON_ID], self::ROUTE_FINOPS_ACTS, true);
                 $data[]  = $actions;
@@ -3120,7 +3180,7 @@ file_put_contents('qqqxcv', $whereRaw . "\n", 8);
     public function finopsRenderNestedListJSON($whereRaw = '') {
         $this->loadFinopsExtenData(true, $whereRaw);
         $json = new wf_JqDtHelper();
-file_put_contents('qxcv', $whereRaw . "\n", 8);
+
         if (!empty($this->allECMoneyExten)) {
             $data = array();
 //todo: check if the previous JSON statement suits here

@@ -65,7 +65,8 @@ if (cfr('EXTCONTRAS')) {
         if (ubRouting::checkGet($ExtContras::ROUTE_2LVL_CNTRCTS_DETAIL)) {
             if (ubRouting::checkPost($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID)) {
                 $detailsFilter = '&' . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID);
-                die($ExtContras->ecRender2ndLvlContractsJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false));
+                die($ExtContras->ecRender2ndLvlContractsJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false)
+                    . wf_delimiter(0));
             }
         }
 
@@ -86,10 +87,11 @@ if (cfr('EXTCONTRAS')) {
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID);
                 $detailsFilterAddr   = $detailsFilterFinops . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
 
-                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px;"') . __('Addresses') . wf_tag('h3', true)
+                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px; width: 95%;"') . __('Addresses') . wf_tag('h3', true)
                     . $ExtContras->ecRender2ndLvlAddressJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterAddr, false))
-                    . wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px;"') . __('Financial operations') . wf_tag('h3', true)
-                    . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false)));
+                    . wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations') . wf_tag('h3', true)
+                    . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false))
+                    . wf_CleanDiv() . wf_delimiter(0));
             }
         }
 
@@ -98,9 +100,10 @@ if (cfr('EXTCONTRAS')) {
             $whereRaw = '';
 
             if (ubRouting::checkGet($ExtContras::DBFLD_COMMON_ID)) {
-                $whereRaw.= "`" . $ExtContras::TABLE_ECMONEY . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID)
-                            ."`" . $ExtContras::TABLE_ECMONEY . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
-                            ."`" . $ExtContras::TABLE_ECMONEY . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
+
+                $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID)
+                            . " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
+                            . " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
             }
 
             $ExtContras->ecRender2ndLvlAddressListJSON($whereRaw);
@@ -112,15 +115,16 @@ if (cfr('EXTCONTRAS')) {
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
 
-                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px;"') . __('Financial operations') . wf_tag('h3', true)
-                               . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false)));
+                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations') . wf_tag('h3', true)
+                    . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false))
+                    . wf_CleanDiv() . wf_delimiter(0));
             }
         }
 
 
         if (ubRouting::checkGet($ExtContras::ROUTE_FINOPS_JSON)) {
             $whereRaw = '';
-file_put_contents('axcv', print_r($_GET, true) . "\n", 8);
+
             if (ubRouting::checkGet($ExtContras::DBFLD_COMMON_ID)) {
                 if (ubRouting::checkGet($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
                     and ! ubRouting::checkGet($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID)) {
@@ -140,8 +144,6 @@ file_put_contents('axcv', print_r($_GET, true) . "\n", 8);
                                  . " AND `" . $ExtContras::TABLE_ECMONEY . "`.`"
                                  . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
                 }
-
-                $ExtContras->finopsRenderNestedListJSON($whereRaw);
             } else {
                 if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
                     $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
