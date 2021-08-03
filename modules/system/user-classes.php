@@ -183,7 +183,7 @@ class rcms_user extends rcms_access {
      * @access private
      * @var string
      */
-    var $cookie_user = 'reloadcms_user';
+    var $cookie_user = 'ubilling_user';
     var $users_cache = null;
 
     /**
@@ -382,8 +382,8 @@ class rcms_user extends rcms_access {
 
             //login of another admin
             rcms_log_put('Notification', $ghostData[0], 'Ghost logged out as ' . $myLogin);
-            setcookie('reloadcms_user', $ghostData[0] . ':' . $ghostData[1], null);
-            $_COOKIE['reloadcms_user'] = $ghostData[0] . ':' . $ghostData[1];
+            setcookie('ubilling_user', $ghostData[0] . ':' . $ghostData[1], null);
+            $_COOKIE['ubilling_user'] = $ghostData[0] . ':' . $ghostData[1];
         }
     }
 

@@ -5932,8 +5932,8 @@ function zb_InitGhostMode($adminLogin) {
 //login of another admin
             rcms_log_put('Notification', $myLogin, 'Ghost logged in as ' . $adminLogin);
             log_register('GHOSTMODE {' . $myLogin . '} LOGIN AS {' . $adminLogin . '}');
-            setcookie('reloadcms_user', $adminLogin . ':' . $userData['password'], null);
-            $_COOKIE['reloadcms_user'] = $adminLogin . ':' . $userData['password'];
+            setcookie('ubilling_user', $adminLogin . ':' . $userData['password'], null);
+            $_COOKIE['ubilling_user'] = $adminLogin . ':' . $userData['password'];
         }
     }
 }
