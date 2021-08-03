@@ -3258,6 +3258,9 @@ $lang['def']['Unknown MACs'] = 'Неизвестные МАКи';
 $lang['def']['Last trip'] = 'Последняя поездка';
 $lang['def']['Today trips'] = 'Сегодняшние поездки';
 $lang['def']['Port negotiation'] = 'Скорость согласования';
+
+//rev 8046
+$lang['def']['Switches replaced'] = 'Свитчей заменено';
 $lang['def'][''] = '';
 
-?>
+

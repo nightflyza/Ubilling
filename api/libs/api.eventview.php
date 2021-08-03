@@ -75,7 +75,6 @@ class EventView {
      */
     protected $cacheTimeout = 3600;
 
-  
     /**
      * Predefined tables,routes, URLs, etc...
      */
@@ -427,19 +426,23 @@ class EventView {
                 $regc = simple_query($reg_q);
                 $regc = $regc['COUNT(`id`)'];
 
-                $mac_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
+                $mac_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
                 $macc = simple_query($mac_q);
                 $macc = $macc['COUNT(`id`)'];
 
-                $events_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
+                $events_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
                 $eventsc = simple_query($events_q);
                 $eventsc = $eventsc['COUNT(`id`)'];
 
-                $switch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
+                $switch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
                 $switchc = simple_query($switch_q);
                 $switchc = $switchc['COUNT(`id`)'];
 
-                $credit_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
+                $switchch_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH REPLACE%'";
+                $switchcch = simple_query($switchch_q);
+                $switchcch = $switchcch['COUNT(`id`)'];
+
+                $credit_q = "SELECT COUNT(`id`) from `weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
                 $creditc = simple_query($credit_q);
                 $creditc = $creditc['COUNT(`id`)'];
 
@@ -463,6 +466,7 @@ class EventView {
                 $rawData['macc'] = $macc;
                 $rawData['eventsc'] = $eventsc;
                 $rawData['switchc'] = $switchc;
+                $rawData['switchcch'] = $switchcch;
                 $rawData['creditc'] = $creditc;
                 $rawData['payc'] = $payc;
                 $rawData['tarchc'] = $tarchc;
@@ -517,6 +521,11 @@ class EventView {
             $cells = wf_TableCell(__('Switches added'));
             $cells .= wf_TableCell(($eventStats['switchc']));
             $cells .= wf_TableCell(round(($eventStats['switchc'] / $cday), 2));
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Switches replaced'));
+            $cells .= wf_TableCell(($eventStats['switchcch']));
+            $cells .= wf_TableCell(round(($eventStats['switchcch'] / $cday), 2));
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Credits set'));

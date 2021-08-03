@@ -3282,4 +3282,6 @@ $lang['def']['Last trip'] = 'Остання поїздка';
 $lang['def']['Today trips'] = 'Сьогодняшні поїздки';
 $lang['def']['Port negotiation'] = 'Швидкість узгодження';
 
-?>
+//rev 8046
+$lang['def']['Switches replaced'] = 'Свічів замінено';
+
