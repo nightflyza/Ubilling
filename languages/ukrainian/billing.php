@@ -3284,4 +3284,5 @@ $lang['def']['Port negotiation'] = 'Швидкість узгодження';
 
 //rev 8046
 $lang['def']['Switches replaced'] = 'Свічів замінено';
+$lang['def']['Scan for online NP devices'] = 'Пошук живих NP пристроїв';
 

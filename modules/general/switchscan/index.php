@@ -117,6 +117,22 @@ if (cfr('SWITCHESEDIT')) {
         }
 
         /**
+         * Renders search form
+         * 
+         * @return string
+         */
+        public function renderFormNP() {
+            $result = '';
+            $curNet = (ubRouting::checkPost('alivenpdevs')) ? ubRouting::post('alivenpdevs') : '';
+            $curCidr = (ubRouting::checkPost('alivenpcidr')) ? ubRouting::post('alivenpcidr', 'int') : 21;
+            $inputs = wf_TextInput('alivenpdevs', __('Network') . ' /', $curNet, false, 20);
+            $inputs .= wf_Selector('alivenpcidr', $this->availMasks, __('CIDR'), $curCidr, false);
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            return ($result);
+        }
+
+        /**
          * Returns first/last IPs from some network
          * 
          * @param string $cidr
@@ -186,7 +202,38 @@ if (cfr('SWITCHESEDIT')) {
                 foreach ($this->scanIps as $io => $eachIp) {
                     if (!isset($this->allSwitchesIp[$eachIp])) {
                         if (zb_PingICMP($eachIp)) {
-                            $result .= $this->messages->getStyledMessage(__('Unknown device') . ' ' . $eachIp, 'warning');
+                            $result .= $this->messages->getStyledMessage(__('Unknown device') . ' ' . $eachIp, 'error');
+                        }
+                    }
+                }
+            }
+
+            if (empty($result)) {
+                $result .= $this->messages->getStyledMessage(__('Nothing found'), 'success');
+            }
+            return ($result);
+        }
+
+        /**
+         * Perform search of online registered NP devices
+         * 
+         * @return string
+         */
+        public function searchNPDevices() {
+            $result = '';
+            if (!empty($this->scanIps)) {
+
+                foreach ($this->scanIps as $io => $eachIp) {
+                    if (isset($this->allSwitchesIp[$eachIp])) {
+                        $switchId = $this->allSwitchesIp[$eachIp];
+                        $switchData = $this->allSwitchesData[$this->allSwitchesIp[$eachIp]];
+                        $switchDesc = $switchData['desc'];
+                        $switchLocation = $switchData['location'];
+                        if (ispos($switchDesc, 'NP')) {
+                            if (zb_PingICMP($eachIp)) {
+                                $switchLink = wf_Link('?module=switches&edit=' . $switchId, '[' . $switchId . ']');
+                                $result .= $this->messages->getStyledMessage(__('Alive') . ' ' . $switchLink . ' ' . $eachIp . ' - ' . $switchLocation, 'warning');
+                            }
                         }
                     }
                 }
@@ -244,6 +291,7 @@ if (cfr('SWITCHESEDIT')) {
     show_window('', wf_BackLink('?module=switches'));
     show_window(__('Scan for unknown devices'), $scan->renderForm());
     show_window(__('Scan for free IPs'), $scan->renderFormFree());
+    show_window(__('Scan for online NP devices'), $scan->renderFormNP());
 
 
     //searching for unknown devices
@@ -261,6 +309,16 @@ if (cfr('SWITCHESEDIT')) {
         $extractResult = $scan->extractIpData(ubRouting::post('freenetdevs'), ubRouting::post('freenetcidr'));
         if (empty($extractResult)) {
             show_window(__('Free IPs'), $scan->lookupFreeIPs());
+        } else {
+            show_error($extractResult);
+        }
+    }
+
+    //looking for online NP devices
+    if (ubRouting::checkPost(array('alivenpdevs', 'alivenpcidr'))) {
+        $extractResult = $scan->extractIpData(ubRouting::post('alivenpdevs'), ubRouting::post('alivenpcidr'));
+        if (empty($extractResult)) {
+            show_window(__('Search results'), $scan->searchNPDevices());
         } else {
             show_error($extractResult);
         }
