@@ -2317,7 +2317,9 @@ function wf_CleanDiv() {
  *
  * @return string
  */
-function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '') {
+function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '',
+                       $addFooter = false, $footerOpts = '', $footerTHOpts = '') {
+
     $tableId = 'jqdt_' . md5($ajaxUrl);
     $result = '';
     $saveState = ($saveState) ? 'true' : 'false';
@@ -2374,14 +2376,22 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $result .= wf_tag('thead', false);
 
     $tablecells = '';
+    $footerCells = '<tfoot ' . $footerOpts . '><tr>';
     foreach ($columns as $io => $eachColumn) {
         $tablecells .= wf_TableCell(__($eachColumn));
+
+        if ($addFooter) {
+            $footerCells .= '<th ' . $footerTHOpts . '></th>';
+        }
     }
 
-
     $result .= wf_TableRow($tablecells);
-
     $result .= wf_tag('thead', true);
+
+    if ($addFooter) {
+        $result .= $footerCells . '</tr></tfoot>';
+    }
+
     $result .= wf_tag('table', true);
 
 

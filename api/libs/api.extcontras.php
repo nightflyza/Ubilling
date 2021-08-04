@@ -327,6 +327,13 @@ class ExtContras {
     protected $paymentExpiredFRGND = '';
 
     /**
+     * Placeholder for TEMPLATE_CURRENCY alter.ini option
+     *
+     * @var string
+     */
+    public $currencyStr = '';
+
+    /**
      * Routes, static defines, etc
      */
     const SAY_MY_NAME = 'CONTRAS';
@@ -542,6 +549,7 @@ class ExtContras {
      * Loads alter.ini options
      */
     protected function loadOptions() {
+        $this->currencyStr        = $this->ubConfig->getAlterParam('TEMPLATE_CURRENCY', 'грн');
         $this->fileStorageEnabled = $this->ubConfig->getAlterParam('FILESTORAGE_ENABLED');
         $this->cacheLifeTime      = $this->ubConfig->getAlterParam('EXTCONTRAS_CACHE_LIFETIME', 1800);
         $this->ecInvoicesON       = $this->ubConfig->getAlterParam('EXTCONTRAS_INVOICE_ON', 1);
@@ -930,13 +938,21 @@ class ExtContras {
      * @param string $customJSCode
      * @param string $truncateURL
      * @param string $truncateParam
+     * @param bool $addTotalsFooter
+     * @param array $totalsColumns
+     * @param string $totalColsLegendStr
+     * @param bool $addDetailsProcessingJS
+     * @param string $dpAjaxURL
+     * @param string $dpColumnIdx
+     * @param string $dpJSFuncName
+     * @param string $dpAjaxMethod
      *
      * @param string|int $markRowForID
      * @return string
      */
     protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true,
                                                 $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '',
-                                                $addTotalsFooter = false, $TotalsColumns = array(),
+                                                $addTotalsFooter = false, $totalsColumns = array(), $totalColsLegendStr = '',
                                                 $addDetailsProcessingJS = false, $dpAjaxURL = '', $dpColumnIdx = '',
                                                 $dpJSFuncName = 'showDetailsData', $dpAjaxMethod = 'POST') {
         $result     = '';
@@ -944,62 +960,45 @@ class ExtContras {
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
         $columns    = $columnsArr;
         $opts       = (empty($columnsOpts) ? '"order": [[ 0, "asc" ]]' : $columnsOpts);
+        $footerOpts = 'style="line-height: 2.2em; white-space: nowrap;"';
+        $footTHOpts = 'style="padding: 0 5px 0 5px; border-top: 2px solid lightgrey;"';
 
         if (!empty($markRowForID)) {
             $result.= wf_EncloseWithJSTags(wf_JQDTRowShowPluginJS());
         }
 
-        if ($addTotalsFooter and !empty($TotalsColumns)) {
+        if ($addTotalsFooter and !empty($totalsColumns)) {
             $result.= wf_EncloseWithJSTags(wf_JQDTColumnTotalSumJS());
 
             $opts.= '
                 ,
-                "drawCallback": function () {
+                "footerCallback": function(tfoot, data, start, end, display) {
                     var api = this.api();
                     var footerHTML = "";
+                    let curPageSum = 0;
+                    let curPageTotal = 0;
             ';
 
-            foreach ($TotalsColumns as $colNum) {
+            foreach ($totalsColumns as $colNum) {
                 $opts.= '
-                    let curPageSum' . $colNum . ' = api.column( ' . $colNum . ', {page:"current"} ).data().sum();
-                    let curPageTotal' . $colNum . ' = api.column( ' . $colNum . ' ).data().sum();
-console.log(curPageSum' . $colNum . ');
-console.log(curPageTotal' . $colNum . ');
-                    footerHTML+= " " + curPageSum' . $colNum . ' + "  ( " + curPageTotal' . $colNum . ' + " )"
-console.log(footerHTML);                    
-                    $( api.column(' . $colNum . ').footer() ).html( "wdewdwedwe" );
-console.log($( api.table().footer() ).html()); 
-                    ';
+                    curPageSum = api.column( ' . $colNum . ', {page:"current"} ).data().sum();
+                    curPageTotal = api.column( ' . $colNum . ' ).data().sum();
+                    
+                    footerHTML = " " + curPageSum + " ' . __($totalColsLegendStr)
+                                 . ' ( " + curPageTotal + " ' . __($totalColsLegendStr) . ' )";
+                    
+                    $( api.column(' . $colNum . ').footer() ).html( footerHTML );                    
+                ';
             }
 
-            $opts.= ' 
-                    $( api.table().footer() ).html( footerHTML );
+            $opts.= '
                 }
-            
+
             ';
         }
 
-        $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts);
-
-        if ($addTotalsFooter and !empty($TotalsColumns)) {
-            $result.= wf_tag('script', false, '', 'type="text/javascript"');
-            $result.= '
-            $(function() {
-                var table = $(\'#' . $jqdtID . '\').DataTable();
-                var footer = $(\'<tfoot style="line-height: 2.2em;"></tfoot>\').appendTo("#' . $jqdtID . '");
-                var footertr = $("<tr></tr>").appendTo(footer);
-console.log(table);                
-                //Add footer cells
-                var columnsCount = table.columns().count();
-console.log(columnsCount);                                
-                for (var i = 0; i < columnsCount; i++) {
-                    $("<th></th>").appendTo(footertr);
-                }
-            });
-            
-            ';
-            $result.= wf_tag('script', true);
-        }
+        $result.= wf_JqDtLoader($columns, $ajaxURLStr, false, __('results'), 100, $opts,
+                                $addTotalsFooter, $footerOpts, $footTHOpts);
 
         if ($stdJSForCRUDs) {
             $result.= wf_tag('script', false, '', 'type="text/javascript"');
@@ -1018,8 +1017,6 @@ console.log(columnsCount);
             if (!empty($markRowForID)) {
                 $result.= wf_JQDTMarkRowJS(0, $markRowForID, $truncateURL, $truncateParam);
             }
-file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
-
 
             $result.= wf_tag('script', true);
         }
@@ -1281,11 +1278,6 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
         $dictControls.= wf_Link(self::URL_ME . '&' . self::URL_DICTPERIODS . '=true', wf_img_sized('skins/clock.png') . ' ' . __('Periods dictionary'), false, 'ubButton');
         $inputs.= wf_modalAuto(web_icon_extended() . ' ' . __('Dictionaries'), __('Dictionaries'), $dictControls, 'ubButton');
         $inputs.= wf_jsAjaxDynamicWindowButton(self::URL_ME, array(self::ROUTE_FORCECACHE_UPD => 'true'), wf_img('skins/refresh.gif') . ' ' . __('Refresh cache data'), '', 'ubButton');
-
-//        $ecProfilesWebSelClass  = '__ECProfiles_webselfilt';
-//        $ecContractsWebSelClass = '__ECContracts_webselfilt';
-
-
         $inputs.= wf_EncloseWithJSTags( wf_JSEmptyFunc() . wf_JSElemInsertedCatcherFunc() . $this->getDatePickerModalInitJS());
 
         return ($inputs);
@@ -1500,7 +1492,7 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
                           ]
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode, $markRowForID,
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
                                       self::URL_ME . '&' . self::URL_DICTPROFILES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
                                     self::MISC_MARKROW_URL);
 
@@ -1685,9 +1677,9 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
                           ]              
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', false, '', true);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1826,9 +1818,9 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
                           ]
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_DICTADDRESS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_DICTADDRESS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -1934,9 +1926,9 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
                           ]
             ';
 
-        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
-                                              self::URL_ME . '&' . self::URL_DICTPERIODS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                                self::MISC_MARKROW_URL);
+        $result = $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                                self::URL_ME . '&' . self::URL_DICTPERIODS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                              self::MISC_MARKROW_URL);
 
         return($result);
     }
@@ -2158,9 +2150,9 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
                           ]
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_INVOICES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_INVOICES . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL);
         return($result);
     }
 
@@ -2419,10 +2411,10 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
             
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, true, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', false, '',
-                              true, $ajaxURLDetails, 8);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL, false, '', $this->currencyStr,
+                             true, $ajaxURLDetails, 8);
 
         return($result);
     }
@@ -2553,10 +2545,10 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
             
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', false, '',
-                              true, $ajaxURLDetails, 13,'showDetailsData13');
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL, true, array(5), $this->currencyStr,
+                             true, $ajaxURLDetails, 13,'showDetailsData13');
         return($result);
     }
 
@@ -2683,10 +2675,10 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
             
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
-                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', false, '',
-                              true, $ajaxURLDetails, 12,'showDetailsData12');
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                      self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                    self::MISC_MARKROW_URL, true, array(4), $this->currencyStr,
+                             true, $ajaxURLDetails, 12,'showDetailsData12');
         return($result);
     }
 
@@ -2712,7 +2704,7 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
 
                 $data[] = '';
                 $data[] = $addrRecID;
-                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_DICTADDRESS . '=true'
                                   . '&' . self::MISC_MARKROW_URL . '=' . $addrRecID,
                                   $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_ADDR]);
                 $data[] = $eachRecID[self::TABLE_ECADDRESS . self::DBFLD_ADDRESS_NOTES];
@@ -3098,9 +3090,9 @@ file_put_contents('zxcv', ($addTotalsFooter and !empty($TotalsColumns)), 8);
                           ]                                      
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode,
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
                                     self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
-                                      self::MISC_MARKROW_URL, '', true, array(9));
+                                      self::MISC_MARKROW_URL, true, array(8, 9), $this->currencyStr);
         return($result);
     }
 
