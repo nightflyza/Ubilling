@@ -4526,17 +4526,20 @@ class PONizer {
                     $oltData = @$this->allOltDevices[$oltId];
 
                     if (!isset($this->hideOnuMac[$onuMac])) {
-                        $data[] = $oltData;
-                        $data[] = $userLink;
-                        $data[] = @$allUserData[$login]['fulladress'];
-                        $data[] = $userRealnames;
-                        $data[] = $userTariff;
-                        $data[] = $userIP;
-                        $data[] = $onuMac;
-                        $data[] = $actControls;
+                        //brand new BDCOM issue temorary workaround
+                        if (!ispos($onuMac, 'no:such')) {
+                            $data[] = $oltData;
+                            $data[] = $userLink;
+                            $data[] = @$allUserData[$login]['fulladress'];
+                            $data[] = $userRealnames;
+                            $data[] = $userTariff;
+                            $data[] = $userIP;
+                            $data[] = $onuMac;
+                            $data[] = $actControls;
 
-                        $json->addRow($data);
-                        unset($data);
+                            $json->addRow($data);
+                            unset($data);
+                        }
                     }
                 }
             }
