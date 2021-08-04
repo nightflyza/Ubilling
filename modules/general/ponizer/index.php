@@ -94,9 +94,11 @@ if ($altCfg['PON_ENABLED']) {
         //force OLT polling
         if (ubRouting::checkGet('forcepoll')) {
             $pon->oltDevicesPolling(true);
-            if (ubRouting::checkPost(array('uol'))) {
+            if (ubRouting::checkGet('uol')) {
+                //back to unknown ONU list
                 ubRouting::nav($pon::URL_ME . '&unknownonulist=true');
             } else {
+                //or just to OLT list
                 ubRouting::nav($pon::URL_ME);
             }
         }
