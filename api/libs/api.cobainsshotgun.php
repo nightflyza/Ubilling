@@ -6,6 +6,12 @@
 class CobainsShotgun {
 
     /**
+     * Pre-defines Routes
+     */
+    const URL_ME = '?module=cobainsshotgun';
+    const ROUTE_ZEN = 'zenmode';
+
+    /**
      * Contains default raw-data source path. 
      * May be configurable in future.
      *
@@ -95,6 +101,63 @@ class CobainsShotgun {
             $result = $tmpArr[1];
         }
         return($result);
+    }
+
+    /**
+     * Renders module controls panel
+     * @return string
+     */
+    public function renderControls()
+    {
+        $result = '';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZEN . '=true', wf_img('skins/zen.png', __('Zen')) . ' ' . __('Zen'), false, 'ubButton') . ' ';
+        return $result;
+    }
+
+    /**
+     * Renders CobainsShotgun UI for ZenFlow
+     *
+     * @param $linesToRead
+     * @return string
+     */
+    public function renderReportZen($linesToRead = 200)
+    {
+        // Variable that stores UI elements.
+        $result = '';
+
+        // Check if file exists.
+        if (!file_exists($this->dataSource)) {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('File not exist') . ': ' . $this->dataSource, 'error');
+            return $result;
+        }
+
+        // Get data from 'radius.log'.
+        $command = $this->billCfg['SUDO'] . ' ' . $this->billCfg['CAT'] . ' ' . $this->dataSource . ' | '
+            . $this->billCfg['GREP'] . ' "' . $this->authDataMask . '" ' . ' | '
+            . $this->billCfg['TAIL'] . ' -r ' . ' -n ' . $linesToRead;
+
+        $cmdResult = shell_exec($command);
+
+        // Check if we have any data.
+        if (empty($cmdResult)) {
+            $messages = new UbillingMessageHelper();
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
+            return $result;
+        }
+
+        $cmdResult = explodeRows($cmdResult);
+        $rows = '';
+
+        // Transform received data into Table-like UI element
+        foreach ($cmdResult as $singleRow) {
+            $cells = wf_TableCell(htmlentities(strip_tags($singleRow)));
+            $rows .= wf_TableRow($cells, 'row5');
+        }
+
+        $result .= wf_TableBody($rows, '100%', 0, '', 'style="font-family: monospace;"');
+
+        return $result;
     }
 
     /**
