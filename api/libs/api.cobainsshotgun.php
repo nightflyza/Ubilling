@@ -105,13 +105,14 @@ class CobainsShotgun {
 
     /**
      * Renders module controls panel
+     * 
      * @return string
      */
-    public function renderControls()
-    {
+    public function renderControls() {
         $result = '';
+        $result .= wf_Link(self::URL_ME, wf_img('skins/icon_shotgun.png', __('Shotgun')) . ' ' . __('Shotgun'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZEN . '=true', wf_img('skins/zen.png', __('Zen')) . ' ' . __('Zen'), false, 'ubButton') . ' ';
-        return $result;
+        return ($result);
     }
 
     /**
@@ -120,8 +121,7 @@ class CobainsShotgun {
      * @param $linesToRead
      * @return string
      */
-    public function renderReportZen($linesToRead = 200)
-    {
+    public function renderReportZen($linesToRead = 200) {
         // Variable that stores UI elements.
         $result = '';
 
@@ -134,8 +134,8 @@ class CobainsShotgun {
 
         // Get data from 'radius.log'.
         $command = $this->billCfg['SUDO'] . ' ' . $this->billCfg['CAT'] . ' ' . $this->dataSource . ' | '
-            . $this->billCfg['GREP'] . ' "' . $this->authDataMask . '" ' . ' | '
-            . $this->billCfg['TAIL'] . ' -r ' . ' -n ' . $linesToRead;
+                . $this->billCfg['GREP'] . ' "' . $this->authDataMask . '" ' . ' | '
+                . $this->billCfg['TAIL'] . ' -r ' . ' -n ' . $linesToRead;
 
         $cmdResult = shell_exec($command);
 
@@ -157,7 +157,7 @@ class CobainsShotgun {
 
         $result .= wf_TableBody($rows, '100%', 0, '', 'style="font-family: monospace;"');
 
-        return $result;
+        return ($result);
     }
 
     /**
