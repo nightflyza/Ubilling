@@ -1207,4 +1207,134 @@ function zb_RenderROSPPPoESessionInfo($login, $moduleURL) {
 
     return $result;
 }
+
+/**
+ * Parses CONTRACT_GEN_TEMPLATE and tries to get 3 parts of contracts template
+ *
+ * @return array
+ */
+function zb_GetBaseContractTemplateSplitted() {
+    global $ubillingConfig;
+    $contractTemplateStr        = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE', '');
+    $contractTemplateSplitted   = array();
+
+    if (!empty($contractTemplateStr)) {
+        preg_match('/(.*)' . '{/msiu', $contractTemplateStr, $beforeResult);
+        preg_match('/{' . '(.*?)' . '}/msiu', $contractTemplateStr, $delimResult);
+        preg_match('/}' . '(.*)/msiu', $contractTemplateStr, $afterResult);
+
+        $startContractPart = (empty($beforeResult[1]) ? '' : $beforeResult[1]);
+        $digitContractPart = (empty($delimResult[1]) ? '' : $delimResult[1]);
+        $endContractPart = (empty($afterResult[1]) ? '' : $afterResult[1]);
+
+        $contractTemplateSplitted = array($startContractPart, $endContractPart, $digitContractPart);
+    }
+
+    return ($contractTemplateSplitted);
+}
+
+/**
+ * Generates digits contract block
+ * according to CONTRACT_GEN_TEMPLATE and CONTRACT_GEN_TEMPLATE_LEADING_ZEROES options values
+ *
+ * @param int $digitsBlockLength
+ * @param int $contractNumber
+ * @param false $makeIncrement
+ *
+ * @return string
+ */
+function zb_GenContractDigitBlock($digitsBlockLength, $contractNumber, $makeIncrement = false) {
+    global $ubillingConfig;
+    $contractLeadingZeroes  = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
+    $contractDigits         = '';
+
+    if (!empty($digitsBlockLength) and !empty($contractNumber)) {
+        $contractNumber = ($makeIncrement) ? ++$contractNumber : $contractNumber;
+        $contractDigits = ($contractLeadingZeroes ? sprintf('%0' . $digitsBlockLength . 's', $contractNumber) : sprintf('%-0' . $digitsBlockLength . 's', $contractNumber));
+    }
+
+    return ($contractDigits);
+}
+
+/**
+ * Extracts digital part of contract from a contract string
+ * according to CONTRACT_GEN_TEMPLATE and CONTRACT_GEN_TEMPLATE_LEADING_ZEROES options values
+ *
+ * @param $contract
+ * @param $digitBlockLength
+ * @param false $makeIncrement
+ *
+ * @return int|string
+ */
+function zb_ExtractContractDigitPart($contract, $digitBlockLength, $makeIncrement = false) {
+    global $ubillingConfig;
+    $contractLeadingZeroes  = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
+    $digtsStr = '';
+
+    preg_match('/\d{' . $digitBlockLength . '}/msiu', $contract, $matchResult);
+
+    if (!empty($matchResult[0])) {
+        $digtsStr = $matchResult[0];
+
+        if ($makeIncrement) {
+            $numberPart = ($contractLeadingZeroes ? (int)$digtsStr : (int)str_replace('0', '', $digtsStr));
+            $digtsStr   = zb_GenContractDigitBlock($digitBlockLength, $numberPart, $makeIncrement);
+        }
+    }
+
+    return ($digtsStr);
+}
+
+/**
+ * Explodes contract template for digital block dividing it to digit block length and starting base contract number
+ * May return only block length
+ *
+ * @param string $digitContractTplPart
+ * @param false $returnOnlyLength
+ *
+ * @return array|string
+ */
+function zb_GetContractDigitBlockTplParams($digitContractTplPart, $returnOnlyLength = false) {
+    $contractDigitBlockParams = array();
+
+    if (!empty($digitContractTplPart)) {
+        $contractDigitBlockParams = explode(',', $digitContractTplPart);
+    }
+
+    // first element is a contract digit block length
+    // second element is a "starting from" digit for very first base contract
+    return (($returnOnlyLength) ? $contractDigitBlockParams[0] : $contractDigitBlockParams);
+}
+
+/**
+ * Returns base contract value generated from contract template
+ * accoreding to CONTRACT_GEN_TEMPLATE and CONTRACT_GEN_TEMPLATE_LEADING_ZEROES options values
+ *
+ * @param array $templateSplitted
+ *
+ * @return string
+ */
+function zb_GenBaseContractFromTemplate($templateSplitted = array()) {
+    $templateSplitted       = empty($templateSplitted) ? zb_GetBaseContractTemplateSplitted() : $templateSplitted;
+    $startContractTplPart   = $templateSplitted[0];
+    $endContractTplPart     = $templateSplitted[1];
+    $digitContractTplPart   = $templateSplitted[2];
+    $baseContract           = '';
+    $digitsBlockLength      = 0;
+    $contractNumber         = 0;
+
+    $digitContractTplPart   = zb_GetContractDigitBlockTplParams($digitContractTplPart);
+
+    if (!empty($digitContractTplPart)) {
+        // first element is a contract digits block length
+        // second element is a "starting from" digit for very first base contract
+        $digitsBlockLength  = $digitContractTplPart[0];
+        $contractNumber     = $digitContractTplPart[1];
+    }
+
+    $baseContract = $startContractTplPart . zb_GenContractDigitBlock($digitsBlockLength, $contractNumber) . $endContractTplPart;
+
+    return ($baseContract);
+}
+
 ?>

@@ -473,6 +473,20 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $result = zb_rand_digits();
         }
 
+// 4 random digits with check for uniqueness - may shoot your both legs
+        if ($type == 'RANDOM4_CHECK') {
+            $busylogins = zb_AllBusyLogins();
+
+            while (true) {
+                $nextIncrementProposal = zb_rand_digits();
+
+                if (!isset($busylogins[$nextIncrementProposal])) {
+                    $result = $nextIncrementProposal;
+                    break;
+                }
+            }
+        }
+
 // just random string as login
         if ($type == 'RANDOMSAFE') {
             $randomStringProposal = zb_rand_string(10);
@@ -943,6 +957,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     $alterconf = $ubillingConfig->getAlter();
     $addressExtendedOn = $ubillingConfig->getAlterParam('ADDRESS_EXTENDED_ENABLED');
     $registerUserONU = $ubillingConfig->getAlterParam('ONUAUTO_USERREG');
+    $contractTemplateStr = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE', '');
     $needONUAssignment = false;
 
 // Init all of needed user data
@@ -1085,19 +1100,47 @@ function zb_UserRegister($user_data, $goprofile = true) {
         if ($alterconf['CONTRACT_AUTOGEN']) {
             $contract_proposal = '';
             $allcontracts = zb_UserGetAllContracts();
+            $useContractTemplate = !empty($contractTemplateStr);
             $top_offset = 100000;
+
+//contract template is ON
+            if ($useContractTemplate) {
+                $contractTemplateSplitted   = zb_GetBaseContractTemplateSplitted();
+                $startContractTplPart       = $contractTemplateSplitted[0];
+                $endContractTplPart         = $contractTemplateSplitted[1];
+                $digitContractTplPart       = $contractTemplateSplitted[2];
+                $digitBlockLength           = zb_GetContractDigitBlockTplParams($digitContractTplPart, true);
+            }
+
 //contract generation mode default
             if ($alterconf['CONTRACT_GENERATION_DEFAULT']) {
                 for ($i = 1; $i < $top_offset; $i++) {
-                    if (!isset($allcontracts[$i])) {
-                        $contract_proposal = $i;
+                    if ($useContractTemplate) {
+                        $contractDigitBlock = zb_GenContractDigitBlock($digitBlockLength, $i);
+                        $tmpContract = $startContractTplPart . $contractDigitBlock . $endContractTplPart;
+                    } else {
+                        $tmpContract = $i;
+                    }
+
+                    if (!isset($allcontracts[$tmpContract])) {
+                        $contract_proposal = $tmpContract;
                         break;
                     }
                 }
             } else {
 //alternate generation method
                 $max_contract = max(array_keys($allcontracts));
-                $contract_proposal = $max_contract + 1;
+
+                if ($useContractTemplate) {
+                    $contractDigitBlock = zb_ExtractContractDigitPart($max_contract, $digitBlockLength, true);
+                    $contract_proposal  = $startContractTplPart . $contractDigitBlock . $endContractTplPart;
+                } else {
+                    $contract_proposal  = $max_contract + 1;
+                }
+            }
+
+            if (empty($contract_proposal) and $useContractTemplate) {
+                $contract_proposal = zb_GenBaseContractFromTemplate();
             }
 
 //setting generated contract to new user
