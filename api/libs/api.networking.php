@@ -2568,4 +2568,27 @@ function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array
     return ($result);
 }
 
+/**
+ * Returns array with range start and end IP from IP address with CIDR notation
+ *
+ * @param string $ipcidr
+ * @param bool $excludeNetworkAddr
+ * @param bool $excludeBroadcastAddr
+ *
+ * @return array
+ */
+function ipcidrToStartEndIP($ipcidr, $excludeNetworkAddr = false, $excludeBroadcastAddr = false) {
+    $range      = array();
+    $ipcidr     = explode('/', $ipcidr);
+    $startip    = (ip2long($ipcidr[0])) & ((-1 << (32 - (int)$ipcidr[1])));
+    $endip      = $startip + pow(2, (32 - (int)$ipcidr[1])) - 1;
+    $startip    = ($excludeNetworkAddr ? $startip + 1 : $startip);
+    $endip      = ($excludeBroadcastAddr ? $endip - 1 : $endip);
+
+    $range['startip'] = long2ip($startip);
+    $range['endip'] = long2ip($endip);
+
+    return ($range);
+}
+
 ?>
