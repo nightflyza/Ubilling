@@ -3,7 +3,7 @@
 if (cfr('REPORTMASTER')) {
 
     /**
-     * Renders custom report
+     * Returns custom-report data
      * 
      * @param string $reportfile
      * @param string $report_name
@@ -14,18 +14,13 @@ if (cfr('REPORTMASTER')) {
      * @param bool $realnames
      * @param bool $rowcount
      * 
-     * @return void
+     * @return string
      */
-    function web_ReportMasterShow($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
-        $report_name = __($report_name) . ' ' . wf_tag('a', false, '', 'href="?module=reportmaster&view=' . $reportfile . '&printable=true" target="_BLANK"');
-        $report_name .= wf_img('skins/printer_small.gif', __('Print'));
-        $report_name .= wf_tag('a', true);
-
+    function zb_RMGetReportData($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+        $result = '';
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
         $i = 0;
-
-
 
         $result = wf_tag('table', false, '', 'width="100%" class="sortable" border="0"');
 
@@ -48,7 +43,7 @@ if (cfr('REPORTMASTER')) {
         if (!empty($alldata)) {
             foreach ($alldata as $io => $eachdata) {
                 $i++;
-                $result .= wf_tag('tr', false, 'row3');
+                $result .= wf_tag('tr', false, 'row5');
 
                 foreach ($keys as $eachkey) {
                     if (array_key_exists($eachkey, $eachdata)) {
@@ -60,7 +55,6 @@ if (cfr('REPORTMASTER')) {
                 }
                 if ($realnames) {
                     $result .= wf_tag('td') . wf_Link('?module=userprofile&username=' . $eachdata['login'], web_profile_icon() . ' ' . @$allrealnames[$eachdata['login']]) . wf_tag('td', true);
-                    ;
                 }
                 $result .= wf_tag('tr', true);
             }
@@ -68,8 +62,86 @@ if (cfr('REPORTMASTER')) {
         $result .= wf_tag('table', true);
         if ($rowcount) {
             $result .= wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
-            ;
         }
+        return($result);
+    }
+
+    /**
+     * Returns custom-report data as CSV
+     * 
+     * @param string $reportfile
+     * @param string $report_name
+     * @param array $titles
+     * @param array $keys
+     * @param array $alldata
+     * @param bool $address
+     * @param bool $realnames
+     * @param bool $rowcount
+     * 
+     * @return string
+     */
+    function zb_RMGetReportDataCSV($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+        $result = '';
+        $delimiter = ';';
+        $allrealnames = zb_UserGetAllRealnames();
+        $alladdress = zb_AddressGetFulladdresslist();
+        $i = 0;
+
+        //report titles
+        foreach ($titles as $eachtitle) {
+            $result .= __($eachtitle) . $delimiter;
+        }
+
+        if ($address) {
+            $result .= __('Full address') . $delimiter;
+        }
+
+        if ($realnames) {
+            $result .= __('Real Name') . $delimiter;
+        }
+        $result .= PHP_EOL;
+
+        //report data cells
+        if (!empty($alldata)) {
+            foreach ($alldata as $io => $eachdata) {
+                $i++;
+                foreach ($keys as $eachkey) {
+                    if (array_key_exists($eachkey, $eachdata)) {
+                        $result .= $eachdata[$eachkey] . $delimiter;
+                    }
+                }
+
+                if ($address) {
+                    $result .= @$alladdress[$eachdata['login']] . $delimiter;
+                }
+                if ($realnames) {
+                    $result .= @$allrealnames[$eachdata['login']] . $delimiter;
+                }
+                $result .= PHP_EOL;
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders some custom report
+     * 
+     * @param string $reportfile
+     * @param string $report_name
+     * @param array $titles
+     * @param array $keys
+     * @param array $alldata
+     * @param bool $address
+     * @param bool $realnames
+     * @param bool $rowcount
+     * 
+     * @return void
+     */
+    function web_ReportMasterShow($reportfile, $report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+        $report_name = __($report_name) . ' ';
+        $report_name .= wf_Link('?module=reportmaster&view=' . $reportfile . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
+        $report_name .= wf_Link('?module=reportmaster&view=' . $reportfile . '&csv=true', wf_img('skins/excel.gif', __('Export') . ' CSV'), false) . ' ';
+        $result = zb_RMGetReportData($reportfile, $report_name, $titles, $keys, $alldata, $address, $realnames, $rowcount);
         show_window($report_name, $result);
     }
 
@@ -87,76 +159,31 @@ if (cfr('REPORTMASTER')) {
      * @return void
      */
     function web_ReportMasterShowPrintable($report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
-        $report_name = wf_tag('h2') . __($report_name) . wf_tag('h2', true);
-        $allrealnames = zb_UserGetAllRealnames();
-        $alladdress = zb_AddressGetFulladdresslist();
-        $i = 0;
-        $result = wf_tag('style', false, '', ' type="text/css"');
-        $result .= '
-        table.printrm {
-	border-width: 1px;
-	border-spacing: 2px;
-	border-style: outset;
-	border-color: gray;
-	border-collapse: separate;
-	background-color: white;
-        }
-        table.printrm th {
-	border-width: 1px;
-	padding: 1px;
-	border-style: dashed;
-	border-color: gray;
-	background-color: white;
-	-moz-border-radius: ;
-        }
-        table.printrm td {
-	border-width: 1px;
-	padding: 1px;
-	border-style: dashed;
-	border-color: gray;
-	background-color: white;
-	-moz-border-radius: ;
-        }
-        ';
-        $result .= wf_tag('style', true);
-        $result .= wf_tag('table', false, 'printrm', 'width="100%"');
-        $result .= wf_tag('tr');
+        $result = zb_RMGetReportData($report_name, $report_name, $titles, $keys, $alldata, $address, $realnames, $rowcount);
+        $result = zb_ReportPrintable(__($report_name), $result);
+        die($result);
+    }
 
-        foreach ($titles as $eachtitle) {
-            $result .= wf_tag('td') . __($eachtitle) . wf_tag('td', true);
-        }
-        if ($address) {
-            $result .= wf_tag('td') . __('Full address') . wf_tag('td', true);
-        }
-        if ($realnames) {
-            $result .= wf_tag('td') . __('Real Name') . wf_tag('td', true);
-        }
-        $result .= wf_tag('tr', true);
-
-        if (!empty($alldata)) {
-            foreach ($alldata as $io => $eachdata) {
-                $i++;
-                $result .= wf_tag('tr');
-                foreach ($keys as $eachkey) {
-                    if (array_key_exists($eachkey, $eachdata)) {
-                        $result .= wf_tag('td') . $eachdata[$eachkey] . wf_tag('td', true);
-                    }
-                }
-                if ($address) {
-                    $result .= wf_tag('td') . @$alladdress[$eachdata['login']] . wf_tag('td', true);
-                }
-                if ($realnames) {
-                    $result .= wf_tag('td') . @$allrealnames[$eachdata['login']] . wf_tag('td', true);
-                }
-                $result .= wf_tag('tr', true);
-            }
-        }
-        $result .= wf_tag('table', true);
-        if ($rowcount) {
-            $result .= wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
-        }
-        print($report_name . $result);
-        die();
+    /**
+     * Renders report as CSV file to download
+     * 
+     * @param string $report_name
+     * @param array $titles
+     * @param array $keys
+     * @param array $alldata
+     * @param bool $address
+     * @param bool $realnames
+     * @param bool $rowcount
+     * 
+     * @return void
+     */
+    function web_ReportMasterShowCSV($report_name, $titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
+        $filename = zb_TranslitString($report_name);
+        $filename = str_replace(' ', '_', $filename) . '_' . date("Y-m-d_His") . '.csv';
+        $result = zb_RMGetReportDataCSV($report_name, $report_name, $titles, $keys, $alldata, $address, $realnames, $rowcount);
+        header('Content-type: application/ms-excel');
+        header('Content-Disposition: attachment; filename=' . $filename);
+        die($result);
     }
 
     /**
@@ -197,7 +224,7 @@ if (cfr('REPORTMASTER')) {
                     $actControls .= wf_JSAlert('?module=reportmaster&edit=' . $eachreport, web_edit_icon(), $messages->getEditAlert());
                     $cells .= wf_TableCell($actControls);
                 }
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
 
@@ -228,7 +255,7 @@ if (cfr('REPORTMASTER')) {
      */
     function web_ReportMasterViewReport($reportname) {
         $reportname = vf($reportname);
-        $reports_path = DATA_PATH . "reports/";
+        $reports_path = DATA_PATH . 'reports/';
         //if valid report
         if (file_exists($reports_path . $reportname)) {
             $report_template = rcms_parse_ini_file($reports_path . $reportname);
@@ -250,7 +277,7 @@ if (cfr('REPORTMASTER')) {
      */
     function web_ReportMasterViewReportPrintable($reportname) {
         $reportname = vf($reportname);
-        $reports_path = DATA_PATH . "reports/";
+        $reports_path = DATA_PATH . 'reports/';
         //if valid report
         if (file_exists($reports_path . $reportname)) {
             $report_template = rcms_parse_ini_file($reports_path . $reportname);
@@ -258,6 +285,28 @@ if (cfr('REPORTMASTER')) {
             $keys = explode(',', $report_template['REPORT_KEYS']);
             $titles = explode(',', $report_template['REPORT_FIELD_NAMES']);
             web_ReportMasterShowPrintable($report_template['REPORT_NAME'], $titles, $keys, $data_query, $report_template['REPORT_ADDR'], $report_template['REPORT_RNAMES'], $report_template['REPORT_ROW_COUNT']);
+        } else {
+            show_error(__('Unknown report'));
+        }
+    }
+
+    /**
+     * Export report as CSV file
+     * 
+     * @param string $reportname
+     * 
+     * @return void
+     */
+    function web_ReportMasterViewReportCSV($reportname) {
+        $reportname = vf($reportname);
+        $reports_path = DATA_PATH . 'reports/';
+        //if valid report
+        if (file_exists($reports_path . $reportname)) {
+            $report_template = rcms_parse_ini_file($reports_path . $reportname);
+            $data_query = simple_queryall($report_template['REPORT_QUERY']);
+            $keys = explode(',', $report_template['REPORT_KEYS']);
+            $titles = explode(',', $report_template['REPORT_FIELD_NAMES']);
+            web_ReportMasterShowCSV($report_template['REPORT_NAME'], $titles, $keys, $data_query, $report_template['REPORT_ADDR'], $report_template['REPORT_RNAMES'], $report_template['REPORT_ROW_COUNT']);
         } else {
             show_error(__('Unknown report'));
         }
@@ -301,6 +350,7 @@ if (cfr('REPORTMASTER')) {
         $inputs .= wf_Submit(__('Save'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         show_window(__('Edit report'), $form);
+        show_window('', wf_BackLink('?module=reportmaster'));
     }
 
     /**
@@ -414,25 +464,28 @@ if (cfr('REPORTMASTER')) {
                     }
                 }
             }
+
             log_register('DOWNLOAD FILE `userbase.csv`');
             // push data for csv handler
             header('Content-type: application/ms-excel');
             header('Content-Disposition: attachment; filename=userbase.csv');
-            echo $result;
+            print($result);
             die();
         }
     }
 
 // show reports list
-    if (cfr('REPORTMASTERADM')) {
-        $export_link = wf_Link('?module=reportmaster&exportuserbase=excel', wf_img("skins/excel.gif", __('Export userbase')), false);
-    } else {
-        $export_link = '';
-    }
+    if (!ubRouting::checkGet('edit')) {
+        if (cfr('REPORTMASTERADM')) {
+            $export_link = wf_Link('?module=reportmaster&exportuserbase=excel', web_icon_download(__('Export userbase')), false);
+        } else {
+            $export_link = '';
+        }
 
-    $newreport_link = (cfr('REPORTMASTERADM')) ? wf_Link('?module=reportmaster&add=true', web_add_icon(), false) : '';
-    $action_links = ' ' . $export_link . ' ' . $newreport_link;
-    show_window(__('Available reports') . $action_links, web_ReportMasterShowReportsList());
+        $newreport_link = (cfr('REPORTMASTERADM')) ? wf_Link('?module=reportmaster&add=true', web_icon_create(__('Create new report')), false) : '';
+        $action_links = ' ' . $export_link . ' ' . $newreport_link;
+        show_window(__('Available reports') . $action_links, web_ReportMasterShowReportsList());
+    }
 
 //userbase exporting
     if (wf_CheckGet(array('exportuserbase'))) {
@@ -484,14 +537,19 @@ if (cfr('REPORTMASTER')) {
 
 
 // view reports
-    if (isset($_GET['view'])) {
-        if (!isset($_GET['printable'])) {
-            // natural view    
-            web_ReportMasterViewReport($_GET['view']);
-        } else {
-            //or printable
-            web_ReportMasterViewReportPrintable($_GET['view']);
+    if (ubRouting::checkGet('view')) {
+        if (ubRouting::checkGet('printable')) {
+            //printable report
+            web_ReportMasterViewReportPrintable(ubRouting::get('view'));
         }
+
+        if (ubRouting::checkGet('csv')) {
+            //CSV export
+            web_ReportMasterViewReportCSV(ubRouting::get('view'));
+        }
+
+        // natural view    
+        web_ReportMasterViewReport(ubRouting::get('view'));
     }
 } else {
     show_error(__('You cant control this module'));

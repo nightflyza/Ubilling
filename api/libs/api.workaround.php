@@ -6370,3 +6370,33 @@ function zb_array_insert(&$array, $position, $insert) {
         );
     }
 }
+
+/**
+ * Returns generic printable report content
+ * 
+ * @param string $title report title
+ * @param string $data  report data to printable transform
+ *
+ * @return void
+ */
+function zb_ReportPrintable($title, $data) {
+    $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
+    $header = wf_tag('!DOCTYPE', false, '', 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"');
+    $header .= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru"');
+    $header .= wf_tag('head', false);
+    $header .= wf_tag('title') . $title . wf_tag('title', true);
+    $header .= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
+    $header .= wf_tag('style', false, '', 'type="text/css"');
+    $header .= $style;
+    $header .= wf_tag('style', true);
+    $header .= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
+    $header .= wf_tag('head', true);
+    $header .= wf_tag('body', false);
+
+    $footer = wf_tag('body', true);
+    $footer .= wf_tag('html', true);
+
+    $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
+    $data = $header . $title . $data . $footer;
+    die($data);
+}
