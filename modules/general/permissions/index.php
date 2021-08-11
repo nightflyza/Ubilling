@@ -62,25 +62,33 @@ if (cfr('PERMISSIONS')) {
      */
     function web_list_admins() {
         $myLogin = whoami();
+        $allEmployeeLogins = ts_GetAllEmployeeLoginsAssocCached();
+
         $alladmins = rcms_scandir(USERS_PATH);
         $cells = wf_TableCell(__('Admin'));
-        $cells.= wf_TableCell(__('Actions'));
+        $cells .= wf_TableCell(__('Worker'));
+        $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($alladmins)) {
             foreach ($alladmins as $eachadmin) {
                 $actions = wf_JSAlert('?module=permissions&delete=' . $eachadmin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
-                $actions.= wf_Link('?module=permissions&passwd=' . $eachadmin, web_key_icon()) . ' ';
-                $actions.= wf_Link('?module=permissions&edit=' . $eachadmin, web_edit_icon('Rights')) . ' ';
+                $actions .= wf_Link('?module=permissions&passwd=' . $eachadmin, web_key_icon()) . ' ';
+                $actions .= wf_Link('?module=permissions&edit=' . $eachadmin, web_edit_icon('Rights')) . ' ';
                 if (cfr('ROOT')) {
                     if ($myLogin != $eachadmin) {
                         $ghostModeLabel = __('Login as') . ' ' . $eachadmin . ' ' . __('in ghost mode');
-                        $actions.= wf_JSAlert('?module=permissions&ghostmode=' . $eachadmin, wf_img('skins/ghost.png', $ghostModeLabel), $ghostModeLabel . '?');
+                        $actions .= wf_JSAlert('?module=permissions&ghostmode=' . $eachadmin, wf_img('skins/ghost.png', $ghostModeLabel), $ghostModeLabel . '?');
                     }
                 }
                 $cells = wf_TableCell($eachadmin);
-                $cells.= wf_TableCell($actions);
-                $rows.= wf_TableRow($cells, 'row5');
+                $employeeName = '';
+                if (isset($allEmployeeLogins[$eachadmin])) {
+                    $employeeName .= $allEmployeeLogins[$eachadmin];
+                }
+                $cells .= wf_TableCell($employeeName);
+                $cells .= wf_TableCell($actions);
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
 
@@ -158,10 +166,10 @@ if (cfr('PERMISSIONS')) {
         if (cfr('ROOT')) {
             if ($myLogin != $login) {
                 $ghostModeLabel = __('Login as') . ' ' . $login . ' ' . __('in ghost mode');
-                $inputs.= ' ' . wf_Link('?module=permissions&ghostmode=' . $login, wf_img('skins/ghost.png') . ' ' . $ghostModeLabel, false, ' ubButton');
+                $inputs .= ' ' . wf_Link('?module=permissions&ghostmode=' . $login, wf_img('skins/ghost.png') . ' ' . $ghostModeLabel, false, ' ubButton');
             }
         }
-        $inputs.= wf_delimiter();
+        $inputs .= wf_delimiter();
 
 
         $inputs .= wf_HiddenInput('save', '1');
@@ -333,7 +341,7 @@ if (cfr('PERMISSIONS')) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
                                                           } );';
         $label .= wf_tag('script', true);
-        $tablecells .=wf_TableCell($label . $sysinputs, '', '', 'valign="top"');
+        $tablecells .= wf_TableCell($label . $sysinputs, '', '', 'valign="top"');
         $tablerows = wf_TableRow($tablecells);
 
 
@@ -364,7 +372,7 @@ if (cfr('PERMISSIONS')) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
                                                           } );';
         $label .= wf_tag('script', true);
-        $tablecells .=wf_TableCell($label . $fininputs, '', '', 'valign="top"');
+        $tablecells .= wf_TableCell($label . $fininputs, '', '', 'valign="top"');
         $tablerows .= wf_TableRow($tablecells);
 
 
@@ -394,7 +402,7 @@ if (cfr('PERMISSIONS')) {
                                                                 checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
                                                           } );';
         $label .= wf_tag('script', true);
-        $tablecells .=wf_TableCell($label . $geoinputs, '', '', 'valign="top"');
+        $tablecells .= wf_TableCell($label . $geoinputs, '', '', 'valign="top"');
         $tablerows .= wf_TableRow($tablecells);
 
 
@@ -457,7 +465,7 @@ if (cfr('PERMISSIONS')) {
         $inputs .= wf_tag('script', true);
 
         $rightsgrid = $inputs;
-        $rightsgrid .=wf_Submit('Save') . wf_delimiter();
+        $rightsgrid .= wf_Submit('Save') . wf_delimiter();
 
         $rightsgrid .= wf_TableBody($tablerows, '100%', 0, 'glamour');
 
@@ -491,17 +499,17 @@ if (cfr('PERMISSIONS')) {
         }
 
         $permission_forms = wf_Form("", 'POST', $rightsgrid, '');
-        $permission_forms.=wf_CleanDiv();
-        $permission_forms.=wf_tag('br');
+        $permission_forms .= wf_CleanDiv();
+        $permission_forms .= wf_tag('br');
 
         //copy permissions form
         $copyinputs = wf_tag('h2') . __('Rights cloning') . wf_tag('h2', true);
-        $copyinputs.= web_AdminLoginSelector($login);
-        $copyinputs.= wf_HiddenInput('clonerightsnow', 'true');
-        $copyinputs.= wf_Submit(__('Clone'));
+        $copyinputs .= web_AdminLoginSelector($login);
+        $copyinputs .= wf_HiddenInput('clonerightsnow', 'true');
+        $copyinputs .= wf_Submit(__('Clone'));
         $copyform = wf_Form("", 'POST', $copyinputs, 'glamour');
 
-        $permission_forms.=$copyform;
+        $permission_forms .= $copyform;
 
 
 
@@ -583,9 +591,9 @@ if (cfr('PERMISSIONS')) {
 
     show_window(__('Admins'), web_list_admins());
 
-    $primaryControls='';
-    $primaryControls.=wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
-    $primaryControls.= wf_Link('?module=admstats', web_icon_charts().' '.__('Administrators timeline'),false,'ubButton');
+    $primaryControls = '';
+    $primaryControls .= wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
+    $primaryControls .= wf_Link('?module=admstats', web_icon_charts() . ' ' . __('Administrators timeline'), false, 'ubButton');
     show_window('', $primaryControls);
 } else {
     show_error(__('You cant control this module'));

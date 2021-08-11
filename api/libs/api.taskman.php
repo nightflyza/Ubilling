@@ -1392,7 +1392,7 @@ function ts_ShowPanel() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $branchCurseFlag = ts_isMeBranchCursed();
-    
+
     $tools = '';
     $result = '';
     if (!$branchCurseFlag) {
@@ -1979,6 +1979,20 @@ function ts_GetAllEmployeeLoginsCached() {
         return (ts_GetAllEmployeeLogins());
     }, $cacheTime);
 
+    return ($result);
+}
+
+/**
+ * Returns all available admin_login=>employee name pairs from cache if available
+ * 
+ * @return array
+ */
+function ts_GetAllEmployeeLoginsAssocCached() {
+    $result = array();
+    $raw = ts_GetAllEmployeeLoginsCached();
+    if (!empty($raw)) {
+        $result = unserialize($raw);
+    }
     return ($result);
 }
 
