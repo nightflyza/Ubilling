@@ -3037,3 +3037,8 @@ CREATE TABLE IF NOT EXISTS `ipauth_denied` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 1.1.9 update
+
+ALTER TABLE `callmeback` ADD `statedate` DATETIME NULL DEFAULT NULL AFTER `state`;
+ALTER TABLE `callmeback` ADD `admin` VARCHAR(200) NULL DEFAULT NULL AFTER `statedate`;

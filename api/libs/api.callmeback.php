@@ -38,6 +38,12 @@ class CallMeBack {
      * Creates new callmeback instance
      */
     public function __construct() {
+        /**
+         * Through the darkness of future past
+         * The magician longs to see.
+         * One chanse out between two worlds
+         * Fire walk with me
+         */
         $this->initCalls();
     }
 
@@ -114,6 +120,8 @@ class CallMeBack {
         $stateF = ubRouting::filters($state, 'mres');
         $this->calls->where('id', '=', $callId);
         $this->calls->data('state', $stateF);
+        $this->calls->data('statedate', curdatetime());
+        $this->calls->data('admin', whoami());
         $this->calls->save();
         log_register('CALLMEBACK SET [' . $callId . '] STATE `' . $state . '`');
     }
@@ -211,7 +219,7 @@ class CallMeBack {
         $result = '';
         $doneCalls = $this->getDoneCallsCount();
         if ($doneCalls > 0) {
-            $columns = array('ID', 'Date', 'Number', 'User', 'Status');
+            $columns = array('ID', 'Date', 'Number', 'User', 'End date', 'Admin', 'Status');
             $opts = '"order": [[ 0, "desc" ]]';
             $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajaxdonecalls=true', false, 'Calls', 100, $opts);
         } else {
@@ -255,6 +263,7 @@ class CallMeBack {
     public function getAjProcessedList() {
         $allCalls = $this->getDoneCalls();
         if (!empty($allCalls)) {
+            $allEmployeeLogins = ts_GetAllEmployeeLoginsAssocCached();
             $this->initTelepathy();
             $json = new wf_JqDtHelper();
             foreach ($allCalls as $io => $each) {
@@ -262,6 +271,16 @@ class CallMeBack {
                 $data[] = $each['date'];
                 $data[] = $each['number'];
                 $data[] = $this->getUserLinkByPhone($each['number']);
+                $data[] = $each['statedate'];
+                $employeeLabel = '';
+                if (!empty($each['admin'])) {
+                    if (isset($allEmployeeLogins[$each['admin']])) {
+                        $employeeLabel = $allEmployeeLogins[$each['admin']];
+                    } else {
+                        $employeeLabel = $each['admin'];
+                    }
+                }
+                $data[] = $employeeLabel;
                 $data[] = $this->getStateLabel($each['state']);
                 $json->addRow($data);
                 unset($data);

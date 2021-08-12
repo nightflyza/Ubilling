@@ -10,6 +10,8 @@ define('BACK_URL_FAIL', 'http://ubilling.net.ua/?fail=true'); // URL to redirect
 define('BOT_PROTECTION', true); // enable spam-bot protection?
 define('BOT_CATCH', 'lastname'); // name of invisible POST field to catch for bots detection
 define('CATCHFIELD', 'callmebackmobile'); // name of POST variable for catching input phone number
+
+
 /**
  * End of config
  */

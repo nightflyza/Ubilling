@@ -23,6 +23,7 @@ if ($altcfg['CALLMEBACK_ENABLED']) {
         } else {
             show_window(__('Calls'), $callMeBack->renderUndoneCalls());
         }
+        zb_BillingStats(true);
     } else {
         show_error(__('Access denied'));
     }
