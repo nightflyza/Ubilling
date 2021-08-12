@@ -26,6 +26,8 @@ define('FCS_USE_AGENTCODES', 0);
 // В agentcodes_strict.ini указываем маппинг: ID контрагента(предпринимателя) = id_project
 // id_project передается в запросе от FC-Sistema и ДОЛЖЕН быть с ними ПРЕДВАРИТЕЛЬНО согласован для каждого контрагента
 // Специальное значние "2" позволяет использовать "строгий" режим, но БЕЗ учета контрагентов
+// Специальное значние "3" работает так же, как и "2", только включает "очень строгий режим" - если сервис
+// не присылает в запросе параметр "id_project" - запрос считается ошибочным
 define('FCS_USE_AGENTCODES_STRICT', 0);
 
 // будет передано в <provider_id_s></provider_id_s> - уникальный идентификатор  в системе FcSistema
@@ -49,7 +51,7 @@ define('FCS_USER_BALANCE_DECIMALS', -1);    // Сколько знаков по�
 define('FCS_LOCALE', 'UA');     // на каком языке отображать данные абонента: RU или UA
 
 // mandatory GET parameters
-$requiredGETParams = array('cmd', 'merchantid');
+$requiredGETParams = ((FCS_USE_AGENTCODES_STRICT == 3) ? array('cmd', 'merchantid', 'id_project') : array('cmd', 'merchantid'));
 
 /**
  *
@@ -355,6 +357,7 @@ function fcs_ReplyPayment($customerID, $moneyAmount, $paymentID, $useAgentCodes 
     $allcustomers = op_CustomersGetAll();
     $transactHash = 'PCS_' . $paymentID;
     $agentCode = '';
+    $apiReply = '';
 
     if (isset($allcustomers[$customerID])) {
         $userLogin = $allcustomers[$customerID];
