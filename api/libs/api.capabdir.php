@@ -261,9 +261,10 @@ class CapabilitiesDirectory {
                 $doneTimestamp = (!empty($each['donedate'])) ? strtotime($each['donedate']) : time();
                 $doneDate = date("Y, n-1, j", $doneTimestamp);
                 $daysSpent = zb_formatTime($doneTimestamp - $timestamp);
+                $address = str_replace("'", '`', $each['address']);
                 $data .= "
                       {
-                        title: '" . $each['address'] . ' - ' . $stateName . ' (' . $daysSpent . ')' . "',
+                        title: '" . $address . ' - ' . $stateName . ' (' . $daysSpent . ')' . "',
                         start: new Date(" . $startDate . "),
                         end: new Date(" . $doneDate . "),
                         " . $coloring . "
