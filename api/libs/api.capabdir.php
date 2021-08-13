@@ -50,6 +50,7 @@ class CapabilitiesDirectory {
     const NO_ID = 'NO_SUCH_CAPABILITY_ID';
     const URL_CREATE = '?module=capabilities';
     const URL_ME = '?module=capabilities';
+    const URL_CAPAB = '&edit=';
 
     /**
      * @param bool $noloaders Do not protess load subroutines at object creation
@@ -455,8 +456,10 @@ class CapabilitiesDirectory {
             }
 
             //task creation form
+            $customData = wf_HiddenInput('unifiedformcapabdirgobackid', $id);
+            $customData .= wf_CheckInput('unifiedformcapabdirgobackflag', __('Back to capability after creation'), true, true);
 
-            $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '');
+            $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '', $customData);
             $taskControl = wf_modalAuto(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
 
             $result = wf_BackLink(self::URL_ME) . ' ';

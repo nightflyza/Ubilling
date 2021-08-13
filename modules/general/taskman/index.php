@@ -27,11 +27,18 @@ if (cfr('TASKMAN')) {
             //date validyty check
             if (zb_checkDate($_POST['newstartdate'])) {
                 ts_CreateTask($_POST['newstartdate'], @$_POST['newstarttime'], $_POST['newtaskaddress'], @$_POST['newtasklogin'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $newjobnote);
-                if (!isset($_GET['gotolastid'])) {
-                    rcms_redirect("?module=taskman");
+                //capabdir redirects
+                if (ubRouting::checkPost(array('unifiedformcapabdirgobackflag', 'unifiedformcapabdirgobackid'))) {
+                    $capabUrl = CapabilitiesDirectory::URL_ME . CapabilitiesDirectory::URL_CAPAB;
+                    ubRouting::nav($capabUrl . ubRouting::post('unifiedformcapabdirgobackid'));
                 } else {
-                    $lasttaskid = simple_get_lastid('taskman');
-                    rcms_redirect("?module=taskman&edittask=" . $lasttaskid);
+                    //normal redirects
+                    if (!isset($_GET['gotolastid'])) {
+                        rcms_redirect("?module=taskman");
+                    } else {
+                        $lasttaskid = simple_get_lastid('taskman');
+                        rcms_redirect("?module=taskman&edittask=" . $lasttaskid);
+                    }
                 }
             } else {
                 show_error(__('Wrong date format'));
