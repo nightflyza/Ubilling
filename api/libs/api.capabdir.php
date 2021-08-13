@@ -204,10 +204,15 @@ class CapabilitiesDirectory {
      * @return type
      */
     public function render() {
+        global $ubillingConfig;
+        $dateSort = ($ubillingConfig->getAlterParam('CAPABDIR_DATE_SORT')) ? true : false;
         $result = '';
         $columns = array(__('Admin'), __('Date'), __('Address'), __('Phone'), __('Status'), __('Notes'), __('Price'), __('Employee'), __('Changed'), __('Actions'));
         $result = $this->panel();
         $opts = '"order": [[ 4, "asc" ]]';
+        if ($dateSort) {
+            $opts = '"order": [[ 1, "desc" ]]';
+        }
         $result .= wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Objects'), 100, $opts);
         return ($result);
     }
