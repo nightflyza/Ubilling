@@ -459,7 +459,7 @@ class CapabilitiesDirectory {
             $customData = wf_HiddenInput('unifiedformcapabdirgobackid', $id);
             $customData .= wf_CheckInput('unifiedformcapabdirgobackflag', __('Back to capability after creation'), true, true);
 
-            $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '', $customData);
+            $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '', $customData, $this->allcapab[$id]['notes']);
             $taskControl = wf_modalAuto(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
 
             $result = wf_BackLink(self::URL_ME) . ' ';

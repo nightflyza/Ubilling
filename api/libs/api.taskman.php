@@ -1269,9 +1269,11 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
  * @param string $phone
  * @param string $login
  * @param string $customData
+ * @param string $notes
+ * 
  * @return  string
  */
-function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $customData = '') {
+function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $customData = '', $notes = '') {
     global $ubillingConfig;
     $altercfg = $ubillingConfig->getAlter();
     $alljobtypes = ts_GetAllJobtypes();
@@ -1310,7 +1312,9 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
         $inputs .= wf_tag('br');
         $inputs .= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
         $inputs .= ts_TaskTypicalNotesSelector();
-        $inputs .= wf_TextArea('newjobnote', '', '', true, '35x5');
+        $notesPreset = (!empty($notes)) ? $notes : '';
+
+        $inputs .= wf_TextArea('newjobnote', '', $notesPreset, true, '35x5');
         if (!empty($customData)) {
             $inputs .= $customData;
         }
