@@ -2172,22 +2172,37 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell($taskLogin . $loginType);
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
-        if (!empty($taskLogin) and in_array($taskLogin, zb_UserGetAllStargazerLogins())) {
-            $UserIpMAC = zb_UserGetAllData($taskLogin);
-            $tablecells = wf_TableCell(__('IP'));
-            $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
-            $tablerows .= wf_TableRow($tablecells, 'row3');
+        if (!empty($taskLogin)) {
+            $allUserLogins = zb_UserGetAllDataCache();
+            if (isset($allUserLogins[$taskLogin])) {
+                $UserIpMAC = zb_UserGetAllData($taskLogin);
+                $tablecells = wf_TableCell(__('IP'));
+                $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
 
-            $tablecells = wf_TableCell(__('MAC'));
-            $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
-            $tablerows .= wf_TableRow($tablecells, 'row3');
+                $tablecells = wf_TableCell(__('MAC'));
+                $tablecells .= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
 
-            if (@$altercfg['SWITCHPORT_IN_PROFILE']) {
-                $allAssigns = zb_SwitchesGetAssignsAll();
-                if (isset($allAssigns[$taskLogin])) {
-                    $tablecells = wf_TableCell(__('Switch'));
-                    $tablecells .= wf_TableCell(@$allAssigns[$taskLogin]['label']);
+                if (@$altercfg['TASKMAN_SHOW_USERTAGS']) {
+                    $userTags = __('No');
+                    $userTagsRaw = zb_UserGetAllTags($taskLogin);
+                    if (!empty($userTagsRaw)) {
+                        $userTagsRaw = $userTagsRaw[$taskLogin];
+                        $userTags = implode(', ', $userTagsRaw);
+                    }
+                    $tablecells = wf_TableCell(__('Tags'));
+                    $tablecells .= wf_TableCell($userTags);
                     $tablerows .= wf_TableRow($tablecells, 'row3');
+                }
+
+                if (@$altercfg['SWITCHPORT_IN_PROFILE']) {
+                    $allAssigns = zb_SwitchesGetAssignsAll();
+                    if (isset($allAssigns[$taskLogin])) {
+                        $tablecells = wf_TableCell(__('Switch'));
+                        $tablecells .= wf_TableCell(@$allAssigns[$taskLogin]['label']);
+                        $tablerows .= wf_TableRow($tablecells, 'row3');
+                    }
                 }
             }
         }
