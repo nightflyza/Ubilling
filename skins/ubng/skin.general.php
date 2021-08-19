@@ -24,7 +24,7 @@
         <header id="header">
             <hgroup>
                 <h1 class="site_title">
-                    <a href="http://ubilling.net.ua">
+                    <a href="https://ubilling.net.ua">
                         <img src="<?= CUR_SKIN_PATH ?>/images/logo.png" height="32" border="0">
                     </a> 
                     <span class="ubproductname">Ubilling</span>

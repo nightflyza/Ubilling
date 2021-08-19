@@ -1972,7 +1972,7 @@ function zbs_ModulesMenuShow($icons = false) {
  */
 function zbs_CopyrightsShow() {
     $usConf = zbs_LoadConfig();
-    $baseFooter = 'Powered by <a href="http://ubilling.net.ua">Ubilling</a>';
+    $baseFooter = 'Powered by <a href="https://ubilling.net.ua">Ubilling</a>';
     if ((isset($usConf['ISP_NAME'])) AND ( isset($usConf['ISP_URL']))) {
         if ((!empty($usConf['ISP_NAME'])) AND ( !empty($usConf['ISP_URL']))) {
             $rawUrl = strtolower($usConf['ISP_URL']);
