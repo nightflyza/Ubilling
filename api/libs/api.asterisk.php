@@ -177,7 +177,7 @@ class Asterisk {
      */
     protected function AsterikCacheInfoClean($asteriskTable, $from, $to) {
         if (!empty($from) and ! empty($to)) {
-            $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC LIMIT 1";
+            $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`lastapp`='dial' OR `lastapp`='queue') ORDER BY `calldate` DESC LIMIT 1";
             $cacheName = $from . $to;
             $cache_uniqueid_key = 'ASTERISK_UNI_' . $cacheName;
             $last_db_uniqueid = $this->AsteriskQuery($query);
@@ -767,19 +767,19 @@ class Asterisk {
                 $where_part .= " OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "'";
             }
             $query .= $where_part;
-            $query .= ") AND `lastapp`='dial' ORDER BY `calldate` DESC";
+            $query .= ") AND (`lastapp`='dial' OR `lastapp`='queue') ORDER BY `calldate` DESC";
 
             if (!empty($where_part)) {
                 $rawResult = $this->AsteriskQuery($query);
             }
         } elseif (wf_CheckGet(array('countnum')) and empty($user_login)) {
-            $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND `lastapp`='dial' GROUP BY `src`";
+            $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`lastapp`='dial' OR `lastapp`='queue') GROUP BY `src`";
             $rawResult = $this->AsteriskQuery($query);
         } else {
             // check if need clean cache 
             $this->AsterikCacheInfoClean($asteriskTable, $from, $to);
             // Start check cache and get result
-            $query = "select " . $query_flds . " from `" . $asteriskTable . "` " . $query_voice_join . " where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC";
+            $query = "select " . $query_flds . " from `" . $asteriskTable . "` " . $query_voice_join . " where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`lastapp`='dial' OR `lastapp`='queue') ORDER BY `calldate` DESC";
 
             $obj = $this;
             $cacheName = $from . $to;
