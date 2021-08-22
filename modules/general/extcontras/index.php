@@ -61,12 +61,31 @@ if (cfr('EXTCONTRAS')) {
             $ExtContras->invoiceRenderListJSON($whereRaw);
         }
 
+        if (ubRouting::checkGet($ExtContras::ROUTE_MISSPAYMS_JSON)){
+            $whereRaw = '';
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+            }
+//TODO: create an optionbutton/dropdown filter for 'unpayed', 'payed' and 'all'
+            $ExtContras->missedPaymsRenderListJSON($whereRaw);
+        }
 
         if (ubRouting::checkGet($ExtContras::ROUTE_2LVL_CNTRCTS_DETAIL)) {
             if (ubRouting::checkPost($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID)) {
-                $detailsFilter = '&' . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID);
-                die($ExtContras->ecRender2ndLvlContractsJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false)
-                    . wf_delimiter(0));
+                $detailsFilter  = '&' . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID);
+                $ajaxURL        = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_2LVL_CNTRCTS_JSON . '=true' . $detailsFilter;
+                $jqdtID         = 'jqdt_' . md5($ajaxURL);
+
+                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px; width: 95%;"') . __('Contracts')
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtID, '', '', 'style="display: contents;"') . wf_tag('h3', true)
+                    . $ExtContras->ecRender2ndLvlContractsJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false))
+                    . wf_CleanDiv() . wf_delimiter(0));
             }
         }
 
@@ -85,11 +104,18 @@ if (cfr('EXTCONTRAS')) {
             if (ubRouting::checkPost($ExtContras::DBFLD_COMMON_ID)) {
                 $detailsFilterFinops = '&' . $ExtContras::DBFLD_COMMON_ID . '=' . ubRouting::post($ExtContras::DBFLD_COMMON_ID)
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID);
-                $detailsFilterAddr   = $detailsFilterFinops . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
+                $ajaxURL             = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_FINOPS_JSON . '=true' . $detailsFilterFinops;
+                $jqdtIDFinops        = 'jqdt_' . md5($ajaxURL);
 
-                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px; width: 95%;"') . __('Addresses') . wf_tag('h3', true)
+                $detailsFilterAddr   = $detailsFilterFinops . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
+                $ajaxURL             = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_3LVL_ADDR_JSON . '=true' . $detailsFilterAddr;
+                $jqdtIDAddr          = 'jqdt_' . md5($ajaxURL);
+
+                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px; width: 95%;"') . __('Addresses')
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDAddr, '', '', 'style="display: contents;"') . wf_tag('h3', true)
                     . $ExtContras->ecRender2ndLvlAddressJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterAddr, false))
-                    . wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations') . wf_tag('h3', true)
+                    . wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations')
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDFinops, '', '', 'style="display: contents;"') .  wf_tag('h3', true)
                     . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false))
                     . wf_CleanDiv() . wf_delimiter(0));
             }
@@ -102,8 +128,8 @@ if (cfr('EXTCONTRAS')) {
             if (ubRouting::checkGet($ExtContras::DBFLD_COMMON_ID)) {
 
                 $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . "` = " . ubRouting::get($ExtContras::DBFLD_COMMON_ID)
-                            . " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
-                            . " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
+                            . " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID);
+                            //. " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
             }
 
             $ExtContras->ecRender2ndLvlAddressListJSON($whereRaw);
@@ -115,7 +141,11 @@ if (cfr('EXTCONTRAS')) {
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
 
-                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations') . wf_tag('h3', true)
+                $ajaxURL             = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_FINOPS_JSON . '=true' . $detailsFilterFinops;
+                $jqdtIDFinops        = 'jqdt_' . md5($ajaxURL);
+
+                die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations')
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDFinops, '', '', 'style="display: contents;"') .  wf_tag('h3', true). wf_tag('h3', true)
                     . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false))
                     . wf_CleanDiv() . wf_delimiter(0));
             }
@@ -223,6 +253,13 @@ if (cfr('EXTCONTRAS')) {
             );
         }
 
+        if (ubRouting::checkGet($ExtContras::URL_MISSEDPAYMENTS)) {
+            show_window(__('Missed payments with expired pay date'),
+                        $ExtContras->missedPaymsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
+            );
+        }
+
+
 
 
         if (ubRouting::checkPost($ExtContras::ROUTE_PROFILE_ACTS)) {
@@ -320,7 +357,8 @@ if (cfr('EXTCONTRAS')) {
                                $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_CONTRACT_ID),
                                $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID  => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_ADDRESS_ID),
                                $ExtContras::DBFLD_EXTCONTRAS_PERIOD_ID   => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_PERIOD_ID),
-                               $ExtContras::DBFLD_EXTCONTRAS_PAYDAY      => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_PAYDAY)
+                               $ExtContras::DBFLD_EXTCONTRAS_PAYDAY      => ubRouting::post($ExtContras::CTRL_EXTCONTRAS_PAYDAY),
+                               $ExtContras::DBFLD_EXTCONTRAS_DATECREATE  => curdatetime()
                             );
 
             //$chkUniqArray = $ExtContras->createCheckUniquenessArray($ExtContras::DBFLD_INVOICES_INVOICE_NUM, '=',
@@ -347,6 +385,15 @@ if (cfr('EXTCONTRAS')) {
             } else {
                 $prefillData = array();
                 $createModality = false;
+            }
+
+            // comes here from a hidden input of finops webform
+            if (ubRouting::checkPost($ExtContras::MISC_MISSED_PAYMENT_PROCESSING)) {
+                $missedPyamID = ubRouting::post(self::MISC_MISSED_PAYMENT_ID);
+
+                if (!empty($missedPyamID)) {
+                    $ExtContras->updateMissedPaymentPayedDate($missedPyamID);
+                }
             }
 
             $finopIncoming = (ubRouting::post($ExtContras::CTRL_MONEY_INOUT) == 'incoming') ? 1 : 0;

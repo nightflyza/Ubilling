@@ -3039,6 +3039,7 @@ CREATE TABLE IF NOT EXISTS `extcontras` (
   `address_id` int(11) NOT NULL,
   `period_id` int(11) NOT NULL,
   `payday` tinyint(3) DEFAULT NULL,
+  `date_create` datetime NOT NULL,
 PRIMARY KEY (`id`),
 KEY `contras_id` (`contras_id`),
 KEY `contract_id` (`contract_id`),
@@ -3125,7 +3126,9 @@ CREATE TABLE IF NOT EXISTS `extcontras_money` (
   `outgoing` tinyint(1) DEFAULT 0,
   `paynotes` varchar(255) NOT NULL DEFAULT '',
 PRIMARY KEY (`id`),
-KEY `contras_rec_id` (`contras_rec_id`),
+KEY `profile_id` (`profile_id`),
+KEY `contract_id` (`contract_id`),
+KEY `address_id` (`address_id`),
 KEY `accrual_id` (`accrual_id`),
 KEY `purpose` (`purpose`),
 KEY `date` (`date`),
@@ -3134,6 +3137,37 @@ KEY `summ_accrual` (`summ_accrual`),
 KEY `summ_payment` (`summ_payment`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `extcontras_missed_payms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `contras_rec_id` int(11) NOT NULL,
+  `profile_id` int(11) NOT NULL,
+  `contract_id` int(11) DEFAULT NULL,
+  `address_id` int(11) DEFAULT NULL,
+  `period_id` int(11) NOT NULL,
+  `payday` tinyint(3) DEFAULT NULL,
+  `date_payment` date NOT NULL,
+  `date_expired` datetime NOT NULL,
+  `date_payed` datetime DEFAULT NULL,
+  `summ_payment` double DEFAULT 0,
+PRIMARY KEY (`id`),
+KEY `contras_rec_id` (`contras_rec_id`),
+KEY `profile_id` (`profile_id`),
+KEY `contract_id` (`contract_id`),
+KEY `address_id` (`address_id`),
+KEY `period_id` (`period_id`),
+KEY `date_payment` (`date_payment`),
+KEY `date_payed` (`date_payed`),
+KEY `summ_payment` (`summ_payment`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 -- alter table extcontras_money change contras_rec_id `profile_id` int(11) NOT NULL;
 -- alter table extcontras_money add `contract_id` int(11) DEFAULT NULL after profile_id;
 -- alter table extcontras_money add `address_id` int(11) DEFAULT NULL after contract_id;
+
+-- ALTER TABLE extcontras_money DROP INDEX `contras_rec_id`
+-- ALTER TABLE extcontras_money ADD INDEX (profile_id) USING BTREE;
+-- ALTER TABLE extcontras_money ADD INDEX (contract_id) USING BTREE;
+-- ALTER TABLE extcontras_money ADD INDEX (address_id) USING BTREE;
+-- ALTER TABLE `extcontras` ADD `date_create` datetime NOT NULL;
+-- ALTER TABLE `extcontras` ADD `missed_paym_id` int(11) NOT NULL after `period_id`;
+-- ALTER TABLE `extcontras` DROP COLUMN  `missed_paym_id`;

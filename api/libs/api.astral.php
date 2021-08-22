@@ -2314,6 +2314,9 @@ function wf_CleanDiv() {
  *                                       "order": [[ 0, "desc" ]]
  *                                       or 
  *                                       dom: \'Bfrtipsl\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\']
+ * @param bool $addFooter
+ * @param string $footerOpts
+ * @param string $footerTHOpts
  *
  * @return string
  */
@@ -2624,6 +2627,50 @@ $(document).ready(function() {
     }
 } );    
     ';
+
+    return ($result);
+}
+
+/**
+ * Returns simple JQDT refresh link with JS snippet
+ *
+ * @param string $jqdtID
+ * @param string $jqdtSelector
+ * @param string $class
+ * @param string $opts
+ *
+ * @return string
+ */
+function wf_JQDTRefreshButton($jqdtID = '', $jqdtSelector = '', $class = '', $opts = '') {
+    $result = '';
+
+    if (!empty($jqdtID) or !empty($jqdtSelector)) {
+        $class      = (empty($class) ? 'ubButton' : $class);
+        $tmpInpID   = wf_InputId();
+        $result     = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
+
+        $tmpScript  = '
+            $(\'#' . $tmpInpID . '\').click(function(evt) {
+                $(\'img\', this).addClass("image_rotate");                                     
+        ';
+
+        if (empty($jqdtID)) {
+            $tmpScript.= '$(' . $jqdtSelector . ').DataTable().ajax.reload();';
+        } else {
+            $tmpScript.= '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();';
+        }
+
+         $tmpScript.= '
+            
+                $(\'img\', this).removeClass("image_rotate");
+                evt.preventDefault();
+                return false;
+            });
+            
+         ';
+
+        $result.= wf_EncloseWithJSTags($tmpScript);
+    }
 
     return ($result);
 }
@@ -3016,17 +3063,19 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
  *
  * @param $ajaxURL
  * @param $dataArray
- * @param string $queryType
  * @param string $controlId
+ * @param bool $wrapWithJSScriptTag
+ * @param string $queryType
  * @param string $jsEvent
  * @param bool $noPreventDefault
  * @param bool $noReturnFalse
- * @param bool $wrapWithJSScriptTag
+ * @param bool $updNestedJQDT
+ * @param string $nestedJQDTSelector
  *
  * @return string
  */
 function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click',
-                              $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false) {
+                              $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false, $nestedJQDTSelector = '') {
 
     $inputId = (empty($controlId)) ? wf_InputId() : $controlId;
     $modalWindowId = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
@@ -3044,7 +3093,9 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
     }
 
     if ($updNestedJQDT) {
-        $findJQDTToUpdate = 'var closestJQDTID = $(this).parent().parent().next("tr").find(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");';
+        $findJQDTToUpdate = (empty($nestedJQDTSelector)
+                             ? 'var closestJQDTID = $(this).parent().parent().next("tr").find(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");'
+                             : 'var closestJQDTID = ' . $nestedJQDTSelector);
     } else {
         $findJQDTToUpdate = 'var closestJQDTID = $(this).closest(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");';
     }
@@ -3088,15 +3139,22 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
  * @param string $title
  * @param string $icon
  * @param string $linkCSSClass
+ * @param string $queryType
+ * @param string $jsEvent
+ * @param bool $noPreventDefault
+ * @param bool $noReturnFalse
+ * @param bool $updNestedJQDT
+ * @param string $nestedJQDTSelector
  *
  * @return string
  */
-function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '', $queryType = 'POST',
-                                      $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false) {
+function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '',
+                                      $queryType = 'POST', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false,
+                                      $updNestedJQDT = false, $nestedJQDTSelector = '') {
     $linkID = wf_InputId();
     $dynamicOpener = wf_Link('#', $icon . ' ' . $title, false, $linkCSSClass, 'id="' . $linkID . '"')
                     . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, $queryType,
-                                           $jsEvent, $noPreventDefault, $noReturnFalse, $updNestedJQDT);
+                                           $jsEvent, $noPreventDefault, $noReturnFalse, $updNestedJQDT, $nestedJQDTSelector);
 
     return ($dynamicOpener);
 }
