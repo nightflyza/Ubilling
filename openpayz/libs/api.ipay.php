@@ -360,7 +360,7 @@ class IpayZ {
                         <amount>' . $summ . '</amount>
                         <currency>' . $this->currency . '</currency>
                         <desc>' . $this->payDesc . '</desc>
-                        <info>{"dogovor":' . $paymentId . '}</info>
+                        <info>{"acc":' . $paymentId . '}</info>
                     </transaction>
                 </transactions>
                 <lifetime>' . $this->lifeTime . '</lifetime>

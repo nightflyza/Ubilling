@@ -76,7 +76,11 @@ if (!empty($xml)) {
                     @$transactionInfoRaw = $rawXml['payment']['transactions']['transaction'][0]['info'];
                     if (!empty($transactionInfoRaw)) {
                         $transactionInfo = json_decode($transactionInfoRaw);
-                        $customerId = $transactionInfo->dogovor;
+                        $customerId = $transactionInfo->acc;
+                        //очевидно для платежей прилетающих с черджера другой формат данных о транзакции
+                        if (empty($customerId)) {
+                            $customerId = $transactionInfo->step_1->acc;
+                        }
                         if (!empty($customerId)) {
                             $allCustomers = op_CustomersGetAll();
 
