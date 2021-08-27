@@ -64,15 +64,12 @@ if (cfr('EXTCONTRAS')) {
         if (ubRouting::checkGet($ExtContras::ROUTE_MISSPAYMS_JSON)){
             $whereRaw = '';
 
-            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
-                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_MISSPAYMS)) {
+                $whereRaw.= ubRouting::post($ExtContras::MISC_WEBFILTER_MISSPAYMS);
+            } else {
+                $whereRaw.= ' ISNULL(`' . $ExtContras::DBFLD_MISSPAYMS_DATE_PAYED . '`)';
             }
 
-            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
-                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
-                $whereRaw.= "`" . $ExtContras::DBFLD_INVOICES_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
-            }
-//TODO: create an optionbutton/dropdown filter for 'unpayed', 'payed' and 'all'
             $ExtContras->missedPaymsRenderListJSON($whereRaw);
         }
 
@@ -255,6 +252,7 @@ if (cfr('EXTCONTRAS')) {
 
         if (ubRouting::checkGet($ExtContras::URL_MISSEDPAYMENTS)) {
             show_window(__('Missed payments with expired pay date'),
+                        $ExtContras->missedPaymsFilterWebForm() . wf_delimiter() .
                         $ExtContras->missedPaymsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
             );
         }
@@ -389,7 +387,7 @@ if (cfr('EXTCONTRAS')) {
 
             // comes here from a hidden input of finops webform
             if (ubRouting::checkPost($ExtContras::MISC_MISSED_PAYMENT_PROCESSING)) {
-                $missedPyamID = ubRouting::post(self::MISC_MISSED_PAYMENT_ID);
+                $missedPyamID = ubRouting::post($ExtContras::MISC_MISSED_PAYMENT_ID);
 
                 if (!empty($missedPyamID)) {
                     $ExtContras->updateMissedPaymentPayedDate($missedPyamID);
@@ -416,6 +414,11 @@ if (cfr('EXTCONTRAS')) {
             $showResult = $ExtContras->processCRUDs($dataArray, $ExtContras::TABLE_ECMONEY, $ExtContras::CTRL_MONEY_PURPOSE,
                 'finopsWebForm', false, array(),
                 'Financial operation', $prefillData, $createModality);
+            die($showResult);
+        }
+
+        if (ubRouting::checkPost($ExtContras::ROUTE_MISSPAYMS_ACTS)) {
+            $showResult = $ExtContras->processCRUDs(array(), $ExtContras::TABLE_ECMISSPAYMENTS);
             die($showResult);
         }
     } else {
