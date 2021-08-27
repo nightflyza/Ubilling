@@ -553,6 +553,7 @@ class ExtContras {
     const MISC_WEBFILTER_DATE_START      = 'datefilterstart';
     const MISC_WEBFILTER_DATE_END        = 'datefilterend';
     const MISC_WEBFILTER_PAYDAY          = 'paydayfilter';
+    const MISC_WEBFILTER_MISSPAYMS       = 'misspaysfilter';
     const MISC_PREFILL_DATA              = 'prefilldata';
     const MISC_WEBSEL_PROFILES           = 'WebSelECProfiles_';
     const MISC_WEBSEL_CONTRACTS          = 'WebSelECContracts_';
@@ -954,10 +955,11 @@ class ExtContras {
      * @param $ecRecID
      * @param bool $contractCheck
      * @param bool $addressCheck
+     * @param bool $checkSum
      *
      * @return string
      */
-    public function checkCurMonthPaymExists($ecRecID, $contractCheck = false, $addressCheck = false) {
+    public function checkCurMonthPaymExists($ecRecID, $contractCheck = false, $addressCheck = false, $checkSum = false) {
         $result = '';
 
         if (!empty($ecRecID) and !empty($this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_PAYDAY])) {
@@ -967,6 +969,11 @@ class ExtContras {
             $tmpECAddressID  = $this->allExtContras[$ecRecID][self::DBFLD_EXTCONTRAS_ADDRESS_ID];
             $curMonthStart   = date('Y-m-') . '01';
             $curMonthEnd     = date('Y-m-') . date('t');
+            $fullPaymentSum  = 0;
+
+            if (!empty($this->allECContracts[$tmpECContractID][self::DBFLD_CTRCT_FULLSUM])) {
+                $fullPaymentSum = $this->allECContracts[$tmpECContractID][self::DBFLD_CTRCT_FULLSUM];
+            }
 
             $this->dbECMoney->selectable(self::DBFLD_COMMON_ID);
             $this->dbECMoney->where(self::DBFLD_MONEY_PROFILEID, '=', $tmpECProfileID);
@@ -975,14 +982,37 @@ class ExtContras {
                 $this->dbECMoney->where(self::DBFLD_MONEY_CNTRCTID, '=', $tmpECContractID);
             }
 
-            if ($addressCheck) {
-                $this->dbECMoney->where(self::DBFLD_MONEY_ADDRESSID, '=', $tmpECAddressID);
+            if ($addressCheck and empty($fullPaymentSum) and !empty($this->allECAddresses[$tmpECAddressID][self::DBFLD_ADDRESS_SUM])) {
+                $fullPaymentSum = $this->allECAddresses[$tmpECAddressID][self::DBFLD_ADDRESS_SUM];
             }
 
             $this->dbECMoney->where(self::DBFLD_MONEY_SMPAYMENT, '!=', 0);
+
+            if (!empty($fullPaymentSum)) {
+                if ($addressCheck) {
+                    $this->dbECMoney->whereRaw(' (`' . self::DBFLD_MONEY_ADDRESSID . '` = ' . $tmpECAddressID
+                                               . ' OR `' . self::DBFLD_MONEY_SMPAYMENT . '` = ' . $fullPaymentSum . ') ');
+                } else {
+                    $this->dbECMoney->where(self::DBFLD_MONEY_SMPAYMENT, '>=', $fullPaymentSum);
+                }
+            } elseif ($addressCheck) {
+                // this line will never be executed, if all the fields in contract and address dictionaries are filled correctly
+                $this->dbECMoney->where(self::DBFLD_MONEY_ADDRESSID, '=', $tmpECAddressID);
+            }
+
             $this->dbECMoney->whereRaw(' `' . self::DBFLD_MONEY_DATE . '` BETWEEN "' . $curMonthStart . '" AND "' . $curMonthEnd . '" + INTERVAL 1 DAY ');
 //$this->dbECMoney->setDebug(true, true);
             $result = $this->dbECMoney->getAll(self::DBFLD_COMMON_ID);
+        }
+
+        if ($checkSum and !empty($result)) {
+            $tmpPayedSum = 0;
+
+            foreach ($result as $paymID => $paymData) {
+                $tmpPayedSum+= $paymData[self::DBFLD_MONEY_SMPAYMENT];
+            }
+
+            $result = $tmpPayedSum;
         }
 
         return ($result);
@@ -1072,7 +1102,7 @@ class ExtContras {
                                           self::MISC_ERRFORM_ID_PARAM);
 
             // putting a piece of JS code to perform records delete action
-            $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, self::MISC_ERRFORM_ID_PARAM);
+            $result.= wf_jsAjaxCustomFunc(self::MISC_JS_DEL_FUNC_NAME, $jqdtID, '', self::MISC_ERRFORM_ID_PARAM);
 
             if (!empty($markRowForID)) {
                 $result.= wf_JQDTMarkRowJS(0, $markRowForID, $truncateURL, $truncateParam);
@@ -1095,19 +1125,21 @@ class ExtContras {
     /**
      * Returns typical JQDT "actions" controls, like "Delete", "Edit", "Clone"
      *
-     * @param int $recID
+     * @param int    $recID
      * @param string $routeActs
-     * @param bool $cloneButtonON
+     * @param bool   $cloneButtonON
      * @param string $customControls
+     * @param bool   $editButton
+     * @param bool   $deleteButton
      *
      * @return string
      */
-    protected function getStdJQDTActions($recID, $routeActs, $cloneButtonON = false, $customControls = '') {
+    protected function getStdJQDTActions($recID, $routeActs, $cloneButtonON = false, $customControls = '', $editButton = true, $deleteButton = true) {
         $curTimeStamp = strtotime(curdate());
 
         $actions = '';
 
-        if (!$this->ecReadOnlyAccess) {
+        if ($deleteButton and !$this->ecReadOnlyAccess) {
             // gathering the delete ajax data query
             $tmpDeleteQuery = '\'&' . $routeActs . '=true' .
                               '&' . self::ROUTE_ACTION_DELETE . '=true' .
@@ -1121,13 +1153,16 @@ class ExtContras {
                                           $deleteDialogCloseFunc, $deleteDialogWID);
         }
 
-        $actions .= wf_nbsp(2);
-        $actions .= wf_jsAjaxDynamicWindowButton(self::URL_ME,
-                                                 array($routeActs => 'true',
-                                                       self::ROUTE_ACTION_EDIT => 'true',
-                                                       self::ROUTE_EDIT_REC_ID => $recID),
-                                                 '', web_edit_icon()
-                                                );
+        if ($editButton and !$this->ecReadOnlyAccess) {
+            $actions .= wf_nbsp(2);
+            $actions .= wf_jsAjaxDynamicWindowButton(self::URL_ME,
+                                                     array($routeActs              => 'true',
+                                                           self::ROUTE_ACTION_EDIT => 'true',
+                                                           self::ROUTE_EDIT_REC_ID => $recID
+                                                     ),
+                                                     '', web_edit_icon()
+            );
+        }
 
         if ($cloneButtonON and !$this->ecReadOnlyAccess) {
             $actions .= wf_nbsp(2);
@@ -1187,7 +1222,7 @@ class ExtContras {
      *
      * @throws Exception
      */
-    public function processCRUDs($dataArray, $dbTabName, $postFrmCtrlValToChk, $webFormMethod,
+    public function processCRUDs($dataArray, $dbTabName, $postFrmCtrlValToChk= '', $webFormMethod = '',
                                  $checkUniqueness = true, $checkUniqArray = array(),$crudEntityName = '',
                                  $prefillFieldsData = array(), $createFormModality = false, $editFormModality = true) {
 
@@ -1200,13 +1235,18 @@ class ExtContras {
         $foundRecID         = '';
         $crudEntityName     = empty($crudEntityName) ? 'Entity' : $crudEntityName;
         $entityExistError   = '';
+        $wfmExistError      = '';
 
         if (empty($dbEntity)) {
             $entityExistError.= wf_nbsp(2) . wf_tag('b') . $dbTabName . wf_tag('b', true);
         }
 
         if (!method_exists($this, $webFormMethod)) {
-            $entityExistError.= wf_nbsp(2) . wf_tag('b') . $webFormMethod . wf_tag('b', true);
+            $wfmExistError.= $this->renderWebMsg(__('Error'),
+                                        __('CRUDs processing: try to call to non-existent method') . ': '
+                                                 . wf_nbsp(2) . wf_tag('b') . $webFormMethod . wf_tag('b', true),
+                                           'error');
+
         }
 // todo: check uniqueness of extrcontras recs by profile_id + contract_id + addr_id
         // checking record uniqueness upon criteria, if needed
@@ -1236,9 +1276,9 @@ class ExtContras {
 
         if (!empty($entityExistError)) {
             return($this->renderWebMsg(__('Error'),
-                   __('CRUDs processing: possible try to call to/use of non-existent method, data or DB entity') . ':'
-                   . $entityExistError,
-                   'error'));
+                              __('CRUDs processing: possible try to call to/use of non-existent method, data- or DB-entity') . ': '
+                                      . $entityExistError,
+                                'error'));
         }
 
         if(!empty($recID) and ($recEdit or $recClone)) {
@@ -1249,7 +1289,11 @@ class ExtContras {
                     $this->recordCreateEdit($dbEntity, $dataArray);
                 }
             }  else {
-                return (call_user_func_array(array($this, $webFormMethod), array($editFormModality, $recID, $recEdit, $recClone)));
+                if (empty($wfmExistError)) {
+                    return (call_user_func_array(array($this, $webFormMethod), array($editFormModality, $recID, $recEdit, $recClone)));
+                } else {
+                    return($wfmExistError);
+                }
             }
         } elseif ($recCreate) {
             $this->recordCreateEdit($dbEntity, $dataArray);
@@ -1313,7 +1357,11 @@ class ExtContras {
                 }
             }
         } else {
-            return(call_user_func_array(array($this, $webFormMethod), array($createFormModality, 0, false, false, $prefillFieldsData)));
+            if (empty($wfmExistError)) {
+                return(call_user_func_array(array($this, $webFormMethod), array($createFormModality, 0, false, false, $prefillFieldsData)));
+            } else {
+                return($wfmExistError);
+            }
         }
 
         return ('');
@@ -2348,8 +2396,6 @@ class ExtContras {
                           (($cloneAction) ? __('Clone counterparty record') :
                           __('Create counterparty record'));
 
-        $inputs.= wf_EncloseWithJSTags(wf_jsWebSelectorFilter());
-
         $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME,
                                                                        self::DBFLD_PROFILE_CONTACT),
                                   self::CTRL_EXTCONTRAS_PROFILE_ID, __('Counterparty profile') . $this->supFrmFldMark,
@@ -2382,37 +2428,44 @@ class ExtContras {
             $inputs.= wf_HiddenInput('', $modalWinID, '', self::MISC_CLASS_MWID_CTRL);
         }
 
+        // for dynamic finops modal from websel filtering
         if (!$modal) {
-            $tmpWebSelJS = '
+            $tmpWebSelJS = wf_jsWebSelectorFilter();
+
+            $tmpWebSelJS.= '
         $(function() {
             onElementInserted("body", "#Modal' . $ecProfilesWebSelID . '", function(element) {
                 $("#Modal' . $ecProfilesWebSelID . '").on("click change", function(evt) {
                     filterWebDropdown($(this).val(), $(\'#Modal' . $contractsFilterDataID . '\').val(), \'Modal' . $ecContractsWebSelID . '\', true);
                 }); 
-                
+console.log($("#Modal' . $ecProfilesWebSelID . '").val());     
+console.log(empty($("#' . $editDBValProfileID . '").val()));
                 let tmpDBValue = (empty($("#' . $editDBValProfileID . '").val()) ? "0" : $("#' . $editDBValProfileID . '").val());                 
                 $("#Modal' . $ecProfilesWebSelID . '").val(tmpDBValue).change();
+                
             });
             
             onElementInserted("body", "#Modal' . $ecContractsWebSelID . '", function(element) {        
                 $("#Modal' . $ecContractsWebSelID . '").on("click change", function(evt) {
                     filterWebDropdown($(this).val(), $(\'#Modal' . $addressFilterDataID . '\').val(), \'Modal' . $ecAddressWebSelID . '\', true);
                 });
-                
+console.log($("#Modal' . $ecContractsWebSelID . '").val());                
                 let tmpDBValue = (empty($("#' . $editDBValContractID . '").val()) ? "0" : $("#' . $editDBValContractID . '").val());
                 $("#Modal' . $ecContractsWebSelID . '").val(tmpDBValue).change();
-                
+console.log($("#Modal' . $ecAddressWebSelID . '").val());              
                 tmpDBValue = (empty($("#' . $editDBValAddressID . '").val()) ? "0" : $("#' . $editDBValAddressID . '").val()) ;
                 $("#Modal' . $ecAddressWebSelID . '").val(tmpDBValue).change();
             });
         });
             
         ';
+
+            $tmpWebSelJS = wf_EncloseWithJSTags($tmpWebSelJS);
         } else {
             $tmpWebSelJS = '';
         }
 
-        $inputs.= wf_EncloseWithJSTags($tmpWebSelJS);
+        $inputs.= $tmpWebSelJS;
         $inputs = wf_Form(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true','POST',
                           $inputs, 'glamour form-grid-2cols form-grid-2cols-label-right ' . $formClass);
 
@@ -2659,7 +2712,8 @@ class ExtContras {
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $payDay;
 
-                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
+                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID],
+                                          self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID, true);
@@ -2676,7 +2730,6 @@ class ExtContras {
                                                               self::ROUTE_ACTION_PREFILL => 'true',
                                                               self::MISC_PREFILL_DATA => array(self::CTRL_MONEY_PROFILEID  => $profileRecID,
                                                                                                self::CTRL_MONEY_CNTRCTID   => $contractRecID,
-                                                                                               self::CTRL_MONEY_ADDRESSID  => $addrRecID,
                                                                                                self::CTRL_MONEY_SUMPAYMENT => $contractSum
                                                                                               )
                                                              ),
@@ -2797,7 +2850,8 @@ class ExtContras {
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $payDay;
 
-                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID], self::ROUTE_CONTRAS_ACTS, true);
+                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID],
+                                          self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID, true, true);
@@ -3024,13 +3078,17 @@ class ExtContras {
             $finopIncoming      = ubRouting::filters($finoperation[self::DBFLD_MONEY_INCOMING], 'fi', FILTER_VALIDATE_BOOLEAN);
             $finopOutgoing      = ubRouting::filters($finoperation[self::DBFLD_MONEY_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         } elseif (!empty($prefillFieldsData)) {
-            $finopProfileID     = $prefillFieldsData[self::CTRL_MONEY_PROFILEID];
-            $finopSumPayment    = $prefillFieldsData[self::CTRL_MONEY_SUMPAYMENT];
-        }
+            $finopProfileID     = (empty($prefillFieldsData[self::CTRL_MONEY_PROFILEID]) ? 0 : $prefillFieldsData[self::CTRL_MONEY_PROFILEID]);
+            $finopContractID    = (empty($prefillFieldsData[self::CTRL_MONEY_CNTRCTID]) ? 0 : $prefillFieldsData[self::CTRL_MONEY_CNTRCTID]);
+            $finopAddressID     = (empty($prefillFieldsData[self::CTRL_MONEY_ADDRESSID]) ? 0 : $prefillFieldsData[self::CTRL_MONEY_ADDRESSID]);
+            $finopSumPayment    = (empty($prefillFieldsData[self::CTRL_MONEY_SUMPAYMENT]) ? 0 : $prefillFieldsData[self::CTRL_MONEY_SUMPAYMENT]);
 
-        if (!$editAction and !$cloneAction and ubRouting::checkPost(self::MISC_MISSED_PAYMENT_PROCESSING)) {
-            $inputs.= wf_HiddenInput(self::MISC_MISSED_PAYMENT_PROCESSING, 'true');
-            $inputs.= wf_HiddenInput(self::MISC_MISSED_PAYMENT_ID, ubRouting::post(self::MISC_MISSED_PAYMENT_ID));
+            if (!$editAction and !$cloneAction) {
+                $misspaymProcess = (empty($prefillFieldsData[self::MISC_MISSED_PAYMENT_PROCESSING]) ? 0 : $prefillFieldsData[self::MISC_MISSED_PAYMENT_PROCESSING]);
+                $misspaymID      = (empty($prefillFieldsData[self::MISC_MISSED_PAYMENT_ID]) ? 0 : $prefillFieldsData[self::MISC_MISSED_PAYMENT_ID]);
+                $inputs.= wf_HiddenInput(self::MISC_MISSED_PAYMENT_PROCESSING, $misspaymProcess);
+                $inputs.= wf_HiddenInput(self::MISC_MISSED_PAYMENT_ID, $misspaymID);
+            }
         }
 
         $this->dbECMoney->whereRaw(" " . self::DBFLD_MONEY_SMACCRUAL . " != 0");
@@ -3053,9 +3111,7 @@ class ExtContras {
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
-        $inputs.= wf_EncloseWithJSTags(wf_jsWebSelectorFilter());
-
-        if ($editAction or $cloneAction) {
+        if ($editAction or $cloneAction or !empty($prefillFieldsData)) {
             $inputs.= wf_HiddenInput($editDBValProfileID . 'nm', $finopProfileID, $editDBValProfileID);
             $inputs.= wf_HiddenInput($editDBValContractID . 'nm', $finopContractID, $editDBValContractID);
             $inputs.= wf_HiddenInput($editDBValAddressID . 'nm', $finopAddressID, $editDBValAddressID);
@@ -3098,7 +3154,9 @@ class ExtContras {
                                            '', true);
 
         if (!$modal) {
-            $tmpWebSelJS = '
+            $tmpWebSelJS = wf_jsWebSelectorFilter();
+
+            $tmpWebSelJS.= '
         $(function() {
             onElementInserted("body", "#Modal' . $ecProfilesWebSelID . '", function(element) {
                 $("#Modal' . $ecProfilesWebSelID . '").on("click change", function(evt) {
@@ -3130,16 +3188,18 @@ class ExtContras {
         });
         
             ';
+
+            $tmpWebSelJS = wf_EncloseWithJSTags($tmpWebSelJS . "\n");
         } else {
             $tmpWebSelJS = '';
         }
 
-        $inputs.= wf_EncloseWithJSTags($tmpWebSelJS . "\n");
+        $inputs.= $tmpWebSelJS;
 
         if ($this->ecInvoicesON) {
             $inputs.= $this->renderWebSelector($this->allECInvoices, array(self::DBFLD_INVOICES_INVOICE_NUM,
-                                                                            self::DBFLD_INVOICES_DATE,
-                                                                            self::DBFLD_INVOICES_SUM
+                                                                           self::DBFLD_INVOICES_DATE,
+                                                                           self::DBFLD_INVOICES_SUM
                                                                            ),
                                     self::CTRL_MONEY_INVOICEID, __('Invoice'), $finopInvoiceID, true, false, true,
                                     '', 'col-2-3-occupy', '', true);
@@ -3319,7 +3379,53 @@ class ExtContras {
         $json->getJson();
     }
 
+    public function missedPaymsFilterWebForm() {
+        $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_MISSPAYMS_JSON . '=true';
 
+        $result = '';
+
+        $result.= wf_Link('#', __('Unpayed'), false, 'ubButton', 'id="MissPaymsUnpayedFilter"') . wf_nbsp(4);
+        $result.= wf_Link('#', __('Payed'), false, 'ubButton', 'id="MissPaymsPayedFilter"'). wf_nbsp(4);
+        $result.= wf_Link('#', __('All'), false, 'ubButton', 'id="MissPaymsFilterAll"');
+        $result = wf_Plate($result, '', '', 'glamour') . wf_CleanDiv();
+
+        $tmpJS = wf_jsAjaxCustomFunc('doMisspaymsFilter', '', '$(\'body\').find(\'[id ^= "jqdt_"][role = "grid"]\').attr("id")',
+                '', 'POST', true);
+        $tmpJS.= '
+            $(\'#MissPaymsUnpayedFilter\').click(function(evt) {
+                doMisspaymsFilter(\'' . $ajaxURL . '\', \'&' . self::MISC_WEBFILTER_MISSPAYMS . '=ISNULL(`' . self::DBFLD_MISSPAYMS_DATE_PAYED . '`)\');
+                evt.preventDefault();
+                return false;
+            });
+            
+            $(\'#MissPaymsPayedFilter\').click(function(evt) {
+                doMisspaymsFilter(\'' . $ajaxURL . '\', \'&' . self::MISC_WEBFILTER_MISSPAYMS . '=NOT ISNULL(`' . self::DBFLD_MISSPAYMS_DATE_PAYED . '`)\');
+                evt.preventDefault();
+                return false;
+            });
+            
+            $(\'#MissPaymsFilterAll\').click(function(evt) {
+                doMisspaymsFilter(\'' . $ajaxURL . '\', \'&' . self::MISC_WEBFILTER_MISSPAYMS . '=NOT ISNULL(`' . self::DBFLD_MISSPAYMS_CONTRASID . '`)\');
+                evt.preventDefault();
+                return false;
+            });    
+            
+        ';
+
+        $result.= wf_EncloseWithJSTags($tmpJS);
+        return ($result);
+    }
+
+    /**
+     * Renders JQDT for missed payments list
+     *
+     * @param string $customJSCode
+     * @param string $markRowForID
+     * @param string $detailsFilter
+     * @param bool   $stdJSForCRUDs
+     *
+     * @return string
+     */
     public function missedPaymsRenderJQDT($customJSCode = '', $markRowForID = '', $detailsFilter = '', $stdJSForCRUDs = true) {
         $ajaxURL = '' . self::URL_ME . '&' . self::ROUTE_MISSPAYMS_JSON . '=true';
 
@@ -3336,25 +3442,26 @@ class ExtContras {
         $columns[] = __('Needed to pay on date');
         $columns[] = __('Expired date');    //9
         $columns[] = __('Payed date');
-        $columns[] = __('Add financial operation');     //11
+        $columns[] = __('Actions');
+        $columns[] = __('Add financial operation');     //12
         $columns[] = __('Already payed');
 
         $opts = '
             "columnDefs": [ 
-                            {"targets": [12], "visible": false},                     
+                            {"targets": [13], "visible": false},                     
                             {"targets": [1, 3, 4], "className": "dt-left dt-head-center"},
                             {"targets": ["_all"], "className": "dt-center dt-head-center"},
-                            {"targets": [11], "width": "85px"},
-                            {"targets": [11], "orderable": false}                                                        
+                            {"targets": [12], "width": "85px"},
+                            {"targets": [12], "orderable": false}                                                        
                           ],
             "order": [[ 1, "desc" ]],
             "rowCallback": function(row, data, index) {                               
-                if ( data[12] == "1" ) {
+                if ( data[13] == "1" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->payedThisMonthBKGND . '\');
                     $(\'td\', row).css(\'color\', \'' . $this->payedThisMonthFRGND . '\');
                 } 
                 
-                if ( data[12] == "0" ) {
+                if ( data[13] == "0" ) {
                     $(\'td\', row).css(\'background-color\', \'' . $this->paymentExpiredBKGND . '\');
                     $(\'td\', row).css(\'color\', \'' . $this->paymentExpiredFRGND . '\');
                 } 
@@ -3368,7 +3475,11 @@ class ExtContras {
         return($result);
     }
 
-
+    /**
+     * Renders JSON for missed payments JQDT
+     *
+     * @param string $whereRaw
+     */
     public function missedPaymsRenderListJSON($whereRaw = '') {
         if (!empty($whereRaw)) {
             $this->dbECMissedPayms->whereRaw($whereRaw);
@@ -3396,7 +3507,7 @@ class ExtContras {
                 $datePayed      = $eachRecID[self::DBFLD_MISSPAYMS_DATE_PAYED];
                 $sumPayment     = $eachRecID[self::DBFLD_MISSPAYMS_SUMPAYMENT];
                 $alreadyPayed   = !empty($datePayed);
-//file_put_contents('zxcv', print_r($data, true));
+
                 if (!empty($this->allExtContrasExten[$contrasRecID])) {
                     $extenData = $this->allExtContrasExten[$contrasRecID];
 
@@ -3434,6 +3545,9 @@ class ExtContras {
                 $data[] = $dateExpired;
                 $data[] = $datePayed;
 
+                $actions = $this->getStdJQDTActions($curRecID, self::ROUTE_MISSPAYMS_ACTS, false, '', false);
+                $data[]  = $actions;
+
                 $data[]  = wf_jsAjaxDynamicWindowButton(self::URL_ME,
                                                         array(self::ROUTE_FINOPS_ACTS => 'true',
                                                               self::ROUTE_ACTION_PREFILL => 'true',
@@ -3450,7 +3564,7 @@ class ExtContras {
                                                         );
 
                 $data[] = ($alreadyPayed ? 1 : 0);
-file_put_contents('zxcv', print_r($data, true));
+
                 $json->addRow($data);
 
                 unset($data);

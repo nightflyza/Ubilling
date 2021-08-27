@@ -2635,16 +2635,16 @@ $(document).ready(function() {
  * Returns simple JQDT refresh link with JS snippet
  *
  * @param string $jqdtID
- * @param string $jqdtSelector
+ * @param string $jqdtIDSelector
  * @param string $class
  * @param string $opts
  *
  * @return string
  */
-function wf_JQDTRefreshButton($jqdtID = '', $jqdtSelector = '', $class = '', $opts = '') {
+function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $opts = '') {
     $result = '';
 
-    if (!empty($jqdtID) or !empty($jqdtSelector)) {
+    if (!empty($jqdtID) or !empty($jqdtIDSelector)) {
         $class      = (empty($class) ? 'ubButton' : $class);
         $tmpInpID   = wf_InputId();
         $result     = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
@@ -2655,7 +2655,7 @@ function wf_JQDTRefreshButton($jqdtID = '', $jqdtSelector = '', $class = '', $op
         ';
 
         if (empty($jqdtID)) {
-            $tmpScript.= '$(' . $jqdtSelector . ').DataTable().ajax.reload();';
+            $tmpScript.= '$(\'#\'+' . $jqdtIDSelector . ').DataTable().ajax.reload();';
         } else {
             $tmpScript.= '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();';
         }
@@ -3254,29 +3254,61 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
  *
  * @param $funcName
  * @param string $jqdtID
+ * @param string $jqdtIDSelector
  * @param string $errorFormIDParamName
  * @param string $queryType
  *
  * @return string
  */
-function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $errorFormIDParamName = '', $queryType = 'POST') {
-    $errorFormIDParamName = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
-    $errorModalWindowId = wf_InputId();
-    $result = '';
+function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $errorFormIDParamName = '', $queryType = 'POST', $jqdtClearPaste = false) {
+    $errorFormIDParamName   = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
+    $errorModalWindowId     = wf_InputId();
+    $jqdtReloadScript       = '';
+    $jqdtSelector           = '';
+    $result                 = '';
+
+    if (!empty($jqdtID)) {
+        $jqdtSelector = '$(\'#' . $jqdtID . '\')';
+    } elseif (!empty($jqdtIDSelector)) {
+        $jqdtSelector = '$(\'#\'+' . $jqdtIDSelector . ')';
+    }
+
+    if (!empty($jqdtSelector)) {
+        if ($jqdtClearPaste) {
+            $jqdtReloadScript = '
+                                if ( !empty(reqResult) ) {
+                                    var json = jQuery.parseJSON(reqResult);
+                                    var table = ' . $jqdtSelector . '.DataTable(); 
+                                    table.clear(); //clear the current data
+                                    table.rows.add(json[\'aaData\']).draw();
+                                }
+                                ';
+        } else {
+            $jqdtReloadScript = '
+                                if ( !empty(reqResult) ) {                                            
+                                    $(document.body).append(reqResult);
+                                    if ($(\'#' . $errorFormIDParamName . '\')) {
+                                        $(\'#' . $errorFormIDParamName . '\').dialog("open");
+                                    }
+                                }
+                                
+                                ' . $jqdtSelector . '.DataTable().ajax.reload();                                
+                                ';
+        }
+    }
+
     $result.= '
         function ' . $funcName . '(ajaxURL, ajaxData) {
             var ajaxData = ajaxData + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\'                    
-        
+console.log(ajaxURL);
+console.log(ajaxData);
             $.ajax({
                     type: "' . $queryType . '",
                     url: ajaxURL,
                     data: ajaxData,
-                    success: function(result) {                                    
-                                if ( !empty(result) ) {                                            
-                                    $(document.body).append(result);
-                                    $(\'#\'+' . $errorFormIDParamName . ').dialog("open");
-                                }'
-                                . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
+                    success: function(reqResult) {
+                                '
+                                . $jqdtReloadScript .
                              '}
             });
         }
