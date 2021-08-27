@@ -281,3 +281,104 @@ class IpayMasterPass {
     }
 
 }
+
+/**
+ * IPAY checkout API: https://checkout.ipay.ua/doc
+ */
+class IpayZ {
+
+    protected $merchId = '';
+    protected $signKey = '';
+    protected $salt = '';
+    protected $lang = 'ua';
+    protected $urlSuccess = '';
+    protected $urlFail = '';
+    protected $currency = '';
+    protected $lifeTime = 24;
+    protected $payDesc = '';
+    protected $UrlApi = 'http://zerotwo.kvant.if.ua:999';
+    protected $api = '';
+
+    public function __construct() {
+        $this->setIOptions();
+        $this->setSalt();
+    }
+
+    protected function setIOptions() {
+        $conf = parse_ini_file('config/ipayz.ini');
+        $this->merchId = $conf['MERCHANT_ID'];
+        $this->signKey = $conf['SIGN'];
+        $this->lang = $conf['LANG'];
+        $this->urlSuccess = $conf['URL_OK'];
+        $this->urlFail = $conf['URL_FAIL'];
+        $this->currency = $conf['CURRENCY'];
+        $this->lifeTime = $conf['TIMEOUT'];
+        $this->payDesc = $conf['PAYMENT_DESC'];
+        $this->UrlApi = $conf['API_URL'];
+    }
+
+    protected function setSalt() {
+        $this->salt = sha1(microtime(true));
+    }
+
+    public function makeSign() {
+        $result = hash_hmac('sha512', $this->salt, $this->signKey);
+        return($result);
+    }
+
+    protected function pushRequest($request) {
+        $curl = curl_init($this->UrlApi);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, 'data=' . $request . '&');
+        $response = curl_exec($curl);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if ($status != 200) {
+            die('Error: call to URL ' . $this->UrlApi . ' failed with status ' . $status . ', response ' . $response . ', curl_error ' . curl_error($curl) . ', curl_errno ' . curl_errno($curl));
+        }
+        curl_close($curl);
+        $result = $response;
+        return ($result);
+    }
+
+    public function paymentCreate($paymentId = '', $summ = '') {
+        $result = '';
+        $xml = '<?xml version="1.0" encoding="utf-8" standalone="yes"?>';
+        $xml = '<payment>
+                <auth>
+                    <mch_id>' . $this->merchId . '</mch_id>
+                    <salt>' . $this->salt . '</salt>
+                    <sign>' . $this->makeSign() . '</sign>
+                </auth>
+                <urls>
+                    <good>' . $this->urlSuccess . '</good>
+                    <bad>' . $this->urlFail . '</bad>
+                </urls>
+                <transactions>
+                    <transaction>
+                        <amount>' . $summ . '</amount>
+                        <currency>' . $this->currency . '</currency>
+                        <desc>' . $this->payDesc . '</desc>
+                        <info>{"dogovor":' . $paymentId . '}</info>
+                    </transaction>
+                </transactions>
+                <lifetime>' . $this->lifeTime . '</lifetime>
+                <lang>' . $this->lang . '</lang>
+            </payment>';
+
+        $reply = $this->pushRequest($xml);
+        if (!empty($reply)) {
+            $replyArr = xml2array($reply);
+            if (isset($replyArr['payment'])) {
+                $result = $replyArr['payment']['url'];
+            } else {
+                die('WRONG_REPLY');
+            }
+        } else {
+            die('EMPTY_REPYLY');
+        }
+        return($result);
+    }
+
+}
