@@ -554,6 +554,29 @@ class WatchDog {
                         return (false);
                     }
                     break;
+                //rised against previous results    
+                case 'rised':
+                    $oldValue = $this->oldResults[$taskID];
+                    $currentValue = $this->doAction($taskID);
+                    $changeLevel = (!empty($this->taskData[$taskID]['condition'])) ? $this->taskData[$taskID]['condition'] : 0;
+                    if ($currentValue > ($oldValue + $changeLevel)) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
+                    break;
+
+                //decreased against previous results    
+                case 'decreased':
+                    $oldValue = $this->oldResults[$taskID];
+                    $currentValue = $this->doAction($taskID);
+                    $changeLevel = (!empty($this->taskData[$taskID]['condition'])) ? $this->taskData[$taskID]['condition'] : 0;
+                    if ($currentValue < ($oldValue - $changeLevel)) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
+                    break;
             }
         } else
             return (0);
@@ -874,7 +897,9 @@ class WatchDogInterface {
             'changed' => 'changed',
             'notchanged' => 'notchanged',
             'like' => 'like',
-            'notlike' => 'notlike'
+            'notlike' => 'notlike',
+            'rised' => 'rised',
+            'decreased' => 'decreased'
         );
     }
 
