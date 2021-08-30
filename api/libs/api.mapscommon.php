@@ -372,7 +372,7 @@ function um_MapDrawBuilds() {
             $cells = wf_TableCell(__('apt.'));
             $cells .= wf_TableCell(__('User'));
             $cells .= wf_TableCell(__('Status'));
-            $rows = wf_tag('tr', false, '', 'bgcolor=#DCDCDC') . $cells . wf_tag('tr', true);
+            $rows = wf_tag('tr', false, 'row1', 'bgcolor=#DCDCDC') . $cells . wf_tag('tr', true);
             $iconlabel = '';
             $footer = '';
 
@@ -403,15 +403,17 @@ function um_MapDrawBuilds() {
                                 if (isset($aliveIps[$userIp])) {
                                     $aliveFlag = web_bool_led(true);
                                     $aliveUsers++;
+                                    $aliveKey = 'live';
                                 } else {
                                     $aliveFlag = web_bool_led(false);
+                                    $aliveKey = 'dead';
                                 }
 
 
                                 $cells = wf_TableCell($eachapt['apt']);
                                 $cells .= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachapt['login'], $userIp, false));
-                                $cells .= wf_TableCell($aliveFlag);
-                                $rows .= wf_TableRow($cells);
+                                $cells .= wf_TableCell($aliveFlag, '', '', 'sorttable_customkey="' . $aliveKey . '"');
+                                $rows .= wf_TableRow($cells, 'row5');
                             }
                         }
                     }
