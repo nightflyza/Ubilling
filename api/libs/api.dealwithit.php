@@ -965,8 +965,8 @@ class DealWithIt {
                         //flush task from database
                         $this->setTaskIsDone($each['id']);
                     } else {
-                        log_register('SCHEDULER FAIL ID [' . $taskId . '] USER (' . $each['login'] . ')  NON EXISTS');
-                        $this->deleteTask($taskId);
+                        log_register('SCHEDULER FAIL ID [' . $each['id'] . '] USER (' . $each['login'] . ')  NON EXISTS');
+                        $this->deleteTask($each['id']);
                     }
                 }
             }
