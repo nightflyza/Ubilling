@@ -77,11 +77,26 @@ class Stigma {
     const TABLE_DATASOURCE = 'stigma';
 
     /**
+     * Contains defaul states delimiter for multiple states
+     */
+    const DELIMITER = '|';
+
+    /**
+     * Some URLS/routes etc
+     */
+    protected $baseUrl = '';
+
+    const ROUTE_SCOPE = 'stscope';
+    const ROUTE_ITEMID = 'stitemid';
+    const ROUTE_STATE = 'stchstate';
+
+    /**
      * Creates new stigma on selected scope
      * 
      * @param string $scope
+     * @param string $baseUrl
      */
-    public function __construct($scope) {
+    public function __construct($scope, $baseUrl) {
         //            ______              
         //         .d$$$******$$$$c.        
         //      .d$P"            "$$c      
@@ -104,6 +119,9 @@ class Stigma {
         $this->initDatabase();
         $this->loadConfig();
         $this->loadStigmas();
+        //TODO: 
+        // - base url setter
+        // - sigma control catch inside object
     }
 
     /**
@@ -116,7 +134,7 @@ class Stigma {
      */
     protected function setScope($scope) {
         if (!empty($scope)) {
-            $this->scope = $scope;
+            $this->scope = ubRouting::filters($scope, 'mres');
         } else {
             throw new Exception('EX_EMPTY_SCOPE');
         }
@@ -152,9 +170,14 @@ class Stigma {
         $confFullPath = self::CONFIG_PATH . $confName . self::CONFIG_EXT;
         if (file_exists($confFullPath)) {
             $raw = rcms_parse_ini_file($confFullPath, true);
-
+            /**
+             * One nation, one clan
+             * As the sun unites our hands
+             * Each colour, each tribe
+             * Where the eagle cries with pride
+             */
             if (isset($raw['stigmasettings'])) {
-                $this->type = $raw['stigmasettings'];
+                $this->type = $raw['stigmasettings']['TYPE'];
                 foreach ($raw as $io => $each) {
                     if ($io != 'stigmasettings') {
                         $this->states[$io] = $each['NAME'];
@@ -177,6 +200,50 @@ class Stigma {
     protected function loadStigmas() {
         $this->stigmaDb->where('scope', '=', $this->scope);
         $this->allStigmas = $this->stigmaDb->getAll('itemid');
+    }
+
+    /**
+     * Renders stigma current state and editing interface (prototype)
+     * 
+     * @param string $itemId
+     * @param int $size
+     * 
+     * @return string
+     */
+    public function render($itemId, $size = '') {
+        $result = '';
+        $itemId = ubRouting::filters($itemId, 'mres');
+        $currentStates = array();
+        //this itemid already have an stigma record
+        if (isset($this->allStigmas[$itemId])) {
+            $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
+            $currentStates = array_flip($rawState);
+        }
+
+        $containerName = 'ajStigmaState_' . $itemId;
+        $result .= wf_AjaxLoader();
+        $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
+        foreach ($this->states as $stateId => $stateName) {
+            $stateLabel = __($stateName);
+            $controlClass = 'dashtask';
+            $stateIcon = self::ICON_PATH . $this->icons[$stateId] . self::ICON_EXT;
+            if (!file_exists($stateIcon)) {
+                $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
+            }
+
+            $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
+            $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
+            $result .= wf_tag('div', false, $controlClass, '');
+            $result .= $controlLink;
+            $result .= wf_delimiter(0) . $stateLabel;
+            $result .= wf_tag('div', true);
+        }
+
+
+        $result .= wf_tag('div', true);
+        $result .= wf_CleanDiv();
+
+        return($result);
     }
 
 }
