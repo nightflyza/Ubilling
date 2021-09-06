@@ -3286,3 +3286,10 @@ $lang['def']['Port negotiation'] = 'Швидкість узгодження';
 $lang['def']['Switches replaced'] = 'Свічів замінено';
 $lang['def']['Scan for online NP devices'] = 'Пошук живих NP пристроїв';
 $lang['def']['Back to capability after creation'] = 'Повернутись до можливості після створення';
+$lang['def']['Date from'] = 'Дата з';
+$lang['def']['Date to'] = 'Дата по';
+$lang['def']['Time from'] = 'Час з';
+$lang['def']['Time to'] = 'Час до';
+$lang['def']['Refresh cache data'] = 'Оновити дані кешу';
+$lang['def']['Refresh table data'] = 'Оновити дані таблиці';
+?>

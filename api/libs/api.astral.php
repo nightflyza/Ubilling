@@ -2647,7 +2647,7 @@ function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $
     if (!empty($jqdtID) or !empty($jqdtIDSelector)) {
         $class      = (empty($class) ? 'ubButton' : $class);
         $tmpInpID   = wf_InputId();
-        $result     = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
+        $result     = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
 
         $tmpScript  = '
             $(\'#' . $tmpInpID . '\').click(function(evt) {
@@ -3945,8 +3945,8 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
         $dpEndInpName           = (empty($dpEndInpName) ? 'dateendfilter' : $dpEndInpName);
         $datepickerStart        = wf_DatePickerPreset($dpStartInpName, $dateStart, true);
         $datepickerEnd          = wf_DatePickerPreset($dpEndInpName, $dateEnd, true);
-        $datepickerStartCapt    = __('Date from:');
-        $datepickerEndCapt      = __('Date to:');
+        $datepickerStartCapt    = __('Date from') . ':';
+        $datepickerEndCapt      = __('Date to') . ':';
     }
 
     if ($timeIsON) {
@@ -3954,8 +3954,8 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
         $tpEndInpName           = (empty($tpEndInpName) ? 'timeendfilter' : $tpEndInpName);
         $timepickerStart        = wf_TimePickerPreset($tpStartInpName, $timeStart);
         $timepickerEnd          = wf_TimePickerPreset($tpEndInpName, $timeEnd);
-        $timepickerStartCapt    = __('Time from:');
-        $timepickerEndCapt      = __('Time to:');
+        $timepickerStartCapt    = __('Time from') . ':';
+        $timepickerEndCapt      = __('Time to') . ':';
     }
 
     if ($inTable) {
