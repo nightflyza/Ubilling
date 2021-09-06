@@ -3033,6 +3033,16 @@ ALTER TABLE `callmeback` ADD `admin` VARCHAR(200) NULL DEFAULT NULL AFTER `state
 
 -- 1.2.0 update
 
+CREATE TABLE IF NOT EXISTS `stigma` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `scope` varchar(64) DEFAULT NULL,
+  `itemid` varchar(128) NOT NULL,
+  `state` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` varchar(64) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
 CREATE TABLE IF NOT EXISTS `extcontras` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `contras_id` int(11) NOT NULL,
