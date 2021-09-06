@@ -208,7 +208,7 @@ class ExtContras {
     protected $allECInvoices = array();
 
     /**
-     * Contains all extcontras missed payments records from DB ecmisspaymid => ecmisspaymdata
+     * Contains all extcontras overdue payments records from DB ecmisspaymid => ecmisspaymdata
      *
      * @var array
      */
@@ -565,6 +565,13 @@ class ExtContras {
     const MISC_WEBSEL_DBVAL_ADDRESS_ID   = 'ModalDBValAddress_';
     const MISC_MISSED_PAYMENT_PROCESSING = 'misspaymprocessing';
     const MISC_MISSED_PAYMENT_ID         = 'missedpaymentid';
+    const MISC_FORMS_CAPTS_PROFILE_DICT  = 'counterparty profile';
+    const MISC_FORMS_CAPTS_CNTRCTS_DICT  = 'counterparty contract';
+    const MISC_FORMS_CAPTS_ADDRESS_DICT  = 'contract address';
+    const MISC_FORMS_CAPTS_PERIODS_DICT  = 'period';
+    const MISC_FORMS_CAPTS_INVOICES_LIST = 'invoice';
+    const MISC_FORMS_CAPTS_FINOPS_LIST   = 'financial operation';
+    const MISC_FORMS_CAPTS_EXTCONTRAS    = 'counterparty record';
 
 
     public function __construct() {
@@ -1377,7 +1384,7 @@ class ExtContras {
 
         $inputs.= wf_Link(self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true', wf_img_sized('skins/extcontrasfin.png', '', '16', '16') . ' ' . __('External counterparties list'), false, 'ubButton');
         $inputs.= wf_Link(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true', wf_img_sized('skins/ukv/dollar.png') . ' ' . __('Finance operations'), false, 'ubButton');
-        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_MISSEDPAYMENTS . '=true', wf_img_sized('skins/dollar_red.png', '', '10', '17') . ' ' . __('Missed payments'), false, 'ubButton');
+        $inputs.= wf_Link(self::URL_ME . '&' . self::URL_MISSEDPAYMENTS . '=true', wf_img_sized('skins/dollar_red.png', '', '10', '17') . ' ' . __('Overdue payments'), false, 'ubButton');
         $inputs.= ($this->ecInvoicesON ? wf_Link(self::URL_ME . '&' . self::URL_INVOICES . '=true', wf_img_sized('skins/menuicons/receipt_small.png') . ' ' . __('Invoices list'), false, 'ubButton') : '');
 
         // dictionaries forms
@@ -1508,6 +1515,7 @@ class ExtContras {
      * @param int $profileID
      * @param bool $editAction
      * @param bool $cloneAction
+     * @param array $prefillFieldsData
      *
      * @return string
      */
@@ -1537,9 +1545,7 @@ class ExtContras {
         }
 
         $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt       = ($editAction) ? __('Edit counterparty profile') :
-                          (($cloneAction) ? __('Clone counterparty profile') :
-                          __('Create counterparty profile'));
+        $formCapt       = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_PROFILE_DICT);
 
         $inputs.= wf_TextInput(self::CTRL_PROFILE_NAME, __('Name') . $this->supFrmFldMark, $prfName, false, '', '',
                                $emptyCheckClass, '', '', true);
@@ -1642,6 +1648,7 @@ class ExtContras {
      * @param int $contractID
      * @param bool $editAction
      * @param bool $cloneAction
+     * @param array $prefillFieldsData
      *
      * @return string
      */
@@ -1676,10 +1683,8 @@ class ExtContras {
             $ctrctNotes         = $contract[self::DBFLD_CTRCT_NOTES];
         }
 
-        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt       = ($editAction) ? __('Edit counterparty contract') :
-                          (($cloneAction) ? __('Clone counterparty contract') :
-                          __('Create counterparty contract'));
+        $submitCapt    = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt      = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_CNTRCTS_DICT);
         $datepickerID1 = wf_InputId();
         $datepickerID2 = wf_InputId();
 
@@ -1741,7 +1746,7 @@ class ExtContras {
             $inputs.= __('Uploaded files');
             $inputs.= wf_tag('h3', true);
             $inputs.= $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                                                             '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'));
+                                                             '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'), true);
             $inputs.= wf_tag('span', true);
         }
 
@@ -1814,7 +1819,7 @@ class ExtContras {
 
                 $this->fileStorage->setItemid(self::URL_DICTCONTRACTS . $eachRecID['id']);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                                                                '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'));
+                                                                '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'), true);
 
                 $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_CONTRACT_ACTS, true);
                 $data[]  = $actions;
@@ -1834,17 +1839,18 @@ class ExtContras {
      * @param int $addressID
      * @param bool $editAction
      * @param bool $cloneAction
+     * @param array $prefillFieldsData
      *
      * @return string
      */
     public function addressWebForm($modal = true, $addressID = 0, $editAction = false, $cloneAction = false, $prefillFieldsData = array()) {
-        $inputs     = '';
-        $addrAddress    = '';
-        $addrSum = '';
-        $addrCtrctNotes   = '';
-        $addrNotes   = '';
-        $modalWinID     = ubRouting::post('modalWindowId');
-        $modalWinBodyID = ubRouting::post('modalWindowBodyId');
+        $inputs             = '';
+        $addrAddress        = '';
+        $addrSum            = '';
+        $addrCtrctNotes     = '';
+        $addrNotes          = '';
+        $modalWinID         = ubRouting::post('modalWindowId');
+        $modalWinBodyID     = ubRouting::post('modalWindowBodyId');
 
         if ($modal) {
             $formClass = self::MISC_CLASS_SUBMITFORM_MODAL;
@@ -1862,10 +1868,8 @@ class ExtContras {
             $addrNotes      = $address[self::DBFLD_ADDRESS_NOTES];
         }
 
-        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt       = ($editAction) ? __('Edit counterparty address') :
-                          (($cloneAction) ? __('Clone counterparty address') :
-                          __('Create counterparty address'));
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_ADDRESS_DICT);
 
         $inputs.= wf_TextInput(self::CTRL_ADDRESS_ADDR, __('Address') . $this->supFrmFldMark, $addrAddress, false, '', '',
                                $emptyCheckClass, '', '', true);
@@ -1979,8 +1983,8 @@ class ExtContras {
             $prdName = $period[self::DBFLD_PERIOD_NAME];
         }
 
-        $submitCapt     = ($editAction) ? __('Edit') : __('Create');
-        $formCapt       = ($editAction) ? __('Edit period') : __('Create period');
+        $submitCapt = ($editAction) ? __('Edit') : __('Create');
+        $formCapt   = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_PERIODS_DICT);
 
         $ctrlsLblStyle = 'style="line-height: 3.4em; margin-right: 0.5em;"';
 
@@ -2096,12 +2100,13 @@ class ExtContras {
     }
 
     /**
-     * Returns a invoice-editor web form
+     * Returns an invoice-editor web form
      *
      * @param bool $modal
      * @param int $invoiceID
      * @param bool $editAction
      * @param bool $cloneAction
+     * @param array $prefillFieldsData
      *
      * @return string
      */
@@ -2140,10 +2145,8 @@ class ExtContras {
             $invoOutgoing       = ubRouting::filters($invoice[self::DBFLD_INVOICES_OUTGOING], 'fi', FILTER_VALIDATE_BOOLEAN);
         }
 
-        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt       = ($editAction) ? __('Edit invoice') :
-                          (($cloneAction) ? __('Clone invoice') :
-                          __('Create invoice'));
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_INVOICES_LIST);
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
         $datepickerID = wf_InputId();
@@ -2213,7 +2216,7 @@ class ExtContras {
             $inputs.= __('Uploaded files');
             $inputs.= wf_tag('h3', true);
             $inputs.= $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                                                             '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
+                                                             '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'), true);
             $inputs.= wf_tag('span', true);
         }
 
@@ -2300,7 +2303,7 @@ class ExtContras {
 
                 $this->fileStorage->setItemid(self::URL_INVOICES . $eachRecID['id']);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                                                                 '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'));
+                                                                 '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_INVOICES . '=true'), true);
 
                 $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_INVOICES_ACTS, true);
                 $data[]  = $actions;
@@ -2324,7 +2327,7 @@ class ExtContras {
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
 
         $inputs = wf_tag('h3', false);
-        $inputs.= __('Filter by:');
+        $inputs.= __('Filter by') . ':';
         $inputs.= wf_tag('h3', true);
         $cells  = wf_DatesTimesRangeFilter(true, true, false, false, true, false,
                                            ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
@@ -2332,7 +2335,7 @@ class ExtContras {
                                           );
 
         $cells .= wf_TableCell(wf_nbsp(2));
-        $cells .= wf_TableCell(__('Payday:'));
+        $cells .= wf_TableCell(__('Payday') . ':');
         $cells .= wf_TableCell(wf_TextInput(self::MISC_WEBFILTER_PAYDAY, '', ubRouting::post(self::MISC_WEBFILTER_PAYDAY), true, 4, 'digits'));
         $rows  = wf_TableRow($cells);
         $inputs.= wf_TableBody($rows, 'auto');
@@ -2352,6 +2355,7 @@ class ExtContras {
      * @param int $extContrasID
      * @param bool $editAction
      * @param bool $cloneAction
+     * @param array $prefillFieldsData
      *
      * @return string
      */
@@ -2391,10 +2395,8 @@ class ExtContras {
         $editDBValContractID    = self::MISC_WEBSEL_DBVAL_CONTRACTS_ID;
         $editDBValAddressID     = self::MISC_WEBSEL_DBVAL_ADDRESS_ID;
 
-        $submitCapt     = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt       = ($editAction) ? __('Edit counterparty record') :
-                          (($cloneAction) ? __('Clone counterparty record') :
-                          __('Create counterparty record'));
+        $submitCapt = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
+        $formCapt   = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_EXTCONTRAS);
 
         $inputs.= $this->renderWebSelector($this->allECProfiles, array(self::DBFLD_PROFILE_NAME,
                                                                        self::DBFLD_PROFILE_CONTACT),
@@ -2626,7 +2628,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
         $columns[] = __('Period');
         $columns[] = __('Payday');
         $columns[] = __('Actions');     //8
-        $columns[] = __('Add financial operation');
+        $columns[] = __('Add' . ' ' . self::MISC_FORMS_CAPTS_FINOPS_LIST);
         $columns[] = __('Payed this month');
         $columns[] = __('5 days till payday');
         $columns[] = __('Payment expired');
@@ -2686,7 +2688,6 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
             $data = array();
 
             foreach ($this->allExtContrasExten as $eachRecID) {
-
                 $curRecID       = $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID];
                 $profileRecID   = $eachRecID[self::TABLE_ECPROFILES . self::DBFLD_COMMON_ID];
                 $contractRecID  = $eachRecID[self::TABLE_ECCONTRACTS . self::DBFLD_COMMON_ID];
@@ -2712,13 +2713,12 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $payDay;
 
-                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID],
-                                          self::ROUTE_CONTRAS_ACTS, true);
+                $actions = $this->getStdJQDTActions($curRecID, self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID, true);
 
-                if (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) {
+                if (date('j') > $payDay and empty($hasPaymentsCurMonth)) {
                     $payTimeExpired = 1;
                     $this->createMissedPayment($curRecID, $profileRecID, $contractRecID, $addrRecID, $periodRecID, $payDay, $contractSum);
                 } else {
@@ -2738,7 +2738,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
                                                     );
 
                 $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
-                $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
+                $data[] = ($payDay - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = $payTimeExpired;
                 $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $profileRecID
                           . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
@@ -2774,7 +2774,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
         $columns[] = __('Period');
         $columns[] = __('Payday');
         $columns[] = __('Actions');     // 7
-        $columns[] = __('Add financial operation');
+        $columns[] = __('Add' . ' ' . self::MISC_FORMS_CAPTS_FINOPS_LIST);
         $columns[] = __('Payed this month');
         $columns[] = __('5 days till payday');
         $columns[] = __('Payment expired');
@@ -2850,13 +2850,12 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
                 $data[] = $eachRecID[self::TABLE_ECPERIODS . self::DBFLD_PERIOD_NAME];
                 $data[] = $payDay;
 
-                $actions = $this->getStdJQDTActions($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_COMMON_ID],
-                                          self::ROUTE_CONTRAS_ACTS, true);
+                $actions = $this->getStdJQDTActions($curRecID, self::ROUTE_CONTRAS_ACTS, true);
                 $data[]  = $actions;
 
                 $hasPaymentsCurMonth = $this->checkCurMonthPaymExists($curRecID, true, true);
 
-                if (date('j') > $eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] and empty($hasPaymentsCurMonth)) {
+                if (date('j') > $payDay and empty($hasPaymentsCurMonth)) {
                     $payTimeExpired = 1;
                     $this->createMissedPayment($curRecID, $profileRecID, $contractRecID, $addrRecID, $periodRecID, $payDay, $addressSum);
                 } else {
@@ -2877,7 +2876,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
                                                         );
 
                 $data[] = (empty($hasPaymentsCurMonth) ? 0 : 1);
-                $data[] = ($eachRecID[self::TABLE_EXTCONTRAS . self::DBFLD_EXTCONTRAS_PAYDAY] - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
+                $data[] = ($payDay - date('j') <= 5 and empty($hasPaymentsCurMonth)) ? 1 : 0;
                 $data[] = $payTimeExpired;
                 $data[] = '&' . self::DBFLD_COMMON_ID . '=' . $profileRecID
                           . '&' . self::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . $contractRecID
@@ -2903,19 +2902,20 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
      * @param $paySum
      */
     protected function createMissedPayment($contrasID, $profileID, $contractID, $addrID, $periodID, $payDay, $paySum) {
-
         $chkUniqArray   = array();
         $recordExists   = true;
         $paymentDate    = date('Y-m-') . $payDay;
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_CONTRASID, '=', $contrasID);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_PROFILEID, '=', $profileID);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_CONTRACTID, '=', $contractID);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_ADDRESSID, '=', $addrID);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_PERIOD_ID, '=', $periodID);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_PAYDAY, '=', $payDay);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_DATE_PAYMENT, '=', $paymentDate);
-        $chkUniqArray[] = $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_SUMPAYMENT, '=', $paySum);
 
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_CONTRASID, '=', $contrasID);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_PROFILEID, '=', $profileID);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_CONTRACTID, '=', $contractID);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_ADDRESSID, '=', $addrID);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_PERIOD_ID, '=', $periodID);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_PAYDAY, '=', $payDay);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_DATE_PAYMENT, '=', $paymentDate);
+        $chkUniqArray+= $this->createCheckUniquenessArray(self::DBFLD_MISSPAYMS_SUMPAYMENT, '=', $paySum);
+
+//$this->dbECMissedPayms->setDebug(true, true);
         $recordExists   = $this->dbECMissedPayms->checkRecExists($chkUniqArray);
 
         if (!$recordExists) {
@@ -3010,7 +3010,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
         $jqdtID     = 'jqdt_' . md5($ajaxURLStr);
 
         $inputs = wf_tag('h3', false);
-        $inputs.= __('Filter by:');
+        $inputs.= __('Filter by') . ':';
         $inputs.= wf_tag('h3', true);
         $rows   = wf_DatesTimesRangeFilter(true, true,false, false, true, false,
                                            ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
@@ -3027,7 +3027,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
     }
 
     /**
-     * Returns a invoice-editor web form
+     * Returns a financial operations editor web form
      *
      * @param bool  $modal
      * @param int   $finopID
@@ -3105,9 +3105,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
         $editDBValAddressID     = self::MISC_WEBSEL_DBVAL_ADDRESS_ID;
 
         $submitCapt             = ($editAction) ? __('Edit') : (($cloneAction) ? __('Clone') : __('Create'));
-        $formCapt               = ($editAction) ? __('Edit financial operation') :
-                                  (($cloneAction) ? __('Clone financial operation') :
-                                  __('Create financial operation'));
+        $formCapt               = $submitCapt . ' ' . __(self::MISC_FORMS_CAPTS_FINOPS_LIST);
 
         $ctrlsLblStyle = 'style="line-height: 2.2em"';
 
@@ -3246,7 +3244,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
             $inputs.= __('Uploaded files');
             $inputs.= wf_tag('h3', true);
             $inputs.= $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
+                                                    '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'), true);
             $inputs.= wf_tag('span', true);
         }
 
@@ -3366,7 +3364,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
 
                 $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[self::DBFLD_COMMON_ID]);
                 $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32',
-                                                        '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'));
+                                                        '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'), true);
 
                 $actions = $this->getStdJQDTActions($eachRecID[self::DBFLD_COMMON_ID], self::ROUTE_FINOPS_ACTS, true);
                 $data[]  = $actions;
@@ -3384,8 +3382,8 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
 
         $result = '';
 
-        $result.= wf_Link('#', __('Unpayed'), false, 'ubButton', 'id="MissPaymsUnpayedFilter"') . wf_nbsp(4);
-        $result.= wf_Link('#', __('Payed'), false, 'ubButton', 'id="MissPaymsPayedFilter"'). wf_nbsp(4);
+        $result.= wf_Link('#', __('Unpaid'), false, 'ubButton', 'id="MissPaymsUnpayedFilter"') . wf_nbsp(4);
+        $result.= wf_Link('#', __('Paid'), false, 'ubButton', 'id="MissPaymsPayedFilter"'). wf_nbsp(4);
         $result.= wf_Link('#', __('All'), false, 'ubButton', 'id="MissPaymsFilterAll"');
         $result = wf_Plate($result, '', '', 'glamour') . wf_CleanDiv();
 
@@ -3417,7 +3415,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
     }
 
     /**
-     * Renders JQDT for missed payments list
+     * Renders JQDT for overdue payments list
      *
      * @param string $customJSCode
      * @param string $markRowForID
@@ -3443,7 +3441,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
         $columns[] = __('Expired date');    //9
         $columns[] = __('Payed date');
         $columns[] = __('Actions');
-        $columns[] = __('Add financial operation');     //12
+        $columns[] = __('Add' . ' ' . self::MISC_FORMS_CAPTS_FINOPS_LIST);  //12
         $columns[] = __('Already payed');
 
         $opts = '
@@ -3476,7 +3474,7 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
     }
 
     /**
-     * Renders JSON for missed payments JQDT
+     * Renders JSON for overdue payments JQDT
      *
      * @param string $whereRaw
      */

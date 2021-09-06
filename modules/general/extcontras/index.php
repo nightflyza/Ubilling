@@ -199,7 +199,7 @@ if (cfr('EXTCONTRAS')) {
                         . wf_Link($ExtContras::URL_ME . '&' . $ExtContras::URL_EXTCONTRAS_COLORS . '=true',
                                   wf_img_sized('skins/color-picker.png', __('Coloring settings config'),
                                          '22', '22', 'vertical-align: middle;'),
-                                  false, 'ubButton', 'style="display: inline; padding: 3px 7px; vertical-align: middle;"'),
+                                  false, 'ubButton', 'target="_blank" style="display: inline; padding: 3px 7px; vertical-align: middle;"'),
                         wf_Plate($ExtContras->extcontrasWebForm(false), '', '', '', 'margin-right: 30px;')
                         . $ExtContras->extcontrasFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
                         . $ExtContras->extcontrasRenderMainJQDT()
@@ -221,7 +221,7 @@ if (cfr('EXTCONTRAS')) {
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTADDRESS)) {
-            show_window(__('Counterparties addresses dictionary'),
+            show_window(__('Contracts addresses dictionary'),
                         $ExtContras->addressWebForm(false)
                         . wf_delimiter() . $ExtContras->addressRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL))
                         );

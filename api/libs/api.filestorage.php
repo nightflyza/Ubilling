@@ -346,11 +346,14 @@ class FileStorage {
      * @param string $navbuttonClass
      * @param int $iconSize
      * @param string $urlAppend
+     * @param bool $targetBlank
      * 
      * @return string
      */
-    public function renderFilesPreview($navButton = false, $navbuttonText = '', $navbuttonClass = 'ubButton', $iconSize = '32', $urlAppend = '') {
+    public function renderFilesPreview($navButton = false, $navbuttonText = '', $navbuttonClass = 'ubButton', $iconSize = '32', $urlAppend = '', $targetBlank = false) {
         $result = '';
+        $target = ($targetBlank ? ' target="_blank" ' : '');
+
         if (empty($this->allFiles)) {
             $this->loadAllFiles();
         }
@@ -359,7 +362,7 @@ class FileStorage {
 
         if ($navButton) {
             $mgmtUrl = self::URL_ME . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list' . $urlAppend;
-            $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')) . $navbuttonText, false, $navbuttonClass);
+            $result .= wf_Link($mgmtUrl, wf_img('skins/photostorage_upload.png', __('Upload')) . $navbuttonText, false, $navbuttonClass, $target);
         }
 
         if (!empty($this->allFiles)) {

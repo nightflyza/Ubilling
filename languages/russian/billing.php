@@ -3263,6 +3263,12 @@ $lang['def']['Port negotiation'] = 'Скорость согласования';
 $lang['def']['Switches replaced'] = 'Свитчей заменено';
 $lang['def']['Scan for online NP devices'] = 'Поиск живых NP устройств';
 $lang['def']['Back to capability after creation'] = 'Вернуться к возможности после создания';
+$lang['def']['Date from'] = 'Дата с';
+$lang['def']['Date to'] = 'Дата по';
+$lang['def']['Time from'] = 'Время с';
+$lang['def']['Time to'] = 'Время до';
+$lang['def']['Refresh cache data'] = 'Обновить данные кэша';
+$lang['def']['Refresh table data'] = 'Обновить данные таблицы';
 $lang['def'][''] = '';
 
 

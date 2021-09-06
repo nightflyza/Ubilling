@@ -3030,6 +3030,7 @@ CREATE TABLE IF NOT EXISTS `ipauth_denied` (
 ALTER TABLE `callmeback` ADD `statedate` DATETIME NULL DEFAULT NULL AFTER `state`;
 ALTER TABLE `callmeback` ADD `admin` VARCHAR(200) NULL DEFAULT NULL AFTER `statedate`;
 
+
 -- 1.2.0 update
 
 CREATE TABLE IF NOT EXISTS `extcontras` (
@@ -3160,14 +3161,3 @@ KEY `date_payed` (`date_payed`),
 KEY `summ_payment` (`summ_payment`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
--- alter table extcontras_money change contras_rec_id `profile_id` int(11) NOT NULL;
--- alter table extcontras_money add `contract_id` int(11) DEFAULT NULL after profile_id;
--- alter table extcontras_money add `address_id` int(11) DEFAULT NULL after contract_id;
-
--- ALTER TABLE extcontras_money DROP INDEX `contras_rec_id`
--- ALTER TABLE extcontras_money ADD INDEX (profile_id) USING BTREE;
--- ALTER TABLE extcontras_money ADD INDEX (contract_id) USING BTREE;
--- ALTER TABLE extcontras_money ADD INDEX (address_id) USING BTREE;
--- ALTER TABLE `extcontras` ADD `date_create` datetime NOT NULL;
--- ALTER TABLE `extcontras` ADD `missed_paym_id` int(11) NOT NULL after `period_id`;
--- ALTER TABLE `extcontras` DROP COLUMN  `missed_paym_id`;

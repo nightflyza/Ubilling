@@ -417,6 +417,8 @@ class PhotoStorage {
 
     /**
      * Catches file upload in background
+     *
+     * @param string $customBackLink
      * 
      * @return void
      */
@@ -468,7 +470,8 @@ class PhotoStorage {
     /**
      * Returns file upload form
      *
-     * @param bool $noBackLink
+     * @param bool $embedded
+     * @param string $customBackLink
      *
      * @return string
      */
