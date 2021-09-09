@@ -2496,12 +2496,13 @@ function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncatePa
 
     if (!empty($truncateURL) and !empty($truncateParam)) {
         $truncateJSCode = '
-            var urlObject = new URLSearchParams(\'' . $truncateURL . '\');
+            //var urlParamsObject = new URLSearchParams(\'' . $truncateURL . '\');
+            var urlParamsObject = new URLSearchParams(window.location.search);
             
-            if (urlObject.has(\'' . $truncateParam . '\')) {
-                urlObject.delete(\'' . $truncateParam . '\');
-                var truncatedURL = urlObject.toString();
-                window.history.replaceState({}, document.title, "/?" + truncatedURL);
+            if (urlParamsObject.has(\'' . $truncateParam . '\')) {
+                urlParamsObject.delete(\'' . $truncateParam . '\');
+                var truncatedURL = window.location.origin + window.location.pathname + "?" + urlParamsObject.toString();
+                window.history.replaceState({}, document.title, truncatedURL);
             }            
             ';
 
@@ -3252,8 +3253,7 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $err
     $result.= '
         function ' . $funcName . '(ajaxURL, ajaxData) {
             var ajaxData = ajaxData + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\'                    
-console.log(ajaxURL);
-console.log(ajaxData);
+
             $.ajax({
                     type: "' . $queryType . '",
                     url: ajaxURL,
