@@ -6,6 +6,13 @@
 class PONBoxes {
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available PON boxes as boxid=>boxdata
      *
      * @var array
@@ -126,6 +133,7 @@ class PONBoxes {
      */
     public function __construct($loadFullData = false) {
         $this->initMessages();
+        $this->loadConfigs();
         $this->initDatabase();
         if ($loadFullData) {
             $this->loadAllAddress();
@@ -150,8 +158,19 @@ class PONBoxes {
      * @return void
      */
     protected function initPhotoStorage() {
-        $this->photoStorage = new PhotoStorage();
-        //$this->photoStorage->set
+        $this->photoStorage = new PhotoStorage('PONBOXES');
+    }
+
+    /**
+     * Loads some required configs
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfigs() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -202,6 +221,9 @@ class PONBoxes {
      * @return void
      */
     protected function loadBoxes() {
+        if (@$this->altCfg['PONBOXES_NAME_ORDER']) {
+            $this->boxes->orderBy('name', 'ASC');
+        }
         $this->allBoxes = $this->boxes->getAll('id');
     }
 
@@ -603,7 +625,7 @@ class PONBoxes {
                     // And this is the well.
                     // Drink full and descend.
                     // The horse is the white of the eyes and dark within.
-                    
+
                     if (!empty($onuUser)) {
                         //address search
                         $onuUserAddress = @$this->allUserAddress[$onuUser];
