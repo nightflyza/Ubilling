@@ -3269,6 +3269,6 @@ $lang['def']['Time from'] = 'Время с';
 $lang['def']['Time to'] = 'Время до';
 $lang['def']['Refresh cache data'] = 'Обновить данные кэша';
 $lang['def']['Refresh table data'] = 'Обновить данные таблицы';
-$lang['def'][''] = '';
+$lang['def']['Info'] = 'Инфо';
 
 

@@ -3292,4 +3292,6 @@ $lang['def']['Time from'] = 'Час з';
 $lang['def']['Time to'] = 'Час до';
 $lang['def']['Refresh cache data'] = 'Оновити дані кешу';
 $lang['def']['Refresh table data'] = 'Оновити дані таблиці';
+$lang['def']['Info'] = 'Інфо';
+
 ?>
