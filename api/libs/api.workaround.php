@@ -1444,6 +1444,7 @@ function web_PaymentsByUser($login) {
     $iCanDeletePayments = false;
     $iCanEditPayments = false;
     $currentAdminLogin = whoami();
+    $idencEnabled = (@$alter_conf['IDENC_ENABLED']) ? true : false;
 
 //extract admin logins with payments delete rights
     if (!empty($alter_conf['CAN_DELETE_PAYMENTS'])) {
@@ -1463,7 +1464,9 @@ function web_PaymentsByUser($login) {
 
 
     $cells = wf_TableCell(__('ID'));
-    $cells .= wf_TableCell(__('IDENC'));
+    if ($idencEnabled) {
+        $cells .= wf_TableCell(__('IDENC'));
+    }
     $cells .= wf_TableCell(__('Date'));
     $cells .= wf_TableCell(__('Payment'));
     $cells .= wf_TableCell(__('Balance before'));
@@ -1513,7 +1516,9 @@ function web_PaymentsByUser($login) {
             }
 
             $cells = wf_TableCell($eachpayment['id']);
-            $cells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+            if ($idencEnabled) {
+                $cells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+            }
             $cells .= wf_TableCell($eachpayment['date']);
             $cells .= wf_TableCell($eachpayment['summ']);
             $cells .= wf_TableCell($eachpayment['balance']);
@@ -1700,12 +1705,14 @@ function web_DirectionsEditForm($ruleid) {
  * @return string
  */
 function web_PaymentsShow($query) {
-    $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $alter_conf = $ubillingConfig->getAlter();
     $alladrs = zb_AddressGetFulladdresslistCached();
     $allrealnames = zb_UserGetAllRealnames();
     $alltypes = zb_CashGetAllCashTypes();
     $allapayments = simple_queryall($query);
     $allservicenames = zb_VservicesGetAllNamesLabeled();
+    $idencEnabled = (@$alter_conf['IDENC_ENABLED']) ? true : false;
 //getting full contract list
     if ($alter_conf['FINREP_CONTRACT']) {
         $allcontracts = zb_UserGetAllContracts();
@@ -1721,7 +1728,9 @@ function web_PaymentsShow($query) {
     $totalPaycount = 0;
 
     $cells = wf_TableCell(__('ID'));
-    $cells .= wf_TableCell(__('IDENC'));
+    if ($idencEnabled) {
+        $cells .= wf_TableCell(__('IDENC'));
+    }
     $cells .= wf_TableCell(__('Date'));
     $cells .= wf_TableCell(__('Cash'));
 //optional contract display
@@ -1748,7 +1757,9 @@ function web_PaymentsShow($query) {
             }
 
             $cells = wf_TableCell($eachpayment['id']);
-            $cells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+            if ($idencEnabled) {
+                $cells .= wf_TableCell(zb_NumEncode($eachpayment['id']));
+            }
             $cells .= wf_TableCell($eachpayment['date']);
             $cells .= wf_TableCell($eachpayment['summ']);
 //optional contract display
