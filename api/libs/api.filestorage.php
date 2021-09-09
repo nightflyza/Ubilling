@@ -272,6 +272,8 @@ class FileStorage {
     /**
      * Returns custom module backlinks for some scopes
      * 
+     * @param string $customBackLinkURL
+     * 
      * @return string
      */
     protected function backUrlHelper($customBackLinkURL = '') {
