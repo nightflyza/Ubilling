@@ -439,7 +439,7 @@ class UbillingVisor {
     public function renderUsers() {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Name', 'Phone', 'Primary account', 'Charge', 'Cams', 'Actions');
+        $columns = array('ID', 'Date', 'Name', 'Phone', 'Primary account', 'Balance', 'Charge', 'Cams', 'Actions');
         $result .= wf_JqDtLoader($columns, self::URL_ME . self::URL_AJUSERS, false, 'Users', 50, $opts);
         return ($result);
     }
@@ -463,12 +463,18 @@ class UbillingVisor {
                     $primaryAccount = $each['primarylogin'];
                     $userAddress = @$this->allUserData[$primaryAccount]['fulladress'];
                     $primAccLink = wf_Link(self::URL_CAMPROFILE . $each['primarylogin'], web_profile_icon() . ' ' . $userAddress);
+                    if (isset($this->allUserData[$primaryAccount])) {
+                        $primaryAccountCash = $this->allUserData[$primaryAccount]['Cash'];
+                    }
                 } else {
                     $primAccLink = '';
+                    $primaryAccountCash = '';
                 }
 
 
                 $data[] = $primAccLink;
+                $data[] = $primaryAccountCash;
+
                 $chargeFlag = ($each['chargecams']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
                 $data[] = $chargeFlag;
                 $data[] = $this->getUserCamerasCount($each['id']);
