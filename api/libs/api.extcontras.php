@@ -1743,7 +1743,7 @@ class ExtContras {
                     $this->fileStorage->setItemid(self::URL_DICTCONTRACTS . $eachRecID['id']);
                     $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32', '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_DICTCONTRACTS . '=true'), true);
                 } else {
-                    $data[] = __('Filestorage').' - '.__('Disabled');
+                    $data[] = __('Filestorage') . ' - ' . __('Disabled');
                 }
 
                 $actions = $this->getStdJQDTActions($eachRecID['id'], self::ROUTE_CONTRACT_ACTS, true);
@@ -3192,8 +3192,12 @@ console.log($("#Modal' . $ecAddressWebSelID . '").val());
                     }
                 }
 
-                $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[self::DBFLD_COMMON_ID]);
-                $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32', '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'), true);
+                if ($this->fileStorage) {
+                    $this->fileStorage->setItemid(self::URL_FINOPERATIONS . $eachRecID[self::DBFLD_COMMON_ID]);
+                    $data[] = $this->fileStorage->renderFilesPreview(true, '', 'ubButton', '32', '&callback=' . base64_encode(self::URL_ME . '&' . self::URL_FINOPERATIONS . '=true'), true);
+                } else {
+                    $data[] = __('Filestorage') . ' ' . __('Disabled');
+                }
 
                 $actions = $this->getStdJQDTActions($eachRecID[self::DBFLD_COMMON_ID], self::ROUTE_FINOPS_ACTS, true);
                 $data[] = $actions;
