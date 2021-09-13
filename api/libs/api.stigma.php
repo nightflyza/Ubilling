@@ -120,8 +120,6 @@ class Stigma {
         $this->initDatabase();
         $this->loadConfig();
         $this->loadStigmas();
-        //TODO: 
-        // - sigma control catch inside object
     }
 
     /**
@@ -243,6 +241,7 @@ class Stigma {
      */
     public function render($itemId, $size = '') {
         $result = '';
+
         $itemId = ubRouting::filters($itemId, 'mres');
         $currentStates = array();
 
@@ -271,7 +270,7 @@ class Stigma {
             if ($size) {
                 $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
             }
-            $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel . '->' . $controlUrl, $size), $containerName);
+            $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
             $result .= wf_tag('div', false, $controlClass, '');
             $result .= $controlLink;
             $result .= wf_delimiter(0) . $stateLabel;
@@ -283,6 +282,16 @@ class Stigma {
         $result .= wf_CleanDiv();
 
         return($result);
+    }
+
+    /**
+     * 
+     */
+    public function stigmaController() {
+        if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
+            $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE));
+            die($stigmaCtrl->render(ubRouting::get(self::ROUTE_ITEMID)));
+        }
     }
 
 }
