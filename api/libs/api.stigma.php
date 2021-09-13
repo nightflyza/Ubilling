@@ -120,6 +120,10 @@ class Stigma {
         $this->initDatabase();
         $this->loadConfig();
         $this->loadStigmas();
+        //TODO:
+        //- saving of states to database in controller
+        //- think about non-iconic checklists/radiolists implementation?
+        //- implement basic per-scope stats
     }
 
     /**
