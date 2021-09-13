@@ -13,6 +13,7 @@ if (cfr('ROOT')) {
 
     $taskRanks = new Stigma('TASKRANKS');
     
+    
     $taskRanks->stigmaController();
     show_window(__('User rating of task completion '),$taskRanks->render(666, 64));
     

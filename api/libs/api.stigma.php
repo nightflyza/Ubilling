@@ -252,7 +252,7 @@ class Stigma {
         //this itemid already have an stigma record
         if (isset($this->allStigmas[$itemId])) {
             $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
-            $currentStates = array_flip($rawState);
+            $currentStates = array_flip($rawStates);
         }
 
         $containerName = 'ajStigmaState_' . $itemId;
@@ -261,6 +261,9 @@ class Stigma {
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);
             $controlClass = 'dashtask';
+            if (isset($currentStates[$stateId])) {
+                $controlClass .= ' todaysig';
+            }
             $stateIcon = self::ICON_PATH . $this->icons[$stateId] . self::ICON_EXT;
             if (!file_exists($stateIcon)) {
                 $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
@@ -285,7 +288,25 @@ class Stigma {
     }
 
     /**
+     * Returns array of all item states
      * 
+     * @param string $itemId
+     * 
+     * @return array
+     */
+    public function getItemStates($itemId) {
+        $result = array();
+        if (isset($this->allStigmas[$itemId])) {
+            if (!empty($this->allStigmas[$itemId]['state'])) {
+                $itemStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
+                $result = array_flip($itemStates);
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * AJAX callbacks processing controller
      */
     public function stigmaController() {
         if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
