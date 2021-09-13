@@ -89,14 +89,14 @@ class Stigma {
     const ROUTE_SCOPE = 'stscope';
     const ROUTE_ITEMID = 'stitemid';
     const ROUTE_STATE = 'stchstate';
+    const ROUTE_ICONSIZE = 'stis';
 
     /**
      * Creates new stigma on selected scope
      * 
      * @param string $scope
-     * @param string $baseUrl
      */
-    public function __construct($scope, $baseUrl) {
+    public function __construct($scope) {
         //            ______              
         //         .d$$$******$$$$c.        
         //      .d$P"            "$$c      
@@ -115,12 +115,12 @@ class Stigma {
         //        `4$$$c.$$$..e$$P"        
         //            `^^^^^^^`
         $this->setScope($scope);
+        $this->setBaseUrl();
         $this->setAdminLogin();
         $this->initDatabase();
         $this->loadConfig();
         $this->loadStigmas();
         //TODO: 
-        // - base url setter
         // - sigma control catch inside object
     }
 
@@ -137,6 +137,37 @@ class Stigma {
             $this->scope = ubRouting::filters($scope, 'mres');
         } else {
             throw new Exception('EX_EMPTY_SCOPE');
+        }
+    }
+
+    /**
+     * Sets current instance base URL
+     * 
+     * @throws Exception
+     * 
+     * @return void
+     */
+    protected function setBaseUrl() {
+        $url = '';
+        $getVars = ubRouting::rawGet();
+
+        $myRoutes = array(self::ROUTE_ICONSIZE, self::ROUTE_ITEMID, self::ROUTE_SCOPE, self::ROUTE_STATE);
+        $myRoutes = array_flip($myRoutes);
+
+
+        if (!empty($getVars)) {
+            $url = '?';
+            foreach ($getVars as $getVar => $getVal) {
+                if (!isset($myRoutes[$getVar])) {
+                    $url .= $getVar . '=' . $getVal . '&';
+                }
+            }
+        }
+
+        if (!empty($url)) {
+            $this->baseUrl = $url;
+        } else {
+            throw new Exception('EX_EMPTY_BASEURL');
         }
     }
 
@@ -214,6 +245,11 @@ class Stigma {
         $result = '';
         $itemId = ubRouting::filters($itemId, 'mres');
         $currentStates = array();
+
+        if (ubRouting::checkGet(self::ROUTE_ICONSIZE)) {
+            $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
+        }
+
         //this itemid already have an stigma record
         if (isset($this->allStigmas[$itemId])) {
             $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
@@ -232,7 +268,10 @@ class Stigma {
             }
 
             $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
-            $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
+            if ($size) {
+                $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
+            }
+            $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel . '->' . $controlUrl, $size), $containerName);
             $result .= wf_tag('div', false, $controlClass, '');
             $result .= $controlLink;
             $result .= wf_delimiter(0) . $stateLabel;

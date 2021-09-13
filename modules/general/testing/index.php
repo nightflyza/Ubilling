@@ -12,6 +12,9 @@ if (cfr('ROOT')) {
     }
 
     $taskRanks = new Stigma('TASKRANKS');
-    //debarr($taskRanks);
+    
     deb($taskRanks->render(666, 64));
+    
+    
+    
 }
