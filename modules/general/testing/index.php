@@ -7,7 +7,6 @@ if (cfr('ROOT')) {
 
 
     $taskFails = new Stigma('TASKFAILS');
-    //debarr($taskFails);
     $taskFails->stigmaController();
     show_window(__('Task checklist fails'), $taskFails->render(667, 128));
 
@@ -16,4 +15,9 @@ if (cfr('ROOT')) {
     $taskRanks->stigmaController();
 
     show_window(__('User rating of task completion '), $taskRanks->render(667, 64));
+    
+    
+//    $test=$taskFails->render(667, 128).' '.$taskRanks->render(667, 64);
+//    
+//    deb(wf_modalAuto('test modal', 'test modal', $test, 'ubButton'));
 }

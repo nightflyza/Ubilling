@@ -16,9 +16,6 @@ $lang['def']['Didnt tell how to pay']='Не розповіли про оплат
 $lang['def']['Took cash']='Понабирали готівки';
 $lang['def']['Left a mess']='Залишили сміття';
 $lang['def']['Task checklist fails']='Фейли виконання задачі';
+$lang['def']['Anomalies in the performance of tasks ']='Аномалії в виконанні задач';
 $lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+
