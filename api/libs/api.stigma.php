@@ -277,7 +277,7 @@ class Stigma {
         }
 
         $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
-        $result .= wf_AjaxLoader();
+        $result .= wf_AjaxLoader(true);
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);

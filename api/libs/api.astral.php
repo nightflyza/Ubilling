@@ -79,8 +79,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '',
-                      $ctrlID = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '', $ctrlID = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
     $inputid = ( empty($ctrlID) ) ? wf_InputId() : $ctrlID;
     $opts = ( empty($options) ) ? '' : $options;
 
@@ -426,8 +425,7 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @return  string
  *
  */
-function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false,
-                     $CtrlID = '', $CtrlClass = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
+function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false, $CtrlID = '', $CtrlClass = '', $options = '', $labelLeftSide = false, $labelOpts = '') {
 
     $inputid = ( empty($CtrlID) ) ? wf_InputId() : $CtrlID;
     $inputclass = ( empty($CtrlClass) ) ? '' : ' class="' . $CtrlClass . '"';
@@ -1627,29 +1625,33 @@ function wf_tag($tag, $closed = false, $class = '', $options = '') {
 }
 
 /**
- * Constructs ajax loader. Animation image have id: ubajaxloaderanim
+ * Constructs and returns default AJAX loader
+ * 
+ * @param bool $noAnimation
  * 
  * @return string
  */
-function wf_AjaxLoader() {
+function wf_AjaxLoader($noAnimation = false) {
+    if ($noAnimation) {
+        $animationCode = '';
+    } else {
+        $animationCode = 'contentElem.innerHTML = \'<img src="skins/ajaxloader.gif" id="ubajaxloaderanim">\';';
+    }
     $result = '
           <script type="text/javascript">
-           
-
-
-        function getXmlHttp()
-        {
-            var xmlhttp;
-            try
-        {
-            xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-        }
-        catch (e)
-        {
-            try
+          function getXmlHttp()
             {
-                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                var xmlhttp;
+                try
+            {
+                xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
             }
+            catch (e)
+            {
+                try
+                    {
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
             catch (E)
             {
                 xmlhttp = false;
@@ -1665,13 +1667,12 @@ function wf_AjaxLoader() {
  
     function goajax(link,container)
     {
- 
         var myrequest = getXmlHttp()
         var docum = link;
         var contentElem = document.getElementById(container);
         myrequest.open(\'POST\', docum, true);
         myrequest.setRequestHeader(\'Content-Type\', \'application/x-www-form-urlencoded\');
-       contentElem.innerHTML = \'<img src=skins/ajaxloader.gif id=ubajaxloaderanim>\';
+        ' . $animationCode . '
         myrequest.onreadystatechange = function()
         {
             if (myrequest.readyState == 4)
@@ -1679,8 +1680,6 @@ function wf_AjaxLoader() {
                 if(myrequest.status == 200)
                 {
                     var resText = myrequest.responseText;
- 
- 
                     var ua = navigator.userAgent.toLowerCase();
  
                     if (ua.indexOf(\'gecko\') != -1)
@@ -1940,8 +1939,8 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
 function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '', $changeCtrlColorID = '', $changeCtrlColorCSSProp = '') {
     $id = wf_InputId();
 
-    if (!empty($changeCtrlColorID) and !empty($changeCtrlColorCSSProp)) {
-        $changeCtrlColorJS = ' $(\'#' . $changeCtrlColorID . '\').css("' . $changeCtrlColorCSSProp .'", "#" + hex_str);';
+    if (!empty($changeCtrlColorID) and ! empty($changeCtrlColorCSSProp)) {
+        $changeCtrlColorJS = ' $(\'#' . $changeCtrlColorID . '\').css("' . $changeCtrlColorCSSProp . '", "#" + hex_str);';
     } else {
         $changeCtrlColorJS = '';
     }
@@ -1983,7 +1982,7 @@ function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '', 
                 ' . $changeCtrlColorJS . '
                 });
                 ';
-        $js.= wf_EncloseWithJSTags($tmpJS);
+        $js .= wf_EncloseWithJSTags($tmpJS);
     }
 
     $size = (!empty($size) ) ? 'size="' . $size . '"' : null;
@@ -2320,8 +2319,7 @@ function wf_CleanDiv() {
  *
  * @return string
  */
-function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '',
-                       $addFooter = false, $footerOpts = '', $footerTHOpts = '') {
+function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '', $addFooter = false, $footerOpts = '', $footerTHOpts = '') {
 
     $tableId = 'jqdt_' . md5($ajaxUrl);
     $result = '';
@@ -2494,7 +2492,7 @@ function wf_JQDTColumnTotalSumJS() {
 function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncateParam = '') {
     $truncateJSCode = '';
 
-    if (!empty($truncateURL) and !empty($truncateParam)) {
+    if (!empty($truncateURL) and ! empty($truncateParam)) {
         $truncateJSCode = '
             //var urlParamsObject = new URLSearchParams(\'' . $truncateURL . '\');
             var urlParamsObject = new URLSearchParams(window.location.search);
@@ -2505,7 +2503,6 @@ function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncatePa
                 window.history.replaceState({}, document.title, truncatedURL);
             }            
             ';
-
     }
 
     $result = '
@@ -2539,8 +2536,7 @@ function wf_JQDTMarkRowJS($columnNum, $searchVal, $truncateURL = '', $truncatePa
  *
  * @return string
  */
-function wf_JQDTDetailsClickProcessingJS($ajaxURL, $colIndex, $jqdtID, $ajaxMethod = 'POST',
-                                         $jsFuncName = 'showDetailsData', $divContainerCSS = '') {
+function wf_JQDTDetailsClickProcessingJS($ajaxURL, $colIndex, $jqdtID, $ajaxMethod = 'POST', $jsFuncName = 'showDetailsData', $divContainerCSS = '') {
     $divCSS = (empty($divContainerCSS) ? '{"margin-top":"5px", "margin-left":"10px", "margin-bottom":"10px"}' : $divContainerCSS);
     $result = '
 $(document).ready(function() {    
@@ -2557,7 +2553,7 @@ $(document).ready(function() {
             tr.removeClass(\'shown\');
         }
         else {
-            row.child( ' . $jsFuncName . '(row.data(), ajaxData, \''. $ajaxURL . '\', \''. $ajaxMethod . '\') ).show();
+            row.child( ' . $jsFuncName . '(row.data(), ajaxData, \'' . $ajaxURL . '\', \'' . $ajaxMethod . '\') ).show();
             tr.addClass(\'shown\');
         }
     } );
@@ -2598,23 +2594,23 @@ $(document).ready(function() {
 function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $opts = '') {
     $result = '';
 
-    if (!empty($jqdtID) or !empty($jqdtIDSelector)) {
-        $class      = (empty($class) ? 'ubButton' : $class);
-        $tmpInpID   = wf_InputId();
-        $result     = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
+    if (!empty($jqdtID) or ! empty($jqdtIDSelector)) {
+        $class = (empty($class) ? 'ubButton' : $class);
+        $tmpInpID = wf_InputId();
+        $result = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
 
-        $tmpScript  = '
+        $tmpScript = '
             $(\'#' . $tmpInpID . '\').click(function(evt) {
                 $(\'img\', this).addClass("image_rotate");                                     
         ';
 
         if (empty($jqdtID)) {
-            $tmpScript.= '$(\'#\'+' . $jqdtIDSelector . ').DataTable().ajax.reload();';
+            $tmpScript .= '$(\'#\'+' . $jqdtIDSelector . ').DataTable().ajax.reload();';
         } else {
-            $tmpScript.= '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();';
+            $tmpScript .= '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();';
         }
 
-         $tmpScript.= '
+        $tmpScript .= '
             
                 $(\'img\', this).removeClass("image_rotate");
                 evt.preventDefault();
@@ -2623,7 +2619,7 @@ function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $
             
          ';
 
-        $result.= wf_EncloseWithJSTags($tmpScript);
+        $result .= wf_EncloseWithJSTags($tmpScript);
     }
 
     return ($result);
@@ -3027,8 +3023,7 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
  *
  * @return string
  */
-function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click',
-                              $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false, $nestedJQDTSelector = '') {
+function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJSScriptTag = false, $queryType = 'GET', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false, $nestedJQDTSelector = '') {
 
     $inputId = (empty($controlId)) ? wf_InputId() : $controlId;
     $modalWindowId = 'modalWindowId:"dialog-modal_' . $inputId . '", ';
@@ -3039,16 +3034,14 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
     $ajaxData = '';
     foreach ($dataArray as $io => $each) {
         if (is_array($each)) {
-            $ajaxData.= $io . ':' . json_encode($each) . ', ';
+            $ajaxData .= $io . ':' . json_encode($each) . ', ';
         } else {
-            $ajaxData.= $io . ':"' . $each . '", ';
+            $ajaxData .= $io . ':"' . $each . '", ';
         }
     }
 
     if ($updNestedJQDT) {
-        $findJQDTToUpdate = (empty($nestedJQDTSelector)
-                             ? 'var closestJQDTID = $(this).parent().parent().next("tr").find(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");'
-                             : 'var closestJQDTID = ' . $nestedJQDTSelector);
+        $findJQDTToUpdate = (empty($nestedJQDTSelector) ? 'var closestJQDTID = $(this).parent().parent().next("tr").find(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");' : 'var closestJQDTID = ' . $nestedJQDTSelector);
     } else {
         $findJQDTToUpdate = 'var closestJQDTID = $(this).closest(\'[id ^= "jqdt_"][role = "grid"]\').attr("id");';
     }
@@ -3101,13 +3094,10 @@ function wf_JSAjaxModalOpener($ajaxURL, $dataArray, $controlId = '', $wrapWithJS
  *
  * @return string
  */
-function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '',
-                                      $queryType = 'POST', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false,
-                                      $updNestedJQDT = false, $nestedJQDTSelector = '') {
+function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button', $icon = '', $linkCSSClass = '', $queryType = 'POST', $jsEvent = 'click', $noPreventDefault = false, $noReturnFalse = false, $updNestedJQDT = false, $nestedJQDTSelector = '') {
     $linkID = wf_InputId();
     $dynamicOpener = wf_Link('#', $icon . ' ' . $title, false, $linkCSSClass, 'id="' . $linkID . '"')
-                    . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, $queryType,
-                                           $jsEvent, $noPreventDefault, $noReturnFalse, $updNestedJQDT, $nestedJQDTSelector);
+            . wf_JSAjaxModalOpener($ajaxURL, $ajaxDataArr, $linkID, true, $queryType, $jsEvent, $noPreventDefault, $noReturnFalse, $updNestedJQDT, $nestedJQDTSelector);
 
     return ($dynamicOpener);
 }
@@ -3127,11 +3117,11 @@ function wf_jsAjaxDynamicWindowButton($ajaxURL, $ajaxDataArr, $title = 'Button',
  */
 function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID = '', $emptyValueCheckClasses = '', $errorFormIDParamName = '') {
     $result = '';
-    $emptyValueCheckClasses   = (empty($emptyValueCheckClasses) ? '__EmptyCheckControl' : $emptyValueCheckClasses);
+    $emptyValueCheckClasses = (empty($emptyValueCheckClasses) ? '__EmptyCheckControl' : $emptyValueCheckClasses);
     $errorFormIDParamName = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
     $errorModalWindowId = wf_InputId();
 
-    $result.= ' 
+    $result .= ' 
         function checkEmptyVal(ctrlClassName) {
             $(document).on("focus keydown", ctrlClassName, function(evt) {
                 $(document).find(ctrlClassName).each(function(indx, element){
@@ -3187,7 +3177,7 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
                                         $(\'#\' + customJQDTToReload).DataTable().ajax.reload();
                                     } else {
                                         ' . (empty($jqdtID) ? ' ' : '$(\'#' . $jqdtID . '\').DataTable().ajax.reload();') .
-                                    '
+            '
                                     }
                                     $( \'#\'+$("' . $submitFormIDCtrlClass . '").val() ).dialog("close");
                                 }
@@ -3214,11 +3204,11 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
  * @return string
  */
 function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $errorFormIDParamName = '', $queryType = 'POST', $jqdtClearPaste = false) {
-    $errorFormIDParamName   = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
-    $errorModalWindowId     = wf_InputId();
-    $jqdtReloadScript       = '';
-    $jqdtSelector           = '';
-    $result                 = '';
+    $errorFormIDParamName = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
+    $errorModalWindowId = wf_InputId();
+    $jqdtReloadScript = '';
+    $jqdtSelector = '';
+    $result = '';
 
     if (!empty($jqdtID)) {
         $jqdtSelector = '$(\'#' . $jqdtID . '\')';
@@ -3250,7 +3240,7 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $err
         }
     }
 
-    $result.= '
+    $result .= '
         function ' . $funcName . '(ajaxURL, ajaxData) {
             var ajaxData = ajaxData + \'&' . $errorFormIDParamName . '=' . $errorModalWindowId . '\'                    
 
@@ -3260,8 +3250,8 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $err
                     data: ajaxData,
                     success: function(reqResult) {
                                 '
-                                . $jqdtReloadScript .
-                             '}
+            . $jqdtReloadScript .
+            '}
             });
         }
                                               
@@ -3332,15 +3322,15 @@ function wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID) {
  *
  * @return string
  */
-/*function wf_jsWebSelectorFilter($webSelectorID, $webSelectorIDToFilter, $filterDataElemID,
-                                $webSelChangeFuncName = '', $filterFuncName = '',
-                                $blankFirstRow = false, $blankFirstRowVal = '0', $blankFirstRowDispVal = '----') {
+/* function wf_jsWebSelectorFilter($webSelectorID, $webSelectorIDToFilter, $filterDataElemID,
+  $webSelChangeFuncName = '', $filterFuncName = '',
+  $blankFirstRow = false, $blankFirstRowVal = '0', $blankFirstRowDispVal = '----') {
 
-    $webSelChangeFuncName   = (empty($webSelChangeFuncName) ? 'funcChange_' . $webSelectorIDToFilter : $webSelChangeFuncName);
-    $filterFuncName         = (empty($filterFuncName) ? 'funcFilter_' . $webSelectorIDToFilter : $filterFuncName);
-    $webSelectRunChange     = (empty($webSelectorIDToFilter) ? "" : "$('#" . $webSelectorIDToFilter . "').change();");
-    $firstRowBlank          = ($blankFirstRow ? "var newselect = '<option value=\"" . $blankFirstRowVal . "\">" . $blankFirstRowDispVal . "</option>';" : "");
-*/
+  $webSelChangeFuncName   = (empty($webSelChangeFuncName) ? 'funcChange_' . $webSelectorIDToFilter : $webSelChangeFuncName);
+  $filterFuncName         = (empty($filterFuncName) ? 'funcFilter_' . $webSelectorIDToFilter : $filterFuncName);
+  $webSelectRunChange     = (empty($webSelectorIDToFilter) ? "" : "$('#" . $webSelectorIDToFilter . "').change();");
+  $firstRowBlank          = ($blankFirstRow ? "var newselect = '<option value=\"" . $blankFirstRowVal . "\">" . $blankFirstRowDispVal . "</option>';" : "");
+ */
 
 
 function wf_jsWebSelectorFilter() {
@@ -3395,8 +3385,8 @@ function wf_jsWebSelectorFilter() {
  */
 function wf_EncloseWithJSTags($content) {
     $result = wf_tag('script', false, '', 'type="text/javascript"');
-    $result.= $content;
-    $result.= wf_tag('script', true);
+    $result .= $content;
+    $result .= wf_tag('script', true);
     return ($result);
 }
 
@@ -3781,7 +3771,7 @@ function wf_ConfirmDialogJS($url, $title, $alerttext, $class = '', $cancelUrl = 
     $dialog .= wf_tag('center', false);
     $dialog .= wf_Link($url, __('Agree'), false, 'confirmagree', $funcRunAgree);
 
-    if (!empty($cancelUrl) or !empty($funcRunCancel)) {
+    if (!empty($cancelUrl) or ! empty($funcRunCancel)) {
         $dialog .= wf_Link($cancelUrl, __('Cancel'), false, 'confirmcancel', $funcRunCancel);
     }
 
@@ -3883,46 +3873,43 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
  *
  * @return string
  */
-function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tableRowsOnly = false,
-                                  $vertical = false, $dateIsON = true, $timeIsON = false,
-                                  $dateStart = '', $dateEnd = '', $dpStartInpName = '', $dpEndInpName = '',
-                                  $timeStart = '', $timeEnd = '', $tpStartInpName = '', $tpEndInpName = ''
-                                 ) {
+function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tableRowsOnly = false, $vertical = false, $dateIsON = true, $timeIsON = false, $dateStart = '', $dateEnd = '', $dpStartInpName = '', $dpEndInpName = '', $timeStart = '', $timeEnd = '', $tpStartInpName = '', $tpEndInpName = ''
+) {
     $inputs = '';
-    $cells  = '';
-    $rows   = '';
+    $cells = '';
+    $rows = '';
 
     if ($dateIsON) {
-        $dpStartInpName         = (empty($dpStartInpName) ? 'datestartfilter' : $dpStartInpName);
-        $dpEndInpName           = (empty($dpEndInpName) ? 'dateendfilter' : $dpEndInpName);
-        $datepickerStart        = wf_DatePickerPreset($dpStartInpName, $dateStart, true);
-        $datepickerEnd          = wf_DatePickerPreset($dpEndInpName, $dateEnd, true);
-        $datepickerStartCapt    = __('Date from') . ':';
-        $datepickerEndCapt      = __('Date to') . ':';
+        $dpStartInpName = (empty($dpStartInpName) ? 'datestartfilter' : $dpStartInpName);
+        $dpEndInpName = (empty($dpEndInpName) ? 'dateendfilter' : $dpEndInpName);
+        $datepickerStart = wf_DatePickerPreset($dpStartInpName, $dateStart, true);
+        $datepickerEnd = wf_DatePickerPreset($dpEndInpName, $dateEnd, true);
+        $datepickerStartCapt = __('Date from') . ':';
+        $datepickerEndCapt = __('Date to') . ':';
     }
 
     if ($timeIsON) {
-        $tpStartInpName         = (empty($tpStartInpName) ? 'timestartfilter' : $tpStartInpName);
-        $tpEndInpName           = (empty($tpEndInpName) ? 'timeendfilter' : $tpEndInpName);
-        $timepickerStart        = wf_TimePickerPreset($tpStartInpName, $timeStart);
-        $timepickerEnd          = wf_TimePickerPreset($tpEndInpName, $timeEnd);
-        $timepickerStartCapt    = __('Time from') . ':';
-        $timepickerEndCapt      = __('Time to') . ':';
+        $tpStartInpName = (empty($tpStartInpName) ? 'timestartfilter' : $tpStartInpName);
+        $tpEndInpName = (empty($tpEndInpName) ? 'timeendfilter' : $tpEndInpName);
+        $timepickerStart = wf_TimePickerPreset($tpStartInpName, $timeStart);
+        $timepickerEnd = wf_TimePickerPreset($tpEndInpName, $timeEnd);
+        $timepickerStartCapt = __('Time from') . ':';
+        $timepickerEndCapt = __('Time to') . ':';
     }
 
     if ($inTable) {
         if ($dateIsON) {
-            $cells.= wf_TableCell($datepickerStartCapt);
-            $cells.= wf_TableCell($datepickerStart);
+            $cells .= wf_TableCell($datepickerStartCapt);
+            $cells .= wf_TableCell($datepickerStart);
         }
 
         if ($timeIsON) {
             if ($dateIsON) {
-                $cells.= wf_nbsp(4);
+                $cells .= wf_nbsp(4);
             }
 
-            $cells.= wf_TableCell($timepickerStartCapt);
-            $cells.= wf_TableCell($timepickerStart);
+            $cells .= wf_TableCell($timepickerStartCapt);
+            $cells .= wf_TableCell($timepickerStart);
         }
 
 
@@ -3940,49 +3927,49 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
 
         if ($timeIsON) {
             if ($dateIsON) {
-                $cells.= wf_nbsp(4);
+                $cells .= wf_nbsp(4);
             }
 
-            $cells.= wf_TableCell($timepickerEndCapt);
-            $cells.= wf_TableCell($timepickerEnd);
+            $cells .= wf_TableCell($timepickerEndCapt);
+            $cells .= wf_TableCell($timepickerEnd);
         }
 
         if ($tableCellsOnly) {
             $inputs = $cells;
         } elseif ($tableRowsOnly) {
-            $rows.= wf_TableRow($cells);
+            $rows .= wf_TableRow($cells);
             $inputs = $rows;
         } else {
-            $rows.= wf_TableRow($cells);
+            $rows .= wf_TableRow($cells);
             $inputs = wf_TableBody($rows, 'auto', '0', '', '');
         }
     } else {
         if ($dateIsON) {
-            $inputs.= $datepickerStartCapt . wf_nbsp(2) . $datepickerStart;
+            $inputs .= $datepickerStartCapt . wf_nbsp(2) . $datepickerStart;
         }
 
         if ($timeIsON) {
             if ($dateIsON) {
-                $inputs.= wf_nbsp(4);
+                $inputs .= wf_nbsp(4);
             }
 
-            $inputs.= $timepickerStartCapt . wf_nbsp(2) . $timepickerStart;
+            $inputs .= $timepickerStartCapt . wf_nbsp(2) . $timepickerStart;
         }
 
         if ($vertical) {
-            $inputs.= wf_delimiter();
+            $inputs .= wf_delimiter();
         }
 
         if ($dateIsON) {
-            $inputs.= $datepickerEndCapt . wf_nbsp(2) . $datepickerEnd;
+            $inputs .= $datepickerEndCapt . wf_nbsp(2) . $datepickerEnd;
         }
 
         if ($timeIsON) {
             if ($dateIsON) {
-                $inputs.= wf_nbsp(4);
+                $inputs .= wf_nbsp(4);
             }
 
-            $inputs.= $timepickerEndCapt . wf_nbsp(2) . $timepickerEnd;
+            $inputs .= $timepickerEndCapt . wf_nbsp(2) . $timepickerEnd;
         }
     }
 
