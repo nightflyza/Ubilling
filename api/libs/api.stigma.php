@@ -66,6 +66,13 @@ class Stigma {
     protected $activeClass = 'todaysig';
 
     /**
+     * Stigma content update animation
+     *
+     * @var bool
+     */
+    protected $animated = true;
+
+    /**
      * Default icons file extension
      */
     const ICON_EXT = '.png';
@@ -223,6 +230,10 @@ class Stigma {
                     if (isset($raw['stigmasettings']['ACTIVECLASS'])) {
                         $this->activeClass = $raw['stigmasettings']['ACTIVECLASS'];
                     }
+
+                    if (isset($raw['stigmasettings']['ANIMATION'])) {
+                        $this->animated = ($raw['stigmasettings']['ANIMATION']) ? false : true;
+                    }
                     foreach ($raw as $io => $each) {
                         if ($io != 'stigmasettings') {
                             $this->states[$io] = $each['NAME'];
@@ -257,10 +268,11 @@ class Stigma {
      * 
      * @param string $itemId
      * @param int $size
+     * @param bool $readOnly
      * 
      * @return string
      */
-    public function render($itemId, $size = '') {
+    public function render($itemId, $size = '', $readOnly = false) {
         $result = '';
 
         $itemId = ubRouting::filters($itemId, 'mres');
@@ -277,7 +289,7 @@ class Stigma {
         }
 
         $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
-        $result .= wf_AjaxLoader(true);
+        $result .= wf_AjaxLoader($this->animated);
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);
@@ -296,7 +308,12 @@ class Stigma {
             if ($size) {
                 $controlUrl .= '&' . self::ROUTE_ICONSIZE . '=' . $size;
             }
-            $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
+            if (!$readOnly) {
+                $controlLink = wf_AjaxLink($controlUrl, wf_img_sized($stateIcon, $stateLabel, $size), $containerName);
+            } else {
+                $controlLink = wf_img_sized($stateIcon, $stateLabel, $size);
+            }
+
             $result .= wf_tag('div', false, $controlClass, '');
             $result .= $controlLink;
             $result .= wf_delimiter(0) . $stateLabel;

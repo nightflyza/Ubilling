@@ -7,6 +7,7 @@ if (cfr('ROOT')) {
 
 
     $taskFails = new Stigma('TASKFAILS');
+    //debarr($taskFails);
     $taskFails->stigmaController();
     show_window(__('Task checklist fails'), $taskFails->render(667, 128));
 
