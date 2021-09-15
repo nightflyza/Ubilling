@@ -340,14 +340,29 @@ class Stigma {
      * @return void
      */
     protected function createState($itemId, $state) {
-        $itemId = ubRouting::filters($itemId, 'mres');
-        $state = ubRouting::filters($state, 'mres');
         $this->stigmaDb->data('scope', $this->scope);
         $this->stigmaDb->data('itemid', $itemId);
         $this->stigmaDb->data('state', $state);
         $this->stigmaDb->data('date', curdatetime());
         $this->stigmaDb->data('admin', $this->myLogin);
         $this->stigmaDb->create();
+    }
+
+    /**
+     * Sets some state string to selected item in current scope
+     * 
+     * @param string $itemId
+     * @param string $state
+     * 
+     * @return void
+     */
+    protected function setState($itemId, $state) {
+        $this->stigmaDb->data('state', $state);
+        $this->stigmaDb->data('date', curdatetime());
+        $this->stigmaDb->data('admin', $this->myLogin);
+        $this->stigmaDb->where('scope', '=', $this->scope);
+        $this->stigmaDb->where('itemid', '=', $itemId);
+        $this->stigmaDb->save(true, true);
     }
 
     /**
@@ -368,12 +383,7 @@ class Stigma {
             if ($this->type == 'radiolist') {
                 //state is changed?
                 if (!isset($currentStates[$state])) {
-                    $this->stigmaDb->data('state', $state);
-                    $this->stigmaDb->data('date', curdatetime());
-                    $this->stigmaDb->data('admin', $this->myLogin);
-                    $this->stigmaDb->where('scope', '=', $this->scope);
-                    $this->stigmaDb->where('itemid', '=', $itemId);
-                    $this->stigmaDb->save(true, true);
+                    $this->setState($itemId, $state);
                 }
             }
 
@@ -400,13 +410,8 @@ class Stigma {
                     }
                 }
 
-                //saving to database
-                $this->stigmaDb->data('state', $newStatesString);
-                $this->stigmaDb->data('date', curdatetime());
-                $this->stigmaDb->data('admin', $this->myLogin);
-                $this->stigmaDb->where('scope', '=', $this->scope);
-                $this->stigmaDb->where('itemid', '=', $itemId);
-                $this->stigmaDb->save(true, true);
+                //saving new item state to database
+                $this->setState($itemId, $newStatesString);
             }
         } else {
             //new stigma
