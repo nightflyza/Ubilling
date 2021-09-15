@@ -52,6 +52,13 @@ class Stigma {
     protected $allStigmas = '';
 
     /**
+     * Contains controller callbacks URL
+     *
+     * @var string
+     */
+    protected $baseUrl = '';
+
+    /**
      * Default icons file extension
      */
     const ICON_EXT = '.png';
@@ -84,8 +91,6 @@ class Stigma {
     /**
      * Some URLS/routes etc
      */
-    protected $baseUrl = '';
-
     const ROUTE_SCOPE = 'stscope';
     const ROUTE_ITEMID = 'stitemid';
     const ROUTE_STATE = 'stchstate';
@@ -210,12 +215,16 @@ class Stigma {
              * Where the eagle cries with pride
              */
             if (isset($raw['stigmasettings'])) {
-                $this->type = $raw['stigmasettings']['TYPE'];
-                foreach ($raw as $io => $each) {
-                    if ($io != 'stigmasettings') {
-                        $this->states[$io] = $each['NAME'];
-                        $this->icons[$io] = $each['ICON'];
+                if (isset($raw['stigmasettings']['TYPE'])) {
+                    $this->type = $raw['stigmasettings']['TYPE'];
+                    foreach ($raw as $io => $each) {
+                        if ($io != 'stigmasettings') {
+                            $this->states[$io] = $each['NAME'];
+                            $this->icons[$io] = $each['ICON'];
+                        }
                     }
+                } else {
+                    throw new Exception('EX_STIGMATYPE_MISSED');
                 }
             } else {
                 throw new Exception('EX_STIGMASETTINGS_SECTION_MISSED');
@@ -292,7 +301,7 @@ class Stigma {
     }
 
     /**
-     * Returns array of all item states
+     * Returns array of all item states as is (for isset checks)
      * 
      * @param string $itemId
      * 
@@ -311,12 +320,101 @@ class Stigma {
 
     /**
      * AJAX callbacks processing controller
+     * 
+     * @return void
      */
     public function stigmaController() {
         if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
             $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE));
+            $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));
             die($stigmaCtrl->render(ubRouting::get(self::ROUTE_ITEMID)));
         }
+    }
+
+    /**
+     * Creates new stigma in database
+     * 
+     * @param string $itemId
+     * @param string $state
+     * 
+     * @return void
+     */
+    protected function createState($itemId, $state) {
+        $itemId = ubRouting::filters($itemId, 'mres');
+        $state = ubRouting::filters($state, 'mres');
+        $this->stigmaDb->data('scope', $this->scope);
+        $this->stigmaDb->data('itemid', $itemId);
+        $this->stigmaDb->data('state', $state);
+        $this->stigmaDb->data('date', curdatetime());
+        $this->stigmaDb->data('admin', $this->myLogin);
+        $this->stigmaDb->create();
+    }
+
+    /**
+     * Saves some new stigma state into database
+     * 
+     * @param string $itemId
+     * @param string $state
+     * 
+     * @return void
+     */
+    public function saveState($itemId, $state) {
+        $itemId = ubRouting::filters($itemId, 'mres');
+        $state = ubRouting::filters($state, 'mres');
+
+        //Item stigma already exists. Update it.
+        if (isset($this->allStigmas[$itemId])) {
+            $currentStates = $this->getItemStates($itemId);
+            if ($this->type == 'radiolist') {
+                //state is changed?
+                if (!isset($currentStates[$state])) {
+                    $this->stigmaDb->data('state', $state);
+                    $this->stigmaDb->data('date', curdatetime());
+                    $this->stigmaDb->data('admin', $this->myLogin);
+                    $this->stigmaDb->where('scope', '=', $this->scope);
+                    $this->stigmaDb->where('itemid', '=', $itemId);
+                    $this->stigmaDb->save(true, true);
+                }
+            }
+
+            if ($this->type == 'checklist') {
+                //uncheck already set state
+                if (isset($currentStates[$state])) {
+                    $newStates = $currentStates;
+                    unset($newStates[$state]);
+                    $newStatesString = '';
+                    if (!empty($newStates)) {
+                        foreach ($newStates as $io => $each) {
+                            $newStatesString .= $io . self::DELIMITER;
+                        }
+                    }
+                } else {
+                    //update state with new one
+                    $newStates = $currentStates;
+                    $newStates[$state] = $state;
+                    $newStatesString = '';
+                    if (!empty($newStates)) {
+                        foreach ($newStates as $io => $each) {
+                            $newStatesString .= $io . self::DELIMITER;
+                        }
+                    }
+                }
+
+                //saving to database
+                $this->stigmaDb->data('state', $newStatesString);
+                $this->stigmaDb->data('date', curdatetime());
+                $this->stigmaDb->data('admin', $this->myLogin);
+                $this->stigmaDb->where('scope', '=', $this->scope);
+                $this->stigmaDb->where('itemid', '=', $itemId);
+                $this->stigmaDb->save(true, true);
+            }
+        } else {
+            //new stigma
+            $this->createState($itemId, $state);
+        }
+
+        //update internal structs
+        $this->loadStigmas();
     }
 
 }
