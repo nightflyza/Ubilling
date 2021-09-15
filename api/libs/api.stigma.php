@@ -59,6 +59,13 @@ class Stigma {
     protected $baseUrl = '';
 
     /**
+     * Configurable active-state class
+     *
+     * @var string
+     */
+    protected $activeClass = 'todaysig';
+
+    /**
      * Default icons file extension
      */
     const ICON_EXT = '.png';
@@ -71,7 +78,7 @@ class Stigma {
     /**
      * Stigma configuration files path
      */
-    const CONFIG_PATH = 'config/';
+    const CONFIG_PATH = 'config/stigma/';
 
     /**
      * per-scope configuration files extension
@@ -126,7 +133,6 @@ class Stigma {
         $this->loadConfig();
         $this->loadStigmas();
         //TODO:
-        //- saving of states to database in controller
         //- think about non-iconic checklists/radiolists implementation?
         //- implement basic per-scope stats
     }
@@ -217,10 +223,15 @@ class Stigma {
             if (isset($raw['stigmasettings'])) {
                 if (isset($raw['stigmasettings']['TYPE'])) {
                     $this->type = $raw['stigmasettings']['TYPE'];
+                    if (isset($raw['stigmasettings']['ACTIVECLASS'])) {
+                        $this->activeClass = $raw['stigmasettings']['ACTIVECLASS'];
+                    }
                     foreach ($raw as $io => $each) {
                         if ($io != 'stigmasettings') {
                             $this->states[$io] = $each['NAME'];
-                            $this->icons[$io] = $each['ICON'];
+                            if (isset($each['ICON'])) {
+                                $this->icons[$io] = $each['ICON'];
+                            }
                         }
                     }
                 } else {
@@ -268,16 +279,18 @@ class Stigma {
             $currentStates = array_flip($rawStates);
         }
 
-        $containerName = 'ajStigmaState_' . $itemId;
+        $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
         $result .= wf_AjaxLoader();
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
         foreach ($this->states as $stateId => $stateName) {
             $stateLabel = __($stateName);
             $controlClass = 'dashtask';
             if (isset($currentStates[$stateId])) {
-                $controlClass .= ' todaysig';
+                $controlClass .= ' ' . $this->activeClass;
             }
-            $stateIcon = self::ICON_PATH . $this->icons[$stateId] . self::ICON_EXT;
+
+            $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+
             if (!file_exists($stateIcon)) {
                 $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
             }
@@ -325,9 +338,12 @@ class Stigma {
      */
     public function stigmaController() {
         if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
-            $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE));
-            $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));
-            die($stigmaCtrl->render(ubRouting::get(self::ROUTE_ITEMID)));
+            //my scope?
+            if ($this->scope == ubRouting::get(self::ROUTE_SCOPE)) {
+                $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE));
+                $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));
+                die($stigmaCtrl->render(ubRouting::get(self::ROUTE_ITEMID)));
+            }
         }
     }
 
