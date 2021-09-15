@@ -132,9 +132,6 @@ class Stigma {
         $this->initDatabase();
         $this->loadConfig();
         $this->loadStigmas();
-        //TODO:
-        //- think about non-iconic checklists/radiolists implementation?
-        //- implement basic per-scope stats
     }
 
     /**
