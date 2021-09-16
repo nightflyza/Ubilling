@@ -112,7 +112,7 @@ function cp_CheckCustomerid()
     }
 
     $allCustomers = op_CustomersGetAll();
-    if (!key_exists(trim($_GET['customer_id']), $allCustomers)) {
+    if (!array_key_exists(trim($_GET['customer_id']), $allCustomers)) {
         return false;
     }
 
@@ -144,7 +144,8 @@ function cp_CheckTransaction($hash)
  *
  * @return void
  */
-function cp_reportError($data) {
+function cp_reportError($data)
+{
     global $debug;
     header('HTTP/1.1 400 ' . $data . '"', true, 400);
     if ($debug) {
@@ -162,7 +163,8 @@ function cp_reportError($data) {
  *
  * @return void
  */
-function cp_reportSuccess($data) {
+function cp_reportSuccess($data)
+{
     global $debug;
     header('HTTP/1.1 200 ' . $data . '"', true, 200);
     if ($debug) {
@@ -195,7 +197,7 @@ $hash       = $response['orderReference'];
 $customerid = htmlspecialchars(trim($_GET['customer_id']));
 $summ       = $response['amount'];
 $paysys     = 'CONCORDPAY';
-$note       = 'Transaction ID: ' . $response['transactionId'];;
+$note       = 'Transaction ID: ' . $response['transactionId'];
 
 if (cp_CheckTransaction($hash) !== true) {
     cp_reportError($conf_concordpay['ERROR_DOUBLE_PAYMENT']);
@@ -212,4 +214,3 @@ if ($response['transactionStatus'] === ConcordPay::TRANSACTION_APPROVED) {
         cp_reportSuccess($conf_concordpay['TRANSACTION_SUCCESSFUL']);
     }
 }
-

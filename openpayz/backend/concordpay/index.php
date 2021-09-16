@@ -18,7 +18,7 @@ if (isset($_GET['customer_id'])) {
 // Get API OpenPayz
 include("../../libs/api.openpayz.php");
 // Get ConcordPay API
-include ("ConcordPay.php");
+include("ConcordPay.php");
 
 // Get merchant data.
 $merchant_name    = $conf_concordpay['MERCHANT_NAME'];
@@ -200,7 +200,8 @@ function cp_PageResult()
  */
 function cp_GetPaymentsListUrl()
 {
-    return htmlspecialchars($_SERVER['REQUEST_SCHEME']) . '://' . htmlspecialchars($_SERVER['HTTP_HOST']) . '/userstats/index.php?module=payments';
+    return htmlspecialchars($_SERVER['REQUEST_SCHEME']) . '://' . htmlspecialchars($_SERVER['HTTP_HOST'])
+        . '/userstats/index.php?module=payments';
 }
 
 /**
@@ -242,4 +243,3 @@ if (isset($_GET['result'])) {
 
 // Render data in template.
 include($template_file);
-
