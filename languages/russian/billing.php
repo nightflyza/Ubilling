@@ -3272,3 +3272,10 @@ $lang['def']['Refresh table data'] = 'Обновить данные таблиц
 $lang['def']['Info'] = 'Инфо';
 
 
+//rev 8088
+$lang['def']['Fix OLT inconsistencies'] = 'Исправить несоответствие OLT';
+$lang['def']['This operation automatically remaps ONU assigns whith OLT devices from where last data was received for this ONUs'] = 'Эта операция автоматически переназначат связи с OLT для ONU в соответствии с тем, откуда в последний раз на самом деле были получены данные этих ONU ';
+$lang['def']['wrong'] = 'неверный';
+$lang['def']['must be'] = 'должен быть';
+$lang['def']['assigned'] = 'присвоен';
+$lang['def']['Everything is Ok'] = 'Все хорошо';

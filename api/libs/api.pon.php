@@ -293,6 +293,13 @@ class PONizer {
     public $ponInterfaces = '';
 
     /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    /**
      * Some predefined paths, etc
      */
     const SIGCACHE_PATH = 'exports/';
@@ -344,6 +351,7 @@ class PONizer {
         $this->ubConfig = $ubillingConfig;
 
         $this->loadAlter();
+        $this->initMessages();
         $this->loadOltDevices();
         $this->loadOltModels();
         $this->loadSnmpTemplates();
@@ -385,6 +393,15 @@ class PONizer {
      */
     protected function loadAlter() {
         $this->altCfg = $this->ubConfig->getAlter();
+    }
+
+    /**
+     * Inits system messages helper for further usage
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -4183,6 +4200,14 @@ class PONizer {
      */
     public function renderOnuFdbCache() {
         $result = wf_BackLink(self::URL_ME);
+
+        //auto OLT associtation fixing interface
+        $fixCancelUrl = self::URL_ME . '&fdbcachelist=true';
+        $fixConfirmUrl = self::URL_ME . '&fdbcachelist=true&fixonuoltassings=true';
+        $fixDialogLabel = wf_img('skins/icon_repair.gif') . ' ' . __('Fix OLT inconsistencies');
+        $fixDialogNotice = __('This operation automatically remaps ONU assigns whith OLT devices from where last data was received for this ONUs');
+        $result .= wf_ConfirmDialog($fixConfirmUrl, $fixDialogLabel, $fixDialogNotice, 'ubButton', $fixCancelUrl);
+
         $result .= wf_delimiter();
         $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Login', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
@@ -4930,6 +4955,82 @@ class PONizer {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Automatically fixes ONU to OLT associations due the actual FDB cache data
+     *
+     * @return void
+     */
+    public function fixOnuOltAssigns() {
+        $result = '';
+        $result = wf_BackLink(self::URL_ME . '&fdbcachelist=true');
+        $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+        $failedOnuFound = false;
+        $repairConfirmed = (ubRouting::checkGet('autorepairconfirmed')) ? true : false;
+        if (!empty($availOnuFdbCache)) {
+            foreach ($availOnuFdbCache as $io => $eachFile) {
+                $oltId = explode('_', $eachFile);
+                $oltId = $oltId[0];
+                $oltDesc = @$this->allOltDevices[$oltId];
+                $fileData = file_get_contents(self::FDBCACHE_PATH . '/' . $eachFile);
+                if (!empty($fileData)) {
+                    $fileData = unserialize($fileData);
+                    if (!empty($fileData)) {
+                        foreach ($fileData as $onuMac => $onuTmp) {
+                            if (!empty($onuTmp)) {
+                                foreach ($onuTmp as $id => $onuData) {
+                                    $onuRealId = $this->getONUIDByMAC($onuMac);
+                                    $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
+                                    if ($onuRealId) {
+                                        $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
+                                        if ($wrongOltFlag) {
+                                            $failedOnuFound = true; //set once
+                                            $onuData = $this->allOnu[$onuRealId];
+                                            $wrongOltId = $onuData['oltid'];
+                                            $wrongOltDesc = @$this->allOltDevices[$wrongOltId];
+                                            if (empty($wrongOltDesc)) {
+                                                $wrongOltDesc = '[' . $wrongOltId . '] ' . __('Unknown');
+                                            }
+
+                                            $missmatchLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('wrong') . ' ' . __('OLT') . ' ' . $wrongOltDesc . ', ';
+                                            $missmatchLabel .= __('must be') . ' ' . $oltDesc;
+                                            $result .= $this->messages->getStyledMessage($missmatchLabel, 'warning');
+                                            if ($repairConfirmed) {
+                                                if (isset($this->allOltDevices[$oltId])) {
+                                                    if (isset($this->allOnu[$onuRealId])) {
+                                                        $where = "WHERE `id`='" . $onuRealId . "'";
+                                                        simple_update_field('pononu', 'oltid', $oltId, $where);
+                                                        log_register('PON REMAP ONU [' . $onuRealId . '] MAC `' . $onuData['mac'] . '` OLT [' . $wrongOltId . '] TO [' . $oltId . ']');
+                                                        $repairLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('assigned') . ' ' . __('OLT') . ' ' . $oltDesc . '!';
+                                                        $result .= $this->messages->getStyledMessage($repairLabel, 'success');
+                                                    } else {
+                                                        $result .= $this->messages->getStyledMessage(__('ONU') . ' [' . $onuRealId . '] ' . __('Not exists'), 'error');
+                                                    }
+                                                } else {
+                                                    $result .= $this->messages->getStyledMessage(__('OLT') . ' [' . $oltId . '] ' . __('Not exists'), 'error');
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+
+        if ($failedOnuFound) {
+            $result .= wf_delimiter();
+            $repairConfirmUrl = self::URL_ME . '&fdbcachelist=true&fixonuoltassings=true&autorepairconfirmed=true';
+            $result .= wf_JSAlert($repairConfirmUrl, wf_img('skins/icon_repair.gif') . ' ' . __('Fix') . '?', $this->messages->getEditAlert(), '', 'ubButton');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Everything is Ok'), 'success');
+        }
+        return($result);
     }
 
     /**

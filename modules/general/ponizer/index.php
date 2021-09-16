@@ -139,7 +139,11 @@ if ($altCfg['PON_ENABLED']) {
                         if (ubRouting::checkGet('ajaxfdblist')) {
                             $pon->ajaxFdbCacheList();
                         }
-                        show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
+                        if (ubRouting::checkGet('fixonuoltassings')) {
+                            show_window(__('Fix OLT inconsistencies'), $pon->fixOnuOltAssigns());
+                        } else {
+                            show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
+                        }
                     } else {
                         if (ubRouting::checkGet('oltstats')) {
                             if (!ubRouting::checkGet(array('oltid', 'if'))) {
