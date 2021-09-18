@@ -3279,3 +3279,5 @@ $lang['def']['wrong'] = 'неверный';
 $lang['def']['must be'] = 'должен быть';
 $lang['def']['assigned'] = 'присвоен';
 $lang['def']['Everything is Ok'] = 'Все хорошо';
+$lang['def']['right now'] = 'прямо сейчас';
+$lang['def']['forever'] = 'навсегда';

@@ -3301,5 +3301,8 @@ $lang['def']['wrong'] = 'невірний';
 $lang['def']['must be'] = 'має бути';
 $lang['def']['assigned'] = 'призначено';
 $lang['def']['Everything is Ok'] = 'Все гаразд';
+$lang['def']['right now'] = 'прямо зараз';
+$lang['def']['forever'] = 'назавжди';
+
 
 ?>
