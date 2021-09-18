@@ -51,7 +51,9 @@ function cp_GetCustomerDataByID($customer_id)
         INNER JOIN `emails` ON `op_customers`.`realid` = `emails`.`login`
         WHERE `op_customers`.`virtualid` = '" . $customer . "'";
     $data = simple_query($query);
-    if (empty($data) || empty(trim($data['realid'])) || empty(trim($data['virtualid']))) {
+    $realId=trim($data['realid']);
+    $virtualId=trim($data['virtualid']);
+    if (empty($data) || empty($realId) || empty($virtualId)) {
         die($conf_concordpay['ERROR_UNKNOWN_CUSTOMER']);
     }
 

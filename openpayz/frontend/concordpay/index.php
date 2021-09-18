@@ -107,7 +107,8 @@ function cp_CheckTransactionStatus($response)
  */
 function cp_CheckCustomerid()
 {
-    if (!isset($_GET['customer_id']) || empty(trim($_GET['customer_id']))) {
+    $customerId=trim($_GET['customer_id']);
+    if (!isset($_GET['customer_id']) || empty($customerId)) {
         return false;
     }
 
