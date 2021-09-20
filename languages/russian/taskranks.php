@@ -21,3 +21,14 @@ $lang['def']['right to control quality of tasks execution']='Право конт
 $lang['def']['Quality control']='Контроль качества';
 $lang['def']['Score']='Оценка';
 $lang['def']['Caused damage to property']='Повредили имущество';
+
+$lang['def']['Solved by phone']='Порешал телефоном';
+$lang['def']['Trip required']='Нужно ехать';
+$lang['def']['Reboot helped']='Помог ребут';
+$lang['def']['Configured equipment']='Настроил оборудование';
+$lang['def']['Equipment failed']='Оборудование сломано';
+$lang['def']['Cable damaged']='Кабель поврежден';
+$lang['def']['Network issue']='Проблема на сети';
+$lang['def']['Fixed himself']='Сами починили';
+$lang['def']['Other people settled']='Заселились другие люди';
+$lang['def']['What I did on the task']='Что я сделал на задаче';
