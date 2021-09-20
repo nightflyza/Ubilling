@@ -1462,12 +1462,30 @@ class UserProfile {
         if (@$this->alterCfg['EASY_FREEZE']) {
             if (cfr('EASYFREEZE')) {
                 if (@$this->alterCfg['DEALWITHIT_ENABLED']) {
-                    //catch freezing form data etc
-                    $freezeResult = zb_EasyFreezeController();
-                    //form rendering
-                    $form = web_EasyFreezeForm($this->login);
-                    if (!empty($freezeResult)) {
-                        $form .= $messages->getStyledMessage($freezeResult, 'error');
+                    $freezingAllowed = true;
+                    if (@$this->alterCfg['DDT_ANTIFREEZE']) {
+                        if (!cfr('SWRTZNGRFREEZE')) {
+                            $ddt = new DoomsDayTariffs();
+                            $protectedTariffs = $ddt->getCurrentTariffsDDT();
+                            $userData = zb_UserGetStargazerData($this->login);
+                            $userTariff = $userData['Tariff'];
+                            if (isset($protectedTariffs[$userTariff])) {
+                                $freezingAllowed = false;
+                            }
+                        }
+                    }
+
+                    if ($freezingAllowed) {
+                        //catch freezing form data etc
+                        $freezeResult = zb_EasyFreezeController();
+                        //form rendering
+                        $form = web_EasyFreezeForm($this->login);
+                        if (!empty($freezeResult)) {
+                            $form .= $messages->getStyledMessage($freezeResult, 'error');
+                        }
+                    } else {
+                        $ddtProtectionLabel = $messages->getStyledMessage(__('This user uses one of doomsday tariffs') . '. ' . __('Freezing denied') . '.', 'error');
+                        $form = wf_AjaxContainer('ddtnotice', 'style="width: 750px;"', $ddtProtectionLabel);
                     }
                 } else {
                     $form = $messages->getStyledMessage(__('Deal with it') . ' ' . __('Disabled'), 'error');
