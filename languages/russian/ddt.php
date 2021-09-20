@@ -28,3 +28,6 @@ $lang['def']['On'] = 'На';
 $lang['def']['is already planned tariff change to'] = 'уже запланирована смена тарифа на';
 $lang['def']['right to manage doomsday tariffs'] = 'Право управлять тарифами судного дня';
 $lang['def']['right to view doomsday tariffs history'] = 'Право просматривать историю тарифов судного дня';
+$lang['def']['This user uses one of doomsday tariffs'] = 'Этот пользователь использует один из тарифов судного дня';
+$lang['def']['Freezing denied'] = 'Замораживание запрещено';
+
