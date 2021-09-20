@@ -268,7 +268,7 @@ class Stigma {
     }
 
     /**
-     * Renders stigma current state and editing interface (prototype)
+     * Renders stigma current state and editing interface
      * 
      * @param string $itemId
      * @param int $size
@@ -327,6 +327,52 @@ class Stigma {
 
         $result .= wf_tag('div', true);
         $result .= wf_CleanDiv();
+
+        return($result);
+    }
+
+    /**
+     * Renders stigma current states as text string
+     * 
+     * @param string $itemId
+     * @param string $delimiter
+     * @param int $miniIcons
+     * 
+     * @return string
+     */
+    public function textRender($itemId, $delimiter = '', $miniIcons = '') {
+        $result = '';
+
+        $itemId = ubRouting::filters($itemId, 'mres');
+        $currentStates = array();
+
+        if (ubRouting::checkGet(self::ROUTE_ICONSIZE)) {
+            $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
+        }
+
+        //this itemid already have an stigma record
+        if (isset($this->allStigmas[$itemId])) {
+            $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
+            $currentStates = array_flip($rawStates);
+        }
+
+        foreach ($currentStates as $stateId => $index) {
+            if (!empty($stateId)) {
+                $stateName = (isset($this->states[$stateId])) ? $this->states[$stateId] : $stateId;
+                $stateLabel = __($stateName);
+                $iconCode = '';
+                if ($miniIcons) {
+                    $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+                    if (!file_exists($stateIcon)) {
+                        $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
+                    }
+                    $iconCode = wf_img_sized($stateIcon, $stateLabel, $miniIcons) . ' ';
+                }
+
+                $result .= $iconCode . $stateLabel . $delimiter;
+            }
+        }
+
 
         return($result);
     }
@@ -457,6 +503,23 @@ class Stigma {
 
         //update internal structs
         $this->loadStigmas();
+    }
+
+    /**
+     * Checks for available states for some itemId in scope
+     * 
+     * @param string $itemId
+     * 
+     * @return bool
+     */
+    public function haveState($itemId) {
+        $result = false;
+        if (isset($this->allStigmas[$itemId])) {
+            if (!empty($this->allStigmas[$itemId]['state'])) {
+                $result = true;
+            }
+        }
+        return($result);
     }
 
 }

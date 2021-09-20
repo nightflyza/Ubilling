@@ -1,6 +1,6 @@
 <?php
 
-$lang['def']['User rating of task completion ']='Оценка выполнения задач';
+$lang['def']['User rating of task completion']='Пользовательская оценка выполнения задачи';
 $lang['def']['Fail']='Провал';
 $lang['def']['Bad']='Плохо';
 $lang['def']['So-so']='Ну такое';
@@ -17,3 +17,6 @@ $lang['def']['Took cash']='Награбили налички';
 $lang['def']['Left a mess']='Оставили мусор';
 $lang['def']['Task checklist fails']='Фейлы выполнения задач';
 $lang['def']['Anomalies in the performance of tasks ']='Аномалии в выполнении задач';
+$lang['def']['right to control quality of tasks execution']='Право контролировать качество выполнения задач';
+$lang['def']['Quality control']='Контроль качества';
+$lang['def']['Score']='Оценка';

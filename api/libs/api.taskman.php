@@ -2227,6 +2227,47 @@ function ts_TaskChangeForm($taskid) {
         $tablecells .= wf_TableCell(nl2br($taskdata['jobnote']));
         $tablerows .= wf_TableRow($tablecells, 'row3');
 
+        if (@$altercfg['TASKRANKS_ENABLED']) {
+            $taskRanksReadOnly = (!cfr('TASKRANKS')) ? true : false;
+
+            $taskFails = new Stigma('TASKFAILS');
+            if (!$taskRanksReadOnly) {
+                $taskFails->stigmaController();
+            }
+
+            $taskRanks = new Stigma('TASKRANKS');
+            if (!$taskRanksReadOnly) {
+                $taskRanks->stigmaController();
+            }
+
+            $taskRanksInterface = '';
+            $taskRanksInterface .= __('Task checklist fails') . wf_delimiter(0);
+            $taskRanksInterface .= $taskFails->render($taskid, 128, $taskRanksReadOnly) . wf_delimiter(0);
+            $taskRanksInterface .= __('User rating of task completion') . wf_delimiter(0);
+            $taskRanksInterface .= $taskRanks->render($taskid, 64, $taskRanksReadOnly);
+            $taskHaveFails = $taskFails->haveState($taskid);
+            $taskHaveRank = $taskRanks->haveState($taskid);
+            $rankTextLabels = '';
+            if ($taskHaveFails) {
+                $rankTextLabels .= ' ' . $taskFails->textRender($taskid, ' ', '10') . ' ';
+            }
+
+            if ($taskHaveRank) {
+                $rankTextLabels .= __('Score') . ': ' . $taskRanks->textRender($taskid, '', '10');
+            }
+
+            $ranksModalLabel = __('Edit');
+            if (!$taskRanksReadOnly) {
+                $taskRanksModal = wf_modalAuto($ranksModalLabel, __('Quality control'), $taskRanksInterface, '');
+            } else {
+                $taskRanksModal='';
+            }
+
+            $tablecells = wf_TableCell(__('Quality control'));
+            $tablecells .= wf_TableCell($taskRanksModal . $rankTextLabels);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
+        }
+
         $result .= wf_TableBody($tablerows, '100%', '0', 'glamour');
         $result .= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
         // show task preview
@@ -2430,7 +2471,7 @@ function ts_renderLogsDataAjax($taskid = '') {
     if (!empty($result_log)) {
         $allemployee = ts_GetAllEmployee();
         $alljobtypes = ts_GetAllJobtypes();
-        $taskStates = new TaskStates(false);
+        $taskStates = new TaskStates(true);
 
         foreach ($result_log as $each) {
             $administratorChange = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
