@@ -383,9 +383,10 @@ function multinet_show_available_services() {
 
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
-            $netdesc = $allNetworkParams[$eachservice['netid']];
+            $netdesc = (empty($allNetworkParams[$eachservice['netid']]) ? __('Network does not exist anymore') : $allNetworkParams[$eachservice['netid']]['desc']);
+
             $tablecells = wf_TableCell($eachservice['id']);
-            $tablecells .= wf_TableCell($netdesc['desc']);
+            $tablecells .= wf_TableCell($netdesc);
             $tablecells .= wf_TableCell($eachservice['desc']);
             $actionlinks = wf_JSAlert('?module=multinet&deleteservice=' . $eachservice['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actionlinks .= wf_JSAlert('?module=multinet&editservice=' . $eachservice['id'], web_edit_icon(), 'Are you serious');
