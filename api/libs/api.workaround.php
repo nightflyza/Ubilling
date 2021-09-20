@@ -6411,3 +6411,76 @@ function zb_ReportPrintable($title, $data) {
     $data = $header . $title . $data . $footer;
     die($data);
 }
+
+/**
+ * Renders EasyFreeze form and process some requests
+ * 
+ * @param string $login
+ * 
+ * @return string
+ */
+function web_EasyFreezeForm($login) {
+    $result = '';
+    $dateFromPreset = curdate();
+    $dateToPreset = date("Y-m-t");
+
+    $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
+    $inputs .= wf_TextInput('omghack', '', '', false, '', '', '', '', 'style="width: 0; height: 0; top: -100px; position: absolute;"');
+    $inputs .= wf_HiddenInput('easyfreezeuser', $login);
+    $inputs .= __('Date from') . ' ' . wf_DatePickerPreset('easyfreezedatefrom', $dateFromPreset, true) . ' ';
+    $inputs .= __('Date to') . ' ' . wf_DatePickerPreset('easyfreezedateto', $dateToPreset, true);
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_CheckInput('easyfreezerightnow', __('Freeze user') . ' ' . __('right now'), true, false);
+    $inputs .= wf_CheckInput('easyfreezeforever', __('Freeze user') . ' ' . __('forever'), true, false);
+    $inputs .= wf_TextInput('easyfreezenote', __('Notes'), '', true, 30);
+    $inputs .= wf_delimiter(0);
+    $inputs .= wf_Submit(__('Freeze user'));
+
+    $result = wf_Form('', 'POST', $inputs, 'glamour');
+    return($result);
+}
+
+/**
+ * Catches and do some processing of easyfreeze requests
+ * 
+ * @global object $billing
+ * 
+ * @return void/string on error
+ */
+function zb_EasyFreezeController() {
+    $result = '';
+    //freezing processing 
+    if (ubRouting::checkPost(array('easyfreezeuser', 'easyfreezedatefrom', 'easyfreezedateto'))) {
+        global $billing;
+        $scheduler = new DealWithIt();
+        $loginToFreeze = ubRouting::post('easyfreezeuser');
+        $freezingNote = 'EASYFREEZE:' . ubRouting::post('easyfreezenote');
+
+        $dateFrom = ubRouting::post('easyfreezedatefrom');
+        $dateTo = ubRouting::post('easyfreezedateto');
+
+        if (zb_checkDate($dateFrom) AND zb_checkDate($dateTo)) {
+            //freezing
+            if (ubRouting::checkPost('easyfreezerightnow')) {
+                //just freeze user right now
+                $billing->setpassive($loginToFreeze, 1);
+                log_register('CHANGE Passive (' . $loginToFreeze . ') ON 1 NOTE `' . $freezingNote . '`');
+            } else {
+                //create new freezing schedule
+                $scheduler->createTask($dateFrom, $loginToFreeze, 'freeze', '', $freezingNote);
+            }
+
+            //unfreezing schedule if not forever
+            if (!ubRouting::checkPost('easyfreezeforever')) {
+                $scheduler->createTask($dateTo, $loginToFreeze, 'unfreeze', '', $freezingNote);
+            }
+
+
+            //refresh profile
+            ubRouting::nav(UserProfile::URL_PROFILE . $loginToFreeze);
+        } else {
+            $result .= __('Wrong date format');
+        }
+    }
+    return($result);
+}

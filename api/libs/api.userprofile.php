@@ -1458,33 +1458,22 @@ class UserProfile {
      */
     protected function getEasyFreezeController() {
         $result = '';
+        $messages = new UbillingMessageHelper();
         if (@$this->alterCfg['EASY_FREEZE']) {
             if (cfr('EASYFREEZE')) {
                 if (@$this->alterCfg['DEALWITHIT_ENABLED']) {
+                    //catch freezing form data etc
+                    $freezeResult = zb_EasyFreezeController();
                     //form rendering
-                    $dateFromPreset = curdate();
-                    $dateToPreset = date("Y-m-t");
-
-                    $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
-                    $inputs .= wf_TextInput('omghack', '', '', false, '', '', '', '', 'style="width: 0; height: 0; top: -100px; position: absolute;"');
-                    $inputs .= wf_HiddenInput('easyfreezeuser', $this->login);
-                    $inputs .= __('Date from') . ' ' . wf_DatePickerPreset('easyfreezedatefrom', $dateFromPreset, true) . ' ';
-                    $inputs .= __('Date to') . ' ' . wf_DatePickerPreset('easyfreezedateto', $dateToPreset, true);
-                    $inputs .= wf_delimiter(0);
-                    $inputs .= wf_CheckInput('easyfreezerightnow', __('Freeze user') . ' ' . __('right now'), true, false);
-                    $inputs .= wf_CheckInput('easyfreezeforever', __('Freeze user') . ' ' . __('forever'), true, false);
-                    $inputs .= wf_TextInput('easyfreezenote', __('Notes'), '', true, 30);
-                    $inputs .= wf_delimiter(0);
-                    $inputs .= wf_Submit(__('Freeze user'));
-
-                    $form = wf_Form('', 'POST', $inputs, 'glamour');
+                    $form = web_EasyFreezeForm($this->login);
+                    if (!empty($freezeResult)) {
+                        $form .= $messages->getStyledMessage($freezeResult, 'error');
+                    }
                 } else {
-                    $messages = new UbillingMessageHelper();
                     $form = $messages->getStyledMessage(__('Deal with it') . ' ' . __('Disabled'), 'error');
                 }
 
                 $controlIcon = wf_img_sized('skins/easyfreeze.png', __('Freeze user'), '10');
-
                 $result = wf_modalAuto($controlIcon, __('Freeze user'), $form);
             }
         }

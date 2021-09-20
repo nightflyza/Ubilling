@@ -3303,6 +3303,8 @@ $lang['def']['assigned'] = 'призначено';
 $lang['def']['Everything is Ok'] = 'Все гаразд';
 $lang['def']['right now'] = 'прямо зараз';
 $lang['def']['forever'] = 'назавжди';
+$lang['def']['right to use easyfreeze from user profile'] = 'Право використовувати швидку заморозку з профілю';
+$lang['def']['ultimative freezing ability'] = 'Ультимативна заморожуюча здатність';
 
 
 ?>
