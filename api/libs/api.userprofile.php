@@ -1465,7 +1465,7 @@ class UserProfile {
                     $freezingAllowed = true;
                     if (@$this->alterCfg['DDT_ANTIFREEZE']) {
                         if (!cfr('SWRTZNGRFREEZE')) {
-                            $ddt = new DoomsDayTariffs();
+                            $ddt = new DoomsDayTariffs(true);
                             $protectedTariffs = $ddt->getCurrentTariffsDDT();
                             $userData = zb_UserGetStargazerData($this->login);
                             $userTariff = $userData['Tariff'];

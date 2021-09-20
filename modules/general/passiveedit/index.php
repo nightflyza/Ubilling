@@ -127,7 +127,7 @@ if (cfr('PASSIVE')) {
 //                                         |_/
 
             if (!cfr('SWRTZNGRFREEZE')) {
-                $ddt = new DoomsDayTariffs();
+                $ddt = new DoomsDayTariffs(true);
                 $protectedTariffs = $ddt->getCurrentTariffsDDT();
                 $userData = zb_UserGetStargazerData($login);
                 $userTariff = $userData['Tariff'];
