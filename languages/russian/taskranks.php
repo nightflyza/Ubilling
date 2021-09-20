@@ -32,4 +32,5 @@ $lang['def']['Network issue']='Проблема на сети';
 $lang['def']['Fixed himself']='Сами починили';
 $lang['def']['Other people settled']='Заселились другие люди';
 $lang['def']['What I did on the task']='Что я сделал на задаче';
-$lang['def']['Sell equipment']='Продал оборудование';
+$lang['def']['Sell equipment']='Продажа оборудования';
+$lang['def']['Didnt get access']='Нет доступа';
