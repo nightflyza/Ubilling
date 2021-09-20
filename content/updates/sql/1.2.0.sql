@@ -136,3 +136,5 @@ KEY `date_payed` (`date_payed`),
 KEY `summ_payment` (`summ_payment`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
+ALTER TABLE `stigma` ADD INDEX(`scope`);
+

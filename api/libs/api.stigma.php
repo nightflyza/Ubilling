@@ -139,10 +139,6 @@ class Stigma {
         $this->initDatabase();
         $this->loadConfig();
         $this->loadStigmas();
-
-        //TODO: 
-        // - implement compact renderer
-        // - think about basic reporting
     }
 
     /**
