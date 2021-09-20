@@ -327,7 +327,7 @@ class TaskStates {
     public function renderStatePanel($takskId, $protected = false) {
         $result = '';
         $containerName = 'ajTaskState_' . $takskId;
-        $result .= wf_AjaxLoader();
+        $result .= wf_AjaxLoader(true);
         $result .= wf_tag('div', false, '', 'id="' . $containerName . '"');
         if (!empty($this->stateTypes)) {
             if (isset($this->allStates[$takskId])) {

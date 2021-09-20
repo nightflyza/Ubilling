@@ -20,4 +20,4 @@ $lang['def']['Anomalies in the performance of tasks ']='Аномалії в ви
 $lang['def']['right to control quality of tasks execution']='Право контролювати якість виконання задач';
 $lang['def']['Quality control']='Контроль якості';
 $lang['def']['Score']='Оцінка';
-
+$lang['def']['Caused damage to property']='Зашкодили майну';
