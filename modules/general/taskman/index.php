@@ -285,7 +285,7 @@ if (cfr('TASKMAN')) {
                             $taskWhatIdoReadOnly = ($taskData['status']) ? true : false;
                             $taskWhatIdo = new Stigma('TASKWHATIDO');
                             $taskWhatIdo->stigmaController();
-                            show_window(__('What I did on the task'), $taskWhatIdo->render(ubRouting::get('edittask'), '64', $taskWhatIdoReadOnly));
+                            show_window(__('What I did on the task'), $taskWhatIdo->render(ubRouting::get('edittask'), '128', $taskWhatIdoReadOnly));
                         }
                     }
 
