@@ -410,7 +410,7 @@ class Stigma {
         if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
             //my scope?
             if ($this->scope == ubRouting::get(self::ROUTE_SCOPE)) {
-                $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE));
+                $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE), ubRouting::get(self::ROUTE_ITEMID));
                 //state modification callback?
                 if (ubRouting::checkGet(self::ROUTE_STATE)) {
                     $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));

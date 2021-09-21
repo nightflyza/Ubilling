@@ -138,3 +138,4 @@ KEY `summ_payment` (`summ_payment`)
 
 ALTER TABLE `stigma` ADD INDEX(`scope`);
 
+ALTER TABLE `stigma` ADD INDEX(`itemid`);

@@ -283,7 +283,7 @@ if (cfr('TASKMAN')) {
                     if (@$altCfg['TASKWHATIDO_ENABLED']) {
                         if (!empty($taskData)) {
                             $taskWhatIdoReadOnly = ($taskData['status']) ? true : false;
-                            $taskWhatIdo = new Stigma('TASKWHATIDO');
+                            $taskWhatIdo = new Stigma('TASKWHATIDO', ubRouting::get('edittask'));
                             $taskWhatIdo->stigmaController();
                             show_window(__('What I did on the task'), $taskWhatIdo->render(ubRouting::get('edittask'), '128', $taskWhatIdoReadOnly));
                         }

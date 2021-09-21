@@ -2230,12 +2230,12 @@ function ts_TaskChangeForm($taskid) {
         if (@$altercfg['TASKRANKS_ENABLED']) {
             $taskRanksReadOnly = (!cfr('TASKRANKS')) ? true : false;
 
-            $taskFails = new Stigma('TASKFAILS');
+            $taskFails = new Stigma('TASKFAILS', $taskid);
             if (!$taskRanksReadOnly) {
                 $taskFails->stigmaController();
             }
 
-            $taskRanks = new Stigma('TASKRANKS');
+            $taskRanks = new Stigma('TASKRANKS', $taskid);
             if (!$taskRanksReadOnly) {
                 $taskRanks->stigmaController();
             }
@@ -2260,7 +2260,7 @@ function ts_TaskChangeForm($taskid) {
             if (!$taskRanksReadOnly) {
                 $taskRanksModal = wf_modalAuto($ranksModalLabel, __('Quality control'), $taskRanksInterface, '');
             } else {
-                $taskRanksModal='';
+                $taskRanksModal = '';
             }
 
             $tablecells = wf_TableCell(__('Quality control'));
