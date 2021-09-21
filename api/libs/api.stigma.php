@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * This class allow cast abstract stigmatization of random objects placed in random scopes.
+ */
 class Stigma {
 
     /**
