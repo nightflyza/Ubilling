@@ -116,9 +116,10 @@ class Stigma {
     /**
      * Creates new stigma on selected scope
      * 
-     * @param string $scope
+     * @param string $scope scope string identifier of stigma instance
+     * @param string $loadOnlyItem preload only some itemId data in selected scope
      */
-    public function __construct($scope) {
+    public function __construct($scope, $loadOnlyItem = '') {
         //            ______              
         //         .d$$$******$$$$c.        
         //      .d$P"            "$$c      
@@ -141,7 +142,7 @@ class Stigma {
         $this->setAdminLogin();
         $this->initDatabase();
         $this->loadConfig();
-        $this->loadStigmas();
+        $this->loadStigmas($loadOnlyItem);
     }
 
     /**
@@ -259,10 +260,16 @@ class Stigma {
     /**
      * Loads all states from database for current scope
      * 
+     * @param string $loadOnlyItem preload only some itemId data in selected scope
+     * 
      * @return void
      */
-    protected function loadStigmas() {
+    protected function loadStigmas($loadOnlyItem = '') {
         $this->stigmaDb->where('scope', '=', $this->scope);
+        if (!empty($loadOnlyItem)) {
+            $itemFilter = ubRouting::filters($loadOnlyItem, 'mres');
+            $this->stigmaDb->where('itemid', '=', $itemFilter);
+        }
         $this->allStigmas = $this->stigmaDb->getAll('itemid');
     }
 
