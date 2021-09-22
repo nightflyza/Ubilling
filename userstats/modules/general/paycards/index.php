@@ -90,7 +90,7 @@ function zbs_PaycardGetParams($cardnumber) {
  * 
  * @return void
  */
-function zbs_PaycardUse($cardnumber) {
+function zbs_PaycardUse($cardnumber, $pcAgentCall = false) {
     global $user_ip;
     global $user_login;
     global $us_config;
@@ -109,7 +109,10 @@ function zbs_PaycardUse($cardnumber) {
     nr_query($carduse_q);
     zbs_PaymentLog($user_login, $cardcash, $us_config['PC_CASHTYPEID'], "CARD:" . $cardnumber);
     billing_addcash($user_login, $cardcash);
-    rcms_redirect("index.php");
+
+    if (!$pcAgentCall) {
+        rcms_redirect("index.php");
+    }
 }
 
 /**
@@ -122,7 +125,7 @@ function zbs_PaycardUse($cardnumber) {
  * 
  * @return void
  */
-function zbs_PaycardQueue($cardnumber) {
+function zbs_PaycardQueue($cardnumber, $pcAgentCall = false) {
     global $user_ip;
     global $user_login;
     $cardnumber = vf($cardnumber);
@@ -137,7 +140,10 @@ function zbs_PaycardQueue($cardnumber) {
          WHERE `serial` ='" . $cardnumber . "';
         ";
     nr_query($carduse_q);
-    rcms_redirect("index.php");
+
+    if (!$pcAgentCall) {
+        rcms_redirect("index.php");
+    }
 }
 
 /**
@@ -161,8 +167,21 @@ function zbs_PayCardCheckBrute($user_ip, $pc_brute) {
     }
 }
 
+if (ubRouting::checkGet('agentpaycards')) {
+    $pcAgentCall = true;
+    $pcAgentResult = [];
+    $pcAgentOutputFormat = 'xml';
+
+    if (ubRouting::checkGet('json')) {
+        $pcAgentOutputFormat = 'json';
+    }
+} else {
+    $pcAgentCall = false;
+}
+
+// Check if Paycards module is enabled
 if ($pc_enabled) {
-    //check is that user idiot? 
+    //check is that user idiot?
     if (!zbs_PayCardCheckBrute($user_ip, $pc_brute)) {
         //add cash routine with checks
         if (isset($_POST['paycard'])) {
@@ -173,26 +192,54 @@ if ($pc_enabled) {
                     $series = str_replace($serialNumber, '', $_POST['paycard']);
                     $_POST['paycard'] = $serialNumber;
                 }
+
                 //use this card
                 if (zbs_PaycardCheck($_POST['paycard'], $series)) {
                     if (!@$us_config['PC_QUEUED']) {
-                        zbs_PaycardUse($_POST['paycard']);
+                        zbs_PaycardUse($_POST['paycard'], $pcAgentCall);
                     } else {
                         //or mark it for queue processing
-                        zbs_PaycardQueue($_POST['paycard']);
+                        zbs_PaycardQueue($_POST['paycard'], $pcAgentCall);
+                    }
+
+                    if ($pcAgentCall) {
+                        $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "true" : true);
+                        $pcAgentResult[] = array("message" => "Card is successfully used");
                     }
                 } else {
-                    show_window(__('Error'), __('Payment card invalid'));
+                    if ($pcAgentCall) {
+                        $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "false" : false);
+                        $pcAgentResult[] = array("message" => "Invalid card");
+                    } else {
+                        show_window(__('Error'), __('Payment card invalid'));
+                    }
                 }
             }
+        } else if ($pcAgentCall) {
+            $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "false" : false);
+            $pcAgentResult[] = array("message" => "No card number provided");
+        } else {
+            //show form
+            show_window(__('Payment cards'), zbs_PaycardsShowForm());
         }
-        //show form
-        show_window(__('Payment cards'), zbs_PaycardsShowForm());
     } else {
         //yeh, he is an idiot
-        show_window(__('Error'), __('Sorry, but you have a limit number of attempts'));
+        if ($pcAgentCall) {
+            $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "false" : false);
+            $pcAgentResult[] = array("message" => "Too many attempts");
+        } else {
+            show_window(__('Error'), __('Sorry, but you have a limit number of attempts'));
+        }
     }
 } else {
-    show_window(__('Sorry'), __('Payment cards are disabled at this moment'));
+    if ($pcAgentCall) {
+        $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "false" : false);
+        $pcAgentResult[] = array("message" => "Paycards module is disabled");
+    } else {
+        show_window(__('Sorry'), __('Payment cards are disabled at this moment'));
+    }
 }
-?>
+
+if ($pcAgentCall) {
+    zbs_XMLAgentRender($pcAgentResult, 'data', '', $pcAgentOutputFormat, false);
+}
