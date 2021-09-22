@@ -203,6 +203,7 @@ if ($us_config['SC_ENABLED']) {
     $sc_monthcontrol = $us_config['SC_MONTHCONTROL'];
     $sc_hackhcontrol = (isset($us_config['SC_HACKCONTROL']) AND ! empty($us_config['SC_HACKCONTROL'])) ? true : false;
     $sc_allowed = array();
+    $creditResultLabel = '';
 
     //getting some tariff data
     $tariffData = zbs_UserGetTariffData($tariff);
@@ -293,7 +294,8 @@ if ($us_config['SC_ENABLED']) {
                                 if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {
                                     //additional hack contol enabled
                                     if ($sc_hackhcontrol AND ! zbs_CreditLogCheckHack($user_login)) {
-                                        show_window(__('Sorry'), __('You can not take out a credit because you have not paid since the previous time'));
+                                        $creditResultLabel = __('You can not take out a credit because you have not paid since the previous time');
+                                        show_window(__('Sorry'), $creditResultLabel);
                                         $scAgentResult = array();
                                         $scAgentResult[] = array('status' => 10);
                                         $scAgentResult[] = array('message' => 'not paid previous');
@@ -308,13 +310,22 @@ if ($us_config['SC_ENABLED']) {
                                                 $scAgentResult = array();
                                                 $scAgentResult[] = array('status' => 0);
                                                 $scAgentResult[] = array('message' => 'success');
+                                                
+                                                $scAgentResult[] = array('fullmessage' => $creditResultLabel);
+                                                $scAgentResult[] = array('minday' => $sc_minday);
+                                                $scAgentResult[] = array('maxday' => $sc_maxday);
+                                                $scAgentResult[] = array('creditterm' => $sc_maxday);
+                                                $scAgentResult[] = array('creditprice' => $sc_price);
+                                                $scAgentResult[] = array('currency' => $us_currency);
+                                                $scAgentResult[] = array('creditintro' => $wmess);
                                                 //XMLAgent callback after success
                                                 if (ubRouting::checkGet('agentcredit')) {
                                                     zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
                                                 }
                                                 rcms_redirect("index.php");
                                             } else {
-                                                show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                                $creditResultLabel = __('You already used credit feature in current month. Only one usage per month is allowed.');
+                                                show_window(__('Sorry'), $creditResultLabel);
                                                 $scAgentResult = array();
                                                 $scAgentResult[] = array('status' => 9);
                                                 $scAgentResult[] = array('message' => 'already used in this month');
@@ -326,6 +337,14 @@ if ($us_config['SC_ENABLED']) {
                                             $scAgentResult = array();
                                             $scAgentResult[] = array('status' => 0);
                                             $scAgentResult[] = array('message' => 'success');
+
+                                            $scAgentResult[] = array('fullmessage' => $creditResultLabel);
+                                            $scAgentResult[] = array('minday' => $sc_minday);
+                                            $scAgentResult[] = array('maxday' => $sc_maxday);
+                                            $scAgentResult[] = array('creditterm' => $sc_maxday);
+                                            $scAgentResult[] = array('creditprice' => $sc_price);
+                                            $scAgentResult[] = array('currency' => $us_currency);
+                                            $scAgentResult[] = array('creditintro' => $wmess);
                                             //XMLAgent callback after success
                                             if (ubRouting::checkGet('agentcredit')) {
                                                 zbs_XMLAgentRender($scAgentResult, 'data', '', $agentOutputFormat, false);
@@ -335,14 +354,16 @@ if ($us_config['SC_ENABLED']) {
                                         //end of self credit main code
                                     }
                                 } else {
-                                    show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
+                                    $creditResultLabel = __('This feature is not allowed on your tariff');
+                                    show_window(__('Sorry'), $creditResultLabel);
                                     $scAgentResult = array();
                                     $scAgentResult[] = array('status' => 8);
                                     $scAgentResult[] = array('message' => 'not allowed on this tariff');
                                 }
                             } else {
                                 //to many money
-                                show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                                $creditResultLabel = __('Sorry, sum of money in the account is enought to use service without credit');
+                                show_window(__('Sorry'), $creditResultLabel);
                                 $scAgentResult = array();
                                 $scAgentResult[] = array('status' => 5);
                                 $scAgentResult[] = array('message' => 'too much money');
@@ -350,26 +371,30 @@ if ($us_config['SC_ENABLED']) {
                         } else {
                             //not allowed to use self credit
                             if ($current_cash < 0) {
-                                show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
+                                $creditResultLabel = __('Sorry, your debt does not allow to continue working in the credit');
+                                show_window(__('Sorry'), $creditResultLabel);
                                 $scAgentResult = array();
                                 $scAgentResult[] = array('status' => 6);
                                 $scAgentResult[] = array('message' => 'not enough money');
                             } else {
-                                show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                                $creditResultLabel = __('Sorry, sum of money in the account is enought to use service without credit');
+                                show_window(__('Sorry'), $creditResultLabel);
                                 $scAgentResult = array();
                                 $scAgentResult[] = array('status' => 5);
                                 $scAgentResult[] = array('message' => 'too much money');
                             }
                         }
                     } else {
-                        show_window(__('Sorry'), __('Your account has been frozen'));
+                        $creditResultLabel = __('Your account has been frozen');
+                        show_window(__('Sorry'), $creditResultLabel);
                         $scAgentResult = array();
                         $scAgentResult[] = array('status' => 4);
                         $scAgentResult[] = array('message' => 'account frozen');
                     }
                 } else {
                     // agreement check
-                    show_window(__('Sorry'), __('You must accept our policy'));
+                    $creditResultLabel = __('You must accept our policy');
+                    show_window(__('Sorry'), $creditResultLabel);
                     $scAgentResult = array();
                     $scAgentResult[] = array('status' => 7);
                     $scAgentResult[] = array('message' => 'unexpected error');
@@ -377,25 +402,28 @@ if ($us_config['SC_ENABLED']) {
             }
         } else {
             //you alredy have it 
-            show_window(__('Sorry'), __('You already have a credit'));
+            $creditResultLabel = __('You already have a credit');
+            show_window(__('Sorry'), $creditResultLabel);
             $scAgentResult = array();
             $scAgentResult[] = array('status' => 3);
             $scAgentResult[] = array('message' => 'already have a credit');
         }
     } else {
-        show_window(__('Sorry'), __('You can take a credit only between') . ' ' . $sc_minday . __(' and ') . $sc_maxday . ' ' . __('days of the month'));
+        $creditResultLabel = __('You can take a credit only between') . ' ' . $sc_minday . __(' and ') . $sc_maxday . ' ' . __('days of the month');
+        show_window(__('Sorry'), $creditResultLabel);
         $scAgentResult = array();
         $scAgentResult[] = array('status' => 2);
         $scAgentResult[] = array('message' => 'wrong day');
     }
-    
-//append some required data
-$scAgentResult[] = array('fullmessage' => $wmess);
-$scAgentResult[] = array('minday' => $sc_minday);
-$scAgentResult[] = array('maxday' => $sc_maxday);
-$scAgentResult[] = array('creditterm' => $sc_maxday);
-$scAgentResult[] = array('creditprice' => $sc_price);
-$scAgentResult[] = array('currency' => $us_currency);
+
+//append some required data on cases when something not good
+    $scAgentResult[] = array('fullmessage' => $creditResultLabel);
+    $scAgentResult[] = array('minday' => $sc_minday);
+    $scAgentResult[] = array('maxday' => $sc_maxday);
+    $scAgentResult[] = array('creditterm' => $sc_maxday);
+    $scAgentResult[] = array('creditprice' => $sc_price);
+    $scAgentResult[] = array('currency' => $us_currency);
+    $scAgentResult[] = array('creditintro' => $wmess);
 
 //and if disabled :(
 } else {
