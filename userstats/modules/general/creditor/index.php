@@ -388,6 +388,14 @@ if ($us_config['SC_ENABLED']) {
         $scAgentResult[] = array('status' => 2);
         $scAgentResult[] = array('message' => 'wrong day');
     }
+    
+//append some required data
+$scAgentResult[] = array('fullmessage' => $wmess);
+$scAgentResult[] = array('minday' => $sc_minday);
+$scAgentResult[] = array('maxday' => $sc_maxday);
+$scAgentResult[] = array('creditterm' => $sc_maxday);
+$scAgentResult[] = array('creditprice' => $sc_price);
+$scAgentResult[] = array('currency' => $us_currency);
 
 //and if disabled :(
 } else {
