@@ -87,6 +87,7 @@ function zbs_PaycardGetParams($cardnumber) {
  * @global array $us_config
  * 
  * @param string $cardnumber
+ * @param bool $pcAgentCall
  * 
  * @return void
  */
@@ -122,6 +123,7 @@ function zbs_PaycardUse($cardnumber, $pcAgentCall = false) {
  * @global string $user_login
  * 
  * @param string $cardnumber
+ * @param bool $pcAgentCall
  * 
  * @return void
  */
@@ -169,7 +171,7 @@ function zbs_PayCardCheckBrute($user_ip, $pc_brute) {
 
 if (ubRouting::checkGet('agentpaycards')) {
     $pcAgentCall = true;
-    $pcAgentResult = [];
+    $pcAgentResult = array();
     $pcAgentOutputFormat = 'xml';
 
     if (ubRouting::checkGet('json')) {
@@ -183,36 +185,45 @@ if (ubRouting::checkGet('agentpaycards')) {
 if ($pc_enabled) {
     //check is that user idiot?
     if (!zbs_PayCardCheckBrute($user_ip, $pc_brute)) {
+        $payCardInput = '';
+        //receive payment card input in any way
+        if (ubRouting::checkGet('paycard')) {
+            $payCardInput = ubRouting::get('paycard');
+        }
+
+        if (ubRouting::checkPost('paycard')) {
+            $payCardInput = ubRouting::post('paycard');
+        }
+
         //add cash routine with checks
-        if (isset($_POST['paycard'])) {
-            if (!empty($_POST['paycard'])) {
-                $series = false;
-                if ($us_config['PC_SERIES_AND_SN']) {
-                    $serialNumber = substr($_POST['paycard'], $us_config['PC_SERIES_LENGTH']);
-                    $series = str_replace($serialNumber, '', $_POST['paycard']);
-                    $_POST['paycard'] = $serialNumber;
+        if (!empty($payCardInput)) {
+
+            $series = false;
+            if ($us_config['PC_SERIES_AND_SN']) {
+                $serialNumber = substr($payCardInput, $us_config['PC_SERIES_LENGTH']);
+                $series = str_replace($serialNumber, '', $payCardInput);
+                $payCardInput = $serialNumber;
+            }
+
+            //use this card
+            if (zbs_PaycardCheck($payCardInput, $series)) {
+                if (!@$us_config['PC_QUEUED']) {
+                    zbs_PaycardUse($payCardInput, $pcAgentCall);
+                } else {
+                    //or mark it for queue processing
+                    zbs_PaycardQueue($payCardInput, $pcAgentCall);
                 }
 
-                //use this card
-                if (zbs_PaycardCheck($_POST['paycard'], $series)) {
-                    if (!@$us_config['PC_QUEUED']) {
-                        zbs_PaycardUse($_POST['paycard'], $pcAgentCall);
-                    } else {
-                        //or mark it for queue processing
-                        zbs_PaycardQueue($_POST['paycard'], $pcAgentCall);
-                    }
-
-                    if ($pcAgentCall) {
-                        $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "true" : true);
-                        $pcAgentResult[] = array("message" => "Card is successfully used");
-                    }
+                if ($pcAgentCall) {
+                    $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "true" : true);
+                    $pcAgentResult[] = array("message" => "Card is successfully used");
+                }
+            } else {
+                if ($pcAgentCall) {
+                    $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "false" : false);
+                    $pcAgentResult[] = array("message" => "Invalid card");
                 } else {
-                    if ($pcAgentCall) {
-                        $pcAgentResult[] = array("result" => $pcAgentOutputFormat === 'xml' ? "false" : false);
-                        $pcAgentResult[] = array("message" => "Invalid card");
-                    } else {
-                        show_window(__('Error'), __('Payment card invalid'));
-                    }
+                    show_window(__('Error'), __('Payment card invalid'));
                 }
             }
         } else if ($pcAgentCall) {
