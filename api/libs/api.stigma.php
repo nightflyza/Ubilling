@@ -86,9 +86,19 @@ class Stigma {
     const ICON_PATH = 'skins/stigma/';
 
     /**
-     * Stigma configuration files path
+     * Default stigma configuration files path
      */
     const CONFIG_PATH = 'config/stigma/';
+
+    /**
+     * Custom stigma configs path. Have higher priority on loading.
+     */
+    const CUSTOM_CONFIG_PATH = 'content/documents/mystigma/confs/';
+
+    /**
+     * Custom stigma icons path. Search icons at start at CUSTOM_ICON_PATH then on ICON_PATH.
+     */
+    const CUSTOM_ICON_PATH = 'content/documents/mystigma/icons/';
 
     /**
      * per-scope configuration files extension
@@ -120,23 +130,23 @@ class Stigma {
      * @param string $loadOnlyItem preload only some itemId data in selected scope
      */
     public function __construct($scope, $loadOnlyItem = '') {
-        //            ______              
-        //         .d$$$******$$$$c.        
-        //      .d$P"            "$$c      
-        //     $$$$$.           .$$$*$.    
-        //   .$$ 4$L*$$.     .$$Pd$  '$b   
-        //   $F   *$. "$$e.e$$" 4$F   ^$b  
-        //  d$     $$   z$$$e   $$     '$. 
-        //  $P     `$L$$P` `"$$d$"      $$ 
-        //  $$     e$$F       4$$b.     $$ 
-        //  $b  .$$" $$      .$$ "4$b.  $$ 
-        //  $$e$P"    $b     d$`    "$$c$F 
-        //  '$P$$$$$$$$$$$$$$$$$$$$$$$$$$  
-        //   "$c.      4$.  $$       .$$   
-        //    ^$$.      $$ d$"      d$P    
-        //      "$$c.   `$b$F    .d$P"     
-        //        `4$$$c.$$$..e$$P"        
-        //            `^^^^^^^`
+//            ______              
+//         .d$$$******$$$$c.        
+//      .d$P"            "$$c      
+//     $$$$$.           .$$$*$.    
+//   .$$ 4$L*$$.     .$$Pd$  '$b   
+//   $F   *$. "$$e.e$$" 4$F   ^$b  
+//  d$     $$   z$$$e   $$     '$. 
+//  $P     `$L$$P` `"$$d$"      $$ 
+//  $$     e$$F       4$$b.     $$ 
+//  $b  .$$" $$      .$$ "4$b.  $$ 
+//  $$e$P"    $b     d$`    "$$c$F 
+//  '$P$$$$$$$$$$$$$$$$$$$$$$$$$$  
+//   "$c.      4$.  $$       .$$   
+//    ^$$.      $$ d$"      d$P    
+//      "$$c.   `$b$F    .d$P"     
+//        `4$$$c.$$$..e$$P"        
+//            `^^^^^^^`
         $this->setScope($scope);
         $this->setBaseUrl();
         $this->setAdminLogin();
@@ -219,7 +229,12 @@ class Stigma {
      */
     protected function loadConfig() {
         $confName = strtolower($this->scope);
-        $confFullPath = self::CONFIG_PATH . $confName . self::CONFIG_EXT;
+        $confFullPath = self::CUSTOM_CONFIG_PATH . $confName . self::CONFIG_EXT;
+        if (!file_exists($confFullPath)) {
+//use default path
+            $confFullPath = self::CONFIG_PATH . $confName . self::CONFIG_EXT;
+        }
+
         if (file_exists($confFullPath)) {
             $raw = rcms_parse_ini_file($confFullPath, true);
             /**
@@ -292,10 +307,11 @@ class Stigma {
             $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
         }
 
-        //this itemid already have an stigma record
+//this itemid already have an stigma record
         if (isset($this->allStigmas[$itemId])) {
             $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
             $currentStates = array_flip($rawStates);
+            unset($currentStates['']);
         }
 
         $containerName = 'ajStigma' . $this->scope . '_' . $itemId;
@@ -308,9 +324,18 @@ class Stigma {
                 $controlClass .= ' ' . $this->activeClass;
             }
 
-            $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+            $stateIcon = '';
 
-            if (!file_exists($stateIcon)) {
+            if (file_exists(self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
+                $stateIcon = self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+            } else {
+                if (file_exists(self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
+                    $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+                }
+            }
+
+
+            if (empty($stateIcon)) {
                 $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
             }
 
@@ -356,10 +381,11 @@ class Stigma {
             $size = ubRouting::get(self::ROUTE_ICONSIZE, 'int');
         }
 
-        //this itemid already have an stigma record
+//this itemid already have an stigma record
         if (isset($this->allStigmas[$itemId])) {
             $rawStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
             $currentStates = array_flip($rawStates);
+            unset($currentStates['']);
         }
 
         foreach ($currentStates as $stateId => $index) {
@@ -368,8 +394,18 @@ class Stigma {
                 $stateLabel = __($stateName);
                 $iconCode = '';
                 if ($miniIcons) {
-                    $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
-                    if (!file_exists($stateIcon)) {
+                    $stateIcon = '';
+
+                    if (file_exists(self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
+                        $stateIcon = self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+                    } else {
+                        if (file_exists(self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
+                            $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+                        }
+                    }
+
+
+                    if (empty($stateIcon)) {
                         $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
                     }
                     $iconCode = wf_img_sized($stateIcon, $stateLabel, $miniIcons) . ' ';
@@ -396,6 +432,7 @@ class Stigma {
             if (!empty($this->allStigmas[$itemId]['state'])) {
                 $itemStates = explode(self::DELIMITER, $this->allStigmas[$itemId]['state']);
                 $result = array_flip($itemStates);
+                unset($result['']);
             }
         }
         return($result);
@@ -408,10 +445,10 @@ class Stigma {
      */
     public function stigmaController() {
         if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
-            //my scope?
+//my scope?
             if ($this->scope == ubRouting::get(self::ROUTE_SCOPE)) {
                 $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE), ubRouting::get(self::ROUTE_ITEMID));
-                //state modification callback?
+//state modification callback?
                 if (ubRouting::checkGet(self::ROUTE_STATE)) {
                     $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));
                 }
@@ -466,18 +503,18 @@ class Stigma {
         $itemId = ubRouting::filters($itemId, 'mres');
         $state = ubRouting::filters($state, 'mres');
 
-        //Item stigma already exists. Update it.
+//Item stigma already exists. Update it.
         if (isset($this->allStigmas[$itemId])) {
             $currentStates = $this->getItemStates($itemId);
             if ($this->type == 'radiolist') {
-                //state is changed?
+//state is changed?
                 if (!isset($currentStates[$state])) {
                     $this->setState($itemId, $state);
                 }
             }
 
             if ($this->type == 'checklist') {
-                //uncheck already set state
+//uncheck already set state
                 if (isset($currentStates[$state])) {
                     $newStates = $currentStates;
                     unset($newStates[$state]);
@@ -488,7 +525,7 @@ class Stigma {
                         }
                     }
                 } else {
-                    //update state with new one
+//update state with new one
                     $newStates = $currentStates;
                     $newStates[$state] = $state;
                     $newStatesString = '';
@@ -499,15 +536,15 @@ class Stigma {
                     }
                 }
 
-                //saving new item state to database
+//saving new item state to database
                 $this->setState($itemId, $newStatesString);
             }
         } else {
-            //new stigma
+//new stigma
             $this->createState($itemId, $state);
         }
 
-        //update internal structs
+//update internal structs
         $this->loadStigmas();
     }
 
