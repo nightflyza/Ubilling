@@ -34,3 +34,4 @@ $lang['def']['Other people settled']='Заселились другие люди
 $lang['def']['What I did on the task']='Что я сделал на задаче';
 $lang['def']['Sell equipment']='Продажа оборудования';
 $lang['def']['Didnt get access']='Нет доступа';
+$lang['def']['Replaced equipment']='Поменял оборудование';
