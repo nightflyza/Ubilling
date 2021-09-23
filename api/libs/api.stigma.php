@@ -291,9 +291,9 @@ class Stigma {
     /**
      * Renders stigma current state and editing interface
      * 
-     * @param string $itemId
-     * @param int $size
-     * @param bool $readOnly
+     * @param string $itemId item ID to render control panel
+     * @param int $size optional size of state icons
+     * @param bool $readOnly render panel as read-only state preview
      * 
      * @return string
      */
@@ -365,9 +365,9 @@ class Stigma {
     /**
      * Renders stigma current states as text string
      * 
-     * @param string $itemId
-     * @param string $delimiter
-     * @param int $miniIcons
+     * @param string $itemId item ID to render data
+     * @param string $delimiter text delimiter between states
+     * @param int $miniIcons icons size if required
      * 
      * @return string
      */
@@ -562,6 +562,29 @@ class Stigma {
                 $result = true;
             }
         }
+        return($result);
+    }
+
+    /**
+     * Returns array of all available states text labels as stateId=>textLabel
+     * 
+     * @return array
+     */
+    public function getAllStates() {
+        return($this->states);
+    }
+
+    /**
+     * Returns report data by states in selected time range
+     * 
+     * @param string $dateFrom
+     * @param string $dateTo
+     * 
+     * @return array
+     */
+    public function getReportData($dateFrom = '', $dateTo = '') {
+        $result = array();
+        ///TODO
         return($result);
     }
 
