@@ -1551,6 +1551,8 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
 ";
 
     $jsCalendarDnD = '';
+    $jsCalendarSrchFill = '';
+    $jsCalendarSearch = '';
     $appendJS = '';
 
     if ($dragdropON) {
@@ -1618,6 +1620,34 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     }
 
     if ($titlesSearchON) {
+        $jsCalendarSrchFill = "$('#calendarSource').val(JSON.stringify(calendar.clientEvents(), ['id', 'title', 'start', 'end', 'url', 'className', 'allDay']));";
+        $jsCalendarSearch = "
+        $('#calendarSearchInput').on('change keyup', function() {
+            var searchWords = this.value.toLowerCase().split(' ');
+            var source = JSON.parse($('#calendarSource').val());          
+            var newSource = source.filter(elem => {
+                                            var titleStr = elem.title.toLowerCase();
+                                            return searchWords.every(item => titleStr.includes(item));
+                                         });
+                                         
+            // converting UTC datetime back to our timezone
+            newSource.forEach(item => {
+                                var dtStart = item.start;
+                                item.start = new Date(dtStart);
+                             });               
+            refreshCalendar(newSource);
+        });
+        
+        function refreshCalendar(newSource) {
+            $('#" . $elementid . "').fullCalendar('removeEvents');
+            $('#" . $elementid . "').fullCalendar('addEventSource', newSource);
+            $('#" . $elementid . "').fullCalendar('refetchEvents');
+        }
+        
+        ";
+    }
+
+    if ($titlesSearchON or $dragdropON) {
         $appendJS = "
 <script type='text/javascript'>
     // global scope var to save the event's initial start datetime on DragNDrop operation start
@@ -1625,8 +1655,8 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     var eventPrevStartDT = '';
     
 	$(function() {
-	    var calendar = $('#" . $elementid . "').fullCalendar('getCalendar');
-        $('#calendarSource').val(JSON.stringify(calendar.clientEvents(), ['id', 'title', 'start', 'end', 'url', 'className', 'allDay']));
+	    var calendar = $('#" . $elementid . "').fullCalendar('getCalendar');        
+        " . $jsCalendarSrchFill . "
         
         calendar.on('eventDragStart', function(event, jsEvent, ui, view) {
             eventPrevStartDT = event.start.format();            
@@ -1634,42 +1664,25 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
         
         " . $jsCalendarDnD . "
     });
+    
+    " . $jsCalendarSearch . "
 
-    $('#calendarSearchInput').on('change keyup', function() {
-        var searchWords = this.value.toLowerCase().split(' ');
-        var source = JSON.parse($('#calendarSource').val());          
-        var newSource = source.filter(elem => {
-                                        var titleStr = elem.title.toLowerCase();
-                                        return searchWords.every(item => titleStr.includes(item));
-                                     });
-                                     
-        // converting UTC datetime back to our timezone
-        newSource.forEach(item => {
-                            var dtStart = item.start;
-                            item.start = new Date(dtStart);
-                         });               
-        refreshCalendar(newSource);
-    });
-    
-	function refreshCalendar(newSource) {
-        $('#" . $elementid . "').fullCalendar('removeEvents');
-        $('#" . $elementid . "').fullCalendar('addEventSource', newSource);
-        $('#" . $elementid . "').fullCalendar('refetchEvents');
-    }
-    
     " . wf_JSEmptyFunc() . "
 </script>
     
         ";
-    
 
-    $calendar.= $appendJS;
-    $calendar.= "\n" . wf_HiddenInput('calendarsource', '', 'calendarSource');
-    $calendar = wf_TextInput('searchcalendar', __('Calendar events titles filter') . ':' . wf_nbsp(2), '', true, '', '',
-                             'glamour', 'calendarSearchInput', 'style="width: 70%; float: none !important"',
-                             true, 'style="font-size: 1.1em; margin-left: 5px; font-weight: bold;"')
-                . wf_delimiter() . $calendar;
-}
+        $calendar.= $appendJS;
+    }
+
+    if ($titlesSearchON) {
+        $calendar.= "\n" . wf_HiddenInput('calendarsource', '', 'calendarSource');
+        $calendar = wf_TextInput('searchcalendar', __('Calendar events titles filter') . ':' . wf_nbsp(2), '', true, '', '',
+                                 'glamour', 'calendarSearchInput', 'style="width: 70%; float: none !important"',
+                                 true, 'style="font-size: 1.1em; margin-left: 5px; font-weight: bold;"')
+                    . wf_delimiter() . $calendar;
+    }
+
     return($calendar);
 }
 
