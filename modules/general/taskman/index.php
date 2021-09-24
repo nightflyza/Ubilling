@@ -64,6 +64,19 @@ if (cfr('TASKMAN')) {
         }
     }
 
+    //modify task start date after drag and drop
+    if (ubRouting::checkPost(array('object_id', 'new_start_time'))) {
+        $taskID = ubRouting::post('object_id');
+        $newStartDT = ubRouting::post('new_start_time');
+        $taskData = ts_GetTaskData($taskID);
+
+        if (!empty($taskData)) {
+            $newStartDT = date('Y-m-d', strtotime($newStartDT));
+            ts_ModifyTask($taskID, $newStartDT, $taskData['starttime'], $taskData['address'], $taskData['login'], $taskData['phone'], $taskData['jobtype'], $taskData['employee'], $taskData['jobnote']);
+            die('SUCCESS');
+        } else { die('FAIL'); }
+    }
+
     //if marking task as done
     if (isset($_POST['changetask'])) {
         if (wf_CheckPost(array('editenddate', 'editemployeedone'))) {
@@ -158,7 +171,7 @@ if (cfr('TASKMAN')) {
                         //custom jobtypes color styling
                         $customJobColorStyle = ts_GetAllJobtypesColorStyles();
                         //show full calendar view
-                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts, $extendedDoneAlterStylingBool, $extendedDoneAlterListOnly));
+                        show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts, $extendedDoneAlterStylingBool, $extendedDoneAlterListOnly, '?module=taskman'));
                     }
                 } else {
                     show_window(__('Show late'), ts_ShowLate());

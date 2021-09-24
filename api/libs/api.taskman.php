@@ -681,12 +681,12 @@ function ts_JGetUndoneTasks() {
 
             $result .= "
                       {
+                        id: " . $eachtask['id'] . ",
                         title: '" . $startTime . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         className : '" . $jobColorClass . "',
-                        url: '?module=taskman&edittask=" . $eachtask['id'] . "'
-                        
+                        url: '?module=taskman&edittask=" . $eachtask['id'] . "'                        
                       } 
                     " . $thelast;
         }
@@ -815,10 +815,12 @@ function ts_JGetDoneTasks() {
 
             $result .= "
                       {
+                        id: " . $eachtask['id'] . ",
                         title: '" . $eachtask['address'] . " - " . $doneemploee . $adcText . mysql_real_escape_string($extendInfo) . "',
                         start: new Date(" . $startdate . "),
                         end: new Date(" . $enddate . "),
-                        url: '?module=taskman&edittask=" . $eachtask['id'] . "'
+                        url: '?module=taskman&edittask=" . $eachtask['id'] . "',
+                        constraint: {start: '00:00', end: '00:00', dow: []}
                       }
                     " . $thelast;
         }
@@ -951,11 +953,13 @@ function ts_JGetAllTasks() {
 
             $result .= "
                       {
+                        id: " . $eachtask['id'] . ",
                         title: '" . $startTime . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         " . $coloring . "
-                        url: '?module=taskman&edittask=" . $eachtask['id'] . "'
+                        url: '?module=taskman&edittask=" . $eachtask['id'] . "',
+                        " . ($eachtask['status'] == 1 ? "constraint: {start: '00:00', end: '00:00', dow: []}" : "") . "
                       }
                     " . $thelast;
         }
@@ -2335,7 +2339,7 @@ function ts_TaskChangeForm($taskid) {
             $donerows = wf_TableRow($donecells, 'row3');
 
             $donecells = wf_TableCell(__('Worker done'));
-            $donecells .= wf_TableCell($allemployee[$taskdata['employeedone']]);
+            $donecells .= wf_TableCell((empty($allemployee[$taskdata['employeedone']]) ? '' : $allemployee[$taskdata['employeedone']]));
             $donerows .= wf_TableRow($donecells, 'row3');
 
             $donecells = wf_TableCell(__('Finish note'));

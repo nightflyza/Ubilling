@@ -3306,6 +3306,7 @@ $lang['def']['forever'] = 'назавжди';
 $lang['def']['right to use easyfreeze from user profile'] = 'Право використовувати швидку заморозку з профілю';
 $lang['def']['ultimative freezing ability'] = 'Ультимативна заморожуюча здатність';
 $lang['def']['Network does not exist anymore'] = 'Мережа більше не існує';
-
+$lang['def']['Do you confirm the movement of this event?'] = 'Ви підтверджуєте переміщення цієї події?';
+$lang['def']['Calendar events titles filter'] = 'Фільтр по заголовках подій календаря';
 
 ?>
