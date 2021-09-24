@@ -1404,11 +1404,20 @@ function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '', 
  * Returns FullCalendar widget
  * 
  * @param string $data prepeared data to show
+ * @param string $options
+ * @param bool $useHTMLInTitle
+ * @param bool $useHTMLListViewOnly
+ * @param string $ajaxURLForDnD
+ *
  * @return string
- *  
  */
-function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTMLListViewOnly = false) {
+function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTMLListViewOnly = false, $ajaxURLForDnD = '') {
+    global $ubillingConfig;
+
     $elementid = wf_InputId();
+    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and !empty($ajaxURLForDnD));
+    $dndConfirmON = $ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_CONFIRM_ON');
+    $titlesSearchON = $ubillingConfig->getAlterParam('CALENDAR_TITLES_SEARCH_ON');
 
     if ($useHTMLInTitle) {
         if ($useHTMLListViewOnly) {
@@ -1459,7 +1468,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
 				right: 'month,basicWeek,basicDay,listMonth'
 			},
                         
-			editable: false,
+			editable: " . ($dragdropON ? "true" : "false") . ",
                         " . $htmlInTitle . "                         
                         theme: true,
                         weekends: true,
@@ -1535,17 +1544,138 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
 		});
 		
 	});
-
+	
 </script>
+
 <div id='" . $elementid . "'></div>
 ";
+
+    $jsCalendarDnD = '';
+    $appendJS = '';
+
+    if ($dragdropON) {
+        $jsCalendarDnDCancel =
+        "   event.start = eventPrevStartDT;
+            $('#" . $elementid . "').fullCalendar('updateEvent', event);
+            console.log(objID + '  Start time change canceled');
+        ";
+
+        $jsCalendarDnDMain =
+        "       // need to convert to local time to prevent adding timezone offset hours adding after drop
+                var mm = moment(event.start);            
+                mm.local();
+                event.start = mm;
+                var newStartDT = event.start.format('YYYY-MM-DD HH:mm:ss');
+            
+                $.ajax({
+                        type: \"POST\",
+                        url: \"" . $ajaxURLForDnD . "\",
+                        data: {object_id: objID, new_start_time: newStartDT},
+                        success: function(reqResult) {
+                                    // 'SUCCESS' must be returned as a result of the request  
+                                    // to indicate that event datetime was actually changed                                     
+                                    // otherwise DnD operation will be reverted
+                                    if (reqResult == 'SUCCESS') {
+                                        console.log(objID + '  Start time changed');
+                                    } else {
+                                    " . $jsCalendarDnDCancel . "
+                                    }
+                                 }
+                });        
+        ";
+
+        if ($dndConfirmON) {
+            $jsCalendarDnD = "
+        calendar.on('eventDrop', function(event, delta, revertFunc, jsEvent, ui, view) {       
+            var objID = event.id;
+            if (empty(objID)) {
+            " . $jsCalendarDnDCancel . "
+                return false;
+            }
+           
+            if (confirm('" . __('Do you confirm the movement of this event?') . "')) {
+                " . $jsCalendarDnDMain . "
+            } else {
+                " . $jsCalendarDnDCancel . "
+            }
+        });
+        
+        ";
+        } else {
+            $jsCalendarDnD = "
+        calendar.on('eventDrop', function(event, delta, revertFunc, jsEvent, ui, view) {     
+            var objID = event.id;
+            if (empty(objID)) {
+            " . $jsCalendarDnDCancel . "
+                return false;
+            }
+                
+        " . $jsCalendarDnDMain . "
+        });
+        
+        ";
+        }
+    }
+
+    if ($titlesSearchON) {
+        $appendJS = "
+<script type='text/javascript'>
+    // global scope var to save the event's initial start datetime on DragNDrop operation start
+    // to be used for DnD cancelation if confirmation is ON 
+    var eventPrevStartDT = '';
+    
+	$(function() {
+	    var calendar = $('#" . $elementid . "').fullCalendar('getCalendar');
+        $('#calendarSource').val(JSON.stringify(calendar.clientEvents(), ['id', 'title', 'start', 'end', 'url', 'className', 'allDay']));
+        
+        calendar.on('eventDragStart', function(event, jsEvent, ui, view) {
+            eventPrevStartDT = event.start.format();            
+        });
+        
+        " . $jsCalendarDnD . "
+    });
+
+    $('#calendarSearchInput').on('change keyup', function() {
+        var searchWords = this.value.toLowerCase().split(' ');
+        var source = JSON.parse($('#calendarSource').val());          
+        var newSource = source.filter(elem => {
+                                        var titleStr = elem.title.toLowerCase();
+                                        return searchWords.every(item => titleStr.includes(item));
+                                     });
+                                     
+        // converting UTC datetime back to our timezone
+        newSource.forEach(item => {
+                            var dtStart = item.start;
+                            item.start = new Date(dtStart);
+                         });               
+        refreshCalendar(newSource);
+    });
+    
+	function refreshCalendar(newSource) {
+        $('#" . $elementid . "').fullCalendar('removeEvents');
+        $('#" . $elementid . "').fullCalendar('addEventSource', newSource);
+        $('#" . $elementid . "').fullCalendar('refetchEvents');
+    }
+    
+    " . wf_JSEmptyFunc() . "
+</script>
+    
+        ";
+    }
+
+    $calendar.= $appendJS;
+    $calendar.= "\n" . wf_HiddenInput('calendarsource', '', 'calendarSource');
+    $calendar = wf_TextInput('searchcalendar', __('Calendar events titles filter') . ':' . wf_nbsp(2), '', true, '', '',
+                             'glamour', 'calendarSearchInput', 'style="width: 70%; float: none !important"',
+                             true, 'style="font-size: 1.1em; margin-left: 5px; font-weight: bold;"')
+                . wf_delimiter() . $calendar;
 
     return($calendar);
 }
 
 /**
  * Returns div plate with some content
- * 
+ *
  * @param string $content Data to include into plate widget
  * @param string $width   Widget width
  * @param string $height  Widget height
@@ -1578,10 +1708,10 @@ function wf_Plate($content, $width = '', $height = '', $class = '', $opts = '') 
 
 /**
  * Returns some count of delimiters
- * 
+ *
  * @param int $count count of delimited rows
  * @return string
- *  
+ *
  */
 function wf_delimiter($count = 1) {
     $result = '';
@@ -1593,13 +1723,13 @@ function wf_delimiter($count = 1) {
 
 /**
  * Returns some html styled tag
- * 
+ *
  * @param int    $tag HTML tag entity
  * @param bool   $closed tag is closing?
  * @param string $class tag styling class
  * @param string $options tag extra options
  * @return string
- *  
+ *
  */
 function wf_tag($tag, $closed = false, $class = '', $options = '') {
     if (!empty($class)) {
@@ -1626,9 +1756,9 @@ function wf_tag($tag, $closed = false, $class = '', $options = '') {
 
 /**
  * Constructs and returns default AJAX loader
- * 
+ *
  * @param bool $noAnimation
- * 
+ *
  * @return string
  */
 function wf_AjaxLoader($noAnimation = false) {
@@ -1712,11 +1842,11 @@ function wf_AjaxLoader($noAnimation = false) {
 
 /**
  * Returns default ajax container div element
- * 
+ *
  * @param string $containerName container name aka ID
  * @param string $options misc options like size/display if required
  * @param string $content default container content
- * 
+ *
  * @return string
  */
 function wf_AjaxContainer($containerName, $options = '', $content = '') {
@@ -1726,11 +1856,11 @@ function wf_AjaxContainer($containerName, $options = '', $content = '') {
 
 /**
  * Returns default ajax container span element
- * 
+ *
  * @param string $containerName container name aka ID
  * @param string $options misc options like size/display if required
  * @param srring $content default container content
- * 
+ *
  * @return string
  */
 function wf_AjaxContainerSpan($containerName, $options = '', $content = '') {
@@ -1740,13 +1870,13 @@ function wf_AjaxContainerSpan($containerName, $options = '', $content = '') {
 
 /**
  * Returns new opened modal window with some content
- * 
+ *
  * @param string $title modal window title
  * @param string $content modal window content
- * @param string $width modal window width 
+ * @param string $width modal window width
  * @param string $height modal window height
  * @return string
- *  
+ *
  */
 function wf_modalOpened($title, $content, $width = '', $height = '') {
 
@@ -1793,10 +1923,10 @@ $(function() {
 
 /**
  * Returns new opened modal window with some content and automatic sizes
- * 
+ *
  * @param string $title modal window title
  * @param string $content modal window content
- * 
+ *
  * @return string
  */
 function wf_modalOpenedAuto($title, $content) {
@@ -1838,12 +1968,12 @@ $(function() {
 
 /**
  * Returns Chart source
- * 
+ *
  * @param string $data      - CSV formatted data
  * @param string $widht     - graph width in pixels
  * @param string $height    - graph height in pixels
  * @param bool   $errorbars - display error bars around data series
- * 
+ *
  * @return string
  */
 function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
@@ -1885,12 +2015,12 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
 
 /**
  * Returns Chart source by data loaded from the file - acceptable for huge data sets
- * 
+ *
  * @param string $datafile  - existing CSV file path
  * @param string $widht     - graph width in pixels
  * @param string $height    - graph height in pixels
  * @param bool   $errorbars - display error bars around data series
- * 
+ *
  * @return string
  */
 function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
@@ -1924,7 +2054,7 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
 
 /**
  * Returns color picker dialog
- * 
+ *
  * @param string $name   input name
  * @param string $label input text label
  * @param string $value input pre setted data
@@ -2170,7 +2300,7 @@ $( "#combobox_' . $id . '" ).combobox_' . $id . '();
 
 /**
  * Returns auto complete text input element
- * 
+ *
  * @param string $name name of element
  * @param array  $data data array for autocomplete box
  * @param string $label text label for input
@@ -2293,7 +2423,7 @@ function wf_TimePickerPresetSeconds($field, $time = '', $label = '', $br = false
 
 /**
  * Returns div with styles cleanup
- * 
+ *
  * @return string
  */
 function wf_CleanDiv() {
@@ -2303,7 +2433,7 @@ function wf_CleanDiv() {
 
 /**
  * Renders JQuery Data Tables container
- * 
+ *
  * @param array $columns columns names array
  * @param string $ajaxUrl URL to fetch JSON data
  * @param bool $saveState grid state saving - conflicts with default sort order
@@ -2311,7 +2441,7 @@ function wf_CleanDiv() {
  * @param int $rowsCount rows count to default display
  * @param string $opts additional options like:
  *                                       "order": [[ 0, "desc" ]]
- *                                       or 
+ *                                       or
  *                                       dom: \'Bfrtipsl\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\']
  * @param bool $addFooter
  * @param string $footerOpts
@@ -2630,7 +2760,7 @@ function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $
  *
  * @param $text String of text
  * @param $palette Integer between 0 and 100
- * 
+ *
  * @return string
  */
 function wf_genColorCodeFromText($text, $palette = '') {
@@ -2642,7 +2772,7 @@ function wf_genColorCodeFromText($text, $palette = '') {
 
 /**
  * Renders Google 3d pie chart
- * 
+ *
  * @param array $params data in format like string=>count
  * @param string $title chart title
  * @param string $width chart width in px or %, 500px default
@@ -2654,7 +2784,7 @@ function wf_genColorCodeFromText($text, $palette = '') {
  * legend : {position: 'bottom', textStyle: {color: 'red', fontSize: 12 }}, <br>
  * chartArea: {  width: '90%', height: '90%' }, <br>
  * @param string $fixedColors use fixed auto-generated colors based on text labels with pallette<br>
- * 
+ *
  * @return string
  */
 function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $options = '', $fixedColors = '') {
@@ -2753,8 +2883,8 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
 
 /**
  * Renders Google line chart
- * 
- * @param array $params data in format like 
+ *
+ * @param array $params data in format like
  *      $params=array(
  *       0=>array('month','total','active','inactive'),
  *       1=>array('Февраль',200,150,50),
@@ -2764,7 +2894,7 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $optio
  * @param string $width chart width in px or %, 500px default
  * @param string $height chart height in px or %, 500px default
  * @param string $options google charts options
- * 
+ *
  * @return string
  */
 function wf_gchartsLine($params, $title = '', $width = '', $height = '', $options = '') {
@@ -2822,8 +2952,8 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
 
 /**
  * Renders Google line chart
- * 
- * @param array $params data in format like 
+ *
+ * @param array $params data in format like
  *      $params=array(
  *       0=>array('month','total','active','inactive'),
  *       1=>array('Февраль',200,150,50),
@@ -2833,7 +2963,7 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
  * @param string $width chart width in px or %, 500px default
  * @param string $height chart height in px or %, 500px default
  * @param string $options google charts options
- * 
+ *
  * @return string
  */
 function wf_gchartsLineZeroIsBad($params, $title = '', $width = '', $height = '', $options = '') {
@@ -2913,13 +3043,13 @@ var dataView = new google.visualization.DataView(data);
 
 /**
  * Returns default back control
- * 
+ *
  * @param string $url Link URL
  * @param string $title Link title
  * @param bool $br Line break line after link
  * @param string $class Link class name
  * @param string $opts Link style or attributes
- * 
+ *
  * @return string
  */
 function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton', $opts = '') {
@@ -2930,7 +3060,7 @@ function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton', $opts 
 
 /**
  * Returns form disabler JS code, for preventing duplicating POST requests
- * 
+ *
  * @return string
  */
 function wf_FormDisabler() {
@@ -3200,10 +3330,11 @@ function wf_jsAjaxFormSubmit($submitFormClasses, $submitFormIDCtrlClass, $jqdtID
  * @param string $jqdtIDSelector
  * @param string $errorFormIDParamName
  * @param string $queryType
+ * @param bool $jqdtClearBeforePaste
  *
  * @return string
  */
-function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $errorFormIDParamName = '', $queryType = 'POST', $jqdtClearPaste = false) {
+function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $errorFormIDParamName = '', $queryType = 'POST', $jqdtClearBeforePaste = false) {
     $errorFormIDParamName = (empty($errorFormIDParamName) ? 'errfrmid' : $errorFormIDParamName);
     $errorModalWindowId = wf_InputId();
     $jqdtReloadScript = '';
@@ -3217,7 +3348,7 @@ function wf_jsAjaxCustomFunc($funcName, $jqdtID = '', $jqdtIDSelector = '', $err
     }
 
     if (!empty($jqdtSelector)) {
-        if ($jqdtClearPaste) {
+        if ($jqdtClearBeforePaste) {
             $jqdtReloadScript = '
                                 if ( !empty(reqResult) ) {
                                     var json = jQuery.parseJSON(reqResult);
@@ -3512,9 +3643,9 @@ function wf_JSEmptyFunc() {
 
 /**
  * Returns some count of non-breaking space symbols
- * 
+ *
  * @param int $count
- * 
+ *
  * @return string
  */
 function wf_nbsp($count = 1) {
@@ -3581,10 +3712,10 @@ function wf_JSElemInsertedCatcherFunc() {
 
 /**
  * Renders default steps-meter progressbar
- * 
+ *
  * @param array $params as stepname=>decription
  * @param int $current
- * 
+ *
  * @return type
  */
 function wf_StepsMeter($params, $current) {
@@ -3724,13 +3855,13 @@ function wf_StepsMeter($params, $current) {
 
 /**
  * Returns confirmation dialog to navigate to some URL
- * 
+ *
  * @param string $url
  * @param string $title
  * @param string $alerttext
  * @param string $class
  * @param string $cancelUrl
- * 
+ *
  * @return string
  */
 function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = '') {
@@ -3757,6 +3888,9 @@ function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = ''
  * @param string $alerttext
  * @param string $class
  * @param string $cancelUrl
+ * @param string $funcRunAgree
+ * @param string $funcRunCancel
+ * @param string $modalWinID
  *
  * @return string
  */
