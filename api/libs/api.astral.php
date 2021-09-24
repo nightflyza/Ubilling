@@ -1661,7 +1661,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
 </script>
     
         ";
-    }
+    
 
     $calendar.= $appendJS;
     $calendar.= "\n" . wf_HiddenInput('calendarsource', '', 'calendarSource');
@@ -1669,7 +1669,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
                              'glamour', 'calendarSearchInput', 'style="width: 70%; float: none !important"',
                              true, 'style="font-size: 1.1em; margin-left: 5px; font-weight: bold;"')
                 . wf_delimiter() . $calendar;
-
+}
     return($calendar);
 }
 
