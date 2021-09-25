@@ -90,6 +90,13 @@ class TasksQualRep {
     protected $taskFails = '';
 
     /**
+     * What was done on tasks stigma source placeholder
+     *
+     * @var object
+     */
+    protected $tasksWhatDone = '';
+
+    /**
      * Routes, URLs, etc..
      */
     const URL_TASKVIEW = '?module=taskman&edittask=';
@@ -134,6 +141,7 @@ class TasksQualRep {
     protected function initDataSources() {
         $this->taskRanks = new Stigma('TASKRANKS');
         $this->taskFails = new Stigma('TASKFAILS');
+        $this->tasksWhatDone = new Stigma('TASKWHATIDO');
     }
 
     /**
@@ -171,7 +179,8 @@ class TasksQualRep {
             if (isset($reportData[$stateId])) {
                 if (isset($reportData[$stateId]['itemids'])) {
                     if (!empty($reportData[$stateId]['itemids'])) {
-                        $cells = wf_TableCell(__('Date'));
+                        $cells = wf_TableCell(__('ID'));
+                        $cells .= wf_TableCell(__('Date'));
                         $cells .= wf_TableCell(__('Address'));
                         $cells .= wf_TableCell(__('Worker'));
                         $rows = wf_TableRow($cells, 'row1');
@@ -179,14 +188,15 @@ class TasksQualRep {
                             if (isset($this->allTasksData[$eachTaskId])) {
                                 $taskLink = wf_Link(self::URL_TASKVIEW . $eachTaskId, $this->allTasksData[$eachTaskId]['address'], false, '', 'TARGET="_BLANK"');
                                 $taskEmployee = @$this->allEmployeeNames[$this->allTasksData[$eachTaskId]['employee']];
-                                $cells = wf_TableCell($this->allTasksData[$eachTaskId]['startdate']);
+                                $cells = wf_TableCell($eachTaskId);
+                                $cells .= wf_TableCell($this->allTasksData[$eachTaskId]['startdate']);
                                 $cells .= wf_TableCell($taskLink);
                                 $cells .= wf_TableCell($taskEmployee);
                                 $rows .= wf_TableRow($cells, 'row5');
                                 $tasksCount++;
                             }
                         }
-                        $tasksList .= wf_TableBody($rows, '100%', 0, '');
+                        $tasksList .= wf_TableBody($rows, '100%', 0, 'sortable');
                     }
                 }
             }
@@ -246,7 +256,7 @@ class TasksQualRep {
 
 
         if (!empty($availRanks)) {
-            $cells = wf_TableCell(__('Score'));
+            $cells = wf_TableCell(__('Score'), '30%');
             $cells .= wf_TableCell(__('Day'));
             $cells .= wf_TableCell(__('Week'));
             $cells .= wf_TableCell(__('Month'));
@@ -307,7 +317,7 @@ class TasksQualRep {
 
 
         if (!empty($availFails)) {
-            $cells = wf_TableCell(__('Fail'));
+            $cells = wf_TableCell(__('Fail'), '30%');
             $cells .= wf_TableCell(__('Day'));
             $cells .= wf_TableCell(__('Week'));
             $cells .= wf_TableCell(__('Month'));
@@ -334,6 +344,67 @@ class TasksQualRep {
 
 
                 $cells = wf_TableCell(wf_img_sized($failIcon, '', '10') . ' ' . $failLabel);
+                $cells .= wf_TableCell($dayCount);
+                $cells .= wf_TableCell($weekCount);
+                $cells .= wf_TableCell($monthCount);
+                $cells .= wf_TableCell($yearCount);
+                $cells .= wf_TableCell($allTimeCount);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+
+        return($result);
+    }
+
+    /**
+     * Renders what was done on tasks
+     * 
+     * @return string
+     */
+    public function renderWhatDone() {
+        $result = '';
+        $tasksRenderFlag = (ubRouting::checkGet(self::ROUTE_TASKRENDER)) ? true : false;
+        $availStates = $this->tasksWhatDone->getAllStates();
+
+        $dataDay = $this->tasksWhatDone->getReportData($this->dateCurrentDay, $this->dateCurrentDay);
+        $dataWeek = $this->tasksWhatDone->getReportData($this->dateWeekBegin, $this->dateWeekEnd);
+        $dataMonth = $this->tasksWhatDone->getReportData($this->dateMonthBegin, $this->dateMonthEnd);
+        $dataYear = $this->tasksWhatDone->getReportData($this->dateYearBegin, $this->dateYearEnd);
+        $dataAllTime = $this->tasksWhatDone->getReportData();
+
+
+        if (!empty($availStates)) {
+            $cells = wf_TableCell(__('Job'), '30%');
+            $cells .= wf_TableCell(__('Day'));
+            $cells .= wf_TableCell(__('Week'));
+            $cells .= wf_TableCell(__('Month'));
+            $cells .= wf_TableCell(__('Year'));
+            $cells .= wf_TableCell(__('All time'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($availStates as $eachStateId => $eachStateDesc) {
+                $stateLabel = __($eachStateDesc);
+                $stateIcon = $this->tasksWhatDone->getStateIcon($eachStateId);
+
+                if ($tasksRenderFlag) {
+                    $dayCount = $this->renderTasksModal($dataDay, $eachStateId, $stateLabel);
+                    $weekCount = $this->renderTasksModal($dataWeek, $eachStateId, $stateLabel);
+                    $monthCount = $this->renderTasksModal($dataMonth, $eachStateId, $stateLabel);
+                    $yearCount = isset($dataYear[$eachStateId]['count']) ? $dataYear[$eachStateId]['count'] : 0;
+                    $allTimeCount = isset($dataAllTime[$eachStateId]['count']) ? $dataAllTime[$eachStateId]['count'] : 0;
+                } else {
+                    $dayCount = isset($dataDay[$eachStateId]['count']) ? $dataDay[$eachStateId]['count'] : 0;
+                    $weekCount = isset($dataWeek[$eachStateId]['count']) ? $dataWeek[$eachStateId]['count'] : 0;
+                    $monthCount = isset($dataMonth[$eachStateId]['count']) ? $dataMonth[$eachStateId]['count'] : 0;
+                    $yearCount = isset($dataYear[$eachStateId]['count']) ? $dataYear[$eachStateId]['count'] : 0;
+                    $allTimeCount = isset($dataAllTime[$eachStateId]['count']) ? $dataAllTime[$eachStateId]['count'] : 0;
+                }
+
+
+                $cells = wf_TableCell(wf_img_sized($stateIcon, '', '10') . ' ' . $stateLabel);
                 $cells .= wf_TableCell($dayCount);
                 $cells .= wf_TableCell($weekCount);
                 $cells .= wf_TableCell($monthCount);

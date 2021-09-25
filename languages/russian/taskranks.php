@@ -38,3 +38,4 @@ $lang['def']['Replaced equipment']='Поменял оборудование';
 $lang['def']['User rating of tasks completion']='Пользовательская оценка выполнения задач';
 $lang['def']['Tasks processed']='Обработано задач';
 $lang['def']['right to use tasks quality control report']='Право просматривать отчет по контролю качества работ';
+$lang['def']['What was going on']='Что делалось';
