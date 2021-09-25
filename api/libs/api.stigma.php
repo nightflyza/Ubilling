@@ -289,6 +289,29 @@ class Stigma {
     }
 
     /**
+     * Returns some stateId icon if available or default icon if not.
+     * 
+     * @param string $stateId
+     * 
+     * @return string
+     */
+    public function getStateIcon($stateId) {
+        $result = '';
+        if (file_exists(self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
+            $result = self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+        } else {
+            if (file_exists(self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
+                $result = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
+            }
+        }
+
+        if (empty($result)) {
+            $result = self::ICON_PATH . 'default' . self::ICON_EXT;
+        }
+        return($result);
+    }
+
+    /**
      * Renders stigma current state and editing interface
      * 
      * @param string $itemId item ID to render control panel
@@ -324,20 +347,7 @@ class Stigma {
                 $controlClass .= ' ' . $this->activeClass;
             }
 
-            $stateIcon = '';
-
-            if (file_exists(self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
-                $stateIcon = self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
-            } else {
-                if (file_exists(self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
-                    $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
-                }
-            }
-
-
-            if (empty($stateIcon)) {
-                $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
-            }
+            $stateIcon = $this->getStateIcon($stateId);
 
             $controlUrl = $this->baseUrl . '&' . self::ROUTE_SCOPE . '=' . $this->scope . '&' . self::ROUTE_ITEMID . '=' . $itemId . '&' . self::ROUTE_STATE . '=' . $stateId;
             if ($size) {
@@ -394,20 +404,7 @@ class Stigma {
                 $stateLabel = __($stateName);
                 $iconCode = '';
                 if ($miniIcons) {
-                    $stateIcon = '';
-
-                    if (file_exists(self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
-                        $stateIcon = self::CUSTOM_ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
-                    } else {
-                        if (file_exists(self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT)) {
-                            $stateIcon = self::ICON_PATH . @$this->icons[$stateId] . self::ICON_EXT;
-                        }
-                    }
-
-
-                    if (empty($stateIcon)) {
-                        $stateIcon = self::ICON_PATH . 'default' . self::ICON_EXT;
-                    }
+                    $stateIcon = $this->getStateIcon($stateId);
                     $iconCode = wf_img_sized($stateIcon, $stateLabel, $miniIcons) . ' ';
                 }
 
@@ -575,6 +572,22 @@ class Stigma {
     }
 
     /**
+     * Returns all scopes for which stigmas available in database
+     * 
+     * @return array
+     */
+    public function getAllScopes() {
+        $result = array();
+        $raw = $this->stigmaDb->getAll('scope', true, true);
+        if (!empty($raw)) {
+            foreach ($raw as $io => $each) {
+                $result[$io] = $io;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns report data by states in selected time range
      * 
      * @param string $dateFrom
@@ -584,7 +597,38 @@ class Stigma {
      */
     public function getReportData($dateFrom = '', $dateTo = '') {
         $result = array();
-        ///TODO
+        $dateFilters = false;
+        if (!empty($dateFrom) AND ! empty($dateTo)) {
+            $dateFilters = true;
+        }
+
+        if (!empty($this->allStigmas)) {
+            foreach ($this->allStigmas as $eachItemId => $eachStigmaData) {
+                $addToResult = true;
+                if ($dateFilters) {
+                    $stigmaDate = $eachStigmaData['date'];
+                    if (zb_isDateBetween($dateFrom, $dateTo, $stigmaDate)) {
+                        $addToResult = true;
+                    } else {
+                        $addToResult = false;
+                    }
+                }
+
+                if ($addToResult) {
+                    $itemStates = $this->getItemStates($eachItemId);
+                    if (!empty($itemStates)) {
+                        foreach ($itemStates as $eachState => $eachIndex) {
+                            if (isset($result[$eachState])) {
+                                $result[$eachState]['count'] ++;
+                            } else {
+                                $result[$eachState]['count'] = 1;
+                            }
+                            $result[$eachState]['itemids'][$eachItemId] = $eachItemId;
+                        }
+                    }
+                }
+            }
+        }
         return($result);
     }
 

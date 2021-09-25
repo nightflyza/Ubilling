@@ -5613,6 +5613,29 @@ function zb_isTimeBetween($fromTime, $toTime, $checkTime, $seconds = false) {
 }
 
 /**
+ * Checks is date between some other date ranges?
+ * 
+ * @param string $fromDate start date (format Y-m-d)
+ * @param string $toDate end date
+ * @param string $checkDate date to check
+ * @param bool $seconds 
+ * 
+ * @return bool
+ */
+function zb_isDateBetween($fromDate, $toDate, $checkDate) {
+    $result = false;
+    $fromDate = strtotime($fromDate);
+    $toDate = strtotime($toDate);
+    $checkDate = strtotime($checkDate);
+    $checkDate = date("Y-m-d", $checkDate);
+    $checkDate = strtotime($checkDate);
+    if ($checkDate >= $fromDate AND $checkDate <= $toDate) {
+        $result = true;
+    }
+    return($result);
+}
+
+/**
  * Renders time duration in seconds into formatted human-readable view
  *      
  * @param int $seconds
