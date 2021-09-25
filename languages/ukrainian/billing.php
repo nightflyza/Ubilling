@@ -3309,4 +3309,5 @@ $lang['def']['Network does not exist anymore'] = 'Мережа більше не
 $lang['def']['Do you confirm the movement of this event?'] = 'Ви підтверджуєте переміщення цієї події?';
 $lang['def']['Calendar events titles filter'] = 'Фільтр по заголовках подій календаря';
 
+
 ?>

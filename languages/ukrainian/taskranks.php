@@ -16,7 +16,7 @@ $lang['def']['Didnt tell how to pay']='Не розповіли про оплат
 $lang['def']['Took cash']='Понабирали готівки';
 $lang['def']['Left a mess']='Залишили сміття';
 $lang['def']['Task checklist fails']='Фейли виконання задачі';
-$lang['def']['Anomalies in the performance of tasks ']='Аномалії в виконанні задач';
+$lang['def']['Anomalies in the performance of tasks']='Аномалії в виконанні задач';
 $lang['def']['right to control quality of tasks execution']='Право контролювати якість виконання задач';
 $lang['def']['Quality control']='Контроль якості';
 $lang['def']['Score']='Оцінка';
@@ -35,3 +35,5 @@ $lang['def']['What I did on the task']='Що я зробив на задачі';
 $lang['def']['Sell equipment']='Продаж обладнання';
 $lang['def']['Didnt get access']='Немає доступу';
 $lang['def']['Replaced equipment']='Замінив обладнання';
+$lang['def']['User rating of tasks completion']='Користувацька оцінка виконання задач';
+
