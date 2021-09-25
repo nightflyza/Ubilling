@@ -201,6 +201,29 @@ class TasksQualRep {
     }
 
     /**
+     * Returns text representation of task execution ranks
+     * 
+     * @return string
+     */
+    public function getDailyRanksText($eol = '') {
+        $result = '';
+        $availRanks = $this->taskRanks->getAllStates();
+
+        $dataDay = $this->taskRanks->getReportData($this->dateCurrentDay, $this->dateCurrentDay);
+        if (!empty($dataDay)) {
+            $totalCount = 0;
+            foreach ($dataDay as $stateId => $stateData) {
+                $totalCount += $stateData['count'];
+            }
+            $result .= __('Tasks processed') . ': ' . $totalCount . $eol;
+            foreach ($dataDay as $stateId => $stateData) {
+                $result .= __($availRanks[$stateId]) . ' - ' . $stateData['count'] . ' ' . $eol;
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders user scores of tasks execution
      * 
      * @return string

@@ -36,3 +36,5 @@ $lang['def']['Sell equipment']='Продажа оборудования';
 $lang['def']['Didnt get access']='Нет доступа';
 $lang['def']['Replaced equipment']='Поменял оборудование';
 $lang['def']['User rating of tasks completion']='Пользовательская оценка выполнения задач';
+$lang['def']['Tasks processed']='Обработано задач';
+$lang['def']['right to use tasks quality control report']='Право просматривать отчет по контролю качества работ';
