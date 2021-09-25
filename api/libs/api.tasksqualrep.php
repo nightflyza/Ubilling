@@ -200,12 +200,12 @@ class TasksQualRep {
                     }
                 }
             }
+        }
 
-            if ($tasksCount > 0) {
-                $result .= wf_modalAuto($tasksCount, $stateLabel, $tasksList);
-            } else {
-                $result .= '0';
-            }
+        if ($tasksCount > 0) {
+            $result .= wf_modalAuto($tasksCount, $stateLabel, $tasksList);
+        } else {
+            $result .= '0';
         }
         return($result);
     }
