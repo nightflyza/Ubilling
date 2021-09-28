@@ -222,13 +222,22 @@ class TasksQualRep {
 
         $dataDay = $this->taskRanks->getReportData($this->dateCurrentDay, $this->dateCurrentDay);
         if (!empty($dataDay)) {
+            $employeeLogins = ts_GetAllEmployeeLoginsAssocCached();
             $totalCount = 0;
             foreach ($dataDay as $stateId => $stateData) {
                 $totalCount += $stateData['count'];
             }
-            $result .= __('Tasks processed') . ': ' . $totalCount . $eol;
+            $result .= __('Tasks processed') . ': ' . $totalCount . $eol . $eol;
+            $result .= __('Score') . ':' . $eol;
             foreach ($dataDay as $stateId => $stateData) {
                 $result .= __($availRanks[$stateId]) . ' - ' . $stateData['count'] . ' ' . $eol;
+            }
+
+            $result .= $eol;
+            $result .= __('Calls') . ':' . $eol;
+            $adminStats = $this->getAdminStats($dataDay);
+            foreach ($adminStats as $eachAdmin => $eachCalls) {
+                $result .= @$employeeLogins[$eachAdmin] . ' - ' . $eachCalls . $eol;
             }
         }
         return($result);
