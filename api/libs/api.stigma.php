@@ -696,7 +696,13 @@ class Stigma {
                             } else {
                                 $result[$eachState]['count'] = 1;
                             }
-                            $result[$eachState]['itemids'][$eachItemId] = $eachItemId;
+
+                            if (isset($result[$eachState]['admins'][$eachStigmaData['admin']])) {
+                                $result[$eachState]['admins'][$eachStigmaData['admin']] ++;
+                            } else {
+                                $result[$eachState]['admins'][$eachStigmaData['admin']] = 1;
+                            }
+                            $result[$eachState]['itemids'][$eachItemId] = $eachStigmaData['admin'];
                         }
                     }
                 }

@@ -102,6 +102,7 @@ class TasksQualRep {
     const URL_TASKVIEW = '?module=taskman&edittask=';
     const URL_ME = '?module=tasksqualreport';
     const ROUTE_TASKRENDER = 'showtasks';
+    const ROUTE_CALLSRENDER = 'showcalls';
 
     public function __construct() {
         $this->setDates();
@@ -184,7 +185,7 @@ class TasksQualRep {
                         $cells .= wf_TableCell(__('Address'));
                         $cells .= wf_TableCell(__('Worker'));
                         $rows = wf_TableRow($cells, 'row1');
-                        foreach ($reportData[$stateId]['itemids'] as $io => $eachTaskId) {
+                        foreach ($reportData[$stateId]['itemids'] as $eachTaskId => $eachTaskAdmin) {
                             if (isset($this->allTasksData[$eachTaskId])) {
                                 $taskLink = wf_Link(self::URL_TASKVIEW . $eachTaskId, $this->allTasksData[$eachTaskId]['address'], false, '', 'TARGET="_BLANK"');
                                 $taskEmployee = @$this->allEmployeeNames[$this->allTasksData[$eachTaskId]['employee']];
@@ -421,6 +422,79 @@ class TasksQualRep {
         return($result);
     }
 
+    protected function getAdminStats($dataArray) {
+        $result = array();
+
+        if (!empty($dataArray)) {
+            foreach ($dataArray as $io => $each) {
+                if (isset($each['admins'])) {
+                    foreach ($each['admins'] as $adminLogin => $statesCount) {
+                        if (isset($result[$adminLogin])) {
+                            $result[$adminLogin] += $statesCount;
+                        } else {
+                            $result[$adminLogin] = $statesCount;
+                        }
+                    }
+                }
+            }
+        }
+
+        return($result);
+    }
+
+    /**
+     * Renders stats around callers/unique tasks processed
+     * 
+     * @return string
+     */
+    public function renderCallsReport() {
+        $result = '';
+        $allEmployeeLogins = ts_GetAllEmployeeLoginsAssocCached();
+
+        $dataDay = $this->taskRanks->getReportData($this->dateCurrentDay, $this->dateCurrentDay);
+        $dataWeek = $this->taskRanks->getReportData($this->dateWeekBegin, $this->dateWeekEnd);
+        $dataMonth = $this->taskRanks->getReportData($this->dateMonthBegin, $this->dateMonthEnd);
+        $dataYear = $this->taskRanks->getReportData($this->dateYearBegin, $this->dateYearEnd);
+        $dataAllTime = $this->taskRanks->getReportData();
+
+        $adminsDay = $this->getAdminStats($dataDay);
+        $adminsWeek = $this->getAdminStats($dataWeek);
+        $adminsMonth = $this->getAdminStats($dataMonth);
+        $adminsYear = $this->getAdminStats($dataYear);
+        $adminsAllTime = $this->getAdminStats($dataAllTime);
+
+        if (!empty($adminsAllTime)) {
+            $cells = wf_TableCell(__('Administrator'), '30%');
+            $cells .= wf_TableCell(__('Day'));
+            $cells .= wf_TableCell(__('Week'));
+            $cells .= wf_TableCell(__('Month'));
+            $cells .= wf_TableCell(__('Year'));
+            $cells .= wf_TableCell(__('All time'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($adminsAllTime as $eachAdmin => $allTimeCount) {
+                $adminName = (isset($allEmployeeLogins[$eachAdmin])) ? $allEmployeeLogins[$eachAdmin] : $eachAdmin;
+
+                $dayCount = (isset($adminsDay[$eachAdmin])) ? $adminsDay[$eachAdmin] : 0;
+                $weekCount = (isset($adminsWeek[$eachAdmin])) ? $adminsWeek[$eachAdmin] : 0;
+                $monthCount = (isset($adminsMonth[$eachAdmin])) ? $adminsMonth[$eachAdmin] : 0;
+                $yearCount = (isset($adminsYear[$eachAdmin])) ? $adminsYear[$eachAdmin] : 0;
+
+                $cells = wf_TableCell($adminName, '30%');
+                $cells .= wf_TableCell($dayCount);
+                $cells .= wf_TableCell($weekCount);
+                $cells .= wf_TableCell($monthCount);
+                $cells .= wf_TableCell($yearCount);
+                $cells .= wf_TableCell($allTimeCount);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
     /**
      * Renders module controls
      * 
@@ -428,8 +502,13 @@ class TasksQualRep {
      */
     public function renderControls() {
         $result = '';
-        $result .= wf_Link(self::URL_ME, web_icon_charts() . ' ' . __('Stats'), false, 'ubButton') . ' ';
-        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_TASKRENDER . '=true', wf_img('skins/task_icon_small.png') . ' ' . __('Tasks'), false, 'ubButton') . ' ';
+        if (ubRouting::checkGet(self::ROUTE_TASKRENDER) OR ubRouting::checkGet(self::ROUTE_CALLSRENDER)) {
+            $result .= wf_Link(self::URL_ME, web_icon_charts() . ' ' . __('Stats'), false, 'ubButton') . ' ';
+        } else {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_TASKRENDER . '=true', wf_img('skins/task_icon_small.png') . ' ' . __('Tasks'), false, 'ubButton') . ' ';
+        }
+
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_CALLSRENDER . '=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Calls'), false, 'ubButton') . ' ';
         return($result);
     }
 
