@@ -610,6 +610,8 @@ class Stigma {
      */
     protected function logStigmaChange($itemId, $oldState, $newState) {
         if ($this->taskmanLogging) {
+            $oldState = (isset($this->states[$oldState])) ? $this->states[$oldState] : $oldState;
+            $newState = (isset($this->states[$newState])) ? $this->states[$newState] : $newState;
             ts_logTaskChange($itemId, $this->taskmanLogging, $oldState, $newState, false);
         }
 
