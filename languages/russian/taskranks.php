@@ -39,3 +39,4 @@ $lang['def']['User rating of tasks completion']='Пользовательска�
 $lang['def']['Tasks processed']='Обработано задач';
 $lang['def']['right to use tasks quality control report']='Право просматривать отчет по контролю качества работ';
 $lang['def']['What was going on']='Что делалось';
+$lang['def']['none']='ничего';

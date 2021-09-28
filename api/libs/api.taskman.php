@@ -2236,12 +2236,13 @@ function ts_TaskChangeForm($taskid) {
 
             $taskFails = new Stigma('TASKFAILS', $taskid);
             if (!$taskRanksReadOnly) {
-                $taskFails->stigmaController();
+                $taskFails->stigmaController('TASKMAN:Task checklist fails');
             }
 
             $taskRanks = new Stigma('TASKRANKS', $taskid);
+
             if (!$taskRanksReadOnly) {
-                $taskRanks->stigmaController();
+                $taskRanks->stigmaController('TASKMAN:Score');
             }
 
             $taskRanksInterface = '';
@@ -2573,6 +2574,17 @@ function ts_renderLogsDataAjax($taskid = '') {
                     $data_event .= wf_tag('font', false, '', 'color="red"') . $taskStates->getStateName($logDataArr['taskstate']['new']) . wf_tag('font', true);
                     $data_event .= wf_tag('br');
                 }
+
+                if (isset($logDataArr['taskparam'])) {
+                    $oldParam = (!empty($logDataArr['taskparam']['old'])) ? $logDataArr['taskparam']['old'] : 'none';
+                    $newParam = (!empty($logDataArr['taskparam']['new'])) ? $logDataArr['taskparam']['new'] : 'none';
+                    $paramName = (!empty($logDataArr['taskparam']['name'])) ? $logDataArr['taskparam']['name'] : 'Parameter';
+                    $data_event .= wf_tag('b') . __($paramName) . ": " . wf_tag('b', true);
+                    $data_event .= wf_tag('font', false, '', 'color="green"') . __($oldParam) . wf_tag('font', true);
+                    $data_event .= " => ";
+                    $data_event .= wf_tag('font', false, '', 'color="red"') . __($logDataArr['taskparam']['new']) . wf_tag('font', true);
+                    $data_event .= wf_tag('br');
+                }
             } elseif ($each['event'] == 'done') {
                 $data[] = __('Task is done');
                 $data_event = '';
@@ -2655,6 +2667,45 @@ function ts_renderLogsDataAjax($taskid = '') {
     }
 
     $json->getJson();
+}
+
+/**
+ * Logs some parameter change for some task
+ * 
+ * @param int $taskId existing task ID
+ * @param string $parameter parameter name which changed
+ * @param string $oldValue old parameter value
+ * @param string $newValue new parameter value
+ * @param bool $weblog log to weblogs table?
+ * 
+ * @retrun void
+ */
+function ts_logTaskChange($taskId, $parameter, $oldValue, $newValue, $weblog = false) {
+    $taskId = ubRouting::filters($taskId, 'int');
+    $parameter = ubRouting::filters($parameter, 'mres');
+    $oldValue = ubRouting::filters($oldValue, 'mres');
+    $newValue = ubRouting::filters($newValue, 'mres');
+
+
+    $log_data_arr = array();
+
+    $logData['taskparam']['name'] = $parameter;
+    $logData['taskparam']['old'] = $oldValue;
+    $logData['taskparam']['new'] = $newValue;
+    $storeLogData = serialize($logData);
+
+    $taskmanLogs = new NyanORM('taskmanlogs');
+    $taskmanLogs->data('taskid', $taskId);
+    $taskmanLogs->data('date', curdatetime());
+    $taskmanLogs->data('admin', whoami());
+    $taskmanLogs->data('ip', @$_SERVER['REMOTE_ADDR']);
+    $taskmanLogs->data('event', 'modify');
+    $taskmanLogs->data('logs', $storeLogData);
+    $taskmanLogs->create();
+
+    if ($weblog) {
+        log_register('TASKSTATE CHANGE TASK [' . $taskId . '] PARAM `' . $parameter . '` ON  `' . $newValue . '`');
+    }
 }
 
 /**

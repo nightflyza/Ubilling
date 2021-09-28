@@ -76,6 +76,20 @@ class Stigma {
     protected $animated = true;
 
     /**
+     * Taskman logging flag/parameter name. Disabled if empty.
+     *
+     * @var string
+     */
+    protected $taskmanLogging = '';
+
+    /**
+     * System weblogs logging flag/parameter name. Disabled if empty.
+     *
+     * @var string
+     */
+    protected $systemLogging = '';
+
+    /**
      * Default icons file extension
      */
     const ICON_EXT = '.png';
@@ -218,6 +232,28 @@ class Stigma {
      */
     protected function initDatabase() {
         $this->stigmaDb = new NyanORM(self::TABLE_DATASOURCE);
+    }
+
+    /**
+     * Taskman logging flag/name public setter
+     * 
+     * @param string $prameter
+     * 
+     * @return void
+     */
+    public function setTaskmanLogging($parameter = '') {
+        $this->taskmanLogging = $parameter;
+    }
+
+    /**
+     * System weblogs logging flag/name public setter
+     * 
+     * @param string $prameter
+     * 
+     * @return void
+     */
+    public function setSystemLogging($paramter = '') {
+        $this->systemLogging = $parameter;
     }
 
     /**
@@ -438,15 +474,29 @@ class Stigma {
     /**
      * AJAX callbacks processing controller
      * 
+     * @param string $logging
+     * 
      * @return void
      */
-    public function stigmaController() {
+    public function stigmaController($logging = '') {
         if (ubRouting::checkGet(array(self::ROUTE_SCOPE, self::ROUTE_ITEMID, self::ROUTE_STATE))) {
 //my scope?
             if ($this->scope == ubRouting::get(self::ROUTE_SCOPE)) {
                 $stigmaCtrl = new Stigma(ubRouting::get(self::ROUTE_SCOPE), ubRouting::get(self::ROUTE_ITEMID));
 //state modification callback?
                 if (ubRouting::checkGet(self::ROUTE_STATE)) {
+                    if (!empty($logging)) {
+                        if (ispos($logging, 'TASKMAN:')) {
+                            $logging = str_replace('TASKMAN:', '', $logging);
+                            $stigmaCtrl->setTaskmanLogging($logging);
+                        }
+
+                        if (ispos($logging, 'SYSTEM:')) {
+                            $logging = str_replace('SYSTEM:', '', $logging);
+                            $stigmaCtrl->setSystemLogging($logging);
+                        }
+                    }
+
                     $stigmaCtrl->saveState(ubRouting::get(self::ROUTE_ITEMID), ubRouting::get(self::ROUTE_STATE));
                 }
                 die($stigmaCtrl->render(ubRouting::get(self::ROUTE_ITEMID)));
@@ -507,6 +557,7 @@ class Stigma {
 //state is changed?
                 if (!isset($currentStates[$state])) {
                     $this->setState($itemId, $state);
+                    $this->logStigmaChange($itemId, 'Changed', $state);
                 }
             }
 
@@ -521,6 +572,7 @@ class Stigma {
                             $newStatesString .= $io . self::DELIMITER;
                         }
                     }
+                    $this->logStigmaChange($itemId, 'Deleted', $state);
                 } else {
 //update state with new one
                     $newStates = $currentStates;
@@ -531,6 +583,7 @@ class Stigma {
                             $newStatesString .= $io . self::DELIMITER;
                         }
                     }
+                    $this->logStigmaChange($itemId, 'Append', $state);
                 }
 
 //saving new item state to database
@@ -539,10 +592,30 @@ class Stigma {
         } else {
 //new stigma
             $this->createState($itemId, $state);
+            $this->logStigmaChange($itemId, 'Created', $state);
         }
 
 //update internal structs
         $this->loadStigmas();
+    }
+
+    /**
+     * Put logs data into database if required
+     * 
+     * @param string $itemId
+     * @param string $oldState
+     * @param string $newState
+     * 
+     * @return void
+     */
+    protected function logStigmaChange($itemId, $oldState, $newState) {
+        if ($this->taskmanLogging) {
+            ts_logTaskChange($itemId, $this->taskmanLogging, $oldState, $newState, false);
+        }
+
+        if ($this->systemLogging) {
+            log_register('STIGMA ' . $this->scope . ' CHANGE [' . $itemId . '] `' . $this->systemLogging . '` ON  `' . $newValue . '`');
+        }
     }
 
     /**

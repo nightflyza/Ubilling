@@ -74,7 +74,9 @@ if (cfr('TASKMAN')) {
             $newStartDT = date('Y-m-d', strtotime($newStartDT));
             ts_ModifyTask($taskID, $newStartDT, $taskData['starttime'], $taskData['address'], $taskData['login'], $taskData['phone'], $taskData['jobtype'], $taskData['employee'], $taskData['jobnote']);
             die('SUCCESS');
-        } else { die('FAIL'); }
+        } else {
+            die('FAIL');
+        }
     }
 
     //if marking task as done
@@ -297,7 +299,7 @@ if (cfr('TASKMAN')) {
                         if (!empty($taskData)) {
                             $taskWhatIdoReadOnly = ($taskData['status']) ? true : false;
                             $taskWhatIdo = new Stigma('TASKWHATIDO', ubRouting::get('edittask'));
-                            $taskWhatIdo->stigmaController();
+                            $taskWhatIdo->stigmaController('TASKMAN:Done');
                             show_window(__('What I did on the task'), $taskWhatIdo->render(ubRouting::get('edittask'), '128', $taskWhatIdoReadOnly));
                         }
                     }
