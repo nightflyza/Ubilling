@@ -2320,7 +2320,7 @@ function web_AddressAptForm($login) {
     global $ubillingConfig;
     $login = vf($login);
     $aptdata = zb_AddressGetAptData($login);
-    $useraddress = zb_AddressGetFulladdresslist();
+    $useraddress = zb_AddressGetFullCityaddresslist();
     @$useraddress = $useraddress[$login];
 
     $cells = wf_TableCell(__('Value'));
@@ -2335,7 +2335,11 @@ function web_AddressAptForm($login) {
 
     $cells = wf_TableCell(__('Full address'));
     $cells .= wf_TableCell(@$useraddress);
-    $cells .= wf_TableCell(wf_JSAlert('?module=binder&username=' . $login . '&orphan=true', web_delete_icon(), __('Are you sure you want to make the homeless this user') . "?"));
+    $orphanUrl = '?module=binder&username=' . $login . '&orphan=true';
+    $cancelUrl = '?module=binder&username=' . $login;
+    $orphanAlert = __('Are you sure you want to make the homeless this user') . '?';
+    $addressDeleteDialog = wf_ConfirmDialogJS($orphanUrl, web_delete_icon() . ' ' . __('Evict'), $orphanAlert, '', $cancelUrl);
+    $cells .= wf_TableCell($addressDeleteDialog);
     $rows .= wf_TableRow($cells, 'row3');
 
     $cells = wf_TableCell(__('Entrance'));

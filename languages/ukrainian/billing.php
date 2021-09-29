@@ -828,7 +828,7 @@ $lang['def']['Internal billing events'] = 'Внутрішніх подій бі�
 $lang['def']['Average per day'] = 'В середньому за добу';
 $lang['def']['Month actions stats'] = 'Статистика подій за місяць';
 $lang['def']['What done'] = 'Що зроблено';
-$lang['def']['Are you sure you want to make the homeless this user'] = 'Ви впевнені в тому, що бажаєте зробити цього користувача бездомним';
+$lang['def']['Are you sure you want to make the homeless this user'] = 'Ви впевнені в тому, що бажаєте зробити цього користувача безхатьком';
 $lang['def']['right to view context help'] = 'Право користуватись контекстною допомогою';
 $lang['def']['right to control tariffs popularity'] = 'Право контролювати популярність тарифів';
 $lang['def']['right to arp ping user'] = 'Право на ARP-пінг користувача';
@@ -3308,6 +3308,5 @@ $lang['def']['ultimative freezing ability'] = 'Ультимативна замо
 $lang['def']['Network does not exist anymore'] = 'Мережа більше не існує';
 $lang['def']['Do you confirm the movement of this event?'] = 'Ви підтверджуєте переміщення цієї події?';
 $lang['def']['Calendar events titles filter'] = 'Фільтр по заголовках подій календаря';
+$lang['def']['Evict'] = 'Виселити';
 
-
-?>

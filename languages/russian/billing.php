@@ -3286,3 +3286,4 @@ $lang['def']['ultimative freezing ability'] = 'Ультимативная зам
 $lang['def']['Network does not exist anymore'] = 'Сеть больше не существует';
 $lang['def']['Do you confirm the movement of this event?'] = 'Вы подтверждаете перемещение данного события?';
 $lang['def']['Calendar events titles filter'] = 'Фильтр по заголовкам событий календаря';
+$lang['def']['Evict'] = 'Выселить';
