@@ -4965,52 +4965,49 @@ class PONizer {
     public function fixOnuOltAssigns() {
         $result = '';
         $result = wf_BackLink(self::URL_ME . '&fdbcachelist=true');
-        $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+        $availOnuSigCache = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
         $failedOnuFound = false;
         $repairConfirmed = (ubRouting::checkGet('autorepairconfirmed')) ? true : false;
-        if (!empty($availOnuFdbCache)) {
-            foreach ($availOnuFdbCache as $io => $eachFile) {
+        if (!empty($availOnuSigCache)) {
+            foreach ($availOnuSigCache as $io => $eachFile) {
                 $oltId = explode('_', $eachFile);
                 $oltId = $oltId[0];
                 $oltDesc = @$this->allOltDevices[$oltId];
-                $fileData = file_get_contents(self::FDBCACHE_PATH . '/' . $eachFile);
+                $fileData = file_get_contents(self::SIGCACHE_PATH . '/' . $eachFile);
                 if (!empty($fileData)) {
                     $fileData = unserialize($fileData);
-                    if (!empty($fileData)) {
-                        foreach ($fileData as $onuMac => $onuTmp) {
-                            if (!empty($onuTmp)) {
-                                foreach ($onuTmp as $id => $onuData) {
-                                    $onuRealId = $this->getONUIDByMAC($onuMac);
-                                    $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
-                                    if ($onuRealId) {
-                                        $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
-                                        if ($wrongOltFlag) {
-                                            $failedOnuFound = true; //set once
-                                            $onuData = $this->allOnu[$onuRealId];
-                                            $wrongOltId = $onuData['oltid'];
-                                            $wrongOltDesc = @$this->allOltDevices[$wrongOltId];
-                                            if (empty($wrongOltDesc)) {
-                                                $wrongOltDesc = '[' . $wrongOltId . '] ' . __('Unknown');
-                                            }
 
-                                            $missmatchLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('wrong') . ' ' . __('OLT') . ' ' . $wrongOltDesc . ', ';
-                                            $missmatchLabel .= __('must be') . ' ' . $oltDesc;
-                                            $result .= $this->messages->getStyledMessage($missmatchLabel, 'warning');
-                                            if ($repairConfirmed) {
-                                                if (isset($this->allOltDevices[$oltId])) {
-                                                    if (isset($this->allOnu[$onuRealId])) {
-                                                        $where = "WHERE `id`='" . $onuRealId . "'";
-                                                        simple_update_field('pononu', 'oltid', $oltId, $where);
-                                                        log_register('PON REMAP ONU [' . $onuRealId . '] MAC `' . $onuData['mac'] . '` OLT [' . $wrongOltId . '] TO [' . $oltId . ']');
-                                                        $repairLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('assigned') . ' ' . __('OLT') . ' ' . $oltDesc . '!';
-                                                        $result .= $this->messages->getStyledMessage($repairLabel, 'success');
-                                                    } else {
-                                                        $result .= $this->messages->getStyledMessage(__('ONU') . ' [' . $onuRealId . '] ' . __('Not exists'), 'error');
-                                                    }
-                                                } else {
-                                                    $result .= $this->messages->getStyledMessage(__('OLT') . ' [' . $oltId . '] ' . __('Not exists'), 'error');
-                                                }
+                    if (!empty($fileData)) {
+                        foreach ($fileData as $onuMac => $onuSignal) {
+                            $onuRealId = $this->getONUIDByMAC($onuMac);
+                            $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $onuRealId) : '';
+                            if ($onuRealId) {
+                                $wrongOltFlag = (!$this->checkOnuOLTid($onuMac, $oltId)) ? true : false;
+                                if ($wrongOltFlag) {
+                                    $failedOnuFound = true; //set once
+                                    $onuData = $this->allOnu[$onuRealId];
+                                    $wrongOltId = $onuData['oltid'];
+                                    $wrongOltDesc = @$this->allOltDevices[$wrongOltId];
+                                    if (empty($wrongOltDesc)) {
+                                        $wrongOltDesc = '[' . $wrongOltId . '] ' . __('Unknown');
+                                    }
+
+                                    $missmatchLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('wrong') . ' ' . __('OLT') . ' ' . $wrongOltDesc . ', ';
+                                    $missmatchLabel .= __('must be') . ' ' . $oltDesc;
+                                    $result .= $this->messages->getStyledMessage($missmatchLabel, 'warning');
+                                    if ($repairConfirmed) {
+                                        if (isset($this->allOltDevices[$oltId])) {
+                                            if (isset($this->allOnu[$onuRealId])) {
+                                                $where = "WHERE `id`='" . $onuRealId . "'";
+                                                simple_update_field('pononu', 'oltid', $oltId, $where);
+                                                log_register('PON REMAP ONU [' . $onuRealId . '] MAC `' . $onuData['mac'] . '` OLT [' . $wrongOltId . '] TO [' . $oltId . ']');
+                                                $repairLabel = __('ONU') . ' [ ' . $onuLink . '] ' . __('assigned') . ' ' . __('OLT') . ' ' . $oltDesc . '!';
+                                                $result .= $this->messages->getStyledMessage($repairLabel, 'success');
+                                            } else {
+                                                $result .= $this->messages->getStyledMessage(__('ONU') . ' [' . $onuRealId . '] ' . __('Not exists'), 'error');
                                             }
+                                        } else {
+                                            $result .= $this->messages->getStyledMessage(__('OLT') . ' [' . $oltId . '] ' . __('Not exists'), 'error');
                                         }
                                     }
                                 }
