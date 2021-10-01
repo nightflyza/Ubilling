@@ -53,6 +53,7 @@ if ($altCfg['MAPON_ENABLED']) {
 
                 $todayRoutes = $mapon->getTodayRoutes();
 
+                $todayStarts = array();
 
 
                 if (!empty($todayRoutes)) {
@@ -67,6 +68,14 @@ if ($altCfg['MAPON_ENABLED']) {
                             foreach ($route as $ia => $eachRoute) {
                                 if (!empty($ia)) {
                                     foreach ($eachRoute as $ib => $each) {
+                                        //first trip today (ignores first trip today by unknown reason)
+                                        if (!isset($todayStarts[$unitDrivers[$unitId]])) {
+                                            $todayStarts[$unitDrivers[$unitId]] = $each['time'];
+                                        } else {
+                                            if ($todayStarts[$unitDrivers[$unitId]] > $each['time']) {
+                                                $todayStarts[$unitDrivers[$unitId]] = $each['time'];
+                                            }
+                                        }
                                         if (!$lastRouteFlag) {
                                             $curCoords = $each['lat'] . ',' . $each['lng'];
                                             if (!empty($prevCoords)) {
@@ -92,6 +101,8 @@ if ($altCfg['MAPON_ENABLED']) {
                         }
                     }
                 }
+                
+
 
                 //additional layers here
                 if (ubRouting::checkGet('layerswitches')) {
@@ -109,7 +120,7 @@ if ($altCfg['MAPON_ENABLED']) {
 
 
                 //render map
-                $container = generic_MapContainer('100%','650px');
+                $container = generic_MapContainer('100%', '650px');
                 $container .= generic_MapInit($mapsConfig['CENTER'], $mapsConfig['ZOOM'], $mapsConfig['TYPE'], $placemarks, '', $mapsConfig['LANG']);
                 show_window(__('Cars'), $container);
 
