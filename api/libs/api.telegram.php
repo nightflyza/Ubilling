@@ -37,6 +37,11 @@ class UbillingTelegram {
     const QUEUE_PATH = 'content/telegram/';
 
     /**
+     * Maximum message length
+     */
+    const MESSAGE_LIMIT = 4095;
+
+    /**
      * Creates new Telegram object instance
      * 
      * @param string $token
@@ -419,14 +424,57 @@ class UbillingTelegram {
 
             if ($inline) {
                 $result['type'] = 'inline';
-//                $keyboardMarkup = array(
-//                    'keyboard' => $buttonsArray,
-//                    'resize_keyboard' => $resize,
-//                    'one_time_keyboard' => $oneTime
-//                );
                 $keyboardMarkup = $buttonsArray;
 
                 $result['markup'] = $keyboardMarkup;
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Split message into chunks of safe size
+     * 
+     * @param string $message
+     * 
+     * @return array
+     */
+    protected function splitMessage($message) {
+        $result = preg_split('~~u', $message, -1, PREG_SPLIT_NO_EMPTY);
+        $chunks = array_chunk($result, self::MESSAGE_LIMIT);
+        foreach ($chunks as $i => $chunk) {
+            $chunks[$i] = join('', (array) $chunk);
+        }
+        $result = $chunks;
+
+        return ($result);
+    }
+
+    /**
+     * Sends message to some chat id using Telegram API
+     * 
+     * @param int $chatid remote chatId
+     * @param string $message text message to send
+     * @param array $keyboard keyboard encoded with makeKeyboard method
+     * @param bool $nosplit dont automatically split message into 4096 slices
+     * 
+     * @return string/bool
+     */
+    public function directPushMessage($chatid, $message, $keyboard = array(), $noSplit = false) {
+        $result = '';
+        if ($noSplit) {
+            $result = $this->apiSendMessage($chatid, $message, $keyboard);
+        } else {
+            $messageSize = mb_strlen($message, 'UTF-8');
+            if ($messageSize > self::MESSAGE_LIMIT) {
+                $messageSplit = $this->splitMessage($message);
+                if (!empty($messageSplit)) {
+                    foreach ($messageSplit as $io => $eachMessagePart) {
+                        $result = $this->apiSendMessage($chatid, $eachMessagePart, $keyboard);
+                    }
+                }
+            } else {
+                $result = $this->apiSendMessage($chatid, $message, $keyboard);
             }
         }
         return($result);
@@ -440,9 +488,10 @@ class UbillingTelegram {
      * @param array $keyboard keyboard encoded with makeKeyboard method
      * @throws Exception
      * 
-     * @return void
+     * @return string/bool
      */
-    public function directPushMessage($chatid, $message, $keyboard = array()) {
+    protected function apiSendMessage($chatid, $message, $keyboard = array()) {
+        $result = '';
         $data['chat_id'] = $chatid;
         $data['text'] = $message;
 
@@ -565,7 +614,8 @@ class UbillingTelegram {
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
             if ($this->debug) {
-                deb(curl_exec($ch));
+                $result = curl_exec($ch);
+                deb($result);
                 $curlError = curl_error($ch);
                 if (!empty($curlError)) {
                     show_error(__('Error') . ' ' . __('Telegram') . ': ' . $curlError);
@@ -573,12 +623,13 @@ class UbillingTelegram {
                     show_success(__('Telegram API sending via') . ' ' . $this->apiUrl . ' ' . __('success'));
                 }
             } else {
-                curl_exec($ch);
+                $result = curl_exec($ch);
             }
             curl_close($ch);
         } else {
             throw new Exception('EX_TOKEN_EMPTY');
         }
+        return($result);
     }
 
     /**

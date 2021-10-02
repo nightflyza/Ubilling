@@ -6511,3 +6511,23 @@ function zb_EasyFreezeController() {
     }
     return($result);
 }
+
+/**
+ * Convert a string to an array as str_split but multibyte-safe.
+ * 
+ * @param string $string
+ * @param int $length
+ * 
+ * @return array
+ */
+function zb_split_mb($string, $length = 1) {
+    $result = preg_split('~~u', $string, -1, PREG_SPLIT_NO_EMPTY);
+    if ($length > 1) {
+        $chunks = array_chunk($result, $length);
+        foreach ($chunks as $i => $chunk) {
+            $chunks[$i] = join('', (array) $chunk);
+        }
+        $result = $chunks;
+    }
+    return ($result);
+}
