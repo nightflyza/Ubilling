@@ -516,7 +516,7 @@ class PONizer {
     }
 
     /**
-     * Try get new ONU Array by assigned users login
+     * Returns array of ONUs assigned on some OLT
      *
      * @param string $OltId
      * @return array
@@ -4574,7 +4574,7 @@ class PONizer {
     }
 
     /**
-     * Renders json formatted data for jquery data tables list
+     * Renders json formatted data for jquery data tables list with ONU signals list
      *
      * @param string $OltId
      * @return void
