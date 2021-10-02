@@ -1116,6 +1116,11 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-template-columns: max-content max-content;
     grid-gap: 10px;
     padding: 15px;
+    align-items: center;
+}
+
+.form-grid-2cols h3 {
+    display: inline-block;
 }
 
 .form-grid-2cols .full-width-occupy,
@@ -1133,7 +1138,8 @@ div.dhtml_menu div.vert_menu a.active:hover
     margin-right: 0.5em;
 }
 
-.form-grid-2cols-label-right label {
+.form-grid-2cols-label-right label,
+.form-grid-2cols-label-right h3 {
     text-align: right;
 }
 
@@ -1143,6 +1149,11 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-template-columns: 1fr max-content max-content;
     grid-gap: 10px;
     padding: 15px;
+    align-items: center;
+}
+
+.form-grid-3cols h3 {
+    display: inline-block;
 }
 
 .form-grid-3cols .full-width-occupy,
@@ -1156,6 +1167,16 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-column-end: 4;
 }
 
+.form-grid-3cols .col-1-2-occupy {
+    grid-column-start: 1;
+    grid-column-end: 2;
+}
+
+.form-grid-3cols .col-2-occupy {
+    grid-column-start: 2;
+    grid-column-end: 2;
+}
+
 .form-grid-3cols button {
     margin-top: 7px;
 }
@@ -1165,16 +1186,99 @@ div.dhtml_menu div.vert_menu a.active:hover
     margin-right: 0.5em;
 }
 
-.form-grid-3cols-label-right label {
+.form-grid-3cols-label-right label,
+.form-grid-3cols-label-right h3 {
     text-align: right;
+}
+
+
+.form-grid-4cols {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    grid-gap: 10px;
+    padding: 15px;
+    align-items: center;
+}
+
+.form-grid-4cols h3 {
+    display: inline-block;
+}
+
+.form-grid-4cols .full-width-occupy,
+.form-grid-4cols button {
+    grid-column-start: 1;
+    grid-column-end: 5;
+}
+
+.form-grid-4cols .half-occupy {
+    grid-column-start: 2;
+    grid-column-end: 3;
+}
+
+.form-grid-4cols .right-two-thirds-occupy {
+    grid-column-start: 2;
+    grid-column-end: 5;
+}
+
+.form-grid-4cols .col-1-2-occupy {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+
+.form-grid-4cols .col-1-3-occupy {
+    grid-column-start: 1;
+    grid-column-end: 4;
+}
+
+.form-grid-4cols .col-2-3-occupy {
+    grid-column-start: 2;
+    grid-column-end: 4;
+}
+
+.form-grid-4cols .col-3-4-occupy {
+    grid-column-start: 3;
+    grid-column-end: 5;
+}
+
+.form-grid-4cols .col-4-5-occupy {
+    grid-column-start: 4;
+    grid-column-end: 5;
+}
+
+.form-grid-4cols button {
+    margin-top: 7px;
+}
+
+.form-grid-4cols label {
+    line-height: 1.7em;
+    margin-right: 0.5em;
+}
+
+.form-grid-4cols-label-right label,
+.form-grid-4cols-label-right h3 {
+    text-align: right;
+}
+
+
+.form-grid-5cols {
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    grid-gap: 10px;
+    padding: 15px;
+    align-items: center;
 }
 
 
 .form-grid-6cols {
     display: grid;
-    grid-template-columns: repeat(6, auto);
+    grid-template-columns: repeat(6, minmax(100px, auto));
     grid-gap: 10px;
     padding: 15px;
+    align-items: center;
+}
+
+.form-grid-6cols h3 {
+    display: inline-block;
 }
 
 .form-grid-6cols .full-width-occupy,
@@ -1183,13 +1287,48 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-column-end: 7;
 }
 
+.form-grid-6cols .col-1-2-occupy {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+
 .form-grid-6cols .col-2-3-occupy {
     grid-column-start: 2;
     grid-column-end: 4;
 }
 
+.form-grid-6cols .col-2-4-occupy {
+    grid-column-start: 2;
+    grid-column-end: 5;
+}
+
+.form-grid-6cols .col-3-4-occupy {
+    grid-column-start: 3;
+    grid-column-end: 5;
+}
+
+.form-grid-6cols .col-3-5-occupy {
+    grid-column-start: 3;
+    grid-column-end: 6;
+}
+
+.form-grid-6cols .col-4-5-occupy {
+    grid-column-start: 4;
+    grid-column-end: 6;
+}
+
+.form-grid-6cols .col-4-6-occupy {
+    grid-column-start: 4;
+    grid-column-end: 7;
+}
+
 .form-grid-6cols .col-5-6-occupy {
     grid-column-start: 5;
+    grid-column-end: 7;
+}
+
+.form-grid-6cols .col-6-7-occupy {
+    grid-column-start: 6;
     grid-column-end: 7;
 }
 
@@ -1207,7 +1346,8 @@ div.dhtml_menu div.vert_menu a.active:hover
     margin-right: 0.5em;
 }
 
-.form-grid-6cols-label-right label {
+.form-grid-6cols-label-right label,
+.form-grid-6cols-label-right h3 {
     text-align: right;
 }
 
@@ -1218,6 +1358,7 @@ div.dhtml_menu div.vert_menu a.active:hover
     grid-template-rows: repeat(3, 1fr);
     grid-gap: 5px;
     padding: 15px;
+    align-items: center;
 }
 
 .form-grid-3r-1c button {
