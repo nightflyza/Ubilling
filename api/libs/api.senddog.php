@@ -467,17 +467,17 @@ class SendDog {
      * Mobipace auth routine
      */
     protected function mobipaceDoAuth() {
-        $url        = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_AUTH'];
-        $authReq    = json_encode(array('Username' => $this->settings['MOBIPACE_LOGIN'], 'Password' => $this->settings['MOBIPACE_PASSWORD']));
-        $response   = $this->mobipaceDoCURL($url, $authReq);
-        $sessionID  = '';
+        $url = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_AUTH'];
+        $authReq = json_encode(array('Username' => $this->settings['MOBIPACE_LOGIN'], 'Password' => $this->settings['MOBIPACE_PASSWORD']));
+        $response = $this->mobipaceDoCURL($url, $authReq);
+        $sessionID = '';
 
         if (!empty($response)) {
-            $response       = json_decode($response, true);
-            $srvAnswerCode  = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
+            $response = json_decode($response, true);
+            $srvAnswerCode = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
 
             if ($srvAnswerCode == 101) {
-                $sessionID  = $response['SessionId'];
+                $sessionID = $response['SessionId'];
             } else {
                 $serverErrorMsg = $this->mobipaceProcessError($srvAnswerCode);
                 log_register('SENDDOG MOBIPACE ERROR auth failed: ' . $serverErrorMsg);
@@ -496,17 +496,17 @@ class SendDog {
      */
     protected function mobipaceProcessError($errorCode) {
         $errorCodes = array(100 => 'System failure',
-                            101 => 'Request successful',
-                            102 => 'Request format or parameters are incorrect',
-                            103 => 'Session expired',
-                            104 => 'System is processing request with such ID already or request with such ID temporarily can not be processed',
-                            200 => 'Incorrect user name or password',
-                            201 => 'Maximum amount of auth fails reached - please, contact your manager',
-                            202 => 'User is blocked - please, contact your manager',
-                            300 => 'Insufficient funds to send messages',
-                            301 => 'Message count overflow: no more than 20000 messages per session supported',
-                            302 => 'Account currency not defined - proceed to your personal page and check config'
-                           );
+            101 => 'Request successful',
+            102 => 'Request format or parameters are incorrect',
+            103 => 'Session expired',
+            104 => 'System is processing request with such ID already or request with such ID temporarily can not be processed',
+            200 => 'Incorrect user name or password',
+            201 => 'Maximum amount of auth fails reached - please, contact your manager',
+            202 => 'User is blocked - please, contact your manager',
+            300 => 'Insufficient funds to send messages',
+            301 => 'Message count overflow: no more than 20000 messages per session supported',
+            302 => 'Account currency not defined - proceed to your personal page and check config'
+        );
         $errMsg = (isset($errorCodes[$errorCode])) ? __($errorCodes[$errorCode]) : __('Unknown error code');
         return ('[' . $errorCode . '] - ' . $errMsg);
     }
@@ -520,23 +520,23 @@ class SendDog {
      */
     protected function mobipaceDecodeStatusMsg($statusMsgCode) {
         $msgStatusCodes = array(1 => 'Pending',
-                                2 => 'Scheduled',
-                                3 => 'Sent',
-                                4 => 'Insufficient funds to send messages',
-                                5 => 'Invalid cell number format',
-                                6 => 'Maximum message length of 500 chars reached',
-                                7 => 'Invalid alpha-name - please, contact your manager',
-                                8 => 'Invalid message route - please, contact your manager',
-                                9 => 'Cell number blocked',
-                                10 => 'System failure',
-                                100 => 'Delivered',
-                                101 => 'Undeliverable',
-                                102 => 'Message sent, status unknown',
-                                103 => 'Rejected',
-                                104 => 'TimeOut'
-                               );
+            2 => 'Scheduled',
+            3 => 'Sent',
+            4 => 'Insufficient funds to send messages',
+            5 => 'Invalid cell number format',
+            6 => 'Maximum message length of 500 chars reached',
+            7 => 'Invalid alpha-name - please, contact your manager',
+            8 => 'Invalid message route - please, contact your manager',
+            9 => 'Cell number blocked',
+            10 => 'System failure',
+            100 => 'Delivered',
+            101 => 'Undeliverable',
+            102 => 'Message sent, status unknown',
+            103 => 'Rejected',
+            104 => 'TimeOut'
+        );
         $statusArray = array('StatusMsg' => '', 'DeliveredStatus' => 0, 'NoStatusCheck' => 0);
-        $statusMsg   = (isset($msgStatusCodes[$statusMsgCode])) ? __($msgStatusCodes[$statusMsgCode]) : __('Unknown status code');
+        $statusMsg = (isset($msgStatusCodes[$statusMsgCode])) ? __($msgStatusCodes[$statusMsgCode]) : __('Unknown status code');
 
         switch ($statusMsgCode) {
             case 1:
@@ -781,29 +781,29 @@ class SendDog {
      * @return string
      */
     public function renderMobipaceBalance() {
-        $sessionID  = $this->mobipaceDoAuth();
-        $result     = '';
+        $sessionID = $this->mobipaceDoAuth();
+        $result = '';
 
         if (empty($sessionID)) {
             log_register('SENDDOG MOBIPACE ERROR get balance failed - empty session ID, check auth parameters');
             $result = $this->messages->getStyledMessage(__('Getting balance failed - empty session ID, check auth parameters'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
             //die(wf_modalAutoForm(__('Error'), $errormes, $_POST['modalWindowId'], '', true));
         } else {
-            $url            = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_BALANCE'];
-            $balanceReq     = json_encode(array('SessionId' => $sessionID));
-            $response       = $this->mobipaceDoCURL($url, $balanceReq);
-            $response       = json_decode($response, true);
-            $srvAnswerCode  = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
+            $url = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_BALANCE'];
+            $balanceReq = json_encode(array('SessionId' => $sessionID));
+            $response = $this->mobipaceDoCURL($url, $balanceReq);
+            $response = json_decode($response, true);
+            $srvAnswerCode = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
 
             if ($srvAnswerCode == 101) {
                 $balance = wf_delimiter(1) . wf_nbsp(4) . __('Balance') . ': ' . $response['Balance']
-                           . wf_delimiter(0) . wf_nbsp(4) . __('Credit') . ': ' . $response['BalanceNegativeLimit'];
+                        . wf_delimiter(0) . wf_nbsp(4) . __('Credit') . ': ' . $response['BalanceNegativeLimit'];
             } else {
                 $balance = $this->processError($srvAnswerCode);
                 log_register('SENDDOG MOBIPACE ERROR getting balance failed: ' . $balance);
             }
 
-            $result.= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $balance, 'info');
+            $result .= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $balance, 'info');
             //die(wf_modalAutoForm(__('Balance'), $result, $_POST['modalWindowId'], '', true, 'false', '700'));
         }
 
@@ -817,15 +817,32 @@ class SendDog {
      */
     public function renderTelegramContacts() {
         $result = '';
+        $allEmployeeChatIds = array();
         $telegram = new UbillingTelegram();
         $telegram->setToken($this->settings['TELEGRAM_BOTTOKEN']);
         $rawContacts = $telegram->getBotContacts();
+        $allEmployeeData = ts_GetAllEmployeeData();
+
+        if (!empty($allEmployeeData)) {
+            foreach ($allEmployeeData as $io => $each) {
+                if (!empty($each['telegram'])) {
+                    if (!empty($each['admlogin'])) {
+                        $empNameLabel = $each['name'] . ' (' . $each['admlogin'] . ')';
+                    } else {
+                        $empNameLabel = $each['name'];
+                    }
+                    $allEmployeeChatIds[$each['telegram']] = $empNameLabel;
+                }
+            }
+        }
+
         $result .= wf_BackLink(self::URL_ME, '', true);
 
         if (!empty($rawContacts)) {
             $cells = wf_TableCell('');
             $cells .= wf_TableCell(__('Chat ID'));
             $cells .= wf_TableCell(__('Type'));
+            $cells .= wf_TableCell(__('Worker'));
             $cells .= wf_TableCell(__('Name'));
             $cells .= wf_TableCell(__('Message'));
             $rows = wf_TableRow($cells, 'row1');
@@ -834,6 +851,8 @@ class SendDog {
                 $cells = wf_TableCell($this->newContact($each['lastmessage']));
                 $cells .= wf_TableCell($each['chatid']);
                 $cells .= wf_TableCell($each['type']);
+                $employeeName = (isset($allEmployeeChatIds[$each['chatid']])) ? $allEmployeeChatIds[$each['chatid']] : '';
+                $cells .= wf_TableCell($employeeName);
                 $cells .= wf_TableCell($each['name']);
                 $cells .= wf_TableCell($each['lastmessage']);
                 $rows .= wf_TableRow($cells, 'row5');
@@ -854,7 +873,7 @@ class SendDog {
      */
     protected function newContact($message) {
         $result = '';
-        $markers = array('go', 'start', 'хуй'); //default new contact markers array
+        $markers = array('go', 'start', 'хуй', 'huy'); //default new contact markers array
 
         if (!empty($markers)) {
             foreach ($markers as $io => $eachMarker) {
@@ -1757,17 +1776,17 @@ class SendDog {
      * @return void
      */
     public function mobipacePushMessages() {
-        $sessionID  = $this->mobipaceDoAuth();
+        $sessionID = $this->mobipaceDoAuth();
 
         if (empty($sessionID)) {
             log_register('SENDDOG MOBIPACE ERROR send messages failed - empty session ID, check auth parameters');
         } else {
-            $url                = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_SEND'];
-            $sender             = $this->settings['MOBIPACE_ALPHANAME'];
-            $smsHistoryEnabled  = $this->ubConfig->getAlterParam('SMS_HISTORY_ON');
+            $url = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_SEND'];
+            $sender = $this->settings['MOBIPACE_ALPHANAME'];
+            $smsHistoryEnabled = $this->ubConfig->getAlterParam('SMS_HISTORY_ON');
             $smsHistTabFreshIds = array();
-            $preSendStatus      = __('Perparing for delivery');
-            $telepatia          = new Telepathy(false);
+            $preSendStatus = __('Perparing for delivery');
+            $telepatia = new Telepathy(false);
 
             if ($smsHistoryEnabled) {
                 $telepatia->flushPhoneTelepathyCache();
@@ -1789,7 +1808,7 @@ class SendDog {
                         $Login = $telepatia->getByPhoneFast($eachsms['number']);
 
                         $query = "INSERT INTO `sms_history` (`login`, `phone`, `srvmsgself_id`, `srvmsgpack_id`, `send_status`, `msg_text`) 
-                                                     VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '". $smsMsgId . "', '" . $sessionID . "', '" . $preSendStatus . "', '" . $eachsms['message'] . "');";
+                                                     VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $smsMsgId . "', '" . $sessionID . "', '" . $preSendStatus . "', '" . $eachsms['message'] . "');";
                         nr_query($query);
 
                         $recId = simple_get_lastid('sms_history');
@@ -1808,11 +1827,11 @@ class SendDog {
                 $response = $this->mobipaceDoCURL($url, $smsArray);
 
                 if (!empty($response)) {
-                    $response       = json_decode($response, true);
-                    $srvAnswerCode  = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
-                    $msgsCnt        = (isset($response['MessageCount'])) ? $response['MessageCount'] : '0';
-                    $priceTotal     = (isset($response['TotalPrice'])) ? $response['TotalPrice'] : '0';
-                    $idsAsStr       = implode(',', $smsHistTabFreshIds);
+                    $response = json_decode($response, true);
+                    $srvAnswerCode = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
+                    $msgsCnt = (isset($response['MessageCount'])) ? $response['MessageCount'] : '0';
+                    $priceTotal = (isset($response['TotalPrice'])) ? $response['TotalPrice'] : '0';
+                    $idsAsStr = implode(',', $smsHistTabFreshIds);
 
                     if ($srvAnswerCode == 101) {
                         $query = "UPDATE `sms_history` SET `date_send` = '" . curdatetime() . "', 
@@ -1828,7 +1847,7 @@ class SendDog {
                         $query = "UPDATE `sms_history` SET `date_send` = '" . curdatetime() . "',
                                                            `date_statuschk` = '" . curdatetime() . "',
                                                            `no_statuschk` = '1', 
-                                                           `send_status` = '" . __('Failed to send message') . ': ' . $serverErrorMsg ."' 
+                                                           `send_status` = '" . __('Failed to send message') . ': ' . $serverErrorMsg . "' 
                                             WHERE `id` IN (" . $idsAsStr . ");";
                         nr_query($query);
                     }
@@ -1843,13 +1862,13 @@ class SendDog {
      * @return void
      */
     public function mobipaceCheckMessagesStatus() {
-        $sessionID  = $this->mobipaceDoAuth();
+        $sessionID = $this->mobipaceDoAuth();
 
         if (empty($sessionID)) {
             log_register('SENDDOG MOBIPACE ERROR check messages statuses failed - empty session ID, check auth parameters');
         } else {
-            $url        = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_STATUSES'];
-            $statusReq  = array('SessionId' => $sessionID, 'References' => array());
+            $url = rtrim($this->settings['MOBIPACE_GATEWAY'], '/') . '/' . $this->settings['MOBIPACE_URL_STATUSES'];
+            $statusReq = array('SessionId' => $sessionID, 'References' => array());
 
             $query = "SELECT DISTINCT `srvmsgself_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
 
@@ -1870,15 +1889,15 @@ class SendDog {
                 $response = $this->mobipaceDoCURL($url, $statusReq);
 
                 if (!empty($response)) {
-                    $response       = json_decode($response, true);
-                    $srvAnswerCode  = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
+                    $response = json_decode($response, true);
+                    $srvAnswerCode = (isset($response['StatusCode'])) ? $response['StatusCode'] : '42';
 
                     if ($srvAnswerCode == 101) {
                         $msgStatuses = (empty($response['MessageStatuses'])) ? array() : $response['MessageStatuses'];
 
                         foreach ($msgStatuses as $io => $eachMsgStatus) {
-                            $messageId            = $eachMsgStatus['Reference'];
-                            $messageStatusCode    = $eachMsgStatus['StatusCode'];
+                            $messageId = $eachMsgStatus['Reference'];
+                            $messageStatusCode = $eachMsgStatus['StatusCode'];
                             $decodedMessageStatus = $this->mobipaceDecodeStatusMsg($messageStatusCode);
 
                             $query = "UPDATE `sms_history` SET `date_statuschk` = '" . curdatetime() . "', 
@@ -3013,15 +3032,14 @@ abstract class SMSServiceApi {
      */
     protected $ubConfig = null;
 
-
     public function __construct($smsServiceId, $smsPack = array()) {
         global $ubillingConfig;
-        $this->ubConfig         = $ubillingConfig;
-        $this->serviceId        = $smsServiceId;
-        $this->instanceSendDog  = new SendDogAdvanced();
-        $this->apiSettingsRaw   = $this->instanceSendDog->getSmsServicesConfigData(" WHERE `id` = " . $smsServiceId);
+        $this->ubConfig = $ubillingConfig;
+        $this->serviceId = $smsServiceId;
+        $this->instanceSendDog = new SendDogAdvanced();
+        $this->apiSettingsRaw = $this->instanceSendDog->getSmsServicesConfigData(" WHERE `id` = " . $smsServiceId);
         $this->getSettings();
-        $this->smsMessagePack   = $smsPack;
+        $this->smsMessagePack = $smsPack;
     }
 
     /**
