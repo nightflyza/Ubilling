@@ -566,8 +566,9 @@ function ts_JGetUndoneTasks() {
         $anyoneId = false;
     }
 
-
-    $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+    $showAllYearsTasks  = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+    $branchConsider     = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                           and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -581,6 +582,8 @@ function ts_JGetUndoneTasks() {
     $alljobdata = ts_getAllJobtypesData();
     $curyear = curyear();
     $curmonth = date("m");
+    $appendQueryJOIN = '';
+    $appendQuerySelect = '';
 
     //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -603,15 +606,22 @@ function ts_JGetUndoneTasks() {
 
     if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
         $appendQuery .= ts_AdvFiltersQuery();
+        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
+                                                  LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
+                                              : "";
+        $appendQuerySelect = ($branchConsider) ? ", `branches`.`name` AS `branch_name` "
+                                                : "";
     }
 
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                      " . $appendQueryJOIN . " 
                     WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman`  
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman`  
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                      " . $appendQueryJOIN . " 
                     WHERE `status`='0' " . $appendQuery . " ORDER BY `date` ASC";
     }
 
@@ -619,6 +629,7 @@ function ts_JGetUndoneTasks() {
     $result = '';
     $i = 1;
     $taskcount = sizeof($allundone);
+    $branchName = '';
 
     if (!empty($allundone)) {
         foreach ($allundone as $io => $eachtask) {
@@ -679,10 +690,13 @@ function ts_JGetUndoneTasks() {
                 $adcText = '';
             }
 
+            // get users's branch
+            $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
+
             $result .= "
                       {
                         id: " . $eachtask['id'] . ",
-                        title: '" . $startTime . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
+                        title: '" . $startTime . $branchName . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         className : '" . $jobColorClass . "',
@@ -707,6 +721,8 @@ function ts_JGetDoneTasks() {
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
     $showExtendedDone = $ubillingConfig->getAlterParam('TASKMAN_SHOW_DONE_EXTENDED');
     $extendedDoneAlterStyling = $ubillingConfig->getAlterParam('TASKMAN_DONE_EXTENDED_ALTERSTYLING');
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -722,6 +738,8 @@ function ts_JGetDoneTasks() {
 
     $curyear = curyear();
     $curmonth = date("m");
+    $appendQueryJOIN = '';
+    $appendQuerySelect = '';
 
     //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -744,15 +762,22 @@ function ts_JGetDoneTasks() {
 
     if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
         $appendQuery .= ts_AdvFiltersQuery();
+        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
+                                                  LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
+                                             : "";
+        $appendQuerySelect = ($branchConsider) ? ", `branches`.`name` AS `branch_name` "
+                                               : "";
     }
 
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                      " . $appendQueryJOIN . " 
                     WHERE `status`='1' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                      " . $appendQueryJOIN . "  
                     WHERE `status`='1' " . $appendQuery . " ORDER BY `date` ASC";
     }
 
@@ -760,6 +785,7 @@ function ts_JGetDoneTasks() {
     $result = '';
     $i = 1;
     $taskcount = sizeof($allundone);
+    $branchName = '';
 
     if (!empty($allundone)) {
         foreach ($allundone as $io => $eachtask) {
@@ -813,10 +839,13 @@ function ts_JGetDoneTasks() {
                 $extendInfo = '';
             }
 
+            // get users's branch
+            $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
+
             $result .= "
                       {
                         id: " . $eachtask['id'] . ",
-                        title: '" . $eachtask['address'] . " - " . $doneemploee . $adcText . mysql_real_escape_string($extendInfo) . "',
+                        title: '" . $branchName . $eachtask['address'] . " - " . $doneemploee . $adcText . mysql_real_escape_string($extendInfo) . "',
                         start: new Date(" . $startdate . "),
                         end: new Date(" . $enddate . "),
                         url: '?module=taskman&edittask=" . $eachtask['id'] . "',
@@ -839,6 +868,8 @@ function ts_JGetAllTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -874,25 +905,34 @@ function ts_JGetAllTasks() {
 
     if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
         $appendQuery .= ts_AdvFiltersQuery();
+        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
+                                                  LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
+                                             : "";
+        $appendQuerySelect = ($branchConsider) ? ", `branches`.`name` AS `branch_name` "
+                                               : "";
     }
 
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                      " . $appendQueryJOIN . " 
                     WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
         if ($appendQuery) {
             //$appendQuery = str_replace('AND', 'WHERE', $appendQuery);
             $appendQuery = preg_replace('/AND/', 'WHERE', $appendQuery, 1);
         }
-        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
-                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname`" . $appendQuerySelect . " FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                      " . $appendQueryJOIN . "
+                      " . $appendQuery . " ORDER BY `date` ASC";
     }
 
     $allundone = simple_queryall($query);
     $result = '';
     $i = 1;
     $taskcount = sizeof($allundone);
+    $branchName = '';
 
     if (!empty($allundone)) {
         foreach ($allundone as $io => $eachtask) {
@@ -950,11 +990,13 @@ function ts_JGetAllTasks() {
                 $adcText = '';
             }
 
+            // get users's branch
+            $branchName = ($branchConsider) ? ' ' . $eachtask['branch_name'] . ' ' : '';
 
             $result .= "
                       {
                         id: " . $eachtask['id'] . ",
-                        title: '" . $startTime . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
+                        title: '" . $startTime . $branchName . $eachtask['address'] . " - " . @$alljobdata[$eachtask['jobtype']]['jobname'] . $adcText . "',
                         start: new Date(" . $startdate . $startTimeTimestamp . "),
                         end: new Date(" . $enddate . "),
                         " . $coloring . "
@@ -1460,20 +1502,20 @@ function ts_ShowPanel() {
                     $displayTypes['displayempid' . $actId] = $empName;
                 }
             }
-            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false, '', '', 'col-1-2-occupy');
         }
 
-        $submitOpts = '';
+        $submitOpts = 'style="width: 100%";';
         if ($advFiltersEnabled) {
-            $inputs = wf_tag('span', false, '', 'style="float:left; margin: 5px 10px 5px 0;"') . $inputs . wf_tag('span', true);
+            //$inputs = wf_tag('span', false, '', 'style="float:left; margin: 5px 10px 5px 0;"') . $inputs . wf_tag('span', true);
             $inputs .= ts_AdvFiltersControls();
-            $inputs = wf_Plate($inputs);
-            $inputs .= wf_CleanDiv();
-            $submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700;" ';
+            //$inputs = wf_Plate($inputs);
+            //$inputs .= wf_CleanDiv();
+            //$submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700;" ';
         }
 
-        $inputs .= wf_Submit('Show', '', $submitOpts);
-        $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', $submitOpts);
+        $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour form-grid-6cols form-grid-6cols-label-right ');
         if (!$branchCurseFlag) {
             $result .= $showTypeForm;
         }
@@ -2059,6 +2101,7 @@ function ts_CheckDailyDuplicates($taskData) {
  */
 function ts_TaskChangeForm($taskid) {
     global $ubillingConfig;
+
     $altercfg = $ubillingConfig->getAlter();
     $taskid = vf($taskid, 3);
     $taskdata = ts_GetTaskData($taskid);
@@ -2069,6 +2112,7 @@ function ts_TaskChangeForm($taskid) {
     $alljobtypes = ts_GetAllJobtypes();
     $messages = new UbillingMessageHelper();
     $smsData = '';
+    $branchName = '';
 
     if (!empty($taskdata)) {
         //not done task
@@ -2175,6 +2219,20 @@ function ts_TaskChangeForm($taskid) {
         $tablecells = wf_TableCell(__('Task address'));
         $tablecells .= wf_TableCell($addresslink);
         $tablerows .= wf_TableRow($tablecells, 'row3');
+
+        // getting user's branch name
+        $branchConsider = (!empty($taskLogin)
+                           and $ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                           and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+        if ($branchConsider) {
+            $branches = new UbillingBranches();
+            $branchName = $branches->userGetBranchName($taskLogin);
+            $branchName = (empty($branchName) ? '' : wf_Link($branches::URL_ME . '&userbranch=' . $taskLogin, $branchName));
+
+            $tablecells = wf_TableCell(__('Branch'));
+            $tablecells .= wf_TableCell($branchName);
+            $tablerows .= wf_TableRow($tablecells, 'row3');
+        }
 
         $tablecells = wf_TableCell(__('Login'));
         $tablecells .= wf_TableCell($taskLogin . $loginType);
@@ -2819,8 +2877,18 @@ function ts_PrintDialogue() {
 
     $submitOpts = '';
     $tmpInputs = '';
-    $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
-    $inputs .= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
+    $inputs = '';
+    $inputs.= wf_tag('span', false, 'col-1-2-occupy');
+    $inputs.= wf_tag('h3');
+    $inputs.= __('From') . wf_nbsp(2);
+    $inputs.= wf_tag('h3', true);
+    $inputs.= wf_DatePickerPreset('printdatefrom', curdate());
+    $inputs.= wf_nbsp(8);
+    $inputs.= wf_tag('h3');
+    $inputs.= __('To') . wf_nbsp(2);
+    $inputs.= wf_tag('h3', true);
+    $inputs.= wf_DatePickerPreset('printdateto', curdate());
+    $inputs.= wf_tag('span', true);
 
     if ($advFiltersEnabled) {
         $whoami = whoami();
@@ -2829,26 +2897,22 @@ function ts_PrintDialogue() {
         if ($employeeid) {
             $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
             $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
-            $tmpInputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false);
-            $tmpInputs = wf_tag('span', false, '', 'style="float:left; margin: 5px 10px 5px 0;"') . $tmpInputs . wf_tag('span', true);
+            $tmpInputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false, false, '', 'col-3-4-occupy');
         }
 
-        $tmpInputs .= ts_AdvFiltersControls(false);
-        $tmpInputs = wf_Plate($tmpInputs, '', '', '', 'margin-top: 8px;');
-        $tmpInputs .= wf_CleanDiv();
-        $tmpInputs .= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false) . wf_nbsp(4);
-
-        $inputs = wf_tag('span', false, '', 'style="float: left"') . $inputs . wf_tag('span', true);
-        $inputs .= wf_CleanDiv();
-
-        $submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700; margin-top: 10px;" ';
-        //margin-left: 22px;
+        $tmpInputs .= ts_AdvFiltersControls();
+        $tmpInputs .= wf_tag('span', false, 'col-1-2-occupy', '');
+        $tmpInputs .= wf_CheckInput('nopagebreaks', __('No page breaks for each employee'), false, false);
+        $tmpInputs .= wf_tag('span', true);
     }
 
     $inputs .= $tmpInputs;
+    $inputs .= wf_tag('span', false, '');
     $inputs .= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
-    $inputs .= wf_Submit(__('Print'), '', $submitOpts);
-    $result = wf_Form("", 'POST', $inputs, 'glamour');
+    $inputs .= wf_tag('span', true);
+    $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Print'), '', $submitOpts);
+    $result = wf_Form("", 'POST', $inputs, 'glamour form-grid-4cols form-grid-4cols-label-right ');
+
     return ($result);
 }
 
@@ -2863,11 +2927,15 @@ function ts_PrintDialogue() {
 function ts_PrintTasks($datefrom, $dateto) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    $appendQueryJOIN = '';
+
     $result = wf_tag('style');
     $result .= '
         table.gridtable {
@@ -2895,7 +2963,13 @@ function ts_PrintTasks($datefrom, $dateto) {
         ';
     $result .= wf_tag('style', true);
 
-    $advFilter = ($advFiltersEnabled) ? ts_AdvFiltersQuery() : '';
+    if ($advFiltersEnabled) {
+        $advFilter = ts_AdvFiltersQuery();
+        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
+                                                 LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
+                                             : "";
+    }
+
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
@@ -2905,7 +2979,11 @@ function ts_PrintTasks($datefrom, $dateto) {
         $appendQuery = '';
     }
 
-    $query = "select * from `taskman` LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . " " . $advFilter . " " . $appendQuery;
+    $query = "SELECT * FROM `taskman` 
+                    LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                    " . $appendQueryJOIN . " 
+                WHERE `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'"
+                      . " " . $advFilter . " " . $appendQuery;
     $alltasks = simple_queryall($query);
 
     if (!empty($alltasks)) {
@@ -2969,11 +3047,14 @@ function ts_PrintTasks($datefrom, $dateto) {
 function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    $appendQueryJOIN = '';
     $tmpArr = array();
     $pageBreakStyle = ($nopagebreaks) ? '' : 'page-break-after: always;';
     $result = wf_tag('style');
@@ -3005,7 +3086,13 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
         ';
     $result .= wf_tag('style', true);
 
-    $advFilter = ($advFiltersEnabled) ? ts_AdvFiltersQuery() : '';
+    if ($advFiltersEnabled) {
+        $advFilter = ts_AdvFiltersQuery();
+        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
+                                                 LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
+                                             : "";
+    }
+
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
@@ -3021,7 +3108,11 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
         $orderFilter = mysql_real_escape_string($customOrderFilter);
     }
 
-    $query = "select * from `taskman` LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'" . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
+    $query = "SELECT * FROM `taskman` 
+                    LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
+                    " . $appendQueryJOIN . "  
+                WHERE `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'"
+                      . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
 
     $alltasks = simple_queryall($query);
 
@@ -3118,7 +3209,7 @@ function ts_ShowLate() {
 /**
  * Gets employee by administrator login
  * 
- * @param sting $login logged in administrators login
+ * @param string $login logged in administrators login
  * 
  * @return mixed 
  */
@@ -3254,84 +3345,88 @@ function ts_GetAllTasksQuickData() {
     return ($result);
 }
 
-function ts_AdvFiltersControls($extraTrailingSpace = true) {
-    $whoami = whoami();
-    $employeeid = ts_GetEmployeeByLogin($whoami);
-    $alljobtypes = ts_GetAllJobtypes();
-    $alljobtypes = array('0' => __('Any')) + $alljobtypes;
-    $selectedjobtype = ( wf_CheckPost(array('filtertaskjobtypeexact')) ) ? $_POST['filtertaskjobtypeexact'] : '';
-    $jobtypecontains = ( wf_CheckPost(array('filtertaskjobtype')) ) ? $_POST['filtertaskjobtype'] : '';
-    $addresscontains = ( wf_CheckPost(array('filtertaskaddr')) ) ? $_POST['filtertaskaddr'] : '';
-    $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
-    $phonecontains = ( wf_CheckPost(array('filtertaskphone')) ) ? $_POST['filtertaskphone'] : '';
+function ts_AdvFiltersControls() {
+    global $ubillingConfig;
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+    $branchAdvFltON = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS_BRANCHES_ON');
 
-    // dirty hack for situations when admin is not in employee list
-    $tmpStyleStr = (empty($employeeid) ? 'style="float:right; margin: 8px 10px 5px 0px;"' : 'style="float: left; margin: 5px 10px 5px 0;"' );
+    $alljobtypes     = ts_GetAllJobtypes();
+    $alljobtypes     = array('0' => __('Any')) + $alljobtypes;
+    $selectedjobtype = (ubRouting::checkPost('filtertaskjobtypeexact') ? ubRouting::post('filtertaskjobtypeexact') : '');
+    $jobtypecontains = (ubRouting::checkPost('filtertaskjobtype') ? ubRouting::post('filtertaskjobtype') : '');
+    $addresscontains = (ubRouting::checkPost('filtertaskaddr') ? ubRouting::post('filtertaskaddr') : '');
+    $jobnotecontains = (ubRouting::checkPost('filtertaskjobnote') ? ubRouting::post('filtertaskjobnote') : '');
+    $phonecontains   = (ubRouting::checkPost('filtertaskphone') ? ubRouting::post('filtertaskphone') : '');
+    $branchcontains  = (ubRouting::checkPost('filtertaskbranch') ? ubRouting::post('filtertaskbranch') : '');
 
-    $inputs = wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
+    $inputs = '';
+    $inputs .= wf_tag('h3');
     $inputs .= __('Job type');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_Selector('filtertaskjobtypeexact', $alljobtypes, '', $selectedjobtype);
-    $inputs .= wf_tag('span', true);
 
-    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
+    $inputs .= wf_tag('h3');
     $inputs .= __('Job type contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskjobtype', '', $jobtypecontains);
-    $inputs .= wf_tag('span', true);
-    $inputs .= wf_delimiter();
 
-    $inputs .= wf_tag('span', false, '', $tmpStyleStr);
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
+    if ($branchConsider and $branchAdvFltON) {
+        $inputs .= wf_tag('h3');
+        $inputs .= __('Branch contains');
+        $inputs .= wf_tag('h3', true);
+        $inputs .= wf_TextInput('filtertaskbranch', '', $branchcontains);
+    }
+
+    $inputs .= wf_tag('h3');
     $inputs .= __('Address contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskaddr', '', $addresscontains);
-    $inputs .= wf_tag('span', true);
 
-    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
+    $inputs .= wf_tag('h3');
     $inputs .= __('Job note contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskjobnote', '', $jobnotecontains);
-    $inputs .= wf_nbsp(3);
-    $inputs .= wf_tag('span', true);
 
-    $inputs .= wf_tag('span', false, '', 'style="float: left; margin: 5px 10px 5px 0;"');
-    $inputs .= wf_tag('h3', false, '', 'style="margin: 0 10px 0 0; display: inline-block"');
+    $inputs .= wf_tag('h3');
     $inputs .= __('Job phone contains');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_TextInput('filtertaskphone', '', $phonecontains);
-    $inputs .= wf_tag('span', true);
-    $inputs .= wf_delimiter(0);
-    $inputs .= ($extraTrailingSpace) ? wf_nbsp() : '';
 
     return($inputs);
 }
 
 function ts_AdvFiltersQuery() {
-    $AppendQuery = '';
+    global $ubillingConfig;
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+    $branchAdvFltON = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS_BRANCHES_ON');
 
-    if (wf_CheckPost(array('filtertaskjobtypeexact'))) {
-        $AppendQuery .= " AND `jobtype` = " . $_POST['filtertaskjobtypeexact'];
-    } elseif (wf_CheckPost(array('filtertaskjobtype'))) {
-        $AppendQuery .= " AND `jobname` LIKE '%" . $_POST['filtertaskjobtype'] . "%'";
+    $appendQuery = '';
+
+    if (ubRouting::checkPost('filtertaskjobtypeexact')) {
+        $appendQuery .= " AND `jobtype` = " . ubRouting::post('filtertaskjobtypeexact');
+    } elseif (ubRouting::checkPost('filtertaskjobtype')) {
+        $appendQuery .= " AND `jobname` LIKE '%" . ubRouting::post('filtertaskjobtype') . "%'";
     }
 
-    if (wf_CheckPost(array('filtertaskaddr'))) {
-        $AppendQuery .= " AND `address` LIKE '%" . $_POST['filtertaskaddr'] . "%'";
+    if (ubRouting::checkPost('filtertaskaddr')) {
+        $appendQuery .= " AND `address` LIKE '%" . ubRouting::post('filtertaskaddr') . "%'";
     }
 
-    if (wf_CheckPost(array('filtertaskjobnote'))) {
-        $AppendQuery .= " AND `jobnote` LIKE '%" . $_POST['filtertaskjobnote'] . "%'";
+    if (ubRouting::checkPost('filtertaskjobnote')) {
+        $appendQuery .= " AND `jobnote` LIKE '%" . ubRouting::post('filtertaskjobnote') . "%'";
     }
 
-    if (wf_CheckPost(array('filtertaskphone'))) {
-        $AppendQuery .= " AND `phone` LIKE '%" . $_POST['filtertaskphone'] . "%'";
+    if (ubRouting::checkPost('filtertaskphone')) {
+        $appendQuery .= " AND `phone` LIKE '%" . ubRouting::post('filtertaskphone') . "%'";
     }
 
-    return ($AppendQuery);
+    if ($branchConsider and $branchAdvFltON and ubRouting::checkPost('filtertaskbranch')) {
+        $appendQuery .= " AND `branches`.`name` LIKE '%" . ubRouting::post('filtertaskbranch') . "%'";
+    }
+
+    return ($appendQuery);
 }
 
 ?>
