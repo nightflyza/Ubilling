@@ -6,7 +6,7 @@
 if ($_GET['action'] == 'autofreezemonth') {
     if (isset($alterconf['AUTOFREEZE_CASH_LIMIT'])) {
         $tariffPrices = zb_TariffGetPricesAll();
-        $tariffPriceMultiplier = $alterconf['AUTOFREEZE_CASH_LIMIT'];
+        $tariffPriceMultiplier = abs($alterconf['AUTOFREEZE_CASH_LIMIT']);
         $autoFreezeQuery = "SELECT * from `users` WHERE `Passive`='0' AND `Credit`='0';";
         $allUsersToFreeze = simple_queryall($autoFreezeQuery);
         $freezeCount = 0;
