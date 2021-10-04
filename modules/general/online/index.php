@@ -37,11 +37,11 @@ if ($system->checkForRight('ONLINE')) {
         $showWIFISignals = false;
 
         if (isset($alter_conf['PON_ENABLED']) && $alter_conf['PON_ENABLED'] &&
-            isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
+                isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
             $showONUSignals = true;
             $colNum1 = (($ShowContractField and $showUserPhones) ? '5' : (($ShowContractField xor $showUserPhones) ? '4' : '3'));
 
-            $columnDefs.= '{"targets": ' . $colNum1 . ',
+            $columnDefs .= '{"targets": ' . $colNum1 . ',
                                 "render": function ( data, type, row ) {                                          
                                             var sigColor = \'#000\';
                                                                                                     
@@ -61,7 +61,7 @@ if ($system->checkForRight('ONLINE')) {
         }
 
         if (isset($alter_conf['MTSIGMON_ENABLED']) && $alter_conf['MTSIGMON_ENABLED'] &&
-            isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
+                isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
             $showWIFISignals = true;
 
             // fuckin' XOR magic goes below this line. don't touch it(especially the parentheses) or you'll be cursed with hours of debugging
@@ -74,11 +74,11 @@ if ($system->checkForRight('ONLINE')) {
             // 3. If only one of 3 optional columns is "ON" - then $column2 will equal to "4"
             // 4. Finally, if none of 3 optional columns are "ON" - then $column2 will equal to "3"
             $colNum2 = (($ShowContractField and $showUserPhones and $showONUSignals) ? '6' :
-                        ((($ShowContractField and $showUserPhones) xor ($showUserPhones and $showONUSignals) xor ($ShowContractField and $showONUSignals)) ? '5' :
-                        (($ShowContractField xor $showUserPhones xor $showONUSignals) ? '4' : '3')));
+                    ((($ShowContractField and $showUserPhones) xor ( $showUserPhones and $showONUSignals) xor ( $ShowContractField and $showONUSignals)) ? '5' :
+                    (($ShowContractField xor $showUserPhones xor $showONUSignals) ? '4' : '3')));
 
-            $columnDefs.= (empty($columnDefs) ? '' : ', ');
-            $columnDefs.= '{"targets": ' . $colNum2 . ',
+            $columnDefs .= (empty($columnDefs) ? '' : ', ');
+            $columnDefs .= '{"targets": ' . $colNum2 . ',
                                 "render": function ( data, type, row ) {
                                             var signalArr = data.split(\' / \');
                                             var signal = \'\';
@@ -124,32 +124,32 @@ if ($system->checkForRight('ONLINE')) {
              null, ' .
                     ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
                     ' null, ' .
-                ( ($hp_mode == 1 && $showUserPhones) ? 'null,' : '' ) .
-                ' { "sType": "ip-address" }, ' .
-                ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
-                ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
-                ' null,
+                    ( ($hp_mode == 1 && $showUserPhones) ? 'null,' : '' ) .
+                    ' { "sType": "ip-address" }, ' .
+                    ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
+                    ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
+                    ' null,
                 null,
                 null,
                 { "sType": "file-size" },
                 null,
                 null ' .
-                ( ($hp_mode == 1 && $showLastFeeCharge) ? ', null' : '' );
+                    ( ($hp_mode == 1 && $showLastFeeCharge) ? ', null' : '' );
         } else {
             $columnFilters = '
              null, ' .
                     ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
                     ' null, ' .
-                ( ($hp_mode == 1 && $showUserPhones) ? 'null,' : '' ) .
-                ' { "sType": "ip-address" }, ' .
-                ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
-                ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
-                ' null,
+                    ( ($hp_mode == 1 && $showUserPhones) ? 'null,' : '' ) .
+                    ' { "sType": "ip-address" }, ' .
+                    ( ($hp_mode == 1 && $showONUSignals) ? 'null, ' : '' ) .
+                    ( ($hp_mode == 1 && $showWIFISignals) ? 'null, ' : '' ) .
+                    ' null,
                 null,
                 { "sType": "file-size" },
                 null,                
                 null ' .
-                ( ($hp_mode == 1 && $showLastFeeCharge) ? ', null' : '' );
+                    ( ($hp_mode == 1 && $showLastFeeCharge) ? ', null' : '' );
         }
 
         $dtcode = '
@@ -281,8 +281,29 @@ if ($system->checkForRight('ONLINE')) {
 		</script>
 
        ';
+
+        $customStyling = '
+            <style>
+            .dataTable tr {
+               height: 33px; !important;
+               min-height: 33px; !important;
+            }
+
+            .dataTable td th {
+             vertical-align: middle; !important;
+            }
+            
+            .dataTable img {
+             vertical-align: middle; !important;
+             width:15px; !important;
+             display: inline; !important;
+             float:left; !important;
+            }
+            </style>';
+
         $result = $dtcode;
-        $result.= wf_tag('table', false, 'display compact', 'width="100%" id="onlineusershp"');
+        $result .= $customStyling;
+        $result .= wf_tag('table', false, 'display compact', 'width="100%" id="onlineusershp"');
         //dn activity check
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $onlineCells = wf_TableCell(__('Users online'));
@@ -290,27 +311,27 @@ if ($system->checkForRight('ONLINE')) {
             $onlineCells = '';
         }
 
-        $result.= wf_tag('thead', false);
-        $result.= wf_tag('tr', false, 'row2');
-        $result.= wf_TableCell(__('Full address'));
-        $result.= ( ($hp_mode == 1 && $ShowContractField) ? wf_TableCell(__('Contract')) : '' );
-        $result.= wf_TableCell(__('Real Name'));
-        $result.= ( ($hp_mode == 1 && $showUserPhones) ? wf_TableCell(__("Phones")) : '' );
-        $result.= wf_TableCell(__('IP'));
-        $result.= ( ($hp_mode == 1 && $showONUSignals) ? wf_TableCell(__("ONU Signal")) : '' );
-        $result.= ( ($hp_mode == 1 && $showWIFISignals) ? wf_TableCell(__("Signal") . ' WiFi') : '' );
-        $result.= wf_TableCell(__('Tariff'));
-        $result.= wf_TableCell(__('Active'));
-        $result.= $onlineCells;
-        $result.= wf_TableCell(__('Traffic'));
-        $result.= wf_TableCell(__('Balance'));
-        $result.= wf_TableCell(__('Credit'));
-        $result.= ( ($hp_mode == 1 && $showLastFeeCharge) ? wf_TableCell(__("Last fee charge")) : '' );
-        $result.= wf_tag('tr', true);
-        $result.= wf_tag('thead', true);
-        $result.= wf_tag('table', true);
+        $result .= wf_tag('thead', false);
+        $result .= wf_tag('tr', false, 'row2');
+        $result .= wf_TableCell(__('Full address'));
+        $result .= ( ($hp_mode == 1 && $ShowContractField) ? wf_TableCell(__('Contract')) : '' );
+        $result .= wf_TableCell(__('Real Name'));
+        $result .= ( ($hp_mode == 1 && $showUserPhones) ? wf_TableCell(__("Phones")) : '' );
+        $result .= wf_TableCell(__('IP'));
+        $result .= ( ($hp_mode == 1 && $showONUSignals) ? wf_TableCell(__("ONU Signal")) : '' );
+        $result .= ( ($hp_mode == 1 && $showWIFISignals) ? wf_TableCell(__("Signal") . ' WiFi') : '' );
+        $result .= wf_TableCell(__('Tariff'));
+        $result .= wf_TableCell(__('Active'));
+        $result .= $onlineCells;
+        $result .= wf_TableCell(__('Traffic'));
+        $result .= wf_TableCell(__('Balance'));
+        $result .= wf_TableCell(__('Credit'));
+        $result .= ( ($hp_mode == 1 && $showLastFeeCharge) ? wf_TableCell(__("Last fee charge")) : '' );
+        $result .= wf_tag('tr', true);
+        $result .= wf_tag('thead', true);
+        $result .= wf_tag('table', true);
 
-        $result.= $alternateStyle;
+        $result .= $alternateStyle;
 
         return ($result);
     }
@@ -429,13 +450,13 @@ if ($system->checkForRight('ONLINE')) {
         $showWIFISignals = false;
 
         if (isset($alter_conf['PON_ENABLED']) && $alter_conf['PON_ENABLED'] &&
-            isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
+                isset($alter_conf['ONLINE_SHOW_ONU_SIGNALS']) && $alter_conf['ONLINE_SHOW_ONU_SIGNALS']) {
             $showONUSignals = true;
             $allONUSignals = PONizer::getAllONUSignals();
         }
 
         if (isset($alter_conf['MTSIGMON_ENABLED']) && $alter_conf['MTSIGMON_ENABLED'] &&
-            isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
+                isset($alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) && $alter_conf['ONLINE_SHOW_WIFI_SIGNALS']) {
             $showWIFISignals = true;
 
             $WiFiSigmon = new MTsigmon();
@@ -565,7 +586,7 @@ if ($system->checkForRight('ONLINE')) {
 
                 if (!$alter_conf['DEAD_HIDE']) {
                     $jsonItem = array();
-                    $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
+                    $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats_16.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user_16.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
 
                     if ($ShowContractField) {
                         $jsonItem[] = @$allcontracts[$eachuser['login']] . (($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '');
@@ -604,7 +625,7 @@ if ($system->checkForRight('ONLINE')) {
                 } else {
                     if (!isset($deadUsers[$eachuser['login']])) {
                         $jsonItem = array();
-                        $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress;
+                        $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats_16.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user_16.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress;
 
                         if ($ShowContractField) {
                             $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
