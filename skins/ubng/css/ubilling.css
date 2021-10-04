@@ -1183,6 +1183,12 @@ div.dhtml_menu div.vert_menu a.active:hover
     display: inline-block;
 }
 
+.form-grid-2cols button.inline-grid-button {
+    margin-top: 0;
+    grid-column-start: 2;
+    grid-column-end: 2;
+}
+
 .form-grid-2cols .full-width-occupy,
 .form-grid-2cols button {
     grid-column-start: 1;

@@ -567,8 +567,9 @@ function ts_JGetUndoneTasks() {
     }
 
     $showAllYearsTasks  = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
-    $branchConsider     = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                           and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
+    $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -604,13 +605,14 @@ function ts_JGetUndoneTasks() {
         }
     }
 
-    if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+    if ($advFiltersEnabled) {
         $appendQuery .= ts_AdvFiltersQuery();
-        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
-                                                  LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
-                                              : "";
-        $appendQuerySelect = ($branchConsider) ? ", `branches`.`name` AS `branch_name` "
-                                                : "";
+    }
+
+    if ($branchConsider) {
+        $appendQueryJOIN = " LEFT JOIN `branchesusers` USING(`login`) 
+                             LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` ";
+        $appendQuerySelect = ", `branches`.`name` AS `branch_name` ";
     }
 
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
@@ -721,6 +723,7 @@ function ts_JGetDoneTasks() {
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
     $showExtendedDone = $ubillingConfig->getAlterParam('TASKMAN_SHOW_DONE_EXTENDED');
     $extendedDoneAlterStyling = $ubillingConfig->getAlterParam('TASKMAN_DONE_EXTENDED_ALTERSTYLING');
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
                        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
@@ -760,13 +763,14 @@ function ts_JGetDoneTasks() {
         }
     }
 
-    if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+    if ($advFiltersEnabled) {
         $appendQuery .= ts_AdvFiltersQuery();
-        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
-                                                  LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
-                                             : "";
-        $appendQuerySelect = ($branchConsider) ? ", `branches`.`name` AS `branch_name` "
-                                               : "";
+    }
+
+    if ($branchConsider) {
+        $appendQueryJOIN = " LEFT JOIN `branchesusers` USING(`login`) 
+                             LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` ";
+        $appendQuerySelect = ", `branches`.`name` AS `branch_name` ";
     }
 
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
@@ -868,6 +872,7 @@ function ts_JGetAllTasks() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+    $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
                        and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
@@ -883,6 +888,8 @@ function ts_JGetAllTasks() {
 
     $curyear = curyear();
     $curmonth = date("m");
+    $appendQueryJOIN = '';
+    $appendQuerySelect = '';
 
     //per employee filtering
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -903,13 +910,14 @@ function ts_JGetAllTasks() {
         }
     }
 
-    if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+    if ($advFiltersEnabled) {
         $appendQuery .= ts_AdvFiltersQuery();
-        $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
-                                                  LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
-                                             : "";
-        $appendQuerySelect = ($branchConsider) ? ", `branches`.`name` AS `branch_name` "
-                                               : "";
+    }
+
+    if ($branchConsider) {
+        $appendQueryJOIN = " LEFT JOIN `branchesusers` USING(`login`) 
+                             LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` ";
+        $appendQuerySelect = ", `branches`.`name` AS `branch_name` ";
     }
 
     if (!$showAllYearsTasks AND ( $curmonth != 1 AND $curmonth != 12)) {
@@ -1505,17 +1513,15 @@ function ts_ShowPanel() {
             $inputs .= wf_Selector('displaytype', $displayTypes, '', $curselected, false, '', '', 'col-1-2-occupy');
         }
 
-        $submitOpts = 'style="width: 100%";';
         if ($advFiltersEnabled) {
-            //$inputs = wf_tag('span', false, '', 'style="float:left; margin: 5px 10px 5px 0;"') . $inputs . wf_tag('span', true);
             $inputs .= ts_AdvFiltersControls();
-            //$inputs = wf_Plate($inputs);
-            //$inputs .= wf_CleanDiv();
-            //$submitOpts = ' style="width: 100%; height: 1.7em; font-weight: 700;" ';
         }
 
-        $inputs .= wf_SubmitClassed(true, 'ubButton', '', __('Show'), '', $submitOpts);
-        $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour form-grid-6cols form-grid-6cols-label-right ');
+        $formClasses = ($advFiltersEnabled ? 'glamour form-grid-6cols form-grid-6cols-label-right' : 'glamour form-grid-2cols');
+        $submitClasses = ($advFiltersEnabled ? 'ubButton' : 'inline-grid-button');
+        $submitOpts = 'style="width: 100%";';
+        $inputs .= wf_SubmitClassed(true, $submitClasses, '', __('Show'), '', $submitOpts);
+        $showTypeForm = wf_Form('', 'POST', $inputs, $formClasses);
         if (!$branchCurseFlag) {
             $result .= $showTypeForm;
         }
@@ -2934,6 +2940,7 @@ function ts_PrintTasks($datefrom, $dateto) {
     $dateto = mysql_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    $advFilter = '';
     $appendQueryJOIN = '';
 
     $result = wf_tag('style');
@@ -3054,6 +3061,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     $dateto = mysql_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    $advFilter = '';
     $appendQueryJOIN = '';
     $tmpArr = array();
     $pageBreakStyle = ($nopagebreaks) ? '' : 'page-break-after: always;';
