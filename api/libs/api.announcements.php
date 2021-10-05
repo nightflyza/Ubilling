@@ -445,7 +445,7 @@ class Announcements {
         $result = '';
         if (!empty($this->ann_id)) {
             $ann_action = 'editann';
-            $result .= wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($this->ann_id), 'ubButton', '600', '400');
+            $result .= wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($this->ann_id), 'ubButton', '800', '400');
             $result .= wf_delimiter();
             $inputs = wf_TextInput($ann_action . '[title]', __('Title'), $this->announcesAvaible[$this->ann_id]['title'], true, 40);
             $inputs .= __('Text') . ' (HTML)' . $sup . wf_tag('br');
@@ -655,7 +655,7 @@ class Announcements {
                     $actionLinks .= wf_JSAlert(self::URL_ME . '&action=delete&ann_id=' . $ann_id . $this->admiface, web_delete_icon(), __('Removing this may lead to irreparable results'));
                     $actionLinks .= wf_JSAlert(self::URL_ME . '&action=edit&ann_id=' . $ann_id . $this->admiface, web_edit_icon(), __('Are you serious'));
                 }
-                $actionLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($ann_id), '', '600', '400');
+                $actionLinks .= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->preview($ann_id), '', '800', '400');
 
                 if (isset($this->announcesHistoryCount[$ann_id])) {
                     $announcesHistory = wf_Link(self::URL_ME . '&show_acquainted=true&ann_id=' . $ann_id . $this->admiface, $this->announcesHistoryCount[$ann_id]);
