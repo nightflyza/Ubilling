@@ -1233,8 +1233,8 @@ class Warehouse {
                         $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '0', false, 5, 'float'));
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', '', '0', false, 3, 'finance'));
-                        $defaultNote = '';
-                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNote, false, 10));
+                        $defaultNotePreset = '';
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNotePreset, false, 15));
                         $rows .= wf_TableRow($cells, 'row5');
                     }
 
@@ -1285,7 +1285,7 @@ class Warehouse {
                                         $count = $eachReserveData['count'];
                                         $price = $eachReserveData['price'];
                                         $defaultNote = ' ' . __('from reserved on') . ' ' . @$this->allEmployee[$employeeId];
-                                        $outcomeNote = (!empty($eachReserveData['note'])) ? $eachReserveData['note'] : $defaultNote;
+                                        $outcomeNote = (!empty($eachReserveData['note'])) ? $defaultNote . ' ' . $eachReserveData['note'] : $defaultNote;
                                         $eachOutcomeResult = $this->outcomingCreate($curDate, $outDestType, $outDestParam, $storageId, $itemtypeId, $count, $price, $outcomeNote, $eachReserveId);
                                         if (!empty($eachOutcomeResult)) {
                                             $itemtypeIssueLabel = __('Problem') . ': ' . $this->allItemTypeNames[$itemtypeId];
