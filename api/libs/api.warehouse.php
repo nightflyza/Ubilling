@@ -174,7 +174,7 @@ class Warehouse {
     protected $recPriceFlag = false;
 
     /**
-     * Default routing defs
+     * Default routes/URLS etc..
      */
     const URL_ME = '?module=warehouse';
     const URL_CATEGORIES = 'categories=true';
@@ -193,6 +193,9 @@ class Warehouse {
     const URL_REPORTS = 'reports=true';
     const URL_RESERVE = 'reserve=true';
     const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
+    const PROUTE_MASSRESERVEOUT = 'massoutreserves';
+    const PROUTE_MASSAGREEOUT = 'massoutagreement';
+    const PROUTE_DOMASSRESOUT = 'runmassoutreserve';
     //some caching timeout
     const CACHE_TIMEOUT = 2592000;
 
@@ -1155,6 +1158,162 @@ class Warehouse {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Returns employee name by its ID
+     * 
+     * @param int $employeeId
+     * 
+     * @return string 
+     */
+    public function getEmployeeName($employeeId) {
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        $result = '';
+        if (isset($this->allEmployee[$employeeId])) {
+            $result .= $this->allEmployee[$employeeId];
+        }
+        return($result);
+    }
+
+    /**
+     * Renders mass outcome form for some employeeId reserved items
+     * 
+     * @param int $employeeId
+     * 
+     * @return string
+     */
+    public function renderMassOutForm($employeeId) {
+        $result = '';
+        $employeeId = ubRouting::filters($employeeId, 'int');
+        $employeeInventory = array();
+        $form = '';
+        if (!empty($employeeId)) {
+            if (isset($this->allEmployee[$employeeId])) {
+                if (!empty($this->allReserve)) {
+                    foreach ($this->allReserve as $reserveId => $reserveData) {
+                        if ($reserveData['employeeid'] == $employeeId) {
+                            $employeeInventory[$reserveId] = $reserveData;
+                        }
+                    }
+                }
+
+                if (!empty($employeeInventory)) {
+                    $result .= wf_AjaxLoader();
+                    //destination interface
+                    $tmpDests = array();
+                    foreach ($this->outDests as $destMark => $destName) {
+                        $tmpDests[self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_AJODSELECTOR . $destMark] = $destName;
+                    }
+                    $inputs = wf_HiddenInput(self::PROUTE_DOMASSRESOUT, $employeeId);
+                    $inputs .= wf_AjaxSelectorAC('ajoutdestselcontainer', $tmpDests, __('Destination'), '', false);
+                    $inputs .= wf_AjaxContainer('ajoutdestselcontainer', '', $this->outcomindAjaxDestSelector('task'));
+
+                    $form .= $inputs;
+                    $form .= wf_delimiter(0);
+                    //reserves interface
+                    $cells = wf_TableCell(__('Warehouse storage'));
+                    $cells .= wf_TableCell(__('Category'));
+                    $cells .= wf_TableCell(__('Warehouse item type'));
+                    $cells .= wf_TableCell(__('Reserved'));
+                    $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Price'));
+                    $cells .= wf_TableCell(__('Notes'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($employeeInventory as $eachInvId => $eachInvData) {
+                        $itemTypeId = $eachInvData['itemtypeid'];
+                        $itemTypeCategory = $this->allCategories[$this->allItemTypes[$itemTypeId]['categoryid']];
+                        $itemTypeName = $this->allItemTypeNames[$itemTypeId];
+                        $itemTypeStorageId = $this->allStorages[$eachInvData['storageid']];
+                        $itemTypeUnit = $this->allItemTypes[$itemTypeId]['unit'];
+                        $cells = wf_TableCell($itemTypeStorageId);
+                        $cells .= wf_TableCell($itemTypeCategory);
+                        $cells .= wf_TableCell($itemTypeName);
+                        $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '0', false, 5, 'float'));
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', '', '0', false, 3, 'finance'));
+                        $defaultNote = '';
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNote, false, 10));
+                        $rows .= wf_TableRow($cells, 'row5');
+                    }
+
+                    $form .= wf_TableBody($rows, '100%', 0, '');
+                    $form .= wf_delimiter(0);
+                    $massOutAgreement = __('I`m ready') . '. ';
+                    $massOutAgreement .= __('I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes') . '.';
+                    $form .= wf_CheckInput(self::PROUTE_MASSAGREEOUT, $massOutAgreement, true, false);
+                    $form .= wf_delimiter(0);
+                    $form .= wf_Submit(__('Mass outcome'));
+                    $result .= wf_Form('', 'POST', $form, '');
+                } else {
+                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing reserved for this employee'), 'error');
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Worker') . ' [' . $employeeId . '] ' . __('Not exists'), 'error');
+            }
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Strange exeption') . ' EX_EMPLOYEEID_EMPTY', 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Runs batch outcome operations creation based on reserve
+     * 
+     * @return void/string on error
+     */
+    public function runMassReserveOutcome() {
+        $result = '';
+        $outCount = 0;
+        if (ubRouting::checkPost(self::PROUTE_DOMASSRESOUT)) {
+            if (ubRouting::checkPost(self::PROUTE_MASSAGREEOUT)) {
+                if (ubRouting::checkPost(array('newoutdesttype', 'newoutdestparam', 'massoutreserves'))) {
+                    $employeeId = ubRouting::post(self::PROUTE_DOMASSRESOUT);
+                    $outDestType = ubRouting::post('newoutdesttype');
+                    $outDestParam = ubRouting::post('newoutdestparam');
+                    $outResArr = ubRouting::post(self::PROUTE_MASSRESERVEOUT);
+                    $curDate = curdate();
+                    if (!empty($outResArr)) {
+                        if (is_array($outResArr)) {
+                            foreach ($outResArr as $eachReserveId => $eachReserveData) {
+                                if (isset($this->allReserve[$eachReserveId])) {
+                                    if ($eachReserveData['count'] > 0) {
+                                        $reserveOpts = $this->allReserve[$eachReserveId];
+                                        $storageId = $reserveOpts['storageid'];
+                                        $itemtypeId = $reserveOpts['itemtypeid'];
+                                        $count = $eachReserveData['count'];
+                                        $price = $eachReserveData['price'];
+                                        $defaultNote = ' ' . __('from reserved on') . ' ' . @$this->allEmployee[$employeeId];
+                                        $outcomeNote = (!empty($eachReserveData['note'])) ? $eachReserveData['note'] : $defaultNote;
+                                        $eachOutcomeResult = $this->outcomingCreate($curDate, $outDestType, $outDestParam, $storageId, $itemtypeId, $count, $price, $outcomeNote, $eachReserveId);
+                                        if (!empty($eachOutcomeResult)) {
+                                            $itemtypeIssueLabel = __('Problem') . ': ' . $this->allItemTypeNames[$itemtypeId];
+                                            $result .= $this->messages->getStyledMessage($itemtypeIssueLabel, 'warning');
+                                            $result .= $eachOutcomeResult;
+                                        }
+                                        $outCount++;
+                                    }
+                                } else {
+                                    $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Reserve') . ' [' . $eachReserveId . '] ' . __('Not exists'), 'error');
+                                }
+                            }
+
+                            if ($outCount == 0) {
+                                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Outcoming operations') . ' - 0', 'warning');
+                            }
+                        } else {
+                            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ' EX_CORRUPT_RESARR', 'error');
+                        }
+                    } else {
+                        $result .= $this->messages->getStyledMessage(__('Something went wrong') . ' EX_EMPTY_RESARR', 'error');
+                    }
+                }
+            } else {
+                $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
+            }
+        }
+        return($result);
     }
 
     /**
@@ -2683,18 +2842,30 @@ class Warehouse {
                 $allJobTypes = ts_GetAllJobtypes();
                 $allUndoneTasks = ts_GetUndoneTasksArray();
                 $taskOutDateFlag = (@$this->altCfg['WAREHOUSE_TASKOUTDATE']) ? true : false;
+                $taskOutEmpFlag = (@$this->altCfg['WAREHOUSE_TASKOUTEMPLOYEE']) ? true : false;
 
                 if (!empty($allUndoneTasks)) {
                     foreach ($allUndoneTasks as $io => $each) {
                         $taskJobType = (isset($allJobTypes[$each['jobtype']])) ? $allJobTypes[$each['jobtype']] : __('Something went wrong') . ': EX_NO_JOBTYPEID';
                         $jobLabel = $each['address'] . ' - ' . $taskJobType;
                         if ($taskOutDateFlag) {
-                            $jobLabel .= ' ' . $each['startdate'];
+                            $jobLabel .= ', ' . $each['startdate'];
+                        }
+
+                        if ($taskOutEmpFlag) {
+                            $jobLabel .= ', ' . $this->allEmployee[$each['employee']];
                         }
                         $tasksTmp[$io] = $jobLabel;
                     }
                 }
-                $result .= wf_Selector('newoutdestparam', $tasksTmp, __('Undone tasks'), '', false);
+                $taskIdPreset = (ubRouting::checkGet('taskidpreset')) ? ubRouting::get('taskidpreset', 'int') : '';
+                if (!empty($taskIdPreset)) {
+                    if (!isset($tasksTmp[$taskIdPreset])) {
+                        $taskPresetFailLabel = __('Fail') . ': ' . __('Task') . ' [' . $taskIdPreset . '] ' . __('Not found');
+                        $result .= $this->messages->getStyledMessage($taskPresetFailLabel, 'warning') . wf_delimiter(0);
+                    }
+                }
+                $result .= wf_Selector('newoutdestparam', $tasksTmp, __('Undone tasks'), $taskIdPreset, false);
                 break;
 
             case 'contractor':

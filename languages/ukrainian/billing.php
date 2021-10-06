@@ -2962,7 +2962,7 @@ $lang['def']['This field can only contain Latin letters'] = 'Це поле мо�
 $lang['def']['This field can only contain Latin letters and numbers'] = 'Це поле може містити тільки латинські літери та цифри';
 $lang['def']['View full note'] = 'Переглянути нотатку повністю';
 $lang['def']['from reserved on'] = 'з заброньованих на';
-$lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Залишок заброньованих ТМЦ меньший вказаної кількості';
+$lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Залишок заброньованих ТМЦ менший вказаної кількості';
 $lang['def']['right to control warehouse reserve outcome operations'] = 'Право керувати розхідними операціями з броні складу';
 $lang['def']['right to use tasks timing module'] = 'Право використовувати звіт по часу задач';
 $lang['def']['right to control SMS history'] = 'Право керувати історією SMS';
@@ -3309,4 +3309,6 @@ $lang['def']['Network does not exist anymore'] = 'Мережа більше не
 $lang['def']['Do you confirm the movement of this event?'] = 'Ви підтверджуєте переміщення цієї події?';
 $lang['def']['Calendar events titles filter'] = 'Фільтр по заголовках подій календаря';
 $lang['def']['Evict'] = 'Виселити';
-
+$lang['def']['Mass outcome'] = 'Масовий розхід';
+$lang['def']['I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes'] = 'Також я добре розумію, що ніхто не буде виправляти мої помилки за мене і тільки я несу повну матеріальну відповідальність за мої помилки';
+$lang['def']['Nothing reserved for this employee'] = 'На цього працівника не зарезервовано нічого';

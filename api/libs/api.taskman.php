@@ -566,10 +566,10 @@ function ts_JGetUndoneTasks() {
         $anyoneId = false;
     }
 
-    $showAllYearsTasks  = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
+    $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -725,7 +725,7 @@ function ts_JGetDoneTasks() {
     $extendedDoneAlterStyling = $ubillingConfig->getAlterParam('TASKMAN_DONE_EXTENDED_ALTERSTYLING');
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -874,7 +874,7 @@ function ts_JGetAllTasks() {
     $showAllYearsTasks = $ubillingConfig->getAlterParam('TASKMAN_SHOW_ALL_YEARS_TASKS');
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     //ADcomments init
     if ($altCfg['ADCOMMENTS_ENABLED']) {
@@ -2152,12 +2152,24 @@ function ts_TaskChangeForm($taskid) {
         //modify form handlers
         $modform = '';
         if (cfr('TASKMANTRACK')) {
-            $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task')));
+            $modform .= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task'))) . ' ';
+        }
+        //warehouse mass-outcome helper
+        if (cfr('WAREHOUSEOUTRESERVE') OR cfr('WAREHOUSEOUT')) {
+            if ($altercfg['WAREHOUSE_ENABLED']) {
+                if ($altercfg['TASKMAN_WAREHOUSE_HLPR']) {
+                    if ($taskdata['status'] == 0) {
+                        $massOutUrl = '?module=warehouse&reserve=true&massoutemployee=' . $taskdata['employee'] . '&taskidpreset=' . $taskid;
+                        $modform .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')));
+                    }
+                }
+            }
         }
         //task editing limitations
         if (cfr('TASKMANEDITTASK')) {
-            $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
+            $modform .= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550') . ' ';
         }
+
         //modform end
         //extracting sms data
         if (!empty($taskdata['smsdata'])) {
@@ -2228,8 +2240,8 @@ function ts_TaskChangeForm($taskid) {
 
         // getting user's branch name
         $branchConsider = (!empty($taskLogin)
-                           and $ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                           and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+                and $ubillingConfig->getAlterParam('BRANCHES_ENABLED')
+                and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
         if ($branchConsider) {
             $branches = new UbillingBranches();
             $branchName = $branches->userGetBranchName($taskLogin);
@@ -2884,17 +2896,17 @@ function ts_PrintDialogue() {
     $submitOpts = '';
     $tmpInputs = '';
     $inputs = '';
-    $inputs.= wf_tag('span', false, 'col-1-2-occupy');
-    $inputs.= wf_tag('h3');
-    $inputs.= __('From') . wf_nbsp(2);
-    $inputs.= wf_tag('h3', true);
-    $inputs.= wf_DatePickerPreset('printdatefrom', curdate());
-    $inputs.= wf_nbsp(8);
-    $inputs.= wf_tag('h3');
-    $inputs.= __('To') . wf_nbsp(2);
-    $inputs.= wf_tag('h3', true);
-    $inputs.= wf_DatePickerPreset('printdateto', curdate());
-    $inputs.= wf_tag('span', true);
+    $inputs .= wf_tag('span', false, 'col-1-2-occupy');
+    $inputs .= wf_tag('h3');
+    $inputs .= __('From') . wf_nbsp(2);
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_DatePickerPreset('printdatefrom', curdate());
+    $inputs .= wf_nbsp(8);
+    $inputs .= wf_tag('h3');
+    $inputs .= __('To') . wf_nbsp(2);
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_DatePickerPreset('printdateto', curdate());
+    $inputs .= wf_tag('span', true);
 
     if ($advFiltersEnabled) {
         $whoami = whoami();
@@ -2934,7 +2946,7 @@ function ts_PrintTasks($datefrom, $dateto) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
@@ -2973,8 +2985,7 @@ function ts_PrintTasks($datefrom, $dateto) {
     if ($advFiltersEnabled) {
         $advFilter = ts_AdvFiltersQuery();
         $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
-                                                 LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
-                                             : "";
+                                                 LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` " : "";
     }
 
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -2990,7 +3001,7 @@ function ts_PrintTasks($datefrom, $dateto) {
                     LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                     " . $appendQueryJOIN . " 
                 WHERE `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'"
-                      . " " . $advFilter . " " . $appendQuery;
+            . " " . $advFilter . " " . $appendQuery;
     $alltasks = simple_queryall($query);
 
     if (!empty($alltasks)) {
@@ -3055,7 +3066,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     global $ubillingConfig;
     $advFiltersEnabled = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS');
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
 
     $datefrom = mysql_real_escape_string($datefrom);
     $dateto = mysql_real_escape_string($dateto);
@@ -3097,8 +3108,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
     if ($advFiltersEnabled) {
         $advFilter = ts_AdvFiltersQuery();
         $appendQueryJOIN = ($branchConsider) ? " LEFT JOIN `branchesusers` USING(`login`) 
-                                                 LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` "
-                                             : "";
+                                                 LEFT JOIN `branches` ON `branchesusers`.`branchid` = `branches`.`id` " : "";
     }
 
     $displaytype = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
@@ -3120,7 +3130,7 @@ function ts_PrintTasksTable($datefrom, $dateto, $nopagebreaks = false) {
                     LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id`
                     " . $appendQueryJOIN . "  
                 WHERE `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0'"
-                      . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
+            . $advFilter . " " . $appendQuery . " " . "ORDER BY `taskman`.`" . $orderFilter . "`";
 
     $alltasks = simple_queryall($query);
 
@@ -3356,17 +3366,17 @@ function ts_GetAllTasksQuickData() {
 function ts_AdvFiltersControls() {
     global $ubillingConfig;
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $branchAdvFltON = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS_BRANCHES_ON');
 
-    $alljobtypes     = ts_GetAllJobtypes();
-    $alljobtypes     = array('0' => __('Any')) + $alljobtypes;
+    $alljobtypes = ts_GetAllJobtypes();
+    $alljobtypes = array('0' => __('Any')) + $alljobtypes;
     $selectedjobtype = (ubRouting::checkPost('filtertaskjobtypeexact') ? ubRouting::post('filtertaskjobtypeexact') : '');
     $jobtypecontains = (ubRouting::checkPost('filtertaskjobtype') ? ubRouting::post('filtertaskjobtype') : '');
     $addresscontains = (ubRouting::checkPost('filtertaskaddr') ? ubRouting::post('filtertaskaddr') : '');
     $jobnotecontains = (ubRouting::checkPost('filtertaskjobnote') ? ubRouting::post('filtertaskjobnote') : '');
-    $phonecontains   = (ubRouting::checkPost('filtertaskphone') ? ubRouting::post('filtertaskphone') : '');
-    $branchcontains  = (ubRouting::checkPost('filtertaskbranch') ? ubRouting::post('filtertaskbranch') : '');
+    $phonecontains = (ubRouting::checkPost('filtertaskphone') ? ubRouting::post('filtertaskphone') : '');
+    $branchcontains = (ubRouting::checkPost('filtertaskbranch') ? ubRouting::post('filtertaskbranch') : '');
 
     $inputs = '';
     $inputs .= wf_tag('h3');
@@ -3407,7 +3417,7 @@ function ts_AdvFiltersControls() {
 function ts_AdvFiltersQuery() {
     global $ubillingConfig;
     $branchConsider = ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')
-                       and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
+            and $ubillingConfig->getAlterParam('TASKMAN_BRANCHES_CONSIDER_ON'));
     $branchAdvFltON = $ubillingConfig->getAlterParam('TASKMAN_ADV_FILTERS_BRANCHES_ON');
 
     $appendQuery = '';

@@ -241,17 +241,21 @@ if (cfr('WAREHOUSE')) {
                         $inventoryUrl = $warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&empinventory=' . ubRouting::get('empidfilter');
                         $reserveControls .= wf_Link($inventoryUrl, wf_img('skins/icon_user.gif', __('Employee inventory')), false) . ' ';
                     } else {
-
                         $reserveControls = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&printable=true', web_icon_print(), false, '', 'target="_BLANK"') . ' ';
                     }
 
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&reshistory=true', wf_img('skins/time_machine.png', __('History')), false) . ' ';
-
+                    if (ubRouting::checkGet('empidfilter')) {
+                        if (cfr('WAREHOUSEOUTRESERVE') OR cfr('WAREHOUSEOUT')) {
+                            $massOutUrl = $warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&massoutemployee=' . ubRouting::get('empidfilter');
+                            $reserveControls .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')), false) . ' ';
+                        }
+                    }
                     $reserveControls .= wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE . '&mass=true', web_icon_create(__('Mass reservation')), false) . ' ';
 
 
 
-                    if (!wf_CheckGet(array('mass'))) {
+                    if (!ubRouting::checkGet('mass') AND ! ubRouting::checkGet('massoutemployee')) {
                         if (wf_CheckGet(array('reshistory'))) {
                             show_window(__('Reserve') . ': ' . __('History'), $warehouse->reserveRenderHistory());
                         } else {
@@ -262,7 +266,25 @@ if (cfr('WAREHOUSE')) {
                             }
                         }
                     } else {
-                        show_window(__('Mass reservation'), $warehouse->reserveMassForm());
+                        if (!ubRouting::checkGet('massoutemployee')) {
+                            show_window(__('Mass reservation'), $warehouse->reserveMassForm());
+                        } else {
+                            //batch outcome creation
+                            if (ubRouting::checkPost($warehouse::PROUTE_DOMASSRESOUT)) {
+                                $massResOutResult = $warehouse->runMassReserveOutcome();
+                                if (empty($massResOutResult)) {
+                                    ubRouting::nav($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
+                                } else {
+                                    show_window(__('Error'), $massResOutResult);
+                                }
+                            } else {
+                                //rendering some UI
+                                $massOutEmployeeId = ubRouting::get('massoutemployee');
+                                $massoutEmployeeName = $warehouse->getEmployeeName($massOutEmployeeId);
+                                $massOutWinLabel = __('Mass outcome') . ' ' . __('from reserved on') . ' ' . $massoutEmployeeName;
+                                show_window($massOutWinLabel, $warehouse->renderMassOutForm($massOutEmployeeId));
+                            }
+                        }
                     }
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME);
@@ -356,7 +378,7 @@ if (cfr('WAREHOUSE')) {
 
                 if (ubRouting::checkGet('purchases')) {
                     if (cfr('WAREHOUSEREPORTS')) {
-                        show_window(__('Purchases') , $warehouse->renderPurchasesReport());
+                        show_window(__('Purchases'), $warehouse->renderPurchasesReport());
                         $avidity_m = $avidity['M']['FALL'];
                         $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {

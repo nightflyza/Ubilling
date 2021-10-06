@@ -69,7 +69,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
- * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac
+ * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email, alpha, alphanumeric,mac,float
  * @param  string $class class of the element
  * @param  string $ctrlID id of the element
  * @param  string $options
@@ -98,6 +98,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
     $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +78126121104, 0506430501, 375295431122"' : $pattern;
     $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+    $pattern = ($pattern == 'float') ? 'pattern="\d+(\.\d+)?" placeholder="0.00" title="' . __('This field can only contain digits') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
     // For this pattern IP adress also can be 0.0.0.0
     $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
     // For this pattern exclude cidr /31
@@ -1415,7 +1416,7 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     global $ubillingConfig;
 
     $elementid = wf_InputId();
-    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and !empty($ajaxURLForDnD));
+    $dragdropON = ($ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_ON') and ! empty($ajaxURLForDnD));
     $dndConfirmON = $ubillingConfig->getAlterParam('CALENDAR_DRAG_AND_DROP_CONFIRM_ON');
     $titlesSearchON = $ubillingConfig->getAlterParam('CALENDAR_TITLES_SEARCH_ON');
 
@@ -1556,14 +1557,12 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     $appendJS = '';
 
     if ($dragdropON) {
-        $jsCalendarDnDCancel =
-        "   event.start = eventPrevStartDT;
+        $jsCalendarDnDCancel = "   event.start = eventPrevStartDT;
             $('#" . $elementid . "').fullCalendar('updateEvent', event);
             console.log(objID + '  Start time change canceled');
         ";
 
-        $jsCalendarDnDMain =
-        "       // need to convert to local time to prevent adding timezone offset hours adding after drop
+        $jsCalendarDnDMain = "       // need to convert to local time to prevent adding timezone offset hours adding after drop
                 var mm = moment(event.start);            
                 mm.local();
                 event.start = mm;
@@ -1672,15 +1671,13 @@ function wf_FullCalendar($data, $options = '', $useHTMLInTitle = false, $useHTML
     
         ";
 
-        $calendar.= $appendJS;
+        $calendar .= $appendJS;
     }
 
     if ($titlesSearchON) {
-        $calendar.= "\n" . wf_HiddenInput('calendarsource', '', 'calendarSource');
-        $calendar = wf_TextInput('searchcalendar', __('Calendar events titles filter') . ':' . wf_nbsp(2), '', true, '', '',
-                                 'glamour', 'calendarSearchInput', 'style="width: 70%; float: none !important"',
-                                 true, 'style="font-size: 1.1em; margin-left: 5px; font-weight: bold;"')
-                    . wf_delimiter() . $calendar;
+        $calendar .= "\n" . wf_HiddenInput('calendarsource', '', 'calendarSource');
+        $calendar = wf_TextInput('searchcalendar', __('Calendar events titles filter') . ':' . wf_nbsp(2), '', true, '', '', 'glamour', 'calendarSearchInput', 'style="width: 70%; float: none !important"', true, 'style="font-size: 1.1em; margin-left: 5px; font-weight: bold;"')
+                . wf_delimiter() . $calendar;
     }
 
     return($calendar);

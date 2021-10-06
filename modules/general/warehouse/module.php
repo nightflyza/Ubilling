@@ -10,4 +10,3 @@ $this->registerModule($module, 'main', __('Warehouse'), 'Nightfly', array(
     'WAREHOUSEREPORTS' => __('right to control warehouse reports'),
     'WAREVIEW' => __('right to view materials spent on tasks')
 ));
-?>
