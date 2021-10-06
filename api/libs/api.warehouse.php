@@ -1113,7 +1113,7 @@ class Warehouse {
     public function reserveListAjaxReply($employeeId = '') {
         $json = new wf_JqDtHelper();
         $employeeId = ubRouting::filters($employeeId, 'int');
-
+        $hideEmployee = (empty($employeeId)) ? true : false;
         $filtered = true;
         if (!empty($this->allReserve)) {
             foreach ($this->allReserve as $io => $each) {
@@ -1139,7 +1139,6 @@ class Warehouse {
 
 
                     $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
-                    $hideEmployee = (empty($employeeId)) ? true : false;
                     $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id'], $hideEmployee), '') . ' ';
                     if ($each['count'] > 0) {
                         if (cfr('WAREHOUSEOUTRESERVE')) {
