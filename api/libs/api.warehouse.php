@@ -925,10 +925,11 @@ class Warehouse {
      * Returns reserve record editing form
      * 
      * @param int $id
+     * @param bool $hideEmployee
      * 
      * @return string
      */
-    public function reserveEditForm($id) {
+    public function reserveEditForm($id, $hideEmployee = false) {
         $id = vf($id, 3);
         $result = '';
         if (isset($this->allReserve[$id])) {
@@ -938,7 +939,12 @@ class Warehouse {
             @$itemData = $this->allItemTypes[$reserveData['itemtypeid']];
             @$itemUnit = $this->unitTypes[$itemData['unit']];
 
-            $inputs = wf_Selector('editreserveemployeeid', $this->activeEmployee, __('Worker'), $reserveData['employeeid'], true);
+            if ($hideEmployee) {
+                $inputs = wf_HiddenInput('editreserveemployeeid', $reserveData['employeeid']);
+            } else {
+                $inputs = wf_Selector('editreserveemployeeid', $this->activeEmployee, __('Worker'), $reserveData['employeeid'], true);
+            }
+
             $inputs .= wf_TextInput('editreservecount', $itemUnit . ' ' . $itemName, $reserveData['count'], true, 5);
             $inputs .= wf_HiddenInput('editreserveid', $id);
             $inputs .= wf_Submit(__('Save'));
@@ -1130,8 +1136,11 @@ class Warehouse {
                     $employeeLinkUrl = self::URL_ME . '&' . self::URL_RESERVE . '&' . 'empidfilter=' . $each['employeeid'];
                     $employeeLinkAct = wf_Link($employeeLinkUrl, @$this->allEmployee[$each['employeeid']]);
                     $data[] = $employeeLinkAct;
+
+
                     $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
-                    $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
+                    $hideEmployee = (empty($employeeId)) ? true : false;
+                    $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id'], $hideEmployee), '') . ' ';
                     if ($each['count'] > 0) {
                         if (cfr('WAREHOUSEOUTRESERVE')) {
                             $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
@@ -1139,6 +1148,7 @@ class Warehouse {
                         }
                     }
                     $data[] = $actLinks;
+
 
                     $json->addRow($data);
                     unset($data);
