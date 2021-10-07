@@ -11,7 +11,7 @@ if (cfr('SWITCHESEDIT')) {
      */
     function web_SwitchesIntegrityReport() {
         $result = '';
-        $result.= wf_BackLink('?module=switches');
+        $result .= wf_BackLink('?module=switches');
         $messages = new UbillingMessageHelper();
         $allParents = array();
         $allLinks = array();
@@ -43,14 +43,14 @@ if (cfr('SWITCHESEDIT')) {
                 $allIds[$each['id']] = $each['ip'];
             }
 
-            $result.=$messages->getStyledMessage(__('Total switches in database') . ': ' . sizeof($all), 'info');
-            $result.=$messages->getStyledMessage(__('Parent switches found') . ': ' . sizeof($allParents), 'info');
+            $result .= $messages->getStyledMessage(__('Total switches in database') . ': ' . sizeof($all), 'info');
+            $result .= $messages->getStyledMessage(__('Parent switches found') . ': ' . sizeof($allParents), 'info');
 
             //checking uplinks geo availability
             foreach ($all as $io => $each) {
                 if (isset($allParents[$each['id']])) {
                     if (empty($each['geo'])) {
-                        $result.=$messages->getStyledMessage(__('Geo location') . ' ' . __('is empty') . ': ' . web_SwitchProfileLink($each['id']) . ' ' . $each['ip'] . ' - ' . $each['location'], 'error');
+                        $result .= $messages->getStyledMessage(__('Geo location') . ' ' . __('is empty') . ': ' . web_SwitchProfileLink($each['id']) . ' ' . $each['ip'] . ' - ' . $each['location'], 'error');
                     }
                 }
             }
@@ -61,7 +61,7 @@ if (cfr('SWITCHESEDIT')) {
                 if (!empty($each['parentid'])) {
                     if (!isset($allIds[$each['parentid']])) {
                         $allDeleted[$each['parentid']] = $each['parentid'];
-                        $result.=$messages->getStyledMessage(__('Uplink switch is deleted from database') . ': ' . web_SwitchProfileLink($each['id']) . ' - ' . $each['ip'] . ' ' . $each['location'] . ', ' . __('uplink deleted') . ' : [ ' . $each['parentid'] . ' ]', 'error');
+                        $result .= $messages->getStyledMessage(__('Uplink switch is deleted from database') . ': ' . web_SwitchProfileLink($each['id']) . ' - ' . $each['ip'] . ' ' . $each['location'] . ', ' . __('uplink deleted') . ' : [ ' . $each['parentid'] . ' ]', 'error');
                     }
                 }
             }
@@ -79,7 +79,7 @@ if (cfr('SWITCHESEDIT')) {
                             $trace = $parentid;
                             while (!empty($trace)) {
                                 if (isset($allLinks[$trace])) {
-                                    if ((!array_search($allLinks[$trace], $roads[$id]))) {
+                                    if ((array_search($allLinks[$trace], $roads[$id])) == false) {
                                         $roads[$id][] = $allLinks[$trace];
                                     } else {
                                         $failRoads[$id] = $allLinks[$trace];
@@ -92,24 +92,25 @@ if (cfr('SWITCHESEDIT')) {
                         }
                     }
 
+
                     if (!empty($failRoads)) {
                         $failRoads = array_flip($failRoads);
                         $resultLoop = '';
                         foreach ($failRoads as $io => $each) {
-                            $resultLoop.=web_SwitchProfileLink($io);
+                            $resultLoop .= web_SwitchProfileLink($io);
                         }
 
-                        $result.=$messages->getStyledMessage(__('Following switches have loops between') . ': ' . $resultLoop, 'error');
+                        $result .= $messages->getStyledMessage(__('Following switches have loops between') . ': ' . $resultLoop, 'error');
                     }
                 } else {
                     $resultLoop = '';
                     foreach ($selfLoop as $io => $each) {
-                        $resultLoop.=web_SwitchProfileLink($io);
+                        $resultLoop .= web_SwitchProfileLink($io);
                     }
-                    $result.=$messages->getStyledMessage(__('Because some of switches have itself as parent, check is skipped') . ': ' . $resultLoop, 'error');
+                    $result .= $messages->getStyledMessage(__('Because some of switches have itself as parent, check is skipped') . ': ' . $resultLoop, 'error');
                 }
             } else {
-                $result.=$messages->getStyledMessage(__('Because some of uplink switches deleted loop, check is skipped'), 'error');
+                $result .= $messages->getStyledMessage(__('Because some of uplink switches deleted loop, check is skipped'), 'error');
             }
 
             return ($result);
