@@ -250,6 +250,13 @@ class OnuRegister {
     public $currentPonType = '';
 
     /**
+     * Version to handle different config within different software versions.
+     * 
+     * @var type 
+     */
+    public $currentPonVersion = "0";
+
+    /**
      * Contains count of all service ports on HUAWEI OLT
      * 
      * @var integer
@@ -952,6 +959,9 @@ class OnuRegister {
                 if (file_exists(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'])) {
                     $this->currentSnmpTemplate = rcms_parse_ini_file(CONFIG_PATH . '/snmptemplates/' . $eachOlt['snmptemplate'], true);
                     $this->currentPonType = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['TYPE'];
+                    if (isset($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'])) {
+                        $this->currentPonVersion = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'];
+                    }
                     $this->currentOltIp = $eachOlt['ip'];
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
@@ -1026,26 +1036,22 @@ class OnuRegister {
      * @return void
      */
     protected function getAllUnauthGponZte() {
-        $allUncfgOid = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'];
+        $uncfgSn = array();
+        //$allUncfgOid = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGLIST'];
         $getUncfgSn = $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN'];
 
-        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $allUncfgOid);
+        $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn);
         if (!empty($allUnreg)) {
             foreach ($allUnreg as $eachUncfgPort => $value) {
-                $value = str_replace('INTEGER:', '', $value);
                 $value = trim($value);
-                if ($value > 0) {
-                    $interfaceId = str_replace($allUncfgOid . '.', '', $eachUncfgPort);
-                    $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
-                    for ($i = 0; $i <= self::GPON_RETRIES; $i++) {
-                        if (!empty($uncfgSn)) {
-                            break;
-                        }
-                        $uncfgSn = $this->snmp->walk($this->currentOltIp, $this->currentSnmpCommunity, $getUncfgSn . $interfaceId, false);
-                    }
-                    $this->parseUncfgGpon($uncfgSn, $interfaceId);
-                }
+                $interfaceIdRaw = str_replace($getUncfgSn . '.', '', $eachUncfgPort);
+                $interfaceIdSplit = explode(".", $interfaceIdRaw);
+                $interfaceId = $interfaceIdSplit[0];
+                $uncfgSn[$interfaceId][] = $value;
             }
+        }
+        if (!empty($uncfgSn)) {
+            $this->parseUncfgGpon($uncfgSn);
         }
     }
 
@@ -1088,61 +1094,60 @@ class OnuRegister {
      * 
      * @return array
      */
-    protected function parseUncfgGpon($uncfgSn, $interfaceId) {
-        $uncfgSn = explodeRows(trim($uncfgSn));
-
-        foreach ($uncfgSn as $eachIndex => $rawValue) {
-            $rawValue = explode('=', $rawValue);
-            $rawSn = trim($rawValue[1]);
-            $tmpSn = explode(" ", $rawSn);
-            $check = trim($tmpSn[0]);
-            $tmpStr = '';
-            if ($check == 'STRING:') {
-                $tmpSn = bin2hex($tmpSn[1]);
-                if (strlen($tmpSn) == 20) {
-                    $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                    $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                    $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                    $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                    for ($i = 10; $i <= 17; $i++) {
-                        $tmpStr .= $tmpSn[$i];
+    protected function parseUncfgGpon($uncfgSn) {
+        foreach ($uncfgSn as $interfaceId => $io) {
+            foreach ($io as $rawSn) {
+                $rawSn = trim($rawSn);
+                $tmpSn = explode(" ", $rawSn);
+                $check = trim($tmpSn[0]);
+                $tmpStr = '';
+                if ($check == 'STRING:') {
+                    $tmpSn = bin2hex($tmpSn[1]);
+                    if (strlen($tmpSn) == 20) {
+                        $tmp[0] = $tmpSn[2] . $tmpSn[3];
+                        $tmp[1] = $tmpSn[4] . $tmpSn[5];
+                        $tmp[2] = $tmpSn[6] . $tmpSn[7];
+                        $tmp[3] = $tmpSn[8] . $tmpSn[9];
+                        for ($i = 10; $i <= 17; $i++) {
+                            $tmpStr .= $tmpSn[$i];
+                        }
+                        $tmp[4] = $tmpStr;
+                    } elseif (strlen($tmpSn) == 22) {
+                        $tmp[0] = $tmpSn[2] . $tmpSn[3];
+                        $tmp[1] = $tmpSn[4] . $tmpSn[5];
+                        $tmp[2] = $tmpSn[6] . $tmpSn[7];
+                        $tmp[3] = $tmpSn[8] . $tmpSn[9];
+                        for ($i = 10; $i <= 11; $i++) {
+                            $tmpStr .= $tmpSn[$i];
+                        }
+                        for ($i = 14; $i <= 19; $i++) {
+                            $tmpStr .= $tmpSn[$i];
+                        }
+                        $tmp[4] = $tmpStr;
+                    } else {
+                        print_r($tmpSn);
+                        $tmp[0] = $tmpSn[0] . $tmpSn[1];
+                        $tmp[1] = $tmpSn[2] . $tmpSn[3];
+                        $tmp[2] = $tmpSn[4] . $tmpSn[5];
+                        $tmp[3] = $tmpSn[6] . $tmpSn[7];
+                        for ($i = 8; $i <= 15; $i++) {
+                            $tmpStr .= $tmpSn[$i];
+                        }
+                        $tmp[4] = $tmpStr;
                     }
-                    $tmp[4] = $tmpStr;
-                } elseif (strlen($tmpSn) == 22) {
-                    $tmp[0] = $tmpSn[2] . $tmpSn[3];
-                    $tmp[1] = $tmpSn[4] . $tmpSn[5];
-                    $tmp[2] = $tmpSn[6] . $tmpSn[7];
-                    $tmp[3] = $tmpSn[8] . $tmpSn[9];
-                    for ($i = 10; $i <= 11; $i++) {
-                        $tmpStr .= $tmpSn[$i];
-                    }
-                    for ($i = 14; $i <= 19; $i++) {
-                        $tmpStr .= $tmpSn[$i];
-                    }
-                    $tmp[4] = $tmpStr;
                 } else {
-                    print_r($tmpSn);
-                    $tmp[0] = $tmpSn[0] . $tmpSn[1];
-                    $tmp[1] = $tmpSn[2] . $tmpSn[3];
-                    $tmp[2] = $tmpSn[4] . $tmpSn[5];
-                    $tmp[3] = $tmpSn[6] . $tmpSn[7];
-                    for ($i = 8; $i <= 15; $i++) {
-                        $tmpStr .= $tmpSn[$i];
-                    }
-                    $tmp[4] = $tmpStr;
+                    $tmp[0] = $tmpSn[1];
+                    $tmp[1] = $tmpSn[2];
+                    $tmp[2] = $tmpSn[3];
+                    $tmp[3] = $tmpSn[4];
+                    $tmp[4] = $tmpSn[5] . $tmpSn[6] . $tmpSn[7] . $tmpSn[8];
+                    $tmpSn = $tmp;
                 }
-            } else {
-                $tmp[0] = $tmpSn[1];
-                $tmp[1] = $tmpSn[2];
-                $tmp[2] = $tmpSn[3];
-                $tmp[3] = $tmpSn[4];
-                $tmp[4] = $tmpSn[5] . $tmpSn[6] . $tmpSn[7] . $tmpSn[8];
-                $tmpSn = $tmp;
-            }
-            $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
-            foreach ($this->ponArray as $slot => $each_id) {
-                if ($each_id == $interfaceId) {
-                    array_push($this->allUnreg['GPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId));
+                $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
+                foreach ($this->ponArray as $slot => $each_id) {
+                    if ($each_id == $interfaceId) {
+                        array_push($this->allUnreg['GPON'], array('oltip' => $this->currentOltIp, 'slot' => $slot, 'identifier' => $sn, 'swid' => $this->currentOltSwId));
+                    }
                 }
             }
         }
@@ -1379,16 +1384,22 @@ class OnuRegister {
      * @return string $scriptPath
      */
     protected function getRegisterOnuScriptPath() {
-        $scriptPath = CONFIG_PATH . 'scripts/';
+        $scriptPath = CONFIG_PATH . 'scripts/onureg/';
         if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
-            $scriptPath .= 'HUAWEI_';
+            $scriptPath .= 'huawei/';
             $splitName = explode(' ', $this->currentOltInterface);
             $splitInterface = explode('/', $splitName[1]);
             $this->currentOltInterface = $splitInterface[0] . '/' . $splitInterface[1];
             $this->onuInterface = $splitInterface[2];
             $this->nativeVlan = $this->altCfg[self::HUAWEI_NATIVE_VLAN_OPTION];
         } else {
+            $scriptPath .= 'zte/';
             $this->onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
+            if ($this->currentPonVersion == 2) {
+                $scriptPath .= 'v2/';
+            } else {
+                $scriptPath .= 'v1.2.5/';
+            }
         }
         $scriptPath .= $this->currentPonType . '_' . $this->onuModels[$this->onuModel]['ports'];
         if ($this->router) {
@@ -1471,9 +1482,16 @@ class OnuRegister {
         $command = '/bin/true';
         if ($this->save) {
             $command = $this->billingCfg['EXPECT_PATH'];
-            $command .= ' ' . CONFIG_PATH . 'scripts/';
+            $command .= ' ' . CONFIG_PATH . 'scripts/onureg/';
             if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
-                $command .= 'HUAWEI_';
+                $command .= 'huawei/';
+            } else {
+                $command .= 'zte/';
+                if ($this->currentPonVersion == 2) {
+                    $command .= 'v2/';
+                } else {
+                    $command .= 'v1.2.5/';
+                }
             }
             $command .= 'save';
             $command .= ' ' . $this->currentOltIp;
