@@ -1231,14 +1231,14 @@ class Warehouse {
                         $cells .= wf_TableCell($itemTypeCategory);
                         $cells .= wf_TableCell($itemTypeName);
                         $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
-                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '0', false, 5, 'float'));
-                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', '', '0', false, 3, 'finance'));
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '', false, 5, 'float'));
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', '', '', false, 3, 'finance'));
                         $defaultNotePreset = '';
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNotePreset, false, 15));
                         $rows .= wf_TableRow($cells, 'row5');
                     }
 
-                    $form .= wf_TableBody($rows, '100%', 0, '');
+                    $form .= wf_TableBody($rows, '100%', 0, 'sortable');
                     $form .= wf_delimiter(0);
                     $massOutAgreement = __('I`m ready') . '. ';
                     $massOutAgreement .= __('I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes') . '.';
