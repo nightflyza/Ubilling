@@ -2160,7 +2160,7 @@ function ts_TaskChangeForm($taskid) {
                 if ($altercfg['TASKMAN_WAREHOUSE_HLPR']) {
                     if ($taskdata['status'] == 0) {
                         $massOutUrl = '?module=warehouse&reserve=true&massoutemployee=' . $taskdata['employee'] . '&taskidpreset=' . $taskid;
-                        $modform .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')));
+                        $modform .= wf_Link($massOutUrl, wf_img('skins/drain_icon.png', __('Mass outcome')), false, '', 'target="_BLANK"');
                     }
                 }
             }
