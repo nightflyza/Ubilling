@@ -1212,7 +1212,8 @@ class Warehouse {
                     $form .= $inputs;
                     $form .= wf_delimiter(0);
                     //reserves interface
-                    $cells = wf_TableCell(__('Warehouse storage'));
+                    $cells = wf_TableCell(__('Creation date'));
+                    $cells .= wf_TableCell(__('Warehouse storage'));
                     $cells .= wf_TableCell(__('Category'));
                     $cells .= wf_TableCell(__('Warehouse item type'));
                     $cells .= wf_TableCell(__('Reserved'));
@@ -1227,7 +1228,9 @@ class Warehouse {
                         $itemTypeName = $this->allItemTypeNames[$itemTypeId];
                         $itemTypeStorageId = $this->allStorages[$eachInvData['storageid']];
                         $itemTypeUnit = $this->allItemTypes[$itemTypeId]['unit'];
-                        $cells = wf_TableCell($itemTypeStorageId);
+
+                        $cells = wf_TableCell($this->reserveGetCreationDate($eachInvId));
+                        $cells .= wf_TableCell($itemTypeStorageId);
                         $cells .= wf_TableCell($itemTypeCategory);
                         $cells .= wf_TableCell($itemTypeName);
                         $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
