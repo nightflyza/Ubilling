@@ -69,6 +69,13 @@ class WhyDoYouCall {
     protected $allUserAddress = array();
 
     /**
+     * Stats database abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $statsDb = '';
+
+    /**
      * Contains path to the unanswered calls cache
      */
     const CACHE_FILE = 'exports/whydoyoucall.dat';
@@ -88,10 +95,16 @@ class WhyDoYouCall {
      */
     const URL_ME = '?module=whydoyoucall';
 
+    /**
+     * Default wdyc stats table name
+     */
+    const TABLE_STATS = 'wdycinfo';
+
     public function __construct() {
         $this->loadConfig();
         $this->initMessages();
         $this->initTelepathy();
+        $this->initStatsDb();
     }
 
     /**
@@ -126,9 +139,23 @@ class WhyDoYouCall {
         $this->messages = new UbillingMessageHelper();
     }
 
+    /**
+     * Inits telepathy object instance
+     * 
+     * @return void
+     */
     protected function initTelepathy() {
         $this->telepathy = new Telepathy();
         $this->telepathy->usePhones();
+    }
+
+    /**
+     * Inits stats database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initStatsDb() {
+        $this->statsDb = new NyanORM(self::TABLE_STATS);
     }
 
     /**
@@ -573,10 +600,15 @@ class WhyDoYouCall {
                     },";
 
         $jqDtOpts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Reaction time', 'Phones');
 
-        $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $year . "-" . $month . "-%';";
-        $all = simple_queryall($query);
+        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Reaction time', 'Phones');
+        if (cfr('ROOT')) {
+            $columns[] = 'Actions';
+        }
+
+        $this->statsDb->where('date', 'LIKE', $year . "-" . $month . "-%");
+        $all = $this->statsDb->getAll();
+
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $gchartsData[] = array($each['date'], $each['missedcount'], $each['recallscount'], $each['unsucccount']);
@@ -641,6 +673,62 @@ class WhyDoYouCall {
     }
 
     /**
+     * Renders stats records editing form
+     * 
+     * @param array $statsRecordData
+     * 
+     * @return string
+     */
+    protected function renderStatsEditForm($statsRecordData) {
+        $result = '';
+        if (!empty($statsRecordData)) {
+            $inputs = wf_HiddenInput('editwdycstatsid', $statsRecordData['id']);
+            $inputs .= wf_TextInput('editwdycstatsmissedcount', __('Missed calls'), $statsRecordData['missedcount'], true, 2, 'digits');
+            $inputs .= wf_TextInput('editwdycstatsrecallscount', __('Recalled calls'), $statsRecordData['recallscount'], true, 2, 'digits');
+            $inputs .= wf_TextInput('editwdycstatsmissednumbers', __('Phones'), $statsRecordData['missednumbers'], true, 20, '');
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return($result);
+    }
+
+    /**
+     * Catches existing stats modification request and performs editing
+     * 
+     * @return void
+     */
+    public function saveEditedStats() {
+        if (ubRouting::checkPost('editwdycstatsid')) {
+            $editId = ubRouting::post('editwdycstatsid', 'int');
+            $newMissCount = ubRouting::post('editwdycstatsmissedcount', 'int');
+            $newRecallsCount = ubRouting::post('editwdycstatsrecallscount', 'int');
+            $newPhones = ubRouting::post('editwdycstatsmissednumbers', 'mres');
+
+
+            if (!empty($editId)) {
+                $this->statsDb->where('id', '=', $editId);
+                $recordData = $this->statsDb->getAll();
+                if (!empty($recordData)) {
+                    $recordData = $recordData[0];
+                    $oldMissCount = $recordData['missedcount'];
+                    $oldRecallsCount = $recordData['recallscount'];
+                    $oldPhones = $recordData['missednumbers'];
+                    
+                    //is anything changed?
+                    if ($newMissCount != $oldMissCount OR $newRecallsCount != $oldRecallsCount OR $newPhones != $oldPhones) {
+                        $this->statsDb->where('id', '=', $editId);
+                        $this->statsDb->data('missedcount', $newMissCount);
+                        $this->statsDb->data('recallscount', $newRecallsCount);
+                        $this->statsDb->data('missednumbers', $newPhones);
+                        $this->statsDb->save();
+                        log_register('WDYC CHANGED [' . $editId . '] MISSED `' . $oldMissCount . '` ON `' . $newMissCount . '` RECALLS `' . $oldRecallsCount . '` ON `' . $newRecallsCount . '`');
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Renders json for previous calls stats
      * 
      * @param int $year
@@ -650,9 +738,12 @@ class WhyDoYouCall {
      */
     public function jsonPreviousStats($year, $month) {
         $json = new wf_JqDtHelper();
-        $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $year . "-" . $month . "-%';";
-        $all = simple_queryall($query);
+
+        $this->statsDb->where('date', 'LIKE', $year . "-" . $month . "-%");
+        $all = $this->statsDb->getAll();
+
         $data = array();
+        $actColumnFlag = (cfr('ROOT')) ? true : false;
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $data[] = $each['id'];
@@ -663,6 +754,9 @@ class WhyDoYouCall {
                 $reactTime = (!empty($each['totaltrytime'])) ? zb_formatTime(($each['totaltrytime'] / ($each['recallscount'] + $each['unsucccount']))) : '-';
                 $data[] = $reactTime;
                 $data[] = $this->cutString($each['missednumbers'], 45);
+                if ($actColumnFlag) {
+                    $data[] = wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['date'], $this->renderStatsEditForm($each));
+                }
                 $json->addRow($data);
                 unset($data);
             }
