@@ -174,7 +174,7 @@ class Warehouse {
     protected $recPriceFlag = false;
 
     /**
-     * Default routes/URLS etc..
+     * Default constants/routes/URLS etc..
      */
     const URL_ME = '?module=warehouse';
     const URL_CATEGORIES = 'categories=true';
@@ -196,7 +196,15 @@ class Warehouse {
     const PROUTE_MASSRESERVEOUT = 'massoutreserves';
     const PROUTE_MASSAGREEOUT = 'massoutagreement';
     const PROUTE_DOMASSRESOUT = 'runmassoutreserve';
-    //some caching timeout
+
+    /**
+     * Default debug log path
+     */
+    const LOG_PATH = 'exports/whdebug.log';
+
+    /**
+     * Some caching default timeout
+     */
     const CACHE_TIMEOUT = 2592000;
 
     /**
@@ -1294,26 +1302,42 @@ class Warehouse {
                                             $itemtypeIssueLabel = __('Problem') . ': ' . $this->allItemTypeNames[$itemtypeId];
                                             $result .= $this->messages->getStyledMessage($itemtypeIssueLabel, 'warning');
                                             $result .= $eachOutcomeResult;
+                                            log_register('WAREHOUSE RESMASSOUT FAIL ITEMID [' . $itemtypeId . '] COUNT `' . $count . '`');
+                                            //Saving debug log
+                                            file_put_contents(self::LOG_PATH, '==================' . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, curdatetime() . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, 'GET DATA:' . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, print_r(ubRouting::rawGet(), true) . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, 'POST DATA:' . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, print_r(ubRouting::rawPost(), true) . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, 'RESERVE OPTS:' . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, print_r($reserveOpts, true) . PHP_EOL, FILE_APPEND);
+                                            file_put_contents(self::LOG_PATH, 'INVOKES:' . $itemtypeIssueLabel . ' ' . strip_tags($eachOutcomeResult) . PHP_EOL, FILE_APPEND);
                                         }
                                         $outCount++;
                                     }
                                 } else {
                                     $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Reserve') . ' [' . $eachReserveId . '] ' . __('Not exists'), 'error');
+                                    log_register('WAREHOUSE RESMASSOUT FAIL RESERVE [' . $eachReserveId . '] NOT EXISTS');
                                 }
                             }
 
                             if ($outCount == 0) {
                                 $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Outcoming operations') . ' - 0', 'warning');
+                                log_register('WAREHOUSE RESMASSOUT FAIL ZERO OUTCOMES');
                             }
                         } else {
                             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ' EX_CORRUPT_RESARR', 'error');
+                            log_register('WAREHOUSE RESMASSOUT FAIL CORRUPT_RESARR');
                         }
                     } else {
                         $result .= $this->messages->getStyledMessage(__('Something went wrong') . ' EX_EMPTY_RESARR', 'error');
+                        log_register('WAREHOUSE RESMASSOUT FAIL EMPTY_RESARR');
                     }
                 }
             } else {
                 $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
+                log_register('WAREHOUSE RESMASSOUT FAIL NO_AGREEMENT');
             }
         }
         return($result);
