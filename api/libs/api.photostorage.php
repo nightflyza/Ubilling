@@ -272,6 +272,108 @@ class PhotoStorage {
     }
 
     /**
+     * Retuns all available scopes and images count in it as scope=>count
+     * 
+     * @return array
+     */
+    public function getAvailScopes() {
+        $result = array();
+        if (!$this->imagesLoadedFlag) {
+            $this->loadAllImages();
+        }
+
+        if (!empty($this->allimages)) {
+            foreach ($this->allimages as $io => $each) {
+                if (isset($result[$each['scope']])) {
+                    $result[$each['scope']] ++;
+                } else {
+                    $result[$each['scope']] = 1;
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Returns list of all available images for all scopes
+     * 
+     * @param int $perPage
+     * 
+     * @return string
+     */
+    public function renderScopesGallery($perPage = 10) {
+        $result = '';
+        $scopeImages = array();
+        if (!$this->imagesLoadedFlag) {
+            $this->loadAllImages();
+        }
+
+        if (!empty($this->allimages)) {
+            $imgTmp = array_reverse($this->allimages);
+            $renderImages = array();
+            $totalCount = sizeof($this->allimages);
+            $currentPage = (ubRouting::get('page')) ? ubRouting::get('page') : 1;
+
+            //pagination
+            if ($totalCount > $perPage) {
+                $paginator = wf_pagination($totalCount, $perPage, $currentPage, "?module=testing", 'ubButton');
+                $lowLimit = ($perPage * ($currentPage - 1));
+
+                $upperLimit = $lowLimit + $perPage;
+                $i = 0;
+                foreach ($imgTmp as $io => $each) {
+                    if ($i >= $lowLimit AND $i < $upperLimit) {
+                        $renderImages[$io] = $each;
+                    }
+                    $i++;
+                }
+            } else {
+                $paginator = '';
+                $renderImages = $this->allimages;
+            }
+
+            $galleryRel = 'photostoragegallery';
+            $previewStyle = 'style="float:left; margin:1px;"';
+
+            $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/image-gallery-lightjs/src/jquery.light.css"');
+            $result .= wf_tag('script', false, '', 'src="modules/jsc/image-gallery-lightjs/src/jquery.light.js"') . wf_tag('script', true);
+
+            if (!empty($renderImages)) {
+                foreach ($renderImages as $io => $eachimage) {
+                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
+                    $imgCaption = __('Date') . ': ' . $eachimage['date'] . ' ' . __('Admin') . ': ' . $eachimage['admin'];
+                    $imgCaption .= ' ' . __('Scope') . ': ' . $eachimage['scope'] . ' ' . __('Item') . ' ' . $eachimage['item'];
+
+
+                    $galleryOptions = 'data-caption="' . $imgCaption . '" data-gallery="1" rel="' . $galleryRel . '" ' . $previewStyle . '"';
+                    $imgGallery = wf_Link(self::STORAGE_PATH . $eachimage['filename'], $imgPreview, false, '', $galleryOptions);
+                    $result .= $imgGallery;
+                }
+            }
+
+            //init gallery
+            $jsGallery = wf_tag('script');
+            $jsGallery .= " $('a[rel=" . $galleryRel . "]').light({
+                            unbind:true,
+                            prevText:'" . __('Previous') . "', 
+                            nextText:'" . __('Next') . "',
+                            loadText:'" . __('Loading') . "...',
+                            keyboard:true
+                        });
+                        ";
+            $jsGallery .= wf_tag('script', true);
+            $result .= $jsGallery;
+        }
+
+        $result .= wf_CleanDiv();
+
+        $result .= $paginator;
+
+        return ($result);
+    }
+
+    /**
      * Returns current scope/item images list
      * 
      * @return string
