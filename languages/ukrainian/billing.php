@@ -3312,3 +3312,4 @@ $lang['def']['Evict'] = 'Виселити';
 $lang['def']['Mass outcome'] = 'Масовий розхід';
 $lang['def']['I also understand well that no one will correct my mistakes for me and only I bear full financial responsibility for my mistakes'] = 'Також я добре розумію, що ніхто не буде виправляти мої помилки за мене і тільки я несу повну матеріальну відповідальність за мої помилки';
 $lang['def']['Nothing reserved for this employee'] = 'На цього працівника не зарезервовано нічого';
+$lang['def']['Loading'] = 'Завантаження';

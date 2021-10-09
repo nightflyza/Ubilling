@@ -1,0 +1,32 @@
+{
+    "name": "light",
+    "title": "Light",
+    "description": "A super lightweight lightbox plugin for images in jQuery.",
+    "keywords": [
+        "lightbox",
+        "images",
+		"preview",
+		"gallery",
+		"captions"
+    ],
+    "version": "0.3.0",
+    "author": {
+        "name": "Edmund Gentle",
+        "url": "https://github.com/edmundgentle",
+        "email": "edmund@newhaze.com"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/edmundgentle/light/blob/master/MIT-LICENSE.txt"
+        }
+    ],
+    "bugs": "https://github.com/edmundgentle/light/issues",
+    "homepage": "https://github.com/edmundgentle/light",
+    "docs": "https://github.com/edmundgentle/light#readme",
+    "download": "https://github.com/edmundgentle/light/archive/master.zip",
+    "demo": "http://www.edmundgentle.com/snippets/light/examples/",
+    "dependencies": {
+        "jquery": ">=1.5"
+    }
+}

@@ -316,23 +316,47 @@ class PhotoStorage {
      */
     public function renderImagesRaw() {
         $result = '';
+        $galleryFlag = ($this->altCfg['PHOTOSTORAGE_GALLERY']) ? true : false;
+
         if (!$this->imagesLoadedFlag) {
             $this->loadAllImages();
         }
 
         if (!empty($this->allimages)) {
+            $galleryRel = 'photostoragegallery';
+            $previewStyle = 'style="float:left; margin:1px;"';
+
+            $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/image-gallery-lightjs/src/jquery.light.css"');
+            $result .= wf_tag('script', false, '', 'src="modules/jsc/image-gallery-lightjs/src/jquery.light.js"') . wf_tag('script', true);
+
             foreach ($this->allimages as $io => $eachimage) {
                 if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
                     $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
                     $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
-                    $imgFull .= __('Date') . ': ' . $eachimage['date'];
+                    $imgCaption = __('Date') . ': ' . $eachimage['date'] . ' ' . __('Admin') . ': ' . $eachimage['admin'];
 
-                    $dimensions = 'width:' . ($this->photoCfg['IMGLIST_PREV_W'] + 10) . 'px;';
-                    $dimensions .= 'height:' . ($this->photoCfg['IMGLIST_PREV_H'] + 10) . 'px;';
-
-                    $result .= wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull, '');
+                    if ($galleryFlag) {
+                        $galleryOptions = 'data-caption="' . $imgCaption . '" data-gallery="1" rel="' . $galleryRel . '" ' . $previewStyle . '"';
+                        $imgGallery = wf_Link(self::STORAGE_PATH . $eachimage['filename'], $imgPreview, false, '', $galleryOptions);
+                        $result .= $imgGallery;
+                    } else {
+                        $result .= wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull . $imgCaption, '');
+                    }
                 }
             }
+
+            //init gallery
+            $jsGallery = wf_tag('script');
+            $jsGallery .= " $('a[rel=" . $galleryRel . "]').light({
+                            unbind:true,
+                            prevText:'" . __('Previous') . "', 
+                            nextText:'" . __('Next') . "',
+                            loadText:'" . __('Loading') . "...',
+                            keyboard:true
+                        });
+                        ";
+            $jsGallery .= wf_tag('script', true);
+            $result .= $jsGallery;
         }
 
 
