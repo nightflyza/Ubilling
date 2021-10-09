@@ -1236,6 +1236,10 @@ class Warehouse {
                         $itemTypeName = $this->allItemTypeNames[$itemTypeId];
                         $itemTypeStorageId = $this->allStorages[$eachInvData['storageid']];
                         $itemTypeUnit = $this->allItemTypes[$itemTypeId]['unit'];
+                        $itemTypeRecPrice = $this->getIncomeMiddlePrice($itemTypeId);
+                        $midPriceLabel = ($this->recPriceFlag) ? __('recommended') : __('middle price');
+                        $midPriceNotice = wf_tag('abbr', false, '', 'title="' . $midPriceLabel . ': ' . $itemTypeRecPrice . '"') . '?' . wf_tag('abbr', true);
+
 
                         $cells = wf_TableCell($this->reserveGetCreationDate($eachInvId));
                         $cells .= wf_TableCell($itemTypeStorageId);
@@ -1243,7 +1247,7 @@ class Warehouse {
                         $cells .= wf_TableCell($itemTypeName);
                         $cells .= wf_TableCell($eachInvData['count'] . ' ' . __($itemTypeUnit));
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][count]', $itemTypeUnit, '', false, 5, 'float'));
-                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', '', '', false, 3, 'finance'));
+                        $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][price]', $midPriceNotice, '', false, 3, 'finance'));
                         $defaultNotePreset = '';
                         $cells .= wf_TableCell(wf_TextInput(self::PROUTE_MASSRESERVEOUT . '[' . $eachInvId . '][note]', '', $defaultNotePreset, false, 15));
                         $rows .= wf_TableRow($cells, 'row5');
