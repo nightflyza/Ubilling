@@ -536,9 +536,14 @@ class WhyDoYouCall {
             }
         }
         $missedCallsNumbers = mysql_real_escape_string($missedCallsNumbers);
-        $query = "INSERT INTO `wdycinfo` (`id`, `date`, `missedcount`, `recallscount`, `unsucccount`, `missednumbers`,`totaltrytime`) VALUES "
-                . "(NULL, '" . $date . "', '" . $missedCallsCount . "', '" . $recallsCount . "', '" . $unsuccCount . "', '" . $missedCallsNumbers . "','" . $totalTryTime . "');";
-        nr_query($query);
+
+        $this->statsDb->data('date', $date);
+        $this->statsDb->data('missedcount', $missedCallsCount);
+        $this->statsDb->data('recallscount', $recallsCount);
+        $this->statsDb->data('unsucccount', $unsuccCount);
+        $this->statsDb->data('missednumbers', $missedCallsNumbers);
+        $this->statsDb->data('totaltrytime', $totalTryTime);
+        $this->statsDb->create();
     }
 
     /**
@@ -713,7 +718,7 @@ class WhyDoYouCall {
                     $oldMissCount = $recordData['missedcount'];
                     $oldRecallsCount = $recordData['recallscount'];
                     $oldPhones = $recordData['missednumbers'];
-                    
+
                     //is anything changed?
                     if ($newMissCount != $oldMissCount OR $newRecallsCount != $oldRecallsCount OR $newPhones != $oldPhones) {
                         $this->statsDb->where('id', '=', $editId);
