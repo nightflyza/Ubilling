@@ -52,7 +52,7 @@ class UbillingSMS {
                 $message = str_replace(array("\n\r", "\n", "\r"), ' ', $message); //single line
                 $message = str_replace(array("'", '"'), '`', $message); // dangerous quotes
                 if ($translit) {
-                    $message = zb_TranslitString($message);
+                    $message = zb_TranslitString($message, true);
                 }
                 $message = trim($message);
                 $queueId = 'us_' . zb_rand_string(8);
