@@ -32,23 +32,24 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
             //show webcam snapshot form
             if (ubRouting::checkGet('mode')) {
                 $modeSet = ubRouting::get('mode');
-                //webcamera snapshot
-                if ($modeSet == 'cam') {
-                    show_window(__('Webcamera snapshot'), $photoStorage->renderWebcamForm(false));
-                }
-                //webcamera cropped snapshot
-                if ($modeSet == 'avacam') {
-                    show_window(__('Webcamera snapshot') . ' - ' . __('avatar'), $photoStorage->renderWebcamForm(true));
-                }
-                //just file upload interface
-                if ($modeSet == 'loader') {
-                    show_window(__('Upload images'), $photoStorage->renderUploadForm());
-                }
-
-                //listing images for some object
-                if ($modeSet == 'list') {
-                    show_window(__('Upload images'), $photoStorage->uploadControlsPanel());
-                    show_window(__('Uploaded images'), $photoStorage->renderImagesList());
+                switch ($modeSet) {
+                    //webcamera snapshot
+                    case 'cam':
+                        show_window(__('Webcamera snapshot'), $photoStorage->renderWebcamForm(false));
+                        break;
+                    //webcamera cropped snapshot
+                    case 'avacam':
+                        show_window(__('Webcamera snapshot') . ' - ' . __('avatar'), $photoStorage->renderWebcamForm(true));
+                        break;
+                    //just file upload interface
+                    case 'loader':
+                        show_window(__('Upload images'), $photoStorage->renderUploadForm());
+                        break;
+                    //listing images for some object
+                    case 'list':
+                        show_window(__('Upload images'), $photoStorage->uploadControlsPanel());
+                        show_window(__('Uploaded images'), $photoStorage->renderImagesList());
+                        break;
                 }
             }
         } else {
