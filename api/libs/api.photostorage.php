@@ -298,25 +298,42 @@ class PhotoStorage {
      * Returns list of all available images for all scopes
      * 
      * @param int $perPage
+     * @param bool $checkRights
      * 
      * @return string
      */
-    public function renderScopesGallery($perPage = 10) {
+    public function renderScopesGallery($perPage = 12, $checkRights = true) {
         $result = '';
+        $paginator = '';
         $scopeImages = array();
+        $messages = new UbillingMessageHelper();
         if (!$this->imagesLoadedFlag) {
             $this->loadAllImages();
         }
 
         if (!empty($this->allimages)) {
             $imgTmp = array_reverse($this->allimages);
+            if ($checkRights) {
+                $myImages = array();
+                if (!cfr('ROOT')) {
+                    if (!empty($imgTmp)) {
+                        foreach ($imgTmp as $io => $each) {
+                            if ($each['admin'] == $this->myLogin) {
+                                $myImages[$io] = $each;
+                            }
+                        }
+                        $imgTmp = $myImages;
+                    }
+                }
+            }
+
             $renderImages = array();
-            $totalCount = sizeof($this->allimages);
+            $totalCount = sizeof($imgTmp);
             $currentPage = (ubRouting::get('page')) ? ubRouting::get('page') : 1;
 
             //pagination
             if ($totalCount > $perPage) {
-                $paginator = wf_pagination($totalCount, $perPage, $currentPage, "?module=testing", 'ubButton');
+                $paginator = wf_pagination($totalCount, $perPage, $currentPage, self::MODULE_URL, 'ubButton', 16);
                 $lowLimit = ($perPage * ($currentPage - 1));
 
                 $upperLimit = $lowLimit + $perPage;
@@ -328,8 +345,7 @@ class PhotoStorage {
                     $i++;
                 }
             } else {
-                $paginator = '';
-                $renderImages = $this->allimages;
+                $renderImages = $imgTmp;
             }
 
             $galleryRel = 'photostoragegallery';
@@ -340,16 +356,21 @@ class PhotoStorage {
 
             if (!empty($renderImages)) {
                 foreach ($renderImages as $io => $eachimage) {
-                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
                     $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
                     $imgCaption = __('Date') . ': ' . $eachimage['date'] . ' ' . __('Admin') . ': ' . $eachimage['admin'];
-                    $imgCaption .= ' ' . __('Scope') . ': ' . $eachimage['scope'] . ' ' . __('Item') . ' ' . $eachimage['item'];
+                    $mngUrl = self::MODULE_URL . '&scope=' . $eachimage['scope'] . '&mode=list&itemid=' . $eachimage['item'];
+                    $mngLink = ' ' . wf_Link($mngUrl, __('Show'), false, '', 'target=_blank');
+                    $mngLink = str_replace('"', '', $mngLink);
+                    $imgCaption .= $mngLink;
 
 
                     $galleryOptions = 'data-caption="' . $imgCaption . '" data-gallery="1" rel="' . $galleryRel . '" ' . $previewStyle . '"';
                     $imgGallery = wf_Link(self::STORAGE_PATH . $eachimage['filename'], $imgPreview, false, '', $galleryOptions);
                     $result .= $imgGallery;
                 }
+            } else {
+                $result .= $messages->getStyledMessage(__('Nothing to show'), 'info');
             }
 
             //init gallery
@@ -364,11 +385,13 @@ class PhotoStorage {
                         ";
             $jsGallery .= wf_tag('script', true);
             $result .= $jsGallery;
+            $result .= wf_CleanDiv();
+            $result .= $paginator;
+        } else {
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
 
-        $result .= wf_CleanDiv();
 
-        $result .= $paginator;
 
         return ($result);
     }

@@ -943,17 +943,18 @@ function wf_JSAlertStyled($url, $title, $alerttext, $class = '', $functiontorun 
 }
 
 /**
- * Returns filled paginator
+ * Returns standard paginator widget
  * 
  * @param int $total Total items count
  * @param int $perpage Per page items count
  * @param int $current current page
  * @param string $link module link which use paginator
  * @param string $class page links class
+ * @param int $maxAmount maximun amount of pages to render
+ * 
  * @return string
- *  
  */
-function wf_pagination($total, $perpage, $current, $link, $class = '') {
+function wf_pagination($total, $perpage, $current, $link, $class = '', $maxAmount = 0) {
     if ($class != '') {
         $pageclass = 'class="' . $class . '"';
     } else {
@@ -967,15 +968,39 @@ function wf_pagination($total, $perpage, $current, $link, $class = '') {
         if ($pages != 1) {
             $c = 1;
             while ($c <= $pages) {
-                if ($c != $current)
-                    $return .= ' ' . '<a href="' . $link . '&amp;page=' . $c . '" ' . $pageclass . '>' . $c . '</a> ';
-                else
-                    $return .= ' ' . '<a href="#" ' . $pageclass . ' style="color: #ff0000;">' . $c . '</a> ';
+                $renderPageLink = true;
+                if (!empty($maxAmount)) {
+                    if ($pages > $maxAmount) {
+                        if ($c > $maxAmount) {
+                            $renderPageLink = false;
+                            if ($c == $pages) {
+                                //last page
+                                $return .= '...';
+                                $renderPageLink = true;
+                            }
+
+                            if (($current) >= ($maxAmount)) {
+                                if ($c == ($current + 1)) {
+                                    $renderPageLink = true;
+                                    $return .= '...';
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ($renderPageLink) {
+                    if ($c != $current) {
+                        $return .= ' ' . '<a href="' . $link . '&amp;page=' . $c . '" ' . $pageclass . '>' . $c . '</a> ';
+                    } else {
+                        $return .= ' ' . '<a href="#" ' . $pageclass . ' style="color: #ff0000;">' . $c . '</a> ';
+                    }
+                }
                 $c++;
             }
         }
     }
-    return $return;
+    return ($return);
 }
 
 /**
