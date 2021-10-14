@@ -5,33 +5,33 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
     if (cfr('PHOTOSTORAGE')) {
 
 
-        if (wf_CheckGet(array('scope', 'itemid'))) {
-            $photoStorage = new PhotoStorage($_GET['scope'], $_GET['itemid']);
+        if (ubRouting::checkGet(array('scope', 'itemid'))) {
+            $photoStorage = new PhotoStorage(ubRouting::get('scope'), ubRouting::get('itemid'));
 
             //catch ajax webcam upload request
-            if (wf_CheckGet(array('uploadcamphoto'))) {
+            if (ubRouting::checkGet('uploadcamphoto')) {
                 $photoStorage->catchWebcamUpload();
             }
 
             //catch file upload request
-            if (wf_CheckGet(array('uploadfilephoto'))) {
+            if (ubRouting::checkGet('uploadfilephoto')) {
                 $customBackLink = ubRouting::get('custombacklink');
                 $photoStorage->catchFileUpload($customBackLink);
             }
 
             //catch file download
-            if (wf_CheckGet(array('download'))) {
-                $photoStorage->catchDownloadImage($_GET['download']);
+            if (ubRouting::checkGet('download')) {
+                $photoStorage->catchDownloadImage(ubRouting::get('download'));
             }
 
             //catch file deletion event
-            if (wf_CheckGet(array('delete'))) {
-                $photoStorage->catchDeleteImage($_GET['delete']);
+            if (ubRouting::checkGet('delete')) {
+                $photoStorage->catchDeleteImage(ubRouting::get('delete'));
             }
 
             //show webcam snapshot form
-            if (wf_CheckGet(array('mode'))) {
-                $modeSet = $_GET['mode'];
+            if (ubRouting::checkGet('mode')) {
+                $modeSet = ubRouting::get('mode');
                 //webcamera snapshot
                 if ($modeSet == 'cam') {
                     show_window(__('Webcamera snapshot'), $photoStorage->renderWebcamForm(false));
@@ -62,4 +62,3 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
 } else {
     show_error(__('This module disabled'));
 }
-?>
