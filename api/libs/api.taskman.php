@@ -262,7 +262,7 @@ function stg_get_jobtype_color($id) {
  * @return void
  */
 function web_showPreviousJobs($username) {
-    $query_jobs = 'SELECT * FROM `jobs` WHERE `login`="' . $username . '" ORDER BY `id` ASC';
+    $query_jobs = 'SELECT * FROM `jobs` WHERE `login`="' . $username . '" ORDER BY `id` DESC';
     $alljobs = simple_queryall($query_jobs);
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
