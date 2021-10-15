@@ -333,7 +333,7 @@ class PhotoStorage {
 
             //pagination
             if ($totalCount > $perPage) {
-                $paginator = wf_pagination($totalCount, $perPage, $currentPage, self::MODULE_URL, 'ubButton', 16);
+                $paginator = wf_pagination($totalCount, $perPage, $currentPage, self::MODULE_URL, 'ubButton', 14);
                 $lowLimit = ($perPage * ($currentPage - 1));
 
                 $upperLimit = $lowLimit + $perPage;

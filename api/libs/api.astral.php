@@ -979,10 +979,15 @@ function wf_pagination($total, $perpage, $current, $link, $class = '', $maxAmoun
                                 $renderPageLink = true;
                             }
 
+
+
                             if (($current) >= ($maxAmount)) {
                                 if ($c == ($current + 1)) {
                                     $renderPageLink = true;
-                                    $return .= '...';
+                                }
+
+                                if ($c == ($current - 1) OR ( $c == ($current))) {
+                                    $renderPageLink = true;
                                 }
                             }
                         }
@@ -994,6 +999,10 @@ function wf_pagination($total, $perpage, $current, $link, $class = '', $maxAmoun
                         $return .= ' ' . '<a href="' . $link . '&amp;page=' . $c . '" ' . $pageclass . '>' . $c . '</a> ';
                     } else {
                         $return .= ' ' . '<a href="#" ' . $pageclass . ' style="color: #ff0000;">' . $c . '</a> ';
+                    }
+
+                    if ($c == $maxAmount) {
+                        $return .= '...';
                     }
                 }
                 $c++;
