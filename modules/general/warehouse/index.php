@@ -368,7 +368,7 @@ if (cfr('WAREHOUSE')) {
 
                 if (ubRouting::checkGet('itemtypeoutcomes')) {
                     if (cfr('WAREHOUSEREPORTS')) {
-                        show_window(__('Warehouse item type') . ' ' . __('History'), $warehouse->renderItemtypeOutcomesHistory());
+                        show_window(__('Sales'), $warehouse->renderItemtypeOutcomesHistory());
                         $avidity_m = $avidity['M']['FALL'];
                         $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {
@@ -379,6 +379,19 @@ if (cfr('WAREHOUSE')) {
                 if (ubRouting::checkGet('purchases')) {
                     if (cfr('WAREHOUSEREPORTS')) {
                         show_window(__('Purchases'), $warehouse->renderPurchasesReport());
+                        $avidity_m = $avidity['M']['FALL'];
+                        $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                    } else {
+                        show_error(__('Access denied'));
+                    }
+                }
+
+                if (ubRouting::checkGet('returns')) {
+                    if (cfr('WAREHOUSEREPORTS')) {
+                        if (ubRouting::checkGet('ajreturnslist')) {
+                            $warehouse->ajReturnsList();
+                        }
+                        show_window(__('Returns'), $warehouse->renderReturnsReport());
                         $avidity_m = $avidity['M']['FALL'];
                         $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                     } else {

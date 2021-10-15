@@ -83,7 +83,7 @@ class Warehouse {
     protected $allIncoming = array();
 
     /**
-     * All available outcoming operations
+     * All available outcoming operations as id=>outcomeData
      *
      * @var type 
      */
@@ -146,6 +146,20 @@ class Warehouse {
     protected $telegram = '';
 
     /**
+     * Returns database abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $returnsDb = '';
+
+    /**
+     * Contains all returns operation as outcomeid=>returnData
+     *
+     * @var array
+     */
+    protected $allReturns = array();
+
+    /**
      * Telegram force notification flag
      *
      * @var bool
@@ -196,6 +210,10 @@ class Warehouse {
     const PROUTE_MASSRESERVEOUT = 'massoutreserves';
     const PROUTE_MASSAGREEOUT = 'massoutagreement';
     const PROUTE_DOMASSRESOUT = 'runmassoutreserve';
+    const PROUTE_RETURNOUTID = 'newreturnoutcomeid';
+    const PROUTE_RETURNSTORAGE = 'newreturnstorageid';
+    const PROUTE_RETURNPRICE = 'newreturnprice';
+    const PROUTE_RETURNNOTE = 'newreturnnote';
 
     /**
      * Default debug log path
@@ -230,6 +248,7 @@ class Warehouse {
         $this->initTelegram();
         $this->initCache();
         $this->loadTaskOutsCache();
+        $this->initReturns();
         if (empty($taskid)) {
             $this->loadReserve();
             $this->loadReserveHistory();
@@ -281,6 +300,28 @@ class Warehouse {
     protected function initTelegram() {
         if ($this->altCfg['SENDDOG_ENABLED']) {
             $this->telegram = new UbillingTelegram();
+        }
+    }
+
+    /**
+     * Inits returns database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initReturns() {
+        if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
+            $this->returnsDb = new NyanORM('wh_returns');
+        }
+    }
+
+    /**
+     * Loads all existing return operations from database into protected prop
+     * 
+     * @return void
+     */
+    protected function loadReturns() {
+        if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
+            $this->allReturns = $this->returnsDb->getAll('outid');
         }
     }
 
@@ -1787,21 +1828,24 @@ class Warehouse {
             $result .= wf_Link(self::URL_ME . '&' . self::URL_RESERVE, wf_img('skins/whreservation.png') . ' ' . __('Reserved'), false, 'ubButton');
         }
 
-        if (cfr('WAREHOUSEREPORTS')) {
-            $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Warehouse item type') . ' ' . __('History'), false, 'ubButton');
-            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', wf_img_sized('skins/shopping_cart_small.png') . ' ' . __('Purchases'), false, 'ubButton');
-            $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
-        }
-
         if (cfr('WAREHOUSEDIR')) {
             $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
             $dirControls .= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
             $dirControls .= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
             $dirControls .= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractors'), false, 'ubButton');
             $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $dirControls, 'ubButton');
+        }
+
+        if (cfr('WAREHOUSEREPORTS')) {
+            $reportControls = wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&calendarops=true', wf_img_sized('skins/icon_calendar.gif') . ' ' . __('Operations in the context of time'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&dateremains=true', wf_img_sized('skins/icon_batman.png') . ' ' . __('Date remains'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&storagesremains=true', wf_img_sized('skins/icon_print.png') . ' ' . __('The remains in the warehouse storage'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&itemtypeoutcomes=true', wf_img_sized('skins/sales.png') . ' ' . __('Sales'), false, 'ubButton');
+            $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&purchases=true', wf_img_sized('skins/shopping_cart_small.png') . ' ' . __('Purchases'), false, 'ubButton');
+            if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
+                $reportControls .= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&returns=true', wf_img_sized('skins/return.png') . ' ' . __('Returns'), false, 'ubButton');
+            }
+            $result .= wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reportControls, 'ubButton');
         }
 
 
@@ -3105,7 +3149,33 @@ class Warehouse {
             $rows .= wf_TableRow($cells, 'row3');
 
             $result .= wf_TableBody($rows, '100%', 0, 'wh_viewer');
+            //returns controls here
+            if (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) {
+                $this->loadReturns();
+                $outReturnData = (isset($this->allReturns[$id])) ? $this->allReturns[$id] : array();
+                if (empty($outReturnData)) {
+                    //specific rights check
+                    if (cfr('WAREHOUSERETURNS')) {
+                        //return controller here
+                        if (ubRouting::checkPost(array(self::PROUTE_RETURNOUTID, self::PROUTE_RETURNSTORAGE))) {
+                            $this->createReturnOperation();
+                            ubRouting::nav(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $id);
+                        }
+                        $returnDialogLabel = __('Return items to warehouse storage');
+                        $result .= wf_modalAuto(wf_img('skins/return.png') . ' ' . $returnDialogLabel, $returnDialogLabel, $this->renderReturnForm($id), 'ubButton');
+                    }
+                } else {
+                    $returnAdmName = (isset($employeeLogins[$outReturnData['admin']])) ? $employeeLogins[$outReturnData['admin']] : $outReturnData['admin'];
+                    $returnedLabel = $outReturnData['date'] . ' ' . __('All items from this outcoming operation is already returned to warehouse storage') . ' ';
+                    $returnedLabel .= $this->allStorages[$outReturnData['storageid']] . ', ';
+                    $returnedLabel .= __('by administrator') . ' ' . $returnAdmName;
 
+                    $result .= $this->messages->getStyledMessage($returnedLabel, 'warning');
+                }
+                $result .= wf_delimiter(0);
+            }
+
+            //photostorage renderer
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $operationData['itemtypeid']);
                 $result .= $photoStorage->renderImagesRaw();
@@ -3122,6 +3192,73 @@ class Warehouse {
         }
 
         return ($result);
+    }
+
+    /**
+     * Renders return operation form
+     * 
+     * @param int $outId
+     * 
+     * @return string
+     */
+    protected function renderReturnForm($outId) {
+        $outId = ubRouting::filters($outId, 'int');
+        $result = '';
+        if (isset($this->allOutcoming[$outId])) {
+            $outcomeData = $this->allOutcoming[$outId];
+
+            $inputs = wf_HiddenInput(self::PROUTE_RETURNOUTID, $outId);
+            $inputs .= wf_Selector(self::PROUTE_RETURNSTORAGE, $this->allStorages, __('Warehouse storage'), $outcomeData['storageid'], true);
+            $inputs .= wf_TextInput(self::PROUTE_RETURNPRICE, __('Price'), $outcomeData['price'], true, 5, 'finance');
+            $defaultNote = __('Return of an outcoming operation') . ' ID:' . $outId;
+            $inputs .= wf_TextInput(self::PROUTE_RETURNNOTE, __('Notes'), $defaultNote, true, 30);
+            $inputs .= wf_Submit(__('Return items to warehouse storage'));
+
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Outcoming operation') . ' [' . $outId . '] ' . __('Not exists'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Creates new outcome return operation
+     * 
+     * @return void
+     */
+    protected function createReturnOperation() {
+        if (ubRouting::checkPost(array(self::PROUTE_RETURNOUTID, self::PROUTE_RETURNSTORAGE))) {
+            $outId = ubRouting::post(self::PROUTE_RETURNOUTID, 'int');
+            if (isset($this->allOutcoming[$outId])) {
+                $outcomeData = $this->allOutcoming[$outId];
+                $curDate = curdate();
+                $curDateTime = curdatetime();
+                $whoami = whoami();
+                $itemtypeId = $outcomeData['itemtypeid'];
+                $count = $outcomeData['count'];
+                $storageId = ubRouting::post(self::PROUTE_RETURNSTORAGE, 'int');
+                $price = ubRouting::post(self::PROUTE_RETURNPRICE);
+                $notes = ubRouting::post(self::PROUTE_RETURNNOTE);
+                $barcode = '';
+                $contractorId = 0;
+
+                //push database record about this return
+                $this->returnsDb->data('outid', $outId);
+                $this->returnsDb->data('storageid', $storageId);
+                $this->returnsDb->data('itemtypeid', $itemtypeId);
+                $this->returnsDb->data('count', $count);
+                $this->returnsDb->data('price', $price);
+                $this->returnsDb->data('date', $curDateTime);
+                $this->returnsDb->data('admin', $whoami);
+                $this->returnsDb->data('note', $notes);
+                $this->returnsDb->create();
+
+
+                //cast some incoming operation on this return
+                $this->incomingCreate($curDate, $itemtypeId, $contractorId, $storageId, $count, $price, $barcode, $notes);
+                log_register('WAREHOUSE RETURN CREATE [' . $outId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` PRICE `' . $price . '`');
+            }
+        }
     }
 
     /**
@@ -3650,7 +3787,8 @@ class Warehouse {
                     $cells .= wf_TableCell($each['price']);
                     $cells .= wf_TableCell($each['price'] * $each['count']);
                     if (cfr('WAREHOUSEOUT')) {
-                        $actLinks = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'], wf_img_sized('skins/whoutcoming_icon.png', '', '12') . ' ' . __('Show'));
+                        $actUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'];
+                        $actLinks = wf_Link($actUrl, wf_img_sized('skins/whoutcoming_icon.png', '', '12') . ' ' . __('Show'));
                     } else {
                         $actLinks = '';
                     }
@@ -4341,6 +4479,11 @@ class Warehouse {
 
 
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
+
+                if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                    $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $itemtypeId);
+                    $result .= $photoStorage->renderImagesRaw();
+                }
             }
             show_window(__('History') . ': ' . $itemTypeCategory . ', ' . $itemTypeName, $result);
         } else {
@@ -4485,21 +4628,22 @@ class Warehouse {
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
         if (!empty($this->allIncoming)) {
-
             foreach ($this->allIncoming as $io => $each) {
-                if (ispos($each['date'], $showYear)) {
-                    $opMonth = strtotime($each['date']);
-                    $opMonth = date("m", $opMonth);
-                    $opPrice = $each['price'] * $each['count'];
+                if ($each['contractorid'] != 0) {
+                    if (ispos($each['date'], $showYear)) {
+                        $opMonth = strtotime($each['date']);
+                        $opMonth = date("m", $opMonth);
+                        $opPrice = $each['price'] * $each['count'];
 
-                    if (isset($tmpResult[$opMonth])) {
-                        $tmpResult[$opMonth]['count'] ++;
-                        $tmpResult[$opMonth]['price'] += $opPrice;
-                    } else {
-                        $tmpResult[$opMonth]['count'] = 1;
-                        $tmpResult[$opMonth]['price'] = $opPrice;
+                        if (isset($tmpResult[$opMonth])) {
+                            $tmpResult[$opMonth]['count'] ++;
+                            $tmpResult[$opMonth]['price'] += $opPrice;
+                        } else {
+                            $tmpResult[$opMonth]['count'] = 1;
+                            $tmpResult[$opMonth]['price'] = $opPrice;
+                        }
+                        $totalSumm += $opPrice;
                     }
-                    $totalSumm += $opPrice;
                 }
             }
 
@@ -4548,6 +4692,53 @@ class Warehouse {
             $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return($result);
+    }
+
+    /**
+     * Renders returns list container
+     * 
+     * @return string
+     */
+    public function renderReturnsReport() {
+        $result = '';
+        $columns = array('Date', 'Outcoming operation', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Price', 'Admin', 'Notes');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $ajUrl = self::URL_ME . '&' . self::URL_REPORTS . '&returns=true&ajreturnslist=true';
+        $result .= wf_JqDtLoader($columns, $ajUrl, false, __('Outcoming operations'), 50, $opts);
+        return($result);
+    }
+
+    /**
+     * Renders
+     * 
+     * @return void
+     */
+    public function ajReturnsList() {
+        $json = new wf_JqDtHelper();
+        $this->loadReturns();
+        if (!empty($this->allReturns)) {
+            foreach ($this->allReturns as $io => $each) {
+                $itemtypeId = $each['itemtypeid'];
+                $itemtypeName = $this->allItemTypeNames[$itemtypeId];
+                $itemCategory = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
+                $itemtypeUnit = $this->allItemTypes[$itemtypeId]['unit'];
+                $outOpLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['outid'], $each['outid']);
+                $data[] = $each['date'];
+                $data[] = $outOpLink;
+                $data[] = $this->allStorages[$each['storageid']];
+                $data[] = $itemCategory;
+                $itemHistLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeId, $itemtypeName);
+                $data[] = $itemHistLink;
+                $data[] = $each['count'] . ' ' . __($itemtypeUnit);
+                $data[] = $each['price'];
+                $data[] = $each['admin'];
+                $data[] = $each['note'];
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
     }
 
 }
