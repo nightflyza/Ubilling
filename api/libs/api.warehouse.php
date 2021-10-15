@@ -3289,6 +3289,7 @@ class Warehouse {
         $countF = str_replace(',', '.', $countF);
         $priceF = mysql_real_escape_string($price);
         $priceF = str_replace(',', '.', $priceF);
+        $priceF = round($priceF, 2);
         $notes = mysql_real_escape_string($notes);
         $admin = mysql_real_escape_string(whoami());
 
@@ -4071,7 +4072,7 @@ class Warehouse {
         if ($itemsCount != 0) {
             $result = round($totalSumm / $itemsCount, 2);
         } else {
-            $result = $totalSumm;
+            $result = round($totalSumm, 2);
         }
 
 
