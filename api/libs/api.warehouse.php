@@ -1962,9 +1962,14 @@ class Warehouse {
         $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
         $photoStorageEnabled = ($this->altCfg['PHOTOSTORAGE_ENABLED']) ? true : false;
+        if ($photoStorageEnabled) {
+            $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, 'nope');
+        }
 
         if (!empty($this->allItemTypes)) {
-            foreach ($this->allItemTypes as $io => $each) {
+            $itemtypesList = $this->allItemTypes;
+            krsort($itemtypesList); //default order from newer to older instead of order by name
+            foreach ($itemtypesList as $io => $each) {
                 $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['id'], $each['name']);
 
                 $cells = wf_TableCell($each['id']);
@@ -1975,8 +1980,15 @@ class Warehouse {
                 $actLinks = wf_JSAlertStyled(self::URL_ME . '&' . self::URL_ITEMTYPES . '&deleteitemtype=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->itemtypesEditForm($each['id']), '');
                 if ($photoStorageEnabled) {
-                    $photostorageUrl = '?module=photostorage&scope=WAREHOUSEITEMTYPE&itemid=' . $each['id'] . '&mode=list';
-                    $photostorageControl = ' ' . wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'), '16', '16'), false);
+                    $photostorageIcon = 'photostorage.png';
+                    $itemIdImageCount = $photoStorage->getImagesCount($each['id']);
+                    $photostorageUrl = '?module=photostorage&scope=' . self::PHOTOSTORAGE_SCOPE . '&itemid=' . $each['id'] . '&mode=list';
+                    $photostorageCtrlLabel = __('Upload images');
+                    if ($itemIdImageCount > 0) {
+                        $photostorageIcon = 'photostorage_green.png';
+                        $photostorageCtrlLabel .= ' (' . $itemIdImageCount . ')';
+                    }
+                    $photostorageControl = ' ' . wf_Link($photostorageUrl, wf_img_sized('skins/' . $photostorageIcon, $photostorageCtrlLabel, '16', '16'), false);
                 } else {
                     $photostorageControl = '';
                 }
