@@ -1765,9 +1765,16 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 }
             }
 
-            //some hack to append UKV users cable seals
+            //some hack to append UKV users cable seals and maybe something else
             if (wf_CheckPost(array('unifiedformtelegramappend'))) {
                 $newTelegramText .= $_POST['unifiedformtelegramappend'];
+            }
+
+            //appending task direct URL to task
+            $fullBillingUrl = $ubillingConfig->getAlterParam('FULL_BILLING_URL');
+            $appendTaskLinkFlag = $ubillingConfig->getAlterParam('TASKMAN_SEND_TASKURL');
+            if (!empty($fullBillingUrl) AND $appendTaskLinkFlag) {
+                $newTelegramText .= '<a href="' . $fullBillingUrl . '/?module=taskman&edittask=' . $taskid . '">🔍 ' . __('View task') . '</a> parseMode:{html}';
             }
 
 
@@ -1963,6 +1970,14 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
                 $newTelegramText .= $userCableSeal;
             }
         }
+
+        //appending task direct URL to task
+        $fullBillingUrl = $ubillingConfig->getAlterParam('FULL_BILLING_URL');
+        $appendTaskLinkFlag = $ubillingConfig->getAlterParam('TASKMAN_SEND_TASKURL');
+        if (!empty($fullBillingUrl) AND $appendTaskLinkFlag) {
+            $newTelegramText .= '<a href="' . $fullBillingUrl . '/?module=taskman&edittask=' . $taskid . '">🔍 ' . __('View task') . '</a> parseMode:{html}';
+        }
+
         ts_SendTelegram($employeeid, $newTelegramText);
     }
 
