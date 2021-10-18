@@ -1977,8 +1977,10 @@ class Warehouse {
                 $cells .= wf_TableCell($itemTypeLink);
                 $cells .= wf_TableCell(@$this->unitTypes[$each['unit']]);
                 $cells .= wf_TableCell($each['reserve']);
-                $actLinks = wf_JSAlertStyled(self::URL_ME . '&' . self::URL_ITEMTYPES . '&deleteitemtype=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->itemtypesEditForm($each['id']), '');
+                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_ITEMTYPES . '&deleteitemtype=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                //commented due performance issues on clientside rendering
+                //$actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->itemtypesEditForm($each['id']), '');
+                $actLinks .= wf_JSAlert(self::URL_ME . '&' . self::URL_ITEMTYPES . '&edititemtype=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert());
                 if ($photoStorageEnabled) {
                     $photostorageIcon = 'photostorage.png';
                     $itemIdImageCount = $photoStorage->getImagesCount($each['id']);

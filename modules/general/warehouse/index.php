@@ -59,12 +59,20 @@ if (cfr('WAREHOUSE')) {
                     $warehouse->$avidity_m();
                     rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES);
                 }
-                $avidity_m = $avidity['M']['XCF'];
-                show_window(__('Warehouse item types'), $warehouse->$avidity_m());
-                $avidity_m = $avidity['M']['XL'];
-                show_window(__('Available item types'), $warehouse->$avidity_m());
-                $avidity_m = $avidity['M']['FALL'];
-                $warehouse->$avidity_m();
+
+                if (ubRouting::checkGet('edititemtype')) {
+                    $editingItemtypeId = ubRouting::get('edititemtype', 'int');
+                    $itemtypeEditingName = $warehouse->itemtypeGetName($editingItemtypeId);
+                    show_window(__('Edit') . ' ' . $itemtypeEditingName, $warehouse->itemtypesEditForm($editingItemtypeId));
+                    show_window('', wf_BackLink($warehouse::URL_ME . '&' . $warehouse::URL_ITEMTYPES));
+                } else {
+                    $avidity_m = $avidity['M']['XCF'];
+                    show_window(__('Warehouse item types'), $warehouse->$avidity_m());
+                    $avidity_m = $avidity['M']['XL'];
+                    show_window(__('Available item types'), $warehouse->$avidity_m());
+                    $avidity_m = $avidity['M']['FALL'];
+                    $warehouse->$avidity_m();
+                }
             }
 
 //storages
