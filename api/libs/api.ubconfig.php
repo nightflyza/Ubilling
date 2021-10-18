@@ -22,7 +22,7 @@ class UbillingConfig {
      * @return void
      */
     protected function loadAlter() {
-        $this->alterCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+        $this->alterCfg = parse_ini_file(CONFIG_PATH . 'alter.ini');
     }
 
     /**
@@ -48,7 +48,7 @@ class UbillingConfig {
     public function getAlterParam($param = false, $retValIfParamEmptyOrNotExists = null) {
         $alterParam = ($param and isset($this->alterCfg[$param])) ? $this->alterCfg[$param] : false;
 
-        if ($alterParam === false and !is_null($retValIfParamEmptyOrNotExists)) {
+        if ($alterParam === false and ! is_null($retValIfParamEmptyOrNotExists)) {
             $alterParam = $retValIfParamEmptyOrNotExists;
         }
 
@@ -61,7 +61,7 @@ class UbillingConfig {
      * @return void
      */
     protected function loadBilling() {
-        $this->billingCfg = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
+        $this->billingCfg = parse_ini_file(CONFIG_PATH . 'billing.ini');
     }
 
     /**
@@ -79,7 +79,7 @@ class UbillingConfig {
      * @return void
      */
     protected function loadYmaps() {
-        $this->ymapsCfg = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
+        $this->ymapsCfg = parse_ini_file(CONFIG_PATH . 'ymaps.ini');
     }
 
     /**
@@ -100,7 +100,7 @@ class UbillingConfig {
      * @return void
      */
     protected function loadPhoto() {
-        $this->photoCfg = rcms_parse_ini_file(CONFIG_PATH . "photostorage.ini");
+        $this->photoCfg = parse_ini_file(CONFIG_PATH . 'photostorage.ini');
     }
 
     /**

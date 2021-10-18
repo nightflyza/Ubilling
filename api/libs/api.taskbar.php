@@ -312,7 +312,7 @@ class UbillingTaskbar {
         if (!empty($allElements)) {
             $categoryName = (isset($this->categories[$category])) ? $this->categories[$category] : '';
             foreach ($allElements as $io => $eachfilename) {
-                $elementData = rcms_parse_ini_file($elementsPath . $eachfilename);
+                $elementData = parse_ini_file($elementsPath . $eachfilename);
                 if ((isset($elementData['TYPE'])) AND ( isset($elementData['ID']))) {
                     if (!isset($this->loadedElements[$elementData['ID']])) {
                         $this->loadedElements[$elementData['ID']] = $elementData;
