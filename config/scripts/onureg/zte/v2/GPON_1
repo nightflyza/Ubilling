@@ -68,15 +68,15 @@ expect "*(config)#"
 send "pon-onu-mng $ONU_INT:$ONU_NUM\r"
 
 if {![string match "__empty" $LOOPDETECT]} {
-    expect "*(config-if)#"
+    expect "*(gpon-onu-mng *"
     send "loop-detect ethuni eth_0/1 enable\r"
 }
 
-expect "*(gpon-onu-mng)#"
+expect "*(gpon-onu-mng *"
 send "service HSI gemport 1 vlan $VLAN\r"
-expect "*(gpon-onu-mng)#"
+expect "*(gpon-onu-mng *"
 send "vlan port eth_0/1 mode tag vlan $VLAN\r"
-expect "*(gpon-onu-mng)#"
+expect "*(gpon-onu-mng *"
 send "end\r"
 expect "*#"
 send "exit\r"
