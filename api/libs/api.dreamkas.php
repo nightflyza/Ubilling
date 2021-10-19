@@ -4,6 +4,7 @@
  * DreamKas service interaction class
  */
 class DreamKas {
+
     /**
      * UbillingConfig object placeholder
      *
@@ -172,12 +173,12 @@ class DreamKas {
      * @var array
      */
     protected $paymentTypes = array(
-                                    'CASH'          => 'Наличные',
-                                    'CASHLESS'      => 'Безналичные',
-                                    'PREPAID'       => 'Аванс',
-                                    'CREDIT'        => 'Кредит',
-                                    'CONSIDERATION' => 'Встречное предоставление'
-                                   );
+        'CASH' => 'Наличные',
+        'CASHLESS' => 'Безналичные',
+        'PREPAID' => 'Аванс',
+        'CREDIT' => 'Кредит',
+        'CONSIDERATION' => 'Встречное предоставление'
+    );
 
     /**
      * Placeholder for taxation systems supported by Dreamkas API
@@ -185,12 +186,12 @@ class DreamKas {
      * @var array
      */
     protected $taxTypes = array(
-                                'DEFAULT'   => 'Общая',
-                                'SIMPLE'    => 'Упрощенная доход',
-                                'SIMPLE_WO' => 'Упрощенная доход минус расход',
-                                'ENVD'      => 'Единый налог на вмененный доход',
-                                'PATENT'    => 'Патентная система налогообложения'
-                               );
+        'DEFAULT' => 'Общая',
+        'SIMPLE' => 'Упрощенная доход',
+        'SIMPLE_WO' => 'Упрощенная доход минус расход',
+        'ENVD' => 'Единый налог на вмененный доход',
+        'PATENT' => 'Патентная система налогообложения'
+    );
 
     /**
      * Placeholder for VAT(НДС) types supported by Dreamkas API
@@ -198,40 +199,35 @@ class DreamKas {
      * @var array
      */
     protected $taxTypesVAT = array(
-                                    'NDS_NO_TAX'        => 'Без НДС',
-                                    'NDS_0'             => 'НДС 0%',
-                                    'NDS_10'            => 'НДС 10%',
-                                    'NDS_20'            => 'НДС 20%',
-                                    'NDS_10_CALCULATED' => 'НДС 10/110%',
-                                    'NDS_20_CALCULATED' => 'НДС 20/120%'
-                                  );
+        'NDS_NO_TAX' => 'Без НДС',
+        'NDS_0' => 'НДС 0%',
+        'NDS_10' => 'НДС 10%',
+        'NDS_20' => 'НДС 20%',
+        'NDS_10_CALCULATED' => 'НДС 10/110%',
+        'NDS_20_CALCULATED' => 'НДС 20/120%'
+    );
 
-
-    const URL_ME                          = '?module=dreamkas';
-    const URL_API                         = 'https://kabinet.dreamkas.ru/api/';
-    const URL_DREAMKAS_RECEIPTS           = '?module=dreamkas&getreceipts=true';
-    const URL_DREAMKAS_CASHIERS           = '?module=dreamkas&getcashiers=true';
-    const URL_DREAMKAS_OPERATIONS         = '?module=dreamkas&getoperations=true';
-    const URL_DREAMKAS_GOODS              = '?module=dreamkas&getgoods=true';
-    const URL_DREAMKAS_CASH_MACHINES      = '?module=dreamkas&getcashmachines=true';
-    const URL_DREAMKAS_WEBHOOKS           = '?module=dreamkas&getwebhookss=true';
-    const URL_DREAMKAS_RECEIPT_DETAILS    = '?module=dreamkas&getreceiptdetails=true';
+    const URL_ME = '?module=dreamkas';
+    const URL_API = 'https://kabinet.dreamkas.ru/api/';
+    const URL_DREAMKAS_RECEIPTS = '?module=dreamkas&getreceipts=true';
+    const URL_DREAMKAS_CASHIERS = '?module=dreamkas&getcashiers=true';
+    const URL_DREAMKAS_OPERATIONS = '?module=dreamkas&getoperations=true';
+    const URL_DREAMKAS_GOODS = '?module=dreamkas&getgoods=true';
+    const URL_DREAMKAS_CASH_MACHINES = '?module=dreamkas&getcashmachines=true';
+    const URL_DREAMKAS_WEBHOOKS = '?module=dreamkas&getwebhookss=true';
+    const URL_DREAMKAS_RECEIPT_DETAILS = '?module=dreamkas&getreceiptdetails=true';
     const URL_DREAMKAS_FORCE_CACHE_UPDATE = '?module=dreamkas&forcecacheupdate=true';
-
     // fiscalize timeout in minutes
     const RECEIPT_FISCALIZE_TIMEOUT = '7';
-    const RECEIPT_PRODUCT_TYPE      = 'SERVICE';
-    const RECEIPT_OPERATION_TYPE    = 'SALE';
-
+    const RECEIPT_PRODUCT_TYPE = 'SERVICE';
+    const RECEIPT_OPERATION_TYPE = 'SALE';
     //  Go to:
     //      https://kabinet.dreamkas.ru/api/#cheki
     //  and carefully read about the positions array
     //  and quantity for anything except SCALABLE.
     const RECEIPT_QUANTITY_DIVIDER = '1000';
-
-    const DREAMKAS_CACHE_KEY       = 'DREAMKAS_DATA';
+    const DREAMKAS_CACHE_KEY = 'DREAMKAS_DATA';
     const DREAMKAS_NOTYS_CAHCE_KEY = 'DREAMKAS_NOTIFICATIONS';
-
 
     public function __construct() {
         global $ubillingConfig;
@@ -240,15 +236,15 @@ class DreamKas {
         $this->initMessages();
         $this->loadOptions();
         $this->basicHTTPHeaders = array(
-                                        'Authorization: Bearer ' . $this->authToken,
-                                        'Content-Type: application/json',
-                                        'Cache-Control: no-cache'
-                                       );
+            'Authorization: Bearer ' . $this->authToken,
+            'Content-Type: application/json',
+            'Cache-Control: no-cache'
+        );
 
         $thisInstance = $this;
         $this->dataCahched = $this->ubCache->getCallback(self::DREAMKAS_CACHE_KEY, function () use ($thisInstance) {
-                                                            return ($thisInstance->getDataForCache());
-                                                        }, $this->cacheLifeTime);
+            return ($thisInstance->getDataForCache());
+        }, $this->cacheLifeTime);
 
         $this->cashMachines = (isset($this->dataCahched['cashmachines'])) ? $this->dataCahched['cashmachines'] : array();
         $this->sellingPositions = (isset($this->dataCahched['sellingpositions'])) ? $this->dataCahched['sellingpositions'] : array();
@@ -413,7 +409,7 @@ class DreamKas {
         // for now - this is useless, 'cause Dreamkas API doesn't support fiscal operations filtering by time range
         // but there is hope it may change in future
         $urlParams = empty($dateFrom) ? '' : '?from=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateFrom));
-        $urlParams.= empty($dateTo) ? '' : (empty($dateFrom) ? '?' : '&') . 'to=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateTo));
+        $urlParams .= empty($dateTo) ? '' : (empty($dateFrom) ? '?' : '&') . 'to=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateTo));
 
         $urlString = self::URL_API . 'operations' . $urlParams;
 
@@ -573,9 +569,9 @@ class DreamKas {
 
         $limit = '?limit=' . $limit;
         $urlString = self::URL_API . 'receipts' . $limit .
-                     ((empty($dateFrom)) ? '' : '&from=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateFrom))) .
-                     ((empty($dateTo)) ? '' : '&to=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateTo))) .
-                     ((empty($cashDeviceID)) ? '' : '&devices=' . $cashDeviceID);
+                ((empty($dateFrom)) ? '' : '&from=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateFrom))) .
+                ((empty($dateTo)) ? '' : '&to=' . date('Y-m-d\TH:i:s.Z\Z', strtotime($dateTo))) .
+                ((empty($cashDeviceID)) ? '' : '&devices=' . $cashDeviceID);
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $urlString);
@@ -628,7 +624,6 @@ class DreamKas {
             }
         }
     }
-
 
     protected function getWebHooks($webhookID = '') {
         $urlString = self::URL_API . 'webhooks' . ((empty($webhookID)) ? '' : '/' . $webhookID);
@@ -843,7 +838,6 @@ class DreamKas {
         return (zb_UserGetMobile($login));
     }
 
-
     /**
      * To full fill avidity and greed
      *
@@ -900,8 +894,7 @@ class DreamKas {
      *
      * @return string
      */
-    public function setSellingPositionSrvType($service, $goodsID, $goodsName, $goodsType,
-                                              $goodsPrice, $goodsTax, $goodsVendorCode) {
+    public function setSellingPositionSrvType($service, $goodsID, $goodsName, $goodsType, $goodsPrice, $goodsTax, $goodsVendorCode) {
         $result = '';
 
         If ($goodsType != self::RECEIPT_PRODUCT_TYPE) {
@@ -928,7 +921,7 @@ class DreamKas {
                 nr_query($tQuery);
 
                 log_register('DREAMKAS service ' . $service . ' sell position CHANGED from ' .
-                             $this->sellPos2SrvTypeMapping[$service]['goods_name'] . ' to ' . $goodsName);
+                        $this->sellPos2SrvTypeMapping[$service]['goods_name'] . ' to ' . $goodsName);
             } else {
                 $tQuery = "INSERT INTO `dreamkas_services_relations` (`service`, `goods_id`, `goods_name`, `goods_type`, `goods_price`, `goods_tax`, `goods_vendorcode`) 
                                                               VALUES ('" . $service . "', '" . $goodsID . "', '" . $goodsName . "', '" . $goodsType . "', " . $goodsPrice . ", '" . $goodsTax . "', '" . $goodsVendorCode . "')";
@@ -969,24 +962,24 @@ class DreamKas {
 
         if (!empty($errorArr)) {
             foreach ($errorArr as $eachItem => $eachValue) {
-                if (strtolower($eachItem) == 'data' and !empty($eachValue)) {
+                if (strtolower($eachItem) == 'data' and ! empty($eachValue)) {
                     $tArr = $eachValue['errors'];
 
                     foreach ($tArr as $errItem) {
                         foreach ($errItem as $item => $val) {
-                            if (!empty($item) and !empty($val)) {
+                            if (!empty($item) and ! empty($val)) {
                                 $errorStr .= $item . ': ' . $val . "\n";
                             }
                         }
                     }
                 } else {
-                    if (!empty($eachItem) and !empty($eachValue)) {
+                    if (!empty($eachItem) and ! empty($eachValue)) {
                         $errorStr .= $eachItem . ': ' . $eachValue . "\n";
                     }
                 }
             }
 
-	    
+
             if (empty($errorStr)) {
                 $errorStr = print_r($errorArr, true);
             }
@@ -1052,11 +1045,11 @@ class DreamKas {
 
                     // because Dreamkas API doesn't allow empty phone or e-mail fields
                     // we need to figure out which of them are not empty and add filled only
-                    if (isset($addUserContacts['phone']) and !empty($addUserContacts['phone'])) {
+                    if (isset($addUserContacts['phone']) and ! empty($addUserContacts['phone'])) {
                         $userContacts['phone'] = $addUserContacts['phone'];
                     }
 
-                    if (isset($addUserContacts['email']) and !empty($addUserContacts['email'])) {
+                    if (isset($addUserContacts['email']) and ! empty($addUserContacts['email'])) {
                         $userContacts['email'] = $addUserContacts['email'];
                     }
 
@@ -1147,7 +1140,6 @@ class DreamKas {
             $this->putNotificationData2Cache($tmpMessageStr, $tmpMessageType, __('DREAMKAS INFO'));
         }
     }
-
 
     protected function updateFiscalOperationsLocalStorage($fopsData = array()) {
         $this->getBS2RelationsUnProcessed();
@@ -1253,15 +1245,15 @@ class DreamKas {
 
         if ($processingBanksta2) {
             $cells = wf_TableCell(__('Fiscalize this payment?') . wf_nbsp() .
-                                  wf_CheckInput('fiscalizepayment_' . $bankstaRecID, '', false, $this->alwaysFiscalizeAll, 'FiscalizeManualPaym_' . $bankstaRecID, $processedClassMark), '', 'row2');
+                    wf_CheckInput('fiscalizepayment_' . $bankstaRecID, '', false, $this->alwaysFiscalizeAll, 'FiscalizeManualPaym_' . $bankstaRecID, $processedClassMark), '', 'row2');
             $cells .= wf_TableCell(__('Choose cash machine') . wf_nbsp() .
-                                   $this->getSelectorWebControl($this->cashMachines4Selector, 'drscashmachines_' . $bankstaRecID, $this->defaultCashMachineID, 'DreamkasCashMachineSelector_' . $bankstaRecID, '__DreamkasCashMachineSelector'), '', 'row2', '', '3');
+                    $this->getSelectorWebControl($this->cashMachines4Selector, 'drscashmachines_' . $bankstaRecID, $this->defaultCashMachineID, 'DreamkasCashMachineSelector_' . $bankstaRecID, '__DreamkasCashMachineSelector'), '', 'row2', '', '3');
             $cells .= wf_TableCell(__('Choose tax type') . wf_nbsp() .
-                                   $this->getSelectorWebControl($this->taxTypes, 'drstaxtypes_' . $bankstaRecID, $this->defaultTaxType, 'DreamkasTaxTypeSelector_' . $bankstaRecID, '__DreamkasTaxTypeSelector'), '', 'row2', '', '3');
+                    $this->getSelectorWebControl($this->taxTypes, 'drstaxtypes_' . $bankstaRecID, $this->defaultTaxType, 'DreamkasTaxTypeSelector_' . $bankstaRecID, '__DreamkasTaxTypeSelector'), '', 'row2', '', '3');
             $cells .= wf_TableCell(__('Choose payment type') . wf_nbsp() .
-                                   $this->getSelectorWebControl($this->paymentTypes, 'drspaymtypes_' . $bankstaRecID, 'CASHLESS', 'DreamkasPaymTypeSelector_' . $bankstaRecID, '__DreamkasPaymTypeSelector'), '', 'row2', '', '3');
+                    $this->getSelectorWebControl($this->paymentTypes, 'drspaymtypes_' . $bankstaRecID, 'CASHLESS', 'DreamkasPaymTypeSelector_' . $bankstaRecID, '__DreamkasPaymTypeSelector'), '', 'row2', '', '3');
             $cells .= wf_TableCell(__('Choose selling position') . wf_nbsp() .
-                                   $this->getSelectorWebControl($this->sellingPositionsIDsNames, 'drssellpos_' . $bankstaRecID, $selectSellPositionID, 'DreamkasSellPosSelector_' . $bankstaRecID, '__DreamkasSellPosSelector'), '', 'row2', '', '3');
+                    $this->getSelectorWebControl($this->sellingPositionsIDsNames, 'drssellpos_' . $bankstaRecID, $selectSellPositionID, 'DreamkasSellPosSelector_' . $bankstaRecID, '__DreamkasSellPosSelector'), '', 'row2', '', '3');
 
             $row = wf_TableRow($cells);
 
@@ -1346,14 +1338,14 @@ class DreamKas {
             $this->getBS2RelationsProcessed();
         }
 
-        if (isset($this->bs2RelationsProcessed[$bs2RecID]) and !empty($this->bs2RelationsProcessed[$bs2RecID]['receipt_id'])) {
+        if (isset($this->bs2RelationsProcessed[$bs2RecID]) and ! empty($this->bs2RelationsProcessed[$bs2RecID]['receipt_id'])) {
             $lnkID = wf_InputId();
             $ajaxInfoParams = array('showdetailedrcpt' => $this->bs2RelationsProcessed[$bs2RecID]['receipt_id']);
             $actions = wf_Link('#', wf_img('skins/icon_search_small.gif', __('Show details'), 'vertical-align: middle'), false, '', ' id="' . $lnkID . '" ');
-            $actions.= wf_JSAjaxModalOpener(self::URL_ME, $ajaxInfoParams, $lnkID, true);
+            $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxInfoParams, $lnkID, true);
 
             $cells = wf_TableCell(__('Fiscal operation ID') . ':' . wf_nbsp(2) . $this->bs2RelationsProcessed[$bs2RecID]['operation_id'], '', '', 'style="border: solid #008a77; border-width: 1px 0 1px 1px; padding: 4px;"', '5');
-            $cells.= wf_TableCell(__('Check ID') . ':' . wf_nbsp(2) . $this->bs2RelationsProcessed[$bs2RecID]['receipt_id'] . wf_nbsp(4) . $actions, '', '', 'style="border: solid #008a77; border-width: 1px 1px 1px 0; padding: 4px;"', '5');
+            $cells .= wf_TableCell(__('Check ID') . ':' . wf_nbsp(2) . $this->bs2RelationsProcessed[$bs2RecID]['receipt_id'] . wf_nbsp(4) . $actions, '', '', 'style="border: solid #008a77; border-width: 1px 1px 1px 0; padding: 4px;"', '5');
 
             $row = wf_TableRow($cells);
         }
@@ -1374,11 +1366,10 @@ class DreamKas {
             $fiscopStatus = $fiscopData['status'];
             $fiscopDateCreate = $fiscopData['date_create'];
 
-            $cells = wf_TableCell(wf_tag('b', false) . '#' . $bs2RecID .':' . wf_tag('b', true) . wf_nbsp(4)
-                                  . __('Fiscal operation ID') . ':' . wf_nbsp(2) . $fiscopID
-                                  . wf_nbsp(8) . __('Creation date') . ':' . wf_nbsp(2) . $fiscopDateCreate
-                                  . wf_nbsp(8) . __('Current status') . ':' . wf_nbsp(2) . $fiscopStatus,
-                                  '', '', 'style="border: solid #b84c04; border-width: 1px; padding: 4px;"', '11');
+            $cells = wf_TableCell(wf_tag('b', false) . '#' . $bs2RecID . ':' . wf_tag('b', true) . wf_nbsp(4)
+                    . __('Fiscal operation ID') . ':' . wf_nbsp(2) . $fiscopID
+                    . wf_nbsp(8) . __('Creation date') . ':' . wf_nbsp(2) . $fiscopDateCreate
+                    . wf_nbsp(8) . __('Current status') . ':' . wf_nbsp(2) . $fiscopStatus, '', '', 'style="border: solid #b84c04; border-width: 1px; padding: 4px;"', '11');
 
             $row = wf_TableRow($cells);
         }
@@ -1479,7 +1470,6 @@ class DreamKas {
         return ($form);
     }
 
-
     public function web_WebhooksForm() {
         $lnkId = wf_InputId();
         $addServiceJS = wf_tag('script', false, '', 'type="text/javascript"');
@@ -1487,8 +1477,8 @@ class DreamKas {
         $addServiceJS .= wf_tag('script', true);
 
         show_window(__('Webhooks'), wf_Link('#', web_add_icon() . ' ' .
-                                                 __('Add webhook'), false, 'ubButton', 'id="' . $lnkId . '"') .
-                                    wf_delimiter() . $addServiceJS . $this->renderWebhooksJQDT()
+                        __('Add webhook'), false, 'ubButton', 'id="' . $lnkId . '"') .
+                wf_delimiter() . $addServiceJS . $this->renderWebhooksJQDT()
         );
     }
 
@@ -1628,11 +1618,11 @@ class DreamKas {
                 $ajaxInfoParams = array('showdetailedGoods' => $eachItem['id']);
                 $ajaxDelMappingParams = array('delselpossrvmapping' => 'true', 'servicetype' => $sellPosMapped2Srv);
                 $ajaxSetMappingParams = array(
-                    'goodsid'         => $eachItem['id'],
-                    'goodsName'       => $eachItem['name'],
-                    'goodsType'       => $eachItem['type'],
-                    'goodsPrice'      => $eachItem['price'],
-                    'goodsTax'        => $eachItem['tax'],
+                    'goodsid' => $eachItem['id'],
+                    'goodsName' => $eachItem['name'],
+                    'goodsType' => $eachItem['type'],
+                    'goodsPrice' => $eachItem['price'],
+                    'goodsTax' => $eachItem['tax'],
                     'goodsVendorCode' => (isset($eachItem['vendorCodes'][0])) ? $eachItem['vendorCodes'][0] : ''
                 );
 
@@ -1690,72 +1680,72 @@ class DreamKas {
     /**     OLD
      * JSON for fiscal operations JQDT
      */
-/*    public function renderFiscalOperationsListJSON_old($dateFrom = '', $dateTo = '') {
-        $fopsData = $this->getFiscalOperations($dateFrom, $dateTo);
-        $fopsDataLocal = $this->getFiscalOperationsLocal();
-        $json = new wf_JqDtHelper();
+    /*    public function renderFiscalOperationsListJSON_old($dateFrom = '', $dateTo = '') {
+      $fopsData = $this->getFiscalOperations($dateFrom, $dateTo);
+      $fopsDataLocal = $this->getFiscalOperationsLocal();
+      $json = new wf_JqDtHelper();
 
-        if (!empty($fopsData)) {
-            $this->updateFiscalOperationsLocalStorage($fopsData);
-            $fopsData = $this->getFiscalOperationsLocal();
-            $ajaxURLStr = self::URL_ME . '&foperationslistajax=true';
-            $JQDTId = 'jqdt_' . md5($ajaxURLStr);
-            $data = array();
-            //$fopsData = $fopsData['data'];
+      if (!empty($fopsData)) {
+      $this->updateFiscalOperationsLocalStorage($fopsData);
+      $fopsData = $this->getFiscalOperationsLocal();
+      $ajaxURLStr = self::URL_ME . '&foperationslistajax=true';
+      $JQDTId = 'jqdt_' . md5($ajaxURLStr);
+      $data = array();
+      //$fopsData = $fopsData['data'];
 
-            foreach ($fopsData as $eachFOperation) {
-                $fiscopID = $eachFOperation['id'];
+      foreach ($fopsData as $eachFOperation) {
+      $fiscopID = $eachFOperation['id'];
 
-                $data[] = $fiscopID;
-                $data[] = date('Y-m-d H:i:s', strtotime($eachFOperation['createdAt']));
-                $data[] = date('Y-m-d H:i:s', strtotime($eachFOperation['completedAt']));
-                $data[] = $eachFOperation['status'];
+      $data[] = $fiscopID;
+      $data[] = date('Y-m-d H:i:s', strtotime($eachFOperation['createdAt']));
+      $data[] = date('Y-m-d H:i:s', strtotime($eachFOperation['completedAt']));
+      $data[] = $eachFOperation['status'];
 
-                if (isset($eachFOperation['data']['error'])) {
-                    $data[] = $eachFOperation['data']['error']['code'];
-                    $data[] = $eachFOperation['data']['error']['message'];
-                } else {
-                    $data[] = '';
-                    $data[] = '';
-                }
+      if (isset($eachFOperation['data']['error'])) {
+      $data[] = $eachFOperation['data']['error']['code'];
+      $data[] = $eachFOperation['data']['error']['message'];
+      } else {
+      $data[] = '';
+      $data[] = '';
+      }
 
-                if (isset($eachFOperation['data']['receiptId'])) {
-                    $data[] = $eachFOperation['data']['receiptId'];
-                } else {
-                    $data[] = '';
-                }
+      if (isset($eachFOperation['data']['receiptId'])) {
+      $data[] = $eachFOperation['data']['receiptId'];
+      } else {
+      $data[] = '';
+      }
 
-                if (isset($fopsDataLocal[$fiscopID])) {
-                    $data[] = $fopsDataLocal[$fiscopID]['repeat_count'];
-                } else {
-                    $data[] = '';
-                }
+      if (isset($fopsDataLocal[$fiscopID])) {
+      $data[] = $fopsDataLocal[$fiscopID]['repeat_count'];
+      } else {
+      $data[] = '';
+      }
 
-                $disableLink = (strtolower($eachFOperation['status']) == 'error') ? '' : 'style="opacity: 0.35; pointer-events: none"';
+      $disableLink = (strtolower($eachFOperation['status']) == 'error') ? '' : 'style="opacity: 0.35; pointer-events: none"';
 
-                $infoLnkID = wf_InputId();
-                $repeatOpLnkID = wf_InputId();
-                $ajaxInfoParams = array('showdetailedFiscOp' => $fiscopID);
-                $ajaxRepeatOpParams = array('repeatFiscOp' => $fiscopID);
+      $infoLnkID = wf_InputId();
+      $repeatOpLnkID = wf_InputId();
+      $ajaxInfoParams = array('showdetailedFiscOp' => $fiscopID);
+      $ajaxRepeatOpParams = array('repeatFiscOp' => $fiscopID);
 
-                $actions = wf_Link('#', wf_img('skins/icon_search_small.gif', __('Show details')), false, '', ' id="' . $infoLnkID . '" ');
-                $actions .= wf_Link('#', wf_img('skins/refresh.gif', __('Repeat this operation')), false, '', ' id="' . $repeatOpLnkID . '" ' . $disableLink);
+      $actions = wf_Link('#', wf_img('skins/icon_search_small.gif', __('Show details')), false, '', ' id="' . $infoLnkID . '" ');
+      $actions .= wf_Link('#', wf_img('skins/refresh.gif', __('Repeat this operation')), false, '', ' id="' . $repeatOpLnkID . '" ' . $disableLink);
 
-                $actions .= wf_tag('script', false, '', 'type="text/javascript"');
-                $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxInfoParams, $infoLnkID);
-                //$actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxRepeatOpParams, $repeatOpLnkID, false, 'GET', 'click', false, false, $JQDTId);
-                $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxRepeatOpParams, $repeatOpLnkID);
-                $actions .= wf_tag('script', true);
+      $actions .= wf_tag('script', false, '', 'type="text/javascript"');
+      $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxInfoParams, $infoLnkID);
+      //$actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxRepeatOpParams, $repeatOpLnkID, false, 'GET', 'click', false, false, $JQDTId);
+      $actions .= wf_JSAjaxModalOpener(self::URL_ME, $ajaxRepeatOpParams, $repeatOpLnkID);
+      $actions .= wf_tag('script', true);
 
-                $data[] = $actions;
+      $data[] = $actions;
 
-                $json->addRow($data);
-                unset($data);
-            }
-        }
+      $json->addRow($data);
+      unset($data);
+      }
+      }
 
-        $json->getJson();
-    }*/
+      $json->getJson();
+      } */
 
     /**
      * JSON for fiscal operations JQDT
@@ -1767,11 +1757,11 @@ class DreamKas {
         $json = new wf_JqDtHelper();
 
         $whereStr = '';
-        if (!empty($dateFrom) and !empty($dateTo)) {
+        if (!empty($dateFrom) and ! empty($dateTo)) {
             $whereStr = " `date_create` BETWEEN '" . $dateFrom . " 00:00:00' AND '" . $dateTo . "  23:59:59' ";
         } elseif (!empty($dateFrom) and empty($dateTo)) {
             $whereStr = " `date_create` >= '" . $dateFrom . "  00:00:00' ";
-        } elseif (empty($dateFrom) and !empty($dateTo)) {
+        } elseif (empty($dateFrom) and ! empty($dateTo)) {
             $whereStr = " `date_create` <= '" . $dateTo . "  23:59:59' ";
         }
 
@@ -1824,7 +1814,6 @@ class DreamKas {
 
         $json->getJson();
     }
-
 
     /**
      * JQDT for fiscal operations list form
@@ -1947,7 +1936,6 @@ class DreamKas {
         return (wf_JqDtLoader($columns, $ajaxURLStr, false, __('Checks'), 100, $opts));
     }
 
-
     public function renderWebhooksListJSON() {
         $webhooksData = $this->getWebHooks();
         $json = new wf_JqDtHelper();
@@ -1977,13 +1965,11 @@ class DreamKas {
 
                 $json->addRow($data);
                 unset($data);
-
             }
         }
 
         $json->getJson();
     }
-
 
     public function renderWebhooksJQDT() {
         $ajaxURLStr = self::URL_ME . '&webhookslistajax=true';
@@ -2142,7 +2128,6 @@ class DreamKas {
         return ($result);
     }
 
-
     public function renderWebhookAddForm($modalWindowId) {
         $formId = 'Form_' . wf_InputId();
         $closeFormChkId = 'CloseFrmChkID_' . wf_InputId();
@@ -2152,7 +2137,7 @@ class DreamKas {
         $rows = wf_TableRow($cells);
 
         $cells = wf_TableCell(wf_TextInput('whurl', '', '', false, '50', '', '__WHURLSelf __WHEmptyCheck', 'WHURLSelf')
-                              . wf_delimiter(0) . '<b>+</b>', '', '', 'align="center"');
+                . wf_delimiter(0) . '<b>+</b>', '', '', 'align="center"');
         $rows .= wf_TableRow($cells);
 
         $cells = wf_TableCell(__('URL params'), '', '', 'align="center"');
@@ -2188,7 +2173,6 @@ class DreamKas {
 
         return ($form);
     }
-
 
     public function renderWebhookEditForm($webhookID, $modalWindowId) {
         $webhookData = $this->getWebHooks($webhookID);
@@ -2232,7 +2216,7 @@ class DreamKas {
         $rows = wf_TableRow($cells);
 
         $cells = wf_TableCell(wf_TextInput('whurl', '', $whURLPart, false, '50', '', '__WHURLSelf __WHEmptyCheck', 'WHURLSelf')
-                              . wf_delimiter(0) . '<b>+</b>', '', '', 'align="center"');
+                . wf_delimiter(0) . '<b>+</b>', '', '', 'align="center"');
         $rows .= wf_TableRow($cells);
 
         $cells = wf_TableCell(__('URL params'), '', '', 'align="center"');
@@ -2276,13 +2260,13 @@ class DreamKas {
 
         if (empty($whID)) {
             $action = 'ADDITION';
-        } elseif (!empty($whID) and !$whDelete) {
+        } elseif (!empty($whID) and ! $whDelete) {
             $action = 'EDITING';
         } elseif (!empty($whID) and $whDelete) {
             $action = 'DELETING';
         }
 
-        if (!empty($whOpts) or (!empty($whID) and $whDelete)) {
+        if (!empty($whOpts) or ( !empty($whID) and $whDelete)) {
             if (!$whDelete) {
                 $whOpts = json_decode(base64_decode($whOpts));
                 $webhookBody['url'] = $whURL;
@@ -2331,7 +2315,6 @@ class DreamKas {
         return ($errorMsg);
     }
 
-
     public function processWebhookRequest($requestData, $paramSection = '') {
         if (!empty($requestData)) {
             $this->refreshCacheForced();
@@ -2347,7 +2330,6 @@ class DreamKas {
         }
     }
 
-
     protected function processWebhookChange($whType, $whAction, $whData) {
         $logStr = '';
         $logTitle = __('DREAMKAS WEBHOOK') . ' ' . __($whType) . ' [' . __($whAction) . ']' . ' ';
@@ -2357,16 +2339,16 @@ class DreamKas {
                 $this->getSellPosIDsNames();
                 $this->getSellPos2SrvTypeMapping();
 
-                $logStr.= '| [Category]: ' . $whData['category'] . ' | ';
-                $logStr.= '[Name]: ' . $whData['name'] . ' | ';
-                $logStr.= '[Type]: ' . $whData['type'] . ' | ';
-                $logStr.= '[Quantity]: ' . $whData['quantity'] . ' | ';
-                $logStr.= '[Price]: ' . $whData['price'] . ' | ';
-                $logStr.= (isset($whData['barcodes'][0])) ? '[Barcode]: ' . $whData['barcodes'][0] . ' | ' : '';
-                $logStr.= (isset($whData['vendorCodes'][0])) ? '[Vendorcode]: ' . $whData['vendorCodes'][0] . ' | ' : '';
-                $logStr.= '[Tax]: ' . $whData['tax'] . ' | ';
-                $logStr.= '[Creation date]: ' . date('Y-m-d H:i:s', strtotime($whData['createdAt'])) . ' | ';
-                $logStr.= '[Update date]: ' . date('Y-m-d H:i:s', strtotime($whData['updatedAt'])) . ' | ';
+                $logStr .= '| [Category]: ' . $whData['category'] . ' | ';
+                $logStr .= '[Name]: ' . $whData['name'] . ' | ';
+                $logStr .= '[Type]: ' . $whData['type'] . ' | ';
+                $logStr .= '[Quantity]: ' . $whData['quantity'] . ' | ';
+                $logStr .= '[Price]: ' . $whData['price'] . ' | ';
+                $logStr .= (isset($whData['barcodes'][0])) ? '[Barcode]: ' . $whData['barcodes'][0] . ' | ' : '';
+                $logStr .= (isset($whData['vendorCodes'][0])) ? '[Vendorcode]: ' . $whData['vendorCodes'][0] . ' | ' : '';
+                $logStr .= '[Tax]: ' . $whData['tax'] . ' | ';
+                $logStr .= '[Creation date]: ' . date('Y-m-d H:i:s', strtotime($whData['createdAt'])) . ' | ';
+                $logStr .= '[Update date]: ' . date('Y-m-d H:i:s', strtotime($whData['updatedAt'])) . ' | ';
                 break;
 
             case 'DEVICE':
@@ -2385,311 +2367,39 @@ class DreamKas {
                 $receiptPositions = $whData['positions'];
                 $receiptPayments = $whData['payments'];
 
-                $logStr.= '| [Check ID]: ' . $whData['_id'] . ' | ';
-                $logStr.= '[Device ID]: ' . $whData['deviceId'] . ' | ';
-                $logStr.= '[Shop ID]: ' . $whData['shopId'] . ' | ';
-                $logStr.= '[Local date]: ' . $whData['localDate'] . ' | ';
-                $logStr.= '[Shift ID]: ' . $whData['shiftId'] . ' | ';
-                $logStr.= '[Cashier]: ' . $whData['cashier']['name'] . ' | ';
-                $logStr.= '[Number]: ' . $whData['number'] . ' | ';
-                $logStr.= '[Amount]: ' . $whData['amount'] / 100 . ' | ';
+                $logStr .= '| [Check ID]: ' . $whData['_id'] . ' | ';
+                $logStr .= '[Device ID]: ' . $whData['deviceId'] . ' | ';
+                $logStr .= '[Shop ID]: ' . $whData['shopId'] . ' | ';
+                $logStr .= '[Local date]: ' . $whData['localDate'] . ' | ';
+                $logStr .= '[Shift ID]: ' . $whData['shiftId'] . ' | ';
+                $logStr .= '[Cashier]: ' . $whData['cashier']['name'] . ' | ';
+                $logStr .= '[Number]: ' . $whData['number'] . ' | ';
+                $logStr .= '[Amount]: ' . $whData['amount'] / 100 . ' | ';
 
                 foreach ($receiptPositions as $postion) {
-                    $logStr.= $postion['name'] . wf_nbsp(2) . '-' . wf_nbsp(2) . ($postion['price'] / 100) . ' | ';
+                    $logStr .= $postion['name'] . wf_nbsp(2) . '-' . wf_nbsp(2) . ($postion['price'] / 100) . ' | ';
                 }
 
                 foreach ($receiptPayments as $payment) {
-                    $logStr.= $payment['type'] . wf_nbsp(2) . '-' . wf_nbsp(2) . ($payment['amount'] / 100) . ' | ';
+                    $logStr .= $payment['type'] . wf_nbsp(2) . '-' . wf_nbsp(2) . ($payment['amount'] / 100) . ' | ';
                 }
                 break;
 
             case 'OPERATION':
                 $this->updateFiscalOperationsLocalStorage($whData);
 
-                $logStr.= '| [Creation date]: ' . date('Y-m-d H:i:s', strtotime($whData['createdAt'])) . ' | ';
-                $logStr.= '[Completion date]: ' . date('Y-m-d H:i:s', strtotime($whData['completedAt'])) . ' | ';
-                $logStr.= '[Status]: ' . $whData['status'] . ' | ';
-                $logStr.= (isset($whData['type'])) ? '[Type]: ' . $whData['type'] . ' | ' : '';
-                $logStr.= (isset($whData['data']['receiptId'])) ? '[Receipt ID]: ' . $whData['data']['receiptId'] . ' | ' : '';
-                $logStr.= (isset($whData['data']['error'])) ? '[Error code]: ' . $whData['data']['error']['code'] . ' | ' : '';
-                $logStr.= (isset($whData['data']['error'])) ? '[Error message]: ' . $whData['data']['error']['message'] . ' | ' : '';
+                $logStr .= '| [Creation date]: ' . date('Y-m-d H:i:s', strtotime($whData['createdAt'])) . ' | ';
+                $logStr .= '[Completion date]: ' . date('Y-m-d H:i:s', strtotime($whData['completedAt'])) . ' | ';
+                $logStr .= '[Status]: ' . $whData['status'] . ' | ';
+                $logStr .= (isset($whData['type'])) ? '[Type]: ' . $whData['type'] . ' | ' : '';
+                $logStr .= (isset($whData['data']['receiptId'])) ? '[Receipt ID]: ' . $whData['data']['receiptId'] . ' | ' : '';
+                $logStr .= (isset($whData['data']['error'])) ? '[Error code]: ' . $whData['data']['error']['code'] . ' | ' : '';
+                $logStr .= (isset($whData['data']['error'])) ? '[Error message]: ' . $whData['data']['error']['message'] . ' | ' : '';
                 break;
         }
 
         log_register($logTitle . $logStr);
         $this->putNotificationData2Cache($logStr, 'info', $logTitle);
     }
+
 }
-
-/**
- * DreamKas notification area
- */
-class DreamKasNotifications {
-    /**
-     * UbillingConfig object placeholder
-     *
-     * @var null
-     */
-    protected $ubConfig = null;
-
-    /**
-     * UbillingCache instance placeholder
-     *
-     * @var null
-     */
-    protected $ubCache = null;
-
-    /**
-     * Placeholder for DREAMKAS_NOTIFICATIONS_ENABLED alter.ini option
-     *
-     * @var bool
-     */
-    protected $notysEnabled = false;
-
-    /**
-     * Placeholder for DREAMKAS_CACHE_CHECK_INTERVAL alter.ini option
-     *
-     * @var int
-     */
-    protected $notysPollingInterval = 8000;
-
-    /**
-     * Placeholder for DREAMKAS_POPUP_TIMEOUT alter.ini option
-     *
-     * @var int
-     */
-    protected $notysPopupTimeout = 10000;
-
-    /**
-     * Placeholder for DREAMKAS_NOTIFY_ANYWHERE alter.ini option
-     *
-     * @var bool
-     */
-    protected $notysEverywhere = true;
-
-    /**
-     * Placeholder for DREAMKAS_DESKTOP_NOTIFICATIONS alter.ini option
-     *
-     * @var bool
-     */
-    protected $notysOnDesktop = false;
-
-    /**
-     * Placeholder for DREAMKAS_ADMINS_ALLOWED alter.ini option
-     *
-     * @var array
-     */
-    protected $notysAdminsAllowed = array();
-
-    /**
-     * Caching timeout based on polling interval in seconds.
-     *
-     * @var int
-     */
-    protected $cachingTimeout = 8;
-
-    /**
-     * Contains current instance admin user login
-     *
-     * @var string
-     */
-    protected $curAdminLogin = '';
-
-    const URL_NOTIFICATIONS = '?module=dreamkas&getnotys=true';
-    const DREAMKAS_NOTYS_CAHCE_KEY = 'DREAMKAS_NOTIFICATIONS';
-
-
-    public function __construct() {
-        global $ubillingConfig;
-        $this->ubConfig = $ubillingConfig;
-        $this->ubCache = new UbillingCache();
-        $this->loadOptions();
-    }
-
-    /**
-     * Getting an alter.ini options
-     *
-     * @return void
-     */
-    protected function loadOptions() {
-        $this->notysEnabled = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_NOTIFICATIONS_ENABLED'));
-        $this->notysPollingInterval = ($this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL')) ? $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL') * 1000 : 8000;
-        $this->cachingTimeout = ($this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL')) ? $this->ubConfig->getAlterParam('DREAMKAS_CACHE_CHECK_INTERVAL') : 8;
-        $this->notysPopupTimeout = ($this->ubConfig->getAlterParam('DREAMKAS_POPUP_TIMEOUT')) ? $this->ubConfig->getAlterParam('DREAMKAS_POPUP_TIMEOUT') * 1000 : 10000;
-        $this->notysEverywhere = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_NOTIFY_ANYWHERE'));
-        $this->notysOnDesktop = wf_getBoolFromVar($this->ubConfig->getAlterParam('DREAMKAS_DESKTOP_NOTIFICATIONS'));
-        $this->notysAdminsAllowed = explode(',', str_replace(' ', '', $this->ubConfig->getAlterParam('DREAMKAS_ADMINS_ALLOWED')));
-        $this->notysAdminsAllowed = array_flip($this->notysAdminsAllowed);
-    }
-
-
-    public function getDreamkasNotifications() {
-        $noty = array();
-        $count = 0;
-        $notyCached = $this->ubCache->get(self::DREAMKAS_NOTYS_CAHCE_KEY, $this->cachingTimeout);
-
-        if (!empty($notyCached)) {
-            foreach ($notyCached as $eachNoty) {
-                $notificationText = wf_tag('div', false, 'dreamkastext');
-                $notificationText.= wf_tag('span', false, 'dreamkastitle') . $eachNoty['title'] . wf_tag('span', true);
-                $notificationText.= wf_delimiter() . $eachNoty['text'];
-                $notificationText.= wf_tag('div', true);
-
-                $noty[$count]['text'] = $notificationText;
-                $noty[$count]['type'] = $eachNoty['type'];
-                $noty[$count]['index'] = $count;
-
-                $count++;
-            }
-
-            $this->ubCache->delete(self::DREAMKAS_NOTYS_CAHCE_KEY);
-        }
-
-        die(json_encode($noty));
-    }
-
-    /**
-     * Returns notification frontend with some background polling
-     *
-     * @return string
-     */
-    protected function getDreamkasNotificationsJS() {
-        $result = '';
-        //some custom style
-        $result.= wf_tag('style');
-        //this style is inline for preventing of css caching
-        $result.= '
-                #noty_layout__bottomRight {
-                    width: 480px !important;
-                }
-
-                .dreamkastext {
-                    float: left;
-                    display: block;
-                    font-size: 11pt;
-                    margin: 10px 1px;                    
-                }
-                
-                .dreamkastitle {
-                    font-weight: 700;
-                }
-            ';
-
-        if($this->notysOnDesktop) {
-            $result.= '
-                #noty_layout__bottomRight {
-                margin-bottom: 120px !important;
-                }
-            ';
-        }
-
-        $result.= wf_tag('style', true);
-        //basic notification frontend
-        $result.= wf_tag('script');
-        $result.= '
-                $(document).ready(function() {
-
-                Notification.requestPermission().then(function(result) {
-                    console.log(result);
-                });
-
-                $(".dismiss").click(function(){$("#notification").fadeOut("slow");});
-                   setInterval(
-                   function() {
-                    $.get("' . self::URL_NOTIFICATIONS . '&reqadm=' . $this->curAdminLogin . '", function(message) {
-                    if (message) {
-                    var data= JSON.parse(message);
-                    data.forEach(function(key) {  
-                    new Noty({
-                        theme: \'bootstrap-v4\',
-                        timeout: \'' . $this->notysPopupTimeout . '\',
-                        progressBar: true,
-                        type: key.type,
-                        layout: \'bottomRight\',
-                        killer: key.index,
-                        queue: key.index,
-                        text: key.text
-                        }).show();
-
-                        if (typeof (sendNotificationDesktop) === "function") {
-                            var title = "' . __('Dreamkas notification') .'";
-                            var options = {
-                                body: key.text,                                
-                                tag: key.index,
-                                dir: "auto"
-                            };
-                                sendDSNotificationDesktop(title, options, key.link);
-                        }
-                    });
-                        }
-                      }
-                    )
-                    },
-                    ' . $this->notysPollingInterval . ');
-                })
-                ';
-        $result.=  wf_tag('script', true);
-
-        if($this->notysOnDesktop) {
-            $result.= wf_tag('script');
-            $result.= '
-                   function sendDSNotificationDesktop(title, options, link) {
-                        if (Notification.permission === "granted") {
-                            var notification = new Notification(title, options);
-                            if(link) {
-                                notification.onclick = function() {
-                                    window.open(link,"_self");
-                                }
-                            }
-                        } else if (Notification.permission !== "denied") {
-                            Notification.requestPermission(function (permission) {
-                                if (permission === "granted") {
-                                    var notification = new Notification(title, options);
-                                    if(link) {
-                                        notification.onclick = function() {
-                                            window.open(link,"_self");
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        };
-
-                    ';
-            $result.=  wf_tag('script', true);
-        }
-
-        return ($result);
-    }
-
-    /**
-     * Renders widget code if it required for current situation
-     *
-     * @return string/void
-     */
-    public function renderWidget() {
-        $result = '';
-
-        if (cfr('DREAMKAS')) {
-            if ($this->ubConfig->getAlterParam('DREAMKAS_ENABLED')) {
-                $widget = $this->getDreamkasNotificationsJS();
-
-                if ($this->notysEverywhere) {
-                    $result .= $widget;
-                } else {
-                    if ((@$_GET['module'] == 'taskbar') OR (!isset($_GET['module']))) {
-                        $result .= $widget;
-                    }
-                }
-
-                //per-admin controls
-                if ((!empty($this->notysAdminsAllowed) AND (!isset($this->notysAdminsAllowed[$this->curAdminLogin])))) {
-                    $result = '';
-                }
-
-                return ($result);
-            }
-        }
-    }
-}
-
