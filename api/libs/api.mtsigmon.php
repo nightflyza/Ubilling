@@ -154,11 +154,11 @@ class MTsigmon {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
 
-        $this->EnableQuickAPLinks   = $this->ubConfig->getAlterParam('MTSIGMON_QUICK_AP_LINKS');
-        $this->EnableCPEAutoPoll    = $this->ubConfig->getAlterParam('MTSIGMON_CPE_AUTOPOLL');
-        $this->WCPEEnabled          = $this->ubConfig->getAlterParam('WIFICPE_ENABLED');
-        $this->apSortOrder          = ($this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT')) ? $this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT') : 'id';
-        $this->switchGroupsEnabled  = $this->ubConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
+        $this->EnableQuickAPLinks = $this->ubConfig->getAlterParam('MTSIGMON_QUICK_AP_LINKS');
+        $this->EnableCPEAutoPoll = $this->ubConfig->getAlterParam('MTSIGMON_CPE_AUTOPOLL');
+        $this->WCPEEnabled = $this->ubConfig->getAlterParam('WIFICPE_ENABLED');
+        $this->apSortOrder = ($this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT')) ? $this->ubConfig->getAlterParam('SIGMON_WCPE_AP_LIST_SORT') : 'id';
+        $this->switchGroupsEnabled = $this->ubConfig->getAlterParam('SWITCH_GROUPS_ENABLED');
         $this->groupAPsBySwitchGroupWithTabs = $this->ubConfig->getAlterParam('SIGMON_GROUP_AP_BY_SWITCHGROUP_WITH_TABS');
 
         $this->LoadUsersData();
@@ -223,7 +223,7 @@ class MTsigmon {
      * @return array
      */
     protected function getMTDevices() {
-        $query_where = ($this->userLogin and !empty($this->userSwitch)) ? " AND `id` = '" . $this->userSwitch . "' " : '';
+        $query_where = ($this->userLogin and ! empty($this->userSwitch)) ? " AND `id` = '" . $this->userSwitch . "' " : '';
 
         if ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs) {
             $query = "SELECT `switches`.`id`, `switches`.`ip`, `switches`.`location`, `switches`.`snmp`, COALESCE(`swgrp`.`groupname`, '') AS groupname, `swgrp`.`groupdescr`
@@ -250,11 +250,11 @@ class MTsigmon {
         } else {
             switch ($this->apSortOrder) {
                 case "ip":
-                    $query.= ' ORDER BY `ip`';
+                    $query .= ' ORDER BY `ip`';
                     break;
 
                 case "location":
-                    $query.= ' ORDER BY `location`';
+                    $query .= ' ORDER BY `location`';
             }
         }
 
@@ -342,7 +342,7 @@ class MTsigmon {
             $WCPE = new WifiCPE();
             $AllCPEs = $WCPE->getAllCPE();
 
-            if ( !empty($AllCPEs) ) {
+            if (!empty($AllCPEs)) {
                 foreach ($AllCPEs as $io => $each) {
                     $this->deviceQuery(0, $each['ip'], $each['mac'], $each['snmp']);
                 }
@@ -364,9 +364,9 @@ class MTsigmon {
      * @param bool $Repoll
      *
      * @return array
-    */
+     */
     public function getCPESignalData($WiFiCPEMAC, $WiFiAPID = '', $WiFiCPEIP = '', $WiFiCPECommunity = 'public', $GetFromAP = false, $Repoll = false) {
-        if ( empty($WiFiCPEMAC) or (empty($WiFiAPID) and empty($WiFiCPEIP)) ) {
+        if (empty($WiFiCPEMAC) or ( empty($WiFiAPID) and empty($WiFiCPEIP))) {
             return array();
         }
 
@@ -375,12 +375,15 @@ class MTsigmon {
         if ($GetFromAP) {
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
 
-            if ($Repoll and !empty($WiFiAPID)) { $this->MTDevicesPolling(false, $WiFiAPID); }
-
+            if ($Repoll and ! empty($WiFiAPID)) {
+                $this->MTDevicesPolling(false, $WiFiAPID);
+            }
         } else {
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
 
-            if ($Repoll and !empty($WiFiCPEIP)) { $this->deviceQuery(0, $WiFiCPEIP, $WiFiCPEMAC, $WiFiCPECommunity); }
+            if ($Repoll and ! empty($WiFiCPEIP)) {
+                $this->deviceQuery(0, $WiFiCPEIP, $WiFiCPEMAC, $WiFiCPECommunity);
+            }
         }
 
         if (file_exists($HistoryFile)) {
@@ -394,7 +397,7 @@ class MTsigmon {
             $LastPollDate = $LastLineArray[0];
             $SignalRX = $LastLineArray[1];
 
-            if (isset($LastLineArray[2]) and !empty($LastLineArray[2])) {
+            if (isset($LastLineArray[2]) and ! empty($LastLineArray[2])) {
                 $SignalCheck = (($SignalRX > $LastLineArray[2]) ? $LastLineArray[2] : $SignalRX);
                 $SignalTX = ' / ' . $LastLineArray[2];
             } else {
@@ -429,20 +432,20 @@ class MTsigmon {
      * @param bool $ShowRangeSelector
      * @return string
      */
-    public function renderSignalGraphs ($WiFiCPEMAC, $FromAP = false, $ShowTitle = false, $ShowXLabel = false, $ShowYLabel = false, $ShowRangeSelector = false) {
+    public function renderSignalGraphs($WiFiCPEMAC, $FromAP = false, $ShowTitle = false, $ShowXLabel = false, $ShowYLabel = false, $ShowRangeSelector = false) {
         $result = '';
         $BillCfg = $this->ubConfig->getBilling();
 
         if ($FromAP) {
             // get signal data on AP for this CPE
-            $HistoryFile        = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
-            $HistoryFileMonth   = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP_month';
+            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
+            $HistoryFileMonth = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP_month';
         } else {
             // get signal data for this CPE itself
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
         }
 
-        if (file_exists($HistoryFile )) {
+        if (file_exists($HistoryFile)) {
             $curdate = curdate();
             $curmonth = curmonth() . '-';
             $getMonthDataCmd = $BillCfg['CAT'] . ' ' . $HistoryFile . ' | ' . $BillCfg['GREP'] . ' ' . $curmonth;
@@ -461,7 +464,7 @@ class MTsigmon {
                 }
             }
 
-            $GraphTitle  = ($ShowTitle)  ? __('Today') : '';
+            $GraphTitle = ($ShowTitle) ? __('Today') : '';
             $GraphXLabel = ($ShowXLabel) ? __('Time') : '';
             $GraphYLabel = ($ShowYLabel) ? __('Signal') : '';
             $result .= wf_Graph($todaySignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
@@ -481,7 +484,7 @@ class MTsigmon {
                 }
             }
 
-            $GraphTitle  = ($ShowTitle)  ? __('Monthly graph') : '';
+            $GraphTitle = ($ShowTitle) ? __('Monthly graph') : '';
             $GraphXLabel = ($ShowXLabel) ? __('Date') : '';
             if ($FromAP) {
                 file_put_contents($HistoryFileMonth, $monthSignal);
@@ -493,7 +496,7 @@ class MTsigmon {
             $result .= wf_delimiter(2);
 
             //all time signal history
-            $GraphTitle  = ($ShowTitle)  ? __('All time graph') : '';
+            $GraphTitle = ($ShowTitle) ? __('All time graph') : '';
             $result .= wf_GraphCSV($HistoryFile, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
             $result .= wf_delimiter();
         }
@@ -501,53 +504,52 @@ class MTsigmon {
         return $result;
     }
 
-/*
- * Common for all
- * .1.3.6.1.2.1.1.1.0                   - AP sys description
- * .1.3.6.1.2.1.1.3.0                   - AP uptime
- * .1.3.6.1.2.1.1.5.0                   - AP sys name
- *
- * .1.3.6.1.2.1.2.2.1.6                 - AP interaces MACs list - too many afforts needed to get correct wireless MAC
- *                                        cause we first need to determine the wireless interface correctly,
- *                                        then get it's index and only then we can get APs MAC for sure.
-*                                         But on different devices there are different approaches to get the wireless interface correctly:
- *                                          on Mikrotiks we can not rely on iface description, but can rely on iface type;
- *                                          on other devices we can supposedly rely on iface description, but not 100%
- *
- *
- * Mikrotik *
- * .1.3.6.1.2.1.25.3.3.1.2.1            - CPU load average
- * .1.3.6.1.4.1.14988.1.1.1.3.1.4       - AP ssid
- * .1.3.6.1.4.1.14988.1.1.1.3.1.7       - AP freq
- * .1.3.6.1.4.1.14988.1.1.1.3.1.8       - AP band
- * .1.3.6.1.2.1.2.2.1.6.1               - AP wireless MAC
- *
- *
- * Ubiquity b/g/n AirOS version >= 5.6
- * .1.3.6.1.4.1.41112.1.4.1.1.4       - AP freq
- * .1.3.6.1.4.1.41112.1.4.5.1.2       - AP ssid
- * .1.3.6.1.4.1.41112.1.4.5.1.14      - AP channel width
- * .1.2.840.10036.1.1.1.1.5           - AP wireless MAC
- *
- *
- * Ubiquity b/g
- * only common data can be got
- *
- *
- * Ligowave DLB
- * .1.3.6.1.4.1.32750.3.10.1.2.1.1.1    - AP wireless MAC
- * .1.3.6.1.4.1.32750.3.10.1.2.1.1.4    - AP ssid
- * .1.3.6.1.4.1.32750.3.10.1.2.1.1.6    - AP freq
- * .1.3.6.1.4.1.32750.3.10.1.2.1.1.8    - AP channel width
- *
- * Deliberant APC Series
- * .1.3.6.1.4.1.32761.3.5.1.2.1.1.4   - AP ssid
- * .1.3.6.1.4.1.32761.3.5.1.2.1.1.7   - AP freq
- * .1.3.6.1.4.1.32761.3.5.1.2.1.1.9   - AP channel width
- *
- * .1.3.6.1.4.1.32761.3.5.1.2.1.1.14  - CPE signal level, but need wireless iface index...
- */
-
+    /*
+     * Common for all
+     * .1.3.6.1.2.1.1.1.0                   - AP sys description
+     * .1.3.6.1.2.1.1.3.0                   - AP uptime
+     * .1.3.6.1.2.1.1.5.0                   - AP sys name
+     *
+     * .1.3.6.1.2.1.2.2.1.6                 - AP interaces MACs list - too many afforts needed to get correct wireless MAC
+     *                                        cause we first need to determine the wireless interface correctly,
+     *                                        then get it's index and only then we can get APs MAC for sure.
+     *                                         But on different devices there are different approaches to get the wireless interface correctly:
+     *                                          on Mikrotiks we can not rely on iface description, but can rely on iface type;
+     *                                          on other devices we can supposedly rely on iface description, but not 100%
+     *
+     *
+     * Mikrotik *
+     * .1.3.6.1.2.1.25.3.3.1.2.1            - CPU load average
+     * .1.3.6.1.4.1.14988.1.1.1.3.1.4       - AP ssid
+     * .1.3.6.1.4.1.14988.1.1.1.3.1.7       - AP freq
+     * .1.3.6.1.4.1.14988.1.1.1.3.1.8       - AP band
+     * .1.3.6.1.2.1.2.2.1.6.1               - AP wireless MAC
+     *
+     *
+     * Ubiquity b/g/n AirOS version >= 5.6
+     * .1.3.6.1.4.1.41112.1.4.1.1.4       - AP freq
+     * .1.3.6.1.4.1.41112.1.4.5.1.2       - AP ssid
+     * .1.3.6.1.4.1.41112.1.4.5.1.14      - AP channel width
+     * .1.2.840.10036.1.1.1.1.5           - AP wireless MAC
+     *
+     *
+     * Ubiquity b/g
+     * only common data can be got
+     *
+     *
+     * Ligowave DLB
+     * .1.3.6.1.4.1.32750.3.10.1.2.1.1.1    - AP wireless MAC
+     * .1.3.6.1.4.1.32750.3.10.1.2.1.1.4    - AP ssid
+     * .1.3.6.1.4.1.32750.3.10.1.2.1.1.6    - AP freq
+     * .1.3.6.1.4.1.32750.3.10.1.2.1.1.8    - AP channel width
+     *
+     * Deliberant APC Series
+     * .1.3.6.1.4.1.32761.3.5.1.2.1.1.4   - AP ssid
+     * .1.3.6.1.4.1.32761.3.5.1.2.1.1.7   - AP freq
+     * .1.3.6.1.4.1.32761.3.5.1.2.1.1.9   - AP channel width
+     *
+     * .1.3.6.1.4.1.32761.3.5.1.2.1.1.14  - CPE signal level, but need wireless iface index...
+     */
 
     /**
      * Gets essential system info about AP via SNMP and returns it as HTML table or array
@@ -560,181 +562,178 @@ class MTsigmon {
      * @return array|string
      */
     public function getAPEssentialData($APID, $ReturnHTML = false, $ReturnInSpoiler = false, $SpoilerClosed = false) {
-        if ( isset($this->allMTSnmp[$APID]['community']) ) {
+        if (isset($this->allMTSnmp[$APID]['community'])) {
             $this->snmp->setMode('native');
             $APIP = $this->allMTSnmp[$APID]['ip'];
             $APCommunity = $this->allMTSnmp[$APID]['community'];
 
-            $APSysDescr     = '';
-            $APUptime       = '';
-            $APSysName      = '';
-            $APSSID         = '';
-            $APFreq         = '';
-            $APBandChWidth  = '';
-            $MTikCPULoad    = '';
-            $APMAC          = '';
-            $SNMPDataArray  = array();
+            $APSysDescr = '';
+            $APUptime = '';
+            $APSysName = '';
+            $APSSID = '';
+            $APFreq = '';
+            $APBandChWidth = '';
+            $MTikCPULoad = '';
+            $APMAC = '';
+            $SNMPDataArray = array();
 
-        //getting common data for all devices
+            //getting common data for all devices
             // sys description
             $tmpOID = '.1.3.6.1.2.1.1.1.0';
             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-            $APSysDescr = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+            $APSysDescr = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
             // uptime
             $tmpOID = '.1.3.6.1.2.1.1.3.0';
             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-            $APUptime = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ')') + 1) );
+            $APUptime = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ')') + 1));
 
             // sys name
             $tmpOID = '.1.3.6.1.2.1.1.5.0';
             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-            $APSysName = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+            $APSysName = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
 
-        // suppose it's Mikrotik
+            // suppose it's Mikrotik
             $tmpOID = '.1.3.6.1.4.1.14988.1.1.1.3.1.4';
             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
-            if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
-                $APSSID = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+            if (!empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = ") {
+                $APSSID = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                 $tmpOID = '.1.3.6.1.4.1.14988.1.1.1.3.1.7';
                 $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                $APFreq = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                $APFreq = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                 $tmpOID = '.1.3.6.1.4.1.14988.1.1.1.3.1.8';
                 $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                 $tmpOID = '.1.3.6.1.2.1.25.3.3.1.2.1';
                 $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                $MTikCPULoad = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                $MTikCPULoad = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                 // Device MAC for Mikrotik
                 $tmpOID = '.1.3.6.1.2.1.2.2.1.6.1';
                 $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
                 $APMAC = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : $this->getMACFromSNMPStr($tmpSNMP);
             } else {
-        // now suppose it's Ubnt AirOS version >= 5.6
+                // now suppose it's Ubnt AirOS version >= 5.6
                 $tmpOID = '.1.3.6.1.4.1.41112.1.4.1.1.4';
                 $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
-                if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
-                    $APFreq = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                if (!empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = ") {
+                    $APFreq = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                     $tmpOID = '.1.3.6.1.4.1.41112.1.4.5.1.2';
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                    $APSSID = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                    $APSSID = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                     $tmpOID = '.1.3.6.1.4.1.41112.1.4.5.1.14';
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                    $APBandChWidth = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                    $APBandChWidth = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                     // Device MAC for Loco M2
                     $tmpOID = '.1.2.840.10036.1.1.1.1.5';
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
                     $APMAC = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : $this->getMACFromSNMPStr($tmpSNMP);
-
                 } else {
-        // now suppose it's Ligowave DLB
+                    // now suppose it's Ligowave DLB
                     $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.1';
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
-                    if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
+                    if (!empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = ") {
                         $APMAC = $this->getMACFromSNMPStr($tmpSNMP);
 
                         $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.4';
                         $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                        $APSSID = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                        $APSSID = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                         $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.6';
                         $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                        $APFreq = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                        $APFreq = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                         $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.8';
                         $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                        $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                        $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
                     } else {
-        // now suppose it's Deliberant APC Series
+                        // now suppose it's Deliberant APC Series
                         $tmpOID = '.1.3.6.1.4.1.32761.3.5.1.2.1.1.4';
                         $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
-                        if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
-                            $APSSID = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                        if (!empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = ") {
+                            $APSSID = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                             $tmpOID = '.1.3.6.1.4.1.32761.3.5.1.2.1.1.7';
                             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                            $APFreq = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                            $APFreq = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
 
                             $tmpOID = '.1.3.6.1.4.1.32761.3.5.1.2.1.1.9';
                             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
-                            $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+                            $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1));
                         } else {
-                             // Device MAC for UBNT
+                            // Device MAC for UBNT
 
                             $tmpOID = '.1.2.840.10036.1.1.1.1.5';
                             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
-                            if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
+                            if (!empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = ") {
                                 $APMAC = $this->getMACFromSNMPStr($tmpSNMP);
                             } else {
-                            //    WHAT A HELL ARE YOU?!
+                                //    WHAT A HELL ARE YOU?!
                             }
                         }
                     }
-
                 }
-
             }
 
             if ($ReturnHTML) {
-                $APInfoRows   = '';
+                $APInfoRows = '';
                 $APInfoHTML = '';
 
-                if ( !empty($APSysDescr) ) {
+                if (!empty($APSysDescr)) {
                     $cells = wf_TableCell(__('System description'), '20%', 'row2');
                     $cells .= wf_TableCell($APSysDescr);
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($APSysName) ) {
+                if (!empty($APSysName)) {
                     $cells = wf_TableCell(__('System name'), '20%', 'row2');
                     $cells .= wf_TableCell($APSysName);
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($APUptime) ) {
+                if (!empty($APUptime)) {
                     $cells = wf_TableCell(__('Uptime'), '20%', 'row2');
                     $cells .= wf_TableCell($APUptime);
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($APSSID) ) {
+                if (!empty($APSSID)) {
                     $cells = wf_TableCell(__('SSID'), '20%', 'row2');
                     $cells .= wf_TableCell($APSSID);
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($APFreq) ) {
+                if (!empty($APFreq)) {
                     $cells = wf_TableCell(__('Frequency'), '20%', 'row2');
                     $cells .= wf_TableCell($APFreq . ' MHz');
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($APBandChWidth) ) {
+                if (!empty($APBandChWidth)) {
                     $cells = wf_TableCell(__('Band/channel width'), '20%', 'row2');
                     $cells .= wf_TableCell($APBandChWidth . ' MHz');
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($MTikCPULoad) ) {
+                if (!empty($MTikCPULoad)) {
                     $cells = wf_TableCell(__('CPU load'), '20%', 'row2');
                     $cells .= wf_TableCell($MTikCPULoad . '%');
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                if ( !empty($APMAC) ) {
+                if (!empty($APMAC)) {
                     $cells = wf_TableCell(__('MAC address'), '20%', 'row2');
                     $cells .= wf_TableCell($APMAC);
                     $APInfoRows .= wf_TableRow($cells, 'row3');
@@ -748,21 +747,20 @@ class MTsigmon {
 
                 return $APInfoHTML;
             } else {
-                $SNMPDataArray = array( 'APSysDescr'     => $APSysDescr,
-                                        'APUptime'       => $APUptime,
-                                        'APSysName'      => $ReturnHTML,
-                                        'APSSID'         => $APSSID,
-                                        'APFreq'         => $APFreq,
-                                        'APBandChWidth'  => $APBandChWidth,
-                                        'MTikCPULoad'    => $MTikCPULoad,
-                                        'APMAC'          => $APMAC
-                                     );
+                $SNMPDataArray = array('APSysDescr' => $APSysDescr,
+                    'APUptime' => $APUptime,
+                    'APSysName' => $ReturnHTML,
+                    'APSSID' => $APSSID,
+                    'APFreq' => $APFreq,
+                    'APBandChWidth' => $APBandChWidth,
+                    'MTikCPULoad' => $MTikCPULoad,
+                    'APMAC' => $APMAC
+                );
 
                 return $SNMPDataArray;
             }
         }
     }
-
 
     /**
      * Returns MAC in 'XX:XX:XX:XX:XX:XX' format from something like this: '.1.3.6.1.2.1.2.2.1.6.1 = Hex-STRING: E4 8D 8C 27 2F 7B'
@@ -780,7 +778,7 @@ class MTsigmon {
         $MACDelimiter = ( empty($MACDelimiter)) ? ':' : $MACDelimiter;
 
         $tmpOidDataArray = explode(': ', $SNMPString);
-        if ( isset($tmpOidDataArray[1]) ) {
+        if (isset($tmpOidDataArray[1])) {
             $tmpData = trim($tmpOidDataArray[1]);
             $tmpData = preg_replace('/"/', '', $tmpData);
             $tmpDataArray = preg_split('/[\s:]+/', $tmpData); // alternative for function explode for two and more parametrs
@@ -804,13 +802,13 @@ class MTsigmon {
      * @return void
      */
     protected function deviceQuery($mtid, $WiFiCPEIP = '', $WiFiCPEMAC = '', $WiFiCPECommunity = 'public') {
-        if ( isset($this->allMTSnmp[$mtid]['community']) or (!empty($WiFiCPEIP) and !empty($WiFiCPEMAC)) ) {
+        if (isset($this->allMTSnmp[$mtid]['community']) or ( !empty($WiFiCPEIP) and ! empty($WiFiCPEMAC))) {
             $ip = ( empty($WiFiCPEIP) ) ? $this->allMTSnmp[$mtid]['ip'] : $WiFiCPEIP;
             $community = ( empty($WiFiCPEIP) ) ? $this->allMTSnmp[$mtid]['community'] : $WiFiCPECommunity;
             global $ubillingConfig;
             $alterCfg = $ubillingConfig->getAlter();
 
-            $oid  = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
+            $oid = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
             $oid2 = '.1.3.6.1.4.1.14988.1.1.1.2.1.19';  // - TX Signal Strength
             $oid3 = '.1.2.840.10036.1.1.1.1.5';        // - MAC adress of Device WLAN interface
             $mask_mac = false;
@@ -823,7 +821,7 @@ class MTsigmon {
 
             $this->snmp->setBackground(false);
             $this->snmp->setMode('native');
-            $tmpSnmp  = $this->snmp->walk($ip, $community, $oid, false);
+            $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
             $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
             $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
 
@@ -848,35 +846,35 @@ class MTsigmon {
             }
 
             /*
-            // For Deliberant APC Series clients. Won't work for APs, cause there is no ability to monitor
-            // Deliberant APC Series APs clients signal level via SNMP. Only on clients itself
-            if ($tmpSnmp === "$oid = ") {
-                $DeliberantClient = true;
-                $oid  = '.1.3.6.1.4.1.32761.3.5.1.2.1.1.14.6';
-                $oid2 = '.1.3.6.1.2.1.2.2.1.6.6';
-                $tmpSnmp  = $this->snmp->walk($ip, $community, $oid, false);
-                $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
-            }*/
+              // For Deliberant APC Series clients. Won't work for APs, cause there is no ability to monitor
+              // Deliberant APC Series APs clients signal level via SNMP. Only on clients itself
+              if ($tmpSnmp === "$oid = ") {
+              $DeliberantClient = true;
+              $oid  = '.1.3.6.1.4.1.32761.3.5.1.2.1.1.14.6';
+              $oid2 = '.1.3.6.1.2.1.2.2.1.6.6';
+              $tmpSnmp  = $this->snmp->walk($ip, $community, $oid, false);
+              $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
+              } */
 
             if ($alterCfg['SWITCHES_SNMP_MAC_EXORCISM']) {
                 $APMAC = '';
                 // Check and write MAC adress of Device WLAN interface
                 // For AirOS 5.6 and newer
-                if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = ") {
                     $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
                 } else {
                     // For Ligowave DLB
                     $oid3 = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.1';
                     $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
 
-                    if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                    if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = ") {
                         $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
                     } else {
                         // For Mikrotik
                         $oid3 = '.1.3.6.1.2.1.2.2.1.6.1';
                         $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
 
-                        if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                        if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = ") {
                             $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
                         }
                     }
@@ -900,7 +898,7 @@ class MTsigmon {
                 }
             }
 
-            if (!empty($tmpSnmp2) and ( $tmpSnmp2 !== "$oid2 = ") and !$DeliberantClient) {
+            if (!empty($tmpSnmp2) and ( $tmpSnmp2 !== "$oid2 = ") and ! $DeliberantClient) {
                 $explodeData = explodeRows($tmpSnmp2);
                 if (!empty($explodeData)) {
                     foreach ($explodeData as $io => $each) {
@@ -912,7 +910,7 @@ class MTsigmon {
                 }
             }
 
-            $rssi  = '';
+            $rssi = '';
             $rssi2 = '';
             $TXoid = '';
 
@@ -954,19 +952,21 @@ class MTsigmon {
                             $rssi2 = ' / ' . $rssi2;
                         }
 
-                        if ( empty($WiFiCPEIP) ) {
+                        if (empty($WiFiCPEIP)) {
                             $result[$mac] = $rssi . $rssi2;
                             $result_fdb[] = $mac;
 
                             $HistoryFile = self::CPE_SIG_PATH . md5($mac) . '_AP';
-                        } else { $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE'; }
+                        } else {
+                            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
+                        }
 
                         file_put_contents($HistoryFile, curdatetime() . ',' . $rssi . ',' . mb_substr($rssi2, 3) . "\n", FILE_APPEND);
                     }
                 }
             }
 
-            if ( empty($WiFiCPEIP) ) {
+            if (empty($WiFiCPEIP)) {
                 if ($this->userLogin and $this->userSwitch) {
                     $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
                 } else {
@@ -988,15 +988,15 @@ class MTsigmon {
         $result = '';
         $cache_date = $this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime);
         if ($this->userLogin) {
-            $result.= wf_BackLink('?module=userprofile&username=' . $this->userLogin);
-            $result.= wf_Link(self::URL_ME . '&forcepoll=true' . '&username=' . $this->userLogin, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+            $result .= wf_BackLink('?module=userprofile&username=' . $this->userLogin);
+            $result .= wf_Link(self::URL_ME . '&forcepoll=true' . '&username=' . $this->userLogin, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         } else {
-            $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         }
         if (!empty($cache_date)) {
-            $result.= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . wf_tag('b', false) . @$cache_date . wf_tag('b', true), 'info');
+            $result .= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . wf_tag('b', false) . @$cache_date . wf_tag('b', true), 'info');
         } else {
-            $result.= $this->messages->getStyledMessage(__('Devices are not polled yet'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Devices are not polled yet'), 'warning');
         }
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -1050,7 +1050,7 @@ class MTsigmon {
         // making an event binding for "DelUserAssignment" button("red cross" near user's login) on "CPE create&assign form"
         // to be able to create "CPE create&assign form" dynamically and not to put it's content to every "Create CPE" button in JqDt tables
         // creating of "CPE create&assign form" dynamically reduces the amount of text and page weight dramatically
-        $result.= '$(document).on("click", ".__UsrDelAssignButton", function(evt) {
+        $result .= '$(document).on("click", ".__UsrDelAssignButton", function(evt) {
                             $("[name=assignoncreate]").val("");
                             $(\'.__UsrAssignBlock\').html("' . __('Do not assign WiFi equipment to any user') . '");
                             evt.preventDefault();
@@ -1106,19 +1106,21 @@ class MTsigmon {
         $columns[] = ('MAC');
         $columns[] = __('Signal') . ' (' . __('dBm') . ')';
 
-        if ($this->WCPEEnabled) { $columns[] = __('Actions'); }
+        if ($this->WCPEEnabled) {
+            $columns[] = __('Actions');
+        }
 
         if (empty($this->allMTDevices) and ! empty($this->userLogin) and empty($this->userSwitch)) {
-            $result.= show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
+            $result .= show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
         } elseif (!empty($this->allMTDevices) and ! empty($this->userLogin) and ! empty($this->userSwitch)) {
             $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$this->allMTDevices[$this->userSwitch]), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $this->userSwitch . '&username=' . $this->userLogin, false, __('results'), 100, $opts));
         } elseif (!empty($this->allMTDevices) and empty($this->userLogin)) {
             // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
-            $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
+            $QickAPsArray = array(-9999 => '') + $this->allMTDevices;
 
             foreach ($this->allMTDevices as $MTId => $eachMT) {
                 $MTsigmonData = $this->cache->get(self::CACHE_PREFIX . $MTId, $this->cacheTime);
-                if (! empty($MTsigmonData)) {
+                if (!empty($MTsigmonData)) {
                     foreach ($MTsigmonData as $eachmac => $eachsig) {
                         if (strpos($eachsig, '/') !== false) {
                             $columns[6] = __('Signal') . ' RX / TX (' . __('dBm') . ')';
@@ -1130,17 +1132,17 @@ class MTsigmon {
                     }
                 }
 
-                $AjaxURLStr     = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
-                $JQDTId         = 'jqdt_' . md5($AjaxURLStr);
-                $APIDStr        = 'APID_' . $MTId;
-                $InfoButtonID   = 'InfID_' . $MTId;
-                $InfoBlockID    = 'InfBlck_' . $MTId;
-                $QuickAPLinkID  = 'QuickAPLinkID_' . $MTId;
+                $AjaxURLStr = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
+                $JQDTId = 'jqdt_' . md5($AjaxURLStr);
+                $APIDStr = 'APID_' . $MTId;
+                $InfoButtonID = 'InfID_' . $MTId;
+                $InfoBlockID = 'InfBlck_' . $MTId;
+                $QuickAPLinkID = 'QuickAPLinkID_' . $MTId;
                 $QuickAPDDLName = 'QuickAPDDL_' . wf_InputId();
-                $QuickAPLink    =   wf_tag('span', false, '', 'id="' . $QuickAPLinkID . '"') .
-                                    wf_img('skins/wifi.png') . wf_tag('span', true);
+                $QuickAPLink = wf_tag('span', false, '', 'id="' . $QuickAPLinkID . '"') .
+                        wf_img('skins/wifi.png') . wf_tag('span', true);
 
-                if ( isset($this->allMTSnmp[$MTId]['ip']) ) {
+                if (isset($this->allMTSnmp[$MTId]['ip'])) {
                     $apWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $this->allMTSnmp[$MTId]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
                     $apWebIfaceLink .= wf_img('skins/ymaps/network.png');
                     $apWebIfaceLink .= wf_tag('a', true);
@@ -1151,7 +1153,7 @@ class MTsigmon {
                 $APInfoBlock = wf_tag('div', false, '', 'id="' . $InfoBlockID . '"');
                 $APInfoBlock .= wf_tag('div', true);
 
-                $APInfoButton   = wf_tag('a', false, '', 'href="#" id="' . $InfoButtonID . '" title="' . __('Get system info for this AP') . '"');
+                $APInfoButton = wf_tag('a', false, '', 'href="#" id="' . $InfoButtonID . '" title="' . __('Get system info for this AP') . '"');
                 $APInfoButton .= wf_img('skins/icn_alert_info.png');
                 $APInfoButton .= wf_tag('a', true);
                 $APInfoButton .= wf_tag('script', false, '', 'type="text/javascript"');
@@ -1177,34 +1179,32 @@ class MTsigmon {
 
                 if ($this->EnableQuickAPLinks) {
                     $QuickAPLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
-                                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
-                                        '&nbsp&nbsp' . wf_Selector($QuickAPDDLName, $QickAPsArray, '', '', true) .
-                                        wf_tag('script', false, '', 'type="text/javascript"') .
-                                        '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
+                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
+                            '&nbsp&nbsp' . wf_Selector($QuickAPDDLName, $QickAPsArray, '', '', true) .
+                            wf_tag('script', false, '', 'type="text/javascript"') .
+                            '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
                                             //var LinkIDObjFromVal = $(\'a[href="#\'+$(this).val()+\'"]\');                                            
                                             //$(\'body,html\').animate( { scrollTop: $(LinkIDObjFromVal).offset().top - 30 }, 4500 );
                                             var LinkIDObjFromVal = $(\'#QuickAPLinkID_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                         });' .
-                                        wf_tag('script', true) .
-                                        wf_tag('div', true);
+                            wf_tag('script', true) .
+                            wf_tag('div', true);
                 } else {
                     $QuickAPLinkInput = '';
                 }
 
-                $result .= show_window( $refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $APInfoButton . '&nbsp&nbsp&nbsp&nbsp' . $apWebIfaceLink . '&nbsp&nbsp&nbsp&nbsp' . $QuickAPLink . '&nbsp&nbsp' .
-                                        __(@$eachMT), $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts) .
-                                        $QuickAPLinkInput
-
+                $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $APInfoButton . '&nbsp&nbsp&nbsp&nbsp' . $apWebIfaceLink . '&nbsp&nbsp&nbsp&nbsp' . $QuickAPLink . '&nbsp&nbsp' .
+                        __(@$eachMT), $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts) .
+                        $QuickAPLinkInput
                 );
             }
         } else {
-            $result.= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
+            $result .= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
         }
-        $result.= wf_delimiter();
+        $result .= wf_delimiter();
         return ($result);
     }
-
 
     public function renderMTListTabbed() {
         $result = '';
@@ -1229,9 +1229,11 @@ class MTsigmon {
             foreach ($this->existingMTSwitchGroups as $io => $eachGroup) {
                 $groupName = (empty($eachGroup)) ? __('Ungrouped') : $eachGroup;
                 $groupWindowCaption = wf_tag('span', false, '', 'id="GroupLnk_' . $io . '"') .
-                                      $groupName .
-                                      wf_tag('span', true);
-                $displayGroup = array_filter($this->allMTSwitchGroups, function ($var) use ($eachGroup) { return ($var['groupname'] == $eachGroup); });
+                        $groupName .
+                        wf_tag('span', true);
+                $displayGroup = array_filter($this->allMTSwitchGroups, function ($var) use ($eachGroup) {
+                    return ($var['groupname'] == $eachGroup);
+                });
                 $curGroupMTDevices = array_intersect_key($this->allMTDevices, $displayGroup);
 
                 $tabClickScript = '';
@@ -1242,15 +1244,15 @@ class MTsigmon {
 
                 if ($this->EnableQuickAPLinks) {
                     $QuickGrpLinkInput = wf_tag('span', false, '', 'style="float: right; clear: right;') .
-                        wf_tag('font', false, '', 'style="font-weight: 600;"') . __('Go to group') . wf_tag('font', true) .
-                        wf_nbsp(2) . wf_Selector($quickGrpDDLName, $this->existingMTSwitchGroups, '', '', true) .
-                        wf_tag('script', false, '', 'type="text/javascript"') .
-                        '$(\'[name="' . $quickGrpDDLName . '"]\').change(function(evt) {                                            
+                            wf_tag('font', false, '', 'style="font-weight: 600;"') . __('Go to group') . wf_tag('font', true) .
+                            wf_nbsp(2) . wf_Selector($quickGrpDDLName, $this->existingMTSwitchGroups, '', '', true) .
+                            wf_tag('script', false, '', 'type="text/javascript"') .
+                            '$(\'[name="' . $quickGrpDDLName . '"]\').change(function(evt) {                                            
                                             var LinkIDObjFromVal = $(\'#GroupLnk_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                         });' .
-                        wf_tag('script', true) .
-                        wf_tag('span', true);
+                            wf_tag('script', true) .
+                            wf_tag('span', true);
                 } else {
                     $QuickGrpLinkInput = '';
                 }
@@ -1333,15 +1335,15 @@ class MTsigmon {
                     $refresh_button .= wf_tag('script', true);
 
                     $tabsList[$QuickAPLinkID] = array('options' => '',
-                                                      'caption' => $refresh_button . wf_nbsp(2) . $APInfoButton . wf_nbsp(2) . $apWebIfaceLink .
-                                                            wf_nbsp(2) . wf_img('skins/wifi.png') . wf_nbsp(2) . @$deviceInfo,
-                                                      'additional_data' => $tabClickScript
-                                                     );
+                        'caption' => $refresh_button . wf_nbsp(2) . $APInfoButton . wf_nbsp(2) . $apWebIfaceLink .
+                        wf_nbsp(2) . wf_img('skins/wifi.png') . wf_nbsp(2) . @$deviceInfo,
+                        'additional_data' => $tabClickScript
+                    );
 
                     $tabsData[$QuickAPLinkID] = array('options' => 'style="padding: 0 0 0 2px;"',
-                                                      'body' => $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, 'CPE', 100, $opts),
-                                                      'additional_data' => ''
-                                                     );
+                        'body' => $APInfoBlock . wf_JqDtLoader($columns, $AjaxURLStr, false, 'CPE', 100, $opts),
+                        'additional_data' => ''
+                    );
                 }
 
                 $tabsDivOpts = 'style="border: none; padding: 0; width: 100%;"';
@@ -1349,14 +1351,14 @@ class MTsigmon {
 
                 if ($this->EnableQuickAPLinks) {
                     $QuickAPLinkInput = wf_tag('div', false, '', 'style="margin-top: 15px; text-align: right;"') .
-                                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
-                                        wf_nbsp(2) . wf_Selector($QuickAPDDLName, $curGroupMTDevices, '', '', true) .
-                                        wf_tag('script', false, '', 'type="text/javascript"') .
-                                        '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
+                            wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
+                            wf_nbsp(2) . wf_Selector($QuickAPDDLName, $curGroupMTDevices, '', '', true) .
+                            wf_tag('script', false, '', 'type="text/javascript"') .
+                            '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
                                             $(\'a[href="#QuickAPLinkID_\'+$(this).val()+\'"]\').click();
                                         });' .
-                                        wf_tag('script', true) .
-                                        wf_tag('div', true);
+                            wf_tag('script', true) .
+                            wf_tag('div', true);
                 } else {
                     $QuickAPLinkInput = '';
                 }
@@ -1371,9 +1373,9 @@ class MTsigmon {
                 $loopIndex++;
 
                 $tmpTabsDivId = 'ui-tabs_' . wf_InputId();
-                $result.= show_window($groupWindowCaption . $QuickGrpLinkInput, $QuickAPLinkInput . wf_delimiter(0) .
-                                      $TabsCarouselInitLinking . wf_TabsGen($tmpTabsDivId, $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
-                                      $QuickAPLinkInput . wf_delimiter());
+                $result .= show_window($groupWindowCaption . $QuickGrpLinkInput, $QuickAPLinkInput . wf_delimiter(0) .
+                        $TabsCarouselInitLinking . wf_TabsGen($tmpTabsDivId, $tabsList, $tabsData, $tabsDivOpts, $tabsLstOpts, true) .
+                        $QuickAPLinkInput . wf_delimiter());
             }
         }
 
@@ -1424,7 +1426,7 @@ class MTsigmon {
                     $hlStart = '';
                     $hlEnd = '';
                 }
-                
+
                 $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$this->allUserData[$login]['login'] . '', false) : '';
                 $userLogin = $login ? @$this->allUserData[$login]['login'] : '';
                 $userRealnames = $login ? @$this->allUserData[$login]['realname'] : '';
@@ -1440,7 +1442,7 @@ class MTsigmon {
                     if (!empty($WCPEID)) {
                         $WCPEDATA = $WCPE->getCPEData($WCPEID);
 
-                        if ( !empty($WCPEDATA) && !empty($WCPEDATA['ip']) ) {
+                        if (!empty($WCPEDATA) && !empty($WCPEDATA['ip'])) {
                             $cpeWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $WCPEDATA['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
                             $cpeWebIfaceLink .= wf_img('skins/ymaps/network.png');
                             $cpeWebIfaceLink .= wf_tag('a', true);
@@ -1494,7 +1496,9 @@ class MTsigmon {
                 $data[] = $hlStart . $eachmac . $hlEnd;
                 $data[] = $displaysig;
 
-                if ($this->WCPEEnabled) { $data[] = $ActionLnk; }
+                if ($this->WCPEEnabled) {
+                    $data[] = $ActionLnk;
+                }
 
                 $json->addRow($data);
                 unset($data);
@@ -1502,7 +1506,6 @@ class MTsigmon {
         }
         $json->getJson();
     }
-
 
     public function useSwtichGroupsAndTabs() {
         return ($this->switchGroupsEnabled and $this->groupAPsBySwitchGroupWithTabs);
@@ -1526,8 +1529,8 @@ class MTsigmon {
             $allMacs = $this->allUserCpeMacs + $this->allUsermacs;
             $allMacs = array_flip($allMacs);
 
-            foreach ($MTsigmonData as $eachMTid ) {
-                if (is_array($eachMTid) and !empty($eachMTid)) {
+            foreach ($MTsigmonData as $eachMTid) {
+                if (is_array($eachMTid) and ! empty($eachMTid)) {
                     foreach ($eachMTid as $eachmac => $eachsig) {
                         //$login = in_array($eachmac, array_map('strtolower', $allMacs)) ? array_search($eachmac, array_map('strtolower', $allMacs)) : '';
                         $login = (isset($allMacs[$eachmac])) ? $allMacs[$eachmac] : '';
@@ -1543,6 +1546,7 @@ class MTsigmon {
 
         return ($allSignals);
     }
+
 }
 
 ?>
