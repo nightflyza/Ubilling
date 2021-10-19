@@ -1997,7 +1997,7 @@ class Warehouse {
                 $actLinks .= $photostorageControl;
 
                 $cells .= wf_TableCell($actLinks);
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
 
