@@ -313,7 +313,7 @@ function zb_AddressCreateBuild($streetid, $buildnum) {
     $streetid = vf($streetid, 3);
     $query = "INSERT INTO `build` (`id`,`streetid`,`buildnum`) VALUES (NULL, '" . $streetid . "','" . $buildnum . "');";
     nr_query($query);
-    log_register('CREATE AddressBuild [' . $streetid . '] `' . $buildnum . '`');
+    log_register('CREATE AddressBuild [' . $streetid . '] NUM `' . $buildnum . '`');
     zb_AddressCleanAddressCache();
     zb_UserGetAllDataCacheClean();
 }
@@ -1469,7 +1469,9 @@ function web_BuildEditForm($buildid, $streetid, $ModalWID) {
     $FormID = 'Form_' . wf_InputId();
     $builddata = zb_AddressGetBuildData($buildid);
     $streetname = zb_AddressGetStreetData($streetid);
-    $streetname = $streetname['streetname'];
+    if (!empty($streetname)) {
+        $streetname = $streetname['streetname'];
+    }
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = $streetname . " " . $builddata['buildnum'] . wf_tag('hr');

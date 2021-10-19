@@ -1,96 +1,93 @@
 <?php
-// check for right of current admin on this module
+
 if (cfr('BUILDS')) {
-    if (!isset ($_GET['action'])) {
-        if ( wf_CheckGet(array('ajax')) ) {
+    //listing streets with builds
+    if (!ubRouting::checkGet('action')) {
+        if (ubRouting::checkGet('ajax')) {
             renderBuildsEditJSON();
         }
 
-        show_window(__('Builds editor'),  web_StreetListerBuildsEdit());
+        show_window(__('Builds editor'), web_StreetListerBuildsEdit());
     } else {
-        if (isset($_GET['streetid'])) {
-           $streetid=vf($_GET['streetid']);
-
-           if ($_GET['action']=='edit') {
-               if (isset($_POST['newbuildnum'])) {
-                   if (!empty($_POST['newbuildnum'])) {
-                       $FoundBuildID = checkBuildOnStreetExists($_POST['newbuildnum'], $streetid);
-
-                       if (empty($FoundBuildID)) {
-                           zb_AddressCreateBuild($streetid, trim($_POST['newbuildnum']));
-                           die();
-                       } else {
-                           $messages = new UbillingMessageHelper();
-                           $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                           die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
-                       }
-
-                   }
-               }
-
-               if ( wf_CheckGet(array('ajax')) ) {
-                   renderBuildsLiserJSON($streetid);
-               }
-
-               $streetname = zb_AddressGetStreetData($streetid);
-               $streetname = $streetname['streetname'];
-
-               show_window(__('Available buildings on street').' '.$streetname, web_BuildLister($streetid));
-           }
-
-           if ($_GET['action']=='delete') {
-               if (!zb_AddressBuildProtected($_GET['buildid'])) {
-                    zb_AddressDeleteBuild($_GET['buildid']);
-                    die();
-               } else {
-                   $messages = new UbillingMessageHelper();
-                   $errormes = $messages->getStyledMessage(__('You can not delete a building if there are users of the apartment'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                   die(wf_modalAutoForm(__('Error'), $errormes, $_GET['errfrmid'], '', true));
+        if (ubRouting::checkGet('streetid')) {
+            $streetid = ubRouting::get('streetid', 'int');
+            if (ubRouting::get('action') == 'edit') {
+                //new build creation
+                if (ubRouting::checkPost('newbuildnum')) {
+                    $FoundBuildID = checkBuildOnStreetExists(ubRouting::post('newbuildnum'), $streetid);
+                    if (empty($FoundBuildID)) {
+                        zb_AddressCreateBuild($streetid, trim(ubRouting::post('newbuildnum')));
+                        die();
+                    } else {
+                        $messages = new UbillingMessageHelper();
+                        $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                        die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
+                    }
                 }
 
-           }
+                if (ubRouting::checkGet('ajax')) {
+                    renderBuildsLiserJSON($streetid);
+                }
 
-           if ($_GET['action']=='editbuild') {
-               $buildid=vf($_GET['buildid']);
-               $streetid=vf($_GET['streetid']);
+                $streetname = zb_AddressGetStreetData($streetid);
+                if (!empty($streetname)) {
+                    $streetname = $streetname['streetname'];
+                }
 
-               if ( wf_CheckGet(array('ajax')) ) {
-                   renderBuildsLiserJSON($streetid, $buildid);
-               }
+                show_window(__('Available buildings on street') . ' ' . $streetname, web_BuildLister($streetid));
+            }
 
-               //build edit subroutine
-               if (isset($_POST['editbuildnum'])) {
-                   if (!empty($_POST['editbuildnum'])) {
-                       $FoundBuildID = checkBuildOnStreetExists($_POST['editbuildnum'], $streetid, $buildid);
+            //build deletion handler
+            if (ubRouting::get('action') == 'delete') {
+                if (!zb_AddressBuildProtected(ubRouting::get('buildid', 'int'))) {
+                    zb_AddressDeleteBuild(ubRouting::get('buildid', 'int'));
+                    die();
+                } else {
+                    $messages = new UbillingMessageHelper();
+                    $errormes = $messages->getStyledMessage(__('You can not delete a building if there are users of the apartment'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                    die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::get('errfrmid'), '', true));
+                }
+            }
 
-                       if (empty($FoundBuildID)) {
-                           simple_update_field('build', 'buildnum', trim($_POST['editbuildnum']), "WHERE `id`='" . $buildid . "'");
-                           simple_update_field('build', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editbuildgeo']), "WHERE `id`='" . $buildid . "'");
+            if (ubRouting::get('action') == 'editbuild') {
+                $buildid = ubRouting::get('buildid', 'int');
+                $streetid = ubRouting::get('streetid', 'int');
 
-                           log_register("CHANGE AddressBuild [" . $buildid . "] " .  mysql_real_escape_string(trim($_POST['editbuildnum'])));
-                           die();
-                       } else {
-                           $messages = new UbillingMessageHelper();
-                           $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
-                           die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
-                       }
-                   }
-               }
+                if (ubRouting::checkGet('ajax')) {
+                    renderBuildsLiserJSON($streetid, $buildid);
+                }
 
-               //construct edit form
-               if ( wf_CheckGet(array('frommaps'))) {
-                   $streetname = zb_AddressGetStreetData($streetid);
-                   $streetname = $streetname['streetname'];
+                //build edit subroutine
+                if (ubRouting::checkPost('editbuildnum')) {
+                    $FoundBuildID = checkBuildOnStreetExists(ubRouting::post('editbuildnum'), $streetid, $buildid);
 
-                   show_window(__('Available buildings on street').' '.$streetname, web_BuildLister($streetid, $buildid));
-               } else {
-                   die(wf_modalAutoForm(__('Edit') . ' ' . __('Build'), web_BuildEditForm($buildid, $streetid, $_GET['ModalWID']), $_GET['ModalWID'], $_GET['ModalWBID'], true));
-               }
-           }
+                    if (empty($FoundBuildID)) {
+                        simple_update_field('build', 'buildnum', trim(ubRouting::post('editbuildnum')), "WHERE `id`='" . $buildid . "'");
+                        simple_update_field('build', 'geo', preg_replace('/[^-?0-9\.,]/i', '', ubRouting::post('editbuildgeo')), "WHERE `id`='" . $buildid . "'");
+                        log_register("CHANGE AddressBuild [" . $buildid . "] NUM `" . trim(ubRouting::post('editbuildnum')) . "`");
+                        die();
+                    } else {
+                        $messages = new UbillingMessageHelper();
+                        $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                        die(wf_modalAutoForm(__('Error'), $errormes, ubRouting::post('errfrmid'), '', true));
+                    }
+                }
+
+                //construct edit form
+                if (ubRouting::checkGet('frommaps')) {
+                    $streetname = zb_AddressGetStreetData($streetid);
+                    if (!empty($streetname)) {
+                        $streetname = $streetname['streetname'];
+                    }
+
+                    show_window(__('Available buildings on street') . ' ' . $streetname, web_BuildLister($streetid, $buildid));
+                } else {
+                    die(wf_modalAutoForm(__('Edit') . ' ' . __('Build'), web_BuildEditForm($buildid, $streetid, ubRouting::get('ModalWID')), ubRouting::get('ModalWID'), ubRouting::get('ModalWBID'), true));
+                }
+            }
         }
     }
 } else {
-  show_error(__('Access denied'));
+    show_error(__('Access denied'));
 }
 
-?>
