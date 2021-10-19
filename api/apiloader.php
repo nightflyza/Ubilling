@@ -74,7 +74,6 @@ require_once('api/libs/api.cap.php');
 require_once('api/libs/api.opayz.php');
 require_once('api/libs/api.salary.php');
 require_once('api/libs/api.cemetery.php');
-require_once('api/libs/api.warehouse.php');
 require_once('api/libs/api.reminder.php');
 require_once('api/libs/api.friendship.php');
 require_once('api/libs/api.migration.php');
