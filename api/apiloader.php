@@ -69,7 +69,6 @@ require_once('api/libs/api.loginform.php');
 require_once('api/libs/api.photostorage.php');
 require_once('api/libs/api.dshaper.php');
 require_once('api/libs/api.uhw.php');
-require_once('api/libs/api.pon.php');
 require_once('api/libs/api.cudiscounts.php');
 require_once('api/libs/api.cap.php');
 require_once('api/libs/api.opayz.php');
