@@ -3320,3 +3320,4 @@ $lang['def']['Return of an outcoming operation'] = 'Повернення роз�
 $lang['def']['right to return outcoming operations'] = 'Право повертати розхідні операції';
 $lang['def']['Sales'] = 'Продажі';
 $lang['def']['Returns'] = 'Повернення';
+$lang['def']['is restored to server'] = 'відновлено на сервері';

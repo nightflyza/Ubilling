@@ -2284,7 +2284,7 @@ function zb_backup_database($silent = false) {
     $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
 
     $backname = DATA_PATH . 'backups/sql/ubilling-' . date("Y-m-d_H_i_s", time()) . '.sql';
-    $command = $alterConf['MYSQLDUMP_PATH'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
+    $command = $alterConf['MYSQLDUMP_PATH'] . ' --host ' . $mysqlConf['server'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
     shell_exec($command);
 
     if (!$silent) {

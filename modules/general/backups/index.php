@@ -52,9 +52,9 @@ if (cfr('BACKUP')) {
             $result = $messages->getStyledMessage(__('No existing DB backups here'), 'warning');
             if (!empty($availbacks)) {
                 $cells = wf_TableCell(__('Date'));
-                $cells.= wf_TableCell(__('Size'));
-                $cells.= wf_TableCell(__('Filename'));
-                $cells.= wf_TableCell(__('Actions'));
+                $cells .= wf_TableCell(__('Size'));
+                $cells .= wf_TableCell(__('Filename'));
+                $cells .= wf_TableCell(__('Actions'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($availbacks as $eachDump) {
@@ -66,14 +66,14 @@ if (cfr('BACKUP')) {
                         $encodedDumpPath = base64_encode($backupsPath . $eachDump);
                         $downloadLink = wf_Link('?module=backups&download=' . $encodedDumpPath, $eachDump, false, '');
                         $actLinks = wf_JSAlert('?module=backups&deletedump=' . $encodedDumpPath, web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
-                        $actLinks.= wf_Link('?module=backups&download=' . $encodedDumpPath, wf_img('skins/icon_download.png', __('Download')), false, '');
-                        $actLinks.= wf_JSAlert('?module=backups&restore=true&restoredump=' . $encodedDumpPath, wf_img('skins/icon_restoredb.png', __('Restore DB')), __('Are you serious'));
+                        $actLinks .= wf_Link('?module=backups&download=' . $encodedDumpPath, wf_img('skins/icon_download.png', __('Download')), false, '');
+                        $actLinks .= wf_JSAlert('?module=backups&restore=true&restoredump=' . $encodedDumpPath, wf_img('skins/icon_restoredb.png', __('Restore DB')), __('Are you serious'));
 
                         $cells = wf_TableCell($fileDate);
-                        $cells.= wf_TableCell($fileSize);
-                        $cells.= wf_TableCell($downloadLink);
-                        $cells.= wf_TableCell($actLinks);
-                        $rows.= wf_TableRow($cells, 'row5');
+                        $cells .= wf_TableCell($fileSize);
+                        $cells .= wf_TableCell($downloadLink);
+                        $cells .= wf_TableCell($actLinks);
+                        $rows .= wf_TableRow($cells, 'row5');
                     }
                 }
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -103,8 +103,8 @@ if (cfr('BACKUP')) {
 
             if (!empty($downloadable)) {
                 $cells = wf_TableCell(__('Date'));
-                $cells.= wf_TableCell(__('Size'));
-                $cells.= wf_TableCell(__('Filename'));
+                $cells .= wf_TableCell(__('Size'));
+                $cells .= wf_TableCell(__('Filename'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($downloadable as $eachConfig) {
@@ -116,14 +116,14 @@ if (cfr('BACKUP')) {
                         $downloadLink = wf_Link('?module=backups&download=' . base64_encode($eachConfig), $eachConfig, false, '');
 
                         $cells = wf_TableCell($fileDate);
-                        $cells.= wf_TableCell($fileSize);
-                        $cells.= wf_TableCell($downloadLink);
-                        $rows.= wf_TableRow($cells, 'row5');
+                        $cells .= wf_TableCell($fileSize);
+                        $cells .= wf_TableCell($downloadLink);
+                        $rows .= wf_TableRow($cells, 'row5');
                     } else {
                         $cells = wf_TableCell('');
-                        $cells.= wf_TableCell('');
-                        $cells.= wf_TableCell($eachConfig);
-                        $rows.= wf_TableRow($cells, 'row5');
+                        $cells .= wf_TableCell('');
+                        $cells .= wf_TableCell($eachConfig);
+                        $rows .= wf_TableRow($cells, 'row5');
                     }
                 }
                 $result = wf_TableBody($rows, '100%', '0', 'sortable');
@@ -155,17 +155,24 @@ if (cfr('BACKUP')) {
                         if (($billingConf['NOSTGCHECKPID']) AND ( !file_exists($billingConf['STGPID']))) {
                             if (!isset($_POST['lastchanceok'])) {
                                 $lastChanceInputs = __('Restoring a database from a dump, completely and permanently destroy your current database. Think again if you really want it.');
-                                $lastChanceInputs.=wf_tag('br');
-                                $lastChanceInputs.=__('Filename') . ': ' . $restoreFilename;
-                                $lastChanceInputs.=wf_tag('br');
-                                $lastChanceInputs.= wf_CheckInput('lastchanceok', __('I`m ready'), true, false);
-                                $lastChanceInputs.= wf_Submit(__('Restore DB'));
+                                $lastChanceInputs .= wf_tag('br');
+                                $lastChanceInputs .= __('Filename') . ': ' . $restoreFilename;
+                                $lastChanceInputs .= wf_tag('br');
+                                $lastChanceInputs .= wf_CheckInput('lastchanceok', __('I`m ready'), true, false);
+                                $lastChanceInputs .= wf_Submit(__('Restore DB'));
                                 $lastChanceForm = wf_Form('', 'POST', $lastChanceInputs, 'glamour');
                                 show_window(__('Warning'), $lastChanceForm);
                                 show_window('', wf_BackLink('?module=backups', __('Back'), true, 'ubButton'));
                             } else {
-                                $restoreCommand = $alterConf['MYSQL_PATH'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' --default-character-set=utf8 < ' . $restoreFilename;
-                                show_window(__('Result'), shell_exec($restoreCommand));
+                                $restoreCommand = $alterConf['MYSQL_PATH'] . ' --host ' . $mysqlConf['server'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' --default-character-set=utf8 < ' . $restoreFilename . ' 2>&1';
+                                $restoreResult = shell_exec($restoreCommand);
+                                if (empty($restoreResult)) {
+                                    show_success(__('Success') . '! ' . __('Database') . ' ' . $mysqlConf['db'] . ' ' . __('is restored to server') . ' ' . $mysqlConf['server']);
+                                } else {
+                                    show_error(__('Something went wrong'));
+                                    show_window(__('Result'), $restoreResult);
+                                }
+                                show_window('', wf_BackLink('?module=backups'));
                             }
                         } else {
                             log_register("BACKUP RESTORE TRY WITH RUNNING STARGAZER");
