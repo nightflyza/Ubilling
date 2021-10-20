@@ -396,7 +396,7 @@ class UbillingTaskbar {
         if ($this->altCfg['TB_UBIM']) {
             if ($this->altCfg['TB_UBIM_REFRESH']) {
                 if (cfr('UBIM')) {
-                    im_RefreshContainer($this->altCfg['TB_UBIM_REFRESH']);
+                    im_RefreshContainer(($this->altCfg['TB_UBIM_REFRESH'] * 60));
                 }
             }
         }

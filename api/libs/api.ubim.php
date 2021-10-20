@@ -316,8 +316,7 @@ function im_CheckForUnreadMessages() {
  * @return void
  */
 function im_RefreshContainer($timeout) {
-    //  setInterval(function(){ goajax(\'?module=ubim&timecheckunread=true\',\'refreshcontainer\'); },'.$timeout.');
-    $timeout = $timeout * 1000;
+    $timeout = $timeout * 1000; //in seconds
     $jstimer = wf_AjaxLoader() . "
         <script type=\"text/javascript\">
           
