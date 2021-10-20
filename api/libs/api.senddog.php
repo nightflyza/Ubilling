@@ -45,6 +45,11 @@ class SendDog {
      */
     const URL_ME = '?module=senddog';
 
+    /**
+     * Path to running dog flag
+     */
+    const PID_PATH = 'exports/senddogrunning.pid';
+
     public function __construct() {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
@@ -2793,8 +2798,10 @@ class SendDogAdvanced extends SendDog {
     /**
      * Loads and sends all stored SMS from system queue
      * Or checks statuses of already sent SMS
+     * 
+     * @param bool $checkStatuses
      *
-     * @return mixed
+     * @return integer
      */
     public function smsProcessing($checkStatuses = false) {
         $allMessages = array();
