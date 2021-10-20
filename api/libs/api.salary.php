@@ -2872,7 +2872,8 @@ class Salary {
 
                 foreach ($jobTypesSummaryArr as $jobtypeId => $each) {
                     $jobTypePriceTotal = 0;
-                    $cells = wf_TableCell(@$this->allJobtypes[$jobtypeId]);
+                    $jobName = (isset($this->allJobtypes[$jobtypeId])) ? $this->allJobtypes[$jobtypeId] : __('Job type') . ' ' . __('Deleted');
+                    $cells = wf_TableCell($jobName);
                     foreach ($monthArr as $ia => $mn) {
                         $cells .= wf_TableCell(zb_CashBigValueFormat($each[$ia]));
                         $jobTypePriceTotal += $each[$ia];
@@ -2909,7 +2910,8 @@ class Salary {
 
 
                 foreach ($jobTypesSummaryArr as $jobTypeId => $each) {
-                    $columns[] = $this->allJobtypes[$jobTypeId];
+                    $jobName = (isset($this->allJobtypes[$jobTypeId])) ? $this->allJobtypes[$jobTypeId] : __('Deleted');
+                    $columns[] = $jobName;
 
                     foreach ($each as $mn => $jtsumm) {
                         $jobsInYear[$showYear . '-' . $mn][$jobTypeId] = $jtsumm;
