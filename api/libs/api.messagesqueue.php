@@ -391,7 +391,15 @@ class MessagesQueue {
         $result .= wf_Link(self::URL_ME, wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS in queue'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&showqueue=email', wf_img('skins/icon_mail.gif') . ' ' . __('Emails in queue'), false, 'ubButton');
         $result .= ($phpMailerOn) ? wf_Link(self::URL_ME . '&showqueue=phpmail', wf_img('skins/icon_mail.gif') . ' PHPMailer: ' . __('Emails in queue'), false, 'ubButton') : '';
-        $result .= wf_Link(self::URL_ME . '&showqueue=telegram', wf_img_sized('skins/icon_telegram_small.png', '', '10', '10') . ' ' . __('Telegram messages queue'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&showqueue=telegram', wf_img_sized('skins/icon_telegram_small.png', '', '10', '10') . ' ' . __('Telegram messages queue'), false, 'ubButton') . ' ';
+        $sendogPidFile = SendDog::PID_PATH;
+        $indicatorStyle = 'float:right;';
+        if (file_exists($sendogPidFile)) {
+            $lastDogWalkTime = file_get_contents($sendogPidFile);
+            $result .= wf_img('skins/dog_stand.png', __('SendDog is working') . ' ' . __('from') . ' ' . $lastDogWalkTime, $indicatorStyle);
+        } else {
+            $result .= wf_img('skins/dog_sleep.png', __('SendDog is sleeping'), $indicatorStyle);
+        }
         return ($result);
     }
 

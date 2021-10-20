@@ -1017,9 +1017,9 @@ function wf_pagination($total, $perpage, $current, $link, $class = '', $maxAmoun
  * 
  * @param string $url image url
  * @param string $title image title
+ * @param string $style image custom styling
  * 
  * @return string
- *  
  */
 function wf_img($url, $title = '', $style = '') {
     if ($title != '') {
@@ -1041,9 +1041,9 @@ function wf_img($url, $title = '', $style = '') {
  * @param string $title title attribure for image
  * @param string $width image width
  * @param string $height image height
+ * @param string $style image custom styling
  * 
  * @return string
- *  
  */
 function wf_img_sized($url, $title = '', $width = '', $height = '', $style = '') {
     $imgtitle = ($title != '') ? 'title="' . $title . '"' : '';
@@ -1064,8 +1064,8 @@ function wf_img_sized($url, $title = '', $width = '', $height = '', $style = '')
  * @param string $linkclass link class
  * @param string $width modal window width 
  * @param string $height modal window height
+ * 
  * @return string
- *  
  */
 function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height = '') {
     $wid = wf_inputid();

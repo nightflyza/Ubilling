@@ -3299,3 +3299,5 @@ $lang['def']['right to return outcoming operations'] = 'Право возвра�
 $lang['def']['Sales'] = 'Продажи';
 $lang['def']['Returns'] = 'Возвраты';
 $lang['def']['is restored to server'] = 'восстановлена на сервере';
+$lang['def']['SendDog is sleeping'] = 'Собака-посылака спит';
+$lang['def']['SendDog is working'] = 'Собака-посылака работает';
