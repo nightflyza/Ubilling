@@ -357,6 +357,47 @@ class ClickUZ {
     }
 
     /**
+     * Returns transaction data by $transactID
+     *
+     * @param $transactID
+     *
+     * @return mixed|string
+     */
+    protected function getTransactionData($transactID) {
+        $result = '';
+
+        if ($this->checkTransactionExists($transactID)) {
+            $result = unserialize(file_get_contents(self::PATH_TRANSACTS . $transactID));
+        }
+
+        return($result);
+    }
+
+    /**
+     * Checks is transaction already exists or not?
+     *
+     * @param string $transactID
+     *
+     * @return bool
+     */
+    protected function checkTransactionExists($transactID) {
+        $result = (!empty($transactID) and file_exists(self::PATH_TRANSACTS . $transactID));
+        return($result);
+    }
+
+    /**
+     * Saves transaction id to validate some possible duplicates
+     *
+     * @param string $transactID
+     *
+     * @return string
+     */
+    protected function saveTransaction($transactID) {
+        file_put_contents(self::PATH_TRANSACTS . $transactID, serialize($this->receivedJSON));
+        return($transactID);
+    }
+
+    /**
      * Creates md5 sign string according to specs
      *
      * @return string
@@ -389,30 +430,6 @@ class ClickUZ {
         $billingSign    = $this->createSign();
         $result         = ($clickSign == $billingSign);
         return($result);
-    }
-
-    /**
-     * Checks is transaction already exists or not?
-     *
-     * @param string $transactID
-     *
-     * @return bool
-     */
-    protected function checkTransactionExists($transactID) {
-        $result = (!empty($transactID) and file_exists(self::PATH_TRANSACTS . $transactID));
-        return($result);
-    }
-
-    /**
-     * Saves transaction id to validate some possible duplicates
-     *
-     * @param string $transactID
-     *
-     * @return string
-     */
-    protected function saveTransaction($transactID) {
-        file_put_contents(self::PATH_TRANSACTS . $transactID, serialize($this->receivedJSON));
-        return($transactID);
     }
 
     /**
@@ -449,24 +466,19 @@ class ClickUZ {
      */
     protected function replyPrepare() {
         $reply = '';
-        if ($this->validateSign()) {
-            $billingTransactID = $this->customerID . '_' . $this->clickTransactID . '_' . $this->serviceID;
+        $billingTransactID = $this->clickTransactID . $this->serviceID;
 
-            if ($this->checkTransactionExists($billingTransactID)) {
-                $reply = $this->replyError('-4');
-            }
-            else {
-                $this->saveTransaction($billingTransactID);
-                $reply = array('click_trans_id'      => $this->clickTransactID,
-                               'merchant_trans_id'   => $this->customerID,
-                               'merchant_prepare_id' => $billingTransactID,
-                               'error'               => 0,
-                               'error_note'          => $this->errorCodes['0']
-                );
-                $reply = json_encode($reply);
-            }
+        if ($this->checkTransactionExists($billingTransactID)) {
+            $reply = $this->replyError('-4');
         } else {
-            $reply = $this->replyError('-1');
+            $this->saveTransaction($billingTransactID);
+            $reply = array('click_trans_id'      => $this->clickTransactID,
+                           'merchant_trans_id'   => $this->customerID,
+                           'merchant_prepare_id' => $billingTransactID,
+                           'error'               => 0,
+                           'error_note'          => $this->errorCodes['0']
+            );
+            $reply = json_encode($reply);
         }
 
         die($reply);
@@ -476,18 +488,19 @@ class ClickUZ {
      * complete() request reply implementation
      */
     protected function replyComplete() {
-        $reply = '';
+        $reply              = '';
+        $billingTransactID  = $this->receivedJSON['merchant_prepare_id'];
+        $paymentSumm        = $this->receivedJSON['amount'];
+        $opHash             = self::HASH_PREFIX . $billingTransactID;
 
-        if ($this->validateSign()) {
-            $billingTransactID = $this->receivedJSON['merchant_prepare_id'];
-            $opHash = self::HASH_PREFIX . $billingTransactID;
+        if ($this->checkTransactionExists($billingTransactID)) {
+            $transactData = $this->getTransactionData($billingTransactID);
+            $transactSumm = $transactData['amount'];
 
-            if ($this->checkTransactionExists($billingTransactID)) {
+            if ($paymentSumm == $transactSumm) {
                 $opHashData = $this->getOPHashData($opHash);
 
                 if (empty($opHashData)) {
-                    $paymentSumm = $this->receivedJSON['amount'];
-
                     //push transaction to database
                     op_TransactionAdd($opHash, $paymentSumm, $this->customerID, self::PAYSYS, 'ClickUZ payment ID: ' . $this->clickTransactID);
                     op_ProcessHandlers();
@@ -499,15 +512,15 @@ class ClickUZ {
                                    'error_note'          => $this->errorCodes['0']
                     );
                     $reply = json_encode($reply);
-                } else {
+                }
+                else {
                     $reply = $this->replyError('-4');
                 }
-            }
-            else {
-                $reply = $this->replyError('-6');
+            } else {
+                $reply = $this->replyError('-2');
             }
         } else {
-            $reply = $this->replyError('-1');
+            $reply = $this->replyError('-6');
         }
 
         die($reply);
@@ -522,17 +535,25 @@ class ClickUZ {
      */
     protected function replyError($errorCode) {
         $reply = array();
+        $merchTransactID = $this->clickTransactID . $this->serviceID;
+        $merchTransactIDName = '';
+
 
         if ($this->paymentMethod == 'getinfo') {
-            $reply = array('error'              => $errorCode,
-                           'error_note'         => $this->errorCodes[$errorCode]
+            $reply = array('error'      => $errorCode,
+                           'error_note' => $this->errorCodes[$errorCode]
                           );
         } else {
-            $merchTransactIDName = ($this->paymentMethod == 'prepare' ? 'merchant_prepare_id' : 'merchant_confirm_id');
+            if ($this->paymentMethod == 'prepare') {
+                $merchTransactIDName = 'merchant_prepare_id';
+            } else {
+                $merchTransactIDName = 'merchant_confirm_id';
+                $merchTransactID = (empty($this->receivedJSON['merchant_prepare_id']) ? $merchTransactID : $this->receivedJSON['merchant_prepare_id']);
+            }
 
             $reply = array('click_trans_id'     => $this->clickTransactID,
                            'merchant_trans_id'  => $this->customerID,
-                           $merchTransactIDName => 'NULL',
+                           $merchTransactIDName => $merchTransactID,
                            'error'              => $errorCode,
                            'error_note'         => $this->errorCodes[$errorCode]
                           );
@@ -553,32 +574,37 @@ class ClickUZ {
                                     ? $this->receivedJSON['params']['contract']
                                     : $this->receivedJSON['merchant_trans_id'] );
 
-        if (!empty($this->opCustomersAll[$this->customerID])) {
-            $this->userLogin = $this->opCustomersAll[$this->customerID];
+        if ($this->validateSign()) {
+            if (!empty($this->opCustomersAll[$this->customerID])) {
+                $this->userLogin = $this->opCustomersAll[$this->customerID];
 
-            if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->userLogin)) {
+                if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->userLogin)) {
+                    die($this->replyError('-5'));
+                }
+
+                switch ($this->paymentMethod) {
+                    case 'getinfo':
+                        $this->replyGetInfo();
+                        break;
+
+                    case 'prepare':
+                        $this->replyPrepare();
+                        break;
+
+                    case 'complete':
+                        $this->replyComplete();
+                        break;
+
+                    default:
+                        die($this->replyError('-3'));
+                }
+
+            }
+            else {
                 die($this->replyError('-5'));
             }
-
-            switch ($this->paymentMethod) {
-                case 'getinfo':
-                    $this->replyGetInfo();
-                    break;
-
-                case 'prepare':
-                    $this->replyPrepare();
-                    break;
-
-                case 'complete':
-                    $this->replyComplete();
-                    break;
-
-                default:
-                    die($this->replyError('-3'));
-            }
-
         } else {
-            die($this->replyError('-5'));
+            die($this->replyError('-1'));
         }
     }
 
@@ -589,13 +615,15 @@ class ClickUZ {
      * @return void
      */
     public function listen() {
-        $this->paymentMethod = $_GET['payment_method'];
+        if (!empty($_GET['payment_method'])) {
+            $this->paymentMethod = $_GET['payment_method'];
 
-        if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
-            $this->receivedJSON = json_decode(file_get_contents('php://input'), true);
+            if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
+                parse_str(file_get_contents('php://input'), $this->receivedJSON);
 
-            if (!empty($this->receivedJSON)) {
-                $this->processRequest();
+                if (!empty($this->receivedJSON)) {
+                   $this->processRequest();
+                }
             }
         }
     }
