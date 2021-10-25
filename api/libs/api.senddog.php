@@ -356,16 +356,16 @@ class SendDog {
         }
 
 //telegram bot token configuration
-        if ($_POST['edittelegrambottoken'] != $this->settings['TELEGRAM_BOTTOKEN']) {
-            zb_StorageSet('SENDDOG_TELEGRAM_BOTTOKEN', $_POST['edittelegrambottoken']);
+        if (ubRouting::post('edittelegrambottoken') != $this->settings['TELEGRAM_BOTTOKEN']) {
+            zb_StorageSet('SENDDOG_TELEGRAM_BOTTOKEN', ubRouting::post('edittelegrambottoken'));
             log_register('SENDDOG CONFIG SET TELEGRAMBOTTOKEN');
         }
 
 
 //default sms service
-        if ($_POST['defaultsmsservice'] != $this->settings['SMS_SERVICE']) {
-            zb_StorageSet('SENDDOG_SMS_SERVICE', $_POST['defaultsmsservice']);
-            log_register('SENDDOG CONFIG SET SMSSERVICE `' . $_POST['defaultsmsservice'] . '`');
+        if (ubRouting::post('defaultsmsservice') != $this->settings['SMS_SERVICE']) {
+            zb_StorageSet('SENDDOG_SMS_SERVICE', ubRouting::post('defaultsmsservice'));
+            log_register('SENDDOG CONFIG SET SMSSERVICE `' . ubRouting::post('defaultsmsservice') . '`');
         }
     }
 
