@@ -875,7 +875,7 @@ class OnuRegister {
      * @return string
      */
     protected function hexToString($hex) {
-        return pack('H*', $hex);
+        return (@pack('H*', $hex)); //TODO: something strange happens here after 1.2.1
     }
 
 //Main section
@@ -1143,7 +1143,7 @@ class OnuRegister {
             $tmp[1] = $tmpSn[2];
             $tmp[2] = $tmpSn[3];
             $tmp[3] = $tmpSn[4];
-            $tmp[4] = $tmpSn[5] . $tmpSn[6] . $tmpSn[7] . $tmpSn[8];
+            @$tmp[4] = $tmpSn[5] . $tmpSn[6] . $tmpSn[7] . $tmpSn[8];
             $sn = $tmp;
         }
         $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]) . $tmp[4];
