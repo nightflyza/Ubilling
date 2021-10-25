@@ -604,8 +604,9 @@ function zb_CheckLoginRscriptdCompat($login) {
  */
 function web_UserRegFormNetData($newuser_data) {
     global $registerSteps;
+    global $ubillingConfig;
     $currentStep = 4;
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['BRANCHES_ENABLED']) {
         global $branchControl;
     }
@@ -703,7 +704,8 @@ function web_UserRegFormNetData($newuser_data) {
         $form .= wf_tag('td', false);
         $form .= $branchControl->branchSelector('reguserbranchid') . ' ';
         if ((!cfr('BRANCHES')) OR ( cfr('ROOT'))) {
-            $form .= wf_CheckInput('reguserwithnobranch', __('Register user with no branch'), false, true);
+            $branchCheckboxFlag = ($ubillingConfig->getAlterParam('USERREG_NO_BRANCH_DEFAULT')) ? true : false;
+            $form .= wf_CheckInput('reguserwithnobranch', __('Register user with no branch'), false, $branchCheckboxFlag);
         }
         $form .= wf_tag('td', true);
         $form .= wf_tag('td', false);
@@ -1105,11 +1107,11 @@ function zb_UserRegister($user_data, $goprofile = true) {
 
 //contract template is ON
             if ($useContractTemplate) {
-                $contractTemplateSplitted   = zb_GetBaseContractTemplateSplitted();
-                $startContractTplPart       = $contractTemplateSplitted[0];
-                $endContractTplPart         = $contractTemplateSplitted[1];
-                $digitContractTplPart       = $contractTemplateSplitted[2];
-                $digitBlockLength           = zb_GetContractDigitBlockTplParams($digitContractTplPart, true);
+                $contractTemplateSplitted = zb_GetBaseContractTemplateSplitted();
+                $startContractTplPart = $contractTemplateSplitted[0];
+                $endContractTplPart = $contractTemplateSplitted[1];
+                $digitContractTplPart = $contractTemplateSplitted[2];
+                $digitBlockLength = zb_GetContractDigitBlockTplParams($digitContractTplPart, true);
             }
 
 //contract generation mode default
@@ -1133,9 +1135,9 @@ function zb_UserRegister($user_data, $goprofile = true) {
 
                 if ($useContractTemplate) {
                     $contractDigitBlock = zb_ExtractContractDigitPart($max_contract, $digitBlockLength, true);
-                    $contract_proposal  = $startContractTplPart . $contractDigitBlock . $endContractTplPart;
+                    $contract_proposal = $startContractTplPart . $contractDigitBlock . $endContractTplPart;
                 } else {
-                    $contract_proposal  = $max_contract + 1;
+                    $contract_proposal = $max_contract + 1;
                 }
             }
 
