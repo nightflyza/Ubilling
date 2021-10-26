@@ -553,7 +553,7 @@ class PowerTariffs {
                             if ($this->chargeOnRegister) {
                                 $realCurrentDay = date("d");
                                 //avoid double tax rates :P
-                                if ($realCurrentDay <= $this->maxDay) {
+                                if ($realCurrentDay < $this->maxDay) {
                                     $tariffData = $this->allTariffs[$userData['Tariff']];
                                     $tariffFee = $tariffData['fee'];
                                     $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
