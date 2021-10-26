@@ -1080,7 +1080,8 @@ function ts_TaskCreateForm() {
     if (!empty($alljobtypes) AND ! empty($allemployee)) {
         //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
-            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            $smsCheckBox = (@$altercfg['TASKMAN_SMS_PROFILE_CHECK']) ? true : false;
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
             // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
@@ -1154,7 +1155,8 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 
         //construct sms sending inputs
         if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
-            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
             // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = ($ubillingConfig->getAlterParam('TASKMAN_TELEGRAM_PROFILE_CHECK')) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
@@ -1337,7 +1339,8 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '', $custo
 
         //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
-            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
             // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
@@ -1401,7 +1404,8 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     if (!empty($alljobtypes) AND ! empty($allemployee)) {
         //construct sms sending inputs
         if ($altercfg['SENDDOG_ENABLED']) {
-            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+            $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
+            $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, $smsCheckBox);
             // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
             $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
             $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
@@ -1827,7 +1831,8 @@ function ts_TaskModifyForm($taskid) {
     $alljobtypes = ts_GetAllJobtypes();
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
-        $smsInputs = wf_CheckInput('changetasksendsms', __('Send SMS'), false, false);
+        $smsCheckBox = ($ubillingConfig->getAlterParam('TASKMAN_SMS_PROFILE_CHECK')) ? true : false;
+        $smsInputs = wf_CheckInput('changetasksendsms', __('Send SMS'), false, $smsCheckBox);
         // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
         $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
         $telegramInputs = wf_CheckInput('changetasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
