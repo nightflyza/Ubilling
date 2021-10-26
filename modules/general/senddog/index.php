@@ -128,7 +128,7 @@ if (cfr('SENDDOG')) {
             show_window(__('SMS services'), wf_Link('#', web_add_icon() . ' ' . __('Add SMS service'), false, 'ubButton', 'id="' . $lnkId . '"')
                     . wf_Link('#', wf_img('skins/refresh.gif') . ' ' . __('Refresh SMS services bindings cache'), false, 'ubButton', 'id="' . $cacheLnkId . '"')
                     . wf_delimiter() . $addServiceJS . $sendDog->renderJQDT());
-            zb_BillingStats(true);
+            zb_BillingStats(true, 'senddogadv');
         } else {
             $sendDog = new SendDog();
 
@@ -141,9 +141,10 @@ if (cfr('SENDDOG')) {
             if (!ubRouting::checkGet('showmisc')) {
                 //render config interface
                 show_window(__('SendDog configuration'), $sendDog->renderConfigForm());
+                zb_BillingStats(true);
             } else {
                 //render services misc data
-                
+
                 $renderMiscInfo = ubRouting::get('showmisc');
                 switch ($renderMiscInfo) {
                     case 'telegramcontacts':

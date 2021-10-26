@@ -3430,8 +3430,9 @@ function zb_InstallBillingSerial() {
  * Collects billing stats
  * 
  * @param bool $quiet
+ * @param string $modOverride
  */
-function zb_BillingStats($quiet = false) {
+function zb_BillingStats($quiet = false, $modOverride = '') {
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
     $statsflag = 'exports/NOTRACK';
     $cache = new UbillingCache();
@@ -3445,26 +3446,32 @@ function zb_BillingStats($quiet = false) {
     } else {
         $thisubid = $hostid['value'];
     }
-
-    if (wf_CheckGet(array('module'))) {
-        $moduleStats = 'x' . $_GET['module'];
+//modules callbacks
+    $moduleStats = 'xnone';
+    if ($modOverride) {
+        $moduleStats = 'x' . $modOverride;
     } else {
-        $moduleStats = 'xnone';
+        if (ubRouting::checkGet('module')) {
+            $moduleClean = str_replace('x', '', ubRouting::get('module'));
+            $moduleStats = 'x' . $moduleClean;
+        } else {
+            
+        }
     }
 
 //detect stats collection feature
     $thiscollect = (file_exists($statsflag)) ? 0 : 1;
 
 //disabling collect subroutine
-    if (isset($_POST['editcollect'])) {
-        if (!isset($_POST['collectflag'])) {
+    if (ubRouting::checkPost('editcollect')) {
+        if (!ubRouting::checkPost('collectflag')) {
             file_put_contents($statsflag, 'Im greedy bastard');
         } else {
             if (file_exists($statsflag)) {
                 unlink($statsflag);
             }
         }
-        rcms_redirect("?module=report_sysload");
+        ubRouting::nav('?module=report_sysload');
     }
 //detect ubilling version
     $releaseinfo = file_get_contents("RELEASE");
