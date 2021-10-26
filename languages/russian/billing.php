@@ -3301,3 +3301,4 @@ $lang['def']['Returns'] = 'Возвраты';
 $lang['def']['is restored to server'] = 'восстановлена на сервере';
 $lang['def']['SendDog is sleeping'] = 'Собака-посылака спит';
 $lang['def']['SendDog is working'] = 'Собака-посылака работает';
+$lang['def']['Timeout'] = 'Таймаут';
