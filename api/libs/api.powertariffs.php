@@ -557,6 +557,8 @@ class PowerTariffs {
                                     $tariffData = $this->allTariffs[$userData['Tariff']];
                                     $tariffFee = $tariffData['fee'];
                                     $this->chargeFee($userLogin, $tariffFee, $userData['Cash']);
+                                } else {
+                                    log_register('PT USER (' . $userLogin . ') SKIP FEE ON DAY `' . $realCurrentDay . '`');
                                 }
                             }
                         }
