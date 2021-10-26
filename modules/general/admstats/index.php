@@ -243,8 +243,8 @@ if (cfr('ROOT')) {
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($worktimeStats as $eachAdmin => $worktime) {
                     $cells = wf_TableCell($eachAdmin);
-                    $cells .= wf_TableCell(zb_formatTime($worktime),'','','sorttable_customkey="'.$worktime.'"');
-                    $cells .= wf_TableCell(web_bar($worktime, $totalWorktime),'40%','','sorttable_customkey="'.$worktime.'"');
+                    $cells .= wf_TableCell(zb_formatTime($worktime), '', '', 'sorttable_customkey="' . $worktime . '"');
+                    $cells .= wf_TableCell(web_bar($worktime, $totalWorktime), '40%', '', 'sorttable_customkey="' . $worktime . '"');
                     $rows .= wf_TableRow($cells, 'row5');
                 }
                 $result .= wf_TableBody($rows, '100%', 0, 'sortable');
@@ -272,6 +272,7 @@ if (cfr('ROOT')) {
     $admStats = new AdministratorStats();
     show_window('', wf_BackLink('?module=permissions'));
     show_window(__('Administrators timeline'), $admStats->renderReport());
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }

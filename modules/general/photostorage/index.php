@@ -3,8 +3,6 @@
 $altCfg = $ubillingConfig->getAlter();
 if ($altCfg['PHOTOSTORAGE_ENABLED']) {
     if (cfr('PHOTOSTORAGE')) {
-
-
         if (ubRouting::checkGet(array('scope', 'itemid'))) {
             $photoStorage = new PhotoStorage(ubRouting::get('scope'), ubRouting::get('itemid'));
 
@@ -56,6 +54,7 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
             // rendering uploaded images gallery
             $photostorage = new PhotoStorage('GALLERY', 'nope');
             show_window(__('Uploaded images'), $photostorage->renderScopesGallery(12, true));
+            zb_BillingStats(true, 'photogallery');
         }
     } else {
         show_error(__('You cant control this module'));
