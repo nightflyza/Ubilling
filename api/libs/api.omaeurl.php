@@ -34,6 +34,20 @@ class OmaeUrl {
     protected $errorCode = 0;
 
     /**
+     * Contains last request http code
+     *
+     * @var int
+     */
+    protected $httpCode = 0;
+
+    /**
+     * Contains last request curl info array or false on error
+     *
+     * @var array/bool
+     */
+    protected $lastRequestInfo = array();
+
+    /**
      * Is error happens flag
      *
      * @var bool
@@ -350,6 +364,10 @@ class OmaeUrl {
             $result .= curl_exec($ch);
             $this->errorCode = curl_errno($ch);
             $this->errorMessage = curl_error($ch);
+            $this->lastRequestInfo = curl_getinfo($ch);
+            if (is_array($this->lastRequestInfo)) {
+                $this->httpCode = $this->lastRequestInfo['http_code'];
+            }
             if ($this->errorCode OR $this->errorMessage) {
                 $this->error = true;
             }
@@ -372,6 +390,24 @@ class OmaeUrl {
             $result['errormessage'] = $this->errorMessage;
         }
         return($result);
+    }
+
+    /**
+     * Returns last request http code. 0 - on fail.
+     * 
+     * @return int
+     */
+    public function httpCode() {
+        return($this->httpCode);
+    }
+
+    /**
+     * Returns last request full info
+     * 
+     * @return array/bool
+     */
+    public function lastRequestInfo() {
+        return($this->lastRequestInfo);
     }
 
     /**

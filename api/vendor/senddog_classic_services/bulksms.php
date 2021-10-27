@@ -7,6 +7,16 @@
 class bulksms extends SendDogProto {
 
     /**
+     * Option name that enabled record of service debug log
+     */
+    const DEBUG_OPTION = 'SENDDOG_BULKSMS_DEBUG';
+
+    /**
+     * Default debug log path
+     */
+    const DEBUGLOG_PATH = 'exports/bulksmsdebug.log';
+
+    /**
      * Sends all messages from queue using bulksms.md service
      *
      * @return void
@@ -38,7 +48,17 @@ class bulksms extends SendDogProto {
                     $bulkSmsApi->dataGet('to', $eachSms['number']);
                     $bulkSmsApi->dataGet('text', $messageTextEncoded);
 
-                    $bulkSmsApi->response(); //push request
+                    $sendResult = $bulkSmsApi->response(); //push request
+                    //debug log is here and optional
+                    if ($this->ubConfig->getAlterParam(self::DEBUG_OPTION)) {
+                        file_put_contents(self::DEBUGLOG_PATH, curdatetime() . PHP_EOL, FILE_APPEND);
+                        file_put_contents(self::DEBUGLOG_PATH, '===============' . PHP_EOL, FILE_APPEND);
+                        file_put_contents(self::DEBUGLOG_PATH, $sendResult . PHP_EOL, FILE_APPEND);
+                        file_put_contents(self::DEBUGLOG_PATH, 'HTTP Code: ' . print_r($bulkSmsApi->httpCode(), true) . PHP_EOL, FILE_APPEND);
+                        file_put_contents(self::DEBUGLOG_PATH, 'Errors: ' . print_r($bulkSmsApi->error(), true) . PHP_EOL, FILE_APPEND);
+                        file_put_contents(self::DEBUGLOG_PATH, 'Request info: ' . print_r($bulkSmsApi->lastRequestInfo(), true) . PHP_EOL, FILE_APPEND);
+                        file_put_contents(self::DEBUGLOG_PATH, '===============' . PHP_EOL, FILE_APPEND);
+                    }
                     $bulkSmsApi->dataGet(); //flush get data for next request
                     //remove already sent message
                     $this->smsQueue->deleteSms($eachSms['filename']);
