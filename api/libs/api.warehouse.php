@@ -3673,6 +3673,10 @@ class Warehouse {
         $sum = 0;
         $outcomesCount = 0;
         $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
+        $returnsFlag = (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) ? true : false;
+        if ($returnsFlag) {
+            $this->loadReturns();
+        }
         if (!empty($this->allOutcoming)) {
             $tmpArr = $this->allOutcoming;
             if (!empty($tmpArr)) {
@@ -3691,6 +3695,14 @@ class Warehouse {
                 }
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($tmpArr as $io => $each) {
+                    $operationReturned = false;
+
+                    if ($returnsFlag) {
+                        if (isset($this->allReturns[$each['id']])) {
+                            $operationReturned = true;
+                        }
+                    }
+
                     @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                     $cells = wf_TableCell($each['date']);
                     $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
@@ -3712,7 +3724,13 @@ class Warehouse {
                     if (cfr('WAREHOUSEOUT')) {
                         $cells .= wf_TableCell($actLinks);
                     }
-                    $rows .= wf_TableRow($cells, 'row5');
+
+                    $rowClass = 'row5';
+                    if ($operationReturned) {
+                        $rowClass = 'ukvbankstadup';
+                    }
+
+                    $rows .= wf_TableRow($cells, $rowClass);
                     $sum = $sum + ($each['price'] * $each['count']);
                     $outcomesCount++;
                 }
@@ -3756,10 +3774,13 @@ class Warehouse {
         $notesFlag = (@$this->altCfg['WAREHOUSE_TASKMANNOTES']) ? true : false;
         $onlyTaskFilterFlag = (ubRouting::checkGet('onlytasks')) ? true : false;
         $onlyUserFilterFlag = (ubRouting::checkGet('onlyuser')) ? true : false;
+        $returnsFlag = (@$this->altCfg['WAREHOUSE_RETURNS_ENABLED']) ? true : false;
+        if ($returnsFlag) {
+            $this->loadReturns();
+        }
         if (!empty($this->allOutcoming)) {
             //prefiltering outcome operations
             foreach ($this->allOutcoming as $io => $each) {
-
                 if (!$onlyUserFilterFlag) {
                     //filter by taskId
                     if ($each['desttype'] == 'task' AND isset($tasksArr[$each['destparam']])) {
@@ -3793,6 +3814,13 @@ class Warehouse {
                 }
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($tmpArr as $io => $each) {
+                    $operationReturned = false;
+                    if ($returnsFlag) {
+                        if (isset($this->allReturns[$each['id']])) {
+                            $operationReturned = true;
+                        }
+                    }
+
                     @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                     $cells = wf_TableCell($each['date']);
                     $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
@@ -3815,7 +3843,12 @@ class Warehouse {
                     if (cfr('WAREHOUSEOUT')) {
                         $cells .= wf_TableCell($actLinks);
                     }
-                    $rows .= wf_TableRow($cells, 'row5');
+
+                    $rowClass = 'row5';
+                    if ($operationReturned) {
+                        $rowClass = 'ukvbankstadup';
+                    }
+                    $rows .= wf_TableRow($cells, $rowClass);
                     $sum = $sum + ($each['price'] * $each['count']);
                     $outcomesCount++;
                 }
@@ -4724,7 +4757,7 @@ class Warehouse {
     }
 
     /**
-     * Renders
+     * Renders returned operations list
      * 
      * @return void
      */
