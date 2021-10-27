@@ -3703,7 +3703,13 @@ class Warehouse {
                         }
                     }
 
+
                     @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                    $rowClass = 'row5';
+                    if ($operationReturned) {
+                        $rowClass = 'ukvbankstadup';
+                        $itemUnit .= ' ' . wf_img_sized('skins/return.png', __('All items from this outcoming operation is already returned to warehouse storage'), '12');
+                    }
                     $cells = wf_TableCell($each['date']);
                     $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
                     $cells .= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
@@ -3725,10 +3731,6 @@ class Warehouse {
                         $cells .= wf_TableCell($actLinks);
                     }
 
-                    $rowClass = 'row5';
-                    if ($operationReturned) {
-                        $rowClass = 'ukvbankstadup';
-                    }
 
                     $rows .= wf_TableRow($cells, $rowClass);
                     $sum = $sum + ($each['price'] * $each['count']);
@@ -3822,6 +3824,11 @@ class Warehouse {
                     }
 
                     @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                    $rowClass = 'row5';
+                    if ($operationReturned) {
+                        $rowClass = 'ukvbankstadup';
+                        $itemUnit .= ' ' . wf_img_sized('skins/return.png', __('All items from this outcoming operation is already returned to warehouse storage'), '12');
+                    }
                     $cells = wf_TableCell($each['date']);
                     $cells .= wf_TableCell(@$this->allStorages[$each['storageid']]);
                     $cells .= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
@@ -3844,10 +3851,7 @@ class Warehouse {
                         $cells .= wf_TableCell($actLinks);
                     }
 
-                    $rowClass = 'row5';
-                    if ($operationReturned) {
-                        $rowClass = 'ukvbankstadup';
-                    }
+
                     $rows .= wf_TableRow($cells, $rowClass);
                     $sum = $sum + ($each['price'] * $each['count']);
                     $outcomesCount++;
