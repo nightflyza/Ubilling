@@ -29,6 +29,7 @@ class bulksms extends SendDogProto {
                 if (!empty($eachSms['number']) AND ! empty($eachSms['message'])) {
                     //appending credentials and SMS content data
                     $sendToNumber = $eachSms['number']; //may be some postprocessing will be required here
+                    $sendToNumber = str_replace('+', '', $sendToNumber); // service accepts phones only without + symbol
                     $messageTextEncoded = urlencode($eachSms['message']); //just urlencoded message
 
                     $bulkSmsApi->dataGet('username', $this->settings['BULKSMS_LOGIN']);
