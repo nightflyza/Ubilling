@@ -27,13 +27,6 @@ class UserProfile {
     protected $userdata = array();
 
     /**
-     * Array of all available non cached login=>address mappings
-     *
-     * @var array
-     */
-    protected $alladdress = array();
-
-    /**
      * Current user phone data as 'phone' and 'mobile' keys array
      *
      * @var array
@@ -692,8 +685,9 @@ class UserProfile {
         if ($this->alterCfg['USER_LINKING_ENABLED']) {
             $alllinkedusers = cu_GetAllLinkedUsers();
             if (isset($alllinkedusers[$this->login])) {
+                $allUserAddress = zb_AddressGetFulladdresslistCached();
                 $parent_login = cu_GetParentUserLogin($alllinkedusers[$this->login]);
-                $result = wf_Link('?module=corporate&userlink=' . $alllinkedusers[$this->login], wf_img('skins/corporate_small.gif') . __('User linked with') . ': ' . @$this->alladdress[$parent_login], false, '');
+                $result = wf_Link('?module=corporate&userlink=' . $alllinkedusers[$this->login], wf_img('skins/corporate_small.gif') . __('User linked with') . ': ' . @$allUserAddress[$parent_login], false, '');
             }
         }
 
