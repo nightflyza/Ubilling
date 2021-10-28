@@ -45,7 +45,7 @@ class bulksms extends SendDogProto {
                     $bulkSmsApi->dataGet('username', $this->settings['BULKSMS_LOGIN']);
                     $bulkSmsApi->dataGet('password', $this->settings['BULKSMS_PASSWORD']);
                     $bulkSmsApi->dataGet('from', $this->settings['BULKSMS_SIGN']);
-                    $bulkSmsApi->dataGet('to', $eachSms['number']);
+                    $bulkSmsApi->dataGet('to', $sendToNumber);
                     $bulkSmsApi->dataGet('text', $messageTextEncoded);
 
                     $sendResult = $bulkSmsApi->response(); //push request
