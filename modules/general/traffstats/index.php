@@ -5,6 +5,7 @@ if (cfr('TRAFFSTATS')) {
     if ($ubillingConfig->getAlterParam('BANDWIDTHD_PROXY')) {
         if (ubRouting::checkGet('loadimg')) {
             $remoteImageUrl = base64_decode(ubRouting::get('loadimg'));
+            $remoteImageUrl = trim($remoteImageUrl);
             if (!empty($remoteImageUrl)) {
                 $remoteImg = new OmaeUrl($remoteImageUrl);
                 $remoteImg->setTimeout(1);
