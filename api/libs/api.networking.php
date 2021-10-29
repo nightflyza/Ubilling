@@ -990,7 +990,7 @@ function multinet_cidr2mask($mask_bits) {
  */
 function multinet_rebuild_globalconf() {
     global $ubillingConfig;
-    
+
     $global_template = file_get_contents("config/dhcp/global.template");
     $subnets_template = file_get_contents("config/dhcp/subnets.template");
     $alldhcpsubnets = dhcp_get_all_data_assoc();
@@ -1608,6 +1608,7 @@ function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
     $netid = vf($netid, 3);
     $nasname = mysql_real_escape_string($nasname);
     $nastype = vf($nastype);
+    $bandw = trim($bandw);
     $bandw = mysql_real_escape_string($bandw);
     $nasip = mysql_real_escape_string($nasip);
     $query = "INSERT INTO `nas` (`id` ,`netid` , `nasip` , `nasname` , `nastype` , `bandw`) VALUES
@@ -2579,12 +2580,12 @@ function trimSNMPOutput($snmpData, $oid, $returnAsStr = false, $oidValue = array
  * @return array
  */
 function ipcidrToStartEndIP($ipcidr, $excludeNetworkAddr = false, $excludeBroadcastAddr = false) {
-    $range      = array();
-    $ipcidr     = explode('/', $ipcidr);
-    $startip    = (ip2long($ipcidr[0])) & ((-1 << (32 - (int)$ipcidr[1])));
-    $endip      = $startip + pow(2, (32 - (int)$ipcidr[1])) - 1;
-    $startip    = ($excludeNetworkAddr ? $startip + 1 : $startip);
-    $endip      = ($excludeBroadcastAddr ? $endip - 1 : $endip);
+    $range = array();
+    $ipcidr = explode('/', $ipcidr);
+    $startip = (ip2long($ipcidr[0])) & ((-1 << (32 - (int) $ipcidr[1])));
+    $endip = $startip + pow(2, (32 - (int) $ipcidr[1])) - 1;
+    $startip = ($excludeNetworkAddr ? $startip + 1 : $startip);
+    $endip = ($excludeBroadcastAddr ? $endip - 1 : $endip);
 
     $range['startip'] = long2ip($startip);
     $range['endip'] = long2ip($endip);

@@ -119,7 +119,8 @@ if (cfr('NAS')) {
             $nastype = vf($_POST['editnastype']);
             $nasip = mysql_real_escape_string($_POST['editnasip']);
             $nasname = mysql_real_escape_string($_POST['editnasname']);
-            $nasbwdurl = mysql_real_escape_string($_POST['editnasbwdurl']);
+            $nasbwdurl = trim($_POST['editnasbwdurl']);
+            $nasbwdurl = mysql_real_escape_string($nasbwdurl);
             $netid = vf($_POST['networkselect']);
 
             simple_update_field('nas', 'nastype', $nastype, $targetnas);
