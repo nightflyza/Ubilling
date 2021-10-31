@@ -75,11 +75,10 @@ function clickuz_PaymentForm($customer_id) {
     global $clickuzConf;
 
     $cardType = $clickuzConf['CARD_TYPE'];
-    $currency = $clickuzConf['CURRENCY'];
     $summ = trim($_POST['amount']);
     $returnURL = $clickuzConf['RETURN_URL'];
 
-    if (isset($clickuzConf['MERCHANT_ID']['default']) AND isset($clickuzConf['SIGNATURE']['default']) AND isset($clickuzConf['MERCHANT_SERVICE_ID']['default']) ) {
+    if (isset($clickuzConf['MERCHANT_ID']['default']) AND isset($clickuzConf['MERCHANT_SERVICE_ID']['default']) ) {
         $avaibleTagsRaw = explode(',', $clickuzConf['AVAIBLE_TAGS_ID']);
         if (!empty($avaibleTagsRaw)) {
             $where = '';
@@ -97,21 +96,17 @@ function clickuz_PaymentForm($customer_id) {
             if (!empty($data)) {
                 $tag_id = $data['tagid'];
                 $merchant_id = $clickuzConf['MERCHANT_ID'][$tag_id];
-                $signature = $clickuzConf['SIGNATURE'][$tag_id];
                 $merchant_service_id = $clickuzConf['MERCHANT_SERVICE_ID'][$tag_id];
             } else {
                 $merchant_id = $clickuzConf['MERCHANT_ID']['default'];
-                $signature = $clickuzConf['SIGNATURE']['default'];
                 $merchant_service_id = $clickuzConf['MERCHANT_SERVICE_ID']['default'];
             }
         } else {
             $merchant_id = $clickuzConf['MERCHANT_ID']['default'];
-            $signature = $clickuzConf['SIGNATURE']['default'];
             $merchant_service_id = $clickuzConf['MERCHANT_SERVICE_ID']['default'];
         }
     } else {
         $merchant_id = $clickuzConf['MERCHANT_ID'];
-        $signature = $clickuzConf['SIGNATURE'];
         $merchant_service_id = $clickuzConf['MERCHANT_SERVICE_ID'];
     }
 
