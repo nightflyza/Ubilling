@@ -1614,7 +1614,8 @@ function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
     $query = "INSERT INTO `nas` (`id` ,`netid` , `nasip` , `nasname` , `nastype` , `bandw`) VALUES
               (NULL , '" . $netid . "', '" . $nasip . "', '" . $nasname . "',  '" . $nastype . "', '" . $bandw . "' );";
     nr_query($query);
-    log_register('NAS ADD `' . $nasip . '`');
+    $newId = simple_get_lastid('nas');
+    log_register('NAS ADD [' . $newId . '] `' . $nasip . '`');
 }
 
 /**

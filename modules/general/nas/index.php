@@ -3,27 +3,29 @@
 if (cfr('NAS')) {
     $altCfg = $ubillingConfig->getAlter();
 
-    if (isset($_GET['delete'])) {
-        $deletenas = $_GET['delete'];
+    //NAS deletion
+    if (ubRouting::checkGet('delete', false)) {
+        $deletenas = ubRouting::get('delete', 'int');
         zb_NasDelete($deletenas);
         zb_NasConfigSave();
         if (@$altCfg['MULTIGEN_ENABLED']) {
             $multigen = new MultiGen();
             $multigen->deleteAllNasConfiguration($deletenas);
         }
-        rcms_redirect("?module=nas");
+        ubRouting::nav('?module=nas');
     }
 
-    if (isset($_POST['newnasip'])) {
-        $newnasip = $_POST['newnasip'];
-        $newnetid = $_POST['networkselect'];
-        $newnasname = $_POST['newnasname'];
-        $newnastype = $_POST['newnastype'];
-        $newbandw = $_POST['newbandw'];
+    //NAS creation
+    if (ubRouting::checkPost('newnasip')) {
+        $newnasip = ubRouting::post('newnasip');
+        $newnetid = ubRouting::post('networkselect');
+        $newnasname = ubRouting::post('newnasname');
+        $newnastype = ubRouting::post('newnastype');
+        $newbandw = ubRouting::post('newbandw');
         if ((!empty($newnasip)) AND ( !empty($newnasname))) {
             zb_NasAdd($newnetid, $newnasip, $newnasname, $newnastype, $newbandw);
             zb_NasConfigSave();
-            rcms_redirect("?module=nas");
+            ubRouting::nav('?module=nas');
         }
     }
 
@@ -48,7 +50,7 @@ if (cfr('NAS')) {
         'bandw'
     );
 
-    if (!wf_CheckGet(array('edit'))) {
+    if (!ubRouting::checkGet('edit', false)) {
         $radiusControls = '';
         if ($altCfg['FREERADIUS_ENABLED']) {
             $freeRadiusClientsData = web_FreeRadiusListClients();
@@ -73,18 +75,18 @@ if (cfr('NAS')) {
         //vlangen patch start
         if ($altCfg['VLANGEN_SUPPORT']) {
             $terminator = new VlanTerminator;
-            if (isset($_GET['DeleteTerminator'])) {
-                $TermID = $_GET['DeleteTerminator'];
+            if (ubRouting::checkGet('DeleteTerminator', false)) {
+                $TermID = ubRouting::get('DeleteTerminator');
                 $terminator->delete($TermID);
-                rcms_redirect(VlanTerminator::MODULE_URL);
+                ubRouting::nav(VlanTerminator::MODULE_URL);
             }
 
-            if (!isset($_GET['EditTerminator'])) {
-                if (isset($_POST['AddTerminator'])) {
+            if (!ubRouting::checkGet('EditTerminator', false)) {
+                if (ubRouting::checkPost('AddTerminator', false)) {
                     $terminator_req = array('IP', 'Username', 'Password');
                     if (wf_CheckPost($terminator_req)) {
-                        $terminator->add($_POST['NetworkSelected'], $_POST['VlanPoolSelected'], $_POST['IP'], $_POST['Type'], $_POST['Username'], $_POST['Password'], $_POST['RemoteID'], $_POST['Interface'], $_POST['Relay']);
-                        rcms_redirect(VlanTerminator::MODULE_URL);
+                        $terminator->add(ubRouting::post('NetworkSelected'), ubRouting::post('VlanPoolSelected'), ubRouting::post('IP'), ubRouting::post('Type'), ubRouting::post('Username'), ubRouting::post('Password'), ubRouting::post('RemoteID'), ubRouting::post('Interface'), ubRouting::post('Relay'));
+                        ubRouting::nav(VlanTerminator::MODULE_URL);
                     } else {
                         show_window(__('Error'), __('No all of required fields is filled'));
                     }
@@ -92,13 +94,13 @@ if (cfr('NAS')) {
                 $terminator->RenderTerminators();
                 $terminator->AddForm();
             } else {
-                if (isset($_GET['EditTerminator'])) {
-                    $term_id = $_GET['EditTerminator'];
-                    if (isset($_POST['TerminatorEdit'])) {
+                if (ubRouting::checkGet('EditTerminator', false)) {
+                    $term_id = ubRouting::get('EditTerminator');
+                    if (ubRouting::checkPost('TerminatorEdit', false)) {
                         $terminator_req = array('IP', 'Username', 'Password');
                         if (wf_CheckPost($terminator_req)) {
-                            $terminator->edit($_POST['NetworkSelected'], $_POST['VlanPoolSelected'], $_POST['IP'], $_POST['Type'], $_POST['Username'], $_POST['Password'], $_POST['RemoteID'], $_POST['Interface'], $_POST['Relay'], $term_id);
-                            rcms_redirect(VlanTerminator::MODULE_URL);
+                            $terminator->edit(ubRouting::post('NetworkSelected'), ubRouting::post('VlanPoolSelected'), ubRouting::post('IP'), ubRouting::post('Type'), ubRouting::post('Username'), ubRouting::post('Password'), ubRouting::post('RemoteID'), ubRouting::post('Interface'), ubRouting::post('Relay'), $term_id);
+                            ubRouting::nav(VlanTerminator::MODULE_URL);
                         } else {
                             show_window(__('Error'), __('No all of required fields is filled'));
                         }
@@ -110,18 +112,17 @@ if (cfr('NAS')) {
         //vlangen patch end
     } else {
         //show editing form
-        $nasid = vf($_GET['edit']);
+        $nasid = ubRouting::get('edit', 'int');
 
         //if someone editing nas
-        if (wf_CheckPost(array('editnastype'))) {
+        if (ubRouting::checkPost('editnastype')) {
             $targetnas = "WHERE `id` = '" . $nasid . "'";
 
-            $nastype = vf($_POST['editnastype']);
-            $nasip = mysql_real_escape_string($_POST['editnasip']);
-            $nasname = mysql_real_escape_string($_POST['editnasname']);
-            $nasbwdurl = trim($_POST['editnasbwdurl']);
-            $nasbwdurl = mysql_real_escape_string($nasbwdurl);
-            $netid = vf($_POST['networkselect']);
+            $nastype = ubRouting::post('editnastype', 'mres');
+            $nasip = ubRouting::post('editnasip', 'mres');
+            $nasname = ubRouting::post('editnasname', 'mres');
+            $nasbwdurl = trim(ubRouting::post('editnasbwdurl', 'mres'));
+            $netid = ubRouting::post('networkselect', 'int');
 
             simple_update_field('nas', 'nastype', $nastype, $targetnas);
             simple_update_field('nas', 'nasip', $nasip, $targetnas);
@@ -129,8 +130,8 @@ if (cfr('NAS')) {
             simple_update_field('nas', 'bandw', $nasbwdurl, $targetnas);
             simple_update_field('nas', 'netid', $netid, $targetnas);
             zb_NasConfigSave();
-            log_register("NAS EDIT " . $nasip);
-            rcms_redirect("?module=nas&edit=" . $nasid);
+            log_register('NAS EDIT [' . $nasid . '] `' . $nasip . '`');
+            ubRouting::nav('?module=nas&edit=' . $nasid);
         }
 
 
@@ -148,6 +149,7 @@ if (cfr('NAS')) {
         );
 
 
+        //rendering editing form
         $editinputs = multinet_network_selector($currentnetid) . "<br>";
         $editinputs .= wf_Selector('editnastype', $nastypes, 'NAS type', $currentnastype, true);
         $editinputs .= wf_TextInput('editnasip', 'IP', $currentnasip, true, '15', 'ip');
@@ -161,4 +163,4 @@ if (cfr('NAS')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+
