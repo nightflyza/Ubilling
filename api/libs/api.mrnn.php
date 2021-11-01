@@ -69,10 +69,17 @@ class MRNN {
     protected $debug = false;
 
     /**
+     * Contains network activation function type
+     *
+     * @var string
+     */
+    protected $activationFunction = 'def';
+
+    /**
      * What did you expect?
      */
-    public function __construct() {
-        //nothing to see here
+    public function __construct($activationFunction = 'def') {
+        $this->setActivationFunc($activationFunction);
     }
 
     /**
@@ -84,6 +91,24 @@ class MRNN {
      */
     public function setWeight($weight) {
         $this->weight = $weight;
+    }
+
+    /**
+     * Sets network instance activation function type
+     * 
+     * @param string $type
+     */
+    protected function setActivationFunc($type) {
+        $supportedTypes = array(
+            'def' => 'def',
+            'sigmoid' => 'sigmoid'
+        );
+
+        if (isset($supportedTypes[$type])) {
+            $this->activationFunction = $type;
+        } else {
+            throw new Exception('EX_WRONG_ACTFUNCTION');
+        }
     }
 
     /**
@@ -118,7 +143,18 @@ class MRNN {
      * @return float
      */
     protected function sigmoid($value) {
-        return 1 / (1 + exp(-$value));
+        return (1 / (1 + exp(-$value)));
+    }
+
+    /**
+     * Inverse of native sigmoid function
+     * 
+     * @param float $value
+     * 
+     * @return float 
+     */
+    protected function unsigmoid($value) {
+        return (log($value / (1 - $value)));
     }
 
     /**
@@ -130,10 +166,21 @@ class MRNN {
      * @return void
      */
     protected function train($input, $expectedResult) {
-        $this->actualResult = $input * $this->weight;
-        $this->lastError = $expectedResult - $this->actualResult;
-        $this->correction = ($this->lastError / $this->actualResult) * $this->smoothing;
-        $this->weight += $this->correction;
+        switch ($this->activationFunction) {
+            case 'def':
+                $this->actualResult = $input * $this->weight;
+                $this->lastError = $expectedResult - $this->actualResult;
+                $this->correction = ($this->lastError / $this->actualResult) * $this->smoothing;
+                $this->weight += $this->correction;
+                break;
+            case 'sigmoid':
+                $this->actualResult = $input * $this->weight;
+                $this->actualResult = $this->sigmoid($this->actualResult);
+                $this->lastError = $expectedResult - $this->unsigmoid($this->actualResult);
+                $this->correction = ($this->lastError / $this->actualResult) * $this->smoothing;
+                $this->weight += $this->correction;
+                break;
+        }
     }
 
     /**
@@ -148,6 +195,8 @@ class MRNN {
         $this->epoch = 0;
         while ($this->lastError > $this->smoothing OR $this->lastError < '-' . $this->smoothing) {
             $this->train($input, $expectedResult);
+
+            //log train stats
             if (($this->epoch % $this->statEvery) == 0) {
                 $this->trainStats[$this->epoch] = $this->lastError;
             }
@@ -174,7 +223,7 @@ class MRNN {
                 $prevWeight = $this->weight;
                 $networkName = get_class($this);
                 foreach ($dataSet as $input => $expectedResult) {
-                    $neurons[$neuronIndex] = new $networkName();
+                    $neurons[$neuronIndex] = new $networkName($this->activationFunction);
                     //optional learning acceleration via  next weight correction
                     if ($accel) {
                         $neurons[$neuronIndex]->setWeight($prevWeight);
