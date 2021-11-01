@@ -44,9 +44,9 @@ function zb_UserGetAllTagsUnique($login = '', $whereTagID = '') {
 
     if (!empty($whereTagID)) {
         if (empty($queryWhere)) {
-            $queryWhere = " WHERE `tagid` IN(" . $whereTagID .")";
+            $queryWhere = " WHERE `tagid` IN(" . $whereTagID . ")";
         } else {
-            $queryWhere.= " AND `tagid` IN(" . $whereTagID .")";
+            $queryWhere .= " AND `tagid` IN(" . $whereTagID . ")";
         }
     }
 
@@ -196,12 +196,12 @@ function stg_show_user_tags($login) {
     if (!empty($alltags)) {
 
         foreach ($alltags as $io => $eachtag) {
-                $emploeeMobile = ($eachtag['mobile']) ? wf_modal(wf_img('skins/icon_mobile.gif', $eachtag['tagname']),  $eachtag['tagname'] . ' - ' . __('Mobile'),  $eachtag['mobile'], '', 400, 200) : '';
-                $result .= wf_tag('font', false, '', 'color="' . $eachtag['tagcolor'] . '" size="' . $eachtag['tagsize'] . '"');
-                $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $eachtag['tagcolor'] . ';"') . $eachtag['tagname'] . wf_tag('a', true);
-                $result .= $emploeeMobile;
-                $result .= wf_tag('font', true);
-                $result .= '&nbsp;';
+            $emploeeMobile = ($eachtag['mobile']) ? wf_modal(wf_img('skins/icon_mobile.gif', $eachtag['tagname']), $eachtag['tagname'] . ' - ' . __('Mobile'), $eachtag['mobile'], '', 400, 200) : '';
+            $result .= wf_tag('font', false, '', 'color="' . $eachtag['tagcolor'] . '" size="' . $eachtag['tagsize'] . '"');
+            $result .= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $eachtag['tagcolor'] . ';"') . $eachtag['tagname'] . wf_tag('a', true);
+            $result .= $emploeeMobile;
+            $result .= wf_tag('font', true);
+            $result .= '&nbsp;';
         }
     }
     return ($result);
@@ -350,6 +350,7 @@ function stg_get_tag_data($tagid) {
  * @return string
  */
 function stg_get_tag_body_deleter($id, $login, $tagid) {
+    $messages = new UbillingMessageHelper();
     $query = "SELECT * from `tagtypes` where `id`='" . $id . "'";
     $tagbody = simple_query($query);
     $result = '';
@@ -357,10 +358,14 @@ function stg_get_tag_body_deleter($id, $login, $tagid) {
     $result .= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
     $result .= $tagbody['tagname'];
     $result .= wf_tag('sup');
-    $result .= wf_tag('a', false, '', 'href="?module=usertags&username=' . $login . '&deletetag=' . $tagid . '"') . web_delete_icon() . wf_tag('a', true);
+    $deleteUrl = '?module=usertags&username=' . $login . '&deletetag=' . $tagid;
+    $cancelUrl = '?module=usertags&username=' . $login;
+    $dialogTitle = __('Delete tag') . ' ' . $tagbody['tagname'] . '?';
+    $deleteDialog = wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $dialogTitle);
+    $result .= $deleteDialog;
     $result .= wf_tag('sup', true);
     $result .= wf_tag('font', true);
-    $result .= '&nbsp;';
+    $result .= wf_nbsp();
 
     return($result);
 }
@@ -902,9 +907,9 @@ function zb_VservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
         $allUserVsrvs = $allUserVsrvs[$login];
 
         foreach ($allUserVsrvs as $eachTagDBID => $eachSrvData) {
-            $curVsrvPrice       = $eachSrvData['price'];
-            $curVsrvDaysPeriod  = $eachSrvData['daysperiod'];
-            $dailyVsrvPrice     = 0;
+            $curVsrvPrice = $eachSrvData['price'];
+            $curVsrvDaysPeriod = $eachSrvData['daysperiod'];
+            $dailyVsrvPrice = 0;
 
             // getting daily vservice price
             if (!empty($curVsrvDaysPeriod)) {
@@ -914,9 +919,9 @@ function zb_VservicesGetUserPricePeriod($login, $defaultPeriod = 'month') {
             // if vservice has no charge period set and $dailyVsrvPrice == 0
             // then virtual service price is considered as for global $defaultPeriod period
             if ($defaultPeriod == 'month') {
-                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
+                $totalVsrvPrice += (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice * $curMonthDays;
             } else {
-                $totalVsrvPrice+= (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
+                $totalVsrvPrice += (empty($dailyVsrvPrice)) ? $curVsrvPrice : $dailyVsrvPrice;
             }
         }
     }
