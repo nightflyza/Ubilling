@@ -3905,10 +3905,11 @@ function wf_StepsMeter($params, $current) {
  * @param string $alerttext
  * @param string $class
  * @param string $cancelUrl
+ * @param string $customDialogTitle
  *
  * @return string
  */
-function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = '') {
+function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = '', $customWindowTitle = '') {
     $result = '';
     $dialog = __($alerttext);
     $dialog .= wf_tag('br');
@@ -3920,6 +3921,9 @@ function wf_ConfirmDialog($url, $title, $alerttext, $class = '', $cancelUrl = ''
     $dialog .= wf_tag('center', true);
 
     $cleanTitle = strip_tags($title);
+    if ($customWindowTitle) {
+        $cleanTitle = $customWindowTitle;
+    }
     $result .= wf_modalAuto($title, __($cleanTitle), $dialog, $class);
     return($result);
 }

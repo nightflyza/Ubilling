@@ -2122,6 +2122,7 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
 function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $edit = true, $prefix = '') {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $messages = new UbillingMessageHelper();
 // Получаем список сетей
     $networks = multinet_get_all_networks();
     $cidrs = array();
@@ -2135,15 +2136,23 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
         $cells .= wf_TableCell(__($title));
     $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
+
 // Содержимое таблицы
     if (!empty($alldata)) {
         foreach ($alldata as $data) {
             $cells = '';
             $actions = '';
-            if ($delete)
-                $actions .= wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $data['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            if ($edit)
+            if ($delete) {
+                $deleteUrl = '?module=' . $module . '&' . $prefix . 'delete=' . $data['id'];
+                $cancelUrl = '?module=nas';
+                $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $data['nasip'] . '?';
+                $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
+            }
+
+            if ($edit) {
                 $actions .= wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $data['id'], web_edit_icon());
+            }
+
             foreach ($keys as $key) {
                 if (array_key_exists($key, $data)) {
                     switch ($key) {
