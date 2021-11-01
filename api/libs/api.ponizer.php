@@ -4087,32 +4087,46 @@ class PONizer {
                 if (!empty($this->allOltDevices)) {
                     $totalTime = 0;
                     $devicesPolled = 0;
+                    $pollTimings = array();
                     $cells = wf_TableCell(__('OLT'));
                     $cells .= wf_TableCell(__('from'));
                     $cells .= wf_TableCell(__('to'));
                     $cells .= wf_TableCell(__('time'));
+                    $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
+
+                    //poll timing preprocessing
                     foreach ($this->allOltDevices as $oltId => $eachDevice) {
                         $pollStatsPath = self::POLL_STATS . $oltId;
                         if (file_exists($pollStatsPath)) {
                             $pollStatsRaw = file_get_contents($pollStatsPath);
                             if (!empty($pollStatsRaw)) {
-                                $devicesPolled++;
                                 $pollStats = unserialize($pollStatsRaw);
                                 $devPollTime = $pollStats['end'] - $pollStats['start'];
                                 $totalTime += $devPollTime;
-                                $cells = wf_TableCell($eachDevice);
-                                $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['start']));
-                                $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['end']));
-                                $cells .= wf_TableCell(zb_formatTime($devPollTime));
-                                $rows .= wf_TableRow($cells, 'row5');
+                                $pollTimings[$oltId]['start'] = $pollStats['start'];
+                                $pollTimings[$oltId]['end'] = $pollStats['end'];
+                                $pollTimings[$oltId]['time'] = $devPollTime;
                             }
+                        }
+                    }
+
+                    //rendering stats
+                    if (!empty($pollTimings)) {
+                        foreach ($pollTimings as $oltId => $pollStats) {
+                            $cells = wf_TableCell($this->allOltDevices[$oltId]);
+                            $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['start']));
+                            $cells .= wf_TableCell(date("Y-m-d H:i:s", $pollStats['end']));
+                            $cells .= wf_TableCell(zb_formatTime($pollStats['time']), '', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
+                            $cells .= wf_TableCell(web_bar($pollStats['time'], $totalTime), '20%', '', 'sorttable_customkey="' . $pollStats['time'] . '"');
+                            $rows .= wf_TableRow($cells, 'row5');
+                            $devicesPolled++;
                         }
                     }
 
                     $result = $statsControls;
                     $result .= wf_tag('h3') . __('SNMP query') . wf_tag('h3', true);
-                    $result .= wf_TableBody($rows, '100%', 0, '');
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                     $result .= wf_delimiter(0);
                     $result .= wf_tag('b') . __('Total') . ' ' . __('time') . ': ' . wf_tag('b', true) . zb_formatTime($totalTime) . wf_tag('br');
                     $result .= wf_tag('b') . __('Total') . ' ' . __('OLT') . ': ' . wf_tag('b', true) . $devicesPolled . wf_tag('br');
