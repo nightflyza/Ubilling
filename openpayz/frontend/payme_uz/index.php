@@ -117,6 +117,13 @@ class PaymeUZ {
     protected $config = array();
 
     /**
+     * Payment sum from request
+     *
+     * @var int
+     */
+    protected $paymentSum = 0;
+
+    /**
      * Placeholder for a "payment_method" GET parameter
      *
      * @var string
@@ -177,9 +184,9 @@ class PaymeUZ {
      * @var string
      */
     protected $errorCodes = array('-32700' => array('ru' => 'Ошибка парсинга JSON', 'uz' => 'JSON парсинг хатоси', 'en' => 'JSON parse error'),
-                                  '-32600' => array('ru' => 'Отсутствуют обязательные поля в RPC-запросе или тип полей не соответствует спецификации.', 'uz' => '', 'en' => 'Missing required fields in RPC request or fields types does not correspond to specs'),
-                                  '-32601' => array('ru' => 'Запрашиваемый метод не найден', 'uz' => '', 'en' => 'Requested method not found'),
-                                  '-32504' => array('ru' => 'Недостаточно привилегий для выполнения метода', 'uz' => '', 'en' => 'Not enough privileges to perform request'),
+                                  '-32600' => array('ru' => 'Отсутствуют обязательные поля в RPC-запросе или тип полей не соответствует спецификации.', 'uz' => 'RPC сўровида мажбутий майдонлар йўқ ёки майдон тури спецификацияга мос келмайди.', 'en' => 'Missing required fields in RPC request or fields types does not correspond to specs'),
+                                  '-32601' => array('ru' => 'Запрашиваемый метод не найден', 'uz' => 'Сўралган усул топилмади.', 'en' => 'Requested method not found'),
+                                  '-32504' => array('ru' => 'Недостаточно привилегий для выполнения метода', 'uz' => 'Усулни бажариш учун етарли ваколат йўқ', 'en' => 'Not enough privileges to perform request'),
                                   '-31001' => array('ru' => 'Неверная сумма платежа', 'uz' => 'Тўлов миқдори нотўғри', 'en' => 'Incorrect payment amount'),
                                   '-31003' => array('ru' => 'Транзакция не найдена', 'uz' => 'Транзакция топилмади', 'en' => 'Transaction not found'),
                                   '-31007' => array('ru' => 'Невозможно отменить транзакцию. Услуга предоставлена потребителю в полном объеме.', 'uz' => 'Транзакцияни бекор қилиб бўлмайди. Хизмат истеъмолчига тўлиқ ҳажмда тақдим этилди', 'en' => 'Transaction can not be canceled. The service is provided to the consumer in full amount'),
@@ -425,20 +432,53 @@ class PaymeUZ {
      * @return bool
      */
     protected function checkTransactionExists($transactID) {
-        $result = (!empty($transactID) and file_exists(self::PATH_TRANSACTS . $transactID));
-        return($result);
+        $tQuery = "SELECT `transact_id` FROM `paymeuz_transactions` WHERE `transact_id` ='" . $transactID . "'";
+        $result = simple_query($tQuery);
+        return(empty($result));
     }
 
     /**
      * Saves transaction id to validate some possible duplicates
      *
      * @param string $transactID
+     * @param int $transactTimestamp
+     * @param int $transactAmount
+     * @param string $opTransactID
+     * @param string $opCustomerID
+     * @param string $transactReceivers
      *
      * @return string
      */
-    protected function saveTransaction($transactID) {
-        file_put_contents(self::PATH_TRANSACTS . $transactID, serialize($this->receivedJSON));
+    protected function saveTransaction($transactID, $opTransactID, $opCustomerID, $transactAmount, $transactTimestamp, $transactReceivers) {
+        $transactState = 1;
+        $opTransactDTCreate  = curdatetime();
+        $opTransactTimestamp = strtotime($opTransactDTCreate);
+
+        $tQuery = "INSERT INTO `paymeuz_transactions` (`date_create`, `transact_id`, `op_transact_id`, `op_customer_id`,
+                                                       `amount`, `state`, `payme_transact_timestamp`, `create_timestamp`, `receivers`) 
+                          VALUES ('" . $opTransactDTCreate . "', '" . $transactID . "', '" . $opTransactID . "', '" . $opCustomerID
+                                  . "', '" . $transactAmount . "', " . $transactState . ", " . $transactTimestamp . ", " . $opTransactTimestamp
+                                  . ", '" . $transactReceivers . "')";
+        return($opTransactTimestamp);
+    }
+
+    /**
+     * Update saved earlier transaction
+     *
+     * @param string $transactID
+     *
+     * @return string
+     */
+    protected function updateTransaction($transactID) {
+
         return($transactID);
+    }
+
+    /**
+     * Sets HTTP headers before reply
+     */
+    protected function setHTTPHeaders() {
+        header('Content-Type: application/json; charset=UTF-8');
     }
 
     /**
@@ -512,13 +552,14 @@ class PaymeUZ {
                                                                    'address' => $userAddress,
                                                                    'balance' => $userBalance
                                                                   )
-                                            )
+                                            ),
+                           'id' => $this->paymeRequestID
                          );
 
             $reply = json_encode($reply);
         }
 
-        header('Content-Type: application/json; charset=UTF-8');
+        $this->setHTTPHeaders();
         die($reply);
     }
 
@@ -527,21 +568,28 @@ class PaymeUZ {
      */
     protected function replyCreateTransact() {
         $reply = '';
-        $billingTransactID = $this->clickTransactID . $this->serviceID;
-
-        if ($this->checkTransactionExists($billingTransactID)) {
-            $reply = $this->replyError('-4');
+        if ($this->checkTransactionExists($this->paymeTransactID)) {
+            $reply = $this->replyError('-31008');
         } else {
-            $this->saveTransaction($billingTransactID);
-            $reply = array('click_trans_id'      => $this->clickTransactID,
-                           'merchant_trans_id'   => $this->customerID,
-                           'merchant_prepare_id' => $billingTransactID,
-                           'error'               => 0,
-                           'error_note'          => $this->errorCodes['0']
-            );
+            $transactTimestamp  = $this->receivedJSON['time'];
+            $opTransactID       = $this->customerID . '_' . $this->paymeTransactID;
+            $transactReceivers  = array('receivers' => array(array('id'     => $this->paymeCashBoxID,
+                                                                   'amount' => $this->paymentSum)));
+
+            $opTransactTimestamp = $this->saveTransaction($this->paymeTransactID, $opTransactID, $this->customerID,
+                                                          $this->paymentSum, $transactTimestamp, json_encode($transactReceivers));
+
+            $reply = array('result' => array('create_time'  => $opTransactTimestamp,
+                                             'transaction'  => $this->paymeTransactID,
+                                             'state'        => 1,
+                                             'receivers'    => array($transactReceivers)
+                                            ),
+                           'id' => $this->paymeRequestID
+                          );
             $reply = json_encode($reply);
         }
 
+        $this->setHTTPHeaders();
         die($reply);
     }
 
@@ -640,18 +688,25 @@ class PaymeUZ {
      */
     protected function processRequest() {
         $this->opCustomersAll   = op_CustomersGetAll();
-
-        $this->paymeTransactID  = (empty($this->receivedJSON['params']['id']) ? '' : $this->receivedJSON['params']['id']);
         $this->customerID       = (empty($this->receivedJSON['account'][$this->customerIDFieldName])
                                    ? '' : $this->receivedJSON['account'][$this->customerIDFieldName]);
+        $this->paymeTransactID  = (empty($this->receivedJSON['params']['id']) ? '' : $this->receivedJSON['params']['id']);
+        $this->paymentSum       = (empty($this->receivedJSON['params']['amount']) ? '' : $this->receivedJSON['params']['amount']);
         $statementFrom          = (empty($this->receivedJSON['params']['from']) ? '' : $this->receivedJSON['params']['from']);
         $statementTo            = (empty($this->receivedJSON['params']['to']) ? '' : $this->receivedJSON['params']['to']);
 
-        if (empty($this->paymeRequestID)) {
-            if (in_array($this->paymentMethod, array('CheckPerformTransaction', 'CreateTransaction'))
-                and empty($this->opCustomersAll[$this->customerID])) {
+        $this->setHTTPHeaders();
 
-                die($this->replyError('-31099'));
+// some fields and values validations
+        if (empty($this->paymeRequestID)) {
+            if (in_array($this->paymentMethod, array('CheckPerformTransaction', 'CreateTransaction'))) {
+                if (empty($this->opCustomersAll[$this->customerID])) {
+                    die($this->replyError('-31099'));
+                }
+
+                if (!is_numeric($this->paymentSum)) {
+                    die($this->replyError('-31001'));
+                }
             }
 
             if ((in_array($this->paymentMethod, array('CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction'))
@@ -667,6 +722,9 @@ class PaymeUZ {
             if ($this->agentcodesON and empty($this->paymeCashBoxID)) {
                 die($this->replyError('-31099'));
             }
+
+// some fields and values validations
+
 // ('CheckPerformTransaction', 'CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction', 'GetStatement');
             switch ($this->paymentMethod) {
                 case 'CheckPerformTransaction':
@@ -713,6 +771,7 @@ class PaymeUZ {
         //$this->payload = json_decode($request_body, true);
         //parse_str(file_get_contents('php://input'), $this->receivedJSON);
         $this->receivedJSON = json_decode(file_get_contents('php://input'), true);
+        $this->setHTTPHeaders();
 
         if (!empty($this->receivedJSON)) {
             $this->paymeRequestID = (empty($this->receivedJSON['id']) ? null : $this->receivedJSON['id']);
