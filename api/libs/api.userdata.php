@@ -857,7 +857,7 @@ function zb_UserResurrect($login) {
             $resurrectFlag = true;
             $resurrectType['CASH'] = 'CASH';
             $currentCreditValue = $userData['Credit'];
-            $tmpCreditValue = abs($userData['Cash']);
+            $tmpCreditValue = abs($userData['Cash']) + 1; //prevent float cash value issues
             $billing->setcredit($login, $tmpCreditValue);
         }
 
@@ -1026,15 +1026,15 @@ function zb_GetOnlineTabPhonesStr($phone = '', $mobile = '', $extMobiles = array
  * @return array|string
  */
 function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler = false, $spoilerClosed = false) {
-    $nasInfo    = getNASInfoByLogin($login);
-    $pppoeInfo  = array('errorcode'     => 0,
-                        'lastloggedout' => __('Current user login was not found on NAS') . ': ' . $nasInfo['nasip'],
-                        'sessionuptime' => __('No active session was found for current user on NAS') . ': ' . $nasInfo['nasip'],
-                        'lastlinkup'    => __('No data'),
-                        'txmb'          => '0',
-                        'rxmb'          => '0',
-                        'addrlist'      => array(__('No data'))
-                       );
+    $nasInfo = getNASInfoByLogin($login);
+    $pppoeInfo = array('errorcode' => 0,
+        'lastloggedout' => __('Current user login was not found on NAS') . ': ' . $nasInfo['nasip'],
+        'sessionuptime' => __('No active session was found for current user on NAS') . ': ' . $nasInfo['nasip'],
+        'lastlinkup' => __('No data'),
+        'txmb' => '0',
+        'rxmb' => '0',
+        'addrlist' => array(__('No data'))
+    );
 
     if (!empty($nasInfo) and $nasInfo['nastype'] == 'mikrotik') {
         $rosAPI = new RouterOS();
@@ -1042,46 +1042,42 @@ function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler
         $useNewConnType = (isset($nasOpts['use_new_conn_mode']) && $nasOpts['use_new_conn_mode']);
 
         if ($rosAPI->connect($nasInfo['nasip'], $nasOpts['username'], $nasOpts['password'], $useNewConnType)) {
-            $pppoeSecret = $rosAPI->command('/ppp/secret/print',
-                                            array('.proplist' => '.id,last-logged-out',
-                                                  '?name'     => trim($login)
-                                                 )
-                                           );
+            $pppoeSecret = $rosAPI->command('/ppp/secret/print', array('.proplist' => '.id,last-logged-out',
+                '?name' => trim($login)
+                    )
+            );
 
             // if such pppoe user even exists
             if (!empty($pppoeSecret[0]['.id'])) {
                 $pppoeInfo['lastloggedout'] = date('Y-m-d H:i:s', strtotime(str_ireplace('/', ' ', $pppoeSecret[0]['last-logged-out'])));
 
-                $activeSession = $rosAPI->command('/ppp/active/print',
-                                                  array('.proplist' => '.id,uptime',
-                                                        '?name'     => trim($login)
-                                                       )
-                                                 );
+                $activeSession = $rosAPI->command('/ppp/active/print', array('.proplist' => '.id,uptime',
+                    '?name' => trim($login)
+                        )
+                );
 
                 // if an active pppoe session exists for this user
                 if (!empty($activeSession[0]['.id'])) {
                     $pppoeInfo['sessionuptime'] = $activeSession[0]['uptime'];
 
-                    $ifaceData = $rosAPI->command('/interface/print',
-                                                  array('.proplist' => '.id,last-link-up-time,tx-byte,rx-byte',
-                                                        '?name'     => '<pppoe-' . trim($login) . '>'
-                                                       )
-                                                 );
+                    $ifaceData = $rosAPI->command('/interface/print', array('.proplist' => '.id,last-link-up-time,tx-byte,rx-byte',
+                        '?name' => '<pppoe-' . trim($login) . '>'
+                            )
+                    );
 
                     if (!empty($ifaceData[0]['.id'])) {
                         $pppoeInfo['lastlinkup'] = date('Y-m-d H:i:s', strtotime(str_ireplace('/', ' ', $ifaceData[0]['last-link-up-time'])));
-                        $pppoeInfo['txmb']       = stg_convert_size($ifaceData[0]['tx-byte']);
-                        $pppoeInfo['rxmb']       = stg_convert_size($ifaceData[0]['rx-byte']);
+                        $pppoeInfo['txmb'] = stg_convert_size($ifaceData[0]['tx-byte']);
+                        $pppoeInfo['rxmb'] = stg_convert_size($ifaceData[0]['rx-byte']);
                     }
                 }
 
                 // getting user's address lists and their status
-                $addrList = $rosAPI->command('/ip/firewall/address-list/print',
-                                             array('.proplist' => '.id,list,disabled',
-                                                  '?comment'  => trim($login),
-                                                  '?address'  => $nasInfo['ip']
-                                                  )
-                                            );
+                $addrList = $rosAPI->command('/ip/firewall/address-list/print', array('.proplist' => '.id,list,disabled',
+                    '?comment' => trim($login),
+                    '?address' => $nasInfo['ip']
+                        )
+                );
                 if (!empty($addrList)) {
                     $pppoeInfo['addrlist'] = array();
 
@@ -1098,31 +1094,30 @@ function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler
     }
 
     if ($returnHTML) {
-        $rows   = '';
+        $rows = '';
 
         if ($pppoeInfo['errorcode'] !== 0) {
-            $errorStr = ($pppoeInfo['errorcode'] == 1) ? __('User has no network and NAS assigned or user\'s NAS is not of type "Mikrotik"')
-                                                       : __('Unable to connect to user\'s NAS' . ': ' . $nasInfo['nasip']);
+            $errorStr = ($pppoeInfo['errorcode'] == 1) ? __('User has no network and NAS assigned or user\'s NAS is not of type "Mikrotik"') : __('Unable to connect to user\'s NAS' . ': ' . $nasInfo['nasip']);
             $cells = wf_TableCell(__('Error while getting data'), '20%', 'row2');
-            $cells.= wf_TableCell($errorStr);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($errorStr);
+            $rows .= wf_TableRow($cells, 'row3');
         }
 
         $cells = wf_TableCell('PPPoE: ' . __('last logged out'), '30%', 'row2');
-        $cells.= wf_TableCell($pppoeInfo['lastloggedout']);
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($pppoeInfo['lastloggedout']);
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell('PPPoE: ' . __('session uptime'), '30%', 'row2');
-        $cells.= wf_TableCell($pppoeInfo['sessionuptime']);
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($pppoeInfo['sessionuptime']);
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell('PPPoE: ' . __('last link up time'), '30%', 'row2');
-        $cells.= wf_TableCell($pppoeInfo['lastlinkup']);
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($pppoeInfo['lastlinkup']);
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell('PPPoE: Tx/Rx, Mb', '30%', 'row2');
-        $cells.= wf_TableCell($pppoeInfo['txmb'] . ' / ' . $pppoeInfo['rxmb']);
-        $rows.= wf_TableRow($cells, 'row3');
+        $cells .= wf_TableCell($pppoeInfo['txmb'] . ' / ' . $pppoeInfo['rxmb']);
+        $rows .= wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Current user\'s address lists'), '30%', 'row2');
         if (!empty($pppoeInfo['addrlist'])) {
@@ -1132,9 +1127,9 @@ function zb_GetROSPPPoESessionInfo($login, $returnHTML = false, $returnInSpoiler
                 $cells .= wf_TableCell($item . wf_delimiter(0));
             }
         } else {
-            $cells.= '';
+            $cells .= '';
         }
-        $rows.= wf_TableRow($cells, 'row3');
+        $rows .= wf_TableRow($cells, 'row3');
 
         $table = wf_TableBody($rows, '88%', 0, '', 'style="margin: 0 auto;"');
 
@@ -1215,8 +1210,8 @@ function zb_RenderROSPPPoESessionInfo($login, $moduleURL) {
  */
 function zb_GetBaseContractTemplateSplitted() {
     global $ubillingConfig;
-    $contractTemplateStr        = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE', '');
-    $contractTemplateSplitted   = array();
+    $contractTemplateStr = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE', '');
+    $contractTemplateSplitted = array();
 
     if (!empty($contractTemplateStr)) {
         preg_match('/(.*)' . '{/msiu', $contractTemplateStr, $beforeResult);
@@ -1245,10 +1240,10 @@ function zb_GetBaseContractTemplateSplitted() {
  */
 function zb_GenContractDigitBlock($digitsBlockLength, $contractNumber, $makeIncrement = false) {
     global $ubillingConfig;
-    $contractLeadingZeroes  = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
-    $contractDigits         = '';
+    $contractLeadingZeroes = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
+    $contractDigits = '';
 
-    if (!empty($digitsBlockLength) and !empty($contractNumber)) {
+    if (!empty($digitsBlockLength) and ! empty($contractNumber)) {
         $contractNumber = ($makeIncrement) ? ++$contractNumber : $contractNumber;
         $contractDigits = ($contractLeadingZeroes ? sprintf('%0' . $digitsBlockLength . 's', $contractNumber) : sprintf('%-0' . $digitsBlockLength . 's', $contractNumber));
     }
@@ -1268,7 +1263,7 @@ function zb_GenContractDigitBlock($digitsBlockLength, $contractNumber, $makeIncr
  */
 function zb_ExtractContractDigitPart($contract, $digitBlockLength, $makeIncrement = false) {
     global $ubillingConfig;
-    $contractLeadingZeroes  = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
+    $contractLeadingZeroes = $ubillingConfig->getAlterParam('CONTRACT_GEN_TEMPLATE_LEADING_ZEROES', 1);
     $digtsStr = '';
 
     preg_match('/\d{' . $digitBlockLength . '}/msiu', $contract, $matchResult);
@@ -1277,8 +1272,8 @@ function zb_ExtractContractDigitPart($contract, $digitBlockLength, $makeIncremen
         $digtsStr = $matchResult[0];
 
         if ($makeIncrement) {
-            $numberPart = ($contractLeadingZeroes ? (int)$digtsStr : (int)str_replace('0', '', $digtsStr));
-            $digtsStr   = zb_GenContractDigitBlock($digitBlockLength, $numberPart, $makeIncrement);
+            $numberPart = ($contractLeadingZeroes ? (int) $digtsStr : (int) str_replace('0', '', $digtsStr));
+            $digtsStr = zb_GenContractDigitBlock($digitBlockLength, $numberPart, $makeIncrement);
         }
     }
 
@@ -1315,21 +1310,21 @@ function zb_GetContractDigitBlockTplParams($digitContractTplPart, $returnOnlyLen
  * @return string
  */
 function zb_GenBaseContractFromTemplate($templateSplitted = array()) {
-    $templateSplitted       = empty($templateSplitted) ? zb_GetBaseContractTemplateSplitted() : $templateSplitted;
-    $startContractTplPart   = $templateSplitted[0];
-    $endContractTplPart     = $templateSplitted[1];
-    $digitContractTplPart   = $templateSplitted[2];
-    $baseContract           = '';
-    $digitsBlockLength      = 0;
-    $contractNumber         = 0;
+    $templateSplitted = empty($templateSplitted) ? zb_GetBaseContractTemplateSplitted() : $templateSplitted;
+    $startContractTplPart = $templateSplitted[0];
+    $endContractTplPart = $templateSplitted[1];
+    $digitContractTplPart = $templateSplitted[2];
+    $baseContract = '';
+    $digitsBlockLength = 0;
+    $contractNumber = 0;
 
-    $digitContractTplPart   = zb_GetContractDigitBlockTplParams($digitContractTplPart);
+    $digitContractTplPart = zb_GetContractDigitBlockTplParams($digitContractTplPart);
 
     if (!empty($digitContractTplPart)) {
         // first element is a contract digits block length
         // second element is a "starting from" digit for very first base contract
-        $digitsBlockLength  = $digitContractTplPart[0];
-        $contractNumber     = $digitContractTplPart[1];
+        $digitsBlockLength = $digitContractTplPart[0];
+        $contractNumber = $digitContractTplPart[1];
     }
 
     $baseContract = $startContractTplPart . zb_GenContractDigitBlock($digitsBlockLength, $contractNumber) . $endContractTplPart;
