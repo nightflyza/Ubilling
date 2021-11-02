@@ -873,6 +873,7 @@ function zb_UserResurrect($login) {
                 $billing->setao($login, 0);
             }
             if (isset($resurrectType['CASH'])) {
+                sleep(1); //dont back credit to fast
                 $billing->setcredit($login, $currentCreditValue);
             }
 
