@@ -311,7 +311,7 @@ class MRNN {
                     }
                 }
             }
-            $result .= wf_gchartsLine($chartData, __('Network training'), '100%', '400px', '');
+            $result .= wf_gchartsLine($chartData, __('Network training').' '.$this->activationFunction, '100%', '400px', '');
         }
         return($result);
     }
