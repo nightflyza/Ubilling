@@ -184,8 +184,8 @@ class PaymeUZ {
                                   '-31007' => array('ru' => 'Невозможно отменить транзакцию. Услуга предоставлена потребителю в полном объеме.', 'uz' => 'Транзакцияни бекор қилиб бўлмайди. Хизмат истеъмолчига тўлиқ ҳажмда тақдим этилди', 'en' => 'Transaction can not be canceled. The service is provided to the consumer in full amount'),
                                   '-31008' => array('ru' => 'Невозможно выполнить операцию', 'uz' => 'Операцияни амалга ошириб бўлмайди', 'en' => 'Operation can not be performed'),
                                   '-31050' => array('ru' => 'Номер телефона не найден', 'uz' => 'Телефон рақами топилмади', 'en' => 'Phone number not found'),
-                                  '-31051' => array('ru' => 'Транзакция с таким ID уже существует', 'uz' => '', 'en' => 'Transaction with such ID already exists'),
-                                  '-31052' => array('ru' => 'Платёж с таким ID уже успешно проведён на стороне провайдера', 'uz' => '', 'en' => 'Payment with this ID has already been successfully completed on the ISP side already'),
+                                  '-31051' => array('ru' => 'Транзакция с таким ID уже существует', 'uz' => 'Бундай ID билан транзакция мавжуд', 'en' => 'Transaction with such ID already exists'),
+                                  '-31052' => array('ru' => 'Платёж с таким ID уже успешно проведён на стороне провайдера', 'uz' => 'Бундай ID билан тўлов провайдер томонидан муваффақиятли амалга оширилди', 'en' => 'Payment with this ID has already been successfully completed on the ISP side already'),
                                   '-31099' => array('ru' => 'Лицевой счёт не найден', 'uz' => 'Шаҳсий ҳисоб топилмади', 'en' => 'Customer ID not found')
                                  );
 
@@ -544,7 +544,7 @@ class PaymeUZ {
             $reply = json_encode($reply);
         }
 
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -574,7 +574,7 @@ class PaymeUZ {
             $reply = json_encode($reply);
         }
 
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -616,7 +616,7 @@ class PaymeUZ {
             }
         }
 
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -653,7 +653,7 @@ class PaymeUZ {
             }
         }
 
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -686,7 +686,7 @@ class PaymeUZ {
             $reply = json_encode($reply);
         }
 
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -721,7 +721,7 @@ class PaymeUZ {
 
         $reply = array('result' => array('transactions' => $transactions));
         $reply = json_encode($reply);
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -754,7 +754,7 @@ class PaymeUZ {
         $statementFrom          = (empty($this->receivedJSON['params']['from']) ? '' : $this->receivedJSON['params']['from']);
         $statementTo            = (empty($this->receivedJSON['params']['to']) ? '' : $this->receivedJSON['params']['to']);
 
-        $this->setHTTPHeaders();
+        //$this->setHTTPHeaders();
 
 // some fields and values validations
         if (empty($this->paymeRequestID)) {
@@ -781,7 +781,6 @@ class PaymeUZ {
             if ($this->agentcodesON and empty($this->paymeCashBoxID)) {
                 die($this->replyError('-31099'));
             }
-
 // some fields and values validations
 
 // ('CheckPerformTransaction', 'CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction', 'GetStatement');
