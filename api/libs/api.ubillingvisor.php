@@ -439,7 +439,7 @@ class UbillingVisor {
     public function renderUsers() {
         $result = '';
         $opts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Name', 'Phone', 'Primary account', 'Balance', 'Charge', 'Cams', 'Actions');
+        $columns = array('ID', 'Date', 'Name', 'Phone', 'Primary account', 'Balance', 'Charge', 'Tariffing', 'Cams', 'Actions');
         $result .= wf_JqDtLoader($columns, self::URL_ME . self::URL_AJUSERS, false, 'Users', 50, $opts);
         return ($result);
     }
@@ -453,6 +453,7 @@ class UbillingVisor {
         $json = new wf_JqDtHelper();
         if (!empty($this->allUsers)) {
             foreach ($this->allUsers as $io => $each) {
+                $tariffingLabel = '';
                 $data[] = $each['id'];
                 $data[] = $each['regdate'];
                 $visorUserLabel = $this->iconVisorUser() . ' ' . $each['realname'];
@@ -465,10 +466,20 @@ class UbillingVisor {
                     $primAccLink = wf_Link(self::URL_CAMPROFILE . $each['primarylogin'], web_profile_icon() . ' ' . $userAddress);
                     if (isset($this->allUserData[$primaryAccount])) {
                         $primaryAccountCash = $this->allUserData[$primaryAccount]['Cash'];
+                        if ($each['chargecams']) {
+                            $tariffingLabel = wf_img_sized('skins/icon_ok.gif', __('Funds for cameras will be charged from the main account at the end of the month'), 16);
+                        } else {
+                            $tariffingLabel = $tariffingNotice = wf_img_sized('skins/icon_lock.png', __('All cameras live by themselves'), 16);
+                        }
+
+                        if ($this->allUserData[$primaryAccount]['Passive'] AND $each['chargecams']) {
+                            $tariffingLabel = wf_img_sized('skins/icon_passive.gif', __('Main account is frozen') . '. ' . __('All cameras live by themselves'), 16);
+                        }
                     }
                 } else {
                     $primAccLink = '';
                     $primaryAccountCash = '';
+                    $tariffingLabel = wf_img_sized('skins/delete_small.png', __('All cameras live by themselves') . ', ' . __('no primary account set'), 16);
                 }
 
 
@@ -477,6 +488,7 @@ class UbillingVisor {
 
                 $chargeFlag = ($each['chargecams']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
                 $data[] = $chargeFlag;
+                $data[] = $tariffingLabel;
                 $data[] = $this->getUserCamerasCount($each['id']);
                 $actLinks = '';
                 $actLinks .= wf_Link(self::URL_ME . self::URL_USERVIEW . $each['id'], web_edit_icon());
@@ -703,12 +715,39 @@ class UbillingVisor {
                     $cells .= wf_TableCell($this->allPaymentIDs[$primaryAccount]);
                     $rows .= wf_TableRow($cells, 'row3');
                     $result .= $rows;
+
+                    //tariffing notice here
+                    $tariffingNotice = '';
+                    if ($userData['chargecams']) {
+                        $tariffingNotice = wf_img_sized('skins/icon_ok.gif', '', 12) . ' ';
+                        $tariffingNotice .= __('Funds for cameras will be charged from the main account at the end of the month');
+                    } else {
+                        $tariffingNotice = wf_img_sized('skins/icon_lock.png', '', 12) . ' ';
+                        $tariffingNotice .= __('All cameras live by themselves');
+                    }
+
+                    if ($this->allUserData[$primaryAccount]['Passive'] AND $userData['chargecams']) {
+                        $tariffingNotice = wf_img_sized('skins/icon_passive.gif', __('Freezed'), 12) . ' ';
+                        $tariffingNotice .= __('Main account is frozen') . '. ' . __('All cameras live by themselves');
+                    }
+
+
+                    $cells = wf_TableCell(__('Tariffing'), '30%', 'row2');
+                    $cells .= wf_TableCell($tariffingNotice);
+                    $rows = wf_TableRow($cells, 'row3');
+                    $result .= $rows;
                 } else {
                     $cells = wf_TableCell(__('Primary account'), '30%', 'row2');
                     $cells .= wf_TableCell(__('Not exists') . ': ' . $primaryAccount);
                     $rows = wf_TableRow($cells, 'row3');
                     $result .= $rows;
                 }
+            } else {
+                $cells = wf_TableCell(__('Tariffing'), '30%', 'row2');
+                $noPrimAccLabel = wf_img_sized('skins/delete_small.png', '', 12) . ' ' . __('All cameras live by themselves') . ', ' . __('no primary account set');
+                $cells .= wf_TableCell($noPrimAccLabel);
+                $rows = wf_TableRow($cells, 'row3');
+                $result .= $rows;
             }
         }
 
@@ -1552,9 +1591,11 @@ class UbillingVisor {
                 $inputs = '';
                 $inputs .= wf_HiddenInput('editcameraid', $cameraId);
                 $inputs .= wf_Selector('editvisorid', $usersTmp, __('User'), $cameraData['visorid'], true);
-                $inputs .= wf_TextInput('editcamlogin', __('Camera login'), $cameraData['camlogin'], true, 15);
+                $loginPreset = (!empty($cameraData['camlogin'])) ? $cameraData['camlogin'] : 'admin';
+                $inputs .= wf_TextInput('editcamlogin', __('Camera login'), $loginPreset, true, 15);
                 $inputs .= wf_TextInput('editcampassword', __('Camera password'), $cameraData['campassword'], true, 15);
-                $inputs .= wf_TextInput('editport', __('Port'), $cameraData['port'], true, 5);
+                $portPreset = ($cameraData['port'] != 0) ? $cameraData['port'] : 80;
+                $inputs .= wf_TextInput('editport', __('Port'), $portPreset, true, 5);
                 $inputs .= wf_tag('br');
                 $inputs .= wf_Selector('editdvrid', $dvrTmp, __('DVR'), $cameraData['dvrid'], true);
                 $inputs .= wf_TextInput('editdvrlogin', __('DVR login'), $cameraData['dvrlogin'], true, 15);
