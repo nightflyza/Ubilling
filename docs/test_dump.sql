@@ -2658,8 +2658,8 @@ CREATE TABLE IF NOT EXISTS `traptypes` (
 ALTER TABLE `cardbank` ADD KEY `serial` (`serial`);
  
 ALTER TABLE `cardbank` ADD KEY `part` (`part`);
- 
-ALTER TABLE `cardbank` ADD KEY `serial_part` (`serial`,`part`);
+
+-- ALTER TABLE `cardbank` ADD KEY `serial_part` (`serial`,`part`);
 
 -- 1.0.4 update
 

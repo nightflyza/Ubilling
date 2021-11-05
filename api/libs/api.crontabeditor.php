@@ -72,9 +72,15 @@ class CrontabEditor {
      */
     public function getSystemName() {
         $result = '';
-        $command = "uname";
+        $command = 'uname';
         $hostSystem = shell_exec($command);
         $result = trim($hostSystem);
+        if ($result == 'Linux') {
+            $linuxDistro = shell_exec('hostnamectl | grep System');
+            if (ispos($linuxDistro, 'Debian GNU/Linux 11 (bullseye)')) {
+                $result = 'Debian11';
+            }
+        }
         return($result);
     }
 

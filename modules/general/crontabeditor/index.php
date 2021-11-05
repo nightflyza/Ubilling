@@ -5,7 +5,7 @@ if (cfr('ROOT')) {
 
     show_window('', wf_BackLink($crontab::URL_BACK));
     $hostSystem = $crontab->getSystemName(); //politically incorrect
-    if ($hostSystem == 'FreeBSD') { //yes it's discrimination
+    if ($hostSystem == 'FreeBSD' OR $hostSystem == 'Debian11') { //yes it's discrimination. Fuck you.
         if (ubRouting::checkPost(array('editfilepath'))) {
             //something changed?
             $crontab->saveTempCrontab();
