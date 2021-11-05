@@ -3,6 +3,13 @@
 class tsms extends SendDogProto {
 
     /**
+     * Contains system alter.ini as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Return set of inputs, required for TurboSMS service configuration
      * 
      * @return string
@@ -110,6 +117,8 @@ class tsms extends SendDogProto {
      * @return void
      */
     public function loadTurbosmsConfig() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
         $smsgateway = zb_StorageGet('SENDDOG_TSMS_GATEWAY');
         if (empty($smsgateway)) {
             $smsgateway = $this->altCfg['TSMS_GATEWAY'];
