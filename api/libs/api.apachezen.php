@@ -73,6 +73,7 @@ class ApacheZen {
      */
     public function __construct() {
         $this->loadConfigs();
+        $this->setDataSource();
     }
 
     /**
@@ -92,6 +93,21 @@ class ApacheZen {
         $this->billCfg = $ubillingConfig->getBilling();
         $this->grep = $this->billCfg['GREP'];
         $this->tail = $this->billCfg['TAIL'];
+    }
+
+    /**
+     * Sets alternative datasource path
+     * 
+     * @return void
+     */
+    protected function setDataSource() {
+        if (!file_exists($this->logPath)) {
+            $alternatePath = '/var/log/apache2/access.log';
+            if (file_exists($alternatePath)) {
+                //Debian Linux? 
+                $this->logPath = $alternatePath;
+            }
+        }
     }
 
     /**
