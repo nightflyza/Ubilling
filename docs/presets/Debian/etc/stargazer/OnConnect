@@ -1,0 +1,43 @@
+#!/bin/sh
+
+LAN_IF="INTERNAL_INTERFACE"
+WAN_IF="EXTERNAL_INTERFACE"
+
+LOGIN=$1
+IP=$2
+CASH=$3
+ID=$4
+SPEED=`/etc/stargazer/GetSpeed $LOGIN`
+UPSPEED=`/etc/stargazer/GetUpSpeed $LOGIN`
+MAC=`/etc/stargazer/GetMac $LOGIN`
+SCOUNT="kbit"
+
+
+ipt="/usr/sbin/iptables"
+ips="/usr/sbin/ipset"
+tc="/usr/sbin/tc"
+arpcmd="/usr/sbin/arp"
+
+cur_date=`date \+\%Y.\%m.\%d`
+cur_time=`date \+\%H:\%M:\%S`
+
+${arpcmd} -s ${IP} ${MAC}
+
+${ipt} -t mangle -A FORWARD -d ${IP} -j MARK --set-mark  `expr $ID + 101`
+${ipt} -t mangle -A FORWARD -s ${IP} -j MARK --set-mark  `expr $ID + 18101`
+
+
+${tc} class add dev ${LAN_IF} parent 1:1 classid 1:`expr $ID + 101` htb rate ${SPEED}${SCOUNT}
+${tc} filter add dev ${LAN_IF} parent 1: protocol ip prio 3 handle `expr $ID + 101` fw classid 1:`expr $ID + 101`
+
+${tc} class add dev ${WAN_IF} parent 1:1 classid 1:`expr $ID + 18101` htb rate ${UPSPEED}${SCOUNT}
+${tc} filter add dev ${WAN_IF} parent 1: protocol ip prio 3 handle `expr $ID + 18101` fw classid 1:`expr $ID + 18101`
+
+
+
+${ips} -D DISCON ${IP}
+${ips} -A FORW ${IP}
+
+
+# ADD TO LOG
+echo "$cur_date $cur_time CONNECT: ID-$ID;LOGIN-$LOGIN;IP-$IP;CASH-$CASH;SPEED-$SPEED;UPSPEED-$UPSPEED,MAC-$MAC" >> /var/stargazer/allconnect.log
