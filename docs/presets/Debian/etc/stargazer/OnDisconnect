@@ -21,7 +21,7 @@ arpcmd="/usr/sbin/arp"
 cur_date=`date \+\%Y.\%m.\%d`
 cur_time=`date \+\%H:\%M:\%S`
 
-DMARK=`expr $ID + 1`
+DMARK=`expr $ID + 2`
 UMARK=`expr $ID + 5001`
 
 ${ipt} -t mangle -D FORWARD -d ${IP} -j MARK --set-mark ${DMARK}
