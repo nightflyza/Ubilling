@@ -27,11 +27,12 @@ ${ipt} -t mangle -A FORWARD -d ${IP} -j MARK --set-mark  `expr $ID + 101`
 ${ipt} -t mangle -A FORWARD -s ${IP} -j MARK --set-mark  `expr $ID + 8101`
 
 
-${tc} class add dev ${LAN_IF} parent 1:1 classid 1:`expr $ID + 101` htb rate ${SPEED}${SCOUNT}
-${tc} filter add dev ${LAN_IF} parent 1: protocol ip prio 1 handle `expr $ID + 101` fw classid 1:`expr $ID + 101`
+${tc} filter del dev ${LAN_IF} parent 1: protocol ip prio 1 handle `expr $ID + 101` fw classid 1:`expr $ID + 101`
+${tc} class del dev ${LAN_IF} parent 1:1 classid 1:`expr $ID + 101`
 
-${tc} class add dev ${WAN_IF} parent 1:1 classid 1:`expr $ID + 8101` htb rate ${UPSPEED}${SCOUNT}
-${tc} filter add dev ${WAN_IF} parent 1: protocol ip prio 1 handle `expr $ID + 8101` fw classid 1:`expr $ID + 8101`
+${tc} filter del dev ${WAN_IF} parent 1: protocol ip prio 1 handle `expr $ID + 8101` fw classid 1:`expr $ID + 8101`
+${tc} class del dev ${WAN_IF} parent 1:1 classid 1:`expr $ID + 8101`
+
 
 
 
