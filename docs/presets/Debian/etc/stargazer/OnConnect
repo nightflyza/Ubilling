@@ -24,7 +24,7 @@ cur_time=`date \+\%H:\%M:\%S`
 ${arpcmd} -s ${IP} ${MAC}
 
 
-DMARK=`expr $ID + 1`
+DMARK=`expr $ID + 2`
 UMARK=`expr $ID + 5001`
 
 ${ipt} -t mangle -A FORWARD -d ${IP} -j MARK --set-mark ${DMARK}
@@ -32,10 +32,10 @@ ${ipt} -t mangle -A FORWARD -s ${IP} -j MARK --set-mark ${UMARK}
 
 
 ${tc} class add dev ${LAN_IF} parent 1:1 classid 1:${DMARK} htb rate ${SPEED}${SCOUNT}
-${tc} filter add dev ${LAN_IF} parent 1: protocol ip prio 1 handle ${ID} fw classid 1:${DMARK}
+${tc} filter add dev ${LAN_IF} parent 1: protocol ip prio 1 handle ${DMARK} fw classid 1:${DMARK}
 
 ${tc} class add dev ${WAN_IF} parent 1:1 classid 1:${UMARK} htb rate ${UPSPEED}${SCOUNT}
-${tc} filter add dev ${WAN_IF} parent 1: protocol ip prio 1 handle ${ID} fw classid 1:${UMARK}
+${tc} filter add dev ${WAN_IF} parent 1: protocol ip prio 1 handle ${UMARK} fw classid 1:${UMARK}
 
 ${ips} -D DISCON ${IP}
 ${ips} -A FORW ${IP}
