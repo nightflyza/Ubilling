@@ -232,8 +232,11 @@ if (cfr('COVID')) {
 
                             $charsDataTotal[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
                             $charsDataMonth[] = array(__('Date'), __('Confirmed'), __('Deaths'), __('Recovered'));
-                            $charsDataPeaks[] = array(__('Date'), __('Confirmed'), __('Deaths'));
+                            $charsDataPeaksAll[] = array(__('Date'), __('Confirmed'), __('Deaths'));
+                            $charsDataPeaksYear[] = array(__('Date'), __('Confirmed'), __('Deaths'));
+                            $charsDataPeaksMonth[] = array(__('Date'), __('Confirmed'), __('Deaths'));
                             $curMonth = curmonth() . '-';
+                            $curYear = curyear() . '-';
                             $prevConf = 0;
                             $prevDeaths = 0;
                             foreach ($countryTimeline as $io => $each) {
@@ -243,9 +246,18 @@ if (cfr('COVID')) {
                                     $charsDataMonth[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
                                     $curMonthCount++;
                                 }
+
                                 $charsDataTotal[] = array($date, $each['confirmed'], $each['deaths'], $each['recovered']);
 
-                                $charsDataPeaks[] = array($date, ($each['confirmed'] - $prevConf), ($each['deaths'] - $prevDeaths));
+                                $peakConfirmed = $each['confirmed'] - $prevConf;
+                                $peakDeaths = $each['deaths'] - $prevDeaths;
+                                $charsDataPeaksAll[] = array($date, $peakConfirmed, $peakDeaths);
+                                if (ispos($date, $curYear)) {
+                                    $charsDataPeaksYear[] = array($date, $peakConfirmed, $peakDeaths);
+                                }
+                                if (ispos($date, $curMonth)) {
+                                    $charsDataPeaksMonth[] = array($date, $peakConfirmed, $peakDeaths);
+                                }
                                 $lastData = $each;
                                 $lastConf = $lastData['confirmed'] - $prevConf;
                                 $lastDeath = $lastData['deaths'] - $prevDeaths;
@@ -261,7 +273,11 @@ if (cfr('COVID')) {
                             $result .= $this->messages->getStyledMessage(__('Recovered') . ' ' . $lastData['recovered'], 'success');
                             $result .= $this->messages->getStyledMessage(__('For the last day') . ' ' . $date . ' (' . __('Confirmed') . '/' . __('Deaths') . ') ' . $lastConf . '/' . $lastDeath, 'info');
 
-                            $result .= wf_gchartsLine($charsDataPeaks, __('By date'), '100%', '300px;', $chartsOptions);
+                            if ($curMonthCount > 0) {
+                                $result .= wf_gchartsLine($charsDataPeaksMonth, __('By date') . ' (' . __('Current month') . ')', '100%', '300px;', $chartsOptions);
+                            }
+                            $result .= wf_gchartsLine($charsDataPeaksYear, __('By date') . ' (' . __('Current year') . ')', '100%', '300px;', $chartsOptions);
+                            $result .= wf_gchartsLine($charsDataPeaksAll, __('By date') . ' (' . __('All time') . ')', '100%', '300px;', $chartsOptions);
                             if ($curMonthCount > 0) {
                                 $result .= wf_gchartsLine($charsDataMonth, __('Month'), '100%', '300px;', $chartsOptions);
                             }
