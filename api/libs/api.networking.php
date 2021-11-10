@@ -559,6 +559,9 @@ function multinet_get_network_params($network_id) {
     $network_id = vf($network_id, 3);
     $query = 'SELECT * from `networks` WHERE `id`="' . $network_id . '"';
     $result = simple_query($query);
+    if (empty($result)) {
+        $result = array();
+    }
     return($result);
 }
 
@@ -1218,21 +1221,23 @@ function multinet_expand_network($first_ip, $last_ip) {
  * @return array
  */
 function multinet_get_all_free_ip($table, $field, $network_id) {
-    $network_spec = multinet_get_network_params($network_id);
-    $first_ip = $network_spec['startip'];
-    $last_ip = $network_spec['endip'];
     $clear_ips = array();
     $free_ip_pool = array();
-    $full_network_pool = multinet_expand_network($first_ip, $last_ip);
-    $current_state_q = "SELECT `" . $field . "` from `" . $table . "` WHERE `netid` = '" . $network_id . "'";
-    $all_current_used_ip = simple_queryall($current_state_q);
-    if (!empty($all_current_used_ip)) {
-        foreach ($all_current_used_ip as $io => $usedip) {
-            $clear_ips[] = $usedip[$field];
+    $network_spec = multinet_get_network_params($network_id);
+    if (!empty($network_spec)) {
+        $first_ip = $network_spec['startip'];
+        $last_ip = $network_spec['endip'];
+        $full_network_pool = multinet_expand_network($first_ip, $last_ip);
+        $current_state_q = "SELECT `" . $field . "` from `" . $table . "` WHERE `netid` = '" . $network_id . "'";
+        $all_current_used_ip = simple_queryall($current_state_q);
+        if (!empty($all_current_used_ip)) {
+            foreach ($all_current_used_ip as $io => $usedip) {
+                $clear_ips[] = $usedip[$field];
+            }
+            $free_ip_pool = array_diff($full_network_pool, $clear_ips);
+        } else {
+            $free_ip_pool = $full_network_pool;
         }
-        $free_ip_pool = array_diff($full_network_pool, $clear_ips);
-    } else {
-        $free_ip_pool = $full_network_pool;
     }
     return($free_ip_pool);
 }
@@ -1293,7 +1298,11 @@ function multinet_get_service_networkid($service_id) {
     $service_id = vf($service_id);
     $query = "SELECT `netid` from `services` WHERE `id`='" . $service_id . "'";
     $service_network = simple_query($query);
-    $service_network = $service_network['netid'];
+    if (!empty($service_network)) {
+        $service_network = $service_network['netid'];
+    } else {
+        $service_network = 0;
+    }
     return($service_network);
 }
 

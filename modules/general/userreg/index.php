@@ -11,13 +11,13 @@ if (cfr('USERREG')) {
             $dbLockEnabled = true;
         }
     }
-    
-    $registerSteps=array(
-        __('Step').' 1'=>__('Select city'),
-        __('Step').' 2'=>__('Select street'),
-        __('Step').' 3'=>__('Select build'),
-        __('Step').' 4'=>__('Select service'),
-        __('Success')=>__('Confirm'),
+
+    $registerSteps = array(
+        __('Step') . ' 1' => __('Select city'),
+        __('Step') . ' 2' => __('Select street'),
+        __('Step') . ' 3' => __('Select build'),
+        __('Step') . ' 4' => __('Select service'),
+        __('Success') => __('Confirm'),
     );
 
     //getting UnknonwsSelector for userreg
@@ -31,13 +31,13 @@ if (cfr('USERREG')) {
     } else {
 
         if (isset($_POST['apt'])) {
-            $newuser_data['city'] = $_POST['citysel'];
-            $newuser_data['street'] = $_POST['streetsel'];
-            $newuser_data['build'] = $_POST['buildsel'];
-            @$newuser_data['entrance'] = $_POST['entrance'];
-            @$newuser_data['floor'] = $_POST['floor'];
-            $newuser_data['apt'] = $_POST['apt'];
-            $newuser_data['service'] = $_POST['serviceselect'];
+            $newuser_data['city'] = ubRouting::post('citysel');
+            $newuser_data['street'] = ubRouting::post('streetsel');
+            $newuser_data['build'] = ubRouting::post('buildsel');
+            @$newuser_data['entrance'] = ubRouting::post('entrance');
+            @$newuser_data['floor'] = ubRouting::post('floor');
+            $newuser_data['apt'] = ubRouting::post('apt');
+            $newuser_data['service'] = ubRouting::post('serviceselect');
             //pack contrahent data
             if (isset($alter_conf['LOGIN_GENERATION'])) {
                 if ($alter_conf['LOGIN_GENERATION'] == 'DEREBAN') {
@@ -93,7 +93,7 @@ if (cfr('USERREG')) {
             if (isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED']) {
                 $newMac = '';
 
-                if (isset($_POST['userMAC']) and !empty($_POST['userMAC'])) {
+                if (isset($_POST['userMAC']) and ! empty($_POST['userMAC'])) {
                     $newMac = $_POST['userMAC'];
                     $newMac = trim($newMac);
                     $newMac = strtolower($newMac);
@@ -101,8 +101,8 @@ if (cfr('USERREG')) {
                     $allUsedMacs = zb_getAllUsedMac();
                     if (!zb_checkMacFree($newMac, $allUsedMacs)) {
                         $alert = wf_tag('script', false, '', 'type="text/javascript"');
-                        $alert.='alert("' . __('Error') . ': ' . __('This MAC is currently used') . '");';
-                        $alert.=wf_tag('script', true);
+                        $alert .= 'alert("' . __('Error') . ': ' . __('This MAC is currently used') . '");';
+                        $alert .= wf_tag('script', true);
                         print($alert);
                         rcms_redirect("?module=userreg");
                         die();
@@ -111,8 +111,8 @@ if (cfr('USERREG')) {
                     //validate mac format
                     if (!check_mac_format($newMac)) {
                         $alert = wf_tag('script', false, '', 'type="text/javascript"');
-                        $alert.='alert("' . __('Error') . ': ' . __('This MAC have wrong format') . '");';
-                        $alert.=wf_tag('script', true);
+                        $alert .= 'alert("' . __('Error') . ': ' . __('This MAC have wrong format') . '");';
+                        $alert .= wf_tag('script', true);
                         print($alert);
                         rcms_redirect("?module=userreg");
                         die();
