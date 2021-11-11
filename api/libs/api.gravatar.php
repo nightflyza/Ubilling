@@ -35,7 +35,7 @@ function gravatar_GetAvatar($email, $size = '64') {
     $cachePath = DATA_PATH . 'avatars/';
     $gravatarOption = $ubillingConfig->getAlterParam('GRAVATAR_DEFAULT');
     $gravatarCacheTime = $ubillingConfig->getAlterParam('GRAVATAR_CACHETIME');
-    $getsize = ($size != '') ? '?s=' . $size : '';
+    $getsize = ($size) ? '&s=' . $size : '';
     //option not set
     if (!$gravatarOption) {
         $gravatarOption = 'monsterid';
@@ -43,7 +43,7 @@ function gravatar_GetAvatar($email, $size = '64') {
 
     $useSSL = ($gravatarCacheTime) ? false : true; //avoid mixed content issues on disabled caching cases
     $url = gravatar_GetUrl($email, $useSSL);
-    $fullUrl = $url . $getsize . '&d=' . $gravatarOption;
+    $fullUrl = $url . '?d=' . $gravatarOption . $getsize;
 
     //avatar caching to local FS.
     if ($gravatarCacheTime) {
