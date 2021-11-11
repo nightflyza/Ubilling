@@ -5,21 +5,24 @@
  */
 
 /**
- * Get gravatar url by some email
+ * Get gravatar URL by some email
  * 
- * @param string $email  user email
+ * @param string $email user email
+ * @param bool $secure use HTTPS for API interraction?
+ * 
  * @return string
  */
-function gravatar_GetUrl($email) {
+function gravatar_GetUrl($email, $secure = false) {
     $hash = strtolower($email);
     $hash = md5($hash);
-    $proto = 'http://gravatar.com/avatar/';
-    $result = $proto . $hash;
+    $proto = ($secure) ? 'https' : 'http';
+    $baseUrl = 'gravatar.com/avatar/';
+    $result = $proto . '://' . $baseUrl . $hash;
     return ($result);
 }
 
 /**
- * Function that shows avatar by user email
+ * Function that returns avatar code by user email
  * 
  * @global object $ubillingConfig
  * @param string $email  user email
@@ -27,7 +30,7 @@ function gravatar_GetUrl($email) {
  * 
  * @return string
  */
-function gravatar_GetAvatar($email, $size = '') {
+function gravatar_GetAvatar($email, $size = '64') {
     global $ubillingConfig;
     $cachePath = DATA_PATH . 'avatars/';
     $gravatarOption = $ubillingConfig->getAlterParam('GRAVATAR_DEFAULT');
@@ -38,9 +41,9 @@ function gravatar_GetAvatar($email, $size = '') {
         $gravatarOption = 'monsterid';
     }
 
-    $url = gravatar_GetUrl($email);
+    $useSSL = ($gravatarCacheTime) ? false : true; //avoid mixed content issues on disabled caching cases
+    $url = gravatar_GetUrl($email, $useSSL);
     $fullUrl = $url . $getsize . '&d=' . $gravatarOption;
-
 
     //avatar caching to local FS.
     if ($gravatarCacheTime) {
@@ -78,6 +81,7 @@ function gravatar_GetAvatar($email, $size = '') {
  * Get framework user email
  * 
  * @param string $username rcms user login
+ * 
  * @return string
  */
 function gravatar_GetUserEmail($username) {
@@ -97,6 +101,7 @@ function gravatar_GetUserEmail($username) {
  * 
  * @param string $username rcms user login
  * @param int    $size - size of returning avatar
+ * 
  * @return string
  */
 function gravatar_ShowAdminAvatar($username, $size = '') {
