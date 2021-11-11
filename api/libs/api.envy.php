@@ -633,6 +633,7 @@ class Envy {
                 }
             }
 
+
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('Latest config'));
             $cells .= wf_TableCell(__('IP'));
@@ -648,11 +649,13 @@ class Envy {
 
             foreach ($this->allDevices as $io => $each) {
                 $switchData = @$this->allSwitches[$each['switchid']];
+                $scriptAvailable = (isset($this->allScripts[$switchData['modelid']])) ? true : false;
+                $modelLabel = ($scriptAvailable) ? wf_img_sized('skins/icon_ok.gif', __('Envy script available'), '12') : wf_img_sized('skins/delete_small.png', __('Envy script unavailable'), '12');
                 $cells = wf_TableCell($each['switchid']);
                 $cells .= wf_TableCell($this->getLastConfigDate($each['switchid']));
                 $cells .= wf_TableCell($switchData['ip']);
                 $cells .= wf_TableCell($switchData['location']);
-                $cells .= wf_TableCell(@$allModelNames[$switchData['modelid']]);
+                $cells .= wf_TableCell($modelLabel . ' ' . @$allModelNames[$switchData['modelid']]);
                 $cells .= wf_TableCell(web_bool_led($each['active']));
                 $cells .= wf_TableCell($each['login']);
                 $cells .= wf_TableCell($each['password']);
