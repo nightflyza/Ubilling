@@ -279,7 +279,7 @@ class ClickUZ {
      * @return array
      */
     protected function getUserRealnames($userLogin = '') {
-        $result = (empty($userLogin) ? array() : '');
+        $result = array();
         $whereStr = (empty($userLogin) ? '' : " WHERE `login` = '" . $userLogin . "'");
 
         $query = "SELECT * from `realname`" . $whereStr;
@@ -304,7 +304,7 @@ class ClickUZ {
      * @return array|string
      */
     protected function getUserAddresses($userLogin = '') {
-        $result = (empty($userLogin) ? array() : '');
+        $result = array();
         $whereStr = (empty($userLogin) ? '' : " WHERE `address`.`login` = '" . $userLogin . "'");
 
         $query = "
@@ -455,7 +455,7 @@ class ClickUZ {
                            )
             );
 
-            $reply = json_encode($reply);
+            $reply = json_encode($reply, JSON_UNESCAPED_UNICODE);
         }
 
         die($reply);
@@ -571,40 +571,43 @@ class ClickUZ {
         $this->clickTransactID  = $this->receivedJSON['click_trans_id'];
         $this->serviceID        = $this->receivedJSON['service_id'];
         $this->customerID       = ( $this->paymentMethod == 'getinfo'
-                                    ? $this->receivedJSON['params']['contract']
+                                    ? $this->receivedJSON['params']['caller_id']
                                     : $this->receivedJSON['merchant_trans_id'] );
 
-        if ($this->validateSign()) {
-            if (!empty($this->opCustomersAll[$this->customerID])) {
-                $this->userLogin = $this->opCustomersAll[$this->customerID];
-
-                if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->userLogin)) {
-                    die($this->replyError('-5'));
-                }
-
-                switch ($this->paymentMethod) {
-                    case 'getinfo':
-                        $this->replyGetInfo();
-                        break;
-
-                    case 'prepare':
-                        $this->replyPrepare();
-                        break;
-
-                    case 'complete':
-                        $this->replyComplete();
-                        break;
-
-                    default:
-                        die($this->replyError('-3'));
-                }
-
+        // if payment method is not getinfo()
+        // then we need to validate the request's sign
+        if ($this->paymentMethod != 'getinfo') {
+            if (!$this->validateSign()) {
+                die($this->replyError('-1'));
             }
-            else {
+        }
+
+        if (!empty($this->opCustomersAll[$this->customerID])) {
+            $this->userLogin = $this->opCustomersAll[$this->customerID];
+
+            if ($this->agentcodesON and !$this->checkServiceAgentAssign($this->userLogin)) {
                 die($this->replyError('-5'));
             }
+
+            switch ($this->paymentMethod) {
+                case 'getinfo':
+                    $this->replyGetInfo();
+                    break;
+
+                case 'prepare':
+                    $this->replyPrepare();
+                    break;
+
+                case 'complete':
+                    $this->replyComplete();
+                    break;
+
+                default:
+                    die($this->replyError('-3'));
+            }
+
         } else {
-            die($this->replyError('-1'));
+            die($this->replyError('-5'));
         }
     }
 
@@ -619,7 +622,13 @@ class ClickUZ {
             $this->paymentMethod = $_GET['payment_method'];
 
             if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
-                parse_str(file_get_contents('php://input'), $this->receivedJSON);
+                $rawRequest = file_get_contents('php://input');
+
+                if ($this->paymentMethod == 'getinfo') {
+                    $this->receivedJSON = json_decode($rawRequest, true);
+                } else {
+                    parse_str($rawRequest, $this->receivedJSON);
+                }
 
                 if (!empty($this->receivedJSON)) {
                    $this->processRequest();

@@ -13,7 +13,7 @@ if (cfr('EXTCONTRAS')) {
         if (ubRouting::checkGet($ExtContras::ROUTE_CONTRAS_JSON)){
             $whereRaw = '';
 
-            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+/*            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
                 $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
             }
 
@@ -25,7 +25,7 @@ if (cfr('EXTCONTRAS')) {
             if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_PAYDAY)) {
                 $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
                 $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS  . '`.`' . $ExtContras::DBFLD_EXTCONTRAS_PAYDAY . "` = " . ubRouting::post($ExtContras::MISC_WEBFILTER_PAYDAY);
-            }
+            }*/
 
             $ExtContras->extcontrasRenderListJSON($whereRaw);
         }
@@ -80,7 +80,8 @@ if (cfr('EXTCONTRAS')) {
                 $jqdtID         = 'jqdt_' . md5($ajaxURL);
 
                 die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px; width: 95%;"') . __('Contracts')
-                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtID, '', '', 'style="display: contents;"') . wf_tag('h3', true)
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtID, '', '', 'style="display: contents;"') . wf_delimiter(0)
+                    . $ExtContras->extcontrasFilterWebFormInline($ajaxURL, $jqdtID) . wf_tag('h3', true)
                     . $ExtContras->ecRender2ndLvlContractsJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilter, false))
                     . wf_CleanDiv() . wf_delimiter(0));
             }
@@ -93,6 +94,21 @@ if (cfr('EXTCONTRAS')) {
                 $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_PROFILE_ID);
             }
 
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_PAYDAY)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS  . '`.`' . $ExtContras::DBFLD_EXTCONTRAS_PAYDAY . "` = " . ubRouting::post($ExtContras::MISC_WEBFILTER_PAYDAY);
+            }
+
             $ExtContras->ecRender2ndLvlContractsListJSON($whereRaw);
         }
 
@@ -101,18 +117,20 @@ if (cfr('EXTCONTRAS')) {
             if (ubRouting::checkPost($ExtContras::DBFLD_COMMON_ID)) {
                 $detailsFilterFinops = '&' . $ExtContras::DBFLD_COMMON_ID . '=' . ubRouting::post($ExtContras::DBFLD_COMMON_ID)
                                        . '&' . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID);
-                $ajaxURL             = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_FINOPS_JSON . '=true' . $detailsFilterFinops;
-                $jqdtIDFinops        = 'jqdt_' . md5($ajaxURL);
+                $ajaxURLFinops       = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_FINOPS_JSON . '=true' . $detailsFilterFinops;
+                $jqdtIDFinops        = 'jqdt_' . md5($ajaxURLFinops);
 
                 $detailsFilterAddr   = $detailsFilterFinops . '&' . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . '=' . ubRouting::post($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
-                $ajaxURL             = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_3LVL_ADDR_JSON . '=true' . $detailsFilterAddr;
-                $jqdtIDAddr          = 'jqdt_' . md5($ajaxURL);
+                $ajaxURLAddr         = '' . $ExtContras::URL_ME . '&' . $ExtContras::ROUTE_3LVL_ADDR_JSON . '=true' . $detailsFilterAddr;
+                $jqdtIDAddr          = 'jqdt_' . md5($ajaxURLAddr);
 
                 die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 10px; width: 95%;"') . __('Addresses')
-                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDAddr, '', '', 'style="display: contents;"') . wf_tag('h3', true)
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDAddr, '', '', 'style="display: contents;"') . wf_delimiter(0)
+                    . $ExtContras->extcontrasFilterWebFormInline($ajaxURLAddr, $jqdtIDAddr) . wf_tag('h3', true)
                     . $ExtContras->ecRender2ndLvlAddressJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterAddr, false))
                     . wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations')
-                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDFinops, '', '', 'style="display: contents;"') .  wf_tag('h3', true)
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDFinops, '', '', 'style="display: contents;"') . wf_delimiter(0)
+                    . $ExtContras->extcontrasFilterWebFormInline($ajaxURLFinops, $jqdtIDFinops, false) . wf_tag('h3', true)
                     . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false))
                     . wf_CleanDiv() . wf_delimiter(0));
             }
@@ -129,6 +147,21 @@ if (cfr('EXTCONTRAS')) {
                             //. " AND `" . $ExtContras::TABLE_EXTCONTRAS . "`.`" . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
             }
 
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_ECCONTRACTS . '`.`' . $ExtContras::DBFLD_CTRCT_DTSTART . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
+            }
+
+            if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_PAYDAY)) {
+                $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                $whereRaw.= "`" . $ExtContras::TABLE_EXTCONTRAS  . '`.`' . $ExtContras::DBFLD_EXTCONTRAS_PAYDAY . "` = " . ubRouting::post($ExtContras::MISC_WEBFILTER_PAYDAY);
+            }
+
             $ExtContras->ecRender2ndLvlAddressListJSON($whereRaw);
         }
 
@@ -142,7 +175,8 @@ if (cfr('EXTCONTRAS')) {
                 $jqdtIDFinops        = 'jqdt_' . md5($ajaxURL);
 
                 die(wf_Plate(wf_tag('h3', false, 'glamour', 'style="margin-top: 25px; width: 95%;"') . __('Financial operations')
-                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDFinops, '', '', 'style="display: contents;"') .  wf_tag('h3', true). wf_tag('h3', true)
+                    . wf_nbsp(4) . wf_JQDTRefreshButton($jqdtIDFinops, '', '', 'style="display: contents;"') . wf_delimiter(0)
+                    . $ExtContras->extcontrasFilterWebFormInline($ajaxURL, $jqdtIDFinops, false) . wf_tag('h3', true)
                     . $ExtContras->finopsRenderJQDT('', ubRouting::get($ExtContras::MISC_MARKROW_URL), $detailsFilterFinops, false))
                     . wf_CleanDiv() . wf_delimiter(0));
             }
@@ -170,6 +204,16 @@ if (cfr('EXTCONTRAS')) {
                                  . $ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_CONTRACT_ID)
                                  . " AND `" . $ExtContras::TABLE_ECMONEY . "`.`"
                                  . $ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID . "` = " . ubRouting::get($ExtContras::DBFLD_EXTCONTRAS_ADDRESS_ID);
+                }
+
+                if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
+                    $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                    $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_DATE . "` >= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_START) . "'";
+                }
+
+                if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_END)) {
+                    $whereRaw.= (empty($whereRaw) ? '' : ' AND ');
+                    $whereRaw.= "`" . $ExtContras::DBFLD_MONEY_DATE . "` <= '" . ubRouting::post($ExtContras::MISC_WEBFILTER_DATE_END) . "' + INTERVAL 1 DAY";
                 }
             } else {
                 if (ubRouting::checkPost($ExtContras::MISC_WEBFILTER_DATE_START)) {
@@ -201,9 +245,9 @@ if (cfr('EXTCONTRAS')) {
                                          '22', '22', 'vertical-align: middle;'),
                                   false, 'ubButton', 'target="_blank" style="display: inline; padding: 3px 7px; vertical-align: middle;"'),
                         wf_Plate($ExtContras->extcontrasWebForm(false), '', '', '', 'margin-right: 30px;')
-                        . $ExtContras->extcontrasFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
                         . $ExtContras->extcontrasRenderMainJQDT()
                         );
+// . $ExtContras->extcontrasFilterWebForm() . wf_CleanDiv() . wf_delimiter(0)
         }
 
         if (ubRouting::checkGet($ExtContras::URL_DICTPROFILES)) {

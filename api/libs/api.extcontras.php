@@ -960,7 +960,7 @@ class ExtContras {
      * @param string $truncateParam
      * @param bool $addTotalsFooter
      * @param array $totalsColumns
-     * @param string $totalColsLegendStr
+     * @param string $totalsColsLegendStr
      * @param bool $addDetailsProcessingJS
      * @param string $dpAjaxURL
      * @param string $dpColumnIdx
@@ -968,9 +968,14 @@ class ExtContras {
      * @param string $dpAjaxMethod
      *
      * @param string|int $markRowForID
+     *
      * @return string
      */
-    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true, $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '', $addTotalsFooter = false, $totalsColumns = array(), $totalColsLegendStr = '', $addDetailsProcessingJS = false, $dpAjaxURL = '', $dpColumnIdx = '', $dpJSFuncName = 'showDetailsData', $dpAjaxMethod = 'POST') {
+    protected function getStdJQDTWithJSForCRUDs($ajaxURL, $columnsArr, $columnsOpts = '', $stdJSForCRUDs = true,
+                                                $customJSCode = '', $markRowForID = '', $truncateURL = '', $truncateParam = '',
+                                                $addTotalsFooter = false, $totalsColumns = array(), $totalsColsLegendStr = '',
+                                                $addDetailsProcessingJS = false, $dpAjaxURL = '', $dpColumnIdx = '',
+                                                $dpJSFuncName = 'showDetailsData', $dpAjaxMethod = 'POST') {
         $result = '';
         $ajaxURLStr = $ajaxURL;
         $jqdtID = 'jqdt_' . md5($ajaxURLStr);
@@ -1000,8 +1005,8 @@ class ExtContras {
                     curPageSum = api.column( ' . $colNum . ', {page:"current"} ).data().sum();
                     curPageTotal = api.column( ' . $colNum . ' ).data().sum();
                     
-                    footerHTML = " " + curPageSum + " ' . __($totalColsLegendStr)
-                        . ' ( " + curPageTotal + " ' . __($totalColsLegendStr) . ' )";
+                    footerHTML = " " + curPageSum + " ' . __($totalsColsLegendStr)
+                                 . ' ( " + curPageTotal + " ' . __($totalsColsLegendStr) . ' )";
                     
                     $( api.column(' . $colNum . ').footer() ).html( footerHTML );                    
                 ';
@@ -2195,6 +2200,42 @@ class ExtContras {
     }
 
     /**
+     * Returns a filter web form for extcontras main form
+     *
+     * @param string $ajaxURLStr
+     * @param string $jqdtID
+     * @param bool $includePayDayCtrl
+     *
+     * @return string
+     */
+    public function extcontrasFilterWebFormInline($ajaxURLStr, $jqdtID, $includePayDayCtrl = true) {
+        $formID     = 'Form_' . wf_InputId();
+        $inputs     = '';
+        $style      = 'style="font-family: Helvetica, Arial, Verdana, sans-serif; font-size: 12px;"';
+
+        $caption = wf_tag('span') . __('Filter by') . ':' . wf_tag('span', true);
+        $inputs.= wf_tag('span', false, '', $style);
+        $inputs.= wf_DatesTimesRangeFilter(false, false, false, false, true, false,
+                                           ubRouting::post(self::MISC_WEBFILTER_DATE_START), ubRouting::post(self::MISC_WEBFILTER_DATE_END),
+                                           self::MISC_WEBFILTER_DATE_START, self::MISC_WEBFILTER_DATE_END
+                                          );
+        $inputs.= wf_tag('span', true);
+
+        if ($includePayDayCtrl) {
+            $inputs .= wf_tag('span', false, '', $style);
+            $inputs .= __('Payday') . ':' . wf_nbsp(2);
+            $inputs .= wf_TextInput(self::MISC_WEBFILTER_PAYDAY, '', ubRouting::post(self::MISC_WEBFILTER_PAYDAY), false, 4, 'digits');
+            $inputs .= wf_tag('span', true);
+        }
+
+        $inputs.= wf_SubmitClassed(true, 'ubButtonInline', '', __('Show'), '', '');
+        $inputs = wf_Form($ajaxURLStr,'POST', $caption . $inputs, 'glamour form-grid-5cols-inline', '', $formID, '', '');
+        $inputs.= wf_EncloseWithJSTags(wf_jsAjaxFilterFormSubmit($ajaxURLStr, $formID, $jqdtID));
+
+        return ($inputs);
+    }
+
+    /**
      * Returns a external counterparty editor web form
      *
      * @param bool $modal
@@ -2375,17 +2416,19 @@ class ExtContras {
      *
      */
     public function extcontrasRenderListJSON($whereRaw = '') {
-        if (!empty($whereRaw)) {
-            $this->dbECProfiles->whereRaw($whereRaw);
-        }
-
-        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES, !empty($whereRaw), true, '', '', !empty($whereRaw));
+        $this->loadDataFromTableCached(self::TABLE_ECPROFILES, self::TABLE_ECPROFILES,
+                                       !empty($whereRaw), true,'', '', !empty($whereRaw));
 
         $json = new wf_JqDtHelper();
 
         if (!empty($this->allECProfiles)) {
+//$this->dbExtContras->setDebug(true, true);
+  /*          if (!empty($whereRaw)) {
+                $this->dbExtContras->whereRaw($whereRaw);
+            }*/
+
             $data = array();
-            $tmpExtContrasRecs = $this->loadDataFromTableCached(self::TABLE_EXTCONTRAS, self::TABLE_EXTCONTRAS);
+            $tmpExtContrasRecs = $this->loadDataFromTableCached(self::TABLE_EXTCONTRAS, self::TABLE_EXTCONTRAS, !empty($whereRaw));
 
             foreach ($this->allECProfiles as $eachRecID) {
                 $profileRecID = $eachRecID[self::DBFLD_COMMON_ID];
@@ -3058,6 +3101,7 @@ class ExtContras {
 
         $colTargets1 = '[1, 2]';
         $colTargets2 = '[13, 14]';
+        $totalsCols  = ($this->ecInvoicesON ? array(9, 10) : array(8, 9));
 
         $columns[] = __('ID');
         $columns[] = __('Counterparty');
@@ -3091,7 +3135,9 @@ class ExtContras {
                           ]                                      
             ';
 
-        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID, self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID, self::MISC_MARKROW_URL, true, array(8, 9), $this->currencyStr);
+        $result = $this->getStdJQDTWithJSForCRUDs($ajaxURL, $columns, $opts, $stdJSForCRUDs, $customJSCode, $markRowForID,
+                                    self::URL_ME . '&' . self::URL_EXTCONTRAS . '=true&' . self::MISC_MARKROW_URL . '=' . $markRowForID,
+                                      self::MISC_MARKROW_URL, true, $totalsCols, $this->currencyStr);
         return($result);
     }
 
@@ -3348,5 +3394,4 @@ class ExtContras {
 
         $json->getJson();
     }
-
 }

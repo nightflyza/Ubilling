@@ -2769,9 +2769,9 @@ function wf_JQDTRefreshButton($jqdtID = '', $jqdtIDSelector = '', $class = '', $
     $result = '';
 
     if (!empty($jqdtID) or ! empty($jqdtIDSelector)) {
-        $class = (empty($class) ? 'ubButton' : $class);
+        $class = (empty($class) ? 'ubButtonInline' : $class);
         $tmpInpID = wf_InputId();
-        $result = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data')), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
+        $result = wf_Link('#', wf_img('skins/refresh.gif', __('Refresh table data'), 'vertical-align: bottom'), false, $class, 'id="' . $tmpInpID . '" ' . $opts);
 
         $tmpScript = '
             $(\'#' . $tmpInpID . '\').click(function(evt) {
@@ -4060,6 +4060,14 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
     $inputs = '';
     $cells = '';
     $rows = '';
+    $datepickerStart = '';
+    $datepickerEnd = '';
+    $datepickerStartCapt = '';
+    $datepickerEndCapt = '';
+    $timepickerStart = '';
+    $timepickerEnd = '';
+    $timepickerStartCapt = '';
+    $timepickerEndCapt = '';
 
     if ($dateIsON) {
         $dpStartInpName = (empty($dpStartInpName) ? 'datestartfilter' : $dpStartInpName);
@@ -4140,6 +4148,8 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
 
         if ($vertical) {
             $inputs .= wf_delimiter();
+        } else {
+            $inputs .= wf_nbsp(8);
         }
 
         if ($dateIsON) {
