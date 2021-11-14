@@ -23,6 +23,9 @@ class PaymeUZ {
     const HASH_PREFIX = 'PAYME_UZ_';
     const PAYSYS = 'PAYME_UZ';
 
+    /** Transaction expiration time in milliseconds. 43 200 000 ms = 12 hours. */
+    const EXPIRE_TIMEOUT = 43200000;
+
     /**
      * Agent codes using flag
      *
@@ -86,6 +89,13 @@ class PaymeUZ {
      * @var string 
      */
     protected $paymeCashBoxID = '';
+
+    /**
+     * Placeholder for DEFAULT_CASHBOX_ID option
+     *
+     * @var string
+     */
+    protected $defaultCashBoxID = '';
     
     /**
      * Placeholder for UB API URL
@@ -123,7 +133,7 @@ class PaymeUZ {
     protected $paymentSum = 0;
 
     /**
-     * Placeholder for a "payment_method" GET parameter
+     * Placeholder for a payment method JSON property
      *
      * @var string
      */
@@ -251,15 +261,27 @@ class PaymeUZ {
             $this->agentcodesON        = $this->config['USE_AGENTCODES'];
             $this->agentcodesNonStrict = $this->config['NON_STRICT_AGENTCODES'];
             $this->agentcodeDefault    = $this->config['DEFAULT_AGENTCODE'];
+            $this->defaultCashBoxID    = $this->config['DEFAULT_CASHBOX_ID'];
             $this->customerIDFieldName = $this->config['CUSTOMERID_FIELD_NAME'];
-            $this->paymeLogin          = $this->config['LOGIN'];
-            $this->paymePassword       = $this->config['PASSWORD'];
+            $this->paymeLogin          = (empty($this->config['LOGIN']) ? '' : $this->config['LOGIN']);
+            $this->paymePassword       = (empty($this->config['PASSWORD']) ? '' : $this->config['PASSWORD']);
             $this->ubapiURL            = $this->config['UBAPI_URL'];
             $this->ubapiKey            = $this->config['UBAPI_KEY'];
             $this->addressCityDisplay  = $this->config['CITY_DISPLAY_IN_ADDRESS'];
         } else {
             die('Fatal: config is empty!');
         }
+    }
+
+    /**
+     * Returns current UNIX timestamp in milliseconds (13 digits)
+     *
+     * @return int
+     */
+    protected function getUnixTimestampMillisec() {
+        $now    = DateTime::createFromFormat('U.u', number_format(microtime(true), 6, '.', ''));
+        $now_ms = (int)$now->format('Uv');
+        return ($now_ms);
     }
 
     /**
@@ -292,11 +314,12 @@ class PaymeUZ {
             $cashboxID = (empty($this->agentcodesMapping[$agentID]) ? '' : $this->agentcodesMapping[$agentID]);
         }
 
-        // if no mapped cashbox ID found or user does not have UB agent assigned to
-        // and $this->agentcodesNonStrict is ON - proceed with default UB agent and a cashbox ID mapped to it
-        // if no default cashbox ID is set - returns user not found error
+        // if no mapped cashbox ID found or user does not have UB agent assigned
+        // and $this->agentcodesNonStrict is ON - proceed with default UB agent
+        // and a cashbox ID mapped to it or use DEFAULT_CASHBOX_ID.
+        // if no default cashbox ID is set - user not found error will be returned.
         if (empty($cashboxID) and $this->agentcodesNonStrict and !empty($this->agentcodeDefault)) {
-            $cashboxID = (empty($this->agentcodesMapping[$this->agentcodeDefault]) ? '' : $this->agentcodesMapping[$this->agentcodeDefault]);
+            $cashboxID = (empty($this->agentcodesMapping[$this->agentcodeDefault]) ? $this->defaultCashBoxID : $this->agentcodesMapping[$this->agentcodeDefault]);
         }
 
         return ($cashboxID);
@@ -324,7 +347,7 @@ class PaymeUZ {
      * @return array
      */
     protected function getUserRealnames($userLogin = '') {
-        $result = (empty($userLogin) ? array() : '');
+        $result = array();
         $whereStr = (empty($userLogin) ? '' : " WHERE `login` = '" . $userLogin . "'");
 
         $query = "SELECT * from `realname`" . $whereStr;
@@ -349,7 +372,7 @@ class PaymeUZ {
      * @return array|string
      */
     protected function getUserAddresses($userLogin = '') {
-        $result = (empty($userLogin) ? array() : '');
+        $result = array();
         $whereStr = (empty($userLogin) ? '' : " WHERE `address`.`login` = '" . $userLogin . "'");
 
         $query = "
@@ -402,29 +425,63 @@ class PaymeUZ {
     }
 
     /**
+     * Tries to get customer ID from existing transaction
+     *
+     * @param $transactID
+     *
+     * @return mixed|string
+     */
+    protected function getCustomerIDFromSavedTransact($transactID) {
+        $transactData = $this->getTransactionData($transactID);
+        $result = (empty($transactData['op_customer_id']) ? '' : $transactData['op_customer_id']);
+        return ($result);
+    }
+
+    /**
      * Returns transaction data by $transactID
      *
      * @param string $transactID
+     *
+     * @return mixed|string
+     */
+    protected function getTransactionData($transactID) {
+        $result = '';
+        $tQuery = "SELECT * FROM `paymeuz_transactions` WHERE `transact_id` ='" . $transactID . "' ";
+        $result = simple_query($tQuery);
+
+        return($result);
+    }
+
+    /**
+     * Returns transaction data by $transactID
+     *
      * @param int $fromTimeStamp
      * @param int $toTimestamp
      *
      * @return mixed|string
      */
-    protected function getTransactionData($transactID, $fromTimeStamp = 0, $toTimestamp = 0) {
-        $result = '';
-        $whereFrom = (empty($fromTimeStamp) ? "" : " and `payme_transact_timestamp` >= " . $fromTimeStamp);
-        $whereTo = (empty($toTimeStamp) ? "" : " and `payme_transact_timestamp` <= " . $toTimeStamp);
-        $orderBy = (!empty($whereFrom) or !empty($whereTo) ? " ORDER BY `payme_transact_timestamp` ASC " : "");
-        $tQuery = "SELECT * FROM `paymeuz_transactions` WHERE `transact_id` ='" . $transactID . "' " . $whereFrom . $whereTo . $orderBy;
+    protected function getTransactionsDataAll($fromTimeStamp = 0, $toTimestamp = 0) {
+        $result     = '';
+        $whereStr   = " WHERE ";
+        $whereFrom  = (empty($fromTimeStamp) ? "" : " `payme_transact_timestamp` >= " . $fromTimeStamp);
+        $whereTo    = (empty($toTimeStamp) ? "" : " `payme_transact_timestamp` <= " . $toTimeStamp);
 
-        if (!empty($whereFrom) or !empty($whereTo)) {
-            $result = simple_queryall($tQuery);
-        } else {
-            $result = simple_query($tQuery);
+        if (empty($whereFrom) and empty($whereTo)) {
+            $whereStr = '';
+        } elseif (!empty($whereFrom) and empty($whereTo)) {
+            $whereStr.= $whereFrom;
+        } elseif (!empty($whereFrom) and !empty($whereTo)) {
+            $whereStr.= $whereFrom . " and " . $whereTo;
+        } elseif (empty($whereFrom) and !empty($whereTo)) {
+            $whereStr.= $whereTo;
         }
+
+        $orderBy    = (!empty($whereStr) ? " ORDER BY `payme_transact_timestamp` ASC " : "");
+        $tQuery     = "SELECT * FROM `paymeuz_transactions` " . $whereStr . $orderBy;
+        $result     = simple_queryall($tQuery);
+
         return($result);
     }
-
     /**
      * Checks if transaction already exists and returns it's state
      *
@@ -441,6 +498,19 @@ class PaymeUZ {
     }
 
     /**
+     * Returns transaction expired status: true - expired, false - not expired
+     *
+     * @param $transactData
+     *
+     * @return bool
+     */
+    protected function checkTransactionExpired($transactData) {
+        $curTimestamp = $this->getUnixTimestampMillisec();
+        $transactCreateTimestamp = $transactData['create_timestamp'];
+        $result = (($curTimestamp - $transactCreateTimestamp) > self::EXPIRE_TIMEOUT);
+        return ($result);
+    }
+    /**
      * Saves transaction id to validate some possible duplicates
      *
      * @param string $transactID
@@ -455,13 +525,15 @@ class PaymeUZ {
     protected function saveTransaction($transactID, $opTransactID, $opCustomerID, $transactAmount, $transactTimestamp, $transactReceivers) {
         $transactState = 1;
         $opTransactDTCreate  = curdatetime();
-        $opTransactTimestamp = strtotime($opTransactDTCreate);
+        $opTransactTimestamp = $this->getUnixTimestampMillisec();
 
         $tQuery = "INSERT INTO `paymeuz_transactions` (`date_create`, `transact_id`, `op_transact_id`, `op_customer_id`,
                                                        `amount`, `state`, `payme_transact_timestamp`, `create_timestamp`, `receivers`) 
                           VALUES ('" . $opTransactDTCreate . "', '" . $transactID . "', '" . $opTransactID . "', '" . $opCustomerID
-                                  . "', '" . $transactAmount . "', " . $transactState . ", " . $transactTimestamp . ", " . $opTransactTimestamp
+                                  . "', " . $transactAmount . ", " . $transactState . ", " . $transactTimestamp . ", " . $opTransactTimestamp
                                   . ", '" . $transactReceivers . "')";
+
+        nr_query($tQuery);
         return($opTransactTimestamp);
     }
 
@@ -473,7 +545,7 @@ class PaymeUZ {
      * @return int
      */
     protected function markTransactAsPaid($transactID) {
-        $payTimeStamp = strtotime(curdatetime());
+        $payTimeStamp = $this->getUnixTimestampMillisec();
         $tQuery = "UPDATE `paymeuz_transactions` SET `state` = 2, `perform_timestamp` = " . $payTimeStamp . " WHERE `transact_id` ='" . $transactID . "'";
         nr_query($tQuery);
         return($payTimeStamp);
@@ -488,7 +560,7 @@ class PaymeUZ {
      * @return int
      */
     protected function markTransactAsCanceled($transactID, $cancelReason = '') {
-        $cancelTimeStamp = strtotime(curdatetime());
+        $cancelTimeStamp = $this->getUnixTimestampMillisec();
         $tQuery = "UPDATE `paymeuz_transactions` SET `state` = -1, `cancel_timestamp` = " . $cancelTimeStamp . ", `cancel_reason` = '" . $cancelReason . "' WHERE `transact_id` ='" . $transactID . "'";
         nr_query($tQuery);
         return ($cancelTimeStamp);
@@ -509,12 +581,16 @@ class PaymeUZ {
      * @return bool
      */
     protected function checkAuth() {
+        $result  = false;
         $headers = getallheaders();
 
-        return (!$headers
-                or !isset($headers['Authorization'])
-                or !preg_match('/^\s*Basic\s+(\S+)\s*$/i', $headers['Authorization'], $matches)
-                or base64_decode($matches[1]) != $this->paymeLogin . ":" . $this->paymePassword);
+        if (!empty($headers['Authorization'])) {
+            preg_match('/^\s*Basic\s+(\S+)\s*$/i', $headers['Authorization'], $matches);
+            $decodedAuth = base64_decode($matches[1]);
+            $result = ($decodedAuth == $this->paymeLogin . ":" . $this->paymePassword);
+        }
+
+        return ($result);
     }
 
     /**
@@ -544,7 +620,6 @@ class PaymeUZ {
             $reply = json_encode($reply);
         }
 
-        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -554,12 +629,17 @@ class PaymeUZ {
     protected function replyCreateTransact() {
         $reply = '';
         $transactState = $this->checkTransactionExists($this->paymeTransactID);
+
         if (empty($transactState)) {
-            $reply = $this->replyError('-31051');
-        } else {
-            $transactTimestamp  = $this->receivedJSON['time'];
+            $transactTimestamp  = $this->receivedJSON['params']['time'];
             $opTransactID       = self::HASH_PREFIX . $this->paymeTransactID;
-            $transactReceivers  = array(array('id' => $this->paymeCashBoxID, 'amount' => $this->paymentSum));
+
+            if ($this->paymeCashBoxID == $this->defaultCashBoxID) {
+                // we don't want to send money from a certain cashbox to itself
+                $transactReceivers = null;
+            } else {
+                $transactReceivers = array(array('id' => $this->paymeCashBoxID, 'amount' => $this->paymentSum));
+            }
 
             $opTransactTimestamp = $this->saveTransaction($this->paymeTransactID, $opTransactID, $this->customerID,
                                                           $this->paymentSum, $transactTimestamp, json_encode($transactReceivers));
@@ -572,9 +652,30 @@ class PaymeUZ {
                            'id' => $this->paymeRequestID
                           );
             $reply = json_encode($reply);
+        } else {
+            if ($transactState == 1) {
+                $transactData = $this->getTransactionData($this->paymeTransactID);
+
+                if ($this->checkTransactionExpired($transactData)) {
+                    $this->markTransactAsCanceled($this->paymeTransactID, 4);
+                    $reply = $this->replyError('-31008');
+                } else {
+                    $receivers = json_decode($transactData['receivers'], true);
+                    $reply = array('result' => array('create_time'  => (int)$transactData['create_timestamp'],
+                                                     'transaction'  => $transactData['op_transact_id'],
+                                                     'state'        => (int)$transactData['state'],
+                                                     'receivers'    => ((empty($receivers) or trim($receivers) == 'null' or trim($receivers) == 'NULL')
+                                                                        ? null : $receivers)
+                                                    ),
+                                   'id' => $this->paymeRequestID
+                                  );
+                    $reply = json_encode($reply);
+                }
+            } else {
+                $reply = $this->replyError('-31008');
+            }
         }
 
-        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -591,9 +692,22 @@ class PaymeUZ {
             $transactState = $transactData['state'];
 
             if ($transactState != 1) {
+                if ($transactState == 2) {
+                    $reply = array('result' => array('transaction'  => $transactData['op_transact_id'],
+                                                     'perform_time' => (int)$transactData['perform_timestamp'],
+                                                     'state'        => (int)$transactData['state'],
+                                                    ),
+                                   'id'     => $this->paymeRequestID
+                                  );
+                    $reply = json_encode($reply);
+                } else {
+                    $reply = $this->replyError('-31008');
+                }
+            } elseif ($this->checkTransactionExpired($transactData)) {
+                $this->markTransactAsCanceled($this->paymeTransactID, 4);
                 $reply = $this->replyError('-31008');
             } else {
-                $paymentSumm = $transactData['amount'];
+                $paymentSumm = round($transactData['amount'] / 100, 2);
                 $opHash      = $transactData['op_transact_id'];
                 $opHashData  = $this->getOPHashData($opHash);
 
@@ -616,7 +730,6 @@ class PaymeUZ {
             }
         }
 
-        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -638,10 +751,17 @@ class PaymeUZ {
                 if ($transactState == 2) {
                     $reply = $this->replyError('-31007');
                 } else {
-                    $reply = $this->replyError('-31008');
+                    $reply = array('result' => array('transaction'  => $transactData['op_transact_id'],
+                                                     'cancel_time'  => (int)$transactData['cancel_timestamp'],
+                                                     'state'        => (int)$transactData['state'],
+                                                    ),
+                                   'id'     => $this->paymeRequestID
+                                  );
+                    $reply = json_encode($reply);
                 }
             } else {
-                $cancelTimeStamp = $this->markTransactAsCanceled($this->paymeTransactID);
+                $cancelReason    = $this->receivedJSON['params']['reason'];
+                $cancelTimeStamp = $this->markTransactAsCanceled($this->paymeTransactID, $cancelReason);
 
                 $reply = array('result' => array('transaction'  => $opTransactID,
                                                  'cancel_time'  => $cancelTimeStamp,
@@ -653,7 +773,6 @@ class PaymeUZ {
             }
         }
 
-        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -672,13 +791,13 @@ class PaymeUZ {
             $createTimeStamp    = $transactData['create_timestamp'];
             $payTimeStamp       = $transactData['perform_timestamp'];
             $cancelTimeStamp    = $transactData['cancel_timestamp'];
-            $cancelReason       = (empty($transactData['cancel_reason']) ? null : $transactData['cancel_reason']);
+            $cancelReason       = (empty($transactData['cancel_reason']) ? null : (int)$transactData['cancel_reason']);
 
-            $reply = array('result' => array('create_time'  => $createTimeStamp,
-                                             'perform_time' => $payTimeStamp,
-                                             'cancel_time'  => $cancelTimeStamp,
+            $reply = array('result' => array('create_time'  => (int)$createTimeStamp,
+                                             'perform_time' => (int)$payTimeStamp,
+                                             'cancel_time'  => (int)$cancelTimeStamp,
                                              'transaction'  => $opTransactID,
-                                             'state'        => $transactState,
+                                             'state'        => (int)$transactState,
                                              'reason'       => $cancelReason,
                                             ),
                            'id'     => $this->paymeRequestID
@@ -686,7 +805,6 @@ class PaymeUZ {
             $reply = json_encode($reply);
         }
 
-        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -699,29 +817,29 @@ class PaymeUZ {
     protected function replyStatement($dtFrom, $dtTo) {
         $reply = '';
         $transactions = array();
-        $transactsData = $this->getTransactionData($this->paymeTransactID, $dtFrom, $dtTo);
+        $transactsData = $this->getTransactionsDataAll($dtFrom, $dtTo);
 
         if (!empty($transactsData)) {
             foreach ($transactsData as $eachRec => $eachData) {
                 $receivers = json_decode($eachData['receivers'], true);
                 $transactions[] = array('id'            => $eachData['transact_id'],
-                                        'time'          => $eachData['payme_transact_timestamp'],
+                                        'time'          => (int)$eachData['payme_transact_timestamp'],
                                         'amount'        => $eachData['amount'],
                                         'account'       => array($this->customerIDFieldName => $this->customerID),
-                                        'create_time'   => $eachData['create_timestamp'],
-                                        'perform_time'  => $eachData['perform_timestamp'],
-                                        'cancel_time'   => $eachData['cancel_timestamp'],
-                                        'transaction'   => $eachData['op_transact_id'],
-                                        'state'         => $eachData['state'],
-                                        'reason'        => (empty($eachData['cancel_reason']) ? null : $eachData['cancel_reason']),
-                                        'receivers'     => (empty($receivers) ? null : $receivers)
+                                        'create_time'   => (int)$eachData['create_timestamp'],
+                                        'perform_time'  => (int)$eachData['perform_timestamp'],
+                                        'cancel_time'   => (int)$eachData['cancel_timestamp'],
+                                        'transaction'   => (int)$eachData['op_transact_id'],
+                                        'state'         => (int)$eachData['state'],
+                                        'reason'        => (empty($eachData['cancel_reason']) ? null : (int)$eachData['cancel_reason']),
+                                        'receivers'     => ((empty($receivers) or trim($receivers) == 'null' or trim($receivers) == 'NULL')
+                                                            ? null : $receivers)
                                         );
             }
         }
 
         $reply = array('result' => array('transactions' => $transactions));
         $reply = json_encode($reply);
-        //$this->setHTTPHeaders();
         die($reply);
     }
 
@@ -733,7 +851,7 @@ class PaymeUZ {
      * @return false|string
      */
     protected function replyError($errorCode) {
-        $reply = array('error' => array('code'      => $errorCode,
+        $reply = array('error' => array('code'      => (int)$errorCode,
                                         'message'   => $this->errorCodes[$errorCode]
                                        ),
                        'id'    => $this->paymeRequestID
@@ -747,75 +865,73 @@ class PaymeUZ {
      */
     protected function processRequest() {
         $this->opCustomersAll   = op_CustomersGetAll();
-        $this->customerID       = (empty($this->receivedJSON['account'][$this->customerIDFieldName])
-                                   ? '' : $this->receivedJSON['account'][$this->customerIDFieldName]);
         $this->paymeTransactID  = (empty($this->receivedJSON['params']['id']) ? '' : $this->receivedJSON['params']['id']);
         $this->paymentSum       = (empty($this->receivedJSON['params']['amount']) ? '' : $this->receivedJSON['params']['amount']);
         $statementFrom          = (empty($this->receivedJSON['params']['from']) ? '' : $this->receivedJSON['params']['from']);
         $statementTo            = (empty($this->receivedJSON['params']['to']) ? '' : $this->receivedJSON['params']['to']);
-
-        //$this->setHTTPHeaders();
+        $this->customerID       = (empty($this->receivedJSON['params']['account'][$this->customerIDFieldName])
+                                  ? $this->getCustomerIDFromSavedTransact($this->paymeTransactID)
+                                  : $this->receivedJSON['params']['account'][$this->customerIDFieldName]);
 
 // some fields and values validations
-        if (empty($this->paymeRequestID)) {
-            if (in_array($this->paymentMethod, array('CheckPerformTransaction', 'CreateTransaction'))) {
-                if (empty($this->opCustomersAll[$this->customerID])) {
-                    die($this->replyError('-31099'));
-                }
+        if (empty($this->opCustomersAll[$this->customerID])) {
+            die($this->replyError('-31099'));
+        }
 
-                if (!is_numeric($this->paymentSum)) {
-                    die($this->replyError('-31001'));
-                }
-            }
+        if (in_array($this->paymentMethod, array('CheckPerformTransaction', 'CreateTransaction'))
+            and !is_numeric($this->paymentSum)
+           ) {
+            die($this->replyError('-31001'));
+        }
 
-            if ((in_array($this->paymentMethod, array('CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction'))
-                and empty($this->paymeTransactID))
-                or ($this->paymentMethod == 'GetStatement' and (empty($statementFrom) or empty($statementTo)))
-               ) {
-                die($this->replyError('-32600'));
-            }
-
-            $this->userLogin = $this->opCustomersAll[$this->customerID];
-            $this->paymeCashBoxID = $this->getCashBoxIDAgentAssigned($this->userLogin);
-
-            if ($this->agentcodesON and empty($this->paymeCashBoxID)) {
-                die($this->replyError('-31099'));
-            }
-// some fields and values validations
-
-// ('CheckPerformTransaction', 'CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction', 'GetStatement');
-            switch ($this->paymentMethod) {
-                case 'CheckPerformTransaction':
-                    $this->replyPaymentAbilityCheck();
-                    break;
-
-                case 'CreateTransaction':
-                    $this->replyCreateTransact();
-                    break;
-
-                case 'PerformTransaction':
-                    $this->replyPerformTransact();
-                    break;
-
-                case 'CancelTransaction':
-                    $this->replyCancelTransact();
-                    break;
-
-                case 'CheckTransaction':
-                    $this->replyCheckTransact();
-                    break;
-
-                case 'GetStatement':
-                    $this->replyStatement($statementFrom, $statementTo);
-                    break;
-
-                default:
-                    die($this->replyError('-32601'));
-            }
-        } else {
+        if ((in_array($this->paymentMethod, array('CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction'))
+            and empty($this->paymeTransactID))
+            or ($this->paymentMethod == 'GetStatement' and (empty($statementFrom) or empty($statementTo)))
+           ) {
             die($this->replyError('-32600'));
         }
 
+        $this->userLogin = $this->opCustomersAll[$this->customerID];
+        $this->paymeCashBoxID = $this->defaultCashBoxID;
+
+        if ($this->agentcodesON) {
+            $this->paymeCashBoxID = $this->getCashBoxIDAgentAssigned($this->userLogin);
+
+            if (empty($this->paymeCashBoxID)) {
+                die($this->replyError('-31099'));
+            }
+        }
+// some fields and values validations
+
+// ('CheckPerformTransaction', 'CreateTransaction', 'PerformTransaction', 'CancelTransaction', 'CheckTransaction', 'GetStatement');
+        switch ($this->paymentMethod) {
+            case 'CheckPerformTransaction':
+                $this->replyPaymentAbilityCheck();
+                break;
+
+            case 'CreateTransaction':
+                $this->replyCreateTransact();
+                break;
+
+            case 'PerformTransaction':
+                $this->replyPerformTransact();
+                break;
+
+            case 'CancelTransaction':
+                $this->replyCancelTransact();
+                break;
+
+            case 'CheckTransaction':
+                $this->replyCheckTransact();
+                break;
+
+            case 'GetStatement':
+                $this->replyStatement($statementFrom, $statementTo);
+                break;
+
+            default:
+                die($this->replyError('-32601'));
+        }
     }
 
     /**
@@ -825,28 +941,30 @@ class PaymeUZ {
      * @return void
      */
     public function listen() {
-        //$request_body  = file_get_contents('php://input');
-        //$this->payload = json_decode($request_body, true);
-        //parse_str(file_get_contents('php://input'), $this->receivedJSON);
-        $this->receivedJSON = json_decode(file_get_contents('php://input'), true);
+        $rawRequest = file_get_contents('php://input');
+        //parse_str($rawRequest, $this->receivedJSON);
+        $this->receivedJSON = json_decode($rawRequest, true);
+
         $this->setHTTPHeaders();
 
-        if (!empty($this->receivedJSON)) {
+        if (empty($this->receivedJSON)) {
+            die($this->replyError('-32700'));
+        } else {
             $this->paymeRequestID = (empty($this->receivedJSON['id']) ? null : $this->receivedJSON['id']);
 
-            if ($this->checkAuth()) {
+            if (empty($this->paymeRequestID)) {
+                die($this->replyError('-32600'));
+            } elseif ($this->checkAuth()) {
                 $this->paymentMethod = (empty($this->receivedJSON['method']) ? '' : $this->receivedJSON['method']);
 
                 if (in_array($this->paymentMethod, $this->paymentMethodsAvailable)) {
                     $this->processRequest();
                 } else {
-                    $this->replyError('-32601');
+                    die($this->replyError('-32601'));
                 }
             } else {
-                $this->replyError('-32504');
+                die($this->replyError('-32504'));
             }
-        } else {
-            $this->replyError('-32700');
         }
     }
 }

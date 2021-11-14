@@ -77,8 +77,9 @@ function payme_PaymentForm($customer_id) {
     $lang = $paymeConf['LANG'];
     $paymentDescr = $paymeConf['PAYMENT_DESCR'] . ' ' . $customer_id;
     $genQREnabled = $paymeConf['QR_CODE_ON'];
-    $summ = trim($_POST['amount']);
     $returnURL = $paymeConf['RETURN_URL'];
+    $customerIDField =  $paymeConf['CUSTOMERID_FIELD_NAME'];
+    $summ = (trim($_POST['amount']) * 100);
 
     if (isset($paymeConf['MERCHANT_ID']['default'])) {
         $avaibleTagsRaw = explode(',', $paymeConf['AVAIBLE_TAGS_ID']);
@@ -119,6 +120,7 @@ function payme_PaymentForm($customer_id) {
     }
 
     $result = "<h2>" . $paymeConf['TEMPLATE_ISP_SERVICE'] . " " . $customer_id . "</h2>";
+    $result.= '<br /><br />';
     $result.= '
 <script src="https://cdn.paycom.uz/integration/js/checkout.min.js"></script>
 <script type="text/javascript">
@@ -129,9 +131,10 @@ function payme_PaymentForm($customer_id) {
 </script>
 <form id="form-payme" method="POST" action="https://checkout.paycom.uz/">
     <input type="hidden" name="merchant" value="' . $merchant_id . '">
-    <input type="hidden" name="account[customer_id]" value="' . $customer_id . '">
+    <input type="hidden" name="account[' . $customerIDField . ']" value="' . $customer_id . '">
     <input type="hidden" name="amount" value="' . $summ . '">
     <input type="hidden" name="lang" value="' . $lang . '">
+    <input type="hidden" name="callback" value="' . $returnURL . '"/>
     <input type="hidden" name="button" data-type="svg" value="colored">
     <div id="button-container"></div>
     <br />
