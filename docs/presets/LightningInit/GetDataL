@@ -1,0 +1,21 @@
+#!/usr/local/bin/php
+<?php
+
+$request = $argv[1];
+$login = $argv[2];
+
+require_once ('lightninginit.php');
+
+$init=new Lightning();
+switch ($request) {
+case 'mac':
+ print($init->getMac($login));
+ break;
+case 'speed':
+ print($init->getSpeed($login));
+ break;
+case 'speedup':
+ print($init->getSpeedUp($login));
+ break;
+}
+
