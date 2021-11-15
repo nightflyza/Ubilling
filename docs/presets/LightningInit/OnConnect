@@ -21,7 +21,7 @@ fi
 MAC=`/usr/local/bin/memcat --servers 127.0.0.1  LINIT_MAC_${LOGIN}`
 if [ -z "${MAC}" ]
 then
-MAC=`/etc/stargazer/LGetDataL mac ${LOGIN}`
+MAC=`/etc/stargazer/GetDataL mac ${LOGIN}`
 fi
 
 SCOUNT="Kbit/s"
