@@ -249,7 +249,7 @@ class Lightning {
      * @return array
      */
     protected function runQuery($query) {
-        $result = '';
+        $result = array();
         $config = parse_ini_file(dirname(__FILE__) . "/config");
         $dbport = (empty($config['port'])) ? 3306 : $config['port'];
         $loginDB = new mysqli($config['host'], $config['username'], $config['password'], $config['database'], $dbport);
