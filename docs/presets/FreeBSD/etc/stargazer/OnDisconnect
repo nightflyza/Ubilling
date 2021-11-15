@@ -13,7 +13,7 @@ cur_time=`date \+\%H:\%M:\%S`
 
 # DELETE OLD PIPES
 ${fwcmd} pipe `expr $ID + 101` delete
-${fwcmd} pipe `expr $ID + 18101` delete
+${fwcmd} pipe `expr $ID + 32101` delete
 
 # DELETE FROM SHAPER
 ${fwcmd} table 3 delete $IP

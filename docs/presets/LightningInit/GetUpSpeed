@@ -1,0 +1,20 @@
+#!/usr/local/bin/php
+<?php
+$login=$argv[1];
+include('mysql.php');
+$query = 'SELECT `speed` FROM `userspeeds` where `login`= "'.$login.'"';
+$result = DB_query($query);
+while ($line = DB_fetch_array($result)) {
+    $col_value = $line['speed'];
+if ($col_value) {
+ print ($col_value);
+  } else {
+ $tarq='SELECT `speedup` from `speeds` INNER JOIN (SELECT `Tariff` FROM users WHERE `login`="'.$login.'") AS t_u USING (`Tariff`)';
+ $tar=DB_query($tarq);
+           while ($line2 = DB_fetch_array($tar)) {
+                $speedval = $line2['speedup'];
+                                   print($speedval);
+                        }
+  }
+}
+?>

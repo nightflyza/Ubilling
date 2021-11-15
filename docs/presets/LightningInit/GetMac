@@ -1,0 +1,11 @@
+#!/usr/local/bin/php
+<?php
+$login=$argv[1];
+include('mysql.php');
+$macq='SELECT `nethosts`.`mac` FROM `users` INNER JOIN `nethosts` USING (`ip`) WHERE `users`.`login`="' . $login . '"';
+                                $mac=DB_query($macq);
+                                   while ($line3 = DB_fetch_array($mac)) {
+                                   $macval = $line3['mac'];
+                                   print($macval);
+                                  }
+?>
