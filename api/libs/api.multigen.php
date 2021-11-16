@@ -1345,17 +1345,17 @@ class MultiGen {
         if (wf_CheckPost(array('newattributenasid'))) {
             $nasId = vf($_POST['newattributenasid'], 3);
             if (isset($this->allNas[$nasId])) {
-                if (wf_CheckPost(array('newscenario', 'newattribute', 'newoperator', 'newcontent', 'newmodifier'))) {
-                    $newScenario = $_POST['newscenario'];
-                    $newScenario_f = mysql_real_escape_string($newScenario);
-                    $newModifier = $_POST['newmodifier'];
-                    $newModifier_f = mysql_real_escape_string($newModifier);
-                    $newAttribute = $_POST['newattribute'];
-                    $newAttribute_f = mysql_real_escape_string($newAttribute);
-                    $newOperator = $_POST['newoperator'];
-                    $newOperator_f = mysql_real_escape_string($newOperator);
-                    $newContent = $_POST['newcontent'];
-                    $newContent_f = mysql_real_escape_string($newContent);
+                if (ubRouting::checkPost(array('newscenario', 'newattribute', 'newoperator', 'newmodifier'))) {
+                    $newScenario = ubRouting::post('newscenario');
+                    $newScenario_f = ubRouting::filters($newScenario, 'mres');
+                    $newModifier = ubRouting::post('newmodifier');
+                    $newModifier_f = ubRouting::filters($newModifier, 'mres');
+                    $newAttribute = ubRouting::post('newattribute');
+                    $newAttribute_f = ubRouting::filters($newAttribute, 'mres');
+                    $newOperator = ubRouting::post('newoperator');
+                    $newOperator_f = ubRouting::filters($newOperator, 'mres');
+                    $newContent = ubRouting::post('newcontent');
+                    $newContent_f = ubRouting::filters($newContent, 'mres');
 
 
                     $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`modifier`,`attribute`,`operator`,`content`) VALUES "
@@ -1382,15 +1382,15 @@ class MultiGen {
         if (wf_CheckPost(array('chattributenasid'))) {
             $nasId = vf($_POST['chattributenasid'], 3);
             if (isset($this->allNas[$nasId])) {
-                if (wf_CheckPost(array('chscenario', 'chattribute', 'choperator', 'chcontent', 'chmodifier'))) {
+                if (ubRouting::checkPost(array('chscenario', 'chattribute', 'choperator', 'chmodifier'))) {
                     $attributeId = vf($_POST['chattributeid'], 3);
                     if (isset($this->nasAttributes[$attributeId])) {
                         $where = "WHERE `id`='" . $attributeId . "';";
-                        simple_update_field(self::NAS_ATTRIBUTES, 'scenario', $_POST['chscenario'], $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'modifier', $_POST['chmodifier'], $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'attribute', $_POST['chattribute'], $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'operator', $_POST['choperator'], $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'content', $_POST['chcontent'], $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'scenario', ubRouting::post('chscenario'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'modifier', ubRouting::post('chmodifier'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'attribute', ubRouting::post('chattribute'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'operator', ubRouting::post('choperator'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'content', ubRouting::post('chcontent'), $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ATTRIBUTE [' . $attributeId . ']');
                     } else {
                         $result .= __('Something went wrong') . ': EX_ATTRIBUTE_NOT_EXIST';
@@ -3626,4 +3626,3 @@ class MultiGen {
     }
 
 }
-

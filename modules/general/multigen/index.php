@@ -5,76 +5,76 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
         set_time_limit(0);
         $multigen = new MultiGen();
 
-        if (wf_CheckGet(array('editnasoptions'))) {
-            $editNasId = $_GET['editnasoptions'];
+        if (ubRouting::checkGet('editnasoptions')) {
+            $editNasId = ubRouting::get('editnasoptions');
             //editing NAS options
-            if (wf_CheckPost(array('editnasid'))) {
+            if (ubRouting::checkPost('editnasid')) {
                 $nasOptionsSaveResult = $multigen->saveNasOptions();
                 if (empty($nasOptionsSaveResult)) {
-                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                    ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                 } else {
                     show_error($nasOptionsSaveResult);
                 }
             }
 
             //editing NAS services templates
-            if (wf_CheckPost(array('newnasservicesid'))) {
+            if (ubRouting::checkPost('newnasservicesid')) {
                 $nasServicesSaveResult = $multigen->saveNasServices();
                 if (empty($nasServicesSaveResult)) {
-                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                    ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                 } else {
                     show_error($nasServicesSaveResult);
                 }
             }
 
             //creating some attributes
-            if (wf_CheckPost(array('newattributenasid'))) {
+            if (ubRouting::checkPost('newattributenasid')) {
                 $nasAttributeCreationResult = $multigen->createNasAttribute();
                 if (empty($nasAttributeCreationResult)) {
-                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $_POST['newattributenasid']);
+                    ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . ubRouting::post('newattributenasid'));
                 } else {
                     show_error($nasAttributeCreationResult);
                 }
             }
 
             //editing existing attribute template
-            if (wf_CheckPost(array('chattributenasid'))) {
+            if (ubRouting::checkPost('chattributenasid')) {
                 $nasAttributeChangeResult = $multigen->saveNasAttribute();
                 if (empty($nasAttributeChangeResult)) {
-                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $_POST['chattributenasid']);
+                    ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . ubRouting::post('chattributenasid'));
                 } else {
                     show_error($nasAttributeCreationResult);
                 }
             }
 
             //deletion of existing attribute 
-            if (wf_CheckGet(array('deleteattributeid'))) {
-                $attributeDeletionResult = $multigen->deleteNasAttribute($_GET['deleteattributeid']);
+            if (ubRouting::checkGet('deleteattributeid')) {
+                $attributeDeletionResult = $multigen->deleteNasAttribute(ubRouting::get('deleteattributeid'));
                 if (empty($attributeDeletionResult)) {
-                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                    ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                 } else {
                     show_error($attributeDeletionResult);
                 }
             }
 
             //manual atrributes regeneration
-            if (wf_CheckGet(array('ajnasregen'))) {
+            if (ubRouting::checkGet('ajnasregen')) {
                 $multigen->generateNasAttributes();
                 die($multigen->renderScenarioStats());
             }
 
             //flush all scenarios attributes
-            if (wf_CheckGet(array('ajscenarioflush'))) {
+            if (ubRouting::checkGet('ajscenarioflush')) {
                 $multigen->flushAllScenarios();
                 die($multigen->renderFlushAllScenariosNotice());
             }
 
             //cloning NAS options
-            if (wf_CheckPost(array('clonenasfromid', 'clonenastoid'))) {
-                if (wf_CheckPost(array('clonenasagree'))) {
-                    $nasCloneResult = $multigen->cloneNasConfiguration($_POST['clonenasfromid'], $_POST['clonenastoid']);
+            if (ubRouting::checkPost(array('clonenasfromid', 'clonenastoid'))) {
+                if (ubRouting::checkPost('clonenasagree')) {
+                    $nasCloneResult = $multigen->cloneNasConfiguration(ubRouting::post('clonenasfromid'), ubRouting::post('clonenastoid'));
                     if (empty($nasCloneResult)) {
-                        rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                        ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                     } else {
                         show_error($nasCloneResult);
                     }
@@ -84,11 +84,11 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
             }
 
             //copypasting NAS options
-            if (wf_CheckPost(array('nascopypastetext'))) {
-                if (wf_CheckPost(array('nascopypasteagree'))) {
-                    $nasCopyPasteResult = $multigen->pasteNasConfiguration($editNasId, $_POST['nascopypastetext']);
+            if (ubRouting::checkPost('nascopypastetext')) {
+                if (ubRouting::checkPost('nascopypasteagree')) {
+                    $nasCopyPasteResult = $multigen->pasteNasConfiguration($editNasId, ubRouting::post('nascopypastetext'));
                     if (empty($nasCopyPasteResult)) {
-                        rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                        ubRouting::nav($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                     } else {
                         show_error($nasCopyPasteResult);
                     }
@@ -96,6 +96,7 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
                     show_error(__('You are not mentally prepared for this'));
                 }
             }
+
             //rendering basic options form
             show_window(__('NAS options') . ': ' . $multigen->getNaslabel($editNasId), $multigen->renderNasOptionsEditForm($editNasId));
             if ($multigen->nasHaveOptions($editNasId)) {
@@ -110,16 +111,16 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
             show_window('', $multigen->nasControlPanel($editNasId));
         } else {
             //render some accounting stats
-            if (wf_CheckGet(array('dlmultigenlog'))) {
+            if (ubRouting::checkGet('dlmultigenlog')) {
                 $multigen->logDownload();
             }
 
-            if (wf_CheckGet(array('ajacct'))) {
+            if (ubRouting::checkGet('ajacct')) {
                 $multigen->renderAcctStatsAjList();
             }
 
-            if (!wf_CheckGet(array('manualpod')) AND ! wf_CheckGet(array('userattributes'))) {
-                if (!wf_CheckGet(array('lastsessions'))) {
+            if (!ubRouting::checkGet('manualpod') AND ! ubRouting::checkGet('userattributes')) {
+                if (!ubRouting::checkGet('lastsessions')) {
                     //ignored in lastsessions
                     $dateFormControls = $multigen->renderDateSerachControls();
                 } else {
@@ -128,18 +129,18 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
                 show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
             } else {
                 //manual POD
-                if (wf_CheckGet(array('manualpod'))) {
+                if (ubRouting::checkGet('manualpod')) {
 
-                    if (wf_CheckPost(array('manualpod'))) {
+                    if (ubRouting::checkPost('manualpod')) {
                         $manualPodResult = $multigen->runManualPod();
                         if (empty($manualPodResult)) {
-                            rcms_redirect($multigen::URL_ME . '&manualpod=true&username=' . $_GET['username']);
+                            ubRouting::nav($multigen::URL_ME . '&manualpod=true&username=' . ubRouting::get('username'));
                         } else {
                             show_error($manualPodResult);
                         }
                     }
 
-                    show_window(__('Terminate user session'), $multigen->renderManualPodForm($_GET['username']));
+                    show_window(__('Terminate user session'), $multigen->renderManualPodForm(ubRouting::get('username')));
                 }
 
                 //render user attributes
@@ -167,4 +168,3 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>
