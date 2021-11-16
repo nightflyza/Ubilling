@@ -3177,6 +3177,7 @@ class PONizer {
         if (isset($this->allOnu[$onuId])) {
             $this->loadSignalsCache();
             $onuData = $this->allOnu[$onuId];
+            $offlineFlag = false;
 
             if (isset($this->signalCache[$onuData['mac']])) {
                 $signal = $this->signalCache[$onuData['mac']];
@@ -3196,6 +3197,7 @@ class PONizer {
                     $signal = __('No');
                     $sigColor = self::COLOR_NOSIG;
                     $sigLabel = 'No signal';
+                    $offlineFlag = true;
                 }
             } elseif (isset($this->signalCache[$onuData['serial']])) {
                 $signal = $this->signalCache[$onuData['serial']];
@@ -3215,12 +3217,14 @@ class PONizer {
                     $signal = __('No');
                     $sigColor = self::COLOR_NOSIG;
                     $sigLabel = 'No signal';
+                    $offlineFlag = true;
                 }
             } else {
                 $ONUIsOffline = true;
                 $signal = __('No');
                 $sigColor = self::COLOR_NOSIG;
                 $sigLabel = 'No signal';
+                $offlineFlag = true;
             }
 
             $result .= wf_tag('div', false, 'onusignalbig');
@@ -3229,9 +3233,54 @@ class PONizer {
             $result .= wf_tag('font', false, '', 'color="' . $sigColor . '" size="16pt"') . $signal . wf_tag('font', true);
             $result .= wf_delimiter();
             $result .= __($sigLabel);
+            $result .= $this->renderOnuMiscStats($onuId, $offlineFlag);
             $result .= wf_tag('div', true);
         }
         return ($result);
+    }
+
+    /**
+     * Renders ONU interface, distance and last dereg reason if available
+     * 
+     * @param int $onuId
+     * @param bool $offlineFlag
+     * 
+     * @return string 
+     */
+    protected function renderOnuMiscStats($onuId, $offlineFlag = false) {
+        $result = '';
+
+        if (isset($this->allOnu[$onuId])) {
+            $this->loadInterfaceCache();
+            $this->loadDistanceCache();
+            $this->loadLastDeregCache();
+            $onuData = $this->allOnu[$onuId];
+            $onuMiscStats = '';
+            // interface
+            if (isset($this->interfaceCache[$onuData['mac']])) {
+                $onuMiscStats .= wf_img_sized('skins/pon_icon.gif', __('Interface'), '12') . ' ' . $this->interfaceCache[$onuData['mac']] . ' ';
+            }
+
+            //distance
+            if (!$offlineFlag) {
+                if (isset($this->distanceCache[$onuData['mac']])) {
+                    $onuMiscStats .= wf_img_sized('skins/distance_icon.png', __('Distance'), '12') . ' ' . $this->distanceCache[$onuData['mac']] . __('m') . ' ';
+                }
+            }
+
+            //last dereg reason
+            if ($offlineFlag) {
+                if (isset($this->lastDeregCache[$onuData['mac']])) {
+                    $onuMiscStats .= wf_img_sized('skins/offline_icon.png', __('Last dereg reason'), '12') . ' ' . $this->lastDeregCache[$onuData['mac']] . ' ';
+                }
+            }
+
+            $containerStyle = 'style="font-size:10pt; padding:10px;"';
+            $result .= wf_tag('div', false, '', $containerStyle);
+            $result .= $onuMiscStats;
+            $result .= wf_tag('div', true);
+        }
+        return($result);
     }
 
     /**
