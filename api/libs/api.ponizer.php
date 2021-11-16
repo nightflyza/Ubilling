@@ -3257,21 +3257,36 @@ class PONizer {
             $onuData = $this->allOnu[$onuId];
             $onuMiscStats = '';
             // interface
+            $interfaceIcon = wf_img_sized('skins/pon_icon.gif', __('Interface'), '12');
             if (isset($this->interfaceCache[$onuData['mac']])) {
-                $onuMiscStats .= wf_img_sized('skins/pon_icon.gif', __('Interface'), '12') . ' ' . $this->interfaceCache[$onuData['mac']] . ' ';
+                $onuMiscStats .= $interfaceIcon . ' ' . $this->interfaceCache[$onuData['mac']] . ' ';
+            } else {
+                if (isset($this->interfaceCache[$onuData['serial']])) {
+                    $onuMiscStats .= $interfaceIcon . ' ' . $this->interfaceCache[$onuData['serial']] . ' ';
+                }
             }
 
             //distance
             if (!$offlineFlag) {
+                $distanceIcon = wf_img_sized('skins/distance_icon.png', __('Distance'), '12');
                 if (isset($this->distanceCache[$onuData['mac']])) {
-                    $onuMiscStats .= wf_img_sized('skins/distance_icon.png', __('Distance'), '12') . ' ' . $this->distanceCache[$onuData['mac']] . __('m') . ' ';
+                    $onuMiscStats .= $distanceIcon . ' ' . $this->distanceCache[$onuData['mac']] . __('m') . ' ';
+                } else {
+                    if (isset($this->distanceCache[$onuData['serial']])) {
+                        $onuMiscStats .= $distanceIcon . ' ' . $this->distanceCache[$onuData['serial']] . __('m') . ' ';
+                    }
                 }
             }
 
             //last dereg reason
             if ($offlineFlag) {
+                $offlineIcon = wf_img_sized('skins/offline_icon.png', __('Last dereg reason'), '12');
                 if (isset($this->lastDeregCache[$onuData['mac']])) {
-                    $onuMiscStats .= wf_img_sized('skins/offline_icon.png', __('Last dereg reason'), '12') . ' ' . $this->lastDeregCache[$onuData['mac']] . ' ';
+                    $onuMiscStats .= $offlineIcon . ' ' . $this->lastDeregCache[$onuData['mac']] . ' ';
+                } else {
+                    if (isset($this->lastDeregCache[$onuData['serial']])) {
+                        $onuMiscStats .= $offlineIcon . ' ' . $this->lastDeregCache[$onuData['serial']] . ' ';
+                    }
                 }
             }
 
