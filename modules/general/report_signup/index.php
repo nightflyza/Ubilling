@@ -224,6 +224,9 @@ if (cfr('REPORTSIGNUP')) {
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
         $curdate = curdate();
+        $totalCount = 0;
+        $frozenCount = 0;
+        $aliveCount = 0;
         $chartDataMonth = array();
         $chartDataDay = array();
 
@@ -243,6 +246,7 @@ if (cfr('REPORTSIGNUP')) {
         }
         $tablecells .= wf_TableCell(__('Login'));
         $tablecells .= wf_TableCell(__('Tariff'));
+        $tablecells .= wf_TableCell(__('Status'));
         $tablecells .= wf_TableCell(__('Full address'));
         if ($deleatableFlag) {
             if (cfr('ROOT')) {
@@ -252,7 +256,8 @@ if (cfr('REPORTSIGNUP')) {
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($signups)) {
-            @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            $employeeLogins = ts_GetAllEmployeeLoginsAssocCached();
+            $allUserData = zb_UserGetAllDataCache();
             foreach ($signups as $io => $eachsignup) {
                 $tablecells = wf_TableCell($eachsignup['id']);
                 $tablecells .= wf_TableCell($eachsignup['date']);
@@ -264,8 +269,27 @@ if (cfr('REPORTSIGNUP')) {
                     $tablecells .= wf_TableCell(@$allcontracts[$eachsignup['login']]);
                 }
                 @$sigTariff = $alltariffs[$eachsignup['login']];
+
                 $tablecells .= wf_TableCell($eachsignup['login']);
                 $tablecells .= wf_TableCell($sigTariff);
+                $userState = '';
+                if (isset($allUserData[$eachsignup['login']])) {
+                    $userData = $allUserData[$eachsignup['login']];
+                    if (zb_SignupCheckIsUserActive($userData)) {
+                        $userState .= wf_img_sized('skins/icon_ok.gif', __('Alive'), '12');
+                        $aliveCount++;
+                    } else {
+                        if ($userData['Passive']) {
+                            $userState .= wf_img_sized('skins/icon_passive.gif', __('Frozen user'), '12');
+                            $frozenCount++;
+                        } else {
+                            $userState .= wf_img_sized('skins/icon_inactive.gif', __('Inactive'), '12');
+                        }
+                    }
+                } else {
+                    $userState .= wf_img_sized('skins/skull.png', __('Deleted'), '12');
+                }
+                $tablecells .= wf_TableCell($userState);
                 $profilelink = wf_Link('?module=userprofile&username=' . trim($eachsignup['login']), web_profile_icon() . ' ' . $eachsignup['address']);
                 $tablecells .= wf_TableCell($profilelink);
                 if (ispos($eachsignup['date'], $curdate)) {
@@ -309,11 +333,18 @@ if (cfr('REPORTSIGNUP')) {
                 }
 
                 $tablerows .= wf_TableRow($tablecells, $rowClass);
+                $totalCount++;
             }
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        //stats
+        $result .= wf_img_sized('skins/icon_stats_16.gif', '', '12') . ' ' .__('Total') . ': ' . $totalCount . wf_tag('br');
+        $result .= wf_img_sized('skins/icon_ok.gif', '', '12') . ' ' . __('Alive') . ': ' . $aliveCount . wf_tag('br');
+        $result .= wf_img_sized('skins/icon_passive.gif', '', '12') . ' ' . __('Frozen') . ': ' . $frozenCount . wf_tag('br');
+        $result.= wf_tag('br');
         $result .= web_SignupsRenderChart($chartDataMonth, $chartDataDay);
+
         show_window(__('Current month user signups'), $result);
     }
 
