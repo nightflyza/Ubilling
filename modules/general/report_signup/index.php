@@ -306,7 +306,7 @@ if (cfr('REPORTSIGNUP')) {
                         $chartDataDay[$administratorName] = 1;
                     }
                 } else {
-                    $rowClass = 'row3';
+                    $rowClass = 'row5';
                 }
                 //cemetary user
                 if (isset($ignoreUsers[$eachsignup['login']])) {
