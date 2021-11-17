@@ -273,23 +273,28 @@ if (cfr('REPORTSIGNUP')) {
                 $tablecells .= wf_TableCell($eachsignup['login']);
                 $tablecells .= wf_TableCell($sigTariff);
                 $userState = '';
+                $userStateMark='';
                 if (isset($allUserData[$eachsignup['login']])) {
                     $userData = $allUserData[$eachsignup['login']];
                     if (zb_SignupCheckIsUserActive($userData)) {
                         $userState .= wf_img_sized('skins/icon_ok.gif', __('Alive'), '12');
                         $aliveCount++;
+                        $userStateMark='A';
                     } else {
                         if ($userData['Passive']) {
                             $userState .= wf_img_sized('skins/icon_passive.gif', __('Frozen user'), '12');
                             $frozenCount++;
+                            $userStateMark='F';
                         } else {
                             $userState .= wf_img_sized('skins/icon_inactive.gif', __('Inactive'), '12');
+                            $userStateMark='I';
                         }
                     }
                 } else {
                     $userState .= wf_img_sized('skins/skull.png', __('Deleted'), '12');
+                    $userStateMark='D';
                 }
-                $tablecells .= wf_TableCell($userState);
+                $tablecells .= wf_TableCell($userState,'','','sorttable_customkey="'.$userStateMark.'"');
                 $profilelink = wf_Link('?module=userprofile&username=' . trim($eachsignup['login']), web_profile_icon() . ' ' . $eachsignup['address']);
                 $tablecells .= wf_TableCell($profilelink);
                 if (ispos($eachsignup['date'], $curdate)) {
