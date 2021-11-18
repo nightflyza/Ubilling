@@ -6,7 +6,7 @@ if (cfr('ADDVLAN')) {
         $vlanGen = new VlanGen;
         if (isset($_POST['AddVlan'])) {
             $vlanAddRequire = array('FirstVlan', 'LastVlan', 'Desc');
-            if (wf_CheckPost($vlanAddRequire)) {                
+            if (wf_CheckPost($vlanAddRequire)) {
                 $vlanGen->AddVlanPool($_POST['Desc'], $_POST['FirstVlan'], $_POST['LastVlan'], $_POST['UseQinQ'], $_POST['sVlan']);
                 rcms_redirect(VlanGen::MODULE_URL_ADDVLAN);
             } else {
@@ -32,8 +32,9 @@ if (cfr('ADDVLAN')) {
                 } else {
                     show_window(__('Error'), __('No all of required fields is filled'));
                 }
-            }            
+            }
         }
+        zb_BillingStats(true, 'vlangen');
     } else {
         show_error(__('This module is disabled'));
     }

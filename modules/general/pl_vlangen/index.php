@@ -44,6 +44,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                 }
             }
             show_window('', web_UserControls($login));
+            zb_BillingStats(true, 'vlangen');
         }
     } else {
         show_error(__('You cant control this module'));
