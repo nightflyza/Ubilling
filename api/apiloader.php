@@ -45,7 +45,6 @@ require_once('api/libs/api.ubim.php');
 require_once('api/libs/api.snmp.php');
 require_once('api/libs/api.swpoll.php');
 require_once('api/libs/api.routeros.php');
-require_once('api/libs/api.watchdog.php');
 require_once('api/libs/api.docx.php');
 require_once('api/libs/api.documents.php');
 require_once('api/libs/api.dbf.php');
