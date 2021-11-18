@@ -3552,6 +3552,7 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
                 curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
                 curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
+                curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK');
                 $output = curl_exec($curlStats);
                 if ($output !== false) {
                     show_window('', trim($output));
