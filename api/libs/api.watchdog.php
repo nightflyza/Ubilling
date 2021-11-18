@@ -381,6 +381,29 @@ class WatchDog {
                         throw new Exception(self::PARAM_EX . "UDPPING");
                     }
                     break;
+                //perform some snmpwalk query
+                case 'snmpwalk':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        if (ispos($this->taskData[$taskID]['param'], ':')) {
+                            $snmpData = explode(':', $this->taskData[$taskID]['param']);
+                            $snmpHost = $snmpData[0];
+                            $snmpCommunity = $snmpData[1];
+                            $snmpOid = $snmpData[2];
+                            $snmpHandle = new SNMPHelper();
+                            $snmpHandle->setBackground(false);
+                            $result = $snmpHandle->walk($snmpHost, $snmpCommunity, $snmpOid);
+                            $result = trim($result);
+                            $result = zb_SanitizeSNMPValue($result);
+                            $storeValue = $result;
+                            $this->setOldValue($taskID, $storeValue);
+                            $this->setCurValue($taskID, $storeValue);
+                        } else {
+                            throw new Exception(self::PARAMFMT_EX . 'SNMPWALK');
+                        }
+                    } else {
+                        throw new Exception(self::PARAM_EX . 'SNMPWALK');
+                    }
+                    break;
                 // gets some user traffic by his login
                 case 'getusertraff':
                     if (!empty($this->taskData[$taskID]['param'])) {

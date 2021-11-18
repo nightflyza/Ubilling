@@ -143,7 +143,8 @@ class WatchDogInterface {
             'getusertraff' => 'getusertraff',
             'fileexists' => 'fileexists',
             'opentickets' => 'opentickets',
-            'onepunch' => 'onepunch'
+            'onepunch' => 'onepunch',
+            'snmpwalk'=>'snmpwalk'
         );
 
         $this->operators = array(
