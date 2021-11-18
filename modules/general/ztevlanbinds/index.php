@@ -66,6 +66,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
             if (wf_CheckPost(array('editZteBind', 'swid', 'vlan'))) {
                 $register->editZteBind($_POST['swid'], $_POST['slot_number'], $_POST['port_number'], $_POST['vlan']);
             }
+            zb_BillingStats(true, 'zteonureg');
         } else {
             show_error(__(OnuRegister::ERROR_NO_LICENSE));
         }

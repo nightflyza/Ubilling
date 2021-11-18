@@ -125,6 +125,7 @@ if (@$altcfg[OnuRegister::MODULE_CONFIG]) {
                     show_error(__(OnuRegister::ERROR_NO_OLTIP_SET));
                 }
             }
+            zb_BillingStats(true, 'zteonureg');
         } else {
             show_error(__(OnuRegister::ERROR_NO_LICENSE));
         }
