@@ -130,7 +130,7 @@ class BuildPassport {
         $inputs = wf_HiddenInput('savebuildpassport', $buildid);
         $inputs .= wf_Selector('powner', $this->ownersArr, __('Owner'), @$currentData['owner'], true);
         $inputs .= wf_TextInput('pownername', __('Owner name'), @$currentData['ownername'], true, 30);
-        $inputs .= wf_TextInput('pownerphone', __('Owner phone'), @$currentData['ownerphone'], true, 30);
+        $inputs .= wf_TextInput('pownerphone', __('Owner phone'), @$currentData['ownerphone'], true, 30, 'mobile');
         $inputs .= wf_TextInput('pownercontact', __('Owner contact person'), @$currentData['ownercontact'], true, 30);
         $keys = (@$currentData['keys'] == 1) ? true : false;
         $inputs .= wf_CheckInput('pkeys', __('Keys available'), true, $keys);
