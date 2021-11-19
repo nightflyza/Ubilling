@@ -26,7 +26,7 @@ if (cfr('BUILDS')) {
                 }
 
                 if (ubRouting::checkGet('ajax')) {
-                    renderBuildsLiserJSON($streetid);
+                    renderBuildsListerJSON($streetid);
                 }
 
                 $streetname = zb_AddressGetStreetData($streetid);
@@ -54,7 +54,7 @@ if (cfr('BUILDS')) {
                 $streetid = ubRouting::get('streetid', 'int');
 
                 if (ubRouting::checkGet('ajax')) {
-                    renderBuildsLiserJSON($streetid, $buildid);
+                    renderBuildsListerJSON($streetid, $buildid);
                 }
 
                 //build edit subroutine
