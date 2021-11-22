@@ -2832,7 +2832,8 @@ function web_TariffShowReport() {
             }
             $cells .= wf_TableCell($eachtariffcount['alive'] + $eachtariffcount['dead']);
             $cells .= wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
-            $cells .= wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
+            $aliveBar = web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']);
+            $cells .= wf_TableCell($aliveBar, '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
             $rows .= wf_TableRow($cells, 'row5');
         }
     }
