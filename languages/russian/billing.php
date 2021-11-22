@@ -3302,3 +3302,8 @@ $lang['def']['is restored to server'] = 'восстановлена на сер�
 $lang['def']['SendDog is sleeping'] = 'Собака-посылака спит';
 $lang['def']['SendDog is working'] = 'Собака-посылака работает';
 $lang['def']['Timeout'] = 'Таймаут';
+
+//rev 8234
+$lang['def']['Missed'] = 'Потеряно';
+$lang['def']['Builds report'] = 'Отчет по домам';
+$lang['def']['right to view builds report'] = 'Право просматривать отчет по домам';

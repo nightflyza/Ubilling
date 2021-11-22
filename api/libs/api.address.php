@@ -287,6 +287,23 @@ function zb_AddressGetStreetAllData() {
 }
 
 /**
+ * Returns all streets data as id=>streetdata
+ * 
+ * @return array
+ */
+function zb_AddressGetStreetsDataAssoc() {
+    $result = array();
+    $query = "SELECT * from `street`";
+    $allData = simple_queryall($query);
+    if (!empty($allData)) {
+        foreach ($allData as $io => $each) {
+            $result[$each['id']] = $each;
+        }
+    }
+    return($result);
+}
+
+/**
  * Returns all streets data assigned with some city, by the city ID
  * 
  * @param int $cityid
@@ -440,6 +457,23 @@ function zb_AddressGetBuildAllData() {
     $query = "SELECT * from `build`";
     $all_data = simple_queryall($query);
     return($all_data);
+}
+
+/**
+ * Returns all available builds data from database
+ * 
+ * @return array
+ */
+function zb_AddressGetBuildAllDataAssoc() {
+    $result = array();
+    $query = "SELECT * from `build`";
+    $allData = simple_queryall($query);
+    if (!empty($allData)) {
+        foreach ($allData as $io => $each) {
+            $result[$each['id']] = $each;
+        }
+    }
+    return($result);
 }
 
 /**
