@@ -307,6 +307,10 @@ class ReportBuilds {
      */
     public function renderAjBuildList() {
         $json = new wf_JqDtHelper();
+
+        $cityFilter = ubRouting::get(self::PROUTE_FILTERCITY, 'int');
+        $streetFilter = ubRouting::get(self::PROUTE_FILTERSTREET, 'int');
+
         if (!empty($this->allBuilds)) {
             foreach ($this->allBuilds as $io => $each) {
                 $filtersPassed = true;
@@ -317,6 +321,19 @@ class ReportBuilds {
                 $cityName = (isset($this->allCities[$buildCity])) ? $this->allCities[$buildCity] : __('Missed');
                 $streetName = (isset($this->allStreets[$buildStreet])) ? $this->allStreets[$buildStreet]['streetname'] : __('Missed');
                 $userCount = $this->getAptCount($buildId);
+                //some optional filtering here
+                if ($cityFilter) {
+                    if ($buildCity != $cityFilter) {
+                        $filtersPassed = false;
+                    }
+                }
+
+                if ($streetFilter) {
+                    if ($buildStreet != $streetFilter) {
+                        $filtersPassed = false;
+                    }
+                }
+
                 if ($filtersPassed) {
                     $data[] = $cityName;
                     $data[] = $streetName;
