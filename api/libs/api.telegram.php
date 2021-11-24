@@ -344,7 +344,6 @@ class UbillingTelegram {
     public function getBotContacts() {
         $result = array();
         $updatesRaw = $this->getUpdatesRaw();
-
         if (!empty($updatesRaw)) {
             if (isset($updatesRaw['result'])) {
                 if (!empty($updatesRaw['result'])) {
@@ -358,6 +357,8 @@ class UbillingTelegram {
                                         $result[$groupData['id']]['chatid'] = $groupData['id'];
                                         $groupName = (!empty($groupData['username'])) ? $groupData['username'] : @$groupData['title']; //only title for private groups
                                         $result[$groupData['id']]['name'] = $groupName;
+                                        $result[$groupData['id']]['first_name'] = @$groupData['title'];
+                                        $result[$groupData['id']]['last_name'] = '';
                                         $result[$groupData['id']]['type'] = 'supergroup';
                                         $result[$groupData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
                                     }
@@ -371,6 +372,8 @@ class UbillingTelegram {
                                     $messageData = $each['message']['from'];
                                     $result[$messageData['id']]['chatid'] = $messageData['id'];
                                     $result[$messageData['id']]['name'] = @$messageData['username']; //may be empty
+                                    $result[$messageData['id']]['first_name'] = @$messageData['first_name'];
+                                    $result[$messageData['id']]['last_name'] = @$messageData['last_name'];
                                     $result[$messageData['id']]['type'] = 'user';
                                     $result[$messageData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
                                 }
@@ -384,6 +387,8 @@ class UbillingTelegram {
                                     $chatData = $each['channel_post']['chat'];
                                     $result[$chatData['id']]['chatid'] = $chatData['id'];
                                     $result[$chatData['id']]['name'] = $chatData['username'];
+                                    $result[$chatData['id']]['first_name'] = '';
+                                    $result[$chatData['id']]['last_name'] = '';
                                     $result[$chatData['id']]['type'] = 'channel';
                                     $result[$messageData['id']]['lastmessage'] = strip_tags(@$each['message']['text']);
                                 }

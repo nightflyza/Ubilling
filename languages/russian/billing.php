@@ -3307,3 +3307,6 @@ $lang['def']['Timeout'] = 'Таймаут';
 $lang['def']['Missed'] = 'Потеряно';
 $lang['def']['Builds report'] = 'Отчет по домам';
 $lang['def']['right to view builds report'] = 'Право просматривать отчет по домам';
+$lang['def']['user'] = 'пользователь';
+$lang['def']['supergroup'] = 'группа';
+$lang['def']['channel'] = 'канал';

@@ -3329,3 +3329,6 @@ $lang['def']['Timeout'] = 'Таймаут';
 $lang['def']['Missed'] = 'Загублено';
 $lang['def']['Builds report'] = 'Звіт по будинках';
 $lang['def']['right to view builds report'] = 'Право переглядати звіт по будинках';
+$lang['def']['user'] = 'користувач';
+$lang['def']['supergroup'] = 'група';
+$lang['def']['channel'] = 'канал';

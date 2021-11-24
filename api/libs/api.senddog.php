@@ -256,6 +256,7 @@ class SendDog {
             $cells .= wf_TableCell(__('Chat ID'));
             $cells .= wf_TableCell(__('Type'));
             $cells .= wf_TableCell(__('Worker'));
+            $cells .= wf_TableCell(__('Username'));
             $cells .= wf_TableCell(__('Name'));
             $cells .= wf_TableCell(__('Message'));
             $rows = wf_TableRow($cells, 'row1');
@@ -263,10 +264,13 @@ class SendDog {
             foreach ($rawContacts as $io => $each) {
                 $cells = wf_TableCell($this->newContact($each['lastmessage']));
                 $cells .= wf_TableCell($each['chatid']);
-                $cells .= wf_TableCell($each['type']);
+                $chatType=__($each['type']);
+                $cells .= wf_TableCell($chatType);
                 $employeeName = (isset($allEmployeeChatIds[$each['chatid']])) ? $allEmployeeChatIds[$each['chatid']] : '';
                 $cells .= wf_TableCell($employeeName);
-                $cells .= wf_TableCell($each['name']);
+                $userNameLabel = (!empty($each['name'])) ? wf_Link('https://t.me/'.$each['name'], $each['name']) : '';
+                $cells .= wf_TableCell($userNameLabel);
+                $cells .= wf_TableCell($each['first_name'] . ' ' . $each['last_name']);
                 $cells .= wf_TableCell($each['lastmessage']);
                 $rows .= wf_TableRow($cells, 'row5');
             }
