@@ -131,7 +131,7 @@ class MapOn {
      */
     public function getUnits() {
         $result = array();
-        $raw = $this->api->get('unit/list', array('include' => array('drivers')));
+        $raw = $this->api->get('unit/list', array('include' => array('drivers', 'supply_voltage')));
         if ($raw) {
             if ($raw->data) {
                 foreach ($raw->data as $io => $eachUnit) {
@@ -142,8 +142,10 @@ class MapOn {
                             $result[$unitId]['label'] = $each->label;
                             $result[$unitId]['number'] = $each->number;
                             $result[$unitId]['mileage'] = $each->mileage;
+                            $result[$unitId]['speed'] = $each->speed;
                             $result[$unitId]['lat'] = $each->lat;
                             $result[$unitId]['lng'] = $each->lng;
+                            $result[$unitId]['supply_voltage'] = $each->supply_voltage->value;
                             $result[$unitId]['last_update'] = $each->last_update;
                             $result[$unitId]['state'] = $each->state->name;
                             $result[$unitId]['driver'] = @$each->drivers->driver1->name;

@@ -48,7 +48,13 @@ if ($altCfg['MAPON_ENABLED']) {
                     $carName = $each['driver'] . ' - ' . $each['number'];
                     $state = $each['label'] . ' ' . __($each['state']);
                     $mileage = __('Total mileage') . ': ' . ($each['mileage'] / 1000) . ' ' . __('kilometer');
-                    $placemarks .= generic_mapAddMark($each['lat'] . ',' . $each['lng'], $state, $carName, $mileage, $icon, '', true);
+                    $speed = ($each['speed']) ? $each['speed'] : 0;
+                    $voltage = $each['supply_voltage'];
+                    $carParams = __('Speed') . ': ' . $speed . ' ' . __('km/h') . wf_tag('br');
+                    $carParams .= __('Voltage') . ': ' . $voltage . ' ' . __('Volt');
+
+                    $carLabel = $mileage . wf_tag('br') . $carParams;
+                    $placemarks .= generic_mapAddMark($each['lat'] . ',' . $each['lng'], $state, $carName, $carLabel, $icon, '', true);
                 }
 
                 $todayRoutes = $mapon->getTodayRoutes();
@@ -101,7 +107,7 @@ if ($altCfg['MAPON_ENABLED']) {
                         }
                     }
                 }
-                
+
 
 
                 //additional layers here
@@ -137,7 +143,7 @@ if ($altCfg['MAPON_ENABLED']) {
             } else {
                 show_warning(__('Nothing to show'));
             }
-        } catch (Mapon\ApiException $e) {
+        } catch (ApiException $e) {
             show_error(__('Something went wrong') . ': ' . 'API error code: ' . $e->getCode() . ', ' . $e->getMessage());
         }
     } else {
@@ -146,4 +152,3 @@ if ($altCfg['MAPON_ENABLED']) {
 } else {
     show_error(__('This module is disabled'));
 }
-?>
