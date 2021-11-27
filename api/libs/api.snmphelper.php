@@ -198,7 +198,7 @@ class SNMPHelper {
                 @$raw = snmpwalkoid($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
                 if (!empty($raw)) {
                     foreach ($raw as $oid => $value) {
-                        $result.=$oid . ' = ' . $value . "\n";
+                        $result .= $oid . ' = ' . $value . "\n";
                     }
                 } else {
                     @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
@@ -213,7 +213,7 @@ class SNMPHelper {
 
             if (!empty($raw)) {
                 foreach ($raw as $oid => $value) {
-                    $result.=$oid . ' = ' . $value . "\n";
+                    $result .= $oid . ' = ' . $value . "\n";
                 }
             } else {
                 @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
@@ -256,7 +256,7 @@ class SNMPHelper {
 
                 if (!empty($raw)) {
                     foreach ($raw as $oid => $value) {
-                        $result.=$oid . ' = ' . $value . "\n";
+                        $result .= $oid . ' = ' . $value . "\n";
                     }
                 }
                 file_put_contents($cacheFile, $result);
@@ -270,7 +270,7 @@ class SNMPHelper {
 
             if (!empty($raw)) {
                 foreach ($raw as $oid => $value) {
-                    $result.=$oid . ' = ' . $value . "\n";
+                    $result .= $oid . ' = ' . $value . "\n";
                 }
             }
 
@@ -296,13 +296,13 @@ class SNMPHelper {
                 $command = $this->pathSet . ' -c ' . $community . ' ' . $ip . ' ';
                 foreach ($data as $io => $each) {
                     if (isset($each['oid']) AND ( isset($each['type']) AND ( isset($each['value'])))) {
-                        $command.=' ' . $each['oid'] . ' ' . $each['type'] . ' ' . $each['value'];
+                        $command .= ' ' . $each['oid'] . ' ' . $each['type'] . ' ' . $each['value'];
                     } else {
                         throw new Exception(self::EX_WRONG_DATA);
                     }
                 }
 
-                $result.= shell_exec($command);
+                $result .= shell_exec($command);
             } else {
                 throw new Exception(self::EX_WRONG_DATA);
             }
@@ -326,7 +326,7 @@ class SNMPHelper {
                     if (isset($each['oid']) AND ( isset($each['type']) AND ( isset($each['value'])))) {
                         @$pushResult = snmp2_set($ip, $community, $each['oid'], $each['type'], $each['value'], $this->timeoutNative, $this->retriesNative);
                         if ($pushResult) {
-                            $result.=trim($this->snmpWalkNative($ip, $community, $each['oid'], false)) . "\n";
+                            $result .= trim($this->snmpWalkNative($ip, $community, $each['oid'], false)) . "\n";
                         }
                     } else {
                         throw new Exception(self::EX_WRONG_DATA);
@@ -338,8 +338,8 @@ class SNMPHelper {
         }
         return ($result);
     }
-    
-     /**
+
+    /**
      * Executes PHP 5.4 SNMP set interface
      * 
      * @param string $ip
@@ -354,12 +354,11 @@ class SNMPHelper {
                 foreach ($data as $io => $each) {
                     if (isset($each['oid']) AND ( isset($each['type']) AND ( isset($each['value'])))) {
                         $session = new SNMP(SNMP::VERSION_2c, $ip, $community, $this->timeoutNative, $this->retriesNative);
-                        @$pushResult = $session->set($each['oid'],$each['type'],$each['value']);
+                        @$pushResult = $session->set($each['oid'], $each['type'], $each['value']);
                         $session->close();
                         if ($pushResult) {
-                            $result.=trim($this->snmpWalkClass($ip, $community, $each['oid'], false)) . "\n";
+                            $result .= trim($this->snmpWalkClass($ip, $community, $each['oid'], false)) . "\n";
                         }
-                     
                     } else {
                         throw new Exception(self::EX_WRONG_DATA);
                     }
@@ -438,5 +437,3 @@ class SNMPHelper {
     }
 
 }
-
-?>

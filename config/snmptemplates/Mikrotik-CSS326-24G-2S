@@ -30,6 +30,8 @@ PARSER=sp_parse_zyportstates
 NAME="Port speed"
 OIDS=".1.3.6.1.2.1.31.1.1.1.15"
 PARSER=sp_parse_division_units
+DIV=1
+UNITS="Mbit/s"
 
 [PORTDESC]
 ; just a placeholder
