@@ -504,7 +504,7 @@ class SNMPHelper {
             default :
                 throw new Exception(self::EX_NOT_IMPL);
         }
-        $this->oidLog($ip, $community, $oid, 'set');
+        $this->oidLog($ip, $community, print_r($data, true), 'set');
         return ($result);
     }
 
