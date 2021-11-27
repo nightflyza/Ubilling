@@ -66,6 +66,7 @@ class SNMPHelper {
     const CACHE_PATH = 'exports/'; //raw SNMP data cache path
     const EX_NOT_IMPL = 'NOT_IMPLEMENTED_MODE'; //not yet implemented SNMP mode exception
     const EX_WRONG_DATA = 'WRONG_DATA_FORMAT_RECEIVED';
+    const OPTION_DEBUG = 'SNMP_DEBUG_MODE';
     const LOG_OIDS = 'exports/snmpdebug_oids.log';
     const LOG_COMMANDS = 'exports/snmpdebug_commands.log';
 
@@ -75,9 +76,10 @@ class SNMPHelper {
      * @param bool $debugMode
      */
     public function __construct($debugMode = false) {
-        $this->setDebug($debugMode);
         $this->loadAlter();
         $this->setOptions();
+        //overrides system debug option state if declared obviously in constructor
+        $this->setDebug($debugMode);
     }
 
     /**
@@ -104,6 +106,11 @@ class SNMPHelper {
             $this->cacheTime = ($this->altCfg['SNMPCACHE_TIME'] * 60); //in minutes
             $this->pathWalk = $this->altCfg['SNMPWALK_PATH'];
             $this->pathSet = $this->altCfg['SNMPSET_PATH'];
+            if (isset($this->altCfg[self::OPTION_DEBUG])) {
+                if ($this->altCfg[self::OPTION_DEBUG]) {
+                    $this->setDebug(true);
+                }
+            }
         }
     }
 
@@ -115,7 +122,9 @@ class SNMPHelper {
      * @return void
      */
     protected function setDebug($state) {
-        $this->debug = $state;
+        if ($state) {
+            $this->debug = $state;
+        }
     }
 
     /**
