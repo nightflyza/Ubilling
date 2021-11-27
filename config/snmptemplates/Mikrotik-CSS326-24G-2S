@@ -14,10 +14,12 @@ PORTDESCR=".1.3.6.1.2.1.2.2.1.2"
 PORTALIAS=".1.3.6.1.2.1.31.1.1.1.18"
 
 [PORT.1D_FDB]
+SECTPOLLMODE="noncumulative"
 PORTTABLE=".1.3.6.1.2.1.17.4.3.1.2"
 PORTSTATUS=".1.3.6.1.2.1.17.4.3.1.3"
 
 [PORT.1Q_FDB]
+SECTPOLLMODE="noncumulative"
 PORTTABLE=".1.3.6.1.2.1.17.7.1.2.2.1.2"
 PORTSTATUS=".1.3.6.1.2.1.17.7.1.2.2.1.3"
 
@@ -99,7 +101,8 @@ PARSER=sp_parse_division_units
 
 [SFPCURRENT]
 NAME="Optical TX Bias"
-OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.8"
+SECTPOLLMODE="noncumulative"
+OIDS=".1.3.6.1.4.1.14988.1.1.19.1.1.8.25"
 UNITS="mA"
 PARSER=sp_parse_division_units
 

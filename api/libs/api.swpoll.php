@@ -666,7 +666,6 @@ function sp_parse_sw_port_idx($portIdxTab, $oid) {
             }
         }
     }
-
     return ($result);
 }
 
@@ -1223,7 +1222,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                                     $rawData = str_replace('"', '`', $rawData);
 
                                     if (!empty($sectionParser)) {
-
                                         if (function_exists($sectionParser)) {
                                             if (empty($sectionDivBy) and empty($sectionUnits)) {
                                                 $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';

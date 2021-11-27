@@ -48,16 +48,34 @@ class SNMPHelper {
     protected $retriesNative = 1;
 
     /**
+     * Debugging mode flag
+     *
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
      * Native PHP snmp functions timeout
      * @var int
      */
     protected $timeoutNative = 1000000;
 
+    /**
+     * some predefined constants, paths, exceptiongs etc
+     */
     const CACHE_PATH = 'exports/'; //raw SNMP data cache path
     const EX_NOT_IMPL = 'NOT_IMPLEMENTED_MODE'; //not yet implemented SNMP mode exception
     const EX_WRONG_DATA = 'WRONG_DATA_FORMAT_RECEIVED';
+    const LOG_OIDS = 'exports/snmpdebug_oids.log';
+    const LOG_COMMANDS = 'exports/snmpdebug_commands.log';
 
-    public function __construct() {
+    /**
+     * Creates new SNMPHelper instance
+     * 
+     * @param bool $debugMode
+     */
+    public function __construct($debugMode = false) {
+        $this->setDebug($debugMode);
         $this->loadAlter();
         $this->setOptions();
     }
@@ -87,6 +105,17 @@ class SNMPHelper {
             $this->pathWalk = $this->altCfg['SNMPWALK_PATH'];
             $this->pathSet = $this->altCfg['SNMPSET_PATH'];
         }
+    }
+
+    /**
+     * Sets instance debug mode state
+     * 
+     * @param bool $state
+     * 
+     * @return void
+     */
+    protected function setDebug($state) {
+        $this->debug = $state;
     }
 
     /**
@@ -144,6 +173,7 @@ class SNMPHelper {
         $cachetime = time() - $this->cacheTime;
         $cachepath = self::CACHE_PATH;
         $cacheFile = $cachepath . $ip . '_' . $oid;
+        $updateCache = true;
         $result = '';
         if ($this->background) {
             $command = $command . ' > ' . $cacheFile . '&';
@@ -153,20 +183,33 @@ class SNMPHelper {
         if (file_exists($cacheFile)) {
             //cache not expired
             if ((filemtime($cacheFile) > $cachetime) AND ( $cache == true)) {
-                $result = file_get_contents($cacheFile);
+                $updateCache = false;
             } else {
                 //cache expired - refresh data
-                $result = shell_exec($command);
-                if (!$this->background) {
-                    file_put_contents($cacheFile, $result);
-                }
+                $updateCache = true;
             }
         } else {
             //no cached file exists
+            $updateCache = true;
+        }
+
+        //getting some results
+        if ($updateCache) {
+            //getting fresh data
             $result = shell_exec($command);
+            if ($this->debug) {
+                //writing some log
+                $date = date("Y-m-d H:i:s");
+                $commandLog = '# ' . $date . PHP_EOL;
+                $commandLog .= $command . PHP_EOL;
+                file_put_contents(self::LOG_COMMANDS, $commandLog, FILE_APPEND);
+            }
             if (!$this->background) {
                 file_put_contents($cacheFile, $result);
             }
+        } else {
+            //getting data from cache
+            $result = file_get_contents($cacheFile);
         }
 
         return ($result);
@@ -371,6 +414,24 @@ class SNMPHelper {
     }
 
     /**
+     * Put some messages to logs if debug mode is enabled
+     * 
+     * @param string $ip
+     * @param string $community
+     * @param string $oid
+     * @param string $type
+     * 
+     * @return void
+     */
+    protected function oidLog($ip, $community, $oid, $type = 'walk') {
+        if ($this->debug) {
+            $date = date("Y-m-d H:i:s");
+            $oidLog = $date . ' snmp' . $type . ' host: ' . $ip . ' community: ' . $community . ' OID: ' . $oid . PHP_EOL;
+            file_put_contents(self::LOG_OIDS, $oidLog, FILE_APPEND);
+        }
+    }
+
+    /**
      * Public SNMP walk interface
      * 
      * @param string $ip
@@ -398,6 +459,7 @@ class SNMPHelper {
                 throw new Exception(self::EX_NOT_IMPL);
         }
 
+        $this->oidLog($ip, $community, $oid);
         return ($result);
     }
 
@@ -433,6 +495,7 @@ class SNMPHelper {
             default :
                 throw new Exception(self::EX_NOT_IMPL);
         }
+        $this->oidLog($ip, $community, $oid, 'set');
         return ($result);
     }
 
