@@ -254,6 +254,21 @@ class MobilesExt {
     }
 
     /**
+     * Returns array of all users additional mobiles as login=>mobiles array
+     * 
+     * @return array
+     */
+    public function getAllUsersMobileNumbers() {
+        $result = array();
+        if (!empty($this->allMobiles)) {
+            foreach ($this->allMobiles as $io => $each) {
+                $result[$each['login']][] = $each['mobile'];
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns all additional mobiles data as mobile=>login
      * 
      * @return array

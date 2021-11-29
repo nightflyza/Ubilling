@@ -123,7 +123,7 @@ class ReportBuilds {
      * @return void
      */
     protected function loadStreets() {
-        $this->allStreets = zb_AddressGetStreetsDataAssoc();
+        $this->allStreets = zb_AddressGetStreetsDataAssoc('ORDER BY `streetname` ASC');
         if (!empty($this->allStreets)) {
             foreach ($this->allStreets as $io => $each) {
                 $this->allStreetNames[$each['id']] = $each['streetname'];

@@ -289,11 +289,16 @@ function zb_AddressGetStreetAllData() {
 /**
  * Returns all streets data as id=>streetdata
  * 
+ * @param string $queryParams
+ * 
  * @return array
  */
-function zb_AddressGetStreetsDataAssoc() {
+function zb_AddressGetStreetsDataAssoc($queryParams = '') {
     $result = array();
     $query = "SELECT * from `street`";
+    if ($queryParams) {
+        $query .= ' ' . $queryParams;
+    }
     $allData = simple_queryall($query);
     if (!empty($allData)) {
         foreach ($allData as $io => $each) {
