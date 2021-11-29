@@ -47,6 +47,7 @@ if (cfr('SYSCONF')) {
             CONFIG_PATH . 'mysql.ini' => 'mysql.ini',
             CONFIG_PATH . 'billing.ini' => 'billing.ini',
             CONFIG_PATH . 'ymaps.ini' => 'ymaps.ini',
+            CONFIG_PATH . 'config.ini' => 'config.ini',
         );
         file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
     }
