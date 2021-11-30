@@ -343,7 +343,7 @@ class ReportBuilds {
                         $buildPassport = $this->buildPassports->getPassportData($buildId);
                         if (!empty($buildPassport)) {
                             //some passport data available
-                            $ownerLabel = $buildPassport['owner'] . ' ' . $buildPassport['ownername'];
+                            $ownerLabel = $buildPassport['owner'] . ' ' . $buildPassport['ownername'] . ' ' . $buildPassport['ownercontact'];
                             $ownerPhone = $buildPassport['ownerphone'];
                             $floors = $buildPassport['floors'];
                             $entrances = $buildPassport['entrances'];

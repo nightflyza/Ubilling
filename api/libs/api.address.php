@@ -1426,7 +1426,7 @@ function renderBuildsListerJSON($streetid, $AutoEditBuildID = 0) {
             $data[] = $eachbuild['buildnum'];
             if ($buildPassportFlag) {
                 $passportData = $buildPassport->getPassportData($eachbuild['id']);
-                $ownerLabel = (!empty($passportData)) ? $passportData['owner'] . ' ' . $passportData['ownername'] : '';
+                $ownerLabel = (!empty($passportData)) ? $passportData['owner'] . ' ' . $passportData['ownername'] . ' ' . $passportData['ownercontact'] : '';
                 $phoneLabel = (!empty($passportData)) ? $passportData['ownerphone'] : '';
                 $geometryLabel = (!empty($passportData['floors'])) ? $passportData['entrances'] . '/' . $passportData['floors'] . '/' . $passportData['apts'] : '';
                 $keysLabel = (isset($passportData['keys']) AND $passportData['keys']) ? wf_img('skins/icon_key.gif', __('Keys available')) : '';
