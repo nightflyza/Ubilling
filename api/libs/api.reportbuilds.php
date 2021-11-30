@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Report for filtering and display basic builds info
+ */
 class ReportBuilds {
 
     /**
