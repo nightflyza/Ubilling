@@ -133,18 +133,28 @@ class UbillingTelegram {
         $result = false;
         $chatid = trim($chatid);
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
+        $prefix = 'tlg_';
         if (!empty($chatid)) {
             $message = str_replace(array("\n\r", "\n", "\r"), ' ', $message);
             if ($translit) {
                 $message = zb_TranslitString($message);
             }
+
             $message = trim($message);
-            $queueId = 'tlg_' . zb_rand_string(8);
-            $filename = self::QUEUE_PATH . $queueId;
+            $queueId = time();
+            if (file_exists(self::QUEUE_PATH . $prefix . $queueId)) {
+                $offset = 9000;
+                while (file_exists(self::QUEUE_PATH . $prefix . $queueId)) {
+                    $queueId = $queueId + $offset;
+                    $offset++;
+                }
+            }
+
+            $filename = self::QUEUE_PATH . $prefix . $queueId;
             $storedata = 'CHATID="' . $chatid . '"' . "\n";
             $storedata .= 'MESSAGE="' . $message . '"' . "\n";
             file_put_contents($filename, $storedata);
-            log_register('UTLG SEND MESSAGE FOR `' . $chatid . '` AS `' . $queueId . '` ' . $module);
+            log_register('UTLG SEND MESSAGE FOR `' . $chatid . '` AS `' . $prefix . $queueId . '` ' . $module);
             $result = true;
         }
         return ($result);
