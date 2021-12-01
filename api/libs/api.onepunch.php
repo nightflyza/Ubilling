@@ -20,6 +20,20 @@ class OnePunch {
     protected $messages = '';
 
     /**
+     * Placeholder for ONEPUNCHES_DEFAULT_SORT_FIELD
+     *
+     * @var string
+     */
+    protected $defaultSortField = 'id';
+
+    /**
+     * System config object placeholder
+     *
+     * @var null
+     */
+    protected $ubConfig = null;
+
+    /**
      * Contains default devconsole URL
      */
     const URL_DEVCON = '?module=sqlconsole&devconsole=true';
@@ -32,6 +46,9 @@ class OnePunch {
      * @return void
      */
     public function __construct($alias = '') {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
+        $this->loadOptions();
         $this->initMessages();
         $this->loadScripts($alias);
     }
@@ -45,6 +62,10 @@ class OnePunch {
         $this->messages = new UbillingMessageHelper();
     }
 
+    protected function loadOptions() {
+        $this->defaultSortField = $this->ubConfig->getAlterParam('ONEPUNCHES_DEFAULT_SORT_FIELD', 'id');
+    }
+
     /**
      * Loads existing punch scripts from database
      * 
@@ -55,7 +76,8 @@ class OnePunch {
     protected function loadScripts($alias = '') {
         $alias = vf($alias);
         $where = (!empty($alias)) ? "WHERE `alias`='" . $alias . "';" : '';
-        $query = "SELECT * from `punchscripts` " . $where;
+        $orderBy = (empty($this->defaultSortField) ? '' : " ORDER BY `" . $this->defaultSortField . "` ASC ");
+        $query = "SELECT * from `punchscripts` " . $where . $orderBy;
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
