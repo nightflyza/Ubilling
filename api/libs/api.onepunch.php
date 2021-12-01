@@ -20,7 +20,7 @@ class OnePunch {
     protected $messages = '';
 
     /**
-     * Placeholder for ONEPUNCHES_DEFAULT_SORT_FIELD
+     * Placeholder for ONEPUNCH_DEFAULT_SORT_FIELD
      *
      * @var string
      */
@@ -63,7 +63,7 @@ class OnePunch {
     }
 
     protected function loadOptions() {
-        $this->defaultSortField = $this->ubConfig->getAlterParam('ONEPUNCHES_DEFAULT_SORT_FIELD', 'id');
+        $this->defaultSortField = $this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD', 'id');
     }
 
     /**
