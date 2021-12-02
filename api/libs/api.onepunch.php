@@ -29,7 +29,7 @@ class OnePunch {
     /**
      * System config object placeholder
      *
-     * @var null
+     * @var object
      */
     protected $ubConfig = null;
 
@@ -46,8 +46,6 @@ class OnePunch {
      * @return void
      */
     public function __construct($alias = '') {
-        global $ubillingConfig;
-        $this->ubConfig = $ubillingConfig;
         $this->loadOptions();
         $this->initMessages();
         $this->loadScripts($alias);
@@ -62,7 +60,14 @@ class OnePunch {
         $this->messages = new UbillingMessageHelper();
     }
 
+    /**
+     * Load required configs and sets some properties depends by options
+     * 
+     * @return void
+     */
     protected function loadOptions() {
+        global $ubillingConfig;
+        $this->ubConfig = $ubillingConfig;
         $this->defaultSortField = $this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD', 'id');
     }
 
