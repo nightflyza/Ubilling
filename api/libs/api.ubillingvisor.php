@@ -167,6 +167,13 @@ class UbillingVisor {
     protected $chanPreviewContainer = 'mjpeg';
 
     /**
+     * TrassirServer debug flag
+     *
+     * @var bool
+     */
+    protected $trassirDebug = false;
+
+    /**
      * Basic module URLs
      */
     const URL_ME = '?module=visor';
@@ -237,6 +244,10 @@ class UbillingVisor {
 
         if (@$this->altCfg['TRASSIRHLS_ENABLED']) {
             $this->chanPreviewContainer = 'hls';
+        }
+
+        if (@$this->altCfg['TRASSIR_DEBUG']) {
+            $this->trassirDebug = $this->altCfg['TRASSIR_DEBUG'];
         }
     }
 
@@ -886,7 +897,7 @@ class UbillingVisor {
             if (!empty($this->allDvrs)) {
                 foreach ($this->allDvrs as $io => $eachDvr) {
                     if ($eachDvr['type'] == 'trassir') {
-                        $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port']);
+                        $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port'], $this->trassirDebug);
                         $dvrChannels = $dvrGate->getChannels();
                         if (!empty($dvrChannels)) {
                             foreach ($dvrChannels as $eachChanGuid => $eachChanName) {
@@ -931,7 +942,7 @@ class UbillingVisor {
                         foreach ($this->allChannels[$userId] as $io => $eachChan) {
                             $chanDvrData = $this->allDvrs[$eachChan['dvrid']];
                             if ($chanDvrData['type'] == 'trassir') {
-                                $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port']);
+                                $dvrGate = new TrassirServer($chanDvrData['ip'], $chanDvrData['login'], $chanDvrData['password'], $chanDvrData['apikey'], $chanDvrData['port'], $this->trassirDebug);
 
                                 $streamUrl = $dvrGate->getLiveVideoStream($eachChan['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $chanDvrData['customurl']);
                                 $result .= wf_tag('div', false, 'whiteboard', 'style="width:' . $this->chanPreviewSize . ';"');
@@ -1664,7 +1675,7 @@ class UbillingVisor {
             //change model mismatch warning request catched
             if (ubRouting::checkPost('disablemodelmismatchcameraid')) {
                 $newDisableState = (ubRouting::checkPost('modelmismatchdisabled')) ? 1 : 0; //need int as param
-                $trassirGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
+                $trassirGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                 $trassirGate->setModelMismatch($cameraIp, $newDisableState);
                 log_register('VISOR CAMERA [' . $cameraId . '] MMIS `' . $newDisableState . '` ON DVR [' . $cameraDvrId . '] AS `' . $cameraIp . '`');
                 ubRouting::nav(self::URL_ME . '&' . self::URL_CAMVIEW . $cameraId); //preventing form data duplication
@@ -1704,7 +1715,7 @@ class UbillingVisor {
             $cameraUserData = $this->allUserData[$cameraData['login']];
             $cameraIp = $cameraUserData['ip'];
 
-            $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
+            $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
             $serverHealth = $trassir->getHealth();
             //dummy connection check
             if (!empty($serverHealth)) {
@@ -2154,7 +2165,7 @@ class UbillingVisor {
             foreach ($this->allDvrs as $io => $each) {
                 if ($each['type'] == 'trassir') {
                     if (!empty($each['ip']) AND ! empty($each['login']) AND ! empty($each['password']) AND ! empty($each['apikey']) AND ! empty($each['port'])) {
-                        $dvrGate = new TrassirServer($each['ip'], $each['login'], $each['password'], $each['apikey'], $each['port']);
+                        $dvrGate = new TrassirServer($each['ip'], $each['login'], $each['password'], $each['apikey'], $each['port'], $this->trassirDebug);
                         $health = $dvrGate->getHealth();
                         $cells = wf_TableCell($each['id']);
                         $cells .= wf_TableCell($each['ip']);
@@ -2282,7 +2293,7 @@ class UbillingVisor {
             $result .= wf_tag('div', false, '');
             foreach ($this->allDvrs as $io => $eachDvr) {
                 if ($eachDvr['type'] == 'trassir') {
-                    $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port']);
+                    $dvrGate = new TrassirServer($eachDvr['ip'], $eachDvr['login'], $eachDvr['password'], $eachDvr['apikey'], $eachDvr['port'], $this->trassirDebug);
                     $serverHealth = $dvrGate->getHealth();
                     if (!empty($serverHealth)) {
                         if (isset($serverHealth['channels_health'])) {
@@ -2379,7 +2390,7 @@ class UbillingVisor {
             if (isset($this->allDvrs[$dvrId])) {
                 $dvrData = $this->allDvrs[$dvrId];
                 if ($dvrData['type'] == 'trassir') {
-                    $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], false);
+                    $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                     //channel avail check
                     $allChannels = $trassir->getChannels();
                     if (isset($allChannels[$channellGuid])) {
@@ -2456,7 +2467,7 @@ class UbillingVisor {
             $result .= wf_tag('br');
             $dvrData = $this->allDvrs[$dvrId];
             if ($dvrData['type'] == 'trassir') {
-                $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
+                $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                 $channelUrl = $trassir->getLiveVideoStream($channelGuid, 'main', $this->chanPreviewContainer, $this->chanBigPreviewQuality, $this->chanBigPreviewFramerate, $dvrData['customurl']);
                 $result .= $this->renderChannelPlayer($channelUrl, '60%', true);
                 $result .= wf_delimiter();
@@ -2546,7 +2557,7 @@ class UbillingVisor {
                         $dvrData = $this->allDvrs[$dvrId];
                         if ($dvrData['type'] == 'trassir') {
                             $secretData = $this->allSecrets[$visorId];
-                            $dvrGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], true);
+                            $dvrGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                             $this->chans->where('visorid', '=', $visorId);
                             $this->chans->where('dvrid', '=', $dvrId);
                             $userChans = $this->chans->getAll();
@@ -2568,7 +2579,7 @@ class UbillingVisor {
                             /**
                              * TODO: check channels availability
                              */
-                            $aclGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], true);
+                            $aclGate = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                             $aclGate->assignUserChannels($secretData['login'], $dvrChans);
                             log_register('VISOR USER [' . $visorId . '] REGEN ACL ON DVR [' . $dvrId . '] AS `' . $secretData['login'] . '` SYNC');
                         }
@@ -2596,7 +2607,7 @@ class UbillingVisor {
                 if (isset($this->allDvrs[$each['dvrid']])) {
                     $dvrData = $this->allDvrs[$each['dvrid']];
                     if ($dvrData['type'] = 'trassir') {
-                        $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey']);
+                        $trassir = new TrassirServer($dvrData['ip'], $dvrData['login'], $dvrData['password'], $dvrData['apikey'], $dvrData['port'], $this->trassirDebug);
                         if (!$maxQual) {
                             $url = $trassir->getLiveVideoStream($each['chan'], 'main', $this->chanPreviewContainer, $this->chanPreviewQuality, $this->chanPreviewFramerate, $dvrData['customurl']);
                         } else {

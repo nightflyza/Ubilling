@@ -9,7 +9,7 @@ class TrassirServer {
     /**
      * Object instance debug flag
      *
-     * @var bool
+     * @var bool/int
      */
     protected $debug = false;
 
@@ -147,6 +147,11 @@ class TrassirServer {
     protected $stream_context;
 
     /**
+     * Contains default log path
+     */
+    const LOG_PATH = 'exports/trassirdebug.log';
+
+    /**
      * Creates new instance of TrassirServer object
      * 
      * @param string $ip
@@ -154,7 +159,7 @@ class TrassirServer {
      * @param string $password
      * @param string $sdkPassword
      * @param int $port 
-     * @param bool/int debug: false/true/2
+     * @param bool/int debug: false/0/1/2/3
      * 
      * @return void
      */
@@ -246,7 +251,7 @@ class TrassirServer {
     /**
      * Modify current instance debug flag
      * 
-     * @param bool $state
+     * @param bool/int $state
      * 
      * @return void
      */
@@ -329,21 +334,26 @@ class TrassirServer {
     protected function logDebug($data, $type) {
         if ($this->debug) {
             $curDate = curdatetime();
-            $data = $curDate . ' ' . $data;
-            switch ($type) {
-                case 'success':
-                    show_success($data);
-                    break;
-                case 'info':
-                    show_info($data);
-                    break;
-                case 'warning':
-                    show_warning($data);
-                    break;
-                case 'error':
-                    show_error($data);
-                    break;
+            $dataDisplay = $curDate . ' ' . $data;
+            if ($this->debug == 1 OR $this->debug == 2) {
+                switch ($type) {
+                    case 'success':
+                        show_success($dataDisplay);
+                        break;
+                    case 'info':
+                        show_info($dataDisplay);
+                        break;
+                    case 'warning':
+                        show_warning($dataDisplay);
+                        break;
+                    case 'error':
+                        show_error($dataDisplay);
+                        break;
+                }
             }
+
+            $logData = $curDate . ' ' . $type . ' ' . $data . PHP_EOL;
+            file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
         }
     }
 
@@ -432,14 +442,17 @@ class TrassirServer {
         }
 
         $url = $host . $request . $authString;
-        if ($this->debug === 2) {
-            $this->logDebug($url, 'info');
+        if ($this->debug >= 2) {
+            $this->logDebug($url, 'lld');
         }
 
         $rawResponse = file_get_contents($url, null, $this->stream_context);
         $rawResponse = $this->clearReply($rawResponse);
 
         $result = json_decode($rawResponse, true);
+        if ($this->debug >= 2) {
+            $this->logDebug('Response: ' . print_r($result, true), 'lld');
+        }
 
         return($result);
     }
@@ -600,7 +613,7 @@ class TrassirServer {
      * @param string $userGuid
      * @param string $acl
      * 
-     * @return bool/string
+     * @return bool/array
      */
     protected function setUserACL($userGuid, $acl = '') {
         $result = false;
@@ -647,9 +660,14 @@ class TrassirServer {
                         $this->logDebug('Channel assign failed: ' . $eachChan . ' not found on server', 'error');
                     }
                 }
+            } else {
+                $this->logDebug('User ' . $login . ' Channel assign failed - empty channels array', 'warning');
             }
+
             $aclString = zb_CutEnd($aclString);
+            $this->logDebug('Setting user ' . $login . ' ACL: ' . $aclString, 'info');
             $aclChangeResult = $this->setUserACL($userGuid, $aclString); //push that to user
+            $this->logDebug('User ' . $login . ' ACL setting result: ' . print_r($aclChangeResult, true), 'info');
         } else {
             $this->logDebug('User not found in server objects tree: ' . $login, 'error');
         }
@@ -740,6 +758,7 @@ class TrassirServer {
      */
     protected function setUserSettings($guid, $setting, $value) {
         $result = $this->apiRequest('/settings/users/' . $guid . '/' . $setting . '=' . $value, 'sid');
+        $this->logDebug('Setting GUID '.$guid.' user setting: '.$setting.'='.$value, 'lld');
         return($result);
     }
 
