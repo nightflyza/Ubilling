@@ -142,19 +142,20 @@ class UbillingTelegram {
 
             $message = trim($message);
             $queueId = time();
-            if (file_exists(self::QUEUE_PATH . $prefix . $queueId)) {
-                $offset = 9000;
-                while (file_exists(self::QUEUE_PATH . $prefix . $queueId)) {
-                    $queueId = $queueId + $offset;
-                    $offset++;
+            $offset = 0;
+            $filename = self::QUEUE_PATH . $prefix . $queueId . '_' . $offset;
+            if (file_exists($filename)) {
+                while (file_exists($filename)) {
+                    $offset++; //incremeting number of messages per second
+                    $filename = self::QUEUE_PATH . $prefix . $queueId . '_' . $offset;
                 }
             }
 
-            $filename = self::QUEUE_PATH . $prefix . $queueId;
+
             $storedata = 'CHATID="' . $chatid . '"' . "\n";
             $storedata .= 'MESSAGE="' . $message . '"' . "\n";
             file_put_contents($filename, $storedata);
-            log_register('UTLG SEND MESSAGE FOR `' . $chatid . '` AS `' . $prefix . $queueId . '` ' . $module);
+            log_register('UTLG SEND MESSAGE FOR `' . $chatid . '` AS `' . $prefix . $queueId . '_' . $offset . '` ' . $module);
             $result = true;
         }
         return ($result);

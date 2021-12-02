@@ -47,6 +47,7 @@ class UbillingSMS {
         $result = '';
         $number = trim($number);
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
+        $prefix = 'usms_';
         if (!empty($number)) {
             if (ispos($number, '+')) {
                 $message = str_replace(array("\n\r", "\n", "\r"), ' ', $message); //single line
@@ -54,13 +55,22 @@ class UbillingSMS {
                 if ($translit) {
                     $message = zb_TranslitString($message, true);
                 }
+
                 $message = trim($message);
-                $queueId = 'us_' . zb_rand_string(8);
-                $filename = self::QUEUE_PATH . $queueId;
+                $queueId = time();
+                $offset = 0;
+                $filename = self::QUEUE_PATH . $prefix . $queueId . '_' . $offset;
+                if (file_exists($filename)) {
+                    while (file_exists($filename)) {
+                        $offset++; //incremeting number of messages per second
+                        $filename = self::QUEUE_PATH . $prefix . $queueId . '_' . $offset;
+                    }
+                }
+
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
                 $storedata .= 'MESSAGE="' . $message . '"' . "\n";
                 file_put_contents($filename, $storedata);
-                log_register('USMS SEND SMS FOR `' . $number . '` AS `' . $queueId . '` ' . $module);
+                log_register('USMS SEND SMS FOR `' . $number . '` AS `' . $prefix . $queueId . '_' . $offset . '` ' . $module);
                 $result = $queueId;
             }
         }
