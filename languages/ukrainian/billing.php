@@ -3341,5 +3341,7 @@ $lang['def']['System version'] = 'Версія системи';
 $lang['def']['Optical TX Bias'] = 'Оптична моща TX';
 $lang['def']['This build have no passport data'] = 'Цей будинок не має заповнених паспортних даних';
 $lang['def']['Edit build passport'] = 'Редагувати паспорт будинку';
+$lang['def']['Contract signed'] = 'Угоду підписано';
+$lang['def']['Signed through an intermediary'] = 'Угода через посередника';
 $lang['def'][''] = '';
 $lang['def'][''] = '';

@@ -140,9 +140,11 @@ class BuildPassport {
         $inputs .= wf_Selector('pfloors', $this->floorsArr, __('Floors'), @$currentData['floors'], false);
         $inputs .= wf_Selector('pentrances', $this->entrancesArr, __('Entrances'), @$currentData['entrances'], false);
         $inputs .= wf_TextInput('papts', __('Apartments'), @$currentData['apts'], true, 5);
-
         $inputs .= __('Notes') . wf_tag('br');
         $inputs .= wf_TextArea('pnotes', '', @$currentData['notes'], true, '50x6');
+        $inputs .= wf_CheckInput('pcontract', __('Contract signed'), false, @$currentData['contract']) . ' ';
+        $inputs .= wf_CheckInput('pmediator', __('Signed through an intermediary'), true, @$currentData['mediator']) . ' ';
+        $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Save'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -237,6 +239,9 @@ class BuildPassport {
             $entrances = ubRouting::post('pentrances', 'mres');
             $apts = ubRouting::post('papts', 'mres');
             $notes = ubRouting::post('pnotes', 'mres');
+            $contract = (ubRouting::checkPost('pcontract')) ? 1 : 0;
+            $mediator = (ubRouting::checkPost('pmediator')) ? 1 : 0;
+
 
 
             //filling new data
@@ -250,6 +255,8 @@ class BuildPassport {
             $this->passportsDb->data('apts', $apts);
             $this->passportsDb->data('entrances', $entrances);
             $this->passportsDb->data('notes', $notes);
+            $this->passportsDb->data('contract', $contract);
+            $this->passportsDb->data('mediator', $mediator);
 
             if (isset($this->allPassportData[$buildid])) {
                 //updating existing record

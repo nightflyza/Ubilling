@@ -22,3 +22,5 @@ KEY `create_timestamp` (`create_timestamp`),
 KEY `perform_timestamp` (`perform_timestamp`),
 KEY `cancel_timestamp` (`cancel_timestamp`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+ALTER TABLE `buildpassport` ADD `contract` TINYINT NULL , ADD `mediator` TINYINT NULL ; 
