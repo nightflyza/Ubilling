@@ -43,6 +43,8 @@ class BuildPassport {
     /**
      * Some static defines, routes etc here
      */
+    const URL_PASSPORT = '?module=buildpassport';
+    const ROUTE_BUILD = 'buildid';
     const DATA_SOURCE = 'buildpassport';
     const EX_NO_OWNERS = 'EMPTY_OWNERS_PARAM';
     const EX_NO_OPTS = 'NOT_ENOUGHT_OPTIONS';
@@ -144,6 +146,75 @@ class BuildPassport {
         $inputs .= wf_Submit(__('Save'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Returns some build passport data preview
+     * 
+     * @param int $buildid existing build id
+     * @param string $buildAddress  optional address string
+     * 
+     * @return string
+     */
+    public function renderPassportData($buildid, $buildAddress = '') {
+        $result = '';
+        $buildid = ubRouting::filters($buildid, 'int');
+        $rows = '';
+        if (!empty($buildAddress)) {
+            $cells = wf_TableCell(__('Address'), '30%', 'row2');
+            $cells .= wf_TableCell($buildAddress);
+            $rows .= wf_TableRow($cells, 'row3');
+        }
+
+        if (isset($this->allPassportData[$buildid])) {
+            $currentData = $this->allPassportData[$buildid];
+
+
+            $cells = wf_TableCell(__('Owner'), '30%', 'row2');
+            $cells .= wf_TableCell($currentData['owner']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Owner name'), '', 'row2');
+            $cells .= wf_TableCell($currentData['ownername']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Owner phone'), '', 'row2');
+            $cells .= wf_TableCell($currentData['ownerphone']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Owner contact person'), '', 'row2');
+            $cells .= wf_TableCell($currentData['ownercontact']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Keys available'), '', 'row2');
+            $keysLabel = ($currentData['keys']) ? wf_img_sized('skins/icon_key.gif', __('Keys available'), '12') . ' ' . __('Yes') : __('No');
+            $cells .= wf_TableCell($keysLabel);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Build access notices'), '', 'row2');
+            $cells .= wf_TableCell($currentData['accessnotices']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Floors'), '', 'row2');
+            $cells .= wf_TableCell($currentData['floors']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Entrances'), '', 'row2');
+            $cells .= wf_TableCell($currentData['entrances']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Apartments'), '', 'row2');
+            $cells .= wf_TableCell($currentData['apts']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Notes'), '', 'row2');
+            $cells .= wf_TableCell($currentData['notes']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $result = wf_TableBody($rows, '100%', 0);
+        }
+
         return ($result);
     }
 

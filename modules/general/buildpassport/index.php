@@ -1,0 +1,69 @@
+<?php
+
+if (cfr('BUILDPASSPORT')) {
+    if ($ubillingConfig->getAlterParam('BUILD_EXTENDED')) {
+
+        if (ubRouting::checkGet(BuildPassport::ROUTE_BUILD)) {
+            $passport = new BuildPassport();
+            $buildId = ubRouting::get(BuildPassport::ROUTE_BUILD, 'int');
+            if (!empty($buildId)) {
+                $allBuildsAddress = zb_AddressGetBuildAllAddress();
+                $buildLabel = $allBuildsAddress[$buildId];
+                $passportData = $passport->getPassportData($buildId);
+                $buildData = zb_AddressGetBuildData($buildId);
+
+                $buildPassportRender = '';
+
+                if (!empty($passportData)) {
+                    $buildPassportRender .= $passport->renderPassportData($buildId, $buildLabel);
+                    show_window(__('Build passport') . ': ' . $buildLabel, $buildPassportRender);
+                } else {
+                    $messages = new UbillingMessageHelper();
+                    $buildPassportRender .= $messages->getStyledMessage(__('This build have no passport data'), 'warning');
+                    show_window(__('Build') . ': ' . $buildLabel, $buildPassportRender);
+                }
+
+                //ajax callbacks
+                if (ubRouting::checkGet('ajax')) {
+                    die($buildPassportRender);
+                }
+
+                //build on map
+                if ($ubillingConfig->getAlterParam('SWYMAP_ENABLED')) {
+                    if (!empty($buildData['geo'])) {
+                        $mapOptions = $ubillingConfig->getYmaps();
+                        $buildMiniMap = '';
+                        $placemarks = generic_MapAddCircle($buildData['geo'], '50');
+                        $placemarks .= um_MapDrawBuilds();
+                        $buildMiniMap .= generic_MapContainer('100%', '400px;', 'singlebuildmap');
+                        $buildMiniMap .= generic_MapInit($buildData['geo'], $mapOptions['ZOOM'], $mapOptions['TYPE'], $placemarks, '', $mapOptions['LANG'], 'singlebuildmap');
+                        show_window(__('Map'), $buildMiniMap);
+                    }
+                }
+            } else {
+                show_error(__('Something went wrong') . ': EX_WRONG_BUILDID');
+            }
+
+            if (ubRouting::checkGet('back')) {
+                $rawBack = ubRouting::get('back');
+                $backUrl = '?module=' . base64_decode($rawBack);
+                $backControl = wf_BackLink($backUrl);
+                $editControl = '';
+                if (cfr('BUILDS')) {
+                    $editLabel = wf_img('skins/icon_passport.gif') . ' ' . __('Edit build passport');
+                    $editTitle = __('Edit build passport') . ': ' . $buildLabel;
+                    $editControl = wf_modalAuto($editLabel, $editTitle, $passport->renderEditForm($buildId), 'ubButton');
+                }
+
+                //some controls here
+                show_window('', $backControl . ' ' . $editControl);
+            }
+        } else {
+            show_error(__('Something went wrong') . ': EX_NO_BUILDID');
+        }
+    } else {
+        show_error(__('This module is disabled'));
+    }
+} else {
+    show_error(__('Access denied'));
+}

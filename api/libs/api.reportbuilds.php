@@ -313,6 +313,8 @@ class ReportBuilds {
 
         $cityFilter = ubRouting::get(self::PROUTE_FILTERCITY, 'int');
         $streetFilter = ubRouting::get(self::PROUTE_FILTERSTREET, 'int');
+        $backUrl = '&back=' . base64_encode('report_builds');
+        $passportUrl = BuildPassport::URL_PASSPORT . $backUrl . '&' . BuildPassport::ROUTE_BUILD . '=';
 
         if (!empty($this->allBuilds)) {
             foreach ($this->allBuilds as $io => $each) {
@@ -375,7 +377,9 @@ class ReportBuilds {
                         }
                         $data[] = $signupsPercent;
                     }
-                    $data[] = 'TODO';
+
+                    $actionLinks = wf_Link($passportUrl . $each['id'], wf_img('skins/icon_passport.gif', __('Build passport')));
+                    $data[] = $actionLinks;
                     $json->addRow($data);
                     unset($data);
                 }
