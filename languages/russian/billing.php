@@ -3317,3 +3317,5 @@ $lang['def']['SFP voltage'] = 'Напряжение SFP';
 $lang['def']['System temperature'] = 'Температура системы';
 $lang['def']['System version'] = 'Версия системы';
 $lang['def']['Optical TX Bias'] = 'Оптическая мощь TX';
+$lang['def']['This build have no passport data'] = 'У этого дома нету заполененных паспортных даных';
+$lang['def']['Edit build passport'] = 'Редактировать паспорт дома';
