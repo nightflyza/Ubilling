@@ -33,11 +33,11 @@ if (cfr('BUILDPASSPORT')) {
                     if (!empty($buildData['geo'])) {
                         $mapOptions = $ubillingConfig->getYmaps();
                         $buildMiniMap = '';
-                        $placemarks = generic_MapAddCircle($buildData['geo'], '50');
-                        $placemarks .= um_MapDrawBuilds();
+                        $placemarks = generic_MapAddCircle($buildData['geo'], '30');
+                        $placemarks .= um_MapDrawBuilds($buildData['id']); //only selected build on minimap
                         $buildMiniMap .= generic_MapContainer('100%', '400px;', 'singlebuildmap');
-                        $buildMiniMap .= generic_MapInit($buildData['geo'], $mapOptions['ZOOM'], $mapOptions['TYPE'], $placemarks, '', $mapOptions['LANG'], 'singlebuildmap');
-                        show_window(__('Map'), $buildMiniMap);
+                        $buildMiniMap .= generic_MapInit($buildData['geo'], $mapOptions['FINDING_ZOOM'], $mapOptions['TYPE'], $placemarks, '', $mapOptions['LANG'], 'singlebuildmap');
+                        show_window(__('Mini-map'), $buildMiniMap);
                     }
                 }
             } else {

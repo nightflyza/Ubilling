@@ -309,11 +309,18 @@ function sm_MapDrawSwitches() {
 /**
  * Returns full map marks for builds with filled GEO field
  * 
+ * @param int $buildIdFilter return only one build placemark
+ * 
  * @return string
  */
-function um_MapDrawBuilds() {
+function um_MapDrawBuilds($buildIdFilter = '') {
+    $buildIdFilter = ubRouting::filters($buildIdFilter, 'int');
     $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `build` WHERE `geo` != '' ";
+    //optional filter here
+    if ($buildIdFilter) {
+        $query .= " AND `id`='" . $buildIdFilter . "'";
+    }
     $allbuilds = simple_queryall($query);
     $allstreets = zb_AddressGetStreetAllData();
     $streetData = array();
