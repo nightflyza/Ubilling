@@ -214,6 +214,16 @@ class BuildPassport {
             $cells .= wf_TableCell($currentData['notes']);
             $rows .= wf_TableRow($cells, 'row3');
 
+            $contractSignLabel = ($currentData['contract']) ? __('Yes') : __('No');
+            $cells = wf_TableCell(__('Contract signed'), '', 'row2');
+            $cells .= wf_TableCell($contractSignLabel);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $mediatorLabel = ($currentData['mediator']) ? __('Yes') : __('No');
+            $cells = wf_TableCell(__('Signed through an intermediary'), '', 'row2');
+            $cells .= wf_TableCell($mediatorLabel);
+            $rows .= wf_TableRow($cells, 'row3');
+
             $result = wf_TableBody($rows, '100%', 0);
         }
 
