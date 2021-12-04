@@ -249,6 +249,14 @@ class ReportBuilds {
                 );
             }
             $opts = '"order": [[ 1, "desc" ]]';
+
+            //optional ID column
+            if (cfr('ROOT')) {
+                $columns = array_merge(array('ID'), $columns);
+                $opts = '"order": [[ 2, "desc" ]]';
+            }
+
+
             $filters = '';
 
             if (ubRouting::checkPost(self::PROUTE_FILTERS)) {
@@ -340,6 +348,9 @@ class ReportBuilds {
                 }
 
                 if ($filtersPassed) {
+                    if (cfr('ROOT')) {
+                        $data[] = $each['id'];
+                    }
                     $data[] = $cityName;
                     $data[] = $streetName;
                     $data[] = $each['buildnum'];
@@ -378,7 +389,17 @@ class ReportBuilds {
                         $data[] = $signupsPercent;
                     }
 
-                    $actionLinks = wf_Link($passportUrl . $each['id'], wf_img('skins/icon_passport.gif', __('Build passport')));
+                    $actionLinks = '';
+                    if ($this->buildPassportsFlag) {
+                        $actionLinks .= wf_Link($passportUrl . $each['id'], wf_img('skins/icon_passport.gif', __('Build passport'))) . ' ';
+                    }
+                    if (!empty($each['geo'])) {
+                        $actionLinks .= wf_Link("?module=usersmap&findbuild=" . $each['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
+                    } else {
+                        if (cfr('BUILDS')) {
+                            $actionLinks .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $each['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '') . ' ';
+                        }
+                    }
                     $data[] = $actionLinks;
                     $json->addRow($data);
                     unset($data);

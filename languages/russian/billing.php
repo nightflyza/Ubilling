@@ -3321,3 +3321,7 @@ $lang['def']['This build have no passport data'] = 'У этого дома не�
 $lang['def']['Edit build passport'] = 'Редактировать паспорт дома';
 $lang['def']['Contract signed'] = 'Договор подписан';
 $lang['def']['Signed through an intermediary'] = 'Договор через посредника';
+$lang['def']['right to view build passports'] = 'Право просматривать паспорта домов';
+$lang['def']['right to use external contragents finances with readonly access'] = 'Право использовать внешних контрагентов только для просмотра';
+$lang['def']['right of full access to external contragents finances'] = 'Право полного доступа к внешним контрагентам';
+$lang['def']['right to use annoyance report'] = 'Право использовать надоедливость';
