@@ -24,7 +24,7 @@ class OnePunch {
      *
      * @var string
      */
-    protected $defaultSortField = 'id';
+    protected $defaultSortField = '';
 
     /**
      * System config object placeholder
@@ -68,7 +68,10 @@ class OnePunch {
     protected function loadOptions() {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
-        $this->defaultSortField = $this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD', 'id');
+        $customSortField=$this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD');
+        if ($customSortField) {
+            $this->defaultSortField = $customSortField;
+        }
     }
 
     /**
@@ -80,7 +83,7 @@ class OnePunch {
      */
     protected function loadScripts($alias = '') {
         $alias = vf($alias);
-        $where = (!empty($alias)) ? "WHERE `alias`='" . $alias . "';" : '';
+        $where = (!empty($alias)) ? "WHERE `alias`='" . $alias . "'" : '';
         $orderBy = (empty($this->defaultSortField) ? '' : " ORDER BY `" . $this->defaultSortField . "` ASC ");
         $query = "SELECT * from `punchscripts` " . $where . $orderBy;
         $all = simple_queryall($query);
