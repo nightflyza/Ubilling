@@ -73,6 +73,7 @@ class ReportBuilds {
      */
     const URL_ME = '?module=report_builds';
     const ROUTE_AJLIST = 'ajaxbuildslist';
+    const ROUTE_EXPORTS = 'exportcontrols';
     const PROUTE_FILTERS = 'applynewfilters';
     const PROUTE_FILTERCITY = 'filtercityid';
     const PROUTE_FILTERSTREET = 'filterstreetid';
@@ -248,12 +249,17 @@ class ReportBuilds {
                     'Actions'
                 );
             }
-            $opts = '"order": [[ 1, "desc" ]]';
+            $opts = '"order": [[ 1, "asc" ]]';
 
             //optional ID column
             if (cfr('ROOT')) {
                 $columns = array_merge(array('ID'), $columns);
-                $opts = '"order": [[ 2, "desc" ]]';
+                $opts = '"order": [[ 2, "asc" ]]';
+            }
+
+            //optional export options
+            if (ubRouting::checkGet(self::ROUTE_EXPORTS)) {
+                $opts .= ', "dom": \'Bfrtipsl\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\']';
             }
 
 
