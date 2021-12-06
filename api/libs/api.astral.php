@@ -2487,6 +2487,7 @@ function wf_CleanDiv() {
  *                                       "order": [[ 0, "desc" ]]
  *                                       or
  *                                       dom: \'Bfrtipsl\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\']
+ *                                       or "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']
  * @param bool $addFooter
  * @param string $footerOpts
  * @param string $footerTHOpts
@@ -2500,15 +2501,12 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
 
-    $buttonsTest = '
-        dom: \'frtipslB\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\'],
-        ';
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt .= '
  		$(document).ready(function() {                 
             
-            $(\'#' . $tableId . '\').dataTable( {
+            var table=$(\'#' . $tableId . '\').dataTable( {
                 "oLanguage": {
                         "sLengthMenu": "' . __('Show') . ' _MENU_",
                         "sZeroRecords": "' . __('Nothing found') . '",
@@ -2541,8 +2539,11 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                 "bJQueryUI": true
             } );
               
+  
+                   
 		} );
                 
+               
           ';
     $jq_dt .= wf_tag('script', true);
 
