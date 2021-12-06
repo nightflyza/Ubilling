@@ -10,7 +10,7 @@ if (cfr('BUILDSREPORT')) {
     if (!ubRouting::checkGet($buildReport::ROUTE_EXPORTS)) {
         $exportControls = wf_Link($buildReport::URL_ME . '&' . $buildReport::ROUTE_EXPORTS . '=true', web_icon_download(__('Export')));
     } else {
-        $exportControls = wf_Link($buildReport::URL_ME, web_icon_search(__('View')));
+        $exportControls = wf_Link($buildReport::URL_ME, web_icon_search(__('Report')));
     }
     show_window(__('Builds report') . ' ' . $exportControls, $buildReport->renderBuilds());
 } else {

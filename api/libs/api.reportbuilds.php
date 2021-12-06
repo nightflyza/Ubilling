@@ -259,7 +259,7 @@ class ReportBuilds {
 
             //optional export options
             if (ubRouting::checkGet(self::ROUTE_EXPORTS)) {
-                $opts .= ', "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\', \'print\']';
+                $opts .= ', "dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\']';
             }
 
 
