@@ -17,7 +17,7 @@ function generic_MapContainer($width = '', $height = '', $id = '') {
     $width = (!empty($width)) ? $width : '100%';
     $height = (!empty($height)) ? $height : '800px';
     $id = (!empty($id)) ? $id : 'ubmap';
-    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:'.$width.'; height:'.$height.';"');
+    $result = wf_tag('div', false, '', 'id="' . $id . '" style="width:' . $width . '; height:' . $height . ';"');
     $result .= wf_tag('div', true);
     return ($result);
 }
@@ -139,9 +139,6 @@ function generic_MapAddMark($coords, $title = '', $content = '', $footer = '', $
     if (!empty($content)) {
         $result .= 'placemark.bindTooltip("' . $content . '", { sticky: true});';
     }
-
-    //$result.='markerscluster.addLayer(placemark);';
-
     return($result);
 }
 
@@ -244,12 +241,6 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
     //Easyprint libs init
     $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-easyprint/dist/bundle.js"') . wf_tag('script', true);
 
-    //Marker cluster libs init
-    /**
-      $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.css"');
-      $result .= wf_tag('link', false, '', 'rel="stylesheet" href="modules/jsc/leaflet-markercluster/dist/MarkerCluster.Default.css"');
-      $result .= wf_tag('script', false, '', 'src="modules/jsc/leaflet-markercluster/dist/leaflet.markercluster-src.js"') . wf_tag('script', true);
-     */
     //basic map init
     $result .= wf_tag('script', false, '', 'type = "text/javascript"');
     $result .= '
@@ -293,18 +284,10 @@ function generic_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', 
       }
         };
         L.control.ruler(options).addTo(map);
-        /**
-	var markerscluster = L.markerClusterGroup({
-			maxClusterRadius: 20
-                        },
-        );
-        **/
-        
+           
 	' . $placemarks . '
         ' . $editor . '
-            
-        
-	/** map.addLayer(markerscluster); **/
+
 ';
     $result .= wf_tag('script', true);
     return($result);
@@ -326,8 +309,6 @@ function generic_MapEditor($name, $title = '', $data = '') {
     $data = str_replace('"', '\"', $data);
     $content = '<form action=\"\" method=\"POST\"><input type=\"hidden\" name=' . $name . ' value=\'"+e.latlng.lat.toPrecision(7)+\',\'+e.latlng.lng.toPrecision(7)+"\'>' . $data . '</form>';
 
-
-    //$content = str_replace('"', '\"', $content);
     $windowCode = '<b>' . $title . '</b><br>' . $content;
     $result = 'var popup = L.popup();
 
