@@ -9,13 +9,13 @@ if (cfr('TAGCLOUD')) {
     $tagCloud = new TagCloud();
 
     //show cloud or grid tag view
-    if (!wf_CheckGet(array('gridview'))) {
-        if (wf_CheckGet(array('report'))) {
+    if (!ubRouting::checkGet('gridview')) {
+        if (ubRouting::checkGet('report')) {
             $tagCloud->renderReport();
-        } elseif (ubRouting::checkGet(array('notags'))) {
+        } elseif (ubRouting::checkGet('notags')) {
             // show users which not have a tag
             $tagCloud->renderNoTagGrid();
-        } elseif (ubRouting::checkGet(array('noemployeetags'))) {
+        } elseif (ubRouting::checkGet('noemployeetags')) {
             // show users which not have a tag
             $tagCloud->renderNoEmployeeTags();
         } else {
@@ -28,11 +28,10 @@ if (cfr('TAGCLOUD')) {
     }
 
 //show selected tag users
-    if (isset($_GET['tagid'])) {
-        $tagid = vf($_GET['tagid'], 3);
+    if (ubRouting::get('tagid')) {
+        $tagid = ubRouting::get('tagid', 'int');
         $tagCloud->renderTagUsers($tagid);
     }
 } else {
     show_error(__('You cant control this module'));
 }
-?>

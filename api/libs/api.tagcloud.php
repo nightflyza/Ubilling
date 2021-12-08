@@ -59,7 +59,6 @@ class TagCloud {
         $this->loadUserTags();
         $this->tagPowerPreprocessing();
         $this->panel();
-
     }
 
     /**
@@ -168,11 +167,11 @@ class TagCloud {
      */
     protected function panel() {
         $result = wf_Link(self::URL_ME, wf_img('skins/icon_cloud.png') . ' ' . __('Tag cloud'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_GRID, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::NO_EMPLOYEE_TAG, wf_img('skins/menuicons/employee.png') . ' ' . __('No employee tags'), true, 'ubButton');
-        $result.= show_window('', $result);
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_GRID, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::NO_EMPLOYEE_TAG, wf_img('skins/menuicons/employee.png') . ' ' . __('No employee tags'), true, 'ubButton');
+        $result .= show_window('', $result);
         return ($result);
     }
 
@@ -235,11 +234,11 @@ class TagCloud {
         //usage of this in constructor significantly reduces performance
         $this->loadNoEmployeeTagss();
         if (!empty($this->noEmployeeTags)) {
-            foreach ($this->noEmployeeTags  as $key => $user) {
+            foreach ($this->noEmployeeTags as $key => $user) {
                 $userArr[] = $user;
             }
         }
-        $result.= web_UserArrayShower($userArr);
+        $result .= web_UserArrayShower($userArr);
         show_window(__('No employee tags'), $result);
     }
 
@@ -258,7 +257,7 @@ class TagCloud {
                 $userArr[] = $user['login'];
             }
         }
-        $result.= web_UserArrayShower($userArr);
+        $result .= web_UserArrayShower($userArr);
         show_window(__('No tags'), $result);
     }
 
@@ -269,8 +268,8 @@ class TagCloud {
      */
     public function renderTagGrid() {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Tags'));
-        $cells.= wf_TableCell(__('Users'));
+        $cells .= wf_TableCell(__('Tags'));
+        $cells .= wf_TableCell(__('Users'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->alltags)) {
@@ -278,9 +277,9 @@ class TagCloud {
                 if (isset($this->allnames[$eachtag['tagid']])) {
                     $userCount = $this->getTagPower($eachtag['tagid']);
                     $cells = wf_TableCell($eachtag['tagid']);
-                    $cells.= wf_TableCell(wf_Link('?module=tagcloud&gridview=true&tagid=' . $eachtag['tagid'], $this->allnames[$eachtag['tagid']], false));
-                    $cells.= wf_TableCell($userCount);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $cells .= wf_TableCell(wf_Link('?module=tagcloud&gridview=true&tagid=' . $eachtag['tagid'], $this->allnames[$eachtag['tagid']], false));
+                    $cells .= wf_TableCell($userCount);
+                    $rows .= wf_TableRow($cells, 'row3');
                 }
             }
         }
@@ -303,13 +302,13 @@ class TagCloud {
                 $fsize = $power / 2;
                 if (isset($this->allnames[$eachtag['tagid']])) {
                     $sup = wf_tag('sup') . $power . wf_tag('sup', true);
-                    $result.=wf_tag('font', false, '', 'size="' . $fsize . '"');
-                    $result.=wf_Link(self::URL_ME . '&tagid=' . $eachtag['tagid'], $this->allnames[$eachtag['tagid']] . $sup, false);
-                    $result.=wf_tag('font', true);
+                    $result .= wf_tag('font', false, '', 'size="' . $fsize . '"');
+                    $result .= wf_Link(self::URL_ME . '&tagid=' . $eachtag['tagid'], $this->allnames[$eachtag['tagid']] . $sup, false);
+                    $result .= wf_tag('font', true);
                 }
             }
         }
-        $result.=wf_tag('center', true);
+        $result .= wf_tag('center', true);
         show_window(__('Tags'), $result);
     }
 
@@ -340,33 +339,39 @@ class TagCloud {
      */
     public function renderReport() {
         $result = '';
+        $resultUsers = '';
         $messages = new UbillingMessageHelper();
         $months = months_array_localized();
         $reportTmp = array();
+        $loginsTmp = array();
         $totalCount = 0;
         if (!empty($this->allnames)) {
-            $result.= wf_tag('br');
+            $result .= wf_tag('br');
             $curYear = (wf_CheckPost(array('reportyear'))) ? vf($_POST['reportyear'], 3) : curyear();
             $inputs = wf_YearSelectorPreset('reportyear', __('Year'), false, $curYear) . ' ';
             $curTagid = (wf_CheckPost(array('reporttagid'))) ? vf($_POST['reporttagid'], 3) : '';
-            $inputs.= wf_Selector('reporttagid', $this->allnames, __('Tag'), $curTagid, false) . ' ';
-            $inputs.= wf_Submit(__('Show'));
-            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $inputs .= wf_Selector('reporttagid', $this->allnames, __('Tag'), $curTagid, false) . ' ';
+            $inputs .= wf_CheckInput('renderusers', __('Users'), false, ubRouting::checkPost('renderusers')) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
         } else {
-            $result.=$messages->getStyledMessage(__('Nothing found'), 'info');
+            $result .= $messages->getStyledMessage(__('Nothing found'), 'info');
         }
 
         if (wf_CheckPost(array('reportyear', 'reporttagid'))) {
             $tagid = vf($_POST['reporttagid'], 3);
             $year = vf($_POST['reportyear'], 3);
             $datemask = $year . '-%';
-            $query = "SELECT * from `weblogs` WHERE `date` LIKE '" . $datemask . "' AND `event` LIKE 'TAGADD (%' AND `event` LIKE '%TAGID%';";
+            $query = "SELECT * from `weblogs` WHERE `date` LIKE '" . $datemask . "' AND `event` LIKE 'TAGADD (%TAGID%'";
             $raw = simple_queryall($query);
+
 
             if (!empty($raw)) {
                 foreach ($raw as $io => $each) {
                     $eventtagid = preg_match("/\[[^\]]*\]/", $each['event'], $matches);
-                    @$eventtagid = vf($matches[0], 3);
+                    $eventLogin = preg_match('!\((.*?)\)!si', $each['event'], $tmpLoginMatches);
+                    @$eventtagid = ubRouting::filters($matches[0], 'int');
+                    @$eventLogin = $tmpLoginMatches[1];
                     if (!empty($eventtagid)) {
                         if ($eventtagid == $tagid) {
                             $eventTime = strtotime($each['date']);
@@ -377,31 +382,44 @@ class TagCloud {
                                 $reportTmp[$eventMonth] ++;
                             }
                             $totalCount++;
+                            //login stats
+                            if (!empty($eventLogin)) {
+                                $loginsTmp[$eventMonth][$eventLogin] = $eventLogin;
+                            }
                         }
                     }
                 }
             }
 
+
             $cells = wf_TableCell($year);
-            $cells.= wf_TableCell(__('Month'));
-            $cells.= wf_TableCell($this->allnames[$tagid]);
-            $cells.= wf_TableCell(__('Visual'));
+            $cells .= wf_TableCell(__('Month'));
+            $cells .= wf_TableCell($this->allnames[$tagid]);
+            $cells .= wf_TableCell(__('Visual'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($months as $monthNumber => $monthName) {
                 $cells = wf_TableCell($monthNumber);
-                $cells.= wf_TableCell($monthName);
+                $cells .= wf_TableCell($monthName);
                 $monthData = (isset($reportTmp[$monthNumber])) ? $reportTmp[$monthNumber] : 0;
-                $cells.= wf_TableCell($monthData);
-                $cells.= wf_TableCell(web_bar($monthData, $totalCount), '', '', 'sorttable_customkey="' . $monthData . '"');
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($monthData);
+                $cells .= wf_TableCell(web_bar($monthData, $totalCount), '', '', 'sorttable_customkey="' . $monthData . '"');
+                $rows .= wf_TableRow($cells, 'row3');
             }
 
-            $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-            $result.= wf_tag('b') . __('Total') . ':' . wf_tag('b', true) . ' ' . $totalCount;
+            $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+            $result .= wf_tag('b') . __('Total') . ':' . wf_tag('b', true) . ' ' . $totalCount;
         }
 
         show_window(__('Tags'), $result);
+        //optional users rendering
+        if (ubRouting::checkPost('renderusers')) {
+            if (!empty($loginsTmp)) {
+                foreach ($loginsTmp as $io => $each) {
+                    show_window($months[$io], web_UserArrayShower($each));
+                }
+            }
+        }
     }
 
 }
