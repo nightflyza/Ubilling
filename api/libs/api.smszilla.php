@@ -1302,7 +1302,8 @@ class SMSZilla {
     public function renderNumsContainer() {
         $result = '';
         $columns = array('ID', 'Numbers list', 'Mobile', 'Notes', 'Actions');
-        $result .= wf_JqDtLoader($columns, self::URL_ME . '&numlists=true&ajnums=true', false, __('Mobile'), 100);
+        $opts = '"dom": \'<"F"lfB>rti<"F"ps>\',  buttons: [\'csv\', \'excel\', \'pdf\']';
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&numlists=true&ajnums=true', false, __('Mobile'), 100, $opts);
         return ($result);
     }
 

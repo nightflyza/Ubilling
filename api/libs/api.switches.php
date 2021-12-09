@@ -1710,6 +1710,31 @@ function web_SwitchTimeMachineSearchForm() {
 }
 
 /**
+ * Returns 
+ * 
+ * @param string $switchIp
+ * 
+ * @return array
+ */
+function ub_SwitchesTimeMachineGetByIp($switchIp) {
+    $result = array();
+    $query = "SELECT * from `switchdeadlog` ORDER BY `id` DESC";
+    $raw = simple_queryall($query);
+    if (!empty($raw)) {
+        foreach ($raw as $io => $each) {
+
+            if (!empty($each)) {
+                $logData = unserialize($each['swdead']);
+                if (isset($logData[$switchIp])) {
+                    $result[$each['date']] = $logData[$switchIp];
+                }
+            }
+        }
+    }
+    return($result);
+}
+
+/**
  * Do the search in dead switches time machine
  * 
  * @param string $query
