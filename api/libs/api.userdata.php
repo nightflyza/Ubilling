@@ -1333,4 +1333,19 @@ function zb_GenBaseContractFromTemplate($templateSplitted = array()) {
     return ($baseContract);
 }
 
-?>
+/**
+ * Check is user active depends on his Stargazer data array
+ * 
+ * @param array $userData
+ * 
+ * @return bool
+ */
+function zb_UserIsActive($userData) {
+    $result = false;
+    if (!empty($userData)) {
+        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+            $result = true;
+        }
+    }
+    return ($result);
+}
