@@ -642,6 +642,27 @@ class OllTVService {
     }
 
     /**
+     * Renders user devices if they available
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function renderUserDevices($login) {
+        $result = '';
+        $userDevices = $this->api->getDeviceList($login);
+        if (!empty($userDevices)) {
+            foreach ($userDevices as $io => $eachDevice) {
+                $eachDevice = $this->makeArray($eachDevice);
+                debarr($eachDevice); //TODO
+            }
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return($result);
+    }
+
+    /**
      * Sets some tariff for selected subscriber
      * 
      * @param string $login

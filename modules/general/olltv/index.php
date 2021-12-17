@@ -9,7 +9,9 @@ if (cfr('OLLTV')) {
         // + tariffs to sub apply
         // + tariffs deletion from sub
         // - suspend/unsuspend
+        // - devices render
         // - errors notification
+        // - tariffs fee charging
         // - ????
         $ollTv = new OllTVService();
 
@@ -84,6 +86,7 @@ if (cfr('OLLTV')) {
             //sub exists
             if ($subscriberId) {
                 show_window(__('User profile'), $ollTv->renderSubscriberProfile($subscriberLogin));
+                show_window(__('Devices'), $ollTv->renderUserDevices($subscriberLogin));
                 show_window(__('Edit tariff'), $ollTv->renderTariffChangeForm($subscriberLogin));
             } else {
                 show_error(__('Something went wrong'));
