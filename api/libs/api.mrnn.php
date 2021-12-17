@@ -77,6 +77,8 @@ class MRNN {
 
     /**
      * What did you expect?
+     * 
+     * @param string $activationFunction activation function def or sigmoid
      */
     public function __construct($activationFunction = 'def') {
         $this->setActivationFunc($activationFunction);
@@ -311,7 +313,7 @@ class MRNN {
                     }
                 }
             }
-            $result .= wf_gchartsLine($chartData, __('Network training').' '.$this->activationFunction, '100%', '400px', '');
+            $result .= wf_gchartsLine($chartData, __('Network training') . ' ' . $this->activationFunction, '100%', '400px', '');
         }
         return($result);
     }

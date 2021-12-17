@@ -79,6 +79,7 @@ class OllTVService {
     const URL_ME = '?module=olltv';
     const ROUTE_SUBLIST = 'subscribers';
     const ROUTE_TARIFFS = 'tariffs';
+    const ROUTE_DELTARIFF = 'deletetariffid';
     const ROUTE_AJSUBSLIST = 'ajsubscriberslist';
     const PROUTE_NEWTARIFF = 'createnewtariff';
     const PROUTE_EDITTARIFF = 'editariffid';
@@ -397,7 +398,10 @@ class OllTVService {
                 $cells .= wf_TableCell($each['alias']);
                 $cells .= wf_TableCell($each['fee']);
                 $cells .= wf_TableCell(web_bool_led($each['main']));
-                $tariffControls = wf_modalAuto(web_edit_icon(), __('Edit tariff') . ' ' . $each['name'], $this->renderTariffEditForm($each['id']));
+                $delUrl = self::URL_ME . '&' . self::ROUTE_DELTARIFF . '=' . $each['id'];
+                $tariffControls = wf_JSAlert($delUrl, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $tariffControls .= wf_modalAuto(web_edit_icon(), __('Edit tariff') . ' ' . $each['name'], $this->renderTariffEditForm($each['id']));
+
                 $cells .= wf_TableCell($tariffControls);
                 $rows .= wf_TableRow($cells, 'row5');
             }
@@ -471,6 +475,46 @@ class OllTVService {
                 log_register('OLLTV CREATE TARIFF [' . $newId . ']');
             }
         }
+    }
+
+    /**
+     * Saves tariff data in database
+     * 
+     * @return void
+     */
+    public function saveTariff() {
+        if (ubRouting::checkPost(self::PROUTE_EDITTARIFF)) {
+            $tariffId = ubRouting::post(self::PROUTE_EDITTARIFF, 'int');
+
+            if (ubRouting::checkPost(array(self::PROUTE_TARIFFNAME, self::PROUTE_TARIFFALIAS))) {
+                $this->tariffsDb->where('id', '=', $tariffId);
+                $this->tariffsDb->data('name', ubRouting::post(self::PROUTE_TARIFFNAME, 'mres'));
+                $this->tariffsDb->data('alias', ubRouting::post(self::PROUTE_TARIFFALIAS, 'mres'));
+                $this->tariffsDb->data('fee', ubRouting::post(self::PROUTE_TARIFFFEE));
+                $this->tariffsDb->data('period', 'month');
+                $isMain = (ubRouting::checkPost(self::PROUTE_TARIFFMAIN)) ? 1 : 0;
+                $this->tariffsDb->data('main', $isMain);
+                $this->tariffsDb->save();
+                log_register('OLLTV SAVE TARIFF [' . $tariffId . ']');
+            }
+        }
+    }
+
+    /**
+     * Deletes existing tariff from database
+     * 
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function deleteTariff($tariffId) {
+        $result = '';
+        //TODO: tariff protection
+        $tariffId = ubRouting::filters($tariffId, 'int');
+        $this->tariffsDb->where('id', '=', $tariffId);
+        $this->tariffsDb->delete();
+        log_register('OLLTV DELETE TARIFF [' . $tariffId . ']');
+        return($result);
     }
 
 }

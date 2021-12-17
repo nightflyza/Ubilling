@@ -21,6 +21,20 @@ if (cfr('OLLTV')) {
             $ollTv->createTariff();
             ubRouting::nav($ollTv::URL_ME . '&' . $ollTv::ROUTE_TARIFFS . '=true');
         }
+
+        //tariff editing
+        if (ubRouting::checkPost($ollTv::PROUTE_EDITTARIFF)) {
+            $ollTv->saveTariff();
+            ubRouting::nav($ollTv::URL_ME . '&' . $ollTv::ROUTE_TARIFFS . '=true');
+        }
+
+        //tariff deletion
+        if (ubRouting::checkGet($ollTv::ROUTE_DELTARIFF)) {
+            $ollTv->deleteTariff(ubRouting::get($ollTv::ROUTE_DELTARIFF, 'int'));
+            ubRouting::nav($ollTv::URL_ME . '&' . $ollTv::ROUTE_TARIFFS . '=true');
+        }
+
+
         //render module controls
         show_window(__('OllTV'), $ollTv->renderPanel());
 
