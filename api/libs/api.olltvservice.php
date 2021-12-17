@@ -66,6 +66,13 @@ class OllTVService {
     protected $allTariffs = array();
 
     /**
+     * Contains all available tariff names as tariffId=>name
+     *
+     * @var array
+     */
+    protected $allTariffNames = array();
+
+    /**
      * Country code to skip from mobile numbers
      *
      * @var string
@@ -81,12 +88,16 @@ class OllTVService {
     const ROUTE_TARIFFS = 'tariffs';
     const ROUTE_DELTARIFF = 'deletetariffid';
     const ROUTE_AJSUBSLIST = 'ajsubscriberslist';
+    const ROUTE_SUBSCRIBER = 'showsubscriber';
+    const ROUTE_SUBSEARCH = 'username';
     const PROUTE_NEWTARIFF = 'createnewtariff';
     const PROUTE_EDITTARIFF = 'editariffid';
     const PROUTE_TARIFFNAME = 'newtariffname';
     const PROUTE_TARIFFALIAS = 'newtariffalias';
     const PROUTE_TARIFFFEE = 'newtarifffee';
     const PROUTE_TARIFFMAIN = 'newtariffmain';
+    const PROUTE_SUBSETTARIF = 'settariffsublogin';
+    const PROUTE_SUBTARIFFID = 'subsetariffid';
 
     /**
      * Creates new OLLTV service instance
@@ -180,6 +191,11 @@ class OllTVService {
      */
     protected function loadTariffs() {
         $this->allTariffs = $this->tariffsDb->getAll('id');
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                $this->allTariffNames[$each['id']] = $each['name'];
+            }
+        }
     }
 
     /**
@@ -351,10 +367,11 @@ class OllTVService {
                 $data[] = @$userData['realname'];
                 $data[] = $userLink;
                 $data[] = @$userData['Cash'];
-                $data[] = $subData['tariffid'];
+                $data[] = @$this->allTariffNames[$subData['tariffid']];
                 $data[] = $subData['date'];
                 $data[] = web_bool_led($subData['active'], true);
-                $data[] = 'TODO';
+                $subControls = wf_Link(self::URL_ME . '&' . self::ROUTE_SUBSCRIBER . '=' . $subData['login'], web_edit_icon());
+                $data[] = $subControls;
                 $json->addRow($data);
                 unset($data);
             }
@@ -514,6 +531,176 @@ class OllTVService {
         $this->tariffsDb->where('id', '=', $tariffId);
         $this->tariffsDb->delete();
         log_register('OLLTV DELETE TARIFF [' . $tariffId . ']');
+        return($result);
+    }
+
+    /**
+     * Returns existing subscriberId by user login
+     * 
+     * @param string $login
+     * 
+     * @return int/bool
+     */
+    public function getSubscriberId($login) {
+        $result = false;
+        if (isset($this->allUsers[$login])) {
+            $result = $this->allUsers[$login]['id'];
+        }
+        return($result);
+    }
+
+    /**
+     * Renders tariff apply form for some subscriber login
+     * 
+     * @param string $subscriberLogin
+     * 
+     * @return string
+     */
+    public function renderTariffChangeForm($subscriberLogin) {
+        $result = '';
+        $subData = $this->allUsers[$subscriberLogin];
+        $inputs = wf_HiddenInput(self::PROUTE_SUBSETTARIF, $subscriberLogin);
+        $tariffSelector = array('' => '-');
+        $tariffSelector += $this->allTariffNames;
+        $inputs .= wf_Selector(self::PROUTE_SUBTARIFFID, $tariffSelector, __('Tariff'), $subData['tariffid'], false) . ' ';
+        $inputs .= wf_Submit(__('Change'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        return($result);
+    }
+
+    /**
+     * Renders existing subscriber profile
+     * 
+     * @param login $login
+     * 
+     * @return string
+     */
+    public function renderSubscriberProfile($login) {
+        $result = '';
+        if (isset($this->allUsers[$login])) {
+            $subData = $this->allUsers[$login];
+            $userData = $this->allUsersData[$login];
+            $remoteData = $this->api->getUserInfo(array('account' => $login));
+
+            $cells = wf_TableCell(__('ID'), '50%', 'row2');
+            $cells .= wf_TableCell($subData['id']);
+            $rows = wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Real Name'), '', 'row2');
+            $cells .= wf_TableCell($userData['realname']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+
+            $cells = wf_TableCell(__('Login'), '', 'row2');
+            $cells .= wf_TableCell($subData['login']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Full address'), '', 'row2');
+            $userLink = wf_Link(UserProfile::URL_PROFILE . $subData['login'], web_profile_icon() . ' ' . $userData['fulladress']);
+            $cells .= wf_TableCell($userLink);
+            $rows .= wf_TableRow($cells, 'row3');
+
+
+            $cells = wf_TableCell(__('Email'), '', 'row2');
+            $cells .= wf_TableCell($subData['email']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Mobile'), '', 'row2');
+            $cells .= wf_TableCell($subData['phone']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+
+            $cells = wf_TableCell(__('Tariff'), '', 'row2');
+            $tariffName = (isset($this->allTariffNames[$subData['tariffid']])) ? $this->allTariffNames[$subData['tariffid']] : __('No');
+            $cells .= wf_TableCell($tariffName);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Date'), '', 'row2');
+            $cells .= wf_TableCell($subData['date']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Active'), '', 'row2');
+            $cells .= wf_TableCell(web_bool_led($subData['active']));
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Activation code'), '', 'row2');
+            $cells .= wf_TableCell($subData['code']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            if ($this->altCfg['OLLTV_DEBUG']) {
+                $cells = wf_TableCell(__('User inside'), '', 'row2');
+                $remoteProfile = wf_tag('pre') . print_r($remoteData, true) . wf_tag('pre', true);
+                $cells .= wf_TableCell(wf_modalAuto(__('Show'), __('User inside'), $remoteProfile));
+                $rows .= wf_TableRow($cells, 'row3');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
+        }
+        return($result);
+    }
+
+    /**
+     * Sets some tariff for selected subscriber
+     * 
+     * @param string $login
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function setSubTariffId($login, $tariffId) {
+        $result = '';
+        if (isset($this->allUsers[$login])) {
+            $userData = $this->allUsers[$login];
+            if (isset($this->allTariffs[$tariffId])) {
+                $tariffData = $this->allTariffs[$tariffId];
+                $check = $this->api->checkBundle(array('account' => $login), $tariffData['alias']);
+
+                if ($check !== false) {
+                    //unsubscribe old tariff if required
+                    if ($userData['tariffid']) {
+                        $oldUserTariffData = $this->allTariffs[$userData['tariffid']];
+                        $oldUserTariffAlias = $oldUserTariffData['alias'];
+                        $bundleDeleteResult = $this->api->disableBundle(array('account' => $login), $oldUserTariffAlias, 'subs_no_device');
+                        log_register('OLLTV SUBSCRIBER (' . $login . ') UNSET TARIFF [' . $userData['tariffid'] . ']');
+                    }
+
+                    $bundleSetResult = $this->api->enableBundle(array('account' => $login), $tariffData['alias'], 'subs_no_device');
+                    if ($bundleSetResult) {
+                        $this->subscribersDb->where('id', '=', $userData['id']);
+                        //devices activation code here
+                        $this->subscribersDb->data('code', $bundleSetResult);
+
+                        //write tariff to sub profile
+                        $this->subscribersDb->data('tariffid', $tariffId);
+                        $this->subscribersDb->data('active', 1);
+                        $this->subscribersDb->save();
+                        log_register('OLLTV SUBSCRIBER (' . $login . ') SET TARIFF [' . $tariffId . ']');
+                    }
+                } else {
+                    log_register('OLLTV SUBSCRIBER (' . $login . ') TARIFF [' . $userTariffId . '] NOT_ALLOWED');
+                }
+            } else {
+                //unsub on empty tariff
+                if (empty($tariffId)) {
+                    $userTariffId = $userData['tariffid'];
+                    if (isset($this->allTariffs[$userTariffId])) {
+                        $userTariffAlias = $this->allTariffs[$userTariffId]['alias'];
+                        $bundleDeleteResult = $this->api->disableBundle(array('account' => $login), $userTariffAlias, 'subs_no_device');
+                        $this->subscribersDb->where('id', '=', $userData['id']);
+                        //devices activation code cleanup here
+                        $this->subscribersDb->data('code', '');
+                        //write tariff to sub profile
+                        $this->subscribersDb->data('tariffid', 0);
+                        $this->subscribersDb->data('active', 0);
+                        $this->subscribersDb->save();
+                        log_register('OLLTV SUBSCRIBER (' . $login . ') DROP TARIFF [' . $userTariffId . ']');
+                    }
+                }
+            }
+        }
+
         return($result);
     }
 
