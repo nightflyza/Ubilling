@@ -405,6 +405,12 @@ class FundsFlow {
                     $operation = __('Service') . ' ' . __('TrinityTV');
                 }
 
+                //OllTV fees
+                if (ispos($each['note'], 'OLLTV:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('OllTV');
+                }
+
 
                 //Self crediting fees
                 if (ispos($each['note'], 'SCFEE')) {

@@ -380,7 +380,7 @@ $lang['def']['Activation code'] = 'Код активації';
 $lang['def']['Delete'] = 'Видалити';
 $lang['def']['Only one base tariff allowed'] = 'Доступний тільки один базовий тариф';
 $lang['def']['Available only in addition to base tariff'] = 'Доступний тільки в доповнення до базового тарифу';
-$lang['def']['You subscribed'] = 'Ви підписані'; 
+$lang['def']['You subscribed'] = 'Ви підписані';
 $lang['def']['On unsubscription will be charged fee the equivalent value of the subscription.'] = 'При відписці від передплати з рахунку буде одразу стягнуто суму еквіваленту вартості цієї передплати. Якщо ви бажаєте відписатися без списання коштів зверніться до техпідтримки.';
 $lang['def']['Balance before'] = 'Баланс до';
 $lang['def']['Base'] = 'Базовий';
@@ -413,7 +413,7 @@ $lang['def']['Go to'] = 'Перейти';
 $lang['def']['Host'] = 'Хост';
 $lang['def']['Port'] = 'Порт';
 $lang['def']['Devices count limit is exceeded'] = 'Ліміт кількості пристроїв вичерпано';
-$lang['def']['I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.']='Я добре подумав і розумію, що активую дану послугу для себе не випадково і повністю осмислено та усвідомлюю всі наслідки.';
+$lang['def']['I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.'] = 'Я добре подумав і розумію, що активую дану послугу для себе не випадково і повністю осмислено та усвідомлюю всі наслідки.';
 $lang['def']['Agree'] = 'Згоден';
 $lang['def']['Cancel'] = 'Відміна';
 
@@ -448,8 +448,14 @@ $lang['def']['Authorization data'] = 'Дані для авторизації';
 $lang['def']['Convenient applications'] = 'Зручні додатки';
 $lang['def']['Modern youtv applications for various devices.'] = 'Сучасні додатки youtv для різних пристроїв.';
 
-$lang['def']['Password must be at least 6 characters long']='Пароль повинен містити не менше ніж 6 символів';
+$lang['def']['Password must be at least 6 characters long'] = 'Пароль повинен містити не менше ніж 6 символів';
 $lang['def']['Empty password'] = 'Порожній пароль';
 $lang['def']['Your login and password to usage with MEGOGO are'] = 'Ваші логін та пароль сервісу MEGOGO наступні';
 $lang['def']['To start using the MEGOGO service, click the button'] = 'Для початку використання сервісу MEGOGO натисніть кнопку';
 $lang['def']['Continue'] = 'Продовжити';
+$lang['def']['You can activate your new devices by logging on oll.tv with mobile'] = 'Вы можете активувати ваші нові пристрої, залогінившись на oll.tv за допомогою стільникового';
+$lang['def']['and code'] = 'та коду';
+$lang['def']['Nothing to show'] = 'Нічого показувати';
+$lang['def']['Serial'] = 'Серійник';
+$lang['def']['You have no mobile number filled in your profile. Please contact your ISP.'] = 'У вашому профілі не заповнено основний номер стільникового. Законтактуйте з вашим провайдером з цього приводу.';
+ 

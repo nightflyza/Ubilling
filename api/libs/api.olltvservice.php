@@ -204,7 +204,7 @@ class OllTVService {
      * @return void
      */
     protected function loadUserData() {
-        $this->allUsersData = zb_UserGetAllDataCache();
+        $this->allUsersData = zb_UserGetAllData();
     }
 
     /**
@@ -272,31 +272,41 @@ class OllTVService {
      * 
      * @param string $login Existing user login
      * 
-     * @return int/bool on error
+     * @return void/string on error
      */
     public function createSubscriber($login) {
-        $result = false;
-        if (isset($this->allUsersData[$login])) {
-            $userData = $this->allUsersData[$login];
-            $mail = $this->generateMail($login);
-            if (!empty($mail)) {
-                $mobile = $this->prepareMobile($userData['mobile']);
-                if (!empty($mobile)) {
-                    $addParams = array('phone' => $mobile);
-                    $creationResult = $this->api->addUser($mail, $login, $addParams);
-                    if ($creationResult) {
-                        $result = $creationResult;
-                        //registering new subscriber in local database
-                        $this->subscribersDb->data('date', curdatetime());
-                        $this->subscribersDb->data('remoteid', $creationResult);
-                        $this->subscribersDb->data('login', $login);
-                        $this->subscribersDb->data('email', $mail);
-                        $this->subscribersDb->data('phone', $mobile);
-                        $this->subscribersDb->create();
-                        log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') AS [' . $creationResult . ']');
+        $result = '';
+        if (!isset($this->allUsers[$login])) {
+            if (isset($this->allUsersData[$login])) {
+                $userData = $this->allUsersData[$login];
+                $mail = $this->generateMail($login);
+                if (!empty($mail)) {
+                    $mobile = $this->prepareMobile($userData['mobile']);
+                    if (!empty($mobile)) {
+                        $addParams = array('phone' => $mobile);
+                        $creationResult = $this->api->addUser($mail, $login, $addParams);
+                        if ($creationResult) {
+                            $result = $creationResult;
+                            //registering new subscriber in local database
+                            $this->subscribersDb->data('date', curdatetime());
+                            $this->subscribersDb->data('remoteid', $creationResult);
+                            $this->subscribersDb->data('login', $login);
+                            $this->subscribersDb->data('email', $mail);
+                            $this->subscribersDb->data('phone', $mobile);
+                            $this->subscribersDb->create();
+                            log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') AS [' . $creationResult . ']');
+                        }
+                    } else {
+                        $result .= 'Empty mobile';
                     }
+                } else {
+                    $result .= 'Empty email';
                 }
+            } else {
+                $result .= 'User not exists';
             }
+        } else {
+            $result .= 'User already exists';
         }
         return($result);
     }
@@ -526,11 +536,14 @@ class OllTVService {
      */
     public function deleteTariff($tariffId) {
         $result = '';
-        //TODO: tariff protection
         $tariffId = ubRouting::filters($tariffId, 'int');
-        $this->tariffsDb->where('id', '=', $tariffId);
-        $this->tariffsDb->delete();
-        log_register('OLLTV DELETE TARIFF [' . $tariffId . ']');
+        if (!$this->isTariffProtected($tariffId)) {
+            $this->tariffsDb->where('id', '=', $tariffId);
+            $this->tariffsDb->delete();
+            log_register('OLLTV DELETE TARIFF [' . $tariffId . ']');
+        } else {
+            log_register('OLLTV DELETE TARIFF FAIL [' . $tariffId . '] IS_PROTECTED');
+        }
         return($result);
     }
 
@@ -582,13 +595,9 @@ class OllTVService {
             $userData = $this->allUsersData[$login];
             $remoteData = $this->api->getUserInfo(array('account' => $login));
 
-            $cells = wf_TableCell(__('ID'), '50%', 'row2');
-            $cells .= wf_TableCell($subData['id']);
-            $rows = wf_TableRow($cells, 'row3');
-
-            $cells = wf_TableCell(__('Real Name'), '', 'row2');
+            $cells = wf_TableCell(__('Real Name'), '50%', 'row2');
             $cells .= wf_TableCell($userData['realname']);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows = wf_TableRow($cells, 'row3');
 
 
             $cells = wf_TableCell(__('Login'), '', 'row2');
@@ -617,6 +626,10 @@ class OllTVService {
 
             $cells = wf_TableCell(__('Date'), '', 'row2');
             $cells .= wf_TableCell($subData['date']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Cash'), '', 'row2');
+            $cells .= wf_TableCell($userData['Cash']);
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Active'), '', 'row2');
@@ -652,12 +665,25 @@ class OllTVService {
         $result = '';
         $userDevices = $this->api->getDeviceList($login);
         if (!empty($userDevices)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells .= wf_TableCell(__('Date'));
+            $cells .= wf_TableCell(__('Serial number'));
+            $cells .= wf_TableCell(__('MAC'));
+            $cells .= wf_TableCell(__('Code'));
+            $rows = wf_TableRow($cells, 'row1');
             foreach ($userDevices as $io => $eachDevice) {
                 $eachDevice = $this->makeArray($eachDevice);
-                debarr($eachDevice); //TODO
+                $cells = wf_TableCell($eachDevice['ID']);
+                $cells .= wf_TableCell($eachDevice['date_added']);
+                $cells .= wf_TableCell($eachDevice['serial_number']);
+                $cells .= wf_TableCell($eachDevice['mac']);
+                $cells .= wf_TableCell($eachDevice['binding_code']);
+                $rows .= wf_TableRow($cells, 'row5');
             }
+
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return($result);
     }
@@ -701,6 +727,7 @@ class OllTVService {
                     }
                 } else {
                     log_register('OLLTV SUBSCRIBER (' . $login . ') TARIFF [' . $userTariffId . '] NOT_ALLOWED');
+                    $result .= 'Tariff not allowed';
                 }
             } else {
                 //unsub on empty tariff
@@ -717,11 +744,247 @@ class OllTVService {
                         $this->subscribersDb->data('active', 0);
                         $this->subscribersDb->save();
                         log_register('OLLTV SUBSCRIBER (' . $login . ') DROP TARIFF [' . $userTariffId . ']');
+                    } else {
+                        $result .= 'Tariff not exists';
                     }
                 }
             }
+        } else {
+            $result .= 'Subscriber not exists';
         }
 
+        return($result);
+    }
+
+    /**
+     * Suspends existing user
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function suspendSubscriber($login) {
+        if (isset($this->allUsers[$login])) {
+            $userData = $this->allUsers[$login];
+            $userTariff = $userData['tariffid'];
+            if (isset($this->allTariffs[$userTariff])) {
+                $tariffData = $this->allTariffs[$userTariff];
+                if ($userData['active']) {
+                    $bundleSuspResult = $this->api->disableBundle(array('account' => $login), $tariffData['alias'], 'subs_negative_balance');
+                    $this->subscribersDb->where('id', '=', $userData['id']);
+                    $this->subscribersDb->data('active', '0');
+                    $this->subscribersDb->save();
+                    log_register('OLLTV SUBSCRIBER (' . $login . ') SUSPEND TARIFF [' . $userTariff . ']');
+                } else {
+                    log_register('OLLTV SUBSCRIBER (' . $login . ') SUSPEND FAIL NOT_ACTIVE');
+                }
+            } else {
+                log_register('OLLTV SUBSCRIBER (' . $login . ') SUSPEND FAIL NO_TARIFF [' . $userTariff . ']');
+            }
+        } else {
+            log_register('OLLTV SUBSCRIBER (' . $login . ') SUSPEND FAIL USER_NOT_EXISTS');
+        }
+    }
+
+    /**
+     * Unsuspends existing user
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function unsuspendSubscriber($login) {
+        if (isset($this->allUsers[$login])) {
+            $userData = $this->allUsers[$login];
+            $userTariff = $userData['tariffid'];
+            if (isset($this->allTariffs[$userTariff])) {
+                $tariffData = $this->allTariffs[$userTariff];
+                if (!$userData['active']) {
+                    $bundleSuspResult = $this->api->enableBundle(array('account' => $login), $tariffData['alias'], 'subs_renew');
+                    $this->subscribersDb->where('id', '=', $userData['id']);
+                    $this->subscribersDb->data('active', '1');
+                    $this->subscribersDb->save();
+                    log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND TARIFF [' . $userTariff . ']');
+                } else {
+                    log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND FAIL ALREADY_ACTIVE');
+                }
+            } else {
+                log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND FAIL NO_TARIFF [' . $userTariff . ']');
+            }
+        } else {
+            log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND FAIL USER_NOT_EXISTS');
+        }
+    }
+
+    /**
+     * Renders JSON reply for some userstats frontend requests
+     * 
+     * @param array $reply
+     * 
+     * @return void
+     */
+    protected function jsonRenderReply($reply) {
+        $reply = json_encode($reply);
+        die($reply);
+    }
+
+    /**
+     * Renders user subscription data for some login
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function usReplyUserData($userLogin) {
+        $reply = array();
+        if (isset($this->allUsers[$userLogin])) {
+            $reply = $this->allUsers[$userLogin];
+        }
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Renders available tariffs list
+     * 
+     * @return void
+     */
+    public function usReplyTariffs() {
+        $reply = array();
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                $reply[$io] = $each;
+            }
+        }
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Renders user devices list
+     * 
+     * @param string $userLogin
+     * 
+     * @return void
+     */
+    public function usReplyDevices($userLogin) {
+        $reply = array();
+        $userDevices = $this->api->getDeviceList($userLogin);
+        if (!empty($userDevices)) {
+            foreach ($userDevices as $io => $eachDevice) {
+                $eachDevice = $this->makeArray($eachDevice);
+                $reply[] = $eachDevice;
+            }
+        }
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Just deactivates service from user account
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function usUnsubscribe($userLogin, $tariffId) {
+        $reply = array();
+        if (isset($this->allUsers[$userLogin])) {
+            $userData = $this->allUsers[$userLogin];
+            $userTariffId = $userData['tariffid'];
+            if ($userTariffId == $tariffId) {
+                $this->setSubTariffId($userLogin, 0);
+            } else {
+                log_register('OLLTV SUBSCRIBER (' . $login . ') DROP TARIFF [' . $tariffId . '] FAILED [' . $userTariffId . '] MISMATCH');
+            }
+        }
+
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Subscribes user to some service
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void
+     */
+    public function usSubscribe($userLogin, $tariffId) {
+        $reply = array();
+        if (isset($this->allTariffs[$tariffId])) {
+            //may be thats new user?
+            $subscriberId = $this->getSubscriberId($userLogin);
+            if (!$subscriberId) {
+                $creationResult = $this->createSubscriber($userLogin);
+                if (!empty($creationResult)) {
+                    $reply['error'] = $creationResult;
+                }
+                //update subscriberId
+                $this->loadSubscribers();
+                $subscriberId = $this->getSubscriberId($userLogin);
+            }
+
+            //subscriber exists
+            if ($subscriberId) {
+                //just switch tariff
+                $tariffChangeResult = $this->setSubTariffId($userLogin, $tariffId);
+
+                if (empty($tariffChangeResult)) {
+                    //charge tariff fee after: TODO
+                    $this->chargeUserFee($userLogin, $tariffId);
+                } else {
+                    $reply['error'] = $tariffChangeResult;
+                }
+            } else {
+                $reply['error'] = 'Something went wrong';
+            }
+        } else {
+            $reply['error'] = 'Wrong tariff';
+        }
+        $this->jsonRenderReply($reply);
+    }
+
+    /**
+     * Charges some tariff fee from existing user account
+     * 
+     * @param string $userLogin
+     * @param int $tariffId
+     * 
+     * @return void/string on error
+     */
+    public function chargeUserFee($userLogin, $tariffId) {
+        $result = '';
+        if (isset($this->allUsers[$userLogin]) AND isset($this->allUsersData[$userLogin])) {
+            if (isset($this->allTariffs[$tariffId])) {
+                $subscriberId = $this->getSubscriberId($userLogin);
+                $tariffFee = $this->allTariffs[$tariffId]['fee'];
+                zb_CashAdd($userLogin, '-' . $tariffFee, 'add', 1, 'OLLTV:' . $tariffId);
+                log_register('OLLTV CHARGE TARIFF [' . $tariffId . '] FEE `' . $tariffFee . '` FOR (' . $userLogin . ') AS [' . $subscriberId . ']');
+            } else {
+                log_register('OLLTV CHARGE FAIL NOTARIFF [' . $tariffId . '] FOR (' . $userLogin . ') AS [' . $subscriberId . ']');
+            }
+        } else {
+            log_register('OLLTV CHARGE FAIL NOUSER (' . $userLogin . ')');
+        }
+        return($result);
+    }
+
+    /**
+     * Check is tariff used by someone of existing users?
+     * 
+     * @param int $tariffId
+     * 
+     * @return bool
+     */
+    public function isTariffProtected($tariffId) {
+        $tariffId = ubRouting::filters($tariffId, 'int');
+        $result = false;
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['tariffid'] == $tariffId) {
+                    $result = true;
+                }
+            }
+        }
         return($result);
     }
 

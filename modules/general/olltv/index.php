@@ -8,10 +8,12 @@ if (cfr('OLLTV')) {
         // + tariffs directory
         // + tariffs to sub apply
         // + tariffs deletion from sub
-        // - suspend/unsuspend
-        // - devices render
-        // - errors notification
-        // - tariffs fee charging
+        // + suspend/unsuspend
+        // + devices render
+        // +- errors and alerts
+        // + tariffs fee charging
+        // - periodic charge routine
+        // - tariffs protection
         // - ????
         $ollTv = new OllTVService();
 
@@ -72,6 +74,7 @@ if (cfr('OLLTV')) {
         //render existing subscibers list
         if (ubRouting::checkGet($ollTv::ROUTE_SUBLIST)) {
             show_window(__('Subscribers'), $ollTv->renderSubscribersList());
+            zb_BillingStats(true);
         }
 
         //render existing tariffs list
