@@ -318,7 +318,7 @@ class IpayZ {
     protected $currency = '';
     protected $lifeTime = 24;
     protected $payDesc = '';
-    protected $UrlApi = 'https://https://api.ipay.ua';
+    protected $UrlApi = 'https://api.ipay.ua';
     protected $api = '';
 
     public function __construct() {
