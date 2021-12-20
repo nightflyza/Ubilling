@@ -169,17 +169,6 @@ class OllTvInterface {
     }
 
     /**
-     * Returns full subscriber data
-     * 
-     * @return array
-     */
-    protected function getFullData() {
-        $request = 'fulldata=' . $this->myLogin;
-        $result = $this->getRemoteData($request);
-        return($result);
-    }
-
-    /**
      * Loads available users data from database
      * 
      * @return void
@@ -429,86 +418,6 @@ class OllTvInterface {
         }
 
         return($result);
-    }
-
-    /**
-     * Renders available user playlists
-     * 
-     * @return string
-     */
-    public function renderPlaylists() {
-        $result = '';
-        $subData = $this->fullData;
-        $plCount = 0;
-        if (!empty($subData['playlists'])) {
-            $cells = la_TableCell(__('Date'));
-            $cells .= la_TableCell(__('Playlist'));
-            $cells .= la_TableCell(__('Actions'));
-            $rows = la_TableRow($cells, 'row1');
-            foreach ($subData['playlists'] as $io => $eachPlaylist) {
-                $cells = la_TableCell($eachPlaylist['created']);
-                $cells .= la_TableCell(la_Link($eachPlaylist['url'], __('Download')));
-                $plDevForm = la_ConfirmDialog(self::URL_ME . '&delpl=' . $eachPlaylist['id'], __('Delete'), __('Are you sure') . '?', '', self::URL_ME);
-                $cells .= la_TableCell($plDevForm);
-                $rows .= la_TableRow($cells, 'row3');
-                $plCount++;
-            }
-            $result .= la_TableBody($rows, '100%', 0, 'resp-table');
-        }
-
-        if ($this->subscriberId) {
-            if ($plCount < $this->maxPl) {
-                $result .= la_Link(self::URL_ME . '&newpl=true', __('Add playlist'), false, 'trinity-button');
-            } else {
-                $result .= __('Devices count limit is exceeded');
-            }
-        }
-
-        return($result);
-    }
-
-    /**
-     * Creates new device for subscriber
-     * 
-     * @return void
-     */
-    public function createNewDevice() {
-        $request = 'newdev=' . $this->subscriberId;
-        $this->getRemoteData($request);
-    }
-
-    /**
-     * Deletes existing device
-     * 
-     * @param string $devId
-     * 
-     * $return void
-     */
-    public function deleteDevice($devId) {
-        $request = 'deldev=' . $devId . '&subid=' . $this->subscriberId;
-        $this->getRemoteData($request);
-    }
-
-    /**
-     * Creates new playlist for user
-     * 
-     * @return void
-     */
-    public function createPlaylist() {
-        $request = 'newpl=' . $this->subscriberId;
-        $this->getRemoteData($request);
-    }
-
-    /**
-     * Deletes playlist from user
-     * 
-     * @param string $playlistId
-     * 
-     * @return void
-     */
-    public function deletePlaylist($playlistId) {
-        $request = 'delpl=' . $playlistId . '&subid=' . $this->subscriberId;
-        $this->getRemoteData($request);
     }
 
     /**
