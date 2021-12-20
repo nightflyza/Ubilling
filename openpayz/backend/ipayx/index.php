@@ -19,7 +19,7 @@ $merchant_logo = $config['MERCHANT_LOGO'];
 $merchant_currency = $config['MERCHANT_CURRENCY'];
 $template_file = $config['TEMPLATE'];
 
-$ipay = new IpayMasterPass($config['MERCHANT_ID'], $config['SIGN_KEY'], $config['LANG']);
+$ipay = new IpayMasterPass($config['MERCHANT_ID'], $config['SIGN_KEY'], $config['LANG'], $config['LOGIN']);
 $sessionId = '';
 $sessionResponseRaw = $ipay->InitWidgetSession($customer_id);
 if (isset($sessionResponseRaw['response'])) {

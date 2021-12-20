@@ -33,6 +33,13 @@ class IpayMasterPass {
     protected $lang = 'ru';
 
     /**
+     * Contains current merchant login
+     *
+     * @var string
+     */
+    protected $login = '';
+
+    /**
      * Contains all available user mobile phones
      *
      * @var array
@@ -57,14 +64,16 @@ class IpayMasterPass {
      * @param string $mch_id
      * @param string $sign_key
      * @param string $lang
+     * @param string $login
      * 
      * @return void
      */
-    public function __construct($mch_id, $sign_key, $lang = '') {
+    public function __construct($mch_id, $sign_key, $lang = '', $login = '') {
         $this->setTime();
         $this->setSign($sign_key);
         $this->setMchId($mch_id);
         $this->setLang($lang);
+        $this->setLogin($login);
         $this->loadCustomers();
         $this->loadPhones();
     }
@@ -99,6 +108,19 @@ class IpayMasterPass {
     protected function setLang($lang = '') {
         if (!empty($lang)) {
             $this->lang = $lang;
+        }
+    }
+
+    /**
+     * Sets current merch login
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    protected function setLogin($login = '') {
+        if (!empty($login)) {
+            $this->login = $login;
         }
     }
 
@@ -232,7 +254,7 @@ class IpayMasterPass {
         $request = '{
         "request": {
         "auth": {
-            "login": "kvant",
+            "login": "' . $this->login . '",
             "time": "' . $this->curtime . '",
             "sign": "' . $this->makeSign($this->curtime) . '"
         },
@@ -296,7 +318,7 @@ class IpayZ {
     protected $currency = '';
     protected $lifeTime = 24;
     protected $payDesc = '';
-    protected $UrlApi = 'http://zerotwo.kvant.if.ua:999';
+    protected $UrlApi = 'https://https://api.ipay.ua';
     protected $api = '';
 
     public function __construct() {
