@@ -3215,3 +3215,29 @@ KEY `cancel_timestamp` (`cancel_timestamp`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 ALTER TABLE `buildpassport` ADD `contract` TINYINT NULL , ADD `mediator` TINYINT NULL ; 
+
+CREATE TABLE IF NOT EXISTS `ot_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `remoteid` int(11) NOT NULL,
+  `login` varchar(64) NOT NULL,
+  `email` varchar(64) DEFAULT NULL,
+  `phone` varchar(32) DEFAULT NULL,
+  `code` varchar(64) DEFAULT NULL,
+  `tariffid` int(11) DEFAULT NULL,
+  `active` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `ot_tariffs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL,
+  `alias` varchar(128) NOT NULL,
+  `fee` DOUBLE NOT NULL,
+  `period` varchar(8) DEFAULT NULL,
+  `percent` DOUBLE DEFAULT NULL,
+  `main` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
