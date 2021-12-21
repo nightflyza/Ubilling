@@ -573,7 +573,7 @@ class OllTVService {
         $result = '';
         $subData = $this->allUsers[$subscriberLogin];
         $inputs = wf_HiddenInput(self::PROUTE_SUBSETTARIF, $subscriberLogin);
-        $tariffSelector = array('' => '-');
+        $tariffSelector = array(0 => '-');
         $tariffSelector += $this->allTariffNames;
         $inputs .= wf_Selector(self::PROUTE_SUBTARIFFID, $tariffSelector, __('Tariff'), $subData['tariffid'], false) . ' ';
         $inputs .= wf_Submit(__('Change'));
@@ -893,7 +893,7 @@ class OllTVService {
             if ($userTariffId == $tariffId) {
                 $this->setSubTariffId($userLogin, 0);
             } else {
-                log_register('OLLTV SUBSCRIBER (' . $login . ') DROP TARIFF [' . $tariffId . '] FAILED [' . $userTariffId . '] MISMATCH');
+                log_register('OLLTV SUBSCRIBER (' . $userLogin . ') DROP TARIFF [' . $tariffId . '] FAILED [' . $userTariffId . '] MISMATCH');
             }
         }
 
@@ -925,17 +925,53 @@ class OllTVService {
 
             //subscriber exists
             if ($subscriberId) {
-                //just switch tariff
-                $tariffChangeResult = $this->setSubTariffId($userLogin, $tariffId);
+                $userData = $this->allUsers[$userLogin];
+                if ($userData['active']) {
+                    //just switch tariff
+                    $tariffChangeResult = $this->setSubTariffId($userLogin, $tariffId);
 
-                if (empty($tariffChangeResult)) {
-                    //charge tariff fee after: TODO
-                    $this->chargeUserFee($userLogin, $tariffId);
+                    if (empty($tariffChangeResult)) {
+                        //charge tariff fee after
+                        $this->chargeUserFee($userLogin, $tariffId);
+                    } else {
+                        $reply['error'] = $tariffChangeResult;
+                    }
                 } else {
-                    $reply['error'] = $tariffChangeResult;
+                    //user is suspended and have tariff - unsuspend it and charge tariff fee right now
+                    if (!$userData['active'] AND $userData['tariffid']) {
+                        $userCash = $this->allUsersData[$userLogin]['Cash'];
+                        $userTariff = $userData['tariffid'];
+                        $tariffFee = $this->allTariffs[$tariffId]['fee'];
+                        //balance check
+                        if ($userCash >= $tariffFee) {
+                            //tariff is the same? Just unsuspend and charge
+                            if ($userTariff == $tariffId) {
+                                $this->unsuspendSubscriber($userLogin);
+                            } else {
+                                //changing tariff to new
+                                $this->setSubTariffId($userLogin, $tariffId);
+                            }
+
+                            //charge fee on tariff activation
+                            $this->chargeUserFee($userLogin, $tariffId);
+                        } else {
+                            $reply['error'] = 'No enought money';
+                        }
+                    } else {
+                        //user have no tariff and not active - set him new tariff and charge fee
+                        if (!$userData['active'] AND ! $userData['tariffid']) {
+                            $tariffSetResult = $this->setSubTariffId($userLogin, $tariffId);
+                            if (empty($tariffSetResult)) {
+                                //charge tariff fee after
+                                $this->chargeUserFee($userLogin, $tariffId);
+                            } else {
+                                $reply['error'] = $tariffSetResult;
+                            }
+                        }
+                    }
                 }
             } else {
-                $reply['error'] = 'Something went wrong';
+                $reply['error'] = 'Something went wrong - subscriber not found';
             }
         } else {
             $reply['error'] = 'Wrong tariff';
@@ -986,6 +1022,41 @@ class OllTVService {
             }
         }
         return($result);
+    }
+
+    /**
+     * Performs fee processing of all registered subscribers
+     * 
+     * @return void
+     */
+    public function feeProcessing() {
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $eachSub) {
+                $userLogin = $eachSub['login'];
+                $subscriberId = $eachSub['id'];
+                $userTariff = $eachSub['tariffid'];
+                $userFee = 0;
+                if (isset($this->allUsersData[$userLogin])) {
+                    $userCash = $this->allUsersData[$userLogin]['Cash'];
+                    //user subscription is active now
+                    if ($eachSub['active']) {
+                        //user have tariff assigned
+                        if ($userTariff) {
+                            if (isset($this->allTariffs[$userTariff])) {
+                                $tariffFee = $this->allTariffs[$userTariff]['fee'];
+                                if ($userCash >= $tariffFee) {
+                                    $this->chargeUserFee($userLogin, $userTariff);
+                                } else {
+                                    $this->suspendSubscriber($userLogin);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    log_register('OLLTV CHARGE (' . $userLogin . ') AS [' . $subscriberId . '] FAIL MISS');
+                }
+            }
+        }
     }
 
 }

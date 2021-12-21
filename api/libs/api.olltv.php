@@ -346,12 +346,13 @@ class OllTv {
      * subs_rent_device — new contract - rent equipment
      * subs_no_device — new contract - no equipment
      * subs_renew — restore the current contract
+     * subs_negative_balance - money stop
      *
      * @return string|false
      */
     protected function _preparePurchaseType($type) {
         // init types array
-        $typeArray = array('subs_free_device', 'subs_buy_device', 'subs_rent_device', 'subs_no_device', 'subs_renew');
+        $typeArray = array('subs_free_device', 'subs_buy_device', 'subs_rent_device', 'subs_no_device', 'subs_renew', 'subs_negative_balance');
         // verify argument
         if (empty($type) || !in_array($type, $typeArray)) {
             $this->_toLog('[' . __FUNCTION__ . '] - purchase type is not correct');

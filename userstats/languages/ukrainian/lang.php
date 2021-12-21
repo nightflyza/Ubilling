@@ -458,4 +458,6 @@ $lang['def']['and code'] = 'та коду';
 $lang['def']['Nothing to show'] = 'Нічого показувати';
 $lang['def']['Serial'] = 'Серійник';
 $lang['def']['You have no mobile number filled in your profile. Please contact your ISP.'] = 'У вашому профілі не заповнено основний номер стільникового. Законтактуйте з вашим провайдером з цього приводу.';
-
+$lang['def']['Yes'] = 'Так';
+$lang['def']['No'] = 'Ні';
+$lang['def']['Resume'] = 'Відновити';

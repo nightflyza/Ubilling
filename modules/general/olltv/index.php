@@ -2,19 +2,6 @@
 
 if (cfr('OLLTV')) {
     if ($ubillingConfig->getAlterParam('OLLTV_ENABLED')) {
-        //ROADMAP:
-        // + subs list
-        // + subs creation
-        // + tariffs directory
-        // + tariffs to sub apply
-        // + tariffs deletion from sub
-        // + suspend/unsuspend
-        // + devices render
-        // +- errors and alerts
-        // + tariffs fee charging
-        // - periodic charge routine
-        // - tariffs protection
-        // - ????
         $ollTv = new OllTVService();
 
         //aj subs list

@@ -192,7 +192,7 @@ class OllTvInterface {
      */
     protected function webBoolLed($state) {
         $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
-        $result = ($state) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
+        $result = ($state) ? la_img($iconsPath . 'anread.gif', __('Yes')) : la_img($iconsPath . 'anunread.gif', __('No'));
         return($result);
     }
 
@@ -212,7 +212,6 @@ class OllTvInterface {
                 $cells .= la_TableCell(__('Primary'));
                 $cells .= la_TableCell(__('Fee'));
                 $rows = la_TableRow($cells, 'row1');
-
                 $cells = la_TableCell($this->webBoolLed($this->subscriberData['active']));
                 $cells .= la_TableCell($mainTariff['name']);
                 $cells .= la_TableCell($this->webBoolLed($mainTariff['main']));
@@ -356,7 +355,16 @@ class OllTvInterface {
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            $tariffInfo .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], __('Subscribe'), $alertText, 'trinity-button-s', self::URL_ME);
+                            if (isset($this->subscriberData['tariffid'])) {
+                                if ($tariff['id'] == $this->subscriberData['tariffid']) {
+                                    $controlLabel = __('Resume');
+                                } else {
+                                    $controlLabel = __('Subscribe');
+                                }
+                            } else {
+                                $controlLabel = __('Subscribe');
+                            }
+                            $tariffInfo .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'trinity-button-s', self::URL_ME);
                         } else {
                             $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
                         }
