@@ -216,7 +216,16 @@ class OllTvInterface {
                 $cells .= la_TableCell($mainTariff['name']);
                 $cells .= la_TableCell($this->webBoolLed($mainTariff['main']));
                 $cells .= la_TableCell($mainTariff['fee'] . ' ' . $this->usConfig['currency']);
-                $rows .= la_TableRow($cells, 'row1');
+                $rows .= la_TableRow($cells, 'row3');
+
+                $additionalTariff = @$this->tariffsData[$this->subscriberData['addtariffid']];
+                if ($additionalTariff) {
+                    $cells = la_TableCell($this->webBoolLed($this->subscriberData['active']));
+                    $cells .= la_TableCell($additionalTariff['name']);
+                    $cells .= la_TableCell($this->webBoolLed($additionalTariff['main']));
+                    $cells .= la_TableCell($additionalTariff['fee'] . ' ' . $this->usConfig['currency']);
+                    $rows .= la_TableRow($cells, 'row3');
+                }
 
                 $result .= la_TableBody($rows, '100%', 0, 'resp-table');
             } else {
@@ -282,7 +291,7 @@ class OllTvInterface {
         $result = false;
         if (!empty($this->subscriberData)) {
             if ($this->subscriberData['active']) {
-                if ($this->subscriberData['tariffid'] == $tariffid) {
+                if ($this->subscriberData['tariffid'] == $tariffid OR $this->subscriberData['addtariffid'] == $tariffid) {
                     $result = true;
                 }
             }
@@ -321,10 +330,10 @@ class OllTvInterface {
     public function renderSubscribeForm() {
         $result = '';
         $result .= la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
-        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
+        $result .= __('When activated subscription account will be charged fee the equivalent value of the subscription.') . '!' . la_delimiter();
         if (!empty($this->tariffsData)) {
             foreach ($this->tariffsData as $serviceId => $tariff) {
-
+                $subControl = '';
                 $tariffFee = $tariff['fee'];
 
                 $tariffInfo = la_tag('div', false, 'trinity-col') . la_tag('div', false, 'trinity-bl1');
@@ -351,20 +360,28 @@ class OllTvInterface {
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($tariff['id'])) {
-                        $tariffInfo .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
+                        $subControl .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
+                        $tariffInfo .= $subControl;
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
                             $alertText = __('I have thought well and understand that I activate this service for myself not by chance and completely meaningfully and I am aware of all the consequences.');
-                            if (isset($this->subscriberData['tariffid'])) {
-                                if ($tariff['id'] == $this->subscriberData['tariffid']) {
-                                    $controlLabel = __('Resume');
-                                } else {
-                                    $controlLabel = __('Subscribe');
-                                }
+                            if ($tariff['id'] == @$this->subscriberData['tariffid']) {
+                                $controlLabel = __('Resume');
                             } else {
                                 $controlLabel = __('Subscribe');
                             }
-                            $tariffInfo .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'trinity-button-s', self::URL_ME);
+
+                            $subControl .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'trinity-button-s', self::URL_ME);
+                            //hide case of resurrection via additional tariffs
+                            if (!$tariff['main'] AND @ !$this->subscriberData['active']) {
+                                $subControl = __('Additional services');
+                            }
+
+                            //hide another main tariffs subscription if user already have one
+                            if ($tariff['main'] AND @ $this->subscriberData['tariffid'] != $tariff['id'] AND @ $this->subscriberData['tariffid']) {
+                                $subControl = __('Already subscribed') . ' ' . __('on another tariff');
+                            }
+                            $tariffInfo .= $subControl;
                         } else {
                             $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
                         }

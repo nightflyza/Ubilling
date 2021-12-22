@@ -461,3 +461,4 @@ $lang['def']['You have no mobile number filled in your profile. Please contact y
 $lang['def']['Yes'] = 'Так';
 $lang['def']['No'] = 'Ні';
 $lang['def']['Resume'] = 'Відновити';
+$lang['def']['on another tariff'] = 'на інший тариф';

@@ -39,6 +39,31 @@ if (cfr('OLLTV')) {
             }
         }
 
+        //subscriber manual deactivation
+        if (ubRouting::checkGet($ollTv::ROUTE_DEACTIVATE)) {
+            $userLogin = ubRouting::get($ollTv::ROUTE_DEACTIVATE);
+            $ollTv->suspendSubscriber($userLogin);
+            ubRouting::nav($ollTv::URL_ME . '&' . $ollTv::ROUTE_SUBSCRIBER . '=' . $userLogin);
+        }
+
+        //subscriber manual activation
+        if (ubRouting::checkGet($ollTv::ROUTE_ACTIVATE)) {
+            $userLogin = ubRouting::get($ollTv::ROUTE_ACTIVATE);
+            $ollTv->unsuspendSubscriber($userLogin);
+            ubRouting::nav($ollTv::URL_ME . '&' . $ollTv::ROUTE_SUBSCRIBER . '=' . $userLogin);
+        }
+
+        //manual subscriber registration
+        if (ubRouting::checkPost($ollTv::PROUTE_MANUALREGISTER)) {
+            $newSubLogin = ubRouting::post($ollTv::PROUTE_MANUALREGISTER);
+            $newSubRegResult = $ollTv->createSubscriber($newSubLogin);
+            if (empty($newSubRegResult)) {
+                ubRouting::nav($ollTv::URL_ME . '&' . $ollTv::ROUTE_SUBSCRIBER . '=' . $newSubLogin);
+            } else {
+                show_error(__($newSubRegResult));
+            }
+        }
+
         //goto subscriber by login
         if (ubRouting::checkGet($ollTv::ROUTE_SUBSEARCH)) {
             $userLogin = ubRouting::get($ollTv::ROUTE_SUBSEARCH);
@@ -77,6 +102,7 @@ if (cfr('OLLTV')) {
             if ($subscriberId) {
                 show_window(__('User profile'), $ollTv->renderSubscriberProfile($subscriberLogin));
                 show_window(__('Devices'), $ollTv->renderUserDevices($subscriberLogin));
+                show_window(__('Actions'), $ollTv->renderSubscriberControls($subscriberLogin));
                 show_window(__('Edit tariff'), $ollTv->renderTariffChangeForm($subscriberLogin));
             } else {
                 show_error(__('Something went wrong'));

@@ -90,6 +90,8 @@ class OllTVService {
     const ROUTE_AJSUBSLIST = 'ajsubscriberslist';
     const ROUTE_SUBSCRIBER = 'showsubscriber';
     const ROUTE_SUBSEARCH = 'username';
+    const ROUTE_ACTIVATE = 'subactivate';
+    const ROUTE_DEACTIVATE = 'subdeactivate';
     const PROUTE_NEWTARIFF = 'createnewtariff';
     const PROUTE_EDITTARIFF = 'editariffid';
     const PROUTE_TARIFFNAME = 'newtariffname';
@@ -98,6 +100,7 @@ class OllTVService {
     const PROUTE_TARIFFMAIN = 'newtariffmain';
     const PROUTE_SUBSETTARIF = 'settariffsublogin';
     const PROUTE_SUBTARIFFID = 'subsetariffid';
+    const PROUTE_MANUALREGISTER = 'manualsubregister';
 
     /**
      * Creates new OLLTV service instance
@@ -276,37 +279,46 @@ class OllTVService {
      */
     public function createSubscriber($login) {
         $result = '';
-        if (!isset($this->allUsers[$login])) {
-            if (isset($this->allUsersData[$login])) {
-                $userData = $this->allUsersData[$login];
-                $mail = $this->generateMail($login);
-                if (!empty($mail)) {
-                    $mobile = $this->prepareMobile($userData['mobile']);
-                    if (!empty($mobile)) {
-                        $addParams = array('phone' => $mobile);
-                        $creationResult = $this->api->addUser($mail, $login, $addParams);
-                        if ($creationResult) {
-                            $result = $creationResult;
-                            //registering new subscriber in local database
-                            $this->subscribersDb->data('date', curdatetime());
-                            $this->subscribersDb->data('remoteid', $creationResult);
-                            $this->subscribersDb->data('login', $login);
-                            $this->subscribersDb->data('email', $mail);
-                            $this->subscribersDb->data('phone', $mobile);
-                            $this->subscribersDb->create();
-                            log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') AS [' . $creationResult . ']');
+        if (!empty($login)) {
+            if (!isset($this->allUsers[$login])) {
+                if (isset($this->allUsersData[$login])) {
+                    $userData = $this->allUsersData[$login];
+                    $mail = $this->generateMail($login);
+                    if (!empty($mail)) {
+                        $mobile = $this->prepareMobile($userData['mobile']);
+                        if (!empty($mobile)) {
+                            $addParams = array('phone' => $mobile);
+                            $creationResult = $this->api->addUser($mail, $login, $addParams);
+                            if ($creationResult) {
+                                $result = '';
+                                //registering new subscriber in local database
+                                $this->subscribersDb->data('date', curdatetime());
+                                $this->subscribersDb->data('remoteid', $creationResult);
+                                $this->subscribersDb->data('login', $login);
+                                $this->subscribersDb->data('email', $mail);
+                                $this->subscribersDb->data('phone', $mobile);
+                                $this->subscribersDb->create();
+                                log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') AS [' . $creationResult . ']');
+                            }
+                        } else {
+                            $result .= 'Empty mobile';
+                            log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') FAIL EMPTY_MOBILE');
                         }
                     } else {
-                        $result .= 'Empty mobile';
+                        $result .= 'Empty email';
+                        log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') FAIL EMPTY_EMAIL');
                     }
                 } else {
-                    $result .= 'Empty email';
+                    $result .= 'User not exists';
+                    log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') FAIL LOGIN_NOT_EXIST');
                 }
             } else {
-                $result .= 'User not exists';
+                $result .= 'User already registered';
+                log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') FAIL ALREADY_REGISTERED');
             }
         } else {
-            $result .= 'User already exists';
+            $result .= 'Empty login';
+            log_register('OLLTV CREATE SUBSCRIBER (' . $login . ') FAIL EMPTY_LOGIN');
         }
         return($result);
     }
@@ -348,6 +360,8 @@ class OllTVService {
      */
     public function renderSubscribersList() {
         $result = '';
+        $result .= wf_modalAuto(web_icon_create() . ' ' . __('Users registration'), __('Users registration'), $this->renderSubscriberRegisterForm(), 'ubButton');
+        $result .= wf_delimiter();
         if (!empty($this->allUsers)) {
             $columns = array('ID', 'Login', 'Real Name', 'Full address', 'Cash', 'Current tariff', 'Date', 'Active', 'Actions');
             $opts = '"order": [[ 0, "desc" ]]';
@@ -398,6 +412,19 @@ class OllTVService {
         $result = '';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_SUBLIST . '=true', wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_TARIFFS . '=true', wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton');
+        return($result);
+    }
+
+    /**
+     * Renders manual subscriber registering form
+     * 
+     * @return string
+     */
+    protected function renderSubscriberRegisterForm() {
+        $result = '';
+        $inputs = wf_TextInput(self::PROUTE_MANUALREGISTER, __('Login'), '', false, 20);
+        $inputs .= wf_Submit(__('Register'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
     }
 
@@ -624,6 +651,11 @@ class OllTVService {
             $cells .= wf_TableCell($tariffName);
             $rows .= wf_TableRow($cells, 'row3');
 
+            $cells = wf_TableCell(__('Additional tariff'), '', 'row2');
+            $tariffName = (isset($this->allTariffNames[$subData['addtariffid']])) ? $this->allTariffNames[$subData['addtariffid']] : __('No');
+            $cells .= wf_TableCell($tariffName);
+            $rows .= wf_TableRow($cells, 'row3');
+
             $cells = wf_TableCell(__('Date'), '', 'row2');
             $cells .= wf_TableCell($subData['date']);
             $rows .= wf_TableRow($cells, 'row3');
@@ -651,6 +683,20 @@ class OllTVService {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong'), 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Renders some manual subscriber management controls
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function renderSubscriberControls($login) {
+        $result = '';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_DEACTIVATE . '=' . $login, web_bool_led(false) . ' ' . __('Deactivate subscription'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ACTIVATE . '=' . $login, web_bool_led(true) . ' ' . __('Activate subscription'), false, 'ubButton') . ' ';
         return($result);
     }
 
@@ -705,35 +751,67 @@ class OllTVService {
                 $check = $this->api->checkBundle(array('account' => $login), $tariffData['alias']);
 
                 if ($check !== false) {
-                    //unsubscribe old tariff if required
-                    if ($userData['tariffid']) {
-                        $oldUserTariffData = $this->allTariffs[$userData['tariffid']];
-                        $oldUserTariffAlias = $oldUserTariffData['alias'];
-                        $bundleDeleteResult = $this->api->disableBundle(array('account' => $login), $oldUserTariffAlias, 'subs_no_device');
-                        log_register('OLLTV SUBSCRIBER (' . $login . ') UNSET TARIFF [' . $userData['tariffid'] . ']');
-                    }
+                    //primary tariff management
+                    if ($tariffData['main']) {
+                        //unsubscribe old tariff if required
+                        if ($userData['tariffid']) {
+                            $oldUserTariffData = $this->allTariffs[$userData['tariffid']];
+                            $oldUserTariffAlias = $oldUserTariffData['alias'];
+                            $bundleDeleteResult = $this->api->disableBundle(array('account' => $login), $oldUserTariffAlias, 'subs_no_device');
+                            log_register('OLLTV SUBSCRIBER (' . $login . ') UNSET TARIFF [' . $userData['tariffid'] . ']');
+                        }
 
-                    $bundleSetResult = $this->api->enableBundle(array('account' => $login), $tariffData['alias'], 'subs_no_device');
-                    if ($bundleSetResult) {
-                        $this->subscribersDb->where('id', '=', $userData['id']);
-                        //devices activation code here
-                        $this->subscribersDb->data('code', $bundleSetResult);
+                        $bundleSetResult = $this->api->enableBundle(array('account' => $login), $tariffData['alias'], 'subs_no_device');
+                        if ($bundleSetResult) {
+                            $this->subscribersDb->where('id', '=', $userData['id']);
+                            //devices activation code here
+                            $this->subscribersDb->data('code', $bundleSetResult);
 
-                        //write tariff to sub profile
-                        $this->subscribersDb->data('tariffid', $tariffId);
-                        $this->subscribersDb->data('active', 1);
-                        $this->subscribersDb->save();
-                        log_register('OLLTV SUBSCRIBER (' . $login . ') SET TARIFF [' . $tariffId . ']');
+                            //write tariff to sub profile
+                            $this->subscribersDb->data('tariffid', $tariffId);
+                            $this->subscribersDb->data('active', 1);
+                            $this->subscribersDb->save();
+                            log_register('OLLTV SUBSCRIBER (' . $login . ') SET TARIFF [' . $tariffId . ']');
+                        }
+                    } else {
+                        //Additional tariffs management
+                        if (!$userData['addtariffid']) {
+                            //user have no additional tariff now
+                            if ($userData['tariffid']) {
+                                $bundleSetResult = $this->api->enableBundle(array('account' => $login), $tariffData['alias'], 'subs_no_device');
+                                $this->subscribersDb->where('id', '=', $userData['id']);
+                                //write additional tariff to subscriber profile
+                                $this->subscribersDb->data('addtariffid', $tariffId);
+                                $this->subscribersDb->data('active', 1);
+                                $this->subscribersDb->save();
+                                log_register('OLLTV SUBSCRIBER (' . $login . ') SET ADDTARIFF [' . $tariffId . ']');
+                            } else {
+                                log_register('OLLTV SUBSCRIBER (' . $login . ') SET ADDTARIFF [' . $tariffId . '] HAVENOMAINSUB');
+                            }
+                        } else {
+                            log_register('OLLTV SUBSCRIBER (' . $login . ') SET ADDTARIFF [' . $tariffId . '] ALREADY_HAVEADDSUB');
+                        }
                     }
                 } else {
                     log_register('OLLTV SUBSCRIBER (' . $login . ') TARIFF [' . $userTariffId . '] NOT_ALLOWED');
                     $result .= 'Tariff not allowed';
                 }
             } else {
-                //unsub on empty tariff
+                //unsub on empty tariff received
                 if (empty($tariffId)) {
                     $userTariffId = $userData['tariffid'];
+                    $userAddTariffId = $userData['addtariffid'];
                     if (isset($this->allTariffs[$userTariffId])) {
+                        //unsubscribe additional tariff first
+                        if ($userAddTariffId) {
+                            $addTariffAlias = $this->allTariffs[$userAddTariffId]['alias'];
+                            $this->api->disableBundle(array('account' => $login), $addTariffAlias, 'subs_no_device');
+                            $this->subscribersDb->where('id', '=', $userData['id']);
+                            $this->subscribersDb->data('addtariffid', 0);
+                            $this->subscribersDb->save();
+                            log_register('OLLTV SUBSCRIBER (' . $login . ') DROP ADDTARIFF [' . $userAddTariffId . ']');
+                        }
+                        //unsubscribe primary tariff
                         $userTariffAlias = $this->allTariffs[$userTariffId]['alias'];
                         $bundleDeleteResult = $this->api->disableBundle(array('account' => $login), $userTariffAlias, 'subs_no_device');
                         $this->subscribersDb->where('id', '=', $userData['id']);
@@ -767,9 +845,20 @@ class OllTVService {
         if (isset($this->allUsers[$login])) {
             $userData = $this->allUsers[$login];
             $userTariff = $userData['tariffid'];
+            $userAddTariff = $userData['addtariffid'];
             if (isset($this->allTariffs[$userTariff])) {
-                $tariffData = $this->allTariffs[$userTariff];
+                //is user active?
                 if ($userData['active']) {
+                    //user have some additional tariff?
+                    if ($userAddTariff) {
+                        $addTariffData = $this->allTariffs[$userAddTariff];
+                        $this->api->disableBundle(array('account' => $login), $addTariffData['alias'], 'subs_negative_balance');
+                        log_register('OLLTV SUBSCRIBER (' . $login . ') SUSPEND ADDTARIFF [' . $userAddTariff . ']');
+                    }
+
+                    //suspend primary tariff
+                    $tariffData = $this->allTariffs[$userTariff];
+
                     $bundleSuspResult = $this->api->disableBundle(array('account' => $login), $tariffData['alias'], 'subs_negative_balance');
                     $this->subscribersDb->where('id', '=', $userData['id']);
                     $this->subscribersDb->data('active', '0');
@@ -797,14 +886,26 @@ class OllTVService {
         if (isset($this->allUsers[$login])) {
             $userData = $this->allUsers[$login];
             $userTariff = $userData['tariffid'];
+            $userAddTariff = $userData['addtariffid'];
             if (isset($this->allTariffs[$userTariff])) {
-                $tariffData = $this->allTariffs[$userTariff];
+                //is user suspended now?
                 if (!$userData['active']) {
+                    //primary tariff unsuspend
+                    $tariffData = $this->allTariffs[$userTariff];
                     $bundleSuspResult = $this->api->enableBundle(array('account' => $login), $tariffData['alias'], 'subs_renew');
                     $this->subscribersDb->where('id', '=', $userData['id']);
                     $this->subscribersDb->data('active', '1');
                     $this->subscribersDb->save();
                     log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND TARIFF [' . $userTariff . ']');
+
+                    //unsuspend additional tariffs?
+                    if ($userAddTariff) {
+                        $addTariffData = $this->allTariffs[$userAddTariff];
+                        $this->api->enableBundle(array('account' => $login), $addTariffData['alias'], 'subs_renew');
+                        log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND ADDTARIFF [' . $userAddTariff . ']');
+                    }
+                    //update users state
+                    $this->loadSubscribers();
                 } else {
                     log_register('OLLTV SUBSCRIBER (' . $login . ') UNSUSPEND FAIL ALREADY_ACTIVE');
                 }
@@ -890,7 +991,8 @@ class OllTVService {
         if (isset($this->allUsers[$userLogin])) {
             $userData = $this->allUsers[$userLogin];
             $userTariffId = $userData['tariffid'];
-            if ($userTariffId == $tariffId) {
+            $userAddTariffId = $userData['addtariffid'];
+            if ($userTariffId == $tariffId OR $userAddTariffId = $tariffId) {
                 $this->setSubTariffId($userLogin, 0);
             } else {
                 log_register('OLLTV SUBSCRIBER (' . $userLogin . ') DROP TARIFF [' . $tariffId . '] FAILED [' . $userTariffId . '] MISMATCH');
@@ -941,12 +1043,22 @@ class OllTVService {
                     if (!$userData['active'] AND $userData['tariffid']) {
                         $userCash = $this->allUsersData[$userLogin]['Cash'];
                         $userTariff = $userData['tariffid'];
+                        $userAddTariff = $userData['addtariffid'];
                         $tariffFee = $this->allTariffs[$tariffId]['fee'];
+                        //append additional tariff fee
+                        if ($userAddTariff) {
+                            $tariffFee += $this->allTariffs[$userAddTariff]['fee'];
+                        }
                         //balance check
                         if ($userCash >= $tariffFee) {
                             //tariff is the same? Just unsuspend and charge
                             if ($userTariff == $tariffId) {
                                 $this->unsuspendSubscriber($userLogin);
+
+                                //charge additional tariff fee if it assigned
+                                if ($userAddTariff) {
+                                    $this->chargeUserFee($userLogin, $userAddTariff);
+                                }
                             } else {
                                 //changing tariff to new
                                 $this->setSubTariffId($userLogin, $tariffId);
@@ -956,6 +1068,7 @@ class OllTVService {
                             $this->chargeUserFee($userLogin, $tariffId);
                         } else {
                             $reply['error'] = 'No enought money';
+                            log_register('OLLTV SUBSCRIBER (' . $userLogin . ') FAIL UNSUSPEND NO_MONEY');
                         }
                     } else {
                         //user have no tariff and not active - set him new tariff and charge fee
@@ -1035,6 +1148,7 @@ class OllTVService {
                 $userLogin = $eachSub['login'];
                 $subscriberId = $eachSub['id'];
                 $userTariff = $eachSub['tariffid'];
+                $userAddTariff = $eachSub['addtariffid'];
                 $userFee = 0;
                 if (isset($this->allUsersData[$userLogin])) {
                     $userCash = $this->allUsersData[$userLogin]['Cash'];
@@ -1044,8 +1158,18 @@ class OllTVService {
                         if ($userTariff) {
                             if (isset($this->allTariffs[$userTariff])) {
                                 $tariffFee = $this->allTariffs[$userTariff]['fee'];
+                                //some additional tariffs assigned?
+                                if ($userAddTariff) {
+                                    $tariffFee += $this->allTariffs[$userAddTariff]['fee'];
+                                }
+
                                 if ($userCash >= $tariffFee) {
+                                    //charge primary tariff
                                     $this->chargeUserFee($userLogin, $userTariff);
+                                    //charge addiotional tariffs if assigned
+                                    if ($userAddTariff) {
+                                        $this->chargeUserFee($userLogin, $userAddTariff);
+                                    }
                                 } else {
                                     $this->suspendSubscriber($userLogin);
                                 }

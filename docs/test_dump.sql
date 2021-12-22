@@ -3241,3 +3241,5 @@ CREATE TABLE IF NOT EXISTS `ot_tariffs` (
   `main` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `ot_users` ADD `addtariffid` INT NULL DEFAULT NULL AFTER `tariffid`; 

@@ -3325,6 +3325,4 @@ $lang['def']['right to view build passports'] = 'Право просматрив
 $lang['def']['right to use external contragents finances with readonly access'] = 'Право использовать внешних контрагентов только для просмотра';
 $lang['def']['right of full access to external contragents finances'] = 'Право полного доступа к внешним контрагентам';
 $lang['def']['right to use annoyance report'] = 'Право использовать надоедливость';
-$lang['def']['This user account is not associated with any existing OllTV subscriber'] = 'Эта учетная запись не связана ни с одним из существующих подписчиков OllTV';
-$lang['def']['Activation code'] = 'Код привязки';
 $lang['def']['Access'] = 'Доступ';
