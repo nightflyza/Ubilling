@@ -3349,5 +3349,5 @@ $lang['def']['right of full access to external contragents finances'] = 'Пра�
 $lang['def']['right to use annoyance report'] = 'Право використовувати набридливість';
 $lang['def']['This user account is not associated with any existing OllTV subscriber'] = 'Цей обліковий запис не пов`язано з жодним підписником OllTV';
 $lang['def']['Activation code'] = 'Код прив`язки';
-$lang['def'][''] = '';
+$lang['def']['Access'] = 'Доступ';
 $lang['def'][''] = '';

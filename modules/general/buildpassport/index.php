@@ -8,7 +8,7 @@ if (cfr('BUILDPASSPORT')) {
             $buildId = ubRouting::get(BuildPassport::ROUTE_BUILD, 'int');
             if (!empty($buildId)) {
                 $allBuildsAddress = zb_AddressGetBuildAllAddress();
-                $buildLabel = $allBuildsAddress[$buildId];
+                $buildLabel = @$allBuildsAddress[$buildId];
                 $passportData = $passport->getPassportData($buildId);
                 $buildData = zb_AddressGetBuildData($buildId);
 

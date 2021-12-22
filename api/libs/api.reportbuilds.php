@@ -246,6 +246,7 @@ class ReportBuilds {
                     'Apartments',
                     'Users',
                     '%',
+                    'Access',
                     'Actions'
                 );
             }
@@ -370,12 +371,14 @@ class ReportBuilds {
                             $floors = $buildPassport['floors'];
                             $entrances = $buildPassport['entrances'];
                             $apts = $buildPassport['apts'];
+                            $accessNotices=$buildPassport['accessnotices'];
                         } else {
                             $ownerLabel = '';
                             $ownerPhone = '';
                             $floors = '';
                             $entrances = '';
                             $apts = '';
+                            $accessNotices='';
                         }
 
                         $data[] = $ownerLabel;
@@ -393,6 +396,7 @@ class ReportBuilds {
                             $signupsPercent = zb_PercentValue($apts, $userCount);
                         }
                         $data[] = $signupsPercent;
+                        $data[] = $accessNotices;
                     }
 
                     $actionLinks = '';
