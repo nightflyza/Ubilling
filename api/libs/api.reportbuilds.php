@@ -55,6 +55,13 @@ class ReportBuilds {
     protected $buildPassportsFlag = false;
 
     /**
+     * Is ADcomments enabled flag?
+     *
+     * @var bool
+     */
+    protected $adCommentsFlag = false;
+
+    /**
      * Build passports instance placeholder
      *
      * @var object
@@ -100,6 +107,10 @@ class ReportBuilds {
         $this->altCfg = $ubillingConfig->getAlter();
         if (@$this->altCfg['BUILD_EXTENDED']) {
             $this->buildPassportsFlag = true;
+        }
+
+        if (@$this->altCfg['ADCOMMENTS_ENABLED']) {
+            $this->adCommentsFlag = true;
         }
     }
 
@@ -330,6 +341,12 @@ class ReportBuilds {
         $streetFilter = ubRouting::get(self::PROUTE_FILTERSTREET, 'int');
         $backUrl = '&back=' . base64_encode('report_builds');
         $passportUrl = BuildPassport::URL_PASSPORT . $backUrl . '&' . BuildPassport::ROUTE_BUILD . '=';
+        if ($this->adCommentsFlag) {
+            $adComments = new ADcomments('BUILDS');
+        }
+
+        $actBoxStyle = wf_tag('div', false, '', 'style="width:60px;"');
+        $actBoxStyleEnd = wf_tag('div', true);
 
         if (!empty($this->allBuilds)) {
             foreach ($this->allBuilds as $io => $each) {
@@ -371,14 +388,14 @@ class ReportBuilds {
                             $floors = $buildPassport['floors'];
                             $entrances = $buildPassport['entrances'];
                             $apts = $buildPassport['apts'];
-                            $accessNotices=$buildPassport['accessnotices'];
+                            $accessNotices = $buildPassport['accessnotices'];
                         } else {
                             $ownerLabel = '';
                             $ownerPhone = '';
                             $floors = '';
                             $entrances = '';
                             $apts = '';
-                            $accessNotices='';
+                            $accessNotices = '';
                         }
 
                         $data[] = $ownerLabel;
@@ -395,14 +412,19 @@ class ReportBuilds {
                         if (($apts > 0)) {
                             $signupsPercent = zb_PercentValue($apts, $userCount);
                         }
+
                         $data[] = $signupsPercent;
                         $data[] = $accessNotices;
                     }
 
                     $actionLinks = '';
                     if ($this->buildPassportsFlag) {
+                        if ($this->adCommentsFlag) {
+                            $actionLinks .= $adComments->getCommentsIndicator($each['id']) . ' ';
+                        }
                         $actionLinks .= wf_Link($passportUrl . $each['id'], wf_img('skins/icon_passport.gif', __('Build passport'))) . ' ';
                     }
+
                     if (!empty($each['geo'])) {
                         $actionLinks .= wf_Link("?module=usersmap&findbuild=" . $each['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
                     } else {
@@ -410,7 +432,9 @@ class ReportBuilds {
                             $actionLinks .= wf_Link('?module=usersmap&locfinder=true&placebld=' . $each['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '') . ' ';
                         }
                     }
-                    $data[] = $actionLinks;
+
+
+                    $data[] = $actBoxStyle . $actionLinks . $actBoxStyleEnd;
                     $json->addRow($data);
                     unset($data);
                 }

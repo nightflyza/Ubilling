@@ -40,6 +40,12 @@ if (cfr('BUILDPASSPORT')) {
                         show_window(__('Mini-map'), $buildMiniMap);
                     }
                 }
+
+                //Optional additional comments
+                if ($ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED')) {
+                    $adComments = new ADcomments('BUILDS');
+                    show_window(__('Additional comments'), $adComments->renderComments($buildId));
+                }
             } else {
                 show_error(__('Something went wrong') . ': EX_WRONG_BUILDID');
             }
