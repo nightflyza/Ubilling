@@ -336,15 +336,15 @@ class OllTvInterface {
                 $subControl = '';
                 $tariffFee = $tariff['fee'];
 
-                $tariffInfo = la_tag('div', false, 'trinity-col') . la_tag('div', false, 'trinity-bl1');
+                $tariffInfo = la_tag('div', false, 'olltv-col') . la_tag('div', false, 'olltv-bl1');
 
-                $tariffInfo .= la_tag('div', false, 'trinity-price');
+                $tariffInfo .= la_tag('div', false, 'olltv-price');
                 $tariffInfo .= la_tag('b', false, 's') . $tariffFee . la_tag('b', true, 's');
                 $tariffInfo .= la_tag('sup', false) . $this->usConfig['currency'] . ' ' . la_tag('br') . ' ' . __('per month') . la_tag('sup', true);
-                $tariffInfo .= la_tag('div', true, 'trinity-price');
+                $tariffInfo .= la_tag('div', true, 'olltv-price');
 
 
-                $tariffInfo .= la_tag('div', false, 'trinity-green s') . $tariff['name'] . la_tag('div', true, 'trinity-green s');
+                $tariffInfo .= la_tag('div', false, 'olltv-yellow s') . $tariff['name'] . la_tag('div', true, 'olltv-yellow s');
                 $tariffInfo .= la_tag('br');
 
                 if (!empty($tariff['chans'])) {
@@ -355,12 +355,12 @@ class OllTvInterface {
 
                 $descriptionLabel = $desc;
 
-                $tariffInfo .= la_tag('div', false, 'trinity-list') . $descriptionLabel . la_tag('div', true, 'trinity-list');
+                $tariffInfo .= la_tag('div', false, 'olltv-list') . $descriptionLabel . la_tag('div', true, 'olltv-list');
 
                 if ($this->checkBalance()) {
 
                     if ($this->isUserSubscribed($tariff['id'])) {
-                        $subControl .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'trinity-button-u');
+                        $subControl .= la_Link(self::URL_ME . '&unsubscribe=' . $tariff['id'], __('Unsubscribe'), false, 'olltv-button-u');
                         $tariffInfo .= $subControl;
                     } else {
                         if ($this->checkUserProtection($tariff['id'])) {
@@ -371,7 +371,7 @@ class OllTvInterface {
                                 $controlLabel = __('Subscribe');
                             }
 
-                            $subControl .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'trinity-button-s', self::URL_ME);
+                            $subControl .= la_ConfirmDialog(self::URL_ME . '&subscribe=' . $tariff['id'], $controlLabel, $alertText, 'olltv-button-s', self::URL_ME);
                             //hide case of resurrection via additional tariffs
                             if (!$tariff['main'] AND @ !$this->subscriberData['active']) {
                                 $subControl = __('Additional services');
@@ -383,14 +383,14 @@ class OllTvInterface {
                             }
                             $tariffInfo .= $subControl;
                         } else {
-                            $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                            $tariffInfo .= la_tag('div', false, 'olltv-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'olltv-list');
                         }
                     }
                 } else {
-                    $tariffInfo .= la_tag('div', false, 'trinity-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'trinity-list');
+                    $tariffInfo .= la_tag('div', false, 'olltv-list') . __('The amount of money in your account is not sufficient to process subscription') . la_tag('div', true, 'olltv-list');
                 }
 
-                $tariffInfo .= la_tag('div', true, 'trinity-bl1') . la_tag('div', true, 'trinity-col');
+                $tariffInfo .= la_tag('div', true, 'olltv-bl1') . la_tag('div', true, 'olltv-col');
 
 
                 $result .= $tariffInfo;

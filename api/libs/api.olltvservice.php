@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OllTV OTT service implementation
+ */
 class OllTVService {
 
     /**
@@ -101,6 +104,23 @@ class OllTVService {
     const PROUTE_SUBSETTARIF = 'settariffsublogin';
     const PROUTE_SUBTARIFFID = 'subsetariffid';
     const PROUTE_MANUALREGISTER = 'manualsubregister';
+
+//                            o
+//                   o       /
+//                    \     /
+//                     \   /
+//             UNICORN  \ / TV 
+//        +--------------v-------------+
+//        |  __________________      @ |
+//        | /                  \       |
+//        | |             ,-,/ |  (\)  |
+//        | |       _ ___/ /\| |       |
+//        | |   ,;`( )__, )  ~ |  (-)  |
+//        | |  // o//   '--;   |       |
+//        | \  ' o \     |     / :|||: |
+//        |  -ooo--------------  :|||: |
+//        +----------------------------+
+//           []                    []
 
     /**
      * Creates new OLLTV service instance
@@ -1152,6 +1172,7 @@ class OllTVService {
                 $userFee = 0;
                 if (isset($this->allUsersData[$userLogin])) {
                     $userCash = $this->allUsersData[$userLogin]['Cash'];
+                    $userPassive = $this->allUsersData[$userLogin]['Passive'];
                     //user subscription is active now
                     if ($eachSub['active']) {
                         //user have tariff assigned
@@ -1163,7 +1184,7 @@ class OllTVService {
                                     $tariffFee += $this->allTariffs[$userAddTariff]['fee'];
                                 }
 
-                                if ($userCash >= $tariffFee) {
+                                if ($userCash >= $tariffFee AND ! $userPassive) {
                                     //charge primary tariff
                                     $this->chargeUserFee($userLogin, $userTariff);
                                     //charge addiotional tariffs if assigned

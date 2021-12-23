@@ -647,3 +647,123 @@ dirty magic class ;)
 .somemagic {
     display: none;
 }
+
+.olltv-col {
+    position: relative;
+    min-height: 1px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+@media (min-width: 992px){
+    .olltv-col {
+        width: 44.33333333%;
+    }
+}
+
+@media (min-width: 992px){
+    .olltv-col {
+        float: left;
+    }
+}
+
+
+.olltv-list {
+    padding: 10px;
+    font-size: 10pt;
+}
+
+.olltv-bl1 {
+    margin-bottom: 15px;
+    display: block;
+    height: 340px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
+}
+
+.olltv-bl1 p {
+
+    padding: 5px;
+    border-radius: 5px;
+    color: white;
+    background: #6cb121;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    text-transform: uppercase;
+    right: 0;
+    width: 75%;
+}
+
+.olltv-button {
+    text-decoration: none !important;
+    border-radius: 5px;
+    display: block;
+    float: left;
+    color: white;
+    background: #6cb121;
+    margin: 10px auto;
+    margin-left: 10px;
+    left: 0;
+    bottom: 35px;
+    right: 0;
+    padding: 10px 10px 10px 10px;
+}
+
+.olltv-button-s {
+    text-decoration: none !important;
+    display: block;
+    border-radius: 5px;
+    color: #222224;
+    background: #ffcc00;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    text-transform: uppercase;
+    right: 0;
+    width: 65%;
+    padding: 10px 10px 10px 10px;
+}
+
+.olltv-button-u {
+    text-decoration: none !important;
+    display: block;
+    border-radius: 5px;
+    color: white;
+    background: #a1a79c;
+    margin: 0 auto;
+    left: 0;
+    bottom: 35px;
+    text-transform: uppercase;
+    right: 0;
+    width: 65%;
+    padding: 10px 10px 10px 10px;
+}
+
+
+.olltv-price {
+    font-size: 35pt;
+    padding-top: 20px;
+}
+
+.olltv-yellow {
+    margin-top: 10px;
+    height: 40px;
+    background: #222224;
+    color: #ffcc00;
+    font-size: 12pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 40px;
+}
+
+
+.olltv-tariff-b s{
+    background: rgba(85, 148, 27, 0.59);
+}
+
+.olltv-price sup {
+    text-transform: uppercase;
+    font-size: 15pt;
+}

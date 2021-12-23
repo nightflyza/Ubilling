@@ -38,6 +38,19 @@ class OnePunch {
      */
     const URL_DEVCON = '?module=sqlconsole&devconsole=true';
 
+//     ⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
+//    ⠀⠀⠀⣴⠿⠏⠀⠀⠀⠀⠀⠀⢳⡀⠀⡏⠀⠀⠀⠀⠀⢷
+//    ⠀⠀⢠⣟⣋⡀⢀⣀⣀⡀⠀⣀⡀⣧⠀⢸⠀⠀⠀⠀⠀ ⡇
+//    ⠀⠀⢸⣯⡭⠁⠸⣛⣟⠆⡴⣻⡲⣿⠀⣸⠀⠀OK⠀ ⡇
+//    ⠀⠀⣟⣿⡭⠀⠀⠀⠀⠀⢱⠀⠀⣿⠀⢹⠀⠀⠀⠀⠀ ⡇
+//    ⠀⠀⠙⢿⣯⠄⠀⠀⠀⢀⡀⠀⠀⡿⠀⠀⡇⠀⠀⠀⠀⡼
+//    ⠀⠀⠀⠀⠹⣶⠆⠀⠀⠀⠀⠀⡴⠃⠀⠀⠘⠤⣄⣠⠞⠀
+//    ⠀⠀⠀⠀⠀⢸⣷⡦⢤⡤⢤⣞⣁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+//    ⠀⠀⢀⣤⣴⣿⣏⠁⠀⠀⠸⣏⢯⣷⣖⣦⡀⠀⠀⠀⠀⠀⠀
+//    ⢀⣾⣽⣿⣿⣿⣿⠛⢲⣶⣾⢉⡷⣿⣿⠵⣿⠀⠀⠀⠀⠀⠀
+//    ⣼⣿⠍⠉⣿⡭⠉⠙⢺⣇⣼⡏⠀⠀⠀⣄⢸⠀⠀⠀⠀⠀⠀
+//    ⣿⣿⣧⣀⣿………⣀⣰⣏⣘⣆⣀⠀⠀
+
     /**
      * Creates new object instance
      * 
@@ -68,7 +81,7 @@ class OnePunch {
     protected function loadOptions() {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
-        $customSortField=$this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD');
+        $customSortField = $this->ubConfig->getAlterParam('ONEPUNCH_DEFAULT_SORT_FIELD');
         if ($customSortField) {
             $this->defaultSortField = $customSortField;
         }
