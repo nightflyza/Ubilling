@@ -6,3 +6,4 @@ $lang['def']['User already registered'] = 'Пользователь уже за�
 $lang['def']['This user account is not associated with any existing OllTV subscriber'] = 'Эта учетная запись не связана ни с одним из существующих подписчиков OllTV';
 $lang['def']['Activation code'] = 'Код привязки';
 $lang['def']['Additional tariff'] = 'Дополнительный тариф';
+$lang['def']['right to control OLLTV'] = 'Право управлять OllTV';
