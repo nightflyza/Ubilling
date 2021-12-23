@@ -94,7 +94,7 @@ class TaskFlow {
      */
     const URL_ME = '?module=taskflow';
     const URL_TASK = '?module=taskman&edittask=';
-    const URL_ADVICE = 'http://fucking-great-advice.ru/api/random';
+    const URL_ADVICE = 'http://ubilling.net.ua/fga/api/random/';
     const ROUTE_EMREPORT = 'employeereport';
     const PROUTE_STATE = 'searchtaskstate';
     const PROUTE_PHOTO = 'searchtaskphoto';
@@ -435,7 +435,7 @@ class TaskFlow {
     }
 
     /**
-     * Gets advice of the hour
+     * Gets advice of the day
      * 
      * @return string
      */
