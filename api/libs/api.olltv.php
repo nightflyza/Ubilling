@@ -270,14 +270,10 @@ class OllTv {
         if ($type > $this->_logLevel) {
             return false;
         }
-        // verify path to log file and write access
-//        if (!is_writable($this->_log)) {
-//            return false;
-//        }
         // prepare message type
         $type = $this->_logType[$type] . ': ';
         // append write to file and get result
-        $res = file_put_contents($this->_log, date('Y-m-d H:i:s') . ' ' . $type . $message . ";\n", FILE_APPEND | LOCK_EX);
+        $res = file_put_contents($this->_log, date('Y-m-d H:i:s') . ' ' . $type . $message . ";\n", FILE_APPEND);
         return (bool) $res;
     }
 
@@ -429,7 +425,7 @@ class OllTv {
 
         // log warnings
         if (!empty($this->_result->warnings)) {
-            $this->_toLog('[' . __FUNCTION__ . '] - API warnings: ' . (string) $this->_result->warnings);
+            $this->_toLog('[' . __FUNCTION__ . '] - API warnings: ' . print_r($this->_result->warnings, true));
         }
 
         // verify result status
