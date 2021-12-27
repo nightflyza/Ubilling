@@ -2078,7 +2078,7 @@ class PONizer {
         $oltid = vf($oltid, 3);
         if (isset($this->allOltDevices[$oltid])) {
             if (isset($this->allOltSnmp[$oltid])) {
-                $this->flushOnuAjList($oltid);
+                $this->flushOnuAjListCache($oltid);
                 $oltCommunity = $this->allOltSnmp[$oltid]['community'];
                 $oltModelId = $this->allOltSnmp[$oltid]['modelid'];
                 $oltIp = $this->allOltSnmp[$oltid]['ip'];
@@ -2849,13 +2849,13 @@ class PONizer {
      * 
      * @return void
      */
-    public function flushOnuAjList($oltId) {
+    public function flushOnuAjListCache($oltId) {
         if ($this->onuCacheTimeout) {
             if (!empty($oltId)) {
                 $allCacheKeys = $this->cache->getAllcache();
                 if (!empty($allCacheKeys)) {
                     foreach ($allCacheKeys as $io => $eachKey) {
-                        if (ispos($eachKey, self::KEY_ONULISTAJ . $oltId)) {
+                        if ((UbillingCache::CACHE_PREFIX . self::KEY_ONULISTAJ . $oltId) == $eachKey) {
                             $cleanKey = str_replace(UbillingCache::CACHE_PREFIX, '', $eachKey);
                             $this->cache->delete($cleanKey);
                         }
