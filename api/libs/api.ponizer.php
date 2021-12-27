@@ -279,6 +279,13 @@ class PONizer {
     protected $ponIfDescribe = false;
 
     /**
+     * Deferred loading flag
+     *
+     * @var boolt
+     */
+    protected $deferredLoadingFlag = false;
+
+    /**
      * Placeholder for PON_ONU_OFFLINE_SIGNAL alter.ini option
      *
      * @var string
@@ -298,6 +305,20 @@ class PONizer {
      * @var object
      */
     protected $messages = '';
+
+    /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Onu data caching timeout
+     *
+     * @var int
+     */
+    protected $onuCacheTimeout = 0;
 
     /**
      * Some predefined paths, etc
@@ -325,6 +346,9 @@ class PONizer {
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
     const POLL_STATS = 'exports/PONY_';
+    const KEY_ALLONU = 'ALLONU';
+    const KEY_ONUOLT = 'ONUOLTID_';
+    const KEY_ONULISTAJ = 'ONULISTAJ_';
 
     /**
      * Some routes here
@@ -343,20 +367,23 @@ class PONizer {
 
     /**
      * Creates new PONizer object instance
+     * 
+     * @param int $oltId load ONU data only for selected OLT. Loads all if empty.
      *
      * @return void
      */
-    public function __construct() {
+    public function __construct($oltId = '') {
         global $ubillingConfig;
         $this->ubConfig = $ubillingConfig;
 
         $this->loadAlter();
         $this->initMessages();
+        $this->initCache();
         $this->loadOltDevices();
         $this->loadOltModels();
         $this->loadSnmpTemplates();
         $this->initSNMP();
-        $this->loadOnu();
+        $this->loadOnu($oltId);
         $this->loadOnuExtUsers();
         $this->loadModels();
         $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -374,6 +401,7 @@ class PONizer {
         $this->showPONIfaceDescrStatsTab = $this->ubConfig->getAlterParam('PON_IFACE_DESCRIPTION_IN_STATSTAB');
         $this->ponIfDescribe = $this->ubConfig->getAlterParam('PON_IFDESC');
         $this->onuOfflineSignalLevel = $this->ubConfig->getAlterParam('PON_ONU_OFFLINE_SIGNAL', $this->onuOfflineSignalLevel);
+        $this->deferredLoadingFlag = $this->ubConfig->getAlterParam('PON_DEFERRED_LOADING', false);
 
         if ($this->ponIfDescribe) {
             $this->ponInterfaces = new PONIfDesc();
@@ -485,6 +513,19 @@ class PONizer {
      */
     protected function initSNMP() {
         $this->snmp = new SNMPHelper();
+    }
+
+    /**
+     * Inits system caching engine
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+        $this->onuCacheTimeout = $this->ubConfig->getAlterParam('PON_ONU_CACHING', 0);
+        if ($this->onuCacheTimeout) {
+            $this->onuCacheTimeout = $this->onuCacheTimeout * 60; //in minutes
+        }
     }
 
     /**
@@ -2037,6 +2078,7 @@ class PONizer {
         $oltid = vf($oltid, 3);
         if (isset($this->allOltDevices[$oltid])) {
             if (isset($this->allOltSnmp[$oltid])) {
+                $this->flushOnuAjList($oltid);
                 $oltCommunity = $this->allOltSnmp[$oltid]['community'];
                 $oltModelId = $this->allOltSnmp[$oltid]['modelid'];
                 $oltIp = $this->allOltSnmp[$oltid]['ip'];
@@ -2497,12 +2539,44 @@ class PONizer {
 
     /**
      * Loads avaliable ONUs from database into private data property
+     * 
+     * @param int $oltId load ONU only for selected OLT
      *
      * @return void
      */
-    protected function loadOnu() {
+    protected function loadOnu($oltId = '') {
+        $fromCache = false;
+
+
+        $oltId = ubRouting::filters($oltId, 'int');
         $query = "SELECT * from `pononu`";
-        $all = simple_queryall($query);
+        if ($oltId) {
+            $query .= " WHERE `oltid`='" . $oltId . "'";
+        }
+
+        if ($this->onuCacheTimeout) {
+            //specific OLT ONU data
+            if ($oltId) {
+                $cachedOnus = $this->cache->get(self::KEY_ONUOLT . $oltId, $this->onuCacheTimeout);
+                if (!empty($cachedOnus)) {
+                    $all = $cachedOnus;
+                    $fromCache = true;
+                }
+            } else {
+                //all OLTs ONU data
+                $cachedOnus = $this->cache->get(self::KEY_ALLONU, $this->onuCacheTimeout);
+                if (!empty($cachedOnus)) {
+                    $all = $cachedOnus;
+                    $fromCache = true;
+                }
+            }
+        }
+
+        if (!$fromCache) {
+            //perform database query if no cached data available
+            $all = simple_queryall($query);
+        }
+
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allOnu[$each['id']] = $each;
@@ -2510,6 +2584,16 @@ class PONizer {
                 $this->onuSerialIdList[$each['serial']] = $each['id'];
                 $this->onuMacOltidList[$each['mac']] = $each['oltid'];
                 $this->onuSerialOltidList[$each['serial']] = $each['oltid'];
+            }
+        }
+
+        //cache requires update
+        if ($this->onuCacheTimeout AND ! $fromCache) {
+            if ($oltId) {
+                $this->cache->set(self::KEY_ONUOLT . $oltId, $all, $this->onuCacheTimeout);
+            } else {
+                //all OLTs ONU data
+                $this->cache->set(self::KEY_ALLONU, $all, $this->onuCacheTimeout);
             }
         }
     }
@@ -2739,6 +2823,49 @@ class PONizer {
     }
 
     /**
+     * Flushes all ONU related cache keys
+     * 
+     * @return void
+     */
+    public function flushOnuCache() {
+        if ($this->onuCacheTimeout) {
+            $this->cache->delete(self::KEY_ALLONU);
+            $allCacheKeys = $this->cache->getAllcache();
+            if (!empty($allCacheKeys)) {
+                foreach ($allCacheKeys as $io => $eachKey) {
+                    if (ispos($eachKey, self::KEY_ONULISTAJ) OR ispos($eachKey, self::KEY_ONUOLT)) {
+                        $cleanKey = str_replace(UbillingCache::CACHE_PREFIX, '', $eachKey);
+                        $this->cache->delete($cleanKey);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Flushes some OLT precached list
+     * 
+     * @param int $oltId
+     * 
+     * @return void
+     */
+    public function flushOnuAjList($oltId) {
+        if ($this->onuCacheTimeout) {
+            if (!empty($oltId)) {
+                $allCacheKeys = $this->cache->getAllcache();
+                if (!empty($allCacheKeys)) {
+                    foreach ($allCacheKeys as $io => $eachKey) {
+                        if (ispos($eachKey, self::KEY_ONULISTAJ . $oltId)) {
+                            $cleanKey = str_replace(UbillingCache::CACHE_PREFIX, '', $eachKey);
+                            $this->cache->delete($cleanKey);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Creates new ONU in database and returns it Id or 0 if action fails
      *
      * @param int $onumodelid
@@ -2778,6 +2905,7 @@ class PONizer {
                 log_register('PON MACINVALID TRY `' . $macRaw . '`');
             }
         }
+        $this->flushOnuCache();
         return ($result);
     }
 
@@ -2828,6 +2956,7 @@ class PONizer {
         simple_update_field('pononu', 'serial', $serial, $where);
         simple_update_field('pononu', 'login', $login, $where);
         log_register('PON EDIT ONU [' . $onuId . '] MAC `' . $mac . '`');
+        $this->flushOnuCache();
     }
 
     /**
@@ -2843,6 +2972,7 @@ class PONizer {
         if (isset($this->allOnu[$onuid])) {
             simple_update_field('pononu', 'login', $login, "WHERE `id`='" . $onuid . "'");
             log_register('PON ASSIGN ONU [' . $onuid . '] WITH (' . $login . ')');
+            $this->flushOnuCache();
         } else {
             log_register('PON ASSIGN ONU [' . $onuid . '] FAILED');
         }
@@ -2858,6 +2988,7 @@ class PONizer {
         $query = "DELETE from `pononu` WHERE `id`='" . $onuId . "';";
         nr_query($query);
         log_register('PON DELETE ONU [' . $onuId . ']');
+        $this->flushOnuCache();
     }
 
     /**
@@ -2905,6 +3036,7 @@ class PONizer {
             $messages = new UbillingMessageHelper();
             $result .= $messages->getStyledMessage(__('Any available OLT devices exist'), 'error');
         }
+
         return ($result);
     }
 
@@ -3310,6 +3442,7 @@ class PONizer {
         if (isset($this->allOnu[$onuId])) {
             simple_update_field('pononu', 'login', 'dead', "WHERE `id`='" . $onuId . "'");
             log_register('PON BURIAL ONU [' . $onuId . ']');
+            $this->flushOnuCache();
         } else {
             log_register('PON BURIAL ONU [' . $onuId . '] FAILED');
         }
@@ -3810,6 +3943,9 @@ class PONizer {
         $columns[] = 'Tariff';
         $columns[] = 'Actions';
         $opts = '"order": [[ 0, "desc" ]]';
+        if ($this->deferredLoadingFlag) {
+            $opts .= ', "deferLoading": 100';
+        }
 
         $result = '';
         $tabClickScript = '';
@@ -4664,189 +4800,210 @@ class PONizer {
         $allAddress = zb_AddressGetFulladdresslistCached();
         $allTariffs = zb_TariffsGetAllUsers();
         $burialEnabled = @$this->altCfg['ONU_BURIAL_ENABLED'];
+        $noSignalLabel = __('No');
+        $fromCache = false;
 
-        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
-            $adcomments = new ADcomments('PONONU');
-            $adc = true;
-        } else {
-            $adc = false;
+        //try to get all data from cache
+        if ($this->onuCacheTimeout) {
+            $ajData = $this->cache->get(self::KEY_ONULISTAJ . $OltId, $this->onuCacheTimeout);
+            if (!empty($ajData)) {
+                $fromCache = true;
+            }
         }
 
-        $this->loadSignalsCache();
 
-        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-        if (!empty($distCacheAvail)) {
-            $distCacheAvail = true;
-            $this->loadDistanceCache();
-        } else {
-            $distCacheAvail = false;
-        }
+        if (!$fromCache) {
+            if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('PONONU');
+                $adc = true;
+            } else {
+                $adc = false;
+            }
 
-        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
-        if (!empty($intCacheAvail)) {
-            $intCacheAvail = true;
-            $this->loadInterfaceCache();
-        } else {
-            $intCacheAvail = false;
-        }
+            $this->loadSignalsCache();
 
-        $intDescrCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTDESCRCACHE_EXT);
-        $curOLTIfaceDescrs = array();
-        if (!empty($intDescrCacheAvail)) {
-            $this->loadPONIfaceDescrCache();
+            $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+            if (!empty($distCacheAvail)) {
+                $distCacheAvail = true;
+                $this->loadDistanceCache();
+            } else {
+                $distCacheAvail = false;
+            }
 
-            if (!empty($this->ponIfaceDescrCache[$OltId])) {
-                $intDescrCacheAvail = true;
-                $curOLTIfaceDescrs = $this->ponIfaceDescrCache[$OltId];
+            $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+            if (!empty($intCacheAvail)) {
+                $intCacheAvail = true;
+                $this->loadInterfaceCache();
+            } else {
+                $intCacheAvail = false;
+            }
+
+            $intDescrCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTDESCRCACHE_EXT);
+            $curOLTIfaceDescrs = array();
+            if (!empty($intDescrCacheAvail)) {
+                $this->loadPONIfaceDescrCache();
+
+                if (!empty($this->ponIfaceDescrCache[$OltId])) {
+                    $intDescrCacheAvail = true;
+                    $curOLTIfaceDescrs = $this->ponIfaceDescrCache[$OltId];
+                } else {
+                    $intDescrCacheAvail = false;
+                }
             } else {
                 $intDescrCacheAvail = false;
             }
-        } else {
-            $intDescrCacheAvail = false;
-        }
 
-        $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
-        if (!empty($lastDeregCacheAvail)) {
-            $lastDeregCacheAvail = true;
-            $this->loadLastDeregCache();
-        } else {
-            $lastDeregCacheAvail = false;
-        }
+            $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
+            if (!empty($lastDeregCacheAvail)) {
+                $lastDeregCacheAvail = true;
+                $this->loadLastDeregCache();
+            } else {
+                $lastDeregCacheAvail = false;
+            }
 
-        if (!empty($OnuByOLT)) {
-            foreach ($OnuByOLT as $io => $each) {
-                $renderThisOnu = true;
-                //not show buried ONUs
-                if ($burialEnabled) {
-                    if ($each['login'] == 'dead') {
-                        $renderThisOnu = false;
-                    }
-                }
-
-                if ($renderThisOnu) {
-                    $userTariff = '';
-                    $ONUIsOffline = false;
-
-                    if (!empty($each['login'])) {
-                        $userLogin = trim($each['login']);
-                        if (isset($allAddress[$userLogin])) {
-                            $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $allAddress[$userLogin], false);
-                        } else {
-                            $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(), false) . ' ' . $userLogin;
+            if (!empty($OnuByOLT)) {
+                foreach ($OnuByOLT as $io => $each) {
+                    $renderThisOnu = true;
+                    //not show buried ONUs
+                    if ($burialEnabled) {
+                        if ($each['login'] == 'dead') {
+                            $renderThisOnu = false;
                         }
+                    }
 
-                        @$userRealName = $allRealnames[$userLogin];
+                    if ($renderThisOnu) {
+                        $userTariff = '';
+                        $ONUIsOffline = false;
+
+                        if (!empty($each['login'])) {
+                            $userLogin = trim($each['login']);
+                            if (isset($allAddress[$userLogin])) {
+                                $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $allAddress[$userLogin], false);
+                            } else {
+                                $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(), false) . ' ' . $userLogin;
+                            }
+
+                            @$userRealName = $allRealnames[$userLogin];
 
 //tariff data
-                        if (isset($allTariffs[$userLogin])) {
-                            $userTariff = $allTariffs[$userLogin];
+                            if (isset($allTariffs[$userLogin])) {
+                                $userTariff = $allTariffs[$userLogin];
+                            }
+                        } else {
+                            $userLink = '';
+                            $userRealName = '';
                         }
-                    } else {
-                        $userLink = '';
-                        $userRealName = '';
-                    }
 //checking adcomments availability
-                    if ($adc) {
-                        $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
-                    } else {
-                        $indicatorIcon = '';
-                    }
+                        if ($adc) {
+                            $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
+                        } else {
+                            $indicatorIcon = '';
+                        }
 
-                    $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
-                    $actLinks .= ' ' . $indicatorIcon;
+                        $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
+                        $actLinks .= ' ' . $indicatorIcon;
 
 //coloring signal
-                    if (isset($this->signalCache[$each['mac']])) {
-                        $signal = $this->signalCache[$each['mac']];
-                        if (($signal > 0) or ( $signal < -27)) {
-                            $sigColor = self::COLOR_BAD;
-                        } elseif ($signal > -27 and $signal < -25) {
-                            $sigColor = self::COLOR_AVG;
-                        } else {
-                            $sigColor = self::COLOR_OK;
-                        }
-
-                        if ($signal == self::NO_SIGNAL) {
-                            $ONUIsOffline = true;
-                            $signal = __('No');
-                            $sigColor = self::COLOR_NOSIG;
-                        }
-                    } elseif (isset($this->signalCache[$each['serial']])) {
-                        $signal = $this->signalCache[$each['serial']];
-                        if (($signal > 0) or ( $signal < -27)) {
-                            $sigColor = self::COLOR_BAD;
-                        } elseif ($signal > -27 and $signal < -25) {
-                            $sigColor = self::COLOR_AVG;
-                        } else {
-                            $sigColor = self::COLOR_OK;
-                        }
-
-                        if ($signal == self::NO_SIGNAL) {
-                            $ONUIsOffline = true;
-                            $signal = __('No');
-                            $sigColor = self::COLOR_NOSIG;
-                        }
-                    } else {
-                        $ONUIsOffline = true;
-                        $signal = __('No');
-                        $sigColor = self::COLOR_NOSIG;
-                    }
-
-                    $data[] = $each['id'];
-
-                    if ($intCacheAvail) {
-                        if (isset($this->interfaceCache[$each['mac']])) {
-                            $ponInterface = $this->interfaceCache[$each['mac']];
-                        } else {
-                            if (isset($this->interfaceCache[$each['serial']])) {
-                                $ponInterface = $this->interfaceCache[$each['serial']];
+                        if (isset($this->signalCache[$each['mac']])) {
+                            $signal = $this->signalCache[$each['mac']];
+                            if (($signal > 0) or ( $signal < -27)) {
+                                $sigColor = self::COLOR_BAD;
+                            } elseif ($signal > -27 and $signal < -25) {
+                                $sigColor = self::COLOR_AVG;
                             } else {
-                                $ponInterface = '';
+                                $sigColor = self::COLOR_OK;
+                            }
+
+                            if ($signal == self::NO_SIGNAL) {
+                                $ONUIsOffline = true;
+                                $signal = $noSignalLabel;
+                                $sigColor = self::COLOR_NOSIG;
+                            }
+                        } elseif (isset($this->signalCache[$each['serial']])) {
+                            $signal = $this->signalCache[$each['serial']];
+                            if (($signal > 0) or ( $signal < -27)) {
+                                $sigColor = self::COLOR_BAD;
+                            } elseif ($signal > -27 and $signal < -25) {
+                                $sigColor = self::COLOR_AVG;
+                            } else {
+                                $sigColor = self::COLOR_OK;
+                            }
+
+                            if ($signal == self::NO_SIGNAL) {
+                                $ONUIsOffline = true;
+                                $signal = $noSignalLabel;
+                                $sigColor = self::COLOR_NOSIG;
+                            }
+                        } else {
+                            $ONUIsOffline = true;
+                            $signal = $noSignalLabel;
+                            $sigColor = self::COLOR_NOSIG;
+                        }
+
+                        $data[] = $each['id'];
+
+                        if ($intCacheAvail) {
+                            if (isset($this->interfaceCache[$each['mac']])) {
+                                $ponInterface = $this->interfaceCache[$each['mac']];
+                            } else {
+                                if (isset($this->interfaceCache[$each['serial']])) {
+                                    $ponInterface = $this->interfaceCache[$each['serial']];
+                                } else {
+                                    $ponInterface = '';
+                                }
+                            }
+
+                            $cleanInterface = strstr($ponInterface, ':', true);
+                            $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
+                            $data[] = $oltIfaceDescr . $ponInterface;
+                        }
+
+                        $data[] = $this->getModelName($each['onumodelid']);
+                        $data[] = $each['ip'];
+                        $data[] = $each['mac'];
+                        $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
+
+                        if ($distCacheAvail) {
+                            if (isset($this->distanceCache[$each['mac']])) {
+                                $data[] = $this->distanceCache[$each['mac']];
+                            } else {
+                                if (isset($this->distanceCache[$each['serial']])) {
+                                    $data[] = $this->distanceCache[$each['serial']];
+                                } else {
+                                    $data[] = '';
+                                }
                             }
                         }
 
-                        $cleanInterface = strstr($ponInterface, ':', true);
-                        $oltIfaceDescr = ($this->showPONIfaceDescrMainTab and $intDescrCacheAvail and ! empty($curOLTIfaceDescrs[$cleanInterface])) ? $curOLTIfaceDescrs[$cleanInterface] . ' | ' : '';
-                        $data[] = $oltIfaceDescr . $ponInterface;
-                    }
-
-                    $data[] = $this->getModelName($each['onumodelid']);
-                    $data[] = $each['ip'];
-                    $data[] = $each['mac'];
-                    $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
-
-                    if ($distCacheAvail) {
-                        if (isset($this->distanceCache[$each['mac']])) {
-                            $data[] = $this->distanceCache[$each['mac']];
-                        } else {
-                            if (isset($this->distanceCache[$each['serial']])) {
-                                $data[] = $this->distanceCache[$each['serial']];
+                        if ($lastDeregCacheAvail) {
+                            if ($ONUIsOffline) {
+                                $data[] = @$this->lastDeregCache[$each['mac']];
                             } else {
                                 $data[] = '';
                             }
                         }
+
+                        $data[] = $userLink;
+                        $data[] = $userRealName;
+                        $data[] = $userTariff;
+                        $data[] = $actLinks;
+
+                        $json->addRow($data);
+                        unset($data);
                     }
-
-                    if ($lastDeregCacheAvail) {
-                        if ($ONUIsOffline) {
-                            $data[] = @$this->lastDeregCache[$each['mac']];
-                        } else {
-                            $data[] = '';
-                        }
-                    }
-
-                    $data[] = $userLink;
-                    $data[] = $userRealName;
-                    $data[] = $userTariff;
-                    $data[] = $actLinks;
-
-                    $json->addRow($data);
-                    unset($data);
                 }
+            }
+
+            //extract json data
+            $ajData = $json->extractJson();
+
+            //update cache if required
+            if ($this->onuCacheTimeout and ! $fromCache) {
+                $this->cache->set(self::KEY_ONULISTAJ . $OltId, $ajData, $this->onuCacheTimeout);
             }
         }
 
-        $json->getJson();
+        die($ajData);
     }
 
     /**

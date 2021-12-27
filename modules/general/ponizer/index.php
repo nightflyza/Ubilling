@@ -17,7 +17,13 @@ if ($altCfg['PON_ENABLED']) {
         if ($legacyPonizerView) {
             $pon = new PONizerLegacy();
         } else {
-            $pon = new PONizer();
+            $oltLoadData = '';
+
+            if (ubRouting::checkGet(array('ajaxonu', 'oltid'))) {
+                //load only selected OLTs data on ONU list rendering
+                $oltLoadData = ubRouting::get('oltid');
+            }
+            $pon = new PONizer($oltLoadData);
         }
 
         //getting ONU json data for list
