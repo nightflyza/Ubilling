@@ -7,7 +7,7 @@
 class tsmshttp extends SendDogProto {
 
     /**
-     * Sucess sending codes list
+     * Sucess message sending codes list
      *
      * @var array
      */
@@ -17,6 +17,11 @@ class tsmshttp extends SendDogProto {
         802 => 'SUCCESS_MESSAGE_PARTIAL_ACCEPTED',
         803 => 'SUCCESS_MESSAGE_PARTIAL_SENT'
     );
+
+    /**
+     * Default HTTP API URL
+     */
+    const URL_API_DEFAULT = 'https://api.turbosms.ua/';
 
     /**
      * Defines default log path
@@ -138,7 +143,7 @@ class tsmshttp extends SendDogProto {
         }
 
         $result .= wf_delimiter();
-        $result .= wf_BackLink('?module=senddog');
+        $result .= wf_BackLink(self::URL_ME);
         return($result);
     }
 
@@ -166,7 +171,7 @@ class tsmshttp extends SendDogProto {
     public function loadConfig() {
         $smsgateway = zb_StorageGet('SENDDOG_TSMSHTTP_GATEWAY');
         if (empty($smsgateway)) {
-            $smsgateway = 'https://api.turbosms.ua/';
+            $smsgateway = self::URL_API_DEFAULT;
             zb_StorageSet('SENDDOG_TSMSHTTP_GATEWAY', $smsgateway);
         }
 
