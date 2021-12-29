@@ -64,6 +64,7 @@ class FundsFlow {
     protected $colorCorrecting = 'ff6600';
     protected $colorMock = '006699';
     protected $colorSet = '000000';
+    protected $colorCreditViolet = '552c82';
 
     /**
      * Creates new FundsFlow instance
@@ -414,7 +415,8 @@ class FundsFlow {
 
                 //Self crediting fees
                 if (ispos($each['note'], 'SCFEE')) {
-                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $creditColor = (@$this->alterConf['CREDIT_EVERGARDEN']) ? $this->colorCreditViolet : $this->colorAdditionalFee;
+                    $fc = wf_tag('font', false, '', 'color="#' . $creditColor . '"');
                     $operation = __('Service') . ' ' . __('credit');
                 }
 
@@ -533,6 +535,9 @@ class FundsFlow {
             $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorCorrecting . '"') . __('Correct saldo') . $efc);
             $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorMock . '"') . __('Mock payment') . $efc);
             $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorSet . '"') . __('Set cash') . $efc);
+            if (@$this->alterConf['CREDIT_EVERGARDEN']) {
+                $legendcells .= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorCreditViolet . '"') . __('Credit') . $efc);
+            }
             $legendrows = wf_TableRow($legendcells, 'row3');
 
             $legend = wf_TableBody($legendrows, '60%', 0, 'glamour');
