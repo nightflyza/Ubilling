@@ -705,8 +705,9 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
 function sm_ShowMapContainer() {
     $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
     $container .= wf_tag('div', true);
+    $controls = '';
     if (cfr('USERSMAP')) {
-        $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+        $controls .= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
     }
     $controls .= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
     if (cfr('SWITCHESEDIT')) {
