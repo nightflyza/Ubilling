@@ -34,6 +34,13 @@ class TasksMap {
     protected $showMonth = '';
 
     /**
+     * Contains selected jobtype to show or empty for all jobs
+     *
+     * @var int/void
+     */
+    protected $showJobType = '';
+
+    /**
      * Contains default tasks data source table
      *
      * @var string
@@ -79,7 +86,7 @@ class TasksMap {
      * Creates new report instance
      */
     public function __construct() {
-        $this->setDateData();
+        $this->setFiltersData();
         $this->initMessages();
         $this->loadMapsConfig();
         $this->loadUsers();
@@ -130,17 +137,21 @@ class TasksMap {
      * 
      * @return void
      */
-    protected function setDateData() {
-        if (wf_CheckPost(array('showyear'))) {
-            $this->showYear = vf($_POST['showyear'], 3);
+    protected function setFiltersData() {
+        if (ubRouting::checkPost('showyear')) {
+            $this->showYear = ubRouting::post('showyear', 'int');
         } else {
             $this->showYear = curyear();
         }
 
-        if (wf_CheckPost(array('showmonth'))) {
-            $this->showMonth = vf($_POST['showmonth'], 3);
+        if (ubRouting::checkPost('showmonth')) {
+            $this->showMonth = ubRouting::post('showmonth', 'int');
         } else {
             $this->showMonth = date('m');
+        }
+
+        if (ubRouting::checkPost('showjobtype')) {
+            $this->showJobType = ubRouting::post('showjobtype', 'int');
         }
     }
 
@@ -151,7 +162,9 @@ class TasksMap {
      */
     protected function getPlannedTasks() {
         $monthFilter = ($this->showMonth != '1488') ? $this->showMonth : '';
-        $query = "SELECT * from `" . $this->dataTable . "` WHERE `startdate` LIKE '" . $this->showYear . "-" . $monthFilter . "%'";
+        $jobTypeFilter = ($this->showJobType) ? " AND `jobtype`='" . $this->showJobType . "'" : '';
+
+        $query = "SELECT * from `" . $this->dataTable . "` WHERE `startdate` LIKE '" . $this->showYear . "-" . $monthFilter . "%'" . $jobTypeFilter;
         $result = simple_queryall($query);
         return ($result);
     }
@@ -229,10 +242,13 @@ class TasksMap {
      * 
      * @return string
      */
-    public function renderDateForm() {
+    public function renderFiltersForm() {
         $result = '';
         $inputs = wf_YearSelectorPreset('showyear', __('Year'), false, $this->showYear) . ' ';
         $inputs .= wf_MonthSelector('showmonth', __('Month'), $this->showMonth, false, true) . ' ';
+        $jobTypes = array('' => __('Any'));
+        $jobTypes += $this->allJobTypes;
+        $inputs .= wf_Selector('showjobtype', $jobTypes, __('Job type'), $this->showJobType, false) . ' ';
         $inputs .= wf_Submit(__('Show'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
