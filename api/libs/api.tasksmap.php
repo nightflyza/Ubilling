@@ -83,11 +83,19 @@ class TasksMap {
     protected $messages = '';
 
     /**
+     * Tasks source database abstraction layer pleceholder
+     *
+     * @var object
+     */
+    protected $tasksDb = '';
+
+    /**
      * Creates new report instance
      */
     public function __construct() {
         $this->setFiltersData();
         $this->initMessages();
+        $this->initDatasource();
         $this->loadMapsConfig();
         $this->loadUsers();
         $this->loadJobTypes();
@@ -121,6 +129,15 @@ class TasksMap {
      */
     protected function loadJobTypes() {
         $this->allJobTypes = ts_GetAllJobtypes();
+    }
+
+    /**
+     * Inits data source database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initDatasource() {
+        $this->tasksDb = new NyanORM($this->dataTable);
     }
 
     /**
@@ -162,10 +179,12 @@ class TasksMap {
      */
     protected function getPlannedTasks() {
         $monthFilter = ($this->showMonth != '1488') ? $this->showMonth : '';
-        $jobTypeFilter = ($this->showJobType) ? " AND `jobtype`='" . $this->showJobType . "'" : '';
+        $this->tasksDb->where('startdate', 'LIKE', $this->showYear . "-" . $monthFilter . "%");
+        if ($this->showJobType) {
+            $this->tasksDb->where('jobtype', '=', $this->showJobType);
+        }
+        $result = $this->tasksDb->getAll();
 
-        $query = "SELECT * from `" . $this->dataTable . "` WHERE `startdate` LIKE '" . $this->showYear . "-" . $monthFilter . "%'" . $jobTypeFilter;
-        $result = simple_queryall($query);
         return ($result);
     }
 
@@ -175,8 +194,8 @@ class TasksMap {
      * @return array
      */
     public function getTodayTasks() {
-        $query = "SELECT * from `" . $this->dataTable . "` WHERE `startdate` LIKE '" . curdate() . "%'";
-        $result = simple_queryall($query);
+        $this->tasksDb->where('startdate', 'LIKE', curdate() . '%');
+        $result = $this->tasksDb->getAll();
         return($result);
     }
 
