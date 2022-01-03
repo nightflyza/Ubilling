@@ -61,7 +61,6 @@ DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
 CEMETERY_ENABLED=TRIGGER|Funeral service enabled
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
-PHONEBOOK_ENABLED=TRIGGER|Phonebook enabled
 CHAPTEREND_LOOK=true
 
 
@@ -217,7 +216,6 @@ CUSTMAP_ENABLED=TRIGGER|Custom maps enabled
 FREERADIUS_ENABLED=TRIGGER|Support of Free Radius is enabled
 MULTIGEN_ENABLED=TRIGGER|Multigen support is enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
-CRM_MODE=TRIGGER|Advanced customer relationship management
 UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds
 DEVCON_SQL_KEEP=TRIGGER|Query remains in SQL console after exec
 DEVCON_VERBOSE_DEBUG=TRIGGER|Verbose debug data in developers console
@@ -312,9 +310,7 @@ CHAPTEREND_BEH=true
 
 
 CHAPTER_OTHD=Miscellaneous
-CATV_ENABLED=TRIGGER|CaTV accounting support
-CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
-CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
+PHONEBOOK_ENABLED=TRIGGER|Phonebook enabled
 CHAPTEREND_OTHD=true
 
 

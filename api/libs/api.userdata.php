@@ -1349,3 +1349,373 @@ function zb_UserIsActive($userData) {
     }
     return ($result);
 }
+
+/**
+ * Creates contract date with some contract 
+ *  
+ *  @param $contract - existing contract 
+ *  @param $date - contract creation date in datetime format
+ *  @return void
+ */
+function zb_UserContractDateCreate($contract, $date) {
+    $contract = mysql_real_escape_string($contract);
+    $date = mysql_real_escape_string($date);
+    $query = "INSERT INTO `contractdates` (
+                        `id` ,
+                        `contract` ,
+                        `date`
+                        )
+                        VALUES (
+                        NULL , '" . $contract . "', '" . $date . "'
+                        );";
+    nr_query($query);
+    log_register("CREATE UserContractDate [" . $contract . "] " . $date);
+}
+
+/**
+ * Get all of existing contract dates
+ * 
+ *  @return array
+ */
+function zb_UserContractDatesGetAll($contract = '') {
+    $query_wh = (!empty($contract)) ? " WHERE `contractdates`.`contract` = '" . $contract . "'" : "";
+    $query = "SELECT * from `contractdates`" . $query_wh;
+    $all = simple_queryall($query);
+    $result = array();
+
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['contract']] = $each['date'];
+        }
+    }
+    return ($result);
+}
+
+/**
+ *  Set contract date with some contract 
+ *  
+ *  @param $contract - existing contract 
+ *  @param $date - contract creation date in datetime format
+ *  @return void
+ */
+function zb_UserContractDateSet($contract, $date) {
+    $contract = mysql_real_escape_string($contract);
+    $date = mysql_real_escape_string($date);
+    $query = "UPDATE `contractdates` SET `date`='" . $date . "' WHERE `contract`='" . $contract . "'";
+    nr_query($query);
+    log_register("CHANGE UserContractDate [" . $contract . "] " . $date);
+}
+
+/**
+ * Shows contract create date modify form
+ * 
+ * @return string
+ */
+function web_UserContractDateChangeForm($contract, $date = '') {
+    if (!empty($date)) {
+        $inputs = wf_DatePickerPreset('newcontractdate', $date);
+    } else {
+        $inputs = wf_DatePicker('newcontractdate');
+    }
+
+    $cells = wf_TableCell(__('Current date'), '', 'row2');
+    $cells .= wf_TableCell($date, '', 'row3');
+    $rows = wf_tablerow($cells);
+    $cells = wf_TableCell(__('New date'), '', 'row2');
+    $cells .= wf_TableCell($inputs, '', 'row3');
+    $rows .= wf_tablerow($cells);
+    $form = wf_TableBody($rows, '100%', 0);
+    $form .= wf_Submit('Save');
+
+    $result = wf_Form("", 'POST', $form, '');
+    return ($result);
+}
+
+/**
+ * Create users passport data struct
+ * 
+ * @param    $login - user login
+ * @param    $birthdate - user date of birth
+ * @param    $passportnum - passport number
+ * @param    $passportdate - passport assign date
+ * @param    $passportwho - who produce the passport?
+ * @param    $pcity - additional address city
+ * @param    $pstreet - additional address street
+ * @param    $pbuild - additional address build
+ * @param    $papt - additional address apartment
+ * @param    $pinn - additional Identification code
+ * 
+ * @return void
+ */
+function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn = '') {
+    $login = mysql_real_escape_string($login);
+    $birthdate = mysql_real_escape_string($birthdate);
+    $passportnum = mysql_real_escape_string($passportnum);
+    $passportdate = mysql_real_escape_string($passportdate);
+    $passportwho = mysql_real_escape_string($passportwho);
+    $pcity = mysql_real_escape_string($pcity);
+    $pstreet = mysql_real_escape_string($pstreet);
+    $pbuild = mysql_real_escape_string($pbuild);
+    $papt = mysql_real_escape_string($papt);
+    $pinn = mysql_real_escape_string($pinn);
+
+    $query = "
+        INSERT INTO `passportdata` (
+                    `id` ,
+                    `login` ,
+                    `birthdate` ,
+                    `passportnum` ,
+                    `passportdate` ,
+                    `passportwho` ,
+                    `pcity` ,
+                    `pstreet` ,
+                    `pbuild` ,
+                    `papt`,
+                    `pinn` 
+                    )
+                    VALUES (
+                    NULL ,
+                    '" . $login . "',
+                    '" . $birthdate . "',
+                    '" . $passportnum . "',
+                    '" . $passportdate . "',
+                    '" . $passportwho . "',
+                    '" . $pcity . "',
+                    '" . $pstreet . "',
+                    '" . $pbuild . "',
+                    '" . $papt . "',
+                    '" . $pinn . "'
+                                );
+        ";
+    nr_query($query);
+    log_register("CREATE UserPassportData (" . $login . ")");
+}
+
+/**
+ * Update users passport data 
+ * 
+ * @param    $login - user login
+ * @param    $birthdate - user date of birth
+ * @param    $passportnum - passport number
+ * @param    $passportdate - passport assign date
+ * @param    $passportwho - who produce the passport?
+ * @param    $pcity - additional address city
+ * @param    $pstreet - additional address street
+ * @param    $pbuild - additional address build
+ * @param    $papt - additional address apartment
+ * @param    $pinn - Personal identification code
+ * 
+ * @return void
+ */
+function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn = '') {
+    $login = mysql_real_escape_string($login);
+    $birthdate = mysql_real_escape_string($birthdate);
+    $passportnum = mysql_real_escape_string($passportnum);
+    $passportdate = mysql_real_escape_string($passportdate);
+    $passportwho = mysql_real_escape_string($passportwho);
+    $pcity = mysql_real_escape_string($pcity);
+    $pstreet = mysql_real_escape_string($pstreet);
+    $pbuild = mysql_real_escape_string($pbuild);
+    $papt = mysql_real_escape_string($papt);
+    $pinn = mysql_real_escape_string($pinn);
+
+    $query = "
+        UPDATE `passportdata` SET
+                    `birthdate` = '" . $birthdate . "',
+                    `passportnum` = '" . $passportnum . "',
+                    `passportdate` = '" . $passportdate . "',
+                    `passportwho` = '" . $passportwho . "',
+                    `pcity` = '" . $pcity . "',
+                    `pstreet` = '" . $pstreet . "',
+                    `pbuild` = '" . $pbuild . "',
+                    `papt` = '" . $papt . "',
+                    `pinn` = '" . $pinn . "'
+                     WHERE `login`='" . $login . "'
+        ";
+    nr_query($query);
+    log_register("CHANGE UserPassportData (" . $login . ")");
+}
+
+/**
+ * Gets user passport data
+ * 
+ * @param $login - user login
+ * 
+ * @return array
+ */
+function zb_UserPassportDataGet($login) {
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT * from `passportdata` WHERE `login`='" . $login . "'";
+    $passportdata = simple_query($query);
+    $result = array();
+    if (!empty($passportdata)) {
+        $result = $passportdata;
+    }
+    return ($result);
+}
+
+/**
+ * Get passportdata for all users
+ * 
+ * @return array
+ */
+function zb_UserPassportDataGetAll() {
+    $query = "SELECT * from `passportdata`";
+    $all = simple_queryall($query);
+    $result = array();
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['login']]['login'] = $each['login'];
+            $result[$each['login']]['birthdate'] = $each['birthdate'];
+            $result[$each['login']]['passportnum'] = $each['passportnum'];
+            $result[$each['login']]['passportdate'] = $each['passportdate'];
+            $result[$each['login']]['passportwho'] = $each['passportwho'];
+            $result[$each['login']]['pcity'] = $each['pcity'];
+            $result[$each['login']]['pstreet'] = $each['pstreet'];
+            $result[$each['login']]['pbuild'] = $each['pbuild'];
+            $result[$each['login']]['papt'] = $each['papt'];
+            $result[$each['login']]['pinn'] = $each['pinn'];
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Detect user passport data existance and modify it - USE ONLY THIS IN CODE!
+ * 
+ * @param    $login - user login
+ * @param    $birthdate - user date of birth
+ * @param    $passportnum - passport number
+ * @param    $passportdate - passport assign date
+ * @param    $passportwho - who produce the passport?
+ * @param    $pcity - additional address city
+ * @param    $pstreet - additional address street
+ * @param    $pbuild - additional address build
+ * @param    $papt - additional address apartment
+ * @param    $pinn - Personal identification code
+ * 
+ * @return void
+ */
+function zb_UserPassportDataChange($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn = '') {
+    $exist_q = "SELECT `id` from `passportdata` WHERE `login`='" . mysql_real_escape_string($login) . "'";
+    $exist = simple_query($exist_q);
+    if (!empty($exist)) {
+        // data for this user already exists, just - modify
+        zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn);
+    } else {
+        //create new
+        zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt, $pinn);
+    }
+}
+
+/**
+ * Returns users passport data 
+ * 
+ * @param string $login
+ * @return string
+ */
+function web_UserPassportDataShow($login) {
+    $login = mysql_real_escape_string($login);
+    $passportdata = zb_UserPassportDataGet($login);
+    if (!empty($passportdata)) {
+        $cells = wf_TableCell(__('Birth date'));
+        $cells .= wf_TableCell($passportdata['birthdate']);
+        $rows = wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Passport number'));
+        $cells .= wf_TableCell($passportdata['passportnum']);
+        $rows .= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Issuing authority'));
+        $cells .= wf_TableCell($passportdata['passportwho']);
+        $rows .= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Date of issue'));
+        $cells .= wf_TableCell($passportdata['passportdate']);
+        $rows .= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Identification code'));
+        $cells .= wf_TableCell($passportdata['pinn']);
+        $rows .= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Registration address'));
+        $cells .= wf_TableCell($passportdata['pcity'] . ' ' . $passportdata['pstreet'] . ' ' . $passportdata['pbuild'] . '/' . $passportdata['papt']);
+        $rows .= wf_TableRow($cells, 'row3');
+
+        $result = wf_TableBody($rows, '100%', '0');
+    } else {
+        $result = __('User passport data is empty') . ' ' . __('You can fill them with the appropriate module');
+    }
+
+    if (cfr('PDATA')) {
+        $result .= wf_delimiter();
+        $result .= wf_Link("?module=pdataedit&username=" . $login, web_edit_icon() . ' ' . __('Edit') . ' ' . __('passport data'), false, 'ubButton');
+    }
+    return ($result);
+}
+
+/**
+ * Passport data editing form
+ * 
+ * @param $login - user login
+ * @param $passportdata - user passport data array
+ * 
+ * @return void
+ * 
+ */
+function web_PassportDataEditFormshow($login, $passportdata) {
+    $alladdress = zb_AddressGetFulladdresslist();
+    @$useraddress = $alladdress[$login];
+
+    //extracting passport data
+    if (!empty($passportdata)) {
+        $birthdate = $passportdata['birthdate'];
+        $passportnum = $passportdata['passportnum'];
+        $passportdate = $passportdata['passportdate'];
+        $passportwho = $passportdata['passportwho'];
+        $pcity = $passportdata['pcity'];
+        $pstreet = $passportdata['pstreet'];
+        $pbuild = $passportdata['pbuild'];
+        $papt = $passportdata['papt'];
+        $pinn = $passportdata['pinn'];
+    } else {
+        $birthdate = '';
+        $passportnum = '';
+        $passportdate = '';
+        $passportwho = '';
+        $pcity = '';
+        $pstreet = '';
+        $pbuild = '';
+        $papt = '';
+        $pinn = '';
+    }
+
+    //form construction
+    $inputs = wf_tag('h3') . __('Passport data') . wf_tag('h3', true);
+    $inputs .= wf_DatePickerPreset('editbirthdate', $birthdate, true);
+    $inputs .= __('Birth date');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('editpassportnum', __('Passport number'), $passportnum, false, '35');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('editpassportwho', __('Issuing authority'), $passportwho, false, '35');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_DatePickerPreset('editpassportdate', $passportdate, true);
+    $inputs .= __('Date of issue');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('editpinn', __('Identification code'), $pinn, false, '10');
+    $inputs .= wf_delimiter();
+
+    $inputs .= wf_tag('h3') . __('Registration address') . wf_tag('h3', true);
+    $inputs .= wf_TextInput('editpcity', __('City'), $pcity, false, '20');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('editpstreet', __('Street'), $pstreet, false, '20');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('editpbuild', __('Build'), $pbuild, false, '5');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_TextInput('editpapt', __('Apartment'), $papt, false, '5');
+    $inputs .= wf_delimiter();
+    $inputs .= wf_Submit(__('Save'));
+
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
+    show_window(__('Edit') . ' ' . __('passport data') . ' ' . $useraddress, $form);
+}

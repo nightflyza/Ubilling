@@ -61,13 +61,7 @@ if (cfr('USEREDIT')) {
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row2');
 
-            //express card
-            if ($alter_conf['CRM_MODE']) {
-                $cells = wf_TableCell(__('Express card'));
-                $cells .= wf_TableCell('');
-                $cells .= wf_TableCell(wf_Link('?module=expresscard&username=' . $login, wf_img('skins/express.gif') . ' ' . __('Edit')));
-                $rows .= wf_TableRow($cells, 'row3');
-            }
+
 
             //default fields editing
             $cells = wf_TableCell(__('Full address'));
@@ -243,4 +237,3 @@ if (cfr('USEREDIT')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>

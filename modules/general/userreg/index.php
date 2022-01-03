@@ -132,9 +132,7 @@ if (cfr('USERREG')) {
     }
 
 
-    if ($alter_conf['CRM_MODE']) {
-        show_window('', wf_Link("?module=expressuserreg", __('Express registration'), false, 'ubButton'));
-    }
+
     if (wf_CheckGet(array('branchesback'))) {
         show_window('', wf_BackLink('?module=branches&userlist=true'));
     }

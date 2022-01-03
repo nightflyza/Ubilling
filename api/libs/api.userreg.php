@@ -1184,5 +1184,3 @@ function zb_UserRegister($user_data, $goprofile = true) {
         rcms_redirect("?module=userprofile&username=" . $login . '&justregistered=true');
     }
 }
-
-?>
