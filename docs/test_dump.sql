@@ -593,78 +593,7 @@ CREATE TABLE IF NOT EXISTS `ticketing` (
 
 -- 0.2.3 update
 
-CREATE TABLE `catv_tariffs` (
-`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-`name` VARCHAR( 255 ) NOT NULL ,
-`price` FLOAT NOT NULL ,
-`chans` INT NULL
-) ENGINE = MYISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-
-CREATE TABLE IF NOT EXISTS `catv_users` (
-  `id` int(11) NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-  `contract` varchar(255) default NULL,
-  `realname` varchar(255) default NULL,
-  `street` varchar(255) default NULL,
-  `build` varchar(15) default NULL,
-  `apt` varchar(15) default NULL,
-  `phone` varchar(255) default NULL,
-  `tariff` int(11) default NULL,
-  `tariff_nm` int(11) default NULL,
-  `cash` float NOT NULL,
-  `discount` float default NULL,
-  `notes` varchar(255) default NULL,
-  `decoder` int(11) default NULL,
-  `inetlink` varchar(255) default NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
-
-CREATE TABLE `catv_payments` (
-`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-`date` DATETIME NOT NULL ,
-`userid` INT NOT NULL ,
-`summ` FLOAT NOT NULL ,
-`from_month` INT NOT NULL ,
-`from_year` INT NOT NULL ,
-`to_month` INT NOT NULL ,
-`to_year` INT NOT NULL ,
-`notes` VARCHAR( 255 ) NULL ,
-`admin` VARCHAR( 255 ) NULL
-) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `catv_fees` (
-`id` INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-`date` DATETIME NOT NULL ,
-`userid` INT NOT NULL ,
-`summ` FLOAT NOT NULL ,
-`balance` FLOAT NULL ,
-`month` INT NOT NULL ,
-`year` INT NOT NULL ,
-`admin` VARCHAR( 255 )  NULL
-) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `catv_activity` (
-`id` INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-`userid` INT NOT NULL ,
-`state` TINYINT NOT NULL ,
-`date` DATETIME NOT NULL ,
-`admin` VARCHAR( 255 ) NULL
-) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `catv_signups` (
-`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-`date` DATETIME NOT NULL ,
-`userid` INT NOT NULL ,
-`admin` VARCHAR ( 255 ) NULL
-) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
-
-CREATE TABLE `catv_decoders` (
-`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-`date` DATETIME NOT NULL ,
-`userid` INT NOT NULL ,
-`decoder` VARCHAR( 255 ) NOT NULL
-) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
-
+-- catv_* tables was here. Deprecated.
 
 -- 0.2.4 update
 
@@ -760,26 +689,6 @@ ALTER TABLE `taskman` CHANGE `donenote` `donenote` TEXT CHARACTER SET utf8 COLLA
 ALTER TABLE `taskman` ADD `status` INT NOT NULL , ADD INDEX ( STATUS );
 
 
-CREATE TABLE `catv_bankstaraw` (
-`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-`filename` VARCHAR( 255 ) NOT NULL ,
-`rawdata` TEXT NOT NULL
-) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
-
-
-CREATE TABLE IF NOT EXISTS `catv_bankstaparsed` (
-  `id` int(11) NOT NULL auto_increment,
-  `hash` varchar(255) NOT NULL,
-  `date` datetime NOT NULL,
-  `row` int(11) NOT NULL,
-  `realname` varchar(255) NOT NULL,
-  `address` varchar(255) NOT NULL,
-   `summ` float NOT NULL,
-  `state` int(11) NOT NULL,
-  `login` varchar(255) NOT NULL,
-  PRIMARY KEY  (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
-
 -- 0.3.1 update
 
 CREATE TABLE `uhw_log` (
@@ -854,21 +763,6 @@ INDEX ( `date` , `timestamp` )
 ) ENGINE = MYISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 -- 0.3.7 update
-
-CREATE TABLE IF NOT EXISTS `catv_paymentscorr` (
-  `id` int(11) NOT NULL auto_increment,
-  `date` datetime NOT NULL,
-  `userid` int(11) NOT NULL,
-  `summ` float NOT NULL,
-  `from_month` int(11) NOT NULL,
-  `from_year` int(11) NOT NULL,
-  `to_month` int(11) NOT NULL,
-  `to_year` int(11) NOT NULL,
-  `notes` varchar(255) default NULL,
-  `admin` varchar(255) default NULL,
-  PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
 
 CREATE TABLE IF NOT EXISTS `ub_im` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
