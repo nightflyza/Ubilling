@@ -1,25 +1,25 @@
 <?php
 
 if (cfr('EMPLOYEE')) {
-    if (isset($_GET['username'])) {
-        $username = $_GET['username'];
+    if (ubRouting::checkGet('username')) {
+        $username = ubRouting::get('username');
 
-        if (isset($_POST['addjob'])) {
-            $date = $_POST['jobdate'];
-            $worker_id = $_POST['worker'];
-            $jobtype_id = $_POST['jobtype'];
-            $job_notes = $_POST['notes'];
+        if (ubRouting::checkPost('addjob')) {
+            $date = ubRouting::post('jobdate');
+            $worker_id = ubRouting::post('worker');
+            $jobtype_id = ubRouting::post('jobtype');
+            $job_notes = ubRouting::post('notes');
             stg_add_new_job($username, $date, $worker_id, $jobtype_id, $job_notes);
-            rcms_redirect("?module=jobs&username=" . $username);
+            ubRouting::nav("?module=jobs&username=" . $username);
         }
 
-        if (isset($_GET['deletejob'])) {
-            stg_delete_job($_GET['deletejob']);
-            rcms_redirect("?module=jobs&username=" . $username);
+        if (ubRouting::checkGet('deletejob')) {
+            stg_delete_job(ubRouting::get('deletejob'));
+            ubRouting::nav("?module=jobs&username=" . $username);
         }
-        //just jobs
+        //just render jobs list
         web_showPreviousJobs($username);
-        
+
         //previous tasks
         if (cfr('TASKMAN')) {
             $previousUserTasks = ts_PreviousUserTasksRender($username, '', true);
@@ -32,6 +32,5 @@ if (cfr('EMPLOYEE')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
 
 

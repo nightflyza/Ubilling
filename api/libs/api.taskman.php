@@ -1255,7 +1255,7 @@ function ts_PreviousUserTasksRender($login, $address = '', $noFixedWidth = false
     }
 
     $alljobtypes = ts_GetAllJobtypes();
-    $allemployee = ts_GetActiveEmployee();
+    $allemployee = ts_GetAllEmployee();
     $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
     $rawTasks = simple_queryall($query);
     if (!empty($rawTasks)) {
