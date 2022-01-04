@@ -1890,12 +1890,12 @@ class OnuRegister {
                         $cardType = 'other';
                         $eachOid = trim(str_replace($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'] . '.', '', $eachOid));
                         $eachOid = explode('.', $eachOid);
-						$eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
-						if(isset($snmpTemplate['define']['DEVICE']) AND preg_match('/C610/i', $snmpTemplate['define']['DEVICE'])) {
-							$tablecells = wf_TableCell($eachOid[0]);
-						} else {
-							$tablecells = wf_TableCell($eachOid[2]);
-						}
+                        $eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
+                        if(isset($snmpTemplate['define']['DEVICE']) AND preg_match('/C610/i',$snmpTemplate['define']['DEVICE'])) {
+                            $tablecells = wf_TableCell($eachOid[0]);
+                        } else {
+                            $tablecells = wf_TableCell($eachOid[2]);
+                        }
                         if (isset($this->eponCards[$eachCard])) {
                             $cardType = 'EPON';
                         }
