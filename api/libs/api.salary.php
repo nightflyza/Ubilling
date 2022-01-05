@@ -566,13 +566,13 @@ class Salary {
     /**
      * Sends some notificaton about salary job creation to employee
      * 
-     * @param type $JobId
-     * @param type $taskid
-     * @param type $employeeid
-     * @param type $jobtypeid
-     * @param type $factor
-     * @param type $overprice
-     * @param type $notes
+     * @param int $JobId
+     * @param int $taskid
+     * @param int $employeeid
+     * @param int $jobtypeid
+     * @param float $factor
+     * @param float $overprice
+     * @param string $notes
      * 
      * @return void
      */
@@ -591,13 +591,20 @@ class Salary {
                 $jobPrice = $overprice . ' (' . __('Price override') . ')';
             }
 
-
             $unitType = @$this->allJobUnits[$jobtypeid];
 
-            $message .= __('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
+            // manually calculate jobtyme instead of jus using getJobTime 
+            // because allJobs property not updated yet at this moment
+            $jobTime = 0;
+            if (isset($this->allJobTimes[$jobtypeid])) {
+                $jobTime = $this->allJobTimes[$jobtypeid] * $factor;
+            }
+
+            $message .= '🔥 ' . __('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
             $message .= __('Job type') . ': ' . $jobName . '\r\n ';
             $message .= __('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
             $message .= __('Job price') . ': ' . $jobPrice . '\r\n ';
+            $message .= __('Labor time') . ': ' . $jobTime . ' ' . __('minutes') . '\r\n ';
 
             $this->sendTelegram($employeeid, $message);
         }
@@ -614,6 +621,7 @@ class Salary {
                 $curdate = curdate();
                 $sendTmp = array(); //employeeid => text aggregated
                 $employeeSumm = array(); //employeeid => summ 
+                $employeeTime = array(); //employeeid=>time in minutes
 
                 foreach ($this->allJobs as $io => $eachJob) {
                     if (ispos($eachJob['date'], $curdate)) {
@@ -643,11 +651,19 @@ class Salary {
                                 $jobPrice = $overprice;
                             }
 
+                            $jobTime = $this->getJobTime($eachJob['id']);
+
                             //per day summary
                             if (isset($employeeSumm[$employeeId])) {
                                 $employeeSumm[$employeeId] += $jobPrice;
                             } else {
                                 $employeeSumm[$employeeId] = $jobPrice;
+                            }
+
+                            if (isset($employeeTime[$employeeId])) {
+                                $employeeTime[$employeeId] += $jobTime;
+                            } else {
+                                $employeeTime[$employeeId] = $jobTime;
                             }
 
 
@@ -656,6 +672,7 @@ class Salary {
                             $message .= __('Job added on') . ' ' . @$taskData['address'] . '\r\n ';
                             $message .= __('Job type') . ': ' . $jobName . '\r\n ';
                             $message .= __('Factor') . ': ' . $factor . ' / ' . __($unitType) . '\r\n ';
+                            $message .= __('Spent time') . ': ' . $jobTime . ' ' . __('minutes') . '\r\n ';
                             $message .= __('Job price') . ': ' . $jobPrice . $overLabel . '\r\n ';
                             $message .= '💵💵💵' . '\r\n '; // vsrate emoji
 
@@ -665,12 +682,20 @@ class Salary {
                     }
                 }
 
+                //appending daily time to each employee message
+                if (!empty($employeeTime)) {
+                    foreach ($employeeTime as $io => $eachDayTime) {
+                        $sendTmp[$io] .= '⏱️ ';   //another vsrate emoji
+                        $sendTmp[$io] .= __('Labor time') . ': ' . zb_formatTime(($eachDayTime * 60)) . '\r\n ';
+                    }
+                }
+
                 //appending daily summ to each employee message
                 if (!empty($employeeSumm)) {
                     foreach ($employeeSumm as $io => $eachDaySumm) {
                         if (isset($sendTmp[$io])) {
+                            $sendTmp[$io] .= '💰 ';   //very vsrate emoji
                             $sendTmp[$io] .= __('Total money') . ': ' . $eachDaySumm . '\r\n ';
-                            $sendTmp[$io] .= '💰💰💰💰💰💰' . '\r\n '; //very vsrate emoji
                         }
                     }
                 }
@@ -998,6 +1023,24 @@ class Salary {
     }
 
     /**
+     * Returns time in minutes spent to perform some job
+     * 
+     * @param int $jobid
+     * 
+     * @return int
+     */
+    protected function getJobTime($jobid) {
+        $result = 0;
+        if (isset($this->allJobs[$jobid])) {
+            $jobTypeId = $this->allJobs[$jobid]['jobtypeid'];
+            if (isset($this->allJobTimes[$jobTypeId])) {
+                $result = $this->allJobTimes[$jobTypeId] * $this->allJobs[$jobid]['factor'];
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Returns existing job editing form
      * 
      * @param int $jobid
@@ -1058,6 +1101,7 @@ class Salary {
         $taskid = vf($taskid, 3);
         $result = '';
         $totalSumm = 0;
+        $totalTime = 0;
         $messages = new UbillingMessageHelper();
         $all = $this->filterTaskJobs($taskid);
 
@@ -1069,11 +1113,13 @@ class Salary {
         $cells .= wf_TableCell(__('Price override'));
         $cells .= wf_TableCell(__('Notes'));
         $cells .= wf_TableCell(__('Cash'));
+        $cells .= wf_TableCell(__('Time') . ' (' . __('minutes') . ')');
         $cells .= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
+                $factor = $each['factor'];
                 if (isset($this->allJobUnits[$each['jobtypeid']])) {
                     $unit = $this->unitTypes[$this->allJobUnits[$each['jobtypeid']]];
                 } else {
@@ -1083,11 +1129,14 @@ class Salary {
                 $cells .= wf_TableCell($this->renderPaidDataLed($each['id']));
                 $cells .= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
                 $cells .= wf_TableCell(@$this->allJobtypes[$each['jobtypeid']]);
-                $cells .= wf_TableCell($each['factor'] . ' / ' . $unit);
+                $cells .= wf_TableCell($factor . ' / ' . $unit);
                 $cells .= wf_TableCell($each['overprice']);
                 $cells .= wf_TableCell($each['note']);
                 $jobPrice = $this->getJobPrice($each['id']);
                 $cells .= wf_TableCell($jobPrice);
+                $jobTime = $this->getJobTime($each['id']);
+                $totalTime += $jobTime;
+                $cells .= wf_TableCell($jobTime);
                 if (cfr('SALARYTASKS')) {
                     $actLinks = wf_JSAlert(self::URL_TS . $taskid . '&deletejobid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());
                     $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobEditForm($each['id']));
@@ -1108,6 +1157,8 @@ class Salary {
             $cells .= wf_TableCell('');
             $cells .= wf_TableCell('');
             $cells .= wf_TableCell($totalSumm);
+            $timeNorm = zb_formatTime(($totalTime * 60));
+            $cells .= wf_TableCell($timeNorm);
             $cells .= wf_TableCell('');
             $rows .= wf_TableRow($cells, 'row2');
         }
