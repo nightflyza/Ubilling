@@ -17,6 +17,8 @@ if (cfr('TASKMANQR')) {
                 show_window(__('What was going on') . '?', $report->renderWhatDone());
             }
         }
+
+        zb_BillingStats(true);
     } else {
         show_error(__('This module is disabled'));
     }
