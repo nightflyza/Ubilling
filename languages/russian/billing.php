@@ -3326,3 +3326,4 @@ $lang['def']['right to use external contragents finances with readonly access'] 
 $lang['def']['right of full access to external contragents finances'] = 'Право полного доступа к внешним контрагентам';
 $lang['def']['right to use annoyance report'] = 'Право использовать надоедливость';
 $lang['def']['Access'] = 'Доступ';
+$lang['def']['Employee timeline'] = 'Таймлайн работников';

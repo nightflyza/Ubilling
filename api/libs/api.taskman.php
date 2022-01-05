@@ -1488,6 +1488,13 @@ function ts_ShowPanel() {
     $tools .= wf_Link('?module=report_taskmanmap', wf_img('skins/swmapsmall.png') . ' ' . __('Tasks map'), false, 'ubButton');
     $tools .= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
 
+    if (cfr(('SALARY'))) {
+        if ($ubillingConfig->getAlterParam('SALARY_ENABLED')) {
+            $tools .= wf_Link(TasksLaborTime::URL_ME, wf_img('skins/icon_time_small.png') . ' ' . __('Employee timeline'), false, 'ubButton');
+        }
+    }
+
+
     if (!$branchCurseFlag) {
         $result .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
     }
@@ -3467,4 +3474,16 @@ function ts_AdvFiltersQuery() {
     return ($appendQuery);
 }
 
-?>
+/**
+ * Returns all tasks array filtered by some date
+ * 
+ * @param string $date
+ * 
+ * @return array
+ */
+function ts_getAllTasksByDate($date) {
+    $date = ubRouting::filters($date, 'mres');
+    $query = "SELECT * from `taskman` WHERE `startdate` LIKE '" . $date . "%'";
+    $result = simple_queryall($query);
+    return($result);
+}

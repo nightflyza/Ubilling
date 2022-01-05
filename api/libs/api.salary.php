@@ -48,7 +48,7 @@ class Salary {
     protected $allJobtypes = array();
 
     /**
-     * Typical jobtypes required time in hours as jobtypeid=>time
+     * Typical jobtypes required time in minutes as jobtypeid=>time
      *
      * @var array
      */
@@ -1020,6 +1020,15 @@ class Salary {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns all available job labor times in minutes as jobtypeId=>time 
+     * 
+     * @return array
+     */
+    public function getAllJobTimes() {
+        return($this->allJobTimes);
     }
 
     /**

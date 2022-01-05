@@ -353,4 +353,3 @@ if (cfr('TASKMAN')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
