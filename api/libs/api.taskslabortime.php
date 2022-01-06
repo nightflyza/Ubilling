@@ -248,7 +248,7 @@ class TasksLaborTime {
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($timelineData as $employeeName => $tasksTiming) {
                     $cells = wf_TableCell($employeeName);
-                    $cells .= wf_TableCell(zb_formatTime(($tasksTiming['time'] * 60)));
+                    $cells .= wf_TableCell(zb_formatTime(($tasksTiming['time'] * 60)), '', '', 'sorttable_customkey="' . $tasksTiming['time'] . '"');
                     $cells .= wf_TableCell($tasksTiming['taskscount']);
                     $cells .= wf_TableCell(web_bar($tasksTiming['time'], $totalTasksTime));
                     $rows .= wf_TableRow($cells, 'row5');
