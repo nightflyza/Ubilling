@@ -45,6 +45,7 @@ class PONONUMAP {
      */
     const URL_ME = '?module=ponmap';
     const ROUTE_FILTER_OLT = 'oltidfilter';
+    const PROUTE_OLTSELECTOR = 'renderoltidonus';
 
     /**
      * Creates new ONU MAP instance
@@ -155,11 +156,33 @@ class PONONUMAP {
     }
 
     /**
+     * Renders module controls
+     * 
+     * @return string
+     */
+    protected function renderControls() {
+        $result = '';
+        $result .= wf_BackLink(PONizer::URL_ME) . ' ';
+        if ($this->filterOltId) {
+            $result .= wf_Link(self::URL_ME, wf_img('skins/ponmap_icon.png') . ' ' . __('All') . ' ' . __('OLT'), false, 'ubButton');
+        }
+
+        $allOlts = array('' => __('All') . ' ' . __('OLT'));
+        $allOlts += $this->ponizer->getAllOltDevices();
+        $inputs = wf_SelectorAC(self::PROUTE_OLTSELECTOR, $allOlts, __('OLT'), $this->filterOltId, false);
+        $opts = 'style="float:right;"';
+        $result .= wf_Form('', 'POST', $inputs, 'glamour', '', '', '', $opts);
+
+        $result .= wf_delimiter(0);
+        return($result);
+    }
+
+    /**
      * Renders ONU signals Map 
      * 
      * @return string
      */
-    public function renderOnu() {
+    public function renderOnuMap() {
         $result = '';
         $allOnu = $this->ponizer->getAllOnu();
         $allOnuSignals = $this->ponizer->getAllONUSignals();
@@ -169,7 +192,7 @@ class PONONUMAP {
         $marksNoUser = 0;
         $marksDeadUser = 0;
         $totalOnuCount = 0;
-        $result .= wf_BackLink(PONizer::URL_ME) . wf_delimiter();
+        $result .= $this->renderControls();
 
         $result .= generic_MapContainer('', '', 'ponmap');
         if (!empty($allOnu)) {
