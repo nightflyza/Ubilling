@@ -4016,6 +4016,8 @@ class PONizer {
                 $refresh_button = wf_Link(self::URL_ME . '&forceoltidpoll=' . $oltId, wf_img('skins/refresh.gif', __('Refresh data for this OLT')));
             }
 
+
+
             if ($this->ponizerUseTabUI) {
                 $tabsList[$QuickOLTLinkID] = array('options' => '',
                     'caption' => $refresh_button . wf_nbsp(4) . wf_img('skins/menuicons/switches.png') . wf_nbsp(2) . @$eachOltData,
