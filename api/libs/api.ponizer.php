@@ -4027,8 +4027,7 @@ class PONizer {
                     'additional_data' => ''
                 );
             } else {
-                $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) . $QuickOLTLinkInput
-                );
+                $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) . $QuickOLTLinkInput);
             }
         }
 
@@ -4162,9 +4161,15 @@ class PONizer {
 
         if ((!empty($oltInterfacesFilled)) and ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
+                $oltControls = '';
                 $result .= wf_tag('h3');
                 $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
                 $result .= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
+
+                if (@$this->altCfg['PONMAP_ENABLED']) {
+                    $oltControls .= ' ' . wf_Link(PONONUMAP::URL_ME . '&' . PONONUMAP::ROUTE_FILTER_OLT . '=' . $oltId, wf_img('skins/ponmap_icon.png', __('ONU Map')), false);
+                }
+                $result .= $oltControls;
                 $result .= wf_tag('h3', true);
                 if (isset($oltInterfacesFilled[$oltId])) {
                     $cells = wf_TableCell(__('Interface'));

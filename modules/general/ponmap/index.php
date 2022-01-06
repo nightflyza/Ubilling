@@ -5,8 +5,9 @@ $altCfg = $ubillingConfig->getAlter();
 if (@$altCfg['PONMAP_ENABLED']) {
     if ($altCfg['PON_ENABLED']) {
         if (cfr('PON')) {
-            $ponMap = new PONONUMAP();
-            show_window(__('ONU Map'), $ponMap->renderOnu());
+            $oltIdFilter = (ubRouting::checkGet(PONONUMAP::ROUTE_FILTER_OLT)) ? ubRouting::get(PONONUMAP::ROUTE_FILTER_OLT) : '';
+            $ponMap = new PONONUMAP($oltIdFilter);
+            show_window(__('ONU Map') . $ponMap->getFilteredOLTLabel(), $ponMap->renderOnu());
         } else {
             show_error(__('Access denied'));
         }

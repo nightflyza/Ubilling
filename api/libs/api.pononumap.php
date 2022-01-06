@@ -34,15 +34,42 @@ class PONONUMAP {
     protected $messages = '';
 
     /**
+     * Contains optional OLT filter
+     *
+     * @var int
+     */
+    protected $filterOltId = '';
+
+    /**
+     * Predefined routes, URLs etc.
+     */
+    const URL_ME = '?module=ponmap';
+    const ROUTE_FILTER_OLT = 'oltidfilter';
+
+    /**
      * Creates new ONU MAP instance
      * 
      * @return void
      */
-    public function __construct() {
+    public function __construct($oltId = '') {
         $this->loadConfigs();
+        $this->setOltIdFilter($oltId);
         $this->initMessages();
         $this->initPonizer();
         $this->loadUsers();
+    }
+
+    /**
+     * Sets current instance OLT filter
+     * 
+     * @param int $oltId
+     * 
+     * @return void
+     */
+    protected function setOltIdFilter($oltId = '') {
+        if (!empty($oltId)) {
+            $this->filterOltId = $oltId;
+        }
     }
 
     /**
@@ -63,7 +90,7 @@ class PONONUMAP {
      * @return void
      */
     protected function initPonizer() {
-        $this->ponizer = new PONizer();
+        $this->ponizer = new PONizer($this->filterOltId);
     }
 
     /**
@@ -141,7 +168,8 @@ class PONONUMAP {
         $marksNoGeo = 0;
         $marksNoUser = 0;
         $marksDeadUser = 0;
-        $result .= wf_BackLink('?module=ponizer') . wf_delimiter();
+        $totalOnuCount = 0;
+        $result .= wf_BackLink(PONizer::URL_ME) . wf_delimiter();
 
         $result .= generic_MapContainer('', '', 'ponmap');
         if (!empty($allOnu)) {
@@ -170,11 +198,12 @@ class PONONUMAP {
                 } else {
                     $marksNoUser++;
                 }
+                $totalOnuCount++;
             }
         }
 
         $result .= generic_MapInit($this->mapsCfg['CENTER'], $this->mapsCfg['ZOOM'], $this->mapsCfg['TYPE'], $placemarks, '', $this->mapsCfg['LANG'], 'ponmap');
-        $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . sizeof($allOnu), 'info');
+        $result .= $this->messages->getStyledMessage(__('Total') . ' ' . __('ONU') . ': ' . $totalOnuCount, 'info');
         $result .= $this->messages->getStyledMessage(__('ONU rendered on map') . ': ' . $marksRendered, 'success');
         if ($marksNoGeo > 0) {
             $result .= $this->messages->getStyledMessage(__('User builds not placed on map') . ': ' . $marksNoGeo, 'warning');
@@ -184,6 +213,22 @@ class PONONUMAP {
             $result .= $this->messages->getStyledMessage(__('ONU without assigned user') . ': ' . $marksNoUser, 'warning');
         }
 
+        return($result);
+    }
+
+    /**
+     * Returns label if rendering ONUs for only some specified OLT
+     * 
+     * @return string
+     */
+    public function getFilteredOLTLabel() {
+        $result = '';
+        if ($this->filterOltId) {
+            $allOltDevices = $this->ponizer->getAllOltDevices();
+            if (isset($allOltDevices[$this->filterOltId])) {
+                $result .= ': ' . $allOltDevices[$this->filterOltId];
+            }
+        }
         return($result);
     }
 
