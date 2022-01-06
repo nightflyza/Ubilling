@@ -734,7 +734,7 @@ class Salary {
                 $actLinks = wf_JSAlert('?module=salary&deletejobprice=' . $jobtypeid, web_delete_icon(), $messages->getDeleteAlert());
                 $actLinks .= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobPricesEditForm($jobtypeid));
                 $cells .= wf_TableCell($actLinks);
-                $rows .= wf_TableRow($cells, 'row3');
+                $rows .= wf_TableRow($cells, 'row5');
             }
         }
         $result = wf_TableBody($rows, '100%', 0, 'sortable');

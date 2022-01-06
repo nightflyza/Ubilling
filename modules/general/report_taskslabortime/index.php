@@ -7,7 +7,7 @@ if (cfr('SALARY')) {
         if (!empty($beggar)) {
             $laborTimeReport = new TasksLaborTime();
             show_window(__('Employee timeline'), $laborTimeReport->renderSearchForm());
-            show_window(__('Result'), $laborTimeReport->renderReport());
+            show_window(__('Planned tasks on') . ' ' . $laborTimeReport->getDateFilter(), $laborTimeReport->renderReport());
             show_window('', wf_BackLink('?module=taskman'));
         } else {
             show_error(__('No license key available'));
