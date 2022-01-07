@@ -8,15 +8,15 @@ if (cfr('DHCP')) {
     //main controls panel
     show_window('', $dhcp->renderPanel());
 
-    //new network creation
-    if (isset($_POST['adddhcp'])) {
-        $netid = $_POST['networkselect'];
-        $dhcpconfname = $_POST['dhcpconfname'];
+    //new dhcp network creation
+    if (ubRouting::checkPost('adddhcp')) {
+        $netid = ubRouting::post('networkselect');
+        $dhcpconfname = ubRouting::post('dhcpconfname');
         if (!empty($dhcpconfname)) {
             if ($dhcp->isConfigNameFree($dhcpconfname)) {
                 $dhcp->createNetwork($netid, $dhcpconfname);
                 $dhcp->restartDhcpServer();
-                rcms_redirect('?module=dhcp');
+                ubRouting::nav($dhcp::URL_ME);
             } else {
                 show_error(__('Config name is already used'));
             }
@@ -27,45 +27,45 @@ if (cfr('DHCP')) {
 
 
     //editing existing dhcp network
-    if (isset($_GET['edit'])) {
+    if (ubRouting::checkGet('edit', false)) {
         //if someone changes network
-        if (isset($_POST['editdhcpconfname'])) {
-            @$editdhcpconfig = $_POST['editdhcpconfig'];
-            $dhcpconfname = $_POST['editdhcpconfname'];
+        if (ubRouting::checkPost('editdhcpconfname')) {
+            @$editdhcpconfig = ubRouting::post('editdhcpconfig');
+            $dhcpconfname = ubRouting::post('editdhcpconfname');
             if (!empty($dhcpconfname)) {
-                $dhcpid = $_GET['edit'];
+                $dhcpid = ubRouting::get('edit');
                 $dhcp->updateNetwork($dhcpid, $dhcpconfname, $editdhcpconfig);
                 $dhcp->restartDhcpServer();
-                rcms_redirect("?module=dhcp");
+                ubRouting::nav($dhcp::URL_ME);
             } else {
                 show_error(__('Config name is required'));
             }
         }
         // show editing form
-        show_window(__('Edit custom subnet template'), $dhcp->editForm($_GET['edit']));
+        show_window(__('Edit custom subnet template'), $dhcp->editForm(ubRouting::get('edit')));
     }
 
     //deleting network
-    if (isset($_GET['delete'])) {
-        $dhcp->deleteNetwork($_GET['delete']);
+    if (ubRouting::checkGet('delete', false)) {
+        $dhcp->deleteNetwork(ubRouting::get('delete'));
         $dhcp->restartDhcpServer();
-        rcms_redirect("?module=dhcp");
+        ubRouting::nav($dhcp::URL_ME);
     }
 
     //downloading config
-    if (wf_CheckGet(array('downloadconfig'))) {
-        $dhcp->downloadConfig($_GET['downloadconfig']);
+    if (ubRouting::checkGet('downloadconfig')) {
+        $dhcp->downloadConfig(ubRouting::get('downloadconfig'));
     }
 
     //downloading template
-    if (wf_CheckGet(array('downloadtemplate'))) {
-        $dhcp->downloadTemplate($_GET['downloadtemplate']);
+    if (ubRouting::checkGet('downloadtemplate')) {
+        $dhcp->downloadTemplate(ubRouting::get('downloadtemplate'));
     }
 
     //manual server restart
-    if (wf_CheckGet(array('restartserver'))) {
+    if (ubRouting::checkGet('restartserver')) {
         $dhcp->restartDhcpServer();
-        rcms_redirect("?module=dhcp");
+        ubRouting::nav($dhcp::URL_ME);
     }
 
     //rendering some interface
@@ -76,4 +76,3 @@ if (cfr('DHCP')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
