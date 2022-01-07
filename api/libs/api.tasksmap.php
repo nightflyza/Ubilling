@@ -20,6 +20,13 @@ class TasksMap {
     protected $mapsCfg = array();
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains selected year to show
      *
      * @var int
@@ -96,21 +103,22 @@ class TasksMap {
         $this->setFiltersData();
         $this->initMessages();
         $this->initDatasource();
-        $this->loadMapsConfig();
+        $this->loadConfigs();
         $this->loadUsers();
         $this->loadJobTypes();
     }
 
     /**
-     * Loads system maps configuration file
+     * Loads system maps and alter configuration files
      * 
      * @global object $ubillingConfig
      * 
      * @return void
      */
-    protected function loadMapsConfig() {
+    protected function loadConfigs() {
         global $ubillingConfig;
         $this->mapsCfg = $ubillingConfig->getYmaps();
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -191,10 +199,17 @@ class TasksMap {
     /**
      * Returns array of tasks planned for current day
      * 
+     * @param int $employeeId optional employee ID to get tasks for
+     * 
      * @return array
      */
-    public function getTodayTasks() {
+    public function getTodayTasks($employeeId = '') {
+        $employeeId = ubRouting::filters($employeeId, 'int');
         $this->tasksDb->where('startdate', 'LIKE', curdate() . '%');
+        if ($employeeId) {
+            $this->tasksDb->where('employee', '=', $employeeId);
+        }
+
         $result = $this->tasksDb->getAll();
         return($result);
     }
@@ -238,7 +253,6 @@ class TasksMap {
             }
 
             if (!empty($buildsData)) {
-
                 foreach ($buildsData as $coords => $usersInside) {
                     if ($usersInside['count'] > 1) {
                         if ($usersInside['count'] > 3) {

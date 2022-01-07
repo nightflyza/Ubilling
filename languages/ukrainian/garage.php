@@ -28,4 +28,4 @@ $lang['def']['or'] = 'або';
 $lang['def']['Volt'] = 'Вольт';
 $lang['def']['km/h'] = 'км/год';
 $lang['def']['Voltage'] = 'Напруга';
-$lang['def'][''] = '';
+$lang['def']['Unallocated tasks']='Нерозподілені задачі';

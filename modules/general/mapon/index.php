@@ -124,6 +124,14 @@ if ($altCfg['MAPON_ENABLED']) {
                     $placemarks .= $taskmap->getPlacemarks($taskmap->getTodayTasks());
                 }
 
+                if (ubRouting::checkGet('layeranyonetasks')) {
+                    if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
+                        $anyoneEmployeeId = $ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID');
+                        $taskmap = new TasksMap();
+                        $placemarks .= $taskmap->getPlacemarks($taskmap->getTodayTasks($anyoneEmployeeId));
+                    }
+                }
+
 
                 //render map
                 $container = generic_MapContainer('100%', '650px');
@@ -137,6 +145,10 @@ if ($altCfg['MAPON_ENABLED']) {
                 $controls .= wf_Link('?module=mapon&layerswitches=true', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layerbuilds=true', wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
                 $controls .= wf_Link('?module=mapon&layertasks=true', wf_img('skins/track_icon.png') . ' ' . __('Tasks map'), false, 'ubButton');
+                //tasks for anyone optional control here
+                if ($ubillingConfig->getAlterParam('TASKMAN_ANYONE_EMPLOYEEID')) {
+                    $controls .= wf_Link('?module=mapon&layeranyonetasks=true', wf_img('skins/backprofile.png') . ' ' . __('Unallocated tasks'), false, 'ubButton');
+                }
 
                 show_window('', $controls);
                 zb_BillingStats(true);
