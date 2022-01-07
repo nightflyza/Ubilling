@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implements try of tasks execution time planning and fair per-employee allocation
+ */
 class TasksLaborTime {
 
     /**

@@ -76,25 +76,10 @@ class TaskFlow {
     protected $messages = '';
 
     /**
-     * System cache object placeholder
-     *
-     * @var object
-     */
-    protected $cache = '';
-
-    /**
-     * Default advices caching timeout
-     *
-     * @var int
-     */
-    protected $cacheTimeout = 86400;
-
-    /**
      * Predefined routes/URLs/etc
      */
     const URL_ME = '?module=taskflow';
     const URL_TASK = '?module=taskman&edittask=';
-    const URL_ADVICE = 'http://ubilling.net.ua/fga/api/random/';
     const ROUTE_EMREPORT = 'employeereport';
     const PROUTE_STATE = 'searchtaskstate';
     const PROUTE_PHOTO = 'searchtaskphoto';
@@ -107,7 +92,6 @@ class TaskFlow {
     const VAL_YES = 'yes';
     const VAL_NO = 'no';
     const VAL_ANY = 'any';
-    const ADVICE_KEY = 'FGADVICE';
 
     public function __construct() {
         $this->loadAlter();
@@ -190,15 +174,6 @@ class TaskFlow {
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $this->adComments = new ADcomments('TASKMAN');
         }
-    }
-
-    /**
-     * Inits ubilling caching engine
-     * 
-     * @return void
-     */
-    protected function initCache() {
-        $this->cache = new UbillingCache();
     }
 
     /**
@@ -441,30 +416,8 @@ class TaskFlow {
      */
     public function getAwesomeAdvice() {
         $result = '';
-        $this->initCache();
-
-        $cachedData = $this->cache->get(self::ADVICE_KEY, $this->cacheTimeout);
-        if (empty($cachedData)) {
-            //updating cache
-            $fga = new OmaeUrl(self::URL_ADVICE);
-            $fga->setTimeout(1);
-            $randomAdviceRaw = $fga->response();
-            if (!empty($randomAdviceRaw)) {
-                $randomAdviceText = json_decode($randomAdviceRaw, true);
-                if (is_array($randomAdviceText)) {
-                    $result .= @$randomAdviceText['text'];
-                }
-            }
-
-            if (@!empty($randomAdviceText['text'])) {
-                $this->cache->set(self::ADVICE_KEY, $randomAdviceText['text'], $this->cacheTimeout);
-            } else {
-                //failed at remote API connection
-                $this->cache->set(self::ADVICE_KEY, 'Oo', $this->cacheTimeout);
-            }
-        } else {
-            $result .= $cachedData;
-        }
+        $advices = new FGA();
+        $result = $advices->getAdviceOfTheDay();
         return($result);
     }
 
