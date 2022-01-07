@@ -606,10 +606,12 @@ function web_SwitchEditForm($switchid) {
     }
 
     if (cfr('TASKMAN')) {
-        if (!ts_isMeBranchCursed()) {
-            $taskCreateForm = ts_TaskCreateFormUnified($switchdata['location'], '', '', '', '', '');
-            $taskCreateModal = wf_modalAuto(wf_img_sized('skins/createtask.gif', __('Create task'), '16') . ' ' . __('Task'), __('Create task'), $taskCreateForm, 'ubButton');
-            $result .= $taskCreateModal;
+        if (!empty($switchdata['location'])) {
+            if (!ts_isMeBranchCursed()) {
+                $taskCreateForm = ts_TaskCreateFormUnified($switchdata['location'], '', '', '', '', '');
+                $taskCreateModal = wf_modalAuto(wf_img_sized('skins/createtask.gif', __('Create task'), '16') . ' ' . __('Task'), __('Create task'), $taskCreateForm, 'ubButton');
+                $result .= $taskCreateModal;
+            }
         }
     }
 
