@@ -67,53 +67,53 @@ if (cfr('SWITCHES')) {
     if (!isset($_GET['edit'])) {
         $swlinks = '';
         if (cfr('SWITCHESEDIT')) {
-            $swlinks.= wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton');
+            $swlinks .= wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton');
         }
 
         if (cfr('SWITCHM')) {
-            $swlinks.=wf_Link('?module=switchmodels', wf_img('skins/switch_models.png') . ' ' . __('Equipment models'), false, 'ubButton');
+            $swlinks .= wf_Link('?module=switchmodels', wf_img('skins/switch_models.png') . ' ' . __('Equipment models'), false, 'ubButton');
         }
 
-        $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
+        $swlinks .= wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
 
 
         if (cfr('SWITCHESEDIT')) {
             $toolsLinks = '';
-            $toolsLinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
-            $toolsLinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
-            $toolsLinks.=wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
-            $toolsLinks.=wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
+            $toolsLinks .= wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+            $toolsLinks .= wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+            $toolsLinks .= wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
+            $toolsLinks .= wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
 
             if ($ubillingConfig->getAlterParam('SWITCH_GROUPS_ENABLED')) {
                 if (cfr('SWITCHGROUPS')) {
-                    $toolsLinks.=wf_Link('?module=switchgroups', wf_img('skins/switch_models.png') . ' ' . __('Switch groups'), false, 'ubButton');
+                    $toolsLinks .= wf_Link('?module=switchgroups', wf_img('skins/switch_models.png') . ' ' . __('Switch groups'), false, 'ubButton');
                 }
             }
 
             if ($altCfg['SWITCHES_EXTENDED']) {
-                $toolsLinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+                $toolsLinks .= wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
             }
-            $swlinks.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
+            $swlinks .= wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
         }
 
 
 
 
         if ($altCfg['SWYMAP_ENABLED']) {
-            $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+            $swlinks .= wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
         }
 
         if ($altCfg['SWITCH_AUTOCONFIG']) {
             if (cfr(SwitchLogin::MODULE)) {
-                $swlinks.=wf_Link(SwitchLogin::MODULE_URL, wf_img('skins/sw_login.png') . ' ' . __('Switch login'), false, 'ubButton');
+                $swlinks .= wf_Link(SwitchLogin::MODULE_URL, wf_img('skins/sw_login.png') . ' ' . __('Switch login'), false, 'ubButton');
             }
         }
 
         //parental switch deletion alternate controls
         if (isset($_GET['switchdelete'])) {
             $swlinks = '';
-            $swlinks.= wf_Link('?module=switches&edit=' . $_GET['switchdelete'], web_edit_icon() . ' ' . __('Edit'), false, 'ubButton') . ' ';
-            $swlinks.= wf_JSAlertStyled('?module=switches&switchdelete=' . $_GET['switchdelete'] . '&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
+            $swlinks .= wf_Link('?module=switches&edit=' . $_GET['switchdelete'], web_edit_icon() . ' ' . __('Edit'), false, 'ubButton') . ' ';
+            $swlinks .= wf_JSAlertStyled('?module=switches&switchdelete=' . $_GET['switchdelete'] . '&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
         }
         show_window('', $swlinks);
 
@@ -147,14 +147,14 @@ if (cfr('SWITCHES')) {
                 }
                 $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
                 //here some searchform
-                
+
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
                 if (wf_CheckGet(array('deadtop'))) {
-                    $tmControls=wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+                    $tmControls = wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
                     show_window('', $tmControls);
                     show_window(__('Dead switches top') . ' ' . curmonth(), web_DeadSwitchesTop());
                 } else {
-                    $tmControls=wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true&deadtop=true', wf_img('skins/skull.png') . ' ' . __('Dead switches top'), false, 'ubButton');
+                    $tmControls = wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true&deadtop=true', wf_img('skins/skull.png') . ' ' . __('Dead switches top'), false, 'ubButton');
                     show_window('', $tmControls);
                     show_window(__('Dead switches time machine') . ' ' . $timeMachineCleanupControl, $timeMachineSearchForm . $timeMachine);
                 }
@@ -207,7 +207,7 @@ if (cfr('SWITCHES')) {
                         $switchGroups = new SwitchGroups();
                         $switchAlreadyInGroup = $switchGroups->getSwitchGroupBySwitchId($switchid);
 
-                        if (empty($switchAlreadyInGroup) and !empty($_POST['editswgroup'])) {
+                        if (empty($switchAlreadyInGroup) and ! empty($_POST['editswgroup'])) {
                             $query = "INSERT INTO `switch_groups_relations` (`switch_id`, `sw_group_id`) VALUES (" . $switchid . ", " . $_POST['editswgroup'] . ")";
                             nr_query($query);
                         } elseif (isset($_POST['editswgroup'])) {
@@ -225,6 +225,7 @@ if (cfr('SWITCHES')) {
                     show_error(__('Access denied'));
                 }
             }
+
 
             //render switch edit form (aka switch profile)
             show_window(__('Edit switch'), web_SwitchEditForm($switchid));

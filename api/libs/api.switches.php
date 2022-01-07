@@ -486,6 +486,7 @@ function web_SwitchEditForm($switchid) {
     $allswitchmodels = zb_SwitchModelsGetAllTag();
     $switchdata = zb_SwitchGetData($switchid);
 
+
     $editinputs = wf_Selector('editmodel', $allswitchmodels, 'Model', $switchdata['modelid'], true);
     $editinputs .= wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20);
     $editinputs .= wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
@@ -560,8 +561,9 @@ function web_SwitchEditForm($switchid) {
     if (cfr('SWITCHPOLL')) {
         $fdbCacheName = 'exports/' . $switchdata['ip'] . '_fdb';
         if (file_exists($fdbCacheName)) {
-            $result .= wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB cache'), false, 'ubButton');
-            $result .= wf_Link('?module=fdbarchive&switchidfilter=' . $switchid, wf_img('skins/fdbarchive.png') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton');
+            $fdbControls = wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB cache'), false, 'ubButton');
+            $fdbControls .= wf_Link('?module=fdbarchive&switchidfilter=' . $switchid, wf_img('skins/fdbarchive.png') . ' ' . __('FDB') . ' ' . __('Archive'), false, 'ubButton');
+            $result .= wf_modalAuto(wf_img('skins/menuicons/switchpoller.png') . ' ' . __('FDB'), __('FDB'), $fdbControls, 'ubButton');
         }
 
         if ((!empty($switchdata['snmp'])) AND ( ispos($switchdata['desc'], 'SWPOLL'))) {
@@ -603,8 +605,20 @@ function web_SwitchEditForm($switchid) {
         }
     }
 
+    if (cfr('TASKMAN')) {
+        if (!ts_isMeBranchCursed()) {
+            $taskCreateForm = ts_TaskCreateFormUnified($switchdata['location'], '', '', '', '', '');
+            $taskCreateModal = wf_modalAuto(wf_img_sized('skins/createtask.gif', __('Create task'), '16') . ' ' . __('Task'), __('Create task'), $taskCreateForm, 'ubButton');
+            $result .= $taskCreateModal;
+        }
+    }
+
     if (cfr('SWITCHESEDIT')) {
-        $result .= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
+        $deletionUrl = '?module=switches&switchdelete=' . $switchid;
+        $cancelUrl = '?module=switches&edit=' . $switchid;
+        $deletionAlert = __('Removing this may lead to irreparable results');
+        $delDialogTitle = __('Delete') . ' ' . __('Switch') . ': ' . $switchdata['location'] . '?';
+        $result .= wf_ConfirmDialog($deletionUrl, web_delete_icon() . ' ' . __('Delete'), $deletionAlert, 'ubButton', $cancelUrl, $delDialogTitle);
     }
 
     //SWPOLL proposal
