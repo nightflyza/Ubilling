@@ -199,9 +199,13 @@ if (cfr('ROOT')) {
                           var data = google.visualization.arrayToDataTable([
                           " . $timelineCode . "
                           ]);
+                          
+                            var paddingHeight = 50;
+                            var rowHeight = data.getNumberOfRows() * 41;
+                            var chartHeight = rowHeight + paddingHeight;
 
                             var options = {
-                              height: 800,
+                              height: chartHeight,
                               hAxis: {
                                      format: 'HH:mm'
                                      }

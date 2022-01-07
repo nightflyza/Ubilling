@@ -164,25 +164,27 @@ class TasksLaborTime {
 
         if (!empty($timelineData)) {
             foreach ($timelineData as $key => $eachTime) {
-                $startTime = $this->showDate . ' 08:00:00';
-                $startTime = strtotime($startTime);
-                $startYear = date("Y", $startTime);
-                $startMonth = date("n", $startTime) - 1;
-                $startDay = date("d", $startTime);
-                $startHour = date("H", $startTime);
-                $startMinute = date("i", $startTime);
+                if ($eachTime['time'] != 0) {
+                    $startTime = $this->showDate . ' 08:00:00';
+                    $startTime = strtotime($startTime);
+                    $startYear = date("Y", $startTime);
+                    $startMonth = date("n", $startTime) - 1;
+                    $startDay = date("d", $startTime);
+                    $startHour = date("H", $startTime);
+                    $startMinute = date("i", $startTime);
 
-                $endTime = $startTime + ($eachTime['time'] * 60);
-                $endYear = date("Y", $endTime);
-                $endMonth = date("n", $endTime) - 1;
-                $endDay = date("d", $endTime);
-                $endHour = date("H", $endTime);
-                $endMinute = date("i", $endTime);
+                    $endTime = $startTime + ($eachTime['time'] * 60);
+                    $endYear = date("Y", $endTime);
+                    $endMonth = date("n", $endTime) - 1;
+                    $endDay = date("d", $endTime);
+                    $endHour = date("H", $endTime);
+                    $endMinute = date("i", $endTime);
 
-                $timelineCode .= "
+                    $timelineCode .= "
                             ['" . $key . "',
                              new Date(" . $startYear . ", " . $startMonth . ", " . $startDay . ", " . $startHour . ", " . $startMinute . "),
                              new Date(" . $endYear . ", " . $endMonth . ", " . $endDay . ", " . $endHour . ", " . $endMinute . ")],";
+                }
             }
             $timelineCode = zb_CutEnd($timelineCode);
         }
@@ -197,9 +199,13 @@ class TasksLaborTime {
                           var data = google.visualization.arrayToDataTable([
                           " . $timelineCode . "
                           ]);
-
+                          
+                            var paddingHeight = 50;
+                            var rowHeight = data.getNumberOfRows() * 41;
+                            var chartHeight = rowHeight + paddingHeight;
+                        
                             var options = {
-                              height: 800,
+                              height: chartHeight,
                               hAxis: {
                                      format: 'HH:mm'
                                      }
