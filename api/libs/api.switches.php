@@ -609,7 +609,7 @@ function web_SwitchEditForm($switchid) {
         if (!empty($switchdata['location'])) {
             if (!ts_isMeBranchCursed()) {
                 $taskCreateForm = ts_TaskCreateFormUnified($switchdata['location'], '', '', '', '', '');
-                $taskCreateModal = wf_modalAuto(wf_img_sized('skins/createtask.gif', __('Create task'), '16') . ' ' . __('Task'), __('Create task'), $taskCreateForm, 'ubButton');
+                $taskCreateModal = wf_modalAuto(wf_img('skins/createtask_16.png', __('Create task')) . ' ' . __('Task'), __('Create task'), $taskCreateForm, 'ubButton');
                 $result .= $taskCreateModal;
             }
         }
