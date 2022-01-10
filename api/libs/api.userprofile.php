@@ -1322,6 +1322,11 @@ class UserProfile {
                     }
 
                     if (!empty($this->mobile)) {
+                        $translitCheckBox = true;
+                        if ($this->alterCfg['EASY_SMS'] == 2) {
+                            $translitCheckBox = false;
+                        }
+
                         //cleaning mobile number
                         $userMobile = trim($this->mobile);
                         $userMobile = str_replace(' ', '', $userMobile);
@@ -1364,7 +1369,7 @@ class UserProfile {
 
                             $sendInputs .= wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
                             $sendInputs .= wf_TextArea('neweasysmstext', '', $smsText, true, '40x5');
-                            $sendInputs .= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
+                            $sendInputs .= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, $translitCheckBox);
                             $sendInputs .= wf_tag('br');
                             $sendInputs .= wf_Submit(__('Send SMS'));
 
