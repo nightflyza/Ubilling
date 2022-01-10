@@ -220,12 +220,18 @@ class AskoziaMonitor {
     public function renderCallsList() {
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array(__('Date'), __('Number'), __('User'), __('Tags'), __('File'));
-        if (wf_CheckGet(array('username'))) {
-            $loginFilter = '&loginfilter=' . $_GET['username'];
+        if (ubRouting::checkGet('username')) {
+            $loginFilter = '&loginfilter=' . ubRouting::get('username');
         } else {
             $loginFilter = '';
         }
-        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $loginFilter, false, __('Calls records'), 100, $opts);
+        if (ubRouting::checkGet('renderall')) {
+            $filterNumber = '&renderall=true';
+        } else {
+            $filterNumber = '';
+        }
+
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $loginFilter . $filterNumber, false, __('Calls records'), 100, $opts);
         return ($result);
     }
 
@@ -252,10 +258,11 @@ class AskoziaMonitor {
      * Renders json recorded calls list
      * 
      * @param string $filterLogin
+     * @param bool $renderAll
      * 
      * @return void
      */
-    public function jsonCallsList($filterLogin = '') {
+    public function jsonCallsList($filterLogin = '', $renderAll = false) {
         $allAddress = zb_AddressGetFulladdresslistCached();
         $allRealnames = zb_UserGetAllRealnames();
         $this->loadUserTags();
@@ -268,11 +275,13 @@ class AskoziaMonitor {
         $previousCalls = $askCalls->getAll('filename');
         $curYear = curyear() . '-';
         //current year filter for all calls
-        if (empty($filterLogin)) {
+        if (empty($filterLogin) AND ! $renderAll) {
             $renderAll = false;
         } else {
             $renderAll = true;
         }
+
+        $allCallsLabel = ($renderAll) ? wf_img('skins/allcalls.png', __('All time')) . ' ' : '';
 
         //normal voice records rendering
         if (!empty($allVoiceFiles)) {
@@ -305,13 +314,14 @@ class AskoziaMonitor {
                     $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                     $cleanDate = $newDateString;
                     $fileUrl = self::URL_ME . '&dlaskcall=' . $fileName;
+
                     if ((empty($filterLogin)) OR ( $filterLogin == $userLogin)) {
                         if ($renderAll) {
                             $data[] = wf_img($callDirection) . ' ' . $cleanDate;
                             $data[] = $callingNumber;
                             $data[] = $userLink;
                             $data[] = $this->renderUserTags($userLogin);
-                            $data[] = $this->getSoundcontrols($fileUrl);
+                            $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
                             $json->addRow($data);
                         } else {
                             if (ispos($cleanDate, $curYear)) {
@@ -319,7 +329,7 @@ class AskoziaMonitor {
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
                                 $data[] = $this->renderUserTags($userLogin);
-                                $data[] = $this->getSoundcontrols($fileUrl);
+                                $data[] = $this->getSoundcontrols($fileUrl) . $allCallsLabel;
                                 $json->addRow($data);
                             }
                         }
@@ -361,7 +371,7 @@ class AskoziaMonitor {
                             $data[] = $callingNumber;
                             $data[] = $userLink;
                             $data[] = $this->renderUserTags($userLogin);
-                            $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel;
+                            $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
                             $json->addRow($data);
                         } else {
                             if (ispos($cleanDate, $curYear)) {
@@ -369,7 +379,7 @@ class AskoziaMonitor {
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
                                 $data[] = $this->renderUserTags($userLogin);
-                                $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel;
+                                $data[] = $this->getSoundcontrols($fileUrl) . ' ' . $archiveLabel . $allCallsLabel;
                                 $json->addRow($data);
                             }
                         }
