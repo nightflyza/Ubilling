@@ -6,4 +6,3 @@ if (cfr('TASKBAR')) {
 } else {
     show_error(__('Access denied'));
 }
-?>

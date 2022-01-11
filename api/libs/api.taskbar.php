@@ -118,6 +118,7 @@ class UbillingTaskbar {
         $this->categories['iusers'] = __('Subscribers');
         $this->categories['instruments'] = __('Instruments');
         $this->categories['equipment'] = __('Equipment');
+        $this->categories['maps'] = __('Maps');
         $this->categories['reports'] = __('Reports');
         $this->categories['directories'] = __('Directories');
         $this->categories['system'] = __('System');
