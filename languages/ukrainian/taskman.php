@@ -11,3 +11,4 @@ $lang['def']['Princess was here']='Тут були принцеси';
 $lang['def']['You cant modify closed tasks state']='Ви не можете змінювати стан вже закритих задач';
 $lang['def']['Branch contains']='Філія містить';
 $lang['def']['Planned tasks on']='Задачі заплановані на';
+$lang['def']['Tasks duplicates']='Дублікати задач';
