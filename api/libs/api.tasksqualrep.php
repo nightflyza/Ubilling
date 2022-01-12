@@ -131,7 +131,7 @@ class TasksQualRep {
         $this->dateWeekBegin = date("Y-m-d", strtotime('monday this week'));
         $this->dateWeekEnd = date("Y-m-d", strtotime('sunday this week'));
         $this->dateYearBegin = curyear() . '-01-01';
-        $this->dateYearBegin = curyear() . '-12-31';
+        $this->dateYearEnd = curyear() . '-12-31';
     }
 
     /**
