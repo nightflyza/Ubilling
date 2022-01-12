@@ -1485,11 +1485,11 @@ function ts_ShowPanel() {
         $tools .= wf_Link('?module=taskman&show=logs', wf_img('skins/icon_note.gif') . ' ' . __('Logs'), false, 'ubButton');
     }
 
-    $tools .= wf_delimiter(1);
 
     if (cfr('TASKMANSEARCH')) {
         $tools .= wf_Link(TasksDuplicates::URL_ME, wf_img('skins/icon_clone.png') . ' ' . __('Tasks duplicates'), false, 'ubButton');
     }
+
 
     $tools .= wf_Link('?module=report_taskmanmap', wf_img('skins/swmapsmall.png') . ' ' . __('Tasks map'), false, 'ubButton');
     $tools .= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
