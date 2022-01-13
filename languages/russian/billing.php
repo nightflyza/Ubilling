@@ -3328,3 +3328,4 @@ $lang['def']['right to use annoyance report'] = 'Право использова
 $lang['def']['Access'] = 'Доступ';
 $lang['def']['Employee timeline'] = 'Таймлайн работников';
 $lang['def']['Maps'] = 'Карты';
+$lang['def']['Collecting data'] = 'Собираю данные';
