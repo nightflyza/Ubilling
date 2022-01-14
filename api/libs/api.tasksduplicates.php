@@ -27,6 +27,13 @@ class TasksDuplicates {
     protected $jobTypeId = '';
 
     /**
+     * Contains optional secondary job type filter
+     *
+     * @var int
+     */
+    protected $secondaryJobType = '';
+
+    /**
      * Contains available jobtypes as id=>jobtypename
      *
      * @var array
@@ -62,6 +69,7 @@ class TasksDuplicates {
     const PROUTE_DATEFROM = 'datefromfilter';
     const PROUTE_DATETO = 'datetofilter';
     const PROUTE_JOBTYPE = 'jobtypeidfilter';
+    const PROUTE_SECJOBTYPE = 'secondaryjobtypeidfilter';
     const PROUTE_SHOWREPORT = 'renderthisreport';
     const TABLE_DATASOURCE = 'taskman';
 
@@ -100,6 +108,10 @@ class TasksDuplicates {
     protected function setJobtype() {
         if (ubRouting::checkPost(self::PROUTE_JOBTYPE)) {
             $this->jobTypeId = ubRouting::post(self::PROUTE_JOBTYPE, 'int');
+        }
+
+        if (ubRouting::checkPost(self::PROUTE_SECJOBTYPE)) {
+            $this->secondaryJobType = ubRouting::post(self::PROUTE_SECJOBTYPE, 'int');
         }
     }
 
@@ -152,6 +164,9 @@ class TasksDuplicates {
         $jobTypesArr = array(0 => __('Any'));
         $jobTypesArr += $this->allJobtypes;
         $inputs .= wf_Selector(self::PROUTE_JOBTYPE, $jobTypesArr, __('Job type'), $this->jobTypeId, false) . ' ';
+        if ($this->jobTypeId) {
+            $inputs .= wf_Selector(self::PROUTE_SECJOBTYPE, $jobTypesArr, __('Or'), $this->secondaryJobType, false) . ' ';
+        }
         $inputs .= wf_Submit(__('Search'));
         $result .= wf_Form('', 'POST', $inputs, 'glamour');
         return($result);
@@ -168,6 +183,10 @@ class TasksDuplicates {
         $this->tasksDB->where('startdate', 'BETWEEN', $this->dateFrom . "' AND '" . $this->dateTo);
         if ($this->jobTypeId) {
             $this->tasksDB->where('jobtype', '=', $this->jobTypeId);
+        }
+
+        if ($this->secondaryJobType) {
+            $this->tasksDB->orWhere('jobtype', '=', $this->secondaryJobType);
         }
         $this->tasksDB->orderBy('startdate', 'DESC');
         $allTasks = $this->tasksDB->getAll('id');
