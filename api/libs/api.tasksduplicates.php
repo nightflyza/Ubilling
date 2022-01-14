@@ -181,19 +181,14 @@ class TasksDuplicates {
         $result = array();
         $addrTmp = array();
         $this->tasksDB->where('startdate', 'BETWEEN', $this->dateFrom . "' AND '" . $this->dateTo);
-        if ($this->jobTypeId) {
-            $this->tasksDB->where('jobtype', '=', $this->jobTypeId);
-        }
-
-        if ($this->secondaryJobType) {
-            $this->tasksDB->orWhere('jobtype', '=', $this->secondaryJobType);
-        }
         $this->tasksDB->orderBy('startdate', 'DESC');
         $allTasks = $this->tasksDB->getAll('id');
 
         if (!empty($allTasks)) {
             foreach ($allTasks as $io => $each) {
-                $addrTmp[$each['address']][] = $each;
+                if ($this->jobTypeFilter($each)) {
+                    $addrTmp[$each['address']][] = $each;
+                }
             }
 
             if (!empty($addrTmp)) {
@@ -204,6 +199,32 @@ class TasksDuplicates {
                     }
                 }
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Check is some job pass some jobtype filters if its applied?
+     * 
+     * @param array $jobData
+     * 
+     * @return bool 
+     */
+    protected function jobTypeFilter($taskData) {
+        $result = false;
+        if (!empty($this->jobTypeId)) {
+            if ($taskData['jobtype'] == $this->jobTypeId) {
+                $result = true;
+            } else {
+                //additional jobtype filter may be?
+                if ($this->secondaryJobType) {
+                    if ($taskData['jobtype'] == $this->secondaryJobType) {
+                        $result = true;
+                    }
+                }
+            }
+        } else {
+            $result = true;
         }
         return($result);
     }
