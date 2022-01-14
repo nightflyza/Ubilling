@@ -3351,4 +3351,12 @@ $lang['def']['Access'] = 'Доступ';
 $lang['def']['Employee timeline'] = 'Таймлайн працівників';
 $lang['def']['Maps'] = 'Мапи';
 $lang['def']['Collecting data'] = 'Збираю дані';
+$lang['def']['Realtime bandwidth monitor'] = 'Моніторинг швидкостей в реальному часі';
+$lang['def']['Authorization failed'] = 'Авторизація не вдалась';
+$lang['def']['Freeze dont move'] = 'Замри, не рухайся!';
+$lang['def']['Realtime traffic'] = 'Трафік в реальному часі';
+$lang['def']['Realtime charts'] = 'Реалтайм графіки';
+$lang['def']['Kbit/s'] = 'Кбіт/с';
+$lang['def']['right to realtime SNMP bandwidth monitoring'] = 'Право використовувати реалтайм SNMP опит обладнання';
 $lang['def'][''] = '';
+

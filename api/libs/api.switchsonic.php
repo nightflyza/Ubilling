@@ -41,6 +41,13 @@ class SwitchSonic {
     protected $cachingTimeout = 120;
 
     /**
+     * Time window to display on charts in seconds
+     *
+     * @var int
+     */
+    protected $timeWindow = 300;
+
+    /**
      * Contains default kilo-multiplier to convert bits in Kilo
      *
      * @var int
@@ -462,31 +469,30 @@ class SwitchSonic {
             $options = '';
             if (!empty($speedLine)) {
                 foreach ($speedLine as $portNum => $speedData) {
-                    //some filters here?
-                    if (true) {
-                        $csvData = '';
-                        $portLabel = __('Interface') . ' ' . $portNum;
-                        if (isset($ifdescr[$portNum])) {
-                            $portDescr = $ifdescr[$portNum];
-                            if (!empty($portDescr)) {
-                                $portLabel .= ' - ' . $portDescr;
-                            }
+                    $csvData = '';
+                    $portLabel = __('Interface') . ' ' . $portNum;
+                    if (isset($ifdescr[$portNum])) {
+                        $portDescr = $ifdescr[$portNum];
+                        if (!empty($portDescr)) {
+                            $portLabel .= ' - ' . $portDescr;
+                        }
 
-
-                            foreach ($speedData['in'] as $timeIn => $speedIn) {
-                                $timeLabel = date("Y-m-d H:i:s", $timeIn);
-                                $speedOut = $speedData['out'][$timeIn];
-                                if ($speedIn OR $speedOut) {
+                        foreach ($speedData['in'] as $timeIn => $speedIn) {
+                            $timeLabel = date("Y-m-d H:i:s", $timeIn);
+                            $speedOut = $speedData['out'][$timeIn];
+                            if ($speedIn OR $speedOut) {
+                                $curTime = time();
+                                if (($timeIn) > ($curTime - $this->timeWindow)) {
                                     $inLabel = $this->speedForCharts($speedIn);
                                     $outLabel = $this->speedForCharts($speedOut);
                                     $csvData .= $timeLabel . ',' . $inLabel . ',' . $outLabel . PHP_EOL;
                                 }
                             }
                         }
+                    }
 
-                        if (!empty($csvData)) {
-                            $result .= wf_Graph($csvData, '100%', '200px;', false, $portLabel, __('Time'), __('Mbit/s'), false);
-                        }
+                    if (!empty($csvData)) {
+                        $result .= wf_Graph($csvData, '100%', '200px;', false, $portLabel, __('Time'), __('Mbit/s'), false);
                     }
                 }
             } else {
