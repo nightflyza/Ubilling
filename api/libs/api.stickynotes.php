@@ -374,7 +374,7 @@ class StickyNotes {
                 $calendarData .= "
                       {
                         title: '" . $remindTime . " " . $shortText . " ',
-                        url: '" . self::URL_ME . "&shownote=" . $each['id'] . "',
+                        url: '" . self::URL_ME . "&backurl=calendar&shownote=" . $each['id'] . "',
                         start: new Date(" . $reminddate . "),
                         end: new Date(" . $reminddate . "),
                        " . $coloring . "     
@@ -559,7 +559,11 @@ class StickyNotes {
             }
         } else {
             if (!wf_CheckGet(array('editrev'))) {
-                $result .= wf_BackLink(self::URL_ME);
+                if (ubRouting::get('backurl') == 'calendar') {
+                    $result .= wf_BackLink(self::URL_ME . '&calendarview=true');
+                } else {
+                    $result .= wf_BackLink(self::URL_ME);
+                }
             } else {
                 $result .= wf_BackLink(self::URL_REVELATIONS);
             }
@@ -970,13 +974,21 @@ class StickyNotes {
                 $result = strip_tags($noteData['text']);
                 $result = nl2br($result);
                 $result .= wf_delimiter(2);
-                $result .= wf_BackLink(self::URL_ME);
+                $backUrl = '';
+                $customLink = '';
+                if (ubRouting::get('backurl') == 'calendar') {
+                    $backUrl .= '&calendarview=true';
+                    $customLink .= '&backurl=calendar';
+                }
+
+                $result .= wf_BackLink(self::URL_ME . $backUrl);
+
                 $result .= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton') . ' ';
 
                 $deletingPreview = nl2br($this->cutString(strip_tags($noteData['text']), 50));
                 $deletingPreview .= wf_delimiter();
-                $deletingPreview .= wf_JSAlert(self::URL_ME . '&delete=' . $noteData['id'], web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), '', 'ubButton') . ' ';
-                $deletingPreview .= wf_Link(self::URL_ME . '&shownote=' . $noteData['id'], wf_img('skins/back.png') . ' ' . __('Cancel'), false, 'ubButton');
+                $deletingPreview .= wf_JSAlert(self::URL_ME . $customLink . '&delete=' . $noteData['id'], web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), '', 'ubButton') . ' ';
+                $deletingPreview .= wf_Link(self::URL_ME . $customLink . '&shownote=' . $noteData['id'], wf_img('skins/back.png') . ' ' . __('Cancel'), false, 'ubButton');
                 $deletingDialog = wf_modalAuto(web_delete_icon() . ' ' . __('Delete'), __('Delete'), $deletingPreview, 'ubButton');
                 $result .= $deletingDialog;
             } else {

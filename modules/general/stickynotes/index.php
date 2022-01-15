@@ -11,26 +11,29 @@ if (cfr('STICKYNOTES')) {
 
         //sticky notes management
         if (!wf_CheckGet(array('revelations'))) {
+            //custom return URLs?
+            $backUrl = '';
+            if (ubRouting::get('backurl') == 'calendar') {
+                $backUrl .= '&calendarview=true';
+            }
+
             // new note creation
             if (wf_CheckPost(array('newtext'))) {
                 $stickyNotes->addMyNote();
-                rcms_redirect($stickyNotes::URL_ME);
+                rcms_redirect($stickyNotes::URL_ME . $backUrl);
             }
 
             //note deletion
             if (wf_CheckGet(array('delete'))) {
                 $stickyNotes->deleteNote($_GET['delete']);
-                rcms_redirect($stickyNotes::URL_ME);
+                rcms_redirect($stickyNotes::URL_ME . $backUrl);
             }
 
             //note editing
             if (wf_CheckPost(array('edittext', 'editnoteid'))) {
                 $stickyNotes->saveMyNote();
-                rcms_redirect($stickyNotes::URL_ME);
+                rcms_redirect($stickyNotes::URL_ME . $backUrl);
             }
-
-
-
 
             if ((!wf_CheckGet(array('shownote'))) AND ( !wf_CheckGet(array('editform')))) {
                 //grid or calendar view switch
@@ -98,4 +101,3 @@ if (cfr('STICKYNOTES')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
