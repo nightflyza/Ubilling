@@ -598,7 +598,8 @@ class PONBoxes {
             }
             foreach ($this->allBoxes as $io => $each) {
                 if (!empty($each['geo'])) {
-                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'], '', '', '', true);
+                    $boxLink = trim(wf_Link(self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $each['id'], web_edit_icon()));
+                    $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'] . ' ' . $boxLink, '', '', '', true);
                 }
             }
             $result .= generic_MapInit($mapsCfg['CENTER'], $mapsCfg['ZOOM'], $mapsCfg['TYPE'], $placemarks, $editor, $mapsCfg['LANG'], $mapContainer);
