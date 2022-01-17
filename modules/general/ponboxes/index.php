@@ -75,6 +75,7 @@ if (cfr('PON')) {
                 //rendering available boxes list
                 if (!ubRouting::checkGet($boxes::ROUTE_MAP)) {
                     show_window(__('Available boxes'), $boxes->renderBoxesList());
+                    zb_BillingStats(true);
                 }
 
                 //render pon boxes map
