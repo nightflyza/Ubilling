@@ -1,4 +1,4 @@
-set timeout 1
+set timeout 20
 set IP [lindex $argv 0]
 set LOGIN [lindex $argv 1]
 set PASSWORD [lindex $argv 2]
