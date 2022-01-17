@@ -579,9 +579,9 @@ class PONBoxes {
     /**
      * Renders available boxes map
      *
-     * @return string
      * @global object $ubillingConfig
-     *
+     * 
+     * @return string
      */
     public function renderBoxesMap() {
         global $ubillingConfig;
