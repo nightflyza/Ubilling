@@ -3358,5 +3358,9 @@ $lang['def']['Realtime traffic'] = 'Трафік в реальному часі'
 $lang['def']['Realtime charts'] = 'Реалтайм графіки';
 $lang['def']['Kbit/s'] = 'Кбіт/с';
 $lang['def']['right to realtime SNMP bandwidth monitoring'] = 'Право використовувати реалтайм SNMP опит обладнання';
+$lang['def']['Database monitor'] = 'Моніторинг бази даних';
+$lang['def']['Current database processes'] = 'Поточні процеси БД';
+$lang['def']['Render full queries'] = 'Відображати повні запити';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 

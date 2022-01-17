@@ -4117,7 +4117,10 @@ function zb_DBStatsRenderContainer() {
     $result = '';
     $result .= wf_AjaxLoader();
     $result .= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Database stats'), 'dbscontainer', false, 'ubButton');
-    $result .= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', true, 'ubButton');
+    $result .= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', false, 'ubButton');
+    if (cfr('ROOT')) {
+        $result .= wf_Link(DBmon::URL_ME, wf_img('skins/icon_time_small.png') . ' ' . __('Database monitor'), false, 'ubButton') . ' ';
+    }
     $result .= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
     $result .= wf_tag('br');
     $result .= wf_AjaxContainer('dbrepaircontainer');

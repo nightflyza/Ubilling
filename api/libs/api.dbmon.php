@@ -20,10 +20,25 @@ class DBmon {
     protected $messages = '';
 
     /**
+     * Deafault container refresh rate in ms.
+     *
+     * @var int
+     */
+    protected $timeout = 2000;
+
+    /**
+     * Some predefined URLs/routes etc
+     */
+    const URL_ME = '?module=dbmon';
+    const ROUTE_FULL = 'renderfullqueries';
+    const ROUTE_ZEN = 'dbmonzenmode';
+
+    /**
      * creates new DBmon instance
      */
     public function __construct() {
         $this->initMessages();
+        $this->setOptions();
     }
 
     /**
@@ -31,6 +46,26 @@ class DBmon {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Sets some current instance properties
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (ubRouting::checkGet(self::ROUTE_FULL)) {
+            $this->fullModifier = true;
+        }
+    }
+
+    /**
+     * Returns current instance refresh timeout
+     * 
+     * @return int
+     */
+    public function getTimeout() {
+        return($this->timeout);
     }
 
     /**
@@ -56,7 +91,14 @@ class DBmon {
      */
     public function renderControls() {
         $result = '';
-        //TODO
+        $result.= wf_BackLink('?module=report_sysload').' ';
+        if ($this->fullModifier) {
+            $result .= wf_Link(self::URL_ME, wf_img('skins/icon_restoredb.png') . ' ' . __('Current database processes'), false, 'ubButton');
+        } else {
+            $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_FULL . '=true', wf_img('skins/icon_restoredb.png') . ' ' . __('Render full queries'), false, 'ubButton');
+        }
+
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ZEN . '=true', wf_img('skins/zen.png') . ' ' . __('Zen'), false, 'ubButton');
         return($result);
     }
 
