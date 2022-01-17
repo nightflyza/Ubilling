@@ -680,7 +680,7 @@ class OnuRegister {
      */
     protected function loadCardSelector($swid) {
         $this->cardSelector['======'] = '======';
-        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if (isset($this->allZteOlt[$eachCard['swid']])) {
                     $this->cardSelector[$eachCard['slot_number']] = $this->allZteOlt[$eachCard['swid']]['ip'];
@@ -747,7 +747,7 @@ class OnuRegister {
      */
     protected function loadCards() {
         $cards = array();
-        if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
+        if (isset($this->allCards[$this->currentOltSwId]) AND!empty($this->allCards[$this->currentOltSwId])) {
             foreach ($this->allCards[$this->currentOltSwId] as $eachId => $eachCard) {
                 if ($this->currentPonType == 'EPON') {
                     if (isset($this->eponCards[$eachCard['card_name']])) {
@@ -964,7 +964,7 @@ class OnuRegister {
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
 
-                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
+                    if (isset($this->allCards[$this->currentOltSwId]) AND!empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentPonType == 'EPON') {
                             $this->getAllUnauthEpon();
                         }
@@ -992,7 +992,7 @@ class OnuRegister {
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
 
-                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
+                    if (isset($this->allCards[$this->currentOltSwId]) AND!empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentPonType == 'EPON') {
                             $this->getAllUnauthEpon();
                         }
@@ -1066,7 +1066,7 @@ class OnuRegister {
     protected function getAllUnauthGponHuawei() {
         $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN']);
         $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
-        if (!empty($allUnreg) and ! empty($oltInterface)) {
+        if (!empty($allUnreg) and!empty($oltInterface)) {
             foreach ($oltInterface as $eachOid => $name) {
                 $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
                 $name = str_replace('STRING:', '', $name);
@@ -1240,9 +1240,14 @@ class OnuRegister {
         $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['LLIDLIST'] . $this->ponArray[$this->currentOltInterface]);
         if (!empty($getAllId)) {
             foreach ($getAllId as $oid => $value) {
-                $number = explode(':', $value);
-                $number = trim($number[1]);
-                $this->existId[] = $number;
+                if ($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == 2) {
+                    $number = str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['LLIDLIST'] . $this->ponArray[$this->currentOltInterface] . '.', "", $oid);
+                    $this->existId[] = trim($number);
+                } else {
+                    $number = explode(':', $value);
+                    $number = trim($number[1]);
+                    $this->existId[] = $number;
+                }
             }
         }
     }
@@ -1517,7 +1522,7 @@ class OnuRegister {
      * @return boolean
      */
     public function createZteCard($swid, $chasis, $slot, $card) {
-        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if ($eachCard['slot_number'] == $slot) {
                     rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
@@ -1743,7 +1748,7 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
-        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $each => $eachCard) {
                 $tablecells = wf_TableCell($eachCard['id']);
                 $tablecells .= wf_TableCell($eachCard['chasis_number']);
@@ -1837,7 +1842,7 @@ class OnuRegister {
         $exclude = array();
         $result = '';
 
-        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $each) {
                 $search[$each['slot_number']] = $each['card_name'];
             }
@@ -1891,7 +1896,7 @@ class OnuRegister {
                         $eachOid = trim(str_replace($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'] . '.', '', $eachOid));
                         $eachOid = explode('.', $eachOid);
                         $eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
-                        if(isset($snmpTemplate['define']['DEVICE']) AND preg_match('/C610/i',$snmpTemplate['define']['DEVICE'])) {
+                        if (isset($snmpTemplate['define']['DEVICE']) AND preg_match('/C610/i', $snmpTemplate['define']['DEVICE'])) {
                             $tablecells = wf_TableCell($eachOid[0]);
                         } else {
                             $tablecells = wf_TableCell($eachOid[2]);
