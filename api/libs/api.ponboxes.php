@@ -73,7 +73,8 @@ class PONBoxes {
      *
      * @var string[]
      */
-    protected $splittersTypesList = array('Coupler 5:95' => 'Coupler 5:95',
+    protected $splittersTypesList = array(
+        'Coupler 5:95' => 'Coupler 5:95',
         'Coupler 10:90' => 'Coupler 10:90',
         'Coupler 15:85' => 'Coupler 15:85',
         'Coupler 20:80' => 'Coupler 20:80',
