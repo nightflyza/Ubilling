@@ -86,8 +86,10 @@ class PONBoxes {
         'Splitter 1 x 2' => 'Splitter 1 x 2',
         'Splitter 1 x 3' => 'Splitter 1 x 3',
         'Splitter 1 x 4' => 'Splitter 1 x 4',
+        'Splitter 1 x 5' => 'Splitter 1 x 5',
         'Splitter 1 x 6' => 'Splitter 1 x 6',
         'Splitter 1 x 8' => 'Splitter 1 x 8',
+        'Splitter 1 x 12' => 'Splitter 1 x 12',
         'Splitter 1 x 16' => 'Splitter 1 x 16',
         'Splitter 1 x 32' => 'Splitter 1 x 32',
         'Splitter 1 x 64' => 'Splitter 1 x 64'
