@@ -73,28 +73,7 @@ class PONBoxes {
      *
      * @var string[]
      */
-    protected $splittersTypesList = array(
-        'Coupler 5:95' => 'Coupler 5:95',
-        'Coupler 10:90' => 'Coupler 10:90',
-        'Coupler 15:85' => 'Coupler 15:85',
-        'Coupler 20:80' => 'Coupler 20:80',
-        'Coupler 25:75' => 'Coupler 25:75',
-        'Coupler 30:70' => 'Coupler 30:70',
-        'Coupler 35:65' => 'Coupler 35:65',
-        'Coupler 40:60' => 'Coupler 40:60',
-        'Coupler 45:55' => 'Coupler 45:55',
-        'Coupler 50:50' => 'Coupler 50:50',
-        'Splitter 1 x 2' => 'Splitter 1 x 2',
-        'Splitter 1 x 3' => 'Splitter 1 x 3',
-        'Splitter 1 x 4' => 'Splitter 1 x 4',
-        'Splitter 1 x 5' => 'Splitter 1 x 5',
-        'Splitter 1 x 6' => 'Splitter 1 x 6',
-        'Splitter 1 x 8' => 'Splitter 1 x 8',
-        'Splitter 1 x 12' => 'Splitter 1 x 12',
-        'Splitter 1 x 16' => 'Splitter 1 x 16',
-        'Splitter 1 x 32' => 'Splitter 1 x 32',
-        'Splitter 1 x 64' => 'Splitter 1 x 64'
-    );
+    protected $splittersTypesList = array();
 
     /**
      * Contains preloaded users address array
@@ -113,6 +92,8 @@ class PONBoxes {
     const PROUTE_NEWLINKBOX = 'newlinkboxid';
     const PROUTE_NEWLINKTYPE = 'newlinktype';
     const PROUTE_NEWLINKONU = 'newlinkonu';
+    const PROUTE_MAPBOXID = 'setboxidonmap';
+    const PROUTE_MAPBOXCOORDS = 'newboxmapcoords';
     const ROUTE_BOXLIST = 'ajboxes';
     const ROUTE_BOXNAV = 'boxidnav';
     const ROUTE_MAP = 'boxmap';
@@ -121,6 +102,7 @@ class PONBoxes {
     const ROUTE_LINKDEL = 'deletelinkid';
     const ROUTE_SPLITTERADD = 'addboxsplitters';
     const ROUTE_SPLITTERDEL = 'delboxsplitters';
+    const ROUTE_PLACEBOX = 'plcmapboxid';
     const TABLE_BOXES = 'ponboxes';
     const TABLE_LINKS = 'ponboxeslinks';
     const TABLE_SPLITTERSLINKS = 'ponboxes_splitters';
@@ -137,6 +119,7 @@ class PONBoxes {
     public function __construct($loadFullData = false) {
         $this->initMessages();
         $this->loadConfigs();
+        $this->setSplitterTypes();
         $this->initDatabase();
         if ($loadFullData) {
             $this->loadAllAddress();
@@ -183,6 +166,36 @@ class PONBoxes {
      */
     protected function loadAllAddress() {
         $this->allUserAddress = zb_AddressGetFulladdresslistCached();
+    }
+
+    /**
+     * Sets predefined splitters ad couplers list
+     * 
+     * @return void
+     */
+    protected function setSplitterTypes() {
+        $this->splittersTypesList = array(
+            'Coupler 5:95' => __('Coupler') . ' 5:95',
+            'Coupler 10:90' => __('Coupler') . ' 10:90',
+            'Coupler 15:85' => __('Coupler') . ' 15:85',
+            'Coupler 20:80' => __('Coupler') . ' 20:80',
+            'Coupler 25:75' => __('Coupler') . ' 25:75',
+            'Coupler 30:70' => __('Coupler') . ' 30:70',
+            'Coupler 35:65' => __('Coupler') . ' 35:65',
+            'Coupler 40:60' => __('Coupler') . ' 40:60',
+            'Coupler 45:55' => __('Coupler') . ' 45:55',
+            'Coupler 50:50' => __('Coupler') . ' 50:50',
+            'Splitter 1 x 2' => __('Splitter') . ' 1 x 2',
+            'Splitter 1 x 3' => __('Splitter') . ' 1 x 3',
+            'Splitter 1 x 4' => __('Splitter') . ' 1 x 4',
+            'Splitter 1 x 5' => __('Splitter') . ' 1 x 5',
+            'Splitter 1 x 6' => __('Splitter') . ' 1 x 6',
+            'Splitter 1 x 8' => __('Splitter') . ' 1 x 8',
+            'Splitter 1 x 12' => __('Splitter') . ' 1 x 12',
+            'Splitter 1 x 16' => __('Splitter') . ' 1 x 16',
+            'Splitter 1 x 32' => __('Splitter') . ' 1 x 32',
+            'Splitter 1 x 64' => __('Splitter') . ' 1 x 64'
+        );
     }
 
     /**
@@ -303,7 +316,7 @@ class PONBoxes {
      * @return string
      */
     public function renderBoxEditForm($boxId) {
-        $boxid = ubRouting::filters($boxId, 'int');
+        $boxId = ubRouting::filters($boxId, 'int');
         $result = '';
         if (isset($this->allBoxes[$boxId])) {
             $boxData = $this->allBoxes[$boxId];
@@ -317,8 +330,13 @@ class PONBoxes {
             $result .= wf_delimiter(0);
             $result .= wf_BackLink(self::URL_ME);
             if (!$this->isBoxProtected($boxId)) {
-                $boxDelControlUrl = self::URL_ME . '&' . self::ROUTE_BOXDEL . '=' . $boxid;
-                $result .= ' ' . wf_JSAlert($boxDelControlUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), '', 'ubButton');
+                $boxDelControlUrl = self::URL_ME . '&' . self::ROUTE_BOXDEL . '=' . $boxId;
+                $boxDelCancelUrl = self::URL_ME . '&' . self::ROUTE_BOXEDIT . '=' . $boxId;
+                $result .= wf_ConfirmDialogJS($boxDelControlUrl, web_delete_icon() . ' ' . __('Delete'), $this->messages->getDeleteAlert(), 'ubButton', $boxDelCancelUrl) . ' ';
+            }
+            if (empty($boxData['geo'])) {
+                $mapPlaceUrl = self::URL_ME . '&' . self::ROUTE_MAP . '=true&' . self::ROUTE_PLACEBOX . '=' . $boxId;
+                $result .= wf_Link($mapPlaceUrl, wf_img('skins/ymaps/target.png') . ' ' . __('Place on map'), false, 'ubButton');
             }
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists'), 'error');
@@ -523,6 +541,42 @@ class PONBoxes {
     }
 
     /**
+     * Returns form for setting location of the box on map
+     * 
+     * @param int $boxId
+     * 
+     * @return string
+     */
+    protected function getBoxPlaceForm($boxId) {
+        $result = '';
+        $boxId = ubRouting::filters($boxId, 'int');
+        $boxData = $this->allBoxes[$boxId];
+        $inputs = wf_HiddenInput(self::PROUTE_MAPBOXID, $boxId);
+        $inputs .= wf_delimiter(1);
+        $inputs .= __('Box') . ': ' . $boxData['name'];
+        $inputs .= wf_delimiter(1);
+        $inputs .= wf_Submit('Save');
+        $result .= generic_MapEditor(self::PROUTE_MAPBOXCOORDS, __('Place on map'), $inputs);
+        return($result);
+    }
+
+    /**
+     * Sets some new geo coords for existing box
+     * 
+     * @param int $boxId
+     * @param string $coords
+     * 
+     * @return void
+     */
+    public function setBoxGeo($boxId, $coords = '') {
+        $boxId = ubRouting::filters($boxId, 'int');
+        $coords = ubRouting::filters($coords, 'mres');
+        $this->boxes->where('id', '=', $boxId);
+        $this->boxes->data('geo', $coords);
+        $this->boxes->save();
+    }
+
+    /**
      * Renders available boxes map
      *
      * @return string
@@ -538,6 +592,10 @@ class PONBoxes {
             $result .= generic_MapContainer('100%', '800px', $mapContainer);
             $placemarks = '';
             $editor = '';
+            if (ubRouting::checkGet(self::ROUTE_PLACEBOX)) {
+                $placeBoxId = ubRouting::get(self::ROUTE_PLACEBOX, 'int');
+                $editor .= $this->getBoxPlaceForm($placeBoxId);
+            }
             foreach ($this->allBoxes as $io => $each) {
                 if (!empty($each['geo'])) {
                     $placemarks .= generic_mapAddMark($each['geo'], '', $each['name'], '', '', '', true);
@@ -903,7 +961,7 @@ class PONBoxes {
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($curBoxSplitters as $io => $each) {
-                        $cells = wf_TableCell($each['splitter']);
+                        $cells = wf_TableCell($this->splittersTypesList[$each['splitter']]);
                         $delLinkUrl = self::URL_ME . '&' . self::ROUTE_SPLITTERDEL . '=' . $each['id'] . '&' . self::ROUTE_BOXNAV . '=' . $each['boxid'];
                         $actLinks = wf_JSAlert($delLinkUrl, web_delete_icon(), $this->messages->getDeleteAlert());
                         $cells .= wf_TableCell($actLinks);

@@ -79,15 +79,21 @@ if (cfr('PON')) {
 
                 //render pon boxes map
                 if (ubRouting::checkGet($boxes::ROUTE_MAP)) {
+                    //place box on map
+                    if (ubRouting::checkPost(array($boxes::PROUTE_MAPBOXID, $boxes::PROUTE_MAPBOXCOORDS))) {
+                        $boxMapPlcId = ubRouting::post($boxes::PROUTE_MAPBOXID);
+                        $boxes->setBoxGeo($boxMapPlcId, ubRouting::post($boxes::PROUTE_MAPBOXCOORDS));
+                        ubRouting::nav($boxes::URL_ME . '&' . $boxes::ROUTE_BOXEDIT . '=' . $boxMapPlcId);
+                    }
                     show_window(__('Map'), $boxes->renderBoxesMap());
                 }
             } else {
-                //boxes editing interface
+                //boxes editing interface aka box profile
                 show_window(__('Edit'), $boxes->renderBoxEditForm(ubRouting::get($boxes::ROUTE_BOXEDIT)));
                 show_window(__('Schemes and images'), $boxes->renderBoxImageControls(ubRouting::get($boxes::ROUTE_BOXEDIT)));
                 show_window(__('Splitters/couplers in this box'), $boxes->renderSplittersControls(ubRouting::get($boxes::ROUTE_BOXEDIT))
-                            . $boxes->renderSplittersList(ubRouting::get($boxes::ROUTE_BOXEDIT))
-                            );
+                        . $boxes->renderSplittersList(ubRouting::get($boxes::ROUTE_BOXEDIT))
+                );
                 show_window(__('Links'), $boxes->renderBoxLinksList(ubRouting::get($boxes::ROUTE_BOXEDIT)));
             }
         } else {
