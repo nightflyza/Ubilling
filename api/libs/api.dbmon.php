@@ -91,7 +91,7 @@ class DBmon {
      */
     public function renderControls() {
         $result = '';
-        $result.= wf_BackLink('?module=report_sysload').' ';
+        $result .= wf_BackLink('?module=report_sysload') . ' ';
         if ($this->fullModifier) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/icon_restoredb.png') . ' ' . __('Current database processes'), false, 'ubButton');
         } else {
@@ -111,6 +111,7 @@ class DBmon {
         $result = '';
         $all = $this->getProcessList();
         if (!empty($all)) {
+            $count = 0;
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('User'));
             $cells .= wf_TableCell(__('Host'));
@@ -121,17 +122,23 @@ class DBmon {
             $cells .= wf_TableCell(__('Info'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($all as $io => $each) {
-                $cells = wf_TableCell($each['Id']);
-                $cells .= wf_TableCell($each['User']);
-                $cells .= wf_TableCell($each['Host']);
-                $cells .= wf_TableCell($each['db']);
-                $cells .= wf_TableCell($each['Command']);
-                $cells .= wf_TableCell($each['Time']);
-                $cells .= wf_TableCell($each['State']);
-                $cells .= wf_TableCell($each['Info']);
-                $rows .= wf_TableRow($cells, 'row5');
+                if (!ispos($each['Info'], 'PROCESSLIST')) {
+                    $cells = wf_TableCell($each['Id']);
+                    $cells .= wf_TableCell($each['User']);
+                    $cells .= wf_TableCell($each['Host']);
+                    $cells .= wf_TableCell($each['db']);
+                    $cells .= wf_TableCell($each['Command']);
+                    $cells .= wf_TableCell($each['Time']);
+                    $cells .= wf_TableCell($each['State']);
+                    $cells .= wf_TableCell($each['Info']);
+                    $rows .= wf_TableRow($cells, 'row5');
+                    $count++;
+                }
             }
+
+
             $result .= wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= __('Total') . ': ' . $count;
         } else {
             $result .= $this->messages->getStyledMessage(__('Nothing to show') . ': ' . __('Collecting data'), 'warning');
         }
