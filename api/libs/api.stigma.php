@@ -252,7 +252,7 @@ class Stigma {
      * 
      * @return void
      */
-    public function setSystemLogging($paramter = '') {
+    public function setSystemLogging($parameter = '') {
         $this->systemLogging = $parameter;
     }
 
@@ -474,7 +474,7 @@ class Stigma {
     /**
      * AJAX callbacks processing controller
      * 
-     * @param string $logging
+     * @param string $logging SYSTEM:[paramname] or TASKMAN:[paramname]
      * 
      * @return void
      */
@@ -616,7 +616,7 @@ class Stigma {
         }
 
         if ($this->systemLogging) {
-            log_register('STIGMA ' . $this->scope . ' CHANGE [' . $itemId . '] `' . $this->systemLogging . '` ON  `' . $newValue . '`');
+            log_register('STIGMA ' . $this->scope . ' CHANGE [' . $itemId . '] `' . $this->systemLogging . '` ON  `' . $newState . '`');
         }
     }
 
@@ -709,6 +709,66 @@ class Stigma {
                     }
                 }
             }
+        }
+        return($result);
+    }
+
+    /**
+     * Renders basic report on states applied on current scope
+     * 
+     * @return string
+     */
+    public function renderBasicReport() {
+        $result = '';
+        $availStates = $this->getAllStates();
+        $messages = new UbillingMessageHelper();
+        //default date intervals setting 
+        $dateCurrentDay = curdate();
+        $dateMonthBegin = curmonth() . '-01';
+        $dateMonthEnd = curmonth() . '-' . date("t");
+        $dateWeekBegin = date("Y-m-d", strtotime('monday this week'));
+        $dateWeekEnd = date("Y-m-d", strtotime('sunday this week'));
+        $dateYearBegin = curyear() . '-01-01';
+        $dateYearEnd = curyear() . '-12-31';
+
+        //getting report data
+        $dataDay = $this->getReportData($dateCurrentDay, $dateCurrentDay);
+        $dataWeek = $this->getReportData($dateWeekBegin, $dateWeekEnd);
+        $dataMonth = $this->getReportData($dateMonthBegin, $dateMonthEnd);
+        $dataYear = $this->getReportData($dateYearBegin, $dateYearEnd);
+        $dataAllTime = $this->getReportData();
+
+
+        if (!empty($availStates)) {
+            $cells = wf_TableCell(__('Job'), '30%');
+            $cells .= wf_TableCell(__('Day'));
+            $cells .= wf_TableCell(__('Week'));
+            $cells .= wf_TableCell(__('Month'));
+            $cells .= wf_TableCell(__('Year'));
+            $cells .= wf_TableCell(__('All time'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($availStates as $eachStateId => $eachStateDesc) {
+                $stateLabel = __($eachStateDesc);
+                $stateIcon = $this->getStateIcon($eachStateId);
+
+                $dayCount = isset($dataDay[$eachStateId]['count']) ? $dataDay[$eachStateId]['count'] : 0;
+                $weekCount = isset($dataWeek[$eachStateId]['count']) ? $dataWeek[$eachStateId]['count'] : 0;
+                $monthCount = isset($dataMonth[$eachStateId]['count']) ? $dataMonth[$eachStateId]['count'] : 0;
+                $yearCount = isset($dataYear[$eachStateId]['count']) ? $dataYear[$eachStateId]['count'] : 0;
+                $allTimeCount = isset($dataAllTime[$eachStateId]['count']) ? $dataAllTime[$eachStateId]['count'] : 0;
+
+                $cells = wf_TableCell(wf_img_sized($stateIcon, '', '10') . ' ' . $stateLabel);
+                $cells .= wf_TableCell($dayCount);
+                $cells .= wf_TableCell($weekCount);
+                $cells .= wf_TableCell($monthCount);
+                $cells .= wf_TableCell($yearCount);
+                $cells .= wf_TableCell($allTimeCount);
+                $rows .= wf_TableRow($cells, 'row5');
+            }
+
+            $result .= wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return($result);
     }

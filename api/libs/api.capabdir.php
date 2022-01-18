@@ -676,11 +676,23 @@ class CapabilitiesDirectory {
     }
 
     /**
+     * Renders capab sources stats
+     * 
+     * @return string
+     */
+    public function renderSourcesStats() {
+        $result = '';
+        $capabSources=new Stigma('CAPABSOURCE');
+        $result.=$capabSources->renderBasicReport();
+        return($result);
+    }
+
+    /**
      * Renders states charts
      * 
      * @return string
      */
-    protected function renderStatesStats() {
+    public function renderStatesStats() {
         $result = '';
         $statsTmp = array();
         if (!empty($this->allcapab)) {
@@ -725,17 +737,17 @@ class CapabilitiesDirectory {
             $result .= wf_Link(self::URL_ME . "&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
         $result .= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
-        $result .= wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&stats=true', wf_img('skins/icon_stats_16.gif') . ' ' . __('Stats'), false, 'ubButton');
         if (wf_CheckGet(array('calendar'))) {
             $result .= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
         } else {
             $result .= wf_Link(self::URL_ME . '&calendar=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
         }
-        $result .= wf_tag('br') . wf_tag('br');
+
+
+        $result .= wf_delimiter();
 
         return ($result);
     }
 
 }
-
-?>

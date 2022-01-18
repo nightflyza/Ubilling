@@ -28,12 +28,18 @@ if (cfr('CAPAB')) {
 
 //show editing form
         if (wf_CheckGet(array('edit'))) {
+            $capabId = ubRouting::get('edit', 'int');
             //editing processing 
             if (wf_CheckPost(array('editaddress', 'editphone'))) {
-                $capabilities->editCapability($_GET['edit'], $_POST['editaddress'], $_POST['editphone'], $_POST['editstateid'], @$_POST['editnotes'], @$_POST['editprice'], $_POST['editemployeeid']);
+                $capabilities->editCapability($capabId, $_POST['editaddress'], $_POST['editphone'], $_POST['editstateid'], @$_POST['editnotes'], @$_POST['editprice'], $_POST['editemployeeid']);
                 rcms_redirect("?module=capabilities");
             }
-            show_window(__('Edit'), $capabilities->editForm($_GET['edit']));
+            show_window(__('Edit'), $capabilities->editForm($capabId));
+            //some source marks here
+            $capabSource = new Stigma('CAPABSOURCE');
+            $capabSource->stigmaController('SYSTEM:SOURCE');
+
+            show_window(__('Capabylity source'), $capabSource->render($capabId));
         }
 
 //show current states editor
@@ -66,17 +72,23 @@ if (cfr('CAPAB')) {
 
 //show available
         if (!wf_CheckGet(array('edit'))) {
-            if (!wf_CheckGet(array('states'))) {
-                if (wf_CheckGet(array('ajlist'))) {
-                    die($capabilities->ajCapabList());
-                }
+            if (!wf_CheckGet(array('stats'))) {
+                if (!wf_CheckGet(array('states'))) {
+                    if (wf_CheckGet(array('ajlist'))) {
+                        die($capabilities->ajCapabList());
+                    }
 
-                if (wf_CheckGet(array('calendar'))) {
-                    show_window(__('Available connection capabilities'), $capabilities->renderCalendar());
-                } else {
-                    show_window(__('Available connection capabilities'), $capabilities->render());
+                    if (wf_CheckGet(array('calendar'))) {
+                        show_window(__('Available connection capabilities'), $capabilities->renderCalendar());
+                    } else {
+                        show_window(__('Available connection capabilities'), $capabilities->render());
+                    }
                 }
-                
+            } else {
+                //some stats here
+                show_window('', wf_BackLink($capabilities::URL_ME));
+                show_window(__('Capabylity source'), $capabilities->renderSourcesStats());
+                show_window(__('Available states'), $capabilities->renderStatesStats());
             }
         }
     } else {
@@ -85,4 +97,4 @@ if (cfr('CAPAB')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+
