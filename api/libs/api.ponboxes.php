@@ -384,7 +384,7 @@ class PONBoxes {
                     $this->boxes->data('geo', $newBoxGeoF);
                     $this->boxes->where('id', '=', $boxId);
                     $this->boxes->save();
-                    log_register('PONBOX CHANGE BOX [' . $boxId . '] GEO');
+                    log_register('PONBOX CHANGE BOX [' . $boxId . '] GEO `' . $newBoxGeoF . '`');
                 }
             } else {
                 $result .= __('Something went wrong') . ': ' . __('box') . ' [' . $boxId . '] ' . __('Not exists');
@@ -574,6 +574,7 @@ class PONBoxes {
         $this->boxes->where('id', '=', $boxId);
         $this->boxes->data('geo', $coords);
         $this->boxes->save();
+        log_register('PONBOX CHANGE BOX [' . $boxId . '] GEO `' . $coords . '`');
     }
 
     /**
