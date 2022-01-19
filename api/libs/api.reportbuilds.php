@@ -252,6 +252,7 @@ class ReportBuilds {
                     'Building number',
                     'Owner',
                     'Phone',
+                    'Type',
                     'Floors',
                     'Entrances',
                     'Apartments',
@@ -386,12 +387,14 @@ class ReportBuilds {
                             $ownerLabel = $buildPassport['owner'] . ' ' . $buildPassport['ownername'] . ' ' . $buildPassport['ownercontact'];
                             $ownerPhone = $buildPassport['ownerphone'];
                             $floors = $buildPassport['floors'];
+                            $type = ($buildPassport['anthill']) ? wf_img('skins/ymaps/build.png', __('Apartment house')) : wf_img('skins/ymaps/home.png');
                             $entrances = $buildPassport['entrances'];
                             $apts = $buildPassport['apts'];
                             $accessNotices = $buildPassport['accessnotices'];
                         } else {
                             $ownerLabel = '';
                             $ownerPhone = '';
+                            $type = '';
                             $floors = '';
                             $entrances = '';
                             $apts = '';
@@ -400,6 +403,7 @@ class ReportBuilds {
 
                         $data[] = $ownerLabel;
                         $data[] = $ownerPhone;
+                        $data[] = $type;
                         $data[] = $floors;
                         $data[] = $entrances;
                         $data[] = $apts;
