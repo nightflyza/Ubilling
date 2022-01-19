@@ -137,6 +137,7 @@ class BuildPassport {
         $keys = (@$currentData['keys'] == 1) ? true : false;
         $inputs .= wf_CheckInput('pkeys', __('Keys available'), true, $keys);
         $inputs .= wf_TextInput('paccessnotices', __('Build access notices'), @$currentData['accessnotices'], true, 40);
+        $inputs .= wf_CheckInput('panthill', __('Apartment house'), true, @$currentData['anthill']) . ' ';
         $inputs .= wf_Selector('pfloors', $this->floorsArr, __('Floors'), @$currentData['floors'], false);
         $inputs .= wf_Selector('pentrances', $this->entrancesArr, __('Entrances'), @$currentData['entrances'], false);
         $inputs .= wf_TextInput('papts', __('Apartments'), @$currentData['apts'], true, 5);
@@ -190,12 +191,17 @@ class BuildPassport {
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Keys available'), '', 'row2');
-            $keysLabel = ($currentData['keys']) ? wf_img_sized('skins/icon_key.gif', __('Keys available'), '12') . ' ' . __('Yes') : __('No');
+            $keysLabel = ($currentData['keys']) ? wf_img_sized('skins/icon_key.gif', __('Keys available'), 12) . ' ' . __('Yes') : __('No');
             $cells .= wf_TableCell($keysLabel);
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Build access notices'), '', 'row2');
             $cells .= wf_TableCell($currentData['accessnotices']);
+            $rows .= wf_TableRow($cells, 'row3');
+
+            $antHillLabel = ($currentData['anthill']) ? wf_img_sized('skins/ymaps/build.png', '', 12) . ' ' . __('Yes') : wf_img_sized('skins/ymaps/home.png', '', 12) . ' ' . __('No');
+            $cells = wf_TableCell(__('Apartment house'), '', 'row2');
+            $cells .= wf_TableCell($antHillLabel);
             $rows .= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Floors'), '', 'row2');
@@ -251,6 +257,7 @@ class BuildPassport {
             $notes = ubRouting::post('pnotes', 'mres');
             $contract = (ubRouting::checkPost('pcontract')) ? 1 : 0;
             $mediator = (ubRouting::checkPost('pmediator')) ? 1 : 0;
+            $anthill = (ubRouting::checkPost('panthill')) ? 1 : 0;
 
 
 
@@ -267,6 +274,7 @@ class BuildPassport {
             $this->passportsDb->data('notes', $notes);
             $this->passportsDb->data('contract', $contract);
             $this->passportsDb->data('mediator', $mediator);
+            $this->passportsDb->data('anthill', $anthill);
 
             if (isset($this->allPassportData[$buildid])) {
                 //updating existing record

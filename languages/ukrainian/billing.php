@@ -3362,5 +3362,9 @@ $lang['def']['Database monitor'] = 'Моніторинг бази даних';
 $lang['def']['Current database processes'] = 'Поточні процеси БД';
 $lang['def']['Render full queries'] = 'Відображати повні запити';
 $lang['def']['Employees and job types'] = 'Працівники та типи робіт';
+$lang['def']['Annoyance'] = 'Надокучливість';
+$lang['def']['High-rise building'] = 'Багатоповерхівка';
+$lang['def']['Apartment house'] = 'Багатоквартирний будинок';
 $lang['def'][''] = '';
+
 

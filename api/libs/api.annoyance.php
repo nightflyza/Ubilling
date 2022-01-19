@@ -144,7 +144,9 @@ class Annoyance {
      */
     public function runUsersFilter() {
         $result = '';
-        //TODO: 
+        if (!empty($this->allUserData)) {
+            
+        }
         return($result);
     }
 
