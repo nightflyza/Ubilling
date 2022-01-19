@@ -3365,6 +3365,8 @@ $lang['def']['Employees and job types'] = 'Працівники та типи р
 $lang['def']['Annoyance'] = 'Надокучливість';
 $lang['def']['High-rise building'] = 'Багатоповерхівка';
 $lang['def']['Apartment house'] = 'Багатоквартирний будинок';
+$lang['def']['Anthill'] = 'Мурашник';
+$lang['def']['Coverage'] = 'Покриття';
 $lang['def'][''] = '';
 
 

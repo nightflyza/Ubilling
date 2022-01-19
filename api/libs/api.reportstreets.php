@@ -75,11 +75,26 @@ class ReportStreets {
      */
     protected $agents = array();
 
+    /**
+     * Build passports object placeholder
+     *
+     * @var object
+     */
+    protected $buildPassport = '';
+
+    /**
+     * Contains build passports enabling flag
+     *
+     * @var bool
+     */
+    protected $passportsFlag = false;
+
     public function __construct() {
         $this->setDates();
         $this->initPayments();
         $this->loadCities();
         $this->loadStreets();
+        $this->initBuildPassports();
         $this->loadBuilds();
         $this->loadApts();
         $this->countApts();
@@ -100,6 +115,21 @@ class ReportStreets {
         } else {
             $this->year = curyear();
             $this->month = date("m");
+        }
+    }
+
+    /**
+     * Inits builds passports instance if enabled for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function initBuildPassports() {
+        global $ubillingConfig;
+        if ($ubillingConfig->getAlterParam('BUILD_EXTENDED')) {
+            $this->passportsFlag = true;
+            $this->buildPassport = new BuildPassport();
         }
     }
 
@@ -177,6 +207,9 @@ class ReportStreets {
                 $this->streets[$each['id']]['cityid'] = $each['cityid'];
                 $this->streets[$each['id']]['buildcount'] = 0;
                 $this->streets[$each['id']]['usercount'] = 0;
+                $this->streets[$each['id']]['aptstotal'] = 0;
+                $this->streets[$each['id']]['anthills'] = 0;
+                $this->streets[$each['id']]['anthillusers'] = 0;
             }
         }
     }
@@ -194,6 +227,19 @@ class ReportStreets {
                 $this->builds[$each['id']]['buildnum'] = $each['buildnum'];
                 $this->builds[$each['id']]['streetid'] = $each['streetid'];
                 $this->builds[$each['id']]['aptcount'] = 0;
+                $aptsTotal = 0;
+                $antHill = 0;
+                if ($this->passportsFlag) {
+                    $eachPassport = $this->buildPassport->getPassportData($each['id']);
+                    if (@$eachPassport['anthill']) {
+                        $aptsTotal = $eachPassport['apts'];
+                        $antHill = 1;
+                    }
+                }
+
+                $this->builds[$each['id']]['aptstotal'] = $aptsTotal;
+                $this->builds[$each['id']]['anthill'] = $antHill;
+                $this->builds[$each['id']]['anthillusers'] = 0;
             }
         }
     }
@@ -225,6 +271,9 @@ class ReportStreets {
                 foreach ($this->apts as $io => $eachapt) {
                     if (isset($this->builds[$eachapt['buildid']])) {
                         $this->builds[$eachapt['buildid']]['aptcount'] ++;
+                        if ($this->builds[$eachapt['buildid']]['anthill']) {
+                            $this->builds[$eachapt['buildid']]['anthillusers'] ++;
+                        }
                         $this->totalusercount++;
                     }
                 }
@@ -244,6 +293,11 @@ class ReportStreets {
                     if (isset($this->streets[$eachbuild['streetid']])) {
                         $this->streets[$eachbuild['streetid']]['buildcount'] ++;
                         $this->streets[$eachbuild['streetid']]['usercount'] = $this->streets[$eachbuild['streetid']]['usercount'] + $eachbuild['aptcount'];
+                        if ($eachbuild['anthill']) {
+                            $this->streets[$eachbuild['streetid']]['aptstotal'] += $eachbuild['aptstotal'];
+                            $this->streets[$eachbuild['streetid']]['anthillusers'] += $eachbuild['anthillusers'];
+                            $this->streets[$eachbuild['streetid']]['anthills'] ++;
+                        }
                     }
                 }
             }
@@ -303,17 +357,25 @@ class ReportStreets {
         }
 
         if (!empty($this->streets)) {
-
             $cells = wf_TableCell(__('ID'));
             $cells .= wf_TableCell(__('City'));
             $cells .= wf_TableCell(__('Street'));
             $cells .= wf_TableCell(__('Contrahent name'));
             $cells .= wf_TableCell(__('Builds'));
+            if ($this->passportsFlag) {
+                $cells .= wf_TableCell(__('Anthill'));
+                $cells .= wf_TableCell(__('Apartments'));
+            }
             $cells .= wf_TableCell(__('Users'));
+            if ($this->passportsFlag) {
+                $cells .= wf_TableCell(wf_img_sized('skins/ymaps/build.png', __('Users') . ': ' . __('Apartment house'), 12));
+                $cells .= wf_TableCell(wf_img_sized('skins/ymaps/coverage.png', __('Coverage'), 12));
+            }
             $cells .= wf_TableCell(__('Visual'));
             $cells .= wf_TableCell(__('Level'));
             $cells .= wf_TableCell(__('Money'));
             $rows = wf_TableRow($cells, 'row1');
+
 
             foreach ($this->streets as $streetid => $each) {
                 $streetAgentId = 0;
@@ -338,7 +400,24 @@ class ReportStreets {
                 $cells .= wf_TableCell($each['streetname']);
                 $cells .= wf_TableCell($streetAgentName);
                 $cells .= wf_TableCell($each['buildcount']);
-                $cells .= wf_TableCell($each['usercount']);
+                if ($this->passportsFlag) {
+                    $cells .= wf_TableCell($each['anthills']);
+                    $cells .= wf_TableCell($each['aptstotal']);
+                }
+                $usersCount = $each['usercount'];
+
+
+                $cells .= wf_TableCell($usersCount);
+                if ($this->passportsFlag) {
+                    $anthillUsers = $each['anthillusers'];
+                    $cells .= wf_TableCell($anthillUsers);
+                    if ($anthillUsers > 0) {
+                        $coveragePercent = zb_PercentValue($each['aptstotal'], $anthillUsers) . '%';
+                    } else {
+                        $coveragePercent = '';
+                    }
+                    $cells .= wf_TableCell($coveragePercent);
+                }
                 $cells .= wf_TableCell(web_bar($each['usercount'], $this->totalusercount), '15%', '', 'sorttable_customkey="' . $each['usercount'] . '"');
                 $cells .= wf_TableCell($this->getLevel($each['usercount'], $each['buildcount']));
 
