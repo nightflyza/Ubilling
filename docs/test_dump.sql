@@ -3137,3 +3137,7 @@ CREATE TABLE IF NOT EXISTS `ot_tariffs` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 ALTER TABLE `ot_users` ADD `addtariffid` INT NULL DEFAULT NULL AFTER `tariffid`; 
+
+-- 1.2.5 update
+
+ALTER TABLE `buildpassport` ADD `anthill` TINYINT NULL;
