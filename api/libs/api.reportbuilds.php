@@ -394,7 +394,7 @@ class ReportBuilds {
                         } else {
                             $ownerLabel = '';
                             $ownerPhone = '';
-                            $type = '';
+                            $type = wf_img('skins/ymaps/home.png');
                             $floors = '';
                             $entrances = '';
                             $apts = '';
