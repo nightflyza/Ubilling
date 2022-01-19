@@ -5459,7 +5459,10 @@ class PONizer {
             $inputs .= wf_Submit(__('Search'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Nothing found'), 'warning', 'style="width:300px;"');
         }
+
         return ($result);
     }
 
