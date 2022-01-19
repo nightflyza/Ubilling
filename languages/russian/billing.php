@@ -3339,3 +3339,4 @@ $lang['def']['right to realtime SNMP bandwidth monitoring'] = 'Право исп
 $lang['def']['Database monitor'] = 'Мониторинг базы данных';
 $lang['def']['Current database processes'] = 'Текущие процессы БД';
 $lang['def']['Render full queries'] = 'Показывать запросы целиком';
+$lang['def']['Employees and job types'] = 'Работники и типы работ';

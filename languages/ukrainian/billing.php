@@ -3361,6 +3361,6 @@ $lang['def']['right to realtime SNMP bandwidth monitoring'] = 'Право вик
 $lang['def']['Database monitor'] = 'Моніторинг бази даних';
 $lang['def']['Current database processes'] = 'Поточні процеси БД';
 $lang['def']['Render full queries'] = 'Відображати повні запити';
-$lang['def'][''] = '';
+$lang['def']['Employees and job types'] = 'Працівники та типи робіт';
 $lang['def'][''] = '';
 
