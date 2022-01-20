@@ -34,9 +34,17 @@ class FGA {
     protected $adviceApi = '';
 
     /**
+     * Contains current two-letters locale
+     *
+     * @var string
+     */
+    protected $currentLocale = '';
+
+    /**
      * Predefined routes/URLs/etc
      */
     const URL_ADVICE = 'http://ubilling.net.ua/fga/api/random/';
+    const ROUTE_LANG = '?lang=';
     const ADVICE_KEY = 'FGADVICE';
 
     /**
@@ -44,6 +52,16 @@ class FGA {
      */
     public function __construct() {
         $this->initCache();
+        $this->setLocale();
+    }
+
+    /**
+     * Sets current instance locale
+     * 
+     * @return void
+     */
+    protected function setLocale() {
+        $this->currentLocale = curlang();
     }
 
     /**
@@ -52,7 +70,11 @@ class FGA {
      * @return void
      */
     protected function initAdviceApi() {
-        $this->adviceApi = new OmaeUrl(self::URL_ADVICE);
+        $apiUrl = self::URL_ADVICE;
+        if (!empty($this->currentLocale)) {
+            $apiUrl .= self::ROUTE_LANG . $this->currentLocale;
+        }
+        $this->adviceApi = new OmaeUrl($apiUrl);
         $this->adviceApi->setTimeout(1);
     }
 
