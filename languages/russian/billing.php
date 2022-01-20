@@ -3345,3 +3345,4 @@ $lang['def']['High-rise building'] = 'Многоэтажка';
 $lang['def']['Apartment house'] = 'Многоквартирный дом';
 $lang['def']['Anthill'] = 'Муравейник';
 $lang['def']['Coverage'] = 'Покрытие';
+$lang['def']['You do not have any license keys installed. So how are you going to live like this?'] = 'У вас не установлено ни одного ключа лицензий. Ну и как вы собрались так жить?';

@@ -224,40 +224,43 @@ class Avarice {
  * @return void
  */
 function zb_LicenseLister() {
+    $result = '';
     $avarice = new Avarice();
     $all = $avarice->getLicenseKeys();
-
-
-    $cells = wf_TableCell(__('License key'));
-    $cells.= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
+    $messages = new UbillingMessageHelper();
 
     if (!empty($all)) {
+        $cells = wf_TableCell(__('License key'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             //construct edit form
             $editinputs = wf_HiddenInput('editdbkey', $each['KEY']);
-            $editinputs.= wf_TextArea('editlicense', '', $each['LICENSE'], true, '50x10');
-            $editinputs.= wf_Submit(__('Save'));
+            $editinputs .= wf_TextArea('editlicense', '', $each['LICENSE'], true, '50x10');
+            $editinputs .= wf_Submit(__('Save'));
             $editform = wf_Form("", 'POST', $editinputs, 'glamour');
             $editcontrol = wf_modal(web_edit_icon(), __('Edit') . ' ' . $each['MODULE'], $editform, '', '500', '300');
-            //construct deletion controls
-            $deletecontrol = wf_JSAlert('?module=licensekeys&licensedelete=' . $each['KEY'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-
+            $deletionUrl = '?module=licensekeys&licensedelete=' . $each['KEY'];
+            $cancelUrl = '?module=licensekeys';
+            $delLabel = __('Delete') . ' ' . __('License key') . ' ' . $each['MODULE'] . '? ';
+            $delLabel .= $messages->getDeleteAlert();
+            $deletecontrol = wf_ConfirmDialog($deletionUrl, web_delete_icon(), $delLabel, '', $cancelUrl);
             $cells = wf_TableCell($each['MODULE']);
-            $cells.= wf_TableCell($deletecontrol . ' ' . $editcontrol);
-            $rows.= wf_TableRow($cells, 'row3');
+            $cells .= wf_TableCell($deletecontrol . ' ' . $editcontrol);
+            $rows .= wf_TableRow($cells, 'row5');
         }
+        $result .= wf_TableBody($rows, '100%', 0, '');
+    } else {
+        $result .= $messages->getStyledMessage(__('You do not have any license keys installed. So how are you going to live like this?'), 'warning');
     }
-
 
     //constructing license creation form
     $addinputs = wf_TextArea('createlicense', '', '', true, '50x10');
-    $addinputs.= wf_Submit(__('Save'));
+    $addinputs .= wf_Submit(__('Save'));
     $addform = wf_Form("", 'POST', $addinputs, 'glamour');
-    $addcontrol = wf_modal(wf_img('skins/icon_add.gif') . ' ' . __('Install license key'), __('Install license key'), $addform, 'ubButton', '500', '300');
-
-    $result = wf_TableBody($rows, '100%', 0, '');
-    $result.= $addcontrol;
+    $addcontrol = wf_modal(web_icon_create() . ' ' . __('Install license key'), __('Install license key'), $addform, 'ubButton', '500', '300');
+    $result .= wf_delimiter(0);
+    $result .= $addcontrol;
     show_window(__('Installed license keys'), $result);
 }
 
