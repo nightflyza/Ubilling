@@ -432,7 +432,8 @@ class ReportStreets {
             $result .= wf_tag('br');
             $result .= __('Payments') . ': ' . $totalPaymentsSumm;
         } else {
-            $result = __('Nothing found');
+            $messages = new UbillingMessageHelper();
+            $result = $messages->getStyledMessage(__('Nothing found'), 'warning');
         }
         return ($result);
     }
