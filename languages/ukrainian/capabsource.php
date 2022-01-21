@@ -9,3 +9,5 @@ $lang['def']['Direct sales department'] = 'Відділ прямих прода�
 $lang['def']['Saw employee'] = 'Побачили працівників';
 $lang['def']['We dont know'] = 'Ми не знаємо';
 $lang['def']['Telemarketing'] = 'Телемаркетинг';
+$lang['def']['Billboard / Citylight'] = 'Білборд / сітілайт';
+$lang['def']['Newspaper'] = 'Газета';
