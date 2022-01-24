@@ -21,9 +21,9 @@ if (cfr('TASKFLOW')) {
         } else {
             if (!ubRouting::checkGet($taskFlow::ROUTE_EMREPORT)) {
                 $randomAdvice = $taskFlow->getAwesomeAdvice();
-                $randomAdvice = zb_TranslitString($randomAdvice); // AUFFFF
                 if (!empty($randomAdvice)) {
-                    show_info(zb_TranslitString(__('Advice of the day')) . ': ' . $randomAdvice);
+                    show_info(__('Advice of the day') . ': ' . $randomAdvice);
+                    zb_BillingStats(true);
                 }
             }
         }

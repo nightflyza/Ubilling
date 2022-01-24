@@ -281,7 +281,7 @@ class TasksDuplicates {
     public function renderAdviceOfTheDay() {
         $result = '';
         $fga = new FGA();
-        $adviceLabel = zb_TranslitString(__('Advice of the day') . ': ' . $fga->getAdviceOfTheDay(), true);
+        $adviceLabel = __('Advice of the day') . ': ' . $fga->getAdviceOfTheDay();
         $result .= $this->messages->getStyledMessage($adviceLabel, 'info');
         return($result);
     }
