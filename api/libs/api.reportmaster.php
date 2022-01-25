@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Custom user reports builder implementation
+ */
 class ReportMaster {
 
     /**
@@ -57,7 +60,13 @@ class ReportMaster {
     const PROUTE_EDICON = 'editicon';
     const MOD_PRINT = 'printable';
     const MOD_CSV = 'csv';
+    const ICON_DEFAULT = 'goat.gif';
+    const ICONS_PATH = 'skins/taskbar/';
+    const ICONS_PREFIX = '';
 
+    /**
+     * Creates new ReportMaster instance
+     */
     public function __construct() {
         $this->initMessages();
         $this->setLogin();
@@ -627,6 +636,22 @@ class ReportMaster {
     }
 
     /**
+     * Returns list of available taskbar icons
+     * 
+     * @return array
+     */
+    protected function getAvailableIcons() {
+        $result = array('' => __('-'));
+        $all = rcms_scandir(self::ICONS_PATH, self::ICONS_PREFIX);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each] = pathinfo($each, PATHINFO_FILENAME);
+            }
+        }
+        return($result);
+    }
+
+    /**
      * Renders existing report editing form
      * 
      * @param string $reportId
@@ -661,9 +686,12 @@ class ReportMaster {
                 $inputs .= wf_TextInput(self::PROUTE_EDQUERY, __('One-Punch') . ' ' . __('script') . ' ' . __('Alias') . $sup, $reportData['REPORT_QUERY'], true, 40);
             }
 
+            $availableIcons = $this->getAvailableIcons();
+
+
             $inputs .= __('Access') . ':' . wf_tag('br');
             $inputs .= wf_TextInput(self::PROUTE_EDADMACL, __('Allowed administrators logins') . ' ' . __('(separator - comma)'), $reportData['REPORT_ALLOWADMINS'], true, 40);
-            $inputs .= wf_TextInput(self::PROUTE_EDICON, __('Icon'), $reportData['REPORT_ICON'], true, 10);
+            $inputs .= wf_Selector(self::PROUTE_EDICON, $availableIcons, __('Icon'), $reportData['REPORT_ICON'], true);
             $inputs .= web_TriggerSelector(self::PROUTE_EDONTB, $reportData['REPORT_ONTB']) . ' ' . __('Show on taskbar') . wf_tag('br');
 
 
@@ -749,6 +777,36 @@ class ReportMaster {
                     log_register('REPORTMASTER SAVE ' . $newReportType . ' REPORT `' . $fileName . '`');
                 } else {
                     log_register('REPORTMASTER SAVE FAIL ' . $newReportType . ' REPORT `' . $fileName . '`');
+                }
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * 
+     * @return array
+     */
+    public function getTaskBarReports() {
+        $result = array();
+        if (!empty($this->allReports)) {
+            foreach ($this->allReports as $eachReport => $eachReportData) {
+                if ($eachReportData['REPORT_ONTB']) {
+                    if ($this->isMeAllowed($eachReport)) {
+                        $reportId = 'RM_' . $eachReport;
+                        $result[$eachReport]['ID'] = $reportId;
+                        $result[$eachReport]['NAME'] = $eachReportData['REPORT_NAME'];
+                        $result[$eachReport]['URL'] = self::URL_ME . '&' . self::ROUTE_VIEW . '=' . $eachReport . '&back=tb';
+                        if (!empty($eachReportData['REPORT_ICON'])) {
+                            $reportIcon = $eachReportData['REPORT_ICON'];
+                        } else {
+                            $reportIcon = self::ICON_DEFAULT;
+                        }
+                        $result[$eachReport]['ICON'] = $reportIcon;
+                        $result[$eachReport]['NEED_RIGHT'] = 'REPORTMASTER';
+                        $result[$eachReport]['NEED_OPTION'] = 'TB_REPORTMASTER';
+                        $result[$eachReport]['TYPE'] = 'icon';
+                    }
                 }
             }
         }

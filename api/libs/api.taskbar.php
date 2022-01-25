@@ -326,6 +326,19 @@ class UbillingTaskbar {
                 }
             }
 
+            //injecting optional ReportMaster reports here
+            if ($category == 'reports') {
+                if (@$this->altCfg['TB_REPORTMASTER']) {
+                    $reportMaster = new ReportMaster();
+                    $availableReports = $reportMaster->getTaskBarReports();
+                    if (!empty($availableReports)) {
+                        foreach ($availableReports as $eachReportId => $eachReportElement) {
+                            $categoryContent .= $this->buildElement($eachReportElement);
+                        }
+                    }
+                }
+            }
+
             if (!empty($categoryContent)) {
                 $result .= wf_tag('p') . wf_tag('h3') . wf_tag('u') . $categoryName . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
                 $result .= wf_tag('div', false, 'dashboard');
