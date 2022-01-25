@@ -3368,6 +3368,12 @@ $lang['def']['Apartment house'] = 'Багатоквартирний будино
 $lang['def']['Anthill'] = 'Мурашник';
 $lang['def']['Coverage'] = 'Покриття';
 $lang['def']['You do not have any license keys installed. So how are you going to live like this?'] = 'У вас не встановлено жодного ключа ліцензій. Ну, і як ви зібралися так жити далі?';
+$lang['def']['Access for all'] = 'Доступ для всіх';
+$lang['def']['Access restricted'] = 'Доступ обмежено';
+$lang['def']['script'] = 'скрипт';
+$lang['def']['Allowed administrators logins'] = 'Логіни адміністраторів з доступом';
+$lang['def']['Show on taskbar'] = 'Показувати на панелі задач';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 
