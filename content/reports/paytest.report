@@ -1,9 +1,0 @@
-
-        REPORT_NAME =Today payments
-        REPORT_QUERY=SELECT * from `payments` WHERE `date`>CURDATE()
-        REPORT_KEYS=login,summ,date
-        REPORT_FIELD_NAMES=Login,Cash,Date
-        REPORT_ADDR=1
-        REPORT_RNAMES=1
-        REPORT_ROW_COUNT=1
-        

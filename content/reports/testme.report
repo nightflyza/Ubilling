@@ -1,9 +1,0 @@
-
-        REPORT_NAME =Debtors
-        REPORT_QUERY=SELECT * from `users` WHERE `Cash`<'0'
-        REPORT_KEYS=login,Tariff,Credit,Cash
-        REPORT_FIELD_NAMES=Login,Tariff,Credit,Cash
-        REPORT_ADDR=1
-        REPORT_RNAMES=1
-        REPORT_ROW_COUNT=1
-        
