@@ -4,8 +4,6 @@ if (cfr('REPORTMASTER')) {
 
     $reportMaster = new ReportMaster();
 
-
-
 //new report creation
     if (ubRouting::checkPost(array($reportMaster::PROUTE_NEWTYPE, $reportMaster::PROUTE_NEWNAME, $reportMaster::PROUTE_NEWQUERY))) {
         if (cfr('REPORTMASTERADM')) {
@@ -67,12 +65,21 @@ if (cfr('REPORTMASTER')) {
     }
 
 
-
-//and if editing
+//existing report editing
     if (ubRouting::checkGet($reportMaster::ROUTE_EDIT)) {
         if (cfr('REPORTMASTERADM')) {
             $reportToEdit = ubRouting::get($reportMaster::ROUTE_EDIT);
             if ($reportMaster->isMeAllowed($reportToEdit)) {
+                //save changes if required
+                if (ubRouting::checkPost($reportMaster::PROUTE_EDNAME)) {
+                    $saveResult = $reportMaster->saveReport($reportToEdit);
+                    if (empty($saveResult)) {
+                        ubRouting::nav($reportMaster::URL_ME . '&' . $reportMaster::ROUTE_EDIT . '=' . $reportToEdit);
+                    } else {
+                        show_error($saveResult);
+                    }
+                }
+                //render edit form
                 show_window(__('Edit report'), $reportMaster->renderEditForm($reportToEdit));
             } else {
                 show_error(__('Access denied'));

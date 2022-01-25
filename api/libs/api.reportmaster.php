@@ -308,6 +308,13 @@ class ReportMaster {
     public function createReport($type, $name, $query, $keys = '', $fields = '', $addr = 0, $rn = 0, $rowcount = 0) {
         $fileName = 'rm' . time();
         $pathToSave = self::PATH_REPORTS . $fileName;
+        $isOk = false;
+
+        if (!empty($type) AND ! empty($name) AND ! empty($query)) {
+            //base params here?
+            $isOk = true;
+        }
+
         $reportBody = '';
         $reportBody .= 'REPORT_NAME="' . $name . '"' . PHP_EOL;
         $reportBody .= 'REPORT_TYPE="' . $type . '"' . PHP_EOL;
@@ -324,8 +331,23 @@ class ReportMaster {
             $reportBody .= 'REPORT_ROW_COUNT="' . $rowcount . '"' . PHP_EOL;
         }
 
-        file_put_contents($pathToSave, $reportBody);
-        log_register('REPORTMASTER CREATE ' . $type . ' REPORT `' . $fileName . '`');
+        if ($type == 'onepunch') {
+            //script exists?
+            $onePunch = new OnePunch($query);
+            $scriptCode = $onePunch->getScriptContent($query);
+            if (!empty($scriptCode)) {
+                $isOk = true;
+            } else {
+                $isOk = false;
+            }
+        }
+
+        if ($isOk) {
+            file_put_contents($pathToSave, $reportBody);
+            log_register('REPORTMASTER CREATE ' . $type . ' REPORT `' . $fileName . '`');
+        } else {
+            log_register('REPORTMASTER CREATE FAIL ' . $type . ' REPORT `' . $fileName . '`');
+        }
     }
 
     /**
@@ -596,6 +618,8 @@ class ReportMaster {
                 }
             } else {
                 log_register('REPORTMASTER VIEW FAIL REPORT `' . $reportId . '` ACCESS VIOLATION');
+                show_error(__('Access denied'));
+                show_window('', $this->renderBackControl());
             }
         } else {
             show_error(__('Unknown report'));
@@ -631,17 +655,17 @@ class ReportMaster {
             }
 
             if ($reportType == 'ONEPUNCH') {
-                debarr($reportData);
                 $onePunch = new OnePunch();
                 $inputs .= wf_HiddenInput(self::PROUTE_EDTYPE, 'ONEPUNCH');
                 $inputs .= wf_TextInput(self::PROUTE_EDNAME, __('Report name') . $sup, $reportData['REPORT_NAME'], true, 40);
                 $inputs .= wf_TextInput(self::PROUTE_EDQUERY, __('One-Punch') . ' ' . __('script') . ' ' . __('Alias') . $sup, $reportData['REPORT_QUERY'], true, 40);
             }
 
-            $inputs .= wf_tag('hr');
+            $inputs .= __('Access') . ':' . wf_tag('br');
             $inputs .= wf_TextInput(self::PROUTE_EDADMACL, __('Allowed administrators logins') . ' ' . __('(separator - comma)'), $reportData['REPORT_ALLOWADMINS'], true, 40);
             $inputs .= wf_TextInput(self::PROUTE_EDICON, __('Icon'), $reportData['REPORT_ICON'], true, 10);
             $inputs .= web_TriggerSelector(self::PROUTE_EDONTB, $reportData['REPORT_ONTB']) . ' ' . __('Show on taskbar') . wf_tag('br');
+
 
             $inputs .= wf_delimiter(0);
             $inputs .= wf_Submit(__('Save'));
@@ -652,6 +676,82 @@ class ReportMaster {
         }
         $result .= wf_delimiter(1);
         $result .= $this->renderBackControl();
+        return($result);
+    }
+
+    /**
+     * Saves report on its editing
+     * 
+     * @param string $reportId
+     * 
+     * @return void/string on error
+     */
+    public function saveReport($reportId) {
+        $result = '';
+        $reportId = ubRouting::filters($reportId, 'mres');
+        //report exists?
+        if (isset($this->allReports[$reportId])) {
+            //basic options received
+            if (ubRouting::checkPost(array(self::PROUTE_EDNAME, self::PROUTE_EDQUERY, self::PROUTE_EDTYPE))) {
+                $fileName = $reportId;
+                $pathToSave = self::PATH_REPORTS . $fileName;
+                $isOk = false;
+
+                $newReportType = ubRouting::post(self::PROUTE_EDTYPE);
+                $newReportName = ubRouting::post(self::PROUTE_EDNAME);
+                $newReportQuery = ubRouting::post(self::PROUTE_EDQUERY);
+                $newReportKeys = ubRouting::post(self::PROUTE_EDKEYS);
+                $newReportFields = ubRouting::post(self::PROUTE_EDFIELDS);
+                $newReportAddr = ubRouting::post(self::PROUTE_EDADDR);
+                $newReportRenderNames = ubRouting::post(self::PROUTE_EDRNAMES);
+                $newReportRowCount = ubRouting::post(self::PROUTE_EDROWCOUNT);
+                $newReportAdmAcl = ubRouting::post(self::PROUTE_EDADMACL);
+                $newReportIcon = ubRouting::post(self::PROUTE_EDICON);
+                $newReportOnTb = ubRouting::post(self::PROUTE_EDONTB);
+
+                if (!empty($newReportType) AND ! empty($newReportName) AND ! empty($newReportQuery)) {
+                    //base params here?
+                    $isOk = true;
+                } else {
+                    $result .= __('All fields marked with an asterisk are mandatory');
+                }
+
+                $reportBody = '';
+                $reportBody .= 'REPORT_NAME="' . $newReportName . '"' . PHP_EOL;
+                $reportBody .= 'REPORT_TYPE="' . $newReportType . '"' . PHP_EOL;
+                $reportBody .= 'REPORT_ALLOWADMINS="' . $newReportAdmAcl . '"' . PHP_EOL; //allows all by default
+                $reportBody .= 'REPORT_QUERY="' . $newReportQuery . '"' . PHP_EOL;
+                $reportBody .= 'REPORT_ONTB="' . $newReportOnTb . '"' . PHP_EOL;
+                $reportBody .= 'REPORT_ICON="' . $newReportIcon . '"' . PHP_EOL;
+
+                if ($newReportType == 'SQL') {
+                    $reportBody .= 'REPORT_KEYS="' . $newReportKeys . '"' . PHP_EOL;
+                    $reportBody .= 'REPORT_FIELD_NAMES="' . $newReportFields . '"' . PHP_EOL;
+                    $reportBody .= 'REPORT_ADDR="' . $newReportAddr . '"' . PHP_EOL;
+                    $reportBody .= 'REPORT_RNAMES="' . $newReportRenderNames . '"' . PHP_EOL;
+                    $reportBody .= 'REPORT_ROW_COUNT="' . $newReportRowCount . '"' . PHP_EOL;
+                }
+
+                if ($newReportType == 'ONEPUNCH') {
+                    //script exists?
+                    $onePunch = new OnePunch($newReportQuery);
+                    $scriptCode = $onePunch->getScriptContent($newReportQuery);
+                    if (!empty($scriptCode)) {
+                        $isOk = true;
+                    } else {
+                        $isOk = false;
+                        $result .= __('One-Punch') . ' ' . __('script') . ' ' . $newReportQuery . ' ' . __('Not exists');
+                    }
+                }
+
+                if ($isOk) {
+                    file_put_contents($pathToSave, $reportBody);
+                    log_register('REPORTMASTER SAVE ' . $newReportType . ' REPORT `' . $fileName . '`');
+                } else {
+                    log_register('REPORTMASTER SAVE FAIL ' . $newReportType . ' REPORT `' . $fileName . '`');
+                }
+            }
+        }
         return($result);
     }
 
