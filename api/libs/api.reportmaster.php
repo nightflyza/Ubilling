@@ -27,6 +27,14 @@ class ReportMaster {
     protected $myLogin = '';
 
     /**
+     * Contains default wildcard expression for icons available for reportmaster. 
+     * Like rm* or something like that. May be configurable in future.
+     *
+     * @var string
+     */
+    protected $iconsPrefix = '';
+
+    /**
      * Some predefined paths, URLs/routes etc...
      */
     const PATH_REPORTS = 'content/reports/';
@@ -62,7 +70,6 @@ class ReportMaster {
     const MOD_CSV = 'csv';
     const ICON_DEFAULT = 'goat.gif';
     const ICONS_PATH = 'skins/taskbar/';
-    const ICONS_PREFIX = '';
 
     /**
      * Creates new ReportMaster instance
@@ -642,7 +649,7 @@ class ReportMaster {
      */
     protected function getAvailableIcons() {
         $result = array('' => __('-'));
-        $all = rcms_scandir(self::ICONS_PATH, self::ICONS_PREFIX);
+        $all = rcms_scandir(self::ICONS_PATH, $this->iconsPrefix);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $result[$each] = pathinfo($each, PATHINFO_FILENAME);
