@@ -31,12 +31,20 @@ class OnePunch {
      *
      * @var object
      */
-    protected $ubConfig = null;
+    protected $ubConfig = '';
 
     /**
-     * Contains default devconsole URL
+     * Punch scripts database abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $punchDb = '';
+
+    /**
+     * Some predefined URLs, routes, tables etc...
      */
     const URL_DEVCON = '?module=sqlconsole&devconsole=true';
+    const TABLE_DATASOURCE = 'punchscripts';
 
 //     ⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
 //    ⠀⠀⠀⣴⠿⠏⠀⠀⠀⠀⠀⠀⢳⡀⠀⡏⠀⠀⠀⠀⠀⢷
@@ -61,6 +69,7 @@ class OnePunch {
     public function __construct($alias = '') {
         $this->loadOptions();
         $this->initMessages();
+        $this->initDatabase();
         $this->loadScripts($alias);
     }
 
@@ -71,6 +80,15 @@ class OnePunch {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits database abstraction layer
+     * 
+     * @return void
+     */
+    protected function initDatabase() {
+        $this->punchDb = new NyanORM(self::TABLE_DATASOURCE);
     }
 
     /**
@@ -95,16 +113,14 @@ class OnePunch {
      * @return void
      */
     protected function loadScripts($alias = '') {
-        $alias = vf($alias);
-        $where = (!empty($alias)) ? "WHERE `alias`='" . $alias . "'" : '';
-        $orderBy = (empty($this->defaultSortField) ? '' : " ORDER BY `" . $this->defaultSortField . "` ASC ");
-        $query = "SELECT * from `punchscripts` " . $where . $orderBy;
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->punchScripts[$each['alias']] = $each;
-            }
+        $alias = ubRouting::filters($alias, 'callback', 'vf');
+        if (!empty($alias)) {
+            $this->punchDb->where('alias', '=', $alias);
         }
+        if (!empty($this->defaultSortField)) {
+            $this->punchDb->orderBy($this->defaultSortField, 'ASC');
+        }
+        $this->punchScripts = $this->punchDb->getAll('alias');
     }
 
     /**
@@ -124,7 +140,7 @@ class OnePunch {
      * @return bool false - script exists, true - alias free.
      */
     public function checkAlias($alias) {
-        $alias = vf($alias);
+        $alias = ubRouting::filters($alias, 'callback', 'vf');
         $result = true;
         if (isset($this->punchScripts[$alias])) {
             $result = false;
@@ -140,9 +156,9 @@ class OnePunch {
     public function renderCreateForm() {
         $result = '';
         $inputs = '';
-        $namePreset = (wf_CheckPost(array('newscriptname'))) ? $_POST['newscriptname'] : '';
-        $aliasPreset = (wf_CheckPost(array('newscriptalias'))) ? $_POST['newscriptalias'] : '';
-        $contentPreset = (wf_CheckPost(array('newscriptcontent'))) ? $_POST['newscriptcontent'] : '';
+        $namePreset = (ubRouting::checkPost('newscriptname')) ? ubRouting::post('newscriptname') : '';
+        $aliasPreset = (ubRouting::checkPost('newscriptalias')) ? ubRouting::post('newscriptalias') : '';
+        $contentPreset = (ubRouting::checkPost('newscriptcontent')) ? ubRouting::post('newscriptcontent') : '';
         // sanjou! hisshou! shijou saikyou
         // nan dattenda? FURASUTOREESHON ore wa tomaranai
         $inputs .= wf_TextInput('newscriptname', __('Name'), $namePreset, true, 30);
@@ -166,7 +182,7 @@ class OnePunch {
      */
     public function renderEditForm($alias) {
         $result = '';
-        $alias = vf($alias);
+        $alias = ubRouting::filters($alias, 'callback', 'vf');
         if (isset($this->punchScripts[$alias])) {
             $inputs = '';
             $scriptData = $this->punchScripts[$alias];
@@ -200,17 +216,18 @@ class OnePunch {
      */
     public function createScript($alias, $name, $content) {
         $result = '';
-        $alias = vf($alias);
-        $name = mysql_real_escape_string($name);
-        $content = mysql_real_escape_string($content);
+        $alias = ubRouting::filters($alias, 'callback', 'vf');
+        $name = ubRouting::filters($name, 'mres');
+        $content = ubRouting::filters($content, 'mres');
         if ($this->checkAlias($alias)) {
-            $query = "INSERT INTO `punchscripts` (`id`,`alias`,`name`,`content`) VALUES ";
-            $query .= "(NULL,'" . $alias . "' ,'" . $name . "','" . $content . "');";
-            nr_query($query);
+            $this->punchDb->data('alias', $alias);
+            $this->punchDb->data('name', $name);
+            $this->punchDb->data('content', $content);
+            $this->punchDb->create();
             log_register('ONEPUNCH CREATE ALIAS `' . $alias . '`');
         } else {
             $result .= __('Something went wrong') . ': ' . __('Script with this alias already exists');
-            log_register('ONEPUNCH ALIAS `' . $alias . '` FAIL');
+            log_register('ONEPUNCH CREATE ALIAS `' . $alias . '` FAIL');
         }
         return ($result);
     }
@@ -224,13 +241,14 @@ class OnePunch {
      */
     public function deleteScript($alias) {
         $result = '';
-        $alias = vf($alias);
+        $alias = ubRouting::filters($alias, 'callback', 'vf');
         if (isset($this->punchScripts[$alias])) {
-            $query = "DELETE FROM `punchscripts` WHERE `alias`='" . $alias . "';";
-            nr_query($query);
+            $this->punchDb->where('alias', '=', $alias);
+            $this->punchDb->delete();
             log_register('ONEPUNCH DELETE ALIAS `' . $alias . '`');
         } else {
             $result .= __('Something went wrong') . ': ' . __('Script with this alias not exists');
+            log_register('ONEPUNCH DELETE ALIAS `' . $alias . '` FAIL');
         }
         return ($result);
     }
@@ -241,31 +259,38 @@ class OnePunch {
      * @return void
      */
     public function saveScript() {
-        if (wf_CheckPost(array('editscriptid', 'editscriptoldalias', 'editscriptname', 'editscriptalias', 'editscriptcontent'))) {
-            $scriptId = vf($_POST['editscriptid'], 3);
-            $newScriptAlias = vf($_POST['editscriptalias']);
-            $oldScriptAlias = vf($_POST['editscriptoldalias']);
-            $newScriptName = $_POST['editscriptname'];
-            $newScriptContent = $_POST['editscriptcontent'];
+        if (ubRouting::checkPost(array('editscriptid', 'editscriptoldalias', 'editscriptname', 'editscriptalias', 'editscriptcontent'))) {
+            $scriptId = ubRouting::post('editscriptid', 'int');
+            $newScriptAlias = ubRouting::post('editscriptalias', 'callback', 'vf');
+            $oldScriptAlias = ubRouting::post('editscriptoldalias', 'callback', 'vf');
+            $newScriptName = ubRouting::post('editscriptname', 'mres');
+            $newScriptContent = ubRouting::post('editscriptcontent', 'mres');
             if (isset($this->punchScripts[$oldScriptAlias])) {
                 $scriptData = $this->punchScripts[$oldScriptAlias];
-                $where = "WHERE `id`='" . $scriptId . "';";
+
+
                 if ($scriptData['alias'] != $newScriptAlias) {
                     if ($this->checkAlias($newScriptAlias)) {
-                        simple_update_field('punchscripts', 'alias', $newScriptAlias, $where);
+                        $this->punchDb->where('id', '=', $scriptId);
+                        $this->punchDb->data('alias', $newScriptAlias);
+                        $this->punchDb->save();
                         log_register('ONEPUNCH CHANGE ALIAS `' . $oldScriptAlias . '` ON `' . $newScriptAlias . '`');
                     } else {
-                        log_register('ONEPUNCH ALIAS `' . $newScriptAlias . '` FAIL');
+                        log_register('ONEPUNCH CHANGE ALIAS `' . $newScriptAlias . '` FAIL');
                     }
                 }
 
                 if ($scriptData['name'] != $newScriptName) {
-                    simple_update_field('punchscripts', 'name', $newScriptName, $where);
+                    $this->punchDb->where('id', '=', $scriptId);
+                    $this->punchDb->data('name', $newScriptName);
+                    $this->punchDb->save();
                     log_register('ONEPUNCH CHANGE NAME `' . $oldScriptAlias . '`');
                 }
 
                 if ($scriptData['content'] != $newScriptContent) {
-                    simple_update_field('punchscripts', 'content', $newScriptContent, $where);
+                    $this->punchDb->where('id', '=', $scriptId);
+                    $this->punchDb->data('content', $newScriptContent);
+                    $this->punchDb->save();
                     log_register('ONEPUNCH CHANGE CONTENT `' . $oldScriptAlias . '`');
                 }
             }
@@ -340,7 +365,7 @@ class OnePunch {
      * @return string
      */
     public function getScriptContent($alias) {
-        $alias = vf($alias);
+        $alias = ubRouting::filters($alias, 'callback', 'vf');
         $result = '';
         if (isset($this->punchScripts[$alias])) {
             $result .= $this->punchScripts[$alias]['content'];
