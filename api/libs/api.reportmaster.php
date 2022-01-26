@@ -390,10 +390,18 @@ class ReportMaster {
         }
 
         if ($type == 'onepunch') {
+            $aliasSelector = array();
             $onePunch = new OnePunch();
+            $allScripts = $onePunch->getAllScripts();
+            if (!empty($allScripts)) {
+                foreach ($allScripts as $io => $eachScript) {
+                    $aliasSelector[$eachScript['alias']] = $eachScript['name'];
+                }
+            }
+
             $inputs .= wf_HiddenInput(self::PROUTE_NEWTYPE, 'ONEPUNCH');
             $inputs .= wf_TextInput(self::PROUTE_NEWNAME, __('Report name') . $sup, '', true, 40);
-            $inputs .= wf_TextInput(self::PROUTE_NEWQUERY, __('One-Punch') . ' ' . __('Script') . ' ' . __('Alias') . $sup, '', true, 40);
+            $inputs .= wf_Selector(self::PROUTE_NEWQUERY, $aliasSelector, __('One-Punch') . ' ' . __('script') . $sup, '', true);
         }
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Create'));
@@ -687,10 +695,18 @@ class ReportMaster {
             }
 
             if ($reportType == 'ONEPUNCH') {
+                $aliasSelector = array();
                 $onePunch = new OnePunch();
+                $allScripts = $onePunch->getAllScripts();
+                if (!empty($allScripts)) {
+                    foreach ($allScripts as $io => $eachScript) {
+                        $aliasSelector[$eachScript['alias']] = $eachScript['name'];
+                    }
+                }
+
                 $inputs .= wf_HiddenInput(self::PROUTE_EDTYPE, 'ONEPUNCH');
                 $inputs .= wf_TextInput(self::PROUTE_EDNAME, __('Report name') . $sup, $reportData['REPORT_NAME'], true, 40);
-                $inputs .= wf_TextInput(self::PROUTE_EDQUERY, __('One-Punch') . ' ' . __('script') . ' ' . __('Alias') . $sup, $reportData['REPORT_QUERY'], true, 40);
+                $inputs .= wf_Selector(self::PROUTE_EDQUERY, $aliasSelector, __('One-Punch') . ' ' . __('script') . $sup, $reportData['REPORT_QUERY'], true);
             }
 
             $availableIcons = $this->getAvailableIcons();

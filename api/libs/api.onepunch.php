@@ -108,13 +108,22 @@ class OnePunch {
     }
 
     /**
+     * Returns array of loaded scripts as alias=>scriptData
+     * 
+     * @return array
+     */
+    public function getAllScripts() {
+        return($this->punchScripts);
+    }
+
+    /**
      * Checks is some script name unused?
      * 
      * @param sring $alias
      * 
-     * @return bool
+     * @return bool false - script exists, true - alias free.
      */
-    protected function checkAlias($alias) {
+    public function checkAlias($alias) {
         $alias = vf($alias);
         $result = true;
         if (isset($this->punchScripts[$alias])) {
