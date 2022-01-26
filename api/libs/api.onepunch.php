@@ -133,13 +133,13 @@ class OnePunch {
     }
 
     /**
-     * Checks is some script name unused?
+     * Checks is some script alias unused?
      * 
      * @param sring $alias
      * 
      * @return bool false - script exists, true - alias free.
      */
-    public function checkAlias($alias) {
+    protected function checkAlias($alias) {
         $alias = ubRouting::filters($alias, 'callback', 'vf');
         $result = true;
         if (isset($this->punchScripts[$alias])) {
@@ -371,6 +371,28 @@ class OnePunch {
             $result .= $this->punchScripts[$alias]['content'];
         }
         return ($result);
+    }
+
+    /**
+     * Checks is some script alias exists?
+     * 
+     * @param string $alias
+     * 
+     * @return bool 
+     */
+    public function isAliasFree($alias) {
+        return($this->checkAlias($alias));
+    }
+
+    /**
+     * 
+     * @param type $packedData
+     * 
+     * @return void/string on error
+     */
+    public function installScript($packedData) {
+        $result = '';
+        return($result);
     }
 
 }
