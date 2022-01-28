@@ -297,7 +297,7 @@ class ReportMaster {
      * 
      * @return string
      */
-    protected function renderBackControl() {
+    public function renderBackControl() {
         $result = '';
         $backUrl = self::URL_ME;
         if (ubRouting::get('back') == 'tb') {
@@ -602,9 +602,10 @@ class ReportMaster {
      * 
      * @param string $reportId
      * 
-     * @return void
+     * @return void/script for One-Punch based report
      */
     public function renderReport($reportId) {
+        $result = '';
         if (isset($this->allReports[$reportId])) {
             if ($this->isMeAllowed($reportId)) {
                 $reportData = $this->allReports[$reportId];
@@ -629,16 +630,18 @@ class ReportMaster {
                         $this->showSqlReport($reportId, $reportData['REPORT_NAME'], $titles, $keys, $data_query, $reportData['REPORT_ADDR'], $reportData['REPORT_RNAMES'], $reportData['REPORT_ROW_COUNT']);
                     }
                 }
-
+                //One-Punch type report?
                 if ($reportData['REPORT_TYPE'] == 'ONEPUNCH') {
                     $onePunch = new OnePunch($reportData['REPORT_QUERY']);
                     $reportCode = $onePunch->getScriptContent($reportData['REPORT_QUERY']);
                     if (!empty($reportCode)) {
-                        eval($reportCode);
+                        // we dont exectute code right here, and returns it outside of method
+                        // just for letting him a chance to be executed as normal One-Punch script
+                        // outside of current protected scope.
+                        $result .= $reportCode;
                     } else {
-                        show_error(__('One-Punch') . ' ' . __('script') . ' ' . __('is empty'));
+                        show_error(__('One-Punch') . ' ' . __('script') . ' ' . __('Not exists'));
                     }
-                    show_window('', $this->renderBackControl());
                 }
             } else {
                 log_register('REPORTMASTER VIEW FAIL REPORT `' . $reportId . '` ACCESS VIOLATION');
@@ -648,6 +651,7 @@ class ReportMaster {
         } else {
             show_error(__('Unknown report'));
         }
+        return($result);
     }
 
     /**

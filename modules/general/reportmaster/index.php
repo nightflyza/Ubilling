@@ -105,7 +105,12 @@ if (cfr('REPORTMASTER')) {
 
 // view reports
     if (ubRouting::checkGet($reportMaster::ROUTE_VIEW)) {
-        $reportMaster->renderReport(ubRouting::get($reportMaster::ROUTE_VIEW));
+        $reportCode = $reportMaster->renderReport(ubRouting::get($reportMaster::ROUTE_VIEW));
+        if (!empty($reportCode)) {
+            //oh.. here is some embedded code to execute!
+            eval($reportCode);
+            show_window('', $reportMaster->renderBackControl());
+        }
     }
 } else {
     show_error(__('You cant control this module'));
