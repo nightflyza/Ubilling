@@ -757,7 +757,7 @@ class Stigma {
                 $yearCount = isset($dataYear[$eachStateId]['count']) ? $dataYear[$eachStateId]['count'] : 0;
                 $allTimeCount = isset($dataAllTime[$eachStateId]['count']) ? $dataAllTime[$eachStateId]['count'] : 0;
 
-                $cells = wf_TableCell(wf_img_sized($stateIcon, '', '10') . ' ' . $stateLabel);
+                $cells = wf_TableCell(wf_img_sized($stateIcon, $stateLabel, '10') . ' ' . $stateLabel);
                 $cells .= wf_TableCell($dayCount);
                 $cells .= wf_TableCell($weekCount);
                 $cells .= wf_TableCell($monthCount);
@@ -766,7 +766,7 @@ class Stigma {
                 $rows .= wf_TableRow($cells, 'row5');
             }
 
-            $result .= wf_TableBody($rows, '100%', 0, '');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }

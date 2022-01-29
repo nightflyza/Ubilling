@@ -682,8 +682,8 @@ class CapabilitiesDirectory {
      */
     public function renderSourcesStats() {
         $result = '';
-        $capabSources=new Stigma('CAPABSOURCE');
-        $result.=$capabSources->renderBasicReport();
+        $capabSources = new Stigma('CAPABSOURCE');
+        $result .= $capabSources->renderBasicReport();
         return($result);
     }
 
