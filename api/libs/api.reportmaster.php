@@ -793,6 +793,7 @@ class ReportMaster {
             }
 
             @$release = file_get_contents('RELEASE');
+            $release = trim($release);
             if (empty($release)) {
                 $isOk = false;
             }
