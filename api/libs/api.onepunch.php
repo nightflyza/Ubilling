@@ -385,14 +385,34 @@ class OnePunch {
     }
 
     /**
+     * Installs some third-party script
      * 
-     * @param type $packedData
+     * @param array $scriptData
      * 
      * @return void/string on error
      */
-    public function installScript($packedData) {
+    public function installScript($scriptData) {
         $result = '';
-        //TODO
+        if (is_array($scriptData)) {
+            if (isset($scriptData['alias']) AND isset($scriptData['name']) AND isset($scriptData['content'])) {
+                $alias = $scriptData['alias'];
+                $name = $scriptData['name'];
+                $content = $scriptData['content'];
+                if (!empty($alias) AND ! empty($name) AND ! empty($content)) {
+                    if ($this->isAliasFree($alias)) {
+                        $result .= $this->createScript($alias, $name, $content);
+                    } else {
+                        $result .= __('One-punch') . ' ' . __('Alias') . ' ' . _('already exists');
+                    }
+                } else {
+                    $result .= __('One-punch') . ' ' . __('script') . ' ' . _('is corrupted');
+                }
+            } else {
+                $result .= __('One-punch') . ' ' . __('script') . ' ' . _('is corrupted');
+            }
+        } else {
+            $result .= __('One-punch') . ' ' . __('script') . ' ' . _('is corrupted');
+        }
         return($result);
     }
 

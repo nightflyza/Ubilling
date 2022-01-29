@@ -47,6 +47,7 @@ class ReportMaster {
     const ROUTE_DELETE = 'delete';
     const ROUTE_RENDERER = 'renderer';
     const ROUTE_BASEEXPORT = 'exportuserbase';
+    const PROUTE_INSTALL = 'installreportcode';
     const PROUTE_NEWTYPE = 'newreporttype';
     const PROUTE_NEWNAME = 'newreportname';
     const PROUTE_NEWQUERY = 'newquery';
@@ -65,6 +66,7 @@ class ReportMaster {
     const PROUTE_EDROWCOUNT = 'editrowcount';
     const PROUTE_EDADMACL = 'editadminsacl';
     const PROUTE_EDONTB = 'editontb';
+    const PROUTE_EDAOTD = 'editaotd';
     const PROUTE_EDICON = 'editicon';
     const MOD_PRINT = 'printable';
     const MOD_CSV = 'csv';
@@ -166,6 +168,11 @@ class ReportMaster {
 
                 if (!isset($reportData['REPORT_ICON'])) {
                     $reportData['REPORT_ICON'] = '';
+                }
+
+                //advice of the day is disabled by default
+                if (!isset($reportData['REPORT_AOTD'])) {
+                    $reportData['REPORT_AOTD'] = 0;
                 }
 
                 $this->allReports[$eachReport] = $reportData;
@@ -337,6 +344,7 @@ class ReportMaster {
         $reportBody .= 'REPORT_ALLOWADMINS=""' . PHP_EOL; //allows all by default
         $reportBody .= 'REPORT_QUERY="' . $query . '"' . PHP_EOL;
         $reportBody .= 'REPORT_ONTB="0"' . PHP_EOL;
+        $reportBody .= 'REPORT_AOTD="0"' . PHP_EOL;
         $reportBody .= 'REPORT_ICON=""' . PHP_EOL;
 
         if ($type == 'SQL') {
@@ -376,6 +384,7 @@ class ReportMaster {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ADD . '=sql', wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Query'), false, 'ubButton') . ' ';
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ADD . '=onepunch', wf_img('skins/icon_php.png') . ' ' . __('One-Punch') . ' ' . __('Script'), false, 'ubButton') . ' ';
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ADD . '=install', wf_img('skins/icon_clone.png') . ' ' . __('Install third party report'), false, 'ubButton') . ' ';
         $result .= wf_delimiter(1);
         $inputs = '';
         if ($type == 'sql') {
@@ -402,6 +411,11 @@ class ReportMaster {
             $inputs .= wf_HiddenInput(self::PROUTE_NEWTYPE, 'ONEPUNCH');
             $inputs .= wf_TextInput(self::PROUTE_NEWNAME, __('Report name') . $sup, '', true, 40);
             $inputs .= wf_Selector(self::PROUTE_NEWQUERY, $aliasSelector, __('One-Punch') . ' ' . __('script') . $sup, '', true);
+        }
+
+        if ($type == 'install') {
+            $inputs .= __('Paste third party report code here. Be careful, it may be dangerous.') . wf_tag('br');
+            $inputs .= wf_TextArea(self::PROUTE_INSTALL, '', '', true, '80x25');
         }
         $inputs .= wf_delimiter(0);
         $inputs .= wf_Submit(__('Create'));
@@ -609,6 +623,12 @@ class ReportMaster {
         if (isset($this->allReports[$reportId])) {
             if ($this->isMeAllowed($reportId)) {
                 $reportData = $this->allReports[$reportId];
+                //need some advice?
+                if ($reportData['REPORT_AOTD']) {
+                    $fga = new FGA();
+                    $awesomeAdvice = $fga->getAdviceOfTheDay();
+                    show_info(__('Advice of the day') . ': ' . $awesomeAdvice);
+                }
 
                 //normal SQL report
                 if ($reportData['REPORT_TYPE'] == 'SQL') {
@@ -715,7 +735,7 @@ class ReportMaster {
 
             $availableIcons = $this->getAvailableIcons();
 
-
+            $inputs .= web_TriggerSelector(self::PROUTE_EDAOTD, $reportData['REPORT_AOTD']) . ' ' . __('Advice of the day') . wf_tag('br');
             $inputs .= __('Access') . ':' . wf_tag('br');
             $inputs .= wf_TextInput(self::PROUTE_EDADMACL, __('Allowed administrators logins') . ' ' . __('(separator - comma)'), $reportData['REPORT_ALLOWADMINS'], true, 40);
             $inputs .= wf_Selector(self::PROUTE_EDICON, $availableIcons, __('Icon'), $reportData['REPORT_ICON'], true);
@@ -726,11 +746,140 @@ class ReportMaster {
             $inputs .= wf_Submit(__('Save'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_delimiter(1);
+            $result .= $this->renderCopyPasteForm($reportId);
         } else {
             $result .= $this->messages->getStyledMessage(__('Unknown report') . ': ' . $reportId, 'error');
         }
+
         $result .= wf_delimiter(1);
         $result .= $this->renderBackControl();
+        return($result);
+    }
+
+    /**
+     * Renders report as string to backup/send it to someone
+     * 
+     * @param string $reportId
+     * 
+     * @return string 
+     */
+    protected function renderCopyPasteForm($reportId) {
+        $reportCodeRaw = '';
+        $opScript = '';
+        $reportToPack = array();
+        $packedData = '';
+        $result = '';
+
+        if (isset($this->allReports[$reportId])) {
+            //Script integrity or validity flag
+            $isOk = true;
+            $reportData = $this->allReports[$reportId];
+            if (empty($reportData)) {
+                $isOk = false; // report not exists?
+            }
+            foreach ($reportData as $key => $value) {
+                $reportCodeRaw .= $key . '="' . $value . '"' . PHP_EOL;
+            }
+
+            if ($reportData['REPORT_TYPE'] == 'ONEPUNCH') {
+                $onePunch = new OnePunch($reportData['REPORT_QUERY']);
+                $opScript = $onePunch->getAllScripts();
+                $opScript = $opScript[$reportData['REPORT_QUERY']];
+                if (empty($opScript)) {
+                    //onepunch script requred for this report not exists?
+                    $isOk = false;
+                }
+            }
+
+            @$release = file_get_contents('RELEASE');
+            if (empty($release)) {
+                $isOk = false;
+            }
+
+            if ($isOk) {
+                $reportToPack['SOURCE'] = 'ReportMaster: Ubilling ' . $release;
+                $reportToPack['REPORTID'] = $reportId;
+                $reportToPack['REPORTCODE'] = $reportCodeRaw;
+                $reportToPack['OPSCRIPT'] = $opScript;
+
+                $packedData = json_encode($reportToPack);
+                $packedData = base64_encode($packedData);
+
+                $result .= __('You can copy&paste current report as text') . wf_tag('br');
+                $result .= wf_TextInput('COPYPASTE', '', $packedData, false, 70, '', 'glamour');
+                $result .= wf_CleanDiv();
+            } else {
+                $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Report') . ' ' . __('is corrupted'), 'error');
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * Installs some packed report
+     * 
+     * @param string $packedData
+     * 
+     * @return void/string
+     */
+    public function installReport($packedData) {
+        $result = '';
+        $packedData = trim($packedData);
+        $unpackedData = array();
+        if (!empty($packedData)) {
+            $unpackedData = base64_decode($packedData);
+            if (!empty($unpackedData)) {
+                @$unpackedData = json_decode($unpackedData, true);
+                if (!empty($unpackedData) AND is_array($unpackedData)) {
+                    if (isset($unpackedData['SOURCE']) AND isset($unpackedData['REPORTID']) AND isset($unpackedData['REPORTCODE']) AND isset($unpackedData['OPSCRIPT'])) {
+                        $reportSource = trim($unpackedData['SOURCE']);
+                        $reportId = $unpackedData['REPORTID'];
+                        $reportCode = $unpackedData['REPORTCODE'];
+                        $opScript = $unpackedData['OPSCRIPT'];
+                        if (!isset($this->allReports[$reportId])) {
+                            $reportIdF = strip_tags($reportId);
+                            $reportCodeToSave = '';
+                            $reportCodeToSave .= '; Source: ' . $reportSource . PHP_EOL;
+                            $reportCodeToSave .= '; Installation date: ' . curdatetime() . PHP_EOL;
+                            $reportCodeToSave .= $reportCode;
+                            //just save report as normal SQL report
+                            if (empty($opScript)) {
+                                file_put_contents(self::PATH_REPORTS . $reportId, $reportCodeToSave);
+                                log_register('REPORTMASTER INSTALL SQL REPORT `' . $reportIdF . '`');
+                            } else {
+                                //One-Punch checks and script installation is required
+                                $onePunch = new OnePunch();
+                                if ($onePunch->isAliasFree($opScript['alias'])) {
+                                    $opInstallResult = $onePunch->installScript($opScript);
+                                    if (empty($opInstallResult)) {
+                                        //seems everything ok
+                                        file_put_contents(self::PATH_REPORTS . $reportId, $reportCodeToSave);
+                                        log_register('REPORTMASTER INSTALL ONEPUNCH REPORT `' . $reportIdF . '`');
+                                    } else {
+                                        //script installation failed
+                                        $result .= $opInstallResult;
+                                    }
+                                } else {
+                                    $result .= __('One-Punch') . ' ' . __('Alias') . ' [' . $opScript['alias'] . '] ' . __('already exists');
+                                }
+                            }
+                        } else {
+                            $result .= __('Report') . ' [' . $reportId . '], "' . $this->allReports[$reportId]['REPORT_NAME'] . '" ' . __('already exists');
+                        }
+                    } else {
+                        $result .= __('Report') . ' ' . __('is corrupted');
+                    }
+                } else {
+                    $result .= __('Report') . ' ' . __('is corrupted');
+                }
+            } else {
+                $result .= __('Report') . ' ' . __('is corrupted');
+            }
+        } else {
+            $result .= __('Report') . ' ' . __('is corrupted');
+        }
+
         return($result);
     }
 
@@ -763,6 +912,7 @@ class ReportMaster {
                 $newReportAdmAcl = ubRouting::post(self::PROUTE_EDADMACL);
                 $newReportIcon = ubRouting::post(self::PROUTE_EDICON);
                 $newReportOnTb = ubRouting::post(self::PROUTE_EDONTB);
+                $newReportAotd = ubRouting::post(self::PROUTE_EDAOTD);
 
                 if (!empty($newReportType) AND ! empty($newReportName) AND ! empty($newReportQuery)) {
                     //base params here?
@@ -777,6 +927,7 @@ class ReportMaster {
                 $reportBody .= 'REPORT_ALLOWADMINS="' . $newReportAdmAcl . '"' . PHP_EOL; //allows all by default
                 $reportBody .= 'REPORT_QUERY="' . $newReportQuery . '"' . PHP_EOL;
                 $reportBody .= 'REPORT_ONTB="' . $newReportOnTb . '"' . PHP_EOL;
+                $reportBody .= 'REPORT_AOTD="' . $newReportAotd . '"' . PHP_EOL;
                 $reportBody .= 'REPORT_ICON="' . $newReportIcon . '"' . PHP_EOL;
 
                 if ($newReportType == 'SQL') {

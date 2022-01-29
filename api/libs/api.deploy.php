@@ -15,7 +15,7 @@ class Avarice {
     }
 
     /**
-     * encodes data string by some sey
+     * encodes data string by some key
      * 
      * @param $data data to encode
      * @param $key  encoding key

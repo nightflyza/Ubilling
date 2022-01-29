@@ -3351,3 +3351,7 @@ $lang['def']['Access restricted'] = 'Доступ ограничен';
 $lang['def']['script'] = 'скрипт';
 $lang['def']['Allowed administrators logins'] = 'Логины администраторов с доступом';
 $lang['def']['Show on taskbar'] = 'Показывать на панели задач';
+$lang['def']['Install third party report'] = 'Установить сторонний отчет';
+$lang['def']['You can copy&paste current report as text'] = 'Вы можете копипастить текущий отчет как текст';
+$lang['def']['Paste third party report code here. Be careful, it may be dangerous.'] = 'Вставьте код стороннего отчета сюда. Будьте осторожны, это может быть небезопасным.';
+$lang['def']['is corrupted'] = 'поврежден';

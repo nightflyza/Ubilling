@@ -21,7 +21,19 @@ if (cfr('REPORTMASTER')) {
             show_error(__('You cant control this module'));
         }
     }
-
+//third party report installation
+    if (ubRouting::checkPost($reportMaster::PROUTE_INSTALL)) {
+        if (cfr('REPORTMASTERADM')) {
+            $installResult = $reportMaster->installReport(ubRouting::post($reportMaster::PROUTE_INSTALL));
+            if (empty($installResult)) {
+                ubRouting::nav($reportMaster::URL_ME);
+            } else {
+                show_error(__('Something went wrong') . ': ' . $installResult);
+            }
+        } else {
+            show_error(__('Access denied'));
+        }
+    }
 //existing reports list
     if (!ubRouting::checkGet($reportMaster::ROUTE_EDIT) AND ! ubRouting::checkGet($reportMaster::ROUTE_VIEW) AND ! ubRouting::checkGet($reportMaster::ROUTE_ADD)) {
         $listingControls = '';

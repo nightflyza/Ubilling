@@ -3373,7 +3373,10 @@ $lang['def']['Access restricted'] = 'Доступ обмежено';
 $lang['def']['script'] = 'скрипт';
 $lang['def']['Allowed administrators logins'] = 'Логіни адміністраторів з доступом';
 $lang['def']['Show on taskbar'] = 'Показувати на панелі задач';
-$lang['def'][''] = '';
+$lang['def']['Install third party report'] = 'Встановити сторонній звіт';
+$lang['def']['You can copy&paste current report as text'] = 'Ви можете копіпастити поточний звіт як текст';
+$lang['def']['Paste third party report code here. Be careful, it may be dangerous.'] = 'Вставте код стороннього звіту сюди. Будьте обачними, це може бути небезпечним.';
+$lang['def']['is corrupted'] = 'пошкоджено';
 $lang['def'][''] = '';
 
 
