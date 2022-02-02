@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Equipment models'), 'Nightfly', array('SWITCHM' => __('right to control switch models')));
-?>
+
+$this->registerModule($module, 'main', __('Equipment models'), 'Nightfly', array('SWITCHM' => __('right to control equipment models')));

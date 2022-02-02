@@ -99,6 +99,7 @@ function web_SwitchModelAddForm() {
  */
 function web_SwitchModelsShow() {
     global $ubillingConfig;
+    $result = '';
     $allmodels = zb_SwitchModelsGetAll();
     $allSwitches = zb_SwitchesGetAll();
     $modelsCount = array();
@@ -133,13 +134,6 @@ function web_SwitchModelsShow() {
 
 
 
-    $tablecells = wf_TableCell(__('ID'));
-    $tablecells .= wf_TableCell(__('Model'));
-    $tablecells .= wf_TableCell(__('Devices'));
-    $tablecells .= wf_TableCell(__('Ports'));
-    $tablecells .= wf_TableCell(__('SNMP template'));
-    $tablecells .= wf_TableCell(__('Actions'));
-    $tablerows = wf_TableRow($tablecells, 'row1');
     /**
      * Now its time to break up with the system
      * Our reasons are clear and listed
@@ -147,6 +141,14 @@ function web_SwitchModelsShow() {
      * Take off disguise of that rotten mystery
      */
     if (!empty($allmodels)) {
+        $tablecells = wf_TableCell(__('ID'));
+        $tablecells .= wf_TableCell(__('Model'));
+        $tablecells .= wf_TableCell(__('Devices'));
+        $tablecells .= wf_TableCell(__('Ports'));
+        $tablecells .= wf_TableCell(__('SNMP template'));
+        $tablecells .= wf_TableCell(__('Actions'));
+        $tablerows = wf_TableRow($tablecells, 'row1');
+
         foreach ($allmodels as $io => $eachmodel) {
             $availDevicesCount = (isset($modelsCount[$eachmodel['id']])) ? $modelsCount[$eachmodel['id']] : 0;
             $tablecells = wf_TableCell($eachmodel['id']);
@@ -159,9 +161,13 @@ function web_SwitchModelsShow() {
             $tablecells .= wf_TableCell($switchmodelcontrols);
             $tablerows .= wf_TableRow($tablecells, 'row5');
         }
+        $result .= wf_TableBody($tablerows, '100%', '0', 'sortable');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
 
-    $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+
 
     return ($result);
 }
@@ -243,7 +249,8 @@ function ub_SwitchModelAdd($name, $ports, $snmptemplate = '') {
     }
     $query = "INSERT INTO `switchmodels` (`id` ,`modelname` ,`ports`,`snmptemplate`) VALUES (NULL , '" . $nameClean . "', " . $ports . "," . $snmptemplate . ");";
     nr_query($query);
-    log_register('SWITCHMODEL ADD `' . $name . '`');
+    $newId = simple_get_lastid('switchmodels');
+    log_register('SWITCHMODEL ADD `' . $name . '`  [' . $newId . ']');
 }
 
 /**

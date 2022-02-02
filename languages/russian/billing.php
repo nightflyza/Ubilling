@@ -586,7 +586,7 @@ $lang['def']['Display city name in address fields'] = 'Отображение г
 $lang['def']['Use zero apartment number as private house'] = 'Использовать нулевую квартиру как особняк';
 $lang['def']['MySQL server hostname'] = 'хост MySQL';
 $lang['def']['right to control switches'] = 'Право управлять свичами';
-$lang['def']['right to control switch models'] = 'Право изменять модели свичей';
+$lang['def']['right to control equipment models'] = 'Право управлять моделями оборудования';
 
 //rev 616
 $lang['def']['Payments export not enabled'] = 'Экспорт оплат отключен';
