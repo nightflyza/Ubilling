@@ -3377,6 +3377,7 @@ $lang['def']['Install third party report'] = 'Встановити сторон�
 $lang['def']['You can copy&paste current report as text'] = 'Ви можете копіпастити поточний звіт як текст';
 $lang['def']['Paste third party report code here. Be careful, it may be dangerous.'] = 'Вставте код стороннього звіту сюди. Будьте обачними, це може бути небезпечним.';
 $lang['def']['is corrupted'] = 'пошкоджено';
+$lang['def']['Calm the dog'] = 'Заспокоїти собаку';
 $lang['def'][''] = '';
 
 

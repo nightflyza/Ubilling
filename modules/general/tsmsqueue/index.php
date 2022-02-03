@@ -6,6 +6,13 @@ if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
                 and $ubillingConfig->getAlterParam('SMS_SERVICES_ADVANCED_PHPMAILER_ON'));
 
         $messagesQueue = new MessagesQueue();
+        //manual senddog PID cleanup
+        if (ubRouting::checkPost('calmthedog')) {
+            if (cfr('ROOT')) {
+                $messagesQueue->calmTheDog();
+            }
+        }
+
         show_window('', $messagesQueue->renderPanel($phpMailerOn));
 
         //rendering json data with queue list

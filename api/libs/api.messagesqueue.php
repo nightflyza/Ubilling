@@ -382,6 +382,19 @@ class MessagesQueue {
     }
 
     /**
+     * Deletes SendDog PID file
+     * 
+     * @return void
+     */
+    public function calmTheDog() {
+        $sendogPidFile = SendDog::PID_PATH;
+        if (file_exists($sendogPidFile)) {
+            unlink($sendogPidFile);
+            log_register('SENDDOG PID DESTROY');
+        }
+    }
+
+    /**
      * Renders module control panel
      * 
      * @return string
@@ -394,12 +407,25 @@ class MessagesQueue {
         $result .= wf_Link(self::URL_ME . '&showqueue=telegram', wf_img_sized('skins/icon_telegram_small.png', '', '10', '10') . ' ' . __('Telegram messages queue'), false, 'ubButton') . ' ';
         $sendogPidFile = SendDog::PID_PATH;
         $indicatorStyle = 'float:right;';
+        $dogIndicator = '';
         if (file_exists($sendogPidFile)) {
             $lastDogWalkTime = file_get_contents($sendogPidFile);
-            $result .= wf_img('skins/dog_stand.png', __('SendDog is working') . ' ' . __('from') . ' ' . $lastDogWalkTime, $indicatorStyle);
+            $dogIndicator = wf_img('skins/dog_stand.png', __('SendDog is working') . ' ' . __('from') . ' ' . $lastDogWalkTime, $indicatorStyle);
+            if (cfr('ROOT')) {
+                $stopForm = '';
+                $stopForm .= wf_tag('center') . wf_img('skins/dog_stand.png') . wf_tag('center', true);
+                $stopForm .= __('SendDog is working') . ' ' . __('from') . ' ' . $lastDogWalkTime;
+                $stopForm .= wf_CleanDiv();
+                $stopForm .= wf_delimiter(0);
+                $inputs = wf_HiddenInput('calmthedog', 'true');
+                $inputs .= wf_Submit(__('Calm the dog'));
+                $stopForm .= wf_Form('', 'POST', $inputs, 'glamour');
+                $dogIndicator = wf_modalAuto($dogIndicator, __('Manage'), $stopForm);
+            }
         } else {
-            $result .= wf_img('skins/dog_sleep.png', __('SendDog is sleeping'), $indicatorStyle);
+            $dogIndicator = wf_img('skins/dog_sleep.png', __('SendDog is sleeping'), $indicatorStyle);
         }
+        $result .= $dogIndicator;
         return ($result);
     }
 
