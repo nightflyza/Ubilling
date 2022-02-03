@@ -237,7 +237,7 @@ class Stigma {
     /**
      * Taskman logging flag/name public setter
      * 
-     * @param string $prameter
+     * @param string $parameter
      * 
      * @return void
      */
@@ -248,7 +248,7 @@ class Stigma {
     /**
      * System weblogs logging flag/name public setter
      * 
-     * @param string $prameter
+     * @param string $parameter
      * 
      * @return void
      */

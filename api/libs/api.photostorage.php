@@ -62,12 +62,33 @@ class PhotoStorage {
     protected $imagesLoadedFlag = false;
 
     /**
+     * Use photostorage as image proxy flag
+     *
+     * @var bool
+     */
+    protected $proxyMode = false;
+
+    /**
+     * Contains images storage path. May be specified in PHOTOSTORAGE_DIRECTORY option.
+     *
+     * @var string
+     */
+    protected $storagePath = 'content/documents/photostorage/';
+
+    /**
+     * Custom, optional images display prefix URL. Configurable via PHOTOSTORAGE_URL_PREFIX option.
+     *
+     * @var string
+     */
+    protected $storageUrlPrefix = '';
+
+    /**
      * Some predefined paths and URLs
      */
-    const STORAGE_PATH = 'content/documents/photostorage/';
     const UPLOAD_URL_WEBC = '?module=photostorage&uploadcamphoto=true';
     const UPLOAD_URL_FILE = '?module=photostorage&uploadfilephoto=true';
     const MODULE_URL = '?module=photostorage';
+    const ROUTE_PROXY = 'getimg';
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
     const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
 
@@ -82,6 +103,7 @@ class PhotoStorage {
     public function __construct($scope = '', $itemid = '') {
         $this->loadConfig();
         $this->loadAlter();
+        $this->setOptions();
         $this->setScope($scope);
         $this->setItemid($itemid);
         $this->setLogin();
@@ -117,6 +139,25 @@ class PhotoStorage {
     protected function loadConfig() {
         global $ubillingConfig;
         $this->photoCfg = $ubillingConfig->getPhoto();
+    }
+
+    /**
+     * Sets some current instance specific options.
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (@$this->altCfg['PHOTOSTORAGE_DIRECTORY']) {
+            $this->storagePath = $this->altCfg['PHOTOSTORAGE_DIRECTORY'];
+        }
+
+        if (@$this->altCfg['PHOTOSTORAGE_URL_PREFIX']) {
+            $this->storageUrlPrefix = $this->altCfg['PHOTOSTORAGE_URL_PREFIX'];
+        }
+
+        if (@$this->altCfg['PHOTOSTORAGE_PROXY_MODE']) {
+            $this->proxyMode = true;
+        }
     }
 
     /**
@@ -295,6 +336,31 @@ class PhotoStorage {
     }
 
     /**
+     * Returns image HTTP accessable URL
+     * 
+     * @param string $filename
+     * 
+     * @return string
+     */
+    protected function getImageUrl($filename) {
+        $result = '';
+        //Raw HTTP images access
+        if (!$this->proxyMode) {
+            if (empty($this->storageUrlPrefix)) {
+                //seems its local storage
+                $result = $this->storagePath . $filename;
+            } else {
+                //separate images CDN
+                $result = $this->storageUrlPrefix . $filename;
+            }
+        } else {
+            //Access to images in storage via proxy-engine
+            $result = self::MODULE_URL . '&' . self::ROUTE_PROXY . '=' . $filename;
+        }
+        return($result);
+    }
+
+    /**
      * Returns list of all available images for all scopes
      * 
      * @param int $perPage
@@ -356,8 +422,8 @@ class PhotoStorage {
 
             if (!empty($renderImages)) {
                 foreach ($renderImages as $io => $eachimage) {
-                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
-                    $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
+                    $imgPreview = wf_img_sized($this->getImageUrl($eachimage['filename']), __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgFull = wf_img_sized($this->getImageUrl($eachimage['filename']), '', '100%');
                     $imgCaption = __('Date') . ': ' . $eachimage['date'] . ' ' . __('Admin') . ': ' . $eachimage['admin'];
                     $mngUrl = self::MODULE_URL . '&scope=' . $eachimage['scope'] . '&mode=list&itemid=' . $eachimage['item'];
                     $mngLink = ' ' . wf_Link($mngUrl, __('Show'), false, '', 'target=_blank');
@@ -366,7 +432,7 @@ class PhotoStorage {
 
 
                     $galleryOptions = 'data-caption="' . $imgCaption . '" data-gallery="1" rel="' . $galleryRel . '" ' . $previewStyle . '"';
-                    $imgGallery = wf_Link(self::STORAGE_PATH . $eachimage['filename'], $imgPreview, false, '', $galleryOptions);
+                    $imgGallery = wf_Link($this->getImageUrl($eachimage['filename']), $imgPreview, false, '', $galleryOptions);
                     $result .= $imgGallery;
                 }
             } else {
@@ -411,8 +477,8 @@ class PhotoStorage {
         if (!empty($this->allimages)) {
             foreach ($this->allimages as $io => $eachimage) {
                 if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
-                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
-                    $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
+                    $imgPreview = wf_img_sized($this->getImageUrl($eachimage['filename']), __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgFull = wf_img_sized($this->getImageUrl($eachimage['filename']), '', '100%');
                     $imgFull .= wf_tag('br');
                     $imgFull .= __('Date') . ': ' . $eachimage['date'] . ' / ';
                     $imgFull .= __('Admin') . ': ' . $eachimage['admin'];
@@ -456,13 +522,13 @@ class PhotoStorage {
 
             foreach ($this->allimages as $io => $eachimage) {
                 if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
-                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
-                    $imgFull = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], '', '100%');
+                    $imgPreview = wf_img_sized($this->getImageUrl($eachimage['filename']), __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgFull = wf_img_sized($this->getImageUrl($eachimage['filename']), '', '100%');
                     $imgCaption = __('Date') . ': ' . $eachimage['date'] . ' ' . __('Admin') . ': ' . $eachimage['admin'];
 
                     if ($galleryFlag) {
                         $galleryOptions = 'data-caption="' . $imgCaption . '" data-gallery="1" rel="' . $galleryRel . '" ' . $previewStyle . '"';
-                        $imgGallery = wf_Link(self::STORAGE_PATH . $eachimage['filename'], $imgPreview, false, '', $galleryOptions);
+                        $imgGallery = wf_Link($this->getImageUrl($eachimage['filename']), $imgPreview, false, '', $galleryOptions);
                         $result .= $imgGallery;
                     } else {
                         $result .= wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull . $imgCaption, '');
@@ -501,13 +567,34 @@ class PhotoStorage {
         }
         if (!empty($id)) {
             @$filename = $this->allimages[$id]['filename'];
-            if (file_exists(self::STORAGE_PATH . $filename)) {
-                zb_DownloadFile(self::STORAGE_PATH . $filename, 'jpg');
+            if (file_exists($this->storagePath . $filename)) {
+                zb_DownloadFile($this->storagePath . $filename, 'jpg');
             } else {
                 show_error(__('File not exist'));
             }
         } else {
             show_error(__('Image not exists'));
+        }
+    }
+
+    /**
+     * Returns some image content as is if proxy mode enabled \
+     * and image file exists in storage path
+     * 
+     * @param string $filename
+     */
+    public function proxyImage($filename) {
+        if ($this->proxyMode) {
+            if (file_exists($this->storagePath . $filename)) {
+                $imageContent = file_get_contents($this->storagePath . $filename);
+                die($imageContent);
+            } else {
+                $noImage = file_get_contents('skins/noimage.jpg');
+                die($noImage);
+            }
+        } else {
+            $noImage = file_get_contents('skins/noimage.jpg');
+            die($noImage);
         }
     }
 
@@ -523,9 +610,9 @@ class PhotoStorage {
         }
         if (!empty($id)) {
             @$filename = $this->allimages[$id]['filename'];
-            if (file_exists(self::STORAGE_PATH . $filename)) {
+            if (file_exists($this->storagePath . $filename)) {
                 if (cfr('PHOTOSTORAGEDELETE')) {
-                    unlink(self::STORAGE_PATH . $filename);
+                    unlink($this->storagePath . $filename);
                     $this->unregisterImage($id);
                     $deleteResult = wf_tag('span', false, 'alert_warning') . __('Deleted') . wf_tag('span', true);
                 } else {
@@ -548,8 +635,8 @@ class PhotoStorage {
     public function catchWebcamUpload() {
         if (wf_CheckGet(array('uploadcamphoto'))) {
             if (!empty($this->scope)) {
-                $newWebcamFilename = zb_rand_string(16) . '_webcam.jpg';
-                $newWebcamSavePath = self::STORAGE_PATH . $newWebcamFilename;
+                $newWebcamFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_webcam.jpg';
+                $newWebcamSavePath = $this->storagePath . $newWebcamFilename;
                 move_uploaded_file($_FILES['webcam']['tmp_name'], $newWebcamSavePath);
                 if (file_exists($newWebcamSavePath)) {
                     $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
@@ -586,8 +673,8 @@ class PhotoStorage {
                 }
 
                 if ($fileAccepted) {
-                    $newFilename = zb_rand_string(16) . '_upload.jpg';
-                    $newSavePath = self::STORAGE_PATH . $newFilename;
+                    $newFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_upload.jpg';
+                    $newSavePath = $this->storagePath . $newFilename;
                     @move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
                     if (file_exists($newSavePath)) {
                         $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
@@ -633,14 +720,13 @@ class PhotoStorage {
         $postUrl = self::UPLOAD_URL_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId . $customBackLink;
         $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
         $inputs .= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload"');
-        //$inputs .= wf_HiddenInput('custombacklink', $customBackLink);
         $inputs .= wf_Submit(__('Upload'));
         $inputs .= wf_tag('form', true);
 
         $result = $inputs;
         $result .= wf_delimiter(2);
         if (wf_CheckGet(array('preview'))) {
-            $result .= wf_img_sized(self::STORAGE_PATH . $_GET['preview'], __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+            $result .= wf_img_sized($this->getImageUrl(ubRouting::get('preview')), __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
             $result .= wf_delimiter();
             $result .= wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
             $result .= wf_delimiter();

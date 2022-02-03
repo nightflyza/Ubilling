@@ -51,9 +51,13 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
                 }
             }
         } else {
+            $photoStorage = new PhotoStorage('GALLERY', 'nope'); //just generic scope here
+            //catch proxy-mode image request
+            if (ubRouting::checkGet($photoStorage::ROUTE_PROXY)) {
+                $photoStorage->proxyImage(ubRouting::get($photoStorage::ROUTE_PROXY));
+            }
             // rendering uploaded images gallery
-            $photostorage = new PhotoStorage('GALLERY', 'nope');
-            show_window(__('Uploaded images'), $photostorage->renderScopesGallery(12, true));
+            show_window(__('Uploaded images'), $photoStorage->renderScopesGallery(12, true));
             zb_BillingStats(true, 'photogallery');
         }
     } else {
