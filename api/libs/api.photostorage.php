@@ -260,7 +260,6 @@ class PhotoStorage {
         $result = '';
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
             $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=cam', wf_img('skins/photostorage.png') . ' ' . __('Webcamera snapshot'), false, 'ubButton');
-            $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=avacam', wf_img('skins/photostorage.png') . ' ' . __('Webcamera snapshot') . ' - ' . __('avatar'), false, 'ubButton');
             $result .= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
         }
 
@@ -637,7 +636,13 @@ class PhotoStorage {
             if (!empty($this->scope)) {
                 $newWebcamFilename = date("Y_m_d_His") . '_' . zb_rand_string(8) . '_webcam.jpg';
                 $newWebcamSavePath = $this->storagePath . $newWebcamFilename;
-                move_uploaded_file($_FILES['webcam']['tmp_name'], $newWebcamSavePath);
+                //get image data
+                $dataRaw = ubRouting::post('image');
+                //remove the prefix
+                $uri = substr($dataRaw, strpos($dataRaw, ","));
+
+                //decode the image data and save it to file
+                file_put_contents($newWebcamSavePath, base64_decode($uri));
                 if (file_exists($newWebcamSavePath)) {
                     $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
                     $this->registerImage($newWebcamFilename);
@@ -752,82 +757,58 @@ class PhotoStorage {
      * @return string
      */
     public function renderWebcamForm($avatarMode = false) {
-        $container = wf_tag('div', false, '', 'id="cameraContainer"');
-        $container .= wf_tag('div', true);
-        $container .= wf_tag('script', false, '', 'type="text/javascript" src="modules/jsc/webcamjs/webcam.min.js"');
-        $container .= wf_tag('script', true);
+        $result = '';
+
+        $init = wf_tag('link', false, '', 'href="modules/jsc/webcamlib/style.css" rel="stylesheet"') . wf_tag('link', true);
 
         if ($avatarMode) {
-            $cropControls = 'crop_width: ' . $this->photoCfg['WEBCAM_AVA_CROP'] . ',
-                           crop_height: ' . $this->photoCfg['WEBCAM_AVA_CROP'] . ',';
             $prev_w = $this->photoCfg['WEBCAM_PREV_W'];
             $prev_h = $this->photoCfg['WEBCAM_PREV_H'];
             $dest_w = $this->photoCfg['WEBCAM_RESULT_W'];
             $dest_h = $this->photoCfg['WEBCAM_RESULT_H'];
         } else {
-            $cropControls = '';
             $prev_w = $this->photoCfg['WEBCAM_PREV_W'];
             $prev_h = $this->photoCfg['WEBCAM_PREV_H'];
             $dest_w = $this->photoCfg['WEBCAM_RESULT_W'];
             $dest_h = $this->photoCfg['WEBCAM_RESULT_H'];
         }
 
-        $init = wf_tag('script', false, '', 'language="JavaScript"');
-        $init .= '	Webcam.set({
-                        ' . $cropControls . '
-			width: ' . $prev_w . ',
-			height: ' . $prev_h . ',
-			dest_width: ' . $dest_w . ',
-			dest_height: ' . $dest_h . ',
-			image_format: \'' . $this->photoCfg['WEBCAM_FORMAT'] . '\',
-			jpeg_quality: ' . $this->photoCfg['WEBCAM_JPEG_QUALITY'] . ',
-                        force_flash: ' . $this->photoCfg['WEBCAM_FORCE_FLASH'] . '
-		});
-		Webcam.attach( \'#cameraContainer\' );';
-        $init .= wf_tag('script', true);
+        $uploadUrl = self::UPLOAD_URL_WEBC . '&scope=' . $this->scope . '&itemid=' . $this->itemId;
+
+        $labelCapture = wf_img('skins/photostorage.png') . ' ' . __('Take snapshot');
+        $labelCaptureF = str_replace('"', '', $labelCapture);
+
+        $labelReCapture = wf_img('skins/photostorage.png') . ' ' . __('Retake photo');
+        $labelReCaptureF = str_replace('"', '', $labelReCapture);
+        $labelSave = wf_img('skins/save.png') . ' ' . __('Save');
+        $labelSaveF = str_replace('"', '', $labelSave);
+
+
+
+        $container = wf_tag('div', false, 'content');
+        $container .= wf_tag('div', false, 'webcamholder');
+        $container .= wf_tag('video', false, '', 'autoplay id="webcamvideo"') . wf_tag('video', true);
+        $container .= wf_tag('canvas', false, '', 'id="webcamcanvas"') . wf_tag('canvas', true);
+        $container .= wf_tag('div', true);
+        $container .= wf_tag('div', true);
+        $container .= wf_tag('div', false, 'buttons');
+        $container .= wf_tag('button', false, 'ubButton', 'id="buttonCapture" disabled') . $labelCapture . wf_tag('button', true) . ' ';
+        $container .= wf_tag('button', false, 'ubButton', 'id="buttonSave" disabled') . $labelSave . wf_tag('button', true);
+        $container .= wf_tag('div', true);
+        $container .= wf_tag('div', false, '', 'id="savedImages"');
+        $container .= wf_tag('div', true);
+
 
         $uploadJs = wf_tag('script', false, '', 'language="JavaScript"');
-        $uploadJs .= '	var shutter = new Audio();
-                        shutter.autoplay = false;
-                        shutter.src = navigator.userAgent.match(/Firefox/) ? \'modules/jsc/webcamjs/shutter.ogg\' : \'modules/jsc/webcamjs/shutter.mp3\';
-                        function take_snapshot() {
-                                shutter.play();
-                                Webcam.snap( function(data_uri) {
-                                        document.getElementById(\'webcamResults\').innerHTML = 
-                                                \'<img src="\'+data_uri+\'" width=' . $prev_w . ' height=' . $prev_h . ' />\';
+        $jScript = file_get_contents('modules/jsc/webcamlib/script.js');
+        eval($jScript);
 
-                                                var url = \'' . self::UPLOAD_URL_WEBC . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '\';
-                                                Webcam.upload( data_uri, url, function(code, text) {
-
-                                            } );
-                                        } );
-                               Webcam.on( \'uploadProgress\', function(progress) {
-                               document.getElementById(\'uploadProgress\').innerHTML=\'<img src="skins/ajaxloader.gif">\';
-                               } );
-                               Webcam.on( \'uploadComplete\', function(code, text) {
-                                document.getElementById(\'uploadProgress\').innerHTML=text;
-                               } );
-                            }';
         $uploadJs .= wf_tag('script', true);
 
-        $form = wf_tag('br');
-        $form .= wf_tag('form', false);
-        $form .= wf_tag('input', false, '', 'type=button value="' . __('Take snapshot') . '" onClick="take_snapshot()"');
-        $form .= wf_tag('form', true);
-
-        $preview = wf_tag('div', false, '', 'id="webcamResults"');
-        $preview .= wf_tag('div', true);
-
-        $uploadProgress = wf_tag('div', false, '', 'id="uploadProgress"');
-        $uploadProgress .= wf_tag('div', true);
-
-        $cells = wf_TableCell($container . $init . $form . $uploadJs, '50%', '', 'valign="top"');
-        $cells .= wf_TableCell($preview, '', '', 'valign="top"');
-        $rows = wf_TableRow($cells);
-
-        $result = wf_TableBody($rows, '100%', 0);
-        $result .= $uploadProgress;
-        $result .= wf_delimiter();
+        $result .= $init;
+        $result .= $container;
+        $result .= $uploadJs;
+        $result .= wf_delimiter(0);
         $result .= wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
 
 
@@ -835,5 +816,3 @@ class PhotoStorage {
     }
 
 }
-
-?>

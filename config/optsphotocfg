@@ -6,7 +6,6 @@ WEBCAM_RESULT_H=VARCHAR|webcam output image height
 WEBCAM_FORMAT=VARCHAR|webcam output format
 WEBCAM_JPEG_QUALITY=VARCHAR|jpeg image quality
 WEBCAM_AVA_CROP=VARCHAR|avatar crop
-WEBCAM_FORCE_FLASH=VARCHAR|force flash fallback
 IMGLIST_PREV_W=VARCHAR|images list preview width
 IMGLIST_PREV_H=VARCHAR|images list preview height
 CHAPTEREND_PHOTOSTORAGE=true
