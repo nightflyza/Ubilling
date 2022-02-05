@@ -9,13 +9,17 @@ if (cfr('SWITCHM')) {
 
     //deleting existing model
     if (ubRouting::checkGet('deletesm')) {
-        ub_SwitchModelDelete(ubRouting::get('deletesm'));
-        ubRouting::nav('?module=switchmodels');
+        $deletionResult = ub_SwitchModelDelete(ubRouting::get('deletesm'));
+        if (empty($deletionResult)) {
+            ubRouting::nav('?module=switchmodels');
+        } else {
+            show_error(__('Something went wrong') . ': ' . $deletionResult);
+        }
     }
 
     //listing available models
     if (!ubRouting::get('edit')) {
-        $navlinks = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton', '420', '250');
+        $navlinks = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton');
         $navlinks .= wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
 
         show_window('', $navlinks);

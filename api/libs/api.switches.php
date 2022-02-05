@@ -61,16 +61,20 @@ function zb_SwitchDeathTimeResurrection($ip) {
 }
 
 /**
- * Returns array of all available snmp model templates
+ * Returns array of all available snmp model templates as name=>device description
  * 
  * @return array
  */
 function zb_SwitchModelsSnmpTemplatesGetAll() {
-    $allSnmpTemplates_raw = sp_SnmpGetAllModelTemplates();
+    $allSnmpTemplatesRaw = sp_SnmpGetAllModelTemplates();
     $allSnmpTemplates = array('' => __('No'));
-    if (!empty($allSnmpTemplates_raw)) {
-        foreach ($allSnmpTemplates_raw as $io => $each) {
-            $allSnmpTemplates[$io] = $each['define']['DEVICE'];
+    if (!empty($allSnmpTemplatesRaw)) {
+        foreach ($allSnmpTemplatesRaw as $io => $each) {
+            if (isset($each['define'])) {
+                $allSnmpTemplates[$io] = $each['define']['DEVICE'];
+            } else {
+                $allSnmpTemplates[$io] = __('Template') . ' ' . $io . ' - ' . __('is corrupted');
+            }
         }
     }
     return ($allSnmpTemplates);
@@ -102,6 +106,7 @@ function web_SwitchModelsShow() {
     $result = '';
     $allmodels = zb_SwitchModelsGetAll();
     $allSwitches = zb_SwitchesGetAll();
+    $allSnmpTemplates = zb_SwitchModelsSnmpTemplatesGetAll();
     $modelsCount = array();
 
 
@@ -132,8 +137,6 @@ function web_SwitchModelsShow() {
         }
     }
 
-
-
     /**
      * Now its time to break up with the system
      * Our reasons are clear and listed
@@ -151,11 +154,21 @@ function web_SwitchModelsShow() {
 
         foreach ($allmodels as $io => $eachmodel) {
             $availDevicesCount = (isset($modelsCount[$eachmodel['id']])) ? $modelsCount[$eachmodel['id']] : 0;
+            $snmpLabel = '';
+            $snmpTemplate = $eachmodel['snmptemplate'];
+            if (!empty($snmpTemplate)) {
+                if (isset($allSnmpTemplates[$snmpTemplate])) {
+                    $snmpLabel .= $allSnmpTemplates[$snmpTemplate];
+                } else {
+                    $snmpLabel .= __('Template') . ' ' . $snmpTemplate . ' - ' . __('Not exists');
+                    show_error(__('Template') . ' ' . $snmpTemplate . ' ' . __('for') . ' ' . __('Equipment models') . ' ' . __('ID') . ' [' . $eachmodel['id'] . ']' . ' - ' . __('Not exists'));
+                }
+            }
             $tablecells = wf_TableCell($eachmodel['id']);
             $tablecells .= wf_TableCell($eachmodel['modelname']);
             $tablecells .= wf_TableCell($availDevicesCount);
             $tablecells .= wf_TableCell($eachmodel['ports']);
-            $tablecells .= wf_TableCell($eachmodel['snmptemplate']);
+            $tablecells .= wf_TableCell($snmpLabel);
             $switchmodelcontrols = wf_JSAlert('?module=switchmodels&deletesm=' . $eachmodel['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $switchmodelcontrols .= wf_Link('?module=switchmodels&edit=' . $eachmodel['id'], web_edit_icon());
             $tablecells .= wf_TableCell($switchmodelcontrols);
@@ -256,15 +269,37 @@ function ub_SwitchModelAdd($name, $ports, $snmptemplate = '') {
 /**
  * Deletes switch model from database by its ID
  * 
- * @param integer $modelid
+ * @param integer $modelId
  * 
- * @return void
+ * @return void/string on error
  */
-function ub_SwitchModelDelete($modelid) {
-    $modelid = vf($modelid, 3);
-    $query = 'DELETE FROM `switchmodels` WHERE `id` = "' . $modelid . '"';
-    nr_query($query);
-    log_register('SWITCHMODEL DELETE  [' . $modelid . ']');
+function ub_SwitchModelDelete($modelId) {
+    $modelId = ubRouting::filters($modelId, 'int');
+    $result = '';
+    if (!empty($modelId)) {
+        $switches = new NyanORM('switches');
+        $switches->where('modelid', '=', $modelId);
+        $switches->selectable('id');
+        $switchesUsingThisModel = $switches->getAll();
+
+        $ponOnus = new NyanORM('pononu');
+        $ponOnus->where('onumodelid', '=', $modelId);
+        $ponOnus->selectable('id');
+        $onuUsingThisModel = $ponOnus->getAll();
+        //is this model used by some devices?
+        if (empty($switchesUsingThisModel) AND empty($onuUsingThisModel)) {
+            $switchModels = new NyanORM('switchmodels');
+            $switchModels->where('id', '=', $modelId);
+            $switchModels->delete();
+            log_register('SWITCHMODEL DELETE  [' . $modelId . ']');
+        } else {
+            $result .= __('You know, we really would like to let you perform this action, but our conscience does not allow us to do');
+            log_register('SWITCHMODEL DELETE  [' . $modelId . '] FAIL IN_USE');
+        }
+    } else {
+        $result .= __('Model') . ' ' . __('is empty');
+    }
+    return($result);
 }
 
 /**
