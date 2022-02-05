@@ -10,7 +10,7 @@ class RoRoDog {
     protected $printers = array();
 
     public function __construct() {
-        //load some data here
+        //load some data here 
     }
 
     protected function readPayments() {
