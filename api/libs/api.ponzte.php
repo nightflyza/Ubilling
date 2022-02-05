@@ -280,13 +280,24 @@ class PonZte {
      */
     protected function signalIndexProcessing() {
         foreach ($this->sigIndex as $devIndex => &$eachsig) {
-            if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE']) {
+            if ($eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE'] || $eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE2'] || $eachsig == $this->currentSnmpTemplate['signal']['DOWNVALUE3']) {
                 $eachsig = 'Offline';
             } else {
                 $eachsig = str_replace('"', '', $eachsig);
                 if ($this->currentSnmpTemplate['signal']['OFFSETMODE'] == 'div') {
                     if ($this->currentSnmpTemplate['signal']['OFFSET']) {
-                        $eachsig = $eachsig / $this->currentSnmpTemplate['signal']['OFFSET'];
+                        $div = $this->currentSnmpTemplate['signal']['OFFSET'];
+                        if (isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
+                            if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                                $div = $this->currentSnmpTemplate['signal']['ONURXOFFSET'];
+                            }
+                        }
+                        $eachsig = $eachsig / $div;
+                        if (isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
+                            if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                                $eachsig = $eachsig * -1;
+                            }
+                        }
                     }
                 }
             }
@@ -532,9 +543,16 @@ class PonZte {
      */
     protected function sigIndexCalc($data) {
         $sigIndexTmp = array();
+        if (isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
+            if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                $oid = $this->currentSnmpTemplate['signal']['ONURXINDEX'];
+            } else {
+                $oid = $this->currentSnmpTemplate['signal']['SIGINDEX'];
+            }
+        }
         if (!empty($data)) {
             foreach ($data as $ioIndex => $eachVal) {
-                $tmpSig = $this->snmpwalk($this->currentSnmpTemplate['signal']['SIGINDEX'] . $ioIndex);
+                $tmpSig = $this->snmpwalk($oid . $ioIndex);
                 $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $tmpSig[0]);
                 $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGINDEX'], $sigIndex);
                 $explodeSig = explode('=', $sigIndex);
@@ -683,7 +701,7 @@ class PonZte {
         $macTmp = array();
         $result = array();
 //fdb index preprocessing
-        if ((!empty($this->fdbIndex)) AND ( !empty($this->macIndex))) {
+        if ((!empty($this->fdbIndex)) AND (!empty($this->macIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
@@ -748,7 +766,7 @@ class PonZte {
      */
     protected function signalParseEpon() {
         $result = array();
-        if ((!empty($this->sigIndex)) AND ( !empty($this->macIndex))) {
+        if ((!empty($this->sigIndex)) AND (!empty($this->macIndex))) {
             $this->signalIndexProcessing();
             $this->macIndexEponProcessing();
             $realData = array_intersect_key($this->macIndex, $this->sigIndex);
@@ -778,7 +796,7 @@ class PonZte {
         $curDate = curdatetime();
 
 //signal index preprocessing
-        if ((!empty($this->sigIndex)) AND ( !empty($this->snIndex))) {
+        if ((!empty($this->sigIndex)) AND (!empty($this->snIndex))) {
             $this->signalIndexProcessing();
             $this->serialIndexGponProcessing();
             $realData = array_intersect_key($this->snIndex, $this->sigIndex);
@@ -811,7 +829,7 @@ class PonZte {
         $result = array();
 
 //distance index preprocessing
-        if (!empty($this->distanceIndex) AND ! empty($this->snIndex)) {
+        if (!empty($this->distanceIndex) AND!empty($this->snIndex)) {
             $realData = array_intersect_key($this->snIndex, $this->distanceIndex);
             foreach ($realData as $io => $eachsn) {
                 $result[$this->snIndex[$io]] = $this->distanceIndex[$io];
@@ -832,7 +850,7 @@ class PonZte {
         $snTmp = array();
         $result = array();
 //fdb index preprocessing
-        if ((!empty($this->fdbIndex)) AND ( !empty($this->snIndex))) {
+        if ((!empty($this->fdbIndex)) AND (!empty($this->snIndex))) {
             foreach ($this->fdbIndex as $io => $eachfdb) {
                 $line = explode('=', $eachfdb);
                 $devOid = trim($line[0]);
