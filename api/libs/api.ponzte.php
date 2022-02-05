@@ -297,9 +297,6 @@ class PonZte {
                             $div = $this->currentSnmpTemplate['signal']['ONURXOFFSET'];
                         }
                         $eachsig = $eachsig / $div;
-                        if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
-                            $eachsig = $eachsig * -1;
-                        }
                     }
                 }
             }
@@ -560,6 +557,14 @@ class PonZte {
                     $naturalIndex = trim($explodeSig[0]);
                     if (isset($explodeSig[1])) {
                         $naturalSig = trim($explodeSig[1]);
+                        if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                            if ($naturalSig <= 30000) {
+                                $naturalSig = $naturalSig * 0.002 - 30;
+                            }
+                            if ($naturalSig > 30000) {
+                                $naturalSig = ($naturalSig - 65535) * 0.002 - 30;
+                            }
+                        }
                         $sigIndexTmp[$naturalIndex] = $naturalSig;
                     }
                 }
@@ -574,6 +579,14 @@ class PonZte {
                     $naturalIndex = trim($explodeSig[0]);
                     if (isset($explodeSig[1])) {
                         $naturalSig = trim($explodeSig[1]);
+                        if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                            if ($naturalSig <= 30000) {
+                                $naturalSig = $naturalSig * 0.002 - 30;
+                            }
+                            if ($naturalSig > 30000) {
+                                $naturalSig = ($naturalSig - 65535) * 0.002 - 30;
+                            }
+                        }
                         $sigIndexTmp[$naturalIndex] = $naturalSig;
                     }
                 }
