@@ -5,6 +5,11 @@
  * https://github.com/Notificore/notificore-php
  */
 class notificoresms extends SendDogProto {
+    
+    /**
+     * Contains default external lib path
+     */
+    const VENDOR_LIB='api/vendor/notificore/Notificore.php';
 
     /**
      * Defines default log path
@@ -18,7 +23,7 @@ class notificoresms extends SendDogProto {
      */
     public function showMiscInfo() {
         $result = '';
-        require_once ('api/vendor/notificore/Notificore.php');
+        require_once (self::VENDOR_LIB);
         $api = new Notificore($this->settings['NOTIFICORE_APIKEY']);
         $client = $api->getSmsClient();
         $balanceRaw = $client->getBalance();
@@ -58,7 +63,7 @@ class notificoresms extends SendDogProto {
     public function pushMessages() {
         $allSmsQueue = $this->smsQueue->getQueueData();
         if (!empty($allSmsQueue)) {
-            require_once ('api/vendor/notificore/Notificore.php');
+            require_once (self::VENDOR_LIB);
             $sign = $this->safeEscapeString($this->settings['NOTIFICORE_SIGN']);
             $api = new Notificore($this->settings['NOTIFICORE_APIKEY'], $sign);
             $smsClient = $api->getSmsClient();
