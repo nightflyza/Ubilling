@@ -149,6 +149,12 @@ class PonZte {
         $this->currentSnmpTemplate = $this->snmpTemplates[$oltModelId];
         $this->eponCards = OnuRegister::allEponCards();
         $this->gponCards = OnuRegister::allGponCards();
+        if (!isset($this->currentSnmpTemplate['signal']['POLLTYPE'])) {
+            $this->currentSnmpTemplate['signal']['POLLTYPE'] = 'default';
+        }
+        if (!isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
+            $this->currentSnmpTemplate['signal']['SIGNALTYPE'] = 'OLTRX';
+        }
     }
 
     /**
@@ -287,16 +293,12 @@ class PonZte {
                 if ($this->currentSnmpTemplate['signal']['OFFSETMODE'] == 'div') {
                     if ($this->currentSnmpTemplate['signal']['OFFSET']) {
                         $div = $this->currentSnmpTemplate['signal']['OFFSET'];
-                        if (isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
-                            if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
-                                $div = $this->currentSnmpTemplate['signal']['ONURXOFFSET'];
-                            }
+                        if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                            $div = $this->currentSnmpTemplate['signal']['ONURXOFFSET'];
                         }
                         $eachsig = $eachsig / $div;
-                        if (isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
-                            if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
-                                $eachsig = $eachsig * -1;
-                            }
+                        if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                            $eachsig = $eachsig * -1;
                         }
                     }
                 }
@@ -543,23 +545,37 @@ class PonZte {
      */
     protected function sigIndexCalc($data) {
         $sigIndexTmp = array();
-        if (isset($this->currentSnmpTemplate['signal']['SIGNALTYPE'])) {
-            if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
-                $oid = $this->currentSnmpTemplate['signal']['ONURXINDEX'];
-            } else {
-                $oid = $this->currentSnmpTemplate['signal']['SIGINDEX'];
-            }
+        if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+            $oid = $this->currentSnmpTemplate['signal']['ONURXINDEX'];
+        } else {
+            $oid = $this->currentSnmpTemplate['signal']['SIGINDEX'];
         }
         if (!empty($data)) {
-            foreach ($data as $ioIndex => $eachVal) {
-                $tmpSig = $this->snmpwalk($oid . $ioIndex);
-                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $tmpSig[0]);
-                $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGINDEX'], $sigIndex);
-                $explodeSig = explode('=', $sigIndex);
-                $naturalIndex = trim($explodeSig[0]);
-                if (isset($explodeSig[1])) {
-                    $naturalSig = trim($explodeSig[1]);
-                    $sigIndexTmp[$naturalIndex] = $naturalSig;
+            if ($this->currentSnmpTemplate['signal']['POLLTYPE'] == 'default') {
+                foreach ($data as $ioIndex => $eachVal) {
+                    $tmpSig = $this->snmpwalk($oid . $ioIndex);
+                    $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $tmpSig[0]);
+                    $sigIndex = $this->strRemove($oid, $sigIndex);
+                    $explodeSig = explode('=', $sigIndex);
+                    $naturalIndex = trim($explodeSig[0]);
+                    if (isset($explodeSig[1])) {
+                        $naturalSig = trim($explodeSig[1]);
+                        $sigIndexTmp[$naturalIndex] = $naturalSig;
+                    }
+                }
+            }
+            if ($this->currentSnmpTemplate['signal']['POLLTYPE'] == 'fast') {
+                $oid = substr($oid, 0, -1);
+                $tmpSig = $this->snmpwalk($oid);
+                foreach ($tmpSig as $eachSig) {
+                    $sigIndex = $this->strRemove($this->currentSnmpTemplate['signal']['SIGVALUE'], $eachSig);
+                    $sigIndex = $this->strRemoveOidWithDot($oid, $sigIndex);
+                    $explodeSig = explode('=', $sigIndex);
+                    $naturalIndex = trim($explodeSig[0]);
+                    if (isset($explodeSig[1])) {
+                        $naturalSig = trim($explodeSig[1]);
+                        $sigIndexTmp[$naturalIndex] = $naturalSig;
+                    }
                 }
             }
         }
@@ -636,15 +652,30 @@ class PonZte {
      * @return void
      */
     protected function distanceIndexProcess() {
-        foreach ($this->snIndex as $ioIndex => $eachSn) {
-            $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . '.' . $ioIndex);
-            $distIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
-            $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
-            $explodeDist = explode('=', $distIndex);
-            $naturalIndex = trim($explodeDist[0]);
-            if (isset($explodeDist[1])) {
-                $naturalDist = trim($explodeDist[1]);
-                $this->distanceIndex[$naturalIndex] = $naturalDist;
+        if ($this->currentSnmpTemplate['signal']['POLLTYPE'] == 'default') {
+            foreach ($this->snIndex as $ioIndex => $eachSn) {
+                $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE'] . '.' . $ioIndex);
+                $distIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['DISTANCE'], $tmpDist[0]);
+                $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
+                $explodeDist = explode('=', $distIndex);
+                $naturalIndex = trim($explodeDist[0]);
+                if (isset($explodeDist[1])) {
+                    $naturalDist = trim($explodeDist[1]);
+                    $this->distanceIndex[$naturalIndex] = $naturalDist;
+                }
+            }
+        }
+        if ($this->currentSnmpTemplate['signal']['POLLTYPE'] == 'fast') {
+            $tmpDist = $this->snmpwalk($this->currentSnmpTemplate['signal']['DISTANCE']);
+            foreach ($tmpDist as $eachDist) {
+                $distIndex = $this->strRemoveOidWithDot($this->currentSnmpTemplate['signal']['DISTANCE'], $eachDist);
+                $distIndex = $this->strRemove($this->currentSnmpTemplate['signal']['DISTVALUE'], $distIndex);
+                $explodeDist = explode('=', $distIndex);
+                $naturalIndex = trim($explodeDist[0]);
+                if (isset($explodeDist[1])) {
+                    $naturalDist = trim($explodeDist[1]);
+                    $this->distanceIndex[$naturalIndex] = $naturalDist;
+                }
             }
         }
     }
