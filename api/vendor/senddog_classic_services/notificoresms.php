@@ -80,6 +80,8 @@ class notificoresms extends SendDogProto {
                             if (empty($sendingResult['result']['error'])) {
                                 //Message sent. Now we can delete it from queue.
                                 $this->smsQueue->deleteSms($eachSms['filename']);
+                                //success debug logging?
+                                $this->putLog('MESSAGE SENDING SUCCESS: ' . print_r($sendingResult, true));
                             } else {
                                 $this->putLog('MESSAGE SENDING FAILED: ' . print_r($sendingResult, true));
                             }
