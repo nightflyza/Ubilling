@@ -746,7 +746,9 @@ class ReportMaster {
             $inputs .= wf_Submit(__('Save'));
 
             $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= $this->renderTbPreview($reportId);
             $result .= wf_delimiter(1);
+
             $result .= $this->renderCopyPasteForm($reportId);
         } else {
             $result .= $this->messages->getStyledMessage(__('Unknown report') . ': ' . $reportId, 'error');
@@ -754,6 +756,39 @@ class ReportMaster {
 
         $result .= wf_delimiter(1);
         $result .= $this->renderBackControl();
+        return($result);
+    }
+
+    /**
+     * Renders preview if report will be rendered on task bar.
+     * 
+     * @param string $reportId
+     * 
+     * @return string
+     */
+    protected function renderTbPreview($reportId) {
+        $result = '';
+        if (isset($this->allReports[$reportId])) {
+            $reportData = $this->allReports[$reportId];
+
+            if ($reportData['REPORT_ONTB']) {
+                $result .= wf_delimiter(1);
+                $icon = $reportData['REPORT_ICON'];
+                $reportLabel = __($reportData['REPORT_NAME']);
+                $availableIcons = $this->getAvailableIcons();
+                if (!isset($availableIcons[$icon]) OR empty($icon)) {
+                    $icon = self::ICON_DEFAULT;
+                }
+
+                $result .= wf_tag('div', false, '');
+                $result .= wf_tag('strong') . __('Preview') . wf_tag('strong', true) . wf_tag('br');
+                $result .= wf_tag('div', false, 'dashtask') . wf_img_sized(self::ICONS_PATH . $icon, $reportLabel, '128');
+                $result .= wf_tag('br') . $reportLabel;
+                $result .= wf_tag('div', true);
+                $result .= wf_CleanDiv();
+                $result .= wf_tag('div', true);
+            }
+        }
         return($result);
     }
 
