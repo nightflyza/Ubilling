@@ -3380,6 +3380,6 @@ $lang['def']['is corrupted'] = 'пошкоджено';
 $lang['def']['Calm the dog'] = 'Заспокоїти собаку';
 $lang['def']['again'] = 'знову';
 $lang['def']['Retake photo'] = 'Перефоткати';
+$lang['def']['Calls during non-business hours'] = 'Дзвінки в неробочий час';
 $lang['def'][''] = '';
-
 

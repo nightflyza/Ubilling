@@ -371,8 +371,9 @@ class WhyDoYouCall {
      */
     public function panel() {
         $result = '';
-        if (!wf_CheckGet(array('renderstats'))) {
+        if (!ubRouting::checkGet('renderstats') AND ! ubRouting::checkGet('nightmode')) {
             $result .= wf_Link(self::URL_ME, wf_img_sized('skins/icon_phone.gif', '', '16', '16') . ' ' . __('Calls'), false, 'ubButton') . ' ';
+            $result .= wf_Link(self::URL_ME . '&nightmode=true', wf_img_sized('skins/icon_moon.png', '', '16', '16') . ' ' . __('Calls during non-business hours'), false, 'ubButton') . ' ';
             $result .= wf_Link(self::URL_ME . '&renderstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
         } else {
             $result .= wf_BackLink(self::URL_ME);
@@ -567,6 +568,150 @@ class WhyDoYouCall {
         $result .= wf_CleanDiv();
 
         return ($result);
+    }
+
+    /**
+     * Renders unanswered night-mode calls
+     * 
+     * @return string
+     */
+    public function renderNightModeCalls() {
+        $result = '';
+        $askoziaUrl = zb_StorageGet('ASKOZIAPBX_URL');
+        $askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
+        $askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
+        $cacheTime = 3600;
+        $recalledCache = array();
+        if (file_exists(self::CACHE_RECALLED)) {
+            $recalledCache = file_get_contents(self::CACHE_RECALLED);
+            $recalledCache = unserialize($recalledCache);
+        }
+        $showYear = (ubRouting::checkPost('showyear')) ? ubRouting::post('showyear', 'int') : curyear();
+        $showMonth = (ubRouting::checkPost('showmonth')) ? ubRouting::post('showmonth', 'int') : date('m');
+
+
+        $cache = new UbillingCache();
+        $cacheKey = 'ASKOZIA_NIGHTMODE_' . $showYear . $showMonth;
+
+
+        $from = $showYear . '-' . $showMonth . '-01';
+        $to = date("Y-m-t", strtotime($from));
+        $result = '';
+
+        $rawResult = $cache->get($cacheKey, $cacheTime);
+        if (empty($rawResult)) {
+            $sip = new OmaeUrl($askoziaUrl . '/status_cdr.php');
+            $sip->dataPost('extension_number', 'all');
+            $sip->dataPost('cdr_filter', 'incomingoutgoing');
+            $sip->dataPost('period_from', $from);
+            $sip->dataPost('period_to', $to);
+            $sip->dataPost('date_format', 'Y-m-d');
+            $sip->dataPost('time_format', 'H:i:s');
+            $sip->dataPost('page_format', 'A4');
+            $sip->dataPost('SubmitCSVCDR', 'Download CSV');
+            $sip->setBasicAuth($askoziaLogin, $askoziaPassword);
+
+            $rawResult = $sip->response();
+            $cache->set($cacheKey, $rawResult, $cacheTime);
+        }
+
+        if (!empty($rawResult)) {
+            $normalData = array();
+            $callersData = array();
+            $nightMode = array();
+            $data = explodeRows($rawResult);
+            $data= array_reverse($data);
+            if (!empty($data)) {
+                foreach ($data as $eachline) {
+                    $explode = explode(';', $eachline); //in 2.2.8 delimiter changed from ," to ;
+                    if (!empty($eachline)) {
+                        $normalData[] = str_replace('"', '', $explode);
+                    }
+                }
+            }
+
+
+            //filters form here
+            $playBackFlag = false;
+            $inputs = '';
+            $inputs .= wf_YearSelectorPreset('showyear', __('Year'), false, $showYear) . ' ';
+            $inputs .= wf_MonthSelector('showmonth', __('Month'), $showMonth, false) . ' ';
+            $inputs .= wf_Submit(__('Show'));
+            $result .= wf_Form('', 'POST', $inputs, 'glamour');
+            $result .= wf_delimiter();
+
+            if (!empty($normalData)) {
+                foreach ($normalData as $io => $each) {
+                    $number = $each[1];
+                    $dateTime = $each[10];
+                    $date = date("Y-m-d", strtotime($dateTime));
+                    $cutTime = date("H:i:s", strtotime($dateTime));
+                    if ($playBackFlag) {
+                        if ($each[3] == 'nightswitch-application' AND $each[7] == 'Playback') {
+                            $nightMode[$date][$number][] = $cutTime;
+                        }
+                    } else {
+                        if ($each[3] == 'nightswitch-application') {
+                            $nightMode[$date][$number][] = $cutTime;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($nightMode)) {
+                $allAddress = zb_AddressGetFulladdresslistCached();
+                $telepathy = new Telepathy(false, true, false, true);
+                $telepathy->usePhones();
+                $cells = wf_TableCell(__('Date'));
+                $cells .= wf_TableCell(__('Phones'));
+
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($nightMode as $date => $numbers) {
+                    $cells = wf_TableCell($date);
+                    $nums = '';
+                    $times = '';
+                    $guessedLogin = '';
+                    $ncells = wf_TableCell(__('Number'), '30%');
+                    $ncells .= wf_TableCell(__('User'), '30%');
+                    $ncells .= wf_TableCell(__('Time'), '30%');
+                    $nrows = wf_TableRow($ncells, 'row1');
+                    $nums .= wf_TableBody($nrows, '100%', 0);
+                    foreach ($numbers as $eachNumber => $eachTime) {
+                        $guessedLogin = $telepathy->getByPhoneFast($eachNumber, true, true);
+                        if ($guessedLogin) {
+                            $userLabel = wf_link(UserProfile::URL_PROFILE . $guessedLogin, web_profile_icon() . ' ' . @$allAddress[$guessedLogin]);
+                        } else {
+                            $userLabel = '';
+                        }
+
+                        $eachTime = implode(', ', $eachTime);
+                        $ncells = wf_TableCell($eachNumber, '30%');
+                        $ncells .= wf_TableCell($userLabel, '30%');
+                        $ncells .= wf_TableCell($eachTime, '30%');
+                        if (isset($recalledCache[$eachNumber])) {
+                            $numClass = 'todaysig';
+                        } else {
+                            $numClass = 'row5';
+                        }
+
+                        $nrows = wf_TableRow($ncells, $numClass);
+                        $nums .= wf_TableBody($nrows, '100%', 0);
+                    }
+                    $cells .= wf_TableCell($nums);
+
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
+
+
+                $result .= wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $messages = new UbillingMessageHelper();
+                $result .= $messages->getStyledMessage(__('Nothing to show'), 'info');
+            }
+        } else {
+            show_warning(__('Something went wrong') . ' ' . __('Nothing found'));
+        }
+        return($result);
     }
 
     /**
