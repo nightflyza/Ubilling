@@ -3358,3 +3358,4 @@ $lang['def']['is corrupted'] = 'поврежден';
 $lang['def']['Calm the dog'] = 'Успокоить собаку';
 $lang['def']['again'] = 'снова';
 $lang['def']['Retake photo'] = 'Перефотать';
+$lang['def']['Using at another address'] = 'Используют по другому адресу';
