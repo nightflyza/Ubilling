@@ -781,10 +781,23 @@ class OnuRegister {
             $this->ponArray = array();
             $this->onuArray = array();
             if (isset($this->allZteOlt[$this->currentOltSwId])) {
-                $inherit = @$this->avidity['Z']['LSD'];
-                foreach ($cards as $index => $value) {
-                    eval($inherit);
-                }
+                    $inherit = @$this->avidity['Z']['LSD'];
+                    foreach ($cards as $index => $value) {
+                        if ($value['description'] == 'GVGH') {
+                            $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
+                            if (!empty($oltInterface)) {
+                                foreach ($oltInterface as $eachOid => $name) {
+                                    $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
+                                    $name = str_replace('STRING:', '', $name);
+                                    $name = str_replace('"', '', $name);
+                                    $name = trim($name);
+                                    $this->ponArray[$name] = $interfaceId;
+                                }
+                            }
+                        } else {
+                            eval($inherit);
+                        }
+                    }
             }
             if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
                 $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
