@@ -5,11 +5,11 @@
  * https://github.com/Notificore/notificore-php
  */
 class notificoresms extends SendDogProto {
-    
+
     /**
      * Contains default external lib path
      */
-    const VENDOR_LIB='api/vendor/notificore/Notificore.php';
+    const VENDOR_LIB = 'api/vendor/notificore/Notificore.php';
 
     /**
      * Defines default log path
@@ -73,10 +73,11 @@ class notificoresms extends SendDogProto {
                 if (!empty($eachSms['number']) AND ! empty($eachSms['message'])) {
                     $recipient = $eachSms['number'];
                     $text = $eachSms['message'];
-                    $sendingResult = $smsClient->sendSms($recipient, $text, curdatetime());
+                    $reference = 'ubsms' . time() . str_replace('.', '', microtime(true));
+                    $sendingResult = $smsClient->sendSms($recipient, $text, $reference);
                     if (!empty($sendingResult)) {
-                        if (isset($sendingResult['error'])) {
-                            if (empty($sendingResult['error'])) {
+                        if (isset($sendingResult['result']['error'])) {
+                            if (empty($sendingResult['result']['error'])) {
                                 //Message sent. Now we can delete it from queue.
                                 $this->smsQueue->deleteSms($eachSms['filename']);
                             } else {
