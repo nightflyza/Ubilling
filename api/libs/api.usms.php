@@ -71,7 +71,7 @@ class UbillingSMS {
                 $storedata .= 'MESSAGE="' . $message . '"' . "\n";
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS FOR `' . $number . '` AS `' . $prefix . $queueId . '_' . $offset . '` ' . $module);
-                $result = $queueId;
+                $result = $prefix . $queueId . '_' . $offset;
             }
         }
         return ($result);
