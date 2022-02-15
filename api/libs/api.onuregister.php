@@ -320,6 +320,13 @@ class OnuRegister {
     public $onuInterface = '';
 
     /**
+     * Placeholder for VPORT interface name.
+     * 
+     * @var string
+     */
+    public $vportInterface = '';
+
+    /**
      * Save config after ONU registration?
      * 
      * @var bool
@@ -1253,7 +1260,7 @@ class OnuRegister {
         $getAllId = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['LLIDLIST'] . $this->ponArray[$this->currentOltInterface]);
         if (!empty($getAllId)) {
             foreach ($getAllId as $oid => $value) {
-                if ($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == 2) {
+                if ($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == 2 or $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
                     $number = str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['LLIDLIST'] . $this->ponArray[$this->currentOltInterface] . '.', "", $oid);
                     $this->existId[] = trim($number);
                 } else {
@@ -1417,6 +1424,9 @@ class OnuRegister {
             $this->onuInterface = str_replace('olt', 'onu', $this->currentOltInterface);
             if ($this->currentPonVersion == 2) {
                 $scriptPath .= 'v2/';
+            } elseif ($this->currentPonVersion == "C6XX") {
+                $this->vportInterface = str_replace('gpon_olt', 'vport', $this->currentOltInterface);
+                $scriptPath .= 'C6XX/';
             } else {
                 $scriptPath .= 'v1.2.5/';
             }
@@ -1489,6 +1499,9 @@ class OnuRegister {
             $command .= ' ' . $this->onuDescription;
             $command .= ' ' . $this->onuDhcpSnooping;
             $command .= ' ' . $this->onuLoopdetect;
+            if ($this->currentPonVersion == "C6XX") {
+                $command .= ' ' . $this->vportInterface;
+            }
         }
         return($command);
     }
@@ -1509,6 +1522,8 @@ class OnuRegister {
                 $command .= 'zte/';
                 if ($this->currentPonVersion == 2) {
                     $command .= 'v2/';
+                 } elseif ($this->currentPonVersion == "C6XX") {
+                    $command .= 'C6XX/';
                 } else {
                     $command .= 'v1.2.5/';
                 }
