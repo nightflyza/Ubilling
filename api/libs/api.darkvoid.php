@@ -183,7 +183,14 @@ class DarkVoid {
             $smsQueueCount = rcms_scandir(DATA_PATH . 'tsms/');
             $smsQueueCount = sizeof($smsQueueCount);
             if ($smsQueueCount > 0) {
-                $this->alerts .= wf_Link("?module=tsmsqueue", wf_img("skins/sms.png", $smsQueueCount . ' ' . __('SMS in queue')), false, '');
+                $this->alerts .= wf_Link('?module=tsmsqueue', wf_img('skins/sms.png', $smsQueueCount . ' ' . __('SMS in queue')), false, '');
+            }
+
+            if ($this->altCfg['SENDDOG_PARALLEL_MODE']) {
+                $sendDogPid = SendDog::PID_PATH;
+                if (file_exists($sendDogPid)) {
+                    $this->alerts .= wf_Link('?module=tsmsqueue', wf_img('skins/dog_stand.png', __('SendDog is working')), false, '');
+                }
             }
         }
 
@@ -394,5 +401,3 @@ class DarkVoid {
     }
 
 }
-
-?>
