@@ -409,10 +409,8 @@ class UserProfile {
      */
     protected function loadPluginsOverlay($filename) {
         $plugins = $this->loadPluginsRaw($filename);
-
-        $result = wf_tag('table', false, '', 'width="100%" border="0"');
-        $result .= wf_tag('tr', false);
-        $result .= wf_tag('td', false, '', 'valign="middle" align="center"');
+        $result = '';
+        $pluginsTmp = '';
 
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
@@ -439,17 +437,25 @@ class UserProfile {
                 }
 
                 if ($renderable) {
-                    $result .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                    $result .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
-                    $result .= wf_tag('br') . __($eachplugin['name']);
-                    $result .= wf_tag('div', true);
+                    $pluginsTmp .= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
+                    $pluginsTmp .= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                    $pluginsTmp .= wf_tag('br') . __($eachplugin['name']);
+                    $pluginsTmp .= wf_tag('div', true);
                 }
+            }
+
+            if (!empty($pluginsTmp)) {
+                //formating results here
+                $result .= wf_tag('table', false, '', 'width="100%" border="0"');
+                $result .= wf_tag('tr', false);
+                $result .= wf_tag('td', false, '', 'valign="middle" align="center"');
+                $result .= $pluginsTmp;
+                $result .= wf_tag('td', true);
+                $result .= wf_tag('tr', true);
+                $result .= wf_tag('table', true);
             }
         }
 
-        $result .= wf_tag('td', true);
-        $result .= wf_tag('tr', true);
-        $result .= wf_tag('table', true);
 
         return($result);
     }
@@ -466,8 +472,12 @@ class UserProfile {
                 $graphPing = (@$this->alterCfg['PINGCHARTS_DEFAULT']) ? true : false;
                 foreach ($rawPlugins as $modulename => $eachplugin) {
                     if (isset($eachplugin['overlay'])) {
-                        $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']) . wf_delimiter();
-                        $this->plugins .= wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
+                        $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']);
+                        //any overlay plugins loaded for current user?
+                        if (!empty($overlaydata)) {
+                            $overlaydata = $overlaydata . wf_delimiter();
+                            $this->plugins .= wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
+                        }
                     } else {
                         $pluginUrl = '?module=' . $modulename . '&username=' . $this->login;
                         //appenging optional graphical ping if required
@@ -2320,5 +2330,3 @@ class UserProfile {
     }
 
 }
-
-?>

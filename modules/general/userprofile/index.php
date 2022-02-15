@@ -8,8 +8,8 @@ if (cfr('USERPROFILE')) {
         }
     }
 
-    if (isset($_GET['username'])) {
-        $login = vf($_GET['username']);
+    if (ubRouting::checkGet('username', false)) {
+        $login = ubRouting::get('username', 'mres');
         $login = trim($login);
         try {
             $profile = new UserProfile($login);
@@ -21,13 +21,13 @@ if (cfr('USERPROFILE')) {
                 if (!empty($awesomeness)) {
                     $awesomenessRnd = array_rand($awesomeness);
                     $awesomeness = $awesomeness[$awesomenessRnd];
-                    $newUserRegisteredNotification.= wf_tag('center') . wf_img_sized('skins/awesomeness/' . $awesomeness, '', '256') . wf_tag('center', true);
+                    $newUserRegisteredNotification .= wf_tag('center') . wf_img_sized('skins/awesomeness/' . $awesomeness, '', '256') . wf_tag('center', true);
                 }
-                $messages=new UbillingMessageHelper();
-                $newUserRegisteredNotification.=$messages->getStyledMessage(__('Its incredible, but you now have a new user') . '!', 'success');
-                $newUserRegisteredNotification.= wf_CleanDiv();
-                $newUserRegisteredNotification.= wf_tag('br');
-                $newUserRegisteredNotification.=web_UserControls($login);
+                $messages = new UbillingMessageHelper();
+                $newUserRegisteredNotification .= $messages->getStyledMessage(__('Its incredible, but you now have a new user') . '!', 'success');
+                $newUserRegisteredNotification .= wf_CleanDiv();
+                $newUserRegisteredNotification .= wf_tag('br');
+                $newUserRegisteredNotification .= web_UserControls($login);
                 show_window('', wf_modalOpenedAuto(__('Success') . '!', $newUserRegisteredNotification));
             }
         } catch (Exception $exception) {
@@ -39,4 +39,4 @@ if (cfr('USERPROFILE')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
+
