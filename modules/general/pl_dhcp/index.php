@@ -3,8 +3,8 @@
 if (cfr('PLDHCP')) {
 
 
-    if (isset($_GET['username'])) {
-        $login = $_GET['username'];
+    if (ubRouting::checkGet('username')) {
+        $login = ubRouting::get('username');
         $config = $ubillingConfig->getBilling();
         $alter_conf = $ubillingConfig->getAlter();
         $cat_path = $config['CAT'];
@@ -42,4 +42,4 @@ if (cfr('PLDHCP')) {
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

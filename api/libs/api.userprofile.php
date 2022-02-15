@@ -416,7 +416,6 @@ class UserProfile {
             foreach ($plugins as $modulename => $eachplugin) {
                 $renderable = true;
                 //checks for required pluging rights
-
                 if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
                     if (cfr($eachplugin['need_right'])) {
                         $renderable = true;
@@ -471,12 +470,35 @@ class UserProfile {
             if (!empty($rawPlugins)) {
                 $graphPing = (@$this->alterCfg['PINGCHARTS_DEFAULT']) ? true : false;
                 foreach ($rawPlugins as $modulename => $eachplugin) {
+                    $renderable = true;
+                    //checks for required pluging rights
+                    if (isset($eachplugin['need_right']) AND ! empty($eachplugin['need_right'])) {
+                        if (cfr($eachplugin['need_right'])) {
+                            $renderable = true;
+                        } else {
+                            $renderable = false;
+                        }
+                    }
+
+                    //checking for required options
+                    if ($renderable) { //avoiding additional check
+                        if (isset($eachplugin['need_option'])) {
+                            if (@$this->alterCfg[$eachplugin['need_option']]) {
+                                $renderable = true;
+                            } else {
+                                $renderable = false;
+                            }
+                        }
+                    }
+
                     if (isset($eachplugin['overlay'])) {
                         $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']);
                         //any overlay plugins loaded for current user?
                         if (!empty($overlaydata)) {
                             $overlaydata = $overlaydata . wf_delimiter();
-                            $this->plugins .= wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
+                            if ($renderable) {
+                                $this->plugins .= wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
+                            }
                         }
                     } else {
                         $pluginUrl = '?module=' . $modulename . '&username=' . $this->login;
@@ -486,7 +508,10 @@ class UserProfile {
                                 $pluginUrl .= '&charts=true';
                             }
                         }
-                        $this->plugins .= wf_Link($pluginUrl, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
+
+                        if ($renderable) {
+                            $this->plugins .= wf_Link($pluginUrl, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
+                        }
                     }
                 }
             }
