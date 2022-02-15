@@ -462,3 +462,4 @@ $lang['def']['Yes'] = 'Так';
 $lang['def']['No'] = 'Ні';
 $lang['def']['Resume'] = 'Відновити';
 $lang['def']['on another tariff'] = 'на інший тариф';
+$lang['def']['Day of the next tariff fee'] = 'День нарахування абонплати';

@@ -1678,10 +1678,44 @@ function zbs_UserShowProfile($login) {
     $profile .= la_TableCell(__($userdata['Tariff']));
     $profile .= la_tag('tr', true);
 
+    //Power tariffs suport enabled?
+    if (@$us_config['POWERTARIFFS_ENABLED']) {
+        $powerTariffs = new NyanORM('pt_tariffs');
+        $allPowerTariffs = $powerTariffs->getAll('tariff');
+        $feeDay = 0;
+        if (isset($allPowerTariffs[$userdata['Tariff']])) {
+            //custom tariff price
+            $tariffPrice = $allPowerTariffs[$userdata['Tariff']]['fee'];
+            //getting custom fee date for this user
+            $powerUsers = new NyanORM('pt_users');
+            $powerUsers->where('login', '=', $login);
+            $powerUserData = $powerUsers->getAll('login');
+            if (!empty($powerUserData)) {
+                $feeDay = $powerUserData[$login]['day'];
+            }
+        } else {
+            //this is just normal tariff
+            @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
+        }
+    } else {
+        @$tariffPrice = zbs_UserGetTariffPrice($userdata['Tariff']);
+    }
+
+    //tariff price here
     $profile .= la_tag('tr');
     $profile .= la_TableCell(__('Tariff price'), '', 'row1');
-    $profile .= la_TableCell(@zbs_UserGetTariffPrice($userdata['Tariff']) . ' ' . $us_currency);
+    $profile .= la_TableCell($tariffPrice . ' ' . $us_currency);
     $profile .= la_tag('tr', true);
+
+    //render custom fee day
+    if (@$us_config['POWERTARIFFS_ENABLED']) {
+        if ($feeDay != 0) {
+            $profile .= la_tag('tr');
+            $profile .= la_TableCell(__('Day of the next tariff fee'), '', 'row1');
+            $profile .= la_TableCell($feeDay);
+            $profile .= la_tag('tr', true);
+        }
+    }
 
     $profile .= $tariffSpeeds;
 
