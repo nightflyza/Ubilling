@@ -437,7 +437,11 @@ class PonZte {
             foreach ($match as &$each) {
                 $each = bindec($each);
             }
-            $result = 'gpon-onu_' . $match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/' . $match[self::DESC_OLT] . ':';
+            if ($match[self::DESC_ONU] == 0) {
+                $result = 'gpon-onu_' . $match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/' . $match[self::DESC_OLT] . ':';
+            } else {
+                $result = 'gpon-onu_' . $match[self::DESC_SHELF+1] . '/' . $match[self::DESC_SLOT+1] . '/' . $match[self::DESC_OLT+1] . ':';
+            }
         }
         return($result);
     }
