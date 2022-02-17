@@ -3372,7 +3372,7 @@ class Warehouse {
     public function reportAllStoragesRemains() {
         $result = '';
         if (!empty($this->allIncoming)) {
-            $columns = array('Category', 'Warehouse item types', 'Count', 'Actions');
+            $columns = array('Category', 'Warehouse item types', 'Count', 'Reserved', 'Total', 'Actions');
             $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_REPORTS . '&' . self::URL_REAJTREM, true, 'Warehouse item types', 50);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
@@ -3387,16 +3387,20 @@ class Warehouse {
      * @return string
      */
     public function reportAllStoragesRemainsAjaxReply() {
-        $all = $this->remainsAll();
+        $all = $this->remainsAllWithReserves();
         $json = new wf_JqDtHelper();
 
         if (!empty($all)) {
-            foreach ($all as $itemtypeId => $count) {
-                if ($count > 0) {
+            foreach ($all as $itemtypeId => $remains) {
+                $itemUnits = $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+                $realRemains = $remains['count'] - $remains['reserved'];
+                if (($remains['count'] > 0) OR ( $remains['reserved'] > 0) OR $realRemains > 0) {
                     $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
                     $data[] = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
                     $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeId, $this->allItemTypeNames[$itemtypeId]);
-                    $data[] = $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+                    $data[] = $realRemains . ' ' . $itemUnits;
+                    $data[] = $remains['reserved'] . ' ' . $itemUnits;
+                    $data[] = $remains['count'] . ' ' . $itemUnits;
                     $data[] = $actLink;
                     $json->addRow($data);
                     unset($data);
@@ -3405,6 +3409,37 @@ class Warehouse {
         }
 
         $json->getJson();
+    }
+
+    /**
+     * Returns array of all itemtypes available on all storages with their reserved counts
+     * 
+     * @return array
+     */
+    public function remainsAllWithReserves() {
+        $result = array();
+        if (!empty($this->allStorages)) {
+            foreach ($this->allStorages as $storageId => $storageName) {
+                $tmpArr = $this->remainsOnStorage($storageId);
+                if (!empty($tmpArr)) {
+                    /**
+                     * When you do wrong, no one forgives
+                     * When you do good, no one will care
+                     */
+                    foreach ($tmpArr as $itemtypeId => $itemtypeCount) {
+                        $reserved = $this->reserveGet($storageId, $itemtypeId);
+                        if (isset($result[$itemtypeId])) {
+                            $result[$itemtypeId]['count'] += $itemtypeCount;
+                            $result[$itemtypeId]['reserved'] += $reserved;
+                        } else {
+                            $result[$itemtypeId]['count'] = $itemtypeCount;
+                            $result[$itemtypeId]['reserved'] = $reserved;
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
