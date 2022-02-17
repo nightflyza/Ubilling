@@ -3400,7 +3400,7 @@ class Warehouse {
                     $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeId, $this->allItemTypeNames[$itemtypeId]);
                     $data[] = $realRemains . ' ' . $itemUnits;
                     $data[] = $remains['reserved'] . ' ' . $itemUnits;
-                    $data[] = $remains['count'] . ' ' . $itemUnits;
+                    $data[] = $remains['count'];
                     $data[] = $actLink;
                     $json->addRow($data);
                     unset($data);
