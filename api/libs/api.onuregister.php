@@ -545,7 +545,8 @@ class OnuRegister {
             'H806G' => 8,
             'H803G' => 16,
             'H805G' => 16,
-            'GVGH' => 16
+            'GVGH' => 16,
+            'GFGL' => 16
         ));
     }
 
