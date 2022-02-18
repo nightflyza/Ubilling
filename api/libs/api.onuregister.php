@@ -791,7 +791,7 @@ class OnuRegister {
             if (isset($this->allZteOlt[$this->currentOltSwId])) {
                     $inherit = @$this->avidity['Z']['LSD'];
                     foreach ($cards as $index => $value) {
-                        if ($value['description'] == 'GVGH') {
+                        if ($value['description'] == 'GVGH' or $value['description'] == 'GFGL') {
                             $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
                             if (!empty($oltInterface)) {
                                 foreach ($oltInterface as $eachOid => $name) {
