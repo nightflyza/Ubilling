@@ -295,6 +295,9 @@ class PonZte {
                         $div = $this->currentSnmpTemplate['signal']['OFFSET'];
                         if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
                             $div = $this->currentSnmpTemplate['signal']['ONURXOFFSET'];
+                            $exploDevIndex = explode('.', $devIndex);
+                            $devIndex = $exploDevIndex[0] . "." . $exploDevIndex[1];
+                            $this->sigIndex[$devIndex] = $eachsig / $div;
                         }
                         $eachsig = $eachsig / $div;
                     }
