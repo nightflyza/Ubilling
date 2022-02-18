@@ -1924,7 +1924,7 @@ class OnuRegister {
                         $eachOid = trim(str_replace($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['ALLCARDS'] . '.', '', $eachOid));
                         $eachOid = explode('.', $eachOid);
                         $eachCard = trim(str_replace(array('STRING:', '"'), '', $eachCard));
-                        if (isset($snmpTemplate['define']['DEVICE']) AND preg_match('/C610/i', $snmpTemplate['define']['DEVICE'])) {
+                        if (isset($snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION']) AND $snmpTemplate[self::SNMP_TEMPLATE_SECTION]['VERSION'] == "C6XX") {
                             $tablecells = wf_TableCell($eachOid[0]);
                         } else {
                             $tablecells = wf_TableCell($eachOid[2]);
