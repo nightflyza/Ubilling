@@ -443,7 +443,7 @@ class PonZte {
             if ($match[self::DESC_ONU] == 0) {
                 $result = 'gpon-onu_' . $match[self::DESC_SHELF] . '/' . $match[self::DESC_SLOT] . '/' . $match[self::DESC_OLT] . ':';
             } else {
-                $result = 'gpon-onu_' . $match[self::DESC_SHELF+1] . '/' . $match[self::DESC_SLOT+1] . '/' . $match[self::DESC_OLT+1] . ':';
+                $result = 'gpon-onu_' . $match[self::DESC_SHELF + 1] . '/' . $match[self::DESC_SLOT + 1] . '/' . $match[self::DESC_OLT + 1] . ':';
             }
         }
         return($result);
@@ -564,7 +564,10 @@ class PonZte {
                     $naturalIndex = trim($explodeSig[0]);
                     if (isset($explodeSig[1])) {
                         $naturalSig = trim($explodeSig[1]);
+                        $trueIndex = $naturalIndex;
                         if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                            $splitIndex = explode(".", $naturalIndex);
+                            $trueIndex = $splitIndex[0] . "." . $splitIndex[1];
                             if ($naturalSig <= 30000) {
                                 $naturalSig = $naturalSig * 0.002 - 30;
                             }
@@ -572,7 +575,7 @@ class PonZte {
                                 $naturalSig = ($naturalSig - 65535) * 0.002 - 30;
                             }
                         }
-                        $sigIndexTmp[$naturalIndex] = $naturalSig;
+                        $sigIndexTmp[$trueIndex] = $naturalSig;
                     }
                 }
             }
@@ -586,7 +589,10 @@ class PonZte {
                     $naturalIndex = trim($explodeSig[0]);
                     if (isset($explodeSig[1])) {
                         $naturalSig = trim($explodeSig[1]);
+                        $trueIndex = $naturalIndex;
                         if ($this->currentSnmpTemplate['signal']['SIGNALTYPE'] == 'ONURX') {
+                            $splitIndex = explode(".", $naturalIndex);
+                            $trueIndex = $splitIndex[0] . "." . $splitIndex[1];
                             if ($naturalSig <= 30000) {
                                 $naturalSig = $naturalSig * 0.002 - 30;
                             }
@@ -594,7 +600,7 @@ class PonZte {
                                 $naturalSig = ($naturalSig - 65535) * 0.002 - 30;
                             }
                         }
-                        $sigIndexTmp[$naturalIndex] = $naturalSig;
+                        $sigIndexTmp[$trueIndex] = $naturalSig;
                     }
                 }
             }
