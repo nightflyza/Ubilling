@@ -5,17 +5,27 @@ if (cfr('EMPLOYEE')) {
         $username = ubRouting::get('username');
 
         if (ubRouting::checkPost('addjob')) {
-            $date = ubRouting::post('jobdate');
-            $worker_id = ubRouting::post('worker');
-            $jobtype_id = ubRouting::post('jobtype');
-            $job_notes = ubRouting::post('notes');
-            stg_add_new_job($username, $date, $worker_id, $jobtype_id, $job_notes);
-            ubRouting::nav("?module=jobs&username=" . $username);
+            if (cfr('JOBSMGMT')) {
+                $date = ubRouting::post('jobdate');
+                $worker_id = ubRouting::post('worker');
+                $jobtype_id = ubRouting::post('jobtype');
+                $job_notes = ubRouting::post('notes');
+                stg_add_new_job($username, $date, $worker_id, $jobtype_id, $job_notes);
+                ubRouting::nav("?module=jobs&username=" . $username);
+            } else {
+                show_error(__('Access denied'));
+                log_register('JOB ADD FAIL ACCESS VIOLATION');
+            }
         }
 
         if (ubRouting::checkGet('deletejob')) {
-            stg_delete_job(ubRouting::get('deletejob'));
-            ubRouting::nav("?module=jobs&username=" . $username);
+            if (cfr('JOBSMGMT')) {
+                stg_delete_job(ubRouting::get('deletejob'));
+                ubRouting::nav("?module=jobs&username=" . $username);
+            } else {
+                show_error(__('Access denied'));
+                log_register('JOB DELETE FAIL ACCESS VIOLATION');
+            }
         }
         //just render jobs list
         web_showPreviousJobs($username);

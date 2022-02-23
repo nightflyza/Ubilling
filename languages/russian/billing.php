@@ -3360,3 +3360,4 @@ $lang['def']['again'] = 'снова';
 $lang['def']['Retake photo'] = 'Перефотать';
 $lang['def']['Using at another address'] = 'Используют по другому адресу';
 $lang['def']['Calls during non-business hours'] = 'Звонки в нерабочее время';
+$lang['def']['right to view employees jobs'] = 'Право просматривать работы работников';

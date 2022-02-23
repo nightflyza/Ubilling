@@ -273,7 +273,9 @@ function web_showPreviousJobs($username) {
     $cells .= wf_TableCell(__('Worker'));
     $cells .= wf_TableCell(__('Job type'));
     $cells .= wf_TableCell(__('Notes'));
-    $cells .= wf_TableCell('');
+    if (cfr('JOBSMGMT')) {
+        $cells .= wf_TableCell(__('Actions'));
+    }
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alljobs)) {
@@ -291,29 +293,33 @@ function web_showPreviousJobs($username) {
             $cells .= wf_TableCell(@$allemployee[$eachjob['workerid']]);
             $cells .= wf_TableCell(@$alljobtypes[$eachjob['jobid']]);
             $cells .= wf_TableCell($jobnote);
-            $cells .= wf_TableCell(wf_JSAlert('?module=jobs&username=' . $username . '&deletejob=' . $eachjob['id'] . '', web_delete_icon(), 'Are you serious'));
+            if (cfr('JOBSMGMT')) {
+                $cells .= wf_TableCell(wf_JSAlert('?module=jobs&username=' . $username . '&deletejob=' . $eachjob['id'] . '', web_delete_icon(), 'Are you serious'));
+            }
             $rows .= wf_TableRow($cells, 'row3');
         }
     }
 
-    //onstruct job create form
-    $curdatetime = curdatetime();
-    $inputs = wf_HiddenInput('addjob', 'true');
-    $inputs .= wf_HiddenInput('jobdate', $curdatetime);
-    $inputs .= wf_TableCell('');
-    $inputs .= wf_tableCell($curdatetime);
-    $inputs .= wf_TableCell(wf_Selector('worker', $activeemployee, '', '', false));
-    $inputs .= wf_TableCell(wf_Selector('jobtype', $alljobtypes, '', '', false));
-    $inputs .= wf_TableCell(wf_TextInput('notes', '', '', false, '20'));
-    $inputs .= wf_TableCell(wf_Submit('Create'));
-    $inputs = wf_TableRow($inputs, 'row2');
+    if (cfr('JOBSMGMT')) {
+        //onstruct job create form
+        $curdatetime = curdatetime();
+        $inputs = wf_HiddenInput('addjob', 'true');
+        $inputs .= wf_HiddenInput('jobdate', $curdatetime);
+        $inputs .= wf_TableCell('');
+        $inputs .= wf_tableCell($curdatetime);
+        $inputs .= wf_TableCell(wf_Selector('worker', $activeemployee, '', '', false));
+        $inputs .= wf_TableCell(wf_Selector('jobtype', $alljobtypes, '', '', false));
+        $inputs .= wf_TableCell(wf_TextInput('notes', '', '', false, '20'));
+        $inputs .= wf_TableCell(wf_Submit('Create'));
+        $inputs = wf_TableRow($inputs, 'row2');
 
-    $addform = wf_Form("", 'POST', $inputs, '');
+        $addform = wf_Form("", 'POST', $inputs, '');
 
-    if ((!empty($activeemployee)) AND ( !empty($alljobtypes))) {
-        $rows .= $addform;
-    } else {
-        show_error(__('No job types and employee available'));
+        if ((!empty($activeemployee)) AND ( !empty($alljobtypes))) {
+            $rows .= $addform;
+        } else {
+            show_error(__('No job types and employee available'));
+        }
     }
 
     $result = wf_TableBody($rows, '100%', '0', '');
