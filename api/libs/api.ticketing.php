@@ -216,7 +216,7 @@ function web_TicketsShow() {
     }
 
     if ($totalcount > $perpage) {
-        $paginator = wf_pagination($totalcount, $perpage, $current_page, "?module=ticketing", 'ubButton');
+        $paginator = wf_pagination($totalcount, $perpage, $current_page, "?module=ticketing", 'ubButton', 16);
         $alltickets = zb_TicketsGetLimited($perpage * ($current_page - 1), $perpage);
     } else {
         $paginator = '';
