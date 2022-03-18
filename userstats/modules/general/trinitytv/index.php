@@ -82,8 +82,14 @@ if (@$us_config['TRINITYTV_ENABLED']) {
             show_window('', la_tag('br'));
         }
 
-        //default sub/unsub form
-        show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
+        if (@!$us_config['TRINITYTV_NOUSERSUB']) {
+            //default sub/unsub form
+            show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
+        } else {
+            if (!$trinitytvFront->haveSubscribtions()) {
+                show_window(__('Sorry'), __('Unavailable'));
+            }
+        }
 
         //display some guide links if required
         if (@$us_config['TRINITYTV_GUIDE_URL']) {

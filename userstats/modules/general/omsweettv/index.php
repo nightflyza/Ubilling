@@ -90,12 +90,17 @@ if (@$us_config['SWEETTV_ENABLED']) {
 
 
 
-        //default sub/unsub form
-        show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
+        if (@!$us_config['TRINITYTV_NOUSERSUB']) {
+            //default sub/unsub form
+            show_window(__('Available subscribtions'), $trinitytvFront->renderSubscribeForm());
+        } else {
+            if (!$trinitytvFront->haveSubscribtions()) {
+                show_window(__('Sorry'), __('Unavailable'));
+            }
+        }
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }
-?>
