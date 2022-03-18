@@ -805,6 +805,12 @@ class FundsFlow {
             $userBalanceRaw = $userData['Cash'];
             $userBalance = $userData['Cash'];
             $tariffData = zb_TariffGetData($userTariff);
+            if (empty($tariffData)) {
+                //user have no tariff
+                $tariffData['name'] = '*_NO_TARIFF_*';
+                $tariffData['Fee'] = 0;
+                $tariffData['period'] = 'month';
+            }
             $tariffFee = $tariffData['Fee'];
             $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
 

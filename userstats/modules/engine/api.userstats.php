@@ -179,6 +179,12 @@ function zbs_GetOnlineLeftCount($login, $userBalance, $userTariff, $rawDays = fa
     // DEFINE VARS:
     $us_config = zbs_LoadConfig();
     $tariffData = zbs_UserGetTariffData($userTariff);
+    if (empty($tariffData)) {
+        //user have no tariff
+        $tariffData['name'] = '*_NO_TARIFF_*';
+        $tariffData['Fee'] = 0;
+        $tariffData['period'] = 'month';
+    }
     $tariffFee = $tariffData['Fee'];
     $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
     $includeVServices = (!empty($us_config['ONLINELEFT_CONSIDER_VSERVICES']));
