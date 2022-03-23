@@ -41,6 +41,7 @@ function zbs_UserDetectIp($debug = false) {
         if (!empty($ip)) {
             return($ip);
         } else {
+            http_response_code(401);
             die('ERROR_WRONG_UBERAUTH');
         }
     }
