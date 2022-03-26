@@ -41,6 +41,7 @@ function zbs_UserDetectIp($debug = false) {
         if (!empty($ip)) {
             return($ip);
         } else {
+            header('HTTP/1.1 401 Unauthorized', true, 401);
             die('ERROR_WRONG_UBERAUTH');
         }
     }
