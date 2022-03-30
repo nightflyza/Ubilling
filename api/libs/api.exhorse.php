@@ -1199,7 +1199,7 @@ class ExistentialHorse {
                                 $cityCells .= wf_TableCell($cityCount);
                                 $cityRows .= wf_TableRow($cityCells, 'row3');
                             }
-                            $citySigs .= wf_TableBody($cityRows, '100%', 0, '');
+                            $citySigs .= wf_TableBody($cityRows, '100%', 0, 'sortable');
                         }
                         $signupData .= wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
                     } else {
