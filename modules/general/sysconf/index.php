@@ -140,9 +140,6 @@ if (cfr('SYSCONF')) {
         $billingconf = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
         $billopts = rcms_parse_ini_file(CONFIG_PATH . 'optsbillcfg');
 
-        $catvconf = rcms_parse_ini_file(CONFIG_PATH . 'catv.ini');
-        $catvopts = rcms_parse_ini_file(CONFIG_PATH . 'optscatvcfg');
-
         $ymconf = rcms_parse_ini_file(CONFIG_PATH . 'ymaps.ini');
         $ymopts = rcms_parse_ini_file(CONFIG_PATH . 'optsymcfg');
 
@@ -160,7 +157,6 @@ if (cfr('SYSCONF')) {
         $dbcell = web_ConfigEditorShow('mysqlini', $dbconf, $dbopts);
         $billcell = web_ConfigEditorShow('billingini', $billingconf, $billopts);
         $altercell = web_ConfigEditorShow('alterini', $alterconf, $alteropts);
-        $catvcell = web_ConfigEditorShow('catvini', $catvconf, $catvopts);
         $ymcells = web_ConfigEditorShow('ymaps', $ymconf, $ymopts);
         $photocells = web_ConfigEditorShow('photostorage', $photoconf, $photoopts);
 
@@ -176,9 +172,9 @@ if (cfr('SYSCONF')) {
         $grid .= wf_tag('div', false, '', 'id="tabs"');
         $grid .= wf_tag('ul');
         $grid .= web_ConfigGetTabsControls($dbopts) . web_ConfigGetTabsControls($billopts) . web_ConfigGetTabsControls($alteropts);
-        $grid .= web_ConfigGetTabsControls($catvopts) . web_ConfigGetTabsControls($ymopts) . web_ConfigGetTabsControls($photoopts);
+        $grid .= web_ConfigGetTabsControls($ymopts) . web_ConfigGetTabsControls($photoopts);
         $grid .= wf_tag('ul', true);
-        $grid .= $dbcell . $billcell . $catvcell . $ymcells . $photocells . $altercell;
+        $grid .= $dbcell . $billcell . $ymcells . $photocells . $altercell;
         $grid .= wf_tag('div', true) . wf_CleanDiv();
 
         if (!empty($configOptionsMissed)) {

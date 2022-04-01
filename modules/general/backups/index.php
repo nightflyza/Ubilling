@@ -88,7 +88,6 @@ if (cfr('BACKUP')) {
                 'config/mysql.ini',
                 'config/alter.ini',
                 'config/ymaps.ini',
-                'config/catv.ini',
                 'config/photostorage.ini',
                 'config/config.ini',
                 'config/dhcp/global.template',
