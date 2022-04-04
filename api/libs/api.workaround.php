@@ -3119,7 +3119,8 @@ function zb_NumUnEncode($data) {
  * Returns user array in table view
  * 
  * @global object $ubillingConfig
- * @param array $usersarr
+ * @param array $usersarr as index=>login or login=>login
+ * 
  * @return string
  */
 function web_UserArrayShower($usersarr) {
@@ -3127,15 +3128,16 @@ function web_UserArrayShower($usersarr) {
     $alterconf = $ubillingConfig->getAlter();
 
     if (!empty($usersarr)) {
-        $alladdress = zb_AddressGetFulladdresslistCached();
-        $allrealnames = zb_UserGetAllRealnames();
-        $alltariffs = zb_TariffsGetAllUsers();
-        $allusercash = zb_CashGetAllUsers();
-        $allusercredits = zb_CreditGetAllUsers();
-        $alluserips = zb_UserGetAllIPs();
+        $totalCount = 0;
+        $activeCount = 0;
+        $deadCount = 0;
+        $frozenCount = 0;
+        $allUserData = zb_UserGetAllDataCache();
 
         if ($alterconf['ONLINE_LAT']) {
-            $alluserlat = zb_LatGetAllUsers();
+            $allUserLat = zb_LatGetAllUsers();
+        } else {
+            $allUserLat = array();
         }
 
 
@@ -3168,8 +3170,10 @@ function web_UserArrayShower($usersarr) {
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         foreach ($usersarr as $eachlogin) {
-            @$usercash = $allusercash[$eachlogin];
-            @$usercredit = $allusercredits[$eachlogin];
+            $thisUserData = @$allUserData[$eachlogin];
+
+            $usercash = @$thisUserData['Cash'];
+            $usercredit = @$thisUserData['Credit'];
 //finance check
             $activity = web_green_led();
             $activity_flag = 1;
@@ -3187,13 +3191,13 @@ function web_UserArrayShower($usersarr) {
 
             $profilelink = $financelink . wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
             $tablecells = wf_TableCell($profilelink);
-            $tablecells .= wf_TableCell(@$alladdress[$eachlogin]);
-            $tablecells .= wf_TableCell(@$allrealnames[$eachlogin]);
-            $tablecells .= wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2int(@$alluserips[$eachlogin]) . '"');
-            $tablecells .= wf_TableCell(@$alltariffs[$eachlogin]);
+            $tablecells .= wf_TableCell(@$thisUserData['fulladress']);
+            $tablecells .= wf_TableCell(@$thisUserData['realname']);
+            $tablecells .= wf_TableCell(@$thisUserData['ip'], '', '', 'sorttable_customkey="' . ip2int(@$thisUserData['ip']) . '"');
+            $tablecells .= wf_TableCell(@@$thisUserData['Tariff']);
             if ($alterconf['ONLINE_LAT']) {
-                if (isset($alluserlat[$eachlogin])) {
-                    $cUserLat = date("Y-m-d H:i:s", $alluserlat[$eachlogin]);
+                if (isset($allUserLat[$eachlogin])) {
+                    $cUserLat = date("Y-m-d H:i:s", $allUserLat[$eachlogin]);
                 } else {
                     $cUserLat = __('No');
                 }
@@ -3213,10 +3217,27 @@ function web_UserArrayShower($usersarr) {
 
 
             $tablerows .= wf_TableRow($tablecells, 'row5');
+            $totalCount++;
+            $userState = zb_UserIsAlive($thisUserData);
+            switch ($userState) {
+                case 1:
+                    $activeCount++;
+                    break;
+                case 0:
+                    $deadCount++;
+                    break;
+                case -1:
+                    $frozenCount++;
+                    break;
+            }
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result .= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . sizeof($usersarr);
+
+        $result .= wf_img_sized('skins/icon_stats_16.gif', '', '12') . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');
+        $result .= wf_img_sized('skins/icon_ok.gif', '', '12') . ' ' . __('Alive') . ': ' . $activeCount . wf_tag('br');
+        $result .= wf_img_sized('skins/icon_passive.gif', '', '12') . ' ' . __('Frozen') . ': ' . $frozenCount . wf_tag('br');
+        $result .= wf_tag('br');
     } else {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('Any users found'), 'info');

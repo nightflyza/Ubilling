@@ -1351,6 +1351,27 @@ function zb_UserIsActive($userData) {
 }
 
 /**
+ * Check is user active/dead or frozen depends on his Stargazer data array. 
+ * 
+ * @param array $userData
+ * 
+ * @return int 1 - active, 0 - dead, -1 - frozen
+ */
+function zb_UserIsAlive($userData) {
+    $result = 0;
+    if (!empty($userData)) {
+        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+            $result = 1;
+        }
+        //just frozen
+        if ($userData['Passive']) {
+            $result = -1;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Creates contract date with some contract 
  *  
  *  @param $contract - existing contract 
