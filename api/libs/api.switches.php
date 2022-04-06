@@ -74,10 +74,10 @@ function zb_SwitchModelsSnmpTemplatesGetAll() {
                 if (isset($each['define']['DEVICE'])) {
                     $allSnmpTemplates[$io] = $each['define']['DEVICE'];
                 } else {
-                    $allSnmpTemplates[$io] = __('Template') . ' ' . $io . ' - ' . __('is corrupted');
+                    $allSnmpTemplates[$io] = '⚠️ ' . __('Template') . ' ' . $io . ' - ' . __('is corrupted');
                 }
             } else {
-                $allSnmpTemplates[$io] = __('Template') . ' ' . $io . ' - ' . __('is corrupted');
+                $allSnmpTemplates[$io] = '⚠️ ' . __('Template') . ' ' . $io . ' - ' . __('is corrupted');
             }
         }
     }

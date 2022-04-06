@@ -762,7 +762,15 @@ function sp_SnmpGetAllModelTemplates() {
     $myTemplates = rcms_scandir($privatePath);
     if (!empty($myTemplates)) {
         foreach ($myTemplates as $each) {
-            $result[$each] = rcms_parse_ini_file($privatePath . $each, true);
+            $privateTemplateBody = rcms_parse_ini_file($privatePath . $each, true);
+            //checking custom template integrity and marking it as custom
+            if (isset($privateTemplateBody['define'])) {
+                if (isset($privateTemplateBody['define']['DEVICE'])) {
+                    $originaDeviceModel = $privateTemplateBody['define']['DEVICE'];
+                    $privateTemplateBody['define']['DEVICE'] = $originaDeviceModel . ' 🚲 ';
+                    $result[$each] = $privateTemplateBody;
+                }
+            }
         }
     }
     return ($result);
