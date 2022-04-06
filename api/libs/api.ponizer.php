@@ -349,6 +349,8 @@ class PONizer {
     const KEY_ALLONU = 'ALLONU';
     const KEY_ONUOLT = 'ONUOLTID_';
     const KEY_ONULISTAJ = 'ONULISTAJ_';
+    const SNMP_TEMPLATES_PATH = 'config/snmptemplates/';
+    const SNMP_PRIVATE_TEMPLATES_PATH = 'documents/mysnmptemplates/';
 
     /**
      * Some routes here
@@ -480,7 +482,7 @@ class PONizer {
     }
 
     /**
-     * Performs snmp templates preprocessing for OLT devices
+     * Performs SNMP templates preprocessing for OLT devices
      *
      * @return void
      */
@@ -491,10 +493,15 @@ class PONizer {
                     $oltModelid = $this->allOltSnmp[$oltId]['modelid'];
                     if ($oltModelid) {
                         if (isset($this->allOltModels[$oltModelid])) {
-                            $templateFile = 'config/snmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
-                            $privateTemplateFile = DATA_PATH . 'documents/mysnmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
-                            if (file_exists($templateFile)) {
-                                $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($templateFile, true);
+                            $templateFileName = $this->allOltModels[$oltModelid]['snmptemplate'];
+                            if (!empty($templateFileName)) {
+                                $basicTemplateFile = self::SNMP_TEMPLATES_PATH . $templateFileName;
+                                $privateTemplateFile = DATA_PATH . self::SNMP_PRIVATE_TEMPLATES_PATH . $templateFileName;
+                                //loading basic SNMP template
+                                if (file_exists($basicTemplateFile)) {
+                                    $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($basicTemplateFile, true);
+                                }
+                                //custom SNMP templates is separated and overrides original templates
                                 if (file_exists($privateTemplateFile)) {
                                     $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($privateTemplateFile, true);
                                 }
@@ -2500,6 +2507,8 @@ class PONizer {
                         $cachedStats = serialize($cachedStats);
                         file_put_contents($statsPath, $cachedStats);
                     }
+                } else {
+                    print('SKIPPING_MODELID:' . $oltModelId . ' NO_SNMP_TEMPLATE_BODY' . PHP_EOL);
                 }
             }
         }
@@ -2516,7 +2525,7 @@ class PONizer {
         if (!empty($this->allOltDevices)) {
             foreach ($this->allOltDevices as $oltid => $each) {
                 if (!$quiet) {
-                    print('POLLING:' . $oltid . ' ' . $each . "\n");
+                    print('POLLING:' . $oltid . ' ' . $each . PHP_EOL);
                 }
 
                 if (@!$this->altCfg['HERD_OF_PONIES']) {

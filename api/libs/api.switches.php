@@ -67,11 +67,15 @@ function zb_SwitchDeathTimeResurrection($ip) {
  */
 function zb_SwitchModelsSnmpTemplatesGetAll() {
     $allSnmpTemplatesRaw = sp_SnmpGetAllModelTemplates();
-    $allSnmpTemplates = array('' => __('No'));
+    $allSnmpTemplates = array('' => __('None'));
     if (!empty($allSnmpTemplatesRaw)) {
         foreach ($allSnmpTemplatesRaw as $io => $each) {
             if (isset($each['define'])) {
-                $allSnmpTemplates[$io] = $each['define']['DEVICE'];
+                if (isset($each['define']['DEVICE'])) {
+                    $allSnmpTemplates[$io] = $each['define']['DEVICE'];
+                } else {
+                    $allSnmpTemplates[$io] = __('Template') . ' ' . $io . ' - ' . __('is corrupted');
+                }
             } else {
                 $allSnmpTemplates[$io] = __('Template') . ' ' . $io . ' - ' . __('is corrupted');
             }
