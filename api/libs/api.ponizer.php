@@ -2135,11 +2135,12 @@ class PONizer {
                                         $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
                                         $intIndex = explodeRows($intIndex);
 
-
-                                        $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
-                                        $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
-                                        $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
-                                        $FDBIndex = explodeRows($FDBIndex);
+                                        if (!$oltNoFDBQ) {
+                                            $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                                            $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
+                                            $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
+                                            $FDBIndex = explodeRows($FDBIndex);
+                                        }
                                     }
                                 }
 
@@ -2184,10 +2185,12 @@ class PONizer {
 //and interface description data
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex, $ifaceCustDescrIndex);
 //processing FDB data
-                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) and $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
-                                            $this->FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId);
-                                        } else {
-                                            $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        if (!$oltNoFDBQ) {
+                                            if (isset($this->snmpTemplates[$oltModelId]['misc']['FDBMODE']) and $this->snmpTemplates[$oltModelId]['misc']['FDBMODE'] == 'FIRMWARE-F') {
+                                                $this->FDBParseBdFirmwareF($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                            } else {
+                                                $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                            }
                                         }
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
 //processing last dereg reason data
@@ -2227,11 +2230,12 @@ class PONizer {
                                         $intIndex = str_replace($intIndexOid . '.', '', $intIndex);
                                         $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
                                         $intIndex = explodeRows($intIndex);
-
-                                        $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
-                                        $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
-                                        $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
-                                        $FDBIndex = explodeRows($FDBIndex);
+                                        if (!$oltNoFDBQ) {
+                                            $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                                            $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
+                                            $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
+                                            $FDBIndex = explodeRows($FDBIndex);
+                                        }
                                     }
                                 }
                             }
@@ -2269,7 +2273,9 @@ class PONizer {
 //processing interfaces data
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex);
 //processing FDB data
-                                        $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        if (!$oltNoFDBQ) {
+                                            $this->FDBParseGPBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        }
 
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
 //processing last dereg reason data
@@ -2387,15 +2393,7 @@ class PONizer {
                                             $lastDeregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $lastDeregIndex);
                                             $lastDeregIndex = explodeRows($lastDeregIndex);
 
-                                            /*                                            $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
-                                              $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
-                                              $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
-                                              $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
-                                              $onuIndex = explodeRows($onuIndex);
-                                             */
-
                                             $this->distanceParseStels($oltid, $distIndex, $macIndex);
-//                                            $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
                                             $this->lastDeregParseStels($oltid, $lastDeregIndex, $macIndex);
 
                                             if (!$oltNoFDBQ) {
