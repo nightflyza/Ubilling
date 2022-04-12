@@ -207,6 +207,12 @@ if ($us_config['SC_ENABLED']) {
 
     //getting some tariff data
     $tariffData = zbs_UserGetTariffData($tariff);
+    if (empty($tariffData)) {
+        //user have no tariff
+        $tariffData['name'] = '*_NO_TARIFF_*';
+        $tariffData['Fee'] = 0;
+        $tariffData['period'] = 'month';
+    }
 
     $vs_price = zbs_VServicesGetPrice($user_login, $tariffData);
 
@@ -219,6 +225,7 @@ if ($us_config['SC_ENABLED']) {
     }
 
     $tariffFee = $tariffData['Fee'];
+
     if (isset($tariffData['period'])) {
         $tariffPeriod = $tariffData['period'];
     } else {
@@ -310,7 +317,7 @@ if ($us_config['SC_ENABLED']) {
                                                 $scAgentResult = array();
                                                 $scAgentResult[] = array('status' => 0);
                                                 $scAgentResult[] = array('message' => 'success');
-                                                
+
                                                 $scAgentResult[] = array('fullmessage' => $creditResultLabel);
                                                 $scAgentResult[] = array('minday' => $sc_minday);
                                                 $scAgentResult[] = array('maxday' => $sc_maxday);
