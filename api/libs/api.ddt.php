@@ -220,22 +220,22 @@ class DoomsDayTariffs {
 
             if (!empty($tariffsNewAvail)) {
                 $inputs = wf_HiddenInput('createnewddtsignal', 'true');
-                $inputs.= wf_Selector('createnewddttariff', $tariffsNewAvail, __('Tariff'), '', true);
-                $inputs.= wf_Selector('createnewddtperiod', $this->periods, __('Period'), '', true);
-                $inputs.= wf_TextInput('createnewddtduration', __('Duration'), '1', true, 4, 'digits');
-                $inputs.= wf_CheckInput('createnewddtstartnow', __('Take into account the current period'), true, false);
-                $inputs.= wf_CheckInput('createnewddtchargefee', __('Charge current tariff fee'), true, false);
-                $inputs.= wf_TextInput('createnewddtchargeuntilday', __('Charge current tariff fee if day less then'), '1', true, 2, 'digits');
-                $inputs.= wf_CheckInput('createnewddtsetcredit', __('Set a user credit if the money is not enough to use the service now'), true, false);
-                $inputs.= wf_Selector('createnewddttariffmove', $this->allTariffNames, __('Move to tariff after ending of periods'), '', true);
-                $inputs.=wf_delimiter(0);
-                $inputs.= wf_Submit(__('Create'));
-                $result.=wf_Form('', 'POST', $inputs, 'glamour');
+                $inputs .= wf_Selector('createnewddttariff', $tariffsNewAvail, __('Tariff'), '', true);
+                $inputs .= wf_Selector('createnewddtperiod', $this->periods, __('Period'), '', true);
+                $inputs .= wf_TextInput('createnewddtduration', __('Duration'), '1', true, 4, 'digits');
+                $inputs .= wf_CheckInput('createnewddtstartnow', __('Take into account the current period'), true, false);
+                $inputs .= wf_CheckInput('createnewddtchargefee', __('Charge current tariff fee'), true, false);
+                $inputs .= wf_TextInput('createnewddtchargeuntilday', __('Charge current tariff fee if day less then'), '1', true, 2, 'digits');
+                $inputs .= wf_CheckInput('createnewddtsetcredit', __('Set a user credit if the money is not enough to use the service now'), true, false);
+                $inputs .= wf_Selector('createnewddttariffmove', $this->allTariffNames, __('Move to tariff after ending of periods'), '', true);
+                $inputs .= wf_delimiter(0);
+                $inputs .= wf_Submit(__('Create'));
+                $result .= wf_Form('', 'POST', $inputs, 'glamour');
             } else {
-                $result.=$this->messages->getStyledMessage(__('You already planned doomsday for all of available tariffs'), 'success');
+                $result .= $this->messages->getStyledMessage(__('You already planned doomsday for all of available tariffs'), 'success');
             }
         } else {
-            $result.=$this->messages->getStyledMessage(__('No existing tariffs available at all'), 'error');
+            $result .= $this->messages->getStyledMessage(__('No existing tariffs available at all'), 'error');
         }
 
 
@@ -301,7 +301,7 @@ class DoomsDayTariffs {
             nr_query($query);
             log_register('DDT DELETE [' . $tariffId . '] TARIFF `' . $tariffData['tariffname'] . '`');
         } else {
-            $result.=__('Tariff') . ' ' . $tariffId . ' ' . __('Not exists');
+            $result .= __('Tariff') . ' ' . $tariffId . ' ' . __('Not exists');
             log_register('DDT DELETE FAIL [' . $tariffId . '] NOT_EXISTS');
         }
         return ($result);
@@ -323,6 +323,21 @@ class DoomsDayTariffs {
     }
 
     /**
+     * Returns some tariff price
+     * 
+     * @param string $tariffName
+     * 
+     * @return float
+     */
+    protected function getTariffFee($tariffName) {
+        $result = 0;
+        if (isset($this->allTariffs[$tariffName])) {
+            $result = $this->allTariffs[$tariffName]['Fee'];
+        }
+        return($result);
+    }
+
+    /**
      * Renders available DDT tariffs list with some controls
      * 
      * @return string
@@ -331,36 +346,43 @@ class DoomsDayTariffs {
         $result = '';
         if (!empty($this->allOptions)) {
             $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Tariff'));
-            $cells.= wf_TableCell(__('Period'));
-            $cells.= wf_TableCell(__('Start at this period'));
-            $cells.= wf_TableCell(__('Duration'));
-            $cells.= wf_TableCell(__('Charge fee'));
-            $cells.= wf_TableCell(__('Charge until day'));
-            $cells.= wf_TableCell(__('Set credit'));
-            $cells.= wf_TableCell(__('New tariff'));
-            $cells.= wf_TableCell(__('Actions'));
+            $cells .= wf_TableCell(__('Tariff'));
+            $cells .= wf_TableCell(__('Fee'));
+            $cells .= wf_TableCell(__('Period'));
+            $cells .= wf_TableCell(__('Start at this period'));
+            $cells .= wf_TableCell(__('Duration'));
+            $cells .= wf_TableCell(__('Charge fee'));
+            $cells .= wf_TableCell(__('Charge until day'));
+            $cells .= wf_TableCell(__('Set credit'));
+            $cells .= wf_TableCell(__('New tariff'));
+            $cells .= wf_TableCell(__('Fee'));
+            $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allOptions as $io => $each) {
                 $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['tariffname']);
-                $cells.= wf_TableCell($this->periods[$each['period']]);
-                $cells.= wf_TableCell(web_bool_led($each['startnow']));
-                $cells.= wf_TableCell($each['duration']);
-                $cells.= wf_TableCell(web_bool_led($each['chargefee']));
-                $cells.= wf_TableCell($each['chargeuntilday']);
-                $cells.= wf_TableCell(web_bool_led($each['setcredit']));
-                $cells.= wf_TableCell($each['tariffmove']);
+                $cells .= wf_TableCell($each['tariffname']);
+                $cells .= wf_TableCell($this->getTariffFee($each['tariffname']));
+                $cells .= wf_TableCell($this->periods[$each['period']]);
+                $cells .= wf_TableCell(web_bool_led($each['startnow']));
+                $cells .= wf_TableCell($each['duration']);
+                $cells .= wf_TableCell(web_bool_led($each['chargefee']));
+                $cells .= wf_TableCell($each['chargeuntilday']);
+                $cells .= wf_TableCell(web_bool_led($each['setcredit']));
+                $cells .= wf_TableCell($each['tariffmove']);
+                $cells .= wf_TableCell($this->getTariffFee($each['tariffmove']));
 
-                $actLinks = wf_JSAlert(self::URL_ME . '&deleteddtariff=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
+                $deleteUrl = self::URL_ME . '&deleteddtariff=' . $each['id'];
+                $cancelUrl = self::URL_ME;
+                $alertLabel = __('Delete') . ' ' . __('Doomsday tariff') . ' ' . $each['tariffname'] . '? ' . $this->messages->getDeleteAlert();
+                $actLinks = wf_ConfirmDialog($deleteUrl, web_delete_icon(), $alertLabel, '', $cancelUrl, __('Delete'));
+                $cells .= wf_TableCell($actLinks);
+                $rows .= wf_TableRow($cells, 'row5');
             }
 
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result .= wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result.=$this->messages->getStyledMessage(__('There is nothing to watch') . '.', 'info');
+            $result .= $this->messages->getStyledMessage(__('There is nothing to watch') . '.', 'info');
         }
         return ($result);
     }
@@ -524,9 +546,9 @@ class DoomsDayTariffs {
     public function renderControls() {
         $result = '';
         if (cfr('DDTCONF')) {
-            $result.=wf_Link(self::URL_ME, web_icon_extended() . ' ' . __('Configuration'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME, web_icon_extended() . ' ' . __('Configuration'), false, 'ubButton');
         }
-        $result.=wf_Link(self::URL_HIST, wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
+        $result .= wf_Link(self::URL_HIST, wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
         return ($result);
     }
 
@@ -544,14 +566,14 @@ class DoomsDayTariffs {
             $ajaxUrl = self::URL_HIST . '&ajax=true';
             $userControls = '';
             if ($userLogin) {
-                $ajaxUrl.='&username=' . $userLogin;
+                $ajaxUrl .= '&username=' . $userLogin;
                 $userControls = wf_delimiter(0) . web_UserControls($userLogin);
             }
             $columns = array('User', 'Date', 'Tariff', 'End date', 'New tariff', 'Deal with it');
-            $result.=wf_JqDtLoader($columns, $ajaxUrl, false, __('Users'), 100, $opts);
-            $result.=$userControls;
+            $result .= wf_JqDtLoader($columns, $ajaxUrl, false, __('Users'), 100, $opts);
+            $result .= $userControls;
         } else {
-            $result.=$this->messages->getStyledMessage(__('There is nothing to watch'), 'warning');
+            $result .= $this->messages->getStyledMessage(__('There is nothing to watch'), 'warning');
         }
         return ($result);
     }
