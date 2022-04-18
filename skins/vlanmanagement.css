@@ -55,19 +55,36 @@
     background-color: #8bdac0;    
 }
 
-.occupied_olt {
+.occupied_zte_olt {
     border-color: #1240AB;       
     background-color: #b1b1e7;    
 }
 
-.occupied_olt:hover {
+.occupied_zte_olt:hover {
     background-color: #8b8bda;    
 }
 
-.occupied_olt_with_customer {
+.occupied_zte_olt_with_customer {
     border-color: #1240AB;       
     background-color: #c5ecdf;    
 }
-.occupied_olt_with_customer:hover {
+.occupied_zte_olt_with_customer:hover {
+    background-color: #77d4b5;    
+}
+
+.occupied_nonzte_olt {
+    border-color: #1240AB;       
+    background-color: #b1b1e7;    
+}
+
+.occupied_nonzte_olt:hover {
+    background-color: #8b8bda;    
+}
+
+.occupied_nonzte_olt_with_customer {
+    border-color: #1240AB;       
+    background-color: #c5ecdf;    
+}
+.occupied_nonzte_olt_with_customer:hover {
     background-color: #77d4b5;    
 }

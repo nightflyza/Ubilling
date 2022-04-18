@@ -3141,3 +3141,16 @@ ALTER TABLE `ot_users` ADD `addtariffid` INT NULL DEFAULT NULL AFTER `tariffid`;
 -- 1.2.5 update
 
 ALTER TABLE `buildpassport` ADD `anthill` TINYINT NULL;
+
+-- 1.2.7 update
+
+CREATE TABLE IF NOT EXISTS `olt_qinq` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `swid` int(11) NOT NULL,
+  `port` int(4) NOT NULL,
+  `svlan_id` int(11) NOT NULL,
+  `cvlan` int(4) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `svlan_id` (`svlan_id`),
+  KEY `cvlan` (`cvlan`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
