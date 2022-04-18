@@ -59,11 +59,15 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
                         die($vlan->ajaxCustomer());
                     case 'ajaxswitch':
                         die($vlan->ajaxSwitch());
-                    case 'ajaxolt':
-                        die($vlan->ajaxOlt());
-                    case 'chooseoltcard':
+                    case 'ajaxoltzte':
+                        die($vlan->ajaxOltZte());
+                    case 'ajaxoltnonzte':
+                        die($vlan->ajaxOltNonZte());
+                    case 'chooseoltnonzteport':
+                        die($vlan->portSelector());
+                    case 'chooseoltztecard':
                         die($vlan->cardSelector());
-                    case 'choosecardport':
+                    case 'chooseoltztecardport':
                         die($vlan->portCardSelector());
                     case 'choosetype':
                         die($vlan->types());
@@ -73,12 +77,15 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
                     case 'deleteswitchbinding':
                         $vlan->deleteSwitchBinding();
                         break;
-                    case 'deleteoltbinding':
-                        $vlan->deleteOltBinding();
+                    case 'deleteoltztebinding':
+                        $vlan->deleteOltZteBinding();
+                        break;
+                    case 'deleteoltnonztebinding':
+                        $vlan->deleteOltNonZteBinding();
                         break;
                 }
             } else {
-                if (!$vlan->routing->get('realm_id', 'int') and ! $vlan->routing->get('svlan_id')) {
+                if (!$vlan->routing->get('realm_id', 'int') and!$vlan->routing->get('svlan_id')) {
                     rcms_redirect($vlan::MODULE . '&realm_id=' . $vlan->defaultRealm . '&svlan_id=' . $vlan->defaultSvlan);
                 }
             }

@@ -66,7 +66,7 @@ function occupiedByCustomer(element) {
     };
 }
 
-function occupiedByOlt(element) {
+function occupiedByOltZte(element) {
     id = element.id;
     let modalContent = document.getElementById("content-cvmodal");
 
@@ -77,7 +77,31 @@ function occupiedByOlt(element) {
     let cvlan = data[2];
     let switchid = data[3];
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", "?module=vlanmanagement&action=ajaxolt&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan + "&switchid=" + switchid, true);
+    xhr.open("GET", "?module=vlanmanagement&action=ajaxoltzte&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan + "&switchid=" + switchid, true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.send();
+
+    xhr.onload = function () {
+        let response = xhr.response;
+        modalContent.innerHTML = response;
+        modalOpen();
+    };
+}
+
+function occupiedByOltNonZte(element) {
+    id = element.id;
+    let modalContent = document.getElementById("content-cvmodal");
+
+    let splited = id.split("_");
+    let data = splited[1].split("/");
+    let realm = data[0];
+    let svlan = data[1];
+    let cvlan = data[2];
+    let switchid = data[3];
+    console.log(switchid);
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", "?module=vlanmanagement&action=ajaxoltnonzte&realm_id=" + realm + "&svlan_id=" + svlan + "&cvlan_num=" + cvlan + "&switchid=" + switchid, true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
     xhr.send();
