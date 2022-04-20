@@ -48,7 +48,7 @@
                     ?>
                 </div>
 
-                <div class="btn_view_help"><?= web_HelpIconShow(); ?>  <? if (XHPROF) { print($xhprof_link); } ?> <?= zb_IdleAutologoutRun(); ?></div>
+                <div class="btn_view_help"><?= web_HelpIconShow(); ?> <?= web_SqlDebugIconShow(); ?> <? if (XHPROF) { print($xhprof_link); } ?> <?= zb_IdleAutologoutRun(); ?></div>
             </hgroup>
         </header> <!-- end of header bar -->
         <? if (LOGGED_IN) {  ?> 

@@ -3362,3 +3362,5 @@ $lang['def']['Using at another address'] = 'Используют по друго
 $lang['def']['Calls during non-business hours'] = 'Звонки в нерабочее время';
 $lang['def']['right to view employees jobs'] = 'Право просматривать работы работников';
 $lang['def']['None'] = 'Никакой';
+$lang['def']['SQL queries debug'] = 'Отладка SQL запросов';
+$lang['def']['SQL queries log not exists'] = 'Лог SQL запросов не существует';

@@ -3383,5 +3383,7 @@ $lang['def']['Retake photo'] = 'Перефоткати';
 $lang['def']['Calls during non-business hours'] = 'Дзвінки в неробочий час';
 $lang['def']['right to view employees jobs'] = 'Право переглядати роботи працівників';
 $lang['def']['None'] = 'Жоден';
+$lang['def']['SQL queries debug'] = 'Відладка SQL запитів';
+$lang['def']['SQL queries log not exists'] = 'Журнал SQL запитів не існує';
 $lang['def'][''] = '';
 

@@ -13,18 +13,19 @@
  * Debug mode on/off here
  */
 $mysqlDatabaseConfig = @parse_ini_file('config/mysql.ini');
+define('SQL_DEBUG_LOG', 'exports/sqldebug.log');
 
 if (@$mysqlDatabaseConfig['debug']) {
     switch ($mysqlDatabaseConfig['debug']) {
         case 1:
-            define('DEBUG', 1);
+            define('SQL_DEBUG', 1);
             break;
         case 2:
-            define('DEBUG', 2);
+            define('SQL_DEBUG', 2);
             break;
     }
 } else {
-    define('DEBUG', 0);
+    define('SQL_DEBUG', 0);
 }
 
 $query_counter = 0;
@@ -93,7 +94,7 @@ if (!extension_loaded('mysql')) {
      */
     function simple_queryall($query) {
         global $loginDB, $query_counter;
-        if (DEBUG) {
+        if (SQL_DEBUG) {
             zb_SqlDebugOutput($query);
         }
         $result = array();
@@ -114,7 +115,7 @@ if (!extension_loaded('mysql')) {
      */
     function simple_query($query) {
         global $loginDB, $query_counter;
-        if (DEBUG) {
+        if (SQL_DEBUG) {
             zb_SqlDebugOutput($query);
         }
         $queried = $loginDB->query($query) or die('wrong data input: ' . $query);
@@ -172,7 +173,7 @@ if (!extension_loaded('mysql')) {
      */
     function nr_query($query) {
         global $loginDB, $query_counter;
-        if (DEBUG) {
+        if (SQL_DEBUG) {
             zb_SqlDebugOutput($query);
         }
         $queried = $loginDB->query($query) or die('wrong data input: ' . $query);
@@ -314,7 +315,7 @@ if (!extension_loaded('mysql')) {
         public function db_error($show = 0, $query = '') {
             global $system;
             if (!in_array(mysql_errno(), array(1062, 1065, 1191))) { // Errcodes in array are handled at another way :)
-                if (DEBUG == 1 || $show == 1) {
+                if (SQL_DEBUG == 1 || $show == 1) {
                     $warning = '<br><b>' . ('MySQL Error') . ':</b><br><i>';
                     $warning .= mysql_errno() . ' : ' . mysql_error() . (empty($query) ? '</i>' : '<br>In query: <textarea cols="50" rows="7">' . $query . '</textarea></i>');
                     print($warning) or print($warning);
@@ -362,7 +363,7 @@ if (!extension_loaded('mysql')) {
      */
     function simple_queryall($query) {
         global $query_counter;
-        if (DEBUG) {
+        if (SQL_DEBUG) {
             zb_SqlDebugOutput($query);
         }
         $result = '';
@@ -384,7 +385,7 @@ if (!extension_loaded('mysql')) {
      */
     function simple_query($query) {
         global $query_counter;
-        if (DEBUG) {
+        if (SQL_DEBUG) {
             zb_SqlDebugOutput($query);
         }
         $queried = mysql_query($query) or die('wrong data input: ' . $query);
@@ -442,7 +443,7 @@ if (!extension_loaded('mysql')) {
      */
     function nr_query($query) {
         global $query_counter;
-        if (DEBUG) {
+        if (SQL_DEBUG) {
             zb_SqlDebugOutput($query);
         }
         $queried = mysql_query($query) or die('wrong data input: ' . $query);
@@ -500,8 +501,8 @@ function vf($data, $mode = 0) {
  * @return void
  */
 function zb_SqlDebugOutput($data) {
-    if (DEBUG) {
-        switch (DEBUG) {
+    if (SQL_DEBUG) {
+        switch (SQL_DEBUG) {
             case 1:
                 $logData = curdatetime() . ' ' . trim($data) . PHP_EOL;
                 file_put_contents('exports/sqldebug.log', $logData, FILE_APPEND);
