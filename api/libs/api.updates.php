@@ -159,6 +159,7 @@ class UbillingUpdateManager {
             'billing' => 'config/billing.ini',
             'ymaps' => 'config/ymaps.ini',
             'userstats' => 'userstats/config/userstats.ini',
+            'mysql' => 'config/mysql.ini'
         );
     }
 
@@ -374,7 +375,6 @@ class UbillingUpdateManager {
                     $canUpdate = false;
                     if (!empty($configName)) {
                         if (file_exists($configName)) {
-
                             $currentConfigOptions = rcms_parse_ini_file($configName);
                             $result .= $this->messages->getStyledMessage(__('Existing config file') . ': ' . $configName, 'success');
                             //some logging

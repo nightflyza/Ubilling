@@ -4,14 +4,14 @@ if (cfr('ROOT')) {
     set_time_limit(0);
     $messages = new UbillingMessageHelper();
 
-    if (wf_CheckGet(array('checkupdates'))) {
+    if (ubRouting::checkGet('checkupdates')) {
         $latestRelease = zb_BillingCheckUpdates(true);
         die($messages->getStyledMessage($latestRelease, 'success'));
     }
 
     $updateManager = new UbillingUpdateManager();
 
-    if ((!wf_CheckGet(array('applysql'))) AND ( !wf_CheckGet(array('showconfigs')))) {
+    if (!ubRouting::checkGet('applysql') AND ! ubRouting::checkGet('showconfigs')) {
         //updates check
         show_window('', $updateManager->renderVersionInfo());
 
@@ -20,19 +20,17 @@ if (cfr('ROOT')) {
         show_window(__('Configuration files updates'), $updateManager->renderConfigsList());
     } else {
         //mysql dumps applying interface
-        if (wf_CheckGet(array('applysql'))) {
-            $releaseNum = $_GET['applysql'];
-            show_window(__('MySQL database schema update'), $updateManager->applyMysqlDump($releaseNum));
+        if (ubRouting::checkGet('applysql')) {
+            show_window(__('MySQL database schema update'), $updateManager->applyMysqlDump(ubRouting::get('applysql')));
         }
 
-        if (wf_CheckGet(array('showconfigs'))) {
-            $releaseNum = $_GET['showconfigs'];
-            show_window(__('Configuration files updates'), $updateManager->applyConfigOptions($releaseNum));
+        if (ubRouting::checkGet('showconfigs')) {
+            show_window(__('Configuration files updates'), $updateManager->applyConfigOptions(ubRouting::get('showconfigs')));
         }
     }
 } else {
     show_error(__('Access denied'));
 }
-?>
+
 
 

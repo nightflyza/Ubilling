@@ -10,18 +10,33 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Debug on/off flag
+ * Debug mode on/off here
  */
-define("DEBUG", 0);
+$mysqlDatabaseConfig = @parse_ini_file('config/mysql.ini');
+
+if (@$mysqlDatabaseConfig['debug']) {
+    switch ($mysqlDatabaseConfig['debug']) {
+        case 1:
+            define('DEBUG', 1);
+            break;
+        case 2:
+            define('DEBUG', 2);
+            break;
+    }
+} else {
+    define('DEBUG', 0);
+}
+
 $query_counter = 0;
 $ubillingDatabaseDriver = 'none';
+
 
 if (!extension_loaded('mysql')) {
     $ubillingDatabaseDriver = 'mysqli';
     /**
      * MySQLi database layer
      */
-    if (!($db_config = @parse_ini_file('config/' . 'mysql.ini'))) {
+    if (!($db_config = @parse_ini_file('config/mysql.ini'))) {
         print('Cannot load mysql configuration');
         exit;
     }
@@ -79,7 +94,7 @@ if (!extension_loaded('mysql')) {
     function simple_queryall($query) {
         global $loginDB, $query_counter;
         if (DEBUG) {
-            print ($query . "\n");
+            zb_SqlDebugOutput($query);
         }
         $result = array();
         $queried = $loginDB->query($query) or die('wrong data input: ' . $query);
@@ -100,7 +115,7 @@ if (!extension_loaded('mysql')) {
     function simple_query($query) {
         global $loginDB, $query_counter;
         if (DEBUG) {
-            print ($query . "\n");
+            zb_SqlDebugOutput($query);
         }
         $queried = $loginDB->query($query) or die('wrong data input: ' . $query);
         $result = mysqli_fetch_assoc($queried);
@@ -158,7 +173,7 @@ if (!extension_loaded('mysql')) {
     function nr_query($query) {
         global $loginDB, $query_counter;
         if (DEBUG) {
-            print ($query . "\n");
+            zb_SqlDebugOutput($query);
         }
         $queried = $loginDB->query($query) or die('wrong data input: ' . $query);
         $query_counter++;
@@ -292,7 +307,7 @@ if (!extension_loaded('mysql')) {
         }
 
         /**
-         * Prints MySQL error message; swithing DEBUG, prints MySQL error description or sends it to administrator
+         * Prints MySQL error message; switching DEBUG, prints MySQL error description or sends it to administrator
          *
          * @return void
          */
@@ -348,7 +363,7 @@ if (!extension_loaded('mysql')) {
     function simple_queryall($query) {
         global $query_counter;
         if (DEBUG) {
-            print ($query . "\n");
+            zb_SqlDebugOutput($query);
         }
         $result = '';
         $queried = mysql_query($query) or die('wrong data input: ' . $query);
@@ -370,7 +385,7 @@ if (!extension_loaded('mysql')) {
     function simple_query($query) {
         global $query_counter;
         if (DEBUG) {
-            print ($query . "\n");
+            zb_SqlDebugOutput($query);
         }
         $queried = mysql_query($query) or die('wrong data input: ' . $query);
         $result = mysql_fetch_assoc($queried);
@@ -428,7 +443,7 @@ if (!extension_loaded('mysql')) {
     function nr_query($query) {
         global $query_counter;
         if (DEBUG) {
-            print ($query . "\n");
+            zb_SqlDebugOutput($query);
         }
         $queried = mysql_query($query) or die('wrong data input: ' . $query);
         $query_counter++;
@@ -477,4 +492,23 @@ function vf($data, $mode = 0) {
     }
 }
 
-?>
+/**
+ * Performs MySQL API debug output if enabled
+ * 
+ * @param string $data
+ * 
+ * @return void
+ */
+function zb_SqlDebugOutput($data) {
+    if (DEBUG) {
+        switch (DEBUG) {
+            case 1:
+                $logData = curdatetime() . ' ' . trim($data) . PHP_EOL;
+                file_put_contents('exports/sqldebug.log', $logData, FILE_APPEND);
+                break;
+            case 2:
+                print($data . PHP_EOL);
+                break;
+        }
+    }
+}
