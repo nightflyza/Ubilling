@@ -3385,5 +3385,9 @@ $lang['def']['right to view employees jobs'] = 'Право переглядат�
 $lang['def']['None'] = 'Жоден';
 $lang['def']['SQL queries debug'] = 'Відладка SQL запитів';
 $lang['def']['SQL queries log not exists'] = 'Журнал SQL запитів не існує';
+$lang['def']['Current run SQL queries'] = 'SQL запити на поточній сторінці';
+$lang['def']['All SQL queries log'] = 'Журнал усіх SQL запитів';
+$lang['def']['SQL queries executed'] = 'Виконано SQL запитів';
+$lang['def']['Flush log'] = 'Очистити журнал';
 $lang['def'][''] = '';
 

@@ -4141,7 +4141,15 @@ function zb_DBStatsRenderContainer() {
     $result .= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', false, 'ubButton');
     if (cfr('ROOT')) {
         $result .= wf_Link(DBmon::URL_ME, wf_img('skins/icon_time_small.png') . ' ' . __('Database monitor'), false, 'ubButton') . ' ';
+        if (SQL_DEBUG) {
+            $backUrl = '';
+            if (!empty($_SERVER['REQUEST_URI'])) {
+                $backUrl = '&back=' . base64_encode($_SERVER['REQUEST_URI']);
+            }
+            $result .= wf_Link('?module=sqldebug' . $backUrl, wf_img('skins/log_icon_small.png') . ' ' . __('All SQL queries log'), true, 'ubButton');
+        }
     }
+
     $result .= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
     $result .= wf_tag('br');
     $result .= wf_AjaxContainer('dbrepaircontainer');

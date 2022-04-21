@@ -12,8 +12,12 @@
 /**
  * Debug mode on/off here
  */
-$mysqlDatabaseConfig = @parse_ini_file('config/mysql.ini');
 define('SQL_DEBUG_LOG', 'exports/sqldebug.log');
+$mysqlDatabaseConfig = @parse_ini_file('config/mysql.ini');
+$mysqlDebugBuffer = array();
+$query_counter = 0;
+$ubillingDatabaseDriver = 'none';
+define('SQL_DEBUG_QUERY_EOL', 'UBSQEOL');
 
 if (@$mysqlDatabaseConfig['debug']) {
     switch ($mysqlDatabaseConfig['debug']) {
@@ -27,10 +31,6 @@ if (@$mysqlDatabaseConfig['debug']) {
 } else {
     define('SQL_DEBUG', 0);
 }
-
-$query_counter = 0;
-$ubillingDatabaseDriver = 'none';
-
 
 if (!extension_loaded('mysql')) {
     $ubillingDatabaseDriver = 'mysqli';
@@ -501,11 +501,15 @@ function vf($data, $mode = 0) {
  * @return void
  */
 function zb_SqlDebugOutput($data) {
+    global $mysqlDebugBuffer;
     if (SQL_DEBUG) {
         switch (SQL_DEBUG) {
             case 1:
-                $logData = curdatetime() . ' ' . trim($data) . PHP_EOL;
-                file_put_contents('exports/sqldebug.log', $logData, FILE_APPEND);
+                $timestamp = curdatetime();
+                $cleanData = trim($data);
+                $logData = $timestamp . ' ' . $cleanData;
+                $mysqlDebugBuffer[] = $logData;
+                file_put_contents(SQL_DEBUG_LOG, $logData . SQL_DEBUG_QUERY_EOL . PHP_EOL, FILE_APPEND);
                 break;
             case 2:
                 print($data . PHP_EOL);

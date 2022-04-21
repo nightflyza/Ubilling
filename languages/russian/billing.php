@@ -3364,3 +3364,7 @@ $lang['def']['right to view employees jobs'] = 'Право просматрив�
 $lang['def']['None'] = 'Никакой';
 $lang['def']['SQL queries debug'] = 'Отладка SQL запросов';
 $lang['def']['SQL queries log not exists'] = 'Лог SQL запросов не существует';
+$lang['def']['Current run SQL queries'] = 'SQL запросы текущей страницы';
+$lang['def']['All SQL queries log'] = 'Лог всех SQL запросов';
+$lang['def']['SQL queries executed'] = 'Выполнено SQL запросов';
+$lang['def']['Flush log'] = 'Очистить лог';
