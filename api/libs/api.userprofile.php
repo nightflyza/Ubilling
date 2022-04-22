@@ -1092,6 +1092,7 @@ class UserProfile {
 
                 $curOLTID = (empty($onu_data['oltid']) ? 0 : $onu_data['oltid']);
                 $curOLTAliveCheck = $this->ubConfig->getAlterParam('PON_OLT_ALIVE_PING_CHECK', false);
+                $curOLTAliveCheckTimeout = $this->ubConfig->getAlterParam('PON_OLT_ALIVE_PING_CHECK_TIMEOUT', 1);
                 $curOLTAlive = ($curOLTAliveCheck) ? false : true;
                 $curOLTIP = '';
                 $curOLTModelName = '';
@@ -1109,8 +1110,8 @@ class UserProfile {
                     $curOLTLocation = $oltData[0]['location'];
                 }
 
-                if ($curOLTAliveCheck and!empty($curOLTIP)) {
-                    $curOLTAlive = zb_PingICMP($curOLTIP);
+                if ($curOLTAliveCheck and !empty($curOLTIP)) {
+                    $curOLTAlive = zb_PingICMPTimeout($curOLTIP, $curOLTAliveCheckTimeout);
                 }
 
                 if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW')) {

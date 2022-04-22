@@ -5623,7 +5623,10 @@ class PONizer {
                         $sigIndexOID = $snmpSignalOIDs['SIGINDEX'] . $sigOIDPart . $onuDevID;
                         $sigIndexVal = $snmpSignalOIDs['SIGVALUE'];
                     } else {
-                        if ($getTxSgnal) {
+                        if ($getTxSgnal
+                            and isset($snmpMiscOIDs['ONUTXSIGNAL'])
+                            and isset($snmpMiscOIDs['ONUTXSIGNALVAL'])) {
+
                             $sigIndexOID = $snmpMiscOIDs['ONUTXSIGNAL'] . '.' . $onuDevID;
                             $sigIndexVal = $snmpMiscOIDs['ONUTXSIGNALVAL'];
                         } else {
