@@ -3468,15 +3468,28 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
     $statsflag = 'exports/NOTRACK';
     $cache = new UbillingCache();
     $cacheTime = 3600;
+
 //detect host id
-    $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
-    $hostid = simple_query($hostid_q);
+    $cachedHostId = $cache->get('UBHOSTID', $cacheTime);
+    //not cached yet?
+    if (empty($cachedHostId)) {
+        $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
+        $hostid = simple_query($hostid_q);
+    } else {
+        $hostid = $cachedHostId;
+    }
+
     if (empty($hostid)) {
-//register new Ubilling
+//register new Ubilling serial
         $thisubid = zb_InstallBillingSerial();
     } else {
         $thisubid = $hostid['value'];
+        //updating cache if required
+        if (empty($cachedHostId) AND ! empty($hostid)) {
+            $cache->set('UBHOSTID', $hostid, $cacheTime);
+        }
     }
+
 //modules callbacks
     $moduleStats = 'xnone';
     if ($modOverride) {
@@ -3566,21 +3579,25 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
     }
 
     if ($thiscollect) {
-        if (isset($_SERVER['SERVER_PORT']) AND ( @$_SERVER['SERVER_PORT'] == 80)) {
-            show_window('', $tracking_code);
-        } else {
+        if (isset($_SERVER['HTTPS']) AND $_SERVER['HTTPS'] = 'on') {
             if (extension_loaded('curl')) {
+                $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
                 $curlStats = curl_init($statsurl);
                 curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
                 curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
                 curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK');
+                if (!empty($referrer)) {
+                    curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
+                }
                 $output = curl_exec($curlStats);
                 if ($output !== false) {
                     show_window('', trim($output));
                 }
                 curl_close($curlStats);
             }
+        } else {
+            show_window('', $tracking_code);
         }
     }
 }
