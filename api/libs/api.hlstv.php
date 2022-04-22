@@ -43,7 +43,7 @@ class HlsTV {
     /**
      * Default HLS API URL
      */
-    const URL_API = 'https://apiua2.hls.tv/';
+    const URL_API = 'https://api.hls.tv/';
 
     /**
      * Default debug log path
