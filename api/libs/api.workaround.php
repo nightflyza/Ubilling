@@ -3465,7 +3465,7 @@ function zb_InstallBillingSerial() {
  */
 function zb_BillingStats($quiet = false, $modOverride = '') {
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
-    $statsflag = 'exports/NOTRACK';
+    $statsflag = 'exports/NOTRACKTHIS';
     $cache = new UbillingCache();
     $cacheTime = 3600;
 
