@@ -2092,13 +2092,14 @@ function ts_GetAllEmployeeLoginsAssocCached() {
 }
 
 /**
- * Checks some task for today duplicates by login/address fields
+ * Checks some task for duplicates by login/address fields
  * 
  * @param array $taskData
+ * @param int $optionValue 1 - today duplicates, any other digit - days around
  * 
  * @return void
  */
-function ts_CheckDailyDuplicates($taskData) {
+function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
     if (!empty($taskData)) {
         if (!empty($taskData['startdate'])) {
             $allTasksDuplicates = array();
@@ -2108,7 +2109,19 @@ function ts_CheckDailyDuplicates($taskData) {
             $tasksDb = new NyanORM('taskman');
             if (!empty($taskData['login'])) {
                 $tasksDb->where('id', '!=', $taskData['id']);
-                $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
+                //just the same date
+                if ($optionValue == 1) {
+                    $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
+                } else {
+                    //configurable days count interval
+                    $startDateTimestamp = strtotime($taskData['startdate']);
+                    $daysOffset = round($optionValue * 86400); //int
+                    $dayBegin = date("Y-m-d", ($startDateTimestamp - $daysOffset)); // -X days
+                    $dayEnd = date("Y-m-d", ($startDateTimestamp + $daysOffset)); // +X days
+                    $tasksDb->where('startdate', 'BETWEEN', $dayBegin . "' AND '" . $dayEnd);
+                }
+
+
                 $tasksDb->where('login', '=', $taskData['login']);
                 $loginDuplicates = $tasksDb->getAll('id');
             }
@@ -2116,7 +2129,18 @@ function ts_CheckDailyDuplicates($taskData) {
 
             if (!empty($taskData['address'])) {
                 $tasksDb->where('id', '!=', $taskData['id']);
-                $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
+                //just the same date
+                if ($optionValue == 1) {
+                    $tasksDb->where('startdate', 'LIKE', $taskData['startdate'] . '%');
+                } else {
+                    //configurable days count interval
+                    $startDateTimestamp = strtotime($taskData['startdate']);
+                    $daysOffset = round($optionValue * 86400); //int
+                    $dayBegin = date("Y-m-d", ($startDateTimestamp - $daysOffset)); // -X days
+                    $dayEnd = date("Y-m-d", ($startDateTimestamp + $daysOffset)); // +X days
+                    $tasksDb->where('startdate', 'BETWEEN', $dayBegin . "' AND '" . $dayEnd);
+                }
+
                 $tasksDb->where('address', '=', $taskData['address']);
                 $addressDuplicates = $tasksDb->getAll('id');
             }
@@ -2400,7 +2424,7 @@ function ts_TaskChangeForm($taskid) {
 
         //Task duplicates check
         if (@$altercfg['TASKMAN_DUPLICATE_CHECK']) {
-            ts_CheckDailyDuplicates($taskdata);
+            ts_CheckDailyDuplicates($taskdata, $altercfg['TASKMAN_DUPLICATE_CHECK']);
         }
 
         //Salary accounting
