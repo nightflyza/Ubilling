@@ -829,6 +829,34 @@ function zb_PingICMP($ip) {
 }
 
 /**
+ * Returns result of fast ICMP ping with ability to set timeout in seconds(floating values allowed)
+ *
+ * @param string $ip
+ * @param int $timeout
+ *
+ * @return bool
+ */
+function zb_PingICMPTimeout($ip, $timeout = 0) {
+    $globconf = parse_ini_file(CONFIG_PATH . "billing.ini");
+    $ping = $globconf['PING'];
+    $sudo = $globconf['SUDO'];
+    $pingt_imeout = '';
+
+    if (!empty($timeout)) {
+        $curOS = php_uname('s');
+        $pingt_imeout = (($curOS == 'FreeBSD') ? '-t ' : '-w ') . $timeout . ' ';
+    }
+
+    $ping_command = $sudo . ' ' . $ping . ' -i 0.01 -c 1 ' . $pingt_imeout . $ip;
+    $ping_result = shell_exec($ping_command);
+    if (strpos($ping_result, 'ttl')) {
+        return (true);
+    } else {
+        return(false);
+    }
+}
+
+/**
  * Returns result of slow icmp ping with some retries count
  * 
  * @param string $ip devide IP to ping
