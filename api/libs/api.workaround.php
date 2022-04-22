@@ -3469,12 +3469,15 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
     $cache = new UbillingCache();
     $cacheTime = 3600;
 
-//detect host id
-    $cachedHostId = $cache->get('UBHOSTID', $cacheTime);
+    //detect host id
+    $cachedHostId = $cache->get('UBHID', $cacheTime);
     //not cached yet?
     if (empty($cachedHostId)) {
         $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
         $hostid = simple_query($hostid_q);
+        if (!empty($hostid)) {
+            $hostid = $hostid['value'];
+        }
     } else {
         $hostid = $cachedHostId;
     }
@@ -3483,10 +3486,10 @@ function zb_BillingStats($quiet = false, $modOverride = '') {
 //register new Ubilling serial
         $thisubid = zb_InstallBillingSerial();
     } else {
-        $thisubid = $hostid['value'];
+        $thisubid = $hostid;
         //updating cache if required
         if (empty($cachedHostId) AND ! empty($hostid)) {
-            $cache->set('UBHOSTID', $hostid, $cacheTime);
+            $cache->set('UBHID', $hostid, $cacheTime);
         }
     }
 
