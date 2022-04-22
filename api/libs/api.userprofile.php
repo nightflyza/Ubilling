@@ -1065,6 +1065,7 @@ class UserProfile {
         $rows = '';
         $searched = __('No');
         $sigColor = '#000000';
+        $signal = '';
 
         if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
             $onuAdditionalData = '';
@@ -1085,7 +1086,16 @@ class UserProfile {
             }
 
             if (!empty($onu_data)) {
+                $pon = ($this->ubConfig->getAlterParam('PON_OLT_UPTIME_IN_PROFILE')
+                        or $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')
+                        or $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) ? new PONizer() : null;
+
                 $curOLTID = (empty($onu_data['oltid']) ? 0 : $onu_data['oltid']);
+                $curOLTAliveCheck = $this->ubConfig->getAlterParam('PON_OLT_ALIVE_PING_CHECK', false);
+                $curOLTAlive = ($curOLTAliveCheck) ? false : true;
+                $curOLTIP = '';
+                $curOLTModelName = '';
+                $curOLTLocation = '';
 
                 $query = "SELECT `switches`.`id`, `switches`.`ip`, `switches`.`location`, `switchmodels`.`modelname` 
                             FROM `switches` 
@@ -1093,10 +1103,87 @@ class UserProfile {
                             WHERE `switches`.`id` = " . $curOLTID;
                 $oltData = simple_queryall($query);
 
+                if (isset($oltData[0]) and!empty($oltData[0])) {
+                    $curOLTIP = $oltData[0]['ip'];
+                    $curOLTModelName = $oltData[0]['modelname'];
+                    $curOLTLocation = $oltData[0]['location'];
+                }
+
+                if ($curOLTAliveCheck and!empty($curOLTIP)) {
+                    $curOLTAlive = zb_PingICMP($curOLTIP);
+                }
+
+                if ($this->ubConfig->getAlterParam('USERPROFILE_ONU_INFO_SHOW')) {
+                    $onuAdditionalData .= wf_TableCell(__('OLT'), '30%', 'row2');
+
+                    if (isset($oltData[0]) and!empty($oltData[0])) {
+                        $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $curOLTIP . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                        $webIfaceLink .= wf_img('skins/ymaps/network.png');
+                        $webIfaceLink .= wf_tag('a', true);
+
+                        $onuAdditionalData .= wf_TableCell($curOLTIP . ' - ' . $curOLTModelName . ' - ' . $curOLTLocation . wf_nbsp(2) . $webIfaceLink);
+                    } else {
+                        $onuAdditionalData .= wf_TableCell(__('No data'));
+                    }
+
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    if ($this->ubConfig->getAlterParam('PON_OLT_UPTIME_IN_PROFILE')) {
+                        // getting true/false from 1 and 2 value
+                        $uptimeCached = ($curOLTAlive ? $this->ubConfig->getAlterParam('PON_OLT_UPTIME_IN_PROFILE') - 1 : true);
+                        $oltUptime = $pon->getOLTUptime($curOLTID, $uptimeCached);
+                        $oltUptime = (empty($oltUptime)) ? __('No data') : $oltUptime;
+                        $onuAdditionalData = wf_TableCell(__('OLT') . ' ' . __('uptime'), '30%', 'row2');
+                        $onuAdditionalData .= wf_TableCell($oltUptime);
+                        $rows .= wf_TableRow($onuAdditionalData, 'row3');
+                    }
+
+                    $webIfaceLink = wf_tag('a', false, '', 'href="http://' . $onu_data['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                    $webIfaceLink .= wf_img('skins/ymaps/network.png');
+                    $webIfaceLink .= wf_tag('a', true);
+
+                    $onuAdditionalData = wf_TableCell(__('ONU IP'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($onu_data['ip'] . ' - ' . $onu_data['modelname'] . wf_nbsp(2) . $webIfaceLink);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__('ONU MAC'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($onu_data['mac']);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__('ONU Serial'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($onu_data['serial']);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuInterface = '';
+                    $onuInterfacesCache = PONizer::INTCACHE_PATH . $curOLTID . '_' . PONizer::INTCACHE_EXT;
+                    if (file_exists($onuInterfacesCache)) {
+                        $raw = file_get_contents($onuInterfacesCache);
+                        $raw = unserialize($raw);
+                        foreach ($raw as $mac => $interface) {
+                            if ($mac == $onu_data['mac']) {
+                                $onuInterface = $interface;
+                                break;
+                            }
+                        }
+                    }
+
+                    $onuAdditionalData = wf_TableCell(__('ONU LLID') . ' (' . __('interface') . ')', '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($onuInterface);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+                }
 
                 $raw = array();
-                $signal = '';
                 $realtimeStr = '';
+
+                if ($curOLTAlive and $this->ubConfig->getAlterParam('PON_REALTIME_SIGNAL_IN_PROFILE')) {
+                    $onuMAC = (empty($onu_data['serial'])) ? $onu_data['mac'] : $onu_data['serial'];
+                    $signal = $pon->getONURealtimeSignal($curOLTID, $onuMAC);
+
+                    if (!empty($signal)) {
+                        $raw = array($onuMAC => $signal);
+                        $realtimeStr = ' (' . __('realtime') . ')';
+                    }
+                }
 
                 if (empty($raw)) {
                     $onuSignalsCache = PONizer::SIGCACHE_PATH . $curOLTID . '_' . PONizer::SIGCACHE_EXT;
@@ -1132,6 +1219,37 @@ class UserProfile {
                 $cells .= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true)
                         . wf_nbsp(2) . wf_Link('?module=ponizer&editonu=' . $onu_data['id'], web_edit_icon()));
                 $rows .= wf_TableRow($cells, 'row3');
+
+                if ($curOLTAlive and $this->ubConfig->getAlterParam('PON_REALTIME_EXTEN_INFO_IN_PROFILE')) {
+                    $lastRegTime = '';
+                    $lastDeregTime = '';
+                    $lastAliveTime = '';
+                    $onuMAC = (empty($onu_data['serial'])) ? $onu_data['mac'] : $onu_data['serial'];
+                    $onuTXSignal = $pon->getONURealtimeSignal($curOLTID, $onuMAC, true);
+                    $extenInfo = $pon->getONUExtenInfo($curOLTID, $onuMAC);
+
+                    if (!empty($extenInfo)) {
+                        $lastRegTime = $extenInfo['lastreg'];
+                        $lastDeregTime = $extenInfo['lastdereg'];
+                        $lastAliveTime = $extenInfo['lastalive'];
+                    }
+
+                    $onuAdditionalData = wf_TableCell(__('ONU TX signal'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($onuTXSignal);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__('ONU last reg time'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($lastRegTime);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__('ONU last dereg time'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($lastDeregTime);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+
+                    $onuAdditionalData = wf_TableCell(__('ONU connection uptime'), '30%', 'row2');
+                    $onuAdditionalData .= wf_TableCell($lastAliveTime);
+                    $rows .= wf_TableRow($onuAdditionalData, 'row3');
+                }
 
                 if ($this->ubConfig->getAlterParam('PONBOXES_ENABLED')) {
                     $ponBoxes = new PONBoxes(true);
