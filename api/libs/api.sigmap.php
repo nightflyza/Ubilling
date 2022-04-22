@@ -76,7 +76,14 @@ class SigMap {
     protected $allUsersStreetData = array();
 
     /**
-     * Contains per-street signups data as streetname=>count
+     * Contains all users cities data as login=>city
+     *
+     * @var array
+     */
+    protected $allUsersCityData = array();
+
+    /**
+     * Contains per-street signups data as cityname+streetname=>count
      *
      * @var array
      */
@@ -138,6 +145,7 @@ class SigMap {
     protected function loadUsers() {
         $this->allUserData = zb_UserGetAllDataCache();
         $this->allUsersStreetData = zb_AddressGetStreetUsers();
+        $this->allUsersCityData = zb_AddressGetCityUsers();
     }
 
     /**
@@ -205,12 +213,14 @@ class SigMap {
                     $this->deletedUsers++;
                 }
 
+                $userCity = (isset($this->allUsersCityData[$each['login']])) ? $this->allUsersCityData[$each['login']] : '';
                 $userStreet = (isset($this->allUsersStreetData[$each['login']])) ? $this->allUsersStreetData[$each['login']] : '';
-                if (!empty($userStreet)) {
-                    if (isset($this->streetsSignups[$userStreet])) {
-                        $this->streetsSignups[$userStreet] ++;
+                $userStreetFull = $userCity . ' ' . $userStreet;
+                if (!empty($userStreetFull)) {
+                    if (isset($this->streetsSignups[$userStreetFull])) {
+                        $this->streetsSignups[$userStreetFull] ++;
                     } else {
-                        $this->streetsSignups[$userStreet] = 1;
+                        $this->streetsSignups[$userStreetFull] = 1;
                     }
                 }
                 $this->registeredUsers++;
