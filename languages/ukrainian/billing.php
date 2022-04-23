@@ -3187,7 +3187,7 @@ $lang['def']['Uplink'] = 'Аплінк';
 
 //rev 7604
 $lang['def']['immunity for branch curses and gulag'] = 'Імунітет від ГУЛАГу та мітки філіальності';
-$lang['def']['Tasks with duplicate address created for same day'] = 'Задачі для цієї ж адреси створені той же день';
+$lang['def']['Tasks with duplicate address created for same day'] = 'Задачі для цієї ж адреси створені на той же день';
 $lang['def']['Any available ONU models exist'] = 'Не існує жодних моделей ONU';
 $lang['def']['Any available OLT devices exist'] = 'Не існує жодних OLT пристроїв';
 
@@ -3389,5 +3389,6 @@ $lang['def']['Current run SQL queries'] = 'SQL запити на поточні�
 $lang['def']['All SQL queries log'] = 'Журнал усіх SQL запитів';
 $lang['def']['SQL queries executed'] = 'Виконано SQL запитів';
 $lang['def']['Flush log'] = 'Очистити журнал';
+$lang['def']['or in'] = 'або ж за';
 $lang['def'][''] = '';
 

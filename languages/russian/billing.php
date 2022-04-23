@@ -3368,3 +3368,4 @@ $lang['def']['Current run SQL queries'] = 'SQL запросы текущей с�
 $lang['def']['All SQL queries log'] = 'Лог всех SQL запросов';
 $lang['def']['SQL queries executed'] = 'Выполнено SQL запросов';
 $lang['def']['Flush log'] = 'Очистить лог';
+$lang['def']['or in'] = 'или же за';

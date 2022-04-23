@@ -2154,7 +2154,12 @@ function ts_CheckDailyDuplicates($taskData, $optionValue = 1) {
                     $taskLink = ' ' . __('ID') . wf_Link('?module=taskman&edittask=' . $each['id'], '[' . $each['id'] . '] ');
                     $result .= $messages->getStyledMessage(__('Duplicate') . $taskLink . $each['startdate'] . ' ' . $each['address'], 'warning');
                 }
-                show_window(__('Tasks with duplicate address created for same day'), $result);
+
+                $windowLabel = __('Tasks with duplicate address created for same day');
+                if ($optionValue > 1) {
+                    $windowLabel .= ' ' . __('or in').' +-'.$optionValue.' '.__('days');
+                }
+                show_window($windowLabel, $result);
             }
         }
     }
