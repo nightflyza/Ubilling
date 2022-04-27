@@ -3390,5 +3390,8 @@ $lang['def']['All SQL queries log'] = 'Журнал усіх SQL запитів'
 $lang['def']['SQL queries executed'] = 'Виконано SQL запитів';
 $lang['def']['Flush log'] = 'Очистити журнал';
 $lang['def']['or in'] = 'або ж за';
+$lang['def']['Aerial alerts'] = 'Повітряні тривоги';
+$lang['def']['Alarm now'] = 'Тревога зараз';
+$lang['def']['Unbelievable, there are no air alarms at the moment. Does this happen at all?'] = 'Неймовірно, повітряних тривог наразі не відбувається. Таке взагалі буває?';
 $lang['def'][''] = '';
 
