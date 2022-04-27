@@ -361,12 +361,25 @@ class DarkVoid {
             $this->alerts .= $dsNotifyFront->renderWidget();
         }
 
+        //I hope this service died.
         if ($this->ubConfig->getAlterParam('INSURANCE_ENABLED')) {
             $insurance = new Insurance(false);
             $hinsReqCount = $insurance->getUnprocessedHinsReqCount();
             if ($hinsReqCount > 0) {
                 $insuranceRequestsAlert = $hinsReqCount . ' ' . __('insurance requests waiting for your reaction');
                 $this->alerts .= wf_Link($insurance::URL_ME, wf_img('skins/insurance_notify.png', $insuranceRequestsAlert));
+            }
+        }
+
+        //aerial alerts basic notification
+        if ($this->ubConfig->getAlterParam('AERIAL_ALERTS_ENABLED')) {
+            if ($this->ubConfig->getAlterParam('AERIAL_ALERTS_NOTIFY')) {
+                $monitorRegion = $this->ubConfig->getAlterParam('AERIAL_ALERTS_NOTIFY');
+                $aerialAlerts = new AerialAlerts($monitorRegion);
+                $regionAlert = $aerialAlerts->renderRegionNotification($monitorRegion);
+                if (!empty($regionAlert)) {
+                    $this->alerts .= $regionAlert;
+                }
             }
         }
 

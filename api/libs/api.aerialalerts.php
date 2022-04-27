@@ -140,4 +140,31 @@ class AerialAlerts {
         return($result);
     }
 
+    /**
+     * Renders DarkVoid notification if monitored region now under alarm
+     * 
+     * @param string $region
+     * 
+     * @return string
+     */
+    public function renderRegionNotification($region = '') {
+        $result = '';
+        if (!empty($region)) {
+            $region = trim($region);
+            if (!empty($this->allAlerts)) {
+                if (isset($this->allAlerts['states'])) {
+                    if (isset($this->allAlerts['states'][$region])) {
+                        $regionAlarm = $this->allAlerts['states'][$region]['alertnow'];
+                        if ($regionAlarm) {
+                            $alarmStart = $this->allAlerts['states'][$region]['changed'];
+                            $icon = wf_img_sized('skins/nuclear_bomb.png', __('Alarm now') . ' - ' . $region . ' ' . __('from') . ' ' . $alarmStart, 32, 32);
+                            $result .= wf_Link(AerialAlerts::URL_ME, $icon);
+                        }
+                    }
+                }
+            }
+        }
+        return($result);
+    }
+
 }
