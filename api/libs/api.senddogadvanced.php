@@ -836,10 +836,12 @@ class SendDogAdvanced extends SendDog {
             $serviceId = $this->defaultSmsServiceId;
             $serviceApi = $this->defaultSmsServiceApi;
         } else {
-            $serviceApi = $this->servicesApiId[$serviceId];
+            $serviceApi = (empty($this->servicesApiId[$serviceId])) ? '' : $this->servicesApiId[$serviceId];
         }
 
-        if (!empty($serviceApi)) {
+        if (empty($serviceApi)) {
+            log_register('SENDDOG SMS service with ID [' . $serviceId . '] does not exists');
+        } else {
             include_once (self::API_IMPL_PATH . $serviceApi . '.php');
             $tmpApiObj = new $serviceApi($serviceId, $messagePack);
 
