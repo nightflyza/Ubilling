@@ -517,10 +517,16 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function vlanNumTooLow() {
-        if ($this->routing->get('svlan', 'int') < 0) {
-            return (true);
+    protected function vlanNumTooLow($vlan = -1) {
+        if (!$vlan) {
+            if ($this->routing->get('svlan', 'int') < 0) {
+                return (true);
+            }
+        } else {
+            if ($vlan < 0)
+                return (true);
         }
+
         return (false);
     }
 
@@ -529,15 +535,21 @@ class VlanManagement {
      * 
      * @return bool
      */
-    protected function vlanNumTooHigh() {
-        if ($this->routing->get('svlan', 'int') > 4096) {
-            return (true);
+    protected function vlanNumTooHigh($vlan = -1) {
+        if (!$vlan) {
+            if ($this->routing->get('svlan', 'int') > 4094) {
+                return (true);
+            }
+        } else {
+            if ($vlan > 4094) {
+                return (true);
+            }
         }
         return (false);
     }
 
     /**
-     * Check if SVLAN has correct format from 0 to 4096.
+     * Check if SVLAN has correct format from 0 to 4094.
      * 
      * @return bool
      */
@@ -547,6 +559,22 @@ class VlanManagement {
         }
         //add error if not exited previously
         $this->error[] = __('Wrong value') . ': SVLAN ' . $this->routing->get('svlan_num', 'int');
+        return (false);
+    }
+
+    /**
+     * Check if CVLAN has correct range from 0 to 4094
+     * 
+     * @param int $cvlan
+     * 
+     * @return bool
+     */
+    protected function checkCvlanRange($cvlan) {
+        if (!$this->vlanNumTooLow($cvlan) and!$this->vlanNumTooHigh($cvlan)) {
+            return (true);
+        }
+        //add error if not exited previously
+        $this->error[] = __('Wrong value') . ': CVLAN ' . $cvlan;
         return (false);
     }
 
@@ -1382,8 +1410,12 @@ class VlanManagement {
                     if ($check['used']) {
                         break;
                     }
+                    $checkRange = $this->checkCvlanRange($cvlan);
+                    if (!$checkRange) {
+                        break;
+                    }
                 }
-                if (!$check['used']) {
+                if (!$check['used'] && $checkRange) {
                     $this->zteqinqDb->data('swid', $this->routing->get('swid', 'int'));
                     $this->zteqinqDb->data('slot_number', $this->routing->get('slot_number', 'int'));
                     $this->zteqinqDb->data('port', $this->routing->get('port', 'int'));
@@ -1414,8 +1446,12 @@ class VlanManagement {
                     if ($check['used']) {
                         break;
                     }
+                    $checkRange = $this->checkCvlanRange($cvlan);
+                    if (!$checkRange) {
+                        break;
+                    }
                 }
-                if (!$check['used']) {
+                if (!$check['used'] && $checkRange) {
 
                     $this->oltqinqDb->data('swid', $this->routing->get('swid', 'int'));
                     $this->oltqinqDb->data('port', $this->routing->get('port', 'int'));
@@ -1461,20 +1497,22 @@ class VlanManagement {
             $modelid = $this->allSwitches[$this->routing->get('qinqswitchid', 'int')]['modelid'];
             $port_number = $this->allSwitchModels[$modelid]['ports'];
             $lastCvlan = $this->routing->get('cvlan_num', 'int') + $port_number - 1;
-            for ($cvlan = $this->routing->get('cvlan_num', 'int'); $cvlan <= $lastCvlan; $cvlan++) {
-                $check = $this->checkCvlanFree($cvlan);
-                if ($check['used']) {
-                    break;
+            if ($this->checkCvlanRange($lastCvlan)) {
+                for ($cvlan = $this->routing->get('cvlan_num', 'int'); $cvlan <= $lastCvlan; $cvlan++) {
+                    $check = $this->checkCvlanFree($cvlan);
+                    if ($check['used']) {
+                        break;
+                    }
                 }
-            }
-            if (!$check['used']) {
-                $switchesQinQ = new SwitchesQinQ();
-                $qinqSaveResult = $switchesQinQ->saveQinQ();
-                if (!empty($qinqSaveResult)) {
-                    $this->error[] = $qinqSaveResult;
+                if (!$check['used']) {
+                    $switchesQinQ = new SwitchesQinQ();
+                    $qinqSaveResult = $switchesQinQ->saveQinQ();
+                    if (!empty($qinqSaveResult)) {
+                        $this->error[] = $qinqSaveResult;
+                    }
+                } else {
+                    $this->errorOccupied($check, $cvlan, $lastCvlan);
                 }
-            } else {
-                $this->errorOccupied($check, $cvlan, $lastCvlan);
             }
         }
     }
@@ -1500,7 +1538,7 @@ class VlanManagement {
                     $this->addNewSwitchBinding();
                     break;
                 case 'qinqoltzte':
-                    $this->addNewOltBinding();
+                    $this->addNewOltZteBinding();
                     break;
                 case 'qinqoltnonzte':
                     $this->addNewOltNonZteBinding();
@@ -1979,7 +2017,7 @@ class VlanManagement {
         if ($this->routing->checkGet(array('realm_id', 'svlan_id'))) {
             $result .= $this->createMatrixMainContainer();
 
-            for ($cvlan = 1; $cvlan <= 4096; $cvlan++) {
+            for ($cvlan = 1; $cvlan <= 4094; $cvlan++) {
                 $result .= $this->createMatrixDataContainer($cvlan);
             }
 
