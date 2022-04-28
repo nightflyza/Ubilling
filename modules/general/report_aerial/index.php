@@ -6,6 +6,7 @@ if (cfr('TASKBAR')) {
         $aerialAlerts = new AerialAlerts();
         show_window('', $aerialAlerts->renderControls());
         show_window(__('Aerial alerts'), $aerialAlerts->renderReport());
+        zb_BillingStats(true);
     } else {
         show_error(__('This module is disabled'));
     }
