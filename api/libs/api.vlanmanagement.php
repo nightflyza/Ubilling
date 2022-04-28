@@ -9,6 +9,8 @@ class VlanManagement {
     const MODULE_SVLAN = '?module=vlanmanagement&svlan=true';
     const MODULE_REALMS = '?module=vlanmanagement&realms=true';
     const MODULE_UNIVERSALQINQ = '?module=universalqinq';
+    const MODULE_ONU_APPLY = '?module=vlanmanagement_onu_apply';
+    const MODULE_ONU_APPLY_AJAXOLTLIST = '?module=vlanmanagement_onu_apply&ajaxOltList=true';
     const EMPTY_SELECTOR_OPTION = '---';
     const ARRAY_RANGE_STEP = 1;
     const ARRAY_RANGE_START = 1;
@@ -890,6 +892,7 @@ class VlanManagement {
         $urls = wf_Link(self::MODULE_UNIVERSALQINQ, web_icon_extended() . 'UniversalQINQ', false, 'ubButton');
         $urls .= wf_Link(self::MODULE_SVLAN . '&realm_id=1', web_icon_extended() . 'SVLAN', false, 'ubButton');
         $urls .= wf_link(self::MODULE_REALMS, web_icon_extended() . __('Realms'), false, 'ubButton');
+        $urls .= wf_Link(self::MODULE_ONU_APPLY, web_icon_extended() . __('Apply on') . ' ONU/ONT', false, 'ubButton');
         show_window('', $urls);
         show_window('', $this->realmAndSvlanSelectors());
     }
@@ -2067,6 +2070,56 @@ class VlanManagement {
      */
     public function getAllRealms() {
         return ($this->allRealms);
+    }
+
+    /**
+     * Generate ajax list of OLTs.
+     * 
+     * @return string
+     */
+    public function oltListAjaxRender() {
+        $add = '';
+        $json = new wf_JqDtHelper();
+        $query = 'SELECT `switches`.`id`,`switches`.`ip`,`switches`.`location`,`switchmodels`.`snmptemplate`,`switchmodels`.`modelname` FROM `switches` JOIN `switchmodels` ON (`switches`.`modelid` = `switchmodels`.`id`) WHERE `switches`.`desc` LIKE "%OLT%" AND `switchmodels`.`snmptemplate` NOT LIKE "ZTE%"';
+        $olts = simple_queryall($query);
+        if ($this->routing->checkGet('username')) {
+            $add .= "&username=" . $this->routing->get('username', 'mres');
+        }
+
+
+        if (!empty($olts)) {
+            foreach ($olts as $io => $each) {
+                $data[] = trim($each['id']);
+                $data[] = trim($each['ip']);
+                $data[] = trim($each['location']);
+                $data[] = trim($each['modelname']);
+                $vlancontrols = wf_Link(self::MODULE_ONU_APPLY . "&oltid=" . $each['id'] . $add, wf_img('skins/snmp.png'));
+                $data[] = $vlancontrols;
+                $json->addRow($data);
+
+                unset($data);
+            }
+        }
+
+        /*
+          $countersSummary = wf_tag('br');
+          $countersSummary .= wf_tag('br') . wf_tag('b') . __('Total') . ': ' . $countTotal . wf_tag('b', true) . wf_tag('br');
+         * 
+         */
+
+        $json->getJson();
+    }
+
+    public function oltListShow() {
+        $result = '';
+        $add = '';
+        $columns = array('ID', 'IP', 'Location', 'Model', 'Actions');
+        $opts = '"order": [[ 0, "asc" ]]';
+        if ($this->routing->checkGet('username')) {
+            $add .= "&username=" . $this->routing->get('username', 'mres');
+        }
+        $result .= wf_JqDtLoader($columns, self::MODULE_ONU_APPLY_AJAXOLTLIST . $add, false, __('Request'), 100, $opts);
+        return($result);
     }
 
     /**
