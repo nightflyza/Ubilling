@@ -1699,6 +1699,25 @@ function web_DirectionsEditForm($ruleid) {
 }
 
 /**
+ * Renders some content with title in floating containers. 
+ * 
+ * @param string $title
+ * @param string $content
+ * 
+ * @return string
+ */
+function web_FinRepControls($title = '', $content) {
+    $result = '';
+    $style = 'style="float:left; display:block; height:90px; margin-right: 20px;"';
+    $result .= wf_tag('div', false, '', $style);
+    $result .= wf_tag('h3') . $title . wf_tag('h3', true);
+    $result .= wf_tag('br');
+    $result .= $content;
+    $result .= wf_tag('div', true);
+    return($result);
+}
+
+/**
  * Renders payments extracted from database with some query
  * 
  * @param string $query

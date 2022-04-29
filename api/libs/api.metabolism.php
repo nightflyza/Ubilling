@@ -44,7 +44,7 @@ class Metabolism {
      * Routes etc.
      */
     const URL_ME = '?module=metabolism';
-    const URL_BACK = '?module=report_finance&analytics=true';
+    const URL_BACK = '?module=report_finance';
 
     /**
      * Creates new metabolism instance
