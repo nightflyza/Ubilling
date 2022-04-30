@@ -1000,7 +1000,7 @@ function zbs_UserShowXmlAgentData($login) {
     $reqResult[] = array('email' => $email);
     $reqResult[] = array('credit' => @$userdata['Credit']);
     $reqResult[] = array('creditexpire' => $credexpire);
-    $reqResult[] = array('payid' => $paymentid);
+    $reqResult[] = array('payid' => strval($paymentid));
     $reqResult[] = array('contract' => $contract);
     $reqResult[] = array('tariff' => $userdata['Tariff']);
     $reqResult[] = array('tariffnm' => $tariffNm);
