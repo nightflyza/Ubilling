@@ -7,6 +7,19 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
     if (cfr('VLANMANAGEMENT')) {
         $vlan = new VlanManagement();
         $routing = new ubRouting();
+        show_window('', $vlan->vlanChangeModal());
+        $oltId = $routing->get('oltid', 'mres');
+        $change = new VlanChange($oltId);
+
+        if ($routing->checkGet('ajax_username_validate')) {
+            $universalqinq = new UniversalQINQ();
+            $userCheck = $universalqinq->isUserExists();
+            if ($userCheck) {
+                die($change->changeVlanForm($routing->get('onuid', 'mres'), $routing->get('port', 'mres'), $routing->get('vlan', 'mres'), $routing->get('type', 'mres'), $routing->get('interface', 'mres'), $routing->get('interface_olt', 'mres')));
+            } else {
+                die("error: user doesn't exist");
+            }
+        }
 
         if ($routing->checkGet('ajaxOltList')) {
             $vlan->oltListAjaxRender();
@@ -16,7 +29,6 @@ if ($altCfg['VLAN_MANAGEMENT_ENABLED']) {
             show_window(__('Available switches'), $vlan->oltListShow());
         } else {
             show_window('', wf_BackLink(VlanManagement::MODULE_ONU_APPLY));
-            $change = new VlanChange($routing->get('oltid', 'mres'), $routing->get('username', 'mres'));
             if ($routing->checkGet('ajaxOnuList')) {
                 $change->onuListAjaxRender();
             }

@@ -310,10 +310,15 @@ class UniversalQINQ {
      * 
      * @return bool
      */
-    protected function isUserExists() {
+    public function isUserExists() {
         if ($this->altCfg['UNIVERSAL_QINQ_USER_EXIST']) {
             $allUsers = array_flip(zb_UserGetAllStargazerLogins());
-            if (isset($allUsers[$this->routing->get('login', 'mres')])) {
+            if ($this->routing->checkGet('username')) {
+                $getLogin = 'username';
+            } else {
+                $getLogin = 'login';
+            }
+            if (isset($allUsers[$this->routing->get($getLogin, 'mres')])) {
                 return(true);
             } else {
                 return(false);

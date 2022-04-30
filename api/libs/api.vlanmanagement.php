@@ -2148,6 +2148,11 @@ class VlanManagement {
         $json->getJson();
     }
 
+    /**
+     * JQDT container for olt selections
+     * 
+     * @return string
+     */
     public function oltListShow() {
         $result = '';
         $add = '';
@@ -2158,6 +2163,21 @@ class VlanManagement {
         }
         $result .= wf_JqDtLoader($columns, self::MODULE_ONU_APPLY_AJAXOLTLIST . $add, false, __('Request'), 100, $opts);
         return($result);
+    }
+
+    /**
+     * Create main container and load stylesheets.
+     * 
+     * @return string
+     */
+    public function vlanChangeModal() {
+        $result = '<link rel="stylesheet" href="./skins/vlanmanagement.css" type="text/css" media="screen" />';
+        $result .= wf_tag('div', false, 'cvmodal', 'id = "dialog-modal_cvmodal" title = "' . __('Choose') . '" style = "display:none; width:1px; height:1px;"');
+        $result .= wf_tag('p', false, '', 'id = "content-cvmodal"');
+        $result .= wf_tag('p', true);
+        $result .= wf_tag('div', true);
+
+        return ($result);
     }
 
     /**
