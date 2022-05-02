@@ -34,6 +34,10 @@ if (cfr('SYSLOAD')) {
     if (wf_CheckGet(array('ajaxcachedata'))) {
         die(zb_ListCacheInform('data'));
     }
+    //cache key data preview 
+    if (wf_CheckGet(array('datacachekeyview'))) {
+        die(zb_CacheInformKeyView(ubRouting::get('datacachekeyview')));
+    }
     // Clear cache
     if (wf_CheckGet(array('ajaxcacheclear'))) {
         die(zb_ListCacheInform('clear'));

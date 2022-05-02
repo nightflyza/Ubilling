@@ -5843,9 +5843,34 @@ function zb_ListCacheInformRenderContainer() {
 }
 
 /**
+ * Renders cache data as auto-open modal dialog
+ * 
+ * @param string $dataKey
+ * 
+ * @return string
+ */
+function zb_CacheInformKeyView($dataKey) {
+    $result = '';
+    $cache = new UbillingCache();
+    $allCache = $cache->getAllcache(true);
+    if (!empty($allCache)) {
+        foreach ($allCache as $io => $each) {
+            if ($each['key'] == $dataKey) {
+                $readableData = print_r($each['value'], true);
+                $value = wf_tag('pre') . htmlspecialchars($readableData) . wf_tag('pre', true);
+                $result .= wf_modalOpened(__('Cache information') . ': ' . $dataKey, $value, '800', '600');
+            }
+        }
+    }
+    return($result);
+}
+
+/**
  * Renders list of cache data
  * 
  * @global object $system
+ * 
+ * @param string $param
  * 
  * @return string
  */
@@ -5853,13 +5878,13 @@ function zb_ListCacheInform($param = '') {
     $cache = new UbillingCache();
     $messages = new UbillingMessageHelper();
     ($param == 'clear') ? $cache->deleteAllcache() : '';
-    $data = ($param == 'data') ? $cache->getAllcache($param) : $cache->getAllcache();
+    $data = (ispos($param, 'data')) ? $cache->getAllcache($param) : $cache->getAllcache();
     $result = '';
     if (!empty($data) and $param != 'clear') {
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Key'));
 
-        if ($param == 'data') {
+        if (ispos($param, 'data')) {
             $cells .= wf_TableCell(__('Entries'));
             $cells .= wf_TableCell(__('Data'));
         }
@@ -5867,7 +5892,7 @@ function zb_ListCacheInform($param = '') {
 
         foreach ($data as $id => $key) {
             $cells = wf_TableCell($id);
-            if ($param == 'data') {
+            if (ispos($param, 'data')) {
                 $cells .= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
                 if (is_array($key['value'])) { // needed to prevent e_warnings on PHP 7.3
                     $dataCount = sizeof($key['value']);
@@ -5876,15 +5901,18 @@ function zb_ListCacheInform($param = '') {
                 }
                 $readableData = print_r($key['value'], true);
                 $dataSize = stg_convert_size(strlen($readableData));
-                $value = wf_tag('pre') . htmlspecialchars($readableData) . wf_tag('pre', true);
                 $cells .= wf_TableCell($dataCount . ' ~ ' . $dataSize);
                 $keyActions = '';
-                $viewControls = wf_modal(wf_img_sized('skins/icon_search_small.gif', '', '10') . ' ' . __('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600') . ' ';
+
+                $viewContainerId = 'aj_viewcachekey' . $key['key'];
+                $viewUrl = '?module=report_sysload&datacachekeyview=' . $key['key'];
+                $viewAjLink = wf_AjaxLink($viewUrl, wf_img_sized('skins/icon_search_small.gif', '', '10') . ' ' . __('Cache data'), $viewContainerId, false, 'ubButton');
+                $viewControls = $viewAjLink;
                 $ajDeleteContainerId = 'aj_deletecachekey' . $key['key'];
                 $deleteUrl = '?module=report_sysload&deletecachekey=' . $key['key'];
                 $deleteControls = wf_AjaxLink($deleteUrl, wf_img_sized('skins/icon_del.gif', '', '10') . ' ' . __('Delete'), $ajDeleteContainerId, false, 'ubButton');
                 $keyActions .= wf_AjaxContainer($ajDeleteContainerId, '', $deleteControls . $viewControls);
-
+                $keyActions .= wf_AjaxContainerSpan($viewContainerId, '');
 
                 $cells .= wf_TableCell($keyActions);
             } else {
