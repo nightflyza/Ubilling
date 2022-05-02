@@ -1924,6 +1924,7 @@ function sp_parse_division_temperature($data, $divBy = '', $units = '') {
 
         $data = trimSNMPOutput($data, '');
         $value = $data[1];
+        $value = ubRouting::filters($value, 'float');
 
         if (!empty($divBy) and is_numeric($divBy)) {
             $value = $value / $divBy;
