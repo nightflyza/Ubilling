@@ -1737,12 +1737,16 @@ function zb_NasConfigSave() {
  * @return void
  */
 function multinet_RestartDhcp() {
-    $config = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
-    $sudo = $config['SUDO'];
-    $dhcpd = $config['RC_DHCPD'];
-    $command = $sudo . ' ' . $dhcpd . ' restart';
-    shell_exec($command);
-    log_register("RESTART DHCPD");
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    if (@$altCfg['DHCP_ENABLED']) {
+        $config = $ubillingConfig->getBilling();
+        $sudo = $config['SUDO'];
+        $dhcpd = $config['RC_DHCPD'];
+        $command = $sudo . ' ' . $dhcpd . ' restart';
+        shell_exec($command);
+        log_register('RESTART DHCPD');
+    }
 }
 
 /**
