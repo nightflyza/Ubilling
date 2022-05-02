@@ -122,14 +122,32 @@ if (cfr('SYSLOAD')) {
         }
     }
 
+    $loadAvg = sys_getloadavg();
+    $laGauges = '';
+    $laOpts = '
+             max: 10,
+             min: 0,
+             width: ' . 280 . ', height: ' . 280 . ',
+             greenFrom: 0, greenTo: 2,
+             yellowFrom:2, yellowTo: 5,
+             redFrom: 5, redTo: 10,
+             minorTicks: 5';
+    $laGauges .= wf_renderGauge(round($loadAvg[0], 2), '1' . ' ' . __('minutes'), '', $laOpts, 300);
+    $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), '', $laOpts, 300);
+    $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), '', $laOpts, 300);
+    $laGauges .= wf_CleanDiv();
+
+    show_window(__('Load average'), $laGauges);
+
     $top = $globconf['TOP'];
     $top_output = wf_tag('pre') . shell_exec($top) . wf_tag('pre', true);
     $uptime = $globconf['UPTIME'];
     $uptime_output = wf_tag('pre') . shell_exec($uptime) . wf_tag('pre', true);
 
-    show_window(__('Process'), $top_output);
-    show_window(__('Uptime'), $uptime_output);
+    $miscStats = wf_modalAuto(wf_img('skins/menuicons/sysconf.png') . ' ' . __('Process'), __('Process'), $top_output, 'ubButton');
+    $miscStats .= wf_modalAuto(wf_img('skins/icon_time_small.png') . ' ' . __('Uptime'), __('Uptime'), $uptime_output, 'ubButton');
+    show_window('', $miscStats);
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

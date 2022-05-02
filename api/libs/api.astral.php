@@ -4036,6 +4036,68 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
 }
 
 /**
+ * Renders generic gauge
+ *
+ * @param float $value
+ * @param string $title
+ * @param string $units
+ * @param string $options
+ * @param int $size
+ *
+ * @return string
+ */
+function wf_renderGauge($value, $title = '', $units = '', $options = '', $size = 300) {
+    $result = '';
+    $gaugeId = wf_InputId();
+    $sizeContainer = $size;
+    $sizeContent = $sizeContainer - 20;
+
+    if (empty($options)) {
+        $options = ' max: 100,
+                     min: 0,
+                     width: ' . $sizeContent . ', height: ' . $sizeContent . ',
+                     greenFrom: 10, greenTo: 60,
+                     yellowFrom:60, yellowTo: 70,
+                     redFrom: 70, redTo: 100,
+                     minorTicks: 5';
+    }
+
+    $containerStyle = 'width: ' . $sizeContainer . 'px; height: ' . $sizeContainer . 'px; float:left; ';
+    $result .= wf_tag('div', false, '', 'style="' . $containerStyle . '"');
+    $result .= wf_tag('div', false, '', 'id="gengauge_div' . $gaugeId . '"');
+    $result .= wf_tag('div', true);
+    $result .= wf_tag('center') . wf_tag('b') . $title . wf_tag('b', true) . wf_tag('center', true);
+    $result .= wf_tag('div', true);
+
+    $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
+    $result .= wf_tag('script');
+
+    $result .= 'google.charts.load(\'current\', {\'packages\':[\'gauge\']});
+          google.charts.setOnLoadCallback(drawChart);
+
+          function drawChart() {
+
+            var data = google.visualization.arrayToDataTable([
+              [\'Label\', \'Value\'],
+              [\'' . $units . '\', ' . $value . ']
+
+            ]);
+
+            var options = {
+             ' . $options . '
+            };
+
+            var chart = new google.visualization.Gauge(document.getElementById(\'gengauge_div' . $gaugeId . '\'));
+
+            chart.draw(data, options);
+        
+          } ';
+    $result .= wf_tag('script', true);
+
+    return ($result);
+}
+
+/**
  * Returns simple pre-formatted date-or-time range picker.
  * For example - for filtering form.
  *
