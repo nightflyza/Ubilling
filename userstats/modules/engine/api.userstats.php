@@ -1003,7 +1003,7 @@ function zbs_UserShowXmlAgentData($login) {
     $reqResult[] = array('payid' => strval($paymentid));
     $reqResult[] = array('contract' => $contract);
     $reqResult[] = array('tariff' => $userdata['Tariff']);
-    $reqResult[] = array('tariffAlias' => __($userdata['Tariff']));
+    $reqResult[] = array('tariffalias' => __($userdata['Tariff']));
     $reqResult[] = array('tariffnm' => $tariffNm);
     $reqResult[] = array('traffdownload' => zbs_convert_size($traffdown));
     $reqResult[] = array('traffupload' => zbs_convert_size($traffup));
