@@ -122,31 +122,38 @@ if (cfr('SYSLOAD')) {
         }
     }
 
-    $loadAvg = sys_getloadavg();
-    $laGauges = '';
-    $laOpts = '
-             max: 10,
-             min: 0,
-             width: ' . 280 . ', height: ' . 280 . ',
-             greenFrom: 0, greenTo: 2,
-             yellowFrom:2, yellowTo: 5,
-             redFrom: 5, redTo: 10,
-             minorTicks: 5';
-    $laGauges .= wf_renderGauge(round($loadAvg[0], 2), '1' . ' ' . __('minutes'), '', $laOpts, 300);
-    $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), '', $laOpts, 300);
-    $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), '', $laOpts, 300);
-    $laGauges .= wf_CleanDiv();
+//system health here
 
-    show_window(__('Load average'), $laGauges);
+    $sysHealthControls = wf_AjaxLink('?module=report_sysload&ajsysload=health', wf_img('skins/icon_health.png') . ' ' . __('System health'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=top', wf_img('skins/icon_process.png') . ' ' . __('Process'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=uptime', wf_img('skins/icon_uptime.png') . ' ' . __('Uptime'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    $sysHealthControls .= wf_AjaxLink('?module=report_sysload&ajsysload=df', wf_img('skins/icon_disks.png') . ' ' . __('Free space'), 'reportsysloadcontainer', false, 'ubButton') . ' ';
+    show_window('', $sysHealthControls);
 
-    $top = $globconf['TOP'];
-    $top_output = wf_tag('pre') . shell_exec($top) . wf_tag('pre', true);
-    $uptime = $globconf['UPTIME'];
-    $uptime_output = wf_tag('pre') . shell_exec($uptime) . wf_tag('pre', true);
+    $defaultContainerContent = web_ReportSysloadRenderLA();
+    $defaultContainerContent.= web_ReportSysloadRenderDisksCapacity();
+    $sysLoadContainer = wf_AjaxContainer('reportsysloadcontainer', '', $defaultContainerContent);
 
-    $miscStats = wf_modalAuto(wf_img('skins/menuicons/sysconf.png') . ' ' . __('Process'), __('Process'), $top_output, 'ubButton');
-    $miscStats .= wf_modalAuto(wf_img('skins/icon_time_small.png') . ' ' . __('Uptime'), __('Uptime'), $uptime_output, 'ubButton');
-    show_window('', $miscStats);
+    if (ubRouting::checkGet('ajsysload')) {
+        $renderAjData = ubRouting::get('ajsysload');
+        switch ($renderAjData) {
+            case 'health':
+                die($defaultContainerContent);
+                break;
+            case 'top':
+                die(web_ReportSysloadRenderTop());
+                break;
+            case 'uptime':
+                die(web_ReportSysloadRenderUptime());
+                break;
+            case 'df':
+                die(web_ReportSysloadRenderDF());
+                break;
+        }
+    }
+
+
+    show_window(__('System health'), $sysLoadContainer);
 } else {
     show_error(__('You cant control this module'));
 }

@@ -3372,3 +3372,5 @@ $lang['def']['or in'] = 'или же за';
 $lang['def']['Aerial alerts'] = 'Воздушные тревоги';
 $lang['def']['Alarm now'] = 'Тревога сейчас';
 $lang['def']['Unbelievable, there are no air alarms at the moment. Does this happen at all?'] = 'Невероятно, воздушных тревог пока не происходит. Такое вообще бывает?';
+$lang['def']['Disks capacity'] = 'Емкость дисков';
+$lang['def']['Free space'] = 'Свободное место';

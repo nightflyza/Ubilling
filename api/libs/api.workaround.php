@@ -6710,3 +6710,124 @@ function web_MultigenListClients() {
 
     return ($result);
 }
+
+/**
+ * Renders current system load average stats
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderLA() {
+    $loadAvg = sys_getloadavg();
+    $laGauges = '';
+    $laGauges .= wf_tag('h3') . __('Load Average') . wf_tag('h3', true);
+    $laOpts = '
+             max: 10,
+             min: 0,
+             width: ' . 280 . ', height: ' . 280 . ',
+             greenFrom: 0, greenTo: 2,
+             yellowFrom:2, yellowTo: 5,
+             redFrom: 5, redTo: 10,
+             minorTicks: 5
+                      ';
+    $laGauges .= wf_renderGauge(round($loadAvg[0], 2), '1' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $laGauges .= wf_renderGauge(round($loadAvg[1], 2), '5' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $laGauges .= wf_renderGauge(round($loadAvg[2], 2), '15' . ' ' . __('minutes'), 'LA', $laOpts, 300);
+    $laGauges .= wf_CleanDiv();
+    return($laGauges);
+}
+
+/**
+ * Renders some free space data about free disk space
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderDisksCapacity() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $usedSpaceArr = array();
+    $mountPoints = array('/');
+    if (@$altCfg['SYSLOAD_DISKS']) {
+        $mountPoints = explode(',', $altCfg['SYSLOAD_DISKS']);
+    }
+    if (!empty($mountPoints)) {
+        foreach ($mountPoints as $io => $each) {
+            $totalSpace = disk_total_space($each);
+            $freeSpace = disk_free_space($each);
+            $usedSpaceArr[$each]['percent'] = zb_PercentValue($totalSpace, ($totalSpace - $freeSpace));
+            $usedSpaceArr[$each]['total'] = $totalSpace;
+            $usedSpaceArr[$each]['free'] = $freeSpace;
+        }
+    }
+
+    $result = '';
+    $result .= wf_tag('h3') . __('Disks capacity') . wf_tag('h3', true);
+    $opts = '
+             max: 100,
+             min: 0,
+             width: ' . 280 . ', height: ' . 280 . ',
+             greenFrom: 0, greenTo: 70,
+             yellowFrom:70, yellowTo: 90,
+             redFrom: 90, redTo: 100,
+             minorTicks: 5
+                      ';
+    if (!empty($usedSpaceArr)) {
+        foreach ($usedSpaceArr as $mountPoint => $spaceStats) {
+            $partitionLabel = $mountPoint . ' - ' . stg_convert_size($spaceStats['free']) . ' ' . __('Free');
+            $result .= wf_renderGauge(round($spaceStats['percent']), $partitionLabel, '%', $opts, 300);
+        }
+    }
+    $result .= wf_CleanDiv();
+    return($result);
+}
+
+/**
+ * Renders current system process list
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderTop() {
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $result = '';
+    if (!empty($billCfg['TOP'])) {
+        $result .= wf_tag('pre') . shell_exec($billCfg['TOP']) . wf_tag('pre', true);
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('batch top path') . ' ' . __('is empty'), 'error');
+    }
+    return($result);
+}
+
+/**
+ * Renders current system process list
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderUptime() {
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $result = '';
+    if (!empty($billCfg['UPTIME'])) {
+        $result .= wf_tag('pre') . shell_exec($billCfg['UPTIME']) . wf_tag('pre', true);
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('uptime path') . ' ' . __('is empty'), 'error');
+    }
+    return($result);
+}
+
+/**
+ * Renders current system process list
+ * 
+ * 
+ * @return string
+ */
+function web_ReportSysloadRenderDF() {
+    $result = '';
+    $result .= wf_tag('pre') . shell_exec('df -h') . wf_tag('pre', true);
+    return($result);
+}
