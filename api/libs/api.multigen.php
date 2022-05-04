@@ -1352,6 +1352,7 @@ class MultiGen {
                     $newModifier_f = ubRouting::filters($newModifier, 'mres');
                     $newAttribute = ubRouting::post('newattribute');
                     $newAttribute_f = ubRouting::filters($newAttribute, 'mres');
+                    $newAttribute_f = trim($newAttribute_f);
                     $newOperator = ubRouting::post('newoperator');
                     $newOperator_f = ubRouting::filters($newOperator, 'mres');
                     $newContent = ubRouting::post('newcontent');
@@ -1385,10 +1386,12 @@ class MultiGen {
                 if (ubRouting::checkPost(array('chscenario', 'chattribute', 'choperator', 'chmodifier'))) {
                     $attributeId = vf($_POST['chattributeid'], 3);
                     if (isset($this->nasAttributes[$attributeId])) {
+                        $chAttribute = ubRouting::post('chattribute');
+                        $chAttribute = trim($chAttribute);
                         $where = "WHERE `id`='" . $attributeId . "';";
                         simple_update_field(self::NAS_ATTRIBUTES, 'scenario', ubRouting::post('chscenario'), $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'modifier', ubRouting::post('chmodifier'), $where);
-                        simple_update_field(self::NAS_ATTRIBUTES, 'attribute', ubRouting::post('chattribute'), $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'attribute', $chAttribute, $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'operator', ubRouting::post('choperator'), $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'content', ubRouting::post('chcontent'), $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ATTRIBUTE [' . $attributeId . ']');
