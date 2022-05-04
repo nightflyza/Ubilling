@@ -4366,7 +4366,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "ё" => "e", "Ё" => "E",
             "ж" => "zh", "Ж" => "Zh",
             "з" => "z", "З" => "Z",
-            "и" => "i", "И" => "I",
+            "и" => "y", "И" => "Y",
             "й" => "y", "Й" => "Y",
             "к" => "k", "К" => "K",
             "л" => "l", "Л" => "L",
@@ -4395,6 +4395,11 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "є" => "e", "Є" => "E",
             "ґ" => "g", "Ґ" => "G"
         );
+        
+        if (curlang() == 'ru') {
+            $replace['и'] = 'i';
+            $replace['И'] = 'I';
+        }
     } else {
         $replace = array(
             "'" => "",
@@ -4408,7 +4413,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "ё" => "e", "Ё" => "e",
             "ж" => "zh", "Ж" => "zh",
             "з" => "z", "З" => "z",
-            "и" => "i", "И" => "i",
+            "и" => "y", "И" => "y",
             "й" => "y", "Й" => "y",
             "к" => "k", "К" => "k",
             "л" => "l", "Л" => "l",
@@ -4437,6 +4442,11 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "є" => "e", "Є" => "e",
             "ґ" => "g", "Ґ" => "g"
         );
+        
+         if (curlang() == 'ru') {
+            $replace['и'] = 'i';
+            $replace['И'] = 'i';
+        }
     }
     return $str = iconv("UTF-8", "UTF-8//IGNORE", strtr($string, $replace));
 }
