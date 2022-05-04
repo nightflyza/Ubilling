@@ -4941,7 +4941,9 @@ function zb_DownloadFile($filePath, $contentType = '') {
             header("Content-Transfer-Encoding: Binary");
             header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\"");
             header("Content-Description: File Transfer");
+            header("Accept-Ranges: 'bytes'");
             header("Content-Length: " . filesize($filePath));
+
 
             flush(); // this doesn't really matter.
             $fp = fopen($filePath, "r");
