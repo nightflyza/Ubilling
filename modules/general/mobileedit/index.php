@@ -21,9 +21,9 @@ if (cfr('MOBILE')) {
         $fieldnames = array('fieldname1' => __('Current mobile'), 'fieldname2' => __('New mobile'));
         $fieldkey = 'newmobile';
         if (@$altCfg['MOBILE_FILTERS_DISABLED']) {
-            $formFilters='';
+            $formFilters = '';
         } else {
-            $formFilters='mobile';
+            $formFilters = 'mobile';
         }
         $form = web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_mobile, $formFilters);
         // Edit form display        
@@ -34,21 +34,27 @@ if (cfr('MOBILE')) {
             if ($altCfg['MOBILES_EXT']) {
                 $extMobiles = new MobilesExt();
                 //new additional mobile creation
-                if (wf_CheckPost(array('newmobileextlogin', 'newmobileextnumber'))) {
-                    $extMobiles->createUserMobile($_POST['newmobileextlogin'], $_POST['newmobileextnumber'], $_POST['newmobileextnotes']);
-                    rcms_redirect($extMobiles::URL_ME . '&username=' . $login);
+                if (ubRouting::checkPost(array($extMobiles::PROUTE_NEW_LOGIN, $extMobiles::PROUTE_NEW_NUMBER))) {
+                    $newLogin = ubRouting::post($extMobiles::PROUTE_NEW_LOGIN);
+                    $newNumber = ubRouting::post($extMobiles::PROUTE_NEW_NUMBER);
+                    $newNotes = ubRouting::post($extMobiles::PROUTE_NEW_NOTES);
+                    $extMobiles->createUserMobile($newLogin, $newNumber, $newNotes);
+                    ubRouting::nav($extMobiles::URL_ME . '&' . $extMobiles::ROUTE_LOGIN . '=' . $login);
                 }
 
                 //existing additional mobile deletion
-                if (wf_CheckGet(array('deleteext'))) {
-                    $extMobiles->deleteUserMobile($_GET['deleteext']);
-                    rcms_redirect($extMobiles::URL_ME . '&username=' . $login);
+                if (ubRouting::checkGet($extMobiles::ROUTE_DELETE_ID)) {
+                    $extMobiles->deleteUserMobile(ubRouting::get($extMobiles::ROUTE_DELETE_ID));
+                    ubRouting::nav($extMobiles::URL_ME . '&' . $extMobiles::ROUTE_LOGIN . '=' . $login);
                 }
 
                 //updating existing additional mobile number
-                if (wf_CheckPost(array('editmobileextid', 'editmobileextnumber'))) {
-                    $extMobiles->updateUserMobile($_POST['editmobileextid'], $_POST['editmobileextnumber'], $_POST['editmobileextnotes']);
-                    rcms_redirect($extMobiles::URL_ME . '&username=' . $login);
+                if (ubRouting::checkPost(array($extMobiles::PROUTE_ED_ID, $extMobiles::PROUTE_ED_NUMBER))) {
+                    $updateExtId = ubRouting::post($extMobiles::PROUTE_ED_ID);
+                    $updateNumber = ubRouting::post($extMobiles::PROUTE_ED_NUMBER);
+                    $updateNotes = ubRouting::post($extMobiles::PROUTE_ED_NOTES);
+                    $extMobiles->updateUserMobile($updateExtId, $updateNumber, $updateNotes);
+                    ubRouting::nav($extMobiles::URL_ME . '&' . $extMobiles::ROUTE_LOGIN . '=' . $login);
                 }
                 $extCreateForm = $extMobiles->renderCreateForm($login);
                 $extList = $extMobiles->renderUserMobilesList($login);
