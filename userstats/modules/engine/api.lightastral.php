@@ -545,6 +545,7 @@ function la_TableBody($rows, $width = '', $border = '0', $class = '') {
  * Returns image body
  * 
  * @param string $url image url
+ * @param string $title image title
  * 
  * @return string
  */

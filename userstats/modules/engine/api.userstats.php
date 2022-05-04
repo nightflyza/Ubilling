@@ -2568,7 +2568,7 @@ function zbs_getFreezeDaysChargeData($login) {
 /**
  * Performs RemoteAPI request to preconfigured billing instance
  * 
- * @param string $requestUrl
+ * @param string $requestUrl RemoteAPI request URL for example: "&action=someaction"
  * 
  * @return string
  */
@@ -2588,4 +2588,55 @@ function zbs_remoteApiRequest($requestUrl) {
     return($result);
 }
 
-?>
+/**
+ * Renders aerial alerts notification
+ * 
+ * @global array $us_config
+ * 
+ * @return void
+ */
+function zbs_AerialAlertNotification() {
+    global $us_config;
+    $rawData = zbs_remoteApiRequest('&action=aerialalerts');
+    $skinPath = zbs_GetCurrentSkinPath($us_config);
+    $iconsPath = $skinPath . 'iconz/';
+    if (!empty($rawData)) {
+        $alertsData = @json_decode($rawData, true);
+        if (is_array($alertsData)) {
+            if (!empty($alertsData)) {
+                if (isset($alertsData['region']) AND isset($alertsData['alert']) AND isset($alertsData['changed'])) {
+                    if ($alertsData['alert']) {
+                        $alertStyle = la_tag('style');
+                        $alertStyle .= '
+                              .alert_aerial {
+                                display: block;
+                                width: 95%;
+                                margin: 20px 3% 0 3%;
+                                margin-top: 2px;
+                                -webkit-border-radius: 5px;
+                                -moz-border-radius: 5px;
+                                border-radius: 5px;
+                                background: #F5F3BA;
+                                border: 1px solid #C7A20D;
+                                color: #796616;
+                                padding: 10px 0;
+                                text-indent: 40px;
+                                font-size: 24px;
+                                } 
+                            ';
+                        $alertStyle .= la_tag('style', true);
+                        $alertText = $alertStyle;
+                        $alertText .= la_tag('div', false, 'alert_aerial');
+                        $alertText .= la_img($iconsPath . 'nuclear_bomb.png', __('Aerial alert')) . ' ' . $alertsData['region'] . ' ' . __('since') . ' ' . $alertsData['changed'];
+                        $alertText .= la_tag('div', true);
+                        show_window(__('Aerial alert') . '!', $alertText);
+                    }
+                }
+            } else {
+                show_window(__('Error'), __('Empty reply received') . ': ' . $rawData);
+            }
+        } else {
+            show_window(__('Error'), __('Wrong reply received') . ': ' . $rawData);
+        }
+    }
+}

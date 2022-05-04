@@ -73,6 +73,11 @@ if ($user_ip) {
                 show_window('', zbs_IntroLoadText());
             }
         }
+
+        //Aerial alerts notification
+        if (@$us_config['AIR_RAID_ALERT_ENABLED']) {
+            zbs_AerialAlertNotification();
+        }
         //shows user profile by default
         show_window(__('User profile'), zbs_UserShowProfile($user_login));
         // load poll form

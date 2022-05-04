@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Aerial raid notification class
+ */
 class AerialAlerts {
 
     /**
@@ -164,6 +167,31 @@ class AerialAlerts {
                 }
             }
         }
+        return($result);
+    }
+
+    /**
+     * Returns json with notification region alert state
+     * 
+     * @return string
+     */
+    public function usCallback($region = '') {
+        $tmp = array();
+        $result = '';
+        if (!empty($region)) {
+            $region = trim($region);
+            if (!empty($this->allAlerts)) {
+                if (isset($this->allAlerts['states'])) {
+                    if (isset($this->allAlerts['states'][$region])) {
+                        $tmp['region'] = $region;
+                        $tmp['alert'] = $this->allAlerts['states'][$region]['alertnow'];
+                        $tmp['changed'] = $this->allAlerts['states'][$region]['changed'];
+                        $result = json_encode($tmp);
+                    }
+                }
+            }
+        }
+
         return($result);
     }
 
