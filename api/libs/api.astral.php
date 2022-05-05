@@ -4232,7 +4232,7 @@ function wf_DatesTimesRangeFilter($inTable = true, $tableCellsOnly = false, $tab
 }
 
 /**
- * Jqeury Data tables JSON formatting class
+ * JQuery Data Tables JSON formatting class
  */
 class wf_JqDtHelper {
 
@@ -4299,5 +4299,3 @@ class wf_JqDtHelper {
     }
 
 }
-
-?>
