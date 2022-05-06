@@ -3145,13 +3145,18 @@ function zb_NumUnEncode($data) {
 function web_UserArrayShower($usersarr) {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
+    $useCacheFlag = (@$alterconf['USERLISTS_USE_CACHE']) ? true : false;
 
     if (!empty($usersarr)) {
         $totalCount = 0;
         $activeCount = 0;
         $deadCount = 0;
         $frozenCount = 0;
-        $allUserData = zb_UserGetAllDataCache();
+        if ($useCacheFlag) {
+            $allUserData = zb_UserGetAllDataCache();
+        } else {
+            $allUserData = zb_UserGetAllData();
+        }
 
         if ($alterconf['ONLINE_LAT']) {
             $allUserLat = zb_LatGetAllUsers();
@@ -3253,8 +3258,10 @@ function web_UserArrayShower($usersarr) {
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
 
-        $result .= wf_img_sized('skins/icon_stats_16.gif', '', '12') . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');
+        $totalsIcon = ($useCacheFlag) ? wf_img_sized('skins/icon_cache.png', __('From cache'), '12') : wf_img_sized('skins/icon_stats_16.gif', '', '12');
+        $result .= $totalsIcon . ' ' . __('Total') . ': ' . $totalCount . wf_tag('br');
         $result .= wf_img_sized('skins/icon_ok.gif', '', '12') . ' ' . __('Alive') . ': ' . $activeCount . wf_tag('br');
+        $result .= wf_img_sized('skins/icon_inactive.gif', '', '12') . ' ' . __('Inactive') . ': ' . $deadCount . wf_tag('br');
         $result .= wf_img_sized('skins/icon_passive.gif', '', '12') . ' ' . __('Frozen') . ': ' . $frozenCount . wf_tag('br');
         $result .= wf_tag('br');
     } else {
@@ -4395,7 +4402,7 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "є" => "e", "Є" => "E",
             "ґ" => "g", "Ґ" => "G"
         );
-        
+
         if (curlang() == 'ru') {
             $replace['и'] = 'i';
             $replace['И'] = 'I';
@@ -4442,8 +4449,8 @@ function zb_TranslitString($string, $caseSensetive = false) {
             "є" => "e", "Є" => "e",
             "ґ" => "g", "Ґ" => "g"
         );
-        
-         if (curlang() == 'ru') {
+
+        if (curlang() == 'ru') {
             $replace['и'] = 'i';
             $replace['И'] = 'i';
         }

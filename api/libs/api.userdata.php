@@ -131,19 +131,24 @@ function zb_UserGetAllDataCacheClean() {
 }
 
 /**
- * Returns cache for functionzb_UserGetAllData
- * Use this function only when not set $login
+ * Returns all users cached data from function zb_UserGetAllData
  * 
- * @param string $login existing user login
  * @return array
  */
 function zb_UserGetAllDataCache() {
-    $result = '';
+    global $ubillingConfig;
+    $result = array();
+    $cachingTimeout = 86400;
+    $optionalCachingTimeout = $ubillingConfig->getAlterParam('USERALLDATA_CACHETIME');
+    if ($optionalCachingTimeout) {
+        if (is_numeric($optionalCachingTimeout)) {
+            $cachingTimeout = $optionalCachingTimeout * 60; //option in minutes
+        }
+    }
     $cache = new UbillingCache();
-    $cacheTime = 86400;
     $result = $cache->getCallback('USER_ALL_DATA', function () {
         return (zb_UserGetAllData());
-    }, $cacheTime);
+    }, $cachingTimeout);
 
     return ($result);
 }
