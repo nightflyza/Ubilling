@@ -4287,7 +4287,7 @@ class PONizer {
                 if (!empty($oltsTemps)) {
                     $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
                     foreach ($oltsTemps as $oltTempId => $oltTempValue) {
-                        $result .= $this->renderTemperature($oltTempValue, $this->allOltDevices[$oltTempId]);
+                        $result .= wf_renderTemperature($oltTempValue, $this->allOltDevices[$oltTempId]);
                     }
                     $result .= wf_CleanDiv();
                 } else {
@@ -4353,58 +4353,6 @@ class PONizer {
             $messages = new UbillingMessageHelper();
             $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
-        return ($result);
-    }
-
-    /**
-     * Renders temperature gauge
-     *
-     * @param float $temperature
-     * @param string $title
-     *
-     * @return string
-     */
-    protected function renderTemperature($temperature, $title = '') {
-        $result = '';
-        $gaugeId = wf_InputId();
-
-        $containerStyle = 'width: 300px; height: 300px; float:left; ';
-        $result .= wf_tag('div', false, '', 'style="' . $containerStyle . '"');
-        $result .= wf_tag('div', false, '', 'id="temperature_div' . $gaugeId . '"');
-        $result .= wf_tag('div', true);
-        $result .= wf_tag('center') . wf_tag('b') . $title . wf_tag('b', true) . wf_tag('center', true);
-        $result .= wf_tag('div', true);
-
-        $result .= wf_tag('script');
-
-        $result .= 'google.charts.load(\'current\', {\'packages\':[\'gauge\']});
-          google.charts.setOnLoadCallback(drawChart);
-
-          function drawChart() {
-
-            var data = google.visualization.arrayToDataTable([
-              [\'Label\', \'Value\'],
-              [\'°C\', ' . $temperature . ']
-
-            ]);
-
-            var options = {
-              max: 100,
-              min: 0,
-              width: 280, height: 280,
-              greenFrom: 10, greenTo: 60,
-              yellowFrom:60, yellowTo: 70,
-              redFrom: 70, redTo: 100,
-              minorTicks: 5
-            };
-
-            var chart = new google.visualization.Gauge(document.getElementById(\'temperature_div' . $gaugeId . '\'));
-
-            chart.draw(data, options);
-        
-          } ';
-        $result .= wf_tag('script', true);
-
         return ($result);
     }
 
@@ -5624,8 +5572,8 @@ class PONizer {
                         $sigIndexVal = $snmpSignalOIDs['SIGVALUE'];
                     } else {
                         if ($getTxSgnal
-                            and isset($snmpMiscOIDs['ONUTXSIGNAL'])
-                            and isset($snmpMiscOIDs['ONUTXSIGNALVAL'])) {
+                                and isset($snmpMiscOIDs['ONUTXSIGNAL'])
+                                and isset($snmpMiscOIDs['ONUTXSIGNALVAL'])) {
 
                             $sigIndexOID = $snmpMiscOIDs['ONUTXSIGNAL'] . '.' . $onuDevID;
                             $sigIndexVal = $snmpMiscOIDs['ONUTXSIGNALVAL'];

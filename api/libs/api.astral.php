@@ -3988,8 +3988,6 @@ function wf_doSound($url) {
  */
 function wf_renderTemperature($temperature, $title = '', $options = '') {
     $result = '';
-    $gaugeId = wf_InputId();
-
     if (empty($options)) {
         $options = ' max: 100,
                      min: 0,
@@ -3999,39 +3997,7 @@ function wf_renderTemperature($temperature, $title = '', $options = '') {
                      redFrom: 70, redTo: 100,
                      minorTicks: 5';
     }
-
-    $containerStyle = 'width: 300px; height: 300px; float:left; ';
-    $result .= wf_tag('div', false, '', 'style="' . $containerStyle . '"');
-    $result .= wf_tag('div', false, '', 'id="temperature_div' . $gaugeId . '"');
-    $result .= wf_tag('div', true);
-    $result .= wf_tag('center') . wf_tag('b') . $title . wf_tag('b', true) . wf_tag('center', true);
-    $result .= wf_tag('div', true);
-
-    $result .= wf_tag('script', false, '', 'type="text/javascript" src="https://www.gstatic.com/charts/loader.js"') . wf_tag('script', true);
-    $result .= wf_tag('script');
-
-    $result .= 'google.charts.load(\'current\', {\'packages\':[\'gauge\']});
-          google.charts.setOnLoadCallback(drawChart);
-
-          function drawChart() {
-
-            var data = google.visualization.arrayToDataTable([
-              [\'Label\', \'Value\'],
-              [\'°C\', ' . $temperature . ']
-
-            ]);
-
-            var options = {
-             ' . $options . '
-            };
-
-            var chart = new google.visualization.Gauge(document.getElementById(\'temperature_div' . $gaugeId . '\'));
-
-            chart.draw(data, options);
-        
-          } ';
-    $result .= wf_tag('script', true);
-
+    $result = wf_renderGauge($temperature, $title, '°C', $options);
     return ($result);
 }
 
