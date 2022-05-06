@@ -6850,3 +6850,26 @@ function web_ReportSysloadRenderDF() {
     $result .= wf_tag('pre') . shell_exec('df -h') . wf_tag('pre', true);
     return($result);
 }
+
+/**
+ * Returns simple new administrator registration form
+ * 
+ * @return string
+ */
+function web_AdministratorRegForm() {
+    $result = '';
+    $inputs = '';
+    $inputs .= wf_img_sized('skins/admreganim.gif', '', '', '', 'display:block; float:right;');
+    $inputs .= wf_HiddenInput('registernewadministrator', 'true');
+    $inputs .= wf_TextInput('username', __('Username'), '', true, 20, 'alphanumeric') . wf_delimiter(0);
+    $inputs .= wf_PasswordInput('password', __('Password'), '', true, 20) . wf_delimiter(0);
+    $inputs .= wf_PasswordInput('confirmation', __('Confirm password'), '', true, 20) . wf_delimiter(0);
+    $inputs .= wf_TextInput('nickname', __('Nickname'), '', true, 20, 'alphanumeric') . wf_delimiter(0);
+    $inputs .= wf_TextInput('email', __('Email'), '', true, 20, 'email') . wf_delimiter(1);
+    $inputs .= wf_HiddenInput('userdata[hideemail]', '1');
+    $inputs .= wf_HiddenInput('userdata[tz]', '2');
+    $inputs .= wf_Submit(__('Administrators registration'));
+
+    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+    return($result);
+}
