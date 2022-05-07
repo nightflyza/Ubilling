@@ -89,7 +89,7 @@ class UbillingSMS {
      */
     public function setDirection($queueFile, $keyType, $entity, $forceDirection = '') {
         if ($this->smsRoutingFlag) {
-            if (file_exists(self::QUEUE_PATH . $queueFile)) {
+            if (!empty($queueFile) and file_exists(self::QUEUE_PATH . $queueFile)) {
                 if (empty($forceDirection)) {
                     $newDirection = $this->smsDirections->getDirection($keyType, $entity);
                 } else {
@@ -157,7 +157,6 @@ class UbillingSMS {
         }
         return ($result);
     }
-
 }
 
 ?>

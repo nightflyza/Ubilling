@@ -137,11 +137,11 @@ class OpenPayz {
      * Getting an alter.ini options
      */
     protected function loadOptions() {
-        $this->smsNotysPullInterval = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL'), 'int');
+        $this->smsNotysPullInterval = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL', 5), 'int');
         $this->smsUseExtMobiles     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
         $this->smsForceTranslit     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_FORCED_TRANSLIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
         $this->smsDebugON           = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_DEBUG_ON'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsNotysText         = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT');
+        $this->smsNotysText         = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
     }
     /**
      * Loads users address list into protected property
@@ -652,9 +652,26 @@ class OpenPayz {
         $paymentsFoundCnt   = 0;
         $tabPayments        = new NyanORM('payments');
         $tabNotifications   = new NyanORM('op_sms_notifications');
-        $pullDateTimeTill   = date('Y:m:d H:i:s', strtotime(curdatetime() . '-' . $this->smsNotysPullInterval . 'min'));
 
-        $tabPayments->where('date', '>=', $pullDateTimeTill);
+        if ($this->smsDebugON) {
+            $tabPayments->setDebug(true, true);
+            $tabNotifications->setDebug(true, true);
+        }
+
+        // trying to get timestamp of the very last pulled payment
+        // if nothing was pulled yet - current datetime used
+        $tabNotifications->selectable('MAX(date) AS max_date');
+        $pullDateTimeLast = $tabNotifications->getAll();
+
+        if (!empty($pullDateTimeLast) and isset($pullDateTimeLast[0]['max_date'])) {
+            $pullDateTimeLast = $pullDateTimeLast[0]['max_date'];
+        } else {
+            $pullDateTimeLast = curdatetime();
+        }
+
+        $pullDateTimeFrom = date('Y:m:d H:i:s', strtotime($pullDateTimeLast . '-' . $this->smsNotysPullInterval . 'min'));
+
+        $tabPayments->where('date', '>=', $pullDateTimeFrom);
         $tabPayments->where('admin', '=', 'openpayz');
         $paymentsFound = $tabPayments->getAll('id');
 
@@ -663,23 +680,31 @@ class OpenPayz {
             $tmpPaymIDs = array_keys($paymentsFound);
             $tmpPaymIDs = implode(',', $tmpPaymIDs);
 
+            if ($this->smsDebugON) {
+                log_register('OPAYZ SMS NOTIFY: found payments IDs: ' . $tmpPaymIDs);
+            }
+
             // try to select those IDs from 'op_sms_notifications'
-            $tabNotifications->whereRaw(' `id` IN (' . $tmpPaymIDs . ') ');
-            $tabNotifications->selectable(array('id'));
-            $tmpNotysFound = $tabNotifications->getAll('id');
+            $tabNotifications->whereRaw(' `payment_id` IN (' . $tmpPaymIDs . ') ');
+            $tabNotifications->selectable(array('payment_id'));
+            $tmpNotysFound = $tabNotifications->getAll('payment_id');
 
             // exclude found payments IDs
             if (!empty($tmpNotysFound)) {
-                $tmpNotysFound = array_keys($tmpNotysFound);
                 $paymentsFound = array_diff_key($paymentsFound, $tmpNotysFound);
+
+                if ($this->smsDebugON) {
+                    log_register('OPAYZ SMS NOTIFY: found payments IDs with already sent notifications: ' . print_r($tmpNotysFound, true));
+                    log_register('OPAYZ SMS NOTIFY: found payments IDs after exclusion of IDs with already sent notifications: ' . print_r($paymentsFound, true));
+                }
             }
 
             if (!empty($paymentsFound)) {
                 foreach ($paymentsFound as $eachID => $eachRec) {
                     $tmpRec = array('payment_id' => $eachID,
-                                    'date'       => curdatetime(),
+                                    'date'       => $eachRec['date'],
                                     'login'      => $eachRec['login'],
-                                    'balance'    => $eachRec['balance'],
+                                    'balance'    => $eachRec['balance'] + $eachRec['summ'],
                                     'summ'       => $eachRec['summ']
                                    );
 
@@ -690,8 +715,8 @@ class OpenPayz {
             }
         }
 
-        if (!empty($paymentsFoundCnt)) {
-            log_register('OPAYZ SMS NOTIFY: pulled ' . $paymentsFoundCnt . ' payment records, starting from: ' . $pullDateTimeTill);
+        if (!empty($paymentsFoundCnt) or $this->smsDebugON) {
+            log_register('OPAYZ SMS NOTIFY: pulled ' . $paymentsFoundCnt . ' payment records, starting from: ' . $pullDateTimeFrom);
         }
     }
 
@@ -705,8 +730,13 @@ class OpenPayz {
     public function processNotys() {
         $sentCount = 0;
         $tabNotifications = new NyanORM('op_sms_notifications');
+
+        if ($this->smsDebugON) {
+            $tabNotifications->setDebug(true, true);
+        }
+
         $tabNotifications->where('processed', '=', '0');
-        $notysToPush    = $tabNotifications->getAll('id');
+        $notysToPush = $tabNotifications->getAll('id');
 
         if (!empty($notysToPush)) {
             $ubSMS      = new UbillingSMS();
@@ -726,19 +756,23 @@ class OpenPayz {
                 }
 
                 if (isset($allPhones[$login])) {
-                    $usrMobiles = array($allPhones[$login]);
+                    $usrMobiles = array($allPhones[$login]['mobile']);
 
                     if ($this->smsUseExtMobiles) {
-                        $usrMobiles = $usrMobiles + $allPhones[$login]['mobiles'];
+                        $usrMobiles = array_merge($usrMobiles, $allPhones[$login]['mobiles']);
                     }
 
                     if (!empty($usrMobiles)) {
+                        if ($this->smsDebugON) {
+                            log_register('OPAYZ SMS NOTIFY: found cell numbers: ' . implode(',', $usrMobiles) . ' for user (' . $login . ')');
+                        }
+
                         $msgText = $this->smsNotysText;
                         $msgText = str_ireplace('{ROUNDBALANCE}', round($eachRec['balance'], 2), $msgText);
                         $msgText = str_ireplace('{ROUNDPAYMENTAMOUNT}', round($eachRec['summ'], 2), $msgText);
 
                         foreach ($usrMobiles as $mobile) {
-                            $mobile = trim($mobile);
+                            $mobile = zb_CleanMobileNumber($mobile);
                             $queueFile = $ubSMS->sendSMS($mobile, $msgText, $this->smsForceTranslit, 'OPENPAYZ');
                             $ubSMS->setDirection($queueFile, 'user_login', $login);
 
@@ -764,7 +798,9 @@ class OpenPayz {
             }
         }
 
-        log_register('OPAYZ SMS NOTIFY: sent ' . $sentCount . ' messages');
+        if ($sentCount > 0 or $this->smsDebugON) {
+            log_register('OPAYZ SMS NOTIFY: sent ' . $sentCount . ' messages');
+        }
     }
 }
 
