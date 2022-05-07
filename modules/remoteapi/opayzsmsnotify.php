@@ -5,9 +5,15 @@ if (ubRouting::get('action') == 'opazysmsnotify') {
 
     if ($ubillingConfig->getAlterParam('OP_SMS_NOTIFY_ENABLED')) {
         if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
-            $OpenPayz = new OpenPayz();
-            $OpenPayz->pullNotysPayments();
-            $OpenPayz->processNotys();
+            $openpayz = new OpenPayz();
+            $openpayz->pullNotysPayments();
+            $openpayz->processNotys();
+
+            die('OPAZYSMSNOTIFY: FINISHED PROCESSING');
+        } else {
+            die('OPAZYSMSNOTIFY ERROR: SENDDOG IS DISABLED');
         }
+    } else {
+        die('OPAZYSMSNOTIFY ERROR: OPENPAZY SMS NOTIFICATION IS DISABLED');
     }
 }

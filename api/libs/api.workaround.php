@@ -6679,6 +6679,27 @@ function zb_split_mb($string, $length = 1) {
 }
 
 /**
+ * Tries to re-format incorrectly inputted cell number to bring it to the correct form
+ *
+ * @param $number
+ *
+ * @return bool|mixed|string
+ */
+function zb_CleanMobileNumber($number) {
+    if (!empty($number)) {
+        global $ubillingConfig;
+        $prefix = $ubillingConfig->getAlterParam('REMINDER_PREFIX', '');
+
+        $number = trim($number);
+        $number = ubRouting::filters($number, 'int');
+        $number = SendDog::cutInternationalsFromPhoneNum($number);
+        $number = $prefix . $number;
+    }
+
+    return ($number);
+}
+
+/**
  * Returns list of available free Juniper NASes
  * 
  * @return string
