@@ -516,27 +516,6 @@ if (cfr('PERMISSIONS')) {
         show_window(__('Rights for') . ' ' . $login, $permission_forms);
     }
 
-    /**
-     * Shows administrator editing form
-     *
-     * @param string $login
-     */
-    function web_admineditform($login) {
-        $userdata = load_user_info($login);
-        $frm = new InputForm('', 'post', __('Submit'));
-        $frm->hidden('username', $userdata['username']);
-        $frm->hidden('save', '1');
-        $frm->addrow(__('Username'), $userdata['username']);
-        $frm->addrow(__('New password') . '<br><small>' . __('if you do not want change password you must leave this field empty'), $frm->text_box('password', ''));
-        $frm->addrow(__('Confirm password'), $frm->text_box('confirmation', ''));
-        $frm->addrow(__('Nickname'), $frm->text_box('nickname', $userdata['nickname']));
-        $frm->addrow(__('E-mail'), $frm->text_box('email', $userdata['email']));
-        $frm->addrow(__('Hide e-mail from other users'), $frm->checkbox('userdata[hideemail]', '1', '', ((!isset($userdata['hideemail'])) ? true : ($userdata['hideemail']) ? true : false)));
-        $frm->addrow(__('Time zone'), user_tz_select($userdata['tz'], 'userdata[tz]'));
-
-        show_window(__('Edit') . ' ' . $login, $frm->show(true));
-    }
-
     //if someone editing administrator permissions
     if (isset($_GET['edit'])) {
         $editname = vf($_GET['edit']);
@@ -560,14 +539,29 @@ if (cfr('PERMISSIONS')) {
         rcms_redirect("?module=permissions");
     }
 
-    //if editing admins password
-    if (isset($_GET['passwd'])) {
-        if (!empty($_POST['username']) && !empty($_POST['save'])) {
-            $system->updateUser($_POST['username'], $_POST['nickname'], $_POST['password'], $_POST['confirmation'], $_POST['email'], $_POST['userdata'], true);
-            log_register("CHANGE AdminAccountData {" . $_POST['username'] . "}");
-            rcms_redirect("?module=permissions");
+    //editing admins password or other data
+    if (ubRouting::checkGet('passwd')) {
+        $edAdmLogin = ubRouting::get('passwd');
+        if (ubRouting::checkPost(array('save', 'username'))) {
+            $updUsername = ubRouting::post('username');
+            $updNickname = ubRouting::post('nickname');
+            $updPassword = ubRouting::post('password');
+            $updConfirmation = ubRouting::post('confirmation');
+            $updEmail = ubRouting::post('email');
+            $updUserData = ubRouting::post('userdata');
+
+            $updateResult = $system->updateUser($updUsername, $updNickname, $updPassword, $updConfirmation, $updEmail, $updUserData, true);
+            if ($updateResult) {
+                log_register('CHANGE AdminAccountData {' . $updUsername . '} SUCCESS');
+                rcms_redirect("?module=permissions&passwd=" . $edAdmLogin);
+            } else {
+                log_register('CHANGE AdminAccountData {' . $updUsername . '} FAIL');
+                show_error($system->results['profileupdate']);
+            }
         }
-        web_admineditform($_GET['passwd']);
+
+        show_window('', wf_BackLink('?module=permissions'));
+        show_window(__('Edit') . ': ' . $edAdmLogin, web_AdministratorEditForm($edAdmLogin));
     }
 
     //if cloning some rights
@@ -589,13 +583,16 @@ if (cfr('PERMISSIONS')) {
         }
     }
 
-    show_window(__('Admins'), web_list_admins());
+    if (!ubRouting::checkGet('passwd') AND ! ubRouting::checkGet('edit')) {
+        //list of existing administrators
+        show_window(__('Admins'), web_list_admins());
 
-    $primaryControls = '';
-    $primaryControls .= wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
-    $primaryControls .= wf_Link('?module=admstats', web_icon_charts() . ' ' . __('Administrators timeline'), false, 'ubButton');
-    show_window('', $primaryControls);
+        //other module controls
+        $primaryControls = wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), false, 'ubButton');
+        $primaryControls .= wf_Link('?module=admstats', web_icon_charts() . ' ' . __('Administrators timeline'), false, 'ubButton');
+        show_window('', $primaryControls);
+    }
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

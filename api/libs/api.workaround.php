@@ -6870,6 +6870,41 @@ function web_AdministratorRegForm() {
     $inputs .= wf_HiddenInput('userdata[tz]', '2');
     $inputs .= wf_Submit(__('Administrators registration'));
 
-    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+    $result .= wf_Form('', 'POST', $inputs, 'floatpanels');
+    return($result);
+}
+
+/**
+ * Returns simple existing administrator editing form
+ * 
+ * @param string $adminLogin, 256
+ * 
+ * @return string
+ */
+function web_AdministratorEditForm($adminLogin) {
+    $result = '';
+    $userdata = load_user_info($adminLogin);
+    if (!empty($userdata)) {
+        $inputs = '';
+        $avatarImage = gravatar_ShowAdminAvatar($adminLogin, 128);
+        $inputs .= wf_tag('div', false, '', 'style="display:block; float:right;"') . $avatarImage . wf_tag('div', true);
+        $inputs .= wf_HiddenInput('save', '1');
+        $inputs .= wf_HiddenInput('username', $userdata['username']);
+        $passLabel = wf_tag('small') . __('if you do not want change password you must leave this field empty') . wf_tag('small', true);
+        $inputs .= wf_PasswordInput('password', __('New password'), '', true, 20);
+        $inputs .= $passLabel . wf_delimiter(0);
+        $inputs .= wf_PasswordInput('confirmation', __('Confirm password'), '', true, 20) . wf_delimiter(0);
+        $inputs .= wf_TextInput('nickname', __('Nickname'), $userdata['nickname'], true, 20, 'alphanumeric') . wf_delimiter(0);
+        $inputs .= wf_TextInput('email', __('Email'), $userdata['email'], true, 20, 'email') . wf_delimiter(1);
+        $inputs .= wf_HiddenInput('userdata[hideemail]', '1');
+        $inputs .= wf_HiddenInput('userdata[tz]', '2');
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $inputs, 'floatpanels');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('User') . ' ' . $adminLogin, 256 . ' ' . __('Not exists'), 'error');
+    }
+
+
     return($result);
 }
