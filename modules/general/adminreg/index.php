@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('STGNEWADMIN')) {
+if (cfr('PERMISSIONS')) {
 
     if (!ubRouting::checkPost('registernewadministrator')) {
         show_window('', wf_BackLink('?module=permissions'));

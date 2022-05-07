@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('ROOT')) {
+if (cfr('PERMISSIONS')) {
 
     /**
      * Renders administrators activity time report

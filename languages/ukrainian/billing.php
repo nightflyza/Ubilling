@@ -3395,6 +3395,7 @@ $lang['def']['Alarm now'] = 'Тревога зараз';
 $lang['def']['Unbelievable, there are no air alarms at the moment. Does this happen at all?'] = 'Неймовірно, повітряних тривог наразі не відбувається. Таке взагалі буває?';
 $lang['def']['Disks capacity'] = 'Ємність дисків';
 $lang['def']['Free space'] = 'Вільний простір';
+$lang['def']['right to manage administrators accounts'] = 'Право керувати обліковими записами адміністраторів';
 $lang['def'][''] = '';
 
 
