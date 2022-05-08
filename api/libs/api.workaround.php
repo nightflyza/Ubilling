@@ -6686,7 +6686,7 @@ function zb_split_mb($string, $length = 1) {
  * @return bool|mixed|string
  */
 function zb_CleanMobileNumber($number) {
-    if (!empty($number)) {
+    if (!empty($number) and substr(trim($number), 0, 1) != '+') {
         global $ubillingConfig;
         $prefix = $ubillingConfig->getAlterParam('REMINDER_PREFIX', '');
 
