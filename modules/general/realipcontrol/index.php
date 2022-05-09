@@ -171,7 +171,7 @@ if (cfr('REALIPCONTROL')) {
                                 $tariffPrice = $this->allTrariffPrices[$userTariff];
                                 //Tariff isnt free
                                 if ($tariffPrice > 0) {
-                                    $maxDebt = '-' . ($this->debtLimit * $tariffPrice);
+                                    $maxDebt = ($this->debtLimit * $tariffPrice);
                                     $curMoneyLimit = $each['Cash'] + $each['Credit'];
                                     if ($curMoneyLimit <= $maxDebt) {
                                         if ($each['U0'] == 0) {
