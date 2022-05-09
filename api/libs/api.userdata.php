@@ -888,27 +888,6 @@ function zb_UserResurrect($login) {
 }
 
 /**
- * Gets user's login by phone number. To avoid mismatch - the whole phone number should be passed as a parameter.
- * If only a part of the number passed as parameter - multiple queue results possible, but only the very first one will be returned.
- *
- * DEPRECATED yet from birth. USE api.telepathy functions instead, like getByPhoneFast()
- *
- * @param $Phone
- *
- * @return string
- */
-function zb_getUserLoginByPhone($Phone) {
-    $tQuery = "SELECT `login` FROM ( (SELECT `phones`.`login`, `phones`.`mobile` FROM `phones`)  
-                                      UNION (SELECT `phones`.`login`, `phones`.`phone` FROM `phones`) 
-                                      UNION (SELECT `mobileext`.`login`, `mobileext`.`mobile` FROM `mobileext`)
-                                   ) AS `allphones` WHERE `allphones`.`mobile` LIKE '%" . $Phone . "%';";
-
-    $LoginData = simple_queryall($tQuery);
-
-    return ( (isset($LoginData[0]['login'])) ? $LoginData[0]['login'] : '');
-}
-
-/**
  * Returns all users phones data from cache
  *
  * @return string
