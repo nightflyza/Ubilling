@@ -845,10 +845,24 @@ class Salary {
                     $defaultEmployeeSelected = '';
                 }
 
+                if (@$this->altCfg['SALARY_JOBTYPE_PRESET']) {
+                    if (empty($taskData)) {
+                        $taskData = ts_GetTaskData($taskid);
+                    }
+                    $taskJobtypeId = @$taskData['jobtype'];
+                    if (isset($jobtypes[$taskJobtypeId])) {
+                        $defaultJobtypeSelected = $taskJobtypeId;
+                    } else {
+                        $defaultJobtypeSelected = '';
+                    }
+                } else {
+                    $defaultJobtypeSelected = '';
+                }
+
                 $inputs = zb_JSHider();
                 $inputs .= wf_HiddenInput('newsalarytaskid', $taskid);
                 $inputs .= wf_Selector('newsalaryemployeeid', $employeeTmp, __('Worker'), $defaultEmployeeSelected, true);
-                $inputs .= wf_Selector('newsalaryjobtypeid', $jobtypes, __('Job type'), '', true);
+                $inputs .= wf_Selector('newsalaryjobtypeid', $jobtypes, __('Job type'), $defaultJobtypeSelected, true);
                 $inputs .= wf_TextInput('newsalaryfactor', __('Factor'), $this->defaultFactor, true, 4);
                 $inputs .= wf_tag('input', false, '', 'type="checkbox" id="overpricebox" name="overpricebox" onclick="showhide(\'overpricecontainer\');" ');
                 $inputs .= wf_tag('label', false, '', 'for="overpricebox"') . __('Price override') . wf_tag('label', true);
