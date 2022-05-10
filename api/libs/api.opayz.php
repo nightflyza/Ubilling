@@ -689,7 +689,7 @@ class OpenPayz {
         $tabNotifications->selectable('MAX(date) AS max_date');
         $pullDateTimeLast = $tabNotifications->getAll();
 
-        if (!empty($pullDateTimeLast) and isset($pullDateTimeLast[0]['max_date'])) {
+        if (!empty($pullDateTimeLast[0]['max_date'])) {
             $pullDateTimeLast = $pullDateTimeLast[0]['max_date'];
         } else {
             $pullDateTimeLast = curdatetime();
