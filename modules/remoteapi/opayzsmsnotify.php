@@ -1,6 +1,6 @@
 <?php
 
-if (ubRouting::get('action') == 'opazysmsnotify') {
+if (ubRouting::get('action') == 'opayzsmsnotify') {
     global $ubillingConfig;
 
     if ($ubillingConfig->getAlterParam('OP_SMS_NOTIFY_ENABLED')) {
