@@ -75,6 +75,21 @@ if (cfr('REALIPCONTROL')) {
 
         protected function loadTariffPrices() {
             $this->allTrariffPrices = zb_TariffGetPricesAll();
+            if (!empty($this->allTrariffPrices)) {
+                $tariffPeriods = zb_TariffGetPeriodsAll();
+                foreach ($this->allTrariffPrices as $tariffName => $tariffFee) {
+                    if (isset($tariffPeriods[$tariffName])) {
+                        $tariffPeriod = $tariffPeriods[$tariffName];
+                        if ($tariffPeriod == 'day') {
+                            // I'm too lazy to think, so we'll have like 30 days in a month. 
+                            // And I don't care if you think otherwise.
+                            $tariffMontlyFee = $tariffFee * 30;
+                            // Yeah.. now we just updating tariff fees property with approximate monthly fee
+                            $this->allTrariffPrices[$tariffName] = $tariffMontlyFee;
+                        }
+                    }
+                }
+            }
         }
 
         /**
