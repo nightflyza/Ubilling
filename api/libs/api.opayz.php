@@ -97,6 +97,26 @@ class OpenPayz {
     protected $smsNotysText = '';
 
     /**
+     * Placeholder for OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID alter.ini option
+     *
+     * @var bool
+     */
+    protected $smsRespectReminderTagID = false;
+
+    /**
+     * Placeholder for REMINDER_TAGID alter.ini option
+     *
+     * @var int
+     */
+    protected $smsReminderTagID = 0;
+
+    /**
+     * All users tags to use if $smsRespectReminderTagID is true
+     *
+     * @var array
+     */
+    protected $allUsersTags = array();
+    /**
      * Transactions list ajax callback URL
      */
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
@@ -119,6 +139,10 @@ class OpenPayz {
         $this->loadOptions();
         $this->initMessages();
         $this->loadPaySys();
+
+        if ($this->smsRespectReminderTagID) {
+            $this->allUsersTags = zb_UserGetAllTags();
+        }
     }
 
     /**
@@ -137,11 +161,13 @@ class OpenPayz {
      * Getting an alter.ini options
      */
     protected function loadOptions() {
-        $this->smsNotysPullInterval = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL', 5), 'int');
-        $this->smsUseExtMobiles     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsForceTranslit     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_FORCED_TRANSLIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsDebugON           = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_DEBUG_ON'), 'fi', FILTER_VALIDATE_BOOLEAN);
-        $this->smsNotysText         = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
+        $this->smsNotysPullInterval     = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_PAYMENTS_PULL_INTERVAL', 5), 'int');
+        $this->smsUseExtMobiles         = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_USE_EXTMOBILES'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsForceTranslit         = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_FORCED_TRANSLIT'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsDebugON               = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_DEBUG_ON'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsNotysText             = $this->ubConfig->getAlterParam('OP_SMS_NOTIFY_TEXT', '');
+        $this->smsRespectReminderTagID  = ubRouting::filters($this->ubConfig->getAlterParam('OP_SMS_NOTIFY_RESPECT_REMINDER_TAGID'), 'fi', FILTER_VALIDATE_BOOLEAN);
+        $this->smsReminderTagID         = ubRouting::filters($this->ubConfig->getAlterParam('REMINDER_TAGID', 0), 'int');
     }
     /**
      * Loads users address list into protected property
@@ -701,9 +727,23 @@ class OpenPayz {
 
             if (!empty($paymentsFound)) {
                 foreach ($paymentsFound as $eachID => $eachRec) {
+                    $tmpLogin = $eachRec['login'];
+
+                    // check logins for REMINDER_TAGID presence if $this->smsRespectReminderTagID is true
+                    if ($this->smsRespectReminderTagID and !empty($this->allUsersTags)) {
+                        // skip this payment if login doesn't have REMINDER_TAGID assigned
+                        if (empty($this->allUsersTags[$tmpLogin][$this->smsReminderTagID])) {
+                            if ($this->smsDebugON) {
+                                log_register('OPAYZ SMS NOTIFY: skipping payment with ID: '. $eachID . ' for login: (' . $tmpLogin . ') as it doesn\'t have REMINDER_TAGID [' . $this->smsReminderTagID . '] assigned');
+                            }
+
+                            continue;
+                        }
+                    }
+
                     $tmpRec = array('payment_id' => $eachID,
                                     'date'       => $eachRec['date'],
-                                    'login'      => $eachRec['login'],
+                                    'login'      => $tmpLogin,
                                     'balance'    => $eachRec['balance'] + $eachRec['summ'],
                                     'summ'       => $eachRec['summ']
                                    );
