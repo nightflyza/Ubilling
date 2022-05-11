@@ -688,7 +688,7 @@ class OnuRegister {
      */
     protected function loadCardSelector($swid) {
         $this->cardSelector['======'] = '======';
-        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if (isset($this->allZteOlt[$eachCard['swid']])) {
                     $this->cardSelector[$eachCard['slot_number']] = $this->allZteOlt[$eachCard['swid']]['ip'];
@@ -755,7 +755,7 @@ class OnuRegister {
      */
     protected function loadCards() {
         $cards = array();
-        if (isset($this->allCards[$this->currentOltSwId]) AND!empty($this->allCards[$this->currentOltSwId])) {
+        if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
             foreach ($this->allCards[$this->currentOltSwId] as $eachId => $eachCard) {
                 if ($this->currentPonType == 'EPON') {
                     if (isset($this->eponCards[$eachCard['card_name']])) {
@@ -789,23 +789,23 @@ class OnuRegister {
             $this->ponArray = array();
             $this->onuArray = array();
             if (isset($this->allZteOlt[$this->currentOltSwId])) {
-                    $inherit = @$this->avidity['Z']['LSD'];
-                    foreach ($cards as $index => $value) {
-                        if ($value['description'] == 'GVGH' or $value['description'] == 'GFGL') {
-                            $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
-                            if (!empty($oltInterface)) {
-                                foreach ($oltInterface as $eachOid => $name) {
-                                    $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
-                                    $name = str_replace('STRING:', '', $name);
-                                    $name = str_replace('"', '', $name);
-                                    $name = trim($name);
-                                    $this->ponArray[$name] = $interfaceId;
-                                }
+                $inherit = @$this->avidity['Z']['LSD'];
+                foreach ($cards as $index => $value) {
+                    if ($value['description'] == 'GVGH' or $value['description'] == 'GFGL') {
+                        $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
+                        if (!empty($oltInterface)) {
+                            foreach ($oltInterface as $eachOid => $name) {
+                                $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
+                                $name = str_replace('STRING:', '', $name);
+                                $name = str_replace('"', '', $name);
+                                $name = trim($name);
+                                $this->ponArray[$name] = $interfaceId;
                             }
-                        } else {
-                            eval($inherit);
                         }
+                    } else {
+                        eval($inherit);
                     }
+                }
             }
             if (isset($this->allHuaweiOlt[$this->currentOltSwId])) {
                 $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
@@ -912,7 +912,7 @@ class OnuRegister {
 
         if (!empty($this->allOnu)) {
             while (!$check) {
-                $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+                $mac = zb_MacGetRandom();
                 $check = true;
                 foreach ($this->allOnu as $io => $each) {
                     if ($each['mac'] == $mac) {
@@ -922,7 +922,7 @@ class OnuRegister {
                 }
             }
         } else {
-            $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+            $mac = zb_MacGetRandom();
         }
 
         return ($mac);
@@ -985,7 +985,7 @@ class OnuRegister {
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
 
-                    if (isset($this->allCards[$this->currentOltSwId]) AND!empty($this->allCards[$this->currentOltSwId])) {
+                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentPonType == 'EPON') {
                             $this->getAllUnauthEpon();
                         }
@@ -1013,7 +1013,7 @@ class OnuRegister {
                     $this->currentSnmpCommunity = $eachOlt['snmp'];
                     $this->loadCalculatedData();
 
-                    if (isset($this->allCards[$this->currentOltSwId]) AND!empty($this->allCards[$this->currentOltSwId])) {
+                    if (isset($this->allCards[$this->currentOltSwId]) AND ! empty($this->allCards[$this->currentOltSwId])) {
                         if ($this->currentPonType == 'EPON') {
                             $this->getAllUnauthEpon();
                         }
@@ -1087,7 +1087,7 @@ class OnuRegister {
     protected function getAllUnauthGponHuawei() {
         $allUnreg = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['UNCFGSN']);
         $oltInterface = @snmp2_real_walk($this->currentOltIp, $this->currentSnmpCommunity, $this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME']);
-        if (!empty($allUnreg) and!empty($oltInterface)) {
+        if (!empty($allUnreg) and ! empty($oltInterface)) {
             foreach ($oltInterface as $eachOid => $name) {
                 $interfaceId = trim(str_replace($this->currentSnmpTemplate[self::SNMP_TEMPLATE_SECTION]['INTERFACENAME'] . '.', '', $eachOid));
                 $name = str_replace('STRING:', '', $name);
@@ -1523,7 +1523,7 @@ class OnuRegister {
                 $command .= 'zte/';
                 if ($this->currentPonVersion == 2) {
                     $command .= 'v2/';
-                 } elseif ($this->currentPonVersion == "C6XX") {
+                } elseif ($this->currentPonVersion == "C6XX") {
                     $command .= 'C6XX/';
                 } else {
                     $command .= 'v1.2.5/';
@@ -1551,7 +1551,7 @@ class OnuRegister {
      * @return boolean
      */
     public function createZteCard($swid, $chasis, $slot, $card) {
-        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $eachNumber => $eachCard) {
                 if ($eachCard['slot_number'] == $slot) {
                     rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
@@ -1777,7 +1777,7 @@ class OnuRegister {
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
 
-        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $each => $eachCard) {
                 $tablecells = wf_TableCell($eachCard['id']);
                 $tablecells .= wf_TableCell($eachCard['chasis_number']);
@@ -1871,7 +1871,7 @@ class OnuRegister {
         $exclude = array();
         $result = '';
 
-        if (isset($this->allCards[$swid]) AND!empty($this->allCards[$swid])) {
+        if (isset($this->allCards[$swid]) AND ! empty($this->allCards[$swid])) {
             foreach ($this->allCards[$swid] as $each) {
                 $search[$each['slot_number']] = $each['card_name'];
             }
