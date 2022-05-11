@@ -2,15 +2,15 @@
 
 if (cfr('MAC')) {
 
-    $altercfg = $ubillingConfig->getAlter();
-    $newmac_report = $altercfg['NMREP_INMACCHG'];
-    $newmacselector = $altercfg['SIMPLENEWMACSELECTOR'];
+    $altCfg = $ubillingConfig->getAlter();
+    $newMacReportFlag = $altCfg['NMREP_INMACCHG'];
+    $simpleSelectorFlag = $altCfg['SIMPLENEWMACSELECTOR'];
 
-    if (isset($_GET['username'])) {
-        $login = vf($_GET['username']);
-        // change mac if need
-        if (isset($_POST['newmac'])) {
-            $mac = trim($_POST['newmac']);
+    if (ubRouting::checkGet('username')) {
+        $login = ubRouting::get('username', 'callback', 'vf');
+        // change mac if form data captured
+        if (ubRouting::checkPost('newmac')) {
+            $mac = trim(ubRouting::post('newmac'));
             $allUsedMacs = zb_getAllUsedMac();
             //check mac for free
             if (zb_checkMacFree($mac, $allUsedMacs)) {
@@ -21,15 +21,15 @@ if (cfr('MAC')) {
                     $userData = zb_UserGetAllData($login);
                     $userData = $userData[$login];
                     multinet_change_mac($ip, $mac);
-                    if ($altercfg['MULTIGEN_ENABLED']) {
+                    if ($altCfg['MULTIGEN_ENABLED']) {
                         $newUserData = $userData;
                         $newUserData['mac'] = strtolower($mac);
                         $mlg = new MultiGen();
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
+                        if ($altCfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
                             $mlg->podOnExternalEvent($login, $userData, $newUserData);
                             $mlg->podOnExternalEvent($login, $newUserData);
                         }
-                        if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
+                        if ($altCfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 1) {
                             $mlg->podOnExternalEvent($login, $newUserData);
                         }
                     }
@@ -39,11 +39,11 @@ if (cfr('MAC')) {
                     $billing->resetuser($login);
                     log_register("RESET User (" . $login . ")");
                     //ressurect user if required
-                    if (@$altercfg['RESETHARD']) {
+                    if (@$altCfg['RESETHARD']) {
                         zb_UserResurrect($login);
                     }
-                    if (isset($altercfg['MACCHGDOUBLEKILL'])) {
-                        if ($altercfg['MACCHGDOUBLEKILL']) {
+                    if (isset($altCfg['MACCHGDOUBLEKILL'])) {
+                        if ($altCfg['MACCHGDOUBLEKILL']) {
                             $billing->resetuser($login);
                             log_register("RESET User (" . $login . ") DOUBLEKILL");
                         }
@@ -62,34 +62,32 @@ if (cfr('MAC')) {
             }
         }
 
-        $userip = zb_UserGetIP($login);
-        $current_mac = zb_MultinetGetMAC($userip);
-        $useraddress = zb_UserGetFullAddress($login) . ' (' . $login . ')';
+        $userIp = zb_UserGetIP($login);
+        if (!empty($userIp)) {
+            $current_mac = zb_MultinetGetMAC($userIp);
+            $useraddress = zb_UserGetFullAddress($login) . ' (' . $login . ')';
+            $useSelectorInput = (($simpleSelectorFlag) AND ( !ubRouting::checkGet('oldform'))) ? false : true;
+            $form = web_MacEditForm($useraddress, $useSelectorInput, $current_mac);
 
+            if ($simpleSelectorFlag) {
+                $form .= wf_Link('?module=macedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Simple MAC selector'), false, 'ubButton');
+                $form .= wf_Link('?module=macedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Manual MAC input'), false, 'ubButton');
+            }
+            $form .= wf_delimiter();
 
-// Edit form construct
-        $fieldnames = array('fieldname1' => __('Current MAC'), 'fieldname2' => __('New MAC'));
-        $fieldkey = 'newmac';
-        if (($newmacselector) AND ( !isset($_GET['oldform']))) {
-            // new mac selector
-            $form = web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress, $current_mac);
+            if ($newMacReportFlag) {
+                $form .= wf_tag('h2') . __('Unknown MAC address') . wf_tag('h2', true) . zb_NewMacShow();
+            }
+            $form .= web_UserControls($login);
+
+            show_window(__('Edit MAC'), $form);
         } else {
-            // old school mac input
-            $form = web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $current_mac);
+            show_error(__('Something went wrong') . ': ' . __('User not exists'));
         }
-
-        $form .= wf_Link('?module=macedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Simple MAC selector'), false, 'ubButton');
-        $form .= wf_Link('?module=macedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Manual MAC input'), false, 'ubButton');
-        $form .= wf_delimiter();
-
-        if ($newmac_report) {
-            $form .= wf_tag('h2') . __('Unknown MAC address') . wf_tag('h2', true) . zb_NewMacShow();
-        }
-        $form .= web_UserControls($login);
-
-        show_window(__('Edit MAC'), $form);
+    } else {
+        show_error(__('Something went wrong') . ': ' . __('Empty login'));
     }
 } else {
     show_error(__('You cant control this module'));
 }
-?>
+

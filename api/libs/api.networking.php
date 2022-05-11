@@ -1994,6 +1994,7 @@ function zb_NewMacShow() {
     $rawdata = shell_exec($command);
     $allusedMacs = zb_getAllUsedMac();
     $result = '';
+    $unknownMacCount = 0;
 
 //fdb cache preprocessing  
     $fdbData_raw = rcms_scandir('./exports/', '*_fdb');
@@ -2055,12 +2056,18 @@ function zb_NewMacShow() {
                         $cells .= wf_TableCell($lookupVendorLink, '350');
                     }
                     $rows .= wf_TableRow($cells, 'row3');
+                    $unknownMacCount++;
                 }
             }
         }
     }
-
-    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    if ($unknownMacCount > 0) {
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'info');
+        $result .= wf_delimiter();
+    }
 
 
     return($result);
@@ -2609,4 +2616,12 @@ function ipcidrToStartEndIP($ipcidr, $excludeNetworkAddr = false, $excludeBroadc
     return ($range);
 }
 
-?>
+/**
+ * Just returns random-generated MAC
+ * 
+ * @return string
+ */
+function zb_MacGetRandom() {
+    $result = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+    return($result);
+}

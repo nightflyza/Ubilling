@@ -283,78 +283,6 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
 }
 
 /**
- * Returns MAC address changing form - manual input
- * 
- * @param array $fieldnames
- * @param string $fieldkey
- * @param string $useraddress
- * @param string $olddata
- * @return string
- */
-function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $olddata = '') {
-    global $ubillingConfig;
-    $field1 = $fieldnames['fieldname1'];
-    $field2 = $fieldnames['fieldname2'];
-    $altconf = $ubillingConfig->getAlter();
-//mac vendor search
-    if ($altconf['MACVEN_ENABLED']) {
-        $optionState = $altconf['MACVEN_ENABLED'];
-        switch ($optionState) {
-            case 1:
-                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $olddata . '&username=';
-                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                break;
-            case 2:
-                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
-                $vendorframe .= wf_tag('iframe', true);
-                $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
-                break;
-            case 3:
-                $lookupUrl = '?module=macvendor&raw=true&mac=' . $olddata;
-                $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
-                $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
-                break;
-        }
-    } else {
-        $lookuplink = '';
-    }
-
-
-    if ($altconf['MACCHANGERANDOMDEFAULT']) {
-// funny random mac, yeah? :)
-        $randommac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
-        if (zb_mac_unique($randommac)) {
-            $newvalue = $randommac;
-        } else {
-            show_error('Oops');
-            $newvalue = '';
-        }
-    } else {
-        $newvalue = '';
-    }
-
-
-    $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells .= wf_TableCell($useraddress, '', 'row3');
-    $rows = wf_TableRow($cells);
-    $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
-    $cells .= wf_TableCell($olddata, '', 'row3');
-    $rows .= wf_TableRow($cells);
-    $cells = wf_TableCell($field2, '', 'row2');
-    $cells .= wf_TableCell(wf_TextInput($fieldkey, '', $newvalue, false, ''), '', 'row3');
-    $rows .= wf_TableRow($cells);
-    $table = wf_TableBody($rows, '100%', 0);
-
-    $inputs = $table;
-    $inputs .= wf_Submit(__('Change'));
-    $inputs .= wf_delimiter();
-    $form = wf_Form("", 'POST', $inputs, '');
-
-    return($form);
-}
-
-/**
  * Returns simple MAC address selector
  * 
  * @global object $ubillingConfig
@@ -413,63 +341,85 @@ function zb_NewMacSelect($name = 'newmac') {
     return($result);
 }
 
+
+
 /**
- * Returns MAC editing form with default select box
+ * Renders user MAC editing form
  * 
- * @param array  $fieldnames
- * @param string $fieldkey (deprecated?)
- * @param string $useraddress
- * @param string $olddata
- * @return string
+ * @global object $ubillingConfig
+ * @param string $userAddress
+ * @param bool $manualInput
+ * @param string $currentMac
+ * 
+ * @return string 
  */
-function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress, $olddata = '') {
-    $field1 = $fieldnames['fieldname1'];
-    $field2 = $fieldnames['fieldname2'];
-//mac vendor search
+function web_MacEditForm($userAddress = '', $manualInput = false, $currentMac = '') {
     global $ubillingConfig;
-    $alterconf = $ubillingConfig->getAlter();
-    if ($alterconf['MACVEN_ENABLED']) {
-        $optionState = $alterconf['MACVEN_ENABLED'];
+    $altCfg = $ubillingConfig->getAlter();
+    $lookuplink = '';
+    $newValue = '';
+    $result = '';
+    //mac vendor search
+    if ($altCfg['MACVEN_ENABLED']) {
+        $optionState = $altCfg['MACVEN_ENABLED'];
         switch ($optionState) {
             case 1:
-                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $olddata . '&username=';
+                $lookupUrl = '?module=macvendor&modalpopup=true&mac=' . $currentMac . '&username=';
                 $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
                 $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
                 break;
             case 2:
-                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
+                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $currentMac . '" width="360" height="160" frameborder="0"');
                 $vendorframe .= wf_tag('iframe', true);
                 $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
                 break;
             case 3:
-                $lookupUrl = '?module=macvendor&raw=true&mac=' . $olddata;
+                $lookupUrl = '?module=macvendor&raw=true&mac=' . $currentMac;
                 $lookuplink = wf_AjaxLink($lookupUrl, wf_img('skins/macven.gif', __('Device vendor')), 'macvendorcontainer', false);
                 $lookuplink .= wf_AjaxContainerSpan('macvendorcontainer', '', '');
                 break;
         }
+    }
+
+    //only for manual input form
+    if ($manualInput) {
+        //random MAC preset
+        if ($altCfg['MACCHANGERANDOMDEFAULT']) {
+            $randomMac = zb_MacGetRandom();
+            if (zb_mac_unique($randomMac)) {
+                $newValue = $randomMac;
+            } else {
+                show_error('Oops');
+                $newValue = '';
+            }
+        }
+    }
+
+    //custom input types here
+    if ($manualInput) {
+        $macInput = wf_TextInput('newmac', '', $newValue, false, '', 'mac');
     } else {
-        $lookuplink = '';
+        $macInput = zb_NewMacSelect();
     }
 
     $cells = wf_TableCell(__('User'), '', 'row2');
-    $cells .= wf_TableCell($useraddress, '', 'row3');
+    $cells .= wf_TableCell($userAddress, '', 'row3');
     $rows = wf_TableRow($cells);
-
-    $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
-    $cells .= wf_TableCell($olddata, '', 'row3');
+    $cells = wf_TableCell(__('Current MAC') . ' ' . $lookuplink, '', 'row2');
+    $cells .= wf_TableCell($currentMac, '', 'row3');
     $rows .= wf_TableRow($cells);
+    $cells = wf_TableCell(__('New MAC'), '', 'row2');
 
-    $cells = wf_TableCell($field2, '', 'row2');
-    $cells .= wf_TableCell(zb_NewMacSelect(), '', 'row3');
+    $cells .= wf_TableCell($macInput, '', 'row3');
     $rows .= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
     $inputs = $table;
     $inputs .= wf_Submit(__('Change'));
     $inputs .= wf_delimiter();
-    $form = wf_Form("", 'POST', $inputs, '');
+    $result .= wf_Form('', 'POST', $inputs, '');
 
-    return($form);
+    return($result);
 }
 
 /**
