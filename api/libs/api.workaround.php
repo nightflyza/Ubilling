@@ -6693,7 +6693,7 @@ function web_MultigenListClients() {
             $cells = wf_TableCell($each['nasname']);
             $cells .= wf_TableCell($each['shortname']);
             $cells .= wf_TableCell($each['secret']);
-            $rows .= wf_TableRow($cells, 'row3');
+            $rows .= wf_TableRow($cells, 'row5');
         }
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
     }
