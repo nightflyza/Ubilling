@@ -23,7 +23,7 @@ if (cfr('MAC')) {
                     multinet_change_mac($ip, $mac);
                     if ($altercfg['MULTIGEN_ENABLED']) {
                         $newUserData = $userData;
-                        $newUserData['mac'] = $mac;
+                        $newUserData['mac'] = strtolower($mac);
                         $mlg = new MultiGen();
                         if ($altercfg['MULTIGEN_POD_ON_MAC_CHANGE'] == 2) {
                             $mlg->podOnExternalEvent($login, $userData, $newUserData);
