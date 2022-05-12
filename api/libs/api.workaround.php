@@ -341,8 +341,6 @@ function zb_NewMacSelect($name = 'newmac') {
     return($result);
 }
 
-
-
 /**
  * Renders user MAC editing form
  * 
@@ -6681,22 +6679,27 @@ function web_JuniperListClients() {
  * @return string
  */
 function web_MultigenListClients() {
-    $result = __('Nothing found');
-    $query = "SELECT * from `" . MultiGen::CLIENTS . "`";
-    $all = simple_queryall($query);
-    if (!empty($all)) {
+    $result = '';
+    $mlgClientsDb = new NyanORM(MultiGen::CLIENTS);
+    $allClients = $mlgClientsDb->getAll();
+    if (!empty($allClients)) {
         $cells = wf_TableCell(__('IP'));
         $cells .= wf_TableCell(__('NAS name'));
         $cells .= wf_TableCell(__('Radius secret'));
         $rows = wf_TableRow($cells, 'row1');
-        foreach ($all as $io => $each) {
+        foreach ($allClients as $io => $each) {
             $cells = wf_TableCell($each['nasname']);
             $cells .= wf_TableCell($each['shortname']);
             $cells .= wf_TableCell($each['secret']);
             $rows .= wf_TableRow($cells, 'row5');
         }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result .= $messages->getStyledMessage(__('Nothing found'), 'warning');
     }
+    $result .= wf_delimiter();
+    $result .= wf_Link(MultigenECN::URL_ME, wf_img('skins/icon_servers.png') . ' ' . __('Extra chromosome NASes'), false, 'ubButton');
 
     return ($result);
 }

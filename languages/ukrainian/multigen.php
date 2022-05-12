@@ -41,3 +41,5 @@ $lang['def']['cant detect username for'] = 'не вийшло визначити
 $lang['def']['Multigen sessions'] = 'Сесії КупаГен-а';
 $lang['def']['Show only unfinished'] = 'Показувати тільки незавершені';
 $lang['def']['cant detect data columns'] = 'не можу визначити структуру даних';
+$lang['def']['Extra chromosome NASes'] = 'NAS-и з додатковою хромосомою';
+
