@@ -2232,7 +2232,7 @@ function web_NasAddForm() {
         'local' => 'Local NAS',
         'rscriptd' => 'rscriptd',
         'mikrotik' => 'MikroTik',
-        'radius' => 'Radius'
+        'radius' => 'RADIUS'
     );
 
 

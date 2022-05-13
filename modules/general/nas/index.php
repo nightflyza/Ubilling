@@ -145,7 +145,7 @@ if (cfr('NAS')) {
             'local' => 'Local NAS',
             'rscriptd' => 'rscriptd',
             'mikrotik' => 'MikroTik',
-            'radius' => 'Radius'
+            'radius' => 'RADIUS'
         );
 
 
