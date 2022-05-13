@@ -213,7 +213,6 @@ REMOTEAPI_ENABLED=TRIGGER|Remote API calls enabled
 ONEPUNCH_ENABLED=TRIGGER|One-Punch scripts RemoteAPI calls enabled
 SWYMAP_ENABLED=TRIGGER|Switch map enabled
 CUSTMAP_ENABLED=TRIGGER|Custom maps enabled
-FREERADIUS_ENABLED=TRIGGER|Support of Free Radius is enabled
 MULTIGEN_ENABLED=TRIGGER|Multigen support is enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
 UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds

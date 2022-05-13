@@ -2075,88 +2075,76 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
 }
 
 /**
- * Returns NAS editing grid
+ * Returns existing NAS servers list with some controls
  * 
- * @param array $titles
- * @param array $keys
- * @param array $alldata
- * @param string $module
- * @param bool $delete
- * @param bool $edit
- * @param string $prefix
+ * @global object $ubillingConfig
+ * 
  * @return string
  */
-function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $edit = true, $prefix = '') {
+function web_NasList() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $allNasData = zb_NasGetAllData();
     $messages = new UbillingMessageHelper();
-// Получаем список сетей
     $networks = multinet_get_all_networks();
     $cidrs = array();
+    $result = '';
+
+    $availableTypes = array(
+        'local' => 'Local NAS',
+        'rscriptd' => 'rscriptd',
+        'mikrotik' => 'MikroTik',
+        'radius' => 'RADIUS'
+    );
+
+    //preprocessing networks data
     if (!empty($networks)) {
         foreach ($networks as $network)
             $cidrs[$network['id']] = $network['desc'];
     }
-// Заголовок таблицы
-    $cells = '';
-    foreach ($titles as $title)
-        $cells .= wf_TableCell(__($title));
-    $cells .= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
 
-// Содержимое таблицы
-    if (!empty($alldata)) {
-        foreach ($alldata as $data) {
-            $cells = '';
+    if (!empty($allNasData)) {
+        $cells = wf_TableCell(__('ID'));
+        $cells .= wf_TableCell(__('Network'));
+        $cells .= wf_TableCell(__('IP'));
+        $cells .= wf_TableCell(__('NAS name'));
+        $cells .= wf_TableCell(__('NAS type'));
+        $cells .= wf_TableCell(__('Graphs URL'));
+        $cells .= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        foreach ($allNasData as $io => $eachNasData) {
             $actions = '';
-            if ($delete) {
-                $deleteUrl = '?module=' . $module . '&' . $prefix . 'delete=' . $data['id'];
-                $cancelUrl = '?module=nas';
-                $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $data['nasip'] . '?';
-                $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
+            $deleteUrl = '?module=nas&delete=' . $eachNasData['id'];
+            $cancelUrl = '?module=nas';
+            $deleteDialogTitle = __('Delete') . ' ' . __('NAS') . ' ' . $eachNasData['nasip'] . '?';
+            $actions .= wf_ConfirmDialog($deleteUrl, web_delete_icon(), $messages->getDeleteAlert(), '', $cancelUrl, $deleteDialogTitle);
+            $actions .= wf_Link('?module=nas&edit=' . $eachNasData['id'], web_edit_icon());
+            if ($eachNasData['nastype'] == 'mikrotik' AND $altCfg['MIKROTIK_SUPPORT']) {
+                $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $eachNasData['id'], web_icon_extended('MikroTik extended configuration'));
+            }
+            if ($altCfg['MULTIGEN_ENABLED']) {
+                $actions .= wf_Link('?module=multigen&editnasoptions=' . $eachNasData['id'], web_icon_settings(__('Configure Multigen NAS')));
             }
 
-            if ($edit) {
-                $actions .= wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $data['id'], web_edit_icon());
-            }
 
-            foreach ($keys as $key) {
-                if (array_key_exists($key, $data)) {
-                    switch ($key) {
-                        case 'netid':
-                            $cells .= wf_TableCell($data[$key] . ': ' . ( ( array_key_exists($data[$key], $cidrs) ) ? $cidrs[$data[$key]] : __('Network not found')));
-                            break;
-                        case 'nastype':
-                            if ($data[$key] == 'mikrotik') {
-                                if ($altCfg['MIKROTIK_SUPPORT']) {
-                                    $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
-                                }
-                            }
-                            if ($data[$key] == 'radius') {
-                                if ($altCfg['FREERADIUS_ENABLED']) {
-                                    $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
-                                }
-                            }
-
-                            if ($altCfg['MULTIGEN_ENABLED']) {
-                                $actions .= wf_Link('?module=multigen&editnasoptions=' . $data['id'], web_icon_settings(__('Configure Multigen NAS')));
-                            }
-                            $cells .= wf_TableCell($data[$key]);
-                            break;
-                        default:
-                            $cells .= wf_TableCell($data[$key]);
-                            break;
-                    }
-                }
-            }
+            $netCidr = (isset($cidrs[$eachNasData['netid']])) ? $cidrs[$eachNasData['netid']] : $eachNasData['netid'] . ': ' . __('Network not found');
+            $nasTypeLabel = (isset($availableTypes[$eachNasData['nastype']])) ? $availableTypes[$eachNasData['nastype']] : $eachNasData['nastype'];
+            $cells = wf_TableCell($eachNasData['id']);
+            $cells .= wf_TableCell($netCidr);
+            $cells .= wf_TableCell($eachNasData['nasip']);
+            $cells .= wf_TableCell($eachNasData['nasname']);
+            $cells .= wf_TableCell($nasTypeLabel);
+            $cells .= wf_TableCell($eachNasData['bandw']);
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row5');
         }
+        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    } else {
+        $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
     }
-// Результат - таблица
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
-// Отображаем результат
-    return $result;
+
+    return($result);
 }
 
 /**
@@ -5140,32 +5128,6 @@ function zb_CreditLogGetAll() {
             $result[$each['login']] = $each['date'];
         }
     }
-    return ($result);
-}
-
-/**
- * returns list of available free radius clients/nases
- * 
- * @return string
- */
-function web_FreeRadiusListClients() {
-    $result = __('Nothing found');
-    $query = "SELECT * from `radius_clients`";
-    $all = simple_queryall($query);
-    if (!empty($all)) {
-        $cells = wf_TableCell(__('IP'));
-        $cells .= wf_TableCell(__('NAS name'));
-        $cells .= wf_TableCell(__('Radius secret'));
-        $rows = wf_TableRow($cells, 'row1');
-        foreach ($all as $io => $each) {
-            $cells = wf_TableCell($each['nasname']);
-            $cells .= wf_TableCell($each['shortname']);
-            $cells .= wf_TableCell($each['secret']);
-            $rows .= wf_TableRow($cells, 'row3');
-        }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
-    }
-
     return ($result);
 }
 

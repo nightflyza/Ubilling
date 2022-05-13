@@ -30,33 +30,8 @@ if (cfr('NAS')) {
     }
 
 
-    // Show available NASes
-    $allnas = zb_NasGetAllData();
-
-    // construct needed editor
-    $titles = array(
-        'ID',
-        'Network',
-        'IP',
-        'NAS name',
-        'NAS type',
-        'Graphs URL'
-    );
-    $keys = array('id',
-        'netid',
-        'nasip',
-        'nasname',
-        'nastype',
-        'bandw'
-    );
-
     if (!ubRouting::checkGet('edit', false)) {
         $radiusControls = '';
-        if ($altCfg['FREERADIUS_ENABLED']) {
-            $freeRadiusClientsData = web_FreeRadiusListClients();
-            $radiusControls .= wf_modal(web_icon_extended(__('FreeRADIUS NAS parameters')), __('FreeRADIUS NAS parameters'), $freeRadiusClientsData, '', '600', '300');
-        }
-
         if ($altCfg['JUNGEN_ENABLED']) {
             $juniperRadiusClientData = web_JuniperListClients();
             $radiusControls .= ' ' . wf_modal(web_icon_extended(__('Juniper NAS parameters')), __('Juniper NAS parameters'), $juniperRadiusClientData, '', '600', '300');
@@ -70,7 +45,7 @@ if (cfr('NAS')) {
         if ($altCfg['NASMON_ENABLED']) {
             $radiusControls .= ' ' . wf_Link('?module=report_nasmon&callback=nas', wf_img_sized('skins/icon_stats.gif', __('NAS servers state'), '16', '16'));
         }
-        show_window(__('Network Access Servers') . ' ' . $radiusControls, web_GridEditorNas($titles, $keys, $allnas, 'nas'));
+        show_window(__('Network Access Servers') . ' ' . $radiusControls, web_NasList());
         show_window(__('Add new'), web_NasAddForm());
         //vlangen patch start
         if ($altCfg['VLANGEN_SUPPORT']) {
