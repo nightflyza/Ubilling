@@ -2625,3 +2625,18 @@ function zb_MacGetRandom() {
     $result = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
     return($result);
 }
+
+/**
+ * Checks have some IP valid format or not?
+ * 
+ * @param string $ip
+ * 
+ * @return bool
+ */
+function zb_isIPValid($ip) {
+    $result = false;
+    if (filter_var($ip, FILTER_VALIDATE_IP)) {
+        $result = true;
+    }
+    return($result);
+}

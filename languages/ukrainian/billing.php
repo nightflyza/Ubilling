@@ -1148,7 +1148,7 @@ $lang['def']['Password security type'] = 'Тип безпечності паро
 $lang['def']['Advanced customer relationship management'] = 'Розширений режим роботи з клієнтами';
 
 //rev 2191
-$lang['def']['Wrong IP'] = 'Невірна IP адреса, а ми доречі попереджали, що малювати їх руками дурна думка.';
+$lang['def']['Wrong IP'] = 'Невірна IP адреса, а ми до речі попереджали, що малювати їх руками дурна думка.';
 $lang['def']['Coverage area'] = 'Зона покриття';
 $lang['def']['Express card user register'] = 'Експресс карточка - реєстрація користувача';
 $lang['def']['No all of required fields is filled'] = 'Заповнено не усі обовязкові поля';

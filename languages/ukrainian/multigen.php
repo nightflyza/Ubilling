@@ -42,4 +42,8 @@ $lang['def']['Multigen sessions'] = 'Сесії КупаГен-а';
 $lang['def']['Show only unfinished'] = 'Показувати тільки незавершені';
 $lang['def']['cant detect data columns'] = 'не можу визначити структуру даних';
 $lang['def']['Extra chromosome NASes'] = 'NAS-и з додатковою хромосомою';
-
+$lang['def']['Custom NAS configuration'] = 'Кастомні налаштування NAS';
+$lang['def']['IP duplicate'] = 'Дублікат IP';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';

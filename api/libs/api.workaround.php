@@ -6685,7 +6685,7 @@ function web_MultigenListClients() {
     if (!empty($allClients)) {
         $cells = wf_TableCell(__('IP'));
         $cells .= wf_TableCell(__('NAS name'));
-        $cells .= wf_TableCell(__('Radius secret'));
+        $cells .= wf_TableCell(__('RADIUS secret'));
         $rows = wf_TableRow($cells, 'row1');
         foreach ($allClients as $io => $each) {
             $cells = wf_TableCell($each['nasname']);
@@ -6699,7 +6699,7 @@ function web_MultigenListClients() {
         $result .= $messages->getStyledMessage(__('Nothing found'), 'warning');
     }
     $result .= wf_delimiter();
-    $result .= wf_Link(MultigenECN::URL_ME, wf_img('skins/icon_servers.png') . ' ' . __('Extra chromosome NASes'), false, 'ubButton');
+    $result .= wf_Link(MultigenECN::URL_ME, wf_img('skins/icon_servers.png') . ' ' . __('Custom NAS configuration'), false, 'ubButton');
 
     return ($result);
 }
