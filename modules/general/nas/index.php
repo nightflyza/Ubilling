@@ -32,11 +32,6 @@ if (cfr('NAS')) {
 
     if (!ubRouting::checkGet('edit', false)) {
         $radiusControls = '';
-        if ($altCfg['JUNGEN_ENABLED']) {
-            $juniperRadiusClientData = web_JuniperListClients();
-            $radiusControls .= ' ' . wf_modal(web_icon_extended(__('Juniper NAS parameters')), __('Juniper NAS parameters'), $juniperRadiusClientData, '', '600', '300');
-        }
-
         if ($altCfg['MULTIGEN_ENABLED']) {
             $multigenRadiusClientData = web_MultigenListClients();
             $radiusControls .= ' ' . wf_modal(web_icon_extended(__('Multigen NAS parameters')), __('Multigen NAS parameters'), $multigenRadiusClientData, '', '600', '300');
