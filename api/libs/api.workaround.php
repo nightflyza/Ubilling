@@ -6682,6 +6682,7 @@ function web_MultigenListClients() {
     $result = '';
     $mlgClientsDb = new NyanORM(MultiGen::CLIENTS);
     $allClients = $mlgClientsDb->getAll();
+    $mlgEcn = new MultigenECN();
     if (!empty($allClients)) {
         $cells = wf_TableCell(__('IP'));
         $cells .= wf_TableCell(__('NAS name'));
@@ -6689,7 +6690,7 @@ function web_MultigenListClients() {
         $rows = wf_TableRow($cells, 'row1');
         foreach ($allClients as $io => $each) {
             $cells = wf_TableCell($each['nasname']);
-            $cells .= wf_TableCell($each['shortname']);
+            $cells .= wf_TableCell($each['shortname'] . $mlgEcn->getIndicator($each['nasname']));
             $cells .= wf_TableCell($each['secret']);
             $rows .= wf_TableRow($cells, 'row5');
         }

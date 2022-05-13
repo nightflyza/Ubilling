@@ -178,6 +178,21 @@ class MultigenECN {
     }
 
     /**
+     * Returns something to indicate that NAS have custom configuration
+     * 
+     * @param string $ip
+     * 
+     * @return string
+     */
+    public function getIndicator($ip) {
+        $result = '';
+        if (!$this->isIpFree($ip)) {
+            $result .= ' ' . wf_img_sized('skins/dna_icon.png', __('Extra chromosome NAS'), 12);
+        }
+        return($result);
+    }
+
+    /**
      * Creates new custom NAS in database
      * 
      * @param string $ip
