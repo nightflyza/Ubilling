@@ -40,6 +40,7 @@ if (cfr('NAS')) {
         if ($altCfg['NASMON_ENABLED']) {
             $radiusControls .= ' ' . wf_Link('?module=report_nasmon&callback=nas', wf_img_sized('skins/icon_health.png', __('NAS servers state'), '16', '16'));
         }
+        //rendering available NASes list and creation form
         show_window(__('Network Access Servers') . ' ' . $radiusControls, web_NasList());
         show_window(__('Add new'), web_NasAddForm());
         //vlangen patch start
