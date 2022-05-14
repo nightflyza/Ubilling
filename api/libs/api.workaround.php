@@ -2089,13 +2089,7 @@ function web_NasList() {
     $networks = multinet_get_all_networks();
     $cidrs = array();
     $result = '';
-
-    $availableTypes = array(
-        'local' => 'Local NAS',
-        'rscriptd' => 'rscriptd',
-        'mikrotik' => 'MikroTik',
-        'radius' => 'RADIUS'
-    );
+    $availableTypes = zb_NasGetTypes();
 
     //preprocessing networks data
     if (!empty($networks)) {
@@ -2210,20 +2204,27 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
 }
 
 /**
- * Retruns nas creation form
+ * Returns array of available NAS types as nastype=>nastypename
  * 
- * @return string
+ * @return array
  */
-function web_NasAddForm() {
-
+function zb_NasGetTypes() {
     $nastypes = array(
         'local' => 'Local NAS',
         'rscriptd' => 'rscriptd',
         'mikrotik' => 'MikroTik',
         'radius' => 'RADIUS'
     );
+    return($nastypes);
+}
 
-
+/**
+ * Retruns NAS creation form
+ * 
+ * @return string
+ */
+function web_NasAddForm() {
+    $nastypes = zb_NasGetTypes();
     $inputs = multinet_network_selector() . wf_tag('label', false, '', 'for="networkselect"') . __('Network') . wf_tag('label', true) . wf_tag('br');
     $inputs .= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
     $inputs .= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
@@ -2234,6 +2235,38 @@ function web_NasAddForm() {
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
     return($form);
+}
+
+/**
+ * Returns NAS editing form
+ * 
+ * @param int $nasId
+ * 
+ * @return string
+ */
+function web_NasEditForm($nasId) {
+    $nasId = ubRouting::filters($nasId, 'int');
+    $nasdata = zb_NasGetData($nasId);
+    $nastypes = zb_NasGetTypes();
+    $currentnetid = $nasdata['netid'];
+    $currentnasip = $nasdata['nasip'];
+    $currentnasname = $nasdata['nasname'];
+    $currentnastype = $nasdata['nastype'];
+    $currentbwdurl = $nasdata['bandw'];
+
+
+
+    //rendering editing form
+    $editinputs = multinet_network_selector($currentnetid) . "<br>";
+    $editinputs .= wf_Selector('editnastype', $nastypes, 'NAS type', $currentnastype, true);
+    $editinputs .= wf_TextInput('editnasip', 'IP', $currentnasip, true, '15', 'ip');
+    $editinputs .= wf_TextInput('editnasname', 'NAS name', $currentnasname, true, '15');
+    $editinputs .= wf_TextInput('editnasbwdurl', 'Graphs URL', $currentbwdurl, true, '25');
+    $editinputs .= wf_Submit('Save');
+    $result = wf_Form('', 'POST', $editinputs, 'glamour');
+    $result .= wf_delimiter();
+    $result .= wf_BackLink('?module=nas');
+    return($result);
 }
 
 /**
@@ -6608,7 +6641,6 @@ function zb_CleanMobileNumber($number) {
 
     return ($number);
 }
-
 
 /**
  * Returns list of available MultiGen NASes

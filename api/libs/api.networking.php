@@ -200,7 +200,7 @@ function multinet_show_neteditform($netid) {
     global $ubillingConfig;
     $netid = vf($netid, 3);
     $netdata = multinet_get_network_params($netid);
-    
+
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('netedit', 'true');
     $inputs .= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20', 'ip');
@@ -329,7 +329,7 @@ function multinet_nettype_selector($curnettype = '') {
  */
 function multinet_show_networks_create_form() {
     global $ubillingConfig;
-    
+
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('addnet', 'true');
     $inputs .= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20', 'ip');
@@ -1602,6 +1602,35 @@ function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
     nr_query($query);
     $newId = simple_get_lastid('nas');
     log_register('NAS ADD [' . $newId . '] `' . $nasip . '`');
+}
+
+/**
+ * Updates existing NAS parameters in database
+ * 
+ * @param int $nasid
+ * @param string $nastype
+ * @param string $nasip
+ * @param string $nasname
+ * @param string $nasbwdurl
+ * @param int $netid
+ * 
+ * @return void
+ */
+function zb_NasUpdateParams($nasid, $nastype, $nasip, $nasname, $nasbwdurl, $netid) {
+    $nasid = ubRouting::filters($nasid, 'int');
+    $nastype = ubRouting::filters($nastype, 'mres');
+    $nasip = ubRouting::filters($nasip, 'mres');
+    $nasname = ubRouting::filters($nasname, 'mres');
+    $nasbwdurl = trim(ubRouting::filters($nasbwdurl, 'mres'));
+    $netid = ubRouting::filters($netid, 'int');
+
+    $targetnas = "WHERE `id` = '" . $nasid . "'";
+    simple_update_field('nas', 'nastype', $nastype, $targetnas);
+    simple_update_field('nas', 'nasip', $nasip, $targetnas);
+    simple_update_field('nas', 'nasname', $nasname, $targetnas);
+    simple_update_field('nas', 'bandw', $nasbwdurl, $targetnas);
+    simple_update_field('nas', 'netid', $netid, $targetnas);
+    log_register('NAS EDIT [' . $nasid . '] `' . $nasip . '`');
 }
 
 /**

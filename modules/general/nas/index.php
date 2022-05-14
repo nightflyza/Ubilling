@@ -38,7 +38,7 @@ if (cfr('NAS')) {
         }
 
         if ($altCfg['NASMON_ENABLED']) {
-            $radiusControls .= ' ' . wf_Link('?module=report_nasmon&callback=nas', wf_img_sized('skins/icon_stats.gif', __('NAS servers state'), '16', '16'));
+            $radiusControls .= ' ' . wf_Link('?module=report_nasmon&callback=nas', wf_img_sized('skins/icon_health.png', __('NAS servers state'), '16', '16'));
         }
         show_window(__('Network Access Servers') . ' ' . $radiusControls, web_NasList());
         show_window(__('Add new'), web_NasAddForm());
@@ -81,54 +81,22 @@ if (cfr('NAS')) {
         }
         //vlangen patch end
     } else {
-        //show editing form
+        //NAS id to edit
         $nasid = ubRouting::get('edit', 'int');
-
-        //if someone editing nas
+        //updating NAS parameters on form receive
         if (ubRouting::checkPost('editnastype')) {
-            $targetnas = "WHERE `id` = '" . $nasid . "'";
+            $nastype = ubRouting::post('editnastype');
+            $nasip = ubRouting::post('editnasip');
+            $nasname = ubRouting::post('editnasname');
+            $nasbwdurl = ubRouting::post('editnasbwdurl');
+            $netid = ubRouting::post('networkselect');
 
-            $nastype = ubRouting::post('editnastype', 'mres');
-            $nasip = ubRouting::post('editnasip', 'mres');
-            $nasname = ubRouting::post('editnasname', 'mres');
-            $nasbwdurl = trim(ubRouting::post('editnasbwdurl', 'mres'));
-            $netid = ubRouting::post('networkselect', 'int');
-
-            simple_update_field('nas', 'nastype', $nastype, $targetnas);
-            simple_update_field('nas', 'nasip', $nasip, $targetnas);
-            simple_update_field('nas', 'nasname', $nasname, $targetnas);
-            simple_update_field('nas', 'bandw', $nasbwdurl, $targetnas);
-            simple_update_field('nas', 'netid', $netid, $targetnas);
+            zb_NasUpdateParams($nasid, $nastype, $nasip, $nasname, $nasbwdurl, $netid);
             zb_NasConfigSave();
-            log_register('NAS EDIT [' . $nasid . '] `' . $nasip . '`');
             ubRouting::nav('?module=nas&edit=' . $nasid);
         }
-
-
-        $nasdata = zb_NasGetData($nasid);
-        $currentnetid = $nasdata['netid'];
-        $currentnasip = $nasdata['nasip'];
-        $currentnasname = $nasdata['nasname'];
-        $currentnastype = $nasdata['nastype'];
-        $currentbwdurl = $nasdata['bandw'];
-        $nastypes = array(
-            'local' => 'Local NAS',
-            'rscriptd' => 'rscriptd',
-            'mikrotik' => 'MikroTik',
-            'radius' => 'RADIUS'
-        );
-
-
         //rendering editing form
-        $editinputs = multinet_network_selector($currentnetid) . "<br>";
-        $editinputs .= wf_Selector('editnastype', $nastypes, 'NAS type', $currentnastype, true);
-        $editinputs .= wf_TextInput('editnasip', 'IP', $currentnasip, true, '15', 'ip');
-        $editinputs .= wf_TextInput('editnasname', 'NAS name', $currentnasname, true, '15');
-        $editinputs .= wf_TextInput('editnasbwdurl', 'Graphs URL', $currentbwdurl, true, '25');
-        $editinputs .= wf_Submit('Save');
-        $editform = wf_Form('', 'POST', $editinputs, 'glamour');
-        show_window(__('Edit') . ' NAS', $editform);
-        show_window('', wf_BackLink("?module=nas"));
+        show_window(__('Edit') . ' NAS', web_NasEditForm($nasid));
     }
 } else {
     show_error(__('You cant control this module'));
