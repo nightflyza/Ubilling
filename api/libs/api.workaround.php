@@ -6547,3 +6547,20 @@ function web_AdministratorEditForm($adminLogin) {
     }
     return($result);
 }
+
+/**
+ * Returns bank statements file upload form.
+ * Backported from old banksta API as HotFix. 
+ * TODO: need to be replaced where it used with normal forms.
+ * 
+ * @param string $action
+ * @param string $method
+ * @param string $inputs
+ * @param string $class
+ * 
+ * @return string
+ */
+function bs_UploadFormBody($action, $method, $inputs, $class = '') {
+    $form= wf_Form($action, $method, $inputs, $class, '', '', '', 'enctype="multipart/form-data"');
+    return ($form);
+}
