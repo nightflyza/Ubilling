@@ -830,6 +830,13 @@ class Envy {
             foreach ($this->allConfigs as $io => $each) {
                 if (!$devFilter OR $devFilter == $each['switchid']) {
                     @$switchData = $this->allSwitches[$each['switchid']];
+                    //maybe deleted switch?
+                    if (empty($switchData)) {
+                        $switchData = array(
+                            'ip' => __('Deleted'),
+                            'location' => __('ID') . ' [' . $each['switchid'] . '] ' . __('Deleted'),
+                        );
+                    }
                     $data[] = $each['date'];
                     $data[] = @$switchData['ip'];
                     $data[] = @$switchData['location'];
