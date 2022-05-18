@@ -2152,22 +2152,6 @@ class PONizer {
                                     $ifaceCustDescrIndex = explodeRows($ifaceCustDescrIndex);
                                 }
                             }
-//getting other system data from OLT
-                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
-                                //OLT uptime
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
-                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
-                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
-                                    $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
-                                }
-
-                                //OLT temperature
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
-                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
-                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
-                                    $this->temperatureParseBd($oltid, $oltTemperatureRaw);
-                                }
-                            }
 //getting MAC index.
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
@@ -2237,22 +2221,6 @@ class PONizer {
                                             $FDBIndex = explodeRows($FDBIndex);
                                         }
                                     }
-                                }
-                            }
-//getting other system data from OLT
-                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
-                                //OLT uptime
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
-                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
-                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
-                                    $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
-                                }
-
-                                //OLT temperature
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
-                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
-                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
-                                    $this->temperatureParseBd($oltid, $oltTemperatureRaw);
                                 }
                             }
 //getting MAC index.
@@ -2359,22 +2327,6 @@ class PONizer {
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
 
-                            if (isset($this->snmpTemplates[$oltModelId]['system'])) {
-                                //OLT uptime
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
-                                    $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
-                                    $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
-                                    $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
-                                }
-
-                                //OLT temperature
-                                if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
-                                    $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
-                                    $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
-                                    $this->temperatureParseBd($oltid, $oltTemperatureRaw);
-                                }
-                            }
-
                             if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
                                 $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 //ONU distance polling for stels devices
@@ -2475,6 +2427,23 @@ class PONizer {
                                         $this->fdbParseVSOL($oltid, $VSOLMACsProcessed, $fdbIndex, $fdbVLANIndex);
                                     }
                                 }
+                            }
+                        }
+
+//getting others system data from OLTs (BDCOM, Stels, ZTE)
+                        if (isset($this->snmpTemplates[$oltModelId]['system'])) {
+                            //OLT uptime
+                            if (isset($this->snmpTemplates[$oltModelId]['system']['UPTIME'])) {
+                                $uptimeIndexOid = $this->snmpTemplates[$oltModelId]['system']['UPTIME'];
+                                $oltSystemUptimeRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $uptimeIndexOid, self::SNMPCACHE);
+                                $this->uptimeParseBd($oltid, $oltSystemUptimeRaw);
+                            }
+
+                            //OLT temperature
+                            if (isset($this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'])) {
+                                $temperatureIndexOid = $this->snmpTemplates[$oltModelId]['system']['TEMPERATURE'];
+                                $oltTemperatureRaw = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $temperatureIndexOid, self::SNMPCACHE);
+                                $this->temperatureParseBd($oltid, $oltTemperatureRaw);
                             }
                         }
 
