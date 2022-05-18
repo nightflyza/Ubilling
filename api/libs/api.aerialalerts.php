@@ -44,9 +44,11 @@ class AerialAlerts {
      * Some predefined routes, URLS, etc
      */
     const DATA_SOURCE = 'http://ubilling.net.ua/aerialalerts/';
+    const MAP_SOURCE = 'http://ubilling.net.ua/aerialalerts/?map=true';
     const ALERTS_KEY = 'AERIALALERTS';
     const URL_ME = '?module=report_aerial';
     const ROUTE_ALL = 'allregions';
+    const ROUTE_MAP = 'showmap';
 
     public function __construct() {
         $this->initMessages();
@@ -106,6 +108,7 @@ class AerialAlerts {
         $result = '';
         $result .= wf_Link(self::URL_ME, wf_img('skins/admannouncements.png') . ' ' . __('Alarm now'), false, 'ubButton');
         $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_ALL . '=true', wf_img('skins/zbsannouncements.png') . ' ' . __('All'), false, 'ubButton');
+        $result .= wf_Link(self::URL_ME . '&' . self::ROUTE_MAP . '=true', wf_img('skins/icon_map_small.png') . ' ' . __('Alerts map'), false, 'ubButton');
         return($result);
     }
 
@@ -140,6 +143,35 @@ class AerialAlerts {
         } else {
             $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Empty reply received'), 'error');
         }
+        return($result);
+    }
+
+    /**
+     * Returns precached alerts map html image code
+     * 
+     * @return string
+     */
+    public function renderMap() {
+        $result = '';
+        $nowTime = time();
+        $fileName = 'exports/alertsmap_' . date("Y-m-d_H_i", $nowTime) . '.dat';
+        if (!file_exists($fileName)) {
+            $mapApi = new OmaeUrl(self::MAP_SOURCE);
+            $mapApi->setUserAgent('Ubilling AerialAlertsMap');
+            $rawMap = $mapApi->response();
+            $rawMap = base64_encode($rawMap);
+            file_put_contents($fileName, $rawMap);
+        } else {
+            $rawMap = file_get_contents($fileName);
+        }
+
+        if (!empty($rawMap)) {
+            $encodedImage = 'data:image/png;base64,' . $rawMap;
+            $result = wf_tag('center') . wf_img($encodedImage, date("Y-m-d H:i", $nowTime)) . wf_tag('center', true);
+        } else {
+            $result .= $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Unable to load data'), 'error');
+        }
+
         return($result);
     }
 

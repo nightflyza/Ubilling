@@ -3375,3 +3375,5 @@ $lang['def']['Unbelievable, there are no air alarms at the moment. Does this hap
 $lang['def']['Disks capacity'] = 'Емкость дисков';
 $lang['def']['Free space'] = 'Свободное место';
 $lang['def']['right to manage administrators accounts'] = 'Право упрвлять учетными записями администраторов';
+$lang['def']['Alerts map'] = 'Тревожная карта';
+$lang['def']['Unable to load data'] = 'Не получилось загрузить данные';
