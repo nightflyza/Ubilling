@@ -763,8 +763,13 @@ function zbs_XMLAgentRender($data, $mainSection = '', $subSection = '', $format 
 
 
     //pushing result to client
+    $contentType = 'text';
+    if ($format == 'json') {
+        $contentType = 'application/json';
+    }
+
     header('Last-Modified: ' . gmdate('r'));
-    header('Content-Type: application/' . $format . '; charset=UTF-8');
+    header('Content-Type: ' . $contentType . '; charset=UTF-8');
     header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
     header("Pragma: no-cache");
     header('Access-Control-Allow-Origin: *');
