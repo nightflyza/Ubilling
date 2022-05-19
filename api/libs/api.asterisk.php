@@ -449,7 +449,7 @@ class Asterisk {
         $inputs .= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
         $inputs .= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
         if (!isset($user_login)) {
-            $inputs .= wf_Trigger('countnum', 'Показать самых назойливых', false);
+            $inputs .= wf_Trigger('countnum', __('Show the most annoying'), false);
         }
         $inputs .= wf_Submit(__('Show'));
         $result = wf_Form("", "POST", $inputs, 'glamour');
@@ -812,7 +812,7 @@ class Asterisk {
         }
 
         if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
-            $columns[] = 'Назойливость';
+            $columns[] = __('Annoyance');
             $countnum = '&countnum=true';
         } else {
             $columns[] = 'Comments';
