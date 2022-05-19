@@ -4613,12 +4613,20 @@ function zb_DownloadFile($filePath, $contentType = '') {
                     $contentType = 'text/csv; charset=Windows-1251';
                 }
 
+                if ($contentType == 'excel') {
+                    $contentType = 'application/vnd.ms-excel';
+                }
+
                 if ($contentType == 'text') {
                     $contentType = 'text/plain;';
                 }
 
                 if ($contentType == 'jpg') {
                     $contentType = 'Content-Type: image/jpeg';
+                }
+
+                if ($contentType == 'png') {
+                    $contentType = 'Content-Type: image/png';
                 }
             }
 
@@ -6561,6 +6569,6 @@ function web_AdministratorEditForm($adminLogin) {
  * @return string
  */
 function bs_UploadFormBody($action, $method, $inputs, $class = '') {
-    $form= wf_Form($action, $method, $inputs, $class, '', '', '', 'enctype="multipart/form-data"');
+    $form = wf_Form($action, $method, $inputs, $class, '', '', '', 'enctype="multipart/form-data"');
     return ($form);
 }

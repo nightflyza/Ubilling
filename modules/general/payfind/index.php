@@ -88,7 +88,7 @@ if (cfr('PAYFIND')) {
         $inputs .= wf_Submit(__('Save'));
         $form = wf_Form("", "POST", $inputs, 'glamour');
         $result = $form;
-        $result .= wf_BackLink("?module=payfind");
+
 
         if (!empty($allpaysys)) {
 
@@ -106,6 +106,10 @@ if (cfr('PAYFIND')) {
             }
             $result .= wf_TableBody($rows, '100%', '0', 'sortable');
         }
+
+
+        $result .= wf_BackLink("?module=payfind");
+        $result .= wf_delimiter(1);
         return ($result);
     }
 
@@ -259,18 +263,19 @@ if (cfr('PAYFIND')) {
         $inputs .= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
         $inputs .= wf_CheckInput('type_city', '', false, false);
         $inputs .= web_CitySelector() . ' ' . __('City') . wf_delimiter(0);
-        ;
+        $inputs .= wf_CheckInput('type_address', '', false, false);
+        $inputs .= wf_TextInput('payaddrcontains', __('Address contains'), '', true, 20);
         $inputs .= wf_CheckInput('type_contragent', '', false, false);
         $inputs .= zb_ContrAhentSelectPreset() . ' ' . __('Service provider') . wf_delimiter(0);
         $inputs .= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
         $inputs .= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, false);
         $inputs .= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, false);
-        //ugly spacing hack
-        $inputs .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . web_PayFindTableSelect() . wf_delimiter();
+        $inputs .= wf_nbsp(8) . web_PayFindTableSelect() . wf_delimiter();
         $inputs .= wf_HiddenInput('dosearch', 'true');
         $inputs .= wf_Submit(__('Search'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
+        $result .= wf_delimiter(0);
         $result .= wf_BackLink("?module=report_finance");
 
         return ($result);
@@ -338,6 +343,18 @@ if (cfr('PAYFIND')) {
         $cells .= wf_TableCell(__('Admin'));
         $rows = wf_TableRow($cells, 'row1');
 
+        //address contains payments prefilter
+        if (ubRouting::checkPost('type_address', 'payaddrcontains')) {
+            $addressFilter = ubRouting::post('payaddrcontains', 'mres');
+            if (!empty($allpayments)) {
+                foreach ($allpayments as $io => $each) {
+                    $eachUserAddress = (isset($alladdress[$each['login']])) ? $alladdress[$each['login']] : '';
+                    if (!ispos($eachUserAddress, $addressFilter)) {
+                        unset($allpayments[$io]);
+                    }
+                }
+            }
+        }
 
         if (!empty($allpayments)) {
             if ($altercfg['FINREP_TARIFF']) {
@@ -410,9 +427,8 @@ if (cfr('PAYFIND')) {
         }
         //saving report for future download
         if (!empty($csvdata)) {
-            $csvSaveName = 'exports/payfind_' . zb_rand_string(8) . '.csv';
+            $csvSaveName = 'exports/payfind_' . date("Y-m-d_H_i_s") . '.csv';
             $csvSaveNameEnc = base64_encode($csvSaveName);
-            @$csvdata = iconv('utf-8', 'windows-1251', $csvdata);
             file_put_contents($csvSaveName, $csvdata);
             $csvDownloadLink = wf_Link('?module=payfind&downloadcsv=' . $csvSaveNameEnc, wf_img('skins/excel.gif', __('Export')), false);
         } else {
@@ -437,6 +453,7 @@ if (cfr('PAYFIND')) {
 
     if (!wf_CheckGet(array('confpaysys'))) {
         show_window(__('Payment search'), web_PayFindForm());
+        zb_BillingStats(true);
     } else {
         show_window(__('Payment systems'), web_PaySysForm());
     }
@@ -448,7 +465,7 @@ if (cfr('PAYFIND')) {
 
     //downloading report as csv
     if (wf_CheckGet(array('downloadcsv'))) {
-        zb_DownloadFile(base64_decode($_GET['downloadcsv']), 'csv');
+        zb_DownloadFile(base64_decode($_GET['downloadcsv']), 'excel');
     }
 
     //Payment systems configuration
@@ -596,4 +613,4 @@ if (cfr('PAYFIND')) {
 } else {
     show_error(__('Access denied'));
 }
-?>
+
