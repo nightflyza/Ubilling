@@ -321,7 +321,7 @@ if ($us_config['SC_ENABLED']) {
                                                 $scAgentResult[] = array('fullmessage' => $creditResultLabel);
                                                 $scAgentResult[] = array('minday' => $sc_minday);
                                                 $scAgentResult[] = array('maxday' => $sc_maxday);
-                                                $scAgentResult[] = array('creditterm' => $sc_maxday);
+                                                $scAgentResult[] = array('creditterm' => $sc_term);
                                                 $scAgentResult[] = array('creditprice' => $sc_price);
                                                 $scAgentResult[] = array('currency' => $us_currency);
                                                 $scAgentResult[] = array('creditintro' => $wmess);
@@ -348,7 +348,7 @@ if ($us_config['SC_ENABLED']) {
                                             $scAgentResult[] = array('fullmessage' => $creditResultLabel);
                                             $scAgentResult[] = array('minday' => $sc_minday);
                                             $scAgentResult[] = array('maxday' => $sc_maxday);
-                                            $scAgentResult[] = array('creditterm' => $sc_maxday);
+                                            $scAgentResult[] = array('creditterm' => $sc_term);
                                             $scAgentResult[] = array('creditprice' => $sc_price);
                                             $scAgentResult[] = array('currency' => $us_currency);
                                             $scAgentResult[] = array('creditintro' => $wmess);
@@ -427,7 +427,7 @@ if ($us_config['SC_ENABLED']) {
     $scAgentResult[] = array('fullmessage' => $creditResultLabel);
     $scAgentResult[] = array('minday' => $sc_minday);
     $scAgentResult[] = array('maxday' => $sc_maxday);
-    $scAgentResult[] = array('creditterm' => $sc_maxday);
+    $scAgentResult[] = array('creditterm' => $sc_term);
     $scAgentResult[] = array('creditprice' => $sc_price);
     $scAgentResult[] = array('currency' => $us_currency);
     $scAgentResult[] = array('creditintro' => $wmess);
