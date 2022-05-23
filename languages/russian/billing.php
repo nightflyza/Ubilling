@@ -3377,3 +3377,4 @@ $lang['def']['Free space'] = 'Свободное место';
 $lang['def']['right to manage administrators accounts'] = 'Право упрвлять учетными записями администраторов';
 $lang['def']['Alerts map'] = 'Тревожная карта';
 $lang['def']['Unable to load data'] = 'Не получилось загрузить данные';
+$lang['def']['Show the most annoying'] = 'Показать самых назойливых';

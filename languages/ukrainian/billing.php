@@ -3398,6 +3398,7 @@ $lang['def']['Free space'] = 'Вільний простір';
 $lang['def']['right to manage administrators accounts'] = 'Право керувати обліковими записами адміністраторів';
 $lang['def']['Alerts map'] = 'Тривожна мапа';
 $lang['def']['Unable to load data'] = 'Не вдалось завантажити дані';
+$lang['def']['Show the most annoying'] = 'Показати найбільш надокучливих';
 $lang['def'][''] = '';
 
 
